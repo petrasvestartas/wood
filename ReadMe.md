@@ -8,6 +8,10 @@
 * DOC "" - documentation
 * TES "" - tests
 
+### Branches -> Create
+git branch <name>
+git checkout <name>
+
 ### Daily Screenshots
 
 2022/10/30 - mooc chapel exercise, initial set using side-to-side connection
