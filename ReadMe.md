@@ -9,8 +9,8 @@
 * TES "" - tests
 
 ### Branches -> Create
-git branch <name>
-git checkout <name>
+* git branch <name>
+* git checkout <name>
 
 ### Daily Screenshots
 
