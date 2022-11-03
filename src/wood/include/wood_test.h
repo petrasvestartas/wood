@@ -7,6 +7,10 @@
 #include "viewer_wood.h"
 #include "wood_xml.h"
 
+// joinery
+#include "wood_joint_library.h"
+#include "wood_joint.h"
+
 #ifndef WOOD_TEST_H
 #define WOOD_TEST_H
 // test
@@ -21,6 +25,8 @@ namespace wood_test
     void test_side_to_top();
 
     void test_chapel();
+
+    void ss_e_op_4();
 }
 
 #endif // WOOD_TEST_H

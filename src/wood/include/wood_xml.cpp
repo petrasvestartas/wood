@@ -27,12 +27,12 @@ namespace xml_parser
         printf(file_path.c_str());
         if (!file_exists_0(file_path))
         {
-            printf("\n File does not exist");
+            printf("\nwood_xml -> File does not exist");
             return false;
         }
         else
         {
-            printf("\n File exists");
+            printf("\nwood_xml -> File exists");
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ namespace xml_parser
         catch (std::exception &e)
         {
             (void)e;
-            printf("\nCPP Wrong property ");
+            printf("\nwood_xml -> CPP Wrong property, probaby wrong path ");
             return false;
         }
         return true;
@@ -77,16 +77,16 @@ namespace xml_parser
         // Check if XML file exists, path_and_file_for_joints is a global path
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        printf("\nimgui_render -> read_xml_polylines -> ");
+        printf("\nwood_xml ->  read_xml_polylines -> ");
         printf(file_path.c_str());
         if (!file_exists_0(file_path))
         {
-            printf("\nwood_xml|read_xml_polylines|File does not exist");
+            printf("\nwood_xml -> wood_xml|read_xml_polylines|File does not exist");
             return false;
         }
         else
         {
-            printf("\nimgui_render -> read_xml_polylines|file exists");
+            printf("\nwood_xml -> read_xml_polylines|file exists");
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ namespace xml_parser
         catch (std::exception &e)
         {
             (void)e;
-            printf("\nwood_xml|read_xml_polylines|CPP Wrong property ");
+            printf("\nnwood_xml -> |read_xml_polylines|CPP Wrong property ");
             return false;
         }
         return true;
@@ -163,7 +163,7 @@ namespace xml_parser
         catch (std::exception &e)
         {
             (void)e;
-            printf("\nCPP Something went wrong ");
+            printf("\nwood_xml -> CPP Something went wrong, probaby wrong path ");
             return false;
         }
         return true;
@@ -222,7 +222,7 @@ namespace xml_parser
         catch (std::exception &e)
         {
             (void)e;
-            printf("\nCPP Something went wrong ");
+            printf("\nwood_xml -> CPP Something went wrong, probaby wrong path ");
             return false;
         }
         return true;
@@ -327,7 +327,7 @@ namespace xml_parser
         catch (std::exception &e)
         {
             (void)e;
-            printf("\nCPP Something went wrong ");
+            printf("\nwood_xml -> CPP Something went wrong, probaby wrong path ");
             return false;
         }
         return true;

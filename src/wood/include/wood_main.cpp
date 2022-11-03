@@ -1536,8 +1536,28 @@ void adjacency_search(
 
 #pragma endregion
 
-#pragma region CUSTOM IMPLEMENTATIONS : 3 - VALENCE
-void three_valence_joint_alignment(
+#pragma region CUSTOM IMPLEMENTATIONS : 3 - VALENCE VIDY
+// 0. create a parametric joints whose number of tenons and chamfers could be controlled, this joint must be adapted to the length
+// 1. compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
+// 2. assign joint type
+// 2.1 orient it to the connection volumes(this is probably done in joint computatio step)
+// 2.2. remove male geometry and merge it with the id_tenon,
+// this has to be done in the preprocessing step before merge joints in the wood_main.cpp in the switch statements
+void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction, std::vector<element> &elements, std::vector<joint> &joints, std::unordered_map<uint64_t, int> &joints_map)
+{
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 1. compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 2. assign joint type
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+#pragma endregion
+
+#pragma region CUSTOM IMPLEMENTATIONS : 3 - VALENCE ANNEN
+// the function aligns to joints so that tenons would no collide and be distributed in an equal manner
+void three_valence_joint_alignment_annen(
     std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction,
     std::vector<element> &elements,
     std::vector<joint> &joints,
@@ -1548,21 +1568,13 @@ void three_valence_joint_alignment(
 
 )
 {
-    // CGAL_Debug(0);
+
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    // For solving multiple valences (Specific case Annen), only works when only one joint is possible between two unique plates (wont work for plates with subdivided edges)
+    // For solving multiple valences (Specific case Annen), only works when only one joint is possible
+    // between two unique plates (wont work for plates with subdivided edges)
     //////////////////////////////////////////////////////////////////////////////////////////////////
     if (out_three_valence_element_indices_and_instruction.size() == 0)
         return;
-    // CGAL_Debug(1);
-
-    // CGAL_Debug();
-    // CGAL_Debug(joints_map.size());
-    // for (auto a : joints_map) {
-    //	CGAL_Debug(a.first);
-    //	CGAL_Debug(a.second);
-    // }
-    // CGAL_Debug();
 
     for (int i = 0; i < out_three_valence_element_indices_and_instruction.size(); i++)
     {
@@ -1581,74 +1593,32 @@ void three_valence_joint_alignment(
             continue;
         }
 
-        // CGAL_Debug(999999);
-        // CGAL_Debug(cgal_math_util::unique_from_two_int(out_three_valence_element_indices_and_instruction[i][2], out_three_valence_element_indices_and_instruction[i][3]));
-
-        // CGAL_Debug(999999);
-        // CGAL_Debug(out_three_valence_element_indices_and_instruction[i][0]);
-        // CGAL_Debug(out_three_valence_element_indices_and_instruction[i][1]);
-        // CGAL_Debug(out_three_valence_element_indices_and_instruction[i][2]);
-        // CGAL_Debug(out_three_valence_element_indices_and_instruction[i][3]);
-
-        // CGAL_Debug(999999);
-        // CGAL_Debug(joints[id_0].v0);
-        // CGAL_Debug(joints[id_0].v1);
-
-        // CGAL_Debug(999999);
-        // CGAL_Debug(joints[id_1].v0);
-        // CGAL_Debug(joints[id_1].v1);
-        // CGAL_Debug(999999);
-
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Get overlap segment and plane within its normal
         //////////////////////////////////////////////////////////////////////////////////////////////////
         IK::Segment_3 l0(joints[id_0].joint_lines[0][0], joints[id_0].joint_lines[0][1]);
-        // CGAL_Debug(l0[0]);
-        // CGAL_Debug(l0[1]);
 
         IK::Segment_3 l1 = CGAL::has_smaller_distance_to_point(joints[id_0].joint_lines[0][0], joints[id_1].joint_lines[0][0], joints[id_1].joint_lines[0][1])
                                ? IK::Segment_3(joints[id_1].joint_lines[0][0], joints[id_1].joint_lines[0][1])
                                : IK::Segment_3(joints[id_1].joint_lines[0][1], joints[id_1].joint_lines[0][0]);
-
-        // CGAL_Debug(l1[0]);
-        // CGAL_Debug(l1[1]);
 
         IK::Segment_3 l;
         cgal_polyline_util::line_line_overlap_average_segments(l0, l1, l);
         double thickness = elements[joints[id_0].v0].thickness;
         cgal_polyline_util::ExtendLine(l, -thickness, -thickness);
 
-        // CGAL_Debug(l[0]);
-        // CGAL_Debug(l[1]);
-
-        // plines.push_back({ l[0] ,l[1] });
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Both sides of joints must have the same alignment else there will be a collision
         //////////////////////////////////////////////////////////////////////////////////////////////////
-        // double length = l.squared_length();
-
-        // int divisions = (int)std::ceil(length / (division_distance * division_distance));
-        // divisions = (int)std::max(1, std::min(100, divisions));
         if (joints[id_0].joint_lines->size() > 0)
         {
             joints[id_0].joint_lines[0] = CGAL_Polyline{l[0], l[1]};
             joints[id_1].joint_lines[0] = CGAL_Polyline{l[0], l[1]};
         }
 
-        // joints[id_0].tile_parameters = { (double)divisions };
-        // joints[id_1].tile_parameters = { (double)divisions };
-        // joints[id_0].length = length;
-        // joints[id_1].length = length;
-        // joints[id_0].divisions = divisions;
-        // joints[id_1].divisions = divisions;
-        // joints[id_0].compute_geometrical_divisions = false;
-        // joints[id_1].compute_geometrical_divisions = false;
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Construct plane from exisiting joint volume edges
         //////////////////////////////////////////////////////////////////////////////////////////////////
-
-        // if (joints[id_0].joint_volumes[0].size() == 0) return;
-        // if (joints[id_1].joint_volumes[0].size() == 0) return;
 
         IK::Vector_3 cross0 = CGAL::cross_product(
             joints[id_0].joint_volumes[0][2] - joints[id_0].joint_volumes[0][1],
@@ -1782,12 +1752,12 @@ void get_connection_zones(
     // 3-valence joints
     //////////////////////////////////////////////////////////////////////////////
     if (input_three_valence_element_indices_and_instruction.size() > 0)
-        three_valence_joint_alignment(input_three_valence_element_indices_and_instruction, elements, joints, joints_map); // default_parameters_for_joint_types); //plines,
+        three_valence_joint_alignment_annen(input_three_valence_element_indices_and_instruction, elements, joints, joints_map); // default_parameters_for_joint_types); //plines,
 
 #ifdef DEBUG_MEASURE_TIME
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-    printf("Time measured three_valence_joint_alignment: %.3f seconds.\n", elapsed.count() * 1e-6);
+    printf("Time measured three_valence_joint_alignment_annen: %.3f seconds.\n", elapsed.count() * 1e-6);
     begin = std::chrono::high_resolution_clock::now();
 #endif
 
@@ -1832,7 +1802,7 @@ void get_connection_zones(
             elements[i].get_joints_geometry(joints, output_plines, 3, output_types);
             break;
         case (4):
-       
+
             try
             {
                 elements[i].merge_joints(joints, output_plines);

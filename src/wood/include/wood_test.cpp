@@ -148,7 +148,9 @@ namespace wood_test
         path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
         double division_length = 300;
         std::vector<double> joint_types = wood_globals::joint_types;
-        std::cout << "\nwood_test -> joint_types\n";
+        joint_types[1 * 3 + 0] = 100;
+        std::cout
+            << "\nwood_test -> joint_types\n";
         for (auto &joint_type : joint_types)
             std::cout << joint_type << "\n";
         std::cout << "\n";
@@ -188,6 +190,13 @@ namespace wood_test
             0);
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Export
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\chapel_out.xml";
+        // xml_parser::write_xml_polylines(output_plines);
+        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Display
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         opengl_globals_geometry::add_grid();
@@ -214,12 +223,144 @@ namespace wood_test
             viewer_wood::add_loft(output_plines); // grey
             break;
         }
+    }
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Export
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\src\\dataset\\chapel_out.xml";
-        // xml_parser::write_xml_polylines(output_plines);
-        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+    void ss_e_op_4()
+    {
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // viewer type and shader location
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        opengl_globals::shader_type_0default_1transparent_2shaded_3shadedwireframe_4wireframe_5normals_6explode = 3;
+        opengl_globals::shaders_folder = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\viewer\\shaders\\";
+        opengl_globals_geometry::add_grid();
+
+        joint joint;
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // joint parameters
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        joint.name = "ss_e_op_4";
+        int number_of_tenons = 3;
+        std::array<double, 2> x = {-1, 0.5};
+        std::array<double, 2> y = {-0.50, 0.50};
+        std::array<double, 2> z = {-0.45, 0.45};
+        double z_extension = 0.01;
+        std::array<double, 2> z_ext = {z[0] - z_extension, z[1] + z_extension};
+        number_of_tenons = std::min(50, std::max(1, number_of_tenons)) * 2;
+        double step = 1 / ((double)number_of_tenons - 1);
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Male
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        for (int j = 0; j < 2; j++)
+        {
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // memory and variables
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.m[j].resize(2);
+            joint.m[j][0].reserve(4 + number_of_tenons * 2);
+            int sign = j == 0 ? -1 : 1;
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // tenon interpolation
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.m[j][0].emplace_back(sign * x[1], y[j], z_ext[1]);
+            joint.m[j][0].emplace_back(x[1] + j * 0.01, y[j], z_ext[1]);
+
+            for (int i = 0; i < number_of_tenons; i++)
+            {
+                double z_ = z[1] + (z[0] - z[1]) * step * i;
+                joint.m[j][0].emplace_back(x[(i + 1) % 2], y[j], z_);
+                joint.m[j][0].emplace_back(x[(i + 0) % 2], y[j], z_);
+            }
+
+            joint.m[j][0].emplace_back(x[1] + j * 0.01, y[j], z_ext[0]);
+            joint.m[j][0].emplace_back(sign * x[1], y[j], z_ext[0]);
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // cut outlines
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.m[j][1] = {
+                IK::Point_3(sign * x[1], y[j], z_ext[1]),
+                IK::Point_3(sign * x[1], y[j], z_ext[0]),
+            };
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Female
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        for (int j = 0; j < 2; j++)
+        {
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // memory and variables
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.f[j].resize(2 + number_of_tenons);
+            int sign = j == 0 ? 1 : -1;
+            int j_inv = j == 0 ? 1 : 0;
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // main outlines
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            joint.f[j][0] =
+                {
+                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[1]),
+                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[0]),
+                    IK::Point_3(y[j_inv], sign * x[1], z_ext[0]),
+                };
+
+            joint.f[j][1] =
+                {
+                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
+                };
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // holes
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            for (int i = 0; i < number_of_tenons; i += 2)
+            {
+                double z_ = z[1] + (z[0] - z[1]) * step * i;
+                joint.f[j][2 + i].reserve(5);
+                joint.f[j][2 + i + 1].reserve(5);
+                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
+
+                z_ = z[1] + (z[0] - z[1]) * step * (i + 1);
+                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
+
+                joint.f[j][2 + i].emplace_back(joint.f[j][2 + i].front());
+                // copy
+                joint.f[j][2 + i + 1] = joint.f[j][2 + i];
+            }
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // boolean
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
+        joint.f_boolean_type.resize(2 + number_of_tenons);
+        joint.f_boolean_type[0] = insert_between_multiple_edges;
+        joint.f_boolean_type[1] = insert_between_multiple_edges;
+        for (int i = 0; i < number_of_tenons; i += 2)
+        {
+            joint.f_boolean_type[2 + i] = hole;
+            joint.f_boolean_type[2 + i + 1] = hole;
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // joint for preview
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        viewer_wood::scale = 1.0;
+        std::vector<std::vector<CGAL_Polyline>> input_polyline_pairs0;
+        input_polyline_pairs0.emplace_back(joint.m[0]);
+        input_polyline_pairs0.emplace_back(joint.m[1]);
+        viewer_wood::add(input_polyline_pairs0, 0); // grey
+        std::vector<std::vector<CGAL_Polyline>> input_polyline_pairs1;
+        input_polyline_pairs1.emplace_back(joint.f[0]);
+        input_polyline_pairs1.emplace_back(joint.f[1]);
+        viewer_wood::add(input_polyline_pairs1, 2); // grey
     }
 }

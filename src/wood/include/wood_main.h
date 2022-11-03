@@ -110,16 +110,17 @@ void adjacency_search(
     std::vector<joint> &joints,
     std::unordered_map<uint64_t, int> &joints_map);
 
-void three_valence_joint_alignment(
+void three_valence_joint_addition_vidy(
     std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction,
     std::vector<element> &elements,
     std::vector<joint> &joints,
-    std::unordered_map<uint64_t, int> &joints_map
-    // std::vector<double>& default_parameters_for_four_types,
-    // std::vector<std::vector<CGAL_Polyline>>& plines,
-    // double division_distance
+    std::unordered_map<uint64_t, int> &joints_map);
 
-);
+void three_valence_joint_alignment_annen(
+    std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction,
+    std::vector<element> &elements,
+    std::vector<joint> &joints,
+    std::unordered_map<uint64_t, int> &joints_map);
 
 void get_connection_zones(
     std::vector<CGAL_Polyline> &input_polyline_pairs,

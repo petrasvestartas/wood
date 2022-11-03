@@ -404,9 +404,12 @@ void joint::get_divisions(double &division_distance)
             // printf("\n EDGE LENGTH\n");
             // CGAL_Debug(length);
             // printf("\n EDGE LENGTH\n");
-            // CGAL_Debug(length);
-            divisions = (int)std::ceil(length / (division_distance * division_distance));
-            // CGAL_Debug(divisions);
+
+            divisions = (int)std::ceil(std::sqrt(length) / (division_distance ));
+            CGAL_Debug(std::sqrt(length));
+            CGAL_Debug(division_distance);
+            CGAL_Debug(divisions);
+
             divisions = (int)std::max(1, std::min(100, divisions));
             // CGAL_Debug(divisions);
         }
