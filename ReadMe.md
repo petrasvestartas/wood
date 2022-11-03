@@ -13,15 +13,17 @@
 * git checkout <name>
 
 ### Short-term To-do
-[ ] - Properly parametricize the joint
-[ ] - create a separate joint for the  2nd panel
-[ ] - find a method to connect two joint
-[ ] - give adjacency for two joints
+[ ] - 0. create a parametric joints whose number of tenons and chamfers could be controlled, this joint must be adapted to the length
+[ ] - 1. compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
+[ ] - 2. assign joint type
+[ ] - 2.1 orient it to the connection volumes(this is probably done in joint computatio step)
+[ ] - 2.2. remove male geometry and merge it with the id_tenon,
+
 
 ### Daily Screenshots
 
 2022/10/30 - mooc chapel exercise, initial set using side-to-side connection
 ![viewer_30-10-2022_19-17-53](https://user-images.githubusercontent.com/18013985/198894740-3e976fe4-946b-4eb7-83e0-9d7826e69ebf.png)
 
-2022/11/04 - new joint
-![image](https://user-images.githubusercontent.com/18013985/199853187-17c26433-3f80-4a1c-94e9-58510182ddc6.png)
+2022/11/04 - new joint "ss_e_op_4"
+![image](https://user-images.githubusercontent.com/18013985/199853549-06f6720f-340c-405b-b12a-a7c6fb71e30b.png)
