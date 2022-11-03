@@ -14,11 +14,11 @@
 
 ### Short-term To-do
   
-[ ] create a parametric joints whose number of tenons and chamfers could be controlled, this joint must be adapted to the length
-[ ] compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
-[ ] assign joint type
-[ ] orient it to the connection volumes(this is probably done in joint computatio step)
-[ ] remove male geometry and merge it with the id_tenon,
+- [ ] create a parametric joints whose number of tenons and chamfers could be controlled, this joint must be adapted to the length
+- [ ] compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
+- [ ] assign joint type
+- [ ] orient it to the connection volumes(this is probably done in joint computatio step)
+- [ ] remove male geometry and merge it with the id_tenon,
 
 
 ### Daily Screenshots
