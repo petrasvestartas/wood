@@ -3,7 +3,7 @@
 ### Commit Rules
 
 * NEW "" - new feature
-* BUG "" - bug fix
+* FIX "" - bug fix
 * REF "" - refactoring, file removal, style
 * DOC "" - documentation
 * TES "" - tests
