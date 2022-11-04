@@ -15,9 +15,8 @@ int main(int argc, char **argv)
 	opengl_globals::shader_type_0default_1transparent_2shaded_3shadedwireframe_4wireframe_5normals_6explode = 2;
 	opengl_globals::shaders_folder = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\viewer\\shaders\\";
 	opengl_globals_geometry::add_grid();
-	// wood_test::ss_e_op_4();
 	opengl_render::render(wood_test::test_chapel);
-	// opengl_render::render(wood_test::ss_e_op_4);
+	//opengl_render::render(wood_test::ss_e_op_4);
 
 	return 0;
 }

@@ -699,6 +699,26 @@ bool face_to_face(
                     }
 
                     ////////////////////////////////////////////////////////////////////////////////
+                    // extend joint line, for plates it is negative, for beam positive e.g. wood_globals::joint_line_extension = -20;
+                    // check the limit so that the lines would not be 0 or inverse
+                    ////////////////////////////////////////////////////////////////////////////////
+                    //
+                    double joint_line_extension_limit = (wood_globals::joint_line_extension * 2) * (wood_globals::joint_line_extension * 2);
+
+                    double joint_line0_squared_length = joint_line0.squared_length();
+                    double joint_line1_squared_length = joint_line1.squared_length();
+                    if (joint_line0.squared_length() > 0.001)
+                        if (joint_line_extension_limit > joint_line0.squared_length() * 0.9999)
+                            return false;
+
+                    if (joint_line1.squared_length() > 0.001)
+                        if (joint_line_extension_limit > joint_line1.squared_length() * 0.9999)
+                            return false;
+
+                    cgal_polyline_util::extend_equally(joint_line0, wood_globals::joint_line_extension);
+                    cgal_polyline_util::extend_equally(joint_line1, wood_globals::joint_line_extension);
+
+                    ////////////////////////////////////////////////////////////////////////////////
                     // ToDo set edge direction - Check Insertion angle if edge axis is assigned
                     // Applies for both elements
                     ////////////////////////////////////////////////////////////////////////////////

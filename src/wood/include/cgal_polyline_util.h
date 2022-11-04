@@ -682,7 +682,35 @@ namespace cgal_polyline_util
             pline[0] = pline[pline.size() - 1];
     }
 
-    inline void extend_equally(CGAL_Polyline &pline, int sID, double dist = 0, double proportion = 0)
+    inline void extend_equally( IK::Segment_3 &segment,  double dist = 0, double proportion = 0)
+    {
+        if (dist == 0 && proportion == 0)
+            return;
+
+        IK::Point_3 p0 = segment[0];
+        IK::Point_3 p1 = segment[1];
+        IK::Vector_3 v = p1 - p0;
+
+        // Either scale or extend polyline segments
+        if (proportion != 0)
+        {
+            p0 -= v * proportion;
+            p1 += v * proportion;
+        }
+        else
+        {
+            cgal_vector_util::Unitize(v);
+            p0 -= v * dist;
+            p1 += v * dist;
+        }
+
+        segment = IK::Segment_3(p0,p1);
+
+
+
+    }
+
+    inline void extend_equally(CGAL_Polyline &pline, int sID, double dist = 0, double proportion = 0, bool is_closed = true)
     {
         if (dist == 0 && proportion == 0)
             return;
@@ -707,10 +735,14 @@ namespace cgal_polyline_util
         pline[sID] = p0;
         pline[sID + 1] = p1;
 
-        if (sID == 0)
-            pline[pline.size() - 1] = pline[0];
-        else if ((sID + 1) == pline.size() - 1)
-            pline[0] = pline[pline.size() - 1];
+        if(pline.size()>2){//not a line
+            if(is_closed){//user give, else you can compute the square distance
+                        if (sID == 0)
+                            pline[pline.size() - 1] = pline[0];
+                        else if ((sID + 1) == pline.size() - 1)
+                            pline[0] = pline[pline.size() - 1];
+            }
+        }
     }
 
     inline void move(CGAL_Polyline &polyline, const IK::Vector_3 &v)

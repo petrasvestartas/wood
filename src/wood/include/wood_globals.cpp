@@ -7,13 +7,14 @@ namespace wood_globals
     int output_geometry_type = 0;
     bool force_side_to_side_joints_to_be_rotated = false;
     bool run = 0;
+    double joint_line_extension = 0;
     std::array<std::string, 7> joint_names = {
-        "side-to-side\nin-plane", 
-        "side-to-side\nout-of-plane", 
-        "top-to-side\n ", 
-        "cross\n ", 
-        "top-to-top\n ", 
-        "side-to-side\nrotated", 
+        "side-to-side\nin-plane",
+        "side-to-side\nout-of-plane",
+        "top-to-side\n ",
+        "cross\n ",
+        "top-to-top\n ",
+        "side-to-side\nrotated",
         "border\n "};
 
     std::vector<std::string> existing_types = {

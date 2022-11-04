@@ -141,14 +141,18 @@ namespace wood_test
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Input for the Main Method
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // global inputs
+        wood_globals::joint_line_extension = -40;
+
+        // function inputs
         bool simple_case = false;
         path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\chapel_simple_case.xml";
-        std::vector<std::vector<IK::Point_3>>
-            input_polyline_pairs;
+        std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
         path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
-        double division_length = 300;
+        // double division_length = 300;
         std::vector<double> joint_types = wood_globals::joint_types;
-        joint_types[1 * 3 + 0] = 100;
+        joint_types[1 * 3 + 0] = 50;
         std::cout
             << "\nwood_test -> joint_types\n";
         for (auto &joint_type : joint_types)
@@ -209,7 +213,7 @@ namespace wood_test
             viewer_wood::add(input_polyline_pairs); // grey
             viewer_wood::add_areas(output_plines);
             break;
-
+        case (1):
         case (3):
             viewer_wood::add(input_polyline_pairs); // grey
             viewer_wood::line_thickness = 3;
@@ -240,15 +244,17 @@ namespace wood_test
         // joint parameters
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         joint.name = "ss_e_op_4";
-        int number_of_tenons = 3;
-        std::array<double, 2> x = {-1, 0.5};
+        int number_of_tenons = 4;
+        std::array<double, 2> x = {-1.5, 0.5};
         std::array<double, 2> y = {-0.50, 0.50};
-        std::array<double, 2> z = {-0.45, 0.45};
-        double z_extension = 0.01;
-        std::array<double, 2> z_ext = {z[0] - z_extension, z[1] + z_extension};
-        number_of_tenons = std::min(50, std::max(1, number_of_tenons)) * 2;
-        double step = 1 / ((double)number_of_tenons - 1);
 
+        // double z_extension = 0.01;
+        std::array<double, 2> z_ext = {-0.5, 0.5};
+        number_of_tenons = std::min(50, std::max(2, number_of_tenons)) * 2;
+        double step = 1 / ((double)number_of_tenons - 1);
+        std::array<double, 2> z = {z_ext[0] + step, z_ext[1] - step};
+        number_of_tenons -= 2;
+        step = 1 / ((double)number_of_tenons - 1);
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Male
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,16 +310,16 @@ namespace wood_test
 
             joint.f[j][0] =
                 {
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
-                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[1]),
-                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[0]),
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[0]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], 3 * y[0], z_ext[1]),
+                    IK::Point_3(y[j_inv], 3 * y[0], z_ext[0]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[0]),
                 };
 
             joint.f[j][1] =
                 {
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
                 };
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -324,12 +330,12 @@ namespace wood_test
                 double z_ = z[1] + (z[0] - z[1]) * step * i;
                 joint.f[j][2 + i].reserve(5);
                 joint.f[j][2 + i + 1].reserve(5);
-                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
-                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[0], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[1], z_);
 
                 z_ = z[1] + (z[0] - z[1]) * step * (i + 1);
-                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
-                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[1], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[0], z_);
 
                 joint.f[j][2 + i].emplace_back(joint.f[j][2 + i].front());
                 // copy

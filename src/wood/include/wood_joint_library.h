@@ -1273,15 +1273,15 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         joint.name = "ss_e_op_4";
         int number_of_tenons = joint.divisions;
-        std::array<double, 2> x = {-1.0, 0.5};
+        std::array<double, 2> x = {-1.5, 0.5};
         std::array<double, 2> y = {-0.50, 0.50};
-        std::array<double, 2> z = {-0.4, 0.4};
-        double z_extension = 0.05;
 
-        std::array<double, 2> z_ext = {z[0] - z_extension, z[1] + z_extension};
-        number_of_tenons = std::min(50, std::max(1, number_of_tenons)) * 2;
+        std::array<double, 2> z_ext = {-0.5, 0.5};
+        number_of_tenons = std::min(50, std::max(2, number_of_tenons)) * 2;
         double step = 1 / ((double)number_of_tenons - 1);
-
+        std::array<double, 2> z = {z_ext[0] + step, z_ext[1] - step};
+        number_of_tenons -= 2;
+        step = 1 / ((double)number_of_tenons - 1);
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Male
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1337,16 +1337,16 @@ namespace joint_library
 
             joint.f[j][0] =
                 {
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
-                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[1]),
-                    IK::Point_3(y[j_inv], 1.5 * x[0], z_ext[0]),
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[0]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], 3 * y[0], z_ext[1]),
+                    IK::Point_3(y[j_inv], 3 * y[0], z_ext[0]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[0]),
                 };
 
             joint.f[j][1] =
                 {
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
-                    IK::Point_3(y[j_inv], sign * x[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
+                    IK::Point_3(y[j_inv], sign * y[1], z_ext[1]),
                 };
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1357,19 +1357,18 @@ namespace joint_library
                 double z_ = z[1] + (z[0] - z[1]) * step * i;
                 joint.f[j][2 + i].reserve(5);
                 joint.f[j][2 + i + 1].reserve(5);
-                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
-                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[0], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[1], z_);
 
                 z_ = z[1] + (z[0] - z[1]) * step * (i + 1);
-                joint.f[j][2 + i].emplace_back(y[j_inv], x[1], z_);
-                joint.f[j][2 + i].emplace_back(y[j_inv], 0.5 * x[0], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[1], z_);
+                joint.f[j][2 + i].emplace_back(y[j_inv], y[0], z_);
 
                 joint.f[j][2 + i].emplace_back(joint.f[j][2 + i].front());
                 // copy
                 joint.f[j][2 + i + 1] = joint.f[j][2 + i];
             }
         }
-
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // boolean
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3397,6 +3396,7 @@ namespace joint_library
         // CGAL_Debug(joints.size());
         for (auto &jo : joints)
         {
+
             // printf("\n %i %i %i %i %i", jo.v0, jo.v1, jo.f0_0, jo.f1_0, jo.type);
             // CGAL_Debug(counter);
             counter++;
