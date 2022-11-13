@@ -1544,7 +1544,8 @@ void adjacency_search(
 void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e20_e31, // 0 - side element, 1 - side element, 2 - connecting element for 0, 3 - connecting element for 1
                                        std::vector<element> &elements,
                                        std::vector<joint> &joints,
-                                       std::unordered_map<uint64_t, int> &joints_map)
+                                       std::unordered_map<uint64_t, int> &joints_map,
+                                       bool align_joints)
 {
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1582,9 +1583,11 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         // get unique key, if key does not exist throw out of range exception
         //////////////////////////////////////////////////////////////////////////////////////////////////
         int id = -1;
+        int id_alignment_joint = -1;
         try
         {
             id = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]));
+            id_alignment_joint = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]));
             // std::cout << id << " three_valence_joint_addition_vidy \n";
         }
         catch (const std::out_of_range &oor)
@@ -1593,6 +1596,40 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             continue;
         }
 
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // align joint lines and volumes | currently the joints are aligned to the 4 valence joint, but there can be opposite scenario
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        if (align_joints)
+        {
+            for (int j = 0; j < 2; j++)
+            {
+
+                if (joints[id_alignment_joint].joint_lines[j].size() > 0)
+                {
+
+                    IK::Vector_3 v = 0.5 * (joints[id].joint_lines[j][1] - joints[id].joint_lines[j][0]);
+                    // transform vectors
+                    IK::Vector_3 v_before = 0.5 * (joints[id_alignment_joint].joint_lines[j][1] - joints[id_alignment_joint].joint_lines[j][0]);
+                    v_before -= v;
+
+                    IK::Point_3 mid_point = CGAL::midpoint(joints[id_alignment_joint].joint_lines[j][0], joints[id_alignment_joint].joint_lines[j][1]);
+                    joints[id_alignment_joint].joint_lines[j][0] = mid_point - v;
+                    joints[id_alignment_joint].joint_lines[j][1] = mid_point + v;
+
+                    if (j == 0)
+                    {
+                        CGAL_Debug(v_before);
+                        cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[0], v_before);
+                        cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[1], -v_before);
+                        if (joints[id_alignment_joint].joint_volumes[2].size() != 0)
+                        {
+                            cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[2], v_before);
+                            cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[3], -v_before);
+                        }
+                    }
+                }
+            }
+        }
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // if plates are parallel, then it would be enough to move the joint volume, without performing intersection
         //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1666,7 +1703,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             p10 - p11};
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Translates the joint volume and lines | change the orientation of the second volume to rotate the same joint 
+        // Translates the joint volume and lines | change the orientation of the second volume to rotate the same joint
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         std::array<CGAL_Polyline, 4> joint_volumes_0 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
         std::array<CGAL_Polyline, 4> joint_volumes_1 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
@@ -1683,7 +1720,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             }
         }
 
-        //std::cout << "shift: " << shift << std::endl;
+        // std::cout << "shift: " << shift << std::endl;
         for (int j = 0; j < joint_volumes_1.size(); j++)
             if (joint_volumes_1[j].size() == 5)
                 cgal_polyline_util::shift(joint_volumes_1[j], shift);

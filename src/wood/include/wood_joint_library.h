@@ -1417,10 +1417,18 @@ namespace joint_library
     inline void ss_e_op_5(joint &jo, std::vector<joint> &all_joints)
     {
         // get geometry from ss_e_op_4
-        ss_e_op_4(jo, 0.25, false, true, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-        if (jo.linked_joints.size() != 2) // joint can have no links
+        if (jo.linked_joints.size() != 2)
+        { // joint can have no links
+            ss_e_op_4(jo, 0.5, true, true, -0.75, 0.5, -0.5, 0.5, -0.5, 0.5);
+            jo.name = "ss_e_op_5";
             return;
+        }
+        else
+        {
+            ss_e_op_4(jo, 0.25, false, true, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+            jo.name = "ss_e_op_5";
+        }
 
         // create geometry for linked joint 0
         all_joints[jo.linked_joints[0]].divisions = jo.divisions; // division must be the same to merge two joints correctly
@@ -1440,15 +1448,15 @@ namespace joint_library
         // joint 1
         // jo.linked_joints.pop_back();
         std::vector<std::array<int, 4>> linked_joints_seq_1;
-        //std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
-        for (int i = 0; i < jo.f[0].size(); i+=2)
+        // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
+        for (int i = 0; i < jo.f[0].size(); i += 2)
         {
             if (i == 0)
                 linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2}); // std::array<std::vector<CGAL_Polyline>, 2> f;
             else
                 linked_joints_seq_1.emplace_back(std::array<int, 4>{0, 0, 0, 0});
         }
-        //std::cout << "wood_joint_library" << linked_joints_seq_1.size() << std::endl;
+        // std::cout << "wood_joint_library" << linked_joints_seq_1.size() << std::endl;
         jo.linked_joints_seq.emplace_back(linked_joints_seq_1);
     }
 
@@ -3591,7 +3599,7 @@ namespace joint_library
             // f << "construct_joint_by_index\n";
             // f << id_representing_joint_name;
             // f.close();
-            jo.name = joint_names[id_representing_joint_name];
+            jo.name = jo.linked_joints.size() > 0 ? joint_names[id_representing_joint_name] + "_linked" : joint_names[id_representing_joint_name];
             jo.unit_scale_distance = elements[jo.v0].thickness * jo.scale[2];
             // CGAL_Debug(division_distance);
 
@@ -3608,6 +3616,7 @@ namespace joint_library
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // if there is already such joint
+            //std::cout << key << "\n";
             bool is_similar_joint = unique_joints.count(key) == 1;
 #ifdef DEBUG_JOINERY_LIBRARY
             printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s %i", __FILE__, __FUNCTION__, __LINE__, "Is similar joint", is_similar_joint);
@@ -3616,7 +3625,7 @@ namespace joint_library
             // CGAL_Debug(id_representing_joint_name);
             // is_similar_joint = false;
             // std::cout << "_joint id: " << jo.id << " " << unique_joints.count(key) << " " << key << std::endl;
-            if (is_similar_joint)
+            if (is_similar_joint )
             {
                 // CGAL_Debug(0);
                 auto u_j = unique_joints.at(key);
