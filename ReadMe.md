@@ -32,3 +32,6 @@
 2022/11/04 (day) - adjustements to "ss_e_op_4" and extension parameter addition "wood_globals::joint_line_extension", needed to move joints away from corners
 ![image](https://user-images.githubusercontent.com/18013985/199975589-fee87e17-c8d5-463c-9be7-03b384371b78.png)
 
+2022/11/13 - 4 valence joint implementation
+![image](https://user-images.githubusercontent.com/18013985/201543201-0e0933ef-c85a-4f21-a460-44272f0bd7ca.png)
+
