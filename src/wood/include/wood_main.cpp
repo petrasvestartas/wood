@@ -707,12 +707,13 @@ bool face_to_face(
 
                     double joint_line0_squared_length = joint_line0.squared_length();
                     double joint_line1_squared_length = joint_line1.squared_length();
+                    double limit_min_joint_length_squared = std::pow(wood_globals::limit_min_joint_length, 2);
                     if (joint_line0.squared_length() > 0.001)
-                        if (joint_line_extension_limit > joint_line0.squared_length() * 0.9999)
+                        if (joint_line_extension_limit > joint_line0.squared_length() - limit_min_joint_length_squared)
                             return false;
 
                     if (joint_line1.squared_length() > 0.001)
-                        if (joint_line_extension_limit > joint_line1.squared_length() * 0.9999)
+                        if (joint_line_extension_limit > joint_line1.squared_length() - limit_min_joint_length_squared)
                             return false;
 
                     cgal_polyline_util::extend_equally(joint_line0, wood_globals::joint_line_extension);
@@ -943,6 +944,7 @@ bool face_to_face(
 
                                 ////////////////////////////////////////////////////////////////////////////////
                                 // Reverse if female and male order
+                                // ERROR CHECK OTHER DATA SETS BEOFRE DELETING THIS: you need to find other solution than reversing the order, because use might need to preserve the order
                                 ////////////////////////////////////////////////////////////////////////////////
                                 std::reverse(joint_volumes_pairA_pairB[0].begin(), joint_volumes_pairA_pairB[0].end());
                                 std::reverse(joint_volumes_pairA_pairB[1].begin(), joint_volumes_pairA_pairB[1].end());
@@ -957,30 +959,6 @@ bool face_to_face(
                                 ////////////////////////////////////////////////////////////////////////////////
                                 joint_volumes_pairA_pairB[0].emplace_back(joint_volumes_pairA_pairB[0][0]);
                                 joint_volumes_pairA_pairB[1].emplace_back(joint_volumes_pairA_pairB[1][0]);
-
-                                // joint_lines->reverse
-                                //     std::vector<CGAL_Polyline>& Polyline0,
-                                //     std::vector<CGAL_Polyline>& Polyline1,
-                                //     std::vector<IK::Plane_3>& Plane0,
-                                //     std::vector<IK::Plane_3>& Plane1,
-                                //     std::vector<IK::Vector_3>& insertion_vectors0,
-                                //     std::vector<IK::Vector_3>& insertion_vectors1,
-                                //     std::pair<int, int>& el_ids,
-                                //     std::pair<std::array<int, 2>, std::array<int, 2>>& face_ids,
-                                //     int& type,
-                                //     CGAL_Polyline& joint_area,
-                                //     CGAL_Polyline(&joint_lines)[2],
-                                //     CGAL_Polyline(&joint_volumes_pairA_pairB)[4]
-
-                                //    joint_id,
-                                //    el_ids.first, el_ids.second,
-                                //    face_ids.first[0], face_ids.second[0], face_ids.first[1], face_ids.second[1],
-                                //    joint_area,
-                                //    joint_lines,
-                                //    joint_volumes_pairA_pairB,
-
-                                // joint_volumes_pairA_pairB[2] = { joint_volumes_pairA_pairB[0][3],joint_volumes_pairA_pairB[0][0],joint_volumes_pairA_pairB[0][1],joint_volumes_pairA_pairB[0][2] };
-                                // joint_volumes_pairA_pairB[3] = { joint_volumes_pairA_pairB[1][3],joint_volumes_pairA_pairB[1][0],joint_volumes_pairA_pairB[1][1],joint_volumes_pairA_pairB[1][2] };
 
                                 type = 11;
                             }
@@ -1420,7 +1398,7 @@ void adjacency_search(
 
         std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
         int type;
-
+        // std::cout << el_ids.first << " " << el_ids.second << std::endl;
         int found_type = 0;
         switch (search_type)
         {
@@ -1478,7 +1456,7 @@ void adjacency_search(
                              : 0;
             break;
         }
-
+        // std::cout << el_ids.first << " " << el_ids.second << std::endl;
         if (!found_type)
             continue;
 
@@ -1563,22 +1541,220 @@ void adjacency_search(
 // 2.1 orient it to the connection volumes(this is probably done in joint computatio step)
 // 2.2. remove male geometry and merge it with the id_tenon,
 // this has to be done in the preprocessing step before merge joints in the wood_main.cpp in the switch statements
-void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction, std::vector<element> &elements, std::vector<joint> &joints, std::unordered_map<uint64_t, int> &joints_map)
+void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e20_e31, // 0 - side element, 1 - side element, 2 - connecting element for 0, 3 - connecting element for 1
+                                       std::vector<element> &elements,
+                                       std::vector<joint> &joints,
+                                       std::unordered_map<uint64_t, int> &joints_map)
 {
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // check if the user gave the input
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (in_s0_s1_e20_e31.size() < 2)
+        return;
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // 1. compute two additional connection volumes, meaning creating two additional joint with index(id0, id_tenon) and (id1, id_tenon)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // 2. assign joint type
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    for (int i = 1; i < in_s0_s1_e20_e31.size(); i++) // skip first item because it is indicator which custom method to run
+    {
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // check if the two plates in the double layer system are parallel
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (
+            !cgal_plane_util::IsSameDirection(elements[in_s0_s1_e20_e31[i][0]].planes[0],
+                                              elements[in_s0_s1_e20_e31[i][3]].planes[0]) ||
+            !cgal_plane_util::IsSameDirection(elements[in_s0_s1_e20_e31[i][1]].planes[0],
+                                              elements[in_s0_s1_e20_e31[i][2]].planes[0]))
+        {
+            std::cout << "wood_main.cpp -> three_valence_joint_addition_vidy -> planes are not parallel \n";
+            std::cout << "wood_main.cpp -> three_valence_joint_addition_vidy ->"
+                      << in_s0_s1_e20_e31[i][0] << " "
+                      << in_s0_s1_e20_e31[i][1] << " "
+                      << in_s0_s1_e20_e31[i][2] << " "
+                      << in_s0_s1_e20_e31[i][3] << "\n";
+            continue;
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // get unique key, if key does not exist throw out of range exception
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        int id = -1;
+        try
+        {
+            id = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]));
+            // std::cout << id << " three_valence_joint_addition_vidy \n";
+        }
+        catch (const std::out_of_range &oor)
+        {
+            printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s  %s ", __FILE__, __FUNCTION__, __LINE__, "Out of Range error:", oor.what());
+            continue;
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // if plates are parallel, then it would be enough to move the joint volume, without performing intersection
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // find two nearst planes
+        double d00 = CGAL::squared_distance(
+            elements[in_s0_s1_e20_e31[i][0]].planes[0].point(),
+            elements[in_s0_s1_e20_e31[i][3]].planes[0]);
+        double d01 = CGAL::squared_distance(
+            elements[in_s0_s1_e20_e31[i][0]].planes[0].point(),
+            elements[in_s0_s1_e20_e31[i][3]].planes[1]);
+
+        IK::Plane_3 plane00_far = d00 < d01 ? elements[in_s0_s1_e20_e31[i][3]].planes[0] : elements[in_s0_s1_e20_e31[i][3]].planes[1];
+
+        d00 = CGAL::squared_distance(
+            plane00_far.point(),
+            elements[in_s0_s1_e20_e31[i][0]].planes[0]);
+        d01 = CGAL::squared_distance(
+            plane00_far.point(),
+            elements[in_s0_s1_e20_e31[i][0]].planes[1]);
+
+        IK::Plane_3 plane01_near = d00 < d01 ? elements[in_s0_s1_e20_e31[i][0]].planes[1] : elements[in_s0_s1_e20_e31[i][0]].planes[0];
+
+        double d10 = CGAL::squared_distance(
+            elements[in_s0_s1_e20_e31[i][1]].planes[0].point(),
+            elements[in_s0_s1_e20_e31[i][2]].planes[0]);
+        double d11 = CGAL::squared_distance(
+            elements[in_s0_s1_e20_e31[i][1]].planes[0].point(),
+            elements[in_s0_s1_e20_e31[i][2]].planes[1]);
+
+        IK::Plane_3 plane10_far = d10 < d11 ? elements[in_s0_s1_e20_e31[i][2]].planes[0] : elements[in_s0_s1_e20_e31[i][2]].planes[1];
+
+        d10 = CGAL::squared_distance(
+            plane10_far.point(),
+            elements[in_s0_s1_e20_e31[i][1]].planes[0]);
+        d11 = CGAL::squared_distance(
+            plane10_far.point(),
+            elements[in_s0_s1_e20_e31[i][1]].planes[1]);
+
+        IK::Plane_3 plane11_near = d10 < d11 ? elements[in_s0_s1_e20_e31[i][1]].planes[1] : elements[in_s0_s1_e20_e31[i][1]].planes[0];
+
+        std::array<CGAL::Aff_transformation_3<IK>, 2> translation;
+        std::array<IK::Vector_3, 2> translation_vectors;
+        // find movement direction
+
+        IK::Line_3 l0(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1]);
+        IK::Line_3 l1(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2]);
+
+        double d_plane0_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][0], plane01_near) - CGAL::squared_distance(joints[id].joint_volumes[0][1], plane01_near));
+        double d_plane1_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][1], plane11_near) - CGAL::squared_distance(joints[id].joint_volumes[0][2], plane11_near));
+
+        std::array<IK::Line_3, 2> l = d_plane0_near < d_plane1_near ? std::array<IK::Line_3, 2>{l1, l0} : std::array<IK::Line_3, 2>{l0, l1};
+        IK::Point_3 p00;
+        cgal_intersection_util::LinePlane(l[0], plane00_far, p00);
+
+        IK::Point_3 p01;
+        cgal_intersection_util::LinePlane(l[0], plane01_near, p01);
+
+        IK::Point_3 p10;
+        cgal_intersection_util::LinePlane(l[1], plane10_far, p10);
+
+        IK::Point_3 p11;
+        cgal_intersection_util::LinePlane(l[1], plane11_near, p11);
+
+        translation = std::array<CGAL::Aff_transformation_3<IK>, 2>{
+            CGAL::Aff_transformation_3<IK>(CGAL::TRANSLATION, p00 - p01),
+            CGAL::Aff_transformation_3<IK>(CGAL::TRANSLATION, p10 - p11)};
+
+        translation_vectors = std::array<IK::Vector_3, 2>{
+            p00 - p01,
+            p10 - p11};
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Translates the joint volume and lines | change the orientation of the second volume to rotate the same joint 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        std::array<CGAL_Polyline, 4> joint_volumes_0 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
+        std::array<CGAL_Polyline, 4> joint_volumes_1 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
+
+        // orient volumes to translation direction for correct joint orientation
+        int shift = 0;
+        for (int j = 0; j < 4; j++)
+        {
+            IK::Vector_3 v = joint_volumes_1[0][j] - joint_volumes_1[0][j + 1];
+            if (cgal_vector_util::IsParallelTo(translation_vectors[1], v, 0.01) == 1)
+            {
+                shift = j;
+                break;
+            }
+        }
+
+        //std::cout << "shift: " << shift << std::endl;
+        for (int j = 0; j < joint_volumes_1.size(); j++)
+            if (joint_volumes_1[j].size() == 5)
+                cgal_polyline_util::shift(joint_volumes_1[j], shift);
+
+        std::array<CGAL_Polyline, 2> joint_lines_0 = {joints[id].joint_lines[0], joints[id].joint_lines[1]};
+        std::array<CGAL_Polyline, 2> joint_lines_1 = {joints[id].joint_lines[0], joints[id].joint_lines[1]};
+        for (int j = 0; j < 2; j++)
+        {
+            cgal_polyline_util::Transform(joint_volumes_0[j], translation[0]);
+            cgal_polyline_util::Transform(joint_volumes_1[j], translation[1]);
+            cgal_polyline_util::Transform(joint_lines_0[j], translation[0]);
+            cgal_polyline_util::Transform(joint_lines_1[j], translation[1]);
+        }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // if joint order was reversed, reverse the neighbors here:
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // std::cout << "wood_main " <<in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
+        // std::cout << "wood_main " <<joints[id].v0 << " " << joints[id].v1 << "\n";
+        if (joints[id].v0 == in_s0_s1_e20_e31[i][1])
+        {
+            std::swap(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]);
+            std::swap(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]);
+        }
+        // std::cout << "wood_main " << in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        //  2. Add joints | Map element0-element1 to joint_id | Add element indexing for display of volumes
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        joints.emplace_back(
+            (int)joints.size(),
+            in_s0_s1_e20_e31[i][0],
+            in_s0_s1_e20_e31[i][2],
+            -1, -1, -1, -1,
+            joints[id].joint_area,
+            joint_lines_0,
+            joint_volumes_0,
+            joints[id].type);
+
+        joints.emplace_back(
+            (int)joints.size(),
+            in_s0_s1_e20_e31[i][1],
+            in_s0_s1_e20_e31[i][3],
+            -1, -1, -1, -1,
+            joints[id].joint_area,
+            joint_lines_1,
+            joint_volumes_1,
+            joints[id].type);
+
+        joints_map.emplace(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][2]), joints[joints.size() - 2].id);
+        joints_map.emplace(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][1], in_s0_s1_e20_e31[i][3]), joints[joints.size() - 1].id);
+        elements[in_s0_s1_e20_e31[i][0]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 2].id, true, 0));
+        elements[in_s0_s1_e20_e31[i][2]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 2].id, false, 0));
+        elements[in_s0_s1_e20_e31[i][1]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 1].id, true, 0));
+        elements[in_s0_s1_e20_e31[i][3]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 1].id, false, 0));
+
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // perepare for linking
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        joints[joints.size() - 2].link = true;
+        joints[joints.size() - 1].link = true;
+        joints[id].linked_joints = std::vector<int>{(int)joints.size() - 2, (int)joints.size() - 1};
+    }
 }
 #pragma endregion
 
 #pragma region CUSTOM IMPLEMENTATIONS : 3 - VALENCE ANNEN
 // the function aligns to joints so that tenons would no collide and be distributed in an equal manner
 void three_valence_joint_alignment_annen(
-    std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction,
+    std::vector<std::vector<int>> &in_s0_s1_e20_e31, // 0 - side element, 1 - top element, 2 - side element, 3 - top element
     std::vector<element> &elements,
     std::vector<joint> &joints,
     std::unordered_map<uint64_t, int> &joints_map
@@ -1593,10 +1769,10 @@ void three_valence_joint_alignment_annen(
     // For solving multiple valences (Specific case Annen), only works when only one joint is possible
     // between two unique plates (wont work for plates with subdivided edges)
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    if (out_three_valence_element_indices_and_instruction.size() == 0)
+    if (in_s0_s1_e20_e31.size() < 2)
         return;
 
-    for (int i = 0; i < out_three_valence_element_indices_and_instruction.size(); i++)
+    for (int i = 1; i < in_s0_s1_e20_e31.size(); i++)
     {
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // get unique key, if key does not exist throw out of range exception
@@ -1604,8 +1780,8 @@ void three_valence_joint_alignment_annen(
         int id_0, id_1;
         try
         {
-            id_0 = joints_map.at(cgal_math_util::unique_from_two_int(out_three_valence_element_indices_and_instruction[i][0], out_three_valence_element_indices_and_instruction[i][1]));
-            id_1 = joints_map.at(cgal_math_util::unique_from_two_int(out_three_valence_element_indices_and_instruction[i][2], out_three_valence_element_indices_and_instruction[i][3]));
+            id_0 = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]));
+            id_1 = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]));
         }
         catch (const std::out_of_range &oor)
         {
@@ -1769,10 +1945,30 @@ void get_connection_zones(
 #endif
 
     //////////////////////////////////////////////////////////////////////////////
-    // 3-valence joints
+    // custom cases, where the two valence rules breaks
+    // the first vector in the in the parameter "input_three_valence_element_indices_and_instruction" must be a single number e.g. {0}, that points to the right method needed to be applied
+    // {0} - Annen - 3-valence joints cases
+    // {1} - Vidy - extension of the tenon mortise joint to another panel
     //////////////////////////////////////////////////////////////////////////////
     if (input_three_valence_element_indices_and_instruction.size() > 0)
-        three_valence_joint_alignment_annen(input_three_valence_element_indices_and_instruction, elements, joints, joints_map); // default_parameters_for_joint_types); //plines,
+    {
+        // sanity check give default parameter of the annen project
+        if (input_three_valence_element_indices_and_instruction[0].size() != 1)
+            input_three_valence_element_indices_and_instruction.insert(input_three_valence_element_indices_and_instruction.begin(), {0});
+
+        // run the correct method
+        switch (input_three_valence_element_indices_and_instruction[0][0])
+        {
+        case (0):
+            // Annen
+            three_valence_joint_alignment_annen(input_three_valence_element_indices_and_instruction, elements, joints, joints_map);
+            break;
+        case (1):
+            // Vidy
+            three_valence_joint_addition_vidy(input_three_valence_element_indices_and_instruction, elements, joints, joints_map);
+            break;
+        }
+    }
 
 #ifdef DEBUG_MEASURE_TIME
     end = std::chrono::high_resolution_clock::now();
@@ -1785,7 +1981,7 @@ void get_connection_zones(
     // Create and Align Joints 1. Iterate type 2. Select joint based on not/given user joint_type
     ////////////////////////////////////////////////////////////////////////////////
     joint_library::construct_joint_by_index(elements, joints, default_parameters_for_joint_types, scale); // division_distance, shift,
-    // CGAL_Debug(99999);
+                                                                                                          // CGAL_Debug(99999);
 #ifdef DEBUG_MEASURE_TIME
     end = std::chrono::high_resolution_clock::now();
     elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);

@@ -4,10 +4,11 @@
 namespace wood_globals
 {
 
-    int output_geometry_type = 0;
+    int output_geometry_type = 3;
     bool force_side_to_side_joints_to_be_rotated = false;
     bool run = 0;
     double joint_line_extension = 0;
+    double limit_min_joint_length = 0;
     std::array<std::string, 7> joint_names = {
         "side-to-side\nin-plane",
         "side-to-side\nout-of-plane",
@@ -26,6 +27,9 @@ namespace wood_globals
         "joint_names[10] = ss_e_op_0;",
         "joint_names[11] = ss_e_op_1;",
         "joint_names[12] = ss_e_op_2;",
+        "joint_names[13] = ss_e_op_3;",
+        "joint_names[14] = ss_e_op_4;",
+        "joint_names[15] = ss_e_op_5;",
         "joint_names[18] = side_removal;",
         "joint_names[19] = ss_e_op_9;",
         "joint_names[20] = ts_e_p_0;",
@@ -46,5 +50,5 @@ namespace wood_globals
         "joint_names[60] = b_0;",
     };
 
-    std::vector<double> joint_types{300, 0.5, 8, 450, 0.64, 10, 450, 0.5, 20, 300, 0.5, 30, 300, 0.5, 40, 300, 0.5, 58, 300, 1.0, 60};
+    std::vector<double> joint_types{300, 0.5, 8, 450, 0.64, 15, 450, 0.5, 20, 300, 0.5, 30, 300, 0.5, 40, 300, 0.5, 58, 300, 1.0, 60};
 }

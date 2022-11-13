@@ -76,6 +76,16 @@ public:
     void transfer_geometry(joint &);
 
     void get_divisions(double &division_distance);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // joint linking with other joints
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool link = false;                                              // assigned in three_valence_joint_addition_vidy for the link joint
+    std::vector<int> linked_joints;                                 // assigned in three_valence_joint_addition_vidy for the main joint
+    std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // assigned on wood_joint_library | it is nested because there can be umber of polylines | example {start_curr,step_curr} means that "start_curr+step_curr*i" and {start_link,step_link} -> "start_link+step_link*i"
+
+    void remove_geo_from_linked_joint_and_merge_with_current_joint(std::vector<joint> &all_joints); // it is called if linked_joints vector is not empty | also check wood_joint -> joint linking with other joints
 };
 
 #endif

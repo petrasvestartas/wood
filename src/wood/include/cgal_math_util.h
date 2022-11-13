@@ -45,7 +45,7 @@ namespace cgal_math_util {
         return count;
     }
 
-    inline uint64_t unique_from_two_int(int& low, int& high) {
+    inline uint64_t unique_from_two_int(const int& low, const int& high) {
         if (high > low) {
             return (uint64_t)high << 32 | low;
         }

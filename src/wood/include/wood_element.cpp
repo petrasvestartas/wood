@@ -111,7 +111,7 @@ void element::get_joints_geometry(std::vector<joint> &joints, std::vector<std::v
                 output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_lines[1]);
                 break;
             case (2): // joint volumes
-
+                //std::cout << joints[std::get<0>(j_mf[i][j])].id << std::endl;
                 // if (this->polylines.size() > 1 && i == 0) {
                 //     output[this->id].emplace_back(this->polylines[0]); //cut
                 //     output[this->id].emplace_back(this->polylines[1]); //cut

@@ -415,3 +415,96 @@ void joint::get_divisions(double &division_distance)
         }
     }
 }
+
+// joint linking with other joints
+void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vector<joint> &all_joints)
+{
+
+    if (linked_joints_seq.size() != linked_joints.size()) // check if number of sequences is equa to linked joints
+    {
+        std::cout << "ERROR A in wood_join.cpp -> remove_geo_from_linked_joint_and_merge_with_current_joint: linked_joints_seq.size() != linked_joints.size() "
+                  << linked_joints_seq.size() << " " << linked_joints.size() << "\n";
+        return;
+    }
+
+    for (int i = 0; i < linked_joints.size(); i++) //
+    {
+        // check indices of linked and current joints to know which id to merge and remove -> a0-b0 | a0-b1
+        bool m_f_curr = v0 == all_joints[linked_joints[i]].v0; // is it the item to merge, for both joints the first==first or second==second must match
+        bool m_f_next = m_f_curr;
+        m_f_next = i == 0 ? m_f_next : !m_f_next; // if it is the second joint, we need to invert the result | does it mean it only works for 2 links only?
+
+        // std::cout << i << " iteration \n";
+        // std::cout << v0 << "-" << v1 << "\n";
+        // std::cout << v0 << "-" << all_joints[linked_joints[i]].v0 << " " << v1 << "-" << all_joints[linked_joints[i]].v1 << "\n";
+        // std::cout << m_f_curr << "-" << m_f_next << "\n";
+
+        if (linked_joints_seq[i].size() * 2 != (*this)(m_f_curr, true).size()) // check number of sequences in the linked joints is equal to | multipled by 2 because the second line is just for merging
+        {
+            std::cout << "ERROR B in wood_join.cpp -> remove_geo_from_linked_joint_and_merge_with_current_joint: linked_joints_seq[i].size() != (*this)(m_f_curr, true).size()) "
+                      << linked_joints_seq[i].size() * 2 << " " << (*this)(m_f_curr, true).size() << "\n";
+            continue;
+        }
+
+        // merge joint using "linked_joints_seq"
+        for (int j = 0; j < (*this)(m_f_curr, true).size(); j += 2)
+        {
+
+            // sequence
+            int start_curr = linked_joints_seq[i][(int)(j * 0.5)][0];
+            int step_curr = linked_joints_seq[i][(int)(j * 0.5)][1];
+            int start_next = linked_joints_seq[i][(int)(j * 0.5)][2];
+            int step_next = linked_joints_seq[i][(int)(j * 0.5)][3];
+
+            if (start_curr == 0 && step_curr == 0 && start_next == 0 && step_next == 0)
+                continue;
+
+            if (step_curr == 0 || step_next == 0)
+                continue;
+
+            //std::cout << start_curr << " " << step_curr << " " << start_next << " " << step_next << "\n";
+
+            // create outlines
+            CGAL_Polyline merged_polyline_0;
+            CGAL_Polyline merged_polyline_1;
+            merged_polyline_0.reserve((*this)(m_f_curr, true).size() + all_joints[linked_joints[i]](m_f_next, true).size());
+            merged_polyline_1.reserve((*this)(m_f_curr, false).size() + all_joints[linked_joints[i]](m_f_next, false).size());
+
+            merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin(), (*this)(m_f_curr, true)[0].begin() + start_curr);
+            merged_polyline_1.insert(merged_polyline_1.end(), (*this)(m_f_curr, false)[0].begin(), (*this)(m_f_curr, false)[0].begin() + start_curr);
+
+            //std::cout << " (*this)(m_f_curr, true)[0].size() " << (*this)(m_f_curr, true)[0].size() << "\n";
+            //std::cout << " (*this)(m_f_curr, true)[0].size() " << all_joints[linked_joints[i]](m_f_next, true)[0].size() << "\n";
+
+            // merged_polyline_0.insert(merged_polyline_0.end(), all_joints[id](m_f, true).begin(), all_joints[id](m_f, true).begin() + start_next);
+            // merged_polyline_1.insert(merged_polyline_1.end(), all_joints[id](m_f, false).begin(), all_joints[id](m_f, false).begin() + start_next);
+
+            for (int k = start_curr, it = 0; k < (*this)(m_f_curr, true)[j].size() - start_curr; k += step_curr, it++) // start+step*i | this loops assumes that start and end are the same
+            {
+                // current 1st half
+                merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin() + start_curr + it * step_curr, (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5);
+                merged_polyline_1.insert(merged_polyline_1.end(), (*this)(m_f_curr, false)[0].begin() + start_curr + it * step_curr, (*this)(m_f_curr, false)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5);
+
+                // next link insertion
+                merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
+                merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
+
+                // current 2nd half
+                merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5, (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr);
+                merged_polyline_1.insert(merged_polyline_1.end(), (*this)(m_f_curr, false)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5, (*this)(m_f_curr, false)[0].begin() + start_curr + (it + 1) * step_curr);
+                // if (i == 1 && it == 0)
+                //  break;
+            }
+
+            //std::cout << "m_f_curr " << m_f_curr << "\n";
+            // replace current joint geometry with the merged one
+            (*this)(m_f_curr, true)[0] = merged_polyline_0;
+            (*this)(m_f_curr, false)[0] = merged_polyline_1;
+        }
+
+        // remove geometry from linked joint using "v_remove_from_link" parameter
+        all_joints[linked_joints[i]](m_f_next, true).clear();
+        all_joints[linked_joints[i]](m_f_next, false).clear();
+        // std::cout << "merged joint " << id << " with " << linked_joints[i] << "\n";
+    }
+}

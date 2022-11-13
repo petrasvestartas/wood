@@ -111,7 +111,7 @@ void adjacency_search(
     std::unordered_map<uint64_t, int> &joints_map);
 
 void three_valence_joint_addition_vidy(
-    std::vector<std::vector<int>> &out_three_valence_element_indices_and_instruction,
+    std::vector<std::vector<int>> &in_s0_s1_e20_e31,
     std::vector<element> &elements,
     std::vector<joint> &joints,
     std::unordered_map<uint64_t, int> &joints_map);
