@@ -419,7 +419,7 @@ void joint::get_divisions(double &division_distance)
 // joint linking with other joints
 void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vector<joint> &all_joints)
 {
-
+    //return;
     if (linked_joints_seq.size() != linked_joints.size()) // check if number of sequences is equa to linked joints
     {
         std::cout << "ERROR A in wood_join.cpp -> remove_geo_from_linked_joint_and_merge_with_current_joint: linked_joints_seq.size() != linked_joints.size() "
@@ -462,7 +462,7 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
             if (step_curr == 0 || step_next == 0)
                 continue;
 
-            //std::cout << start_curr << " " << step_curr << " " << start_next << " " << step_next << "\n";
+            // std::cout << start_curr << " " << step_curr << " " << start_next << " " << step_next << "\n";
 
             // create outlines
             CGAL_Polyline merged_polyline_0;
@@ -470,11 +470,12 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
             merged_polyline_0.reserve((*this)(m_f_curr, true).size() + all_joints[linked_joints[i]](m_f_next, true).size());
             merged_polyline_1.reserve((*this)(m_f_curr, false).size() + all_joints[linked_joints[i]](m_f_next, false).size());
 
+            // begin shift -> start_curr, assumed that there is the same shift from two ends
             merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin(), (*this)(m_f_curr, true)[0].begin() + start_curr);
             merged_polyline_1.insert(merged_polyline_1.end(), (*this)(m_f_curr, false)[0].begin(), (*this)(m_f_curr, false)[0].begin() + start_curr);
 
-            //std::cout << " (*this)(m_f_curr, true)[0].size() " << (*this)(m_f_curr, true)[0].size() << "\n";
-            //std::cout << " (*this)(m_f_curr, true)[0].size() " << all_joints[linked_joints[i]](m_f_next, true)[0].size() << "\n";
+            // std::cout << " (*this)(m_f_curr, true)[0].size() " << (*this)(m_f_curr, true)[0].size() << "\n";
+            // std::cout << " (*this)(m_f_curr, true)[0].size() " << all_joints[linked_joints[i]](m_f_next, true)[0].size() << "\n";
 
             // merged_polyline_0.insert(merged_polyline_0.end(), all_joints[id](m_f, true).begin(), all_joints[id](m_f, true).begin() + start_next);
             // merged_polyline_1.insert(merged_polyline_1.end(), all_joints[id](m_f, false).begin(), all_joints[id](m_f, false).begin() + start_next);
@@ -487,7 +488,10 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
 
                 // next link insertion
                 merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
-                merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
+                   merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
+              //merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
+               //     merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
+
 
                 // current 2nd half
                 merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5, (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr);
@@ -496,8 +500,12 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
                 //  break;
             }
 
-            //std::cout << "m_f_curr " << m_f_curr << "\n";
-            // replace current joint geometry with the merged one
+            // end shift -> start_curr, assumed that there is the same shift from two ends
+            merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].end() - start_curr, (*this)(m_f_curr, true)[0].end());
+            merged_polyline_1.insert(merged_polyline_1.end(), (*this)(m_f_curr, false)[0].end() - start_curr, (*this)(m_f_curr, false)[0].end());
+
+            // std::cout << "m_f_curr " << m_f_curr << "\n";
+            //  replace current joint geometry with the merged one
             (*this)(m_f_curr, true)[0] = merged_polyline_0;
             (*this)(m_f_curr, false)[0] = merged_polyline_1;
         }

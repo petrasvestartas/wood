@@ -1273,7 +1273,9 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         joint.name = "ss_e_op_4";
         int number_of_tenons = joint.divisions;
-        std::array<double, 2> x = {x0, x1};
+
+        std::array<double, 2>
+            x = {x0, x1};
         std::array<double, 2> y = {y0, y1};
         std::array<double, 2> z_ext = {z_ext0, z_ext1};
 
@@ -1301,32 +1303,35 @@ namespace joint_library
             joint.m[j][0].emplace_back(sign * x[1], y[j], z_ext[1]);
             joint.m[j][0].emplace_back(x[1] + j * 0.01, y[j], z_ext[1]);
 
-            for (int i = 0; i < number_of_tenons; i++)
+            if (joint.divisions > 0)
             {
-                double z_ = z[1] + (z[0] - z[1]) * step * i;
-                double z_mid = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.375 : z_ - (z[0] - z[1]) * step * t * 0.375;                                                           // female_modify_outline
-                double z_chamfer = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * ((t * 0.5) + ((1 - t) * 0.5 * 0.25)) : z_ - (z[0] - z[1]) * step * ((t * 0.5) + ((1 - t) * 0.5 * 0.25)); // chamfer
-                z_ = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
-
-                if (i % 2 == 0)
+                for (int i = 0; i < number_of_tenons; i++)
                 {
-                    if (!female_modify_outline)
-                        joint.m[j][0].emplace_back(x[1], y[j], z_mid);
-                    joint.m[j][0].emplace_back(x[1], y[j], z_);
-                    joint.m[j][0].emplace_back(x[0], y[j], z_);
-                    if (chamfer)
-                        joint.m[j][0].emplace_back(-0.75 + x[0], y[j], z_chamfer);
+                    double z_ = z[1] + (z[0] - z[1]) * step * i;
+                    double z_mid = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.375 : z_ - (z[0] - z[1]) * step * t * 0.375;                                                           // female_modify_outline
+                    double z_chamfer = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * ((t * 0.5) + ((1 - t) * 0.5 * 0.25)) : z_ - (z[0] - z[1]) * step * ((t * 0.5) + ((1 - t) * 0.5 * 0.25)); // chamfer
+                    z_ = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
+
+                    if (i % 2 == 0)
+                    {
+                        if (!female_modify_outline)
+                            joint.m[j][0].emplace_back(x[1], y[j], z_mid);
+                        joint.m[j][0].emplace_back(x[1], y[j], z_);
+                        joint.m[j][0].emplace_back(x[0], y[j], z_);
+                        if (chamfer)
+                            joint.m[j][0].emplace_back(-0.75 + x[0], y[j], z_chamfer);
+                    }
+                    else
+                    {
+                        if (chamfer)
+                            joint.m[j][0].emplace_back(-0.75 + x[0], y[j], z_chamfer);
+                        joint.m[j][0].emplace_back(x[0], y[j], z_);
+                        joint.m[j][0].emplace_back(x[1], y[j], z_);
+                        if (!female_modify_outline)
+                            joint.m[j][0].emplace_back(x[1], y[j], z_mid);
+
+                    } // for scaling down the tenon
                 }
-                else
-                {
-                    if (chamfer)
-                        joint.m[j][0].emplace_back(-0.75 + x[0], y[j], z_chamfer);
-                    joint.m[j][0].emplace_back(x[0], y[j], z_);
-                    joint.m[j][0].emplace_back(x[1], y[j], z_);
-                    if (!female_modify_outline)
-                        joint.m[j][0].emplace_back(x[1], y[j], z_mid);
-
-                } // for scaling down the tenon
             }
 
             joint.m[j][0].emplace_back(x[1] + j * 0.01, y[j], z_ext[0]);
@@ -1350,8 +1355,10 @@ namespace joint_library
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // memory and variables
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            joint.f[j].resize(female_modify_outline_count + number_of_tenons);
+            if (joint.divisions == 0)
+                joint.f[j].resize(female_modify_outline_count);
+            else
+                joint.f[j].resize(female_modify_outline_count + number_of_tenons);
             int sign = j == 0 ? 1 : -1;
             int j_inv = j == 0 ? 1 : 0;
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1378,43 +1385,52 @@ namespace joint_library
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // holes
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            for (int i = 0; i < number_of_tenons; i += 2)
+            if (joint.divisions > 0)
             {
-                double z_ = z[1] + (z[0] - z[1]) * step * i;
-                z_ = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
-                joint.f[j][female_modify_outline_count + i].reserve(5);
-                joint.f[j][female_modify_outline_count + i + 1].reserve(5);
-                joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[0], z_);
-                joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[1], z_);
+                for (int i = 0; i < number_of_tenons; i += 2)
+                {
+                    double z_ = z[1] + (z[0] - z[1]) * step * i;
+                    z_ = i % 2 == 0 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
+                    joint.f[j][female_modify_outline_count + i].reserve(5);
+                    joint.f[j][female_modify_outline_count + i + 1].reserve(5);
+                    joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[0], z_);
+                    joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[1], z_);
 
-                z_ = z[1] + (z[0] - z[1]) * step * (i + 1);
-                z_ = i % 2 == 1 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
-                joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[1], z_);
-                joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[0], z_);
+                    z_ = z[1] + (z[0] - z[1]) * step * (i + 1);
+                    z_ = i % 2 == 1 ? z_ + (z[0] - z[1]) * step * t * 0.5 : z_ - (z[0] - z[1]) * step * t * 0.5;
+                    joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[1], z_);
+                    joint.f[j][female_modify_outline_count + i].emplace_back(y[j_inv], y[0], z_);
 
-                joint.f[j][female_modify_outline_count + i].emplace_back(joint.f[j][female_modify_outline_count + i].front());
-                // copy
-                joint.f[j][female_modify_outline_count + i + 1] = joint.f[j][female_modify_outline_count + i];
+                    joint.f[j][female_modify_outline_count + i].emplace_back(joint.f[j][female_modify_outline_count + i].front());
+                    // copy
+                    joint.f[j][female_modify_outline_count + i + 1] = joint.f[j][female_modify_outline_count + i];
+                }
             }
         }
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // boolean
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
-        joint.f_boolean_type.resize(female_modify_outline_count + number_of_tenons);
-        if (female_modify_outline)
-        {
-            joint.f_boolean_type[0] = insert_between_multiple_edges;
-            joint.f_boolean_type[1] = insert_between_multiple_edges;
-        }
-        for (int i = 0; i < number_of_tenons; i += 2)
-        {
-            joint.f_boolean_type[female_modify_outline_count + i] = hole;
-            joint.f_boolean_type[female_modify_outline_count + i + 1] = hole;
-        }
+
+        if (joint.divisions > 0)
+            joint.f_boolean_type.resize(female_modify_outline_count + number_of_tenons);
+        else
+            joint.f_boolean_type.resize(2);
+
+        joint.f_boolean_type[0] = insert_between_multiple_edges;
+        joint.f_boolean_type[1] = insert_between_multiple_edges;
+
+        if (joint.divisions > 0)
+            for (int i = 0; i < number_of_tenons; i += 2)
+            {
+                joint.f_boolean_type[female_modify_outline_count + i] = hole;
+                joint.f_boolean_type[female_modify_outline_count + i + 1] = hole;
+            }
     }
 
-    inline void ss_e_op_5(joint &jo, std::vector<joint> &all_joints)
+    inline void ss_e_op_5(joint &jo, std::vector<joint> &all_joints, bool disable_joint_divisions_1 = false)
     {
         // get geometry from ss_e_op_4
 
@@ -1430,20 +1446,26 @@ namespace joint_library
             jo.name = "ss_e_op_5";
         }
 
-        // create geometry for linked joint 0
-        all_joints[jo.linked_joints[0]].divisions = jo.divisions; // division must be the same to merge two joints correctly
-        ss_e_op_4(all_joints[jo.linked_joints[0]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+        // std::cout << "ss_e_op_5" << std::endl;
+        //  jo.linked_joints.pop_back();
+        //  jo.linked_joints.pop_back();
+        //  return;
+        //  create geometry for linked joint 0
+        int a = 0;
+        int b = 1;
+        all_joints[jo.linked_joints[a]].divisions = jo.divisions; // division must be the same to merge two joints correctly
+        ss_e_op_4(all_joints[jo.linked_joints[a]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
         // create geometry for linked joint 1
-        all_joints[jo.linked_joints[1]].divisions = jo.divisions; // division must be the same to merge two joints correctly
-        ss_e_op_4(all_joints[jo.linked_joints[1]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
+        all_joints[jo.linked_joints[b]].divisions = disable_joint_divisions_1 ? jo.divisions * 0 : jo.divisions; // division must be the same to merge two joints correctly
+        ss_e_op_4(all_joints[jo.linked_joints[b]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
         // set joint sequences for joint 0 and joint 1
         // std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // assigned on wood_joint_library | it is nested because there can be umber of polylines | example {start_curr,step_curr} means that "start_curr+step_curr*i" and {start_link,step_link} -> "start_link+step_link*i"
         // joint 0 - there is only one polyline
         std::vector<std::array<int, 4>> linked_joints_seq_0;
         linked_joints_seq_0.emplace_back(std::array<int, 4>{2, 4, 2, 8});
-        jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
+        // jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
 
         // joint 1
         // jo.linked_joints.pop_back();
@@ -1452,12 +1474,24 @@ namespace joint_library
         for (int i = 0; i < jo.f[0].size(); i += 2)
         {
             if (i == 0)
+            {
                 linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2}); // std::array<std::vector<CGAL_Polyline>, 2> f;
+                // linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, 0});
+                // std::cout << (int)jo.f[0][0].size() - 2 << " " << (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2 << "\n";
+                //  std::cout << "linked_joints_seq_1 " << (int)jo.f[0][0].size() - 2 << "\n"; // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
+            }
             else
                 linked_joints_seq_1.emplace_back(std::array<int, 4>{0, 0, 0, 0});
         }
         // std::cout << "wood_joint_library" << linked_joints_seq_1.size() << std::endl;
+        jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
         jo.linked_joints_seq.emplace_back(linked_joints_seq_1);
+    }
+
+    inline void ss_e_op_6(joint &jo, std::vector<joint> &all_joints)
+    {
+        ss_e_op_5(jo, all_joints, true);
+        jo.name = "ss_e_op_6";
     }
 
     inline void ss_e_r_0(joint &jo, std::vector<element> &elements)
@@ -3427,6 +3461,7 @@ namespace joint_library
         joint_names[13] = "ss_e_op_3";
         joint_names[14] = "ss_e_op_4";
         joint_names[15] = "ss_e_op_5";
+        joint_names[16] = "ss_e_op_6";
         joint_names[18] = "side_removal";
         joint_names[19] = "ss_e_op_9";
         joint_names[20] = "ts_e_p_0";
@@ -3518,6 +3553,7 @@ namespace joint_library
             // This setting produces joints without geometry, do you need to delete these joints?
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // CGAL_Debug(1);
+
             int group = -1;
             if (id_representing_joint_name == 0)
             {
@@ -3551,6 +3587,7 @@ namespace joint_library
             { // top-top
                 group = 6;
             }
+            //std::cout << id_representing_joint_name << " " << group << " " << jo.link << " " << elements[jo.v0].joint_types[jo.f0_0] << " " << elements[jo.v1].joint_types[jo.f1_0] << "\n";
             // printf("\n %i %i %i", group, id_representing_joint_name, jo.type);
             // printf("\n ");
 
@@ -3580,12 +3617,20 @@ namespace joint_library
                 if (id_representing_joint_name == -1) // for cases when joint types per each edge are not defined
                     id_representing_joint_name = (int)default_parameters_for_four_types[(number_of_parameters * group + 2)];
             }
+            std::cout << id_representing_joint_name << " " << group << "\n";
             // printf("\n  %i, %i, %i", jo.type, jo.v0, jo.v1);
             // printf("\n Hi %i %i", id_representing_joint_name, group);
             if (id_representing_joint_name < 1 || group == -1)
             {
                 ids_to_remove.emplace_back(counter - 1);
+                printf("%i %i %i \n ", jo.type, jo.v0, jo.v1);
+                std::cout << "Joint is skipped \n";
                 continue;
+            }
+            else
+            {
+                //printf("%i %i %i \n ", jo.type, jo.v0, jo.v1);
+               // std::cout << "Joint is not skipped \n";
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3606,6 +3651,7 @@ namespace joint_library
             jo.get_divisions(division_distance);
             // CGAL_Debug(2);
             std::string key = jo.get_key();
+            // std::cout << key << std::endl;
 
 #ifdef DEBUG_JOINERY_LIBRARY
             printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s ID %i SHIFT %f KEY %s DIVISIONS %f   ", __FILE__, __FUNCTION__, __LINE__, "Assigned groups", id_representing_joint_name, jo.shift, key.c_str(), jo.divisions);
@@ -3616,7 +3662,7 @@ namespace joint_library
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // if there is already such joint
-            //std::cout << key << "\n";
+            // std::cout << key << "\n";
             bool is_similar_joint = unique_joints.count(key) == 1;
 #ifdef DEBUG_JOINERY_LIBRARY
             printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s %i", __FILE__, __FUNCTION__, __LINE__, "Is similar joint", is_similar_joint);
@@ -3625,9 +3671,9 @@ namespace joint_library
             // CGAL_Debug(id_representing_joint_name);
             // is_similar_joint = false;
             // std::cout << "_joint id: " << jo.id << " " << unique_joints.count(key) << " " << key << std::endl;
-            if (is_similar_joint )
+            if (is_similar_joint && jo.linked_joints.size() == 0) // skip linked joints, that must be regenerated each time, currently there is no solution to optimize this further due to 4 valence joints
             {
-                // CGAL_Debug(0);
+
                 auto u_j = unique_joints.at(key);
                 // CGAL_Debug(1);
                 jo.transfer_geometry(u_j);
@@ -3690,7 +3736,12 @@ namespace joint_library
                     ss_e_op_4(jo);
                     break;
                 case (15):
+                    // std::cout << ("ss_e_op_5\n");
                     ss_e_op_5(jo, joints);
+                    break;
+                case (16):
+                    // std::cout << ("ss_e_op_6\n");
+                    ss_e_op_6(jo, joints);
                     break;
                 case (12):
                     ss_e_op_0(jo);
@@ -3863,8 +3914,10 @@ namespace joint_library
                 jo.duplicate_geometry(temp_joint);
                 unique_joints.insert(std::pair<std::string, joint>(key, temp_joint));
                 jo.orient_to_connection_area(); // and orient to connection volume
-                if (jo.linked_joints.size() > 0 && id_representing_joint_name == 15)
-                { // special case for vidy only when joints must be merged | also check
+
+                // special case for vidy only when joints must be merged | also check
+                if (jo.linked_joints.size() > 0 && (id_representing_joint_name == 15 || id_representing_joint_name == 16))
+                {
                     for (auto &linked_joint_id : jo.linked_joints)
                         joints[linked_joint_id].orient_to_connection_area();
                     jo.remove_geo_from_linked_joint_and_merge_with_current_joint(joints);

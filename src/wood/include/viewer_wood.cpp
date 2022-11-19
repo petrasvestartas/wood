@@ -4,7 +4,7 @@
 float viewer_wood::scale = 1000.0f;
 float viewer_wood::line_thickness = 3;
 
-void viewer_wood::add(std::vector<std::vector<CGAL_Polyline>> &polyline_groups, int color_type )
+void viewer_wood::add(std::vector<std::vector<CGAL_Polyline>> &polyline_groups, int color_type)
 {
 
     std::vector<std::vector<float>> vertices;
@@ -170,7 +170,7 @@ void viewer_wood::add_loft(std::vector<std::vector<CGAL_Polyline>> &output_pline
     for (auto &polylines : output_plines)
         cgal_mesh_util::closed_mesh_from_polylines_vnf(polylines, out_vertices, out_normals, out_triangles);
 
-    opengl_globals_geometry::meshes.add(out_vertices, out_normals, out_triangles, colors::green);
+    opengl_globals_geometry::meshes.add(out_vertices, out_normals, out_triangles, colors::white);
 
     // auto stop = std::chrono::high_resolution_clock::now();
     // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);

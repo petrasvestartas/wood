@@ -1587,14 +1587,26 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         try
         {
             id = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]));
+
             id_alignment_joint = joints_map.at(cgal_math_util::unique_from_two_int(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]));
             // std::cout << id << " three_valence_joint_addition_vidy \n";
         }
         catch (const std::out_of_range &oor)
         {
-            printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s  %s ", __FILE__, __FUNCTION__, __LINE__, "Out of Range error:", oor.what());
+            printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s  %s ", __FILE__, __FUNCTION__, __LINE__, "wood_main -> vidy -> out-of-range error:", oor.what());
             continue;
         }
+
+        // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // // if joint order was reversed, reverse the neighbors here:
+        // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // // std::cout << "wood_main " <<in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
+        // // std::cout << "wood_main " <<joints[id].v0 << " " << joints[id].v1 << "\n";
+        // if (joints[id].v0 == in_s0_s1_e20_e31[i][1])
+        // {
+        //     std::swap(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]);
+        //     std::swap(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]);
+        // }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // align joint lines and volumes | currently the joints are aligned to the 4 valence joint, but there can be opposite scenario
@@ -1618,7 +1630,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
 
                     if (j == 0)
                     {
-                        CGAL_Debug(v_before);
+                        //CGAL_Debug(v_before);
                         cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[0], v_before);
                         cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[1], -v_before);
                         if (joints[id_alignment_joint].joint_volumes[2].size() != 0)
@@ -1630,6 +1642,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
                 }
             }
         }
+
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // if plates are parallel, then it would be enough to move the joint volume, without performing intersection
         //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1643,6 +1656,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][3]].planes[1]);
 
         IK::Plane_3 plane00_far = d00 < d01 ? elements[in_s0_s1_e20_e31[i][3]].planes[0] : elements[in_s0_s1_e20_e31[i][3]].planes[1];
+        //std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
 
         d00 = CGAL::squared_distance(
             plane00_far.point(),
@@ -1652,6 +1666,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][0]].planes[1]);
 
         IK::Plane_3 plane01_near = d00 < d01 ? elements[in_s0_s1_e20_e31[i][0]].planes[1] : elements[in_s0_s1_e20_e31[i][0]].planes[0];
+       // std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
 
         double d10 = CGAL::squared_distance(
             elements[in_s0_s1_e20_e31[i][1]].planes[0].point(),
@@ -1661,6 +1676,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][2]].planes[1]);
 
         IK::Plane_3 plane10_far = d10 < d11 ? elements[in_s0_s1_e20_e31[i][2]].planes[0] : elements[in_s0_s1_e20_e31[i][2]].planes[1];
+       // std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
 
         d10 = CGAL::squared_distance(
             plane10_far.point(),
@@ -1670,18 +1686,38 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][1]].planes[1]);
 
         IK::Plane_3 plane11_near = d10 < d11 ? elements[in_s0_s1_e20_e31[i][1]].planes[1] : elements[in_s0_s1_e20_e31[i][1]].planes[0];
+        //std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
 
-        std::array<CGAL::Aff_transformation_3<IK>, 2> translation;
-        std::array<IK::Vector_3, 2> translation_vectors;
         // find movement direction
 
         IK::Line_3 l0(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1]);
         IK::Line_3 l1(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2]);
+       // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1])) << "\n";
+       // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2])) << "\n";
 
-        double d_plane0_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][0], plane01_near) - CGAL::squared_distance(joints[id].joint_volumes[0][1], plane01_near));
-        double d_plane1_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][1], plane11_near) - CGAL::squared_distance(joints[id].joint_volumes[0][2], plane11_near));
+        // double d_plane0_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][0], plane01_near) - CGAL::squared_distance(joints[id].joint_volumes[0][1], plane01_near));
+        // double d_plane1_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][1], plane11_near) - CGAL::squared_distance(joints[id].joint_volumes[0][2], plane11_near));
+        IK::Line_3 projection_line_0(plane01_near.projection(joints[id].joint_volumes[0][0]), plane01_near.projection(joints[id].joint_volumes[0][1]));
+        IK::Line_3 projection_line_1(plane01_near.projection(joints[id].joint_volumes[0][1]), plane01_near.projection(joints[id].joint_volumes[0][2]));
 
-        std::array<IK::Line_3, 2> l = d_plane0_near < d_plane1_near ? std::array<IK::Line_3, 2>{l1, l0} : std::array<IK::Line_3, 2>{l0, l1};
+        bool is_parallel_00 = cgal_vector_util::IsParallelTo(projection_line_0.to_vector(), l0.to_vector(), 0.01) == 0;
+        bool is_parallel_01 = cgal_vector_util::IsParallelTo(projection_line_1.to_vector(), l1.to_vector(), 0.01) == 0;
+
+        
+        
+        //std::cout << "is parallel: " << is_parallel_00 << " " << is_parallel_01 << "\n";
+
+        IK::Point_3 midpoint_0 = CGAL::midpoint(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1]);
+        IK::Point_3 midpoint_1 = CGAL::midpoint(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2]);
+        IK::Point_3 midpoint_2 = CGAL::midpoint(joints[id].joint_volumes[0][2], joints[id].joint_volumes[0][3]);
+        IK::Point_3 midpoint_3 = CGAL::midpoint(joints[id].joint_volumes[0][3], joints[id].joint_volumes[0][0]);
+
+        // double d_plane0_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][0], plane01_near) - CGAL::squared_distance(joints[id].joint_volumes[0][1], plane01_near));
+        // double d_plane1_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][1], plane11_near) - CGAL::squared_distance(joints[id].joint_volumes[0][2], plane11_near));
+
+        // std::array<IK::Line_3, 2> l = d_plane0_near < d_plane1_near ? std::array<IK::Line_3, 2>{l1, l0} : std::array<IK::Line_3, 2>{l0, l1};
+        std::array<IK::Line_3, 2> l = is_parallel_01 ? std::array<IK::Line_3, 2>{l1, l0} : std::array<IK::Line_3, 2>{l0, l1};
+
         IK::Point_3 p00;
         cgal_intersection_util::LinePlane(l[0], plane00_far, p00);
 
@@ -1694,19 +1730,55 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         IK::Point_3 p11;
         cgal_intersection_util::LinePlane(l[1], plane11_near, p11);
 
-        translation = std::array<CGAL::Aff_transformation_3<IK>, 2>{
+        // std::cout << p00.hx() << " " << p00.hy() << " " << p00.hz() << "\n";
+        // std::cout << p01.hx() << " " << p01.hy() << " " << p01.hz() << "\n";
+        // std::cout << p10.hx() << " " << p10.hy() << " " << p10.hz() << "\n";
+        // std::cout << p11.hx() << " " << p11.hy() << " " << p11.hz() << "\n";
+
+        std::array<CGAL::Aff_transformation_3<IK>, 2> translation = std::array<CGAL::Aff_transformation_3<IK>, 2>{
             CGAL::Aff_transformation_3<IK>(CGAL::TRANSLATION, p00 - p01),
             CGAL::Aff_transformation_3<IK>(CGAL::TRANSLATION, p10 - p11)};
 
-        translation_vectors = std::array<IK::Vector_3, 2>{
+        std::array<IK::Vector_3, 2> translation_vectors = std::array<IK::Vector_3, 2>{
             p00 - p01,
             p10 - p11};
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         // Translates the joint volume and lines | change the orientation of the second volume to rotate the same joint
         //////////////////////////////////////////////////////////////////////////////////////////////////////
-        std::array<CGAL_Polyline, 4> joint_volumes_0 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
+        std::array<CGAL_Polyline, 4>
+            joint_volumes_0 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
         std::array<CGAL_Polyline, 4> joint_volumes_1 = {joints[id].joint_volumes[0], joints[id].joint_volumes[1], joints[id].joint_volumes[2], joints[id].joint_volumes[3]};
+
+        // for (int j = 0; j < 4; j++)
+        // {
+        //     std::cout << joint_volumes_0[j].size() << "\n";
+        //     if (joint_volumes_0[j].size() != 0)
+        //     {
+        //         std::cout << joint_volumes_1[j].size() << "\n";
+        //         for (int k = 0; k < joint_volumes_1[j].size(); k++)
+        //         {
+        //             std::cout << joint_volumes_1[j][k] << "\n";
+        //         }
+        //     }
+        // }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Check if translation vectors are valid
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        double vector_coord_sum = translation_vectors[0].hx() + translation_vectors[0].hy() + translation_vectors[0].hz() + translation_vectors[1].hx() + translation_vectors[1].hy() + translation_vectors[1].hz();
+        bool a = vector_coord_sum < -1.0e8;
+        bool b = vector_coord_sum > 1.0e8;
+       // std::cout << a << "\n";
+        //std::cout << b << "\n";
+       // std::cout << vector_coord_sum << "\n";
+
+        if (vector_coord_sum < -1.0e8 || vector_coord_sum > 1.0e8)
+        {
+            std::cout << "ERROR -> wood_main.cpp -> three_valence_joint_addition_vidy " << vector_coord_sum
+                      << " translation vector is huge or super small \n";
+            return;
+        }
 
         // orient volumes to translation direction for correct joint orientation
         int shift = 0;
@@ -1745,7 +1817,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             std::swap(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]);
             std::swap(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]);
         }
-        // std::cout << "wood_main " << in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
+        //std::cout << "wood_main " << in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         //  2. Add joints | Map element0-element1 to joint_id | Add element indexing for display of volumes
@@ -1778,6 +1850,16 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         elements[in_s0_s1_e20_e31[i][1]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 1].id, true, 0));
         elements[in_s0_s1_e20_e31[i][3]].j_mf.back().push_back(std::tuple<int, bool, double>(joints[joints.size() - 1].id, false, 0));
 
+        //     for(int j = 0; j < 4;j++){
+        //         std::cout << joint_volumes_0[j].size() << "\n";
+        //         if (joint_volumes_0[j].size()!=0){
+        //             std::cout << joint_volumes_1[j].size() << "\n";
+        //             for(int k = 0; k < joint_volumes_1[j].size();k++){
+        //                 std::cout << joint_volumes_1[j][k] << "\n";
+        //             }
+        //         }
+        //    }
+        // return;
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // perepare for linking
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
