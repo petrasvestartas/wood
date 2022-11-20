@@ -142,25 +142,39 @@ void get_elements(
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // User given properties, Other properties such as insertion vectors or joint tapes
+        // be aware of "-1" in " elements[count].j_mf.size() - 1" | custom joint type is skipped
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (insertion_vectors.size() > 0)
-            if (insertion_vectors[count].size() > 0)
-            {
-                elements[count].edge_vectors = insertion_vectors[count];
-                // This was very nasty bug, because polylines are reverse based on orientation fix | also only shift +2 must be reversed (edges, skip top and bottom)
-                if (reverse_poylines)
-                    std::reverse(elements[count].edge_vectors.begin() + 2, elements[count].edge_vectors.end());
-            }
+        if (insertion_vectors.size() != 0)
+        {
+            if (insertion_vectors.size() == pp.size() * 0.5)
+                if (insertion_vectors[count].size() == elements[count].j_mf.size() - 1)
+                {
+                    elements[count].edge_vectors = insertion_vectors[count];
+                    // This was very nasty bug, because polylines are reverse based on orientation fix | also only shift +2 must be reversed (edges, skip top and bottom)
+                    if (reverse_poylines)
+                        std::reverse(elements[count].edge_vectors.begin() + 2, elements[count].edge_vectors.end());
+                }
+                else
+                    std::cout << "ERROR - wood_main.cpp -> get_elements -> insertion_vectors[count].size() == elements[count].j_mf.size()-1, currently is: " << insertion_vectors[count].size() << " must be: " << elements[count].j_mf.size() - 1 << "\n";
+            else
+                std::cout << "ERROR - wood_main.cpp -> get_elements -> insertion_vectors.size() != pp.size() * 0.5, currently is: " << insertion_vectors.size() << " must be: " << 0.5 * pp.size() << "\n";
+        }
 
-        if (joint_types.size() > 0)
-            if (joint_types[count].size() > 0)
-            {
-                elements[count].joint_types = joint_types[count];
-                // This was very nasty bug, because polylines are reverse based on orientation fix | also only shift +2 must be reversed (edges, skip top and bottom)
-                if (reverse_poylines)
-                    std::reverse(elements[count].joint_types.begin() + 2, elements[count].joint_types.end());
-            }
-
+        if (joint_types.size() != 0)
+        {
+            if (joint_types.size() == pp.size() * 0.5)
+                if (joint_types[count].size() == elements[count].j_mf.size() - 1)
+                {
+                    elements[count].joint_types = joint_types[count];
+                    // This was very nasty bug, because polylines are reverse based on orientation fix | also only shift +2 must be reversed (edges, skip top and bottom)
+                    if (reverse_poylines)
+                        std::reverse(elements[count].joint_types.begin() + 2, elements[count].joint_types.end());
+                }
+                else
+                    std::cout << "ERROR - wood_main.cpp -> get_elements -> joint_types[count].size() == pp.size() * 0.5, currently is: " << joint_types[count].size() << " must be: " << 0.5 * pp.size() << "\n";
+            else
+                std::cout << "ERROR - wood_main.cpp -> get_elements -> joint_types.size() == pp.size() * 0.5, currently is: " << joint_types.size() << " must be: " << 0.5 * pp.size() << "\n";
+        }
         count++;
     }
 }
@@ -1611,37 +1625,37 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // align joint lines and volumes | currently the joints are aligned to the 4 valence joint, but there can be opposite scenario
         //////////////////////////////////////////////////////////////////////////////////////////////////
-        if (align_joints)
-        {
-            for (int j = 0; j < 2; j++)
-            {
+        // if (align_joints)
+        // {
+        //     for (int j = 0; j < 2; j++)
+        //     {
 
-                if (joints[id_alignment_joint].joint_lines[j].size() > 0)
-                {
+        //         if (joints[id_alignment_joint].joint_lines[j].size() > 0)
+        //         {
 
-                    IK::Vector_3 v = 0.5 * (joints[id].joint_lines[j][1] - joints[id].joint_lines[j][0]);
-                    // transform vectors
-                    IK::Vector_3 v_before = 0.5 * (joints[id_alignment_joint].joint_lines[j][1] - joints[id_alignment_joint].joint_lines[j][0]);
-                    v_before -= v;
+        //             IK::Vector_3 v = 0.5 * (joints[id].joint_lines[j][1] - joints[id].joint_lines[j][0]);
+        //             // transform vectors
+        //             IK::Vector_3 v_before = 0.5 * (joints[id_alignment_joint].joint_lines[j][1] - joints[id_alignment_joint].joint_lines[j][0]);
+        //             v_before -= v;
 
-                    IK::Point_3 mid_point = CGAL::midpoint(joints[id_alignment_joint].joint_lines[j][0], joints[id_alignment_joint].joint_lines[j][1]);
-                    joints[id_alignment_joint].joint_lines[j][0] = mid_point - v;
-                    joints[id_alignment_joint].joint_lines[j][1] = mid_point + v;
+        //             IK::Point_3 mid_point = CGAL::midpoint(joints[id_alignment_joint].joint_lines[j][0], joints[id_alignment_joint].joint_lines[j][1]);
+        //             joints[id_alignment_joint].joint_lines[j][0] = mid_point - v;
+        //             joints[id_alignment_joint].joint_lines[j][1] = mid_point + v;
 
-                    if (j == 0)
-                    {
-                        //CGAL_Debug(v_before);
-                        cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[0], v_before);
-                        cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[1], -v_before);
-                        if (joints[id_alignment_joint].joint_volumes[2].size() != 0)
-                        {
-                            cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[2], v_before);
-                            cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[3], -v_before);
-                        }
-                    }
-                }
-            }
-        }
+        //             if (j == 0)
+        //             {
+        //                 // CGAL_Debug(v_before);
+        //                 cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[0], v_before);
+        //                 cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[1], -v_before);
+        //                 if (joints[id_alignment_joint].joint_volumes[2].size() != 0)
+        //                 {
+        //                     cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[2], v_before);
+        //                     cgal_polyline_util::move(joints[id_alignment_joint].joint_volumes[3], -v_before);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // if plates are parallel, then it would be enough to move the joint volume, without performing intersection
@@ -1656,7 +1670,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][3]].planes[1]);
 
         IK::Plane_3 plane00_far = d00 < d01 ? elements[in_s0_s1_e20_e31[i][3]].planes[0] : elements[in_s0_s1_e20_e31[i][3]].planes[1];
-        //std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
+        // std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
 
         d00 = CGAL::squared_distance(
             plane00_far.point(),
@@ -1666,7 +1680,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][0]].planes[1]);
 
         IK::Plane_3 plane01_near = d00 < d01 ? elements[in_s0_s1_e20_e31[i][0]].planes[1] : elements[in_s0_s1_e20_e31[i][0]].planes[0];
-       // std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
+        // std::cout << "dist: " << std::sqrt(d00) << " " << std::sqrt(d01) << "\n";
 
         double d10 = CGAL::squared_distance(
             elements[in_s0_s1_e20_e31[i][1]].planes[0].point(),
@@ -1676,7 +1690,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][2]].planes[1]);
 
         IK::Plane_3 plane10_far = d10 < d11 ? elements[in_s0_s1_e20_e31[i][2]].planes[0] : elements[in_s0_s1_e20_e31[i][2]].planes[1];
-       // std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
+        // std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
 
         d10 = CGAL::squared_distance(
             plane10_far.point(),
@@ -1686,14 +1700,14 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             elements[in_s0_s1_e20_e31[i][1]].planes[1]);
 
         IK::Plane_3 plane11_near = d10 < d11 ? elements[in_s0_s1_e20_e31[i][1]].planes[1] : elements[in_s0_s1_e20_e31[i][1]].planes[0];
-        //std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
+        // std::cout << "dist: " << std::sqrt(d10) << " " << std::sqrt(d11) << "\n";
 
         // find movement direction
 
         IK::Line_3 l0(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1]);
         IK::Line_3 l1(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2]);
-       // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1])) << "\n";
-       // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2])) << "\n";
+        // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1])) << "\n";
+        // std::cout << "dist of lines: " << std::sqrt(CGAL::squared_distance(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2])) << "\n";
 
         // double d_plane0_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][0], plane01_near) - CGAL::squared_distance(joints[id].joint_volumes[0][1], plane01_near));
         // double d_plane1_near = std::abs(CGAL::squared_distance(joints[id].joint_volumes[0][1], plane11_near) - CGAL::squared_distance(joints[id].joint_volumes[0][2], plane11_near));
@@ -1703,9 +1717,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         bool is_parallel_00 = cgal_vector_util::IsParallelTo(projection_line_0.to_vector(), l0.to_vector(), 0.01) == 0;
         bool is_parallel_01 = cgal_vector_util::IsParallelTo(projection_line_1.to_vector(), l1.to_vector(), 0.01) == 0;
 
-        
-        
-        //std::cout << "is parallel: " << is_parallel_00 << " " << is_parallel_01 << "\n";
+        // std::cout << "is parallel: " << is_parallel_00 << " " << is_parallel_01 << "\n";
 
         IK::Point_3 midpoint_0 = CGAL::midpoint(joints[id].joint_volumes[0][0], joints[id].joint_volumes[0][1]);
         IK::Point_3 midpoint_1 = CGAL::midpoint(joints[id].joint_volumes[0][1], joints[id].joint_volumes[0][2]);
@@ -1769,9 +1781,9 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
         double vector_coord_sum = translation_vectors[0].hx() + translation_vectors[0].hy() + translation_vectors[0].hz() + translation_vectors[1].hx() + translation_vectors[1].hy() + translation_vectors[1].hz();
         bool a = vector_coord_sum < -1.0e8;
         bool b = vector_coord_sum > 1.0e8;
-       // std::cout << a << "\n";
-        //std::cout << b << "\n";
-       // std::cout << vector_coord_sum << "\n";
+        // std::cout << a << "\n";
+        // std::cout << b << "\n";
+        // std::cout << vector_coord_sum << "\n";
 
         if (vector_coord_sum < -1.0e8 || vector_coord_sum > 1.0e8)
         {
@@ -1817,7 +1829,7 @@ void three_valence_joint_addition_vidy(std::vector<std::vector<int>> &in_s0_s1_e
             std::swap(in_s0_s1_e20_e31[i][2], in_s0_s1_e20_e31[i][3]);
             std::swap(in_s0_s1_e20_e31[i][0], in_s0_s1_e20_e31[i][1]);
         }
-        //std::cout << "wood_main " << in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
+        // std::cout << "wood_main " << in_s0_s1_e20_e31[i][0] << " " << in_s0_s1_e20_e31[i][1] << " " << in_s0_s1_e20_e31[i][2] << " " << in_s0_s1_e20_e31[i][3] << "\n";
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
         //  2. Add joints | Map element0-element1 to joint_id | Add element indexing for display of volumes
@@ -2008,6 +2020,7 @@ void get_connection_zones(
 
 )
 {
+
 #ifdef DEBUG_MEASURE_TIME
     auto begin = std::chrono::high_resolution_clock::now();
 #endif
@@ -2026,7 +2039,15 @@ void get_connection_zones(
     //////////////////////////////////////////////////////////////////////////////
     // Create elements, AABB, OBB, P, Pls, thickness
     //////////////////////////////////////////////////////////////////////////////
-    get_elements(input_polyline_pairs, input_insertion_vectors, input_joint_types, elements);
+    try
+    {
+        get_elements(input_polyline_pairs, input_insertion_vectors, input_joint_types, elements);
+    }
+    catch (...)
+    {
+        printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s ", __FILE__, __FUNCTION__, __LINE__, "Error in get_elements");
+        return;
+    }
 
 #ifdef DEBUG_MEASURE_TIME
     auto end = std::chrono::high_resolution_clock::now();

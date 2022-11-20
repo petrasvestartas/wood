@@ -413,8 +413,15 @@ namespace opengl_render
 			// opengl_globals_geometry::meshes.clear_geo_in_opengl();
 			// opengl_globals_geometry::polylines.clear_geo_in_opengl();
 			// opengl_globals_geometry::pointclouds.clear_geo_in_opengl();
+			try
+			{
+				function(); // add geometry
+			}
+			catch (...)
+			{
+				std::cout << "opengl_render.h -> error in function that produces geometry \n";
+			}
 
-			function(); // add geometry
 			init_geometry();
 		}
 	}

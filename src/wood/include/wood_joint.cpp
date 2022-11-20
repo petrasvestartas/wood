@@ -429,6 +429,7 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
 
     for (int i = 0; i < linked_joints.size(); i++) //
     {
+        
         // check indices of linked and current joints to know which id to merge and remove -> a0-b0 | a0-b1
         bool m_f_curr = v0 == all_joints[linked_joints[i]].v0; // is it the item to merge, for both joints the first==first or second==second must match
         bool m_f_next = m_f_curr;

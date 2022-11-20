@@ -24,7 +24,13 @@ namespace wood_test
 
     void test_side_to_top();
 
-    void test_chapel();
+    void test__function_three_valence_joint_addition_vidy__dataset_chapel_corner();
+
+    void test__function_three_valence_joint_addition_vidy__dataset_chapel_one_layer();
+
+    void test__function_three_valence_joint_addition_vidy__dataset_chapel_simple();
+
+    void test__function_three_valence_joint_addition_vidy__dataset_chapel();
 
     void ss_e_op_4();
 }

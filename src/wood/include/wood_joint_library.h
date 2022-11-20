@@ -1432,12 +1432,14 @@ namespace joint_library
 
     inline void ss_e_op_5(joint &jo, std::vector<joint> &all_joints, bool disable_joint_divisions_1 = false)
     {
+        //return;
         // get geometry from ss_e_op_4
 
         if (jo.linked_joints.size() != 2)
         { // joint can have no links
             ss_e_op_4(jo, 0.5, true, true, -0.75, 0.5, -0.5, 0.5, -0.5, 0.5);
             jo.name = "ss_e_op_5";
+            //std::cout << "ss_e_op_5" << std::endl;
             return;
         }
         else
@@ -1465,27 +1467,22 @@ namespace joint_library
         // joint 0 - there is only one polyline
         std::vector<std::array<int, 4>> linked_joints_seq_0;
         linked_joints_seq_0.emplace_back(std::array<int, 4>{2, 4, 2, 8});
-        // jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
+        jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
 
         // joint 1
-        // jo.linked_joints.pop_back();
-        std::vector<std::array<int, 4>> linked_joints_seq_1;
-        // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
-        for (int i = 0; i < jo.f[0].size(); i += 2)
-        {
-            if (i == 0)
+
+  
+            std::vector<std::array<int, 4>> linked_joints_seq_1;
+            // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
+            for (int i = 0; i < jo.f[0].size(); i += 2)
             {
-                linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2}); // std::array<std::vector<CGAL_Polyline>, 2> f;
-                // linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, 0});
-                // std::cout << (int)jo.f[0][0].size() - 2 << " " << (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2 << "\n";
-                //  std::cout << "linked_joints_seq_1 " << (int)jo.f[0][0].size() - 2 << "\n"; // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
+                if (i == 0)
+                    linked_joints_seq_1.emplace_back(std::array<int, 4>{1, (int)jo.f[0][0].size() - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size() - 2}); // std::array<std::vector<CGAL_Polyline>, 2> f;
+                else
+                    linked_joints_seq_1.emplace_back(std::array<int, 4>{0, 0, 0, 0});
             }
-            else
-                linked_joints_seq_1.emplace_back(std::array<int, 4>{0, 0, 0, 0});
-        }
-        // std::cout << "wood_joint_library" << linked_joints_seq_1.size() << std::endl;
-        jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
-        jo.linked_joints_seq.emplace_back(linked_joints_seq_1);
+            jo.linked_joints_seq.emplace_back(linked_joints_seq_1);
+       
     }
 
     inline void ss_e_op_6(joint &jo, std::vector<joint> &all_joints)
@@ -3442,7 +3439,9 @@ namespace joint_library
     }
 
     inline void construct_joint_by_index(std::vector<element> &elements, std::vector<joint> &joints, std::vector<double> &default_parameters_for_four_types, std::vector<double> &scale)
-    { // const double& division_distance_, const double& shift_,
+    { 
+        
+        // const double& division_distance_, const double& shift_,
         /////////////////////////////////////////////////////////////////////
         // You must define new joint each time you internalize it
         /////////////////////////////////////////////////////////////////////
@@ -3587,9 +3586,9 @@ namespace joint_library
             { // top-top
                 group = 6;
             }
-            //std::cout << id_representing_joint_name << " " << group << " " << jo.link << " " << elements[jo.v0].joint_types[jo.f0_0] << " " << elements[jo.v1].joint_types[jo.f1_0] << "\n";
-            // printf("\n %i %i %i", group, id_representing_joint_name, jo.type);
-            // printf("\n ");
+            // std::cout << id_representing_joint_name << " " << group << " " << jo.link << " " << elements[jo.v0].joint_types[jo.f0_0] << " " << elements[jo.v1].joint_types[jo.f1_0] << "\n";
+            //  printf("\n %i %i %i", group, id_representing_joint_name, jo.type);
+            //  printf("\n ");
 
             // define scale
 
@@ -3617,20 +3616,20 @@ namespace joint_library
                 if (id_representing_joint_name == -1) // for cases when joint types per each edge are not defined
                     id_representing_joint_name = (int)default_parameters_for_four_types[(number_of_parameters * group + 2)];
             }
-            std::cout << id_representing_joint_name << " " << group << "\n";
+            //std::cout << id_representing_joint_name << " " << group << "\n";
             // printf("\n  %i, %i, %i", jo.type, jo.v0, jo.v1);
             // printf("\n Hi %i %i", id_representing_joint_name, group);
             if (id_representing_joint_name < 1 || group == -1)
             {
                 ids_to_remove.emplace_back(counter - 1);
-                printf("%i %i %i \n ", jo.type, jo.v0, jo.v1);
-                std::cout << "Joint is skipped \n";
+                // printf("%i %i %i ", jo.type, jo.v0, jo.v1);
+                // std::cout << "Joint is skipped \n";
                 continue;
             }
             else
             {
-                //printf("%i %i %i \n ", jo.type, jo.v0, jo.v1);
-               // std::cout << "Joint is not skipped \n";
+                // printf("%i %i %i \n ", jo.type, jo.v0, jo.v1);
+                // std::cout << "Joint is not skipped \n";
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
