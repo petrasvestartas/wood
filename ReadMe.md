@@ -41,3 +41,7 @@
 2022/11/20 - examples addition: chapel_corner | chapel_one_layer | chapel_simple | chapel | todo: check why simple finger joints are not merged porperly with the outlines | implement 3 valence joint (when only one joint is connected not two)
 ![Chapel1](https://user-images.githubusercontent.com/18013985/202915055-02107a24-9fb5-4e85-86b8-3ec134f15229.jpg)
 
+
+https://user-images.githubusercontent.com/18013985/202915294-fc893395-eecc-406a-8597-639f438726c2.mp4
+
+
