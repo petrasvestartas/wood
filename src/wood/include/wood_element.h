@@ -19,7 +19,7 @@
 
 #ifndef WOOD_ELEMENT_H
 #define WOOD_ELEMENT_H
-
+namespace wood{
 class element
 {
 public:
@@ -54,11 +54,11 @@ public:
 
     /////////////////////////////////////////////////////////////////////////////////////////
     // Joinery Geometry Parameters
-    // pointers to joints, joint geometry will be modified inside joint to avoid copy
-    // joint must be sorted according to edge id to be merged
+    // pointers to joints, wood::joint geometry will be modified inside wood::joint to avoid copy
+    // wood::joint must be sorted according to edge id to be merged
     /////////////////////////////////////////////////////////////////////////////////////////
     // std::map<int, std::pair<bool, int>>edgeID_mf_jointID; //e0,true,jointID
-    std::vector<std::vector<std::tuple<int, bool, double>>> j_mf; //(joint id, male/female, parameter on edge) elements[result[i + 0]].j_mf[e0].push_back(std::tuple<int, bool, double>(jointID, true,0));
+    std::vector<std::vector<std::tuple<int, bool, double>>> j_mf; //(wood::joint id, male/female, parameter on edge) elements[result[i + 0]].j_mf[e0].push_back(std::tuple<int, bool, double>(jointID, true,0));
     // std::vector<CGAL_Polyline> modified_polylines;
     // public Mesh mesh;
 
@@ -68,15 +68,15 @@ public:
     std::string key;
     IK::Plane_3 component_plane;
 
-    void get_joints_geometry(std::vector<joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output, int what_to_expose, std::vector<std::vector<cut_type>> &output_cut_types);
+    void get_joints_geometry(std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output, int what_to_expose, std::vector<std::vector<wood_cut::cut_type>> &output_cut_types);
 
     // bool sort_by_third(const std::tuple<int, bool, double> &a, const std::tuple<int, bool, double> &b);
 
-    void get_joints_geometry_as_closed_polylines_replacing_edges(std::vector<joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output);
+    void get_joints_geometry_as_closed_polylines_replacing_edges(std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output);
     bool intersection_closed_and_open_paths_2D(
         CGAL_Polyline &closed_pline_cutter, CGAL_Polyline &pline_to_cut, IK::Plane_3 &plane, CGAL_Polyline &c,
         int (&edge_pair)[2], std::pair<double, double> &cp_pair);
-    void merge_joints(std::vector<joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output);
+    void merge_joints(std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline>> &output);
 };
-
+}
 #endif

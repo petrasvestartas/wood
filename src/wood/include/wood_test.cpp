@@ -97,10 +97,10 @@ namespace wood_test
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // output
         std::vector<std::vector<CGAL_Polyline>> output_plines;
-        std::vector<std::vector<cut_type>> output_types;
+        std::vector<std::vector<wood_cut::cut_type>> output_types;
         std::vector<std::vector<int>> top_face_triangulation;
 
-        get_connection_zones(
+        wood_main::get_connection_zones(
 
             // input
             input_polyline_pairs,
@@ -133,7 +133,7 @@ namespace wood_test
         // opengl_render::render();
     }
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_corner()
+    void test_F_three_valence_joint_addition_vidy_D_chapel_corner()
     {
         std::cout << __func__ << "\n";
 
@@ -146,12 +146,12 @@ namespace wood_test
         // wood_globals::limit_min_joint_length = 140;
         //  function inputs
         bool simple_case = false;
-        path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_corner.xml";
+        wood_xml::path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_corner.xml";
         std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
-        path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
+        wood_xml::read_xml_polylines(input_polyline_pairs, simple_case);
 
         std::vector<double> joint_types = wood_globals::joint_types;
-        joint_types[1 * 3 + 0] = 140; // division_length
+        joint_types[1 * 3 + 0] = 150; // division_length
         std::cout
             << "\nwood_test -> joint_types\n";
         for (auto &joint_type : joint_types)
@@ -163,19 +163,44 @@ namespace wood_test
         std::vector<double> scale = {1, 1, 1};
         std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{};
         std::vector<std::vector<int>> input_joint_types{
-            {-1, -1, -1, -1, -1, 14}, {-1, -1, -1, 14, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, -1, 16}, {-1, -1, -1, 16, -1, -1}, {-1, -1, -1, -1, -1, 16}, {-1, -1, -1, 16, -1, -1}
+            {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, 16, -1}, {-1, -1, 16, -1, -1, -1}, {-1, -1, -1, -1, -1, 16}, {-1, -1, -1, 16, -1, -1}, {-1, -1, -1, -1, 16, -1}, {-1, -1, 16, -1, -1, -1}, {-1, -1, -1, -1, -1, 16}, {-1, -1, -1, 16, -1, -1}, {-1, -1, -1, -1, 16, -1}, {-1, -1, 16, -1, -1, -1}, {-1, -1, -1, -1, -1, 16}, {-1, -1, -1, 16, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}, {-1, -1, -1, -1, 15, -1}, {-1, -1, 15, -1, -1, -1}, {-1, -1, -1, -1, -1, 15}, {-1, -1, -1, 15, -1, -1}
 
         };
         // std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {{1}, {16, 10, 11, 17}};
         std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {
             {1},
-            {2, 3, 5, 4},
-            {6, 7, 9, 8}
+            // column1 - joint 15
+            {6, 7, 9, 8},
+            {10, 11, 13, 12},
+            {14, 15, 17, 16},
+            // column2 - joint 16
+            {18, 19, 21, 20},
+            {22, 23, 25, 24},
+            {26, 27, 29, 28},
+            // column3 - joint one direction
+            {30, 31, 32, 32},//33,32
+            {34, 35, 36, 36},//37,36
+            {38, 39, 40, 40},//41,40
 
         };
 
         std::vector<int> input_adjacency = {
-            {-1, -1, 0, 1, -1, -1, 0, 2, 3, -1, -1, 4, 5, -1, -1, 6, 7, -1, -1, 8, 9, -1, -1}
+            // column 0
+            0, 1, -1, -1,
+            2, 3, -1, -1,
+            4, 5, -1, -1,
+            // column 1
+            6, 7, -1, -1, 8, 9, -1, -1,
+            10, 11, -1, -1, 12, 13, -1, -1,
+            14, 15, -1, -1, 16, 17, -1, -1,
+            // column 2
+            18, 19, -1, -1, 20, 21, -1, -1,
+            22, 23, -1, -1, 24, 25, -1, -1,
+            26, 27, -1, -1, 28, 29, -1, -1,
+            // column 3
+            30, 31, -1, -1, 32, 33, -1, -1,
+            34, 35, -1, -1, 36, 37, -1, -1,
+            38, 39, -1, -1, 40, 41, -1, -1,
 
         };
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,10 +208,10 @@ namespace wood_test
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         std::vector<std::vector<CGAL_Polyline>>
             output_plines;
-        std::vector<std::vector<cut_type>> output_types;
+        std::vector<std::vector<wood_cut::cut_type>> output_types;
         std::vector<std::vector<int>> top_face_triangulation;
 
-        get_connection_zones(
+        wood_main::get_connection_zones(
             // input
             input_polyline_pairs,
             input_insertion_vectors,
@@ -207,9 +232,9 @@ namespace wood_test
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Export
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
+        wood_xml::path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
         // xml_parser::write_xml_polylines(output_plines);
-        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+        wood_xml::write_xml_polylines_and_types(output_plines, output_types);
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Display
@@ -240,7 +265,7 @@ namespace wood_test
         }
     }
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_one_layer()
+    void test_F_three_valence_joint_addition_vidy_D_chapel_one_layer()
     {
         std::cout << __func__ << "\n";
 
@@ -253,9 +278,9 @@ namespace wood_test
         // wood_globals::limit_min_joint_length = 140;
         //  function inputs
         bool simple_case = false;
-        path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_one_layer.xml";
+        wood_xml::path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_one_layer.xml";
         std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
-        path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
+        wood_xml::read_xml_polylines(input_polyline_pairs, simple_case);
 
         std::vector<double> joint_types = wood_globals::joint_types;
         joint_types[1 * 3 + 0] = 50; // division_length
@@ -269,23 +294,20 @@ namespace wood_test
         // std::cout << "\n output_type " << output_type << "\n";
         std::vector<double> scale = {1, 1, 1};
         std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{};
-        std::vector<std::vector<int>> input_joint_types{
-        };
+        std::vector<std::vector<int>> input_joint_types{};
         // std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {{1}, {16, 10, 11, 17}};
-        std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {
-        };
+        std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {};
 
-        std::vector<int> input_adjacency = {
-        };
+        std::vector<int> input_adjacency = {};
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Main Method of Wood
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         std::vector<std::vector<CGAL_Polyline>>
             output_plines;
-        std::vector<std::vector<cut_type>> output_types;
+        std::vector<std::vector<wood_cut::cut_type>> output_types;
         std::vector<std::vector<int>> top_face_triangulation;
 
-        get_connection_zones(
+        wood_main::get_connection_zones(
             // input
             input_polyline_pairs,
             input_insertion_vectors,
@@ -306,9 +328,9 @@ namespace wood_test
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Export
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
+        wood_xml::path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
         // xml_parser::write_xml_polylines(output_plines);
-        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+        wood_xml::write_xml_polylines_and_types(output_plines, output_types);
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Display
@@ -340,7 +362,7 @@ namespace wood_test
     }
 
     // Minor correction Joint side-to-side 13, in get_joints_geometry - 4 - merge joints produces outlines with duplicated points
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_simple()
+    void test_F_three_valence_joint_addition_vidy_D_chapel_simple()
     {
         std::cout << __func__ << "\n";
 
@@ -353,9 +375,9 @@ namespace wood_test
         // wood_globals::limit_min_joint_length = 140;
         //  function inputs
         bool simple_case = false;
-        path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_simple.xml";
+        wood_xml::path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel_simple.xml";
         std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
-        path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
+        wood_xml::read_xml_polylines(input_polyline_pairs, simple_case);
         // double division_length = 300;
         std::vector<double> joint_types = wood_globals::joint_types;
         joint_types[1 * 3 + 0] = 50;
@@ -479,10 +501,10 @@ namespace wood_test
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         std::vector<std::vector<CGAL_Polyline>>
             output_plines;
-        std::vector<std::vector<cut_type>> output_types;
+        std::vector<std::vector<wood_cut::cut_type>> output_types;
         std::vector<std::vector<int>> top_face_triangulation;
 
-        get_connection_zones(
+        wood_main::get_connection_zones(
             // input
             input_polyline_pairs,
             input_insertion_vectors,
@@ -503,9 +525,9 @@ namespace wood_test
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Export
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
+        wood_xml::path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
         // xml_parser::write_xml_polylines(output_plines);
-        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+        wood_xml::write_xml_polylines_and_types(output_plines, output_types);
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Display
@@ -536,7 +558,7 @@ namespace wood_test
         }
     }
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel()
+    void test_F_three_valence_joint_addition_vidy_D_chapel()
     {
         std::cout << __func__ << "\n";
 
@@ -549,9 +571,9 @@ namespace wood_test
         // wood_globals::limit_min_joint_length = 140;
         //  function inputs
         bool simple_case = false;
-        path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel.xml";
+        wood_xml::path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\in_chapel.xml";
         std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
-        path_and_file_for_input_polylines = xml_parser::read_xml_polylines(input_polyline_pairs, simple_case);
+        wood_xml::read_xml_polylines(input_polyline_pairs, simple_case);
         // double division_length = 300;
         std::vector<double> joint_types = wood_globals::joint_types;
         joint_types[1 * 3 + 0] = 50;
@@ -630,10 +652,10 @@ namespace wood_test
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         std::vector<std::vector<CGAL_Polyline>>
             output_plines;
-        std::vector<std::vector<cut_type>> output_types;
+        std::vector<std::vector<wood_cut::cut_type>> output_types;
         std::vector<std::vector<int>> top_face_triangulation;
 
-        get_connection_zones(
+        wood_main::get_connection_zones(
             // input
             input_polyline_pairs,
             input_insertion_vectors,
@@ -654,9 +676,9 @@ namespace wood_test
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Export
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
+        wood_xml::path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\wood\\dataset\\out.xml";
         // xml_parser::write_xml_polylines(output_plines);
-        xml_parser::write_xml_polylines_and_types(output_plines, output_types);
+        wood_xml::write_xml_polylines_and_types(output_plines, output_types);
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Display
@@ -697,7 +719,7 @@ namespace wood_test
         opengl_globals::shaders_folder = "C:\\IBOIS57\\_Code\\Software\\CPP\\CMAKE\\super_build\\wood\\src\\viewer\\shaders\\";
         opengl_globals_geometry::add_grid();
 
-        joint joint;
+        wood::joint joint;
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // joint parameters
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -819,14 +841,14 @@ namespace wood_test
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // boolean
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
+        joint.m_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges};
         joint.f_boolean_type.resize(2 + number_of_tenons);
-        joint.f_boolean_type[0] = insert_between_multiple_edges;
-        joint.f_boolean_type[1] = insert_between_multiple_edges;
+        joint.f_boolean_type[0] = wood_cut::insert_between_multiple_edges;
+        joint.f_boolean_type[1] = wood_cut::insert_between_multiple_edges;
         for (int i = 0; i < number_of_tenons; i += 2)
         {
-            joint.f_boolean_type[2 + i] = hole;
-            joint.f_boolean_type[2 + i + 1] = hole;
+            joint.f_boolean_type[2 + i] = wood_cut::hole;
+            joint.f_boolean_type[2 + i + 1] = wood_cut::hole;
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

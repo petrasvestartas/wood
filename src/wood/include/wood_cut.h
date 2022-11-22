@@ -10,7 +10,7 @@
 //
 // string_to_cut_type and cut_type_to_string are used for conversion, when writing to XML from it
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+namespace wood_cut {
 enum cut_type
 {
     nothing,
@@ -91,5 +91,5 @@ static std::array<std::string, 16> cut_type_to_string{
     "drill",
 
 };
-
+}
 #endif // WOOD_CUT_TYPE_H

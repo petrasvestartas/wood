@@ -1,9 +1,9 @@
 //#pragma once
-#include "wood_cut_type.h"
+#include "wood_cut.h"
 
 #ifndef WOOD_JOINT_H
 #define WOOD_JOINT_H
-
+namespace wood{
 // Container for cuts
 class joint
 {
@@ -29,10 +29,10 @@ public:
     std::vector<double> tile_parameters; // For rebuilding
 
     std::array<std::vector<CGAL_Polyline>, 2> m;
-    std::vector<cut_type> m_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 - hole 3 - insert between multiple edges hole
+    std::vector<wood_cut::cut_type> m_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 - hole 3 - insert between multiple edges hole
 
     std::array<std::vector<CGAL_Polyline>, 2> f;
-    std::vector<cut_type> f_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 - hole 3 - insert between multiple edges hole
+    std::vector<wood_cut::cut_type> f_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 - hole 3 - insert between multiple edges hole
 
     // if this property is enable, joint volume rectangles are moved within unit_scale_distance, this property is equal to first element thickness
     bool unit_scale = false;
@@ -59,9 +59,9 @@ public:
 
     void get_edge_ids(bool male_or_female, int &fA, int &fB);
 
-    cut_type &get_first_cutting_type(bool male_or_female);
+    wood_cut::cut_type &get_first_cutting_type(bool male_or_female);
 
-    std::vector<cut_type> &operator()(bool male_or_female);
+    std::vector<wood_cut::cut_type> &operator()(bool male_or_female);
 
     void reverse(bool male_or_female);
 
@@ -87,5 +87,5 @@ public:
 
     void remove_geo_from_linked_joint_and_merge_with_current_joint(std::vector<joint> &all_joints); // it is called if linked_joints vector is not empty | also check wood_joint -> joint linking with other joints
 };
-
+}
 #endif

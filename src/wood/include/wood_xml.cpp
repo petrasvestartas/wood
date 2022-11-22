@@ -1,14 +1,15 @@
 #include "../../../stdafx.h"
 #include "wood_xml.h"
 
-std::string path_and_file_for_input_numbers = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_numbers.xml";
-std::string path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_polylines.xml";
-std::string path_and_file_for_input_polylines_simple_case = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_polylines_simple_case.xml";
-std::string path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\output_polylines.xml";
-std::string path_and_file_for_output_polylines_simple_case = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\output_polylines_simple_case.xml";
 
-namespace xml_parser
+namespace wood_xml
 {
+    std::string path_and_file_for_input_numbers = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_numbers.xml";
+    std::string path_and_file_for_input_polylines = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_polylines.xml";
+    std::string path_and_file_for_input_polylines_simple_case = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\input_polylines_simple_case.xml";
+    std::string path_and_file_for_output_polylines = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\output_polylines.xml";
+    std::string path_and_file_for_output_polylines_simple_case = "C:\\IBOIS57\\_Code\\Software\\Python\\compas_wood\\net\\data\\output_polylines_simple_case.xml";
+
     bool file_exists_0(const std::string &name)
     {
         std::ifstream f(name.c_str());
@@ -51,7 +52,7 @@ namespace xml_parser
                     for (boost::property_tree::ptree::value_type &number : v.second)
                     {
                         // std::cout << number.second.get_value<double>();
-                        // double x = point.second.get<double>("double");//if "double" is written inside then elements inside this element will be retrieved
+                        // double x = point.second.get<double>("double");//if "double" is written inside then elements inside this wood::element will be retrieved
                         numbers_list.emplace_back(number.second.get_value<double>());
                     }
                     numbers.emplace_back(numbers_list);
@@ -228,7 +229,7 @@ namespace xml_parser
         return true;
     }
 
-    bool write_xml_polylines_and_types(std::vector<std::vector<std::vector<IK::Point_3>>> &polylines_tree, std::vector<std::vector<cut_type>> &types_tree, int id, bool simple_case)
+    bool write_xml_polylines_and_types(std::vector<std::vector<std::vector<IK::Point_3>>> &polylines_tree, std::vector<std::vector<wood_cut::cut_type>> &types_tree, int id, bool simple_case)
     {
 
         std::string property_to_write = "output_polylines";
@@ -300,9 +301,9 @@ namespace xml_parser
                         continue;
 
                 boost::property_tree::ptree type_group;
-                for (cut_type &type : types)
+                for (wood_cut::cut_type &type : types)
                 {
-                    type_group.add("type", cut_type_to_string[type]);
+                    type_group.add("type", wood_cut::cut_type_to_string[type]);
                 }
 
                 main_node.add_child("type_group", type_group);

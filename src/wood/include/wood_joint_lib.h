@@ -2,7 +2,7 @@
 //#include "../../stdafx.h"
 #include "wood_joint.h"
 
-namespace joint_library_xml_parser
+namespace wood_joint_lib_xml
 {
     inline bool exists_test0(const std::string &name)
     {
@@ -16,7 +16,7 @@ namespace joint_library_xml_parser
     //}
 
     // https://zipproth.de/cheat-sheets/cpp-boost/
-    inline bool read_xml(joint &joint, int type = 0)
+    inline bool read_xml(wood::joint &joint, int type = 0)
     {
         std::string name = ""; // custom
 
@@ -97,7 +97,7 @@ namespace joint_library_xml_parser
 #endif
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // Get Property to find the right joint parameters and keys of XML file properties
+        // Get Property to find the right wood::joint parameters and keys of XML file properties
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Traverse property tree example
         std::string xml_joint_name = "custom_joints." + name;
@@ -164,7 +164,7 @@ namespace joint_library_xml_parser
 
                 for (int i = 4; i < 6; i++)
                 {
-                    std::vector<cut_type> boolean_type;
+                    std::vector<wood_cut::cut_type> boolean_type;
                     if (v.first == keys[i])
                     {
                         // std::cout << v.first << "\n";
@@ -173,7 +173,7 @@ namespace joint_library_xml_parser
                         {
 
                             auto txt = index.second.get_value<std::string>();
-                            cut_type type = string_to_cut_type[txt];
+                            wood_cut::cut_type type = wood_cut::string_to_cut_type[txt];
 
 #ifdef DEBUG_JOINERY_LIBRARY
                             printf("\nCPP id %c ", id);
@@ -242,7 +242,7 @@ namespace joint_library_xml_parser
     }
 }
 
-namespace joint_library
+namespace wood_joint_lib
 {
     inline CGAL::Aff_transformation_3<IK> to_plane(IK::Vector_3 X1, IK::Vector_3 Y1, IK::Vector_3 Z1)
     {
@@ -355,11 +355,11 @@ namespace joint_library
     }
 
     // type_typeidedge_subtypeieinplane_id
-    // 0 - do not merge, 1 - edge insertion, 2 - hole 3 - insert between multiple edges hole
+    // 0 - do not merge, 1 - edge insertion, 2 - wood_cut::hole 3 - insert between multiple edges wood_cut::hole
 
     // custom
 
-    inline void side_removal(joint &jo, std::vector<element> &elements, bool merge_with_joint = false)
+    inline void side_removal(wood::joint &jo, std::vector<wood::element> &elements, bool merge_with_joint = false)
     {
         jo.name = __func__;
         jo.orient = false;
@@ -448,8 +448,8 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////
         // orient a tile
         // 1) Create rectangle between two edge of the side
-        // 2) Create joint in XY plane and orient it to the two rectangles
-        // 3) Clipper boolean difference, cut joint polygon form the outline
+        // 2) Create wood::joint in XY plane and orient it to the two rectangles
+        // 3) Clipper boolean difference, cut wood::joint polygon form the outline
         /////////////////////////////////////////////////////////////////////////////////
 
         // 1) Create rectangle between two edge of the side
@@ -575,11 +575,11 @@ namespace joint_library
         };
 
         if (jo.shift > 0 && merge_with_joint)
-            jo.m_boolean_type = {mill_project, mill_project, mill_project, mill_project};
+            jo.m_boolean_type = {wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project};
         else
-            jo.m_boolean_type = {mill_project, mill_project};
+            jo.m_boolean_type = {wood_cut::mill_project, wood_cut::mill_project};
 
-        jo.f_boolean_type = {mill_project, mill_project};
+        jo.f_boolean_type = {wood_cut::mill_project, wood_cut::mill_project};
 
         /////////////////////////////////////////////////////////////////////////////////
         // if merge is needed
@@ -587,9 +587,9 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////
         // if (merge_with_joint) {
 
-        //    //2) Create joint in XY plane and orient it to the two rectangles
-        //    joint joint_2;
-        //    //bool read_successful = joint_library_xml_parser::read_xml(joint_2, jo.type);
+        //    //2) Create wood::joint in XY plane and orient it to the two rectangles
+        //    wood::joint joint_2;
+        //    //bool read_successful = wood_joint_lib_xml::read_xml(joint_2, jo.type);
         //    ss_e_r_1(joint_2);
         //    bool read_successful = true;
 
@@ -605,24 +605,24 @@ namespace joint_library
 
         //        IK::Plane_3 plane_0_0(jo.m[0][0][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector());
         //        IK::Plane_3 plane_0_1(jo.m[0][2][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector());
-        //        //Conical offset
+        //        //wood_cut::conical offset
         //        double dist_two_outlines = std::sqrt(CGAL::squared_distance(jo.m[0][0][0], plane_0_1.projection(jo.m[0][0][0])));
-        //        double conic_offset = -cgal_math_util::triangle_edge_by_angle(dist_two_outlines, 15.0);
-        //        double conic_offset_opposite = -(0.8440 + conic_offset);
-        //        //conic_offset = 0.8440;
-        //        //printf("\n %f", conic_offset);
-        //        //printf("\n %f", conic_offset_opposite);
+        //        double wood_cut::conic_offset = -cgal_math_util::triangle_edge_by_angle(dist_two_outlines, 15.0);
+        //        double wood_cut::conic_offset_opposite = -(0.8440 + wood_cut::conic_offset);
+        //        //wood_cut::conic_offset = 0.8440;
+        //        //printf("\n %f", wood_cut::conic_offset);
+        //        //printf("\n %f", wood_cut::conic_offset_opposite);
 
-        //        double offset_value = -(1.0 * conic_offset_opposite) - conic_offset;//was 1.5 ERROR possible here, check in real prototype
+        //        double offset_value = -(1.0 * wood_cut::conic_offset_opposite) - wood_cut::conic_offset;//was 1.5 ERROR possible here, check in real prototype
 
         //        for (int i = 0; i < joint_2.m[0].size(); i++) {
         //            //cgal_polyline_util::reverse_if_clockwise(joint_2.f[0][i], plane_0_0);
         //            clipper_util::offset_2D(joint_2.m[0][i], plane_0_0, offset_value);//0.1 means more tighter
-        //            //double value = -(2 * conic_offset_opposite) - conic_offset;
+        //            //double value = -(2 * wood_cut::conic_offset_opposite) - wood_cut::conic_offset;
         //           //printf("reult %f ", offset_value);
-        //           // printf("reult %f ", conic_offset);
-        //         // printf("reult %f ", conic_offset_opposite);
-        //           // printf("reult %f ", conic_offset +conic_offset_opposite);//shOULD BE THIS
+        //           // printf("reult %f ", wood_cut::conic_offset);
+        //         // printf("reult %f ", wood_cut::conic_offset_opposite);
+        //           // printf("reult %f ", wood_cut::conic_offset +wood_cut::conic_offset_opposite);//shOULD BE THIS
         //        }
 
         //        for (int i = 0; i < joint_2.m[1].size(); i++) {
@@ -632,7 +632,7 @@ namespace joint_library
 
         //        //printf("xml tile reading number of polyines %iz" , joint_2.m[0].size());
 
-        //        //3) Clipper boolean difference, cut joint polygon form the outline
+        //        //3) Clipper boolean difference, cut wood::joint polygon form the outline
 
         //    //Merge male, by performing boolean union
 
@@ -645,17 +645,17 @@ namespace joint_library
         //            jo.m_boolean_type.emplace_back('9');
 
         //        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //        //offset curve due to conic tool
+        //        //offset curve due to wood_cut::conic tool
         //        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         //        for (int i = 0; i < joint_2.f[0].size(); i++) {
         //            //cgal_polyline_util::reverse_if_clockwise(joint_2.f[0][i], plane_0_0);
-        //            //clipper_util::offset_2D(joint_2.f[0][i], plane_0_0, conic_offset_opposite);//- conic_offset
+        //            //clipper_util::offset_2D(joint_2.f[0][i], plane_0_0, wood_cut::conic_offset_opposite);//- wood_cut::conic_offset
 
         //        }
 
         //        for (int i = 0; i < joint_2.f[1].size(); i++) {
-        //            //clipper_util::offset_2D(joint_2.f[1][i], plane_0_0, conic_offset_opposite);// - conic_offset
+        //            //clipper_util::offset_2D(joint_2.f[1][i], plane_0_0, wood_cut::conic_offset_opposite);// - wood_cut::conic_offset
         //        }
 
         //        //Add once for milling
@@ -681,11 +681,11 @@ namespace joint_library
 
     // 1-9
 
-    inline void ss_e_ip_0(joint &joint)
+    inline void ss_e_ip_0(wood::joint &joint)
     {
         joint.name = "ss_e_ip_0";
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.f[0] = {
             {IK::Point_3(0, -0.5, 0.357142857142857), IK::Point_3(-0.5, -0.5, 0.357142857142857), IK::Point_3(-0.5, -0.5, 0.214285714285714), IK::Point_3(0.5, -0.5, 0.214285714285714), IK::Point_3(0.5, -0.5, 0.0714285714285714), IK::Point_3(-0.5, -0.5, 0.0714285714285714), IK::Point_3(-0.5, -0.5, -0.0714285714285714), IK::Point_3(0.5, -0.5, -0.0714285714285714), IK::Point_3(0.5, -0.5, -0.214285714285714), IK::Point_3(-0.5, -0.5, -0.214285714285714), IK::Point_3(-0.5, -0.5, -0.357142857142857), IK::Point_3(0, -0.5, -0.357142857142857)},
             {IK::Point_3(0, -0.5, 0.5), IK::Point_3(0, -0.5, -0.5)}};
@@ -702,11 +702,11 @@ namespace joint_library
             {IK::Point_3(0, 0.5, 0.357142857142857), IK::Point_3(-0.5, 0.5, 0.357142857142857), IK::Point_3(-0.5, 0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.0714285714285714), IK::Point_3(-0.5, 0.5, 0.0714285714285714), IK::Point_3(-0.5, 0.5, -0.0714285714285714), IK::Point_3(0.5, 0.5, -0.0714285714285714), IK::Point_3(0.5, 0.5, -0.214285714285714), IK::Point_3(-0.5, 0.5, -0.214285714285714), IK::Point_3(-0.5, 0.5, -0.357142857142857), IK::Point_3(0, 0.5, -0.357142857142857)},
             {IK::Point_3(0, 0.5, 0.5), IK::Point_3(0, 0.5, -0.5)}};
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ss_e_ip_1(joint &joint)
+    inline void ss_e_ip_1(wood::joint &joint)
     {
         // CGAL_Debug(0);
         joint.name = "ss_e_ip_1";
@@ -719,7 +719,7 @@ namespace joint_library
 
         ////////////////////////////////////////////////////////////////////
         // Number of divisions
-        // Input joint line (its lengths)
+        // Input wood::joint line (its lengths)
         // Input distance for division
         ////////////////////////////////////////////////////////////////////
         // CGAL_Debug(1);
@@ -777,7 +777,7 @@ namespace joint_library
         }
 
         // CGAL_Debug(5);
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.f[0] = {
             pline0,
             {pline0.front(), pline0.back()}};
@@ -794,15 +794,15 @@ namespace joint_library
             pline1,
             {pline1.front(), pline1.back()}};
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ss_e_ip_2(joint &joint)
+    inline void ss_e_ip_2(wood::joint &joint)
     {
         joint.name = "ss_e_ip_2"; // butterfly x-fix
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
 
         joint.f[0] = {
             {
@@ -853,17 +853,17 @@ namespace joint_library
                 IK::Point_3(0, 0.5, 0.1166666667),
             }};
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
         joint.unit_scale = true;
     }
 
     // 10-19
-    inline void ss_e_op_0(joint &joint)
+    inline void ss_e_op_0(wood::joint &joint)
     {
         joint.name = "ss_e_op_0";
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.f[0] = {{IK::Point_3(0.5, 0.5, -0.357142857142857), IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(0.5, -0.5, -0.214285714285714), IK::Point_3(0.5, 0.5, -0.214285714285714), IK::Point_3(0.5, 0.5, -0.0714285714285715), IK::Point_3(0.5, -0.5, -0.0714285714285713), IK::Point_3(0.5, -0.5, 0.0714285714285715), IK::Point_3(0.5, 0.5, 0.0714285714285714), IK::Point_3(0.5, 0.5, 0.214285714285714), IK::Point_3(0.5, -0.5, 0.214285714285714), IK::Point_3(0.5, -0.5, 0.357142857142857), IK::Point_3(0.5, 0.5, 0.357142857142857)},
                       {IK::Point_3(0.5, 0.5, -0.5), IK::Point_3(0.5, 0.5, 0.5)}};
 
@@ -876,11 +876,11 @@ namespace joint_library
         joint.m[1] = {{IK::Point_3(-0.5, -0.5, 0.357142857142857), IK::Point_3(0.5, -0.5, 0.357142857142857), IK::Point_3(0.5, -0.5, 0.214285714285714), IK::Point_3(-0.5, -0.5, 0.214285714285714), IK::Point_3(-0.5, -0.5, 0.0714285714285713), IK::Point_3(0.5, -0.5, 0.0714285714285712), IK::Point_3(0.5, -0.5, -0.0714285714285716), IK::Point_3(-0.5, -0.5, -0.0714285714285715), IK::Point_3(-0.5, -0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(-0.5, -0.5, -0.357142857142857)},
                       {IK::Point_3(-0.5, -0.5, 0.5), IK::Point_3(-0.5, -0.5, -0.5)}};
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ss_e_op_2(joint &joint)
+    inline void ss_e_op_2(wood::joint &joint)
     {
         joint.name = "ss_e_op_2";
 
@@ -892,7 +892,7 @@ namespace joint_library
 
         ////////////////////////////////////////////////////////////////////
         // Number of divisions
-        // Input joint line (its lengths)
+        // Input wood::joint line (its lengths)
         // Input distance for division
         ////////////////////////////////////////////////////////////////////
 
@@ -1017,11 +1017,11 @@ namespace joint_library
             }
         }
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ss_e_op_1(joint &joint)
+    inline void ss_e_op_1(wood::joint &joint)
     {
         joint.name = "ss_e_op_1";
 
@@ -1033,7 +1033,7 @@ namespace joint_library
 
         ////////////////////////////////////////////////////////////////////
         // Number of divisions
-        // Input joint line (its lengths)
+        // Input wood::joint line (its lengths)
         // Input distance for division
         ////////////////////////////////////////////////////////////////////
 
@@ -1152,19 +1152,19 @@ namespace joint_library
             }
         }
 
-        joint.f_boolean_type = {edge_insertion, edge_insertion};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
 
         // if (orient_to_connection_zone)
         // joint.orient_to_connection_area();
     }
 
-    inline void ss_e_op_3(joint &joint)
+    inline void ss_e_op_3(wood::joint &joint)
     {
         // Miter tenon-mortise
         joint.name = "ss_e_op_3";
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.f[0] = {
             {
                 IK::Point_3(0.5, 0.5, 0.3),
@@ -1261,15 +1261,15 @@ namespace joint_library
                 IK::Point_3(0.5, 0.5, -0.3),
             }};
 
-        joint.f_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges, hole, hole};
-        joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
+        joint.f_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges, wood_cut::hole, wood_cut::hole};
+        joint.m_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges};
     }
 
-    inline void ss_e_op_4(joint &joint, double t = 0.00, bool chamfer = true, bool female_modify_outline = true, double x0 = -0.50, double x1 = 0.5, double y0 = -0.5, double y1 = 0.5, double z_ext0 = -0.5, double z_ext1 = 0.5) //
+    inline void ss_e_op_4(wood::joint &joint, double t = 0.00, bool chamfer = true, bool female_modify_outline = true, double x0 = -0.50, double x1 = 0.5, double y0 = -0.5, double y1 = 0.5, double z_ext0 = -0.5, double z_ext1 = 0.5) //
     {
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // joint parameters
+        // wood::joint parameters
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         joint.name = "ss_e_op_4";
         int number_of_tenons = joint.divisions;
@@ -1383,7 +1383,7 @@ namespace joint_library
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // holes
+            // wood_cut::holes
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (joint.divisions > 0)
             {
@@ -1412,34 +1412,35 @@ namespace joint_library
         // boolean
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
+        joint.m_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges};
 
         if (joint.divisions > 0)
             joint.f_boolean_type.resize(female_modify_outline_count + number_of_tenons);
         else
             joint.f_boolean_type.resize(2);
 
-        joint.f_boolean_type[0] = insert_between_multiple_edges;
-        joint.f_boolean_type[1] = insert_between_multiple_edges;
+        joint.f_boolean_type[0] = wood_cut::insert_between_multiple_edges;
+        joint.f_boolean_type[1] = wood_cut::insert_between_multiple_edges;
 
         if (joint.divisions > 0)
             for (int i = 0; i < number_of_tenons; i += 2)
             {
-                joint.f_boolean_type[female_modify_outline_count + i] = hole;
-                joint.f_boolean_type[female_modify_outline_count + i + 1] = hole;
+                joint.f_boolean_type[female_modify_outline_count + i] = wood_cut::hole;
+                joint.f_boolean_type[female_modify_outline_count + i + 1] = wood_cut::hole;
             }
     }
 
-    inline void ss_e_op_5(joint &jo, std::vector<joint> &all_joints, bool disable_joint_divisions_1 = false)
+    inline void ss_e_op_5(wood::joint &jo, std::vector<wood::joint> &all_joints, bool disable_joint_divisions_1 = false)
     {
-        //return;
-        // get geometry from ss_e_op_4
+        // return;
+        //  get geometry from ss_e_op_4
 
-        if (jo.linked_joints.size() != 2)
-        { // joint can have no links
+        if (jo.linked_joints.size() == 0 || jo.linked_joints.size() > 2)
+         
+        { // wood::joint can have no links
             ss_e_op_4(jo, 0.5, true, true, -0.75, 0.5, -0.5, 0.5, -0.5, 0.5);
             jo.name = "ss_e_op_5";
-            //std::cout << "ss_e_op_5" << std::endl;
+            // std::cout << "ss_e_op_5" << std::endl;
             return;
         }
         else
@@ -1452,26 +1453,25 @@ namespace joint_library
         //  jo.linked_joints.pop_back();
         //  jo.linked_joints.pop_back();
         //  return;
-        //  create geometry for linked joint 0
+        //  create geometry for linked wood::joint 0
         int a = 0;
         int b = 1;
         all_joints[jo.linked_joints[a]].divisions = jo.divisions; // division must be the same to merge two joints correctly
         ss_e_op_4(all_joints[jo.linked_joints[a]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-        // create geometry for linked joint 1
-        all_joints[jo.linked_joints[b]].divisions = disable_joint_divisions_1 ? jo.divisions * 0 : jo.divisions; // division must be the same to merge two joints correctly
-        ss_e_op_4(all_joints[jo.linked_joints[b]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
-
-        // set joint sequences for joint 0 and joint 1
+        // set wood::joint sequences for wood::joint 0 and wood::joint 1
         // std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // assigned on wood_joint_library | it is nested because there can be umber of polylines | example {start_curr,step_curr} means that "start_curr+step_curr*i" and {start_link,step_link} -> "start_link+step_link*i"
-        // joint 0 - there is only one polyline
+        // wood::joint 0 - there is only one polyline
         std::vector<std::array<int, 4>> linked_joints_seq_0;
         linked_joints_seq_0.emplace_back(std::array<int, 4>{2, 4, 2, 8});
         jo.linked_joints_seq.emplace_back(linked_joints_seq_0);
 
-        // joint 1
+        if (jo.linked_joints.size() == 2)
+        {
+            // create geometry for linked wood::joint 1
+            all_joints[jo.linked_joints[b]].divisions = disable_joint_divisions_1 ? jo.divisions * 0 : jo.divisions; // division must be the same to merge two joints correctly
+            ss_e_op_4(all_joints[jo.linked_joints[b]], 0.50, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-  
             std::vector<std::array<int, 4>> linked_joints_seq_1;
             // std::cout << "jo.f[0].size()" << jo.f[0].size() << "\n";
             for (int i = 0; i < jo.f[0].size(); i += 2)
@@ -1482,16 +1482,17 @@ namespace joint_library
                     linked_joints_seq_1.emplace_back(std::array<int, 4>{0, 0, 0, 0});
             }
             jo.linked_joints_seq.emplace_back(linked_joints_seq_1);
-       
+        }
+        //std::cout << "linked_joints " << jo.linked_joints_seq.size() << "\n";
     }
 
-    inline void ss_e_op_6(joint &jo, std::vector<joint> &all_joints)
+    inline void ss_e_op_6(wood::joint &jo, std::vector<wood::joint> &all_joints)
     {
         ss_e_op_5(jo, all_joints, true);
         jo.name = "ss_e_op_6";
     }
 
-    inline void ss_e_r_0(joint &jo, std::vector<element> &elements)
+    inline void ss_e_r_0(wood::joint &jo, std::vector<wood::element> &elements)
     {
 
         jo.name = __func__;
@@ -1555,7 +1556,7 @@ namespace joint_library
 
         // Check sides
         // Add polylines
-        // Add slices
+        // Add wood_cut::slices
 
         jo.m[0] = {m_rectangles[0], m_rectangles[0], m_rectangles[2], m_rectangles[2]};
         jo.m[1] = {m_rectangles[1], m_rectangles[1], m_rectangles[3], m_rectangles[3]};
@@ -1563,16 +1564,16 @@ namespace joint_library
         jo.f[0] = {f_rectangles[0], f_rectangles[0], f_rectangles[2], f_rectangles[2]};
         jo.f[1] = {f_rectangles[1], f_rectangles[1], f_rectangles[3], f_rectangles[3]};
 
-        jo.m_boolean_type = {slice, slice, slice, slice};
-        jo.f_boolean_type = {slice, slice, slice, slice};
+        jo.m_boolean_type = {wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice};
+        jo.f_boolean_type = {wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice};
     }
 
-    inline void ss_e_r_1(joint &joint, int type = 1)
+    inline void ss_e_r_1(wood::joint &joint, int type = 1)
     {
         // Miter tenon-mortise
         joint.name = __func__;
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         switch (type)
         {
 
@@ -1682,12 +1683,12 @@ namespace joint_library
                 },
             };
             joint.f_boolean_type = {
-                conic,
-                conic,
+                wood_cut::conic,
+                wood_cut::conic,
             };
             joint.m_boolean_type = {
-                conic_reverse,
-                conic_reverse,
+                wood_cut::conic_reverse,
+                wood_cut::conic_reverse,
             };
 
             break;
@@ -1897,16 +1898,16 @@ namespace joint_library
         }
 
         joint.f_boolean_type = {
-            conic,
-            conic,
+            wood_cut::conic,
+            wood_cut::conic,
         };
         joint.m_boolean_type = {
-            conic_reverse,
-            conic_reverse,
+            wood_cut::conic_reverse,
+            wood_cut::conic_reverse,
         };
     }
 
-    inline void side_removal_ss_e_r_1(joint &jo, std::vector<element> &elements, bool merge_with_joint = false)
+    inline void side_removal_ss_e_r_1(wood::joint &jo, std::vector<wood::element> &elements, bool merge_with_joint = false)
     {
         jo.name = __func__;
         jo.orient = false;
@@ -1995,8 +1996,8 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////
         // orient a tile
         // 1) Create rectangle between two edge of the side
-        // 2) Create joint in XY plane and orient it to the two rectangles
-        // 3) Clipper boolean difference, cut joint polygon form the outline
+        // 2) Create wood::joint in XY plane and orient it to the two rectangles
+        // 3) Clipper boolean difference, cut wood::joint polygon form the outline
         /////////////////////////////////////////////////////////////////////////////////
 
         // 1) Create rectangle between two edge of the side
@@ -2122,11 +2123,11 @@ namespace joint_library
         };
 
         if (jo.shift > 0 && merge_with_joint)
-            jo.m_boolean_type = {mill_project, mill_project, mill_project, mill_project};
+            jo.m_boolean_type = {wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project};
         else
-            jo.m_boolean_type = {mill_project, mill_project};
+            jo.m_boolean_type = {wood_cut::mill_project, wood_cut::mill_project};
 
-        jo.f_boolean_type = {mill_project, mill_project};
+        jo.f_boolean_type = {wood_cut::mill_project, wood_cut::mill_project};
 
         /////////////////////////////////////////////////////////////////////////////////
         // if merge is needed
@@ -2135,9 +2136,9 @@ namespace joint_library
         if (merge_with_joint)
         {
 
-            // 2) Create joint in XY plane and orient it to the two rectangles
-            joint joint_2;
-            // bool read_successful = joint_library_xml_parser::read_xml(joint_2, jo.type);
+            // 2) Create wood::joint in XY plane and orient it to the two rectangles
+            wood::joint joint_2;
+            // bool read_successful = wood_joint_lib_xml::read_xml(joint_2, jo.type);
             ss_e_r_1(joint_2);
             bool read_successful = true;
 
@@ -2154,13 +2155,13 @@ namespace joint_library
 
                 IK::Plane_3 plane_0_0(jo.m[0][0][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector());
                 IK::Plane_3 plane_0_1(jo.m[0][2][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector());
-                // Conical offset
+                // wood_cut::conical offset
                 double dist_two_outlines = std::sqrt(CGAL::squared_distance(jo.m[0][0][0], plane_0_1.projection(jo.m[0][0][0])));
                 double conic_offset = -cgal_math_util::triangle_edge_by_angle(dist_two_outlines, 15.0);
                 double conic_offset_opposite = -(0.8440 + conic_offset);
-                // conic_offset = 0.8440;
-                // printf("\n %f", conic_offset);
-                // printf("\n %f", conic_offset_opposite);
+                // wood_cut::conic_offset = 0.8440;
+                // printf("\n %f", wood_cut::conic_offset);
+                // printf("\n %f", wood_cut::conic_offset_opposite);
 
                 double offset_value = -(1.0 * conic_offset_opposite) - conic_offset; // was 1.5 ERROR possible here, check in real prototype
 
@@ -2168,11 +2169,11 @@ namespace joint_library
                 {
                     // cgal_polyline_util::reverse_if_clockwise(joint_2.f[0][i], plane_0_0);
                     clipper_util::offset_2D(joint_2.m[0][i], plane_0_0, offset_value); // 0.1 means more tighter
-                    // double value = -(2 * conic_offset_opposite) - conic_offset;
+                    // double value = -(2 * wood_cut::conic_offset_opposite) - wood_cut::conic_offset;
                     // printf("reult %f ", offset_value);
-                    //  printf("reult %f ", conic_offset);
-                    // printf("reult %f ", conic_offset_opposite);
-                    // printf("reult %f ", conic_offset +conic_offset_opposite);//shOULD BE THIS
+                    //  printf("reult %f ", wood_cut::conic_offset);
+                    // printf("reult %f ", wood_cut::conic_offset_opposite);
+                    // printf("reult %f ", wood_cut::conic_offset +wood_cut::conic_offset_opposite);//shOULD BE THIS
                 }
 
                 for (int i = 0; i < joint_2.m[1].size(); i++)
@@ -2183,7 +2184,7 @@ namespace joint_library
 
                 // printf("xml tile reading number of polyines %iz" , joint_2.m[0].size());
 
-                // 3) Clipper boolean difference, cut joint polygon form the outline
+                // 3) Clipper boolean difference, cut wood::joint polygon form the outline
 
                 // Merge male, by performing boolean union
 
@@ -2193,21 +2194,21 @@ namespace joint_library
                 jo.m[0].insert(jo.m[0].end(), joint_2.m[0].begin(), joint_2.m[0].end());
                 jo.m[1].insert(jo.m[1].end(), joint_2.m[1].begin(), joint_2.m[1].end());
                 for (auto &m : joint_2.m_boolean_type)
-                    jo.m_boolean_type.emplace_back(conic);
+                    jo.m_boolean_type.emplace_back(wood_cut::conic);
 
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // offset curve due to conic tool
+                // offset curve due to wood_cut::conic tool
                 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 for (int i = 0; i < joint_2.f[0].size(); i++)
                 {
                     // cgal_polyline_util::reverse_if_clockwise(joint_2.f[0][i], plane_0_0);
-                    // clipper_util::offset_2D(joint_2.f[0][i], plane_0_0, conic_offset_opposite);//- conic_offset
+                    // clipper_util::offset_2D(joint_2.f[0][i], plane_0_0, wood_cut::conic_offset_opposite);//- wood_cut::conic_offset
                 }
 
                 for (int i = 0; i < joint_2.f[1].size(); i++)
                 {
-                    // clipper_util::offset_2D(joint_2.f[1][i], plane_0_0, conic_offset_opposite);// - conic_offset
+                    // clipper_util::offset_2D(joint_2.f[1][i], plane_0_0, wood_cut::conic_offset_opposite);// - wood_cut::conic_offset
                 }
 
                 // Add once for milling
@@ -2215,12 +2216,12 @@ namespace joint_library
                 jo.f[1].insert(jo.f[1].end(), joint_2.f[1].begin(), joint_2.f[1].end());
 
                 for (auto &f : joint_2.f_boolean_type)
-                    jo.f_boolean_type.emplace_back(mill);
+                    jo.f_boolean_type.emplace_back(wood_cut::mill);
 
                 jo.f[0].insert(jo.f[0].end(), joint_2.f[0].begin(), joint_2.f[0].end());
                 jo.f[1].insert(jo.f[1].end(), joint_2.f[1].begin(), joint_2.f[1].end());
                 for (auto &f : joint_2.f_boolean_type)
-                    jo.f_boolean_type.emplace_back(conic_reverse);
+                    jo.f_boolean_type.emplace_back(wood_cut::conic_reverse);
             }
 
             std::swap(jo.m[0], jo.f[0]);
@@ -2230,7 +2231,7 @@ namespace joint_library
     }
 
     // 20-29
-    inline void ts_e_p_0(joint &joint)
+    inline void ts_e_p_0(wood::joint &joint)
     {
         joint.name = "ts_e_p_0";
 
@@ -2244,18 +2245,18 @@ namespace joint_library
                       {IK::Point_3(-0.5, 0.5, -0.214285714285714), IK::Point_3(0.5, 0.5, -0.214285714285714), IK::Point_3(0.5, 0.5, -0.357142857142857), IK::Point_3(-0.5, 0.5, -0.357142857142857), IK::Point_3(-0.5, 0.5, -0.214285714285714)},
                       {IK::Point_3(-0.5, 0.5, 0.357142857142857), IK::Point_3(-0.5, 0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, 0.357142857142857), IK::Point_3(-0.5, 0.5, 0.357142857142857)}};
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.m[0] = {{IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.0714285714285715), IK::Point_3(0.5, 0.5, -0.0714285714285713), IK::Point_3(0.5, 0.5, 0.0714285714285715), IK::Point_3(0.5, -0.5, 0.0714285714285714), IK::Point_3(0.5, -0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.357142857142857), IK::Point_3(0.5, -0.5, 0.357142857142857)},
                       {IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(0.5, -0.5, 0.357142857142857)}};
 
         joint.m[1] = {{IK::Point_3(-0.5, -0.5, -0.357142857142857), IK::Point_3(-0.5, 0.5, -0.357142857142857), IK::Point_3(-0.5, 0.5, -0.214285714285714), IK::Point_3(-0.5, -0.5, -0.214285714285714), IK::Point_3(-0.5, -0.5, -0.0714285714285715), IK::Point_3(-0.5, 0.5, -0.0714285714285713), IK::Point_3(-0.5, 0.5, 0.0714285714285715), IK::Point_3(-0.5, -0.5, 0.0714285714285714), IK::Point_3(-0.5, -0.5, 0.214285714285714), IK::Point_3(-0.5, 0.5, 0.214285714285714), IK::Point_3(-0.5, 0.5, 0.357142857142857), IK::Point_3(-0.5, -0.5, 0.357142857142857)},
                       {IK::Point_3(-0.5, -0.5, -0.357142857142857), IK::Point_3(-0.5, -0.5, 0.357142857142857)}};
 
-        joint.f_boolean_type = {hole, hole, hole, hole};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::hole};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ts_e_p_1(joint &joint)
+    inline void ts_e_p_1(wood::joint &joint)
     {
         joint.name = "ts_e_p_1"; // Annen
 
@@ -2267,27 +2268,27 @@ namespace joint_library
                       {IK::Point_3(-0.5, 0.5, 0.166666666666667), IK::Point_3(0.5, 0.5, 0.166666666666667), IK::Point_3(0.5, 0.5, 0.0555555555555556), IK::Point_3(-0.5, 0.5, 0.0555555555555556), IK::Point_3(-0.5, 0.5, 0.166666666666667)},
                       {IK::Point_3(-0.5, 0.5, 0.166666666666667), IK::Point_3(-0.5, 0.5, -0.388888888888889), IK::Point_3(0.5, 0.5, -0.388888888888889), IK::Point_3(0.5, 0.5, 0.166666666666667), IK::Point_3(-0.5, 0.5, 0.166666666666667)}};
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         joint.m[0] = {{IK::Point_3(0.5, -0.5, 0.166666666666667), IK::Point_3(0.5, 0.5, 0.166666666666667), IK::Point_3(0.5, 0.5, 0.0555555555555556), IK::Point_3(0.5, -0.5, 0.0555555555555556), IK::Point_3(0.5, -0.5, -0.277777777777778), IK::Point_3(0.5, 0.5, -0.277777777777778), IK::Point_3(0.5, 0.5, -0.388888888888889), IK::Point_3(0.5, -0.5, -0.388888888888889)},
                       {IK::Point_3(0.5, -0.5, 0.5), IK::Point_3(0.5, -0.5, -0.5)}};
 
         joint.m[1] = {{IK::Point_3(-0.5, -0.5, 0.166666666666667), IK::Point_3(-0.5, 0.5, 0.166666666666667), IK::Point_3(-0.5, 0.5, 0.0555555555555558), IK::Point_3(-0.5, -0.5, 0.0555555555555557), IK::Point_3(-0.5, -0.5, -0.277777777777778), IK::Point_3(-0.5, 0.5, -0.277777777777778), IK::Point_3(-0.5, 0.5, -0.388888888888889), IK::Point_3(-0.5, -0.5, -0.388888888888889)},
                       {IK::Point_3(-0.5, -0.5, 0.5), IK::Point_3(-0.5, -0.5, -0.5)}};
 
-        joint.f_boolean_type = {hole, hole, hole, hole};
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = {wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::hole};
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
 
         // if (orient_to_connection_zone)
         // joint.orient_to_connection_area();
     }
 
-    inline void ts_e_p_2(joint &joint)
+    inline void ts_e_p_2(wood::joint &joint)
     {
         joint.name = "ts_e_p_2";
 
         ////////////////////////////////////////////////////////////////////
         // Number of divisions
-        // Input joint line (its lengths)
+        // Input wood::joint line (its lengths)
         // Input distance for division
         ////////////////////////////////////////////////////////////////////
         // printf("\n JOINT DIVISIONS \n");
@@ -2383,17 +2384,17 @@ namespace joint_library
         joint.f[0].emplace_back(std::initializer_list<IK::Point_3>{joint.f[0][0][0], joint.f[0][0][3], joint.f[0][size - 2][3], joint.f[0][size - 2][0], joint.f[0][0][0]});
         joint.f[1].emplace_back(std::initializer_list<IK::Point_3>{joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0]});
 
-        joint.f_boolean_type = std::vector<cut_type>(size, hole);
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = std::vector<wood_cut::cut_type>(size, wood_cut::hole);
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
     }
 
-    inline void ts_e_p_3(joint &joint)
+    inline void ts_e_p_3(wood::joint &joint)
     {
         joint.name = "ts_e_p_3";
 
         ////////////////////////////////////////////////////////////////////
         // Number of divisions
-        // Input joint line (its lengths)
+        // Input wood::joint line (its lengths)
         // Input distance for division
         ////////////////////////////////////////////////////////////////////
         int divisions = (int)std::max(8, std::min(100, joint.divisions));
@@ -2541,15 +2542,15 @@ namespace joint_library
         joint.f[1].emplace_back(std::initializer_list<IK::Point_3>{joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0]});
 
         // CGAL_Debug(30);
-        joint.f_boolean_type = std::vector<cut_type>(size, hole);
-        joint.m_boolean_type = {edge_insertion, edge_insertion};
+        joint.f_boolean_type = std::vector<wood_cut::cut_type>(size, wood_cut::hole);
+        joint.m_boolean_type = {wood_cut::edge_insertion, wood_cut::edge_insertion};
 
 #ifdef DEBUG_JOINERY_LIBRARY
         printf("\nCPP <<File>> wood_joint_library.h <<Method>> ts_e_p_3 <<Description> Create Polylines");
 #endif
     }
 
-    inline void ts_e_p_4(joint &joint)
+    inline void ts_e_p_4(wood::joint &joint)
     {
         joint.name = "ts_e_p_4";
 
@@ -2953,27 +2954,27 @@ namespace joint_library
 
         };
 
-        joint.f_boolean_type = {mill, mill, mill, mill, mill, mill, mill, mill};
+        joint.f_boolean_type = {wood_cut::mill, wood_cut::mill, wood_cut::mill, wood_cut::mill, wood_cut::mill, wood_cut::mill, wood_cut::mill, wood_cut::mill};
         joint.m_boolean_type = {
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            slice,
-            slice,
-            slice,
-            slice,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
         };
 
-        // Joint lines, always the last line or rectangle is not a joint but an cutting element
+        // Joint lines, always the last line or rectangle is not a wood::joint but an cutting wood::element
         // joint.m[0] = { {IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, -0.357142857142857), IK::Point_3(0.5, 0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.214285714285714), IK::Point_3(0.5, -0.5, -0.0714285714285715), IK::Point_3(0.5, 0.5, -0.0714285714285713), IK::Point_3(0.5, 0.5, 0.0714285714285715), IK::Point_3(0.5, -0.5, 0.0714285714285714), IK::Point_3(0.5, -0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.214285714285714), IK::Point_3(0.5, 0.5, 0.357142857142857), IK::Point_3(0.5, -0.5, 0.357142857142857)},
         //         {IK::Point_3(0.5, -0.5, -0.357142857142857), IK::Point_3(0.5, -0.5, 0.357142857142857)} };
 
@@ -2985,7 +2986,7 @@ namespace joint_library
     }
 
     // 30-39
-    inline void cr_c_ip_0(joint &joint)
+    inline void cr_c_ip_0(wood::joint &joint)
     {
         // printf("cr_c_ip_0");
 
@@ -3008,15 +3009,15 @@ namespace joint_library
             {IK::Point_3(0.5, -0.5, -scale), IK::Point_3(-0.5, -0.5, -scale), IK::Point_3(-0.5, -0.5, 0), IK::Point_3(0.5, -0.5, 0), IK::Point_3(0.5, -0.5, -scale)},
             {IK::Point_3(0.5, -0.5, -scale), IK::Point_3(-0.5, -0.5, -scale), IK::Point_3(-0.5, -0.5, 0), IK::Point_3(0.5, -0.5, 0), IK::Point_3(0.5, -0.5, -scale)}};
 
-        joint.m_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
-        joint.f_boolean_type = {insert_between_multiple_edges, insert_between_multiple_edges};
+        joint.m_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges};
+        joint.f_boolean_type = {wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges};
 
         // Orient to 3D
         // if (orient_to_connection_zone)
         //  joint.orient_to_connection_area();
     }
 
-    inline void cr_c_ip_1(joint &joint)
+    inline void cr_c_ip_1(wood::joint &joint)
     {
 
         joint.name = __func__;
@@ -3116,42 +3117,42 @@ namespace joint_library
         }
 
         joint.m_boolean_type = {
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
-            slice,
-            slice,
-            slice,
-            slice,
-            slice,
-            slice,
-            slice,
-            slice,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
 
-            slice,
-            slice,
-            slice,
-            slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
+            wood_cut::slice,
         };
         joint.f_boolean_type = {
-            mill_project, mill_project,
-            mill_project, mill_project,
-            mill_project, mill_project,
-            slice, slice,
-            slice, slice,
-            slice, slice,
-            slice, slice,
+            wood_cut::mill_project, wood_cut::mill_project,
+            wood_cut::mill_project, wood_cut::mill_project,
+            wood_cut::mill_project, wood_cut::mill_project,
+            wood_cut::slice, wood_cut::slice,
+            wood_cut::slice, wood_cut::slice,
+            wood_cut::slice, wood_cut::slice,
+            wood_cut::slice, wood_cut::slice,
 
-            slice, slice,
-            slice, slice
+            wood_cut::slice, wood_cut::slice,
+            wood_cut::slice, wood_cut::slice
 
         };
     }
 
-    inline void cr_c_ip_2(joint &joint)
+    inline void cr_c_ip_2(wood::joint &joint)
     {
 
         joint.name = __func__;
@@ -3182,21 +3183,21 @@ namespace joint_library
 
             {p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0}, // Center
 
-            {p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0}, // slice TopSide0
-            {p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0}, // slice TopSide1
+            {p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0}, // wood_cut::slice TopSide0
+            {p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0}, // wood_cut::slice TopSide1
 
-            {p[2], p[1], p[1 + 12], p[2 + 12], p[2]}, // mill BotSide0
-            {p[0], p[3], p[3 + 12], p[0 + 12], p[0]}, // mill BotSide1
+            {p[2], p[1], p[1 + 12], p[2 + 12], p[2]}, // wood_cut::mill BotSide0
+            {p[0], p[3], p[3 + 12], p[0 + 12], p[0]}, // wood_cut::mill BotSide1
 
-            //{ IK::Point_3(0.091902, 0.433324, -0.928477) ,IK::Point_3(-0.433324, -0.091902, 0.928477)}, //drill line
-            //{ IK::Point_3(-0.091902, -0.433324, -0.928477) ,IK::Point_3(0.433324, 0.091902, 0.928477)}, //drill line
-            //           { IK::Point_3(0.091421, -0.25, -0.928477) ,IK::Point_3(0.25, -0.091421, 0.928477)}, //drill line
-            //{ IK::Point_3(-0.091421, 0.25, -0.928477) ,IK::Point_3(-0.25, 0.091421, 0.928477)}, //drill line
-            //{ IK::Point_3(0.25, 0.091421, -0.928477) ,IK::Point_3(0.091421, 0.25, 0.928477)}, //drill line
-            //{ IK::Point_3(-0.25, -0.091421, -0.928477) ,IK::Point_3(-0.091421, -0.25, 0.928477)}, //drill line
+            //{ IK::Point_3(0.091902, 0.433324, -0.928477) ,IK::Point_3(-0.433324, -0.091902, 0.928477)}, //wood_cut::drill line
+            //{ IK::Point_3(-0.091902, -0.433324, -0.928477) ,IK::Point_3(0.433324, 0.091902, 0.928477)}, //wood_cut::drill line
+            //           { IK::Point_3(0.091421, -0.25, -0.928477) ,IK::Point_3(0.25, -0.091421, 0.928477)}, //wood_cut::drill line
+            //{ IK::Point_3(-0.091421, 0.25, -0.928477) ,IK::Point_3(-0.25, 0.091421, 0.928477)}, //wood_cut::drill line
+            //{ IK::Point_3(0.25, 0.091421, -0.928477) ,IK::Point_3(0.091421, 0.25, 0.928477)}, //wood_cut::drill line
+            //{ IK::Point_3(-0.25, -0.091421, -0.928477) ,IK::Point_3(-0.091421, -0.25, 0.928477)}, //wood_cut::drill line
 
-            {IK::Point_3(0.3, 0.041421, -0.928477), IK::Point_3(0.041421, 0.3, 0.928477)},     // drill line
-            {IK::Point_3(-0.3, -0.041421, -0.928477), IK::Point_3(-0.041421, -0.3, 0.928477)}, // drill line
+            {IK::Point_3(0.3, 0.041421, -0.928477), IK::Point_3(0.041421, 0.3, 0.928477)},     // wood_cut::drill line
+            {IK::Point_3(-0.3, -0.041421, -0.928477), IK::Point_3(-0.041421, -0.3, 0.928477)}, // wood_cut::drill line
 
             //           {0.25, 0.091421, -0.928477}
             //{0.091421, 0.25, 0.928477}
@@ -3254,7 +3255,7 @@ namespace joint_library
             IK::Vector_3 cross = CGAL::cross_product(joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
             unitize(cross);
 
-            // offset| skip drill lines
+            // offset| skip wood_cut::drill lines
             if (joint.f[1][i].size() > 2)
                 for (int j = 0; j < joint.f[1][i].size(); j++)
                     joint.f[1][i][j] += cross * lenghts[i];
@@ -3323,51 +3324,51 @@ namespace joint_library
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         joint.m_boolean_type = {
-            mill_project,
-            mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
 
-            slice_projectsheer,
-            slice_projectsheer,
-            slice_projectsheer,
-            slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
 
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
 
-            drill,
-            drill,
-            drill,
-            drill,
+            wood_cut::drill,
+            wood_cut::drill,
+            wood_cut::drill,
+            wood_cut::drill,
         };
         joint.f_boolean_type = {
-            mill_project,
-            mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
 
-            slice_projectsheer,
-            slice_projectsheer,
-            slice_projectsheer,
-            slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
+            wood_cut::slice_projectsheer,
 
-            mill_project,
-            mill_project,
-            mill_project,
-            mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
+            wood_cut::mill_project,
 
-            drill,
-            drill,
-            drill,
-            drill,
+            wood_cut::drill,
+            wood_cut::drill,
+            wood_cut::drill,
+            wood_cut::drill,
 
         };
     }
 
     // 60-69
-    inline void b_0(joint &joint)
+    inline void b_0(wood::joint &joint)
     {
         joint.name = "b_0";
-        joint.orient = false; // prevents joint from copying
+        joint.orient = false; // prevents wood::joint from copying
 
         double temp_scale_y = 5;
         double temp_scale_z = 15;
@@ -3434,16 +3435,16 @@ namespace joint_library
         // joint.f[0] = { rect0, rect1 };
         // joint.f[1] = { rect2, rect3 };
         // printf("Hi");
-        joint.m_boolean_type = {slice, slice, slice, slice};
+        joint.m_boolean_type = {wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice};
         // joint.f_boolean_type = { '1', '1' };
     }
 
-    inline void construct_joint_by_index(std::vector<element> &elements, std::vector<joint> &joints, std::vector<double> &default_parameters_for_four_types, std::vector<double> &scale)
-    { 
-        
+    inline void construct_joint_by_index(std::vector<wood::element> &elements, std::vector<wood::joint> &joints, std::vector<double> &default_parameters_for_four_types, std::vector<double> &scale)
+    {
+
         // const double& division_distance_, const double& shift_,
         /////////////////////////////////////////////////////////////////////
-        // You must define new joint each time you internalize it
+        // You must define new wood::joint each time you internalize it
         /////////////////////////////////////////////////////////////////////
         std::array<std::string, 70> joint_names;
         for (size_t i = 0; i < joint_names.size(); i++)
@@ -3487,12 +3488,12 @@ namespace joint_library
         // Most joints are often the same
         // Store parameters as a string: "joint_type ; divisions, not dist ; shift"
         // If this dictionary already has joints, fill parameters: f, m, booleans, with existing ones.
-        //  This joint is not oriented, orientation happens at the end of the loop
+        //  This wood::joint is not oriented, orientation happens at the end of the loop
         //  if unique_joints.contains(string)
         //   replace parameters
-        //  else joint = createnewjoint()
+        //  else wood::joint = createnewjoint()
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        std::map<std::string, joint> unique_joints;
+        std::map<std::string, wood::joint> unique_joints;
 
         double division_distance = 1000;
         double shift = 0.5;
@@ -3514,7 +3515,7 @@ namespace joint_library
             // CGAL_Debug(counter);
 
             counter++;
-            if (jo.link) // skip link jont because they are generated inside main joint and then orient below
+            if (jo.link) // skip link jont because they are generated inside main wood::joint and then orient below
                 continue;
 
             // Select user given type
@@ -3613,12 +3614,12 @@ namespace joint_library
             {
                 division_distance = default_parameters_for_four_types[(long long)(number_of_parameters * group + 0)];
                 jo.shift = default_parameters_for_four_types[(long long)(number_of_parameters * group + 1)];
-                if (id_representing_joint_name == -1) // for cases when joint types per each edge are not defined
+                if (id_representing_joint_name == -1) // for cases when wood::joint types per each edge are not defined
                     id_representing_joint_name = (int)default_parameters_for_four_types[(number_of_parameters * group + 2)];
             }
-            //std::cout << id_representing_joint_name << " " << group << "\n";
-            // printf("\n  %i, %i, %i", jo.type, jo.v0, jo.v1);
-            // printf("\n Hi %i %i", id_representing_joint_name, group);
+            // std::cout << id_representing_joint_name << " " << group << "\n";
+            //  printf("\n  %i, %i, %i", jo.type, jo.v0, jo.v1);
+            //  printf("\n Hi %i %i", id_representing_joint_name, group);
             if (id_representing_joint_name < 1 || group == -1)
             {
                 ids_to_remove.emplace_back(counter - 1);
@@ -3633,7 +3634,7 @@ namespace joint_library
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Set unit distance, this value is a distance between joint volume rectangles, in case this property is set -> unit_scale = true
+            // Set unit distance, this value is a distance between wood::joint volume rectangles, in case this property is set -> unit_scale = true
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // CGAL_Debug(2);
             // CGAL_Debug(division_distance);
@@ -3708,7 +3709,7 @@ namespace joint_library
                     break;
                 case (9):
                     // wont work, because not oriented to connection zones, need additional layer e.g. std::map of all joints
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
                     // CGAL_Debug(elements[joint.v0].thickness);
                     break;
                 default:
@@ -3757,7 +3758,7 @@ namespace joint_library
                     //     myfile2.close();
                     // }
                     // wont work, because not oriented to connection zones, need additional layer e.g. std::map of all joints
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
                     break;
                 default:
                     ss_e_op_1(jo);
@@ -3791,7 +3792,7 @@ namespace joint_library
                     break;
                 case (29):
                     // wont work, because not oriented to connection zones, need additional layer e.g. std::map of all joints
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
                     break;
                 default:
                     ts_e_p_3(jo);
@@ -3816,7 +3817,7 @@ namespace joint_library
                     break;
                 case (39):
                     // wont work, because not oriented to connection zones, need additional layer e.g. std::map of all joints
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
                     break;
                 default:
                     cr_c_ip_0(jo);
@@ -3832,7 +3833,7 @@ namespace joint_library
                     side_removal(jo, elements);
                     break;
                 default:
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
                     break;
                 }
             case (5):
@@ -3856,7 +3857,7 @@ namespace joint_library
                     // CGAL_Debug(99999);
                     // ss_e_ip_1(jo);
 
-                    joint_library_xml_parser::read_xml(jo, jo.type); // is it 0 or 12 ?
+                    wood_joint_lib_xml::read_xml(jo, jo.type); // is it 0 or 12 ?
 
                     break;
                 default:
@@ -3865,7 +3866,7 @@ namespace joint_library
 
                     side_removal(jo, elements);
                     // CGAL_Debug(jo.orient);
-                    // joint_library_xml_parser::read_xml(jo, jo.type);//is it 0 or 12 ?
+                    // wood_joint_lib_xml::read_xml(jo, jo.type);//is it 0 or 12 ?
                     break;
                 }
 
@@ -3888,10 +3889,10 @@ namespace joint_library
 
             // CGAL_Debug(5);
 #ifdef DEBUG_JOINERY_LIBRARY
-            printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s ", __FILE__, __FUNCTION__, __LINE__, "after unique joint create");
+            printf("\nCPP   FILE %s    METHOD %s   LINE %i     WHAT %s ", __FILE__, __FUNCTION__, __LINE__, "after unique wood::joint create");
 #endif
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Add to joint map because this joint was not present
+            // Add to wood::joint map because this wood::joint was not present
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (jo.m[0].size() == 0 && jo.f[0].size() == 0)
             {
@@ -3909,9 +3910,9 @@ namespace joint_library
 
             if (jo.orient)
             {
-                joint temp_joint;
+                wood::joint temp_joint;
                 jo.duplicate_geometry(temp_joint);
-                unique_joints.insert(std::pair<std::string, joint>(key, temp_joint));
+                unique_joints.insert(std::pair<std::string, wood::joint>(key, temp_joint));
                 jo.orient_to_connection_area(); // and orient to connection volume
 
                 // special case for vidy only when joints must be merged | also check

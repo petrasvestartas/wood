@@ -1,6 +1,6 @@
 #include "../../../stdafx.h"
 #include "wood_joint.h"
-
+namespace wood{
 joint::joint()
 {
 }
@@ -57,7 +57,7 @@ void joint::get_edge_ids(bool male_or_female, int &fA, int &fB)
     }
 }
 
-cut_type &joint::get_first_cutting_type(bool male_or_female)
+wood_cut::cut_type &joint::get_first_cutting_type(bool male_or_female)
 {
     if (male_or_female)
     {
@@ -69,7 +69,7 @@ cut_type &joint::get_first_cutting_type(bool male_or_female)
     }
 }
 
-std::vector<cut_type> &joint::operator()(bool male_or_female)
+std::vector<wood_cut::cut_type> &joint::operator()(bool male_or_female)
 {
     if (male_or_female)
         return m_boolean_type;
@@ -419,7 +419,7 @@ void joint::get_divisions(double &division_distance)
 // joint linking with other joints
 void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vector<joint> &all_joints)
 {
-    //return;
+    // return;
     if (linked_joints_seq.size() != linked_joints.size()) // check if number of sequences is equa to linked joints
     {
         std::cout << "ERROR A in wood_join.cpp -> remove_geo_from_linked_joint_and_merge_with_current_joint: linked_joints_seq.size() != linked_joints.size() "
@@ -429,7 +429,7 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
 
     for (int i = 0; i < linked_joints.size(); i++) //
     {
-        
+
         // check indices of linked and current joints to know which id to merge and remove -> a0-b0 | a0-b1
         bool m_f_curr = v0 == all_joints[linked_joints[i]].v0; // is it the item to merge, for both joints the first==first or second==second must match
         bool m_f_next = m_f_curr;
@@ -489,10 +489,9 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
 
                 // next link insertion
                 merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
-                   merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
-              //merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
-               //     merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
-
+                merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
+                // merged_polyline_0.insert(merged_polyline_0.end(), all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, true)[0].begin() + start_next + (it + 1) * step_next);
+                //      merged_polyline_1.insert(merged_polyline_1.end(), all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + it * step_next, all_joints[linked_joints[i]](m_f_next, false)[0].begin() + start_next + (it + 1) * step_next);
 
                 // current 2nd half
                 merged_polyline_0.insert(merged_polyline_0.end(), (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr - step_curr * 0.5, (*this)(m_f_curr, true)[0].begin() + start_curr + (it + 1) * step_curr);
@@ -516,4 +515,5 @@ void joint::remove_geo_from_linked_joint_and_merge_with_current_joint(std::vecto
         all_joints[linked_joints[i]](m_f_next, false).clear();
         // std::cout << "merged joint " << id << " with " << linked_joints[i] << "\n";
     }
+}
 }

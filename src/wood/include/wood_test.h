@@ -1,14 +1,14 @@
 
 #include "cgal_mesh_boolean.h"
 // data structure
-#include "wood_cut_type.h"
+#include "wood_cut.h"
 #include "wood_main.h"
 // viewer
 #include "viewer_wood.h"
 #include "wood_xml.h"
 
 // joinery
-#include "wood_joint_library.h"
+#include "wood_joint_lib.h"
 #include "wood_joint.h"
 
 #ifndef WOOD_TEST_H
@@ -24,13 +24,13 @@ namespace wood_test
 
     void test_side_to_top();
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_corner();
+    void test_F_three_valence_joint_addition_vidy_D_chapel_corner();
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_one_layer();
+    void test_F_three_valence_joint_addition_vidy_D_chapel_one_layer();
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel_simple();
+    void test_F_three_valence_joint_addition_vidy_D_chapel_simple();
 
-    void test__function_three_valence_joint_addition_vidy__dataset_chapel();
+    void test_F_three_valence_joint_addition_vidy_D_chapel();
 
     void ss_e_op_4();
 }
