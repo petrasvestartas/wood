@@ -38,4 +38,10 @@
 2022/11/19 - 4 valence joint implementation example "ss_e_op_5" and very similary customized for no tenons (property "disable_joint_divisions_1") "ss_e_op_6" 
 ![p1](https://user-images.githubusercontent.com/18013985/202870110-384aa41c-c365-4a7c-ac34-c574922a5abd.jpg)
 
+2022/11/20 - examples addition: chapel_corner | chapel_one_layer | chapel_simple | chapel | todo: check why simple finger joints are not merged porperly with the outlines | implement 3 valence joint (when only one joint is connected not two)
+![Chapel1](https://user-images.githubusercontent.com/18013985/202915055-02107a24-9fb5-4e85-86b8-3ec134f15229.jpg)
+
+
+https://user-images.githubusercontent.com/18013985/202915294-fc893395-eecc-406a-8597-639f438726c2.mp4
+
 
