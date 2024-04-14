@@ -149,6 +149,7 @@ if (GET_LIBS)
           INSTALL_DIR ${CMAKE_BINARY_DIR}/install/googletest
           CMAKE_ARGS
               -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+              -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ${GOOGLE_TEST_OS} #$<$<PLATFORM_ID:Windows>:-Dgtest_force_shared_crt:BOOL=ON>
           BUILD_COMMAND
               COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install
