@@ -21,7 +21,9 @@ int main(int argc, char **argv)
 	wood::globals::DATA_SET_OUTPUT_FILE = wood::globals::DATA_SET_INPUT_FOLDER + "out.xml";
 	wood::globals::DATA_SET_OUTPUT_DATABASE = wood::globals::DATA_SET_INPUT_FOLDER + "out.db";
 
-	wood::globals::DATA_SET_OUTPUT_DATABASE = std::filesystem::current_path().parent_path().parent_path().parent_path().string() +"/database_viewer/cmake/src/viewer/database/database_viewer.db";
+	// wood::globals::DATA_SET_OUTPUT_DATABASE = std::filesystem::current_path().parent_path().parent_path().parent_path().string() +"/database_viewer/cmake/src/viewer/database/database_viewer.db";
+	wood::globals::DATA_SET_OUTPUT_DATABASE = std::filesystem::current_path().parent_path().parent_path().parent_path().parent_path().parent_path().string() +"/database_viewer/cmake/src/viewer/database/database_viewer.db";
+
 
 
 	wood::globals::OUTPUT_GEOMETRY_TYPE = 3;
