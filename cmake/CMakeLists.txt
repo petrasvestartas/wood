@@ -190,7 +190,7 @@ if (GET_LIBS)
   )
 
 
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  # if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     ExternalProject_Add(cgal_auxiliary
       URL https://github.com/CGAL/cgal/releases/download/v5.5/CGAL-5.5-win64-auxiliary-libraries-gmp-mpfr.zip
       CMAKE_ARGS
@@ -201,7 +201,7 @@ if (GET_LIBS)
       BUILD_COMMAND "" # Do not build
       INSTALL_COMMAND "" # Installer for now is empty
     )
-  endif()
+  # endif()
 
 endif()
 
