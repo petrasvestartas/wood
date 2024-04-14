@@ -46,18 +46,19 @@ The library is written using C++ and is built using CMake. The following instruc
 - **Step 1:** Clone the repository: download and install [git](https://git-scm.com/downloads), [cmake](https://cmake.org/download/), and a C++ compiler like [Visual Studio](https://visualstudio.microsoft.com/vs/community/).
 - **Step 2:** Open the terminal and move to the directory where you want to install the library, for example:
 ```bash
-    cd C:/brg/2_code/
+    cd /brg/2_code/
 ```
 - **Step 3:** Clone the repository
 ```bash
     git clone https://github.com/petrasvestartas/wood.git
 ```
 
-- **Step 4:** Run the install_windows.bat file
+- **Step 4:** Run the install file (windows .bat, ubuntu .sh)
 ```bash
-    cd C:/brg/2_code/wood/
-    install_windows.bat
+    install.bat or sudo install.sh
 ```
+
+
 
 ## Documentation
 
@@ -71,8 +72,8 @@ The documentation is built using [Doxygen](http://www.doxygen.nl/) and [Doxygen 
     git checkout v2.3.1
 ```
 
-- **Step 2:** Run the doxygen using docs.bat file:
+- **Step 2:** Run the doxygen using docs file (windows .bat, ubuntu .sh):
 ```bash
-    cd C:/brg/2_code/wood/
-    docs.bat
+	docs.bat or sudo docs.sh
 ```
+

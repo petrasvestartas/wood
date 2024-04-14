@@ -7,5 +7,5 @@ then
 fi
 cd docs
 doxygen Doxyfile
-cd ..
-xdg-open output/index.html
+sudo chown -R petras:petras output
+sudo -u petras xdg-open output/index.html
