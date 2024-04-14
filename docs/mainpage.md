@@ -55,7 +55,7 @@ The library is written using C++ and is built using CMake. The following instruc
 
 - **Step 4:** Run the install file (windows .bat, ubuntu .sh)
 ```bash
-    install.bat or sudo install.sh
+    ./install.bat or sudo ./install.sh
 ```
 
 
@@ -74,6 +74,6 @@ The documentation is built using [Doxygen](http://www.doxygen.nl/) and [Doxygen 
 
 - **Step 2:** Run the doxygen using docs file (windows .bat, ubuntu .sh):
 ```bash
-	docs.bat or sudo docs.sh
+	./docs.bat or sudo ./docs.sh
 ```
 
