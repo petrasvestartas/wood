@@ -57,7 +57,7 @@ namespace cgal
             bool unitize(IK::Vector_3 &vector)
             {
                 bool rc = false;
-                // Since x,y,z are floats, d will not be denormalized and the
+                // Since x,y,z are doubles, d will not be denormalized and the
                 // ON_DBL_MIN tests in ON_2dVector::Unitize() are not needed.
 
                 double d = length(vector.hx(), vector.hy(), vector.hz());
@@ -257,7 +257,7 @@ namespace cgal
             }
         }
 
-        void closed_mesh_from_polylines_vnf(const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean, std::vector<float> &out_vertices, std::vector<float> &out_normals, std::vector<int> &out_triangles, const double &scale)
+        void closed_mesh_from_polylines_vnf(const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles, const double &scale)
         {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Sanity Check
@@ -355,7 +355,7 @@ namespace cgal
 
             auto face_count = top_outline_face_vertex_indices.size() / 3;
 
-            std::vector<float> out_vertices_temp;
+            std::vector<double> out_vertices_temp;
             out_vertices_temp.reserve(vertex_count * 2 * 3);
             out_vertices.reserve(face_count * 2 * 3);
             out_normals.reserve(face_count * 2 * 3);
@@ -379,9 +379,9 @@ namespace cgal
                 for (auto j = 0; j < polylines[i].size() - 1; j++)
                 {
                     // vertices
-                    out_vertices_temp.emplace_back((float)polylines[i][j].hx() / scale);
-                    out_vertices_temp.emplace_back((float)polylines[i][j].hy() / scale);
-                    out_vertices_temp.emplace_back((float)polylines[i][j].hz() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i][j].hx() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i][j].hy() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i][j].hz() / scale);
 
                     // last faces
                     if (j == polylines[i].size() - 2)
@@ -444,9 +444,9 @@ namespace cgal
                 for (auto j = 0; j < polylines[i].size() - 1; j++)
                 {
                     // vertices
-                    out_vertices_temp.emplace_back((float)polylines[i + 1][j].hx() / scale);
-                    out_vertices_temp.emplace_back((float)polylines[i + 1][j].hy() / scale);
-                    out_vertices_temp.emplace_back((float)polylines[i + 1][j].hz() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i + 1][j].hx() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i + 1][j].hy() / scale);
+                    out_vertices_temp.emplace_back((double)polylines[i + 1][j].hz() / scale);
                     vid++;
                 }
             }
