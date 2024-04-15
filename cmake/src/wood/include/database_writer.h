@@ -100,13 +100,13 @@ namespace database_writer
     /////////////////////////////////////////////////////////////////////////////////////////
     // Database Writer
     /////////////////////////////////////////////////////////////////////////////////////////
-    extern float SCALE;
-    extern float LINE_THICKNESS;
+    extern double SCALE;
+    extern double LINE_THICKNESS;
     extern std::string COLOR;
 
     struct SQLPoint
     {
-        float x, y, z; // Coordinates of the point.
+        double x, y, z; // Coordinates of the point.
     };
 
     struct SQLFace
@@ -116,24 +116,24 @@ namespace database_writer
 
     struct SQLPolyline
     {
-        std::vector<float> vertices; // Flat vector of vertex coordinates: x, y, z, ...
+        std::vector<double> vertices; // Flat vector of vertex coordinates: x, y, z, ...
         std::string color = COLOR;   // Hexadecimal color code, e.g., "#FF0000" for red.
-        float thickness = 2.0f;      // Thickness of the polyline.
+        double thickness = 2.0f;      // Thickness of the polyline.
     };
 
     struct SQLMesh
     {
-        std::vector<float> vertices; // Flat vector of vertex coordinates.
-        std::vector<float> normals;  // Flat vector of normal coordinates.
+        std::vector<double> vertices; // Flat vector of vertex coordinates.
+        std::vector<double> normals;  // Flat vector of normal coordinates.
         std::vector<int> indices;    // Flat vector of triangle face indices.
         std::string color = COLOR;   // Hexadecimal color code.
     };
 
     struct SQLPointCloud
     {
-        std::vector<float> vertices; // Flat vector of vertex coordinates: x, y, z, ...
-        std::vector<float> normals;  // Flat vector of normal coordinates: nx, ny, nz, ...
-        std::vector<float> colors;   // Flat vector of colors: r, g, b, ...
+        std::vector<double> vertices; // Flat vector of vertex coordinates: x, y, z, ...
+        std::vector<double> normals;  // Flat vector of normal coordinates: nx, ny, nz, ...
+        std::vector<double> colors;   // Flat vector of colors: r, g, b, ...
     };
 
     std::string serialize_sql_polyline(const SQLPolyline &polyline);
@@ -168,7 +168,7 @@ namespace database_writer
                 if (it->empty())
                     return;
 
-                float scale_inv = 1.0f / SCALE;
+                double scale_inv = 1.0f / SCALE;
                 SQL_POLYLINES.emplace_back(SQLPolyline());
                 SQL_POLYLINES.back().vertices.reserve(it->size() * 3);
                 SQL_POLYLINES.back().color = COLOR;
@@ -176,9 +176,9 @@ namespace database_writer
 
                 for (auto &point : *it)
                 {
-                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<float>(point[0] * scale_inv));
-                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<float>(point[1] * scale_inv));
-                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<float>(point[2] * scale_inv));
+                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<double>(point[0] * scale_inv));
+                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<double>(point[1] * scale_inv));
+                    SQL_POLYLINES.back().vertices.emplace_back(static_cast<double>(point[2] * scale_inv));
                 }
             }
             else
@@ -196,8 +196,8 @@ namespace database_writer
 
     void closed_mesh_from_polylines_vnf(
         const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean,
-        std::vector<float> &out_vertices,
-        std::vector<float> &out_normals,
+        std::vector<double> &out_vertices,
+        std::vector<double> &out_normals,
         std::vector<int> &out_triangles,
         const double &scale);
 
@@ -215,8 +215,8 @@ namespace database_writer
     void mesh_boolean_difference_to_viewer(
         std::vector<Mesh> &mesh_list,
         size_t difference_union_intersection,
-        std::vector<float> &out_vertices,
-        std::vector<float> &out_normals,
+        std::vector<double> &out_vertices,
+        std::vector<double> &out_normals,
         std::vector<int> &out_triangles);
 
     void add_points(

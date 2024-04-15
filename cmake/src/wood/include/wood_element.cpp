@@ -149,10 +149,6 @@ namespace wood
 
                     break;
                 case (3):
-                case (5):
-
-                    // k+=2 means skipping bounding lines or rectangles that are used in other method when joints have to be merged with polygons
-                    // std::cout << " new line \n";
                     for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
                     {
                         // std::cout << k << " ";
@@ -163,10 +159,30 @@ namespace wood
                         else
                             std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
                     }
-                    // std::cout << " outlines count: " << output[this->id].size() << " ";
-                    // std::cout << " new line \n";
 
                     break;
+                case (5):
+                    if (this->polylines.size() > 1)
+                    {
+                        output[this->id].emplace_back(this->polylines[0]); // cut
+                        output[this->id].emplace_back(this->polylines[1]); // cut
+                    }
+                
+                    for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
+                    {
+                        // std::cout << k << " ";
+                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true)[k]);  // cut
+                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), false)[k]); // direction
+                        if (joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j])).size() > k)
+                            output_cut_types[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]))[k]); // type
+                        else
+                            std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
+                    }
+
+                    break;
+
+
+
                 case (6):
                     // Plate outlines
                     if (this->polylines.size() > 1)

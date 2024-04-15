@@ -158,6 +158,7 @@ namespace cgal
             CGAL::Aff_transformation_3<IK> xform_toXY = internal::plane_to_xy(polylines_with_holes[0][0], base_plane);
             CGAL::Aff_transformation_3<IK> xform_toXY_Inv = xform_toXY.inverse();
 
+            std::vector<IK::Point_3> vertices = std::vector<IK::Point_3>();
             CGALCDT CGALCDT;
             for (int i = 0; i < polylines_with_holes.size(); i += 2)
             {
@@ -165,6 +166,7 @@ namespace cgal
                 for (int j = 0; j < polylines_with_holes[i].size() - 1; j++)
                 {
                     IK::Point_3 p = polylines_with_holes[i][j].transform(xform_toXY);
+                    vertices.push_back(p);
                     auto pt_2d = Point(p.hx(), p.hy());
 
                     CGALCDT::Locate_type l_t;
@@ -255,6 +257,21 @@ namespace cgal
                     top_outline_face_vertex_indices.emplace_back(vertex_index[f->vertex(2)]);
                 }
             }
+
+            // IK::Vector_3 expected_normal = base_plane.orthogonal_vector();
+
+            // IK::Point_3 &p1 = vertices[top_outline_face_vertex_indices[0]];
+            // IK::Point_3 &p2 = vertices[top_outline_face_vertex_indices[1]];
+            // IK::Point_3 &p3 = vertices[top_outline_face_vertex_indices[2]];
+
+            // IK::Vector_3 u = p2 - p1;
+            // IK::Vector_3 v = p3 - p1;
+            // IK::Vector_3 actual_normal = CGAL::cross_product(u, v);
+
+            // if (CGAL::scalar_product(actual_normal, expected_normal) < 0) 
+            //     for (int i = 0; i < top_outline_face_vertex_indices.size(); i += 3)
+            //         std::swap(top_outline_face_vertex_indices[i], top_outline_face_vertex_indices[i + 1]);
+
         }
 
         void closed_mesh_from_polylines_vnf(const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles, const double &scale)
@@ -746,17 +763,7 @@ namespace cgal
                 }
             }
 
-            // for (auto v : mesh.vertices())
-            // {
-            //     auto p = mesh.point(v);
-            //     std::cout << p.x() << "\n";
-            //     std::cout << p.y() << "\n";
-            //     std::cout << p.z() << "\n";
-            // }
 
-            // for (auto current_face : mesh.faces())
-            //     for (auto face_vertex : mesh.vertices_around_face(mesh.halfedge(current_face)))
-            //         std::cout << face_vertex.idx() << "\n";
         }
     }
 }
