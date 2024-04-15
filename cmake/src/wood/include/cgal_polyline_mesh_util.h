@@ -107,7 +107,7 @@ namespace cgal
          * @param [in] scale scale factor to convert scale the output geometry for viewer::viewer_wood
          * @return mesh vertices and faces in a form of Eigen matrices to be compatible with pybind11
          */
-        void closed_mesh_from_polylines_vnf(const std::vector<CGAL_Polyline> &polylines_with_holes, std::vector<float> &out_vertices, std::vector<float> &out_normals, std::vector<int> &out_triangles, const double &scale = 1000);
+        void closed_mesh_from_polylines_vnf(const std::vector<CGAL_Polyline> &polylines_with_holes, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles, const double &scale = 1000);
 
         /**
          * Create a mesh loft from a set of polylines with holes
