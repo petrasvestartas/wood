@@ -2944,7 +2944,7 @@ namespace wood
                     IK::Point_3(0.2, -0.7, -0.166667),
                 }};
 
-            std::vector<wood::cut::cut_type> male_types{wood::cut::edge_insertion, wood::cut::edge_insertion};
+            std::vector<wood::cut::cut_type> male_types{wood::cut::mill_project, wood::cut::mill_project};
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // female default shape
@@ -2982,7 +2982,7 @@ namespace wood
                     IK::Point_3(-0.2, -0.7, 0.166667),
                 }};
 
-            std::vector<wood::cut::cut_type> female_types{wood::cut::edge_insertion, wood::cut::edge_insertion};
+            std::vector<wood::cut::cut_type> female_types{wood::cut::mill_project, wood::cut::mill_project};
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Reserve memory for multiple copies
