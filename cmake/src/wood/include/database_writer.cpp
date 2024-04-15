@@ -59,7 +59,7 @@ namespace database_writer
         bool unitize(IK::Vector_3 &vector)
         {
             bool rc = false;
-            // Since x,y,z are floats, d will not be denormalized and the
+            // Since x,y,z are doubles, d will not be denormalized and the
             // ON_DBL_MIN tests in ON_2dVector::Unitize() are not needed.
 
             double d = length(vector.hx(), vector.hy(), vector.hz());
@@ -156,8 +156,8 @@ namespace database_writer
     /////////////////////////////////////////////////////////////////////////////////////////
     // Database Writer
     /////////////////////////////////////////////////////////////////////////////////////////
-    float SCALE = 1000.0f;
-    float LINE_THICKNESS = 3;
+    double SCALE = 1000.0f;
+    double LINE_THICKNESS = 3;
     std::string COLOR = "#000000";
 
     std::string serialize_sql_polyline(const SQLPolyline &polyline)
@@ -375,8 +375,8 @@ namespace database_writer
             {
                 for (int axis : {0, 1, 2})
                 { // Loop over x, y, z coordinates
-                    sqlmesh.vertices.emplace_back(static_cast<float>(polyline[i].cartesian(axis) / SCALE));
-                    sqlmesh.normals.emplace_back(static_cast<float>(normal.cartesian(axis)));
+                    sqlmesh.vertices.emplace_back(static_cast<double>(polyline[i].cartesian(axis) / SCALE));
+                    sqlmesh.normals.emplace_back(static_cast<double>(normal.cartesian(axis)));
                 }
             }
         }
@@ -390,8 +390,8 @@ namespace database_writer
     // done
     void add_loft(std::vector<std::vector<CGAL_Polyline>> &output_plines)
     {
-        std::vector<float> out_vertices;
-        std::vector<float> out_normals;
+        std::vector<double> out_vertices;
+        std::vector<double> out_normals;
         std::vector<int> out_triangles;
 
         for (auto &polylines : output_plines)
@@ -405,8 +405,8 @@ namespace database_writer
 
     void closed_mesh_from_polylines_vnf(
         const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean,
-        std::vector<float> &out_vertices,
-        std::vector<float> &out_normals,
+        std::vector<double> &out_vertices,
+        std::vector<double> &out_normals,
         std::vector<int> &out_triangles,
         const double &scale)
     {
@@ -506,7 +506,7 @@ namespace database_writer
 
         auto face_count = top_outline_face_vertex_indices.size() / 3;
 
-        std::vector<float> out_vertices_temp;
+        std::vector<double> out_vertices_temp;
         out_vertices_temp.reserve(vertex_count * 2 * 3);
         out_vertices.reserve(face_count * 2 * 3);
         out_normals.reserve(face_count * 2 * 3);
@@ -530,9 +530,9 @@ namespace database_writer
             for (auto j = 0; j < polylines[i].size() - 1; j++)
             {
                 // vertices
-                out_vertices_temp.emplace_back((float)polylines[i][j].hx() / scale);
-                out_vertices_temp.emplace_back((float)polylines[i][j].hy() / scale);
-                out_vertices_temp.emplace_back((float)polylines[i][j].hz() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i][j].hx() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i][j].hy() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i][j].hz() / scale);
 
                 // last faces
                 if (j == polylines[i].size() - 2)
@@ -595,9 +595,9 @@ namespace database_writer
             for (auto j = 0; j < polylines[i].size() - 1; j++)
             {
                 // vertices
-                out_vertices_temp.emplace_back((float)polylines[i + 1][j].hx() / scale);
-                out_vertices_temp.emplace_back((float)polylines[i + 1][j].hy() / scale);
-                out_vertices_temp.emplace_back((float)polylines[i + 1][j].hz() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i + 1][j].hx() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i + 1][j].hy() / scale);
+                out_vertices_temp.emplace_back((double)polylines[i + 1][j].hz() / scale);
                 vid++;
             }
         }
@@ -917,8 +917,8 @@ namespace database_writer
     void mesh_boolean_difference_to_viewer(
         std::vector<Mesh> &mesh_list,
         size_t difference_union_intersection,
-        std::vector<float> &out_vertices,
-        std::vector<float> &out_normals,
+        std::vector<double> &out_vertices,
+        std::vector<double> &out_normals,
         std::vector<int> &out_triangles)
     {
 
@@ -998,16 +998,16 @@ namespace database_writer
 
         const int vc = lastMesh.number_of_vertices() * 3;
 
-        out_vertices = std::vector<float>(vc);
-        out_normals = std::vector<float>(vc);
+        out_vertices = std::vector<double>(vc);
+        out_normals = std::vector<double>(vc);
 
         int i = 0;
         int c = 0;
         for (auto &ni : vnormals)
         {
-            out_normals[i + 0] = (float)ni.hx();
-            out_normals[i + 1] = (float)ni.hy();
-            out_normals[i + 2] = (float)ni.hz();
+            out_normals[i + 0] = (double)ni.hx();
+            out_normals[i + 1] = (double)ni.hy();
+            out_normals[i + 2] = (double)ni.hz();
             i += 3;
             c++;
         }
@@ -1020,9 +1020,9 @@ namespace database_writer
         for (const auto &vi : lastMesh.vertices())
         {
             const auto &pt = lastMesh.point(vi);
-            out_vertices[i + 0] = (float)pt.x();
-            out_vertices[i + 1] = (float)pt.y();
-            out_vertices[i + 2] = (float)pt.z();
+            out_vertices[i + 0] = (double)pt.x();
+            out_vertices[i + 1] = (double)pt.y();
+            out_vertices[i + 2] = (double)pt.z();
             i += 3;
             c++;
         }
@@ -1058,9 +1058,9 @@ namespace database_writer
         // points
         for (const auto &point : points)
         {
-            sqlpointcloud.vertices.emplace_back(static_cast<float>(point.hx() / SCALE));
-            sqlpointcloud.vertices.emplace_back(static_cast<float>(point.hy() / SCALE));
-            sqlpointcloud.vertices.emplace_back(static_cast<float>(point.hz() / SCALE));
+            sqlpointcloud.vertices.emplace_back(static_cast<double>(point.hx() / SCALE));
+            sqlpointcloud.vertices.emplace_back(static_cast<double>(point.hy() / SCALE));
+            sqlpointcloud.vertices.emplace_back(static_cast<double>(point.hz() / SCALE));
         }
 
         // normals
@@ -1078,10 +1078,10 @@ namespace database_writer
         ss << std::hex << hex.substr(1); // Remove '#' and convert
         ss >> rgb;
 
-        float r = ((rgb >> 16) & 0xFF) / 255.0f;
-        float g = ((rgb >> 8) & 0xFF) / 255.0f;
-        float b = (rgb & 0xFF) / 255.0f;
-        float a = 1.0f; // Assuming no alpha in the string, default to 1
+        double r = ((rgb >> 16) & 0xFF) / 255.0f;
+        double g = ((rgb >> 8) & 0xFF) / 255.0f;
+        double b = (rgb & 0xFF) / 255.0f;
+        double a = 1.0f; // Assuming no alpha in the string, default to 1
 
         // If the string contains alpha value (e.g., #RRGGBBAA)
         if (hex.size() == 9)

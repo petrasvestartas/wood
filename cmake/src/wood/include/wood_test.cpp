@@ -4503,8 +4503,8 @@ namespace wood
 
             size_t difference_union_intersection = 0;
 
-            std::vector<float> coord_out;
-            std::vector<float> normals_out;
+            std::vector<double> coord_out;
+            std::vector<double> normals_out;
             int n_coord_out;
             std::vector<int> faces_out;
             int n_faces_out;

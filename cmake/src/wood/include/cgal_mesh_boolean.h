@@ -14,8 +14,8 @@ namespace cgal
             std::vector<Mesh> mesh_list,
             size_t difference_union_intersection,
 
-            std::vector<float> &coord_out, int &n_coord_out,
-            std::vector<float> &normals_out,
+            std::vector<double> &coord_out, int &n_coord_out,
+            std::vector<double> &normals_out,
             std::vector<int> &faces_out, int &n_faces_out,
             std::vector<int> &facesColors_out, int &n_facesColors_out,
             int &n_valid_meshes
@@ -27,9 +27,23 @@ namespace cgal
         void mesh_boolean_difference_to_viewer(
             std::vector<Mesh> &mesh_list,
             size_t difference_union_intersection,
-            std::vector<float> &out_vertices,
-            std::vector<float> &out_normals,
+            std::vector<double> &out_vertices,
+            std::vector<double> &out_normals,
             std::vector<int> &out_triangles);
+
+        void mesh_boolean_difference(
+            std::vector<Mesh> &mesh_list,
+            size_t difference_union_intersection,
+            std::vector<IK::Point_3> &out_vertices,
+            std::vector<IK::Vector_3> &out_normals,
+            std::vector<std::vector<int>> &out_triangles);
+
+        void mesh_boolean_difference_from_polylines(
+            std::vector<CGAL_Polyline> &input_plines,
+            std::vector<std::vector<CGAL_Polyline>> &output_plines,
+            std::vector<std::vector<IK::Point_3>> &out_vertices,
+            std::vector<std::vector<IK::Vector_3>> &out_normals,
+            std::vector<std::vector<std::vector<int>>> &out_triangles);
     }
 } // namespace cgal
 #endif // CGAL_MESH_BOOLEAN_H
