@@ -2987,26 +2987,17 @@ namespace wood
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Reserve memory for multiple copies
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            joint.m[0].reserve(2);
-            joint.m[1].reserve(2);
-            joint.m_boolean_type.reserve(2);
-            joint.f[0].reserve(2);
-            joint.f[1].reserve(2);
-            joint.f_boolean_type.reserve(2);
+            joint.m[0].reserve(2*divisions);
+            joint.m[1].reserve(2*divisions);
+            joint.m_boolean_type.reserve(2*divisions);
+            joint.f[0].reserve(2*divisions);
+            joint.f[1].reserve(2*divisions);
+            joint.f_boolean_type.reserve(2*divisions);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Copy the default shapes and move them by merging
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             auto a = joint.m[0];
-            joint.m[0].emplace_back(CGAL_Polyline());
-            joint.m[1].emplace_back(CGAL_Polyline());
-            joint.f[0].emplace_back(CGAL_Polyline());
-            joint.f[1].emplace_back(CGAL_Polyline());
-
-            joint.m[0].back().reserve(male_0[0].size() * divisions);
-            joint.m[1].back().reserve(male_1[0].size() * divisions);
-            joint.f[0].back().reserve(female_0[0].size() * divisions);
-            joint.f[1].back().reserve(female_1[0].size() * divisions);
 
             for (auto i = 0; i < divisions; i++)
             {
@@ -3029,23 +3020,34 @@ namespace wood
                 for (auto &p : female_moved_1)
                     p += move_from_center_to_the_end + move_length_dir * i;
 
-                // merge with the main outline
-                joint.m[0].back().insert(joint.m[0].back().end(), male_moved_0.begin(), male_moved_0.end());
-                joint.m[1].back().insert(joint.m[1].back().end(), male_moved_1.begin(), male_moved_1.end());
-                joint.f[0].back().insert(joint.f[0].back().end(), female_moved_0.begin(), female_moved_0.end());
-                joint.f[1].back().insert(joint.f[1].back().end(), female_moved_1.begin(), female_moved_1.end());
+                joint.m[0].emplace_back(male_moved_0);
+                joint.m[0].emplace_back(male_moved_0);
+                joint.m[1].emplace_back(male_moved_1);
+                joint.m[1].emplace_back(male_moved_1);
+                joint.f[0].emplace_back(female_moved_0);
+                joint.f[0].emplace_back(female_moved_0);
+                joint.f[1].emplace_back(female_moved_1);
+                joint.f[1].emplace_back(female_moved_1);
+
+
             }
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Add the insertion lines
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            joint.m[0].emplace_back(CGAL_Polyline{joint.m[0].front().front(), joint.m[0].front().back()});
-            joint.m[1].emplace_back(CGAL_Polyline{joint.m[1].front().front(), joint.m[1].front().back()});
-            joint.f[0].emplace_back(CGAL_Polyline{joint.f[0].front().front(), joint.f[0].front().back()});
-            joint.f[1].emplace_back(CGAL_Polyline{joint.f[1].front().front(), joint.f[1].front().back()});
+            for (auto i = 0; i < divisions; i++)
+            {
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+            }
 
-            joint.f_boolean_type = female_types;
-            joint.m_boolean_type = male_types;
+
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // is unit scale
@@ -3055,9 +3057,10 @@ namespace wood
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // update the joint volume rectangle to fixed size e.g. 100x100x100
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            double x_dir_length = 120;
-            double y_dir_length = 120;
-            joint.unit_scale_distance = 120;
+            double size = 120*joint.shift;
+            double x_dir_length = size;
+            double y_dir_length = size;
+            joint.unit_scale_distance = size;
             for (auto &joint_volume : joint.joint_volumes)
             {
                 if (joint_volume.size() != 5)
