@@ -73,7 +73,7 @@ namespace cgal
 
         void average_normal(const CGAL_Polyline &p, IK::Vector_3 &average_normal)
         {
-            size_t len = CGAL::squared_distance(p.front(), p.back()) < wood::globals::DISTANCE_SQUARED ? p.size() - 1 : p.size();
+            size_t len = CGAL::squared_distance(p.front(), p.back()) < wood::GLOBALS::DISTANCE_SQUARED ? p.size() - 1 : p.size();
 
             average_normal = IK::Vector_3(0, 0, 0);
 
@@ -114,7 +114,7 @@ namespace cgal
 
             // int rc = 0;
 
-            // if( std::abs(dot / (mag1 * mag2) - 1.0) < wood::globals::ANGLE*0.01){
+            // if( std::abs(dot / (mag1 * mag2) - 1.0) < wood::GLOBALS::ANGLE*0.01){
             //     rc = 1;
             // }
             // else{
@@ -132,7 +132,7 @@ namespace cgal
                 const double cos_angle = (v0.x() * v1.x() + v0.y() * v1.y() + v0.z() * v1.z()) / ll;
 
                 // std::cout<<"cos_angle: "<<cos_angle<<std::endl;
-                const double cos_tol = cos(wood::globals::ANGLE);
+                const double cos_tol = cos(wood::GLOBALS::ANGLE);
                 if (cos_angle >= cos_tol)
                     rc = 1;
                 else if (cos_angle <= -cos_tol)

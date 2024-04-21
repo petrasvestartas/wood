@@ -18,8 +18,10 @@ namespace wood
     {
         // you are in a loop
         // printf("/n %i", id);
+       
         for (size_t i = 0; i < j_mf.size(); i++)
         { // loop wood::joint id
+       
             for (size_t j = 0; j < j_mf[i].size(); j++)
             { // loop joints per each face + 1 undefined
 
@@ -94,109 +96,108 @@ namespace wood
 
                 switch (what_to_expose)
                 {
-                case (0): // Plate outlines
-                          // if (this->polylines.size() > 1 && i == 0) {
-                          //     output[this->id].emplace_back(this->polylines[0]); //cut
-                          //     output[this->id].emplace_back(this->polylines[1]); //cut
-                          // }
-                {
+                    case (0): { // wood::joint areas
 
-                    CGAL_Polyline joint_area(joints[std::get<0>(j_mf[i][j])].joint_area);
-                    if (this->polylines.size() > 0)
-                    {
-                        IK::Vector_3 plane[4];
-                        cgal::polyline_util::get_average_plane(joint_area, plane);
-                        IK::Point_3 origin(plane[0].hx(), plane[0].hy(), plane[0].hz());
-
-                        IK::Point_3 center = cgal::polyline_util::center(this->polylines[0]);
-                        // std::cout << this->polylines.size() << std::endl;
-                        IK::Point_3 p0 = origin + plane[3];
-                        IK::Point_3 p1 = origin - plane[3];
-
-                        if (CGAL::has_smaller_distance_to_point(center, p0, p1))
+                        CGAL_Polyline joint_area(joints[std::get<0>(j_mf[i][j])].joint_area);
+                        if (this->polylines.size() > 0)
                         {
-                            std::reverse(joint_area.begin(), joint_area.end());
+                            IK::Vector_3 plane[4];
+                            cgal::polyline_util::get_average_plane(joint_area, plane);
+                            IK::Point_3 origin(plane[0].hx(), plane[0].hy(), plane[0].hz());
+
+                            IK::Point_3 center = cgal::polyline_util::center(this->polylines[0]);
+
+                            IK::Point_3 p0 = origin + plane[3];
+                            IK::Point_3 p1 = origin - plane[3];
+
+                            if (CGAL::has_smaller_distance_to_point(center, p0, p1))
+                            {
+                                std::reverse(joint_area.begin(), joint_area.end());
+                            }
                         }
-                    }
-                    output[this->id].emplace_back(joint_area);
-                    break;
-                }
-
-                case (1): // wood::joint lines
-                    output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_lines[male_or_female]);
-                    break;
-
-                case (2): // wood::joint volumes
-
-                    if (four_volumes)
-                    {
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.first].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.first]);
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.second].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.second]);
-                    }
-                    else
-                    {
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[0].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[0]);
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[1].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[1]);
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[2].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[2]);
-                        if (joints[std::get<0>(j_mf[i][j])].joint_volumes[3].size() > 0)
-                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[3]);
+                        output[this->id].emplace_back(joint_area);
+                        break;
                     }
 
-                    break;
-                case (3):
-                    for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
-                    {
-                        // std::cout << k << " ";
-                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true)[k]);  // cut
-                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), false)[k]); // direction
-                        if (joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j])).size() > k)
-                            output_cut_types[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]))[k]); // type
+                    case (1): // wood::joint lines
+                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_lines[male_or_female]);
+                        break;
+
+                    case (2): // wood::joint volumes
+
+                        if (four_volumes)
+                        {
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.first].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.first]);
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.second].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[male_or_female_four_volumes.second]);
+                        }
                         else
-                            std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
-                    }
+                        {
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[0].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[0]);
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[1].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[1]);
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[2].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[2]);
+                            if (joints[std::get<0>(j_mf[i][j])].joint_volumes[3].size() > 0)
+                                output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_volumes[3]);
+                        }
 
-                    break;
-                case (5):
-                    if (this->polylines.size() > 1)
-                    {
-                        output[this->id].emplace_back(this->polylines[0]); // cut
-                        output[this->id].emplace_back(this->polylines[1]); // cut
-                    }
+                        break;
+                    case (3): // wood::joint outlines
+                        for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
+                        {
+                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true)[k]);  // cut
+                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), false)[k]); // direction
+                            if (joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j])).size() > k)
+                                output_cut_types[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]))[k]); // type
+                            else
+                                std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
+                        }
+
+                        break;
+                    case (5): // wood::joint outlines and plate outlines
+            
+                        if (output[this->id].size() == 0) {
+                            output[this->id].emplace_back(this->polylines[0]); //cut
+                            output[this->id].emplace_back(this->polylines[1]); //cut
+                        }
+
+
+                    
+                        for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
+                        {
+                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true)[k]);  // cut
+                            output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), false)[k]); // direction
+                            if (joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j])).size() > k)
+                                output_cut_types[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]))[k]); // type
+                            else
+                                std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
+                        }
+
+                        break;
+
+
+
+                    case (6): // plate outlines
+                        // Plate outlines
+                        if (this->polylines.size() > 1)
+                        {
+                            output[this->id].emplace_back(this->polylines[0]); // cut
+                            output[this->id].emplace_back(this->polylines[1]); // cut
+                        }
+                        // output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_area);
+                        break;
+                    default:
+                        break;
+                 
+                }
                 
-                    for (int k = 0; k < joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true).size(); k += 2)
-                    {
-                        // std::cout << k << " ";
-                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), true)[k]);  // cut
-                        output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]), false)[k]); // direction
-                        if (joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j])).size() > k)
-                            output_cut_types[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])](std::get<1>(j_mf[i][j]))[k]); // type
-                        else
-                            std::cout << "\n ERROR in wood_element.cpp -> get_joints_geometry -> case3 cut_types are not equal to the number of the joint outlines ";
-                    }
-
-                    break;
-
-
-
-                case (6):
-                    // Plate outlines
-                    if (this->polylines.size() > 1)
-                    {
-                        output[this->id].emplace_back(this->polylines[0]); // cut
-                        output[this->id].emplace_back(this->polylines[1]); // cut
-                    }
-                    // output[this->id].emplace_back(joints[std::get<0>(j_mf[i][j])].joint_area);
-                    break;
-                default:
-                    break;
-                }
             }
+            
         }
+
     }
 
     inline bool sort_by_third(const std::tuple<int, bool, double> &a, const std::tuple<int, bool, double> &b)
@@ -514,7 +515,7 @@ namespace wood
                         // pts.emplace_back(polynode[j].x / scale, polynode[j].y / scale, 0);
 
                         // Check if curve is closest to new pline if not reverse
-                        if (CGAL::squared_distance(c.back(), pts.front()) > wood::globals::DISTANCE_SQUARED && CGAL::squared_distance(c.back(), pts.back()) > wood::globals::DISTANCE_SQUARED)
+                        if (CGAL::squared_distance(c.back(), pts.front()) > wood::GLOBALS::DISTANCE_SQUARED && CGAL::squared_distance(c.back(), pts.back()) > wood::GLOBALS::DISTANCE_SQUARED)
                             std::reverse(c.begin(), c.end());
 
                         // Check if insert able curve end is closest to the main curve end, if not reverse
@@ -569,7 +570,7 @@ namespace wood
 
                         // std::cout << "dist_to_plate_segment: " << dist_to_plate_segment << std::endl;
 
-                        if (j == 0 && dist_to_plate_segment < 1) // wood::globals::DISTANCE_SQUARED * 1000)
+                        if (j == 0 && dist_to_plate_segment < 1) // wood::GLOBALS::DISTANCE_SQUARED * 1000)
                         {
 
                             cgal::polyline_util::closest_point_to(c[0], s, t0);
@@ -577,7 +578,7 @@ namespace wood
                             // std::cout << "t0: " << t0 << std::endl;
                             t0 += i;
                         }
-                        else if (j == 1 && dist_to_plate_segment < 1) //< wood::globals::DISTANCE_SQUARED * 1000)
+                        else if (j == 1 && dist_to_plate_segment < 1) //< wood::GLOBALS::DISTANCE_SQUARED * 1000)
                         {
 
                             cgal::polyline_util::closest_point_to(c[c.size() - 1], s, t1);
@@ -908,8 +909,8 @@ namespace wood
                     // get distance between a joint-line and element edge
                     IK::Line_3 temp_segment_0(this->polylines[0][i - 2], this->polylines[0][i - 1]);
                     IK::Line_3 temp_segment_1(this->polylines[1][i - 2], this->polylines[1][i - 1]);
-                    bool geometry_distance_to_edge_0 = CGAL::squared_distance(joint_line_0[0], temp_segment_0.projection(joint_line_0[0])) > wood::globals::DISTANCE_SQUARED;
-                    bool geometry_distance_to_edge_1 = CGAL::squared_distance(joint_line_1[0], temp_segment_1.projection(joint_line_1[0])) > wood::globals::DISTANCE_SQUARED;
+                    bool geometry_distance_to_edge_0 = CGAL::squared_distance(joint_line_0[0], temp_segment_0.projection(joint_line_0[0])) > wood::GLOBALS::DISTANCE_SQUARED;
+                    bool geometry_distance_to_edge_1 = CGAL::squared_distance(joint_line_1[0], temp_segment_1.projection(joint_line_1[0])) > wood::GLOBALS::DISTANCE_SQUARED;
 
                     if (last_id == i - 1 && (geometry_distance_to_edge_0 || geometry_distance_to_edge_1))
                     {
@@ -1228,7 +1229,7 @@ namespace wood
         ///////////////////////////////////////////////////////////////////////////////
         // WARNING Close - Does this part make sense?
         ///////////////////////////////////////////////////////////////////////////////
-        if (last_id == this->polylines[0].size() && last_segment0_start.squared_length() > wood::globals::DISTANCE_SQUARED)
+        if (last_id == this->polylines[0].size() && last_segment0_start.squared_length() > wood::GLOBALS::DISTANCE_SQUARED)
         {
             IK::Point_3 p0, p1;
             if (cgal::intersection_util::line_line_3d(last_segment0_start, last_segment0, p0) && cgal::intersection_util::line_line_3d(last_segment1_start, last_segment1, p1))

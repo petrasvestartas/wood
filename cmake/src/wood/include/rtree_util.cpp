@@ -70,7 +70,7 @@ namespace collider
                         edge_id = i;
                     }
 
-                    if (closest_distance < wood::globals::DISTANCE_SQUARED)
+                    if (closest_distance < wood::GLOBALS::DISTANCE_SQUARED)
                         break;
                 }
 
@@ -118,8 +118,8 @@ namespace collider
                 CGAL::Bbox_3 AABB = CGAL::bbox_3(twoPolylines.begin(), twoPolylines.end(), IK());
 
                 CGAL_Polyline AABB_Min_Max = {
-                    IK::Point_3(AABB.xmin() - 1 * wood::globals::DISTANCE, AABB.ymin() - 1 * wood::globals::DISTANCE, AABB.zmin() - 1 * wood::globals::DISTANCE),
-                    IK::Point_3(AABB.xmax() + 1 * wood::globals::DISTANCE, AABB.ymax() + 1 * wood::globals::DISTANCE, AABB.zmax() + 1 * wood::globals::DISTANCE),
+                    IK::Point_3(AABB.xmin() - 1 * wood::GLOBALS::DISTANCE, AABB.ymin() - 1 * wood::GLOBALS::DISTANCE, AABB.zmin() - 1 * wood::GLOBALS::DISTANCE),
+                    IK::Point_3(AABB.xmax() + 1 * wood::GLOBALS::DISTANCE, AABB.ymax() + 1 * wood::GLOBALS::DISTANCE, AABB.zmax() + 1 * wood::GLOBALS::DISTANCE),
                 };
 
                 AABB = CGAL::bbox_3(AABB_Min_Max.begin(), AABB_Min_Max.end(), IK());
@@ -144,7 +144,7 @@ namespace collider
                     double closest_distance = std::abs(internal::get_closest_distance(p0, input_polyline_pairs[foundValue * 2 + 0], edge)); // first polyline - one starting point
 
                     // RhinoApp().Print(L"Element %i Closest Distance 0: %f \n", foundValue,  closest_distance);
-                    double flag = closest_distance < wood::globals::DISTANCE_SQUARED * 100;
+                    double flag = closest_distance < wood::GLOBALS::DISTANCE_SQUARED * 100;
                     // CGAL_Debug(closest_distance);
                     if (flag)
                     {
@@ -159,7 +159,7 @@ namespace collider
                     closest_distance = std::abs(internal::get_closest_distance(p0, input_polyline_pairs[foundValue * 2 + 1], edge)); // second polyline - one starting point
                     // CGAL_Debug(closest_distance);
 
-                    flag = closest_distance < wood::globals::DISTANCE_SQUARED * 100;
+                    flag = closest_distance < wood::GLOBALS::DISTANCE_SQUARED * 100;
                     if (flag)
                     {
                         // CGAL_Debug(foundValue, edge);
@@ -175,8 +175,8 @@ namespace collider
                 CGAL_Polyline pline{input_insertion_lines[i][0], input_insertion_lines[i][1]};
                 CGAL::Bbox_3 AABB = CGAL::bbox_3(pline.begin(), pline.end(), IK());
 
-                double min[3] = {AABB.xmin() - wood::globals::DISTANCE, AABB.ymin() - wood::globals::DISTANCE, AABB.zmin() - wood::globals::DISTANCE};
-                double max[3] = {AABB.xmax() + wood::globals::DISTANCE, AABB.ymax() + wood::globals::DISTANCE, AABB.zmax() + wood::globals::DISTANCE};
+                double min[3] = {AABB.xmin() - wood::GLOBALS::DISTANCE, AABB.ymin() - wood::GLOBALS::DISTANCE, AABB.zmin() - wood::GLOBALS::DISTANCE};
+                double max[3] = {AABB.xmax() + wood::GLOBALS::DISTANCE, AABB.ymax() + wood::GLOBALS::DISTANCE, AABB.zmax() + wood::GLOBALS::DISTANCE};
                 auto nhits = tree.Search(min, max, callback); // callback in this method call callback above
             }
 
@@ -223,8 +223,8 @@ namespace collider
                 CGAL::Bbox_3 AABB = CGAL::bbox_3(twoPolylines.begin(), twoPolylines.end(), IK());
 
                 CGAL_Polyline AABB_Min_Max = {
-                    IK::Point_3(AABB.xmin() - 1 * wood::globals::DISTANCE, AABB.ymin() - 1 * wood::globals::DISTANCE, AABB.zmin() - 1 * wood::globals::DISTANCE),
-                    IK::Point_3(AABB.xmax() + 1 * wood::globals::DISTANCE, AABB.ymax() + 1 * wood::globals::DISTANCE, AABB.zmax() + 1 * wood::globals::DISTANCE),
+                    IK::Point_3(AABB.xmin() - 1 * wood::GLOBALS::DISTANCE, AABB.ymin() - 1 * wood::GLOBALS::DISTANCE, AABB.zmin() - 1 * wood::GLOBALS::DISTANCE),
+                    IK::Point_3(AABB.xmax() + 1 * wood::GLOBALS::DISTANCE, AABB.ymax() + 1 * wood::GLOBALS::DISTANCE, AABB.zmax() + 1 * wood::GLOBALS::DISTANCE),
                 };
 
                 AABB = CGAL::bbox_3(AABB_Min_Max.begin(), AABB_Min_Max.end(), IK());
@@ -248,7 +248,7 @@ namespace collider
                     size_t edge = 0;
                     double closest_distance = std::abs(internal::get_closest_distance(p, input_polyline_pairs[foundValue * 2 + 0], edge));
 
-                    double flag = closest_distance < wood::globals::DISTANCE_SQUARED * 100;
+                    double flag = closest_distance < wood::GLOBALS::DISTANCE_SQUARED * 100;
                     if (flag)
                     {
                         size_t face_or_edge = input_points_types[i] < 0 ? 0 : 2 + edge;
@@ -261,7 +261,7 @@ namespace collider
 
                     closest_distance = std::abs(internal::get_closest_distance(p, input_polyline_pairs[foundValue * 2 + 1], edge));
 
-                    flag = closest_distance < wood::globals::DISTANCE_SQUARED * 100;
+                    flag = closest_distance < wood::GLOBALS::DISTANCE_SQUARED * 100;
                     if (flag)
                     {
                         auto face_or_edge = input_points_types[i] < 0 ? 1 : 2 + edge;
@@ -275,8 +275,8 @@ namespace collider
                     return true;
                 };
 
-                double min[3] = {input_points[i].hx() - wood::globals::DISTANCE, input_points[i].hy() - wood::globals::DISTANCE, input_points[i].hz() - wood::globals::DISTANCE};
-                double max[3] = {input_points[i].hx() + wood::globals::DISTANCE, input_points[i].hy() + wood::globals::DISTANCE, input_points[i].hz() + wood::globals::DISTANCE};
+                double min[3] = {input_points[i].hx() - wood::GLOBALS::DISTANCE, input_points[i].hy() - wood::GLOBALS::DISTANCE, input_points[i].hz() - wood::GLOBALS::DISTANCE};
+                double max[3] = {input_points[i].hx() + wood::GLOBALS::DISTANCE, input_points[i].hy() + wood::GLOBALS::DISTANCE, input_points[i].hz() + wood::GLOBALS::DISTANCE};
                 auto nhits = tree.Search(min, max, callback); // callback in this method call callback above
             }
 

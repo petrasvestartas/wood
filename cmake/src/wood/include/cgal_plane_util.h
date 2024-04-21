@@ -88,7 +88,7 @@ namespace cgal
 
         /**
          * Check if two vectors are parallel or anti-parallel or not-paralel
-         * tolerance wood::globals::ANGLE
+         * tolerance wood::GLOBALS::ANGLE
          *
          * @param [in] v0 first vector
          * @param [in] v1 second vector

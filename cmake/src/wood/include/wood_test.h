@@ -18,9 +18,9 @@
 // PROTOCOL FOR IMPLEMENTING NEW TESTS
 // STEP 1 - Example method, with Doxygen type comments in the header files and naming: "type_joinery_plates_name_hexbox_and_corner"
 // STEP 2 - GoogleTest method
-// STEP 3 - Screenshot , click "GLFW_KEY_KP_0" to save the screenshot wood::globals.cpp -> DATA_SET_INPUT_FOLDER (C:\IBOIS57\_Code\Software\Python\compas_wood\backend\src\wood\dataset)
+// STEP 3 - Screenshot , click "GLFW_KEY_KP_0" to save the screenshot wood::GLOBALS::cpp -> DATA_SET_INPUT_FOLDER (C:\IBOIS57\_Code\Software\Python\compas_wood\backend\src\wood\dataset)
 // STEP 4 - Run all the tests in the main.cpp like this:  wood::test::run_all_tests();
-// NOTE - file-paths that are different from pc to pc, please change the path before running the code in wood::globals.cpp -> DATA_SET_INPUT_FOLDER
+// NOTE - file-paths that are different from pc to pc, please change the path before running the code in wood::GLOBALS::cpp -> DATA_SET_INPUT_FOLDER
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifndef WOOD_TEST_H
@@ -234,7 +234,7 @@ namespace wood
         /**
          * example for plates
          * in_plane and out_of_plane finger joints and top_to_top joints in one assembly - Rossiniere First Version from timber boards
-         * look how simply we can change the planarity tolerance: wood::globals::DISTANCE_SQUARED *= 100;
+         * look how simply we can change the planarity tolerance: wood::GLOBALS::DISTANCE_SQUARED *= 100;
          * THERE IS A BUG IN THE VIEWER, DISPLAY DISAPPEARS AFTER GOING FROM 4 TO 3 TO 4 MODE
          */
         bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes();
@@ -242,7 +242,7 @@ namespace wood
         /**
          * example for plates
          * in_plane and out_of_plane finger joints and top_to_top joints in one assembly - Rossiniere First Version from timber boards
-         * look how simply we can change the planarity tolerance: wood::globals::DISTANCE_SQUARED *= 100;
+         * look how simply we can change the planarity tolerance: wood::GLOBALS::DISTANCE_SQUARED *= 100;
          * THERE IS A BUG IN THE VIEWER, DISPLAY DISAPPEARS AFTER GOING FROM 4 TO 3 TO 4 MODE
          */
         bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes();

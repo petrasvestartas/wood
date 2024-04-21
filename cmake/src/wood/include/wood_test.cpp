@@ -18,14 +18,14 @@ namespace wood
             void set_file_path_for_input_xml_and_screenshot(const std::string &function_name)
             {
                 // input data-set
-                wood::xml::path_and_file_for_input_polylines = wood::globals::DATA_SET_INPUT_FOLDER + function_name + ".xml";
+                wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + function_name + ".xml";
             }
 
             void set_file_path_for_input_xml_and_screenshot(std::vector<std::vector<IK::Point_3>> &input_polyline_pairs, const std::string &function_name, bool remove_duplicate_points)
             {
 
                 // input data-set h
-                wood::xml::path_and_file_for_input_polylines = wood::globals::DATA_SET_INPUT_FOLDER + function_name + ".xml";
+                wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + function_name + ".xml";
 
                 // read the xml file
                 wood::xml::read_xml_polylines(input_polyline_pairs, false, remove_duplicate_points);
@@ -41,7 +41,7 @@ namespace wood
             {
 
                 // input data-set h
-                wood::xml::path_and_file_for_input_polylines = wood::globals::DATA_SET_INPUT_FOLDER + function_name + ".xml";
+                wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + function_name + ".xml";
 
                 // read the xml file
                 wood::xml::read_xml_polylines_and_properties(
@@ -56,7 +56,7 @@ namespace wood
             void set_plate_display(std::vector<std::vector<IK::Point_3>> &input_polyline_pairs, std::vector<std::vector<CGAL_Polyline>> &output_plines, bool add_loft)
             {
 
-                switch (wood::globals::OUTPUT_GEOMETRY_TYPE)
+                switch (wood::GLOBALS::OUTPUT_GEOMETRY_TYPE)
                 {
                 case (5):
                     database_writer::LINE_THICKNESS = 2;
@@ -140,12 +140,12 @@ namespace wood
 
             // // Global Parameters and output joint selection and orientation
             // double division_length = 300;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 0] = 450;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 1] = 0.64;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 2] = 10;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 0] = 450;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 1] = 0.5;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 2] = 20;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 0] = 450;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 1] = 0.64;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 2] = 10;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 0] = 450;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 1] = 0.5;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 2] = 20;
 
             // bool compute_joints = true;
             // int search_type = 0;
@@ -175,15 +175,15 @@ namespace wood
             //     output_types,
             //     top_face_triangulation,
             //     // Global Parameters
-            //     wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+            //     wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
             //     scale,
             //     search_type,
-            //     wood::globals::OUTPUT_GEOMETRY_TYPE);
+            //     wood::GLOBALS::OUTPUT_GEOMETRY_TYPE);
 
             // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // // Export
             // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            // wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             // wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,12 +213,12 @@ namespace wood
             // Global Parameters and output joint selection and orientation
             double division_length = 300;
 
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 0] = 450;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 1] = 0.64;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 2] = 10;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 0] = 450;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 1] = 0.5;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 2] = 20;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 0] = 450;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 1] = 0.64;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 1 + 2] = 10;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 0] = 450;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 1] = 0.5;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 2 + 2] = 20;
 
             bool compute_joints = true;
             int search_type = 0;
@@ -252,15 +252,15 @@ namespace wood
                 top_face_triangulation,
 
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE);
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -279,8 +279,8 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_corner");
 
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 150; // division_length
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 150; // division_length
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -418,16 +418,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,9 +447,9 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_one_layer", true);
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -15;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 50; // division_length
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10; // division_length
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -15;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 50; // division_length
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10; // division_length
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -478,16 +478,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             // xml_parser::write_xml_polylines(output_plines);
 
             std::vector<std::vector<CGAL_Polyline>> input_polyline_pairs_2;
@@ -512,12 +512,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_one_axis_two_layers");
 
-            // wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
-            wood::globals::JOINT_VOLUME_EXTENSION = {0, 0, -200, 0, 0, -200, 0, 0, -20, 0, 0, -20};
-            std::vector<double> JOINTS_TYPES = wood::globals::JOINTS_PARAMETERS_AND_TYPES;
+            // wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION = {0, 0, -200, 0, 0, -200, 0, 0, -20, 0, 0, -20};
+            std::vector<double> JOINTS_TYPES = wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES;
             JOINTS_TYPES[1 * 3 + 0] = 50;
             int search_type = 0;
-            int output_type = wood::globals::OUTPUT_GEOMETRY_TYPE; // 0 - Plate outlines 1 - joint lines 2 - joint volumes 3 - joint geometry 4 - merge
+            int output_type = wood::GLOBALS::OUTPUT_GEOMETRY_TYPE; // 0 - Plate outlines 1 - joint lines 2 - joint volumes 3 - joint geometry 4 - merge
             // std::cout << "\n output_type " << output_type << "\n";
             std::vector<double> scale = {1, 1, 1};
             std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{
@@ -655,7 +655,7 @@ namespace wood
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             // xml_parser::write_xml_polylines(output_plines);
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
@@ -675,8 +675,8 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_full");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 50;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 50;
             int search_type = 0;
             // std::cout << "\n output_type " << output_type << "\n";
             std::vector<double> scale = {1, 1, 1};
@@ -760,16 +760,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             // xml_parser::write_xml_polylines(output_plines);
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
@@ -789,9 +789,9 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_2_butterflies");
 
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 150; // division_length
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3; // joint type
-            // wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 150; // division_length
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3; // joint type
+            // wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -821,16 +821,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -848,12 +848,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_hexshell");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[0] = -20; // reduce the thickness of the joint
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[0] = -20; // reduce the thickness of the joint
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 40;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 40;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
             }
 
             int search_type = 0;
@@ -885,16 +885,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -912,12 +912,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_differentdirections");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[0] = -10;
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -75;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[0] = -10;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -75;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 40;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 40;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
             }
 
             int search_type = 0;
@@ -1022,16 +1022,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1049,9 +1049,9 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_folding");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 12; // this property is assigned to the individual joint.division_length
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 0.95; // this property is assignes to the individual joint.shift parameter
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 12; // this property is assigned to the individual joint.division_length
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 0.95; // this property is assignes to the individual joint.shift parameter
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1283,16 +1283,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1310,10 +1310,10 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_box");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -100;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -100;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 17;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 17;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1345,16 +1345,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1372,11 +1372,11 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_tetra");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -100;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -100;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 17;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 17;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1408,16 +1408,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1435,12 +1435,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_dodecahedron");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -250;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1472,16 +1472,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1499,12 +1499,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_icosahedron");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -250;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1536,16 +1536,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1563,12 +1563,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_octahedron");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -250;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 1000;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 14;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1600,16 +1600,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1627,11 +1627,11 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 2;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 2;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
             }
 
             int search_type = 0;
@@ -1663,16 +1663,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1690,11 +1690,11 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 2;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 2;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
             }
 
             int search_type = 0;
@@ -1726,16 +1726,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1753,15 +1753,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
             }
 
             int search_type = 0;
@@ -1793,16 +1793,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1820,18 +1820,18 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_hilti");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 0] = 500;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 2] = 55;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 0] = 500;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 2] = 55;
             }
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
             std::vector<std::vector<IK::Vector_3>> input_insertion_vectors;
-            wood::globals::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
-            wood::globals::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = true;
+            wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
+            wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = true;
 
             std::vector<std::vector<int>> input_JOINTS_TYPES{};
             // std::vector<std::vector<int>> input_three_valence_element_indices_and_instruction = {{1}, {16, 10, 11, 17}};
@@ -1858,16 +1858,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1890,9 +1890,9 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_top_pairs");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 10;   // this property is assigned to the individual joint.division_length
-            // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 0.95; // this property is assignes to the individual joint.shift parameter
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 10;   // this property is assigned to the individual joint.division_length
+            // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 0.95; // this property is assignes to the individual joint.shift parameter
 
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -1922,16 +1922,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1949,23 +1949,23 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -50;
-            wood::globals::DISTANCE_SQUARED *= 100;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -50;
+            wood::GLOBALS::DISTANCE_SQUARED *= 100;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
 
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
 
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 21;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 21;
 
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 100;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 150;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 2] = 43;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 100;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 150;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 2] = 43;
             }
 
             std::cout << "WARNING THERE IS A BUG IN VIEWER FOR THIS CASE\n";
@@ -1999,16 +1999,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2026,17 +2026,17 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_hex_block_rossiniere");
 
-            wood::globals::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
+            wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 1;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 140;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
             }
 
             int search_type = 0;
@@ -2068,16 +2068,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2099,12 +2099,12 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_pairs");
 
-            // wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            // wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
             }
 
             int search_type = 0;
@@ -2135,16 +2135,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2162,11 +2162,11 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_box");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2196,16 +2196,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2223,13 +2223,13 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_corners");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2259,16 +2259,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2286,13 +2286,13 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2372,16 +2372,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2398,14 +2398,14 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2469,16 +2469,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2495,14 +2495,14 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2678,16 +2678,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2717,14 +2717,14 @@ namespace wood
                 "type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small",
                 false);
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2749,16 +2749,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2788,14 +2788,14 @@ namespace wood
                 "type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch",
                 false);
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 300; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 20;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2820,16 +2820,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2860,14 +2860,14 @@ namespace wood
                 "type_plates_name_vda_floor_0",
                 false);
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 8000;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 100;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 45;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 2] = 43;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 8000;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 100;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 1] = 45;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 2] = 43;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
@@ -2892,16 +2892,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2932,18 +2932,18 @@ namespace wood
                 "type_plates_name_vda_floor_2",
                 false);
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 50; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 21;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 200;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 10;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 50; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 21;
             }
             int search_type = 0;
             std::vector<double> scale = {1, 1, 1};
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -10;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Main Method of Wood
@@ -2965,16 +2965,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2996,15 +2996,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_and_sides_corner");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 2;
             std::vector<double> scale = {1, 1, 1};
@@ -3034,16 +3034,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3061,18 +3061,18 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_corners");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
-            wood::globals::JOINT_VOLUME_EXTENSION[1] = 2;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[1] = 2;
             std::vector<double> scale = {1, 1.00, 1};
             std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{};
             std::vector<std::vector<int>> input_JOINTS_TYPES{};
@@ -3100,16 +3100,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3127,18 +3127,18 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_vda_corner");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
-            wood::globals::JOINT_VOLUME_EXTENSION[1] = 2;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[1] = 2;
             std::vector<double> scale = {1, 1.00, 1};
             std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{};
             std::vector<std::vector<int>> input_JOINTS_TYPES{};
@@ -3166,16 +3166,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3193,15 +3193,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_vda_hexshell");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3231,16 +3231,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3258,15 +3258,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_vda_hexshell_reciprocal");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3296,16 +3296,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3323,15 +3323,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_vda_single_arch");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3361,16 +3361,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3388,15 +3388,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_vda_shell");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3426,16 +3426,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3453,15 +3453,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_square_reciprocal_two_sides");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3491,16 +3491,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3518,15 +3518,15 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_square_reciprocal_iseya");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
             int search_type = 1;
             std::vector<double> scale = {1, 1.00, 1};
@@ -3556,16 +3556,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3583,18 +3583,18 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_ibois_pavilion");
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = -20;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
 
             int search_type = 2;
             std::vector<double> scale = {1, 1, 1};
@@ -3624,16 +3624,16 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3652,20 +3652,20 @@ namespace wood
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs, "type_plates_name_cross_brussels_sports_tower");
             printf("Number of polylines: %zu \n", input_polyline_pairs.size());
 
-            if (!wood::globals::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
+            if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES[3 * 3 + 2] = 35;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
-                // wood::globals::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[3 * 3 + 2] = 35;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 2] = 3;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 1] = 0.66;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 2] = 12;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 0] = 500; // this property is assigned to the individual joint.division_length
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 1] = 0.5; // this property is assignes to the individual joint.shift parameter
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[2 * 3 + 2] = 25;
+                // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[4 * 3 + 0] = 400;
             }
 
-            wood::globals::OUTPUT_GEOMETRY_TYPE = 3;
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = 0;
+            wood::GLOBALS::OUTPUT_GEOMETRY_TYPE = 3;
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = 0;
 
             int search_type = 1;
             std::vector<double> scale = {1, 1, 1};
@@ -3695,10 +3695,10 @@ namespace wood
                 output_types,
                 top_face_triangulation,
                 // Global Parameters
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 scale,
                 search_type,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 0);
 
             for (const auto &innerVec : output_types)
@@ -3713,7 +3713,7 @@ namespace wood
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             wood::xml::write_xml_polylines_and_types(output_plines, output_types);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3737,10 +3737,10 @@ namespace wood
             std::vector<std::vector<IK::Point_3>> input_polyline_axes;
             internal::set_file_path_for_input_xml_and_screenshot(input_polyline_axes, "type_beams_name_phanomema_node");
 
-            wood::globals::JOINT_VOLUME_EXTENSION[2] = 0;
-            wood::globals::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 150; // division_length
+            wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = 0;
+            wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 150; // division_length
             int search_type = 0;
-            int output_type = wood::globals::OUTPUT_GEOMETRY_TYPE; // 0 - Plate outlines 1 - joint lines 2 - joint volumes 3 - joint geometry 4 - merge
+            int output_type = wood::GLOBALS::OUTPUT_GEOMETRY_TYPE; // 0 - Plate outlines 1 - joint lines 2 - joint volumes 3 - joint geometry 4 - merge
             // std::cout << "\n output_type " << output_type << "\n";
             std::vector<double> scale = {1, 1, 1};
             std::vector<std::vector<IK::Vector_3>> input_insertion_vectors{};
@@ -3806,19 +3806,19 @@ namespace wood
                 joints_areas,
                 joints_types,
                 // Global Parameters and output wood::joint selection and orientation
-                wood::globals::JOINTS_PARAMETERS_AND_TYPES,
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 output_plines,
                 output_types,
                 compute_joints,
                 division_distance,
                 shift,
-                wood::globals::OUTPUT_GEOMETRY_TYPE,
+                wood::GLOBALS::OUTPUT_GEOMETRY_TYPE,
                 use_eccentricities_to_scale_joints);
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Export
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            wood::xml::path_and_file_for_output_polylines = wood::globals::DATA_SET_OUTPUT_FILE;
+            wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
             output_plines.clear();
             for (auto &pline : volume_pairs)
                 for (int j = 0; j < 4; j++)

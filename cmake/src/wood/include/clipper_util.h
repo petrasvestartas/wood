@@ -231,7 +231,7 @@ namespace collider
 
         /**
          * Orient two polylines using the first polyline's plane, computed the boolean intersection, and returns the result back to 3D
-         * The result igonores very small polygons within the tolerance: wood::globals::CLIPPER_AREA)
+         * The result igonores very small polygons within the tolerance: wood::GLOBALS::CLIPPER_AREA)
          * The user can choose to include the triangles in the result
          *
          * @param [in] polyline0 the first polyline

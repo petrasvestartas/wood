@@ -23,15 +23,15 @@ int main(int argc, char **argv)
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Display
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	wood::globals::DISTANCE = 0.1;
-	wood::globals::DISTANCE_SQUARED = 0.01;
-	wood::globals::ANGLE = 0.11;
-	wood::globals::OUTPUT_GEOMETRY_TYPE = 3;
+	wood::GLOBALS::DISTANCE = 0.1;
+	wood::GLOBALS::DISTANCE_SQUARED = 0.01;
+	wood::GLOBALS::ANGLE = 0.11;
+	wood::GLOBALS::OUTPUT_GEOMETRY_TYPE = 3;
 
-	wood::globals::DATA_SET_INPUT_FOLDER = std::filesystem::current_path().parent_path().string() + "\\src\\wood\\dataset\\";
-	wood::globals::DATA_SET_OUTPUT_FILE = wood::globals::DATA_SET_INPUT_FOLDER + "out.xml";
+	wood::GLOBALS::DATA_SET_INPUT_FOLDER = std::filesystem::current_path().parent_path().string() + "\\src\\wood\\dataset\\";
+	wood::GLOBALS::DATA_SET_OUTPUT_FILE = wood::GLOBALS::DATA_SET_INPUT_FOLDER + "out.xml";
 
-	wood::globals::OUTPUT_GEOMETRY_TYPE = 2;
+	wood::GLOBALS::OUTPUT_GEOMETRY_TYPE = 2;
 	wood::test::type_plates_name_side_to_side_edge_inplane_hilti();
 
 	return 0;

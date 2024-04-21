@@ -119,7 +119,7 @@ namespace cgal
 
             void get_average_normal(const CGAL_Polyline &polyline, IK::Vector_3 &average_normal)
             {
-                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::globals::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
+                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::GLOBALS::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
                 average_normal = IK::Vector_3(0, 0, 0);
 
                 for (size_t i = 0; i < len; i++)
@@ -158,7 +158,7 @@ namespace cgal
 
             void get_average_plane_axes_oriented_to_longest_edge(const CGAL_Polyline &polyline, IK::Point_3 &origin, IK::Vector_3 &x_axis, IK::Vector_3 &y_axis, IK::Vector_3 &z_axis)
             {
-                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::globals::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
+                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::GLOBALS::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
                 z_axis = IK::Vector_3(0, 0, 0);
 
                 double max_length = 0;
@@ -437,7 +437,7 @@ namespace cgal
 
             IK::Point_3 o;
             IK::Vector_3 x, y, z;
-            if (direction.squared_length() > wood::globals::DISTANCE_SQUARED)
+            if (direction.squared_length() > wood::GLOBALS::DISTANCE_SQUARED)
             {
 
                 internal::get_fast_plane(polylines_copy[0], o, x, y, z);
@@ -545,7 +545,7 @@ namespace cgal
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // point on the edge of the rectangle or division of points inside the rectangle
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (rectangle_division_distance > wood::globals::DISTANCE)
+            if (rectangle_division_distance > wood::GLOBALS::DISTANCE)
             {
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // divide edges by distance
@@ -565,7 +565,7 @@ namespace cgal
                 //  points.emplace_back(p0_min);
                 //  points.emplace_back(p0_max);
             }
-            else if (rectangle_division_distance < -wood::globals::DISTANCE)
+            else if (rectangle_division_distance < -wood::GLOBALS::DISTANCE)
             {
                 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                 // get divisions of each edge and take the smallest division

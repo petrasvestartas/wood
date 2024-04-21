@@ -103,7 +103,7 @@ namespace cgal
                 if (ll > 0.0)
                 {
                     const double cos_angle = (v0.x() * v1.x() + v0.y() * v1.y() + v0.z() * v1.z()) / ll;
-                    const double cos_tol = cos(wood::globals::ANGLE);
+                    const double cos_tol = cos(wood::GLOBALS::ANGLE);
                     if (cos_angle >= cos_tol)
                         rc = 1;
                     else if (cos_angle <= -cos_tol)
@@ -597,7 +597,7 @@ namespace cgal
         {
 
             // check validity
-            bool dirSet = (std::abs(dir.hx()) + std::abs(dir.hy()) + std::abs(dir.hz())) > wood::globals::DISTANCE; // == CGAL::NULL_VECTOR;
+            bool dirSet = (std::abs(dir.hx()) + std::abs(dir.hy()) + std::abs(dir.hz())) > wood::GLOBALS::DISTANCE; // == CGAL::NULL_VECTOR;
             if (!dirSet)
                 return dirSet;
 
@@ -773,13 +773,13 @@ namespace cgal
             {
                 IK::Segment_3 segment(polyline[i], polyline[i + 1]);
 
-                if (CGAL::squared_distance(plane.projection(segment[0]), segment[0]) < wood::globals::DISTANCE_SQUARED)
+                if (CGAL::squared_distance(plane.projection(segment[0]), segment[0]) < wood::GLOBALS::DISTANCE_SQUARED)
                 {
                     // std::cout << "polylines are coincident \n";
                     return false;
                 }
 
-                if (CGAL::squared_distance(plane.projection(segment[1]), segment[1]) < wood::globals::DISTANCE_SQUARED)
+                if (CGAL::squared_distance(plane.projection(segment[1]), segment[1]) < wood::GLOBALS::DISTANCE_SQUARED)
                 {
                     // std::cout << "polylines are coincident \n";
                     return false;

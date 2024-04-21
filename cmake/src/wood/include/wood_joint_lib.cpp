@@ -64,23 +64,23 @@ namespace wood
                     // printf(type);
 
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // Check if XML file exists, wood::globals::PATH_AND_FILE_FOR_JOINTS is a global path
+                    // Check if XML file exists, wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS is a global path
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef DEBUG_JOINERY_LIBRARY
-                    printf("\nCPP File path %s ", wood::globals::PATH_AND_FILE_FOR_JOINTS.c_str());
+                    printf("\nCPP File path %s ", wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS.c_str());
                     printf("\nCPP Joint Type %i %s ", type, name.c_str());
 #endif
-                    if (!exists_file(wood::globals::PATH_AND_FILE_FOR_JOINTS))
+                    if (!exists_file(wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS))
                     {
 #ifdef DEBUG_JOINERY_LIBRARY
-                        printf("\nCPP File does not exist %s ", wood::globals::PATH_AND_FILE_FOR_JOINTS.c_str());
+                        printf("\nCPP File does not exist %s ", wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS.c_str());
 #endif
 
                         std::ofstream myfile;
                         myfile.open("C:\\Users\\petra\\AppData\\Roaming\\Grasshopper\\Libraries\\compas_wood\\xml_error.txt");
                         myfile << "Do not Exist\n";
-                        myfile << wood::globals::PATH_AND_FILE_FOR_JOINTS;
+                        myfile << wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS;
                         myfile.close();
 
                         return false;
@@ -90,14 +90,14 @@ namespace wood
                         // std::ofstream myfile;
                         // myfile.open("C:\\Users\\petra\\AppData\\Roaming\\Grasshopper\\Libraries\\compas_wood\\example.txt");
                         // myfile << "Exists\n";
-                        // myfile << wood::globals::PATH_AND_FILE_FOR_JOINTS;
+                        // myfile << wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS;
                         // myfile.close();
                     }
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     // Read XML
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     boost::property_tree::ptree tree;
-                    boost::property_tree::xml_parser::read_xml(wood::globals::PATH_AND_FILE_FOR_JOINTS, tree);
+                    boost::property_tree::xml_parser::read_xml(wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS, tree);
 
 #ifdef DEBUG_JOINERY_LIBRARY
                     printf("\nCPP tree size %zi ", tree.size());
@@ -1403,22 +1403,22 @@ namespace wood
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_ip_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_ip_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_ip_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_ip_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_ip_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_ip_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_ip_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_ip_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_ip_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_ip_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -2087,22 +2087,22 @@ namespace wood
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_op_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_op_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_op_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_op_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_op_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_op_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_op_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_op_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_op_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_op_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -2855,22 +2855,22 @@ namespace wood
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_r_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_r_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_ss_e_r_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_r_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ss_e_r_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ss_e_r_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_r_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_ss_e_r_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_r_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ss_e_r_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -3037,10 +3037,6 @@ namespace wood
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             for (auto i = 0; i < divisions; i++)
             {
-                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
-                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
-                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
-                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
                 joint.f_boolean_type.emplace_back(wood::cut::mill_project);
                 joint.f_boolean_type.emplace_back(wood::cut::mill_project);
                 joint.m_boolean_type.emplace_back(wood::cut::mill_project);
@@ -4063,28 +4059,28 @@ namespace wood
         void ts_e_p_custom(wood::joint &joint)
         {
             // std::ofstream outputFile("C:/compas_wood/output.txt");
-            // outputFile << wood::globals::custom_joints_ts_e_p_male.size() << std::endl;
-            // outputFile << wood::globals::custom_joints_ts_e_p_female.size() << std::endl;
+            // outputFile << wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE.size() << std::endl;
+            // outputFile << wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE.size() << std::endl;
             // outputFile.close();
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ts_e_p_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_ts_e_p_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_ts_e_p_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ts_e_p_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_ts_e_p_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_ts_e_p_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_ts_e_p_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_ts_e_p_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ts_e_p_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_ts_e_p_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -5022,25 +5018,25 @@ namespace wood
             // std::ofstream outputFile("C:/compas_wood/output.txt");
 
             joint.name = __func__;
-            // outputFile << wood::globals::custom_joints_cr_c_ip_male.size() << std::endl;
-            // outputFile << wood::globals::custom_joints_cr_c_ip_female.size() << std::endl;
+            // outputFile << wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE.size() << std::endl;
+            // outputFile << wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE.size() << std::endl;
             // outputFile.close();  // Close the file
-            for (size_t i = 0; i < wood::globals::custom_joints_cr_c_ip_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_cr_c_ip_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_cr_c_ip_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_cr_c_ip_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_cr_c_ip_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_cr_c_ip_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_cr_c_ip_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_cr_c_ip_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_cr_c_ip_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_cr_c_ip_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -5327,22 +5323,22 @@ namespace wood
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_tt_e_p_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_tt_e_p_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_tt_e_p_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_tt_e_p_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_tt_e_p_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_tt_e_p_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_tt_e_p_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_tt_e_p_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_tt_e_p_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_tt_e_p_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -5431,22 +5427,22 @@ namespace wood
 
             joint.name = __func__;
 
-            for (size_t i = 0; i < wood::globals::custom_joints_b_male.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_B_MALE.size(); i += 2)
             {
-                joint.m[0].emplace_back(wood::globals::custom_joints_b_male[i]);
-                joint.m[0].emplace_back(wood::globals::custom_joints_b_male[i]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_b_male[i + 1]);
-                joint.m[1].emplace_back(wood::globals::custom_joints_b_male[i + 1]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_MALE[i]);
+                joint.m[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_MALE[i]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_MALE[i + 1]);
+                joint.m[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_MALE[i + 1]);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
                 joint.m_boolean_type.emplace_back(wood::cut::nothing);
             }
 
-            for (size_t i = 0; i < wood::globals::custom_joints_b_female.size(); i += 2)
+            for (size_t i = 0; i < wood::GLOBALS::CUSTOM_JOINTS_B_FEMALE.size(); i += 2)
             {
-                joint.f[0].emplace_back(wood::globals::custom_joints_b_female[i]);
-                joint.f[0].emplace_back(wood::globals::custom_joints_b_female[i]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_b_female[i + 1]);
-                joint.f[1].emplace_back(wood::globals::custom_joints_b_female[i + 1]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_FEMALE[i]);
+                joint.f[0].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_FEMALE[i]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_FEMALE[i + 1]);
+                joint.f[1].emplace_back(wood::GLOBALS::CUSTOM_JOINTS_B_FEMALE[i + 1]);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
                 joint.f_boolean_type.emplace_back(wood::cut::nothing);
             }
@@ -5612,8 +5608,8 @@ namespace wood
                     if (scale.size() < 3)
                         if (scale.size() == 0)
                         {
-                            // std::cout << "Scale is not defined, using default scale: " << wood::globals::JOINT_VOLUME_EXTENSION[0] << " " << wood::globals::JOINT_VOLUME_EXTENSION[1] << " " << wood::globals::JOINT_VOLUME_EXTENSION[2] << std::endl;
-                            jo.scale = {wood::globals::JOINT_VOLUME_EXTENSION[0], wood::globals::JOINT_VOLUME_EXTENSION[1], wood::globals::JOINT_VOLUME_EXTENSION[2]};
+                            // std::cout << "Scale is not defined, using default scale: " << wood::GLOBALS::JOINT_VOLUME_EXTENSION[0] << " " << wood::GLOBALS::JOINT_VOLUME_EXTENSION[1] << " " << wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] << std::endl;
+                            jo.scale = {wood::GLOBALS::JOINT_VOLUME_EXTENSION[0], wood::GLOBALS::JOINT_VOLUME_EXTENSION[1], wood::GLOBALS::JOINT_VOLUME_EXTENSION[2]};
                         }
                         else
                             jo.scale = {scale[0], scale[0], scale[0]};
@@ -5760,7 +5756,7 @@ namespace wood
                         //     std::ofstream myfile2;
                         //     myfile2.open("C:\\Users\\petra\\AppData\\Roaming\\Grasshopper\\Libraries\\compas_wood\\19.txt");
                         //     myfile2 << "Exists\n";
-                        //     myfile2 << wood::globals::PATH_AND_FILE_FOR_JOINTS;
+                        //     myfile2 << wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS;
                         //     myfile2.close();
                         // }
                         // wont work, because not oriented to connection zones, need additional layer e.g. std::map of all joints
@@ -5938,7 +5934,7 @@ namespace wood
                     // std::ofstream myfile;
                     // myfile.open("C:\\Users\\petra\\AppData\\Roaming\\Grasshopper\\Libraries\\compas_wood\\xml_error.txt");
                     // myfile << "Empty joint\n";
-                    // myfile << wood::globals::PATH_AND_FILE_FOR_JOINTS;
+                    // myfile << wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS;
                     // myfile.close();
                     printf("\nwood::joint_lib -> joint name %s between elements %i and %i is empty", jo.name.c_str(), jo.v0, jo.v1);
                     // CGAL_Debug(group);

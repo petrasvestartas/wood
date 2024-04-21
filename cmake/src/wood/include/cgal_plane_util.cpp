@@ -82,7 +82,7 @@ namespace cgal
                 if (ll > 0.0)
                 {
                     const double cos_angle = (v0.x() * v1.x() + v0.y() * v1.y() + v0.z() * v1.z()) / ll;
-                    const double cos_tol = cos(wood::globals::ANGLE);
+                    const double cos_tol = cos(wood::GLOBALS::ANGLE);
                     if (cos_angle >= cos_tol)
                         rc = 1;
                     else if (cos_angle <= -cos_tol)
@@ -143,7 +143,7 @@ namespace cgal
             IK::Point_3 cp0 = plane0.projection(p1);
             IK::Point_3 cp1 = plane1.projection(p0);
 
-            return CGAL::squared_distance(cp0, p1) < wood::globals::DISTANCE_SQUARED && CGAL::squared_distance(cp1, p0) < wood::globals::DISTANCE_SQUARED;
+            return CGAL::squared_distance(cp0, p1) < wood::GLOBALS::DISTANCE_SQUARED && CGAL::squared_distance(cp1, p0) < wood::GLOBALS::DISTANCE_SQUARED;
         }
 
         /**

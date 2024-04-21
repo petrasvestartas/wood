@@ -179,7 +179,7 @@ namespace cgal
          * Check if the polyline is closed by measuring its end points
          *
          * @param [in] polyline polylines whose start and end points' distance is measured
-         * @return true if the points are far from each other within wood::globals::DISTANCE_SQUARED
+         * @return true if the points are far from each other within wood::GLOBALS::DISTANCE_SQUARED
          */
         bool is_closed(const CGAL_Polyline &polyline);
 

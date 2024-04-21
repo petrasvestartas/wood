@@ -313,9 +313,9 @@ namespace database_writer
     bool write_to_database()
     {
         sqlite3 *db;
-        std::cout << wood::globals::DATA_SET_OUTPUT_DATABASE.c_str() << std::endl;
+        std::cout << wood::GLOBALS::DATA_SET_OUTPUT_DATABASE.c_str() << std::endl;
 
-        if (sqlite3_open(wood::globals::DATA_SET_OUTPUT_DATABASE.c_str(), &db) == SQLITE_OK)
+        if (sqlite3_open(wood::GLOBALS::DATA_SET_OUTPUT_DATABASE.c_str(), &db) == SQLITE_OK)
         {
             // Enable WAL mode
             sqlite3_exec(db, "PRAGMA journal_mode=WAL;", 0, 0, 0);
@@ -452,7 +452,7 @@ namespace database_writer
             polylines[i + 1].emplace_back(polylines_with_holes[i + 1][0]);
             for (auto j = 1; j < polylines_with_holes[i + 0].size(); j++)
             {
-                if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::globals::DISTANCE_SQUARED)
+                if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::GLOBALS::DISTANCE_SQUARED)
                 {
                     polylines[i + 0].emplace_back(polylines_with_holes[i + 0][j]);
                     polylines[i + 1].emplace_back(polylines_with_holes[i + 1][j]);

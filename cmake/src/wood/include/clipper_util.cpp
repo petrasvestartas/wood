@@ -107,7 +107,7 @@ namespace collider
              */
             void get_average_normal(const CGAL_Polyline &polyline, IK::Vector_3 &average_normal)
             {
-                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::globals::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
+                size_t len = CGAL::squared_distance(polyline.front(), polyline.back()) < wood::GLOBALS::DISTANCE_SQUARED ? polyline.size() - 1 : polyline.size();
                 average_normal = IK::Vector_3(0, 0, 0);
 
                 for (int i = 0; i < len; i++)
@@ -229,14 +229,14 @@ namespace collider
                     if (closed_polyline)
                         for (auto iter = polyline.begin(); iter != std::prev(polyline.end()); ++iter)
                             output.back().emplace_back(
-                                (int64_t)((*iter).hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)((*iter).hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)((*iter).hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)((*iter).hy() * wood::GLOBALS::CLIPPER_SCALE));
 
                     else
                         for (auto &point : polyline)
                             output.back().emplace_back(
-                                (int64_t)(point.hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)(point.hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)(point.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)(point.hy() * wood::GLOBALS::CLIPPER_SCALE));
                 }
             }
 
@@ -257,8 +257,8 @@ namespace collider
                     // add points to cgal outline
                     for (auto &point : polyline)
                         output.back().emplace_back(
-                            point.x / (double)wood::globals::CLIPPER_SCALE,
-                            point.y / (double)wood::globals::CLIPPER_SCALE,
+                            point.x / (double)wood::GLOBALS::CLIPPER_SCALE,
+                            point.y / (double)wood::GLOBALS::CLIPPER_SCALE,
                             0);
 
                     if (closed_polyline)
@@ -276,14 +276,14 @@ namespace collider
                 if (closed_polyline)
                     for (auto iter = input.begin(); iter != std::prev(input.end()); ++iter)
                         output.emplace_back(
-                            (int64_t)((*iter).hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)((*iter).hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)((*iter).hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)((*iter).hy() * wood::GLOBALS::CLIPPER_SCALE));
 
                 else
                     for (auto &point : input)
                         output.emplace_back(
-                            (int64_t)(point.hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)(point.hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)(point.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)(point.hy() * wood::GLOBALS::CLIPPER_SCALE));
             }
 
             void clipper_to_cgalpolyline_2d(const Clipper2Lib::PathD &input, CGAL_Polyline &output, bool closed_polyline)
@@ -294,7 +294,7 @@ namespace collider
 
                 // interate through the clipper points
                 for (auto &point : input)
-                    output.emplace_back(point.x / (double)wood::globals::CLIPPER_SCALE, point.y / (double)wood::globals::CLIPPER_SCALE, 0);
+                    output.emplace_back(point.x / (double)wood::GLOBALS::CLIPPER_SCALE, point.y / (double)wood::GLOBALS::CLIPPER_SCALE, 0);
                 if (closed_polyline)
                     output.emplace_back(output[0]);
             }
@@ -332,8 +332,8 @@ namespace collider
                         {
                             auto point_oriented = iter->transform(xform_to_xy);
                             output.back().emplace_back(
-                                (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                         }
 
                     else
@@ -341,8 +341,8 @@ namespace collider
                         {
                             auto point_oriented = point.transform(xform_to_xy);
                             output.back().emplace_back(
-                                (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                         }
                 }
             }
@@ -364,7 +364,7 @@ namespace collider
                     // add points to cgal outline while performing transformation to 3d
                     for (auto &point : polyline)
                     {
-                        auto point_oriented = IK::Point_3(point.x / (double)wood::globals::CLIPPER_SCALE, point.y / (double)wood::globals::CLIPPER_SCALE, 0);
+                        auto point_oriented = IK::Point_3(point.x / (double)wood::GLOBALS::CLIPPER_SCALE, point.y / (double)wood::GLOBALS::CLIPPER_SCALE, 0);
                         point_oriented = point_oriented.transform(xform_to_xy_inv);
                         output.back().emplace_back(point_oriented);
                     }
@@ -395,8 +395,8 @@ namespace collider
                     {
                         auto point_oriented = iter->transform(xform_to_xy);
                         output.emplace_back(
-                            (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                     }
 
                 else
@@ -404,8 +404,8 @@ namespace collider
                     {
                         auto point_oriented = point.transform(xform_to_xy);
                         output.emplace_back(
-                            (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                     }
             }
 
@@ -418,7 +418,7 @@ namespace collider
                 // interate through the clipper points
                 for (auto &point : input)
                 {
-                    auto point_oriented = IK::Point_3(point.x / (double)wood::globals::CLIPPER_SCALE, point.y / (double)wood::globals::CLIPPER_SCALE, 0);
+                    auto point_oriented = IK::Point_3(point.x / (double)wood::GLOBALS::CLIPPER_SCALE, point.y / (double)wood::GLOBALS::CLIPPER_SCALE, 0);
                     point_oriented = point_oriented.transform(xform_to_xy_inv);
                     output.emplace_back(point_oriented);
                 }
@@ -451,8 +451,8 @@ namespace collider
                         {
                             auto point_oriented = iter->transform(xform_to_xy);
                             output.back().emplace_back(
-                                (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                         }
 
                     else
@@ -460,8 +460,8 @@ namespace collider
                         {
                             auto point_oriented = point.transform(xform_to_xy);
                             output.back().emplace_back(
-                                (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                                (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                                (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                                (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                         }
                 }
             }
@@ -483,8 +483,8 @@ namespace collider
                     {
                         auto point_oriented = iter->transform(xform_to_xy);
                         output.emplace_back(
-                            (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                     }
 
                 else
@@ -492,8 +492,8 @@ namespace collider
                     {
                         auto point_oriented = point.transform(xform_to_xy);
                         output.emplace_back(
-                            (int64_t)(point_oriented.hx() * wood::globals::CLIPPER_SCALE),
-                            (int64_t)(point_oriented.hy() * wood::globals::CLIPPER_SCALE));
+                            (int64_t)(point_oriented.hx() * wood::GLOBALS::CLIPPER_SCALE),
+                            (int64_t)(point_oriented.hy() * wood::GLOBALS::CLIPPER_SCALE));
                     }
             }
         }
@@ -526,10 +526,10 @@ namespace collider
             std::vector<Clipper2Lib::PointD> pathA(a.size() - 1);
             for (int i = 0; i < a.size() - 1; i++)
             {
-                pathA[i] = Clipper2Lib::PointD((int)(a[i].x() * wood::globals::CLIPPER_SCALE), (int)(a[i].y() * wood::globals::CLIPPER_SCALE));
+                pathA[i] = Clipper2Lib::PointD((int)(a[i].x() * wood::GLOBALS::CLIPPER_SCALE), (int)(a[i].y() * wood::GLOBALS::CLIPPER_SCALE));
             }
 
-            Clipper2Lib::PointD point_clipper((int)(b.x() * wood::globals::CLIPPER_SCALE), (int)(b.y() * wood::globals::CLIPPER_SCALE));
+            Clipper2Lib::PointD point_clipper((int)(b.x() * wood::GLOBALS::CLIPPER_SCALE), (int)(b.y() * wood::GLOBALS::CLIPPER_SCALE));
 
             /////////////////////////////////////////////////////////////////////////////////////
             // Check if point is inside
@@ -916,7 +916,7 @@ namespace collider
             }
 
             // if the polyline is open add the end of the polyline to the points
-            if (CGAL::squared_distance(polygon_copy.front(), polygon_copy.back()) > wood::globals::CLIPPER_AREA)
+            if (CGAL::squared_distance(polygon_copy.front(), polygon_copy.back()) > wood::GLOBALS::CLIPPER_AREA)
                 result.emplace_back(polygon_copy.back());
 
             return true;

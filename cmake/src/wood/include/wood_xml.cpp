@@ -117,7 +117,7 @@ namespace wood
                             // skip duplicate points
                             if (remove_duplicates)
                                 if (polyline.size() > 0)
-                                    if (CGAL::squared_distance(polyline.back(), p) < wood::globals::DISTANCE_SQUARED)
+                                    if (CGAL::squared_distance(polyline.back(), p) < wood::GLOBALS::DISTANCE_SQUARED)
                                         continue;
 
                             polyline.emplace_back(p);
@@ -256,7 +256,7 @@ namespace wood
 
                             // skip duplicate points
                             if (remove_duplicates && polyline.size() > 0)
-                                if (CGAL::squared_distance(polyline.back(), p) < wood::globals::DISTANCE_SQUARED)
+                                if (CGAL::squared_distance(polyline.back(), p) < wood::GLOBALS::DISTANCE_SQUARED)
                                     continue;
 
                             // add point to polyline
@@ -416,7 +416,7 @@ namespace wood
 
                             // skip duplicate points
                             // if (remove_duplicates && polyline.size() > 0)
-                            //     if (CGAL::squared_distance(polyline.back(), p) < wood::globals::DISTANCE_SQUARED)
+                            //     if (CGAL::squared_distance(polyline.back(), p) < wood::GLOBALS::DISTANCE_SQUARED)
                             //         continue;
 
                             // add point to polyline

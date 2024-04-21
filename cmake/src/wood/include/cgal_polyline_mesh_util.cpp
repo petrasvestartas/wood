@@ -318,7 +318,7 @@ namespace cgal
                 polylines[i + 1].emplace_back(polylines_with_holes[i + 1][0]);
                 for (auto j = 1; j < polylines_with_holes[i + 0].size(); j++)
                 {
-                    if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::globals::DISTANCE_SQUARED)
+                    if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::GLOBALS::DISTANCE_SQUARED)
                     {
                         polylines[i + 0].emplace_back(polylines_with_holes[i + 0][j]);
                         polylines[i + 1].emplace_back(polylines_with_holes[i + 1][j]);
@@ -687,7 +687,7 @@ namespace cgal
                 polylines[i + 1].emplace_back(polylines_with_holes[i + 1][0]);
                 for (auto j = 1; j < polylines_with_holes[i + 0].size(); j++)
                 {
-                    if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::globals::DISTANCE_SQUARED)
+                    if (CGAL::squared_distance(polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::GLOBALS::DISTANCE_SQUARED)
                     {
                         polylines[i + 0].emplace_back(polylines_with_holes[i + 0][j]);
                         polylines[i + 1].emplace_back(polylines_with_holes[i + 1][j]);

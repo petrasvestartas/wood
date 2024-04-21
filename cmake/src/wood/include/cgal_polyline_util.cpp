@@ -80,7 +80,7 @@ namespace cgal
 
             void average_normal(const CGAL_Polyline &p, IK::Vector_3 &average_normal)
             {
-                size_t len = CGAL::squared_distance(p.front(), p.back()) < wood::globals::DISTANCE_SQUARED ? p.size() - 1 : p.size();
+                size_t len = CGAL::squared_distance(p.front(), p.back()) < wood::GLOBALS::DISTANCE_SQUARED ? p.size() - 1 : p.size();
 
                 average_normal = IK::Vector_3(0, 0, 0);
 
@@ -196,7 +196,7 @@ namespace cgal
             std::sort(t, t + 4);
 
             // check if the overalp is not a point
-            do_overlap = std::abs(t[2] - t[1]) > wood::globals::DISTANCE_SQUARED;
+            do_overlap = std::abs(t[2] - t[1]) > wood::GLOBALS::DISTANCE_SQUARED;
 
             // get line points as the overlap
             output = IK::Segment_3(point_at(line0, t[1]), point_at(line0, t[2]));
@@ -223,7 +223,7 @@ namespace cgal
             output = IK::Segment_3(point_at(line, t.front()), point_at(line, t.back()));
 
             // check if not the points
-            return std::abs(t.front() - t.back()) > wood::globals::DISTANCE_SQUARED;
+            return std::abs(t.front() - t.back()) > wood::GLOBALS::DISTANCE_SQUARED;
         }
 
         void line_line_average(const IK::Segment_3 &line0, const IK::Segment_3 &line1, IK::Segment_3 &output)
@@ -276,7 +276,7 @@ namespace cgal
                     t = t_temp;
                 }
 
-                if (closestDistance < wood::globals::DISTANCE_SQUARED)
+                if (closestDistance < wood::GLOBALS::DISTANCE_SQUARED)
                     break;
             }
 
@@ -287,7 +287,7 @@ namespace cgal
 
         bool is_closed(const CGAL_Polyline &polyline)
         {
-            return CGAL::squared_distance(polyline.front(), polyline.back()) < wood::globals::DISTANCE_SQUARED;
+            return CGAL::squared_distance(polyline.front(), polyline.back()) < wood::GLOBALS::DISTANCE_SQUARED;
         }
 
         IK::Point_3 center(const CGAL_Polyline &polyline)
@@ -542,7 +542,7 @@ namespace cgal
         {
             // check if it is closed
             bool closed = true;
-            if (CGAL::squared_distance(polyline[0], polyline[polyline.size() - 1]) > wood::globals::DISTANCE_SQUARED)
+            if (CGAL::squared_distance(polyline[0], polyline[polyline.size() - 1]) > wood::GLOBALS::DISTANCE_SQUARED)
                 closed = false;
 
             // get average normal

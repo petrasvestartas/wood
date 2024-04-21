@@ -283,8 +283,9 @@ namespace cgal
             normal = is_parallel ? IK::Plane_3(s0[0], s0.to_vector()).base1() : normal;
             unitize(normal);
 
+
             // The 2 intersection points of intersecting segments are identical.
-            if (CGAL::squared_distance(s0[0], s1[0]) < wood::globals::DISTANCE)
+            if (CGAL::squared_distance(s0[0], s1[0]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[0];
                 p1 = s0[0];
@@ -296,7 +297,7 @@ namespace cgal
                 type1 = 0;
                 return true;
             }
-            else if (CGAL::squared_distance(s0[0], s1[1]) < wood::globals::DISTANCE)
+            else if (CGAL::squared_distance(s0[0], s1[1]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[0];
                 p1 = s0[0];
@@ -308,7 +309,7 @@ namespace cgal
                 type1 = 0;
                 return true;
             }
-            else if (CGAL::squared_distance(s0[1], s1[0]) < wood::globals::DISTANCE)
+            else if (CGAL::squared_distance(s0[1], s1[0]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[1];
                 p1 = s0[1];
@@ -320,7 +321,7 @@ namespace cgal
                 type1 = 0;
                 return true;
             }
-            else if (CGAL::squared_distance(s0[1], s1[1]) < wood::globals::DISTANCE)
+            else if (CGAL::squared_distance(s0[1], s1[1]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[1];
                 p1 = s0[1];
@@ -526,13 +527,13 @@ namespace cgal
             double angle = 90.0 - fabs(CGAL::approximate_angle(v0, v1) - 90);
 
             // The 2 intersection points of intersecting segments are identical.
-            if (CGAL::squared_distance(s0[0], s1[0]) < wood::globals::DISTANCE || CGAL::squared_distance(s0[0], s1[1]) < wood::globals::DISTANCE)
+            if (CGAL::squared_distance(s0[0], s1[0]) < wood::GLOBALS::DISTANCE || CGAL::squared_distance(s0[0], s1[1]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[0];
                 p1 = s0[0];
                 return true;
             }
-            else if (CGAL::squared_distance(s0[1], s1[0]) < wood::globals::DISTANCE || CGAL::squared_distance(s0[1], s1[1]) < wood::globals::DISTANCE)
+            else if (CGAL::squared_distance(s0[1], s1[0]) < wood::GLOBALS::DISTANCE || CGAL::squared_distance(s0[1], s1[1]) < wood::GLOBALS::DISTANCE)
             {
                 p0 = s0[1];
                 p1 = s0[1];
