@@ -9,10 +9,11 @@ ToDo:
 - 17_beam_custom_joints - verify if it works on the latest pip install
 
 - Nearest object for 16_beams_nearest_curve.gh :
+
         -   lines - simple rtree - priority, implement till the end, check what was already existing from cgal impmenentation
         -   polylines - cgal
         -   curves - LNlib
-        - Based on the nearest object implement:
+        -   Based on the nearest object implement:
             -   _circles
             -   _length_of_box
             -   _distance_tolerance
