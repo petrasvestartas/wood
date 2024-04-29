@@ -14,7 +14,7 @@ cd cmake/build
 
 # Build the wood code after making changes (e.g., in main.cpp)
 cd "$(dirname "$0")"/cmake/build
-cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make -j$(nproc)
+cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make -j$(sysctl -n hw.ncpu)
 make VERBOSE=1 && ../build/wood
 cd ../..
 

@@ -207,15 +207,18 @@ if (GET_LIBS)
   # lnlib
   ########################################################################
   ExternalProject_Add(lnlib
-    GIT_REPOSITORY https://github.com/BIMCoderLiang/LNLib.git
+    URL https://github.com/BIMCoderLiang/LNLib/archive/refs/tags/v1.1.zip
+    URL_HASH SHA256=485ab44f67170f7b655082a65398be821c60ece75b0162c261848b7a747d21cc
+    PREFIX lnlib
     CMAKE_ARGS
-      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-      -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install/eigen #has not effect
-    SOURCE_DIR   "${CMAKE_BINARY_DIR}/install/lnlib" #install directory is in build/install/eigen
-    BUILD_COMMAND "" #do not build
-    INSTALL_COMMAND "" #do not install
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install/eigen
+    BUILD_COMMAND "" # Do not build
+    INSTALL_COMMAND "" # Do not install
   )
+
+
   
 
 endif()
