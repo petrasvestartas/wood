@@ -6,7 +6,7 @@ Auhor: Petras Vestartas
 
 ToDo:
 
-- compile on mac to test the dependencies, specially the gmp mpfr libraries
+- build wood_nano wheel on mac, specially the gmp mpfr libraries, do I need 
 
 - 17_beam_custom_joints - verify if it works on the latest pip install
 
