@@ -610,7 +610,13 @@ namespace collider
                     is_not_triangle = include_triangles;
 
                 //&& std::abs(Area(C[0])) > std::abs(Area(pathA)*0.05
-                if (C[0].size() > 2 && is_not_triangle && std::abs(Area(C[0])) > 0.1) //* the result is not a line, not a triangle, and not a very small polygon
+                // print the area of the intersection
+                
+                // print the result of if statement below
+
+                bool is_not_small = C[0].size() > 2 && is_not_triangle && std::abs(Area(C[0])) > wood::GLOBALS::CLIPPER_AREA;
+
+                if (is_not_small) //* the result is not a line, not a triangle, and not a very small polygon
                 {
 
                     intersection_result.resize(C[0].size() + 1);
@@ -640,6 +646,7 @@ namespace collider
             /////////////////////////////////////////////////////////////////////////////////////
             // intersection_result = polyline0;
             // printf("intersection_result.size() %d\n", intersection_result.size());
+            //printf("Area %f\n", std::abs(Area(C[0])));
             return true;
         }
 
@@ -916,7 +923,7 @@ namespace collider
             }
 
             // if the polyline is open add the end of the polyline to the points
-            if (CGAL::squared_distance(polygon_copy.front(), polygon_copy.back()) > wood::GLOBALS::CLIPPER_AREA)
+            if (CGAL::squared_distance(polygon_copy.front(), polygon_copy.back()) > wood::GLOBALS::DISTANCE_SQUARED)
                 result.emplace_back(polygon_copy.back());
 
             return true;

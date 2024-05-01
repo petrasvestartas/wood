@@ -68,7 +68,7 @@ namespace wood
 
             // Input
             std::vector<wood::element> &elements,       // real wood::element
-            std::array<CGAL_Polyline, 4> &beam_volumes, // wood::joint volumes
+            std::vector<CGAL_Polyline> &beam_volumes, // wood::joint volumes
             const int &polyline_id_0,
             const int &polyline_id_1,
 
@@ -138,21 +138,22 @@ namespace wood
             std::vector<CGAL_Polyline> &polylines,
             std::vector<std::vector<double>> &polylines_segment_radii,
             std::vector<std::vector<IK::Vector_3>> &polylines_segment_direction,
-            std::vector<int> &allowed_types,
+            std::vector<int> &input_allowed_types_per_polyline,
             double &min_distance,
             double &volume_length,
             double &cross_or_side_to_end,
             int &flip_male,
 
             // output of wood::joint areas
-            std::vector<std::array<int, 4>> &polyline0_id_segment0_id_polyline1_id_segment1_id,
-            std::vector<std::array<IK::Point_3, 2>> &point_pairs,
-            std::vector<std::array<CGAL_Polyline, 4>> &volume_pairs,
+            std::vector<std::vector<int>> &index_polylines,
+            std::vector<std::vector<int>> &index_polylines_segment,
+            std::vector<std::vector<double>> &distance,
+            std::vector<std::vector<IK::Point_3>> &point_pairs,
+            std::vector<std::vector<CGAL_Polyline>> &volume_pairs,
             std::vector<CGAL_Polyline> &joints_areas,
             std::vector<int> &joints_types,
 
             // Global Parameters and output wood::joint selection and orientation
-            std::vector<double> &default_parameters_for_JOINTS_TYPES,
             std::vector<std::vector<CGAL_Polyline>> &output_plines,
             std::vector<std::vector<wood::cut::cut_type>> &output_types,
             bool compute_joints = false,

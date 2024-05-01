@@ -3775,9 +3775,12 @@ namespace wood
             int flip_male = 1;
 
             // output of wood::joint areas
-            std::vector<std::array<int, 4>> polyline0_id_segment0_id_polyline1_id_segment1_id;
-            std::vector<std::array<IK::Point_3, 2>> point_pairs;
-            std::vector<std::array<CGAL_Polyline, 4>> volume_pairs;
+            std::vector<std::vector<int>> polyline0_id_segment0_id_polyline1_id_segment1_id;
+            std::vector<std::vector<int>> index_polylines;
+            std::vector<std::vector<int>> index_polylines_segment;
+            std::vector<std::vector<double>> distance;
+            std::vector<std::vector<IK::Point_3>> point_pairs;
+            std::vector<std::vector<CGAL_Polyline>> volume_pairs;
             std::vector<CGAL_Polyline> joints_areas;
             std::vector<int> joints_types;
 
@@ -3800,13 +3803,14 @@ namespace wood
                 cross_or_side_to_end,
                 flip_male,
                 // output of wood::joint areas
-                polyline0_id_segment0_id_polyline1_id_segment1_id,
+                index_polylines,
+                index_polylines_segment,
+                distance,
                 point_pairs,
                 volume_pairs,
                 joints_areas,
                 joints_types,
                 // Global Parameters and output wood::joint selection and orientation
-                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES,
                 output_plines,
                 output_types,
                 compute_joints,
