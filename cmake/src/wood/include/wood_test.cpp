@@ -1823,7 +1823,7 @@ namespace wood
             if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting after the first "Run" click by the user -> IMGUI
             {
                 wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 0] = 500;
-                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 1] = 0.5;
+                wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 1] = 1.0;
                 wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[5 * 3 + 2] = 55;
             }
 

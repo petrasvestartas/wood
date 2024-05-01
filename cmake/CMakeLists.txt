@@ -13,7 +13,7 @@ message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "CMAKE_CXX_STANDARD: ${CMAKE_CXX_STANDARD}")
 
 # Check for C++ compiler
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
   message(STATUS "The C++ compiler is GCC.")
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   message(STATUS "The C++ compiler is Microsoft Visual C++.")
@@ -203,6 +203,24 @@ if (GET_LIBS)
     )
   # endif()
 
+  ########################################################################
+  # lnlib
+  ########################################################################
+  ExternalProject_Add(lnlib
+    URL https://github.com/BIMCoderLiang/LNLib/archive/refs/tags/v1.1.zip
+    URL_HASH SHA256=485ab44f67170f7b655082a65398be821c60ece75b0162c261848b7a747d21cc
+    PREFIX lnlib
+    CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/install/eigen
+    BUILD_COMMAND "" # Do not build
+    INSTALL_COMMAND "" # Do not install
+  )
+
+
+  
+
 endif()
 
 
@@ -298,6 +316,8 @@ if (BUILD_MY_PROJECTS)
   # LINK LIBRARIES TO EXE, STATIC LIBRARIES PATHS MUST BE AT THE END
   ###############################################################################
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      message("________________________________________linking mac and gnu")
+
 
       target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/" )
       string(ASCII 27 Esc)
@@ -314,8 +334,24 @@ if (BUILD_MY_PROJECTS)
       gtest
       gmock
       sqlite3
-      ) 
-
+      )
+  elseif(APPLE)
+    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/" )
+      string(ASCII 27 Esc)
+      message("${BoldRed}Error: ${CMAKE_BINARY_DIR}/.${ColorReset}")
+      set(ColorReset "${Esc}[m")
+      set(BoldRed "${Esc}[1;31m")
+      set(BoldGreen "${Esc}[1;32m")
+      set(BoldYellow "${Esc}[1;33m")
+      message("${CMAKE_BINARY_DIR}/" )
+      target_link_libraries(${PROJECT_NAME} PUBLIC 
+      Clipper2 
+      /usr/local/lib/libgmp.a
+      /usr/local/lib/libmpfr.a
+      gtest
+      gmock
+      sqlite3
+      )
   else()
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/Release/" )
     target_link_libraries(${PROJECT_NAME} PUBLIC 
@@ -336,8 +372,8 @@ if (BUILD_MY_PROJECTS)
   # CGAL
   ###############################################################################
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message("GNU")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
+    message("GNU OR APPLE")
   else()
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
   endif()
@@ -385,14 +421,14 @@ if (COMPILE_LIBS)
   # CGAL
   ###############################################################################
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
     message("(CMAKE_COMPILER_IS_GNUCC or CMAKE_COMPILER_IS_GNUCXX)")
   else()
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
   endif()
 
   
-  if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
+  if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE))
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD        # Adds a post-build event to MyTest
       COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
           "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/libgmp-10.dll"      # <--this is in-file
