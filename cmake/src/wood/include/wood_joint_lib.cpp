@@ -374,187 +374,201 @@ namespace wood
 
         void side_removal(wood::joint &jo, std::vector<wood::element> &elements, bool merge_with_joint)
         {
-            jo.name = __func__;
-            jo.orient = false;
-            std::swap(jo.v0, jo.v1);
-            std::swap(jo.f0_0, jo.f1_0);
-            std::swap(jo.f0_1, jo.f1_1);
-            std::swap(jo.joint_lines[1], jo.joint_lines[0]);
-            std::swap(jo.joint_volumes[0], jo.joint_lines[2]);
-            std::swap(jo.joint_volumes[1], jo.joint_lines[3]);
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // offset vector
-            /////////////////////////////////////////////////////////////////////////////////
-            IK::Vector_3 f0_0_normal = elements[jo.v0].planes[jo.f0_0].orthogonal_vector();
-            cgal::vector_util::unitize(f0_0_normal);
-            f0_0_normal *= (jo.scale[2]);
+            try {
+                jo.name = __func__;
+                jo.orient = false;
+                std::swap(jo.v0, jo.v1);
+                std::swap(jo.f0_0, jo.f1_0);
+                std::swap(jo.f0_1, jo.f1_1);
+                std::swap(jo.joint_lines[1], jo.joint_lines[0]);
+                std::swap(jo.joint_volumes[0], jo.joint_lines[2]);
+                std::swap(jo.joint_volumes[1], jo.joint_lines[3]);
 
-            IK::Vector_3 f1_0_normal = elements[jo.v1].planes[jo.f1_0].orthogonal_vector();
-            cgal::vector_util::unitize(f1_0_normal);
-            f1_0_normal *= (jo.scale[2] + 2); // Forced for safety
+                /////////////////////////////////////////////////////////////////////////////////
+                // offset vector
+                /////////////////////////////////////////////////////////////////////////////////
+                IK::Vector_3 f0_0_normal = elements[jo.v0].planes[jo.f0_0].orthogonal_vector();
+                cgal::vector_util::unitize(f0_0_normal);
+                f0_0_normal *= (jo.scale[2]);
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // copy side rectangles
-            /////////////////////////////////////////////////////////////////////////////////
-            CGAL_Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
-            CGAL_Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
+                IK::Vector_3 f1_0_normal = elements[jo.v1].planes[jo.f1_0].orthogonal_vector();
+                cgal::vector_util::unitize(f1_0_normal);
+                f1_0_normal *= (jo.scale[2] + 2); // Forced for safety
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // extend only convex angles and side polygons | only rectangles
-            /////////////////////////////////////////////////////////////////////////////////
-            if (pline0.size() == 5 && pline1.size() == 5)
-            {
-                // get convex_concave corners
-                std::vector<bool> convex_corner0;
+                /////////////////////////////////////////////////////////////////////////////////
+                // copy side rectangles
+                /////////////////////////////////////////////////////////////////////////////////
+                CGAL_Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
+                CGAL_Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
 
-                cgal::polyline_util::get_convex_corners(elements[jo.v0].polylines[0], convex_corner0);
+                /////////////////////////////////////////////////////////////////////////////////
+                // extend only convex angles and side polygons | only rectangles
+                /////////////////////////////////////////////////////////////////////////////////
+                if (pline0.size() == 5 && pline1.size() == 5)
+                {
+                    // get convex_concave corners
+                    std::vector<bool> convex_corner0;
 
-                int id = 15;
+                    cgal::polyline_util::get_convex_corners(elements[jo.v0].polylines[0], convex_corner0);
 
-                double scale0_0 = convex_corner0[jo.f0_0 - 2] ? jo.scale[0] : 0;
-                double scale0_1 = convex_corner0[(jo.f0_0 - 2 + 1) % convex_corner0.size()] ? jo.scale[0] : 0;
+                    int id = 15;
 
-                std::vector<bool> convex_corner1;
-                cgal::polyline_util::get_convex_corners(elements[jo.v1].polylines[0], convex_corner1);
-                double scale1_0 = convex_corner1[jo.f1_0 - 2] ? jo.scale[0] : 0;
-                double scale1_1 = convex_corner1[(jo.f1_0 - 2 + 1) % convex_corner1.size()] ? jo.scale[0] : 0;
+                    double scale0_0 = convex_corner0[jo.f0_0 - 2] ? jo.scale[0] : 0;
+                    double scale0_1 = convex_corner0[(jo.f0_0 - 2 + 1) % convex_corner0.size()] ? jo.scale[0] : 0;
 
-                // currrent
-                cgal::polyline_util::extend(pline0, 0, scale0_0, scale0_1);
-                cgal::polyline_util::extend(pline0, 2, scale0_1, scale0_0);
+                    std::vector<bool> convex_corner1;
+                    cgal::polyline_util::get_convex_corners(elements[jo.v1].polylines[0], convex_corner1);
+                    double scale1_0 = convex_corner1[jo.f1_0 - 2] ? jo.scale[0] : 0;
+                    double scale1_1 = convex_corner1[(jo.f1_0 - 2 + 1) % convex_corner1.size()] ? jo.scale[0] : 0;
 
-                // neighbor
-                cgal::polyline_util::extend(pline1, 0, scale1_0, scale1_1);
-                cgal::polyline_util::extend(pline1, 2, scale1_1, scale1_0);
+                    // currrent
+                    cgal::polyline_util::extend(pline0, 0, scale0_0, scale0_1);
+                    cgal::polyline_util::extend(pline0, 2, scale0_1, scale0_0);
 
-                // extend vertical
-                cgal::polyline_util::extend(pline0, 1, jo.scale[1], jo.scale[1]);
-                cgal::polyline_util::extend(pline0, 3, jo.scale[1], jo.scale[1]);
-                cgal::polyline_util::extend(pline1, 1, jo.scale[1], jo.scale[1]);
-                cgal::polyline_util::extend(pline1, 3, jo.scale[1], jo.scale[1]);
-            }
+                    // neighbor
+                    cgal::polyline_util::extend(pline1, 0, scale1_0, scale1_1);
+                    cgal::polyline_util::extend(pline1, 2, scale1_1, scale1_0);
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // move outlines by vector
-            /////////////////////////////////////////////////////////////////////////////////
-            CGAL_Polyline pline0_moved0 = pline0; // side 0
-            CGAL_Polyline pline0_moved1 = pline0; // side 0
-            CGAL_Polyline pline1_moved = pline1;  // side 1
+                    // extend vertical
+                    cgal::polyline_util::extend(pline0, 1, jo.scale[1], jo.scale[1]);
+                    cgal::polyline_util::extend(pline0, 3, jo.scale[1], jo.scale[1]);
+                    cgal::polyline_util::extend(pline1, 1, jo.scale[1], jo.scale[1]);
+                    cgal::polyline_util::extend(pline1, 3, jo.scale[1], jo.scale[1]);
+                }
 
-            IK::Vector_3 f0_1_normal = f0_0_normal;
-            cgal::vector_util::unitize(f0_1_normal);
-            f0_1_normal *= (jo.scale[2] + 2) + jo.shift; // Forced offset for safety
+                /////////////////////////////////////////////////////////////////////////////////
+                // move outlines by vector
+                /////////////////////////////////////////////////////////////////////////////////
+                CGAL_Polyline pline0_moved0 = pline0; // side 0
+                CGAL_Polyline pline0_moved1 = pline0; // side 0
+                CGAL_Polyline pline1_moved = pline1;  // side 1
 
-            // Move twice to remove one side and the cut surface around
-            cgal::polyline_util::move(pline0_moved0, f0_0_normal);
-            cgal::polyline_util::move(pline0_moved1, f0_1_normal);
+                IK::Vector_3 f0_1_normal = f0_0_normal;
+                cgal::vector_util::unitize(f0_1_normal);
+                f0_1_normal *= (jo.scale[2] + 2) + jo.shift; // Forced offset for safety
 
-            // Move once to remove the side and the cut the female joint
-            cgal::polyline_util::move(pline1_moved, f1_0_normal);
+                // Move twice to remove one side and the cut surface around
+                cgal::polyline_util::move(pline0_moved0, f0_0_normal);
+                cgal::polyline_util::move(pline0_moved1, f0_1_normal);
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // orient a tile
-            // 1) Create rectangle between two edge of the side
-            // 2) Create wood::joint in XY plane and orient it to the two rectangles
-            // 3) Clipper boolean difference, cut wood::joint polygon form the outline
-            /////////////////////////////////////////////////////////////////////////////////
+                // Move once to remove the side and the cut the female joint
+                cgal::polyline_util::move(pline1_moved, f1_0_normal);
 
-            // 1) Create rectangle between two edge of the side
-            IK::Point_3 edge_mid_0 = CGAL::midpoint(CGAL::midpoint(pline0[0], pline1[0]), CGAL::midpoint(pline0[1], pline1[1]));
-            IK::Point_3 edge_mid_1 = CGAL::midpoint(CGAL::midpoint(pline0[3], pline1[3]), CGAL::midpoint(pline0[2], pline1[2]));
-            double half_dist = std::sqrt(CGAL::squared_distance(edge_mid_0, edge_mid_1)) * 0.5;
-            half_dist = 10; // Change to scale
+                /////////////////////////////////////////////////////////////////////////////////
+                // orient a tile
+                // 1) Create rectangle between two edge of the side
+                // 2) Create wood::joint in XY plane and orient it to the two rectangles
+                // 3) Clipper boolean difference, cut wood::joint polygon form the outline
+                /////////////////////////////////////////////////////////////////////////////////
 
-            IK::Vector_3 z_axis = f0_0_normal;
-            cgal::vector_util::unitize(z_axis);
+                // 1) Create rectangle between two edge of the side
+                IK::Point_3 edge_mid_0 = CGAL::midpoint(CGAL::midpoint(pline0[0], pline1[0]), CGAL::midpoint(pline0[1], pline1[1]));
+                IK::Point_3 edge_mid_1 = CGAL::midpoint(CGAL::midpoint(pline0[3], pline1[3]), CGAL::midpoint(pline0[2], pline1[2]));
+                double half_dist = std::sqrt(CGAL::squared_distance(edge_mid_0, edge_mid_1)) * 0.5;
+                half_dist = 10; // Change to scale
 
-            z_axis *= jo.scale[2] / half_dist;
+                IK::Vector_3 z_axis = f0_0_normal;
+                cgal::vector_util::unitize(z_axis);
 
-            /////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Get average line
-            /////////////////////////////////////////////////////////////////////////////////////////////////////
-            IK::Segment_3 average_line;
-            cgal::polyline_util::line_line_overlap_average(jo.joint_lines[0], jo.joint_lines[1], average_line);
+                z_axis *= jo.scale[2] / half_dist;
 
-            // Get average thickness
-            double half_thickness = (elements[jo.v0].thickness + elements[jo.v1].thickness) / 4.0;
+                /////////////////////////////////////////////////////////////////////////////////////////////////////
+                // Get average line
+                /////////////////////////////////////////////////////////////////////////////////////////////////////
+                IK::Segment_3 average_line;
+                cgal::polyline_util::line_line_overlap_average(jo.joint_lines[0], jo.joint_lines[1], average_line);
 
-            // Move points up and down using cross product
-            auto x_axis = CGAL::cross_product(z_axis, average_line.to_vector());
-            cgal::vector_util::unitize(x_axis);
+                // Get average thickness
+                double half_thickness = (elements[jo.v0].thickness + elements[jo.v1].thickness) / 4.0;
 
-            IK::Point_3 p0 = CGAL::midpoint(average_line[0], average_line[1]) + x_axis * half_thickness;
-            IK::Point_3 p1 = CGAL::midpoint(average_line[0], average_line[1]) - x_axis * half_thickness;
-            if (CGAL::has_smaller_distance_to_point(CGAL::midpoint(pline0[0], pline0[1]), p0, p1))
-                std::swap(p0, p1);
+                // Move points up and down using cross product
+                auto x_axis = CGAL::cross_product(z_axis, average_line.to_vector());
+                cgal::vector_util::unitize(x_axis);
 
-            // set y-axis
-            auto y_axis = average_line.to_vector();
-            cgal::vector_util::unitize(y_axis);
+                IK::Point_3 p0 = CGAL::midpoint(average_line[0], average_line[1]) + x_axis * half_thickness;
+                IK::Point_3 p1 = CGAL::midpoint(average_line[0], average_line[1]) - x_axis * half_thickness;
+                if (CGAL::has_smaller_distance_to_point(CGAL::midpoint(pline0[0], pline0[1]), p0, p1))
+                    std::swap(p0, p1);
 
-            CGAL_Polyline rect0 = {
-                p0 - y_axis * half_dist * 1 - z_axis * half_dist,
-                p0 - y_axis * half_dist * 1 + z_axis * half_dist,
-                p1 - y_axis * half_dist * 1 + z_axis * half_dist,
-                p1 - y_axis * half_dist * 1 - z_axis * half_dist,
-                p0 - y_axis * half_dist * 1 - z_axis * half_dist,
-            };
-            CGAL_Polyline rect1 = {
-                p0 - y_axis * half_dist * -1 - z_axis * half_dist,
-                p0 - y_axis * half_dist * -1 + z_axis * half_dist,
-                p1 - y_axis * half_dist * -1 + z_axis * half_dist,
-                p1 - y_axis * half_dist * -1 - z_axis * half_dist,
-                p0 - y_axis * half_dist * -1 - z_axis * half_dist,
-            };
+                // set y-axis
+                auto y_axis = average_line.to_vector();
+                cgal::vector_util::unitize(y_axis);
 
-            /////////////////////////////////////////////////////////////////////////////////
-            // output, no need to merge if already cut
-            /////////////////////////////////////////////////////////////////////////////////
-
-            CGAL_Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
-
-            if (jo.shift > 0 && merge_with_joint)
-            {
-                jo.m[0] = {
-                    pline0_moved0_surfacing_tolerance_male,
-                    pline0_moved0_surfacing_tolerance_male,
-                    pline0,
-                    pline0,
+                CGAL_Polyline rect0 = {
+                    p0 - y_axis * half_dist * 1 - z_axis * half_dist,
+                    p0 - y_axis * half_dist * 1 + z_axis * half_dist,
+                    p1 - y_axis * half_dist * 1 + z_axis * half_dist,
+                    p1 - y_axis * half_dist * 1 - z_axis * half_dist,
+                    p0 - y_axis * half_dist * 1 - z_axis * half_dist,
+                };
+                CGAL_Polyline rect1 = {
+                    p0 - y_axis * half_dist * -1 - z_axis * half_dist,
+                    p0 - y_axis * half_dist * -1 + z_axis * half_dist,
+                    p1 - y_axis * half_dist * -1 + z_axis * half_dist,
+                    p1 - y_axis * half_dist * -1 - z_axis * half_dist,
+                    p0 - y_axis * half_dist * -1 - z_axis * half_dist,
                 };
 
-                jo.m[1] = {
-                    pline0_moved1,
-                    pline0_moved1,
-                    pline0_moved0,
-                    pline0_moved0,
-                };
-            }
-            else
+                /////////////////////////////////////////////////////////////////////////////////
+                // output, no need to merge if already cut
+                /////////////////////////////////////////////////////////////////////////////////
+
+                CGAL_Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
+
+                if (jo.shift > 0 && merge_with_joint)
+                {
+                    jo.m[0] = {
+                        pline0_moved0_surfacing_tolerance_male,
+                        pline0_moved0_surfacing_tolerance_male,
+                        pline0,
+                        pline0,
+                    };
+
+                    jo.m[1] = {
+                        pline0_moved1,
+                        pline0_moved1,
+                        pline0_moved0,
+                        pline0_moved0,
+                    };
+                }
+                else
+                {
+                    jo.m[0] = {
+                        pline0,
+                        pline0};
+
+                    jo.m[1] = {
+                        pline0_moved0,
+                        pline0_moved0};
+                }
+
+                jo.f[0] = {
+                    pline1,
+                    pline1};
+
+                jo.f[1] = {
+                    pline1_moved,
+                    pline1_moved};
+
+                if (jo.shift > 0 && merge_with_joint)
+                    jo.m_boolean_type = {wood::cut::mill_project, wood::cut::mill_project, wood::cut::mill_project, wood::cut::mill_project};
+                else
+                    jo.m_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
+
+                jo.f_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
+
+            catch (const std::exception &ex)
             {
-                jo.m[0] = {
-                    pline0,
-                    pline0};
-
-                jo.m[1] = {
-                    pline0_moved0,
-                    pline0_moved0};
+                // Handle the exception here
+                // You can log the error, print a message, or take any other appropriate action
+                std::cerr << "An exception occurred: " << ex.what() << std::endl;
             }
-
-            jo.f[0] = {
-                pline1,
-                pline1};
-
-            jo.f[1] = {
-                pline1_moved,
-                pline1_moved};
-
-            if (jo.shift > 0 && merge_with_joint)
-                jo.m_boolean_type = {wood::cut::mill_project, wood::cut::mill_project, wood::cut::mill_project, wood::cut::mill_project};
-            else
-                jo.m_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
-
-            jo.f_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
+            catch (...) // Catch all other types of exceptions
+            {
+                // Handle other types of exceptions here
+                std::cerr << "An unknown exception occurred." << std::endl;
+            }
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
