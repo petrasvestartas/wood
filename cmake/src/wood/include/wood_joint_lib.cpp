@@ -557,7 +557,7 @@ namespace wood
                     jo.m_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
 
                 jo.f_boolean_type = {wood::cut::mill_project, wood::cut::mill_project};
-
+            }
             catch (const std::exception &ex)
             {
                 // Handle the exception here
