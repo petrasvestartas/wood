@@ -329,29 +329,29 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      gmp.a
-      mpfr.a
+      gmp
+      mpfr
       gtest
       gmock
       sqlite3
       )
   elseif(APPLE)
-  target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/" )
-    string(ASCII 27 Esc)
-    message("${BoldRed}Error: ${CMAKE_BINARY_DIR}/.${ColorReset}")
-    set(ColorReset "${Esc}[m")
-    set(BoldRed "${Esc}[1;31m")
-    set(BoldGreen "${Esc}[1;32m")
-    set(BoldYellow "${Esc}[1;33m")
-    message("${CMAKE_BINARY_DIR}/" )
-    target_link_libraries(${PROJECT_NAME} PUBLIC 
-    Clipper2 
-    /usr/local/lib/libgmp.a
-    /usr/local/lib/libmpfr.a
-    gtest
-    gmock
-    sqlite3
-    )
+    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/" )
+      string(ASCII 27 Esc)
+      message("${BoldRed}Error: ${CMAKE_BINARY_DIR}/.${ColorReset}")
+      set(ColorReset "${Esc}[m")
+      set(BoldRed "${Esc}[1;31m")
+      set(BoldGreen "${Esc}[1;32m")
+      set(BoldYellow "${Esc}[1;33m")
+      message("${CMAKE_BINARY_DIR}/" )
+      target_link_libraries(${PROJECT_NAME} PUBLIC 
+      Clipper2 
+      /usr/local/lib/libgmp.a
+      /usr/local/lib/libmpfr.a
+      gtest
+      gmock
+      sqlite3
+      )
   else()
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/Release/" )
     target_link_libraries(${PROJECT_NAME} PUBLIC 
