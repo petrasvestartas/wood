@@ -4,6 +4,32 @@
 cmake_minimum_required(VERSION 3.24.2)
 
 project(wood LANGUAGES C CXX)
+# Set the C++ standard to C++23
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Platform-specific compiler options
+if(MSVC)
+    # MSVC specific flags
+    # Modify runtime library configuration for static linking
+    set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+    )
+    foreach(CompilerFlag ${CompilerFlags})
+        string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+    endforeach()
+elseif(CMAKE_COMPILER_IS_GNUCXX)
+    # GCC specific flags for static linking
+    # Note: This might be needed if you are fully working with static libraries
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc")
+endif()
 
 # Print the C++ compiler info
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
@@ -177,7 +203,7 @@ if (GET_LIBS)
   ######################################################################## 
 
   ExternalProject_Add(cgal
-    URL https://github.com/CGAL/cgal/releases/download/v5.5.1/CGAL-5.5.1-library.zip
+    URL https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1-library.zip
     #GIT_REPOSITORY https://github.com/CGAL/cgal.git
     #GIT_TAG v5.4.1
     CMAKE_ARGS
@@ -189,18 +215,21 @@ if (GET_LIBS)
     INSTALL_COMMAND "" #installer for now is empty
   )
 
+  SET(CGAL_CMAKE_EXACT_NT_BACKEND BOOST_BACKEND CACHE STRING "")
+  SET(CGAL_DISABLE_GMP ON CACHE BOOL "")
+  SET(CMAKE_DISABLE_FIND_PACKAGE_GMP ON CACHE BOOL "")
 
   # if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    ExternalProject_Add(cgal_auxiliary
-      URL https://github.com/CGAL/cgal/releases/download/v5.5/CGAL-5.5-win64-auxiliary-libraries-gmp-mpfr.zip
-      CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-      SOURCE_DIR "${CMAKE_BINARY_DIR}/install/cgal/auxiliary"
-      CONFIGURE_COMMAND "" # Do not configure
-      BUILD_COMMAND "" # Do not build
-      INSTALL_COMMAND "" # Installer for now is empty
-    )
+    # ExternalProject_Add(cgal_auxiliary
+    #   URL https://github.com/CGAL/cgal/releases/download/v5.5/CGAL-5.5-win64-auxiliary-libraries-gmp-mpfr.zip
+    #   CMAKE_ARGS
+    #     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    #     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    #   SOURCE_DIR "${CMAKE_BINARY_DIR}/install/cgal/auxiliary"
+    #   CONFIGURE_COMMAND "" # Do not configure
+    #   BUILD_COMMAND "" # Do not build
+    #   INSTALL_COMMAND "" # Installer for now is empty
+    # )
   # endif()
 
   ########################################################################
@@ -304,9 +333,9 @@ if (BUILD_MY_PROJECTS)
   )
 
 
-  if (WIN32) # append gmp to the list
-    list(APPEND petras_include_paths "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/include")
-  endif()
+  # if (WIN32) # append gmp to the list
+  #   list(APPEND petras_include_paths "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/include")
+  # endif()
 
   message("${BoldBlue} Include directories: ${petras_include_paths}")
 
@@ -329,8 +358,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      gmp
-      mpfr
+      # gmp
+      # mpfr
       gtest
       gmock
       sqlite3
@@ -346,8 +375,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      /usr/local/lib/libgmp.a
-      /usr/local/lib/libmpfr.a
+      # /usr/local/lib/libgmp.a
+      # /usr/local/lib/libmpfr.a
       gtest
       gmock
       sqlite3
@@ -356,8 +385,8 @@ if (BUILD_MY_PROJECTS)
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/Release/" )
     target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      libgmp-10
-      libmpfr-4
+      # libgmp-10
+      # libmpfr-4
       gtest
       gmock
       sqlite3
@@ -372,11 +401,11 @@ if (BUILD_MY_PROJECTS)
   # CGAL
   ###############################################################################
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
-    message("GNU OR APPLE")
-  else()
-    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
-  endif()
+  # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
+  #   message("GNU OR APPLE")
+  # else()
+  #   target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
+  # endif()
 
   ###############################################################################
   # GOOGLETEST
@@ -421,24 +450,24 @@ if (COMPILE_LIBS)
   # CGAL
   ###############################################################################
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
-    message("(CMAKE_COMPILER_IS_GNUCC or CMAKE_COMPILER_IS_GNUCXX)")
-  else()
-    target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
-  endif()
+  # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
+  #   message("(CMAKE_COMPILER_IS_GNUCC or CMAKE_COMPILER_IS_GNUCXX)")
+  # else()
+  #   target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
+  # endif()
 
   
-  if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE))
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD        # Adds a post-build event to MyTest
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
-          "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/libgmp-10.dll"      # <--this is in-file
-          "${CMAKE_BINARY_DIR}/Release")                 # <--this is out-file path
+  # if(NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE))
+  #   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD        # Adds a post-build event to MyTest
+  #     COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+  #         "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/libgmp-10.dll"      # <--this is in-file
+  #         "${CMAKE_BINARY_DIR}/Release")                 # <--this is out-file path
 
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD        # Adds a post-build event to MyTest
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
-          "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/libmpfr-4.dll"      # <--this is in-file
-          "${CMAKE_BINARY_DIR}/Release")                 # <--this is out-file path
-  endif()
+  #   add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD        # Adds a post-build event to MyTest
+  #     COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+  #         "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/libmpfr-4.dll"      # <--this is in-file
+  #         "${CMAKE_BINARY_DIR}/Release")                 # <--this is out-file path
+  # endif()
 
 
   ###############################################################################
