@@ -358,8 +358,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      # gmp
-      # mpfr
+      gmp
+      mpfr
       gtest
       gmock
       sqlite3
@@ -479,5 +479,3 @@ if (COMPILE_LIBS)
 
 
 endif ()
-
-
