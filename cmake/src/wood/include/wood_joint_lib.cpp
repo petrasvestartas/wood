@@ -2541,6 +2541,7 @@ namespace wood
             };
         }
 
+
         void side_removal_ss_e_r_1(wood::joint &jo, std::vector<wood::element> &elements, bool merge_with_joint)
         {
             jo.name = __func__;
@@ -2994,6 +2995,213 @@ namespace wood
                 {
                     IK::Point_3(-0.2, -0.7, -0.166667),
                     IK::Point_3(-0.2, -0.7, 0.166667),
+                }};
+
+            std::vector<wood::cut::cut_type> female_types{wood::cut::mill_project, wood::cut::mill_project};
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Reserve memory for multiple copies
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.m[0].reserve(2*divisions);
+            joint.m[1].reserve(2*divisions);
+            joint.m_boolean_type.reserve(2*divisions);
+            joint.f[0].reserve(2*divisions);
+            joint.f[1].reserve(2*divisions);
+            joint.f_boolean_type.reserve(2*divisions);
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Copy the default shapes and move them by merging
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            auto a = joint.m[0];
+
+            for (auto i = 0; i < divisions; i++)
+            {
+                // copy the first outline, be sure that the point order is correct, so that the non-internsecting polyline can be created, else reverse it
+                CGAL_Polyline male_moved_0 = male_0[0];
+                CGAL_Polyline male_moved_1 = male_1[0];
+                CGAL_Polyline female_moved_0 = female_0[0];
+                CGAL_Polyline female_moved_1 = female_1[0];
+
+                // move joints that are positioned at the center to the end of the segment and then back by half of the division length
+                for (auto &p : male_moved_0)
+                    p += move_from_center_to_the_end + move_length_dir * i;
+
+                for (auto &p : male_moved_1)
+                    p += move_from_center_to_the_end + move_length_dir * i;
+
+                for (auto &p : female_moved_0)
+                    p += move_from_center_to_the_end + move_length_dir * i;
+
+                for (auto &p : female_moved_1)
+                    p += move_from_center_to_the_end + move_length_dir * i;
+
+                joint.m[0].emplace_back(male_moved_0);
+                joint.m[0].emplace_back(male_moved_0);
+                joint.m[1].emplace_back(male_moved_1);
+                joint.m[1].emplace_back(male_moved_1);
+                joint.f[0].emplace_back(female_moved_0);
+                joint.f[0].emplace_back(female_moved_0);
+                joint.f[1].emplace_back(female_moved_1);
+                joint.f[1].emplace_back(female_moved_1);
+
+
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Add the insertion lines
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            for (auto i = 0; i < divisions; i++)
+            {
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.f_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+                joint.m_boolean_type.emplace_back(wood::cut::mill_project);
+            }
+
+
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // is unit scale
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            joint.unit_scale = true;
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // update the joint volume rectangle to fixed size e.g. 100x100x100
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            double size = 120*joint.shift;
+            double x_dir_length = size;
+            double y_dir_length = size;
+            joint.unit_scale_distance = size;
+            for (auto &joint_volume : joint.joint_volumes)
+            {
+                if (joint_volume.size() != 5)
+                    continue;
+                IK::Point_3 center = CGAL::midpoint(joint_volume[0], joint_volume[1]);
+                IK::Vector_3 x_dir = joint_volume[1] - joint_volume[0];
+                IK::Vector_3 y_dir = joint_volume[2] - joint_volume[1];
+                cgal::vector_util::unitize(x_dir);
+                cgal::vector_util::unitize(y_dir);
+                x_dir *= x_dir_length * 0.5;
+                y_dir *= y_dir_length * 0.5;
+                joint_volume =
+                    {
+
+                        center + x_dir + 2 * y_dir,
+                        center - x_dir + 2 * y_dir,
+                        center - x_dir,
+                        center + x_dir,
+                        center + x_dir + 2 * y_dir,
+                    };
+            }
+            joint.key = joint.key + std::to_string(elements[joint.v0].id) + "_" + std::to_string(elements[joint.v1].id);
+
+            joint.orient = true;
+        }
+
+        void ss_e_r_3(wood::joint &joint, std::vector<wood::element> &elements)
+        {
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // joint parameters
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // name
+            joint.name = __func__;
+            joint.unit_scale_distance = elements[joint.v0].thickness;
+
+            // parameters that comes from the joint
+            bool default_values = false;
+            double edge_length = !default_values ? std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000; // std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
+            int divisions = !default_values ? joint.divisions : 5;
+            double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(CGAL::squared_distance(joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
+
+            // scale down the edge, since wood_joint ->  bool joint::orient_to_connection_area() make the distance between joint volumes equal to 2nd joint volume edge
+            edge_length *= joint.scale[2];
+
+            // normalization to the unit space, joint_volume_edge_length is used for parametrization
+            double move_length_scaled = edge_length / (divisions * joint_volume_edge_length);
+            double total_length_scaled = edge_length / joint_volume_edge_length;
+
+            // movement vectors to translate the unit joint to the end of the edge and then to its middle
+            IK::Vector_3 dir(0, 0, 1);
+            IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+            IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Male default shape
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            std::vector<CGAL_Polyline>
+                male_0 = {
+                    {
+
+                        IK::Point_3(0.2, 0.6, 0.166667),
+                        IK::Point_3(-0.116667, 0.6, 0.166667),
+                        IK::Point_3(-0.619628, 0.6, 0.375),
+                        IK::Point_3(-1.0, 0.6, 0.375),
+                        IK::Point_3(-1.0, 0.6, -0.375),
+                        IK::Point_3(-0.619628, 0.6, -0.375),
+                        IK::Point_3(-0.116667, 0.6, -0.166667),
+                        IK::Point_3(0.2, 0.6, -0.166667),
+                        IK::Point_3(0.2, 0.6, 0.166667),
+
+                    },
+                    {
+                        IK::Point_3(0.2, 0.6, -0.166667),
+                        IK::Point_3(0.2, 0.6, 0.166667),
+                    }};
+
+            std::vector<CGAL_Polyline> male_1 = {
+
+                {IK::Point_3(0.2, -0.6, 0.166667),
+                 IK::Point_3(-0.116667, -0.6, 0.166667),
+                 IK::Point_3(-0.619628, -0.6, 0.375),
+                 IK::Point_3(-1.0, -0.6, 0.375),
+                 IK::Point_3(-1.0, -0.6, -0.375),
+                 IK::Point_3(-0.619628, -0.6, -0.375),
+                 IK::Point_3(-0.116667, -0.6, -0.166667),
+                 IK::Point_3(0.2, -0.6, -0.166667),
+                 IK::Point_3(0.2, -0.6, 0.166667)},
+                {
+                    IK::Point_3(0.2, -0.6, 0.166667),
+                    IK::Point_3(0.2, -0.6, -0.166667),
+                }};
+
+            std::vector<wood::cut::cut_type> male_types{wood::cut::mill_project, wood::cut::mill_project};
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // female default shape
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            std::vector<CGAL_Polyline>
+                female_0 = {
+                    {
+                        IK::Point_3(-0.2, 0.6, 0.166667),
+                        IK::Point_3(-0.2, 0.6, -0.166667),
+                        IK::Point_3(0.116667, 0.6, -0.166667),
+                        IK::Point_3(0.619628, 0.6, -0.375),
+                        IK::Point_3(1, 0.6, -0.375),
+                        IK::Point_3(1, 0.6, 0.375),
+                        IK::Point_3(0.619628, 0.6, 0.375),
+                        IK::Point_3(0.116667, 0.6, 0.166667),
+                        IK::Point_3(-0.2, 0.6, 0.166667),
+                    },
+                    {
+                        IK::Point_3(-0.2, 0.6, -0.166667),
+                        IK::Point_3(-0.2, 0.6, 0.166667),
+                    }};
+
+            std::vector<CGAL_Polyline> female_1 = {
+                {IK::Point_3(-0.2, -0.6, 0.166667),
+                 IK::Point_3(-0.2, -0.6, -0.166667),
+                 IK::Point_3(0.116667, -0.6, -0.166667),
+                 IK::Point_3(0.619628, -0.6, -0.375),
+                 IK::Point_3(1, -0.6, -0.375),
+                 IK::Point_3(1, -0.6, 0.375),
+                 IK::Point_3(0.619628, -0.6, 0.375),
+                 IK::Point_3(0.116667, -0.6, 0.166667),
+                 IK::Point_3(-0.2, -0.6, 0.166667)},
+                {
+                    IK::Point_3(-0.2, -0.6, -0.166667),
+                    IK::Point_3(-0.2, -0.6, 0.166667),
                 }};
 
             std::vector<wood::cut::cut_type> female_types{wood::cut::mill_project, wood::cut::mill_project};
