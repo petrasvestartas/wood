@@ -199,11 +199,12 @@ if (GET_LIBS)
 
 
   ########################################################################
-  # CGAL
+  # CGAL 
+  # https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1-library.zip
   ######################################################################## 
 
   ExternalProject_Add(cgal
-    URL https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1-library.zip
+    URL https://github.com/CGAL/cgal/releases/download/v6.0.1/CGAL-6.0.1-library.zip
     #GIT_REPOSITORY https://github.com/CGAL/cgal.git
     #GIT_TAG v5.4.1
     CMAKE_ARGS
@@ -358,8 +359,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      gmp
-      mpfr
+      # gmp
+      # mpfr
       gtest
       gmock
       sqlite3
