@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 # Platform-specific compiler options
 if(MSVC)
     # MSVC specific flags
@@ -73,6 +74,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 cmake_policy(SET CMP0097 NEW)
+cmake_policy(SET CMP0144 NEW)
 # Set global property (all targets are impacted)
 set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 
@@ -201,6 +203,7 @@ if (GET_LIBS)
   ########################################################################
   # CGAL 
   # https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1-library.zip
+  # https://github.com/CGAL/cgal/releases/download/v6.0.1/CGAL-6.0.1-library.zip
   ######################################################################## 
 
   ExternalProject_Add(cgal
@@ -359,8 +362,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      # gmp
-      # mpfr
+      gmp
+      mpfr
       gtest
       gmock
       sqlite3
@@ -396,17 +399,32 @@ if (BUILD_MY_PROJECTS)
 
   endif()
 
+  ###############################################################################
+  # BOOST
+  ###############################################################################
+
+  # Include directories so that boost coould find its headers
+  include_directories(${petras_include_paths})
+
+  # Set Boost include directory
+  set(BOOST_ROOT ${CMAKE_BINARY_DIR}/install/boost)
+  set(BOOST_INCLUDEDIR ${BOOST_ROOT}/include)
+  set(BOOST_LIBRARYDIR ${BOOST_ROOT}/lib)
+  # Find Boost
+  find_package(Boost 1.72 REQUIRED)
+
 
 
   ###############################################################################
   # CGAL
   ###############################################################################
 
-  # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR APPLE)
-  #   message("GNU OR APPLE")
-  # else()
-  #   target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/install/cgal/auxiliary/gmp/lib/" )
-  # endif()
+  # Find CGAL
+  set(CGAL_DIR "${CMAKE_BINARY_DIR}/install/cgal/lib/cmake/CGAL")
+  find_package(CGAL REQUIRED)
+
+  # Link CGAL to the project
+  target_link_libraries(${PROJECT_NAME} PUBLIC CGAL::CGAL)
 
   ###############################################################################
   # GOOGLETEST
