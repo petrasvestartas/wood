@@ -18,4 +18,7 @@ ToDo:
 ## OS snippets
 
 ### Ubuntu
-        sudo rm -rf /home/petras/brg/2_code/wood/cmake/build
+
+- Remove build folder regardless permissions:
+  ```sh
+  sudo rm -rf /home/petras/brg/2_code/wood/cmake/build
