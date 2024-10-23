@@ -421,7 +421,7 @@ namespace cgal
                 if (!result)
                     return false;
 
-                if (const IK::Point_2 *p = boost::get<IK::Point_2>(&*result))
+                if (const IK::Point_2 *p = std::get_if<IK::Point_2>(&*result))
                 {
                     p0 = IK::Point_3(p->hx(), p->hy(), 0);
                     p0 = xform_Inv.transform(p0);
@@ -611,7 +611,7 @@ namespace cgal
 
                 if (result)
                 {
-                    if (const IK::Point_2 *p = boost::get<IK::Point_2>(&*result))
+                    if (const IK::Point_2 *p = std::get_if<IK::Point_2>(&*result))
                     {
                         p0 = IK::Point_3(p->hx(), p->hy(), 0);
                         p0 = xform_Inv.transform(p0);
