@@ -403,27 +403,17 @@ if (BUILD_MY_PROJECTS)
   # BOOST
   ###############################################################################
 
-  # Include directories so that boost coould find its headers
-  include_directories(${petras_include_paths})
-
-  # Set Boost include directory
   set(BOOST_ROOT ${CMAKE_BINARY_DIR}/install/boost)
-  set(BOOST_INCLUDEDIR ${BOOST_ROOT}/include)
-  set(BOOST_LIBRARYDIR ${BOOST_ROOT}/lib)
-  # Find Boost
-  find_package(Boost 1.72 REQUIRED)
-
-
 
   ###############################################################################
   # CGAL
   ###############################################################################
 
-  # Find CGAL
-  set(CGAL_DIR "${CMAKE_BINARY_DIR}/install/cgal/lib/cmake/CGAL")
-  find_package(CGAL REQUIRED)
 
-  # Link CGAL to the project
+  list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/install")
+
+  find_package(Boost 1.72 REQUIRED)
+  find_package(CGAL REQUIRED)
   target_link_libraries(${PROJECT_NAME} PUBLIC CGAL::CGAL)
 
   ###############################################################################
