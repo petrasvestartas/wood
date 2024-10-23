@@ -322,6 +322,20 @@ namespace wood
         void ss_e_r_2(wood::joint &joint, std::vector<wood::element> &elements);
 
         /**
+         * @brief Unit joint - Side-to-side edge rotated joints.
+         *
+         * 3DEC custom joint based on ss_e_r_2
+         * The joint is implemented from the HILTI system, via collaboration with Balteschwiler AG.
+         * This method creates a specific type of wood joint between two elements, modifying the provided 'joint' object.
+         *
+         * @image html file_wood_joint_lib_method_ss_e_r_2.png "Side-to-side edge rotated joint"
+         *
+         * @param joint [in,out] Node to which geometry will be added, representing the joint.
+         * @param elements [in] Properties for the two elements that will be joined.
+         */
+        void ss_e_r_3(wood::joint &joint, std::vector<wood::element> &elements);
+
+        /**
          * Unit joint - Side-to-side edge rotated joints - WARNING: unknwon
          *
          * @param [in, out] joint node, to which geometry will be added
