@@ -13,90 +13,82 @@
 
 namespace wood
 {
-    namespace cut
-    {
-        enum cut_type
-        {
-            nothing,
+namespace cut
+{
+enum cut_type
+{
+    nothing,
 
-            // plates
-            edge_insertion,
-            hole,
-            insert_between_multiple_edges,
+    // plates
+    edge_insertion,
+    hole,
+    insert_between_multiple_edges,
 
-            // beams
-            slice, // always projected
-            slice_projectsheer,
+    // beams
+    slice, // always projected
+    slice_projectsheer,
 
-            mill, // always inside volume
-            mill_project,
-            mill_projectsheer,
+    mill, // always inside volume
+    mill_project,
+    mill_projectsheer,
 
-            cut,
-            cut_project,
-            cut_projectsheer,
-            cut_reverse,
+    cut,
+    cut_project,
+    cut_projectsheer,
+    cut_reverse,
 
-            conic, // always projected
-            conic_reverse,
+    conic, // always projected
+    conic_reverse,
 
-            drill,
-            drill_50,
-            drill_10,
-        };
+    drill,
+    drill_50,
+    drill_10,
+};
 
-        static std::map<std::string, cut_type> string_to_cut_type{
+static std::map<std::string, cut_type> string_to_cut_type{
 
-            {"nothing", nothing},
+    { "nothing", nothing },
 
-            {"hole", hole},
-            {"edge_insertion", edge_insertion},
-            {"insert_between_multiple_edges", insert_between_multiple_edges},
+    { "hole", hole },
+    { "edge_insertion", edge_insertion },
+    { "insert_between_multiple_edges", insert_between_multiple_edges },
 
-            {"slice", slice},
-            {"slice_projectsheer", slice_projectsheer},
+    { "slice", slice },
+    { "slice_projectsheer", slice_projectsheer },
 
-            {"mill", mill},
-            {"mill_project", mill_project},
-            {"mill_projectsheer", mill_projectsheer},
+    { "mill", mill },
+    { "mill_project", mill_project },
+    { "mill_projectsheer", mill_projectsheer },
 
-            {"cut", cut},
-            {"cut_project", cut_project},
-            {"cut_projectsheer", cut_projectsheer},
-            {"cut_reverse", cut_reverse},
+    { "cut", cut },
+    { "cut_project", cut_project },
+    { "cut_projectsheer", cut_projectsheer },
+    { "cut_reverse", cut_reverse },
 
-            {"conic", conic},
-            {"conic_reverse", conic_reverse},
+    { "conic", conic },
+    { "conic_reverse", conic_reverse },
 
-            {"drill", drill},
-        };
+    { "drill", drill },
+};
 
-        static std::array<std::string, 16> cut_type_to_string{
+static std::array<std::string, 16> cut_type_to_string{
 
-            "nothing",
+    "nothing",
 
-            "hole",
-            "edge_insertion",
-            "insert_between_multiple_edges",
+    "hole",        "edge_insertion",     "insert_between_multiple_edges",
 
-            "slice",
-            "slice_projectsheer",
+    "slice",       "slice_projectsheer",
 
-            "mill",
-            "mill_project",
-            "mill_projectsheer",
+    "mill",        "mill_project",       "mill_projectsheer",
 
-            "cut",
-            "cut_project",
-            "cut_projectsheer",
-            "cut_reverse",
+    "cut",         "cut_project",        "cut_projectsheer",
+    "cut_reverse",
 
-            "conic",
-            "conic_reverse",
+    "conic",       "conic_reverse",
 
-            "drill",
+    "drill",
 
-        };
-    }
+};
+} // namespace cut
 } // namespace wood
 #endif // WOOD_CUT_TYPE_H

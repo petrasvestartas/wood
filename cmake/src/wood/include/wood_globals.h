@@ -7,7 +7,8 @@
 // 1) The first version was written during the PhD 8928 thesis of Petras Vestartas called:
 // Design-to-Fabrication Workflow for Raw-Sawn-Timber using Joinery Solver, 2017-2021
 // 2) The translation from C# to C++ was started during the funding of NCCR in two steps
-// A - standalone C++ version of the joinery solver and B - integration to COMPAS framework (Python Pybind11)
+// A - standalone C++ version of the joinery solver and B - integration to COMPAS framework (Python
+// Pybind11)
 //
 // RESTRICTIONS:
 // The code cannot be used for commercial reasons
@@ -19,8 +20,8 @@
 #define WOOD_GLOBALS_H
 
 // #ifdef WOOD_WRAPPER
-// #include "../../../src/compas_wood/include/stdafx_pybind11.h" //go up to the folder where the CMakeLists.txt is
-// #endif
+// #include "../../../src/compas_wood/include/stdafx_pybind11.h" //go up to the folder where the
+// CMakeLists.txt is #endif
 
 // Preprocessor stage
 #define ON_IS_FINITE(x) (0x7FF0 != (*((unsigned short *)(&x) + 3) & 0x7FF0))
@@ -32,62 +33,58 @@
 
 namespace wood
 {
-    // Compilation stage
-    struct GLOBALS
-    {
-        public:
+// Compilation stage
+struct GLOBALS
+{
+  public:
+    // Clipper2 library mostly used in collider::clipper_util
+    static int64_t CLIPPER_SCALE;
+    static double CLIPPER_AREA; // default is 0.0001 but the tolerance is increased by purpose
 
+    // Tolerances for distance search
+    static double DISTANCE;         // default is 0.01 but the tolerance is increased by purpose
+    static double DISTANCE_SQUARED; // default is 0.0001 but the tolerance is increased by purpose
+    static double ANGLE;            // default is 0.01 but the tolerance is increased by purpose
 
-            // Clipper2 library mostly used in collider::clipper_util
-            static int64_t CLIPPER_SCALE;
-            static double CLIPPER_AREA; // default is 0.0001 but the tolerance is increased by purpose
+    // File names
+    static std::string PATH_AND_FILE_FOR_JOINTS;
+    static std::string DATA_SET_INPUT_FOLDER;
+    static std::string DATA_SET_OUTPUT_FILE;
+    static std::string DATA_SET_OUTPUT_DATABASE;
 
-            // Tolerances for distance search
-            static double DISTANCE;          // default is 0.01 but the tolerance is increased by purpose
-            static double DISTANCE_SQUARED; // default is 0.0001 but the tolerance is increased by purpose
-            static double ANGLE;            // default is 0.01 but the tolerance is increased by purpose
+    // Wood library
+    static std::vector<double> JOINT_VOLUME_EXTENSION;
 
-            // File names
-            static std::string PATH_AND_FILE_FOR_JOINTS;
-            static std::string DATA_SET_INPUT_FOLDER;
-            static std::string DATA_SET_OUTPUT_FILE;
-            static std::string DATA_SET_OUTPUT_DATABASE;
+    static int OUTPUT_GEOMETRY_TYPE;
+    static bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;
+    static bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;
+    static double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
+    static double LIMIT_MIN_JOINT_LENGTH;
 
-            // Wood library
-            static std::vector<double> JOINT_VOLUME_EXTENSION;
+    static std::vector<std::string> EXISTING_TYPES;
 
-            static int OUTPUT_GEOMETRY_TYPE;
-            static bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;
-            static bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;
-            static double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
-            static double LIMIT_MIN_JOINT_LENGTH;
+    static std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
 
-            static std::vector<std::string> EXISTING_TYPES;
+    // custom joint types
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_MALE;
+    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_FEMALE;
 
-            static std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
+    // IMGUI
+    static size_t RUN_COUNT;
+};
 
-            // custom joint types
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_MALE;
-            static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_FEMALE;
-
-            //IMGUI
-            static size_t RUN_COUNT;
-
-        
-    };
-
-}
+} // namespace wood
 
 #endif
