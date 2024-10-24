@@ -1261,17 +1261,17 @@ namespace wood
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             std::vector<CGAL_Polyline>
                 male_0 = {
-                    {IK::Point_3(0, -0.25, -0.166667),
-                     IK::Point_3(-0.116667, -0.25, -0.166667),
-                     IK::Point_3(-0.619628, -0.25, -0.375),
-                     IK::Point_3(-1.0, -0.25, -0.375),
-                     IK::Point_3(-1.0, -0.25, 0.375),
-                     IK::Point_3(-0.619628, -0.25, 0.375),
-                     IK::Point_3(-0.116667, -0.25, 0.166667),
-                     IK::Point_3(0, -0.25, 0.166667)},
+                    {IK::Point_3(0, -0.5, -0.166667),
+                     IK::Point_3(-0.116667, -0.5, -0.166667),
+                     IK::Point_3(-0.619628, -0.5, -0.375),
+                     IK::Point_3(-1.0, -0.5, -0.375),
+                     IK::Point_3(-1.0, -0.5, 0.375),
+                     IK::Point_3(-0.619628, -0.5, 0.375),
+                     IK::Point_3(-0.116667, -0.5, 0.166667),
+                     IK::Point_3(0, -0.5, 0.166667)},
                     {
-                        IK::Point_3(0, -0.25, 0.166667),
-                        IK::Point_3(0, -0.25, -0.166667),
+                        IK::Point_3(0, -0.5, 0.166667),
+                        IK::Point_3(0, -0.5, -0.166667),
                     }};
 
             std::vector<CGAL_Polyline> male_1 = {
@@ -1296,17 +1296,17 @@ namespace wood
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             std::vector<CGAL_Polyline>
                 female_0 = {
-                    {IK::Point_3(0, -0.25, -0.166667),
-                     IK::Point_3(0.116667, -0.25, -0.166667),
-                     IK::Point_3(0.619628, -0.25, -0.375),
-                     IK::Point_3(1, -0.25, -0.375),
-                     IK::Point_3(1, -0.25, 0.375),
-                     IK::Point_3(0.619628, -0.25, 0.375),
-                     IK::Point_3(0.116667, -0.25, 0.166667),
-                     IK::Point_3(0, -0.25, 0.166667)},
+                    {IK::Point_3(0, -0.5, -0.166667),
+                     IK::Point_3(0.116667, -0.5, -0.166667),
+                     IK::Point_3(0.619628, -0.5, -0.375),
+                     IK::Point_3(1, -0.5, -0.375),
+                     IK::Point_3(1, -0.5, 0.375),
+                     IK::Point_3(0.619628, -0.5, 0.375),
+                     IK::Point_3(0.116667, -0.5, 0.166667),
+                     IK::Point_3(0, -0.5, 0.166667)},
                     {
-                        IK::Point_3(0, -0.25, 0.166667),
-                        IK::Point_3(0, -0.25, -0.166667),
+                        IK::Point_3(0, -0.5, 0.166667),
+                        IK::Point_3(0, -0.5, -0.166667),
                     }};
 
             std::vector<CGAL_Polyline> female_1 = {
@@ -1356,6 +1356,15 @@ namespace wood
                 CGAL_Polyline male_moved_1 = male_1[0];
                 CGAL_Polyline female_moved_0 = female_0[0];
                 CGAL_Polyline female_moved_1 = female_1[0];
+
+                // Reverse each second outlines
+                if (i % 2 == 1)
+                {
+                    std::reverse(male_moved_0.begin(), male_moved_0.end());
+                    std::reverse(male_moved_1.begin(), male_moved_1.end());
+                    std::reverse(female_moved_0.begin(), female_moved_0.end());
+                    std::reverse(female_moved_1.begin(), female_moved_1.end());
+                }
 
                 // move joints that are positioned at the center to the end of the segment and then back by half of the division length
                 for (auto &p : male_moved_0)

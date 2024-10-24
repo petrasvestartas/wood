@@ -189,14 +189,14 @@ namespace wood
          *
          * @param [in, out] joint node, to which geometry will be added
          */
-        void ss_e_ip_3(wood::joint &joint, std::vector<wood::element> &elements);
+        void ss_e_ip_3(wood::joint &joint);
 
         /**
          * Unit joint - Side-to-side edge in-plane joints - beam joints
          *
          * @param [in, out] joint node, to which geometry will be added
          */
-        void ss_e_ip_4(wood::joint &joint, std::vector<wood::element> &elements);
+        void ss_e_ip_4(wood::joint &joint);
 
         /**
          * Unit joint - Side-to-side edge in-plane joints - plate single butterfly
