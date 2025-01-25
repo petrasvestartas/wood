@@ -25,13 +25,13 @@ mkdir -p cmake/build
 cd cmake/build
 
 # Step 5: Download libraries
-cmake -B . -S .. -DGET_LIBS=ON -DCOMPILE_LIBS=OFF -DBUILD_MY_PROJECTS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
+cmake -B . -S .. -DGET_LIBS=ON -DCOMPILE_LIBS=OFF -DBUILD_MY_PROJECTS=OFF -DRELEASE_DEBUG=ON -DCGAL_DISABLE_GMP=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
 
 # Step 6: Build 3rd-party libraries
-cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=ON -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
+cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=ON -DRELEASE_DEBUG=ON -DCGAL_DISABLE_GMP=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
 
 # Step 7: Build the wood code
-cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
+cmake -B . -S .. -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCGAL_DISABLE_GMP=ON -DCMAKE_BUILD_TYPE="Release" -G "Unix Makefiles" && make
 
 # Step 8: Build the wood code after making changes (e.g., in main.cpp)
 make VERBOSE=1 && ../build/wood

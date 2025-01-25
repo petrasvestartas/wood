@@ -1,19 +1,22 @@
 #pragma once
 
-namespace mapbox {
-namespace geometry {
+namespace mapbox
+{
+namespace geometry
+{
 
-template <typename T>
-struct point
+template <typename T> struct point
 {
     using coordinate_type = T;
 
-    constexpr point()
-        : x(), y()
+    constexpr
+    point ()
+        : x (), y ()
     {
     }
-    constexpr point(T x_, T y_)
-        : x(x_), y(y_)
+    constexpr
+    point (T x_, T y_)
+        : x (x_), y (y_)
     {
     }
 
@@ -22,23 +25,24 @@ struct point
 };
 
 #ifndef _MSC_VER
-#	pragma GCC diagnostic push
-#	pragma GCC diagnostic ignored "-Wfloat-equal"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
 
 template <typename T>
-constexpr bool operator==(point<T> const& lhs, point<T> const& rhs)
+constexpr bool
+operator== (point<T> const &lhs, point<T> const &rhs)
 {
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
-
 #ifndef _MSC_VER
-	#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif
 
 template <typename T>
-constexpr bool operator!=(point<T> const& lhs, point<T> const& rhs)
+constexpr bool
+operator!= (point<T> const &lhs, point<T> const &rhs)
 {
     return !(lhs == rhs);
 }

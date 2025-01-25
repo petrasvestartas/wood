@@ -9,8 +9,7 @@ namespace mapbox {
 namespace geometry {
 
 template <typename G, typename T = typename G::coordinate_type>
-box<T> envelope(G const& geometry)
-{
+box<T> envelope(G const& geometry) {
     using limits = std::numeric_limits<T>;
 
     T min_t = limits::has_infinity ? -limits::infinity() : limits::min();
@@ -29,5 +28,5 @@ box<T> envelope(G const& geometry)
     return box<T>(min, max);
 }
 
-} // namespace geometry
-} // namespace mapbox
+}  // namespace geometry
+}  // namespace mapbox

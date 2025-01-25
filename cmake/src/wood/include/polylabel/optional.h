@@ -1,34 +1,30 @@
 #ifndef MAPBOX_UTIL_OPTIONAL_HPP
 #define MAPBOX_UTIL_OPTIONAL_HPP
 
-#pragma message("This implementation of optional is deprecated. See https://github.com/mapbox/variant/issues/64.")
+#pragma message( \
+    "This implementation of optional is deprecated. See https://github.com/mapbox/variant/issues/64.")
+
+#include <polylabel/variant.h>
 
 #include <type_traits>
 #include <utility>
-
-#include <polylabel/variant.h>
 
 namespace mapbox {
 namespace util {
 
 template <typename T>
-class optional
-{
+class optional {
     static_assert(!std::is_reference<T>::value, "optional doesn't support references");
 
-    struct none_type
-    {
-    };
+    struct none_type {};
 
     variant<none_type, T> variant_;
 
-public:
+   public:
     optional() = default;
 
-    optional(optional const& rhs)
-    {
-        if (this != &rhs)
-        { // protect against invalid self-assignment
+    optional(optional const& rhs) {
+        if (this != &rhs) {  // protect against invalid self-assignment
             variant_ = rhs.variant_;
         }
     }
@@ -43,32 +39,28 @@ public:
     T const& operator*() const { return this->get(); }
     T operator*() { return this->get(); }
 
-    optional& operator=(T const& v)
-    {
+    optional& operator=(T const& v) {
         variant_ = v;
         return *this;
     }
 
-    optional& operator=(optional const& rhs)
-    {
-        if (this != &rhs)
-        {
+    optional& operator=(optional const& rhs) {
+        if (this != &rhs) {
             variant_ = rhs.variant_;
         }
         return *this;
     }
 
     template <typename... Args>
-    void emplace(Args&&... args)
-    {
+    void emplace(Args&&... args) {
         variant_ = T{std::forward<Args>(args)...};
     }
 
     void reset() { variant_ = none_type{}; }
 
-}; // class optional
+};  // class optional
 
-} // namespace util
-} // namespace mapbox
+}  // namespace util
+}  // namespace mapbox
 
-#endif // MAPBOX_UTIL_OPTIONAL_HPP
+#endif  // MAPBOX_UTIL_OPTIONAL_HPP
