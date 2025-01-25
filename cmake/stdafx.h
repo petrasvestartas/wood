@@ -116,14 +116,15 @@ typedef CGALCDT::Point Point;
 typedef CGAL::Polygon_2<IK> Polygon_2;
 typedef CGALCDT::Face_handle Face_handle;
 
-typedef CGAL::Simple_cartesian<double>                        CK;
-typedef CGAL::Polyhedron_3<CK>                                Polyhedron;
-typedef boost::graph_traits<Polyhedron>::vertex_descriptor    vertex_descriptor;
-typedef CGAL::Mean_curvature_flow_skeletonization<Polyhedron> Skeletonization;
-typedef Skeletonization::Skeleton                             Skeleton;
-typedef Skeleton::vertex_descriptor                           Skeleton_vertex;
-typedef Skeleton::edge_descriptor                             Skeleton_edge;
-typedef Polyhedron::HalfedgeDS                                HalfedgeDS;
+typedef CGAL::Simple_cartesian<double>                                                  CK;
+typedef CGAL::Polyhedron_3<CK>                                                          Polyhedron;
+typedef boost::graph_traits<Polyhedron>::vertex_descriptor                              vertex_descriptor;
+typedef CGAL::Mean_curvature_flow_skeletonization<Polyhedron>                           Skeletonization;
+typedef Skeletonization::Skeleton                                                       Skeleton;
+typedef Skeleton::vertex_descriptor                                                     Skeleton_vertex;
+typedef Skeleton::edge_descriptor                                                       Skeleton_edge;
+typedef Polyhedron::HalfedgeDS                                                          HalfedgeDS;
+
 
 // Wood Library Utilities
 #include "wood_globals.h"
@@ -147,6 +148,8 @@ typedef Polyhedron::HalfedgeDS                                HalfedgeDS;
 #include "cgal_polyline_util.h"
 #include "cgal_rectangle_util.h"
 #include "rtree_util.h"
+
+#include "cgal_skeleton.h"
 
 // Display
 static std::vector<CGAL_Polyline> viewer_polylines;

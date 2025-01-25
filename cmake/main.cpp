@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "wood_test.h" // test
-using namespace tinyply;
 
 int main(int argc, char **argv)
 {
@@ -36,11 +35,22 @@ int main(int argc, char **argv)
 
 
 
-	std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";
+	std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";  // icosahedron_ascii
 	std::vector <float> v;
 	std::vector <int> f;
+	tinyply::read(filepath, v, f, false);
 
-	tinyply::read(filepath, v, f);
+
+	std::vector<CGAL_Polyline> output;
+	cgal::skeleton::run(v, f, output);
+
+
+	std::vector<IK::Point_3> points = cgal::skeleton::generate_equally_spaced_points(output, 10);
+	for (auto p : points)
+	{
+		std::cout << p << std::endl;
+	}
+
 
 	return 0;
 }

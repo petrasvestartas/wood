@@ -24,12 +24,6 @@
 #define CGAL_SKELETON_H
 
 
-
- 
- 
-
-
-
 namespace cgal
 {
 
@@ -40,36 +34,71 @@ namespace cgal
 
         namespace internal{
 
+            /**
+             * @brief A struct to convert a skeleton to polylines.
+             */
             struct SkeletonConversion {
                 const Skeleton& skeleton;
-                std::vector<double>& out;
-                std::vector<int>& outID;
-                int id = 0;
+                std::vector<CGAL_Polyline>& out;
+                CGAL::Polyhedron_3<CK>& mesh;
+                CGAL_Polyline polyline = CGAL_Polyline ();
 
-                SkeletonConversion (const Skeleton& skeleton, std::vector<double>& out, std::vector<int>& outID)
-                    : skeleton (skeleton), out (out), outID (outID) {}
-
+                /**
+                 * @brief Constructor for SkeletonConversion.
+                 * @param skeleton The input skeleton.
+                 * @param out The output vector of polylines.
+                 * @param mesh The input mesh.
+                 */
+                SkeletonConversion (const Skeleton& skeleton, std::vector<CGAL_Polyline>& out, CGAL::Polyhedron_3<CK>& mesh)
+                    : skeleton (skeleton), out (out), mesh (mesh) {}
+                
+                /**
+                 * @brief Start a new polyline.
+                 */
                 void start_new_polyline () {
-                    id++;
+                    polyline = CGAL_Polyline ();
                 }
+
+                /**
+                 * @brief Add a node to the current polyline.
+                 * @param v The skeleton vertex to add.
+                 */
                 void add_node (Skeleton_vertex v) {
-                    out.push_back (skeleton[v].point.x ());
-                    out.push_back (skeleton[v].point.y ());
-                    out.push_back (skeleton[v].point.z ());
-                    outID.push_back (id);
+                    polyline.push_back({skeleton[v].point.x(), skeleton[v].point.y(), skeleton[v].point.z()});
                 }
-                void end_polyline () {}
+
+                /**
+                 * @brief End the current polyline and add it to the output vector.
+                 */
+                void end_polyline () {
+                    out.push_back (polyline);
+                }
             };
 
 
-            // A modifier creating a triangle with the incremental builder.
+            /**
+             * @brief A modifier creating a triangle with the incremental builder.
+             * @tparam HDS The halfedge data structure.
+             */
             template <class HDS>
             class polyhedron_builder : public CGAL::Modifier_base<HDS> {
             public:
-                std::vector<double>& coords;
+                std::vector<float>& coords;
                 std::vector<int>& tris;
-                polyhedron_builder (std::vector<double>& _coords, std::vector<int>& _tris)
+
+
+                /**
+                 * @brief Constructor for polyhedron_builder.
+                 * @param _coords The coordinates of the vertices.
+                 * @param _tris The indices of the triangles.
+                 */
+                polyhedron_builder (std::vector<float>& _coords, std::vector<int>& _tris)
                     : coords (_coords), tris (_tris) {}
+
+                /**
+                 * @brief Build the polyhedron.
+                 * @param hds The halfedge data structure.
+                 */
                 void operator()(HDS& hds) {
                     typedef typename HDS::Vertex Vertex;
                     typedef typename Vertex::Point Point;
@@ -99,36 +128,31 @@ namespace cgal
 
         }
 
+        /**
+         * @brief Create a CGAL polyhedron from vertices and faces.
+         * @param v The vertices.
+         * @param f The faces.
+         * @param mesh The output CGAL polyhedron.
+         */
+        void from_vertices_and_faces(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh);
 
-        // This example extracts a medially centered skeleton from a given mesh.
-        void main(std::vector<double>& coords, std::vector<int>& tris)
-        {
 
-            CGAL::Polyhedron_3<CK> tmesh;
-            internal::polyhedron_builder<HalfedgeDS> builder (coords, tris);
-            tmesh.delegate (builder);
+        /**
+         * @brief Run the skeleton extraction algorithm.
+         * @param v The vertices.
+         * @param f The faces.
+         * @param output The output vector of polylines.
+         */
+        void run(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output);
 
+        /**
+         * @brief Generate equally spaced points along the polylines.
+         * @param polylines The input polylines.
+         * @param numPoints The number of points to generate.
+         * @return A vector of equally spaced points.
+         */
+        std::vector<IK::Point_3> generate_equally_spaced_points(const std::vector<std::vector<IK::Point_3>>& polylines, int numPoints=10);
 
-            if (!CGAL::is_triangle_mesh(tmesh))
-            {
-                std::cout << "Input geometry is not triangulated." << std::endl;
-                return;
-            }
-            
-            Skeleton skeleton;
-            CGAL::extract_mean_curvature_flow_skeleton(tmesh, skeleton);
-            
-            std::cout << "Number of vertices of the skeleton: " << boost::num_vertices(skeleton) << "\n";
-            std::cout << "Number of edges of the skeleton: " << boost::num_edges(skeleton) << "\n";
-            
-            // Output all the edges of the skeleton.
-            std::vector<double> output;
-            std::vector<int> outputID;
-            internal::SkeletonConversion skeleton_conversion (skeleton, output, outputID);
-            CGAL::split_graph_into_polylines (skeleton, skeleton_conversion);
-            
-        }
- 
     }
 } // namespace cgal
 
