@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "wood_test.h" // test
+using namespace tinyply;
 
 int main(int argc, char **argv)
 {
@@ -26,11 +27,20 @@ int main(int argc, char **argv)
 	wood::GLOBALS::DATA_SET_OUTPUT_DATABASE = std::filesystem::current_path().parent_path().parent_path().parent_path().string() +"/database_viewer/cmake/src/viewer/database/database_viewer.db";
 	// wood::GLOBALS::DATA_SET_OUTPUT_DATABASE = std::filesystem::current_path().parent_path().parent_path().parent_path().parent_path().parent_path().string() +"/database_viewer/cmake/src/viewer/database/database_viewer.db";
 
-
-
 	wood::GLOBALS::OUTPUT_GEOMETRY_TYPE = 3;
 	wood::test::type_plates_name_side_to_side_edge_inplane_hilti();
 	//wood::test::type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
+
+
+
+
+
+
+	std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";
+	std::vector <float> v;
+	std::vector <int> f;
+
+	tinyply::read(filepath, v, f);
 
 	return 0;
 }

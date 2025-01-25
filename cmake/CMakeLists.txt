@@ -294,6 +294,7 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_xml.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_mesh_boolean.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/database_writer.cpp"
+  "${CMAKE_SOURCE_DIR}/src/wood/include/tinyply/tinyply.cpp"
   ) 
   
   ###############################################################################
