@@ -283,6 +283,7 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_polyline_mesh_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_polyline_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_rectangle_util.cpp"
+  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_skeleton.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_vector_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/clipper_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_element.cpp"

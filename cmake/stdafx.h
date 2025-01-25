@@ -32,7 +32,6 @@
 // BOOST
 // CGAL
 // EIGEN
-// PYBIND11
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <boost/exception/diagnostic_information.hpp>
@@ -63,6 +62,12 @@
 #include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
 #include <boost/container/flat_map.hpp>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
+
+// CGAL skeleton
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/extract_mean_curvature_flow_skeleton.h>
+#include <CGAL/boost/graph/split_graph_into_polylines.h>
 
 // BOOST
 #include <boost/range/const_iterator.hpp>
@@ -106,6 +111,15 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<IK, TDS, Itag> CGALCDT;
 typedef CGALCDT::Point Point;
 typedef CGAL::Polygon_2<IK> Polygon_2;
 typedef CGALCDT::Face_handle Face_handle;
+
+typedef CGAL::Simple_cartesian<double>                        CK;
+typedef CGAL::Polyhedron_3<CK>                                Polyhedron;
+typedef boost::graph_traits<Polyhedron>::vertex_descriptor    vertex_descriptor;
+typedef CGAL::Mean_curvature_flow_skeletonization<Polyhedron> Skeletonization;
+typedef Skeletonization::Skeleton                             Skeleton;
+typedef Skeleton::vertex_descriptor                           Skeleton_vertex;
+typedef Skeleton::edge_descriptor                             Skeleton_edge;
+typedef Polyhedron::HalfedgeDS                                HalfedgeDS;
 
 // Wood Library Utilities
 #include "wood_globals.h"
