@@ -7,23 +7,78 @@ namespace cgal
 {
     namespace skeleton
     {
-       void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh){
-            cgal::skeleton::internal::polyhedron_builder<HalfedgeDS> builder (v, f);
-            mesh.delegate (builder);
 
-            if (!CGAL::is_triangle_mesh(mesh))
-            {
-                std::cout << "Input geometry is not triangulated." << std::endl;
-                return;
+        namespace internal {
+            std::vector<IK::Point_3> orderPoints(const std::vector<IK::Point_3>& points) {
+                std::vector<IK::Point_3> ordered;
+                std::vector<bool> visited(points.size(), false);
+
+                // Start from the first point
+                ordered.push_back(points[0]);
+                visited[0] = true;
+
+                for (size_t i = 1; i < points.size(); ++i) {
+                    double minDist = std::numeric_limits<double>::max();
+                    int nextIdx = -1;
+
+                    // Find the nearest unused point
+                    for (size_t j = 0; j < points.size(); ++j) {
+                        if (!visited[j]) {
+                            double dist =  std::sqrt(CGAL::squared_distance(ordered.back(), points[j]));
+                            if (dist < minDist) {
+                                minDist = dist;
+                                nextIdx = j;
+                            }
+                        }
+                    }
+
+                    // Add the nearest point to the path
+                    if (nextIdx != -1) {
+                        ordered.push_back(points[nextIdx]);
+                        visited[nextIdx] = true;
+                    }
+                }
+                return ordered;
+            }
+
+            // Function to compute the cumulative arc lengths of the polyline
+            std::vector<double> compute_cumulative_lengths(const std::vector<IK::Point_3>& polyline) {
+                std::vector<double> lengths(polyline.size(), 0.0);
+                for (size_t i = 1; i < polyline.size(); ++i) {
+                    lengths[i] = lengths[i - 1] + std::sqrt(CGAL::squared_distance(polyline[i - 1], polyline[i]));
+                }
+                return lengths;
+            }
+
+            // Linear interpolation between two points
+            IK::Point_3 interpolate(const IK::Point_3& p1, const IK::Point_3& p2, double t) {
+                return {
+                    p1.x() + t * (p2.x() - p1.x()),
+                    p1.y() + t * (p2.y() - p1.y()),
+                    p1.z() + t * (p2.z() - p1.z())
+                };
+            }
+
+            
+        void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh){
+                cgal::skeleton::internal::polyhedron_builder<HalfedgeDS> builder (v, f);
+                mesh.delegate (builder);
+
+                if (!CGAL::is_triangle_mesh(mesh))
+                {
+                    std::cout << "Input geometry is not triangulated." << std::endl;
+                    return;
+                }
             }
         }
+
 
         void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
         {
             CGAL::Polyhedron_3<CK> temp_mesh;
             CGAL::Polyhedron_3<CK>& mesh = output_mesh ? *output_mesh : temp_mesh;
 
-            from_vertices_and_faces(v, f, mesh);
+            internal::from_vertices_and_faces(v, f, mesh);
             
             Skeleton skeleton;
             CGAL::extract_mean_curvature_flow_skeleton(mesh, skeleton);
@@ -37,56 +92,6 @@ namespace cgal
             mesh_skeleton(v, f, output_polylines, nullptr);
         }
 
-        std::vector<IK::Point_3> orderPoints(const std::vector<IK::Point_3>& points) {
-            std::vector<IK::Point_3> ordered;
-            std::vector<bool> visited(points.size(), false);
-
-            // Start from the first point
-            ordered.push_back(points[0]);
-            visited[0] = true;
-
-            for (size_t i = 1; i < points.size(); ++i) {
-                double minDist = std::numeric_limits<double>::max();
-                int nextIdx = -1;
-
-                // Find the nearest unused point
-                for (size_t j = 0; j < points.size(); ++j) {
-                    if (!visited[j]) {
-                        double dist =  std::sqrt(CGAL::squared_distance(ordered.back(), points[j]));
-                        if (dist < minDist) {
-                            minDist = dist;
-                            nextIdx = j;
-                        }
-                    }
-                }
-
-                // Add the nearest point to the path
-                if (nextIdx != -1) {
-                    ordered.push_back(points[nextIdx]);
-                    visited[nextIdx] = true;
-                }
-            }
-            return ordered;
-        }
-
-        // Function to compute the cumulative arc lengths of the polyline
-        std::vector<double> computeCumulativeLengths(const std::vector<IK::Point_3>& polyline) {
-            std::vector<double> lengths(polyline.size(), 0.0);
-            for (size_t i = 1; i < polyline.size(); ++i) {
-                lengths[i] = lengths[i - 1] + std::sqrt(CGAL::squared_distance(polyline[i - 1], polyline[i]));
-            }
-            return lengths;
-        }
-
-        // Linear interpolation between two points
-        IK::Point_3 interpolate(const IK::Point_3& p1, const IK::Point_3& p2, double t) {
-            return {
-                p1.x() + t * (p2.x() - p1.x()),
-                p1.y() + t * (p2.y() - p1.y()),
-                p1.z() + t * (p2.z() - p1.z())
-            };
-        }
-
 
         void divide_polyline(const std::vector<std::vector<IK::Point_3>>& polylines, int divisions, std::vector<IK::Point_3>& output_polyline) {
             
@@ -97,7 +102,7 @@ namespace cgal
 
 
             // Compute cumulative lengths
-            std::vector<double> lengths = computeCumulativeLengths(polyline);
+            std::vector<double> lengths = internal::compute_cumulative_lengths(polyline);
             double totalLength = lengths.back();
             double segmentLength = totalLength / (divisions - 1);
 
@@ -115,7 +120,7 @@ namespace cgal
                 // Interpolate within the segment
                 double t = (currentTarget - lengths[currentIdx]) /
                         (lengths[currentIdx + 1] - lengths[currentIdx]);
-                output_polyline.push_back(interpolate(polyline[currentIdx], polyline[currentIdx + 1], t));
+                output_polyline.push_back(internal::interpolate(polyline[currentIdx], polyline[currentIdx + 1], t));
                 currentTarget += segmentLength;
             }
 

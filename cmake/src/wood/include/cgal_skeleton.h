@@ -126,16 +126,42 @@ namespace cgal
                 }
             };
 
+
+            /**
+             * @brief Orders the points to form a continuous polyline.
+             * 
+             * @param points The input vector of points.
+             * @return A vector of points ordered to form a continuous polyline.
+             */
+            std::vector<IK::Point_3> orderPoints(const std::vector<IK::Point_3>& points);
+
+            /**
+             * @brief Computes the cumulative lengths of the segments in the polyline.
+             * 
+             * @param polyline The input polyline.
+             * @return A vector of cumulative lengths for each segment in the polyline.
+             */
+            std::vector<double> compute_cumulative_lengths(const std::vector<IK::Point_3>& polyline);
+
+            /**
+             * @brief Interpolates between two points.
+             * 
+             * @param p1 The first point.
+             * @param p2 The second point.
+             * @param t The interpolation parameter (0 <= t <= 1).
+             * @return The interpolated point.
+             */
+            IK::Point_3 interpolate(const IK::Point_3& p1, const IK::Point_3& p2, double t);
+
+            /**
+             * @brief Constructs a CGAL polyhedron from vertices and faces.
+             * 
+             * @param v The vertices.
+             * @param f The faces.
+             * @param mesh The output CGAL polyhedron.
+             */
+            void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh);
         }
-
-        /**
-         * @brief Create a CGAL polyhedron from vertices and faces.
-         * @param v The vertices.
-         * @param f The faces.
-         * @param mesh The output CGAL polyhedron.
-         */
-        void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh);
-
 
         /**
          * @brief Run the skeleton extraction algorithm.
@@ -143,14 +169,39 @@ namespace cgal
          * @param f The faces.
          * @param output_polylines The output vector of polylines.
          * @param output_mesh OPTIONAL: The output CGAL polyhedron.
+         * 
+         * @example
+         * std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply"; 
+         * std::vector <double> v;
+         * std::vector <int> f;
+         * tinyply::read(filepath, v, f, false);
+         * std::vector<CGAL_Polyline> output_polylines;
+         * CGAL::Polyhedron_3<CK> output_mesh;
+         * cgal::skeleton::mesh_skeleton(v, f, output_polylines, &output_mesh);
+         * // Run Skeleton > equally space points > get distances > extend skeleton
+         * CGAL_Polyline output_polyline;
+         * std::vector<double> output_distances;
+         * cgal::skeleton::divide_polyline(output_polylines, 10, output_polyline);
+         * cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
+         * cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
          */
         void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh);
 
         /**
          * @brief Run the skeleton extraction algorithm.
+         * 
          * @param v The vertices.
          * @param f The faces.
          * @param output_polylines The output vector of polylines.
+         * 
+         * @example
+         * std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";  // icosahedron_ascii
+         * std::vector<double> v;
+         * std::vector<int> f;
+         * tinyply::read(filepath, v, f, false);
+         * 
+         * std::vector<CGAL_Polyline> output_polylines;
+         * cgal::skeleton::mesh_skeleton(v, f, output_polylines);
          */
         void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines);
 

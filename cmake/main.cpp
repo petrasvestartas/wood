@@ -30,47 +30,5 @@ int main(int argc, char **argv)
 	wood::test::type_plates_name_side_to_side_edge_inplane_hilti();
 	//wood::test::type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
 
-
-
-
-
-
-	std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";  // icosahedron_ascii
-	std::vector <double> v;
-	std::vector <int> f;
-	tinyply::read(filepath, v, f, false);
-
-
-	std::vector<CGAL_Polyline> output_polylines;
-	// CGAL_Polyline output_polyline;
-	// CGAL::Polyhedron_3<CK> output_mesh;
-	// std::vector<double> output_distances;
-
-	// Run Skeleton > equally space points > get distances > extend skeleton
-	cgal::skeleton::mesh_skeleton(v, f, output_polylines);
-	// cgal::skeleton::divide_polyline(output_polylines, 10, output_polyline);
-	// cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
-	// cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
-
-	std::cout << output_polylines.size() << std::endl;
-
-	// for(auto output_polyline : output_polylines)
-	// {
-	// 	for(auto p : output_polyline)
-	// 	{
-	// 		std::cout << p << std::endl;
-	// 	}
-	// }
-	// for (auto p : output_polyline)
-	// {
-	// 	std::cout << p << std::endl;
-	// }
-
-	// for (auto d : output_distances)
-	// {
-	// 	std::cout << d << std::endl;
-	// }
-
-
 	return 0;
 }
