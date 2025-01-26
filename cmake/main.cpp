@@ -42,7 +42,8 @@ int main(int argc, char **argv)
 
 
 	std::vector<CGAL_Polyline> output;
-	cgal::skeleton::run(v, f, output);
+	CGAL::Polyhedron_3<CK>& output_mesh;
+	cgal::skeleton::run(v, f, output_mesh, output);
 
 
 	std::vector<IK::Point_3> points = cgal::skeleton::generate_equally_spaced_points(output, 10);
@@ -50,6 +51,8 @@ int main(int argc, char **argv)
 	{
 		std::cout << p << std::endl;
 	}
+
+	cgal::skeleton::get_skeleton_distances(output_mesh, points, 10);
 
 
 	return 0;

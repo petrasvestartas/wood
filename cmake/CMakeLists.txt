@@ -1,7 +1,7 @@
 ########################################################################
 # PROPERTIES
 ########################################################################
-cmake_minimum_required(VERSION 3.24.2)
+cmake_minimum_required(VERSION 3.26)
 
 project(wood LANGUAGES C CXX)
 # Set the C++ standard to C++23
@@ -74,7 +74,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 cmake_policy(SET CMP0097 NEW)
-cmake_policy(SET CMP0144 NEW)
+# cmake_policy(SET CMP0144 NEW)
 # Set global property (all targets are impacted)
 set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CMAKE_COMMAND} -E time")
 
@@ -192,7 +192,7 @@ if (GET_LIBS)
   # BOOST
   ########################################################################
   ExternalProject_Add(boost
-    URL https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
+    URL https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.gz
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/boost ${CMAKE_BINARY_DIR}/install/boost/include/boost
@@ -364,8 +364,8 @@ if (BUILD_MY_PROJECTS)
       message("${CMAKE_BINARY_DIR}/" )
       target_link_libraries(${PROJECT_NAME} PUBLIC 
       Clipper2 
-      gmp
-      mpfr
+      # gmp
+      # mpfr
       gtest
       gmock
       sqlite3

@@ -141,9 +141,10 @@ namespace cgal
          * @brief Run the skeleton extraction algorithm.
          * @param v The vertices.
          * @param f The faces.
+         * @param output_mesh The output mesh.
          * @param output The output vector of polylines.
          */
-        void run(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output);
+        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh,std::vector<CGAL_Polyline>& output);
 
         /**
          * @brief Generate equally spaced points along the polylines.
@@ -153,6 +154,8 @@ namespace cgal
          */
         std::vector<IK::Point_3> generate_equally_spaced_points(const std::vector<std::vector<IK::Point_3>>& polylines, int numPoints=10);
 
+
+        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors=10);
     }
 } // namespace cgal
 

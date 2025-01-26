@@ -304,4 +304,5 @@ bool polyline_plane (const CGAL_Polyline &polyline, const IK::Plane_3 &plane, st
 bool polyline_plane_cross_joint (CGAL_Polyline &c0, CGAL_Polyline &c1, IK::Plane_3 &p0, IK::Plane_3 &p1, IK::Segment_3 &line, std::pair<int, int> &pair);
 } // namespace intersection_util
 } // namespace cgal
+
 #endif // CGAL_INTERSECTION_UTIL_H
