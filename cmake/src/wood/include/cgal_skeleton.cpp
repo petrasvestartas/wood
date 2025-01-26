@@ -18,14 +18,14 @@ namespace cgal
             }
         }
 
-        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh, std::vector<CGAL_Polyline>& output)
+        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh, std::vector<CGAL_Polyline>& output_polylines)
         {
             from_vertices_and_faces(v, f, output_mesh);
             
             Skeleton skeleton;
             CGAL::extract_mean_curvature_flow_skeleton(output_mesh, skeleton);
             
-            internal::SkeletonConversion skeleton_conversion (skeleton, output, output_mesh);
+            internal::SkeletonConversion skeleton_conversion (skeleton, output_polylines, output_mesh);
             CGAL::split_graph_into_polylines (skeleton, skeleton_conversion);
 
         }
@@ -81,7 +81,7 @@ namespace cgal
         }
 
 
-        std::vector<IK::Point_3> generate_equally_spaced_points(const std::vector<std::vector<IK::Point_3>>& polylines, int numPoints) {
+        void divide_polyline(const std::vector<std::vector<IK::Point_3>>& polylines, int divisions, std::vector<IK::Point_3>& output_polyline) {
             
             std::vector<IK::Point_3> polyline = polylines[0];
             for (int i = 1; i < polylines.size(); ++i) {
@@ -92,15 +92,14 @@ namespace cgal
             // Compute cumulative lengths
             std::vector<double> lengths = computeCumulativeLengths(polyline);
             double totalLength = lengths.back();
-            double segmentLength = totalLength / (numPoints - 1);
+            double segmentLength = totalLength / (divisions - 1);
 
-            std::vector<IK::Point_3> result;
-            result.push_back(polyline[0]);  // First point
+            output_polyline.push_back(polyline[0]);  // First point
             // Generate points at equal intervals
             double currentTarget = segmentLength;
             size_t currentIdx = 0;
 
-            for (int i = 1; i < numPoints - 1; ++i) {
+            for (int i = 1; i < divisions - 1; ++i) {
                 // Find the segment where the target falls
                 while (currentIdx < lengths.size() - 1 && lengths[currentIdx + 1] < currentTarget) {
                     ++currentIdx;
@@ -109,16 +108,15 @@ namespace cgal
                 // Interpolate within the segment
                 double t = (currentTarget - lengths[currentIdx]) /
                         (lengths[currentIdx + 1] - lengths[currentIdx]);
-                result.push_back(interpolate(polyline[currentIdx], polyline[currentIdx + 1], t));
+                output_polyline.push_back(interpolate(polyline[currentIdx], polyline[currentIdx + 1], t));
                 currentTarget += segmentLength;
             }
 
-            result.push_back(polyline.back());  // Last point
-            return result;
+            output_polyline.push_back(polyline.back());  // Last point
         }
 
 
-        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors, std::vector<float>& output_distances) {
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<float>& output_distances) {
             using Point = boost::graph_traits<CGAL::Polyhedron_3<CK>>::vertex_descriptor;
             using Vertex_point_pmap = boost::property_map<CGAL::Polyhedron_3<CK>, CGAL::vertex_point_t>::type;
             
@@ -158,6 +156,69 @@ namespace cgal
                     output_distances.push_back(0.0f); // or some other default value
                 }
             }
+        }
+
+
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<float>& output_distances) {
+            //https://doc.cgal.org/latest/AABB_tree/index.html#Chapter_Fast_Intersection_and_Distance_Computation
+            
+            using Plane = CK::Plane_3 ;
+            using Vector = CK::Vector_3 ;
+            using Segment = CK::Segment_3 ;
+            using Ray = CK::Ray_3 ;
+            using Primitive = CGAL::AABB_face_graph_triangle_primitive<CGAL::Polyhedron_3<CK>> ;
+            using Traits = CGAL::AABB_traits_3<CK, Primitive> ;
+            using Tree = CGAL::AABB_tree<Traits> ;
+            using Segment_intersection = std::optional< Tree::Intersection_and_primitive_id<Segment>::Type > ;
+            using Plane_intersection = std::optional< Tree::Intersection_and_primitive_id<Plane>::Type > ;
+            using Primitive_id = Tree::Primitive_id ;
+
+            CK::Point_3 p0(polyline[0].x(), polyline[0].y(), polyline[0].z());
+            CK::Point_3 p1(polyline[1].x(), polyline[1].y(), polyline[1].z());
+            CK::Point_3 p2(polyline[polyline.size()-2].x(), polyline[polyline.size()-2].y(), polyline[polyline.size()-2].z());
+            CK::Point_3 p3(polyline[polyline.size()-1].x(), polyline[polyline.size()-1].y(), polyline[polyline.size()-1].z());
+
+            // constructs AABB tree
+            Tree tree(faces(mesh).first, faces(mesh).second, mesh);
+           // constructs segment queries
+            auto vector0 = p0 - p1;
+            vector0 *= 1000;
+            Segment segment_query0(p1, p0 + vector0);
+
+            auto vector1 = p3 - p2;
+            vector1 *= 1000;
+            Segment segment_query1(p3, p2 + vector1);
+
+            // tests intersections with segment queries
+            if (!tree.do_intersect(segment_query0) || !tree.do_intersect(segment_query1)) {
+                std::cout << "no intersection" << std::endl;
+                return;
+            }
+
+
+            // computes first encountered intersection with segment_query0
+            auto intersection0 = tree.any_intersection(segment_query0);
+            if (intersection0) {
+                // gets intersection object
+                if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection0->first)) {
+                    polyline.insert(polyline.begin(), IK::Point_3(p->x(), p->y(), p->z()));
+                    output_distances.insert(output_distances.begin(), output_distances[0]);
+                }
+            }
+
+            // computes first encountered intersection with segment_query1
+            auto intersection1 = tree.any_intersection(segment_query1);
+            if (intersection1) {
+                // gets intersection object
+                if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection1->first)) {
+                    polyline.push_back(IK::Point_3(p->x(), p->y(), p->z()));
+                    output_distances.push_back(output_distances[output_distances.size()-1]);
+                }
+            }
+
+
+
+
         }
 
     }

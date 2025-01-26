@@ -142,20 +142,37 @@ namespace cgal
          * @param v The vertices.
          * @param f The faces.
          * @param output_mesh The output mesh.
-         * @param output The output vector of polylines.
+         * @param output_polylines The output vector of polylines.
          */
-        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh,std::vector<CGAL_Polyline>& output);
+        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh,std::vector<CGAL_Polyline>& output_polylines);
 
         /**
          * @brief Generate equally spaced points along the polylines.
          * @param polylines The input polylines.
-         * @param numPoints The number of points to generate.
-         * @return A vector of equally spaced points.
+         * @param divisions The number of points to generate.
+         * @param output_polyline The output polyline.
          */
-        std::vector<IK::Point_3> generate_equally_spaced_points(const std::vector<std::vector<IK::Point_3>>& polylines, int numPoints=10);
+        void divide_polyline(const std::vector<std::vector<IK::Point_3>>& polylines, int divisions, std::vector<IK::Point_3>& output_polyline);
 
 
-        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors, std::vector<float>& output_distances);
+        /**
+         * @brief Computes the average distances from each point in the polyline to its nearest neighbors in the mesh.
+         * 
+         * @param mesh The input CGAL polyhedron mesh.
+         * @param polyline The input polyline.
+         * @param neighbors The number of nearest neighbors to consider for each point in the polyline.
+         * @param output_distances The output vector to store the average distances.
+         */
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<float>& output_distances) ;
+
+        /**
+         * @brief Extends the skeleton by computing intersections of segment queries with the mesh and updating the polyline and distances.
+         * 
+         * @param mesh The input CGAL polyhedron mesh.
+         * @param polyline The input polyline to be extended.
+         * @param output_distances The output vector to store the distances corresponding to the extended polyline.
+         */
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<float>& output_distances);
     }
 } // namespace cgal
 
