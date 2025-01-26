@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 
 	std::vector<CGAL_Polyline> output;
-	CGAL::Polyhedron_3<CK>& output_mesh;
+	CGAL::Polyhedron_3<CK> output_mesh;
 	cgal::skeleton::run(v, f, output_mesh, output);
 
 
@@ -52,7 +52,12 @@ int main(int argc, char **argv)
 		std::cout << p << std::endl;
 	}
 
-	cgal::skeleton::get_skeleton_distances(output_mesh, points, 10);
+	std::vector<float> output_distances;
+	cgal::skeleton::get_skeleton_distances(output_mesh, points, 10, output_distances);
+	for (auto d : output_distances)
+	{
+		std::cout << d << std::endl;
+	}
 
 
 	return 0;

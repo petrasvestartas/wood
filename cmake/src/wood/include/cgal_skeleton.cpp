@@ -20,12 +20,12 @@ namespace cgal
 
         void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh, std::vector<CGAL_Polyline>& output)
         {
-            from_vertices_and_faces(v, f, mesh);
+            from_vertices_and_faces(v, f, output_mesh);
             
             Skeleton skeleton;
-            CGAL::extract_mean_curvature_flow_skeleton(mesh, skeleton);
+            CGAL::extract_mean_curvature_flow_skeleton(output_mesh, skeleton);
             
-            internal::SkeletonConversion skeleton_conversion (skeleton, output, mesh);
+            internal::SkeletonConversion skeleton_conversion (skeleton, output, output_mesh);
             CGAL::split_graph_into_polylines (skeleton, skeleton_conversion);
 
         }
@@ -118,12 +118,12 @@ namespace cgal
         }
 
 
-        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors){
+        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors, std::vector<float>& output_distances) {
             using Point = boost::graph_traits<CGAL::Polyhedron_3<CK>>::vertex_descriptor;
             using Vertex_point_pmap = boost::property_map<CGAL::Polyhedron_3<CK>, CGAL::vertex_point_t>::type;
             
-            using  Traits_base = CGAL::Search_traits_3<CK>;
-            using Traits = CGAL::Search_traits_adapter<Point,Vertex_point_pmap,Traits_base>;
+            using Traits_base = CGAL::Search_traits_3<CK>;
+            using Traits = CGAL::Search_traits_adapter<Point, Vertex_point_pmap, Traits_base>;
             using Tree = CGAL::Orthogonal_k_neighbor_search<Traits>::Tree;
 
             using K_neighbor_search = CGAL::Orthogonal_k_neighbor_search<Traits>;
@@ -135,16 +135,28 @@ namespace cgal
             // Insert number_of_data_points in the tree
             Tree tree(vertices(mesh).begin(), vertices(mesh).end(), Splitter(), Traits(vppmap));
 
-            // search K nearest neighbors
-            CK::Point_3 query(0.0, 0.0, 0.0);
-            Distance tr_dist(vppmap);
+            for (auto& p : polyline) {
+                // search K nearest neighbors
+                CK::Point_3 query(p.x(), p.y(), p.z());
+                Distance tr_dist(vppmap);
 
-            const unsigned int K = 5;
-            K_neighbor_search search(tree, query, K,0,true,tr_dist);
-            std::cout <<"The "<< K << " nearest vertices to the query point at (0,0,0) are:" << std::endl;
-            for(K_neighbor_search::iterator it = search.begin(); it != search.end(); it++){
-                std::cout << "vertex " << &*(it->first) << " : " << vppmap[it->first] << " at distance "
-                        << tr_dist.inverse_of_transformed_distance(it->second) << std::endl;
+                const unsigned int K = neighbors;
+                K_neighbor_search search(tree, query, K, 0, true, tr_dist);
+                double total_distance = 0.0;
+                int count = 0;
+
+                for (K_neighbor_search::iterator it = search.begin(); it != search.end(); ++it) {
+                    double distance = tr_dist.inverse_of_transformed_distance(it->second);
+                    total_distance += distance;
+                    count++;
+                }
+
+                if (count > 0) {
+                    double average_distance = total_distance / count;
+                    output_distances.push_back(static_cast<float>(average_distance));
+                } else {
+                    output_distances.push_back(0.0f); // or some other default value
+                }
             }
         }
 

@@ -155,7 +155,7 @@ namespace cgal
         std::vector<IK::Point_3> generate_equally_spaced_points(const std::vector<std::vector<IK::Point_3>>& polylines, int numPoints=10);
 
 
-        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors=10);
+        void get_skeleton_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline polyline, int neighbors, std::vector<float>& output_distances);
     }
 } // namespace cgal
 

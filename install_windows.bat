@@ -14,13 +14,13 @@ if not exist build mkdir build
 cd build
 
 REM Step 5: Download libraries
-cmake --fresh -DGET_LIBS=ON -DCOMPILE_LIBS=OFF -DBUILD_MY_PROJECTS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 .. && cmake --build . --config Release
+cmake --fresh -DGET_LIBS=ON -DCOMPILE_LIBS=OFF -DBUILD_MY_PROJECTS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 -DCGAL_CMAKE_EXACT_NT_BACKEND=BOOST_BACKEND -DCGAL_DISABLE_GMP=ON -DCMAKE_DISABLE_FIND_PACKAGE_GMP=ON .. && cmake --build . --config Release
 
 REM Step 6: Build 3rd-party libraries
-cmake --fresh -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=ON -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 .. && cmake --build . --config Release
+cmake --fresh -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=ON -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 -DCGAL_CMAKE_EXACT_NT_BACKEND=BOOST_BACKEND -DCGAL_DISABLE_GMP=ON -DCMAKE_DISABLE_FIND_PACKAGE_GMP=ON .. && cmake --build . --config Release
 
 REM Step 7: Build the wood code
-cmake --fresh -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 .. && cmake --build . --config Release
+cmake --fresh -DGET_LIBS=OFF -DBUILD_MY_PROJECTS=ON -DCOMPILE_LIBS=OFF -DRELEASE_DEBUG=ON -DCMAKE_BUILD_TYPE="Release" -G "Visual Studio 17 2022" -A x64 -DCGAL_CMAKE_EXACT_NT_BACKEND=BOOST_BACKEND -DCGAL_DISABLE_GMP=ON -DCMAKE_DISABLE_FIND_PACKAGE_GMP=ON .. && cmake --build . --config Release
 
 REM Step 8: Build the wood code after making changes (e.g., in main.cpp)
 cd /d %~dp0\cmake\build
