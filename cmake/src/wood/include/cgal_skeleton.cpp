@@ -7,7 +7,7 @@ namespace cgal
 {
     namespace skeleton
     {
-       void from_vertices_and_faces(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh){
+       void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh){
             cgal::skeleton::internal::polyhedron_builder<HalfedgeDS> builder (v, f);
             mesh.delegate (builder);
 
@@ -18,7 +18,7 @@ namespace cgal
             }
         }
 
-        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
         {
             CGAL::Polyhedron_3<CK> temp_mesh;
             CGAL::Polyhedron_3<CK>& mesh = output_mesh ? *output_mesh : temp_mesh;
@@ -32,7 +32,7 @@ namespace cgal
             CGAL::split_graph_into_polylines(skeleton, skeleton_conversion);
         }
 
-        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines)
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines)
         {
             mesh_skeleton(v, f, output_polylines, nullptr);
         }
@@ -123,7 +123,7 @@ namespace cgal
         }
 
 
-        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<float>& output_distances) {
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<double>& output_distances) {
             using Point = boost::graph_traits<CGAL::Polyhedron_3<CK>>::vertex_descriptor;
             using Vertex_point_pmap = boost::property_map<CGAL::Polyhedron_3<CK>, CGAL::vertex_point_t>::type;
             
@@ -158,7 +158,7 @@ namespace cgal
 
                 if (count > 0) {
                     double average_distance = total_distance / count;
-                    output_distances.push_back(static_cast<float>(average_distance));
+                    output_distances.push_back(static_cast<double>(average_distance));
                 } else {
                     output_distances.push_back(0.0f); // or some other default value
                 }
@@ -166,7 +166,7 @@ namespace cgal
         }
 
 
-        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<float>& output_distances) {
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<double>& output_distances) {
             //https://doc.cgal.org/latest/AABB_tree/index.html#Chapter_Fast_Intersection_and_Distance_Computation
             
             using Plane = CK::Plane_3 ;
@@ -226,7 +226,7 @@ namespace cgal
         }
 
 
-        void beam_skeleton(std::vector<float>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<float>& output_distances, int divisions, int nearest_neighbors, bool extend){
+        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<double>& output_distances, int divisions, int nearest_neighbors, bool extend){
 
             std::vector<CGAL_Polyline> output_polylines;
             CGAL::Polyhedron_3<CK> output_mesh;

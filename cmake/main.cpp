@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
 
 	std::string filepath = "C:/Users/petras/Desktop/dev_wood/wood_log.ply";  // icosahedron_ascii
-	std::vector <float> v;
+	std::vector <double> v;
 	std::vector <int> f;
 	tinyply::read(filepath, v, f, false);
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	std::vector<CGAL_Polyline> output_polylines;
 	// CGAL_Polyline output_polyline;
 	// CGAL::Polyhedron_3<CK> output_mesh;
-	// std::vector<float> output_distances;
+	// std::vector<double> output_distances;
 
 	// Run Skeleton > equally space points > get distances > extend skeleton
 	cgal::skeleton::mesh_skeleton(v, f, output_polylines);

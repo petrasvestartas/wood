@@ -83,7 +83,7 @@ namespace cgal
             template <class HDS>
             class polyhedron_builder : public CGAL::Modifier_base<HDS> {
             public:
-                std::vector<float>& coords;
+                std::vector<double>& coords;
                 std::vector<int>& tris;
 
 
@@ -92,7 +92,7 @@ namespace cgal
                  * @param _coords The coordinates of the vertices.
                  * @param _tris The indices of the triangles.
                  */
-                polyhedron_builder (std::vector<float>& _coords, std::vector<int>& _tris)
+                polyhedron_builder (std::vector<double>& _coords, std::vector<int>& _tris)
                     : coords (_coords), tris (_tris) {}
 
                 /**
@@ -134,7 +134,7 @@ namespace cgal
          * @param f The faces.
          * @param mesh The output CGAL polyhedron.
          */
-        void from_vertices_and_faces(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh);
+        void from_vertices_and_faces(std::vector<double>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& mesh);
 
 
         /**
@@ -144,7 +144,7 @@ namespace cgal
          * @param output_polylines The output vector of polylines.
          * @param output_mesh OPTIONAL: The output CGAL polyhedron.
          */
-        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh);
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh);
 
         /**
          * @brief Run the skeleton extraction algorithm.
@@ -152,7 +152,7 @@ namespace cgal
          * @param f The faces.
          * @param output_polylines The output vector of polylines.
          */
-        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines);
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines);
 
         /**
          * @brief Generate equally spaced points along the polylines.
@@ -171,7 +171,7 @@ namespace cgal
          * @param neighbors The number of nearest neighbors to consider for each point in the polyline.
          * @param output_distances The output vector to store the average distances.
          */
-        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<float>& output_distances) ;
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<double>& output_distances) ;
 
         /**
          * @brief Extends the skeleton by computing intersections of segment queries with the mesh and updating the polyline and distances.
@@ -180,7 +180,7 @@ namespace cgal
          * @param polyline The input polyline to be extended.
          * @param output_distances The output vector to store the distances corresponding to the extended polyline.
          */
-        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<float>& output_distances);
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<double>& output_distances);
 
         /**
          * @brief Run the beam skeleton extraction algorithm.
@@ -192,7 +192,7 @@ namespace cgal
          * @param nearest_neighbors The number of nearest neighbors to consider for each point in the polyline.
          * @param extend Whether to extend the polyline to the mesh.
          */
-        void beam_skeleton(std::vector<float>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<float>& output_distances, int divisions=0, int nearest_neighbors=0, bool extend=false);
+        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<double>& output_distances, int divisions=0, int nearest_neighbors=0, bool extend=false);
     }
 } // namespace cgal
 

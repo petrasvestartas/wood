@@ -287,7 +287,7 @@ namespace tinyply
     }
 
 
-    inline void read(const std::string & filepath, std::vector<float>& v, std::vector<int>& f, bool debug = false)
+    inline void read(const std::string & filepath, std::vector<double>& v, std::vector<int>& f, bool debug = false)
     {
         std::cout << "........................................................................\n";
         std::cout << "Now Reading: " << filepath << std::endl;
@@ -385,10 +385,12 @@ namespace tinyply
 
             // Example One: converting to your own application types
             {
-                // Convert vertices buffer to a flat vector of floats
                 const size_t numVerticesBytes = vertices->buffer.size_bytes();
-                v = std::vector<float>(vertices->count * 3); // Assuming each vertex has 3 components (x, y, z)
-                std::memcpy(v.data(), vertices->buffer.get(), numVerticesBytes);
+                std::vector<float> tempVertices(vertices->count * 3); // Assuming each vertex has 3 components (x, y, z)
+                std::memcpy(tempVertices.data(), vertices->buffer.get(), numVerticesBytes);
+
+                // Convert std::vector<float> to std::vector<double>
+                v = std::vector<double>(tempVertices.begin(), tempVertices.end());
 
                 if (debug)
                     for (size_t i = 0; i < v.size(); i += 3)
