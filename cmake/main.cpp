@@ -42,25 +42,34 @@ int main(int argc, char **argv)
 
 
 	std::vector<CGAL_Polyline> output_polylines;
-	CGAL_Polyline output_polyline;
-	CGAL::Polyhedron_3<CK> output_mesh;
-	std::vector<float> output_distances;
+	// CGAL_Polyline output_polyline;
+	// CGAL::Polyhedron_3<CK> output_mesh;
+	// std::vector<float> output_distances;
 
 	// Run Skeleton > equally space points > get distances > extend skeleton
-	cgal::skeleton::run(v, f, output_mesh, output_polylines);
-	cgal::skeleton::divide_polyline(output_polylines, 10, output_polyline);
-	cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
-	cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
+	cgal::skeleton::mesh_skeleton(v, f, output_polylines);
+	// cgal::skeleton::divide_polyline(output_polylines, 10, output_polyline);
+	// cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
+	// cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
 
-	for (auto p : output_polyline)
-	{
-		std::cout << p << std::endl;
-	}
 
-	for (auto d : output_distances)
+
+	for(auto output_polyline : output_polylines)
 	{
-		std::cout << d << std::endl;
+		for(auto p : output_polyline)
+		{
+			std::cout << p << std::endl;
+		}
 	}
+	// for (auto p : output_polyline)
+	// {
+	// 	std::cout << p << std::endl;
+	// }
+
+	// for (auto d : output_distances)
+	// {
+	// 	std::cout << d << std::endl;
+	// }
 
 
 	return 0;

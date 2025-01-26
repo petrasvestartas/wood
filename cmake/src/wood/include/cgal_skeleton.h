@@ -141,10 +141,10 @@ namespace cgal
          * @brief Run the skeleton extraction algorithm.
          * @param v The vertices.
          * @param f The faces.
-         * @param output_mesh The output mesh.
          * @param output_polylines The output vector of polylines.
+         * @param output_mesh OPTIONAL: The output CGAL polyhedron.
          */
-        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh,std::vector<CGAL_Polyline>& output_polylines);
+        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh = nullptr);
 
         /**
          * @brief Generate equally spaced points along the polylines.
@@ -173,6 +173,18 @@ namespace cgal
          * @param output_distances The output vector to store the distances corresponding to the extended polyline.
          */
         void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<float>& output_distances);
+
+        /**
+         * @brief Run the beam skeleton extraction algorithm.
+         * @param v The vertices.
+         * @param f The faces.
+         * @param divisions The number of points to generate along the polylines.
+         * @param nearest_neighbors The number of nearest neighbors to consider for each point in the polyline.
+         * @param extend Whether to extend the polyline to the mesh.
+         * @param output_polyline The output polyline.
+         * @param output_distances The output vector to store the distances corresponding to the output polyline.
+         */
+        void beam_skeleton(std::vector<float>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<float>& output_distances, int divisions=0, int nearest_neighbors=0, bool extend=false);
     }
 } // namespace cgal
 

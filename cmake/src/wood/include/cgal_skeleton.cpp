@@ -18,16 +18,18 @@ namespace cgal
             }
         }
 
-        void run(std::vector<float>& v, std::vector<int>& f, CGAL::Polyhedron_3<CK>& output_mesh, std::vector<CGAL_Polyline>& output_polylines)
+        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
         {
-            from_vertices_and_faces(v, f, output_mesh);
+            CGAL::Polyhedron_3<CK> temp_mesh;
+            CGAL::Polyhedron_3<CK>& mesh = output_mesh ? *output_mesh : temp_mesh;
+
+            from_vertices_and_faces(v, f, mesh);
             
             Skeleton skeleton;
-            CGAL::extract_mean_curvature_flow_skeleton(output_mesh, skeleton);
+            CGAL::extract_mean_curvature_flow_skeleton(mesh, skeleton);
             
-            internal::SkeletonConversion skeleton_conversion (skeleton, output_polylines, output_mesh);
-            CGAL::split_graph_into_polylines (skeleton, skeleton_conversion);
-
+            internal::SkeletonConversion skeleton_conversion(skeleton, output_polylines, mesh);
+            CGAL::split_graph_into_polylines(skeleton, skeleton_conversion);
         }
 
         std::vector<IK::Point_3> orderPoints(const std::vector<IK::Point_3>& points) {
@@ -216,11 +218,31 @@ namespace cgal
                 }
             }
 
-
-
-
         }
 
+
+        void beam_skeleton(std::vector<float>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<float>& output_distances, int divisions, int nearest_neighbors, bool extend){
+
+            std::vector<CGAL_Polyline> output_polylines;
+            CGAL::Polyhedron_3<CK> output_mesh;
+            mesh_skeleton(v, f, output_polylines, &output_mesh);
+
+            if (divisions > 1){
+                divide_polyline(output_polylines, divisions, output_polyline);
+            } else if (output_polylines.size() > 0){
+                output_polyline = output_polylines[0];
+            } else {
+                return;
+            }
+
+            if (nearest_neighbors > 0){
+                find_nearest_mesh_distances(output_mesh, output_polyline, nearest_neighbors, output_distances);
+            }
+
+            if (extend){
+                extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
+            }
+        }
     }
 
 } // namespace cgal
