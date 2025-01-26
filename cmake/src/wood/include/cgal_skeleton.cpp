@@ -32,6 +32,11 @@ namespace cgal
             CGAL::split_graph_into_polylines(skeleton, skeleton_conversion);
         }
 
+        void mesh_skeleton(std::vector<float>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines)
+        {
+            mesh_skeleton(v, f, output_polylines, nullptr);
+        }
+
         std::vector<IK::Point_3> orderPoints(const std::vector<IK::Point_3>& points) {
             std::vector<IK::Point_3> ordered;
             std::vector<bool> visited(points.size(), false);
