@@ -209,7 +209,9 @@ namespace cgal
                 // gets intersection object
                 if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection0->first)) {
                     polyline.insert(polyline.begin(), IK::Point_3(p->x(), p->y(), p->z()));
-                    output_distances.insert(output_distances.begin(), output_distances[0]);
+                    if (output_distances.size() > 0){
+                        output_distances.insert(output_distances.begin(), output_distances[0]);
+                    }
                 }
             }
 
@@ -219,7 +221,9 @@ namespace cgal
                 // gets intersection object
                 if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection1->first)) {
                     polyline.push_back(IK::Point_3(p->x(), p->y(), p->z()));
-                    output_distances.push_back(output_distances[output_distances.size()-1]);
+                    if (output_distances.size() > 0){
+                        output_distances.push_back(output_distances[output_distances.size()-1]);
+                    }
                 }
             }
 

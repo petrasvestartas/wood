@@ -52,15 +52,15 @@ int main(int argc, char **argv)
 	// cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
 	// cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
 
+	std::cout << output_polylines.size() << std::endl;
 
-
-	for(auto output_polyline : output_polylines)
-	{
-		for(auto p : output_polyline)
-		{
-			std::cout << p << std::endl;
-		}
-	}
+	// for(auto output_polyline : output_polylines)
+	// {
+	// 	for(auto p : output_polyline)
+	// 	{
+	// 		std::cout << p << std::endl;
+	// 	}
+	// }
 	// for (auto p : output_polyline)
 	// {
 	// 	std::cout << p << std::endl;
