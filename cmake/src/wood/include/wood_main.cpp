@@ -971,8 +971,18 @@ face_to_face (const size_t &joint_id, std::vector<CGAL_Polyline> &Polyline0, std
                                                             // end planes
                                                             ////////////////////////////////////////////////////////////////////////////////
                                                             double d0 = 0.5 * std::sqrt (CGAL::squared_distance (Plane0[0].point (), Plane0[1].projection (Plane0[0].point ())));
+                                                            
                                                             IK::Plane_3 offset_plane_0 = cgal::plane_util::translate_by_normal (Plane0[i], -d0);
                                                             IK::Plane_3 offset_plane_1 = cgal::plane_util::translate_by_normal (Plane0[i], d0);
+
+                                                            // Check the winding
+                                                            double w0 = 0.5 * std::sqrt (CGAL::squared_distance (Plane1[0].point (), Plane1[0].projection (Plane0[0].point ())));
+                                                            double w1 = 0.5 * std::sqrt (CGAL::squared_distance (Plane1[1].point (), Plane1[1].projection (Plane0[0].point ())));
+                                                            if (w0 > w1)
+                                                                {
+                                                                    std::swap (w0, w1);
+                                                                    std::swap (Plane1[0], Plane1[1]);
+                                                                }
 
                                                             IK::Plane_3 loopOfPlanes0[4] = {
                                                                 offset_plane_0,
