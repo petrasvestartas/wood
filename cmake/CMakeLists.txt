@@ -196,7 +196,7 @@ if (GET_LIBS)
   # BOOST
   ########################################################################
   ExternalProject_Add(boost
-    URL https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.gz
+    URL https://archives.boost.io/release/1.82.0/source/boost_1_82_0.tar.gz
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/boost ${CMAKE_BINARY_DIR}/install/boost/include/boost

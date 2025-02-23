@@ -3,9 +3,6 @@
 echo "BAT install_mac start!"
 
 # Ensure the script is run with superuser privileges for the package installations
-# /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-# brew install cmake
-
 if [ "$(id -u)" != "0" ]; then
    echo "Please run this script with superuser privileges (sudo)."
    exit 1
