@@ -17,6 +17,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_GMP ON CACHE BOOL "Disable CMake find package for
 # Platform-specific compiler options
 if(MSVC)
     # MSVC specific flags
+    add_compile_options(/utf-8)
     # Modify runtime library configuration for static linking
     set(CompilerFlags
         CMAKE_CXX_FLAGS
@@ -279,6 +280,13 @@ if (BUILD_MY_PROJECTS)
   ###############################################################################
   # CREATE EXE
   ###############################################################################
+  # session_cpp submodule
+  set(SESSION_CPP_DIR "${CMAKE_SOURCE_DIR}/ext/session_cpp" CACHE PATH "Path to session_cpp source")
+  if(NOT EXISTS "${SESSION_CPP_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR "session_cpp not found at ${SESSION_CPP_DIR}.\nRun install_windows.sh (step 4 clones it automatically).")
+  endif()
+  add_subdirectory(${SESSION_CPP_DIR} ${CMAKE_BINARY_DIR}/ext/session_cpp_build EXCLUDE_FROM_ALL)
+
   add_executable(${PROJECT_NAME} main.cpp 
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_globals.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_box_util.cpp"
@@ -303,6 +311,8 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_mesh_boolean.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/database_writer.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/tinyply/tinyply.cpp"
+  "${CMAKE_SOURCE_DIR}/src/shapes/shapes.cpp"
+  # step_reader.cpp / step_writer.cpp already compiled inside session_core - excluded to avoid LNK2005.
   ) 
   
   ###############################################################################
@@ -340,6 +350,12 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_BINARY_DIR}/install/googletest/include/"
   # SQLite
   "${CMAKE_SOURCE_DIR}/src/sqlite/"
+  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src"
+  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/fmt/include"
+  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/json/include"
+  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/guid/include"
+  "${CMAKE_SOURCE_DIR}/src/shapes/"
+  "${CMAKE_SOURCE_DIR}/src/step/"
   )
 
 
@@ -373,6 +389,7 @@ if (BUILD_MY_PROJECTS)
       gtest
       gmock
       sqlite3
+      session_core
       )
   elseif(APPLE)
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/" )
@@ -390,6 +407,7 @@ if (BUILD_MY_PROJECTS)
       gtest
       gmock
       sqlite3
+      session_core
       )
   else()
     target_link_directories(${PROJECT_NAME} PUBLIC "${CMAKE_BINARY_DIR}/Release/" )
@@ -400,6 +418,7 @@ if (BUILD_MY_PROJECTS)
       gtest
       gmock
       sqlite3
+      session_core
     ) 
 
 
@@ -421,6 +440,11 @@ if (BUILD_MY_PROJECTS)
   find_package(Boost 1.72 REQUIRED)
   find_package(CGAL REQUIRED)
   target_link_libraries(${PROJECT_NAME} PUBLIC CGAL::CGAL)
+
+  # Pull in protobuf-generated object files from session_cpp's proto_objects OBJECT library.
+  # session_core only links libprotobuf (the runtime), not the generated .pb.cc objects,
+  # so we must add them explicitly here to resolve LNK2019 unresolved protobuf symbols.
+  target_link_libraries(${PROJECT_NAME} PUBLIC $<TARGET_OBJECTS:proto_objects> libprotobuf)
 
   ###############################################################################
   # GOOGLETEST

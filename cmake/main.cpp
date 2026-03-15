@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "wood_test.h" // test
+#include "shapes.h"
+#include "step_reader.h"
+#include "session.h"
 
 int main(int argc, char **argv)
 {
@@ -29,6 +32,42 @@ int main(int argc, char **argv)
 	wood::GLOBALS::OUTPUT_GEOMETRY_TYPE = 3;
 	wood::test::type_plates_name_side_to_side_edge_inplane_hilti();
 	//wood::test::type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Session_cpp examples — serialize outputs to data/
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	{
+		using namespace session_cpp;
+		std::string data_dir = std::filesystem::current_path().parent_path().string() + "/data/";
+		std::filesystem::create_directories(data_dir);
+
+		auto surfaces = annen_surfaces();
+		std::cout << "[session] data_dir=" << data_dir << "  surfaces=" << surfaces.size() << std::endl;
+		if (!surfaces.empty()) {
+			Session session;
+
+			// Chevron mesh
+			auto chevron = chevron_mesh(surfaces[0], 4, 900.0, 0.5, 0.05799);
+			session.add_mesh(std::make_shared<session_cpp::Mesh>(chevron));
+
+			// Folded plates
+			FoldedPlates fp(surfaces[0], 5, 5, 50.0, 0.0);
+			session.add_mesh(std::make_shared<session_cpp::Mesh>(fp.mesh));
+
+			// Cross connectors
+			CrossConnectors cc(chevron, 2.0, {0.0}, 2, 10.0, 10.0, 2.0, 0.0);
+			session.add_mesh(std::make_shared<session_cpp::Mesh>(cc.mesh));
+
+			// All Annen surfaces
+			for (auto& srf : surfaces)
+				session.add_nurbssurface(std::make_shared<session_cpp::NurbsSurface>(srf));
+
+			session.pb_dump(data_dir + "session.pb");
+		}
+
+		// STEP read
+		StepReader::read(data_dir + "annen.stp");
+	}
 
 	return 0;
 }
