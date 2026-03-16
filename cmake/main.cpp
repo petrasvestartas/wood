@@ -3,7 +3,10 @@
 #include "shapes.h"
 #include "step_reader.h"
 #include "session.h"
-namespace closest_points_joints { void run_benchmark(); }
+#include "wood_test_runner.h"
+namespace closest_points_joints { void run_benchmark(session_cpp::Session& session); }
+namespace closest_lines_insertion { void run(session_cpp::Session& session); }
+namespace wood_test { void run_suites(); }
 
 int main(int argc, char **argv)
 {
@@ -100,14 +103,27 @@ int main(int argc, char **argv)
 			for (auto& srf : surfaces)
 				session.add_nurbssurface(std::make_shared<session_cpp::NurbsSurface>(srf));
 
-			session.pb_dump(data_dir + "session.pb");
+			closest_points_joints::run_benchmark(session);
+		closest_lines_insertion::run(session);
+		session.pb_dump(data_dir + "session.pb");
 		}
 
 		// STEP read
 		StepReader::read(data_dir + "annen.stp");
+	}
 
-		// Closest-points joints benchmark — RTree vs AABBTree vs BVH
-		closest_points_joints::run_benchmark();
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Wood minitest — run suites and write testData.js for the Vue viewer
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	{
+		// Run all test suites (registers results into wood_test::registry())
+		wood_test::run_suites();
+
+		// Output path: cmake/wood_test/public/testData.js
+		// Relies on current_path() == cmake/build/ so parent_path() == cmake/
+		std::string js_out = std::filesystem::current_path().parent_path().string()
+		                     + "/wood_test/public/testData.js";
+		wood_test::dump_testdata_js(js_out);
 	}
 
 	return 0;

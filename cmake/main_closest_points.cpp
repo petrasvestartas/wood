@@ -3,6 +3,7 @@
 #include "wood_xml.h"
 #include "bvh.h"
 #include "aabb.h"
+#include "session.h"
 
 #include <chrono>
 #include <iomanip>
@@ -258,7 +259,7 @@ results_match (const JointTypes &a, const JointTypes &b, const char *label)
 // ---------------------------------------------------------------------------
 
 void
-run_benchmark ()
+run_benchmark (session_cpp::Session &session)
 {
     std::cerr << "\n=== closest_points_joints benchmark ===\n";
 
@@ -372,6 +373,43 @@ run_benchmark ()
 
     (void)ok_aabb;
     (void)ok_bvh;
+
+    // 7. Session output — named points at edge midpoints from r_rtree hits
+    {
+        // Build reverse map (elem_id * 10000 + edge_id) → first seg index (poly_id=0 preferred)
+        std::unordered_map<int, size_t> edge_to_seg;
+        for (size_t s = 0; s < segs.size (); s++)
+            {
+                int key = segs[s].elem_id * 10000 + segs[s].edge_id;
+                if (edge_to_seg.find (key) == edge_to_seg.end ())
+                    edge_to_seg[key] = s;
+            }
+
+        auto layer = session.add_group ("joint_hits");
+        int count  = 0;
+        for (size_t i = 0; i < r_rtree.size (); i++)
+            {
+                for (size_t j = 2; j < r_rtree[i].size (); j++)
+                    {
+                        if (r_rtree[i][j] < 0)
+                            continue;
+                        int edge_id = static_cast<int> (j) - 2;
+                        int key     = static_cast<int> (i) * 10000 + edge_id;
+                        auto it     = edge_to_seg.find (key);
+                        if (it == edge_to_seg.end ())
+                            continue;
+                        const auto &seg = segs[it->second].seg;
+                        double mx       = (seg.source ().x () + seg.target ().x ()) * 0.5;
+                        double my       = (seg.source ().y () + seg.target ().y ()) * 0.5;
+                        double mz       = (seg.source ().z () + seg.target ().z ()) * 0.5;
+                        auto pt         = std::make_shared<session_cpp::Point> (mx, my, mz);
+                        pt->name        = "e" + std::to_string (i) + "_edge" + std::to_string (edge_id);
+                        session.add (session.add_point (pt), layer);
+                        ++count;
+                    }
+            }
+        std::cerr << "Added " << count << " joint_hit points to session\n";
+    }
 }
 
 } // namespace closest_points_joints

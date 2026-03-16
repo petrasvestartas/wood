@@ -280,8 +280,8 @@ if (BUILD_MY_PROJECTS)
   ###############################################################################
   # CREATE EXE
   ###############################################################################
-  # session_cpp submodule
-  set(SESSION_CPP_DIR "${CMAKE_SOURCE_DIR}/ext/session_cpp" CACHE PATH "Path to session_cpp source")
+  # session_cpp: defaults to the local development clone; override via -DSESSION_CPP_DIR=...
+  set(SESSION_CPP_DIR "C:/pc/3_code/code_rust/session/session_cpp" CACHE PATH "Path to session_cpp source")
   if(NOT EXISTS "${SESSION_CPP_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "session_cpp not found at ${SESSION_CPP_DIR}.\nRun install_windows.sh (step 4 clones it automatically).")
   endif()
@@ -313,9 +313,11 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/tinyply/tinyply.cpp"
   "${CMAKE_SOURCE_DIR}/src/shapes/shapes.cpp"
   "${CMAKE_SOURCE_DIR}/main_closest_points.cpp"
+  "${CMAKE_SOURCE_DIR}/main_closest_lines.cpp"
   # step_reader/step_writer removed from session_cpp upstream; compile local copies.
   "${CMAKE_SOURCE_DIR}/src/step/step_reader.cpp"
   "${CMAKE_SOURCE_DIR}/src/step/step_writer.cpp"
+  "${CMAKE_SOURCE_DIR}/src/wood_test/wood_test_suites.cpp"
   )
   
   ###############################################################################
@@ -353,12 +355,14 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_BINARY_DIR}/install/googletest/include/"
   # SQLite
   "${CMAKE_SOURCE_DIR}/src/sqlite/"
-  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src"
-  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/fmt/include"
-  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/json/include"
-  "${CMAKE_SOURCE_DIR}/ext/session_cpp/src/guid/include"
+  "${SESSION_CPP_DIR}/src"
+  "${SESSION_CPP_DIR}/src/fmt/include"
+  "${SESSION_CPP_DIR}/src/json/include"
+  "${SESSION_CPP_DIR}/src/guid/include"
   "${CMAKE_SOURCE_DIR}/src/shapes/"
   "${CMAKE_SOURCE_DIR}/src/step/"
+  "${CMAKE_SOURCE_DIR}/src/wood_test/"
+  "${CMAKE_SOURCE_DIR}"
   )
 
 
