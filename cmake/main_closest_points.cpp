@@ -1,4 +1,3 @@
-#include "main_closest_points.h"
 #include "stdafx.h"
 #include "wood_globals.h"
 #include "wood_xml.h"

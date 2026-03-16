@@ -3,7 +3,7 @@
 #include "shapes.h"
 #include "step_reader.h"
 #include "session.h"
-#include "main_closest_points.h"
+namespace closest_points_joints { void run_benchmark(); }
 
 int main(int argc, char **argv)
 {
