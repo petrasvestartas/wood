@@ -3,7 +3,7 @@
 #include "shapes.h"
 #include "step_reader.h"
 #include "session.h"
-#include "src/wood/include/closest_points_joints.h"
+#include "main_closest_points.h"
 
 int main(int argc, char **argv)
 {

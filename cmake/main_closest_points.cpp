@@ -1,9 +1,9 @@
-#include "closest_points_joints.h"
-#include "../../../stdafx.h"
+#include "main_closest_points.h"
+#include "stdafx.h"
 #include "wood_globals.h"
 #include "wood_xml.h"
-#include "../../../ext/session_cpp/src/bvh.h"
-#include "../../../ext/session_cpp/src/aabb.h"
+#include "bvh.h"
+#include "aabb.h"
 
 #include <chrono>
 #include <iomanip>

@@ -312,7 +312,7 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/database_writer.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/tinyply/tinyply.cpp"
   "${CMAKE_SOURCE_DIR}/src/shapes/shapes.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/closest_points_joints.cpp"
+  "${CMAKE_SOURCE_DIR}/main_closest_points.cpp"
   # step_reader/step_writer removed from session_cpp upstream; compile local copies.
   "${CMAKE_SOURCE_DIR}/src/step/step_reader.cpp"
   "${CMAKE_SOURCE_DIR}/src/step/step_writer.cpp"
