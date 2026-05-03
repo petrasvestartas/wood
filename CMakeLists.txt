@@ -10,7 +10,10 @@ if(MSVC)
 endif()
 
 set(GENERATED_DIR "${CMAKE_SOURCE_DIR}/generated")
-add_subdirectory(session_cpp EXCLUDE_FROM_ALL)
+# Temporary: use local session_cpp instead of submodule for faster iteration.
+# To switch back to submodule: replace the path below with: session_cpp
+set(SESSION_CPP_DIR "C:/pc/3_code/code_rust/session/session_cpp")
+add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
     wood/wood_beams.cpp
@@ -27,10 +30,17 @@ set(WOOD_SOURCES
 function(ADD_WOOD_EXE NAME SRC)
     add_executable(${NAME} ${SRC} ${WOOD_SOURCES} ${ARGN})
     target_include_directories(${NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/session_cpp
+        ${SESSION_CPP_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/wood
     )
+    target_link_libraries(${NAME} PRIVATE session_core)
+    LINK_PROTOBUF(${NAME})
+endfunction()
+
+function(ADD_SESSION_EXE NAME SRC)
+    add_executable(${NAME} ${SRC})
+    target_include_directories(${NAME} PRIVATE ${SESSION_CPP_DIR})
     target_link_libraries(${NAME} PRIVATE session_core)
     LINK_PROTOBUF(${NAME})
 endfunction()
@@ -44,3 +54,8 @@ ADD_WOOD_EXE(main_wood_fold_1          wood/main_wood_fold_1.cpp wood/wood_test.
 ADD_WOOD_EXE(main_wood_fold_2          wood/main_wood_fold_2.cpp wood/wood_test.cpp)
 ADD_WOOD_EXE(main_5                    wood/main_5.cpp wood/wood_test.cpp)
 ADD_WOOD_EXE(main_2                    wood/main_2.cpp wood/wood_joint_detection.cpp)
+ADD_SESSION_EXE(main_reciprocal         wood/main_reciprocal.cpp)
+ADD_SESSION_EXE(main_1                  wood/main_1.cpp)
+ADD_SESSION_EXE(main_4                  wood/main_4.cpp)
+ADD_SESSION_EXE(example_loft_holes      wood/example_loft_holes.cpp)
+ADD_SESSION_EXE(export_to_wood_xml      wood/export_to_wood_xml.cpp)
