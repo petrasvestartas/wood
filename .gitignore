@@ -1,6 +1,8 @@
 #ingore backend
 cmake/build/**
 docs/output/**
+generated/
+session_data/
 
 *.tar.gz
 

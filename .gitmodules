@@ -1,3 +1,3 @@
-[submodule "docs/doxygen-awesome-css"]
-	path = docs/doxygen-awesome-css
-	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "session_cpp"]
+	path = session_cpp
+	url = https://github.com/petrasvestartas/session_cpp.git
