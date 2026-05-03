@@ -34,11 +34,11 @@ fi
 log_lang "cpp" "Building..."
 if [[ "$PLATFORM" == "windows" ]]; then
     cmake --build build --config Release --parallel "${JOBS}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$|absl|abseil|Generating Code\.\.\.|^\s*$" | awk '!seen[$0]++' || true
-    BIN_DIR="build/session_cpp/Release"
+    BIN_DIR="build/Release"
     EXE_EXT=".exe"
 else
     cmake --build build --config Release -- -j"${JOBS}"
-    BIN_DIR="build/session_cpp"
+    BIN_DIR="build"
     EXE_EXT=""
 fi
 
