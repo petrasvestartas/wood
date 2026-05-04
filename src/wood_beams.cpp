@@ -40,7 +40,7 @@ void beam_volumes_pipeline(
     using namespace wood_session::globals;
 
     const std::string pb_name = DATA_SET_OUTPUT_FILE;
-    auto base = internal::session_data_dir();
+    auto base = internal::output_dir();
 
     Session session("WoodF2F");
     auto g_axes = session.add_group("BeamAxes");

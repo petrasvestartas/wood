@@ -20,7 +20,7 @@
 //   scene.draw(delete=True)
 //
 // ─────────────────────────────────────────────────────────────────────────
-#include "wood/wood_session.h"
+#include "wood_session.h"
 #include "../src/session.h"
 
 using namespace session_cpp;
@@ -96,6 +96,6 @@ int main() {
     }
     fill_session(session, elements, joints);
 
-    session.pb_dump((internal::session_data_dir() / globals::DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / globals::DATA_SET_OUTPUT_FILE).string());
     return 0;
 }

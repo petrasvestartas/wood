@@ -9,22 +9,20 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-set(GENERATED_DIR "${CMAKE_SOURCE_DIR}/generated")
-# Temporary: use local session_cpp instead of submodule for faster iteration.
-# To switch back to submodule: replace the path below with: session_cpp
 set(SESSION_CPP_DIR "C:/pc/3_code/code_rust/session/session_cpp")
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
-    wood/wood_beams.cpp
-    wood/wood_element.cpp
-    wood/wood_face_to_face.cpp
-    wood/wood_globals.cpp
-    wood/wood_internal.cpp
-    wood/wood_joint.cpp
-    wood/wood_joint_detection.cpp
-    wood/wood_main.cpp
-    wood/wood_merge.cpp
+    src/wood_assign.cpp
+    src/wood_beams.cpp
+    src/wood_element.cpp
+    src/wood_face_to_face.cpp
+    src/wood_globals.cpp
+    src/wood_internal.cpp
+    src/wood_joint.cpp
+    src/wood_joint_detection.cpp
+    src/wood_main.cpp
+    src/wood_merge.cpp
 )
 
 function(ADD_WOOD_EXE NAME SRC)
@@ -32,7 +30,7 @@ function(ADD_WOOD_EXE NAME SRC)
     target_include_directories(${NAME} PRIVATE
         ${SESSION_CPP_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/wood
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
     target_link_libraries(${NAME} PRIVATE session_core)
     LINK_PROTOBUF(${NAME})
@@ -45,17 +43,17 @@ function(ADD_SESSION_EXE NAME SRC)
     LINK_PROTOBUF(${NAME})
 endfunction()
 
-ADD_WOOD_EXE(main_wood_00_hello        wood/main_wood_00_hello.cpp)
-ADD_WOOD_EXE(main_wood_01_new_geometry wood/main_wood_01_new_geometry.cpp)
-ADD_WOOD_EXE(main_wood_02_joint_types  wood/main_wood_02_joint_types.cpp)
-ADD_WOOD_EXE(main_wood_03_new_joint    wood/main_wood_03_new_joint.cpp)
-ADD_WOOD_EXE(main_wood_04_all_datasets wood/main_wood_04_all_datasets.cpp wood/wood_test.cpp)
-ADD_WOOD_EXE(main_wood_fold_1          wood/main_wood_fold_1.cpp wood/wood_test.cpp)
-ADD_WOOD_EXE(main_wood_fold_2          wood/main_wood_fold_2.cpp wood/wood_test.cpp)
-ADD_WOOD_EXE(main_5                    wood/main_5.cpp wood/wood_test.cpp)
-ADD_WOOD_EXE(main_2                    wood/main_2.cpp wood/wood_joint_detection.cpp)
-ADD_SESSION_EXE(main_reciprocal         wood/main_reciprocal.cpp)
-ADD_SESSION_EXE(main_1                  wood/main_1.cpp)
-ADD_SESSION_EXE(main_4                  wood/main_4.cpp)
-ADD_SESSION_EXE(example_loft_holes      wood/example_loft_holes.cpp)
-ADD_SESSION_EXE(export_to_wood_xml      wood/export_to_wood_xml.cpp)
+ADD_WOOD_EXE(main_wood_00_hello        examples/main_wood_00_hello.cpp)
+ADD_WOOD_EXE(main_wood_01_new_geometry examples/main_wood_01_new_geometry.cpp)
+ADD_WOOD_EXE(main_wood_02_joint_types  examples/main_wood_02_joint_types.cpp)
+ADD_WOOD_EXE(main_wood_03_new_joint    examples/main_wood_03_new_joint.cpp)
+ADD_WOOD_EXE(main_wood_04_all_datasets examples/main_wood_04_all_datasets.cpp src/wood_test.cpp)
+ADD_WOOD_EXE(main_wood_fold_1          examples/main_wood_fold_1.cpp src/wood_test.cpp)
+ADD_WOOD_EXE(main_wood_fold_2          examples/main_wood_fold_2.cpp src/wood_test.cpp)
+ADD_WOOD_EXE(main_5                    examples/main_5.cpp src/wood_test.cpp)
+ADD_WOOD_EXE(main_2                    examples/main_2.cpp)
+ADD_SESSION_EXE(main_reciprocal         examples/main_reciprocal.cpp)
+ADD_SESSION_EXE(main_1                  examples/main_1.cpp)
+ADD_SESSION_EXE(main_4                  examples/main_4.cpp)
+ADD_SESSION_EXE(example_loft_holes      examples/example_loft_holes.cpp)
+ADD_SESSION_EXE(export_to_wood_xml      examples/export_to_wood_xml.cpp)

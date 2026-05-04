@@ -16,15 +16,20 @@ using namespace session_cpp;
 
 namespace internal {
 
-// Absolute path to `session_data/` at the repo root. Centralises the
-// `__FILE__.parent_path() × 3` walk so relocating this translation unit
+// Absolute path to `data/` at the repo root. Centralises the
+// `__FILE__.parent_path() × 2` walk so relocating this translation unit
 // stays a one-line change.
 std::filesystem::path session_data_dir() {
     return std::filesystem::path(__FILE__)
-        .parent_path()   // session_cpp/wood/
-        .parent_path()   // session_cpp/
-        .parent_path()   // session/
-        / "session_data";
+        .parent_path()   // src/
+        .parent_path()   // repo root
+        / "data";
+}
+
+std::filesystem::path output_dir() {
+    auto out = session_data_dir() / "output";
+    std::filesystem::create_directories(out);
+    return out;
 }
 
 // Map wood test function name → session OBJ basename.

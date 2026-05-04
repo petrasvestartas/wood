@@ -29,7 +29,7 @@ bool type_plates_name_hexbox_and_corner() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_hexbox_and_corner]: {}\n", e.what());
@@ -46,7 +46,7 @@ bool type_plates_name_joint_linking_vidychapel_corner() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_joint_linking_vidychapel_corner]: {}\n", e.what());
@@ -63,7 +63,7 @@ bool type_plates_name_joint_linking_vidychapel_one_layer() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_joint_linking_vidychapel_one_layer]: {}\n", e.what());
@@ -80,7 +80,7 @@ bool type_plates_name_joint_linking_vidychapel_one_axis_two_layers() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_joint_linking_vidychapel_one_axis_two_layers]: {}\n", e.what());
@@ -97,7 +97,7 @@ bool type_plates_name_joint_linking_vidychapel_full() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_joint_linking_vidychapel_full]: {}\n", e.what());
@@ -114,7 +114,7 @@ bool type_plates_name_side_to_side_edge_inplane_2_butterflies() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_2_butterflies]: {}\n", e.what());
@@ -135,7 +135,7 @@ bool type_plates_name_side_to_side_edge_inplane_hexshell() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_hexshell]: {}\n", e.what());
@@ -156,7 +156,7 @@ bool type_plates_name_side_to_side_edge_inplane_differentdirections() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_differentdirections]: {}\n", e.what());
@@ -173,7 +173,7 @@ bool type_plates_name_side_to_side_edge_outofplane_folding() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_folding]: {}\n", e.what());
@@ -222,7 +222,7 @@ bool type_plates_name_side_to_side_edge_outofplane_box() {
     measure_corner_preservation(plates);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_box]: {}\n", e.what());
@@ -241,7 +241,7 @@ bool type_plates_name_side_to_side_edge_outofplane_box_miter() {
     measure_corner_preservation(plates);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_box_miter]: {}\n", e.what());
@@ -258,7 +258,7 @@ bool type_plates_name_side_to_side_edge_outofplane_tetra() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_tetra]: {}\n", e.what());
@@ -275,7 +275,7 @@ bool type_plates_name_side_to_side_edge_outofplane_dodecahedron() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_dodecahedron]: {}\n", e.what());
@@ -292,7 +292,7 @@ bool type_plates_name_side_to_side_edge_outofplane_icosahedron() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_icosahedron]: {}\n", e.what());
@@ -309,7 +309,7 @@ bool type_plates_name_side_to_side_edge_outofplane_octahedron() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_octahedron]: {}\n", e.what());
@@ -326,7 +326,7 @@ bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners]: {}\n", e.what());
@@ -343,7 +343,7 @@ bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combin
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined]: {}\n", e.what());
@@ -360,7 +360,7 @@ bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_differ
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths]: {}\n", e.what());
@@ -381,7 +381,7 @@ bool type_plates_name_side_to_side_edge_inplane_hilti() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_inplane_hilti]: {}\n", e.what());
@@ -398,7 +398,7 @@ bool type_plates_name_top_to_top_pairs() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_top_pairs]: {}\n", e.what());
@@ -419,7 +419,7 @@ bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexbox
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes]: {}\n", e.what());
@@ -440,7 +440,7 @@ bool type_plates_name_hex_block_rossiniere() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_hex_block_rossiniere]: {}\n", e.what());
@@ -461,7 +461,7 @@ bool type_plates_name_top_to_side_snap_fit() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_snap_fit]: {}\n", e.what());
@@ -482,7 +482,7 @@ bool type_plates_name_top_to_side_box() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_box]: {}\n", e.what());
@@ -503,7 +503,7 @@ bool type_plates_name_top_to_side_corners() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_corners]: {}\n", e.what());
@@ -524,7 +524,7 @@ bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner]: {}\n", e.what());
@@ -545,7 +545,7 @@ bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box]: {}\n", e.what());
@@ -562,7 +562,7 @@ bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair]: {}\n", e.what());
@@ -581,7 +581,7 @@ bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small()
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small]: {}\n", e.what());
@@ -602,7 +602,7 @@ bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_ar
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch]: {}\n", e.what());
@@ -623,7 +623,7 @@ bool type_plates_name_vda_floor_0() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_vda_floor_0]: {}\n", e.what());
@@ -644,7 +644,7 @@ bool type_plates_name_vda_floor_2() {
     auto joints = get_connection_zones(plates, face_to_face);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_vda_floor_2]: {}\n", e.what());
@@ -665,7 +665,7 @@ bool type_plates_name_cross_and_sides_corner() {
     auto joints = get_connection_zones(plates, face_to_face_then_cross);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_cross_and_sides_corner]: {}\n", e.what());
@@ -682,7 +682,7 @@ bool type_plates_name_cross_corners() {
     auto joints = get_connection_zones(plates, cross_joint);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_cross_corners]: {}\n", e.what());
@@ -699,7 +699,7 @@ bool type_plates_name_cross_vda_corner() {
     auto joints = get_connection_zones(plates, cross_joint);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_cross_vda_corner]: {}\n", e.what());
@@ -722,7 +722,7 @@ bool type_plates_name_cross_vda_corner() {
         auto joints = get_connection_zones(plates, cross_joint);              \
         Session session("WoodF2F");                                           \
         fill_session(session, plates, joints);                                \
-        session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string()); \
+        session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string()); \
         return true;                                                          \
         } catch (const std::exception& e) {                                   \
             fmt::print("  ERROR [" NAME "]: {}\n", e.what());                 \
@@ -751,7 +751,7 @@ bool type_plates_name_cross_ibois_pavilion() {
     auto joints = get_connection_zones(plates, face_to_face_then_cross);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_cross_ibois_pavilion]: {}\n", e.what());
@@ -772,7 +772,7 @@ bool type_plates_name_cross_brussels_sports_tower() {
     auto joints = get_connection_zones(plates, cross_joint);
     Session session("WoodF2F");
     fill_session(session, plates, joints);
-    session.pb_dump((internal::session_data_dir() / DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / DATA_SET_OUTPUT_FILE).string());
     return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_plates_name_cross_brussels_sports_tower]: {}\n", e.what());

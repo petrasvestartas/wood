@@ -3,7 +3,7 @@
 // All pipeline code lives in wood/wood_main.cpp; test harness in
 // wood/wood_test.cpp; shared declarations in wood/wood_session.h.
 // This file is just main() — a flat call list in wood_test.cpp order.
-#include "wood/wood_session.h"
+#include "wood_session.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // main() — flat call list matching wood_test.cpp:4684+ TEST() section order.

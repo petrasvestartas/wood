@@ -20,7 +20,7 @@
 //   scene.draw(delete=True)
 //
 // ─────────────────────────────────────────────────────────────────────────
-#include "wood/wood_session.h"
+#include "wood_session.h"
 
 int main() {
     type_plates_name_hexbox_and_corner();

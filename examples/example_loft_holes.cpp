@@ -154,7 +154,8 @@ int main() {
     session.add_mesh(m_collin, g_mesh);
 
     auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
-    auto pb = (base / "session_data" / "example_loft_holes_cpp.pb").string();
+    std::filesystem::create_directories(base / "data" / "output");
+    auto pb = (base / "data" / "output" / "example_loft_holes_cpp.pb").string();
     session.pb_dump(pb);
 
     for (auto& m : {m_rect, m_annen, m_collin}) {

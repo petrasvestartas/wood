@@ -17,8 +17,9 @@ static std::vector<Point> json_to_points(const nlohmann::json& arr) {
 
 int main() {
     auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
-    auto json_in = (base / "session_data" / "WoodStep3_data.json").string();
-    auto pb_path = (base / "session_data" / "WoodStep4.pb").string();
+    auto json_in = (base / "data" / "output" / "WoodStep3_data.json").string();
+    std::filesystem::create_directories(base / "data" / "output");
+    auto pb_path = (base / "data" / "output" / "WoodStep4.pb").string();
 
     // 1. Load adjacency data from Step 3
     std::ifstream fin(json_in);

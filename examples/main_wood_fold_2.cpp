@@ -1,11 +1,11 @@
 #include "session.h"
-#include "wood/wood_session.h"
+#include "wood_session.h"
 #include <filesystem>
 using namespace session_cpp;
 using namespace wood_session;
 
 int main() {
-    auto data = std::filesystem::path(__FILE__).parent_path().parent_path() / "session_data";
+    auto data = std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / "output";
 
     // ── TranslationShell surface ──────────────────────────────────────────────
     Polyline C(std::vector<Point>{

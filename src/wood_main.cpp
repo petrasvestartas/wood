@@ -1292,12 +1292,12 @@ void fill_session(
 
     // Wood-parity debug dumps next to the .pb (only if DATA_SET_OUTPUT_FILE is set).
     const std::string& pb_name = wood_session::globals::DATA_SET_OUTPUT_FILE;
-    auto base = internal::session_data_dir();
     std::ofstream meta_out;
     std::ofstream coord_out;
     if (!pb_name.empty()) {
-        meta_out.open((base / (pb_name + "_meta.txt")).string());
-        coord_out.open((base / (pb_name + "_coords.txt")).string());
+        auto out = internal::output_dir();
+        meta_out.open((out / (pb_name + "_meta.txt")).string());
+        coord_out.open((out / (pb_name + "_coords.txt")).string());
     }
 
     // Re-derive the original interleaved merged layout per element from features

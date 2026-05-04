@@ -126,7 +126,7 @@ static BeamGeom make_beam(const Line& line, const Vector& up, double w, double h
 }
 
 int main() {
-    auto data = std::filesystem::path(__FILE__).parent_path().parent_path() / "session_data";
+    auto data = std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / "output";
 
     // ── Sinusoidal dome mesh ───────────────────────────────────────────────────
     constexpr int    nx = 12, ny = 10;

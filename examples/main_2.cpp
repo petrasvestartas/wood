@@ -5,7 +5,7 @@
 #include "elementfeature.h"
 #include "file_obj.h"
 #include "intersection.h"
-#include "wood/wood_session.h"
+#include "wood_session.h"
 using namespace session_cpp;
 
 int main() {
@@ -14,7 +14,7 @@ int main() {
     auto t0 = Clock::now();
 
     // 1. Import cross polylines (top/bottom pairs of crossed plate elements)
-    auto polylines = file_obj::read_file_obj_polylines((base / "session_data" / "cross_polylines.obj").string());
+    auto polylines = file_obj::read_file_obj_polylines((base / "data" / "cross_polylines.obj").string());
     auto pairs = file_obj::pair_polylines(polylines);
     auto t1 = Clock::now();
 
@@ -83,7 +83,7 @@ int main() {
     auto t3 = Clock::now();
 
     // 4. Save
-    session.pb_dump((base / "session_data" / "WoodCross.pb").string());
+    session.pb_dump((base / "data" / "output" / "WoodCross.pb").string());
     auto t4 = Clock::now();
 
     auto ms = [](auto a, auto b) { return std::chrono::duration<double,std::milli>(b-a).count(); };

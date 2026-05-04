@@ -1,4 +1,4 @@
-#include "wood/wood_session.h"
+#include "wood_session.h"
 #include "../src/session.h"
 #include "../src/mesh.h"
 
@@ -188,7 +188,7 @@ int main() {
     //
     //   scene = Session.load(filepath)
     //   scene.draw(delete=True)
-    session.pb_dump((internal::session_data_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE).string());
 
     return 0;
 }

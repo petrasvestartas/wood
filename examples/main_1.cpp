@@ -11,7 +11,7 @@ int main() {
     auto t0 = Clock::now();
 
     // 1. Import + pair polylines
-    auto polylines = file_obj::read_file_obj_polylines((base / "session_data" / "annen_polylines.obj").string());
+    auto polylines = file_obj::read_file_obj_polylines((base / "data" / "annen_polylines.obj").string());
     auto pairs = file_obj::pair_polylines(polylines);
     auto t1 = Clock::now();
 
@@ -28,7 +28,7 @@ int main() {
     auto t3 = Clock::now();
 
     // 4. Save
-    session.pb_dump((base / "session_data" / "WoodComplete.pb").string());
+    session.pb_dump((base / "data" / "output" / "WoodComplete.pb").string());
     auto t4 = Clock::now();
 
     auto ms = [](auto a, auto b) { return std::chrono::duration<double,std::milli>(b-a).count(); };

@@ -22,7 +22,7 @@
 //   scene.draw(delete=True)
 //
 // ─────────────────────────────────────────────────────────────────────────
-#include "wood/wood_session.h"
+#include "wood_session.h"
 #include "../src/session.h"
 
 using namespace session_cpp;
@@ -50,7 +50,7 @@ static void run_annen(const std::string& name, double div_len) {
     // Session for visualization and export.
     Session session(globals::DATA_SET_INPUT_NAME);
     fill_session(session, elements, joints);
-    session.pb_dump((internal::session_data_dir() / globals::DATA_SET_OUTPUT_FILE).string());
+    session.pb_dump((internal::output_dir() / globals::DATA_SET_OUTPUT_FILE).string());
 }
 
 int main() {

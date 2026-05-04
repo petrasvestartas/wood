@@ -167,9 +167,11 @@ namespace globals {
 // ═══════════════════════════════════════════════════════════════════════════
 namespace internal {
 
-// Absolute path to the `session_data/` directory at the repo root. All OBJ,
-// .pb, .txt reads and writes resolve against this single anchor.
+// Absolute path to the `data/` directory at the repo root (input geometry).
 std::filesystem::path session_data_dir();
+
+// Absolute path to `data/output/` — creates the directory on first call.
+std::filesystem::path output_dir();
 
 // Returns true iff the dataset for the given wood test function name exists
 // in session_data/ (checks the underlying .obj file).
