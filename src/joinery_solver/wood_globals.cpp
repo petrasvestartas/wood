@@ -66,7 +66,7 @@ std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 namespace {
 
 std::filesystem::path config_dir() {
-    return std::filesystem::path(__FILE__).parent_path() / "config";
+    return std::filesystem::path(__FILE__).parent_path().parent_path() / "config";
 }
 
 bool parse_bool(const std::string& s) {

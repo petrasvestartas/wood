@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 #include <vector>
 
 namespace wood_session {
@@ -51,7 +52,6 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
     std::vector<Point> pp0 = bot.get_points();
     std::vector<Point> pp1 = top.get_points();
 
-    // Strip closing point if present
     auto strip = [](std::vector<Point>& v) {
         if (v.size() > 3) {
             auto& f = v.front(); auto& l = v.back();
@@ -60,15 +60,6 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
         }
     };
 
-    // Wood orientation check (`wood_main.cpp:73-110`): transform the
-    // concatenated `twoPolylines = pp[i] + pp[i+1]` through
-    // `plane_to_xy(average_plane(pp[i]))` and reverse both polylines if
-    // `twoPolylines.back().z() > 0`. The transformed z of a point p equals
-    // `dot(p - origin, z_axis)` when the frame is orthonormal, so we
-    // compute that directly instead of materialising a 4×4 transform.
-    //
-    // Frame: origin = centroid(pp0), z_axis = average_normal(pp0). We need
-    // only the z-component; the x/y components are unused here.
     Vector normal = Vector::average_normal(pp0);
     auto pp0_open = pp0;
     strip(pp0_open);
@@ -84,16 +75,12 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
         reversed = true;
     }
 
-    // Wood uses the CLOSED polyline for side iteration: j = 0..size()-2.
-    // For a closed quad (5 points), that gives 4 side faces.
-    // Compute normal/centroid from open points, but iterate closed points for sides.
     size_t n_sides = pp0.size() > 1 ? pp0.size() - 1 : 0;
 
     polylines.resize(2 + n_sides, Polyline(std::vector<Point>{}));
     polylines[0] = Polyline(pp0);
     polylines[1] = Polyline(pp1);
 
-    // Strip for centroid computation only
     auto pp0_stripped = pp0;
     auto pp1_stripped = pp1;
     strip(pp0_stripped);
@@ -106,9 +93,7 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
     planes[1] = Plane::from_point_normal(cen1, neg_normal);
     thickness = Point::distance(cen0, planes[1].project(cen0));
 
-    // Side planes from 3 points on the CLOSED polyline: (pp0[j+1], pp0[j], pp1[j+1])
     for (size_t j = 0; j < n_sides; j++) {
-        // 3-point plane: normal = (pp0[j]-pp0[j+1]) × (pp1[j+1]-pp0[j+1])
         double ax = pp0[j][0]-pp0[j+1][0];
         double ay = pp0[j][1]-pp0[j+1][1];
         double az = pp0[j][2]-pp0[j+1][2];
@@ -118,7 +103,6 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
         double nx = ay*bz-az*by;
         double ny = az*bx-ax*bz;
         double nz = ax*by-ay*bx;
-        // Build plane with CGAL-compatible base1/base2 axes.
         Point side_origin = pp0[j+1];
         double anx = std::abs(nx), any = std::abs(ny), anz = std::abs(nz);
         Vector sb1;
@@ -137,6 +121,70 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
         polylines[2+j] = Polyline(std::vector<Point>{
             pp0[j], pp0[j+1], pp1[j+1], pp1[j], pp0[j]});
     }
+}
+
+session_cpp::Mesh WoodElement::loft_mesh() const {
+    auto strip = [](const Polyline& pl) -> std::vector<Point> {
+        std::vector<Point> pts = pl.get_points();
+        size_t n = pts.size();
+        if (n >= 2) {
+            const auto& f = pts.front();
+            const auto& l = pts.back();
+            if (std::abs(f[0]-l[0]) < 1e-6 &&
+                std::abs(f[1]-l[1]) < 1e-6 &&
+                std::abs(f[2]-l[2]) < 1e-6)
+                pts.pop_back();
+        }
+        return pts;
+    };
+
+    std::vector<Point> bot = strip(polylines[0]);
+    std::vector<Point> top = strip(polylines[1]);
+    size_t n = std::min(bot.size(), top.size());
+    if (n < 2) return session_cpp::Mesh{};
+
+    std::vector<Point> verts;
+    verts.reserve(2 * n);
+    for (size_t i = 0; i < n; ++i) verts.push_back(bot[i]);
+    for (size_t i = 0; i < n; ++i) verts.push_back(top[i]);
+
+    std::vector<std::vector<size_t>> faces;
+    faces.reserve(2 + n);
+
+    // WoodElement orientation ensures polylines[0] winding is already outward for bottom —
+    // use forward order. Top cap is reversed so its normal points outward away from bottom.
+    std::vector<size_t> bot_cap(n);
+    for (size_t i = 0; i < n; ++i) bot_cap[i] = i;
+    faces.push_back(bot_cap);
+
+    std::vector<size_t> top_cap(n);
+    for (size_t i = 0; i < n; ++i) top_cap[i] = n + (n - 1 - i);
+    faces.push_back(top_cap);
+
+    for (size_t i = 0; i < n; ++i) {
+        size_t j = (i + 1) % n;
+        faces.push_back({i, j, n + j, n + i});
+    }
+
+    return session_cpp::Mesh::from_vertices_and_faces(verts, faces);
+}
+
+std::string WoodElement::str() const {
+    std::ostringstream os;
+    os << "WoodElement(polylines=" << polylines.size()
+       << ", thickness=" << thickness << ")";
+    return os.str();
+}
+std::string WoodElement::repr() const {
+    std::ostringstream os;
+    os << "WoodElement(polylines=" << polylines.size()
+       << ", planes=" << planes.size()
+       << ", reversed=" << (reversed ? "true" : "false")
+       << ", thickness=" << thickness << ")";
+    return os.str();
+}
+std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
+    return os << e.str();
 }
 
 } // namespace wood_session

@@ -21,6 +21,7 @@ namespace internal {
 // stays a one-line change.
 std::filesystem::path session_data_dir() {
     return std::filesystem::path(__FILE__)
+        .parent_path()   // joinery_solver/
         .parent_path()   // src/
         .parent_path()   // repo root
         / "data";
