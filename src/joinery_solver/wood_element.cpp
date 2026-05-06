@@ -163,7 +163,7 @@ session_cpp::Mesh WoodElement::loft_mesh() const {
 
     for (size_t i = 0; i < n; ++i) {
         size_t j = (i + 1) % n;
-        faces.push_back({i, j, n + j, n + i});
+        faces.push_back({i, n + i, n + j, j});
     }
 
     return session_cpp::Mesh::from_vertices_and_faces(verts, faces);
