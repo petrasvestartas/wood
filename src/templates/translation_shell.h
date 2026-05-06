@@ -31,14 +31,14 @@ public:
                      const Polyline& profile        = default_profile(),
                      double thickness      = 10.0,
                      double chamfer        = 1.0,
-                     double chamfer_angle  = 90.0)
+                     double chamfer_angle  = 180.0)
     {
         if (cross_section.point_count() < 2)
             throw std::invalid_argument("TranslationShell: cross_section must have at least 2 points");
         if (profile.point_count() < 2)
             throw std::invalid_argument("TranslationShell: profile must have at least 2 points");
-        if (thickness <= 0.0)
-            throw std::invalid_argument("TranslationShell: thickness must be positive");
+        if (thickness == 0.0)
+            throw std::invalid_argument("TranslationShell: thickness must not be zero");
 
         mesh = sweep(cross_section, profile);
 

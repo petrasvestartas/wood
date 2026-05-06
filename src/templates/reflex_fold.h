@@ -32,19 +32,19 @@ public:
                double thickness     = 10.0,
                double chamfer_bot   = 20.0,
                double chamfer_top   = 20.0,
-               double chamfer_angle = 45.0)
+               double chamfer_angle = 180.0)
     {
         if (cross_section.point_count() < 2)
             throw std::invalid_argument("ReflexFold: cross_section must have at least 2 points");
         if (profile.point_count() < 2)
             throw std::invalid_argument("ReflexFold: profile must have at least 2 points");
-        if (thickness <= 0.0)
-            throw std::invalid_argument("ReflexFold: thickness must be positive");
+        if (thickness == 0.0)
+            throw std::invalid_argument("ReflexFold: thickness must not be zero");
 
         mesh = reflex_fold(cross_section, profile);
 
         for (const auto& plate :
-                Mesh::miter_contours(mesh, thickness, chamfer_bot, chamfer_top, false, chamfer_angle)) {
+                Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const auto& top_raw = std::get<2>(plate);
             const auto& bot_raw = std::get<3>(plate);
             if (top_raw.empty() || bot_raw.empty()) continue;
@@ -54,9 +54,13 @@ public:
                 return pts;
             };
 
+            auto mask   = chamfer_mask(bot_raw, chamfer_angle);
+            auto top_ch = chamfer_apply(top_raw, chamfer_bot, mask);
+            auto bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
+
             elements.emplace_back(
-                Polyline(close(bot_raw)),
-                Polyline(close(top_raw))
+                Polyline(close(bot_ch)),
+                Polyline(close(top_ch))
             );
         }
     }
@@ -96,6 +100,56 @@ public:
     }
 
 private:
+    static std::vector<bool> chamfer_mask(const std::vector<Point>& pts, double max_angle_deg) {
+        size_t n = pts.size();
+        std::vector<bool> mask(n, false);
+        constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
+        for (size_t i = 0; i < n; ++i) {
+            size_t prev = (i + n - 1) % n;
+            size_t next = (i + 1) % n;
+            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
+            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
+            double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
+            double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
+            if (lp < 1e-12 || ln < 1e-12) continue;
+            double cosA = std::max(-1.0, std::min(1.0, (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
+            mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
+        }
+        return mask;
+    }
+
+    static std::vector<Point> chamfer_apply(const std::vector<Point>& pts, double s,
+                                             const std::vector<bool>& mask) {
+        size_t n = pts.size();
+        if (s <= 0.0) return pts;
+        double min_edge = std::numeric_limits<double>::max();
+        for (size_t i = 0; i < n; ++i) {
+            size_t j = (i + 1) % n;
+            double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
+            min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
+        }
+        double sc = std::min(s, min_edge / 3.0);
+        std::vector<Point> result;
+        result.reserve(2 * n);
+        for (size_t i = 0; i < n; ++i) {
+            size_t prev = (i + n - 1) % n;
+            size_t next = (i + 1) % n;
+            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
+            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
+            double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
+            double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
+            if (mask[i]) {
+                double sp = (lp > 1e-12) ? sc/lp : 0.0;
+                double sn = (ln > 1e-12) ? sc/ln : 0.0;
+                result.push_back(Point(pts[i][0]+dpx*sp, pts[i][1]+dpy*sp, pts[i][2]+dpz*sp));
+                result.push_back(Point(pts[i][0]+dnx*sn, pts[i][1]+dny*sn, pts[i][2]+dnz*sn));
+            } else {
+                result.push_back(pts[i]);
+            }
+        }
+        return result;
+    }
+
     /// Projects each profile row onto the bisector plane at each cross-section
     /// point and accumulates a quad mesh.
     ///
