@@ -66,19 +66,24 @@ public:
     /// Degree-3 bicubic flat surface: 3000×5000 mm in the XY plane.
     /// chevron_mesh will use V as the long axis (5000 mm arc).
     static NurbsSurface default_surface() {
-        // order=4 (degree 3), 4×4 control points
-        // Internal knot count per direction: n_cv + order - 2 = 4+4-2 = 6
-        // Clamped: full=[0,0,0,0,1,1,1,1], stripped=[0,0,0,1,1,1]
+        // order=4 (degree 3), 4×4 control points.
+        // Knots use physical mm values [0,W] and [0,L] so that chevron_mesh
+        // can use v_division_dist directly as a parametric step (matching
+        // the original Python where baseStepV = v_division_dist with physical domains).
+        // Clamped knot vector for 4 CVs degree-3: full=[0,0,0,0,W,W,W,W],
+        // OpenNURBS strips first/last → [0,0,0,W,W,W].
+        const double W = 3000.0, L = 5000.0;
+
         NurbsSurface srf;
         srf.create_raw(3, false, 4, 4, 4, 4);
 
-        const double k[] = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};
+        const double ku[] = {0.0, 0.0, 0.0, W, W, W};
+        const double kv[] = {0.0, 0.0, 0.0, L, L, L};
         for (int i = 0; i < 6; i++) {
-            srf.set_nurbsknot(0, i, k[i]);
-            srf.set_nurbsknot(1, i, k[i]);
+            srf.set_nurbsknot(0, i, ku[i]);
+            srf.set_nurbsknot(1, i, kv[i]);
         }
 
-        const double W = 3000.0, L = 5000.0;
         const double us[] = {0.0, W/3.0, 2.0*W/3.0, W};
         const double vs[] = {0.0, L/3.0, 2.0*L/3.0, L};
 

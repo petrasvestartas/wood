@@ -94,45 +94,23 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
                                       double scale           = 0.05799) {
     session_cpp::NurbsSurface srf = surface;
 
-    // Measure arc lengths; transpose so v is always the long (march) direction
-    auto du0 = srf.domain(0);
-    auto dv0 = srf.domain(1);
-    constexpr int nsamp = 50;
-    double u_arc = 0, v_arc = 0;
-    {
-        double v_mid = (dv0.first + dv0.second) / 2.0;
-        session_cpp::Point prev = srf.point_at(du0.first, v_mid);
-        for (int i = 1; i <= nsamp; i++) {
-            session_cpp::Point curr = srf.point_at(
-                du0.first + (du0.second - du0.first) * i / nsamp, v_mid);
-            u_arc += prev.distance(curr);
-            prev = curr;
-        }
-    }
-    {
-        double u_mid = (du0.first + du0.second) / 2.0;
-        session_cpp::Point prev = srf.point_at(u_mid, dv0.first);
-        for (int i = 1; i <= nsamp; i++) {
-            session_cpp::Point curr = srf.point_at(
-                u_mid, dv0.first + (dv0.second - dv0.first) * i / nsamp);
-            v_arc += prev.distance(curr);
-            prev = curr;
-        }
-    }
-
-    if (u_arc > v_arc) {
-        srf.transpose();
-        std::swap(u_arc, v_arc);
-    }
+    // Always transpose so u becomes the march direction and v the row direction.
+    // This matches the original Python: s = s.Transpose() (unconditional).
+    // The caller is responsible for orienting the surface so that after Transpose
+    // the v domain spans the desired row-height direction.
+    srf.transpose();
 
     auto du = srf.domain(0);
     auto dv = srf.domain(1);
 
-    double param_v   = dv.second - dv.first;
-    double half_v    = dv.second * 0.5;
+    double half_v    = dv.second * 0.5;   // Python: DomV.T1 * 0.5
     double StepU     = (du.second - du.first) / u_divisions;
-    double totalV    = param_v;
-    double baseStepV = (v_arc > 1e-10) ? v_division_dist * param_v / v_arc : v_division_dist;
+    double totalV    = dv.second - dv.first;
+    // Direct parametric step — matches Python: baseStepV = v_division_dist.
+    // Requires surfaces whose parametric domain is in the same units as
+    // v_division_dist (e.g. millimetres for the Annen surfaces and for the
+    // default_surface() whose knots now span [0, W] and [0, L]).
+    double baseStepV = v_division_dist;
 
     std::vector<std::vector<session_cpp::Point>> polygons;
 

@@ -26,6 +26,7 @@ public:
     std::vector<Polyline> side0;   // right-face outlines (+right direction)
     std::vector<Polyline> side1;   // left-face outlines  (-right direction)
 
+    /// Parametric sinusoidal dome constructor.
     ReciprocalBeam(int    nx                = 12,
                    int    ny                = 10,
                    double W                 = 12.0,
@@ -39,22 +40,43 @@ public:
     {
         if (nx < 1 || ny < 1)
             throw std::invalid_argument("ReciprocalBeam: nx and ny must be >= 1");
+        dome_mesh = make_dome(nx, ny, W, D, h);
+        _build(dome_mesh, nx, angle, scale, beam_w, extend_factor, cut_offset_factor);
+    }
+
+    /// External mesh constructor — use any quad mesh as the base.
+    /// v-edge stagger is disabled (pass nx > 0 explicitly if needed).
+    explicit ReciprocalBeam(Mesh ext_mesh,
+                            double angle             = 0.35,
+                            double scale             = 1.4,
+                            double beam_w            = 0.10,
+                            double extend_factor     = 5.0,
+                            double cut_offset_factor = 1.0)
+    {
+        dome_mesh = std::move(ext_mesh);
+        _build(dome_mesh, -1, angle, scale, beam_w, extend_factor, cut_offset_factor);
+    }
+
+private:
+    void _build(const Mesh& m, int nx_stagger,
+                double angle, double scale, double beam_w,
+                double extend_factor, double cut_offset_factor)
+    {
         if (beam_w <= 0.0)
             throw std::invalid_argument("ReciprocalBeam: beam_w must be positive");
-
-        dome_mesh = make_dome(nx, ny, W, D, h);
 
         const double beam_h     = beam_w * 2.0;
         const double extend     = beam_w * extend_factor;
         const double cut_offset = beam_w * cut_offset_factor;
 
-        auto r = Reciprocal::from_mesh(dome_mesh, angle, scale, true, beam_h);
+        auto r = Reciprocal::from_mesh(m, angle, scale, true, beam_h);
 
-        auto ekeys = dome_mesh.edges();
+        auto ekeys = m.edges();
         for (int ei = 0; ei < (int)r.center.size(); ei++) {
             auto [u, v]    = ekeys[ei];
-            bool is_v_edge = (size_t)std::abs((long long)u - (long long)v)
-                             == (size_t)(nx + 1);
+            bool is_v_edge = (nx_stagger > 0) &&
+                             ((size_t)std::abs((long long)u - (long long)v)
+                              == (size_t)(nx_stagger + 1));
 
             Line          ln  = r.center[ei];
             const Vector& up  = r.lineplanes[ei].y_axis();
@@ -78,8 +100,6 @@ public:
             side1.emplace_back(s1);
         }
     }
-
-private:
     struct BeamGeom {
         Mesh               mesh;
         std::vector<Point> side0;
