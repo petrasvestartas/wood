@@ -40,6 +40,7 @@ function(ADD_SESSION_EXE NAME SRC)
     add_executable(${NAME} ${SRC})
     target_include_directories(${NAME} PRIVATE
         ${SESSION_CPP_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
     )
     target_link_libraries(${NAME} PRIVATE session_core)
@@ -65,4 +66,5 @@ ADD_SESSION_EXE(main_vda_mesh         src/templates/main_vda_mesh_test.cpp)
 ADD_WOOD_EXE(main_translation_shell   examples/templates/main_translation_shell.cpp)
 ADD_WOOD_EXE(main_reflex_fold         examples/templates/main_reflex_fold.cpp)
 ADD_WOOD_EXE(main_chevron             examples/templates/main_chevron.cpp)
-ADD_SESSION_EXE(main_reciprocal_beam  examples/templates/main_reciprocal_beam.cpp)
+ADD_SESSION_EXE(main_reciprocal_rotation  examples/templates/main_reciprocal_rotation.cpp)
+ADD_SESSION_EXE(main_reciprocal_move      examples/templates/main_reciprocal_move.cpp)

@@ -1,9 +1,9 @@
 // Build and run from wood/ root:
 //   cmake -B build
-//   cmake --build build --config Release --target main_reciprocal_beam
-//   ./build/Release/main_reciprocal_beam.exe
+//   cmake --build build --config Release --target main_reciprocal_rotation
+//   ./build/Release/main_reciprocal_rotation.exe
 
-#include "src/templates/reciprocal_beam.h"
+#include "src/templates/reciprocal_rotation.h"
 #include <filesystem>
 #include <iostream>
 
@@ -12,7 +12,7 @@ int main() {
                / "data" / "templates";
     std::filesystem::create_directories(out);
 
-    ReciprocalBeam rb;
+    ReciprocalRotation rb;
 
     std::cout << "dome:   " << rb.dome_mesh.number_of_vertices() << " vertices  "
               << rb.dome_mesh.number_of_faces() << " faces\n";

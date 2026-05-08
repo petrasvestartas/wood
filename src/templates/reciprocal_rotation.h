@@ -11,16 +11,16 @@
 
 using namespace session_cpp;
 
-/// A reciprocal beam frame from a sinusoidal dome mesh.
+/// A reciprocal beam frame from a sinusoidal dome mesh (rotation-based nexorade).
 ///
 /// Generates a rectangular box beam at each mesh edge, cutting each end
 /// against the side face of its topological neighbor beam. Produces the
 /// dome mesh, all beam box meshes, and the side-face outlines.
 ///
 /// Usage:
-///   ReciprocalBeam rb;                          // default 12×10 dome
-///   ReciprocalBeam rb(6, 5, 6.0, 5.0, 2.0);    // smaller dome
-class ReciprocalBeam {
+///   ReciprocalRotation rb;                          // default 12×10 dome
+///   ReciprocalRotation rb(6, 5, 6.0, 5.0, 2.0);    // smaller dome
+class ReciprocalRotation {
 public:
     Mesh dome_mesh;
     std::vector<Mesh>     beams;
@@ -30,20 +30,20 @@ public:
     std::vector<std::array<double,3>> beam_ups;   // unit up (thickness) direction per beam
 
     /// Parametric sinusoidal dome constructor.
-    ReciprocalBeam(int    nx                = 12,
-                   int    ny                = 10,
-                   double W                 = 12.0,
-                   double D                 = 10.0,
-                   double h                 = 3.0,
-                   double angle             = 0.35,
-                   double scale             = 1.4,
-                   double beam_w            = 0.10,
-                   double beam_h            = 0.0,
-                   double extend_factor     = 5.0,
-                   double cut_offset_factor = 1.0)
+    ReciprocalRotation(int    nx                = 12,
+                       int    ny                = 10,
+                       double W                 = 12.0,
+                       double D                 = 10.0,
+                       double h                 = 3.0,
+                       double angle             = 0.35,
+                       double scale             = 1.4,
+                       double beam_w            = 0.10,
+                       double beam_h            = 0.0,
+                       double extend_factor     = 5.0,
+                       double cut_offset_factor = 1.0)
     {
         if (nx < 1 || ny < 1) {
-            throw std::invalid_argument("ReciprocalBeam: nx and ny must be >= 1");
+            throw std::invalid_argument("ReciprocalRotation: nx and ny must be >= 1");
         }
         dome_mesh = make_dome(nx, ny, W, D, h);
         _build(dome_mesh, nx, angle, scale, beam_w, beam_h, extend_factor, cut_offset_factor);
@@ -51,13 +51,13 @@ public:
 
     /// External mesh constructor — use any quad mesh as the base.
     /// v-edge stagger is disabled (pass nx > 0 explicitly if needed).
-    explicit ReciprocalBeam(Mesh ext_mesh,
-                            double angle             = 0.35,
-                            double scale             = 1.4,
-                            double beam_w            = 0.10,
-                            double beam_h            = 0.0,
-                            double extend_factor     = 5.0,
-                            double cut_offset_factor = 1.0)
+    explicit ReciprocalRotation(Mesh ext_mesh,
+                                double angle             = 0.35,
+                                double scale             = 1.4,
+                                double beam_w            = 0.10,
+                                double beam_h            = 0.0,
+                                double extend_factor     = 5.0,
+                                double cut_offset_factor = 1.0)
     {
         dome_mesh = std::move(ext_mesh);
         _build(dome_mesh, -1, angle, scale, beam_w, beam_h, extend_factor, cut_offset_factor);
@@ -69,7 +69,7 @@ private:
                 double extend_factor, double cut_offset_factor)
     {
         if (beam_w <= 0.0) {
-            throw std::invalid_argument("ReciprocalBeam: beam_w must be positive");
+            throw std::invalid_argument("ReciprocalRotation: beam_w must be positive");
         }
 
         if (beam_h <= 0.0) beam_h = beam_w * 2.0;
