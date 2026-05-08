@@ -50,8 +50,8 @@ class Plane:
     def rotate_around_y(self, angle_rad):
         """Rotate plane around its own Y-axis."""
         c, s = math.cos(angle_rad), math.sin(angle_rad)
-        new_x = c * self.x + s * self.z
-        new_z = -s * self.x + c * self.z
+        new_x = c * self.x - s * self.z
+        new_z = s * self.x + c * self.z
         new_x /= np.linalg.norm(new_x)
         new_z /= np.linalg.norm(new_z)
         # rebuild y from z × x
@@ -176,6 +176,13 @@ def polyline_from_planes(base_plane, side_planes):
     pts.append(pts[0].copy())  # close
     return pts
 
+
+def _reverse_pline(pts):
+    """Keep v0, reverse v1..v(n-2), keep closing point. Matches C++ winding for face plates."""
+    if len(pts) < 3:
+        return pts
+    return [pts[0]] + list(reversed(pts[1:-1])) + [pts[0].copy()]
+
 # ─────────────────────────────────────────────────────────────
 # Mesh data structure
 # ─────────────────────────────────────────────────────────────
@@ -192,7 +199,7 @@ class CMesh:
 
     def face_normal(self, fi):
         a, b, c, d = [self.v[i] for i in self.f[fi]]
-        n = np.cross(b - a, d - a)
+        n = np.cross(b - a, c - a)  # matches C++: cross(fv[1]-fv[0], fv[2]-fv[0])
         nn = np.linalg.norm(n)
         return n / nn if nn > 1e-12 else np.array([0., 0., 1.])
 

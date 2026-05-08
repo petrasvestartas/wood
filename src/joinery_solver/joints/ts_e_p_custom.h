@@ -11,18 +11,30 @@ static void ts_e_p_custom(WoodJoint& joint) {
 
     const auto& cm = wood_session::globals::CUSTOM_JOINTS_TS_E_P_MALE;
     const auto& cf = wood_session::globals::CUSTOM_JOINTS_TS_E_P_FEMALE;
-    if (cm.size() < 2 || cf.size() < 2) return;
+    if (cm.size() < 2 || cf.size() < 2) {
+        return;
+    }
 
     std::vector<Point> m0, m1, f0, f1;
     for (size_t i = 0; i + 1 < cm.size(); i += 2) {
-        for (size_t k = 0; k < cm[i].point_count();   k++) m0.push_back(cm[i].get_point(k));
-        for (size_t k = 0; k < cm[i+1].point_count(); k++) m1.push_back(cm[i+1].get_point(k));
+        for (size_t k = 0; k < cm[i].point_count();   k++) {
+            m0.push_back(cm[i].get_point(k));
+        }
+        for (size_t k = 0; k < cm[i+1].point_count(); k++) {
+            m1.push_back(cm[i+1].get_point(k));
+        }
     }
     for (size_t i = 0; i + 1 < cf.size(); i += 2) {
-        for (size_t k = 0; k < cf[i].point_count();   k++) f0.push_back(cf[i].get_point(k));
-        for (size_t k = 0; k < cf[i+1].point_count(); k++) f1.push_back(cf[i+1].get_point(k));
+        for (size_t k = 0; k < cf[i].point_count();   k++) {
+            f0.push_back(cf[i].get_point(k));
+        }
+        for (size_t k = 0; k < cf[i+1].point_count(); k++) {
+            f1.push_back(cf[i+1].get_point(k));
+        }
     }
-    if (m0.empty() || m1.empty() || f0.empty() || f1.empty()) return;
+    if (m0.empty() || m1.empty() || f0.empty() || f1.empty()) {
+        return;
+    }
 
     Polyline pl_m0(m0), pl_m1(m1), pl_f0(f0), pl_f1(f1);
     Polyline ep_m0(std::vector<Point>{ m0.front(), m0.back() });

@@ -55,8 +55,9 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
     auto strip = [](std::vector<Point>& v) {
         if (v.size() > 3) {
             auto& f = v.front(); auto& l = v.back();
-            if (std::abs(f[0]-l[0])<1e-6 && std::abs(f[1]-l[1])<1e-6 && std::abs(f[2]-l[2])<1e-6)
+            if (std::abs(f[0]-l[0])<1e-6 && std::abs(f[1]-l[1])<1e-6 && std::abs(f[2]-l[2])<1e-6) {
                 v.pop_back();
+            }
         }
     };
 
@@ -106,12 +107,19 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
         Point side_origin = pp0[j+1];
         double anx = std::abs(nx), any = std::abs(ny), anz = std::abs(nz);
         Vector sb1;
-        if (anx < 1e-12)      sb1 = Vector(1,0,0);
-        else if (any < 1e-12) sb1 = Vector(0,1,0);
-        else if (anz < 1e-12) sb1 = Vector(0,0,1);
-        else if (anx<=any && anx<=anz) sb1 = Vector(0,-nz,ny);
-        else if (any<=anx && any<=anz) sb1 = Vector(-nz,0,nx);
-        else                           sb1 = Vector(-ny,nx,0);
+        if (anx < 1e-12) {
+            sb1 = Vector(1,0,0);
+        } else if (any < 1e-12) {
+            sb1 = Vector(0,1,0);
+        } else if (anz < 1e-12) {
+            sb1 = Vector(0,0,1);
+        } else if (anx<=any && anx<=anz) {
+            sb1 = Vector(0,-nz,ny);
+        } else if (any<=anx && any<=anz) {
+            sb1 = Vector(-nz,0,nx);
+        } else {
+            sb1 = Vector(-ny,nx,0);
+        }
         Vector snv(nx,ny,nz);
         Vector sb2 = snv.cross(sb1);
         sb1.normalize_self();
@@ -132,8 +140,9 @@ session_cpp::Mesh WoodElement::loft_mesh() const {
             const auto& l = pts.back();
             if (std::abs(f[0]-l[0]) < 1e-6 &&
                 std::abs(f[1]-l[1]) < 1e-6 &&
-                std::abs(f[2]-l[2]) < 1e-6)
+                std::abs(f[2]-l[2]) < 1e-6) {
                 pts.pop_back();
+            }
         }
         return pts;
     };
@@ -145,8 +154,12 @@ session_cpp::Mesh WoodElement::loft_mesh() const {
 
     std::vector<Point> verts;
     verts.reserve(2 * n);
-    for (size_t i = 0; i < n; ++i) verts.push_back(bot[i]);
-    for (size_t i = 0; i < n; ++i) verts.push_back(top[i]);
+    for (size_t i = 0; i < n; ++i) {
+        verts.push_back(bot[i]);
+    }
+    for (size_t i = 0; i < n; ++i) {
+        verts.push_back(top[i]);
+    }
 
     std::vector<std::vector<size_t>> faces;
     faces.reserve(2 + n);
@@ -154,11 +167,15 @@ session_cpp::Mesh WoodElement::loft_mesh() const {
     // WoodElement orientation ensures polylines[0] winding is already outward for bottom —
     // use forward order. Top cap is reversed so its normal points outward away from bottom.
     std::vector<size_t> bot_cap(n);
-    for (size_t i = 0; i < n; ++i) bot_cap[i] = i;
+    for (size_t i = 0; i < n; ++i) {
+        bot_cap[i] = i;
+    }
     faces.push_back(bot_cap);
 
     std::vector<size_t> top_cap(n);
-    for (size_t i = 0; i < n; ++i) top_cap[i] = n + (n - 1 - i);
+    for (size_t i = 0; i < n; ++i) {
+        top_cap[i] = n + (n - 1 - i);
+    }
     faces.push_back(top_cap);
 
     for (size_t i = 0; i < n; ++i) {

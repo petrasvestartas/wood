@@ -137,7 +137,7 @@ bool face_to_face_wood(
             {
                 double n0n1 = n0[0]*n1[0]+n0[1]*n1[1]+n0[2]*n1[2];
                 double ll = std::sqrt((n0[0]*n0[0]+n0[1]*n0[1]+n0[2]*n0[2])*(n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2]));
-                if (ll <= 0.0 || n0n1/ll > -std::cos(wood_session::globals::ANGLE)) continue; // not antiparallel
+                if (ll <= 0.0 || n0n1/ll > -std::cos(wood_session::globals::ANGLE)) { continue; } // not antiparallel
             }
             // Projection-based distance (invariant to normal magnitude):
             double mag0_sq = n0[0]*n0[0]+n0[1]*n0[1]+n0[2]*n0[2];
@@ -147,7 +147,7 @@ bool face_to_face_wood(
             double sq_dist0 = (mag0_sq > 1e-20) ? (dot0*dot0/mag0_sq) : 1e30;
             double sq_dist1 = (mag1_sq > 1e-20) ? (dot1*dot1/mag1_sq) : 1e30;
             bool coplanar = (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
-            if (!coplanar) continue;
+            if (!coplanar) { continue; }
             dbg_coplanar++;
 
             // 2. 2D Boolean intersection using the kernel's plane-frame
@@ -289,9 +289,13 @@ bool face_to_face_wood(
                     if (ll_ <= 0.0) { parallel = 0; }
                     else {
                         double ca = (v0[0]*v1[0] + v0[1]*v1[1] + v0[2]*v1[2]) / ll_;
-                        if      (ca >=  wood_cos_tol) parallel =  1;
-                        else if (ca <= -wood_cos_tol) parallel = -1;
-                        else                          parallel =  0;
+                        if (ca >=  wood_cos_tol) {
+                            parallel =  1;
+                        } else if (ca <= -wood_cos_tol) {
+                            parallel = -1;
+                        } else {
+                            parallel =  0;
+                        }
                     }
                 }
 
@@ -390,10 +394,16 @@ bool face_to_face_wood(
                     double xmin = proj_pts[0][0], xmax = xmin;
                     double ymin = proj_pts[0][1], ymax = ymin;
                     for (size_t k = 1; k < proj_pts.size(); ++k) {
-                        if      (proj_pts[k][0] < xmin) xmin = proj_pts[k][0];
-                        else if (proj_pts[k][0] > xmax) xmax = proj_pts[k][0];
-                        if      (proj_pts[k][1] < ymin) ymin = proj_pts[k][1];
-                        else if (proj_pts[k][1] > ymax) ymax = proj_pts[k][1];
+                        if (proj_pts[k][0] < xmin) {
+                            xmin = proj_pts[k][0];
+                        } else if (proj_pts[k][0] > xmax) {
+                            xmax = proj_pts[k][0];
+                        }
+                        if (proj_pts[k][1] < ymin) {
+                            ymin = proj_pts[k][1];
+                        } else if (proj_pts[k][1] > ymax) {
+                            ymax = proj_pts[k][1];
+                        }
                     }
                     double zmin = proj_pts[0][2];
                     // Average rectangle in local 2D, vertices ordered to
@@ -452,7 +462,7 @@ bool face_to_face_wood(
                         flog << "\n  vol1: ";
                         for (size_t k=0;k<vol1.point_count();k++) { Point p=vol1.get_point(k); flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") "; }
                         flog << "\n  rect_local: ";
-                        for (auto& p : rect_local) flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") ";
+                        for (auto& p : rect_local) { flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") "; }
                         flog << "\n  offset_vec: ("<<offset_vector[0]<<","<<offset_vector[1]<<","<<offset_vector[2]<<")\n";
                     }
                     joint_volumes[0] = vol0;
@@ -642,8 +652,8 @@ bool face_to_face_wood(
                             double fa = std::abs(n[0]);
                             double fb = std::abs(n[1]);
                             double fc = std::abs(n[2]);
-                            if (fa > fb && fa > fc) return Point(-d/n[0], 0.0, 0.0);
-                            if (fb > fc)            return Point(0.0, -d/n[1], 0.0);
+                            if (fa > fb && fa > fc) { return Point(-d/n[0], 0.0, 0.0); }
+                            if (fb > fc) { return Point(0.0, -d/n[1], 0.0); }
                             return Point(0.0, 0.0, -d/n[2]);
                         };
                         Point pt00   = cgal_point_on_plane(el0.planes[0]);
@@ -659,7 +669,7 @@ bool face_to_face_wood(
                         // wood. Required for simple_corners el 1/21/35 where the
                         // adjacent type-12 joint flips the "near"/"far" plate-1
                         // face role.
-                        if (w0 > w1) out_swap_planes_1 = true;
+                        if (w0 > w1) { out_swap_planes_1 = true; }
                         Plane p1_0 = (w0 > w1) ? el1.planes[1] : el1.planes[0];
                         Plane p1_1 = (w0 > w1) ? el1.planes[0] : el1.planes[1];
 

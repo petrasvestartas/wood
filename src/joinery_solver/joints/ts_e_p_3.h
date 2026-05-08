@@ -12,7 +12,9 @@ static void ts_e_p_3(WoodJoint& joint) {
     ////////////////////////////////////////////////////////////////////
     int div = std::max(8, std::min(100, joint.divisions));
     div -= div % 4; // force multiple of 4
-    if (div == 0) return;
+    if (div == 0) {
+        return;
+    }
     int size = div / 4 + 1;
 
     ////////////////////////////////////////////////////////////////////
@@ -36,7 +38,9 @@ static void ts_e_p_3(WoodJoint& joint) {
         auto& a = *arrays[i];
         for (int j = 0; j < (int)a.size(); j++) {
             int flip = (j % 2 == 0) ? 1 : -1;
-            if (i >= 2) flip *= -1;
+            if (i >= 2) {
+                flip *= -1;
+            }
             a[j] = Point(a[j][0]+v[0]*flip, a[j][1]+v[1]*flip, a[j][2]+v[2]*flip);
         }
     }
@@ -48,15 +52,22 @@ static void ts_e_p_3(WoodJoint& joint) {
         auto& aA = *arrays[i];
         auto& aB = *arrays[i+1];
         for (int j = 0; j < (int)aA.size(); j++) {
-            if (j % 4 > 1) continue; // KEY: skip every other pair
+            if (j % 4 > 1) {
+                continue; // KEY: skip every other pair
+            }
             bool flip = (j % 2 == 0);
-            if (i >= 2) flip = !flip;
+            if (i >= 2) {
+                flip = !flip;
+            }
             if (flip) { pts.push_back(aA[j]); pts.push_back(aB[j]); }
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
         // Add last point explicitly.
-        if (i < 2) pts.push_back(aA.back());
-        else       pts.push_back(aB.back());
+        if (i < 2) {
+            pts.push_back(aA.back());
+        } else {
+            pts.push_back(aB.back());
+        }
 
         Polyline outline(pts);
         Polyline endpoints(std::vector<Point>{pts.front(), pts.back()});
@@ -106,17 +117,21 @@ static void ts_e_p_3(WoodJoint& joint) {
     // merge in wood_main.cpp can use a single uniform iteration rule.
     {
         std::vector<int> v0; v0.reserve(joint.f_outlines[0].size());
-        for (size_t k = 0; k + 1 < joint.f_outlines[0].size(); k++)
+        for (size_t k = 0; k + 1 < joint.f_outlines[0].size(); k++) {
             v0.push_back(wood_cut::hole);
-        if (!joint.f_outlines[0].empty())
+        }
+        if (!joint.f_outlines[0].empty()) {
             v0.push_back(wood_cut::insert_between_multiple_edges);
+        }
         joint.f_cut_types[0] = std::move(v0);
 
         std::vector<int> v1; v1.reserve(joint.f_outlines[1].size());
-        for (size_t k = 0; k + 1 < joint.f_outlines[1].size(); k++)
+        for (size_t k = 0; k + 1 < joint.f_outlines[1].size(); k++) {
             v1.push_back(wood_cut::hole);
-        if (!joint.f_outlines[1].empty())
+        }
+        if (!joint.f_outlines[1].empty()) {
             v1.push_back(wood_cut::insert_between_multiple_edges);
+        }
         joint.f_cut_types[1] = std::move(v1);
     }
     joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };

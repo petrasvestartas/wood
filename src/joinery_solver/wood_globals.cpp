@@ -76,7 +76,9 @@ bool parse_bool(const std::string& s) {
 std::vector<double> parse_doubles(std::vector<std::string>& xs) {
     std::vector<double> out;
     out.reserve(xs.size());
-    for (auto& x : xs) out.push_back(std::stod(x));
+    for (auto& x : xs) {
+        out.push_back(std::stod(x));
+    }
     return out;
 }
 
@@ -149,11 +151,15 @@ void globals_yaml(const std::string& dataset_name) {
 
     if (y.has("joints_parameters_and_types")) {
         auto& jpt = list("joints_parameters_and_types");
-        if (!jpt.empty()) JOINTS_PARAMETERS_AND_TYPES = parse_doubles(jpt);
+        if (!jpt.empty()) {
+            JOINTS_PARAMETERS_AND_TYPES = parse_doubles(jpt);
+        }
     }
     if (y.has("joint_volume_extension")) {
         auto& jve = list("joint_volume_extension");
-        if (!jve.empty()) JOINT_VOLUME_EXTENSION = parse_doubles(jve);
+        if (!jve.empty()) {
+            JOINT_VOLUME_EXTENSION = parse_doubles(jve);
+        }
     }
     if (y.has("joint_scale")) {
         auto& jsc = list("joint_scale");
@@ -163,26 +169,60 @@ void globals_yaml(const std::string& dataset_name) {
         }
     }
 
-    if (y.has("output_geometry_type"))                              OUTPUT_GEOMETRY_TYPE = std::stoi(str("output_geometry_type"));
-    if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(str("face_to_face_side_to_side_joints_dihedral_angle"));
-    if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = parse_bool(str("face_to_face_side_to_side_joints_all_treated_as_rotated"));
-    if (y.has("face_to_face_side_to_side_joints_rotated_joint_as_average")) FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = parse_bool(str("face_to_face_side_to_side_joints_rotated_joint_as_average"));
-    if (y.has("distance"))                                          DISTANCE = std::stod(str("distance"));
-    if (y.has("distance_squared"))                                  DISTANCE_SQUARED = std::stod(str("distance_squared"));
-    if (y.has("angle"))                                             ANGLE = std::stod(str("angle"));
-    if (y.has("duplicate_pts_tol"))                                 DUPLICATE_PTS_TOL = std::stod(str("duplicate_pts_tol"));
-    if (y.has("limit_min_joint_length"))                            LIMIT_MIN_JOINT_LENGTH = std::stod(str("limit_min_joint_length"));
-    if (y.has("clipper_scale"))                                     CLIPPER_SCALE = std::stoll(str("clipper_scale"));
-    if (y.has("clipper_area"))                                      CLIPPER_AREA = std::stod(str("clipper_area"));
-    if (y.has("data_set_input_name"))                               DATA_SET_INPUT_NAME = str("data_set_input_name");
-    if (y.has("data_set_output_file"))                              DATA_SET_OUTPUT_FILE = str("data_set_output_file");
-    if (y.has("data_set_output_database"))                          DATA_SET_OUTPUT_DATABASE = str("data_set_output_database");
-    if (y.has("path_and_file_for_joints"))                          PATH_AND_FILE_FOR_JOINTS = str("path_and_file_for_joints");
-    if (y.has("run_count"))                                         RUN_COUNT = static_cast<std::size_t>(std::stoull(str("run_count")));
+    if (y.has("output_geometry_type")) {
+        OUTPUT_GEOMETRY_TYPE = std::stoi(str("output_geometry_type"));
+    }
+    if (y.has("face_to_face_side_to_side_joints_dihedral_angle")) {
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(str("face_to_face_side_to_side_joints_dihedral_angle"));
+    }
+    if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated")) {
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = parse_bool(str("face_to_face_side_to_side_joints_all_treated_as_rotated"));
+    }
+    if (y.has("face_to_face_side_to_side_joints_rotated_joint_as_average")) {
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = parse_bool(str("face_to_face_side_to_side_joints_rotated_joint_as_average"));
+    }
+    if (y.has("distance")) {
+        DISTANCE = std::stod(str("distance"));
+    }
+    if (y.has("distance_squared")) {
+        DISTANCE_SQUARED = std::stod(str("distance_squared"));
+    }
+    if (y.has("angle")) {
+        ANGLE = std::stod(str("angle"));
+    }
+    if (y.has("duplicate_pts_tol")) {
+        DUPLICATE_PTS_TOL = std::stod(str("duplicate_pts_tol"));
+    }
+    if (y.has("limit_min_joint_length")) {
+        LIMIT_MIN_JOINT_LENGTH = std::stod(str("limit_min_joint_length"));
+    }
+    if (y.has("clipper_scale")) {
+        CLIPPER_SCALE = std::stoll(str("clipper_scale"));
+    }
+    if (y.has("clipper_area")) {
+        CLIPPER_AREA = std::stod(str("clipper_area"));
+    }
+    if (y.has("data_set_input_name")) {
+        DATA_SET_INPUT_NAME = str("data_set_input_name");
+    }
+    if (y.has("data_set_output_file")) {
+        DATA_SET_OUTPUT_FILE = str("data_set_output_file");
+    }
+    if (y.has("data_set_output_database")) {
+        DATA_SET_OUTPUT_DATABASE = str("data_set_output_database");
+    }
+    if (y.has("path_and_file_for_joints")) {
+        PATH_AND_FILE_FOR_JOINTS = str("path_and_file_for_joints");
+    }
+    if (y.has("run_count")) {
+        RUN_COUNT = static_cast<std::size_t>(std::stoull(str("run_count")));
+    }
 
     if (y.has("existing_types")) {
         auto& et = list("existing_types");
-        if (!et.empty()) EXISTING_TYPES = et;
+        if (!et.empty()) {
+            EXISTING_TYPES = et;
+        }
     }
 
     // CUSTOM_JOINTS_* — nested polyline lists are beyond tiny-yaml's flat schema.

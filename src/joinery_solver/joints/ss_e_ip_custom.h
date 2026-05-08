@@ -32,7 +32,9 @@ static void ss_e_ip_custom(WoodJoint& joint) {
 
     const auto& cm = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_MALE;
     const auto& cf = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_FEMALE;
-    if (cm.size() < 2 || cf.size() < 2) return;
+    if (cm.size() < 2 || cf.size() < 2) {
+        return;
+    }
 
     // Tiling formula — verbatim from ss_e_ip_2.h:7-24.
     double edge_length = 1000.0;
@@ -40,7 +42,9 @@ static void ss_e_ip_custom(WoodJoint& joint) {
         Point a = joint.joint_lines[0].start();
         Point b = joint.joint_lines[0].end();
         double d = Point::distance(a, b);
-        if (d > 1e-9) edge_length = d;
+        if (d > 1e-9) {
+            edge_length = d;
+        }
     }
     int divisions = std::max(1, std::min(100, joint.divisions));
     double joint_volume_edge_length =

@@ -37,7 +37,9 @@ static void ts_e_p_2(WoodJoint& joint) {
         auto& a = *arrays[i];
         for (int j = 0; j < (int)a.size(); j++) {
             int flip = (j % 2 == 0) ? 1 : -1;
-            if (i >= 2) flip *= -1;
+            if (i >= 2) {
+                flip *= -1;
+            }
             a[j] = Point(a[j][0]+v[0]*flip, a[j][1]+v[1]*flip, a[j][2]+v[2]*flip);
         }
     }
@@ -50,7 +52,9 @@ static void ts_e_p_2(WoodJoint& joint) {
         auto& aB = *arrays[i+1];
         for (int j = 0; j < (int)aA.size(); j++) {
             bool flip = (j % 2 == 0);
-            if (i >= 2) flip = !flip;
+            if (i >= 2) {
+                flip = !flip;
+            }
             if (flip) { pts.push_back(aA[j]); pts.push_back(aB[j]); }
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
@@ -94,7 +98,9 @@ static void ts_e_p_2(WoodJoint& joint) {
     auto build_f_cuts = [&](size_t entries) {
         std::vector<int> v;
         v.reserve(entries);
-        for (size_t k = 0; k + 1 < entries; k++) v.push_back(wood_cut::hole);
+        for (size_t k = 0; k + 1 < entries; k++) {
+            v.push_back(wood_cut::hole);
+        }
         v.push_back(wood_cut::insert_between_multiple_edges);
         return v;
     };

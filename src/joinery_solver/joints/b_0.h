@@ -8,17 +8,20 @@ static void b_0(WoodJoint& joint) {
     joint.name = "b_0";
     joint.no_orient = true;
 
-    if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1])
+    if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1]) {
         return;
+    }
     const Polyline& vol0 = *joint.joint_volumes_pair_a_pair_b[0];
     const Polyline& vol1 = *joint.joint_volumes_pair_a_pair_b[1];
-    if (vol0.point_count() < 5 || vol1.point_count() < 5)
+    if (vol0.point_count() < 5 || vol1.point_count() < 5) {
         return;
+    }
 
     // tween_two_polylines(vol0, vol1, 0.5)
     std::vector<Point> r(5);
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 5; ++i) {
         r[i] = Point::lerp(vol0.get_point(i), vol1.get_point(i), 0.5);
+    }
 
     // extend_equally(r, 1, scale[0]) — extends edge [1,2]
     {
@@ -64,7 +67,9 @@ static void b_0(WoodJoint& joint) {
         nz += (r[i][0]-r[j][0]) * (r[i][1]+r[j][1]);
     }
     double nlen = std::sqrt(nx*nx + ny*ny + nz*nz);
-    if (nlen < 1e-12) return;
+    if (nlen < 1e-12) {
+        return;
+    }
     nx /= nlen; ny /= nlen; nz /= nlen;
 
     // z_axis_offset_from_center = normal * 0.25; z_axis = normal * (scale[2] + 15)
@@ -78,8 +83,9 @@ static void b_0(WoodJoint& joint) {
     // 4 translated copies
     auto tr = [&](const std::vector<Point>& pts, double dx, double dy, double dz) -> Polyline {
         std::vector<Point> out(pts.size());
-        for (size_t i = 0; i < pts.size(); ++i)
+        for (size_t i = 0; i < pts.size(); ++i) {
             out[i] = Point(pts[i][0]+dx, pts[i][1]+dy, pts[i][2]+dz);
+        }
         return Polyline(out);
     };
 

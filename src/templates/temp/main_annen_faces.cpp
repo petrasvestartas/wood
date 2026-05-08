@@ -18,9 +18,10 @@ int main() {
     // 2. Create session with elements
     Session session("WoodComplete");
     auto g = session.add_group("Elements");
-    for (auto [a, b] : pairs)
+    for (auto [a, b] : pairs) {
         session.add_element(std::make_shared<ElementPlate>(
             polylines[a], polylines[b], "plate_" + std::to_string(a)), g);
+    }
     auto t2 = Clock::now();
 
     // 3. Compute face-to-face contacts (adjacency + boolean intersection → graph edges)

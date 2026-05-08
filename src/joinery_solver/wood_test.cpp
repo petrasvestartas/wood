@@ -194,7 +194,9 @@ static void measure_corner_preservation(const std::vector<wood_session::WoodElem
     double max_gap = 0.0;
     int n_checked = 0;
     for (const auto& el : elements) {
-        if (el.polylines.size() < 2 || el.features.top.empty()) continue;
+        if (el.polylines.size() < 2 || el.features.top.empty()) {
+            continue;
+        }
         const auto& orig   = el.polylines[0];        // pline0 (= merged_top input)
         const auto& merged = el.features.top[0];    // outer merged outline (= merged_top)
         int nc = static_cast<int>(orig.point_count());
@@ -202,8 +204,9 @@ static void measure_corner_preservation(const std::vector<wood_session::WoodElem
         for (int i = 0; i < nc; i++) {
             Point co = orig.get_point(i);
             double best = 1e18;
-            for (int j = 0; j < nm; j++)
+            for (int j = 0; j < nm; j++) {
                 best = std::min(best, dist(co, merged.get_point(j)));
+            }
             max_gap = std::max(max_gap, best);
             ++n_checked;
         }

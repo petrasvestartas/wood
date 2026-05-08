@@ -34,34 +34,39 @@ public:
                double chamfer_top   = 20.0,
                double chamfer_angle = 180.0)
     {
-        if (cross_section.point_count() < 2)
+        if (cross_section.point_count() < 2) {
             throw std::invalid_argument("ReflexFold: cross_section must have at least 2 points");
-        if (profile.point_count() < 2)
+        }
+        if (profile.point_count() < 2) {
             throw std::invalid_argument("ReflexFold: profile must have at least 2 points");
-        if (thickness == 0.0)
+        }
+        if (thickness == 0.0) {
             throw std::invalid_argument("ReflexFold: thickness must not be zero");
+        }
 
         mesh = reflex_fold(cross_section, profile);
 
-        for (const auto& plate :
+        using MiterTuple = std::tuple<std::vector<Point>, std::vector<Point>,
+                                      std::vector<Point>, std::vector<Point>, Vector>;
+        for (const MiterTuple& plate :
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
-            const auto& top_raw = std::get<2>(plate);
-            const auto& bot_raw = std::get<3>(plate);
-            if (top_raw.empty() || bot_raw.empty()) continue;
+            const std::vector<Point>& top_raw = std::get<2>(plate);
+            const std::vector<Point>& bot_raw = std::get<3>(plate);
+            if (top_raw.empty() || bot_raw.empty()) {
+                continue;
+            }
 
-            auto close = [](std::vector<Point> pts) {
-                if (!pts.empty()) pts.push_back(pts[0]);
-                return pts;
-            };
+            std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
+            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer_bot, mask);
+            std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
 
-            auto mask   = chamfer_mask(bot_raw, chamfer_angle);
-            auto top_ch = chamfer_apply(top_raw, chamfer_bot, mask);
-            auto bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
-
-            elements.emplace_back(
-                Polyline(close(bot_ch)),
-                Polyline(close(top_ch))
-            );
+            if (!bot_ch.empty()) {
+                bot_ch.push_back(bot_ch[0]);
+            }
+            if (!top_ch.empty()) {
+                top_ch.push_back(top_ch[0]);
+            }
+            elements.emplace_back(Polyline(bot_ch), Polyline(top_ch));
         }
     }
 
@@ -111,7 +116,9 @@ private:
             double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
             double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
             double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
-            if (lp < 1e-12 || ln < 1e-12) continue;
+            if (lp < 1e-12 || ln < 1e-12) {
+                continue;
+            }
             double cosA = std::max(-1.0, std::min(1.0, (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
             mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
         }
@@ -121,7 +128,9 @@ private:
     static std::vector<Point> chamfer_apply(const std::vector<Point>& pts, double s,
                                              const std::vector<bool>& mask) {
         size_t n = pts.size();
-        if (s <= 0.0) return pts;
+        if (s <= 0.0) {
+            return pts;
+        }
         double min_edge = std::numeric_limits<double>::max();
         for (size_t i = 0; i < n; ++i) {
             size_t j = (i + 1) % n;
@@ -182,8 +191,9 @@ private:
         // First row = profile points as-is.
         std::vector<Point> all_pts;
         all_pts.reserve(nCS * nP);
-        for (size_t j = 0; j < nP; ++j)
+        for (size_t j = 0; j < nP; ++j) {
             all_pts.push_back(profile[j]);
+        }
 
         // Each subsequent cross-section step slides each profile point along
         // the edge direction until it lies on the bisector plane.

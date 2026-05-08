@@ -45,7 +45,7 @@ double g_cross_distance_squared = 0.01;
 bool polyline_plane_cross(const Polyline& polyline, const Plane& plane,
                           std::vector<Point>& points, std::vector<int>& edge_ids) {
     size_t n = polyline.point_count();
-    if (n < 2) return false;
+    if (n < 2) { return false; }
     const double DISTANCE_SQUARED = g_cross_distance_squared;
     Vector n_plane = plane.z_axis();
     double n_mag_sq = n_plane[0]*n_plane[0] + n_plane[1]*n_plane[1] + n_plane[2]*n_plane[2];
@@ -88,8 +88,9 @@ int are_points_inside(
     if (np_raw > 1) {
         const Point& f = poly_pts.front();
         const Point& l = poly_pts.back();
-        if (std::fabs(f[0]-l[0])<1e-12 && std::fabs(f[1]-l[1])<1e-12 && std::fabs(f[2]-l[2])<1e-12)
+        if (std::fabs(f[0]-l[0])<1e-12 && std::fabs(f[1]-l[1])<1e-12 && std::fabs(f[2]-l[2])<1e-12) {
             np_raw--;
+        }
     }
 
     std::vector<double> px, py;
@@ -102,24 +103,25 @@ int are_points_inside(
         py.push_back(dx*ya[0]+dy*ya[1]+dz*ya[2]);
     }
     size_t np = px.size();
-    if (np < 3) return 0;
+    if (np < 3) { return 0; }
 
     auto cross_sign = [](double ax, double ay, double bx, double by,
                           double cx, double cy) -> int {
         double v = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-        if (v > 0.0) return 1;
-        if (v < 0.0) return -1;
+        if (v > 0.0) { return 1; }
+        if (v < 0.0) { return -1; }
         return 0;
     };
 
     auto pip = [&](double tx, double ty) -> int {
         size_t first = 0;
-        while (first < np && py[first] == ty) first++;
+        while (first < np && py[first] == ty) { first++; }
         if (first == np) {
             for (size_t i = 0; i < np; i++) {
                 size_t j = (i + 1) % np;
-                if ((std::min(px[i], px[j]) <= tx) && (tx <= std::max(px[i], px[j])))
+                if ((std::min(px[i], px[j]) <= tx) && (tx <= std::max(px[i], px[j]))) {
                     return 2;
+                }
             }
             return 0;
         }
@@ -131,17 +133,17 @@ int are_points_inside(
         size_t cend = np;
         while (true) {
             if (curr == cend) {
-                if (cend == first || first == 0) break;
+                if (cend == first || first == 0) { break; }
                 cend = first;
                 curr = 0;
             }
 
             if (is_above) {
-                while (curr != cend && py[curr] < ty) curr++;
-                if (curr == cend) continue;
+                while (curr != cend && py[curr] < ty) { curr++; }
+                if (curr == cend) { continue; }
             } else {
-                while (curr != cend && py[curr] > ty) curr++;
-                if (curr == cend) continue;
+                while (curr != cend && py[curr] > ty) { curr++; }
+                if (curr == cend) { continue; }
             }
 
             size_t prev = (curr == 0) ? (np - 1) : (curr - 1);
@@ -149,10 +151,11 @@ int are_points_inside(
             if (py[curr] == ty) {
                 if (px[curr] == tx ||
                     (py[curr] == py[prev] &&
-                     ((tx < px[prev]) != (tx < px[curr]))))
+                     ((tx < px[prev]) != (tx < px[curr])))) {
                     return 2;
+                }
                 curr++;
-                if (curr == first) break;
+                if (curr == first) { break; }
                 continue;
             }
 
@@ -162,19 +165,19 @@ int are_points_inside(
                 val = 1 - val;
             } else {
                 int d = cross_sign(px[prev], py[prev], px[curr], py[curr], tx, ty);
-                if (d == 0) return 2;
-                if ((d < 0) == is_above) val = 1 - val;
+                if (d == 0) { return 2; }
+                if ((d < 0) == is_above) { val = 1 - val; }
             }
             is_above = !is_above;
             curr++;
         }
 
         if (is_above != starting_above) {
-            if (curr == np) curr = 0;
+            if (curr == np) { curr = 0; }
             size_t prev = (curr == 0) ? (np - 1) : (curr - 1);
             int d = cross_sign(px[prev], py[prev], px[curr], py[curr], tx, ty);
-            if (d == 0) return 2;
-            if ((d < 0) == is_above) val = 1 - val;
+            if (d == 0) { return 2; }
+            if ((d < 0) == is_above) { val = 1 - val; }
         }
 
         return val;
@@ -207,13 +210,13 @@ bool polyline_plane_cross_joint(
 
     std::vector<Point> pts0;
     std::vector<int> edge_ids_0;
-    if (!polyline_plane_cross(c0, p1, pts0, edge_ids_0)) return false;
+    if (!polyline_plane_cross(c0, p1, pts0, edge_ids_0)) { return false; }
 
     std::vector<Point> pts1;
     std::vector<int> edge_ids_1;
-    if (!polyline_plane_cross(c1, p0, pts1, edge_ids_1)) return false;
+    if (!polyline_plane_cross(c1, p0, pts1, edge_ids_1)) { return false; }
 
-    if (pts0.size() < 2 || pts1.size() < 2) return false;
+    if (pts0.size() < 2 || pts1.size() < 2) { return false; }
 
     std::vector<int> ID1;
     int count0 = are_points_inside(c0, p0, pts1, ID1);
@@ -221,7 +224,7 @@ bool polyline_plane_cross_joint(
     std::vector<int> ID0;
     int count1 = are_points_inside(c1, p1, pts0, ID0);
 
-    if (count0 == 0 && count1 == 0) return false;
+    if (count0 == 0 && count1 == 0) { return false; }
 
     if (std::abs(count0 - count1) == 2) {
         if (count0 == 2) {
@@ -243,8 +246,8 @@ bool polyline_plane_cross_joint(
     if (count0 > 1 || count1 > 1) {
         std::vector<Point> pts;
         pts.reserve(ID0.size() + ID1.size());
-        for (int i : ID0) pts.push_back(pts0[i]);
-        for (int i : ID1) pts.push_back(pts1[i]);
+        for (int i : ID0) { pts.push_back(pts0[i]); }
+        for (int i : ID1) { pts.push_back(pts1[i]); }
 
         double xmin = pts[0][0], ymin = pts[0][1], zmin = pts[0][2];
         double xmax = xmin, ymax = ymin, zmax = zmin;
@@ -278,10 +281,10 @@ bool polyline_plane_cross_joint(
 
 double approximate_angle_deg(const Vector& a, const Vector& b) {
     double la = a.magnitude(), lb = b.magnitude();
-    if (la < Tolerance::ZERO_TOLERANCE || lb < Tolerance::ZERO_TOLERANCE) return 0.0;
+    if (la < Tolerance::ZERO_TOLERANCE || lb < Tolerance::ZERO_TOLERANCE) { return 0.0; }
     double c = a.dot(b) / (la * lb);
-    if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
+    if (c > 1.0) { c = 1.0; }
+    if (c < -1.0) { c = -1.0; }
     return std::acos(c) * 180.0 / 3.14159265358979323846;
 }
 
@@ -323,7 +326,7 @@ bool plane_to_face(
     // 1. Parallelism guard.
     double raw_angle = approximate_angle_deg(planes_a[0].z_axis(), planes_b[0].z_axis());
     double angle = 90.0 - std::fabs(raw_angle - 90.0);
-    if (angle < angle_tol) return false;
+    if (angle < angle_tol) { return false; }
 
     // 2. Four cross-joint contact segments.
     const Polyline& cx0 = polylines_a[0];
@@ -337,19 +340,19 @@ bool plane_to_face(
 
     Line cx0_py0__cy0_px0;
     std::pair<int,int> e0_0__e1_0;
-    if (!polyline_plane_cross_joint(cx0, cy0, px0, py0, cx0_py0__cy0_px0, e0_0__e1_0)) return false;
+    if (!polyline_plane_cross_joint(cx0, cy0, px0, py0, cx0_py0__cy0_px0, e0_0__e1_0)) { return false; }
 
     Line cx0_py1__cy1_px0;
     std::pair<int,int> e0_0__e1_1;
-    if (!polyline_plane_cross_joint(cx0, cy1, px0, py1, cx0_py1__cy1_px0, e0_0__e1_1)) return false;
+    if (!polyline_plane_cross_joint(cx0, cy1, px0, py1, cx0_py1__cy1_px0, e0_0__e1_1)) { return false; }
 
     Line cx1_py0__cy0_px1;
     std::pair<int,int> e0_1__e1_0;
-    if (!polyline_plane_cross_joint(cx1, cy0, px1, py0, cx1_py0__cy0_px1, e0_1__e1_0)) return false;
+    if (!polyline_plane_cross_joint(cx1, cy0, px1, py0, cx1_py0__cy0_px1, e0_1__e1_0)) { return false; }
 
     Line cx1_py1__cy1_px1;
     std::pair<int,int> e0_1__e1_1;
-    if (!polyline_plane_cross_joint(cx1, cy1, px1, py1, cx1_py1__cy1_px1, e0_1__e1_1)) return false;
+    if (!polyline_plane_cross_joint(cx1, cy1, px1, py1, cx1_py1__cy1_px1, e0_1__e1_1)) { return false; }
 
     // 3. Record side-face IDs (+2 because indices 0,1 are top/bottom).
     result.face_ids_a.first  = e0_0__e1_0.first + 2;
@@ -361,18 +364,21 @@ bool plane_to_face(
     Vector ref_v = segment_to_vector(cx0_py0__cy0_px0);
     {
         Vector v = segment_to_vector(cx0_py1__cy1_px0);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2])))
+        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
             cx0_py1__cy1_px0 = opposite_segment(cx0_py1__cy1_px0);
+        }
     }
     {
         Vector v = segment_to_vector(cx1_py0__cy0_px1);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2])))
+        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
             cx1_py0__cy0_px1 = opposite_segment(cx1_py0__cy0_px1);
+        }
     }
     {
         Vector v = segment_to_vector(cx1_py1__cy1_px1);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2])))
+        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
             cx1_py1__cy1_px1 = opposite_segment(cx1_py1__cy1_px1);
+        }
     }
 
     // 5. Reference axis: midline of two contact segments, scaled ×10 about its midpoint.
@@ -381,7 +387,7 @@ bool plane_to_face(
     Line::get_middle_line(cx0_py1__cy1_px0, cx1_py0__cy0_px1, c);
     {
         double len = c.length();
-        if (len < Tolerance::ZERO_TOLERANCE) return false;
+        if (len < Tolerance::ZERO_TOLERANCE) { return false; }
         c.scale(10.0);
     }
 
@@ -420,7 +426,7 @@ bool plane_to_face(
     // 7. Mid plane through midpoint of lMin perpendicular to lMin.
     Point lMin_mid = lMin.center();
     Vector lMin_dir = lMin.to_vector();
-    if (lMin_dir.magnitude() < Tolerance::ZERO_TOLERANCE) return false;
+    if (lMin_dir.magnitude() < Tolerance::ZERO_TOLERANCE) { return false; }
     Vector lMin_z = lMin_dir; lMin_z.normalize_self();
     Vector helper = (std::fabs(lMin_z[0]) < 0.9) ? Vector(1, 0, 0) : Vector(0, 1, 0);
     Vector mid_x = helper.cross(lMin_z); mid_x.normalize_self();
@@ -429,7 +435,7 @@ bool plane_to_face(
 
     // 8. Extension vector v.
     Point midPlane_lMax;
-    if (!Intersection::line_plane(lMax, midPlane, midPlane_lMax, false)) return false;
+    if (!Intersection::line_plane(lMax, midPlane, midPlane_lMax, false)) { return false; }
     Point lMax_a = lMax.start();
     Point lMax_b = lMax.end();
     int maxID = ((lMax_b - midPlane_lMax).magnitude_squared() > (lMax_a - midPlane_lMax).magnitude_squared()) ? 1 : 0;
@@ -451,7 +457,7 @@ bool plane_to_face(
                                     cx0_py1__cy1_px0,
                                     cx1_py1__cy1_px1,
                                     cx1_py0__cy0_px1,
-                                    result.joint_area)) return false;
+                                    result.joint_area)) { return false; }
 
     // 9b. Joint lines: two perpendicular centerlines of the joint area quad.
     {
@@ -492,13 +498,13 @@ bool plane_to_face(
     double angle_tol,
     const std::array<double,3>& extension) {
 
-    if (!a || !b) return false;
+    if (!a || !b) { return false; }
     auto polys_a = a->polylines();
     auto polys_b = b->polylines();
     auto planes_a = a->planes();
     auto planes_b = b->planes();
-    if (polys_a.size() < 2 || polys_b.size() < 2) return false;
-    if (planes_a.size() < 2 || planes_b.size() < 2) return false;
+    if (polys_a.size() < 2 || polys_b.size() < 2) { return false; }
+    if (planes_a.size() < 2 || planes_b.size() < 2) { return false; }
 
     std::array<Polyline,2> pa{ polys_a[0], polys_a[1] };
     std::array<Polyline,2> pb{ polys_b[0], polys_b[1] };

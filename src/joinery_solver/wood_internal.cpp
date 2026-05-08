@@ -61,12 +61,18 @@ static std::string wood_name_to_obj_short(const std::string& name) {
         {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch",           "annen_grid_full_arch"},
     };
     auto it = alias.find(name);
-    if (it != alias.end()) return it->second;
+    if (it != alias.end()) {
+        return it->second;
+    }
 
     static const std::string plate_prefix = "type_plates_name_";
     static const std::string beam_prefix  = "type_beams_name_";
-    if (name.rfind(plate_prefix, 0) == 0) return name.substr(plate_prefix.size());
-    if (name.rfind(beam_prefix,  0) == 0) return name.substr(beam_prefix.size());
+    if (name.rfind(plate_prefix, 0) == 0) {
+        return name.substr(plate_prefix.size());
+    }
+    if (name.rfind(beam_prefix,  0) == 0) {
+        return name.substr(beam_prefix.size());
+    }
     return name;
 }
 
@@ -84,16 +90,20 @@ std::vector<wood_session::WoodElement> load_plates(const std::string& dataset_na
     const std::string obj_path  = (session_data_dir() / (obj_short + ".obj")).string();
     auto polylines = file_obj::read_file_obj_polylines(obj_path);
 
-    if (duplicate_pts_tol > 0.0)
-        for (auto& pl : polylines) pl.remove_consecutive_duplicates(duplicate_pts_tol);
+    if (duplicate_pts_tol > 0.0) {
+        for (auto& pl : polylines) {
+            pl.remove_consecutive_duplicates(duplicate_pts_tol);
+        }
+    }
 
     wood_session::globals::DATA_SET_INPUT_NAME  = obj_short;
     wood_session::globals::DATA_SET_OUTPUT_FILE = "WoodF2F_" + obj_short + ".pb";
 
     std::vector<wood_session::WoodElement> elements;
     elements.reserve(polylines.size() / 2);
-    for (size_t i = 0; i + 1 < polylines.size(); i += 2)
+    for (size_t i = 0; i + 1 < polylines.size(); i += 2) {
         elements.emplace_back(polylines[i], polylines[i + 1]);
+    }
     return elements;
 }
 
@@ -105,8 +115,11 @@ std::vector<Polyline> load_polylines(const std::string& dataset_name, double dup
     const std::string obj_path  = (session_data_dir() / (obj_short + ".obj")).string();
     auto polylines = file_obj::read_file_obj_polylines(obj_path);
 
-    if (duplicate_pts_tol > 0.0)
-        for (auto& pl : polylines) pl.remove_consecutive_duplicates(duplicate_pts_tol);
+    if (duplicate_pts_tol > 0.0) {
+        for (auto& pl : polylines) {
+            pl.remove_consecutive_duplicates(duplicate_pts_tol);
+        }
+    }
 
     wood_session::globals::DATA_SET_INPUT_NAME  = obj_short;
     wood_session::globals::DATA_SET_OUTPUT_FILE = "WoodF2F_" + obj_short + ".pb";

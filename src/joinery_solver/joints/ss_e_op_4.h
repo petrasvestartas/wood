@@ -54,15 +54,23 @@ static void ss_e_op_4(WoodJoint& joint,
                     : z_ - (z[0] - z[1]) * step * t * 0.5;
 
                 if (i % 2 == 0) {
-                    if (!female_modify_outline) pts.emplace_back(x[1], y[j], z_mid);
+                    if (!female_modify_outline) {
+                        pts.emplace_back(x[1], y[j], z_mid);
+                    }
                     pts.emplace_back(x[1], y[j], z_);
                     pts.emplace_back(x[0], y[j], z_);
-                    if (chamfer) pts.emplace_back(-0.75 + x[0], y[j], z_chamfer_val);
+                    if (chamfer) {
+                        pts.emplace_back(-0.75 + x[0], y[j], z_chamfer_val);
+                    }
                 } else {
-                    if (chamfer) pts.emplace_back(-0.75 + x[0], y[j], z_chamfer_val);
+                    if (chamfer) {
+                        pts.emplace_back(-0.75 + x[0], y[j], z_chamfer_val);
+                    }
                     pts.emplace_back(x[0], y[j], z_);
                     pts.emplace_back(x[1], y[j], z_);
-                    if (!female_modify_outline) pts.emplace_back(x[1], y[j], z_mid);
+                    if (!female_modify_outline) {
+                        pts.emplace_back(x[1], y[j], z_mid);
+                    }
                 }
             }
         }
@@ -80,10 +88,12 @@ static void ss_e_op_4(WoodJoint& joint,
     // Female outlines
     int fmo_count = 2 * (int)female_modify_outline;
     for (int j = 0; j < 2; j++) {
-        if (joint.divisions == 0)
+        if (joint.divisions == 0) {
             joint.f_outlines[j].resize(fmo_count);
-        else
+        }
+        else {
             joint.f_outlines[j].resize(fmo_count + number_of_tenons);
+        }
         int sign = j == 0 ? 1 : -1;
         int j_inv = j == 0 ? 1 : 0;
 

@@ -8,7 +8,9 @@ static void ss_e_ip_5(WoodJoint& joint, const std::vector<WoodElement>& elements
     joint.name = "ss_e_ip_5";
 
     int v0 = joint.el_ids.first;
-    if (v0 < 0 || v0 >= (int)elements.size()) return;
+    if (v0 < 0 || v0 >= (int)elements.size()) {
+        return;
+    }
     joint.unit_scale_distance = elements[v0].thickness;
 
     double edge_length = 1000.0;
@@ -16,7 +18,9 @@ static void ss_e_ip_5(WoodJoint& joint, const std::vector<WoodElement>& elements
         Point a = joint.joint_lines[0].start();
         Point b = joint.joint_lines[0].end();
         double d = Point::distance(a, b);
-        if (d > 1e-9) edge_length = d;
+        if (d > 1e-9) {
+            edge_length = d;
+        }
     }
     int divisions = std::max(1, std::min(100, joint.divisions));
     double joint_volume_edge_length =

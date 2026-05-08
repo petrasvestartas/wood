@@ -38,11 +38,13 @@ static void ss_e_op_2(WoodJoint& joint) {
         for (int j = 0; j < (int)a.size(); j++) {
             int flip = (j < mid) ? 1 : -1;
             if (i == 1) {
-                if (j < mid - 1 || j > mid)
+                if (j < mid - 1 || j > mid) {
                     a[j] = Point(a[j][0]-4*v[0]*flip, a[j][1]-4*v[1]*flip, a[j][2]-4*v[2]*flip);
+                }
             } else if (i == 0 || i == 2) {
-                if (j < mid - 1 || j > mid)
+                if (j < mid - 1 || j > mid) {
                     a[j] = Point(a[j][0]-2*v[0]*flip, a[j][1]-2*v[1]*flip, a[j][2]-2*v[2]*flip);
+                }
             }
         }
     }
@@ -56,7 +58,9 @@ static void ss_e_op_2(WoodJoint& joint) {
         auto& aB = *arrays[i+1];
         for (int j = 0; j < (int)aA.size(); j++) {
             bool flip = (j % 2 == 0);
-            if (i >= 2) flip = !flip;
+            if (i >= 2) {
+                flip = !flip;
+            }
             if (flip) { pts.push_back(aA[j]); pts.push_back(aB[j]); }
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
@@ -74,7 +78,9 @@ static void ss_e_op_2(WoodJoint& joint) {
         auto& aB = *arrays[(i+1)%4];
         for (int j = 0; j < (int)aA.size(); j++) {
             bool flip = (j % 2 == 0);
-            if (i >= 2) flip = !flip;
+            if (i >= 2) {
+                flip = !flip;
+            }
             if (flip) { pts.push_back(aA[j]); pts.push_back(aB[j]); }
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }

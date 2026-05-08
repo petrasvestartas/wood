@@ -23,8 +23,9 @@ namespace wood_chevron {
 /// u_nurbsknots/v_nurbsknots (unique values), points[n_u][n_v][xyz].
 inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& json_path) {
     std::ifstream f(json_path);
-    if (!f)
+    if (!f) {
         return {};
+    }
 
     nlohmann::json arr;
     f >> arr;
@@ -33,12 +34,15 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
                            const std::vector<double>& vals) -> std::vector<double> {
         std::vector<double> full;
         full.reserve(mults.size() * 4);
-        for (size_t i = 0; i < mults.size(); i++)
-            for (int k = 0; k < mults[i]; k++)
+        for (size_t i = 0; i < mults.size(); i++) {
+            for (int k = 0; k < mults[i]; k++) {
                 full.push_back(vals[i]);
+            }
+        }
         // strip first and last to get OpenNURBS nurbsknot vector
-        if (full.size() >= 2)
+        if (full.size() >= 2) {
             return std::vector<double>(full.begin() + 1, full.end() - 1);
+        }
         return full;
     };
 
@@ -62,21 +66,26 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
         session_cpp::NurbsSurface srf;
         srf.create_raw(3, false, deg_u + 1, deg_v + 1, n_u, n_v);
 
-        for (int i = 0; i < (int)knots_u.size(); i++)
+        for (int i = 0; i < (int)knots_u.size(); i++) {
             srf.set_nurbsknot(0, i, knots_u[i]);
-        for (int j = 0; j < (int)knots_v.size(); j++)
+        }
+        for (int j = 0; j < (int)knots_v.size(); j++) {
             srf.set_nurbsknot(1, j, knots_v[j]);
+        }
 
         const auto& pts = s["points"];
-        for (int i = 0; i < n_u; i++)
-            for (int j = 0; j < n_v; j++)
+        for (int i = 0; i < n_u; i++) {
+            for (int j = 0; j < n_v; j++) {
                 srf.set_cv(i, j, session_cpp::Point(
                     pts[i][j][0].get<double>(),
                     pts[i][j][1].get<double>(),
                     pts[i][j][2].get<double>()));
+            }
+        }
 
-        if (srf.is_valid())
+        if (srf.is_valid()) {
             surfaces.push_back(std::move(srf));
+        }
     }
 
     return surfaces;
@@ -103,13 +112,12 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
     auto du = srf.domain(0);
     auto dv = srf.domain(1);
 
-    double half_v    = dv.second * 0.5;   // Python: DomV.T1 * 0.5
+    double half_v    = (dv.first + dv.second) * 0.5;  // domain midpoint
     double StepU     = (du.second - du.first) / u_divisions;
     double totalV    = dv.second - dv.first;
     // Direct parametric step — matches Python: baseStepV = v_division_dist.
     // Requires surfaces whose parametric domain is in the same units as
-    // v_division_dist (e.g. millimetres for the Annen surfaces and for the
-    // default_surface() whose knots now span [0, W] and [0, L]).
+    // v_division_dist (mm). default_surface() is centred, Annen surfaces start at 0.
     double baseStepV = v_division_dist;
 
     std::vector<std::vector<session_cpp::Point>> polygons;
@@ -156,7 +164,7 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
             if (ctV + StepV1 > half_v) {
                 ListV.push_back(thresh);
                 std::reverse(ListV.begin(), ListV.end());
-                double revCt = totalV / 2.0;
+                double revCt = (dv.first + dv.second) * 0.5;
 
                 for (size_t i = 0; i < ListV.size() - 1; i++) {
                     revCt += ListV[i];
@@ -169,10 +177,18 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
                         polygons.push_back({p6, p0, p1, p7});
                         polygons.push_back({p7, p1, p2, p8});
 
-                        p6 = srf.point_at(ctU,             revCt + ListV[i+1]*(1.0 - shift/2.0));
-                        p7 = srf.point_at(ctU + StepU*0.5, revCt + ListV[i+1]*(1.0 + shift/2.0));
-                        p8 = srf.point_at(ctU + StepU,     revCt + ListV[i+1]*(1.0 - shift/2.0));
-                        savept6 = p6; savept7 = p7; savept8 = p8;
+                        if (i == ListV.size() - 2) {
+                            // Only 1 reverse step: close flat at surface boundary
+                            // (no zigzag peak, avoids evaluation beyond dv.second)
+                            p6 = srf.point_at(ctU,             revCt + ListV[i+1]);
+                            p7 = srf.point_at(ctU + StepU*0.5, revCt + ListV[i+1]);
+                            p8 = srf.point_at(ctU + StepU,     revCt + ListV[i+1]);
+                        } else {
+                            p6 = srf.point_at(ctU,             revCt + ListV[i+1]*(1.0 - shift/2.0));
+                            p7 = srf.point_at(ctU + StepU*0.5, revCt + ListV[i+1]*(1.0 + shift/2.0));
+                            p8 = srf.point_at(ctU + StepU,     revCt + ListV[i+1]*(1.0 - shift/2.0));
+                            savept6 = p6; savept7 = p7; savept8 = p8;
+                        }
                     } else if (i == ListV.size() - 2) {
                         p0 = savept6; p1 = savept7; p2 = savept8;
                         p6 = srf.point_at(ctU,             revCt + ListV[i+1]);
@@ -260,7 +276,7 @@ inline ChevronResult chevron_plates(
     double box_height      = 760.0,
     double top_plate_inlet = 80.0,
     double plate_thickness = 40.0,
-    bool   ortho           = true)
+    std::array<int,4> ortho_edges = {1,1,1,1})
 {
     // ── parameter clamping ────────────────────────────────────────────────
     edge_rotation   = std::clamp(edge_rotation,  -30.0, 30.0);
@@ -301,14 +317,23 @@ inline ChevronResult chevron_plates(
             for (int row = col+1; row < 3; row++) {
                 if (std::abs(M[row][col]) > best) { best = std::abs(M[row][col]); pivot = row; }
             }
-            if (best < 1e-12) return false;
-            if (pivot != col)
-                for (int k = 0; k < 4; k++) std::swap(M[col][k], M[pivot][k]);
+            if (best < 1e-12) {
+                return false;
+            }
+            if (pivot != col) {
+                for (int k = 0; k < 4; k++) {
+                    std::swap(M[col][k], M[pivot][k]);
+                }
+            }
             double inv = 1.0 / M[col][col];
             for (int row = 0; row < 3; row++) {
-                if (row == col) continue;
+                if (row == col) {
+                    continue;
+                }
                 double f = M[row][col] * inv;
-                for (int k = col; k < 4; k++) M[row][k] -= f * M[col][k];
+                for (int k = col; k < 4; k++) {
+                    M[row][k] -= f * M[col][k];
+                }
             }
         }
         x = { M[0][3]/M[0][0], M[1][3]/M[1][1], M[2][3]/M[2][2] };
@@ -343,20 +368,27 @@ inline ChevronResult chevron_plates(
                  {-p.z[0], -p.z[1], -p.z[2]} };
     };
 
-    // Rotate around own Y-axis by angle_rad.  Matches Plane.rotate_around_y().
+    // Rotate around own Y-axis by angle_rad.  Matches Rhino Plane.Rotate(angle, YAxis).
     auto pl_rotate_y = [&](const Pl& p, double angle) -> Pl {
         double c = std::cos(angle), s = std::sin(angle);
-        V3 new_x = norm3(add3(sc3(p.x, c), sc3(p.z, s)));
-        V3 new_z = norm3(add3(sc3(p.x,-s), sc3(p.z, c)));
+        V3 new_x = norm3(add3(sc3(p.x, c), sc3(p.z, -s)));
+        V3 new_z = norm3(add3(sc3(p.x, s), sc3(p.z,  c)));
         V3 new_y = cross3(new_z, new_x);
         return {p.o, new_x, new_y, new_z};
     };
 
-    // Snap z to dominant world axis, rebuild x/y.  Matches orthogonalize_plane().
-    auto pl_ortho = [&](const Pl& p) -> Pl {
-        int idx = 0; double best = 0;
-        for (int i = 0; i < 3; i++) if (std::abs(p.z[i]) > best) { best = std::abs(p.z[i]); idx = i; }
-        double sign = (p.z[idx] >= 0) ? 1.0 : -1.0;
+    // Snap z to a world axis, rebuild x/y.
+    // axis: 1=auto (dominant), 2=X, 3=Y, 4=Z
+    auto pl_ortho = [&](const Pl& p, int axis) -> Pl {
+        int idx; double sign;
+        if (axis >= 2 && axis <= 4) {
+            idx = axis - 2;
+            sign = (p.z[idx] >= 0) ? 1.0 : -1.0;
+        } else {
+            idx = 0; double best = 0;
+            for (int i = 0; i < 3; i++) if (std::abs(p.z[i]) > best) { best = std::abs(p.z[i]); idx = i; }
+            sign = (p.z[idx] >= 0) ? 1.0 : -1.0;
+        }
         V3 new_z = {0,0,0}; new_z[idx] = sign;
         V3 ref = (idx != 0) ? V3{1,0,0} : V3{0,1,0};
         V3 new_x = norm3(cross3(ref, new_z));
@@ -369,7 +401,9 @@ inline ChevronResult chevron_plates(
         std::array<V3,3> A = {p0.z, p1.z, p2.z};
         V3 b = { dot3(p0.z, p0.o), dot3(p1.z, p1.o), dot3(p2.z, p2.o) };
         V3 x;
-        if (!solve3(A, b, x)) return std::nullopt;
+        if (!solve3(A, b, x)) {
+            return std::nullopt;
+        }
         return x;
     };
 
@@ -383,7 +417,9 @@ inline ChevronResult chevron_plates(
         std::array<V3,3> A = {p0.z, p1.z, d};
         V3 b = { dot3(p0.z, p0.o), dot3(p1.z, p1.o), 0.0 };
         V3 anchor;
-        if (!solve3(A, b, anchor)) return {std::nullopt, std::nullopt};
+        if (!solve3(A, b, anchor)) {
+            return {std::nullopt, std::nullopt};
+        }
         return {anchor, d};
     };
 
@@ -403,16 +439,24 @@ inline ChevronResult chevron_plates(
     // Dihedral bisector plane.  Matches dihedral_plane().
     auto dihedral = [&](const Pl& p0, const Pl& p1) -> std::optional<Pl> {
         auto [anch_opt, dir_opt] = ppl(p0, p1);
-        if (!anch_opt) return std::nullopt;
-        if (dot3(p0.z, p1.z) > 1.0 - 0.01) return std::nullopt;
-        if (len3(sub3(p0.o, p1.o)) < 0.001)  return std::nullopt;
+        if (!anch_opt) {
+            return std::nullopt;
+        }
+        if (dot3(p0.z, p1.z) > 1.0 - 0.01) {
+            return std::nullopt;
+        }
+        if (len3(sub3(p0.o, p1.o)) < 0.001) {
+            return std::nullopt;
+        }
 
         auto [t0, t1, center] = llc(p0.o, p0.z, p1.o, p1.z);
         V3 v0 = norm3(sub3(p0.o, center));
         V3 v1 = norm3(sub3(p1.o, center));
         V3 bis = add3(v0, v1);
         double bn = len3(bis);
-        if (bn < 1e-12) return std::nullopt;
+        if (bn < 1e-12) {
+            return std::nullopt;
+        }
         bis = sc3(bis, 1.0/bn);
 
         V3 ldir = *dir_opt;
@@ -434,8 +478,9 @@ inline ChevronResult chevron_plates(
 
     // ── 1. Extract mesh topology ──────────────────────────────────────────
     std::vector<size_t> fkeys;
-    for (auto& [fk, _] : mesh.face)
+    for (auto& [fk, _] : mesh.face) {
         fkeys.push_back(fk);
+    }
     int n = (int)fkeys.size();
     if (n == 0) return {};
 
@@ -489,23 +534,29 @@ inline ChevronResult chevron_plates(
     f_order.reserve(n);
 
     auto share_strip_edge = [&](int fi, int fj) -> bool {
-        if ((int)fv[fi].size() < 4 || (int)fv[fj].size() < 4) return false;
+        if ((int)fv[fi].size() < 4 || (int)fv[fj].size() < 4) {
+            return false;
+        }
         size_t a=fv[fi][0],b=fv[fi][1],c=fv[fi][2],d=fv[fi][3];
         size_t a1=fv[fj][0],b1=fv[fj][1],c1=fv[fj][2],d1=fv[fj][3];
-        return ((a==b1 && b==a1) ||
-                (c==d1 && d==c1) ||
-                (c==b1 && d==a1) ||
-                (b==c1 && a==d1));
+        // Check odd local edges (1–2 and 3–0): groups faces adjacent in V
+        // (same U-column, consecutive V-rows) → V-direction stripes.
+        return ((b==c1 && c==b1) ||   // fi edge 1-2 == fj edge 1-2 reversed
+                (d==a1 && a==d1) ||   // fi edge 3-0 == fj edge 3-0 reversed
+                (b==a1 && c==d1) ||   // fi edge 1-2 == fj edge 3-0 reversed
+                (d==c1 && a==b1));    // fi edge 3-0 == fj edge 1-2 reversed
     };
 
     int strip_idx = 0;
     while (true) {
         int seed = -1;
         for (int i = 0; i < n; i++) if (!flagged[i]) { seed = i; break; }
-        if (seed < 0) break;
+        if (seed < 0) {
+            break;
+        }
 
         bool flag = (strip_idx % 2 == 0);
-        std::array<int,2> ce = flag ? std::array<int,2>{0,1} : std::array<int,2>{1,2};
+        std::array<int,2> ce = flag ? std::array<int,2>{3, 0} : std::array<int,2>{0, 1}; // 3, 0
 
         std::vector<int>  strip;
         std::vector<bool> done;
@@ -518,10 +569,14 @@ inline ChevronResult chevron_plates(
         while (changed) {
             changed = false;
             for (int qi = 0; qi < (int)strip.size(); qi++) {
-                if (done[qi]) continue;
+                if (done[qi]) {
+                    continue;
+                }
                 int fi = strip[qi];
                 for (int fj = 0; fj < n; fj++) {
-                    if (flagged[fj]) continue;
+                    if (flagged[fj]) {
+                        continue;
+                    }
                     if (share_strip_edge(fi, fj)) {
                         f_e[fj] = ce; f_rf[fj] = flag;
                         flagged[fj] = true;
@@ -534,9 +589,11 @@ inline ChevronResult chevron_plates(
             }
         }
 
-        if (strip_idx % 2 == 0)
-            std::reverse(strip.begin(), strip.end());
-        for (int fi : strip) f_order.push_back(fi);
+        // if (strip_idx % 2 == 0)
+        //     std::reverse(strip.begin(), strip.end());
+        for (int fi : strip) {
+            f_order.push_back(fi);
+        }
         strip_idx++;
     }
 
@@ -551,14 +608,18 @@ inline ChevronResult chevron_plates(
     std::vector<Pl>              fp(n);                       // face planes
 
     for (int fi = 0; fi < n; fi++) {
-        if ((int)fv[fi].size() < 4) continue;
+        if ((int)fv[fi].size() < 4) {
+            continue;
+        }
 
         // Face normal from the flipped vertex list
         V3 fn = face_norm(fi);
 
         // Face centroid
         V3 fc = {0,0,0};
-        for (size_t vk : fv[fi]) fc = add3(fc, vpos(vk));
+        for (size_t vk : fv[fi]) {
+            fc = add3(fc, vpos(vk));
+        }
         fc = sc3(fc, 1.0 / fv[fi].size());
 
         // Face plane: z = fn, x = cross(ref, fn), y = cross(fn, x)
@@ -577,8 +638,9 @@ inline ChevronResult chevron_plates(
             // Average flipped normals of adjacent faces
             const auto& adj = adj_faces(vi0, vi1);
             V3 avg_n = {0,0,0};
-            for (int fi2 : adj)
+            for (int fi2 : adj) {
                 avg_n = add3(avg_n, face_norm(fi2));
+            }
             avg_n = norm3(avg_n);
 
             ep[fi][j] = make_plane(mid, ex, avg_n);
@@ -595,7 +657,9 @@ inline ChevronResult chevron_plates(
     double angle_rad = edge_rotation * (3.14159265358979323846 / 180.0);
 
     for (int fi = 0; fi < n; fi++) {
-        if ((int)fv[fi].size() < 4) continue;
+        if ((int)fv[fi].size() < 4) {
+            continue;
+        }
         for (int j = 0; j < 4; j++) {
             size_t vi0 = fv[fi][j], vi1 = fv[fi][(j+1)%4];
             const auto& adj = adj_faces(vi0, vi1);
@@ -603,7 +667,7 @@ inline ChevronResult chevron_plates(
 
             if ((int)adj.size() == 2) {
                 if (is_chevron) {
-                    if (j % 2 == 0) {
+                    if (j % 2 == 1) {
                         // even chevron: translate
                         ep[fi][j] = pl_move_z(ep[fi][j], plate_thickness * edge_offset);
                     } else {
@@ -617,16 +681,17 @@ inline ChevronResult chevron_plates(
                     for (int k = 0; k < 4; k++) {
                         size_t u = fv[nb][k], v = fv[nb][(k+1)%4];
                         if (std::min(u,v) == std::min(vi0,vi1) &&
-                            std::max(u,v) == std::max(vi0,vi1)) {
+                            std::max(u,v) == std::max(vi0,vi1))
+                        {
                             ep[nb][k] = pl_flip_x(ep[fi][j]);
                             break;
                         }
                     }
                 }
                 // non-chevron interior edge: leave as-is
-            } else if (ortho) {
+            } else if (ortho_edges[j] != 0) {
                 // boundary edge: snap normal to world axis
-                ep[fi][j] = pl_ortho(ep[fi][j]);
+                ep[fi][j] = pl_ortho(ep[fi][j], ortho_edges[j]);
             }
         }
     }
@@ -657,7 +722,9 @@ inline ChevronResult chevron_plates(
         auto pts = poly_from_planes(base, sides);
         std::vector<session_cpp::Point> spts;
         spts.reserve(pts.size());
-        for (auto& p : pts) spts.emplace_back(p[0], p[1], p[2]);
+        for (auto& p : pts) {
+            spts.emplace_back(p[0], p[1], p[2]);
+        }
         out.plines.emplace_back(spts);
     };
 
@@ -666,8 +733,9 @@ inline ChevronResult chevron_plates(
         std::vector<Pl> ep_local(4);
         for (int j = 0; j < 4; j++) {
             ep_local[j] = ep[fi][j];
-            if (j == f_e[fi][0] || j == f_e[fi][1])
+            if (j == f_e[fi][0] || j == f_e[fi][1]) {
                 ep_local[j] = pl_move_z(ep_local[j], t);
+            }
         }
 
         const Pl& fplane = fp[fi];
@@ -680,9 +748,12 @@ inline ChevronResult chevron_plates(
 
         // Sort chevron edge indices; special-case [0,3] → reverse to [3,0]
         std::array<int,2> e_sorted = f_e[fi];
-        if (e_sorted[0] > e_sorted[1]) std::swap(e_sorted[0], e_sorted[1]);
-        if (e_sorted[0] == 0 && e_sorted[1] == 3)
+        if (e_sorted[0] > e_sorted[1]) {
             std::swap(e_sorted[0], e_sorted[1]);
+        }
+        if (e_sorted[0] == 0 && e_sorted[1] == 3) {
+            std::swap(e_sorted[0], e_sorted[1]);
+        }
 
         // 2 side plates per chevron edge (base plane + offset by t)
         for (int idx = 0; idx < 2; idx++) {
@@ -708,6 +779,7 @@ inline ChevronResult chevron_plates(
 
             add_poly(base0, sides);
             add_poly(base1, sides);
+
         }
     }
 
@@ -723,14 +795,17 @@ inline ChevronResult chevron_plates(
 
     // Map fkeys[] array-index → counter position in f_order
     std::vector<int> face_to_counter(n, -1);
-    for (int c = 0; c < n_ordered; c++)
+    for (int c = 0; c < n_ordered; c++) {
         face_to_counter[f_order[c]] = c;
+    }
 
     // Centroid of a plate polyline (used for box_insertion_line origin)
     auto poly_centroid = [&](const session_cpp::Polyline& pl) -> V3 {
         V3 c = {0,0,0};
         int np = (int)pl.point_count();
-        if (np == 0) return c;
+        if (np == 0) {
+            return c;
+        }
         for (int k = 0; k < np; k++) {
             auto p = pl.get_point(k);
             c[0] += p[0]; c[1] += p[1]; c[2] += p[2];
@@ -743,8 +818,12 @@ inline ChevronResult chevron_plates(
 
         // Sort chevron edges (same logic as Phase 5)
         std::array<int,2> e_s = f_e[fi];
-        if (e_s[0] > e_s[1]) std::swap(e_s[0], e_s[1]);
-        if (e_s[0] == 0 && e_s[1] == 3) std::swap(e_s[0], e_s[1]);
+        if (e_s[0] > e_s[1]) {
+            std::swap(e_s[0], e_s[1]);
+        }
+        if (e_s[0] == 0 && e_s[1] == 3) {
+            std::swap(e_s[0], e_s[1]);
+        }
 
         // Bisector directions: intersection line of face-plane with bisector-plane.
         // bi[fi][j] = dihedral(e_planes[(j+1)%4], e_planes[j])
@@ -752,7 +831,9 @@ inline ChevronResult chevron_plates(
         // bisector_dir0: at corner e_s[0] (start of chevron edge 0)
         // bisector_dir1: at corner (e_s[1]+1)%4 (end of chevron edge 1)
         auto bisector_dir = [&](int corner) -> V3 {
-            if (!bi[fi][corner]) return {0,0,0};
+            if (!bi[fi][corner]) {
+                return {0,0,0};
+            }
             auto [a, d] = ppl(fp[fi], *bi[fi][corner]);
             return d ? norm3(*d) : V3{0,0,0};
         };
@@ -792,8 +873,9 @@ inline ChevronResult chevron_plates(
         // ── Within-box adjacency ──────────────────────────────────────────
         // top↔side0, top↔side1, bot↔side0, bot↔side1, side0↔side1
         for (int role_a : {0, 1}) {
-            for (int role_b : {2, 3})
+            for (int role_b : {2, 3}) {
                 out.adjacency.emplace_back(counter*4+role_a, counter*4+role_b);
+            }
         }
         out.adjacency.emplace_back(counter*4+2, counter*4+3);
 
@@ -805,10 +887,14 @@ inline ChevronResult chevron_plates(
             int cedge = e_s[ei];
             size_t vi0 = fv[fi][cedge], vi1 = fv[fi][(cedge+1)%4];
             const auto& adf = adj_faces(vi0, vi1);
-            if ((int)adf.size() != 2) continue;
+            if ((int)adf.size() != 2) {
+                continue;
+            }
             int nb_fi = (adf[0] != fi) ? adf[0] : adf[1];
             int nei = face_to_counter[nb_fi];
-            if (nei < 0) continue;
+            if (nei < 0) {
+                continue;
+            }
 
             // Neighbor's top and bottom face plates connect to current side plate
             out.adjacency.emplace_back(nei*4+0, counter*4+2+ei);

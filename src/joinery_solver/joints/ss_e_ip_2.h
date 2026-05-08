@@ -10,7 +10,9 @@ static void ss_e_ip_2(WoodJoint& joint) {
         Point a = joint.joint_lines[0].start();
         Point b = joint.joint_lines[0].end();
         double d = Point::distance(a, b);
-        if (d > 1e-9) edge_length = d;
+        if (d > 1e-9) {
+            edge_length = d;
+        }
     }
     int divisions = std::max(1, std::min(100, joint.divisions));
     double joint_volume_edge_length =
@@ -54,8 +56,9 @@ static void ss_e_ip_2(WoodJoint& joint) {
         out.reserve(base.size() * divisions);
         for (int i = 0; i < divisions; ++i) {
             double dz = mv_end + mv_step * i;
-            for (const Point& p : base)
+            for (const Point& p : base) {
                 out.emplace_back(p[0], p[1], p[2] + dz);
+            }
         }
         return out;
     };

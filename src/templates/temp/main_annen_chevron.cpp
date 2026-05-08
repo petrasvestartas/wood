@@ -19,22 +19,26 @@ static void write_joinery_txt(
     // ── insertion_vectors.txt ─────────────────────────────────────────────
     {
         std::ofstream f((out_dir / (dataset_name + "_insertion_vectors.txt")).string());
-        for (auto& r : results)
+        for (auto& r : results) {
             for (auto& iv : r.insertion_vectors) {
-                for (int k = 0; k < 18; k++)
+                for (int k = 0; k < 18; k++) {
                     f << (k ? " " : "") << iv[k];
+                }
                 f << "\n";
             }
+        }
     }
     // ── joints_types.txt ──────────────────────────────────────────────────
     {
         std::ofstream f((out_dir / (dataset_name + "_joints_types.txt")).string());
-        for (auto& r : results)
+        for (auto& r : results) {
             for (auto& jp : r.joints_per_face) {
-                for (int k = 0; k < 6; k++)
+                for (int k = 0; k < 6; k++) {
                     f << (k ? " " : "") << jp[k];
+                }
                 f << "\n";
             }
+        }
     }
     // ── three_valence.txt ─────────────────────────────────────────────────
     // Type 0 (Annen alignment).  Each surface's plate-pair indices must be
@@ -44,9 +48,10 @@ static void write_joinery_txt(
         f << "0\n";  // type 0 = Annen joint-line alignment
         int base = 0;
         for (auto& r : results) {
-            for (auto& tv : r.three_valence)
+            for (auto& tv : r.three_valence) {
                 f << (tv[0]+base) << " " << (tv[1]+base) << " "
                   << (tv[2]+base) << " " << (tv[3]+base) << "\n";
+            }
             base += (int)r.joints_per_face.size();
         }
     }
@@ -55,8 +60,9 @@ static void write_joinery_txt(
         std::ofstream f((out_dir / (dataset_name + "_adjacency.txt")).string());
         int base = 0;
         for (auto& r : results) {
-            for (auto& [a, b] : r.adjacency)
+            for (auto& [a, b] : r.adjacency) {
                 f << (a+base) << " " << (b+base) << "\n";
+            }
             base += (int)r.joints_per_face.size();
         }
     }
@@ -95,8 +101,9 @@ int main() {
             res.plines[j].name = "plate_" + std::to_string(i) + "_" + std::to_string(j);
             session.add_polyline(std::make_shared<Polyline>(res.plines[j]));
         }
-        for (auto& bl : res.box_insertion_lines)
+        for (auto& bl : res.box_insertion_lines) {
             session.add_polyline(std::make_shared<Polyline>(bl));
+        }
 
         all_results.push_back(std::move(res));
     }

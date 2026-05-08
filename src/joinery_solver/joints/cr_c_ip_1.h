@@ -81,8 +81,12 @@ static void cr_c_ip_1(WoodJoint& joint) {
 
     // 18 cut types: 6× mill_project + 12× slice
     std::vector<int> ct(18);
-    for (int i = 0; i < 6; i++) ct[i] = wood_cut::mill_project;
-    for (int i = 6; i < 18; i++) ct[i] = wood_cut::slice;
+    for (int i = 0; i < 6; i++) {
+        ct[i] = wood_cut::mill_project;
+    }
+    for (int i = 6; i < 18; i++) {
+        ct[i] = wood_cut::slice;
+    }
     for (int face = 0; face < 2; face++) {
         joint.f_cut_types[face] = ct;
         joint.m_cut_types[face] = ct;

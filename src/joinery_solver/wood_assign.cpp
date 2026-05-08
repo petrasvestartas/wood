@@ -48,7 +48,7 @@ void element_aabb(const WoodElement& elem, double inflate,
         out_min[k] =  DBL_MAX;
         out_max[k] = -DBL_MAX;
     }
-    for (const auto& poly : elem.polylines)
+    for (const auto& poly : elem.polylines) {
         for (size_t i = 0; i < poly.point_count(); i++) {
             const auto& pt = poly[i];
             out_min[0] = std::min(out_min[0], pt[0] - inflate);
@@ -58,6 +58,7 @@ void element_aabb(const WoodElement& elem, double inflate,
             out_max[1] = std::max(out_max[1], pt[1] + inflate);
             out_max[2] = std::max(out_max[2], pt[2] + inflate);
         }
+    }
 }
 
 // Build an R-tree over element AABBs, storing the element index as payload.
@@ -98,10 +99,13 @@ void assign_joint(
     // Initialize output.  Slot layout: 0=bot, 1=top, 2..N=side edges.
     out_joint_types.clear();
     out_joint_types.resize(elements.size());
-    for (size_t ei = 0; ei < elements.size(); ei++)
+    for (size_t ei = 0; ei < elements.size(); ei++) {
         out_joint_types[ei].assign(2 + n_side_slots(elements[ei]), -1);
+    }
 
-    if (points.empty() || point_types.size() < points.size()) return;
+    if (points.empty() || point_types.size() < points.size()) {
+        return;
+    }
 
     const RTree3 rtree = build_element_rtree(elements, dist);
 
@@ -114,7 +118,9 @@ void assign_joint(
 
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
             const auto& elem = elements[ei];
-            if (elem.polylines.size() < 2) return true;
+            if (elem.polylines.size() < 2) {
+                return true;
+            }
 
             // Test top (index 1) and bottom (index 0) face polylines.
             auto [seg_top, d2_top] = closest_segment_to_point(elem.polylines[1], p);
@@ -125,7 +131,9 @@ void assign_joint(
             const double d2_min  = is_top ? d2_top : d2_bot;
             const size_t best_seg = is_top ? seg_top : seg_bot;
 
-            if (d2_min >= d2_thr) return true;
+            if (d2_min >= d2_thr) {
+                return true;
+            }
 
             // t < 0 → face-plane slot (top=1, bot=0)
             // t > 0 → side-edge slot  (2 + segment index)
@@ -134,8 +142,9 @@ void assign_joint(
                              : static_cast<int>(2 + best_seg);
 
             auto& slots = out_joint_types[ei];
-            if (slot >= 0 && slot < static_cast<int>(slots.size()))
+            if (slot >= 0 && slot < static_cast<int>(slots.size())) {
                 slots[slot] = std::abs(t);
+            }
             return true;
         });
     }
@@ -155,12 +164,15 @@ void assign_insertion(
     // Initialize output.  Same slot layout as assign_joint.
     out_insertion_vectors.clear();
     out_insertion_vectors.resize(elements.size());
-    for (size_t ei = 0; ei < elements.size(); ei++)
+    for (size_t ei = 0; ei < elements.size(); ei++) {
         out_insertion_vectors[ei].assign(
+    }
             2 + n_side_slots(elements[ei]),
             session_cpp::Vector(0.0, 0.0, 0.0));
 
-    if (lines.empty()) return;
+    if (lines.empty()) {
+        return;
+    }
 
     const RTree3 rtree = build_element_rtree(elements, dist);
 
@@ -175,7 +187,9 @@ void assign_insertion(
 
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
             const auto& elem = elements[ei];
-            if (elem.polylines.size() < 2) return true;
+            if (elem.polylines.size() < 2) {
+                return true;
+            }
 
             auto [seg_top, d2_top] = closest_segment_to_point(elem.polylines[1], p0);
             auto [seg_bot, d2_bot] = closest_segment_to_point(elem.polylines[0], p0);
@@ -183,12 +197,15 @@ void assign_insertion(
             const double d2_min  = std::min(d2_top, d2_bot);
             const size_t best_seg = d2_top <= d2_bot ? seg_top : seg_bot;
 
-            if (d2_min >= d2_thr) return true;
+            if (d2_min >= d2_thr) {
+                return true;
+            }
 
             auto& slots = out_insertion_vectors[ei];
             const int slot = static_cast<int>(best_seg + 2);
-            if (slot < static_cast<int>(slots.size()))
+            if (slot < static_cast<int>(slots.size())) {
                 slots[slot] = dir;
+            }
             return true;
         });
     }

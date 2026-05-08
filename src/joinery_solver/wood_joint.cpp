@@ -47,9 +47,9 @@ void apply_unit_scale(WoodJoint& joint) {
             alog << "\n";
         }
     }
-    if (!joint.unit_scale) return;
+    if (!joint.unit_scale) { return; }
     auto& vols = joint.joint_volumes_pair_a_pair_b;
-    if (!vols[0].has_value() || !vols[1].has_value()) return;
+    if (!vols[0].has_value() || !vols[1].has_value()) { return; }
     auto move_pair = [&](Polyline& a, Polyline& b) {
         // Wood `wood_joint.cpp:281` — compute unit_scale_distance lazily
         // from the rectangle's [1]→[2] edge length when not user-set.
@@ -76,7 +76,7 @@ void apply_unit_scale(WoodJoint& joint) {
         double len = std::sqrt(vec_unit[0]*vec_unit[0] +
                                vec_unit[1]*vec_unit[1] +
                                vec_unit[2]*vec_unit[2]);
-        if (len < 1e-12) return;
+        if (len < 1e-12) { return; }
         double s = (joint.unit_scale_distance * 0.5) / len;
         vec_unit = Vector(seg[0]*s, seg[1]*s, seg[2]*s);
         Vector neg_vec(-vec[0], -vec[1], -vec[2]);
@@ -98,7 +98,7 @@ void apply_unit_scale(WoodJoint& joint) {
 // Orient unit joinery to connection area using change_basis.
 void joint_orient_to_connection_area(WoodJoint& joint) {
     auto& vols = joint.joint_volumes_pair_a_pair_b;
-    if (!vols[0].has_value() || !vols[1].has_value()) return;
+    if (!vols[0].has_value() || !vols[1].has_value()) { return; }
 
     // Wood `wood_joint.cpp:276-319`: rescale joint volumes along the joint
     // line direction BEFORE change_basis so the unit-cube → world map
@@ -112,8 +112,8 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
 
     // Transform male outlines with xf0, female with xf1.
     for (int face = 0; face < 2; face++) {
-        for (auto& pl : joint.m_outlines[face]) pl = pl.transformed_xform(xf0);
-        for (auto& pl : joint.f_outlines[face]) pl = pl.transformed_xform(xf1);
+        for (auto& pl : joint.m_outlines[face]) { pl = pl.transformed_xform(xf0); }
+        for (auto& pl : joint.f_outlines[face]) { pl = pl.transformed_xform(xf1); }
     }
 }
 
@@ -121,20 +121,20 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
 // remove_geo_from_linked_joint_and_merge_with_current_joint
 // Interleaves shadow joint outlines into the primary joint after both are oriented.
 void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
-    if (joint.linked_joints_seq.size() != joint.linked_joints.size()) return;
+    if (joint.linked_joints_seq.size() != joint.linked_joints.size()) { return; }
 
     for (int i = 0; i < (int)joint.linked_joints.size(); i++) {
         // wood: m_f_curr = v0 == linked.v0
         bool m_f_curr = joint.el_ids.first == all_joints[joint.linked_joints[i]].el_ids.first;
         bool m_f_next = m_f_curr;
-        if (i == 1) m_f_next = !m_f_next; // wood: invert for second link
+        if (i == 1) { m_f_next = !m_f_next; } // wood: invert for second link
 
         // (true,true)=m[0], (true,false)=m[1], (false,true)=f[0], (false,false)=f[1]
         auto& curr = m_f_curr ? joint.m_outlines : joint.f_outlines;
         auto& next = m_f_next ? all_joints[joint.linked_joints[i]].m_outlines
                                : all_joints[joint.linked_joints[i]].f_outlines;
 
-        if (joint.linked_joints_seq[i].size() * 2 != curr[0].size()) continue;
+        if (joint.linked_joints_seq[i].size() * 2 != curr[0].size()) { continue; }
 
         for (int j = 0; j < (int)curr[0].size(); j += 2) {
             auto& seq      = joint.linked_joints_seq[i][j / 2];
@@ -143,8 +143,8 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
             int start_next = seq[2];
             int step_next  = seq[3];
 
-            if (start_curr == 0 && step_curr == 0 && start_next == 0 && step_next == 0) continue;
-            if (step_curr == 0 || step_next == 0) continue;
+            if (start_curr == 0 && step_curr == 0 && start_next == 0 && step_next == 0) { continue; }
+            if (step_curr == 0 || step_next == 0) { continue; }
 
             // wood always operates on [0] — the main outline of each face
             auto pts_t  = curr[0][0].get_points(); // copy before curr is modified
@@ -269,7 +269,9 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
         if (n > 1) {
             Point f = pl.get_point(0); Point l = pl.get_point(n-1);
             double dx=f[0]-l[0], dy=f[1]-l[1], dz=f[2]-l[2];
-            if (dx*dx+dy*dy+dz*dz < 1e-10) --n;
+            if (dx*dx+dy*dy+dz*dz < 1e-10) {
+                --n;
+            }
         }
         std::vector<bool> conv; conv.reserve(n);
         for (size_t i = 0; i < n; ++i) {
@@ -290,27 +292,34 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
     // edge direction. Mirrors wood's cgal_polyline_util.cpp:406-435 including
     // the closing-vertex sync when sID==0 or sID+1==last.
     auto extend_edge = [](Polyline& pl, size_t edge_id, double s0, double s1) {
-        if (s0 == 0.0 && s1 == 0.0) return;
+        if (s0 == 0.0 && s1 == 0.0) { return; }
         size_t n = pl.point_count();
-        if (edge_id + 1 >= n) return;
+        if (edge_id + 1 >= n) { return; }
         Point a = pl.get_point(edge_id);
         Point b = pl.get_point(edge_id + 1);
         Vector d(b[0]-a[0], b[1]-a[1], b[2]-a[2]);
         double len = std::sqrt(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]);
-        if (len < 1e-12) return;
+        if (len < 1e-12) { return; }
         Vector u(d[0]/len, d[1]/len, d[2]/len);
         Point a_new(a[0] - u[0]*s0, a[1] - u[1]*s0, a[2] - u[2]*s0);
         Point b_new(b[0] + u[0]*s1, b[1] + u[1]*s1, b[2] + u[2]*s1);
         std::vector<Point> pts;
         pts.reserve(n);
         for (size_t k = 0; k < n; ++k) {
-            if (k == edge_id) pts.push_back(a_new);
-            else if (k == edge_id + 1) pts.push_back(b_new);
-            else pts.push_back(pl.get_point(k));
+            if (k == edge_id) {
+                pts.push_back(a_new);
+            } else if (k == edge_id + 1) {
+                pts.push_back(b_new);
+            } else {
+                pts.push_back(pl.get_point(k));
+            }
         }
         // Closing-vertex sync (wood extend() :431-434).
-        if (edge_id == 0) pts.back() = pts.front();
-        else if (edge_id + 1 == n - 1) pts.front() = pts.back();
+        if (edge_id == 0) {
+            pts.back() = pts.front();
+        } else if (edge_id + 1 == n - 1) {
+            pts.front() = pts.back();
+        }
         pl = Polyline(pts);
     };
     if (pline0.point_count() == 5 && pline1.point_count() == 5) {
@@ -405,18 +414,18 @@ void tt_e_p_3(WoodJoint& joint,
     int v0 = joint.el_ids.first;
     int v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
 
     // Need at least one joint_volume to derive the drill axis direction.
-    if (!joint.joint_volumes_pair_a_pair_b[0].has_value()) return;
+    if (!joint.joint_volumes_pair_a_pair_b[0].has_value()) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
+    if (jv0.point_count() < 3) { return; }
 
     // offset_and_divide_to_points: wood's clipper_util.cpp:886-910.
     // 1. Get fast plane of joint_area
     // 2. Offset polygon in 3D by offset_distance
     // 3. For each edge, interpolate points (mode=2 = include start only)
-    if (joint.joint_area.point_count() < 4) return;
+    if (joint.joint_area.point_count() < 4) { return; }
     Polyline poly_copy = joint.joint_area;
     Point fast_origin;
     Plane fast_plane;
@@ -424,7 +433,7 @@ void tt_e_p_3(WoodJoint& joint,
 
     double offset_distance = -joint.shift;
     double division_distance = joint.division_length;
-    if (division_distance <= 0.0) return; // wood's loop would divide by zero
+    if (division_distance <= 0.0) { return; } // wood's loop would divide by zero
 
     Intersection::offset_in_3d(poly_copy, fast_plane, offset_distance);
 
@@ -442,8 +451,9 @@ void tt_e_p_3(WoodJoint& joint,
         double dx = op_pts.front()[0] - op_pts.back()[0];
         double dy = op_pts.front()[1] - op_pts.back()[1];
         double dz = op_pts.front()[2] - op_pts.back()[2];
-        if (dx*dx + dy*dy + dz*dz > 0.01 /* DISTANCE_SQUARED */)
+        if (dx*dx + dy*dy + dz*dz > 0.01 /* DISTANCE_SQUARED */) {
             points.push_back(op_pts.back());
+        }
     }
 
     // Direction vectors: dir0 = unit(jv[0][1] - jv[0][2]) * thickness_v0
@@ -506,9 +516,9 @@ void side_removal(WoodJoint& joint,
                   const std::vector<WoodElement>& elements,
                   bool merge_with_joint) {
     double saved_shift = joint.shift;
-    if (!merge_with_joint) joint.shift = 0.0; // force simple 2-outline branch
+    if (!merge_with_joint) { joint.shift = 0.0; } // force simple 2-outline branch
     side_removal_ss_e_r_1_port(joint, elements);
-    if (!merge_with_joint) joint.shift = saved_shift;
+    if (!merge_with_joint) { joint.shift = saved_shift; }
 }
 
 // ── tt_e_p_0: single centroid drill ──────────────────────────────────────────
@@ -520,11 +530,11 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.no_orient = true;
     int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
-    if (!joint.joint_volumes_pair_a_pair_b[0]) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
+    if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
-    if (joint.joint_area.point_count() < 3) return;
+    if (jv0.point_count() < 3) { return; }
+    if (joint.joint_area.point_count() < 3) { return; }
 
     // centroid of joint_area
     Point center;
@@ -566,11 +576,11 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.no_orient = true;
     int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
-    if (!joint.joint_volumes_pair_a_pair_b[0]) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
+    if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
-    if (joint.joint_area.point_count() < 3) return;
+    if (jv0.point_count() < 3) { return; }
+    if (joint.joint_area.point_count() < 3) { return; }
 
     // Approximate polylabel with centroid (exact for convex regular polygons).
     Point center;
@@ -612,11 +622,11 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.no_orient = true;
     int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
-    if (!joint.joint_volumes_pair_a_pair_b[0]) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
+    if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
-    if (joint.joint_area.point_count() < 3) return;
+    if (jv0.point_count() < 3) { return; }
+    if (joint.joint_area.point_count() < 3) { return; }
 
     double radius = joint.shift;
     int n_pts = std::max(1, std::min(100, (int)joint.division_length));
@@ -685,14 +695,14 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.no_orient = true;
     int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
-    if (!joint.joint_volumes_pair_a_pair_b[0]) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
+    if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
-    if (joint.joint_area.point_count() < 4) return;
+    if (jv0.point_count() < 3) { return; }
+    if (joint.joint_area.point_count() < 4) { return; }
 
     double division_distance = joint.division_length;
-    if (division_distance <= 0.0) return;
+    if (division_distance <= 0.0) { return; }
 
     Polyline poly_copy = joint.joint_area;
     Point fast_origin; Plane fast_plane;
@@ -710,7 +720,7 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     }
     if (!op_pts.empty()) {
         double dx=op_pts.front()[0]-op_pts.back()[0], dy=op_pts.front()[1]-op_pts.back()[1], dz=op_pts.front()[2]-op_pts.back()[2];
-        if (dx*dx+dy*dy+dz*dz > 0.01) points.push_back(op_pts.back());
+        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts.back()); }
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);
@@ -748,14 +758,14 @@ void tt_e_p_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.no_orient = true;
     int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
     if (v0 < 0 || v0 >= (int)elements.size() ||
-        v1 < 0 || v1 >= (int)elements.size()) return;
-    if (!joint.joint_volumes_pair_a_pair_b[0]) return;
+        v1 < 0 || v1 >= (int)elements.size()) { return; }
+    if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
-    if (jv0.point_count() < 3) return;
-    if (joint.joint_area.point_count() < 4) return;
+    if (jv0.point_count() < 3) { return; }
+    if (joint.joint_area.point_count() < 4) { return; }
 
     double division_distance = std::abs(joint.division_length);
-    if (division_distance <= 0.0) return;
+    if (division_distance <= 0.0) { return; }
 
     Polyline poly_copy = joint.joint_area;
     Point fast_origin; Plane fast_plane;
@@ -773,7 +783,7 @@ void tt_e_p_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     }
     if (!op_pts.empty()) {
         double dx=op_pts.front()[0]-op_pts.back()[0], dy=op_pts.front()[1]-op_pts.back()[1], dz=op_pts.front()[2]-op_pts.back()[2];
-        if (dx*dx+dy*dy+dz*dz > 0.01) points.push_back(op_pts.back());
+        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts.back()); }
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);

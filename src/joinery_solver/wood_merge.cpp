@@ -121,8 +121,12 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             // Sanity: skip if either outline (top or bottom) is missing
             // its main outline OR its 2-point endpoint marker.
             // wood_element.cpp:758-762
-            if (jm[0].size() < 2 || jm[1].size() < 2) continue;
-            if (jm[0][1].point_count() == 0 || jm[1][1].point_count() == 0) continue;
+            if (jm[0].size() < 2 || jm[1].size() < 2) {
+                continue;
+            }
+            if (jm[0][1].point_count() == 0 || jm[1][1].point_count() == 0) {
+                continue;
+            }
 
             // is_geo_reversed: if jm[0]'s endpoint marker pt0 is FARTHER from
             // plane[0] (the element's top plane) than jm[1]'s endpoint marker
@@ -142,7 +146,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                                << ") d_top=" << d_top << " d_bot=" << d_bot
                                << " reversed=" << (is_geo_reversed?1:0);
             }
-            if (is_geo_reversed) std::swap(jm[0], jm[1]);
+            if (is_geo_reversed) {
+                std::swap(jm[0], jm[1]);
+            }
 
             // Switch on the endpoint marker's point count, mirroring
             // wood_element.cpp:774's `switch(joints[](male, true)[1].size())`.
@@ -150,7 +156,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             //   5 → rectangle joint (case 5, e.g. cross/boundary joints)
             // Anything else → skip (matches wood's `default: continue;`).
             size_t endpoint_pt_count = jm[0][1].point_count();
-            if (endpoint_pt_count != 2 && endpoint_pt_count != 5) continue;
+            if (endpoint_pt_count != 2 && endpoint_pt_count != 5) {
+                continue;
+            }
 
             if (endpoint_pt_count == 5) {
                 // ── case (5): rectangle joint ──────────────────────────────
@@ -163,15 +171,17 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                 std::pair<double, double> cp_pair_0;
                 if (!Intersection::closed_and_open_paths_2d(
                         el.polylines[0], jm[0][0], el.planes[0],
-                        joint_pline_0, cp_pair_0))
+                        joint_pline_0, cp_pair_0)) {
                     continue;
+                }
 
                 Polyline joint_pline_1;
                 std::pair<double, double> cp_pair_1;
                 if (!Intersection::closed_and_open_paths_2d(
                         el.polylines[1], jm[1][0], el.planes[1],
-                        joint_pline_1, cp_pair_1))
+                        joint_pline_1, cp_pair_1)) {
                     continue;
+                }
 
                 // wood_element.cpp:1089-1099 — insert into the sorted maps
                 // with the parametric position derived from the clipping
@@ -240,7 +250,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                 auto perp_dist_sq_to_infinite_line = [](const Point& p, const Point& la, const Point& lb) -> double {
                     Vector d(lb[0]-la[0], lb[1]-la[1], lb[2]-la[2]);
                     double l2 = d[0]*d[0] + d[1]*d[1] + d[2]*d[2];
-                    if (l2 < 1e-20) return 0.0;
+                    if (l2 < 1e-20) {
+                        return 0.0;
+                    }
                     double t = ((p[0]-la[0])*d[0] + (p[1]-la[1])*d[1] + (p[2]-la[2])*d[2]) / l2;
                     Point pr(la[0]+d[0]*t, la[1]+d[1]*t, la[2]+d[2]*t);
                     double dx = p[0]-pr[0], dy = p[1]-pr[1], dz = p[2]-pr[2];
@@ -261,10 +273,18 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
 
             // Relocate plate vertices to the intersection points.
             // wood_element.cpp:953-975
-            if (is_intersected_0) pline0[id]   = p0_int;
-            if (is_intersected_1) pline0[next] = p1_int;
-            if (is_intersected_2) pline1[id]   = p2_int;
-            if (is_intersected_3) pline1[next] = p3_int;
+            if (is_intersected_0) {
+                pline0[id]   = p0_int;
+            }
+            if (is_intersected_1) {
+                pline0[next] = p1_int;
+            }
+            if (is_intersected_2) {
+                pline1[id]   = p2_int;
+            }
+            if (is_intersected_3) {
+                pline1[next] = p3_int;
+            }
 
             // Track segments for the closing-corner fix. wood_element.cpp:977-984.
             last_segment0 = {{j0_s, j0_e}};
@@ -390,10 +410,14 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
         // Concatenate everything in sorted order then close.
         // wood_element.cpp:1178-1182, 1252 — no deduplication, wood preserves C_dup
         std::vector<Point> merged;
-        for (auto& kv : sorted)
-            for (size_t pi = 0; pi < kv.second.second.point_count(); pi++)
+        for (auto& kv : sorted) {
+            for (size_t pi = 0; pi < kv.second.second.point_count(); pi++) {
                 merged.push_back(kv.second.second.get_point(pi));
-        if (!merged.empty()) merged.push_back(merged.front());
+            }
+        }
+        if (!merged.empty()) {
+            merged.push_back(merged.front());
+        }
         return Polyline(merged);
     };
 
@@ -420,11 +444,19 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
         if (ok0 && ok1) {
             auto pts_top = merged_top.get_points();
             auto pts_bot = merged_bot.get_points();
-            if (!pts_top.empty()) pts_top[0] = p0_close;
-            if (!pts_bot.empty()) pts_bot[0] = p1_close;
+            if (!pts_top.empty()) {
+                pts_top[0] = p0_close;
+            }
+            if (!pts_bot.empty()) {
+                pts_bot[0] = p1_close;
+            }
             // The polylines are closed (front == back), so keep the duplicate in sync.
-            if (pts_top.size() > 1) pts_top.back() = pts_top.front();
-            if (pts_bot.size() > 1) pts_bot.back() = pts_bot.front();
+            if (pts_top.size() > 1) {
+                pts_top.back() = pts_top.front();
+            }
+            if (pts_bot.size() > 1) {
+                pts_bot.back() = pts_bot.front();
+            }
             merged_top = Polyline(pts_top);
             merged_bot = Polyline(pts_bot);
         }
@@ -453,7 +485,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             WoodJoint& jt = joints[joint_id];
             auto& jm = male_or_female ? jt.m_outlines : jt.f_outlines;
             auto& jct = male_or_female ? jt.m_cut_types : jt.f_cut_types;
-            if (jm[0].empty() || jm[1].empty()) continue;
+            if (jm[0].empty() || jm[1].empty()) {
+                continue;
+            }
 
             // Phase B uses a DIFFERENT is_geo_reversed test: it compares the
             // BACK (last) outline's point[0], not the endpoint marker.
@@ -504,13 +538,21 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             WoodJoint& jt = joints[joint_id];
             auto& jm  = male_or_female ? jt.m_outlines : jt.f_outlines;
             auto& jct = male_or_female ? jt.m_cut_types : jt.f_cut_types;
-            if (jm[0].empty() || jm[1].empty()) continue;
-            if (jct[0].empty()) continue;
+            if (jm[0].empty() || jm[1].empty()) {
+                continue;
+            }
+            if (jct[0].empty()) {
+                continue;
+            }
             std::vector<int> id_of_holes;
-            for (int ki = 0; ki < (int)jct[0].size(); ki += 2)
-                if (jct[0][ki] == wood_cut::hole)
+            for (int ki = 0; ki < (int)jct[0].size(); ki += 2) {
+                if (jct[0][ki] == wood_cut::hole) {
                     id_of_holes.push_back(ki);
-            if (id_of_holes.empty()) continue;
+                }
+            }
+            if (id_of_holes.empty()) {
+                continue;
+            }
             Point t_back = jm[0].back().get_point(0);
             Point f_back = jm[1].back().get_point(0);
             double dt = Point::distance(t_back, el.planes[0].project(t_back));
@@ -520,7 +562,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                 std::swap(jct[0], jct[1]);
             }
             for (int ki : id_of_holes) {
-                if (ki >= (int)jm[0].size() || ki >= (int)jm[1].size()) continue;
+                if (ki >= (int)jm[0].size() || ki >= (int)jm[1].size()) {
+                    continue;
+                }
                 Polyline top = jm[0][ki];
                 Polyline bot = jm[1][ki];
                 if (!top.is_clockwise(el.planes[0])) { top.reverse(); bot.reverse(); }

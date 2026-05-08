@@ -29,8 +29,9 @@ static Plane side_cut_plane(
     double        cut_offset = 0.0)
 {
     Vector right_nb = endplane.z_axis().normalized();
-    if (right_nb.is_zero())
+    if (right_nb.is_zero()) {
         right_nb = endplane.x_axis().cross(Vector(0, 0, 1)).normalized();
+    }
 
     // Project our extension direction onto neighbor's right axis.
     // Extension goes in -dir_i (start) or +dir_i (end).
@@ -66,8 +67,9 @@ static BeamGeom make_beam(const Line& line, const Vector& up, double w, double h
     Vector dir = line.to_direction();
 
     Vector right = dir.cross(up);
-    if (right.is_zero())
+    if (right.is_zero()) {
         right = dir.cross(Vector(0, 0, 1));
+    }
     right = right.normalized() * (w * 0.5);
     Vector n = up * (h * 0.5);
 
@@ -87,8 +89,9 @@ static BeamGeom make_beam(const Line& line, const Vector& up, double w, double h
     auto cut = [&](const Point& p, const Plane& pl) -> Point {
         Point pt;
         Line ray = Line::from_points(p, Point(p[0]+dir[0], p[1]+dir[1], p[2]+dir[2]));
-        if (Intersection::line_plane(ray, pl, pt, false))
+        if (Intersection::line_plane(ray, pl, pt, false)) {
             return pt;
+        }
         return p;
     };
 
@@ -196,8 +199,9 @@ int main() {
 
         Line          ln  = r.center[ei];
         const Vector& up  = r.lineplanes[ei].y_axis();
-        if (is_v_edge)
+        if (is_v_edge) {
             ln += up * (beam_h * 0.5);
+        }
         const Vector  dir = ln.to_direction();
 
         Plane ps = side_cut_plane(r.endplanes[ei][0], ln.start(), dir, true,  beam_w, cut_offset);

@@ -57,8 +57,9 @@ static void ss_e_r_1(WoodJoint& joint) {
     auto make_poly = [&](double x, const double data[][2], size_t n) {
         std::vector<Point> pts;
         pts.reserve(n);
-        for (size_t i = 0; i < n; ++i)
+        for (size_t i = 0; i < n; ++i) {
             pts.emplace_back(x, data[i][0], data[i][1]);
+        }
         return Polyline(pts);
     };
     joint.f_outlines[0] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };

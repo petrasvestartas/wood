@@ -46,7 +46,9 @@ static void cr_c_ip_shared(WoodJoint& joint,
     base[4].extend_segment_equally(3, ext_vert, ext_vert);
 
     // Append extra drill polylines
-    for (const auto& dr : extra_drills) base.push_back(dr);
+    for (const auto& dr : extra_drills) {
+        base.push_back(dr);
+    }
     int n = (int)base.size();
 
     double lengths[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };

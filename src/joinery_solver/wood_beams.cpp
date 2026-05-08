@@ -81,12 +81,15 @@ void beam_volumes_pipeline(
                     Point q1 = lb.point_at(t1);
                     double dx=q0[0]-q1[0], dy=q0[1]-q1[1], dz=q0[2]-q1[2];
                     double d2 = dx*dx + dy*dy + dz*dz;
-                    if (d2 > min_distance*min_distance) continue;
+                    if (d2 > min_distance*min_distance) {
+                        continue;
+                    }
                     uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
                     Contact c{d2, (int)a,(int)sa,(int)b,(int)sb};
                     auto it = contacts.find(id);
-                    if (it == contacts.end() || d2 < it->second.dist_sq)
+                    if (it == contacts.end() || d2 < it->second.dist_sq) {
                         contacts[id] = c;
+                    }
                 }
             }
         }
@@ -148,10 +151,14 @@ void beam_volumes_pipeline(
         int sum = (int)type0 + (int)type1;
         if (!allowed_types_per_polyline.empty()) {
             if (allowed_types_per_polyline.size() == 1) {
-                if (!is_valid(sum, allowed_types_per_polyline[0])) continue;
+                if (!is_valid(sum, allowed_types_per_polyline[0])) {
+                    continue;
+                }
             } else if (allowed_types_per_polyline.size() == axes.size()) {
                 if (!is_valid(sum, allowed_types_per_polyline[c.pid0]) ||
-                    !is_valid(sum, allowed_types_per_polyline[c.pid1])) continue;
+                    !is_valid(sum, allowed_types_per_polyline[c.pid1])) {
+                    continue;
+                }
             }
         }
 
@@ -291,12 +298,19 @@ void beam_volumes_pipeline(
         if (!jok) { n_failed++; continue; }
         n_success++;
         int t = jt.joint_type;
-        if      (t == 11) counts[0]++;
-        else if (t == 12) counts[1]++;
-        else if (t == 13) counts[2]++;
-        else if (t == 20) counts[3]++;
-        else if (t == 30) counts[4]++;
-        else if (t == 40) counts[5]++;
+        if (t == 11) {
+            counts[0]++;
+        } else if (t == 12) {
+            counts[1]++;
+        } else if (t == 13) {
+            counts[2]++;
+        } else if (t == 20) {
+            counts[3]++;
+        } else if (t == 30) {
+            counts[4]++;
+        } else if (t == 40) {
+            counts[5]++;
+        }
 
         joint_rects.push_back(beam_vol);
         all_joints.push_back(std::move(jt));
@@ -355,9 +369,14 @@ void beam_volumes_pipeline(
             coord_out << "\n";
         };
         int ei = 0;
-        for (const auto& pl : axes) emit(ei++, pl);
-        for (const auto& rects : joint_rects)
-            for (int k = 0; k < 4; k++) emit(ei++, rects[k]);
+        for (const auto& pl : axes) {
+            emit(ei++, pl);
+        }
+        for (const auto& rects : joint_rects) {
+            for (int k = 0; k < 4; k++) {
+                emit(ei++, rects[k]);
+            }
+        }
     }
 
     session.pb_dump((base / pb_name).string());

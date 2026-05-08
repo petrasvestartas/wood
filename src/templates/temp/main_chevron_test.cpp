@@ -54,22 +54,26 @@ int main() {
         40.0,  // plate_thickness
         true); // ortho
 
-    std::cout << "Plates: " << plates.size() << "\n";
+    std::cout << "Plates: " << plates.plines.size() << "\n";
 
     // ── Dump to JSON ──────────────────────────────────────────────────────
     std::ofstream f(out_path);
     f << std::fixed << std::setprecision(6);
-    f << "{\n  \"n_plines\": " << plates.size() << ",\n  \"plines\": [\n";
-    for (size_t pi = 0; pi < plates.size(); pi++) {
+    f << "{\n  \"n_plines\": " << plates.plines.size() << ",\n  \"plines\": [\n";
+    for (size_t pi = 0; pi < plates.plines.size(); pi++) {
         f << "    [";
-        const auto& pl = plates[pi];
+        const auto& pl = plates.plines[pi];
         auto pts = pl.get_points();
         for (size_t i = 0; i < pts.size(); i++) {
             f << "\n      [" << pts[i][0] << ", " << pts[i][1] << ", " << pts[i][2] << "]";
-            if (i + 1 < pts.size()) f << ",";
+            if (i + 1 < pts.size()) {
+                f << ",";
+            }
         }
         f << "\n    ]";
-        if (pi + 1 < plates.size()) f << ",";
+        if (pi + 1 < plates.plines.size()) {
+            f << ",";
+        }
         f << "\n";
     }
     f << "  ]\n}\n";

@@ -27,8 +27,9 @@ static void ss_e_r_impl(WoodJoint& joint,
         auto make_poly = [&](const double pts[][3], int n) {
             std::vector<Point> v;
             v.reserve(n);
-            for (int k = 0; k < n; k++)
+            for (int k = 0; k < n; k++) {
                 v.emplace_back(pts[k][0], pts[k][1], pts[k][2] + z_off);
+            }
             return Polyline(v);
         };
         Polyline pm0 = make_poly(m0, m0n);
@@ -57,7 +58,9 @@ static void ss_e_r_impl(WoodJoint& joint,
     joint.unit_scale_distance = size;
     for (int vi = 0; vi < 4; vi++) {
         auto& opt = joint.joint_volumes_pair_a_pair_b[vi];
-        if (!opt || opt->point_count() != 5) continue;
+        if (!opt || opt->point_count() != 5) {
+            continue;
+        }
         Polyline& vol = *opt;
         Point p0 = vol.get_point(0);
         Point p1 = vol.get_point(1);
@@ -67,12 +70,16 @@ static void ss_e_r_impl(WoodJoint& joint,
         // x_dir = (p1-p0) normalized × size/2
         double xdx=p1[0]-p0[0], xdy=p1[1]-p0[1], xdz=p1[2]-p0[2];
         double xl = std::sqrt(xdx*xdx+xdy*xdy+xdz*xdz);
-        if (xl < 1e-12) continue;
+        if (xl < 1e-12) {
+            continue;
+        }
         xdx *= size*0.5/xl; xdy *= size*0.5/xl; xdz *= size*0.5/xl;
         // y_dir = (p2-p1) normalized × size/2
         double ydx=p2[0]-p1[0], ydy=p2[1]-p1[1], ydz=p2[2]-p1[2];
         double yl = std::sqrt(ydx*ydx+ydy*ydy+ydz*ydz);
-        if (yl < 1e-12) continue;
+        if (yl < 1e-12) {
+            continue;
+        }
         ydx *= size*0.5/yl; ydy *= size*0.5/yl; ydz *= size*0.5/yl;
         // new vol: {center+x+2y, center-x+2y, center-x, center+x, center+x+2y}
         vol = Polyline(std::vector<Point>{

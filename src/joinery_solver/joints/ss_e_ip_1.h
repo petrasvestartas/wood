@@ -56,8 +56,9 @@ static void ss_e_ip_1(WoodJoint& joint) {
     Vector v_o(0, 1, 0);
     std::vector<Point> pline1;
     pline1.reserve(pline0.size());
-    for (const Point& p : pline0)
+    for (const Point& p : pline0) {
         pline1.emplace_back(p[0]+v_o[0], p[1]+v_o[1], p[2]+v_o[2]);
+    }
 
     Polyline outline0(pline0);
     Polyline outline1(pline1);

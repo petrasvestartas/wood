@@ -6,12 +6,14 @@
 // Cut types: all slice. joint.no_orient = true.
 static void ss_e_r_0(WoodJoint& joint) {
     joint.name = "ss_e_r_0";
-    if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1])
+    if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1]) {
         return;
+    }
     const Polyline& vol0 = *joint.joint_volumes_pair_a_pair_b[0];
     const Polyline& vol1 = *joint.joint_volumes_pair_a_pair_b[1];
-    if (vol0.point_count() < 4 || vol1.point_count() < 4)
+    if (vol0.point_count() < 4 || vol1.point_count() < 4) {
         return;
+    }
 
     // tween_two_polylines(vol0, vol1, 0.5) — midpoint of each vertex pair
     Point r0 = Point::lerp(vol0.get_point(0), vol1.get_point(0), 0.5);
@@ -30,7 +32,9 @@ static void ss_e_r_0(WoodJoint& joint) {
     double xy = (vol1.get_point(0)[1]-vol0.get_point(0)[1])*0.5;
     double xz = (vol1.get_point(0)[2]-vol0.get_point(0)[2])*0.5;
     double x_len = std::sqrt(xx*xx + xy*xy + xz*xz);
-    if (x_len < 1e-12) return;
+    if (x_len < 1e-12) {
+        return;
+    }
 
     // rect_half_0: "male" half (points below midline)
     Polyline rh0(std::vector<Point>{
