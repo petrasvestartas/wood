@@ -166,9 +166,9 @@ void assign_insertion(
     out_insertion_vectors.resize(elements.size());
     for (size_t ei = 0; ei < elements.size(); ei++) {
         out_insertion_vectors[ei].assign(
-    }
             2 + n_side_slots(elements[ei]),
             session_cpp::Vector(0.0, 0.0, 0.0));
+    }
 
     if (lines.empty()) {
         return;

@@ -29,8 +29,10 @@ class ReciprocalMove {
 public:
     Mesh dome_mesh;
     std::vector<Mesh>     beams;
-    std::vector<Polyline> side0;   // right-face outlines (+right of beam direction)
-    std::vector<Polyline> side1;   // left-face outlines  (-right of beam direction)
+    std::vector<Polyline> side0;        // right-face outlines (+right of beam direction)
+    std::vector<Polyline> side1;        // left-face outlines  (-right of beam direction)
+    std::vector<Polyline> beam_bottom;  // bottom-face outlines (-up direction, for joinery)
+    std::vector<Polyline> beam_top;     // top-face outlines    (+up direction, for joinery)
     std::vector<std::array<double,3>> beam_dirs;  // unit axis direction per beam
     std::vector<std::array<double,3>> beam_ups;   // unit up (face normal) per beam
 
@@ -133,6 +135,8 @@ private:
         Mesh               mesh;
         std::vector<Point> side0;
         std::vector<Point> side1;
+        std::vector<Point> beam_bottom;  // bottom face corners (-up): sc[0],sc[1],ec[1],ec[0]
+        std::vector<Point> beam_top;     // top face corners    (+up): sc[2],sc[3],ec[3],ec[2]
     };
 
     struct CutPlane { Point org; Vector n; };
@@ -187,9 +191,11 @@ private:
         };
 
         BeamGeom bg;
-        bg.mesh  = Mesh::from_vertices_and_faces(pts, faces);
-        bg.side0 = {sc[1], sc[2], ec[2], ec[1]};
-        bg.side1 = {sc[3], sc[0], ec[0], ec[3]};
+        bg.mesh        = Mesh::from_vertices_and_faces(pts, faces);
+        bg.side0       = {sc[1], sc[2], ec[2], ec[1]};
+        bg.side1       = {sc[0], sc[3], ec[3], ec[0]};
+        bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
+        bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
         return bg;
     }
 
@@ -240,9 +246,11 @@ private:
         };
 
         BeamGeom bg;
-        bg.mesh  = Mesh::from_vertices_and_faces(pts, faces);
-        bg.side0 = {sc[1], sc[2], ec[2], ec[1]};  // right face
-        bg.side1 = {sc[3], sc[0], ec[0], ec[3]};  // left  face
+        bg.mesh        = Mesh::from_vertices_and_faces(pts, faces);
+        bg.side0       = {sc[1], sc[2], ec[2], ec[1]};  // right face
+        bg.side1       = {sc[0], sc[3], ec[3], ec[0]};  // left  face
+        bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
+        bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
         return bg;
     }
 
@@ -450,13 +458,21 @@ private:
                 // Interior cut: crossing beam's side face (normal = crossing_dir × crossing_up, signed).
                 // Use OUR beam's center (not endpoint) for sign selection — more stable.
                 Point our_center = midpt(EF[i][j].from, EF[i][j].to);
-                auto make_cut_plane = [&](int ci, int cj) -> CutPlane {
+                const Vector& bdir = EF[i][j].dir;
+
+                // Interior cut: crossing beam's side face. Falls back to flat perpendicular
+                // cap at `endpoint` when the computed normal is ⊥ to our beam (degenerate
+                // intersection — happens at cone apex where cutting beam is parallel to ours).
+                auto make_cut_plane = [&](int ci, int cj, const Point& endpoint) -> CutPlane {
                     Vector cup = face_norms[ci];
                     if (cup[2] < 0) cup = Vector(-cup[0], -cup[1], -cup[2]);
                     Vector raw = cross3(EF[ci][cj].dir, cup);
                     double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
                     if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
                     else             raw = cross3(EF[ci][cj].dir, face_norms[i]);
+                    // Degenerate: cut plane normal ⊥ beam direction → flat cap fallback
+                    double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
+                    if (alignment < 0.15) return {endpoint, bdir};
                     Point org = midpt(EF[ci][cj].from, EF[ci][cj].to);
                     double dot = (our_center[0]-org[0])*raw[0]
                                + (our_center[1]-org[1])*raw[1]
@@ -469,21 +485,23 @@ private:
                 };
 
                 // Boundary cut: plane at beam endpoint, normal = cross(boundary_edge_dir, face_normal).
+                // Same degenerate fallback as above.
                 auto make_boundary_cut_plane = [&](int adj_j, const Point& endpoint) -> CutPlane {
                     const Vector& edge_dir = EF[i][adj_j].dir;
                     Vector raw = cross3(edge_dir, face_norms[i]);
                     double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
                     if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
+                    double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
+                    if (alignment < 0.15) return {endpoint, bdir};
                     return {endpoint, raw};
                 };
 
-                const Vector& bdir = EF[i][j].dir;
                 CutPlane cp_to   = op_to
-                    ? make_cut_plane(op_to->first,   op_to->second)
-                    : make_boundary_cut_plane((j + 1) % n,       EF[i][j].to);
+                    ? make_cut_plane(op_to->first,   op_to->second,   EF[i][j].to)
+                    : make_boundary_cut_plane((j + 1) % n,             EF[i][j].to);
                 CutPlane cp_from = op_from
-                    ? make_cut_plane(op_from->first, op_from->second)
-                    : make_boundary_cut_plane((j - 1 + n) % n,   EF[i][j].from);
+                    ? make_cut_plane(op_from->first, op_from->second, EF[i][j].from)
+                    : make_boundary_cut_plane((j - 1 + n) % n,        EF[i][j].from);
                 BeamGeom bg = _make_beam_cut(EF[i][j].from, bdir, up,
                                              beam_w, beam_h, cp_from, cp_to);
                 if (bg.mesh.number_of_vertices() == 0) continue;
@@ -495,6 +513,12 @@ private:
 
                 std::vector<Point> s1 = bg.side1; s1.push_back(s1[0]);
                 side1.emplace_back(s1);
+
+                std::vector<Point> bb = bg.beam_bottom; bb.push_back(bb[0]);
+                beam_bottom.emplace_back(bb);
+
+                std::vector<Point> bt = bg.beam_top; bt.push_back(bt[0]);
+                beam_top.emplace_back(bt);
 
                 beam_dirs.push_back({bdir[0], bdir[1], bdir[2]});
                 beam_ups.push_back({up[0], up[1], up[2]});

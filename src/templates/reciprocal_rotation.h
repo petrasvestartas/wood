@@ -24,8 +24,10 @@ class ReciprocalRotation {
 public:
     Mesh dome_mesh;
     std::vector<Mesh>     beams;
-    std::vector<Polyline> side0;       // right-face outlines (+right direction)
-    std::vector<Polyline> side1;       // left-face outlines  (-right direction)
+    std::vector<Polyline> side0;        // right-face outlines (+right direction)
+    std::vector<Polyline> side1;        // left-face outlines  (-right direction)
+    std::vector<Polyline> beam_bottom;  // bottom-face outlines (-up direction, for joinery)
+    std::vector<Polyline> beam_top;     // top-face outlines    (+up direction, for joinery)
     std::vector<std::array<double,3>> beam_dirs;  // unit axis direction per beam
     std::vector<std::array<double,3>> beam_ups;   // unit up (thickness) direction per beam
 
@@ -108,6 +110,12 @@ private:
             std::vector<Point> s1 = bg.side1; s1.push_back(s1[0]);
             side1.emplace_back(s1);
 
+            std::vector<Point> bb = bg.beam_bottom; bb.push_back(bb[0]);
+            beam_bottom.emplace_back(bb);
+
+            std::vector<Point> bt = bg.beam_top; bt.push_back(bt[0]);
+            beam_top.emplace_back(bt);
+
             beam_dirs.push_back({dir[0], dir[1], dir[2]});
             beam_ups.push_back({up[0],   up[1],   up[2]});
         }
@@ -116,6 +124,8 @@ private:
         Mesh               mesh;
         std::vector<Point> side0;
         std::vector<Point> side1;
+        std::vector<Point> beam_bottom;  // bottom face corners (-up): sc[0],sc[1],ec[1],ec[0]
+        std::vector<Point> beam_top;     // top face corners    (+up): sc[2],sc[3],ec[3],ec[2]
     };
 
     static Mesh make_dome(int nx, int ny, double W, double D, double h) {
@@ -243,9 +253,11 @@ private:
         };
 
         BeamGeom bg;
-        bg.mesh  = Mesh::from_vertices_and_faces(pts, faces);
-        bg.side0 = {sc[1], sc[2], ec[2], ec[1]};  // right face (+right)
-        bg.side1 = {sc[3], sc[0], ec[0], ec[3]};  // left  face (-right)
+        bg.mesh        = Mesh::from_vertices_and_faces(pts, faces);
+        bg.side0       = {sc[1], sc[2], ec[2], ec[1]};  // right face (+right)
+        bg.side1       = {sc[0], sc[3], ec[3], ec[0]};  // left  face (-right)
+        bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
+        bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
         return bg;
     }
 };
