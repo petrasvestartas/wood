@@ -39,8 +39,8 @@ class joint
      * @param xform The transformation object to be filled with the change of basis transformation.
      * @return True if the basis change was successful, false otherwise.
      */
-    bool change_basis (CGAL_Polyline &rect0, CGAL_Polyline &rect1,
-                       CGAL::Aff_transformation_3<IK> &xform); // first get 2x change_basis transformation matrices
+    bool change_basis (Polyline &rect0, Polyline &rect1,
+                       session_cpp::Xform &xform); // first get 2x change_basis transformation matrices
 
   public:
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -49,10 +49,10 @@ class joint
     int id = 0, v0, v1, f0_0, f1_0, f0_1, f1_1,
         type; // 10 - SS Rotate 11 - SS OUT OF PLANE 12 - SS IN Plane,  20 Top-Side, 30 - Cross
     std::string key = "";
-    CGAL_Polyline joint_area;     // delete
-    CGAL_Polyline joint_lines[2]; // delete
-    // CGAL_Polyline joint_quads[2];//delete
-    CGAL_Polyline joint_volumes[4]; // mostly 2, but can be 4 e.g. in-plane side-side
+    Polyline joint_area;     // delete
+    Polyline joint_lines[2]; // delete
+    // Polyline joint_quads[2];//delete
+    Polyline joint_volumes[4]; // mostly 2, but can be 4 e.g. in-plane side-side
 
     /////////////////////////////////////////////////////////////////////////////////////////
     // Detailed parameters for geometry transfer from library or custom made
@@ -61,11 +61,11 @@ class joint
     int id_of_global_joint_list = -1;    // Directs which joint applies where, -1 all cases
     std::vector<double> tile_parameters; // For rebuilding
 
-    std::array<std::vector<CGAL_Polyline>, 2> m;
+    std::array<std::vector<Polyline>, 2> m;
     std::vector<wood::cut::cut_type> m_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 -
                                                      // hole 3 - insert between multiple edges hole
 
-    std::array<std::vector<CGAL_Polyline>, 2> f;
+    std::array<std::vector<Polyline>, 2> f;
     std::vector<wood::cut::cut_type> f_boolean_type; // 0 - do not merge, 1 - edge insertion, 2 -
                                                      // hole 3 - insert between multiple edges hole
 
@@ -119,9 +119,9 @@ class joint
      * @param _f1_0 Second face index associated with the first vertex.
      * @param _f0_1 First face index associated with the second vertex.
      * @param _f1_1 Second face index associated with the second vertex.
-     * @param _joint_volumes Array of 4 CGAL_Polyline objects representing the volumes of the joint.
+     * @param _joint_volumes Array of 4 Polyline objects representing the volumes of the joint.
      */
-    joint (int, int, int, int, int, int, int, std::array<CGAL_Polyline, 4> &);
+    joint (int, int, int, int, int, int, int, std::array<Polyline, 4> &);
 
     /**
      * Constructs a joint object with extended geometric information including joint area and lines.
@@ -133,12 +133,12 @@ class joint
      * @param _f1_0 Second face index associated with the first vertex.
      * @param _f0_1 First face index associated with the second vertex.
      * @param _f1_1 Second face index associated with the second vertex.
-     * @param _joint_area CGAL_Polyline object representing the area of the joint.
-     * @param _joint_lines Array of 2 CGAL_Polyline objects representing the lines of the joint.
-     * @param _joint_volumes Array of 4 CGAL_Polyline objects representing the volumes of the joint.
+     * @param _joint_area Polyline object representing the area of the joint.
+     * @param _joint_lines Array of 2 Polyline objects representing the lines of the joint.
+     * @param _joint_volumes Array of 4 Polyline objects representing the volumes of the joint.
      * @param _type Integer representing the type of the joint.
      */
-    joint (int, int, int, int, int, int, int, CGAL_Polyline (&), std::array<CGAL_Polyline, 2> &, std::array<CGAL_Polyline, 4> &, int);
+    joint (int, int, int, int, int, int, int, Polyline (&), std::array<Polyline, 2> &, std::array<Polyline, 4> &, int);
 
     // Operators
     /**
@@ -147,9 +147,9 @@ class joint
      *
      * @param male_or_female Boolean flag indicating male (true) or female (false) joint.
      * @param first_or_second Boolean flag indicating first (true) or second (false) joint.
-     * @return Reference to a vector of CGAL_Polyline objects representing the joint's geometry.
+     * @return Reference to a vector of Polyline objects representing the joint's geometry.
      */
-    std::vector<CGAL_Polyline> &operator() (bool male_or_female, bool first_or_second);
+    std::vector<Polyline> &operator() (bool male_or_female, bool first_or_second);
 
     /**
      * Retrieves the edge IDs associated with the male or female part of the joint.
@@ -199,8 +199,8 @@ class joint
      * @param xform0 Transformation to be applied to the male part of the joint.
      * @param xform1 Transformation to be applied to the female part of the joint.
      */
-    void transform (CGAL::Aff_transformation_3<IK> &xform0,
-                    CGAL::Aff_transformation_3<IK> &xform1); // Custom user transformation
+    void transform (session_cpp::Xform &xform0,
+                    session_cpp::Xform &xform1); // Custom user transformation
 
     /**
      * Orients the joint to a specific connection area, adjusting for scale and position.

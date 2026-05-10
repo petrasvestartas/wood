@@ -2,6 +2,7 @@
 #include "wood_xml.h"
 
 #include "../../../stdafx.h" //go up to the folder where the CMakeLists.txt is
+#include <pugixml.hpp>
 
 namespace wood
 {
@@ -29,13 +30,9 @@ file_exists_0 (const std::string &name)
 bool
 read_xml_numbers (std::vector<std::vector<double> > &numbers)
 {
-    std::string file_path = path_and_file_for_input_numbers; // user input
-    // printf( " \n %s  \n", file_path.c_str());
+    std::string file_path = path_and_file_for_input_numbers;
     std::string property_to_read = "input_numbers";
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Check if XML file exists, path_and_file_for_joints is a global path
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     printf ("%s", file_path.c_str ());
     if (!file_exists_0 (file_path))
         {
@@ -47,32 +44,25 @@ read_xml_numbers (std::vector<std::vector<double> > &numbers)
             printf ("\read_nwood::xml -> File exists");
         }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get properties from XML and create polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (file_path, tree);
-
-            for (boost::property_tree::ptree::value_type &v : tree.get_child (property_to_read))
+            pugi::xml_document doc;
+            pugi::xml_parse_result result = doc.load_file (file_path.c_str ());
+            if (!result)
                 {
-                    if (v.first == "numbers")
+                    printf ("read_wood::xml -> CPP Wrong property, probably wrong path \n");
+                    return false;
+                }
+
+            pugi::xml_node root = doc.child (property_to_read.c_str ());
+            for (pugi::xml_node node : root.children ("numbers"))
+                {
+                    std::vector<double> numbers_list;
+                    for (pugi::xml_node num_node : node.children ())
                         {
-                            std::vector<double> numbers_list;
-                            for (boost::property_tree::ptree::value_type &number : v.second)
-                                {
-                                    // std::cout <<
-                                    // number.second.get_value<double>();
-                                    // double x =
-                                    // point.second.get<double>("double");//if
-                                    // "double" is written inside then
-                                    // elements inside this wood::element
-                                    // will be retrieved
-                                    numbers_list.emplace_back (number.second.get_value<double> ());
-                                }
-                            numbers.emplace_back (numbers_list);
+                            numbers_list.emplace_back (num_node.text ().as_double ());
                         }
+                    numbers.emplace_back (numbers_list);
                 }
         }
     catch (std::exception &e)
@@ -86,16 +76,10 @@ read_xml_numbers (std::vector<std::vector<double> > &numbers)
 }
 
 bool
-read_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const bool &simple_case, const bool &remove_duplicates)
+read_xml_polylines (std::vector<std::vector<session_cpp::Point> > &polylines, const bool &simple_case, const bool &remove_duplicates)
 {
     std::string file_path = simple_case ? path_and_file_for_input_polylines_simple_case : path_and_file_for_input_polylines;
-    // printf( " \n %s  \n", file_path.c_str());
-    std::string property_to_read = "input_polylines"; // this is the main enclosing tag for the full
-                                                      // data-set in the xml file
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Check if XML file exists, path_and_file_for_joints is a global path
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::string property_to_read = "input_polylines";
 
     printf ("read_wood::xml ->  read_xml_polylines -> ");
     printf ("%s", file_path.c_str ());
@@ -111,36 +95,36 @@ read_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const boo
             printf ("read_wood::xml -> read_xml_polylines|file exists \n");
         }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get properties from XML and create polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (file_path, tree);
-
-            for (boost::property_tree::ptree::value_type &v : tree.get_child (property_to_read))
+            pugi::xml_document doc;
+            pugi::xml_parse_result result = doc.load_file (file_path.c_str ());
+            if (!result)
                 {
-                    if (v.first == "Polyline")
+                    printf ("nread_wood::xml -> |read_xml_polylines|CPP Wrong "
+                            "property \n");
+                    return false;
+                }
+
+            pugi::xml_node root = doc.child (property_to_read.c_str ());
+            for (pugi::xml_node poly_node : root.children ("Polyline"))
+                {
+                    std::vector<session_cpp::Point> polyline;
+                    for (pugi::xml_node point_node : poly_node.children ("point"))
                         {
-                            std::vector<IK::Point_3> polyline;
-                            for (boost::property_tree::ptree::value_type &point : v.second)
-                                {
-                                    double x = point.second.get<double> ("x");
-                                    double y = point.second.get<double> ("y");
-                                    double z = point.second.get<double> ("z");
-                                    IK::Point_3 p (x, y, z);
+                            double x = point_node.child ("x").text ().as_double ();
+                            double y = point_node.child ("y").text ().as_double ();
+                            double z = point_node.child ("z").text ().as_double ();
+                            session_cpp::Point p (x, y, z);
 
-                                    // skip duplicate points
-                                    if (remove_duplicates)
-                                        if (polyline.size () > 0)
-                                            if (CGAL::squared_distance (polyline.back (), p) < wood::GLOBALS::DISTANCE_SQUARED)
-                                                continue;
+                            if (remove_duplicates)
+                                if (polyline.size () > 0)
+                                    if (session_cpp::Point::squared_distance (polyline.back (), p) < wood::GLOBALS::DISTANCE_SQUARED)
+                                        continue;
 
-                                    polyline.emplace_back (p);
-                                }
-                            polylines.emplace_back (polyline);
+                            polyline.emplace_back (p);
                         }
+                    polylines.emplace_back (polyline);
                 }
         }
     catch (std::exception &e)
@@ -157,13 +141,7 @@ bool
 read_xml_polylines (std::vector<std::vector<double> > &polylines, const bool &simple_case, const bool &remove_duplicates)
 {
     std::string file_path = simple_case ? path_and_file_for_input_polylines_simple_case : path_and_file_for_input_polylines;
-    // printf( " \n %s  \n", file_path.c_str());
-    std::string property_to_read = "input_polylines"; // this is the main enclosing tag for the full
-                                                      // data-set in the xml file
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Check if XML file exists, path_and_file_for_joints is a global path
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::string property_to_read = "input_polylines";
 
     printf ("read_wood::xml ->  read_xml_polylines -> ");
     printf ("%s", file_path.c_str ());
@@ -179,31 +157,31 @@ read_xml_polylines (std::vector<std::vector<double> > &polylines, const bool &si
             printf ("read_wood::xml -> read_xml_polylines|file exists \n");
         }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get properties from XML and create polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (file_path, tree);
-
-            for (boost::property_tree::ptree::value_type &v : tree.get_child (property_to_read))
+            pugi::xml_document doc;
+            pugi::xml_parse_result result = doc.load_file (file_path.c_str ());
+            if (!result)
                 {
-                    if (v.first == "Polyline")
-                        {
-                            std::vector<double> polyline;
-                            for (boost::property_tree::ptree::value_type &point : v.second)
-                                {
-                                    double x = point.second.get<double> ("x");
-                                    double y = point.second.get<double> ("y");
-                                    double z = point.second.get<double> ("z");
+                    printf ("nread_wood::xml -> |read_xml_polylines|CPP Wrong "
+                            "property \n");
+                    return false;
+                }
 
-                                    polyline.emplace_back (x);
-                                    polyline.emplace_back (y);
-                                    polyline.emplace_back (z);
-                                }
-                            polylines.emplace_back (polyline);
+            pugi::xml_node root = doc.child (property_to_read.c_str ());
+            for (pugi::xml_node poly_node : root.children ("Polyline"))
+                {
+                    std::vector<double> polyline;
+                    for (pugi::xml_node point_node : poly_node.children ("point"))
+                        {
+                            double x = point_node.child ("x").text ().as_double ();
+                            double y = point_node.child ("y").text ().as_double ();
+                            double z = point_node.child ("z").text ().as_double ();
+                            polyline.emplace_back (x);
+                            polyline.emplace_back (y);
+                            polyline.emplace_back (z);
                         }
+                    polylines.emplace_back (polyline);
                 }
         }
     catch (std::exception &e)
@@ -217,17 +195,11 @@ read_xml_polylines (std::vector<std::vector<double> > &polylines, const bool &si
 }
 
 bool
-read_xml_polylines_and_properties (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<IK::Vector_3> > &input_insertion_vectors, std::vector<std::vector<int> > &input_JOINTS_TYPES,
+read_xml_polylines_and_properties (std::vector<std::vector<session_cpp::Point> > &input_polyline_pairs, std::vector<std::vector<session_cpp::Vector> > &input_insertion_vectors, std::vector<std::vector<int> > &input_JOINTS_TYPES,
                                    std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency, const bool &simple_case, const bool &remove_duplicates)
 {
     std::string file_path = simple_case ? path_and_file_for_input_polylines_simple_case : path_and_file_for_input_polylines;
-    // printf( " \n %s  \n", file_path.c_str());
-    std::string property_to_read = "input_polylines"; // this is the main enclosing tag for the full
-                                                      // data-set in the xml file
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Check if XML file exists, path_and_file_for_joints is a global path
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::string property_to_read = "input_polylines";
 
     printf ("read_wood::xml ->  read_xml_polylines -> ");
     printf ("%s", file_path.c_str ());
@@ -243,107 +215,78 @@ read_xml_polylines_and_properties (std::vector<std::vector<IK::Point_3> > &input
             printf ("read_wood::xml -> read_xml_polylines|file exists \n");
         }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get properties from XML and create polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (file_path, tree);
-
-            const static std::unordered_map<std::string, int> string_to_case{
-                { "polyline", 0 }, { "insertion_vectors", 1 }, { "joints_types", 2 }, { "three_valence_element_indices_and_instruction", 3 }, { "adjacency", 4 }
-            };
-
-            for (boost::property_tree::ptree::value_type &v : tree.get_child (property_to_read))
+            pugi::xml_document doc;
+            pugi::xml_parse_result result = doc.load_file (file_path.c_str ());
+            if (!result)
                 {
-                    if (v.first == "polyline")
-                        {
-                            // iterate through <point> array and add points
-                            // to the polyline
-                            std::vector<IK::Point_3> polyline;
-                            for (boost::property_tree::ptree::value_type &point : v.second)
-                                {
-                                    // convert get corrdinates of the
-                                    // points, by directly accessing <x>,
-                                    // <y>, <z> tags
-                                    double x = point.second.get<double> ("x");
-                                    double y = point.second.get<double> ("y");
-                                    double z = point.second.get<double> ("z");
-                                    IK::Point_3 p (x, y, z);
+                    printf ("nread_wood::xml -> |read_xml_polylines|CPP Wrong "
+                            "property \n");
+                    return false;
+                }
 
-                                    // skip duplicate points
+            pugi::xml_node root = doc.child (property_to_read.c_str ());
+            for (pugi::xml_node node : root.children ())
+                {
+                    std::string tag = node.name ();
+
+                    if (tag == "polyline")
+                        {
+                            std::vector<session_cpp::Point> polyline;
+                            for (pugi::xml_node point_node : node.children ("point"))
+                                {
+                                    double x = point_node.child ("x").text ().as_double ();
+                                    double y = point_node.child ("y").text ().as_double ();
+                                    double z = point_node.child ("z").text ().as_double ();
+                                    session_cpp::Point p (x, y, z);
+
                                     if (remove_duplicates && polyline.size () > 0)
-                                        if (CGAL::squared_distance (polyline.back (), p) < wood::GLOBALS::DISTANCE_SQUARED)
+                                        if (session_cpp::Point::squared_distance (polyline.back (), p) < wood::GLOBALS::DISTANCE_SQUARED)
                                             continue;
 
-                                    // add point to polyline
                                     polyline.emplace_back (x, y, z);
                                 }
                             input_polyline_pairs.emplace_back (polyline);
                         }
-                    else if (v.first == "insertion_vectors")
+                    else if (tag == "insertion_vectors")
                         {
-                            // iterate through <vector> array and add
-                            // vectors to the insertion vector
-                            std::vector<IK::Vector_3> vectors;
-                            for (boost::property_tree::ptree::value_type &vector : v.second)
+                            std::vector<session_cpp::Vector> vectors;
+                            for (pugi::xml_node vec_node : node.children ("vector"))
                                 {
-                                    // convert get coordinates of the
-                                    // points, by directly accessing <x>,
-                                    // <y>, <z> tags
-                                    double x = vector.second.get<double> ("x");
-                                    double y = vector.second.get<double> ("y");
-                                    double z = vector.second.get<double> ("z");
-
-                                    // add point to polyline
+                                    double x = vec_node.child ("x").text ().as_double ();
+                                    double y = vec_node.child ("y").text ().as_double ();
+                                    double z = vec_node.child ("z").text ().as_double ();
                                     vectors.emplace_back (x, y, z);
                                 }
                             input_insertion_vectors.emplace_back (vectors);
                         }
-                    else if (v.first == "joints_types")
+                    else if (tag == "joints_types")
                         {
-                            // iterate through integers representing joint
-                            // types
                             std::vector<int> joint_types;
-
-                            // this is different from the previous because
-                            // it is a flat list of integers with the same
-                            // identifiers std::cout << "\n";
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    // std::cout <<
-                                    // id.second.get_value<int>() << "\n";
-                                    joint_types.emplace_back (id.second.get_value<int> ());
+                                    joint_types.emplace_back (id_node.text ().as_int ());
                                 }
                             input_JOINTS_TYPES.emplace_back (joint_types);
                         }
-                    else if (v.first == "three_valence")
+                    else if (tag == "three_valence")
                         {
-                            // WARNING the three_valence must start with 0
-                            // or 1 depending whether it is Annen or Vidy
-                            // corner case iterate through integers
-                            // representing joint types
                             std::vector<int> three_valence;
-
-                            // this is different from the previous because
-                            // it is a flat list of integers with the same
-                            // identifiers
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    three_valence.emplace_back (id.second.get_value<int> ());
+                                    three_valence.emplace_back (id_node.text ().as_int ());
                                 }
                             input_three_valence_element_indices_and_instruction.emplace_back (three_valence);
                         }
-                    else if (v.first == "adjacency")
+                    else if (tag == "adjacency")
                         {
-                            // flat list of pair integers
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    input_adjacency.emplace_back (id.second.get_value<int> ());
+                                    input_adjacency.emplace_back (id_node.text ().as_int ());
                                 }
                         }
-                } // for
+                }
         }
     catch (std::exception &e)
         {
@@ -352,12 +295,7 @@ read_xml_polylines_and_properties (std::vector<std::vector<IK::Point_3> > &input
                     "property \n");
             return false;
         }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // perform checks of insertion vectors and joint types
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // check if the number of polylines is equal to the number of insertion
-    // vectors polyline input is twice bigger because the list is flattened
     if (input_insertion_vectors.size () > 0)
         if (input_insertion_vectors.size () != input_polyline_pairs.size () * 0.5)
             {
@@ -367,8 +305,6 @@ read_xml_polylines_and_properties (std::vector<std::vector<IK::Point_3> > &input
                         "of them is not equal to polyline count \n");
                 return false;
             }
-    // check if the number of polyliens is equal to the number of joints
-    // types
     if (input_JOINTS_TYPES.size () > 0)
         if (input_JOINTS_TYPES.size () != input_polyline_pairs.size () * 0.5)
             {
@@ -386,13 +322,7 @@ read_xml_polylines_and_properties (std::vector<std::vector<double> > &input_poly
                                    std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency, const bool &simple_case, const bool &remove_duplicates)
 {
     std::string file_path = simple_case ? path_and_file_for_input_polylines_simple_case : path_and_file_for_input_polylines;
-    // printf( " \n %s  \n", file_path.c_str());
-    std::string property_to_read = "input_polylines"; // this is the main enclosing tag for the full
-                                                      // data-set in the xml file
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Check if XML file exists, path_and_file_for_joints is a global path
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    std::string property_to_read = "input_polylines";
 
     printf ("read_wood::xml ->  read_xml_polylines -> ");
     printf ("%s", file_path.c_str ());
@@ -408,122 +338,77 @@ read_xml_polylines_and_properties (std::vector<std::vector<double> > &input_poly
             printf ("read_wood::xml -> read_xml_polylines | file exists \n");
         }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Get properties from XML and create polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     printf ("start reading \n");
     try
         {
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (file_path, tree);
-
-            const static std::unordered_map<std::string, int> string_to_case{
-                { "polyline", 0 }, { "insertion_vectors", 1 }, { "joints_types", 2 }, { "three_valence_element_indices_and_instruction", 3 }, { "adjacency", 4 }
-            };
-
-            for (boost::property_tree::ptree::value_type &v : tree.get_child (property_to_read))
+            pugi::xml_document doc;
+            pugi::xml_parse_result result = doc.load_file (file_path.c_str ());
+            if (!result)
                 {
-                    // printf(v.first.c_str());
-                    if (v.first == "polyline" || v.first == "Polyline")
+                    printf ("nread_wood::xml -> | read_xml_polylines | CPP Wrong "
+                            "property \n");
+                    return false;
+                }
+
+            pugi::xml_node root = doc.child (property_to_read.c_str ());
+            for (pugi::xml_node node : root.children ())
+                {
+                    std::string tag = node.name ();
+
+                    if (tag == "polyline" || tag == "Polyline")
                         {
-                            // iterate through <point> array and add points
-                            // to the polyline
                             std::vector<double> polyline;
-                            for (boost::property_tree::ptree::value_type &point : v.second)
+                            for (pugi::xml_node point_node : node.children ("point"))
                                 {
-                                    // convert get corrdinates of the
-                                    // points, by directly accessing <x>,
-                                    // <y>, <z> tags
-                                    double x = point.second.get<double> ("x");
-                                    double y = point.second.get<double> ("y");
-                                    double z = point.second.get<double> ("z");
-                                    // printf("read_wood::xml ->
-                                    // read_xml_polylines | x: %f y: %f z:
-                                    // %f \n", x, y, z);
-                                    //  IK::Point_3 p(x, y, z);
-
-                                    // skip duplicate points
-                                    // if (remove_duplicates &&
-                                    // polyline.size() > 0)
-                                    //     if
-                                    //     (CGAL::squared_distance(polyline.back(),
-                                    //     p) <
-                                    //     wood::GLOBALS::DISTANCE_SQUARED)
-                                    //         continue;
-
-                                    // add point to polyline
+                                    double x = point_node.child ("x").text ().as_double ();
+                                    double y = point_node.child ("y").text ().as_double ();
+                                    double z = point_node.child ("z").text ().as_double ();
                                     polyline.emplace_back (x);
                                     polyline.emplace_back (y);
                                     polyline.emplace_back (z);
                                 }
                             input_polyline_pairs.emplace_back (polyline);
                         }
-                    else if (v.first == "insertion_vectors")
+                    else if (tag == "insertion_vectors")
                         {
-                            // iterate through <vector> array and add
-                            // vectors to the insertion vector
                             std::vector<double> vectors;
-                            for (boost::property_tree::ptree::value_type &vector : v.second)
+                            for (pugi::xml_node vec_node : node.children ("vector"))
                                 {
-                                    // convert get coordinates of the
-                                    // points, by directly accessing <x>,
-                                    // <y>, <z> tags
-                                    double x = vector.second.get<double> ("x");
-                                    double y = vector.second.get<double> ("y");
-                                    double z = vector.second.get<double> ("z");
-
-                                    // add point to polyline
-                                    // vectors.emplace_back(x, y, z);
+                                    double x = vec_node.child ("x").text ().as_double ();
+                                    double y = vec_node.child ("y").text ().as_double ();
+                                    double z = vec_node.child ("z").text ().as_double ();
                                     vectors.emplace_back (x);
                                     vectors.emplace_back (y);
                                     vectors.emplace_back (z);
                                 }
                             input_insertion_vectors.emplace_back (vectors);
                         }
-                    else if (v.first == "joints_types")
+                    else if (tag == "joints_types")
                         {
-                            // iterate through integers representing joint
-                            // types
                             std::vector<int> joint_types;
-
-                            // this is different from the previous because
-                            // it is a flat list of integers with the same
-                            // identifiers std::cout << "\n";
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    // std::cout <<
-                                    // id.second.get_value<int>() << "\n";
-                                    joint_types.emplace_back (id.second.get_value<int> ());
+                                    joint_types.emplace_back (id_node.text ().as_int ());
                                 }
                             input_JOINTS_TYPES.emplace_back (joint_types);
                         }
-                    else if (v.first == "three_valence")
+                    else if (tag == "three_valence")
                         {
-                            // WARNING the three_valence must start with 0
-                            // or 1 depending whether it is Annen or Vidy
-                            // corner case iterate through integers
-                            // representing joint types
                             std::vector<int> three_valence;
-
-                            // this is different from the previous because
-                            // it is a flat list of integers with the same
-                            // identifiers
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    three_valence.emplace_back (id.second.get_value<int> ());
+                                    three_valence.emplace_back (id_node.text ().as_int ());
                                 }
                             input_three_valence_element_indices_and_instruction.emplace_back (three_valence);
                         }
-                    else if (v.first == "adjacency")
+                    else if (tag == "adjacency")
                         {
-                            // flat list of pair integers
-                            for (boost::property_tree::ptree::value_type &id : v.second)
+                            for (pugi::xml_node id_node : node.children ())
                                 {
-                                    input_adjacency.emplace_back (id.second.get_value<int> ());
+                                    input_adjacency.emplace_back (id_node.text ().as_int ());
                                 }
                         }
-                } // for
+                }
         }
     catch (std::exception &e)
         {
@@ -532,12 +417,7 @@ read_xml_polylines_and_properties (std::vector<std::vector<double> > &input_poly
                     "property \n");
             return false;
         }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // perform checks of insertion vectors and joint types
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // check if the number of polylines is equal to the number of insertion
-    // vectors polyline input is twice bigger because the list is flattened
     if (input_insertion_vectors.size () > 0)
         if (input_insertion_vectors.size () != input_polyline_pairs.size () * 0.5)
             {
@@ -547,8 +427,6 @@ read_xml_polylines_and_properties (std::vector<std::vector<double> > &input_poly
                         "of them is not equal to polyline count \n");
                 return false;
             }
-    // check if the number of polylines is equal to the number of joints
-    // types
     if (input_JOINTS_TYPES.size () > 0)
         if (input_JOINTS_TYPES.size () != input_polyline_pairs.size () * 0.5)
             {
@@ -562,41 +440,34 @@ read_xml_polylines_and_properties (std::vector<std::vector<double> > &input_poly
 }
 
 bool
-write_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const bool &simple_case)
+write_xml_polylines (std::vector<std::vector<session_cpp::Point> > &polylines, const bool &simple_case)
 {
     std::string file_path = simple_case ? path_and_file_for_output_polylines_simple_case : path_and_file_for_output_polylines;
     std::string property_to_write = "output_polylines";
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Set properties to XML from a polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
+            pugi::xml_document doc;
+            pugi::xml_node root = doc.append_child (property_to_write.c_str ());
 
-            boost::property_tree::ptree main_node;
             for (auto &polyline : polylines)
                 {
-                    boost::property_tree::ptree polyline_node;
-
+                    pugi::xml_node poly_node = root.append_child ("Polyline");
                     for (auto &point : polyline)
                         {
-                            // Add coordinates to point_node
-                            boost::property_tree::ptree point_node;
-                            point_node.put ("x", point.x ());
-                            point_node.put ("y", point.y ());
-                            point_node.put ("z", point.z ());
-
-                            // Add point_node to polyline_node
-                            polyline_node.push_back (std::make_pair ("point", point_node));
+                            pugi::xml_node point_node = poly_node.append_child ("point");
+                            point_node.append_child ("x").text ().set (point[0]);
+                            point_node.append_child ("y").text ().set (point[1]);
+                            point_node.append_child ("z").text ().set (point[2]);
                         }
-                    main_node.push_back (std::make_pair ("Polyline", polyline_node));
                 }
-            tree.add_child (property_to_write,
-                            main_node); // without this xml is invalid
 
-            // Write property tree to XML file
-            boost::property_tree::write_xml (file_path, tree);
+            if (!doc.save_file (file_path.c_str ()))
+                {
+                    printf ("write_wood::xml -> CPP Something went wrong, probaby "
+                            "wrong path \n");
+                    return false;
+                }
         }
     catch (std::exception &e)
         {
@@ -609,54 +480,48 @@ write_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const bo
 }
 
 bool
-write_xml_polylines (std::vector<std::vector<std::vector<IK::Point_3> > > &polylines_tree, int id)
+write_xml_polylines (std::vector<std::vector<std::vector<session_cpp::Point> > > &polylines_tree, int id)
 {
     std::string file_path = path_and_file_for_output_polylines;
     std::string property_to_write = "output_polylines";
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Set properties to XML from a polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     try
         {
-            boost::property_tree::ptree tree;
+            pugi::xml_document doc;
+            pugi::xml_node root = doc.append_child (property_to_write.c_str ());
 
-            boost::property_tree::ptree main_node;
             int count = 0;
             for (auto &polylines : polylines_tree)
                 {
                     if (id != -1)
                         if (count != id)
-                            continue;
-                    boost::property_tree::ptree polyline_group_node;
+                            {
+                                count++;
+                                continue;
+                            }
+
+                    pugi::xml_node group_node = root.append_child ("Polyline_Group");
                     for (auto &polyline : polylines)
                         {
-                            boost::property_tree::ptree polyline_node;
-
+                            pugi::xml_node poly_node = group_node.append_child ("Polyline");
                             for (auto &point : polyline)
                                 {
-                                    // Add coordinates to point_node
-                                    boost::property_tree::ptree point_node;
-                                    point_node.put ("x", point.x ());
-                                    point_node.put ("y", point.y ());
-                                    point_node.put ("z", point.z ());
-
-                                    // Add point_node to polyline_node
-                                    polyline_node.push_back (std::make_pair ("point", point_node));
+                                    pugi::xml_node point_node = poly_node.append_child ("point");
+                                    point_node.append_child ("x").text ().set (point[0]);
+                                    point_node.append_child ("y").text ().set (point[1]);
+                                    point_node.append_child ("z").text ().set (point[2]);
                                 }
-                            // Add to polyline group
-                            polyline_group_node.push_back (std::make_pair ("Polyline", polyline_node));
                         }
-                    main_node.push_back (std::make_pair ("Polyline_Group", polyline_group_node));
                     count++;
                 }
-            tree.add_child (property_to_write,
-                            main_node); // without this xml is invalid
 
-            // Write property tree to XML file
-            boost::property_tree::write_xml (file_path, tree);
+            if (!doc.save_file (file_path.c_str ()))
+                {
+                    printf ("write_wood::xml -> CPP Something went wrong, probaby "
+                            "wrong path \n");
+                    return false;
+                }
         }
-
     catch (std::exception &e)
         {
             (void)e;
@@ -668,98 +533,66 @@ write_xml_polylines (std::vector<std::vector<std::vector<IK::Point_3> > > &polyl
 }
 
 bool
-write_xml_polylines_and_types (std::vector<std::vector<std::vector<IK::Point_3> > > &polylines_tree, std::vector<std::vector<wood::cut::cut_type> > &types_tree, int id, bool simple_case)
+write_xml_polylines_and_types (std::vector<std::vector<Polyline> > &polylines_tree, std::vector<std::vector<wood::cut::cut_type> > &types_tree, int id, bool simple_case)
 {
     std::string property_to_write = "output_polylines";
     std::string file_path = simple_case ? path_and_file_for_output_polylines_simple_case : path_and_file_for_output_polylines;
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Set properties to XML from a polylines
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     try
         {
-            ////////////////////////////////////////////////////////////////////////////////
-            // start
-            ////////////////////////////////////////////////////////////////////////////////
+            pugi::xml_document doc;
+            pugi::xml_node root = doc.append_child (property_to_write.c_str ());
 
-            boost::property_tree::ptree tree;
-            boost::property_tree::ptree main_node;
             int count = 0;
-
-            ////////////////////////////////////////////////////////////////////////////////
-            // Polylines
-            ////////////////////////////////////////////////////////////////////////////////
             for (auto &polylines : polylines_tree)
                 {
                     if (id != -1)
                         if (count != id)
-                            continue;
+                            {
+                                count++;
+                                continue;
+                            }
 
-                    boost::property_tree::ptree polyline_group_node;
+                    pugi::xml_node group_node = root.append_child ("polyline_group");
                     for (auto &polyline : polylines)
                         {
-                            boost::property_tree::ptree polyline_node;
-
+                            pugi::xml_node poly_node = group_node.append_child ("polyline");
                             for (auto &point : polyline)
                                 {
-                                    // Add coordinates to point_node
-                                    boost::property_tree::ptree point_node;
-                                    point_node.put ("x", point.x ());
-                                    point_node.put ("y", point.y ());
-                                    point_node.put ("z", point.z ());
-
-                                    // Add point_node to polyline_node
-                                    polyline_node.add_child ("point", point_node);
-
-                                    // polyline_node.push_back(std::make_pair("point",
-                                    // point_node));
+                                    pugi::xml_node point_node = poly_node.append_child ("point");
+                                    point_node.append_child ("x").text ().set (point[0]);
+                                    point_node.append_child ("y").text ().set (point[1]);
+                                    point_node.append_child ("z").text ().set (point[2]);
                                 }
-                            // Add to polyline group
-                            polyline_group_node.add_child ("polyline", polyline_node);
                         }
-                    main_node.add_child ("polyline_group", polyline_group_node);
                     count++;
-
-                    // break;
                 }
 
-            ////////////////////////////////////////////////////////////////////////////////
-            // types
-            ////////////////////////////////////////////////////////////////////////////////
-
             count = 0;
-            // printf("\n Loop of types ");
             for (auto &types : types_tree)
                 {
                     if (id != -1)
                         if (count != id)
-                            continue;
+                            {
+                                count++;
+                                continue;
+                            }
 
-                    boost::property_tree::ptree type_group;
+                    pugi::xml_node type_group = root.append_child ("type_group");
                     for (wood::cut::cut_type &type : types)
                         {
-                            type_group.add ("type", wood::cut::cut_type_to_string[type]);
+                            type_group.append_child ("type").text ().set (wood::cut::cut_type_to_string[type].c_str ());
                         }
-
-                    main_node.add_child ("type_group", type_group);
                     count++;
-                    // break;
                 }
 
-            ////////////////////////////////////////////////////////////////////////////////
-            // end
-            ////////////////////////////////////////////////////////////////////////////////
-
-            // add to the main code
-            // tree.add(property_to_write, main_node);//without this xml is
-            // invalid
-
-            // without this xml is invalid
-            tree.add_child (property_to_write, main_node);
-
-            // Write property tree to XML file
-            boost::property_tree::write_xml (file_path, tree);
+            if (!doc.save_file (file_path.c_str ()))
+                {
+                    printf ("write_wood::xml -> CPP Something went wrong, probaby "
+                            "wrong path \n");
+                    return false;
+                }
         }
-
     catch (std::exception &e)
         {
             (void)e;

@@ -13,6 +13,12 @@ set(CGAL_CMAKE_EXACT_NT_BACKEND BOOST_BACKEND CACHE STRING "Set CGAL backend to 
 set(CGAL_DISABLE_GMP ON CACHE BOOL "Disable GMP in CGAL")
 set(CMAKE_DISABLE_FIND_PACKAGE_GMP ON CACHE BOOL "Disable CMake find package for GMP")
 
+add_compile_definitions(
+    CGAL_HEADER_ONLY        # CGAL 6.x is already header-only; makes it explicit
+    BOOST_ALL_NO_LIB        # MSVC: disable Boost auto-link pragmas
+    BOOST_ALL_DYN_LINK=0    # MSVC: disable dynamic linking attempts
+)
+
 
 # Platform-specific compiler options
 if(MSVC)
@@ -289,18 +295,10 @@ if (BUILD_MY_PROJECTS)
 
   add_executable(${PROJECT_NAME} main.cpp 
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_globals.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_box_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/rtree_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_inscribe_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_intersection_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_xform_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_math_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_plane_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_polyline_mesh_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_polyline_util.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_rectangle_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_skeleton.cpp"
-  "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_vector_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/clipper_util.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_element.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_joint.cpp"
@@ -308,6 +306,7 @@ if (BUILD_MY_PROJECTS)
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_test.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_main.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/wood_xml.cpp"
+  "${CMAKE_SOURCE_DIR}/ext/pugixml/pugixml.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/cgal_mesh_boolean.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/database_writer.cpp"
   "${CMAKE_SOURCE_DIR}/src/wood/include/tinyply/tinyply.cpp"
@@ -341,6 +340,8 @@ if (BUILD_MY_PROJECTS)
   list(APPEND petras_include_paths 
   #my_code
   "${CMAKE_SOURCE_DIR}/src/wood/include/"
+  #pugixml
+  "${CMAKE_SOURCE_DIR}/ext/pugixml/"
   #cdt
   "${CMAKE_BINARY_DIR}/install/cdt/CDT/include/"
   #clipper

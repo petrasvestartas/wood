@@ -22,12 +22,11 @@ struct Visitor : public PMP::Corefinement::Default_visitor<Mesh>
 {
     typedef Mesh::Face_index face_descriptor;
 
-    boost::container::flat_map<const Mesh *, Mesh::Property_map<Mesh::Face_index, int> > properties;
+    std::map<const Mesh *, Mesh::Property_map<Mesh::Face_index, int> > properties;
     int face_id;
 
     Visitor ()
     {
-        properties.reserve (3);
         face_id = -1;
     }
 
@@ -612,12 +611,12 @@ mesh_boolean_difference (std::vector<Mesh> &mesh_list, size_t difference_union_i
 }
 
 void
-mesh_boolean_difference_from_polylines (std::vector<std::vector<IK::Point_3> > &input_plines, std::vector<std::vector<std::vector<IK::Point_3> > > &output_plines, std::vector<std::vector<IK::Point_3> > &out_vertices,
+mesh_boolean_difference_from_polylines (std::vector<Polyline> &input_plines, std::vector<std::vector<Polyline> > &output_plines, std::vector<std::vector<IK::Point_3> > &out_vertices,
                                         std::vector<std::vector<IK::Vector_3> > &out_normals, std::vector<std::vector<std::vector<int> > > &out_triangles)
 {
     for (int i = 0; i < input_plines.size (); i += 2)
         {
-            std::vector<CGAL_Polyline> input_plines_pair = { input_plines[i], input_plines[i + 1] };
+            std::vector<Polyline> input_plines_pair = { input_plines[i], input_plines[i + 1] };
 
             // create mesh list for boolean difference
             std::vector<CGAL::Surface_mesh<CGAL::Exact_predicates_inexact_constructions_kernel::Point_3> > mesh_list;
@@ -630,7 +629,7 @@ mesh_boolean_difference_from_polylines (std::vector<std::vector<IK::Point_3> > &
             for (int j = 0; j < output_plines[(size_t)(i * 0.5)].size (); j += 2)
                 {
                     mesh_list.emplace_back (CGAL::Surface_mesh<CGAL::Exact_predicates_inexact_constructions_kernel::Point_3> ());
-                    std::vector<CGAL_Polyline> polylines_single = { output_plines[(size_t)(i * 0.5)][j], output_plines[(size_t)(i * 0.5)][j + 1] };
+                    std::vector<Polyline> polylines_single = { output_plines[(size_t)(i * 0.5)][j], output_plines[(size_t)(i * 0.5)][j + 1] };
                     cgal::polyline_mesh_util::closed_mesh_from_polylines (polylines_single, mesh_list.back (), 1);
                 }
 

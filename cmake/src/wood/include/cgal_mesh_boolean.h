@@ -1,6 +1,17 @@
 #ifndef CGAL_MESH_BOOLEAN_H
 #define CGAL_MESH_BOOLEAN_H
 
+// CGAL mesh boolean dependencies — self-contained
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Surface_mesh.h>
+#include <CGAL/Polygon_mesh_processing/corefinement.h>
+#include <CGAL/Polygon_mesh_processing/IO/polygon_mesh_io.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
+#include <boost/graph/properties.hpp>
+
+typedef CGAL::Surface_mesh<CGAL::Exact_predicates_inexact_constructions_kernel::Point_3> Mesh;
+namespace PMP = CGAL::Polygon_mesh_processing;
+
 namespace cgal
 {
 namespace mesh_boolean
@@ -24,7 +35,7 @@ void mesh_boolean_difference_to_viewer (std::vector<Mesh> &mesh_list, size_t dif
 void mesh_boolean_difference (std::vector<Mesh> &mesh_list, size_t difference_union_intersection, std::vector<IK::Point_3> &out_vertices, std::vector<IK::Vector_3> &out_normals,
                               std::vector<std::vector<int> > &out_triangles);
 
-void mesh_boolean_difference_from_polylines (std::vector<CGAL_Polyline> &input_plines, std::vector<std::vector<CGAL_Polyline> > &output_plines, std::vector<std::vector<IK::Point_3> > &out_vertices,
+void mesh_boolean_difference_from_polylines (std::vector<Polyline> &input_plines, std::vector<std::vector<Polyline> > &output_plines, std::vector<std::vector<IK::Point_3> > &out_vertices,
                                              std::vector<std::vector<IK::Vector_3> > &out_normals, std::vector<std::vector<std::vector<int> > > &out_triangles);
 } // namespace mesh_boolean
 } // namespace cgal

@@ -23,6 +23,31 @@
 #ifndef CGAL_SKELETON_H
 #define CGAL_SKELETON_H
 
+// CGAL skeleton dependencies — self-contained
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/Polyhedron_3.h>
+#include <CGAL/extract_mean_curvature_flow_skeleton.h>
+#include <CGAL/boost/graph/split_graph_into_polylines.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_traits_3.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
+#include <CGAL/Search_traits_3.h>
+#include <CGAL/Search_traits_adapter.h>
+#include <CGAL/Orthogonal_k_neighbor_search.h>
+#include <boost/range/const_iterator.hpp>
+#include <boost/range/value_type.hpp>
+#include <boost/foreach.hpp>
+#include <boost/iterator/function_output_iterator.hpp>
+#include <boost/graph/properties.hpp>
+
+typedef CGAL::Simple_cartesian<double>                                                  CK;
+typedef CGAL::Polyhedron_3<CK>                                                          Polyhedron;
+typedef boost::graph_traits<Polyhedron>::vertex_descriptor                              vertex_descriptor;
+typedef CGAL::Mean_curvature_flow_skeletonization<Polyhedron>                           Skeletonization;
+typedef Skeletonization::Skeleton                                                       Skeleton;
+typedef Skeleton::vertex_descriptor                                                     Skeleton_vertex;
+typedef Skeleton::edge_descriptor                                                       Skeleton_edge;
+typedef Polyhedron::HalfedgeDS                                                          HalfedgeDS;
 
 namespace cgal
 {
@@ -39,9 +64,9 @@ namespace cgal
              */
             struct SkeletonConversion {
                 const Skeleton& skeleton;
-                std::vector<CGAL_Polyline>& out;
+                std::vector<Polyline>& out;
                 CGAL::Polyhedron_3<CK>& mesh;
-                CGAL_Polyline polyline = CGAL_Polyline ();
+                Polyline polyline = Polyline ();
 
                 /**
                  * @brief Constructor for SkeletonConversion.
@@ -49,14 +74,14 @@ namespace cgal
                  * @param out The output vector of polylines.
                  * @param mesh The input mesh.
                  */
-                SkeletonConversion (const Skeleton& skeleton, std::vector<CGAL_Polyline>& out, CGAL::Polyhedron_3<CK>& mesh)
+                SkeletonConversion (const Skeleton& skeleton, std::vector<Polyline>& out, CGAL::Polyhedron_3<CK>& mesh)
                     : skeleton (skeleton), out (out), mesh (mesh) {}
                 
                 /**
                  * @brief Start a new polyline.
                  */
                 void start_new_polyline () {
-                    polyline = CGAL_Polyline ();
+                    polyline = Polyline ();
                 }
 
                 /**
@@ -175,17 +200,17 @@ namespace cgal
          * std::vector <double> v;
          * std::vector <int> f;
          * tinyply::read(filepath, v, f, false);
-         * std::vector<CGAL_Polyline> output_polylines;
+         * std::vector<Polyline> output_polylines;
          * CGAL::Polyhedron_3<CK> output_mesh;
          * cgal::skeleton::mesh_skeleton(v, f, output_polylines, &output_mesh);
          * // Run Skeleton > equally space points > get distances > extend skeleton
-         * CGAL_Polyline output_polyline;
+         * Polyline output_polyline;
          * std::vector<double> output_distances;
          * cgal::skeleton::divide_polyline(output_polylines, 10, output_polyline);
          * cgal::skeleton::find_nearest_mesh_distances(output_mesh, output_polyline, 10, output_distances);
          * cgal::skeleton::extend_polyline_to_mesh(output_mesh, output_polyline, output_distances);
          */
-        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh);
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh);
 
         /**
          * @brief Run the skeleton extraction algorithm.
@@ -200,10 +225,10 @@ namespace cgal
          * std::vector<int> f;
          * tinyply::read(filepath, v, f, false);
          * 
-         * std::vector<CGAL_Polyline> output_polylines;
+         * std::vector<Polyline> output_polylines;
          * cgal::skeleton::mesh_skeleton(v, f, output_polylines);
          */
-        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines);
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<Polyline>& output_polylines);
 
         /**
          * @brief Generate equally spaced points along the polylines.
@@ -222,7 +247,7 @@ namespace cgal
          * @param neighbors The number of nearest neighbors to consider for each point in the polyline.
          * @param output_distances The output vector to store the average distances.
          */
-        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<double>& output_distances) ;
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, Polyline& polyline, int neighbors, std::vector<double>& output_distances) ;
 
         /**
          * @brief Extends the skeleton by computing intersections of segment queries with the mesh and updating the polyline and distances.
@@ -231,7 +256,7 @@ namespace cgal
          * @param polyline The input polyline to be extended.
          * @param output_distances The output vector to store the distances corresponding to the extended polyline.
          */
-        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<double>& output_distances);
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, Polyline& polyline, std::vector<double>& output_distances);
 
         /**
          * @brief Run the beam skeleton extraction algorithm.
@@ -243,7 +268,7 @@ namespace cgal
          * @param nearest_neighbors The number of nearest neighbors to consider for each point in the polyline.
          * @param extend Whether to extend the polyline to the mesh.
          */
-        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<double>& output_distances, int divisions=0, int nearest_neighbors=0, bool extend=false);
+        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, Polyline& output_polyline, std::vector<double>& output_distances, int divisions=0, int nearest_neighbors=0, bool extend=false);
     }
 } // namespace cgal
 

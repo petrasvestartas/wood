@@ -73,7 +73,7 @@ namespace cgal
         }
 
 
-        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<Polyline>& output_polylines, CGAL::Polyhedron_3<CK>* output_mesh)
         {
             CGAL::Polyhedron_3<CK> temp_mesh;
             CGAL::Polyhedron_3<CK>& mesh = output_mesh ? *output_mesh : temp_mesh;
@@ -87,7 +87,7 @@ namespace cgal
             CGAL::split_graph_into_polylines(skeleton, skeleton_conversion);
         }
 
-        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<CGAL_Polyline>& output_polylines)
+        void mesh_skeleton(std::vector<double>& v, std::vector<int>& f, std::vector<Polyline>& output_polylines)
         {
             mesh_skeleton(v, f, output_polylines, nullptr);
         }
@@ -128,7 +128,7 @@ namespace cgal
         }
 
 
-        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, int neighbors, std::vector<double>& output_distances) {
+        void find_nearest_mesh_distances(CGAL::Polyhedron_3<CK>& mesh, Polyline& polyline, int neighbors, std::vector<double>& output_distances) {
             using Point = boost::graph_traits<CGAL::Polyhedron_3<CK>>::vertex_descriptor;
             using Vertex_point_pmap = boost::property_map<CGAL::Polyhedron_3<CK>, CGAL::vertex_point_t>::type;
             
@@ -147,7 +147,7 @@ namespace cgal
 
             for (auto& p : polyline) {
                 // search K nearest neighbors
-                CK::Point_3 query(p.x(), p.y(), p.z());
+                CK::Point_3 query(p[0], p[1], p[2]);
                 Distance tr_dist(vppmap);
 
                 const unsigned int K = neighbors;
@@ -171,7 +171,7 @@ namespace cgal
         }
 
 
-        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, CGAL_Polyline& polyline, std::vector<double>& output_distances) {
+        void extend_polyline_to_mesh(CGAL::Polyhedron_3<CK>& mesh, Polyline& polyline, std::vector<double>& output_distances) {
             //https://doc.cgal.org/latest/AABB_tree/index.html#Chapter_Fast_Intersection_and_Distance_Computation
             
             using Plane = CK::Plane_3 ;
@@ -185,10 +185,10 @@ namespace cgal
             using Plane_intersection = std::optional< Tree::Intersection_and_primitive_id<Plane>::Type > ;
             using Primitive_id = Tree::Primitive_id ;
 
-            CK::Point_3 p0(polyline[0].x(), polyline[0].y(), polyline[0].z());
-            CK::Point_3 p1(polyline[1].x(), polyline[1].y(), polyline[1].z());
-            CK::Point_3 p2(polyline[polyline.size()-2].x(), polyline[polyline.size()-2].y(), polyline[polyline.size()-2].z());
-            CK::Point_3 p3(polyline[polyline.size()-1].x(), polyline[polyline.size()-1].y(), polyline[polyline.size()-1].z());
+            CK::Point_3 p0(polyline[0][0], polyline[0][1], polyline[0][2]);
+            CK::Point_3 p1(polyline[1][0], polyline[1][1], polyline[1][2]);
+            CK::Point_3 p2(polyline[polyline.size()-2][0], polyline[polyline.size()-2][1], polyline[polyline.size()-2][2]);
+            CK::Point_3 p3(polyline[polyline.size()-1][0], polyline[polyline.size()-1][1], polyline[polyline.size()-1][2]);
 
             // constructs AABB tree
             Tree tree(faces(mesh).first, faces(mesh).second, mesh);
@@ -213,7 +213,7 @@ namespace cgal
             if (intersection0) {
                 // gets intersection object
                 if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection0->first)) {
-                    polyline.insert(polyline.begin(), IK::Point_3(p->x(), p->y(), p->z()));
+                    polyline.insert(polyline.begin(), to_sc_pt(IK::Point_3(p->x(), p->y(), p->z())));
                     if (output_distances.size() > 0){
                         output_distances.insert(output_distances.begin(), output_distances[0]);
                     }
@@ -225,7 +225,7 @@ namespace cgal
             if (intersection1) {
                 // gets intersection object
                 if (const CK::Point_3* p = std::get_if<CK::Point_3>(&intersection1->first)) {
-                    polyline.push_back(IK::Point_3(p->x(), p->y(), p->z()));
+                    polyline.push_back(to_sc_pt(IK::Point_3(p->x(), p->y(), p->z())));
                     if (output_distances.size() > 0){
                         output_distances.push_back(output_distances[output_distances.size()-1]);
                     }
@@ -235,14 +235,26 @@ namespace cgal
         }
 
 
-        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, CGAL_Polyline& output_polyline, std::vector<double>& output_distances, int divisions, int nearest_neighbors, bool extend){
+        void beam_skeleton(std::vector<double>& v, std::vector<int>& f, Polyline& output_polyline, std::vector<double>& output_distances, int divisions, int nearest_neighbors, bool extend){
 
-            std::vector<CGAL_Polyline> output_polylines;
+            std::vector<Polyline> output_polylines;
             CGAL::Polyhedron_3<CK> output_mesh;
             mesh_skeleton(v, f, output_polylines, &output_mesh);
 
             if (divisions > 1){
-                divide_polyline(output_polylines, divisions, output_polyline);
+                std::vector<std::vector<IK::Point_3>> ik_polylines;
+                ik_polylines.reserve(output_polylines.size());
+                for (auto& pl : output_polylines) {
+                    std::vector<IK::Point_3> ik_pl;
+                    ik_pl.reserve(pl.size());
+                    for (auto& p : pl) ik_pl.push_back(to_cgal_pt(p));
+                    ik_polylines.push_back(std::move(ik_pl));
+                }
+                std::vector<IK::Point_3> ik_out;
+                divide_polyline(ik_polylines, divisions, ik_out);
+                output_polyline.clear();
+                output_polyline.reserve(ik_out.size());
+                for (auto& p : ik_out) output_polyline.push_back(to_sc_pt(p));
             } else if (output_polylines.size() > 0){
                 output_polyline = output_polylines[0];
             } else {

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstdio>
 #include <stdexcept>
+#include <filesystem>
 
 namespace wood_test {
 
@@ -57,9 +58,16 @@ inline std::string escape_json(const std::string& s) {
 // Write window.TEST_DATA = { "shapes_cpp": [...], ... };
 // Compatible with the Vue wood-test viewer.
 inline void dump_testdata_js(const std::string& path) {
+    // Ensure parent directory exists before opening the file
+    try {
+        std::filesystem::create_directories(
+            std::filesystem::path(path).parent_path());
+    } catch (...) {}
+
     std::ofstream f(path);
     if (!f.is_open()) {
         std::cerr << "[wood_test] ERROR: cannot open " << path << "\n";
+        std::cerr << "[wood_test] Tried path: " << path << "\n";
         return;
     }
 

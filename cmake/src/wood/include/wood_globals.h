@@ -66,20 +66,20 @@ struct GLOBALS
     static std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
 
     // custom joint types
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_MALE;
-    static std::vector<CGAL_Polyline> CUSTOM_JOINTS_B_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_B_MALE;
+    static std::vector<Polyline> CUSTOM_JOINTS_B_FEMALE;
 
     // IMGUI
     static size_t RUN_COUNT;

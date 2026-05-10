@@ -23,29 +23,51 @@ set_file_path_for_input_xml_and_screenshot (const std::string &function_name)
 }
 
 void
-set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, const std::string &function_name, bool remove_duplicate_points)
+set_file_path_for_input_xml_and_screenshot (std::vector<Polyline> &input_polyline_pairs, const std::string &function_name, bool remove_duplicate_points)
 {
     // input data-set h
     wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + function_name + ".xml";
 
-    // read the xml file
-    wood::xml::read_xml_polylines (input_polyline_pairs, false, remove_duplicate_points);
+    // read the xml file into temp session_cpp::Point container, then convert
+    std::vector<std::vector<session_cpp::Point> > tmp;
+    wood::xml::read_xml_polylines (tmp, false, remove_duplicate_points);
+    input_polyline_pairs.clear ();
+    input_polyline_pairs.reserve (tmp.size ());
+    for (auto &row : tmp)
+        {
+            Polyline pl;
+            pl.reserve (row.size ());
+            for (auto &p : row)
+                pl.push_back (p);
+            input_polyline_pairs.push_back (std::move (pl));
+        }
 }
 
 void
-set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<IK::Vector_3> > &input_insertion_vectors,
+set_file_path_for_input_xml_and_screenshot (std::vector<Polyline> &input_polyline_pairs, std::vector<std::vector<session_cpp::Vector> > &input_insertion_vectors,
                                             std::vector<std::vector<int> > &input_JOINTS_TYPES, std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency,
                                             const std::string &function_name, bool remove_duplicate_points)
 {
     // input data-set h
     wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + function_name + ".xml";
 
-    // read the xml file
-    wood::xml::read_xml_polylines_and_properties (input_polyline_pairs, input_insertion_vectors, input_JOINTS_TYPES, input_three_valence_element_indices_and_instruction, input_adjacency, false, remove_duplicate_points);
+    // read the xml file into temp session_cpp::Point container, then convert
+    std::vector<std::vector<session_cpp::Point> > tmp;
+    wood::xml::read_xml_polylines_and_properties (tmp, input_insertion_vectors, input_JOINTS_TYPES, input_three_valence_element_indices_and_instruction, input_adjacency, false, remove_duplicate_points);
+    input_polyline_pairs.clear ();
+    input_polyline_pairs.reserve (tmp.size ());
+    for (auto &row : tmp)
+        {
+            Polyline pl;
+            pl.reserve (row.size ());
+            for (auto &p : row)
+                pl.push_back (p);
+            input_polyline_pairs.push_back (std::move (pl));
+        }
 }
 
 void
-set_plate_display (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<CGAL_Polyline> > &output_plines, bool add_loft)
+set_plate_display (std::vector<Polyline> &input_polyline_pairs, std::vector<std::vector<Polyline> > &output_plines, bool add_loft)
 {
     switch (wood::GLOBALS::OUTPUT_GEOMETRY_TYPE)
         {
@@ -69,7 +91,7 @@ set_plate_display (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs,
                 for (auto &pline : plines)
                     {
                         database_writer::COLOR = "#000000";
-                        std::vector<CGAL_Polyline> plines{ pline };
+                        std::vector<Polyline> plines{ pline };
                         database_writer::add_polylines (plines.begin (), plines.end ());
                         database_writer::COLOR = "#E0E0E0";
                         database_writer::add_polygon_mesh (plines);
@@ -86,7 +108,7 @@ set_plate_display (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs,
                 for (auto &pline : plines)
                     {
                         database_writer::COLOR = "#000000";
-                        std::vector<CGAL_Polyline> plines{ pline };
+                        std::vector<Polyline> plines{ pline };
                         database_writer::add_polylines (plines.begin (), plines.end ());
                         database_writer::COLOR = "#E0E0E0";
                         database_writer::add_polygon_mesh (plines);
@@ -130,7 +152,7 @@ joint_demonstration ()
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // // The filename of the xml file and the screenshot directory
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // std::vector<std::vector<IK::Point_3>> input_polyline_pairs;
+    // std::vector<std::vector<session_cpp::Point>> input_polyline_pairs;
     // internal::set_file_path_for_input_xml_and_screenshot(input_polyline_pairs,
     // "joint_demonstration");
 
@@ -146,7 +168,7 @@ joint_demonstration ()
     // bool compute_joints = true;
     // int search_type = 0;
     // std::vector<double> scale = {1, 1, 1};
-    // std::vector<std::vector<IK::Vector_3>> input_insertion_vectors;
+    // std::vector<std::vector<session_cpp::Vector>> input_insertion_vectors;
     // std::vector<std::vector<int>> input_JOINTS_TYPES;
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction;
@@ -156,7 +178,7 @@ joint_demonstration ()
     // // Main Method of Wood
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // // output
-    // std::vector<std::vector<CGAL_Polyline>> output_plines;
+    // std::vector<std::vector<Polyline>> output_plines;
     // std::vector<std::vector<wood::cut::cut_type>> output_types;
     // std::vector<std::vector<int>> top_face_triangulation;
 
@@ -206,7 +228,7 @@ type_plates_name_hexbox_and_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_hexbox_and_corner");
 
     // Global Parameters and output joint selection and orientation
@@ -222,7 +244,7 @@ type_plates_name_hexbox_and_corner ()
     bool compute_joints = true;
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     std::vector<std::vector<int> > input_three_valence_element_indices_and_instruction;
     std::vector<int> input_adjacency;
@@ -231,7 +253,7 @@ type_plates_name_hexbox_and_corner ()
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // output
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -267,7 +289,7 @@ type_plates_name_joint_linking_vidychapel_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_corner");
 
     wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[1 * 3 + 0] = 150; // division_length
@@ -275,7 +297,7 @@ type_plates_name_joint_linking_vidychapel_corner ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{
         { -1, -1, -1, -1, 15, -1 }, { -1, -1, 15, -1, -1, -1 }, { -1, -1, -1, -1, 15, -1 }, { -1, -1, 15, -1, -1, -1 }, { -1, -1, -1, -1, 15, -1 }, { -1, -1, 15, -1, -1, -1 }, { -1, -1, -1, -1, 15, -1 },
         { -1, -1, -1, 15, -1, -1 }, { -1, -1, -1, -1, -1, 15 }, { -1, -1, -1, 15, -1, -1 }, { -1, -1, -1, -1, 15, -1 }, { -1, -1, -1, 15, -1, -1 }, { -1, -1, -1, -1, -1, 15 }, { -1, -1, -1, 15, -1, -1 },
@@ -399,7 +421,7 @@ type_plates_name_joint_linking_vidychapel_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -431,7 +453,7 @@ type_plates_name_joint_linking_vidychapel_one_layer ()
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_one_layer", true);
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -15;
@@ -441,7 +463,7 @@ type_plates_name_joint_linking_vidychapel_one_layer ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -452,7 +474,7 @@ type_plates_name_joint_linking_vidychapel_one_layer ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -470,9 +492,9 @@ type_plates_name_joint_linking_vidychapel_one_layer ()
     wood::xml::path_and_file_for_output_polylines = wood::GLOBALS::DATA_SET_OUTPUT_FILE;
     // xml_parser::write_xml_polylines(output_plines);
 
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs_2;
+    std::vector<std::vector<Polyline> > input_polyline_pairs_2;
     for (int i = 0; i < input_polyline_pairs.size (); i += 2)
-        input_polyline_pairs_2.emplace_back (std::vector<CGAL_Polyline>{ input_polyline_pairs[i + 0], input_polyline_pairs[i + 1] });
+        input_polyline_pairs_2.emplace_back (std::vector<Polyline>{ input_polyline_pairs[i + 0], input_polyline_pairs[i + 1] });
     // wood::xml::write_xml_polylines_and_types(input_polyline_pairs_2,
     // output_types);
     wood::xml::write_xml_polylines_and_types (output_plines, output_types);
@@ -490,7 +512,7 @@ type_plates_name_joint_linking_vidychapel_one_axis_two_layers ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_one_axis_two_layers");
 
     // wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
@@ -502,7 +524,7 @@ type_plates_name_joint_linking_vidychapel_one_axis_two_layers ()
                                                            // joint volumes 3 - joint geometry 4 - merge
     // std::cout << "\n output_type " << output_type << "\n";
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{ { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{ { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 } },
@@ -581,7 +603,7 @@ type_plates_name_joint_linking_vidychapel_one_axis_two_layers ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -613,7 +635,7 @@ type_plates_name_joint_linking_vidychapel_full ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_joint_linking_vidychapel_full");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
@@ -621,7 +643,7 @@ type_plates_name_joint_linking_vidychapel_full ()
     int search_type = 0;
     // std::cout << "\n output_type " << output_type << "\n";
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{ { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{ { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 } },
                                                                      { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 133.378166, 0 }, { 0, 0, 0 } },
@@ -858,7 +880,7 @@ type_plates_name_joint_linking_vidychapel_full ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -890,7 +912,7 @@ type_plates_name_side_to_side_edge_inplane_2_butterflies ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_2_butterflies");
 
     // wood::GLOBALS::JOINTS_PARAMETERS_AND_TYPES[0 * 3 + 0] = 150; //
@@ -900,7 +922,7 @@ type_plates_name_side_to_side_edge_inplane_2_butterflies ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -911,7 +933,7 @@ type_plates_name_side_to_side_edge_inplane_2_butterflies ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -942,7 +964,7 @@ type_plates_name_side_to_side_edge_inplane_hexshell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_hexshell");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[0] = -20; // reduce the thickness of the joint
@@ -957,7 +979,7 @@ type_plates_name_side_to_side_edge_inplane_hexshell ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -969,7 +991,7 @@ type_plates_name_side_to_side_edge_inplane_hexshell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1000,7 +1022,7 @@ type_plates_name_side_to_side_edge_inplane_differentdirections ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_differentdirections");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[0] = -10;
@@ -1015,7 +1037,7 @@ type_plates_name_side_to_side_edge_inplane_differentdirections ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors = {
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors = {
         {
             { 0, 0, 0 },
             { 0, 0, 0 },
@@ -1100,7 +1122,7 @@ type_plates_name_side_to_side_edge_inplane_differentdirections ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1131,7 +1153,7 @@ type_plates_name_side_to_side_edge_outofplane_folding ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_folding");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -20;
@@ -1142,7 +1164,7 @@ type_plates_name_side_to_side_edge_outofplane_folding ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors = {
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors = {
         {
             { 0, 0, 0 },
             { 0, 0, 0 },
@@ -1355,7 +1377,7 @@ type_plates_name_side_to_side_edge_outofplane_folding ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1386,7 +1408,7 @@ type_plates_name_side_to_side_edge_outofplane_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_box");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -100;
@@ -1399,7 +1421,7 @@ type_plates_name_side_to_side_edge_outofplane_box ()
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
 
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1411,7 +1433,7 @@ type_plates_name_side_to_side_edge_outofplane_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1442,7 +1464,7 @@ type_plates_name_side_to_side_edge_outofplane_tetra ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_tetra");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -100;
@@ -1456,7 +1478,7 @@ type_plates_name_side_to_side_edge_outofplane_tetra ()
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
 
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1468,7 +1490,7 @@ type_plates_name_side_to_side_edge_outofplane_tetra ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1499,7 +1521,7 @@ type_plates_name_side_to_side_edge_outofplane_dodecahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_dodecahedron");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
@@ -1514,7 +1536,7 @@ type_plates_name_side_to_side_edge_outofplane_dodecahedron ()
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
 
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1526,7 +1548,7 @@ type_plates_name_side_to_side_edge_outofplane_dodecahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1557,7 +1579,7 @@ type_plates_name_side_to_side_edge_outofplane_icosahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_icosahedron");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
@@ -1572,7 +1594,7 @@ type_plates_name_side_to_side_edge_outofplane_icosahedron ()
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
 
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1584,7 +1606,7 @@ type_plates_name_side_to_side_edge_outofplane_icosahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1615,7 +1637,7 @@ type_plates_name_side_to_side_edge_outofplane_octahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_octahedron");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -250;
@@ -1630,7 +1652,7 @@ type_plates_name_side_to_side_edge_outofplane_octahedron ()
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
 
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1642,7 +1664,7 @@ type_plates_name_side_to_side_edge_outofplane_octahedron ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1673,7 +1695,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_"
                                                                                 "outofplane_simple_corners");
 
@@ -1688,7 +1710,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1700,7 +1722,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1731,7 +1753,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_"
                                                                                 "outofplane_simple_corners_combined");
 
@@ -1746,7 +1768,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1758,7 +1780,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1789,7 +1811,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_l
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_outofplane_simple_"
                                                                                 "corners_different_lengths");
 
@@ -1808,7 +1830,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_l
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -1820,7 +1842,7 @@ type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_l
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1851,7 +1873,7 @@ type_plates_name_side_to_side_edge_inplane_hilti ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_inplane_hilti");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -1865,7 +1887,7 @@ type_plates_name_side_to_side_edge_inplane_hilti ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
     wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = true;
 
@@ -1879,7 +1901,7 @@ type_plates_name_side_to_side_edge_inplane_hilti ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1914,7 +1936,7 @@ type_plates_name_top_to_top_pairs ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_top_pairs");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
@@ -1925,7 +1947,7 @@ type_plates_name_top_to_top_pairs ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -1936,7 +1958,7 @@ type_plates_name_top_to_top_pairs ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -1967,7 +1989,7 @@ type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_"
                                                                                 "top_hexboxes");
 
@@ -1996,7 +2018,7 @@ type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -2008,7 +2030,7 @@ type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2039,7 +2061,7 @@ type_plates_name_hex_block_rossiniere ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_hex_block_rossiniere");
 
     wood::GLOBALS::FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = true;
@@ -2059,7 +2081,7 @@ type_plates_name_hex_block_rossiniere ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
 
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
@@ -2071,7 +2093,7 @@ type_plates_name_hex_block_rossiniere ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2106,7 +2128,7 @@ type_plates_name_top_to_side_snap_fit ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_pairs");
 
     // wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = -10;
@@ -2123,7 +2145,7 @@ type_plates_name_top_to_side_snap_fit ()
 
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -2134,7 +2156,7 @@ type_plates_name_top_to_side_snap_fit ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2165,7 +2187,7 @@ type_plates_name_top_to_side_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_box");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -2180,7 +2202,7 @@ type_plates_name_top_to_side_box ()
         }
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -2191,7 +2213,7 @@ type_plates_name_top_to_side_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2222,7 +2244,7 @@ type_plates_name_top_to_side_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_corners");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -2239,7 +2261,7 @@ type_plates_name_top_to_side_corners ()
         }
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -2250,7 +2272,7 @@ type_plates_name_top_to_side_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2281,7 +2303,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_"
                                                                                 "side_outofplane_annen_corner");
 
@@ -2302,7 +2324,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner ()
         }
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors = {
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors = {
         {
             { 0, 0, 0 },
             { 0, 0, 0 },
@@ -2363,7 +2385,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2393,7 +2415,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_"
                                                                                 "side_outofplane_annen_box");
 
@@ -2415,7 +2437,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box ()
         }
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors = {
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors = {
         {
             { 0, 0, 0 },
             { 0, 0, 0 },
@@ -2460,7 +2482,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2490,7 +2512,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_top_to_side_and_side_to_"
                                                                                 "side_outofplane_annen_box_pair");
 
@@ -2512,7 +2534,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair ()
         }
     int search_type = 0;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors = {
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors = {
         {
             { 0, 0, 0 },
             { 0, 0, 0 },
@@ -2670,7 +2692,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2701,8 +2723,8 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small ()
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<Polyline> input_polyline_pairs;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     std::vector<std::vector<int> > input_three_valence_element_indices_and_instruction; // = {{1},
                                                                                         // {16, 10,
@@ -2735,7 +2757,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2766,8 +2788,8 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch ()
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<Polyline> input_polyline_pairs;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     std::vector<std::vector<int> > input_three_valence_element_indices_and_instruction; // = {{1},
                                                                                         // {16, 10,
@@ -2800,7 +2822,7 @@ type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2832,8 +2854,8 @@ type_plates_name_vda_floor_0 ()
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<Polyline> input_polyline_pairs;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     std::vector<std::vector<int> > input_three_valence_element_indices_and_instruction; // = {{1},
                                                                                         // {16, 10,
@@ -2859,7 +2881,7 @@ type_plates_name_vda_floor_0 ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2891,8 +2913,8 @@ type_plates_name_vda_floor_2 ()
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int a = 0;
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors;
+    std::vector<Polyline> input_polyline_pairs;
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors;
     std::vector<std::vector<int> > input_JOINTS_TYPES;
     std::vector<std::vector<int> > input_three_valence_element_indices_and_instruction; // = {{1},
                                                                                         // {16, 10,
@@ -2922,7 +2944,7 @@ type_plates_name_vda_floor_2 ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -2957,7 +2979,7 @@ type_plates_name_cross_and_sides_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_and_sides_corner");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -2976,7 +2998,7 @@ type_plates_name_cross_and_sides_corner ()
         }
     int search_type = 2;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -2987,7 +3009,7 @@ type_plates_name_cross_and_sides_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3018,7 +3040,7 @@ type_plates_name_cross_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_corners");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3040,7 +3062,7 @@ type_plates_name_cross_corners ()
     int search_type = 1;
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[1] = 2;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3051,7 +3073,7 @@ type_plates_name_cross_corners ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3082,7 +3104,7 @@ type_plates_name_cross_vda_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_vda_corner");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3104,7 +3126,7 @@ type_plates_name_cross_vda_corner ()
     int search_type = 1;
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[1] = 2;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3115,7 +3137,7 @@ type_plates_name_cross_vda_corner ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3146,7 +3168,7 @@ type_plates_name_cross_vda_hexshell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_vda_hexshell");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3167,7 +3189,7 @@ type_plates_name_cross_vda_hexshell ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3178,7 +3200,7 @@ type_plates_name_cross_vda_hexshell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3209,7 +3231,7 @@ type_plates_name_cross_vda_hexshell_reciprocal ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_vda_hexshell_reciprocal");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3230,7 +3252,7 @@ type_plates_name_cross_vda_hexshell_reciprocal ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3241,7 +3263,7 @@ type_plates_name_cross_vda_hexshell_reciprocal ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3272,7 +3294,7 @@ type_plates_name_cross_vda_single_arch ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_vda_single_arch");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3293,7 +3315,7 @@ type_plates_name_cross_vda_single_arch ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3304,7 +3326,7 @@ type_plates_name_cross_vda_single_arch ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3335,7 +3357,7 @@ type_plates_name_cross_vda_shell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_vda_shell");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3356,7 +3378,7 @@ type_plates_name_cross_vda_shell ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3367,7 +3389,7 @@ type_plates_name_cross_vda_shell ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3398,7 +3420,7 @@ type_plates_name_cross_square_reciprocal_two_sides ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_square_reciprocal_two_sides");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3419,7 +3441,7 @@ type_plates_name_cross_square_reciprocal_two_sides ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3430,7 +3452,7 @@ type_plates_name_cross_square_reciprocal_two_sides ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3461,7 +3483,7 @@ type_plates_name_cross_square_reciprocal_iseya ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_square_reciprocal_iseya");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3482,7 +3504,7 @@ type_plates_name_cross_square_reciprocal_iseya ()
         }
     int search_type = 1;
     std::vector<double> scale = { 1, 1.00, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3493,7 +3515,7 @@ type_plates_name_cross_square_reciprocal_iseya ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3524,7 +3546,7 @@ type_plates_name_cross_ibois_pavilion ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_ibois_pavilion");
 
     if (!wood::GLOBALS::RUN_COUNT) // this is needed to avoid overwriting
@@ -3548,7 +3570,7 @@ type_plates_name_cross_ibois_pavilion ()
 
     int search_type = 2;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3559,7 +3581,7 @@ type_plates_name_cross_ibois_pavilion ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3590,7 +3612,7 @@ type_plates_name_cross_brussels_sports_tower ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_plates_name_cross_brussels_sports_tower");
     printf ("Number of polylines: %zu \n", input_polyline_pairs.size ());
 
@@ -3617,7 +3639,7 @@ type_plates_name_cross_brussels_sports_tower ()
 
     int search_type = 1;
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3628,7 +3650,7 @@ type_plates_name_cross_brussels_sports_tower ()
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
     std::vector<std::vector<int> > top_face_triangulation;
 
@@ -3672,7 +3694,7 @@ type_beams_name_phanomema_node ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_axes;
+    std::vector<Polyline> input_polyline_axes;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_axes, "type_beams_name_phanomema_node");
 
     wood::GLOBALS::JOINT_VOLUME_EXTENSION[2] = 0;
@@ -3682,7 +3704,7 @@ type_beams_name_phanomema_node ()
                                                            // joint volumes 3 - joint geometry 4 - merge
     // std::cout << "\n output_type " << output_type << "\n";
     std::vector<double> scale = { 1, 1, 1 };
-    std::vector<std::vector<IK::Vector_3> > input_insertion_vectors{};
+    std::vector<std::vector<session_cpp::Vector> > input_insertion_vectors{};
     std::vector<std::vector<int> > input_JOINTS_TYPES{};
     // std::vector<std::vector<int>>
     // input_three_valence_element_indices_and_instruction = {{1}, {16, 10,
@@ -3694,11 +3716,11 @@ type_beams_name_phanomema_node ()
     // Main Method of Wood
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<std::vector<double> > polylines_segment_radii;
-    std::vector<std::vector<IK::Vector_3> > polylines_segment_direction;
+    std::vector<std::vector<session_cpp::Vector> > polylines_segment_direction;
     for (int i = 0; i < input_polyline_axes.size (); i++)
         {
             std::vector<double> polyline_segment_radii;
-            // std::vector<IK::Vector_3> polyline_segment_direction;
+            // std::vector<session_cpp::Vector> polyline_segment_direction;
             for (int j = 0; j < input_polyline_axes[i].size (); j++)
                 {
                     polyline_segment_radii.emplace_back (150);
@@ -3721,13 +3743,13 @@ type_beams_name_phanomema_node ()
     std::vector<std::vector<int> > index_polylines;
     std::vector<std::vector<int> > index_polylines_segment;
     std::vector<std::vector<double> > distance;
-    std::vector<std::vector<IK::Point_3> > point_pairs;
-    std::vector<std::vector<CGAL_Polyline> > volume_pairs;
-    std::vector<CGAL_Polyline> joints_areas;
+    std::vector<std::vector<session_cpp::Point> > point_pairs;
+    std::vector<std::vector<Polyline> > volume_pairs;
+    std::vector<Polyline> joints_areas;
     std::vector<int> joints_types;
 
     // Global Parameters and output wood::joint selection and orientation
-    std::vector<std::vector<CGAL_Polyline> > output_plines;
+    std::vector<std::vector<Polyline> > output_plines;
     std::vector<std::vector<wood::cut::cut_type> > output_types;
 
     bool compute_joints = true;                     // WARNING values are in unknown state
@@ -3749,7 +3771,7 @@ type_beams_name_phanomema_node ()
     output_plines.clear ();
     for (auto &pline : volume_pairs)
         for (int j = 0; j < 4; j++)
-            output_plines.emplace_back (std::vector<CGAL_Polyline>{ pline[j] });
+            output_plines.emplace_back (std::vector<Polyline>{ pline[j] });
 
     wood::xml::write_xml_polylines_and_types (output_plines, output_types);
 
@@ -3766,7 +3788,7 @@ type_library_name_ss_e_ip_2 ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_library_name_ss_e_op_2");
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3780,9 +3802,9 @@ type_library_name_ss_e_ip_2 ()
 
     // parameters that comes from the joint
     bool default_values = true;
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
+    double joint_volume_edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
 
     // scale down the edge, since wood_joint ->  bool
     // joint::orient_to_connection_area() make the distance between joint
@@ -3796,38 +3818,38 @@ type_library_name_ss_e_ip_2 ()
 
     // movement vectors to translate the unit joint to the end of the edge
     // and then to its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> male_0 = { {
+    std::vector<Polyline> male_0 = { {
 
-                                              IK::Point_3 (0, -0.5, 0.1166666667),
-                                              IK::Point_3 (-0.5, -0.5, 0.4),
-                                              IK::Point_3 (-0.5, -0.5, -0.4),
-                                              IK::Point_3 (0, -0.5, -0.1166666667),
+                                              session_cpp::Point(0, -0.5, 0.1166666667),
+                                              session_cpp::Point(-0.5, -0.5, 0.4),
+                                              session_cpp::Point(-0.5, -0.5, -0.4),
+                                              session_cpp::Point(0, -0.5, -0.1166666667),
                                           },
                                           {
 
-                                              IK::Point_3 (0, -0.5, 0.1166666667),
-                                              IK::Point_3 (0, -0.5, -0.1166666667),
+                                              session_cpp::Point(0, -0.5, 0.1166666667),
+                                              session_cpp::Point(0, -0.5, -0.1166666667),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = { {
+    std::vector<Polyline> male_1 = { {
 
-                                              IK::Point_3 (0, 0.5, 0.1166666667),
-                                              IK::Point_3 (-0.5, 0.5, 0.4),
-                                              IK::Point_3 (-0.5, 0.5, -0.4),
-                                              IK::Point_3 (0, 0.5, -0.1166666667),
+                                              session_cpp::Point(0, 0.5, 0.1166666667),
+                                              session_cpp::Point(-0.5, 0.5, 0.4),
+                                              session_cpp::Point(-0.5, 0.5, -0.4),
+                                              session_cpp::Point(0, 0.5, -0.1166666667),
                                           },
 
                                           {
 
-                                              IK::Point_3 (0, 0.5, 0.1166666667),
-                                              IK::Point_3 (0, 0.5, -0.1166666667),
+                                              session_cpp::Point(0, 0.5, 0.1166666667),
+                                              session_cpp::Point(0, 0.5, -0.1166666667),
                                           } };
 
     std::vector<wood::cut::cut_type> male_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -3836,30 +3858,30 @@ type_library_name_ss_e_ip_2 ()
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> female_0 = { {
+    std::vector<Polyline> female_0 = { {
 
-                                                IK::Point_3 (0, -0.5, 0.1166666667),
-                                                IK::Point_3 (0.5, -0.5, 0.4),
-                                                IK::Point_3 (0.5, -0.5, -0.4),
-                                                IK::Point_3 (0, -0.5, -0.1166666667),
+                                                session_cpp::Point(0, -0.5, 0.1166666667),
+                                                session_cpp::Point(0.5, -0.5, 0.4),
+                                                session_cpp::Point(0.5, -0.5, -0.4),
+                                                session_cpp::Point(0, -0.5, -0.1166666667),
                                             },
                                             {
 
-                                                IK::Point_3 (0, -0.5, 0.1166666667),
-                                                IK::Point_3 (0, -0.5, -0.1166666667),
+                                                session_cpp::Point(0, -0.5, 0.1166666667),
+                                                session_cpp::Point(0, -0.5, -0.1166666667),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { {
+    std::vector<Polyline> female_1 = { {
 
-                                                IK::Point_3 (0, 0.5, 0.1166666667),
-                                                IK::Point_3 (0.5, 0.5, 0.4),
-                                                IK::Point_3 (0.5, 0.5, -0.4),
-                                                IK::Point_3 (0, 0.5, -0.1166666667),
+                                                session_cpp::Point(0, 0.5, 0.1166666667),
+                                                session_cpp::Point(0.5, 0.5, 0.4),
+                                                session_cpp::Point(0.5, 0.5, -0.4),
+                                                session_cpp::Point(0, 0.5, -0.1166666667),
                                             },
                                             {
 
-                                                IK::Point_3 (0, 0.5, 0.1166666667),
-                                                IK::Point_3 (0, 0.5, -0.1166666667),
+                                                session_cpp::Point(0, 0.5, 0.1166666667),
+                                                session_cpp::Point(0, 0.5, -0.1166666667),
                                             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -3878,10 +3900,10 @@ type_library_name_ss_e_ip_2 ()
     // Copy the default shapes and move them
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     auto a = joint.m[0];
-    joint.m[0].emplace_back (CGAL_Polyline ());
-    joint.m[1].emplace_back (CGAL_Polyline ());
-    joint.f[0].emplace_back (CGAL_Polyline ());
-    joint.f[1].emplace_back (CGAL_Polyline ());
+    joint.m[0].emplace_back (Polyline ());
+    joint.m[1].emplace_back (Polyline ());
+    joint.f[0].emplace_back (Polyline ());
+    joint.f[1].emplace_back (Polyline ());
 
     joint.m[0].back ().reserve (male_0[0].size () * divisions);
     joint.m[1].back ().reserve (male_1[0].size () * divisions);
@@ -3893,10 +3915,10 @@ type_library_name_ss_e_ip_2 ()
             // copy the first outline, be sure that the point order is
             // correct, so that the non-internsecting polyline can be
             // created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at the center to the end of
             // the segment and then back by half of the division length
@@ -3922,10 +3944,10 @@ type_library_name_ss_e_ip_2 ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add the insertion lines
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
-    joint.m[1].emplace_back (CGAL_Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
-    joint.f[0].emplace_back (CGAL_Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
-    joint.f[1].emplace_back (CGAL_Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
+    joint.m[0].emplace_back (Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
+    joint.m[1].emplace_back (Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
+    joint.f[0].emplace_back (Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
+    joint.f[1].emplace_back (Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
 
     joint.f_boolean_type = female_types;
     joint.m_boolean_type = male_types;
@@ -3939,15 +3961,15 @@ type_library_name_ss_e_ip_2 ()
     // joint for preview
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     database_writer::SCALE = 1.0;
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs0;
+    std::vector<std::vector<Polyline> > input_polyline_pairs0;
     input_polyline_pairs0.emplace_back (joint.m[0]);
     input_polyline_pairs0.emplace_back (joint.m[1]);
     database_writer::add_polylines (input_polyline_pairs0.begin (),
                                     input_polyline_pairs0.end ()); // grey
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs1;
+    std::vector<std::vector<Polyline> > input_polyline_pairs1;
     input_polyline_pairs1.emplace_back (joint.f[0]);
     input_polyline_pairs1.emplace_back (joint.f[1]);
-    CGAL_Polyline default_segment = { IK::Point_3 (0, 0, -total_length_scaled * 0.5), IK::Point_3 (0, 0, total_length_scaled * 0.5) };
+    Polyline default_segment = { session_cpp::Point(0, 0, -total_length_scaled * 0.5), session_cpp::Point(0, 0, total_length_scaled * 0.5) };
     input_polyline_pairs1.push_back ({ default_segment });
     database_writer::add_polylines (input_polyline_pairs1.begin (),
                                     input_polyline_pairs1.end ()); // grey
@@ -3962,7 +3984,7 @@ type_library_name_ss_e_op_4 ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot (input_polyline_pairs, "type_library_name_ss_e_op_4");
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4028,8 +4050,8 @@ type_library_name_ss_e_op_4 ()
             // cut outlines
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             joint.m[j][1] = {
-                IK::Point_3 (sign * x[1], y[j], z_ext[1]),
-                IK::Point_3 (sign * x[1], y[j], z_ext[0]),
+                session_cpp::Point(sign * x[1], y[j], z_ext[1]),
+                session_cpp::Point(sign * x[1], y[j], z_ext[0]),
             };
         }
 
@@ -4049,15 +4071,15 @@ type_library_name_ss_e_op_4 ()
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             joint.f[j][0] = {
-                IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
-                IK::Point_3 (y[j_inv], 3 * y[0], z_ext[1]),
-                IK::Point_3 (y[j_inv], 3 * y[0], z_ext[0]),
-                IK::Point_3 (y[j_inv], sign * y[1], z_ext[0]),
+                session_cpp::Point(y[j_inv], sign * y[1], z_ext[1]),
+                session_cpp::Point(y[j_inv], 3 * y[0], z_ext[1]),
+                session_cpp::Point(y[j_inv], 3 * y[0], z_ext[0]),
+                session_cpp::Point(y[j_inv], sign * y[1], z_ext[0]),
             };
 
             joint.f[j][1] = {
-                IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
-                IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
+                session_cpp::Point(y[j_inv], sign * y[1], z_ext[1]),
+                session_cpp::Point(y[j_inv], sign * y[1], z_ext[1]),
             };
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4104,12 +4126,12 @@ type_library_name_ss_e_op_4 ()
     // joint for preview
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     database_writer::SCALE = 1.0;
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs0;
+    std::vector<std::vector<Polyline> > input_polyline_pairs0;
     input_polyline_pairs0.emplace_back (joint.m[0]);
     input_polyline_pairs0.emplace_back (joint.m[1]);
     database_writer::add_polylines (input_polyline_pairs0.begin (),
                                     input_polyline_pairs0.end ()); // grey
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs1;
+    std::vector<std::vector<Polyline> > input_polyline_pairs1;
     input_polyline_pairs1.emplace_back (joint.f[0]);
     input_polyline_pairs1.emplace_back (joint.f[1]);
     database_writer::add_polylines (input_polyline_pairs1.begin (),
@@ -4125,7 +4147,7 @@ type_library_name_ts_e_p_5 ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // The filename of the xml file and the screenshot directory
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<IK::Point_3> > input_polyline_pairs;
+    std::vector<Polyline> input_polyline_pairs;
     internal::set_file_path_for_input_xml_and_screenshot ("type_library_name_ts_e_p_5");
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4140,9 +4162,9 @@ type_library_name_ts_e_p_5 ()
     // parameters that comes from the joint
     bool default_values = true;
 
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
+    double joint_volume_edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
 
     // scale down the edge, since wood_joint ->  bool
     // joint::orient_to_connection_area() make the distance between joint
@@ -4156,52 +4178,52 @@ type_library_name_ts_e_p_5 ()
 
     // movement vectors to translate the unit joint to the end of the edge
     // and then to its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> male_0 = { {
+    std::vector<Polyline> male_0 = { {
 
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, 1.62789509252326),   IK::Point_3 (-0.499996349848395, -3.40695187221018, 1.62789509252326),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, 1.10464309849792),    IK::Point_3 (-0.499996349848395, -0.0232556441796868, 1.10464309849801),
-                                              IK::Point_3 (-0.499996349848395, -0.0232556441796339, 0.843017101485296), IK::Point_3 (-0.499996349848395, 0.49999634984571, 0.843017101485296),
-                                              IK::Point_3 (-0.499996349848395, 0.49999634984571, 1.19185176416881),     IK::Point_3 (-0.499996349848395, 0.6038871791861, 1.19185176416881),
-                                              IK::Point_3 (-0.499996349848395, 1.01079104575736, 1.04650398805065),     IK::Point_3 (-0.499996349848395, 1.01079104575736, 0.261625997012692),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, 0.261625997012692),   IK::Point_3 (-0.499996349848395, -3.40695187221018, -0.261625997012652),
-                                              IK::Point_3 (-0.499996349848395, 1.01079104575736, -0.261625997012652),   IK::Point_3 (-0.499996349848395, 1.01079104575736, -1.04650398805062),
-                                              IK::Point_3 (-0.499996349848395, 0.6038871791861, -1.19185176416877),     IK::Point_3 (-0.499996349848395, 0.49999634984571, -1.19185176416877),
-                                              IK::Point_3 (-0.499996349848395, 0.49999634984571, -0.843017101485257),   IK::Point_3 (-0.499996349848395, -0.0232556441796339, -0.843017101485257),
-                                              IK::Point_3 (-0.499996349848395, -0.0232556441796868, -1.10464309849797), IK::Point_3 (-0.499996349848395, -3.40695187221018, -1.10464309849788),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, -1.62789509252322),   IK::Point_3 (-0.499996349848395, -0.499996349847159, -1.62789509252322),
+                                              session_cpp::Point(-0.499996349848395, -0.499996349847159, 1.62789509252326),   session_cpp::Point(-0.499996349848395, -3.40695187221018, 1.62789509252326),
+                                              session_cpp::Point(-0.499996349848395, -3.40695187221018, 1.10464309849792),    session_cpp::Point(-0.499996349848395, -0.0232556441796868, 1.10464309849801),
+                                              session_cpp::Point(-0.499996349848395, -0.0232556441796339, 0.843017101485296), session_cpp::Point(-0.499996349848395, 0.49999634984571, 0.843017101485296),
+                                              session_cpp::Point(-0.499996349848395, 0.49999634984571, 1.19185176416881),     session_cpp::Point(-0.499996349848395, 0.6038871791861, 1.19185176416881),
+                                              session_cpp::Point(-0.499996349848395, 1.01079104575736, 1.04650398805065),     session_cpp::Point(-0.499996349848395, 1.01079104575736, 0.261625997012692),
+                                              session_cpp::Point(-0.499996349848395, -3.40695187221018, 0.261625997012692),   session_cpp::Point(-0.499996349848395, -3.40695187221018, -0.261625997012652),
+                                              session_cpp::Point(-0.499996349848395, 1.01079104575736, -0.261625997012652),   session_cpp::Point(-0.499996349848395, 1.01079104575736, -1.04650398805062),
+                                              session_cpp::Point(-0.499996349848395, 0.6038871791861, -1.19185176416877),     session_cpp::Point(-0.499996349848395, 0.49999634984571, -1.19185176416877),
+                                              session_cpp::Point(-0.499996349848395, 0.49999634984571, -0.843017101485257),   session_cpp::Point(-0.499996349848395, -0.0232556441796339, -0.843017101485257),
+                                              session_cpp::Point(-0.499996349848395, -0.0232556441796868, -1.10464309849797), session_cpp::Point(-0.499996349848395, -3.40695187221018, -1.10464309849788),
+                                              session_cpp::Point(-0.499996349848395, -3.40695187221018, -1.62789509252322),   session_cpp::Point(-0.499996349848395, -0.499996349847159, -1.62789509252322),
                                           },
                                           {
 
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, 1.62789509252326),
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, -1.62789509252322),
+                                              session_cpp::Point(-0.499996349848395, -0.499996349847159, 1.62789509252326),
+                                              session_cpp::Point(-0.499996349848395, -0.499996349847159, -1.62789509252322),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = { {
+    std::vector<Polyline> male_1 = { {
 
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, 1.62789509252334),    IK::Point_3 (0.499996349844421, -3.40695187221039, 1.62789509252334),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, 1.10464309849799),    IK::Point_3 (0.499996349844421, -0.0232556441798983, 1.10464309849809),
-                                              IK::Point_3 (0.499996349844421, -0.0232556441798454, 0.843017101485375), IK::Point_3 (0.499996349844421, 0.499996349845499, 0.843017101485375),
-                                              IK::Point_3 (0.499996349844421, 0.499996349845499, 1.19185176416889),    IK::Point_3 (0.499996349844421, 0.603887179185889, 1.19185176416889),
-                                              IK::Point_3 (0.499996349844421, 1.01079104575715, 1.04650398805073),     IK::Point_3 (0.499996349844421, 1.01079104575715, 0.261625997012771),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, 0.261625997012771),   IK::Point_3 (0.499996349844421, -3.40695187221039, -0.261625997012573),
-                                              IK::Point_3 (0.499996349844421, 1.01079104575715, -0.261625997012573),   IK::Point_3 (0.499996349844421, 1.01079104575715, -1.04650398805054),
-                                              IK::Point_3 (0.499996349844421, 0.603887179185889, -1.19185176416869),   IK::Point_3 (0.499996349844421, 0.499996349845499, -1.19185176416869),
-                                              IK::Point_3 (0.499996349844421, 0.499996349845499, -0.843017101485177),  IK::Point_3 (0.499996349844421, -0.0232556441798454, -0.843017101485177),
-                                              IK::Point_3 (0.499996349844421, -0.0232556441798983, -1.1046430984979),  IK::Point_3 (0.499996349844421, -3.40695187221039, -1.1046430984978),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, -1.62789509252314),   IK::Point_3 (0.499996349844421, -0.49999634984737, -1.62789509252314),
+                                              session_cpp::Point(0.499996349844421, -0.49999634984737, 1.62789509252334),    session_cpp::Point(0.499996349844421, -3.40695187221039, 1.62789509252334),
+                                              session_cpp::Point(0.499996349844421, -3.40695187221039, 1.10464309849799),    session_cpp::Point(0.499996349844421, -0.0232556441798983, 1.10464309849809),
+                                              session_cpp::Point(0.499996349844421, -0.0232556441798454, 0.843017101485375), session_cpp::Point(0.499996349844421, 0.499996349845499, 0.843017101485375),
+                                              session_cpp::Point(0.499996349844421, 0.499996349845499, 1.19185176416889),    session_cpp::Point(0.499996349844421, 0.603887179185889, 1.19185176416889),
+                                              session_cpp::Point(0.499996349844421, 1.01079104575715, 1.04650398805073),     session_cpp::Point(0.499996349844421, 1.01079104575715, 0.261625997012771),
+                                              session_cpp::Point(0.499996349844421, -3.40695187221039, 0.261625997012771),   session_cpp::Point(0.499996349844421, -3.40695187221039, -0.261625997012573),
+                                              session_cpp::Point(0.499996349844421, 1.01079104575715, -0.261625997012573),   session_cpp::Point(0.499996349844421, 1.01079104575715, -1.04650398805054),
+                                              session_cpp::Point(0.499996349844421, 0.603887179185889, -1.19185176416869),   session_cpp::Point(0.499996349844421, 0.499996349845499, -1.19185176416869),
+                                              session_cpp::Point(0.499996349844421, 0.499996349845499, -0.843017101485177),  session_cpp::Point(0.499996349844421, -0.0232556441798454, -0.843017101485177),
+                                              session_cpp::Point(0.499996349844421, -0.0232556441798983, -1.1046430984979),  session_cpp::Point(0.499996349844421, -3.40695187221039, -1.1046430984978),
+                                              session_cpp::Point(0.499996349844421, -3.40695187221039, -1.62789509252314),   session_cpp::Point(0.499996349844421, -0.49999634984737, -1.62789509252314),
                                           },
 
                                           {
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, 1.62789509252334),
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, -1.62789509252314),
+                                              session_cpp::Point(0.499996349844421, -0.49999634984737, 1.62789509252334),
+                                              session_cpp::Point(0.499996349844421, -0.49999634984737, -1.62789509252314),
                                           } };
 
     std::vector<wood::cut::cut_type> male_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -4210,37 +4232,37 @@ type_library_name_ts_e_p_5 ()
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> female_0 = { {
+    std::vector<Polyline> female_0 = { {
 
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, -1.104643098498),
+                                                session_cpp::Point(0.499996349844421, -0.499996349847317, -1.104643098498),
+                                                session_cpp::Point(0.499996349844421, -0.499996349847317, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, 1.10464309849788),
                                             },
                                             {
 
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, -1.104643098498),
+                                                session_cpp::Point(0.499996349844421, -0.499996349847317, -1.104643098498),
+                                                session_cpp::Point(0.499996349844421, -0.499996349847317, 1.10464309849788),
+                                                session_cpp::Point(-0.499996349848395, -0.499996349847212, 1.10464309849788),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { {
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
+    std::vector<Polyline> female_1 = { {
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, -1.10464309849788),
+                                                session_cpp::Point(0.499996349844421, 0.499996349845499, -1.10464309849788),
+                                                session_cpp::Point(0.499996349844421, 0.499996349845499, 1.104643098498),
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, 1.104643098498),
                                             },
                                             {
 
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, -1.10464309849788),
+                                                session_cpp::Point(0.499996349844421, 0.499996349845499, -1.10464309849788),
+                                                session_cpp::Point(0.499996349844421, 0.499996349845499, 1.104643098498),
+                                                session_cpp::Point(-0.499996349848395, 0.499996349845604, 1.104643098498),
                                             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::hole, wood::cut::hole };
@@ -4258,8 +4280,8 @@ type_library_name_ts_e_p_5 ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Copy the default shapes and move them
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline ());
-    joint.m[1].emplace_back (CGAL_Polyline ());
+    joint.m[0].emplace_back (Polyline ());
+    joint.m[1].emplace_back (Polyline ());
 
     joint.m[0].back ().reserve (male_0[0].size () * divisions);
     joint.m[1].back ().reserve (male_1[0].size () * divisions);
@@ -4269,8 +4291,8 @@ type_library_name_ts_e_p_5 ()
             // copy the first outline, be sure that the point order is
             // correct, so that the non-internsecting polyline can be
             // created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
 
             // move joints that are positioned at the center to the end of
             // the segment and then back by half of the division length
@@ -4290,8 +4312,8 @@ type_library_name_ts_e_p_5 ()
             // copy the first outline, be sure that the point order is
             // correct, so that the non-internsecting polyline can be
             // created, else reverse it
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at the center to the end of
             // the segment and then back by half of the division length
@@ -4305,14 +4327,14 @@ type_library_name_ts_e_p_5 ()
             joint.f[0].emplace_back (female_moved_0);
             joint.f[1].emplace_back (female_moved_1);
         }
-    joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[0].front ()[0], joint.f[0].front ()[3], joint.f[0].back ()[2], joint.f[0].back ()[1], joint.f[0].front ()[0] });
-    joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[1].front ()[0], joint.f[1].front ()[3], joint.f[1].back ()[2], joint.f[1].back ()[1], joint.f[1].front ()[0] });
+    joint.f[0].emplace_back (Polyline{ joint.f[0].front ()[0], joint.f[0].front ()[3], joint.f[0].back ()[2], joint.f[0].back ()[1], joint.f[0].front ()[0] });
+    joint.f[1].emplace_back (Polyline{ joint.f[1].front ()[0], joint.f[1].front ()[3], joint.f[1].back ()[2], joint.f[1].back ()[1], joint.f[1].front ()[0] });
     joint.f_boolean_type = std::vector<wood::cut::cut_type> (joint.f[0].size (), wood::cut::hole);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add the insertion lines
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
-    joint.m[1].emplace_back (CGAL_Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
+    joint.m[0].emplace_back (Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
+    joint.m[1].emplace_back (Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
 
     joint.m_boolean_type = male_types;
 
@@ -4325,15 +4347,15 @@ type_library_name_ts_e_p_5 ()
     // joint for preview
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     database_writer::SCALE = 1.0;
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs0;
+    std::vector<std::vector<Polyline> > input_polyline_pairs0;
     input_polyline_pairs0.emplace_back (joint.m[0]);
     input_polyline_pairs0.emplace_back (joint.m[1]);
     database_writer::add_polylines (input_polyline_pairs0.begin (),
                                     input_polyline_pairs0.end ()); // grey
-    std::vector<std::vector<CGAL_Polyline> > input_polyline_pairs1;
+    std::vector<std::vector<Polyline> > input_polyline_pairs1;
     input_polyline_pairs1.emplace_back (joint.f[0]);
     input_polyline_pairs1.emplace_back (joint.f[1]);
-    CGAL_Polyline default_segment = { IK::Point_3 (0, 0, -total_length_scaled * 0.5), IK::Point_3 (0, 0, total_length_scaled * 0.5) };
+    Polyline default_segment = { session_cpp::Point(0, 0, -total_length_scaled * 0.5), session_cpp::Point(0, 0, total_length_scaled * 0.5) };
     input_polyline_pairs1.push_back ({ default_segment });
     database_writer::add_polylines (input_polyline_pairs0.begin (),
                                     input_polyline_pairs1.end ()); // grey
@@ -4450,19 +4472,19 @@ type_geometry_name_polygon_center ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_polygon_center");
 
     // data-set
-    CGAL_Polyline polygon{
-        IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435), IK::Point_3 (-5.73799008527948, 27.7396887390699, 38.9994193935361), IK::Point_3 (-7.18751465466158, 52.2109764075134, 74.5663582911656),
-        IK::Point_3 (1.68332949862521, 18.8956298287167, 52.2485552589767),  IK::Point_3 (14.0704361211272, 1.10346344393741, 69.2793807577245),  IK::Point_3 (18.9418950031543, 14.2294672539151, 109.735250000281),
-        IK::Point_3 (33.4352381327694, -30.7000564810127, 89.2118909021016), IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
+    Polyline polygon{
+        session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435), session_cpp::Point(-5.73799008527948, 27.7396887390699, 38.9994193935361), session_cpp::Point(-7.18751465466158, 52.2109764075134, 74.5663582911656),
+        session_cpp::Point(1.68332949862521, 18.8956298287167, 52.2485552589767),  session_cpp::Point(14.0704361211272, 1.10346344393741, 69.2793807577245),  session_cpp::Point(18.9418950031543, 14.2294672539151, 109.735250000281),
+        session_cpp::Point(33.4352381327694, -30.7000564810127, 89.2118909021016), session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
     };
 
     // main method
-    IK::Point_3 center = cgal::polyline_util::center (polygon);
-    std::vector<IK::Point_3> points = { center };
+    session_cpp::Point center = session_cpp::center (polygon);
+    std::vector<session_cpp::Point> points = { center };
 
     // display
     database_writer::SCALE = 10;
-    std::vector<CGAL_Polyline> polylines = { polygon };
+    std::vector<Polyline> polylines = { polygon };
     database_writer::add_polylines (polylines.begin (),
                                     polylines.end ()); // grey
     database_writer::LINE_THICKNESS = 10;
@@ -4481,26 +4503,26 @@ type_geometry_name_polygon_center_polylabel ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_polygon_center_polylabel");
 
     // data-set
-    std::vector<CGAL_Polyline> polylines;
+    std::vector<Polyline> polylines;
 
-    CGAL_Polyline p0{
-        IK::Point_3 (-51.268164698738, 124.403259575835, 0),
-        IK::Point_3 (-49.9053069162896, 125.207270883064, 0),
-        IK::Point_3 (-49.2387999055025, 123.598641360433, 0),
-        IK::Point_3 (-51.268164698738, 124.403259575835, 0),
+    Polyline p0{
+        session_cpp::Point(-51.268164698738, 124.403259575835, 0),
+        session_cpp::Point(-49.9053069162896, 125.207270883064, 0),
+        session_cpp::Point(-49.2387999055025, 123.598641360433, 0),
+        session_cpp::Point(-51.268164698738, 124.403259575835, 0),
     };
 
-    CGAL_Polyline p1{
-        IK::Point_3 (-80.6608706869908, 113.550451407233, 0), IK::Point_3 (-105.295437496349, 124.537127782527, 0), IK::Point_3 (-76.4480884206953, 152.30682138802, 0),
-        IK::Point_3 (-23.6934094178782, 139.390066049447, 0), IK::Point_3 (-40.1282334662578, 100.282298806669, 0), IK::Point_3 (-69.6350088663798, 87.7972305312764, 0),
-        IK::Point_3 (-74.8538706538141, 108.464053813429, 0), IK::Point_3 (-80.6608706869908, 113.550451407233, 0),
+    Polyline p1{
+        session_cpp::Point(-80.6608706869908, 113.550451407233, 0), session_cpp::Point(-105.295437496349, 124.537127782527, 0), session_cpp::Point(-76.4480884206953, 152.30682138802, 0),
+        session_cpp::Point(-23.6934094178782, 139.390066049447, 0), session_cpp::Point(-40.1282334662578, 100.282298806669, 0), session_cpp::Point(-69.6350088663798, 87.7972305312764, 0),
+        session_cpp::Point(-74.8538706538141, 108.464053813429, 0), session_cpp::Point(-80.6608706869908, 113.550451407233, 0),
     };
 
-    CGAL_Polyline p2{
-        IK::Point_3 (-73.4808769486925, 119.997690099402, 0),
-        IK::Point_3 (-90.6424155869293, 123.188472670033, 0),
-        IK::Point_3 (-77.6978215210285, 136.742511096638, 0),
-        IK::Point_3 (-73.4808769486925, 119.997690099402, 0),
+    Polyline p2{
+        session_cpp::Point(-73.4808769486925, 119.997690099402, 0),
+        session_cpp::Point(-90.6424155869293, 123.188472670033, 0),
+        session_cpp::Point(-77.6978215210285, 136.742511096638, 0),
+        session_cpp::Point(-73.4808769486925, 119.997690099402, 0),
     };
 
     polylines.push_back (p0);
@@ -4508,9 +4530,9 @@ type_geometry_name_polygon_center_polylabel ()
     polylines.push_back (p2);
 
     // main method
-    std::tuple<IK::Point_3, IK::Plane_3, double> result = cgal::inscribe_util::get_polylabel (polylines, 1.0);
-    IK::Point_3 center = std::get<0> (result);
-    std::vector<IK::Point_3> points = { center };
+    auto result = cgal::inscribe_util::get_polylabel (polylines, 1.0);
+    session_cpp::Point center = std::get<0> (result);
+    std::vector<session_cpp::Point> points = { center };
 
     // display
     database_writer::SCALE = 100;
@@ -4531,20 +4553,20 @@ type_geometry_name_circle_ponts_inscribed_in_a_polygon ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_circle_ponts_inscribed_in_a_polygon");
 
     // data-set
-    CGAL_Polyline polygon{
-        IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435), IK::Point_3 (-5.73799008527948, 27.7396887390699, 38.9994193935361), IK::Point_3 (-7.18751465466158, 52.2109764075134, 74.5663582911656),
-        IK::Point_3 (1.68332949862521, 18.8956298287167, 52.2485552589767),  IK::Point_3 (14.0704361211272, 1.10346344393741, 69.2793807577245),  IK::Point_3 (18.9418950031543, 14.2294672539151, 109.735250000281),
-        IK::Point_3 (33.4352381327694, -30.7000564810127, 89.2118909021016), IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
+    Polyline polygon{
+        session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435), session_cpp::Point(-5.73799008527948, 27.7396887390699, 38.9994193935361), session_cpp::Point(-7.18751465466158, 52.2109764075134, 74.5663582911656),
+        session_cpp::Point(1.68332949862521, 18.8956298287167, 52.2485552589767),  session_cpp::Point(14.0704361211272, 1.10346344393741, 69.2793807577245),  session_cpp::Point(18.9418950031543, 14.2294672539151, 109.735250000281),
+        session_cpp::Point(33.4352381327694, -30.7000564810127, 89.2118909021016), session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
     };
 
     // main method
-    std::vector<IK::Point_3> points;
+    std::vector<session_cpp::Point> points;
 
-    cgal::inscribe_util::get_polylabel_circle_division_points (IK::Vector_3 (0, 0, 0), { polygon }, points, 4, 0.75, 1.0, true);
+    cgal::inscribe_util::get_polylabel_circle_division_points (session_cpp::Vector{0, 0, 0}, { polygon }, points, 4, 0.75, 1.0, true);
 
     // display
     database_writer::SCALE = 10;
-    std::vector<CGAL_Polyline> polylines = { polygon };
+    std::vector<Polyline> polylines = { polygon };
     database_writer::add_polylines (polylines.begin (), polylines.end ());
     database_writer::LINE_THICKNESS = 10;
     database_writer::add_points (points);
@@ -4562,33 +4584,33 @@ type_geometry_name_grid_of_points_in_a_polygon ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_grid_of_points_in_a_polygon");
 
     // data-set
-    CGAL_Polylines polygons{ {
-                                 IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
-                                 IK::Point_3 (-5.73799008527948, 27.7396887390699, 38.9994193935361),
-                                 IK::Point_3 (-7.18751465466158, 52.2109764075134, 74.5663582911656),
-                                 IK::Point_3 (1.68332949862521, 18.8956298287167, 52.2485552589767),
-                                 IK::Point_3 (14.0704361211272, 1.10346344393741, 69.2793807577245),
-                                 IK::Point_3 (18.9418950031543, 14.2294672539151, 109.735250000281),
-                                 IK::Point_3 (33.4352381327694, -30.7000564810127, 89.2118909021016),
-                                 IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
+    Polylines polygons{ {
+                                 session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
+                                 session_cpp::Point(-5.73799008527948, 27.7396887390699, 38.9994193935361),
+                                 session_cpp::Point(-7.18751465466158, 52.2109764075134, 74.5663582911656),
+                                 session_cpp::Point(1.68332949862521, 18.8956298287167, 52.2485552589767),
+                                 session_cpp::Point(14.0704361211272, 1.10346344393741, 69.2793807577245),
+                                 session_cpp::Point(18.9418950031543, 14.2294672539151, 109.735250000281),
+                                 session_cpp::Point(33.4352381327694, -30.7000564810127, 89.2118909021016),
+                                 session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
                              },
                              {
-                                 IK::Point_3 (0, 0, 0),
-                                 IK::Point_3 (20, 0 + 10, 0),
-                                 IK::Point_3 (20, 20 + 20, 0),
-                                 IK::Point_3 (0, 20, 0),
-                                 IK::Point_3 (0, 0, 0),
+                                 session_cpp::Point(0, 0, 0),
+                                 session_cpp::Point(20, 0 + 10, 0),
+                                 session_cpp::Point(20, 20 + 20, 0),
+                                 session_cpp::Point(0, 20, 0),
+                                 session_cpp::Point(0, 0, 0),
                              } };
 
     for (auto &polygon : polygons)
         {
             // main method
-            std::vector<IK::Point_3> points;
-            cgal::rectangle_util::grid_of_points_in_a_polygon (polygon, -2.5, 2.5, 100, points);
+            std::vector<session_cpp::Point> points;
+            session_cpp::grid_of_points_in_a_polygon (polygon, -2.5, 2.5, 100, points);
 
             // display
             database_writer::SCALE = 10;
-            std::vector<CGAL_Polyline> polylines = { polygon };
+            std::vector<Polyline> polylines = { polygon };
             database_writer::add_polylines (polylines.begin (), polylines.end ());
             database_writer::LINE_THICKNESS = 10;
             database_writer::add_points (points); // Error when running twice
@@ -4606,19 +4628,23 @@ type_geometry_name_offset_polygon_inside_and_divide_into_points ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_offset_polygon_inside_and_divide_into_points");
 
     // data-set
-    CGAL_Polyline polygon{
-        IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435), IK::Point_3 (-5.73799008527948, 27.7396887390699, 38.9994193935361), IK::Point_3 (-7.18751465466158, 52.2109764075134, 74.5663582911656),
-        IK::Point_3 (1.68332949862521, 18.8956298287167, 52.2485552589767),  IK::Point_3 (14.0704361211272, 1.10346344393741, 69.2793807577245),  IK::Point_3 (18.9418950031543, 14.2294672539151, 109.735250000281),
-        IK::Point_3 (33.4352381327694, -30.7000564810127, 89.2118909021016), IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
+    Polyline polygon{
+        session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435), session_cpp::Point(-5.73799008527948, 27.7396887390699, 38.9994193935361), session_cpp::Point(-7.18751465466158, 52.2109764075134, 74.5663582911656),
+        session_cpp::Point(1.68332949862521, 18.8956298287167, 52.2485552589767),  session_cpp::Point(14.0704361211272, 1.10346344393741, 69.2793807577245),  session_cpp::Point(18.9418950031543, 14.2294672539151, 109.735250000281),
+        session_cpp::Point(33.4352381327694, -30.7000564810127, 89.2118909021016), session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
     };
 
     // main method
-    std::vector<IK::Point_3> points;
-    collider::clipper_util::offset_and_divide_to_points (points, polygon, -2.5, 4);
+    std::vector<session_cpp::Point> points;
+    std::vector<session_cpp::Point> polygon_ik;
+    polygon_ik.reserve (polygon.size ());
+    for (auto &p : polygon)
+        polygon_ik.push_back (p);
+    collider::clipper_util::offset_and_divide_to_points (points, polygon_ik, -2.5, 4);
 
     // display
     database_writer::SCALE = 10;
-    std::vector<CGAL_Polyline> polylines = { polygon }; //, polygon_copy
+    std::vector<Polyline> polylines = { polygon }; //, polygon_copy
     database_writer::add_polylines (polylines.begin (), polylines.end ());
     database_writer::LINE_THICKNESS = 10;
     database_writer::add_points (points); // Error when running twice
@@ -4636,21 +4662,21 @@ type_geometry_name_rectangle_points_inscribed_in_polygon ()
     internal::set_file_path_for_input_xml_and_screenshot ("type_geometry_name_rectangle_ponts_inscribed_in_a_polygon");
 
     // data-set
-    CGAL_Polyline polygon{
-        IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
-        IK::Point_3 (-5.73799008527948, 27.7396887390699, 38.9994193935361),
-        IK::Point_3 (-7.18751465466158, 52.2109764075134, 74.5663582911656),
-        // IK::Point_3(1.68332949862521, 18.8956298287167, 52.2485552589767),
-        // IK::Point_3(14.0704361211272, 1.10346344393741, 69.2793807577245),
-        IK::Point_3 (18.9418950031543, 14.2294672539151, 109.735250000281),
-        IK::Point_3 (33.4352381327694, -30.7000564810127, 89.2118909021016),
-        IK::Point_3 (11.2247596176396, -4.60190643733344, 48.9387618537435),
+    Polyline polygon{
+        session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
+        session_cpp::Point(-5.73799008527948, 27.7396887390699, 38.9994193935361),
+        session_cpp::Point(-7.18751465466158, 52.2109764075134, 74.5663582911656),
+        // session_cpp::Point(1.68332949862521, 18.8956298287167, 52.2485552589767),
+        // session_cpp::Point(14.0704361211272, 1.10346344393741, 69.2793807577245),
+        session_cpp::Point(18.9418950031543, 14.2294672539151, 109.735250000281),
+        session_cpp::Point(33.4352381327694, -30.7000564810127, 89.2118909021016),
+        session_cpp::Point(11.2247596176396, -4.60190643733344, 48.9387618537435),
     };
 
     // main method
-    std::vector<IK::Point_3> points;
-    CGAL_Polyline polygon_inscribed_rectangle;
-    IK::Segment_3 segment;
+    std::vector<session_cpp::Point> points;
+    Polyline polygon_inscribed_rectangle;
+    session_cpp::Line segment;
     double division_distance = -10; // negative value = grid, positive = edge division
     double scale = 0.95;
     double precision = 1;
@@ -4658,7 +4684,7 @@ type_geometry_name_rectangle_points_inscribed_in_polygon ()
 
     // display
     database_writer::SCALE = 10;
-    std::vector<CGAL_Polyline> polylines = { polygon_inscribed_rectangle, polygon }; //, polygon_copy
+    std::vector<Polyline> polylines = { polygon_inscribed_rectangle, polygon }; //, polygon_copy
     database_writer::add_polylines (polylines.begin (), polylines.end ());
     database_writer::LINE_THICKNESS = 10;
     database_writer::add_points (points); // Error when running twice

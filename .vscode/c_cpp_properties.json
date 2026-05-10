@@ -3,21 +3,34 @@
       {
         "name": "Win32",
         "includePath": [
-          "${workspaceFolder}/**",
-          "C:/brg/2_code/wood/cmake/build/install/boost/**",
-          "C:/brg/2_code/wood/cmake/build/install/cgal/**",
-          "C:/brg/2_code/wood/cmake/build/install/eigen/**",
-          "C:/brg/2_code/wood/cmake/build/install/clipper_2/**"
+          "${workspaceFolder}/cmake",
+          "${workspaceFolder}/cmake/src/wood/include",
+          "${workspaceFolder}/cmake/src/shapes",
+          "${workspaceFolder}/cmake/src/step",
+          "${workspaceFolder}/cmake/src/sqlite",
+          "${workspaceFolder}/cmake/src/wood_test",
+          "${workspaceFolder}/cmake/ext/pugixml",
+          "${workspaceFolder}/cmake/ext/session_cpp/src",
+          "${workspaceFolder}/cmake/ext/session_cpp/src/fmt/include",
+          "${workspaceFolder}/cmake/ext/session_cpp/src/json/include",
+          "${workspaceFolder}/cmake/ext/session_cpp/src/guid/include",
+          "${workspaceFolder}/cmake/build/install/boost/include",
+          "${workspaceFolder}/cmake/build/install/cgal/include",
+          "${workspaceFolder}/cmake/build/install/eigen",
+          "${workspaceFolder}/cmake/build/install/clipper_2/CPP/Clipper2Lib/include",
+          "${workspaceFolder}/cmake/build/install/cdt/CDT/include",
+          "${workspaceFolder}/cmake/build/install/googletest/include"
         ],
         "defines": [
-          "_DEBUG",
+          "CGAL_HEADER_ONLY",
+          "BOOST_ALL_NO_LIB",
           "UNICODE",
           "_UNICODE"
         ],
         "windowsSdkVersion": "10.0.19041.0",
         "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.29.30133/bin/HostX64/x64/cl.exe",
         "cStandard": "c11",
-        "cppStandard": "c++17",
+        "cppStandard": "c++20",
         "intelliSenseMode": "windows-msvc-x64"
       }
     ],

@@ -62,20 +62,20 @@ class element
     /////////////////////////////////////////////////////////////////////////////////////////
     // Basic Geometry Parameters
     /////////////////////////////////////////////////////////////////////////////////////////
-    CGAL::Bbox_3 aabb;
-    IK::Vector_3 oob[5];
-    std::vector<CGAL_Polyline> polylines; // pairs of polylines + each side face
-    std::vector<IK::Plane_3> planes;      // top and bottom planes + each side face
+    session_cpp::BoundingBox aabb;
+    session_cpp::Vector oob[5];
+    std::vector<Polyline> polylines; // pairs of polylines + each side face
+    std::vector<session_cpp::Plane> planes;      // top and bottom planes + each side face
 
-    std::vector<IK::Vector_3> edge_vectors; // if set
+    std::vector<session_cpp::Vector> edge_vectors; // if set
 
     std::vector<int> JOINTS_TYPES; // if set - used in joint_library | method
                                    // construct_joint_by_index | if set negative is female
 
-    IK::Segment_3 axis;
+    session_cpp::Line axis;
 
     // For beams only
-    CGAL_Polyline central_polyline;
+    Polyline central_polyline;
 
     /////////////////////////////////////////////////////////////////////////////////////////
     // Joinery Geometry Parameters
@@ -85,21 +85,21 @@ class element
     // std::map<int, std::pair<bool, int>>edgeID_mf_jointID; //e0,true,jointID
     std::vector<std::vector<std::tuple<int, bool, double> > > j_mf; //(wood::joint id, male/female, parameter on edge) elements[result[i +
                                                                     // 0]].j_mf[e0].push_back(std::tuple<int, bool, double>(jointID, true,0));
-    // std::vector<CGAL_Polyline> modified_polylines;
+    // std::vector<Polyline> modified_polylines;
     // public Mesh mesh;
 
     /////////////////////////////////////////////////////////////////////////////////////////
     // Component parameters
     /////////////////////////////////////////////////////////////////////////////////////////
     std::string key;
-    IK::Plane_3 component_plane;
+    session_cpp::Plane component_plane;
 
-    void get_joints_geometry (std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline> > &output, int what_to_expose, std::vector<std::vector<wood::cut::cut_type> > &output_cut_types);
+    void get_joints_geometry (std::vector<wood::joint> &joints, std::vector<std::vector<Polyline> > &output, int what_to_expose, std::vector<std::vector<wood::cut::cut_type> > &output_cut_types);
 
     // bool sort_by_third(const std::tuple<int, bool, double> &a, const std::tuple<int, bool,
     // double> &b);
 
-    void get_joints_geometry_as_closed_polylines_replacing_edges (std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline> > &output);
+    void get_joints_geometry_as_closed_polylines_replacing_edges (std::vector<wood::joint> &joints, std::vector<std::vector<Polyline> > &output);
 
     /**
      * ATTENTION THIS IS A SPECIFIC CLIPPER FUNCTION TO CLIP USING OPEN PATHS TO OBTAIN CLEAN END
@@ -117,9 +117,9 @@ class element
      * @return true if intersection is found
      */
 
-    bool intersection_closed_and_open_paths_2D (CGAL_Polyline &closed_pline_cutter, CGAL_Polyline &pline_to_cut, IK::Plane_3 &plane, CGAL_Polyline &c, int (&edge_pair)[2], std::pair<double, double> &cp_pair);
+    bool intersection_closed_and_open_paths_2D (Polyline &closed_pline_cutter, Polyline &pline_to_cut, session_cpp::Plane &plane, Polyline &c, int (&edge_pair)[2], std::pair<double, double> &cp_pair);
 
-    void merge_joints (std::vector<wood::joint> &joints, std::vector<std::vector<CGAL_Polyline> > &output);
+    void merge_joints (std::vector<wood::joint> &joints, std::vector<std::vector<Polyline> > &output);
 
     /**
      * Intersect line segments with the neighbors of elements

@@ -105,7 +105,7 @@ double length (double x, double y, double z);
  * @param [in, out] vector 3D vector
  * @return true if the vector length is not equal to zero
  */
-bool unitize (IK::Vector_3 &vector);
+bool unitize (session_cpp::Vector &vector);
 
 /**
  * Remap number from one range to another, the numbers of the intervals must be lower to higher
@@ -138,7 +138,7 @@ double lerp (const double &value0, const double &value1, const double &t);
  * @param [in] include_ends end points
  * @param [out] interpolated_points divided points
  */
-void interpolate_points (const IK::Point_3 &from, const IK::Point_3 &to, const int &steps, const bool &include_ends, std::vector<IK::Point_3> &interpolated_points);
+void interpolate_points (const session_cpp::Point &from, const session_cpp::Point &to, const int &steps, const bool &include_ends, std::vector<session_cpp::Point> &interpolated_points);
 
 /**
  * Get the transformation matrix for the rotation in 3 axis
@@ -150,7 +150,7 @@ void interpolate_points (const IK::Point_3 &from, const IK::Point_3 &to, const i
  * @return CGAL 4x4 transformation matrix
  * https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__3.html
  */
-CGAL::Aff_transformation_3<IK> rotation_in_xy_plane (const IK::Vector_3 &x_axis, const IK::Vector_3 &y_axis, const IK::Vector_3 &z_axis);
+session_cpp::Xform rotation_in_xy_plane (const session_cpp::Vector &x_axis, const session_cpp::Vector &y_axis, const session_cpp::Vector &z_axis);
 } // namespace internal
 //! \endcond
 

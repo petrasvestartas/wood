@@ -69,9 +69,11 @@ static std::map<std::string, cut_type> string_to_cut_type{
     { "conic_reverse", conic_reverse },
 
     { "drill", drill },
+    { "drill_50", drill_50 },
+    { "drill_10", drill_10 },
 };
 
-static std::array<std::string, 16> cut_type_to_string{
+static std::array<std::string, 18> cut_type_to_string{
 
     "nothing",
 
@@ -86,7 +88,7 @@ static std::array<std::string, 16> cut_type_to_string{
 
     "conic",       "conic_reverse",
 
-    "drill",
+    "drill",       "drill_50",           "drill_10",
 
 };
 } // namespace cut

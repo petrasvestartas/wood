@@ -31,19 +31,19 @@ using JointTypes = std::vector<std::vector<int>>;
 // ---------------------------------------------------------------------------
 
 static void
-build_segments (const std::vector<CGAL_Polyline> &flat, double dist, std::vector<SegmentRecord> &segs, std::vector<session_cpp::BvhAABB> &aabbs)
+build_segments (const std::vector<Polyline> &flat, double dist, std::vector<SegmentRecord> &segs, std::vector<session_cpp::BvhAABB> &aabbs)
 {
     const int n = static_cast<int> (flat.size () / 2);
     for (int i = 0; i < n; i++)
         {
             for (int j = 0; j < 2; j++)
                 {
-                    const CGAL_Polyline &poly = flat[static_cast<size_t> (i * 2 + j)];
+                    const Polyline &poly = flat[static_cast<size_t> (i * 2 + j)];
                     const int np = static_cast<int> (poly.size ());
                     for (int k = 0; k < np - 1; k++)
                         {
-                            const IK::Point_3 &p0 = poly[k];
-                            const IK::Point_3 &p1 = poly[k + 1];
+                            IK::Point_3 p0 = to_cgal_pt (poly[k]);
+                            IK::Point_3 p1 = to_cgal_pt (poly[k + 1]);
 
                             double xmin = std::min (p0.x (), p1.x ()) - dist;
                             double xmax = std::max (p0.x (), p1.x ()) + dist;
@@ -82,7 +82,7 @@ sq_dist_point_seg (const IK::Point_3 &p, const IK::Segment_3 &seg)
 // ---------------------------------------------------------------------------
 
 static JointTypes
-make_joint_types (const std::vector<CGAL_Polyline> &flat)
+make_joint_types (const std::vector<Polyline> &flat)
 {
     const int n = static_cast<int> (flat.size () / 2);
     JointTypes jt (static_cast<size_t> (n));
@@ -101,7 +101,7 @@ make_joint_types (const std::vector<CGAL_Polyline> &flat)
 // ---------------------------------------------------------------------------
 
 static JointTypes
-search_rtree (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<CGAL_Polyline> &flat)
+search_rtree (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<Polyline> &flat)
 {
     JointTypes jt = make_joint_types (flat);
     const double dist = wood::GLOBALS::DISTANCE;
@@ -147,7 +147,7 @@ search_rtree (const std::vector<SegmentRecord> &segs, const std::vector<session_
 // ---------------------------------------------------------------------------
 
 static JointTypes
-search_aabb (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<CGAL_Polyline> &flat)
+search_aabb (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<Polyline> &flat)
 {
     JointTypes jt = make_joint_types (flat);
     const double dist = wood::GLOBALS::DISTANCE;
@@ -187,7 +187,7 @@ search_aabb (const std::vector<SegmentRecord> &segs, const std::vector<session_c
 // ---------------------------------------------------------------------------
 
 static JointTypes
-search_bvh (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<CGAL_Polyline> &flat)
+search_bvh (const std::vector<SegmentRecord> &segs, const std::vector<session_cpp::BvhAABB> &aabbs, const std::vector<IK::Point_3> &pts, const std::vector<int> &types, const std::vector<Polyline> &flat)
 {
     JointTypes jt = make_joint_types (flat);
     const double dist = wood::GLOBALS::DISTANCE;
@@ -265,7 +265,7 @@ run_benchmark (session_cpp::Session &session)
 
     // 1. Load hilti XML dataset
     wood::xml::path_and_file_for_input_polylines = wood::GLOBALS::DATA_SET_INPUT_FOLDER + "type_plates_name_side_to_side_edge_inplane_hilti.xml";
-    std::vector<CGAL_Polyline> flat;
+    std::vector<Polyline> flat;
     if (!wood::xml::read_xml_polylines (flat) || flat.empty ())
         {
             std::cerr << "closest_points_joints: failed to load hilti XML — skipping benchmark\n";
@@ -284,10 +284,10 @@ run_benchmark (session_cpp::Session &session)
         {
             for (int j = 0; j < 2; j++)
                 {
-                    const CGAL_Polyline &poly = flat[static_cast<size_t> (i * 2 + j)];
+                    const Polyline &poly = flat[static_cast<size_t> (i * 2 + j)];
                     for (size_t k = 0; k + 1 < poly.size (); k++)
                         {
-                            pts.push_back (IK::Point_3 ((poly[k].x () + poly[k + 1].x ()) * 0.5, (poly[k].y () + poly[k + 1].y ()) * 0.5, (poly[k].z () + poly[k + 1].z ()) * 0.5));
+                            pts.push_back (IK::Point_3 ((poly[k][0] + poly[k + 1][0]) * 0.5, (poly[k][1] + poly[k + 1][1]) * 0.5, (poly[k][2] + poly[k + 1][2]) * 0.5));
                             types.push_back (1); // positive → edge assignment
                         }
                 }
@@ -297,9 +297,9 @@ run_benchmark (session_cpp::Session &session)
                     double sx = 0, sy = 0, sz = 0;
                     for (const auto &p : flat[static_cast<size_t> (i * 2)])
                         {
-                            sx += p.x ();
-                            sy += p.y ();
-                            sz += p.z ();
+                            sx += p[0];
+                            sy += p[1];
+                            sz += p[2];
                         }
                     double np = static_cast<double> (flat[static_cast<size_t> (i * 2)].size ());
                     pts.push_back (IK::Point_3 (sx / np, sy / np, sz / np));

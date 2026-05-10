@@ -2,6 +2,7 @@
 #include "wood_joint_lib.h"
 
 #include "../../../stdafx.h" //go up to the folder where the CMakeLists.txt is
+#include <pugixml.hpp>
 
 namespace wood
 {
@@ -107,11 +108,11 @@ read_xml (wood::joint &joint, int type)
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Read XML
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            boost::property_tree::ptree tree;
-            boost::property_tree::xml_parser::read_xml (wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS, tree);
+            pugi::xml_document doc;
+            pugi::xml_parse_result parse_result = doc.load_file (wood::GLOBALS::PATH_AND_FILE_FOR_JOINTS.c_str ());
 
 #ifdef DEBUG_JOINERY_LIBRARY
-            printf ("\nCPP tree size %zi ", tree.size ());
+            printf ("\nCPP parse result: %s", parse_result.description ());
 #endif
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,8 +120,6 @@ read_xml (wood::joint &joint, int type)
             // wood::joint parameters and keys of
             // XML file properties
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Traverse property tree example
-            std::string xml_joint_name = "custom_joints." + name;
             std::array<std::string, 7> keys = { "f0", "f1", "m0", "m1", "f_boolean_type", "m_boolean_type", "properties" };
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,29 +128,27 @@ read_xml (wood::joint &joint, int type)
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             try
                 {
-                    for (boost::property_tree::ptree::value_type &v : tree.get_child (xml_joint_name))
+                    pugi::xml_node joint_node = doc.child ("custom_joints").child (name.c_str ());
+                    if (!joint_node)
+                        throw std::runtime_error ("Joint node not found");
+
+                    for (auto &v : joint_node.children ())
                         {
-                            // printf("\nCPP %s",
-                            // v.first.c_str());
+                            std::string tag = v.name ();
+
 #ifdef DEBUG_JOINERY_LIBRARY
-                            printf ("\nCPP %s", v.first.c_str ());
+                            printf ("\nCPP %s", tag.c_str ());
 #endif
                             for (int i = 0; i < 4; i++)
                                 {
-                                    if (v.first == keys[i])
+                                    if (tag == keys[i])
                                         {
-                                            // std::cout
-                                            // <<
-                                            // v.first
-                                            // <<
-                                            // "\n";
-
-                                            CGAL_Polyline polyline;
-                                            for (boost::property_tree::ptree::value_type &point : v.second)
+                                            Polyline polyline;
+                                            for (auto &pt : v.children ())
                                                 {
-                                                    double x = point.second.get<double> ("x");
-                                                    double y = point.second.get<double> ("y");
-                                                    double z = point.second.get<double> ("z");
+                                                    double x = pt.child ("x").text ().as_double ();
+                                                    double y = pt.child ("y").text ().as_double ();
+                                                    double z = pt.child ("z").text ().as_double ();
                                                     polyline.emplace_back (x, y, z);
 
 #ifdef DEBUG_JOINERY_LIBRARY
@@ -162,36 +159,22 @@ read_xml (wood::joint &joint, int type)
 #endif
                                                 }
 
-                                            // printf("\n");
-                                            // CGAL_Debug(polyline.size());
-
-                                            // Assign
-                                            // to
-                                            // array
                                             switch (i)
                                                 {
                                                 case (0):
                                                     joint.m[0].emplace_back (polyline);
-                                                    // printf("\nCPP
-                                                    // joint.m[0].emplace_back(polyline)");
                                                     break;
 
                                                 case (1):
                                                     joint.m[1].emplace_back (polyline);
-                                                    // printf("\nCPP
-                                                    // joint.m[1].emplace_back(polyline)");
                                                     break;
 
                                                 case (2):
                                                     joint.f[0].emplace_back (polyline);
-                                                    // printf("\nCPP
-                                                    // joint.f[0].emplace_back(polyline)");
                                                     break;
 
                                                 case (3):
                                                     joint.f[1].emplace_back (polyline);
-                                                    // printf("\nCPP
-                                                    // joint.f[1].emplace_back(polyline)");
                                                     break;
                                                 }
                                         }
@@ -199,51 +182,30 @@ read_xml (wood::joint &joint, int type)
 
                             for (int i = 4; i < 6; i++)
                                 {
-                                    std::vector<wood::cut::cut_type> boolean_type;
-                                    if (v.first == keys[i])
+                                    if (tag == keys[i])
                                         {
-                                            // std::cout
-                                            // <<
-                                            // v.first
-                                            // <<
-                                            // "\n";
-
-                                            for (boost::property_tree::ptree::value_type &index : v.second)
+                                            for (auto &item : v.children ())
                                                 {
-                                                    auto txt = index.second.get_value<std::string> ();
-                                                    wood::cut::cut_type type = wood::cut::string_to_cut_type[txt];
+                                                    std::string txt = item.text ().as_string ();
+                                                    wood::cut::cut_type ct = wood::cut::string_to_cut_type[txt];
 
 #ifdef DEBUG_JOINERY_LIBRARY
-                                                    printf ("\nCPP id %c ", id);
+                                                    printf ("\nCPP id %s ", txt.c_str ());
 #endif
                                                     if (i == 4)
-                                                        {
-                                                            joint.m_boolean_type.emplace_back (type);
-                                                            // emplace to
-                                                            // female
-                                                            // joint.m_boolean_type
-                                                        }
+                                                        joint.m_boolean_type.emplace_back (ct);
                                                     else
-                                                        {
-                                                            joint.f_boolean_type.emplace_back (type);
-                                                            // emplace to
-                                                            // female
-                                                            // joint.f_boolean_type
-                                                        }
+                                                        joint.f_boolean_type.emplace_back (ct);
                                                 }
-
-                                            // Assign
-                                            // to
-                                            // array
                                         }
                                 }
 
-                            if (v.first == keys[6])
+                            if (tag == keys[6])
                                 {
                                     std::vector<double> properties;
-                                    for (boost::property_tree::ptree::value_type &index : v.second)
+                                    for (auto &item : v.children ())
                                         {
-                                            double parameter = index.second.get_value<double> ();
+                                            double parameter = item.text ().as_double ();
 
 #ifdef DEBUG_JOINERY_LIBRARY
                                             printf ("\nCPP id %f ", parameter);
@@ -252,12 +214,7 @@ read_xml (wood::joint &joint, int type)
                                         }
 
                                     if (properties.size () > 0)
-                                        {
-                                            joint.unit_scale = properties[0] > 0;
-                                        }
-
-                                    // Assign to
-                                    // array
+                                        joint.unit_scale = properties[0] > 0;
                                 }
                         }
                 }
@@ -357,23 +314,15 @@ length (double x, double y, double z)
 }
 
 bool
-unitize (IK::Vector_3 &vector)
+unitize (session_cpp::Vector &vector)
 {
-    bool rc = false;
-    // Since x,y,z are floats, d will not be
-    // denormalized and the ON_DBL_MIN tests in
-    // ON_2dVector::Unitize() are not needed.
-
-    double d = length (vector.hx (), vector.hy (), vector.hz ());
-    if (d > 0.0)
+    double sq = vector.magnitude_squared ();
+    if (sq > 1e-20)
         {
-            double dx = vector.x ();
-            double dy = vector.y ();
-            double dz = vector.z ();
-            vector = IK::Vector_3 ((dx / d), (dy / d), (dz / d));
-            rc = true;
+            vector.normalize_self ();
+            return true;
         }
-    return rc;
+    return false;
 }
 
 double
@@ -389,7 +338,7 @@ lerp (const double &value0, const double &value1, const double &t)
 }
 
 void
-interpolate_points (const IK::Point_3 &from, const IK::Point_3 &to, const int &steps, const bool &include_ends, std::vector<IK::Point_3> &interpolated_points)
+interpolate_points (const session_cpp::Point &from, const session_cpp::Point &to, const int &steps, const bool &include_ends, Polyline &interpolated_points)
 {
     if (include_ends)
         {
@@ -399,7 +348,7 @@ interpolate_points (const IK::Point_3 &from, const IK::Point_3 &to, const int &s
             for (int i = 1; i < steps + 1; i++)
                 {
                     double num = i / (double)(1 + steps);
-                    interpolated_points.emplace_back (lerp (from.hx (), to.hx (), num), lerp (from.hy (), to.hy (), num), lerp (from.hz (), to.hz (), num));
+                    interpolated_points.emplace_back (lerp (from[0], to[0], num), lerp (from[1], to[1], num), lerp (from[2], to[2], num));
                 }
 
             interpolated_points.emplace_back (to);
@@ -411,15 +360,15 @@ interpolate_points (const IK::Point_3 &from, const IK::Point_3 &to, const int &s
             for (int i = 1; i < steps + 1; i++)
                 {
                     double num = i / (double)(1 + steps);
-                    interpolated_points.emplace_back (lerp (from.hx (), to.hx (), num), lerp (from.hy (), to.hy (), num), lerp (from.hz (), to.hz (), num));
+                    interpolated_points.emplace_back (lerp (from[0], to[0], num), lerp (from[1], to[1], num), lerp (from[2], to[2], num));
                 }
         }
 }
 
-CGAL::Aff_transformation_3<IK>
-rotation_in_xy_plane (const IK::Vector_3 &x_axis, const IK::Vector_3 &y_axis, const IK::Vector_3 &z_axis)
+session_cpp::Xform
+rotation_in_xy_plane (const session_cpp::Vector &x_axis, const session_cpp::Vector &y_axis, const session_cpp::Vector &z_axis)
 {
-    return CGAL::Aff_transformation_3<IK> (x_axis.x (), y_axis.x (), z_axis.x (), x_axis.y (), y_axis.y (), z_axis.y (), x_axis.z (), y_axis.z (), z_axis.z ());
+    return session_cpp::Xform ({x_axis[0], x_axis[1], x_axis[2], 0, y_axis[0], y_axis[1], y_axis[2], 0, z_axis[0], z_axis[1], z_axis[2], 0, 0, 0, 0, 1});
 }
 } // namespace internal
 //! \endcond
@@ -445,19 +394,19 @@ side_removal (wood::joint &jo, std::vector<wood::element> &elements, bool merge_
             /////////////////////////////////////////////////////////////////////////////////
             // offset vector
             /////////////////////////////////////////////////////////////////////////////////
-            IK::Vector_3 f0_0_normal = elements[jo.v0].planes[jo.f0_0].orthogonal_vector ();
-            cgal::vector_util::unitize (f0_0_normal);
+            session_cpp::Vector f0_0_normal = elements[jo.v0].planes[jo.f0_0].z_axis ();
+            session_cpp::unitize (f0_0_normal);
             f0_0_normal *= (jo.scale[2]);
 
-            IK::Vector_3 f1_0_normal = elements[jo.v1].planes[jo.f1_0].orthogonal_vector ();
-            cgal::vector_util::unitize (f1_0_normal);
+            session_cpp::Vector f1_0_normal = elements[jo.v1].planes[jo.f1_0].z_axis ();
+            session_cpp::unitize (f1_0_normal);
             f1_0_normal *= (jo.scale[2] + 2); // Forced for safety
 
             /////////////////////////////////////////////////////////////////////////////////
             // copy side rectangles
             /////////////////////////////////////////////////////////////////////////////////
-            CGAL_Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
-            CGAL_Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
+            Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
+            Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
 
             /////////////////////////////////////////////////////////////////////////////////
             // extend only convex angles and side
@@ -468,7 +417,7 @@ side_removal (wood::joint &jo, std::vector<wood::element> &elements, bool merge_
                     // get convex_concave corners
                     std::vector<bool> convex_corner0;
 
-                    cgal::polyline_util::get_convex_corners (elements[jo.v0].polylines[0], convex_corner0);
+                    session_cpp::get_convex_corners (elements[jo.v0].polylines[0], convex_corner0);
 
                     int id = 15;
 
@@ -476,45 +425,45 @@ side_removal (wood::joint &jo, std::vector<wood::element> &elements, bool merge_
                     double scale0_1 = convex_corner0[(jo.f0_0 - 2 + 1) % convex_corner0.size ()] ? jo.scale[0] : 0;
 
                     std::vector<bool> convex_corner1;
-                    cgal::polyline_util::get_convex_corners (elements[jo.v1].polylines[0], convex_corner1);
+                    session_cpp::get_convex_corners (elements[jo.v1].polylines[0], convex_corner1);
                     double scale1_0 = convex_corner1[jo.f1_0 - 2] ? jo.scale[0] : 0;
                     double scale1_1 = convex_corner1[(jo.f1_0 - 2 + 1) % convex_corner1.size ()] ? jo.scale[0] : 0;
 
                     // currrent
-                    cgal::polyline_util::extend (pline0, 0, scale0_0, scale0_1);
-                    cgal::polyline_util::extend (pline0, 2, scale0_1, scale0_0);
+                    session_cpp::extend (pline0, 0, scale0_0, scale0_1);
+                    session_cpp::extend (pline0, 2, scale0_1, scale0_0);
 
                     // neighbor
-                    cgal::polyline_util::extend (pline1, 0, scale1_0, scale1_1);
-                    cgal::polyline_util::extend (pline1, 2, scale1_1, scale1_0);
+                    session_cpp::extend (pline1, 0, scale1_0, scale1_1);
+                    session_cpp::extend (pline1, 2, scale1_1, scale1_0);
 
                     // extend vertical
-                    cgal::polyline_util::extend (pline0, 1, jo.scale[1], jo.scale[1]);
-                    cgal::polyline_util::extend (pline0, 3, jo.scale[1], jo.scale[1]);
-                    cgal::polyline_util::extend (pline1, 1, jo.scale[1], jo.scale[1]);
-                    cgal::polyline_util::extend (pline1, 3, jo.scale[1], jo.scale[1]);
+                    session_cpp::extend (pline0, 1, jo.scale[1], jo.scale[1]);
+                    session_cpp::extend (pline0, 3, jo.scale[1], jo.scale[1]);
+                    session_cpp::extend (pline1, 1, jo.scale[1], jo.scale[1]);
+                    session_cpp::extend (pline1, 3, jo.scale[1], jo.scale[1]);
                 }
 
             /////////////////////////////////////////////////////////////////////////////////
             // move outlines by vector
             /////////////////////////////////////////////////////////////////////////////////
-            CGAL_Polyline pline0_moved0 = pline0; // side 0
-            CGAL_Polyline pline0_moved1 = pline0; // side 0
-            CGAL_Polyline pline1_moved = pline1;  // side 1
+            Polyline pline0_moved0 = pline0; // side 0
+            Polyline pline0_moved1 = pline0; // side 0
+            Polyline pline1_moved = pline1;  // side 1
 
-            IK::Vector_3 f0_1_normal = f0_0_normal;
-            cgal::vector_util::unitize (f0_1_normal);
+            session_cpp::Vector f0_1_normal = f0_0_normal;
+            session_cpp::unitize (f0_1_normal);
             f0_1_normal *= (jo.scale[2] + 2) + jo.shift; // Forced offset
                                                          // for safety
 
             // Move twice to remove one side and
             // the cut surface around
-            cgal::polyline_util::move (pline0_moved0, f0_0_normal);
-            cgal::polyline_util::move (pline0_moved1, f0_1_normal);
+            session_cpp::move (pline0_moved0, f0_0_normal);
+            session_cpp::move (pline0_moved1, f0_1_normal);
 
             // Move once to remove the side and
             // the cut the female joint
-            cgal::polyline_util::move (pline1_moved, f1_0_normal);
+            session_cpp::move (pline1_moved, f1_0_normal);
 
             /////////////////////////////////////////////////////////////////////////////////
             // orient a tile
@@ -528,44 +477,44 @@ side_removal (wood::joint &jo, std::vector<wood::element> &elements, bool merge_
 
             // 1) Create rectangle between two
             // edge of the side
-            IK::Point_3 edge_mid_0 = CGAL::midpoint (CGAL::midpoint (pline0[0], pline1[0]), CGAL::midpoint (pline0[1], pline1[1]));
-            IK::Point_3 edge_mid_1 = CGAL::midpoint (CGAL::midpoint (pline0[3], pline1[3]), CGAL::midpoint (pline0[2], pline1[2]));
-            double half_dist = std::sqrt (CGAL::squared_distance (edge_mid_0, edge_mid_1)) * 0.5;
+            session_cpp::Point edge_mid_0 = session_cpp::Point::mid_point(session_cpp::Point::mid_point(pline0[0], pline1[0]), session_cpp::Point::mid_point(pline0[1], pline1[1]));
+            session_cpp::Point edge_mid_1 = session_cpp::Point::mid_point(session_cpp::Point::mid_point(pline0[3], pline1[3]), session_cpp::Point::mid_point(pline0[2], pline1[2]));
+            double half_dist = std::sqrt (session_cpp::Point::squared_distance(edge_mid_0, edge_mid_1)) * 0.5;
             half_dist = 10; // Change to scale
 
-            IK::Vector_3 z_axis = f0_0_normal;
-            cgal::vector_util::unitize (z_axis);
+            session_cpp::Vector z_axis = f0_0_normal;
+            session_cpp::unitize (z_axis);
 
             z_axis *= jo.scale[2] / half_dist;
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////
             // Get average line
             /////////////////////////////////////////////////////////////////////////////////////////////////////
-            IK::Segment_3 average_line;
-            cgal::polyline_util::line_line_overlap_average (jo.joint_lines[0], jo.joint_lines[1], average_line);
+            session_cpp::Line average_line;
+            session_cpp::line_line_overlap_average (jo.joint_lines[0], jo.joint_lines[1], average_line);
 
             // Get average thickness
             double half_thickness = (elements[jo.v0].thickness + elements[jo.v1].thickness) / 4.0;
 
             // Move points up and down using cross
             // product
-            auto x_axis = CGAL::cross_product (z_axis, average_line.to_vector ());
-            cgal::vector_util::unitize (x_axis);
+            auto x_axis = (z_axis).cross (average_line.to_vector ());
+            session_cpp::unitize (x_axis);
 
-            IK::Point_3 p0 = CGAL::midpoint (average_line[0], average_line[1]) + x_axis * half_thickness;
-            IK::Point_3 p1 = CGAL::midpoint (average_line[0], average_line[1]) - x_axis * half_thickness;
-            if (CGAL::has_smaller_distance_to_point (CGAL::midpoint (pline0[0], pline0[1]), p0, p1))
+            session_cpp::Point p0 = session_cpp::Point::mid_point(average_line.start(), average_line.end()) + x_axis * half_thickness;
+            session_cpp::Point p1 = session_cpp::Point::mid_point(average_line.start(), average_line.end()) - x_axis * half_thickness;
+            if (session_cpp::Point::squared_distance(session_cpp::Point::mid_point(pline0[0], pline0[1]), p0) < session_cpp::Point::squared_distance(session_cpp::Point::mid_point(pline0[0], pline0[1]), p1))
                 std::swap (p0, p1);
 
             // set y-axis
             auto y_axis = average_line.to_vector ();
-            cgal::vector_util::unitize (y_axis);
+            session_cpp::unitize (y_axis);
 
-            CGAL_Polyline rect0 = {
+            Polyline rect0 = {
                 p0 - y_axis * half_dist * 1 - z_axis * half_dist, p0 - y_axis * half_dist * 1 + z_axis * half_dist, p1 - y_axis * half_dist * 1 + z_axis * half_dist,
                 p1 - y_axis * half_dist * 1 - z_axis * half_dist, p0 - y_axis * half_dist * 1 - z_axis * half_dist,
             };
-            CGAL_Polyline rect1 = {
+            Polyline rect1 = {
                 p0 - y_axis * half_dist * -1 - z_axis * half_dist, p0 - y_axis * half_dist * -1 + z_axis * half_dist, p1 - y_axis * half_dist * -1 + z_axis * half_dist,
                 p1 - y_axis * half_dist * -1 - z_axis * half_dist, p0 - y_axis * half_dist * -1 - z_axis * half_dist,
             };
@@ -575,7 +524,7 @@ side_removal (wood::joint &jo, std::vector<wood::element> &elements, bool merge_
             // cut
             /////////////////////////////////////////////////////////////////////////////////
 
-            CGAL_Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
+            Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
 
             if (jo.shift > 0 && merge_with_joint)
                 {
@@ -642,25 +591,25 @@ ss_e_ip_0 (wood::joint &joint)
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an
     // cutting wood::element
-    joint.f[0] = { { IK::Point_3 (0, -0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.214285714285714), IK::Point_3 (0.5, -0.5, 0.214285714285714),
-                     IK::Point_3 (0.5, -0.5, 0.0714285714285714), IK::Point_3 (-0.5, -0.5, 0.0714285714285714), IK::Point_3 (-0.5, -0.5, -0.0714285714285714), IK::Point_3 (0.5, -0.5, -0.0714285714285714),
-                     IK::Point_3 (0.5, -0.5, -0.214285714285714), IK::Point_3 (-0.5, -0.5, -0.214285714285714), IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (0, -0.5, -0.357142857142857) },
-                   { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) } };
+    joint.f[0] = { { session_cpp::Point (0, -0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.214285714285714), session_cpp::Point (0.5, -0.5, 0.214285714285714),
+                     session_cpp::Point (0.5, -0.5, 0.0714285714285714), session_cpp::Point (-0.5, -0.5, 0.0714285714285714), session_cpp::Point (-0.5, -0.5, -0.0714285714285714), session_cpp::Point (0.5, -0.5, -0.0714285714285714),
+                     session_cpp::Point (0.5, -0.5, -0.214285714285714), session_cpp::Point (-0.5, -0.5, -0.214285714285714), session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (0, -0.5, -0.357142857142857) },
+                   { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) } };
 
-    joint.f[1] = { { IK::Point_3 (0, 0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, 0.214285714285714), IK::Point_3 (0.5, 0.5, 0.214285714285714),
-                     IK::Point_3 (0.5, 0.5, 0.0714285714285714), IK::Point_3 (-0.5, 0.5, 0.0714285714285714), IK::Point_3 (-0.5, 0.5, -0.0714285714285714), IK::Point_3 (0.5, 0.5, -0.0714285714285714),
-                     IK::Point_3 (0.5, 0.5, -0.214285714285714), IK::Point_3 (-0.5, 0.5, -0.214285714285714), IK::Point_3 (-0.5, 0.5, -0.357142857142857), IK::Point_3 (0, 0.5, -0.357142857142857) },
-                   { IK::Point_3 (0, 0.5, 0.5), IK::Point_3 (0, 0.5, -0.5) } };
+    joint.f[1] = { { session_cpp::Point (0, 0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, 0.214285714285714), session_cpp::Point (0.5, 0.5, 0.214285714285714),
+                     session_cpp::Point (0.5, 0.5, 0.0714285714285714), session_cpp::Point (-0.5, 0.5, 0.0714285714285714), session_cpp::Point (-0.5, 0.5, -0.0714285714285714), session_cpp::Point (0.5, 0.5, -0.0714285714285714),
+                     session_cpp::Point (0.5, 0.5, -0.214285714285714), session_cpp::Point (-0.5, 0.5, -0.214285714285714), session_cpp::Point (-0.5, 0.5, -0.357142857142857), session_cpp::Point (0, 0.5, -0.357142857142857) },
+                   { session_cpp::Point (0, 0.5, 0.5), session_cpp::Point (0, 0.5, -0.5) } };
 
-    joint.m[0] = { { IK::Point_3 (0, -0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.214285714285714), IK::Point_3 (0.5, -0.5, 0.214285714285714),
-                     IK::Point_3 (0.5, -0.5, 0.0714285714285714), IK::Point_3 (-0.5, -0.5, 0.0714285714285714), IK::Point_3 (-0.5, -0.5, -0.0714285714285714), IK::Point_3 (0.5, -0.5, -0.0714285714285714),
-                     IK::Point_3 (0.5, -0.5, -0.214285714285714), IK::Point_3 (-0.5, -0.5, -0.214285714285714), IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (0, -0.5, -0.357142857142857) },
-                   { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) } };
+    joint.m[0] = { { session_cpp::Point (0, -0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.214285714285714), session_cpp::Point (0.5, -0.5, 0.214285714285714),
+                     session_cpp::Point (0.5, -0.5, 0.0714285714285714), session_cpp::Point (-0.5, -0.5, 0.0714285714285714), session_cpp::Point (-0.5, -0.5, -0.0714285714285714), session_cpp::Point (0.5, -0.5, -0.0714285714285714),
+                     session_cpp::Point (0.5, -0.5, -0.214285714285714), session_cpp::Point (-0.5, -0.5, -0.214285714285714), session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (0, -0.5, -0.357142857142857) },
+                   { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) } };
 
-    joint.m[1] = { { IK::Point_3 (0, 0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, 0.214285714285714), IK::Point_3 (0.5, 0.5, 0.214285714285714),
-                     IK::Point_3 (0.5, 0.5, 0.0714285714285714), IK::Point_3 (-0.5, 0.5, 0.0714285714285714), IK::Point_3 (-0.5, 0.5, -0.0714285714285714), IK::Point_3 (0.5, 0.5, -0.0714285714285714),
-                     IK::Point_3 (0.5, 0.5, -0.214285714285714), IK::Point_3 (-0.5, 0.5, -0.214285714285714), IK::Point_3 (-0.5, 0.5, -0.357142857142857), IK::Point_3 (0, 0.5, -0.357142857142857) },
-                   { IK::Point_3 (0, 0.5, 0.5), IK::Point_3 (0, 0.5, -0.5) } };
+    joint.m[1] = { { session_cpp::Point (0, 0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, 0.214285714285714), session_cpp::Point (0.5, 0.5, 0.214285714285714),
+                     session_cpp::Point (0.5, 0.5, 0.0714285714285714), session_cpp::Point (-0.5, 0.5, 0.0714285714285714), session_cpp::Point (-0.5, 0.5, -0.0714285714285714), session_cpp::Point (0.5, 0.5, -0.0714285714285714),
+                     session_cpp::Point (0.5, 0.5, -0.214285714285714), session_cpp::Point (-0.5, 0.5, -0.214285714285714), session_cpp::Point (-0.5, 0.5, -0.357142857142857), session_cpp::Point (0, 0.5, -0.357142857142857) },
+                   { session_cpp::Point (0, 0.5, 0.5), session_cpp::Point (0, 0.5, -0.5) } };
 
     joint.f_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
     joint.m_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -692,19 +641,19 @@ ss_e_ip_1 (wood::joint &joint)
     // Interpolate points
     //////////////////////////////////////////////////////////////////////////////////////////
     // CGAL_Debug(2);
-    std::vector<IK::Point_3> pts0;
+    Polyline pts0;
 
-    internal::interpolate_points (IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5), divisions, false, pts0);
-    IK::Vector_3 v (0.5, 0, 0);
+    internal::interpolate_points (session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5), divisions, false, pts0);
+    session_cpp::Vector v (0.5, 0, 0);
     double shift_ = internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5);
-    IK::Vector_3 v_d (0, 0, -(1.0 / ((divisions + 1) * 2)) * shift_);
+    session_cpp::Vector v_d (0, 0, -(1.0 / ((divisions + 1) * 2)) * shift_);
 
     size_t count = pts0.size () * 2;
 
     // CGAL_Debug(count);
     // CGAL_Debug(3);
     // 1st polyline
-    std::vector<IK::Point_3> pline0;
+    Polyline pline0;
     pline0.reserve (count);
     pline0.emplace_back (pts0[0]);
     pline0.emplace_back (pts0[0] - v - v_d);
@@ -728,8 +677,8 @@ ss_e_ip_1 (wood::joint &joint)
 
     // CGAL_Debug(4);
     // 2nd polyline
-    IK::Vector_3 v_o (0, 1, 0);
-    std::vector<IK::Point_3> pline1;
+    session_cpp::Vector v_o (0, 1, 0);
+    Polyline pline1;
     pline1.reserve (pline0.size ());
 
     for (int i = 0; i < pline0.size (); i++)
@@ -766,14 +715,11 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
 
     // parameters that comes from the joint
     bool default_values = false;
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0],
-                                                                              joint.joint_lines[0][1]))
-                                         : 1000; // std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0],
-                                                 // joint.joint_lines[0][1]))
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1]))
+                                         : 1000; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_lines[0][0], // joint.joint_lines[0][1]))
                                                  // : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(CGAL::squared_distance(joint.joint_volumes[0][1],
-                                                                                        // joint.joint_volumes[0][2]))
+    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_volumes[0][1], // joint.joint_volumes[0][2]))
                                                                                         // : 40;
 
     // scale down the edge, since wood_joint ->
@@ -791,9 +737,9 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     // movement vectors to translate the unit
     // joint to the end of the edge and then to
     // its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     // std::cout << "divisions" << divisions <<
     // "\n"; std::cout << "edge_length" <<
@@ -804,31 +750,31 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> male_0 = { {
+    std::vector<Polyline> male_0 = { {
 
-                                              IK::Point_3 (0, -0.5, 0.1166666667),
-                                              IK::Point_3 (-0.5, -0.5, 0.4),
-                                              IK::Point_3 (-0.5, -0.5, -0.4),
-                                              IK::Point_3 (0, -0.5, -0.1166666667),
+                                              session_cpp::Point (0, -0.5, 0.1166666667),
+                                              session_cpp::Point (-0.5, -0.5, 0.4),
+                                              session_cpp::Point (-0.5, -0.5, -0.4),
+                                              session_cpp::Point (0, -0.5, -0.1166666667),
                                           },
                                           {
 
-                                              IK::Point_3 (0, -0.5, 0.1166666667),
-                                              IK::Point_3 (0, -0.5, -0.1166666667),
+                                              session_cpp::Point (0, -0.5, 0.1166666667),
+                                              session_cpp::Point (0, -0.5, -0.1166666667),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = { {
+    std::vector<Polyline> male_1 = { {
 
-                                              IK::Point_3 (0, 0.5, 0.1166666667),
-                                              IK::Point_3 (-0.5, 0.5, 0.4),
-                                              IK::Point_3 (-0.5, 0.5, -0.4),
-                                              IK::Point_3 (0, 0.5, -0.1166666667),
+                                              session_cpp::Point (0, 0.5, 0.1166666667),
+                                              session_cpp::Point (-0.5, 0.5, 0.4),
+                                              session_cpp::Point (-0.5, 0.5, -0.4),
+                                              session_cpp::Point (0, 0.5, -0.1166666667),
                                           },
 
                                           {
 
-                                              IK::Point_3 (0, 0.5, 0.1166666667),
-                                              IK::Point_3 (0, 0.5, -0.1166666667),
+                                              session_cpp::Point (0, 0.5, 0.1166666667),
+                                              session_cpp::Point (0, 0.5, -0.1166666667),
                                           } };
 
     std::vector<wood::cut::cut_type> male_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -837,30 +783,30 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> female_0 = { {
+    std::vector<Polyline> female_0 = { {
 
-                                                IK::Point_3 (0, -0.5, 0.1166666667),
-                                                IK::Point_3 (0.5, -0.5, 0.4),
-                                                IK::Point_3 (0.5, -0.5, -0.4),
-                                                IK::Point_3 (0, -0.5, -0.1166666667),
+                                                session_cpp::Point (0, -0.5, 0.1166666667),
+                                                session_cpp::Point (0.5, -0.5, 0.4),
+                                                session_cpp::Point (0.5, -0.5, -0.4),
+                                                session_cpp::Point (0, -0.5, -0.1166666667),
                                             },
                                             {
 
-                                                IK::Point_3 (0, -0.5, 0.1166666667),
-                                                IK::Point_3 (0, -0.5, -0.1166666667),
+                                                session_cpp::Point (0, -0.5, 0.1166666667),
+                                                session_cpp::Point (0, -0.5, -0.1166666667),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { {
+    std::vector<Polyline> female_1 = { {
 
-                                                IK::Point_3 (0, 0.5, 0.1166666667),
-                                                IK::Point_3 (0.5, 0.5, 0.4),
-                                                IK::Point_3 (0.5, 0.5, -0.4),
-                                                IK::Point_3 (0, 0.5, -0.1166666667),
+                                                session_cpp::Point (0, 0.5, 0.1166666667),
+                                                session_cpp::Point (0.5, 0.5, 0.4),
+                                                session_cpp::Point (0.5, 0.5, -0.4),
+                                                session_cpp::Point (0, 0.5, -0.1166666667),
                                             },
                                             {
 
-                                                IK::Point_3 (0, 0.5, 0.1166666667),
-                                                IK::Point_3 (0, 0.5, -0.1166666667),
+                                                session_cpp::Point (0, 0.5, 0.1166666667),
+                                                session_cpp::Point (0, 0.5, -0.1166666667),
                                             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -880,10 +826,10 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     // merging
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     auto a = joint.m[0];
-    joint.m[0].emplace_back (CGAL_Polyline ());
-    joint.m[1].emplace_back (CGAL_Polyline ());
-    joint.f[0].emplace_back (CGAL_Polyline ());
-    joint.f[1].emplace_back (CGAL_Polyline ());
+    joint.m[0].emplace_back (Polyline ());
+    joint.m[1].emplace_back (Polyline ());
+    joint.f[0].emplace_back (Polyline ());
+    joint.f[1].emplace_back (Polyline ());
 
     joint.m[0].back ().reserve (male_0[0].size () * divisions);
     joint.m[1].back ().reserve (male_1[0].size () * divisions);
@@ -896,10 +842,10 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at
             // the center to the end of the
@@ -927,10 +873,10 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add the insertion lines
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
-    joint.m[1].emplace_back (CGAL_Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
-    joint.f[0].emplace_back (CGAL_Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
-    joint.f[1].emplace_back (CGAL_Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
+    joint.m[0].emplace_back (Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
+    joint.m[1].emplace_back (Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
+    joint.f[0].emplace_back (Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
+    joint.f[1].emplace_back (Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
 
     joint.f_boolean_type = female_types;
     joint.m_boolean_type = male_types;
@@ -944,19 +890,19 @@ ss_e_ip_2 (wood::joint &joint, std::vector<wood::element> &elements)
     // joint for preview
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // viewer_wood::scale = 1.0;
-    // std::vector<std::vector<CGAL_Polyline>>
+    // std::vector<std::vector<Polyline>>
     // input_polyline_pairs0;
     // input_polyline_pairs0.emplace_back(joint.m[0]);
     // input_polyline_pairs0.emplace_back(joint.m[1]);
     // viewer_wood::add(input_polyline_pairs0, 0);
     // // grey
-    // std::vector<std::vector<CGAL_Polyline>>
+    // std::vector<std::vector<Polyline>>
     // input_polyline_pairs1;
     // input_polyline_pairs1.emplace_back(joint.f[0]);
     // input_polyline_pairs1.emplace_back(joint.f[1]);
-    // CGAL_Polyline default_segment =
-    // {IK::Point_3(0, 0, -total_length_scaled *
-    // 0.5), IK::Point_3(0, 0, total_length_scaled
+    // Polyline default_segment =
+    // {session_cpp::Point(0, 0, -total_length_scaled *
+    // 0.5), session_cpp::Point(0, 0, total_length_scaled
     // * 0.5)};
     // input_polyline_pairs1.push_back({default_segment});
     // viewer_wood::add(input_polyline_pairs1, 2);
@@ -977,100 +923,100 @@ ss_e_ip_3 (wood::joint &joint)
 
     joint.f[0] = {
         {
-            IK::Point_3 (-1.25, -0.5, -0.5),
-            IK::Point_3 (1, -0.5, -0.5),
-            IK::Point_3 (1, -0.2, -0.5),
-            IK::Point_3 (-1, 0.2, -0.5),
-            IK::Point_3 (-1, 0.5, -0.5),
-            IK::Point_3 (-1.25, 0.5, -0.5),
-            IK::Point_3 (-1.25, -0.5, -0.5),
+            session_cpp::Point (-1.25, -0.5, -0.5),
+            session_cpp::Point (1, -0.5, -0.5),
+            session_cpp::Point (1, -0.2, -0.5),
+            session_cpp::Point (-1, 0.2, -0.5),
+            session_cpp::Point (-1, 0.5, -0.5),
+            session_cpp::Point (-1.25, 0.5, -0.5),
+            session_cpp::Point (-1.25, -0.5, -0.5),
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
 
     joint.f[1] = {
         {
-            IK::Point_3 (-1.25, -0.5, 0.5),
-            IK::Point_3 (1, -0.5, 0.5),
-            IK::Point_3 (1, -0.2, 0.5),
-            IK::Point_3 (-1, 0.2, 0.5),
-            IK::Point_3 (-1, 0.5, 0.5),
-            IK::Point_3 (-1.25, 0.5, 0.5),
-            IK::Point_3 (-1.25, -0.5, 0.5),
+            session_cpp::Point (-1.25, -0.5, 0.5),
+            session_cpp::Point (1, -0.5, 0.5),
+            session_cpp::Point (1, -0.2, 0.5),
+            session_cpp::Point (-1, 0.2, 0.5),
+            session_cpp::Point (-1, 0.5, 0.5),
+            session_cpp::Point (-1.25, 0.5, 0.5),
+            session_cpp::Point (-1.25, -0.5, 0.5),
         },
-        { IK::Point_3 (0, 0.5, 0.5), IK::Point_3 (0, 0.5, -0.5) },
+        { session_cpp::Point (0, 0.5, 0.5), session_cpp::Point (0, 0.5, -0.5) },
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
 
     joint.m[0] = {
         {
-            IK::Point_3 (1.25, 0.5, -0.5),
-            IK::Point_3 (-1, 0.5, -0.5),
-            IK::Point_3 (-1, 0.2, -0.5),
-            IK::Point_3 (1, -0.2, -0.5),
-            IK::Point_3 (1, -0.5, -0.5),
-            IK::Point_3 (1.25, -0.5, -0.5),
-            IK::Point_3 (1.25, 0.5, -0.5),
+            session_cpp::Point (1.25, 0.5, -0.5),
+            session_cpp::Point (-1, 0.5, -0.5),
+            session_cpp::Point (-1, 0.2, -0.5),
+            session_cpp::Point (1, -0.2, -0.5),
+            session_cpp::Point (1, -0.5, -0.5),
+            session_cpp::Point (1.25, -0.5, -0.5),
+            session_cpp::Point (1.25, 0.5, -0.5),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
@@ -1078,35 +1024,35 @@ ss_e_ip_3 (wood::joint &joint)
     joint.m[1] = {
         {
 
-            IK::Point_3 (1.25, 0.5, 0.5),
-            IK::Point_3 (-1, 0.5, 0.5),
-            IK::Point_3 (-1, 0.2, 0.5),
-            IK::Point_3 (1, -0.2, 0.5),
-            IK::Point_3 (1, -0.5, 0.5),
-            IK::Point_3 (1.25, -0.5, 0.5),
-            IK::Point_3 (1.25, 0.5, 0.5),
+            session_cpp::Point (1.25, 0.5, 0.5),
+            session_cpp::Point (-1, 0.5, 0.5),
+            session_cpp::Point (-1, 0.2, 0.5),
+            session_cpp::Point (1, -0.2, 0.5),
+            session_cpp::Point (1, -0.5, 0.5),
+            session_cpp::Point (1.25, -0.5, 0.5),
+            session_cpp::Point (1.25, 0.5, 0.5),
 
         },
-        { IK::Point_3 (0, 0.5, 0.5), IK::Point_3 (0, 0.5, -0.5) },
+        { session_cpp::Point (0, 0.5, 0.5), session_cpp::Point (0, 0.5, -0.5) },
 
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
@@ -1126,188 +1072,188 @@ ss_e_ip_4 (wood::joint &joint)
 
     joint.f[0] = {
         {
-            IK::Point_3 (-1.25, -0.5, 0),
-            IK::Point_3 (1, -0.5, 0),
-            IK::Point_3 (1, -0.2, 0),
-            IK::Point_3 (-1, 0.2, 0),
-            IK::Point_3 (-1, 0.5, 0),
-            IK::Point_3 (-1.25, 0.5, 0),
-            IK::Point_3 (-1.25, -0.5, 0),
+            session_cpp::Point (-1.25, -0.5, 0),
+            session_cpp::Point (1, -0.5, 0),
+            session_cpp::Point (1, -0.2, 0),
+            session_cpp::Point (-1, 0.2, 0),
+            session_cpp::Point (-1, 0.5, 0),
+            session_cpp::Point (-1.25, 0.5, 0),
+            session_cpp::Point (-1.25, -0.5, 0),
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-1.25, 0.5, 0),
-            IK::Point_3 (1, 0.5, 0),
-            IK::Point_3 (1, 0.2, 0),
-            IK::Point_3 (-1, -0.2, 0),
-            IK::Point_3 (-1, -0.5, 0),
-            IK::Point_3 (-1.25, -0.5, 0),
-            IK::Point_3 (-1.25, 0.5, 0),
+            session_cpp::Point (-1.25, 0.5, 0),
+            session_cpp::Point (1, 0.5, 0),
+            session_cpp::Point (1, 0.2, 0),
+            session_cpp::Point (-1, -0.2, 0),
+            session_cpp::Point (-1, -0.5, 0),
+            session_cpp::Point (-1.25, -0.5, 0),
+            session_cpp::Point (-1.25, 0.5, 0),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
 
     joint.f[1] = {
         {
-            IK::Point_3 (-1.25, -0.5, -0.5),
-            IK::Point_3 (1, -0.5, -0.5),
-            IK::Point_3 (1, -0.2, -0.5),
-            IK::Point_3 (-1, 0.2, -0.5),
-            IK::Point_3 (-1, 0.5, -0.5),
-            IK::Point_3 (-1.25, 0.5, -0.5),
-            IK::Point_3 (-1.25, -0.5, -0.5),
+            session_cpp::Point (-1.25, -0.5, -0.5),
+            session_cpp::Point (1, -0.5, -0.5),
+            session_cpp::Point (1, -0.2, -0.5),
+            session_cpp::Point (-1, 0.2, -0.5),
+            session_cpp::Point (-1, 0.5, -0.5),
+            session_cpp::Point (-1.25, 0.5, -0.5),
+            session_cpp::Point (-1.25, -0.5, -0.5),
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-1.25, 0.5, 0.5),
-            IK::Point_3 (1, 0.5, 0.5),
-            IK::Point_3 (1, 0.2, 0.5),
-            IK::Point_3 (-1, -0.2, 0.5),
-            IK::Point_3 (-1, -0.5, 0.5),
-            IK::Point_3 (-1.25, -0.5, 0.5),
-            IK::Point_3 (-1.25, 0.5, 0.5),
+            session_cpp::Point (-1.25, 0.5, 0.5),
+            session_cpp::Point (1, 0.5, 0.5),
+            session_cpp::Point (1, 0.2, 0.5),
+            session_cpp::Point (-1, -0.2, 0.5),
+            session_cpp::Point (-1, -0.5, 0.5),
+            session_cpp::Point (-1.25, -0.5, 0.5),
+            session_cpp::Point (-1.25, 0.5, 0.5),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
 
     joint.m[0] = {
         {
-            IK::Point_3 (1.25, 0.5, 0),
-            IK::Point_3 (-1, 0.5, 0),
-            IK::Point_3 (-1, 0.2, 0),
-            IK::Point_3 (1, -0.2, 0),
-            IK::Point_3 (1, -0.5, 0),
-            IK::Point_3 (1.25, -0.5, 0),
-            IK::Point_3 (1.25, 0.5, 0),
+            session_cpp::Point (1.25, 0.5, 0),
+            session_cpp::Point (-1, 0.5, 0),
+            session_cpp::Point (-1, 0.2, 0),
+            session_cpp::Point (1, -0.2, 0),
+            session_cpp::Point (1, -0.5, 0),
+            session_cpp::Point (1.25, -0.5, 0),
+            session_cpp::Point (1.25, 0.5, 0),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
 
-            IK::Point_3 (1.25, -0.5, 0),
-            IK::Point_3 (-1, -0.5, 0),
-            IK::Point_3 (-1, -0.2, 0),
-            IK::Point_3 (1, 0.2, 0),
-            IK::Point_3 (1, 0.5, 0),
-            IK::Point_3 (1.25, 0.5, 0),
-            IK::Point_3 (1.25, -0.5, 0),
+            session_cpp::Point (1.25, -0.5, 0),
+            session_cpp::Point (-1, -0.5, 0),
+            session_cpp::Point (-1, -0.2, 0),
+            session_cpp::Point (1, 0.2, 0),
+            session_cpp::Point (1, 0.5, 0),
+            session_cpp::Point (1.25, 0.5, 0),
+            session_cpp::Point (1.25, -0.5, 0),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
 
     joint.m[1] = {
         {
-            IK::Point_3 (1.25, 0.5, -0.5),
-            IK::Point_3 (-1, 0.5, -0.5),
-            IK::Point_3 (-1, 0.2, -0.5),
-            IK::Point_3 (1, -0.2, -0.5),
-            IK::Point_3 (1, -0.5, -0.5),
-            IK::Point_3 (1.25, -0.5, -0.5),
-            IK::Point_3 (1.25, 0.5, -0.5),
+            session_cpp::Point (1.25, 0.5, -0.5),
+            session_cpp::Point (-1, 0.5, -0.5),
+            session_cpp::Point (-1, 0.2, -0.5),
+            session_cpp::Point (1, -0.2, -0.5),
+            session_cpp::Point (1, -0.5, -0.5),
+            session_cpp::Point (1.25, -0.5, -0.5),
+            session_cpp::Point (1.25, 0.5, -0.5),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
 
-            IK::Point_3 (1.25, -0.5, 0.5),
-            IK::Point_3 (-1, -0.5, 0.5),
-            IK::Point_3 (-1, -0.2, 0.5),
-            IK::Point_3 (1, 0.2, 0.5),
-            IK::Point_3 (1, 0.5, 0.5),
-            IK::Point_3 (1.25, 0.5, 0.5),
-            IK::Point_3 (1.25, -0.5, 0.5),
+            session_cpp::Point (1.25, -0.5, 0.5),
+            session_cpp::Point (-1, -0.5, 0.5),
+            session_cpp::Point (-1, -0.2, 0.5),
+            session_cpp::Point (1, 0.2, 0.5),
+            session_cpp::Point (1, 0.5, 0.5),
+            session_cpp::Point (1.25, 0.5, 0.5),
+            session_cpp::Point (1.25, -0.5, 0.5),
 
         },
-        { IK::Point_3 (0, -0.5, 0.5), IK::Point_3 (0, -0.5, -0.5) },
+        { session_cpp::Point (0, -0.5, 0.5), session_cpp::Point (0, -0.5, -0.5) },
 
         {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
-        },
-
-        {
-            IK::Point_3 (-0.333333, -0.6, 0),
-            IK::Point_3 (-0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (-0.333333, -0.6, 0),
+            session_cpp::Point (-0.333333, 0.6, 0),
         },
 
         {
-            IK::Point_3 (0.333333, -0.6, 0),
-            IK::Point_3 (0.333333, 0.6, 0),
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
+        },
+
+        {
+            session_cpp::Point (0.333333, -0.6, 0),
+            session_cpp::Point (0.333333, 0.6, 0),
         },
 
     };
@@ -1329,14 +1275,11 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
 
     // parameters that comes from the joint
     bool default_values = false;
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0],
-                                                                              joint.joint_lines[0][1]))
-                                         : 1000; // std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0],
-                                                 // joint.joint_lines[0][1]))
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1]))
+                                         : 1000; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_lines[0][0], // joint.joint_lines[0][1]))
                                                  // : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(CGAL::squared_distance(joint.joint_volumes[0][1],
-                                                                                        // joint.joint_volumes[0][2]))
+    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_volumes[0][1], // joint.joint_volumes[0][2]))
                                                                                         // : 40;
 
     // scale down the edge, since wood_joint ->
@@ -1354,9 +1297,9 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     // movement vectors to translate the unit
     // joint to the end of the edge and then to
     // its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     // std::cout << "divisions" << divisions <<
     // "\n"; std::cout << "edge_length" <<
@@ -1367,50 +1310,50 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // std::vector<CGAL_Polyline> male_0 = {
-    //     {IK::Point_3(0, -0.5, -0.166667),
-    //     IK::Point_3(-0.116667, -0.5,
+    // std::vector<Polyline> male_0 = {
+    //     {session_cpp::Point(0, -0.5, -0.166667),
+    //     session_cpp::Point(-0.116667, -0.5,
     //     -0.166667),
-    //      IK::Point_3(-0.619628, -0.5, -0.375),
-    //      IK::Point_3(-1.0, -0.5, -0.375),
-    //      IK::Point_3(-1.0, -0.5, 0.375),
-    //      IK::Point_3(-0.619628, -0.5, 0.375),
-    //      IK::Point_3(-0.116667, -0.5,
-    //      0.166667), IK::Point_3(0, -0.5,
+    //      session_cpp::Point(-0.619628, -0.5, -0.375),
+    //      session_cpp::Point(-1.0, -0.5, -0.375),
+    //      session_cpp::Point(-1.0, -0.5, 0.375),
+    //      session_cpp::Point(-0.619628, -0.5, 0.375),
+    //      session_cpp::Point(-0.116667, -0.5,
+    //      0.166667), session_cpp::Point(0, -0.5,
     //      0.166667)},
     //     {
-    //         IK::Point_3(0, -0.5, 0.166667),
-    //         IK::Point_3(0, -0.5, -0.166667),
+    //         session_cpp::Point(0, -0.5, 0.166667),
+    //         session_cpp::Point(0, -0.5, -0.166667),
     //     }};
 
-    // std::vector<CGAL_Polyline> male_1 = {
+    // std::vector<Polyline> male_1 = {
 
-    //     {IK::Point_3(0, 0.5, -0.166667),
-    //     IK::Point_3(-0.116667, 0.5, -0.166667),
-    //      IK::Point_3(-0.619628, 0.5, -0.375),
-    //      IK::Point_3(-1.0, 0.5, -0.375),
-    //      IK::Point_3(-1.0, 0.5, 0.375),
-    //      IK::Point_3(-0.619628, 0.5, 0.375),
-    //      IK::Point_3(-0.116667, 0.5, 0.166667),
-    //      IK::Point_3(0, 0.5, 0.166667)},
+    //     {session_cpp::Point(0, 0.5, -0.166667),
+    //     session_cpp::Point(-0.116667, 0.5, -0.166667),
+    //      session_cpp::Point(-0.619628, 0.5, -0.375),
+    //      session_cpp::Point(-1.0, 0.5, -0.375),
+    //      session_cpp::Point(-1.0, 0.5, 0.375),
+    //      session_cpp::Point(-0.619628, 0.5, 0.375),
+    //      session_cpp::Point(-0.116667, 0.5, 0.166667),
+    //      session_cpp::Point(0, 0.5, 0.166667)},
     //     {
-    //         IK::Point_3(0, 0.5, 0.166667),
-    //         IK::Point_3(0, 0.5, -0.166667),
+    //         session_cpp::Point(0, 0.5, 0.166667),
+    //         session_cpp::Point(0, 0.5, -0.166667),
     //     }};
-    std::vector<CGAL_Polyline> male_0 = { { IK::Point_3 (0, -0.5, -0.166667), IK::Point_3 (-0.116667, -0.5, -0.166667), IK::Point_3 (-0.619628, -0.5, -0.375), IK::Point_3 (-1.0, -0.5, -0.375),
-                                            IK::Point_3 (-1.0, -0.5, 0.375), IK::Point_3 (-0.619628, -0.5, 0.375), IK::Point_3 (-0.116667, -0.5, 0.166667), IK::Point_3 (0, -0.5, 0.166667) },
+    std::vector<Polyline> male_0 = { { session_cpp::Point (0, -0.5, -0.166667), session_cpp::Point (-0.116667, -0.5, -0.166667), session_cpp::Point (-0.619628, -0.5, -0.375), session_cpp::Point (-1.0, -0.5, -0.375),
+                                            session_cpp::Point (-1.0, -0.5, 0.375), session_cpp::Point (-0.619628, -0.5, 0.375), session_cpp::Point (-0.116667, -0.5, 0.166667), session_cpp::Point (0, -0.5, 0.166667) },
                                           {
-                                              IK::Point_3 (0, -0.5, 0.166667),
-                                              IK::Point_3 (0, -0.5, -0.166667),
+                                              session_cpp::Point (0, -0.5, 0.166667),
+                                              session_cpp::Point (0, -0.5, -0.166667),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = {
+    std::vector<Polyline> male_1 = {
 
-        { IK::Point_3 (0, 0.5, -0.166667), IK::Point_3 (-0.116667, 0.5, -0.166667), IK::Point_3 (-0.619628, 0.5, -0.375), IK::Point_3 (-1.0, 0.5, -0.375), IK::Point_3 (-1.0, 0.5, 0.375),
-          IK::Point_3 (-0.619628, 0.5, 0.375), IK::Point_3 (-0.116667, 0.5, 0.166667), IK::Point_3 (0, 0.5, 0.166667) },
+        { session_cpp::Point (0, 0.5, -0.166667), session_cpp::Point (-0.116667, 0.5, -0.166667), session_cpp::Point (-0.619628, 0.5, -0.375), session_cpp::Point (-1.0, 0.5, -0.375), session_cpp::Point (-1.0, 0.5, 0.375),
+          session_cpp::Point (-0.619628, 0.5, 0.375), session_cpp::Point (-0.116667, 0.5, 0.166667), session_cpp::Point (0, 0.5, 0.166667) },
         {
-            IK::Point_3 (0, 0.5, 0.166667),
-            IK::Point_3 (0, 0.5, -0.166667),
+            session_cpp::Point (0, 0.5, 0.166667),
+            session_cpp::Point (0, 0.5, -0.166667),
         }
     };
 
@@ -1419,18 +1362,18 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> female_0 = { { IK::Point_3 (0, -0.5, -0.166667), IK::Point_3 (0.116667, -0.5, -0.166667), IK::Point_3 (0.619628, -0.5, -0.375), IK::Point_3 (1, -0.5, -0.375), IK::Point_3 (1, -0.5, 0.375),
-                                              IK::Point_3 (0.619628, -0.5, 0.375), IK::Point_3 (0.116667, -0.5, 0.166667), IK::Point_3 (0, -0.5, 0.166667) },
+    std::vector<Polyline> female_0 = { { session_cpp::Point (0, -0.5, -0.166667), session_cpp::Point (0.116667, -0.5, -0.166667), session_cpp::Point (0.619628, -0.5, -0.375), session_cpp::Point (1, -0.5, -0.375), session_cpp::Point (1, -0.5, 0.375),
+                                              session_cpp::Point (0.619628, -0.5, 0.375), session_cpp::Point (0.116667, -0.5, 0.166667), session_cpp::Point (0, -0.5, 0.166667) },
                                             {
-                                                IK::Point_3 (0, -0.5, 0.166667),
-                                                IK::Point_3 (0, -0.5, -0.166667),
+                                                session_cpp::Point (0, -0.5, 0.166667),
+                                                session_cpp::Point (0, -0.5, -0.166667),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { { IK::Point_3 (0, 0.5, -0.166667), IK::Point_3 (0.116667, 0.5, -0.166667), IK::Point_3 (0.619628, 0.5, -0.375), IK::Point_3 (1, 0.5, -0.375), IK::Point_3 (1, 0.5, 0.375),
-                                              IK::Point_3 (0.619628, 0.5, 0.375), IK::Point_3 (0.116667, 0.5, 0.166667), IK::Point_3 (0, 0.5, 0.166667) },
+    std::vector<Polyline> female_1 = { { session_cpp::Point (0, 0.5, -0.166667), session_cpp::Point (0.116667, 0.5, -0.166667), session_cpp::Point (0.619628, 0.5, -0.375), session_cpp::Point (1, 0.5, -0.375), session_cpp::Point (1, 0.5, 0.375),
+                                              session_cpp::Point (0.619628, 0.5, 0.375), session_cpp::Point (0.116667, 0.5, 0.166667), session_cpp::Point (0, 0.5, 0.166667) },
                                             {
-                                                IK::Point_3 (0, 0.5, 0.166667),
-                                                IK::Point_3 (0, 0.5, -0.166667),
+                                                session_cpp::Point (0, 0.5, 0.166667),
+                                                session_cpp::Point (0, 0.5, -0.166667),
                                             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -1450,10 +1393,10 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     // merging
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     auto a = joint.m[0];
-    joint.m[0].emplace_back (CGAL_Polyline ());
-    joint.m[1].emplace_back (CGAL_Polyline ());
-    joint.f[0].emplace_back (CGAL_Polyline ());
-    joint.f[1].emplace_back (CGAL_Polyline ());
+    joint.m[0].emplace_back (Polyline ());
+    joint.m[1].emplace_back (Polyline ());
+    joint.f[0].emplace_back (Polyline ());
+    joint.f[1].emplace_back (Polyline ());
 
     joint.m[0].back ().reserve (male_0[0].size () * divisions);
     joint.m[1].back ().reserve (male_1[0].size () * divisions);
@@ -1466,10 +1409,10 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // Reverse outlines else it does not
             // merge.
@@ -1504,10 +1447,10 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add the insertion lines
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
-    joint.m[1].emplace_back (CGAL_Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
-    joint.f[0].emplace_back (CGAL_Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
-    joint.f[1].emplace_back (CGAL_Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
+    joint.m[0].emplace_back (Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
+    joint.m[1].emplace_back (Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
+    joint.f[0].emplace_back (Polyline{ joint.f[0].front ().front (), joint.f[0].front ().back () });
+    joint.f[1].emplace_back (Polyline{ joint.f[1].front ().front (), joint.f[1].front ().back () });
 
     joint.f_boolean_type = female_types;
     joint.m_boolean_type = male_types;
@@ -1521,19 +1464,19 @@ ss_e_ip_5 (wood::joint &joint, std::vector<wood::element> &elements)
     // joint for preview
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // viewer_wood::scale = 1.0;
-    // std::vector<std::vector<CGAL_Polyline>>
+    // std::vector<std::vector<Polyline>>
     // input_polyline_pairs0;
     // input_polyline_pairs0.emplace_back(joint.m[0]);
     // input_polyline_pairs0.emplace_back(joint.m[1]);
     // viewer_wood::add(input_polyline_pairs0, 0);
     // // grey
-    // std::vector<std::vector<CGAL_Polyline>>
+    // std::vector<std::vector<Polyline>>
     // input_polyline_pairs1;
     // input_polyline_pairs1.emplace_back(joint.f[0]);
     // input_polyline_pairs1.emplace_back(joint.f[1]);
-    // CGAL_Polyline default_segment =
-    // {IK::Point_3(0, 0, -total_length_scaled *
-    // 0.5), IK::Point_3(0, 0, total_length_scaled
+    // Polyline default_segment =
+    // {session_cpp::Point(0, 0, -total_length_scaled *
+    // 0.5), session_cpp::Point(0, 0, total_length_scaled
     // * 0.5)};
     // input_polyline_pairs1.push_back({default_segment});
     // viewer_wood::add(input_polyline_pairs1, 2);
@@ -1581,25 +1524,25 @@ ss_e_op_0 (wood::joint &joint)
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an
     // cutting wood::element
-    joint.f[0] = { { IK::Point_3 (0.5, 0.5, -0.357142857142857), IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (0.5, -0.5, -0.214285714285714), IK::Point_3 (0.5, 0.5, -0.214285714285714),
-                     IK::Point_3 (0.5, 0.5, -0.0714285714285715), IK::Point_3 (0.5, -0.5, -0.0714285714285713), IK::Point_3 (0.5, -0.5, 0.0714285714285715), IK::Point_3 (0.5, 0.5, 0.0714285714285714),
-                     IK::Point_3 (0.5, 0.5, 0.214285714285714), IK::Point_3 (0.5, -0.5, 0.214285714285714), IK::Point_3 (0.5, -0.5, 0.357142857142857), IK::Point_3 (0.5, 0.5, 0.357142857142857) },
-                   { IK::Point_3 (0.5, 0.5, -0.5), IK::Point_3 (0.5, 0.5, 0.5) } };
+    joint.f[0] = { { session_cpp::Point (0.5, 0.5, -0.357142857142857), session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (0.5, -0.5, -0.214285714285714), session_cpp::Point (0.5, 0.5, -0.214285714285714),
+                     session_cpp::Point (0.5, 0.5, -0.0714285714285715), session_cpp::Point (0.5, -0.5, -0.0714285714285713), session_cpp::Point (0.5, -0.5, 0.0714285714285715), session_cpp::Point (0.5, 0.5, 0.0714285714285714),
+                     session_cpp::Point (0.5, 0.5, 0.214285714285714), session_cpp::Point (0.5, -0.5, 0.214285714285714), session_cpp::Point (0.5, -0.5, 0.357142857142857), session_cpp::Point (0.5, 0.5, 0.357142857142857) },
+                   { session_cpp::Point (0.5, 0.5, -0.5), session_cpp::Point (0.5, 0.5, 0.5) } };
 
-    joint.f[1] = { { IK::Point_3 (-0.5, 0.5, -0.357142857142857), IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (-0.5, -0.5, -0.214285714285714), IK::Point_3 (-0.5, 0.5, -0.214285714285714),
-                     IK::Point_3 (-0.5, 0.5, -0.0714285714285715), IK::Point_3 (-0.5, -0.5, -0.0714285714285713), IK::Point_3 (-0.5, -0.5, 0.0714285714285715), IK::Point_3 (-0.5, 0.5, 0.0714285714285714),
-                     IK::Point_3 (-0.5, 0.5, 0.214285714285714), IK::Point_3 (-0.5, -0.5, 0.214285714285714), IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, 0.357142857142857) },
-                   { IK::Point_3 (-0.5, 0.5, -0.5), IK::Point_3 (-0.5, 0.5, 0.5) } };
+    joint.f[1] = { { session_cpp::Point (-0.5, 0.5, -0.357142857142857), session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (-0.5, -0.5, -0.214285714285714), session_cpp::Point (-0.5, 0.5, -0.214285714285714),
+                     session_cpp::Point (-0.5, 0.5, -0.0714285714285715), session_cpp::Point (-0.5, -0.5, -0.0714285714285713), session_cpp::Point (-0.5, -0.5, 0.0714285714285715), session_cpp::Point (-0.5, 0.5, 0.0714285714285714),
+                     session_cpp::Point (-0.5, 0.5, 0.214285714285714), session_cpp::Point (-0.5, -0.5, 0.214285714285714), session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, 0.357142857142857) },
+                   { session_cpp::Point (-0.5, 0.5, -0.5), session_cpp::Point (-0.5, 0.5, 0.5) } };
 
-    joint.m[0] = { { IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (0.5, 0.5, 0.357142857142857), IK::Point_3 (0.5, 0.5, 0.214285714285714), IK::Point_3 (-0.5, 0.5, 0.214285714285714),
-                     IK::Point_3 (-0.5, 0.5, 0.0714285714285715), IK::Point_3 (0.5, 0.5, 0.0714285714285713), IK::Point_3 (0.5, 0.5, -0.0714285714285715), IK::Point_3 (-0.5, 0.5, -0.0714285714285713),
-                     IK::Point_3 (-0.5, 0.5, -0.214285714285714), IK::Point_3 (0.5, 0.5, -0.214285714285714), IK::Point_3 (0.5, 0.5, -0.357142857142857), IK::Point_3 (-0.5, 0.5, -0.357142857142857) },
-                   { IK::Point_3 (-0.5, 0.5, 0.5), IK::Point_3 (-0.5, 0.5, -0.5) } };
+    joint.m[0] = { { session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (0.5, 0.5, 0.357142857142857), session_cpp::Point (0.5, 0.5, 0.214285714285714), session_cpp::Point (-0.5, 0.5, 0.214285714285714),
+                     session_cpp::Point (-0.5, 0.5, 0.0714285714285715), session_cpp::Point (0.5, 0.5, 0.0714285714285713), session_cpp::Point (0.5, 0.5, -0.0714285714285715), session_cpp::Point (-0.5, 0.5, -0.0714285714285713),
+                     session_cpp::Point (-0.5, 0.5, -0.214285714285714), session_cpp::Point (0.5, 0.5, -0.214285714285714), session_cpp::Point (0.5, 0.5, -0.357142857142857), session_cpp::Point (-0.5, 0.5, -0.357142857142857) },
+                   { session_cpp::Point (-0.5, 0.5, 0.5), session_cpp::Point (-0.5, 0.5, -0.5) } };
 
-    joint.m[1] = { { IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (0.5, -0.5, 0.357142857142857), IK::Point_3 (0.5, -0.5, 0.214285714285714), IK::Point_3 (-0.5, -0.5, 0.214285714285714),
-                     IK::Point_3 (-0.5, -0.5, 0.0714285714285713), IK::Point_3 (0.5, -0.5, 0.0714285714285712), IK::Point_3 (0.5, -0.5, -0.0714285714285716), IK::Point_3 (-0.5, -0.5, -0.0714285714285715),
-                     IK::Point_3 (-0.5, -0.5, -0.214285714285714), IK::Point_3 (0.5, -0.5, -0.214285714285714), IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (-0.5, -0.5, -0.357142857142857) },
-                   { IK::Point_3 (-0.5, -0.5, 0.5), IK::Point_3 (-0.5, -0.5, -0.5) } };
+    joint.m[1] = { { session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (0.5, -0.5, 0.357142857142857), session_cpp::Point (0.5, -0.5, 0.214285714285714), session_cpp::Point (-0.5, -0.5, 0.214285714285714),
+                     session_cpp::Point (-0.5, -0.5, 0.0714285714285713), session_cpp::Point (0.5, -0.5, 0.0714285714285712), session_cpp::Point (0.5, -0.5, -0.0714285714285716), session_cpp::Point (-0.5, -0.5, -0.0714285714285715),
+                     session_cpp::Point (-0.5, -0.5, -0.214285714285714), session_cpp::Point (0.5, -0.5, -0.214285714285714), session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (-0.5, -0.5, -0.357142857142857) },
+                   { session_cpp::Point (-0.5, -0.5, 0.5), session_cpp::Point (-0.5, -0.5, -0.5) } };
 
     joint.f_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
     joint.m_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -1628,18 +1571,18 @@ ss_e_op_1 (wood::joint &joint)
     ////////////////////////////////////////////////////////////////////
     // Interpolate points
     ////////////////////////////////////////////////////////////////////
-    std::vector<IK::Point_3> arrays[4];
+    Polyline arrays[4];
 
-    internal::interpolate_points (IK::Point_3 (0.5, -0.5, -0.5), IK::Point_3 (0.5, -0.5, 0.5), divisions, false, arrays[2]);
-    internal::interpolate_points (IK::Point_3 (-0.5, -0.5, -0.5), IK::Point_3 (-0.5, -0.5, 0.5), divisions, false, arrays[3]);
-    internal::interpolate_points (IK::Point_3 (-0.5, 0.5, -0.5), IK::Point_3 (-0.5, 0.5, 0.5), divisions, false, arrays[0]);
-    internal::interpolate_points (IK::Point_3 (0.5, 0.5, -0.5), IK::Point_3 (0.5, 0.5, 0.5), divisions, false, arrays[1]);
+    internal::interpolate_points (session_cpp::Point (0.5, -0.5, -0.5), session_cpp::Point (0.5, -0.5, 0.5), divisions, false, arrays[2]);
+    internal::interpolate_points (session_cpp::Point (-0.5, -0.5, -0.5), session_cpp::Point (-0.5, -0.5, 0.5), divisions, false, arrays[3]);
+    internal::interpolate_points (session_cpp::Point (-0.5, 0.5, -0.5), session_cpp::Point (-0.5, 0.5, 0.5), divisions, false, arrays[0]);
+    internal::interpolate_points (session_cpp::Point (0.5, 0.5, -0.5), session_cpp::Point (0.5, 0.5, 0.5), divisions, false, arrays[1]);
 
     ////////////////////////////////////////////////////////////////////
     // Move segments
     ////////////////////////////////////////////////////////////////////
     int start = 0;
-    IK::Vector_3 v = joint.shift == 0 ? IK::Vector_3 (0, 0, 0) : IK::Vector_3 (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
+    session_cpp::Vector v = joint.shift == 0 ? session_cpp::Vector (0, 0, 0) : session_cpp::Vector (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
     for (int i = start; i < 4; i++)
         {
             int mid = (int)(arrays[i].size () * 0.5);
@@ -1652,7 +1595,7 @@ ss_e_op_1 (wood::joint &joint)
                     bool flip = j % 2 == 0;
                     flip = i < 2 ? flip : !flip;
 
-                    arrays[i][j] += v * flip;
+                    arrays[i][j] = arrays[i][j] + v * flip;
                 }
         }
 
@@ -1662,7 +1605,7 @@ ss_e_op_1 (wood::joint &joint)
 
     for (int i = 0; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             for (int j = 0; j < arrays[0].size (); j++)
@@ -1705,7 +1648,7 @@ ss_e_op_1 (wood::joint &joint)
 
     for (int i = 1; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             for (int j = 0; j < arrays[0].size (); j++)
@@ -1772,19 +1715,19 @@ ss_e_op_2 (wood::joint &joint)
     ////////////////////////////////////////////////////////////////////
     // Interpolate points
     ////////////////////////////////////////////////////////////////////
-    std::vector<IK::Point_3> arrays[4];
+    Polyline arrays[4];
 
-    internal::interpolate_points (IK::Point_3 (0.5, -0.5, -0.5), IK::Point_3 (0.5, -0.5, 0.5), divisions, false, arrays[0]);
-    internal::interpolate_points (IK::Point_3 (-0.5, -0.5, -0.5), IK::Point_3 (-0.5, -0.5, 0.5), divisions, false, arrays[1]);
-    internal::interpolate_points (IK::Point_3 (-0.5, 0.5, -0.5), IK::Point_3 (-0.5, 0.5, 0.5), divisions, false, arrays[2]);
-    internal::interpolate_points (IK::Point_3 (0.5, 0.5, -0.5), IK::Point_3 (0.5, 0.5, 0.5), divisions, false, arrays[3]);
+    internal::interpolate_points (session_cpp::Point (0.5, -0.5, -0.5), session_cpp::Point (0.5, -0.5, 0.5), divisions, false, arrays[0]);
+    internal::interpolate_points (session_cpp::Point (-0.5, -0.5, -0.5), session_cpp::Point (-0.5, -0.5, 0.5), divisions, false, arrays[1]);
+    internal::interpolate_points (session_cpp::Point (-0.5, 0.5, -0.5), session_cpp::Point (-0.5, 0.5, 0.5), divisions, false, arrays[2]);
+    internal::interpolate_points (session_cpp::Point (0.5, 0.5, -0.5), session_cpp::Point (0.5, 0.5, 0.5), divisions, false, arrays[3]);
 
     ////////////////////////////////////////////////////////////////////
     // Move segments
     ////////////////////////////////////////////////////////////////////
     int start = 0;
 
-    IK::Vector_3 v = joint.shift == 0 ? IK::Vector_3 (0, 0, 0) : IK::Vector_3 (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
+    session_cpp::Vector v = joint.shift == 0 ? session_cpp::Vector (0, 0, 0) : session_cpp::Vector (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
 
     for (int i = start; i < 4; i += 1)
         {
@@ -1815,7 +1758,7 @@ ss_e_op_2 (wood::joint &joint)
 
     for (int i = 0; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             for (int j = 0; j < arrays[0].size (); j++)
@@ -1855,7 +1798,7 @@ ss_e_op_2 (wood::joint &joint)
 
     for (int i = 1; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             for (int j = 0; j < arrays[0].size (); j++)
@@ -1907,95 +1850,95 @@ ss_e_op_3 (wood::joint &joint)
     // rectangle is not a wood::joint but an
     // cutting wood::element
     joint.f[0] = { {
-                       IK::Point_3 (0.5, 0.5, 0.3),
-                       IK::Point_3 (0.5, -1.499975, 0.3),
-                       IK::Point_3 (0.5, -1.499975, -0.3),
-                       IK::Point_3 (0.5, 0.5, -0.3),
+                       session_cpp::Point (0.5, 0.5, 0.3),
+                       session_cpp::Point (0.5, -1.499975, 0.3),
+                       session_cpp::Point (0.5, -1.499975, -0.3),
+                       session_cpp::Point (0.5, 0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (0.5, 0.5, 0.3),
-                       IK::Point_3 (0.5, 0.5, -0.3),
+                       session_cpp::Point (0.5, 0.5, 0.3),
+                       session_cpp::Point (0.5, 0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (0.5, -0.5, 0.25),
-                       IK::Point_3 (0.5, 0.5, 0.25),
-                       IK::Point_3 (0.5, 0.5, -0.25),
-                       IK::Point_3 (0.5, -0.5, -0.25),
-                       IK::Point_3 (0.5, -0.5, 0.25),
+                       session_cpp::Point (0.5, -0.5, 0.25),
+                       session_cpp::Point (0.5, 0.5, 0.25),
+                       session_cpp::Point (0.5, 0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, 0.25),
                    },
 
                    {
-                       IK::Point_3 (0.5, -0.5, 0.25),
-                       IK::Point_3 (0.5, 0.5, 0.25),
-                       IK::Point_3 (0.5, 0.5, -0.25),
-                       IK::Point_3 (0.5, -0.5, -0.25),
-                       IK::Point_3 (0.5, -0.5, 0.25),
+                       session_cpp::Point (0.5, -0.5, 0.25),
+                       session_cpp::Point (0.5, 0.5, 0.25),
+                       session_cpp::Point (0.5, 0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, 0.25),
                    } };
 
     joint.f[1] = { {
-                       IK::Point_3 (-0.5, -0.499975, 0.3),
-                       IK::Point_3 (-0.5, -1.49995, 0.3),
-                       IK::Point_3 (-0.5, -1.49995, -0.3),
-                       IK::Point_3 (-0.5, -0.5, -0.3),
+                       session_cpp::Point (-0.5, -0.499975, 0.3),
+                       session_cpp::Point (-0.5, -1.49995, 0.3),
+                       session_cpp::Point (-0.5, -1.49995, -0.3),
+                       session_cpp::Point (-0.5, -0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (-0.5, -0.499975, 0.3),
-                       IK::Point_3 (-0.5, -0.5, -0.3),
+                       session_cpp::Point (-0.5, -0.499975, 0.3),
+                       session_cpp::Point (-0.5, -0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (-0.5, -0.499975, 0.25),
-                       IK::Point_3 (-0.5, 0.500025, 0.25),
-                       IK::Point_3 (-0.5, 0.500025, -0.25),
-                       IK::Point_3 (-0.5, -0.499975, -0.25),
-                       IK::Point_3 (-0.5, -0.499975, 0.25),
+                       session_cpp::Point (-0.5, -0.499975, 0.25),
+                       session_cpp::Point (-0.5, 0.500025, 0.25),
+                       session_cpp::Point (-0.5, 0.500025, -0.25),
+                       session_cpp::Point (-0.5, -0.499975, -0.25),
+                       session_cpp::Point (-0.5, -0.499975, 0.25),
                    },
 
                    {
-                       IK::Point_3 (-0.5, -0.499975, 0.25),
-                       IK::Point_3 (-0.5, 0.500025, 0.25),
-                       IK::Point_3 (-0.5, 0.500025, -0.25),
-                       IK::Point_3 (-0.5, -0.499975, -0.25),
-                       IK::Point_3 (-0.5, -0.499975, 0.25),
+                       session_cpp::Point (-0.5, -0.499975, 0.25),
+                       session_cpp::Point (-0.5, 0.500025, 0.25),
+                       session_cpp::Point (-0.5, 0.500025, -0.25),
+                       session_cpp::Point (-0.5, -0.499975, -0.25),
+                       session_cpp::Point (-0.5, -0.499975, 0.25),
                    } };
 
     joint.m[0] = { {
-                       IK::Point_3 (-0.5, -0.5, 0.3),
-                       IK::Point_3 (0.5, -0.5, 0.3),
+                       session_cpp::Point (-0.5, -0.5, 0.3),
+                       session_cpp::Point (0.5, -0.5, 0.3),
 
-                       IK::Point_3 (0.5, -0.5, 0.25),
-                       IK::Point_3 (-1, -0.5, 0.25),
-                       IK::Point_3 (-1, -0.5, -0.25),
-                       IK::Point_3 (0.5, -0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, 0.25),
+                       session_cpp::Point (-1, -0.5, 0.25),
+                       session_cpp::Point (-1, -0.5, -0.25),
+                       session_cpp::Point (0.5, -0.5, -0.25),
 
-                       IK::Point_3 (0.5, -0.5, -0.3),
-                       IK::Point_3 (-0.5, -0.5, -0.3),
+                       session_cpp::Point (0.5, -0.5, -0.3),
+                       session_cpp::Point (-0.5, -0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (-0.5, -0.5, 0.3),
-                       IK::Point_3 (-0.5, -0.5, -0.3),
+                       session_cpp::Point (-0.5, -0.5, 0.3),
+                       session_cpp::Point (-0.5, -0.5, -0.3),
                    } };
 
     joint.m[1] = { {
-                       IK::Point_3 (0.5, 0.5, 0.3),
-                       IK::Point_3 (0.510075, 0.5, 0.3),
+                       session_cpp::Point (0.5, 0.5, 0.3),
+                       session_cpp::Point (0.510075, 0.5, 0.3),
 
-                       IK::Point_3 (0.5, 0.5, 0.25),
-                       IK::Point_3 (-1, 0.5, 0.25),
-                       IK::Point_3 (-1, 0.5, -0.25),
-                       IK::Point_3 (0.5, 0.5, -0.25),
+                       session_cpp::Point (0.5, 0.5, 0.25),
+                       session_cpp::Point (-1, 0.5, 0.25),
+                       session_cpp::Point (-1, 0.5, -0.25),
+                       session_cpp::Point (0.5, 0.5, -0.25),
 
-                       IK::Point_3 (0.510075, 0.5, -0.3),
-                       IK::Point_3 (0.5, 0.5, -0.3),
+                       session_cpp::Point (0.510075, 0.5, -0.3),
+                       session_cpp::Point (0.5, 0.5, -0.3),
                    },
 
                    {
-                       IK::Point_3 (0.5, 0.5, 0.3),
-                       IK::Point_3 (0.5, 0.5, -0.3),
+                       session_cpp::Point (0.5, 0.5, 0.3),
+                       session_cpp::Point (0.5, 0.5, -0.3),
                    } };
 
     joint.f_boolean_type = { wood::cut::insert_between_multiple_edges, wood::cut::insert_between_multiple_edges, wood::cut::hole, wood::cut::hole };
@@ -2079,8 +2022,8 @@ ss_e_op_4 (wood::joint &joint, double t, bool chamfer, bool female_modify_outlin
             // cut outlines
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             joint.m[j][1] = {
-                IK::Point_3 (sign * x[1], y[j], z_ext[1]),
-                IK::Point_3 (sign * x[1], y[j], z_ext[0]),
+                session_cpp::Point (sign * x[1], y[j], z_ext[1]),
+                session_cpp::Point (sign * x[1], y[j], z_ext[0]),
             };
         }
 
@@ -2106,15 +2049,15 @@ ss_e_op_4 (wood::joint &joint, double t, bool chamfer, bool female_modify_outlin
             if (female_modify_outline)
                 {
                     joint.f[j][0] = {
-                        IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
-                        IK::Point_3 (y[j_inv], 3 * y[0], z_ext[1]),
-                        IK::Point_3 (y[j_inv], 3 * y[0], z_ext[0]),
-                        IK::Point_3 (y[j_inv], sign * y[1], z_ext[0]),
+                        session_cpp::Point (y[j_inv], sign * y[1], z_ext[1]),
+                        session_cpp::Point (y[j_inv], 3 * y[0], z_ext[1]),
+                        session_cpp::Point (y[j_inv], 3 * y[0], z_ext[0]),
+                        session_cpp::Point (y[j_inv], sign * y[1], z_ext[0]),
                     };
 
                     joint.f[j][1] = {
-                        IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
-                        IK::Point_3 (y[j_inv], sign * y[1], z_ext[1]),
+                        session_cpp::Point (y[j_inv], sign * y[1], z_ext[1]),
+                        session_cpp::Point (y[j_inv], sign * y[1], z_ext[1]),
                     };
                 }
 
@@ -2147,7 +2090,7 @@ ss_e_op_4 (wood::joint &joint, double t, bool chamfer, bool female_modify_outlin
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // // scale
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //  IK::Point_3 mid (0,0,0);
+    //  session_cpp::Point mid (0,0,0);
     //     CGAL::Aff_transformation_3<IK>
     //     scale_xform( 1, 0, 0, 0, 1, 0, 0, 0,
     //     joint.shift);
@@ -2257,7 +2200,7 @@ ss_e_op_5 (wood::joint &jo, std::vector<wood::joint> &all_joints, bool disable_j
             for (int i = 0; i < jo.f[0].size (); i += 2)
                 {
                     if (i == 0)
-                        linked_joints_seq_1.emplace_back (std::array<int, 4>{ 1, (int)jo.f[0][0].size () - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size () - 2 }); // std::array<std::vector<CGAL_Polyline>,
+                        linked_joints_seq_1.emplace_back (std::array<int, 4>{ 1, (int)jo.f[0][0].size () - 2, 1, (int)all_joints[jo.linked_joints[1]].m[0][0].size () - 2 }); // std::array<std::vector<Polyline>,
                                                                                                                                                                               // 2>
                                                                                                                                                                               // f;
                     else
@@ -2312,55 +2255,57 @@ ss_e_r_0 (wood::joint &jo, std::vector<wood::element> &elements)
     jo.name = __func__;
     jo.orient = false;
 
-    CGAL_Polyline rect_2 = cgal::polyline_util::tween_two_polylines (jo.joint_volumes[0], jo.joint_volumes[1], 0.5);
+    Polyline rect_2 = session_cpp::tween_two_polylines (jo.joint_volumes[0], jo.joint_volumes[1], 0.5);
 
-    IK::Point_3 p_rect_2_mid_0 = CGAL::midpoint (rect_2[0], rect_2[1]);
-    IK::Point_3 p_rect_2_mid_1 = CGAL::midpoint (rect_2[3], rect_2[2]);
-    IK::Vector_3 z_scaled = (p_rect_2_mid_0 - rect_2[1]) * 0.75; // this might be scaled by user
-    IK::Vector_3 x = (jo.joint_volumes[1][0] - jo.joint_volumes[0][0]) * 0.5;
-    double x_len = std::sqrt (x.squared_length ());
+    session_cpp::Point p_rect_2_mid_0 = session_cpp::Point::mid_point(rect_2[0], rect_2[1]);
+    session_cpp::Point p_rect_2_mid_1 = session_cpp::Point::mid_point(rect_2[3], rect_2[2]);
+    session_cpp::Vector z_scaled = (p_rect_2_mid_0 - rect_2[1]) * 0.75; // this might be scaled by user
+    session_cpp::Vector x = (jo.joint_volumes[1][0] - jo.joint_volumes[0][0] * 0.5);
+    double x_len = std::sqrt (x.magnitude_squared ());
 
-    // viewer_polylines.emplace_back(CGAL_Polyline{
+    // viewer_polylines.emplace_back(Polyline{
     // jo.joint_volumes[0][1]
     // ,jo.joint_volumes[0][2]
     // });
 
-    CGAL_Polyline rect_half_0 = {
+    Polyline rect_half_0 = {
         p_rect_2_mid_0, // + z_scaled,
         rect_2[0] - z_scaled, rect_2[3] - z_scaled,
         p_rect_2_mid_1, // + z_scaled,
-        p_rect_2_mid_0  // + z_scaled
+        p_rect_2_mid_0 // + z_scaled
     };
 
-    CGAL_Polyline rect_half_1 = { p_rect_2_mid_0, rect_2[1] + z_scaled, rect_2[2] + z_scaled, p_rect_2_mid_1, p_rect_2_mid_0 };
+    Polyline rect_half_1 = { p_rect_2_mid_0, rect_2[1] + z_scaled, rect_2[2] + z_scaled, p_rect_2_mid_1, p_rect_2_mid_0 };
 
     // extend
     double y_extend_len = jo.scale[1];
-    cgal::polyline_util::extend_equally (rect_half_0, 1, y_extend_len);
-    cgal::polyline_util::extend_equally (rect_half_0, 3, y_extend_len);
-    cgal::polyline_util::extend_equally (rect_half_1, 1, y_extend_len);
-    cgal::polyline_util::extend_equally (rect_half_1, 3, y_extend_len);
+    session_cpp::extend_equally (rect_half_0, 1, y_extend_len);
+    session_cpp::extend_equally (rect_half_0, 3, y_extend_len);
+    session_cpp::extend_equally (rect_half_1, 1, y_extend_len);
+    session_cpp::extend_equally (rect_half_1, 3, y_extend_len);
 
     double x_target_len = jo.scale[0];
-    IK::Vector_3 x_offset = x * ((5 + x_len + x_target_len) / x_len);
-    IK::Vector_3 x_tween = x * ((0.25) / x_len); // jo.shift is the length
+    session_cpp::Vector x_offset = x * ((5 + x_len + x_target_len) / x_len);
+    session_cpp::Vector x_tween = x * ((0.25) / x_len); // jo.shift is the length
                                                  // //x_offset * jo.shift;
 
-    std::array<IK::Vector_3, 4> offset_vectors = {
+    session_cpp::Vector neg_x_tween  = x_tween  * -1.0;
+    session_cpp::Vector neg_x_offset = x_offset * -1.0;
+    std::array<session_cpp::Vector, 4> offset_vectors = {
         x_tween,
         x_offset,
-        -x_tween,
-        -x_offset,
+        neg_x_tween,
+        neg_x_offset,
     };
 
-    std::array<CGAL_Polyline, 4> m_rectangles{ rect_half_0, rect_half_0, rect_half_0, rect_half_0 };
+    std::array<Polyline, 4> m_rectangles{ rect_half_0, rect_half_0, rect_half_0, rect_half_0 };
 
-    std::array<CGAL_Polyline, 4> f_rectangles{ rect_half_1, rect_half_1, rect_half_1, rect_half_1 };
+    std::array<Polyline, 4> f_rectangles{ rect_half_1, rect_half_1, rect_half_1, rect_half_1 };
 
     for (int j = 0; j < 4; j++)
         {
-            cgal::polyline_util::move (m_rectangles[j], offset_vectors[j]);
-            cgal::polyline_util::move (f_rectangles[j], offset_vectors[j]);
+            session_cpp::move (m_rectangles[j], offset_vectors[j]);
+            session_cpp::move (f_rectangles[j], offset_vectors[j]);
             // viewer_polylines.emplace_back(m_rectangles[j]);
         }
 
@@ -2392,106 +2337,106 @@ ss_e_r_1 (wood::joint &joint, int type)
         case (1):
             joint.f[0] = {
                 {
-                    IK::Point_3 (0.5, -0.625, -0.2),
-                    IK::Point_3 (0.5, -0.625, 0.2),
-                    IK::Point_3 (0.5, 0.125798405, 0.062633245),
-                    IK::Point_3 (0.5, 0.141579173, 0.057404662),
-                    IK::Point_3 (0.5, 0.155319467, 0.04804651),
-                    IK::Point_3 (0.5, 0.16596445, 0.035277208),
-                    IK::Point_3 (0.5, 0.172696911, 0.020077054),
-                    IK::Point_3 (0.5, 0.175, 0.003612957),
-                    IK::Point_3 (0.5, 0.175, -0.003612957),
-                    IK::Point_3 (0.5, 0.172696911, -0.020077054),
-                    IK::Point_3 (0.5, 0.16596445, -0.035277208),
-                    IK::Point_3 (0.5, 0.155319467, -0.04804651),
-                    IK::Point_3 (0.5, 0.141579173, -0.057404662),
-                    IK::Point_3 (0.5, 0.125798405, -0.062633245),
-                    IK::Point_3 (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, 0.2),
+                    session_cpp::Point (0.5, 0.125798405, 0.062633245),
+                    session_cpp::Point (0.5, 0.141579173, 0.057404662),
+                    session_cpp::Point (0.5, 0.155319467, 0.04804651),
+                    session_cpp::Point (0.5, 0.16596445, 0.035277208),
+                    session_cpp::Point (0.5, 0.172696911, 0.020077054),
+                    session_cpp::Point (0.5, 0.175, 0.003612957),
+                    session_cpp::Point (0.5, 0.175, -0.003612957),
+                    session_cpp::Point (0.5, 0.172696911, -0.020077054),
+                    session_cpp::Point (0.5, 0.16596445, -0.035277208),
+                    session_cpp::Point (0.5, 0.155319467, -0.04804651),
+                    session_cpp::Point (0.5, 0.141579173, -0.057404662),
+                    session_cpp::Point (0.5, 0.125798405, -0.062633245),
+                    session_cpp::Point (0.5, -0.625, -0.2),
                 },
                 {
-                    IK::Point_3 (0.5, -0.625, -0.2),
-                    IK::Point_3 (0.5, -0.625, 0.2),
-                    IK::Point_3 (0.5, 0.175, 0.2),
-                    IK::Point_3 (0.5, 0.175, -0.2),
-                    IK::Point_3 (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, 0.2),
+                    session_cpp::Point (0.5, 0.175, 0.2),
+                    session_cpp::Point (0.5, 0.175, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
                 },
             };
             joint.f[1] = {
                 {
-                    IK::Point_3 (0, -0.625, -0.2),
-                    IK::Point_3 (0, -0.625, 0.2),
-                    IK::Point_3 (0, 0.125798405, 0.062633245),
-                    IK::Point_3 (0, 0.141579173, 0.057404662),
-                    IK::Point_3 (0, 0.155319467, 0.04804651),
-                    IK::Point_3 (0, 0.16596445, 0.035277208),
-                    IK::Point_3 (0, 0.172696911, 0.020077054),
-                    IK::Point_3 (0, 0.175, 0.003612957),
-                    IK::Point_3 (0, 0.175, -0.003612957),
-                    IK::Point_3 (0, 0.172696911, -0.020077054),
-                    IK::Point_3 (0, 0.16596445, -0.035277208),
-                    IK::Point_3 (0, 0.155319467, -0.04804651),
-                    IK::Point_3 (0, 0.141579173, -0.057404662),
-                    IK::Point_3 (0, 0.125798405, -0.062633245),
-                    IK::Point_3 (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, 0.2),
+                    session_cpp::Point (0, 0.125798405, 0.062633245),
+                    session_cpp::Point (0, 0.141579173, 0.057404662),
+                    session_cpp::Point (0, 0.155319467, 0.04804651),
+                    session_cpp::Point (0, 0.16596445, 0.035277208),
+                    session_cpp::Point (0, 0.172696911, 0.020077054),
+                    session_cpp::Point (0, 0.175, 0.003612957),
+                    session_cpp::Point (0, 0.175, -0.003612957),
+                    session_cpp::Point (0, 0.172696911, -0.020077054),
+                    session_cpp::Point (0, 0.16596445, -0.035277208),
+                    session_cpp::Point (0, 0.155319467, -0.04804651),
+                    session_cpp::Point (0, 0.141579173, -0.057404662),
+                    session_cpp::Point (0, 0.125798405, -0.062633245),
+                    session_cpp::Point (0, -0.625, -0.2),
                 },
                 {
-                    IK::Point_3 (0, -0.625, -0.2),
-                    IK::Point_3 (0, -0.625, 0.2),
-                    IK::Point_3 (0, 0.175, 0.2),
-                    IK::Point_3 (0, 0.175, -0.2),
-                    IK::Point_3 (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, 0.2),
+                    session_cpp::Point (0, 0.175, 0.2),
+                    session_cpp::Point (0, 0.175, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
                 },
             };
             joint.m[0] = {
                 {
-                    IK::Point_3 (0, -0.625, -0.2),
-                    IK::Point_3 (0, -0.625, 0.2),
-                    IK::Point_3 (0, 0.125798405, 0.062633245),
-                    IK::Point_3 (0, 0.141579173, 0.057404662),
-                    IK::Point_3 (0, 0.155319467, 0.04804651),
-                    IK::Point_3 (0, 0.16596445, 0.035277208),
-                    IK::Point_3 (0, 0.172696911, 0.020077054),
-                    IK::Point_3 (0, 0.175, 0.003612957),
-                    IK::Point_3 (0, 0.175, -0.003612957),
-                    IK::Point_3 (0, 0.172696911, -0.020077054),
-                    IK::Point_3 (0, 0.16596445, -0.035277208),
-                    IK::Point_3 (0, 0.155319467, -0.04804651),
-                    IK::Point_3 (0, 0.141579173, -0.057404662),
-                    IK::Point_3 (0, 0.125798405, -0.062633245),
-                    IK::Point_3 (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, 0.2),
+                    session_cpp::Point (0, 0.125798405, 0.062633245),
+                    session_cpp::Point (0, 0.141579173, 0.057404662),
+                    session_cpp::Point (0, 0.155319467, 0.04804651),
+                    session_cpp::Point (0, 0.16596445, 0.035277208),
+                    session_cpp::Point (0, 0.172696911, 0.020077054),
+                    session_cpp::Point (0, 0.175, 0.003612957),
+                    session_cpp::Point (0, 0.175, -0.003612957),
+                    session_cpp::Point (0, 0.172696911, -0.020077054),
+                    session_cpp::Point (0, 0.16596445, -0.035277208),
+                    session_cpp::Point (0, 0.155319467, -0.04804651),
+                    session_cpp::Point (0, 0.141579173, -0.057404662),
+                    session_cpp::Point (0, 0.125798405, -0.062633245),
+                    session_cpp::Point (0, -0.625, -0.2),
                 },
                 {
-                    IK::Point_3 (0, -0.625, -0.2),
-                    IK::Point_3 (0, -0.625, 0.2),
-                    IK::Point_3 (0, 0.175, 0.2),
-                    IK::Point_3 (0, 0.175, -0.2),
-                    IK::Point_3 (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
+                    session_cpp::Point (0, -0.625, 0.2),
+                    session_cpp::Point (0, 0.175, 0.2),
+                    session_cpp::Point (0, 0.175, -0.2),
+                    session_cpp::Point (0, -0.625, -0.2),
                 },
             };
             joint.m[1] = {
                 {
-                    IK::Point_3 (0.5, -0.625, -0.2),
-                    IK::Point_3 (0.5, -0.625, 0.2),
-                    IK::Point_3 (0.5, 0.125798405, 0.062633245),
-                    IK::Point_3 (0.5, 0.141579173, 0.057404662),
-                    IK::Point_3 (0.5, 0.155319467, 0.04804651),
-                    IK::Point_3 (0.5, 0.16596445, 0.035277208),
-                    IK::Point_3 (0.5, 0.172696911, 0.020077054),
-                    IK::Point_3 (0.5, 0.175, 0.003612957),
-                    IK::Point_3 (0.5, 0.175, -0.003612957),
-                    IK::Point_3 (0.5, 0.172696911, -0.020077054),
-                    IK::Point_3 (0.5, 0.16596445, -0.035277208),
-                    IK::Point_3 (0.5, 0.155319467, -0.04804651),
-                    IK::Point_3 (0.5, 0.141579173, -0.057404662),
-                    IK::Point_3 (0.5, 0.125798405, -0.062633245),
-                    IK::Point_3 (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, 0.2),
+                    session_cpp::Point (0.5, 0.125798405, 0.062633245),
+                    session_cpp::Point (0.5, 0.141579173, 0.057404662),
+                    session_cpp::Point (0.5, 0.155319467, 0.04804651),
+                    session_cpp::Point (0.5, 0.16596445, 0.035277208),
+                    session_cpp::Point (0.5, 0.172696911, 0.020077054),
+                    session_cpp::Point (0.5, 0.175, 0.003612957),
+                    session_cpp::Point (0.5, 0.175, -0.003612957),
+                    session_cpp::Point (0.5, 0.172696911, -0.020077054),
+                    session_cpp::Point (0.5, 0.16596445, -0.035277208),
+                    session_cpp::Point (0.5, 0.155319467, -0.04804651),
+                    session_cpp::Point (0.5, 0.141579173, -0.057404662),
+                    session_cpp::Point (0.5, 0.125798405, -0.062633245),
+                    session_cpp::Point (0.5, -0.625, -0.2),
                 },
                 {
-                    IK::Point_3 (0.5, -0.625, -0.2),
-                    IK::Point_3 (0.5, -0.625, 0.2),
-                    IK::Point_3 (0.5, 0.175, 0.2),
-                    IK::Point_3 (0.5, 0.175, -0.2),
-                    IK::Point_3 (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
+                    session_cpp::Point (0.5, -0.625, 0.2),
+                    session_cpp::Point (0.5, 0.175, 0.2),
+                    session_cpp::Point (0.5, 0.175, -0.2),
+                    session_cpp::Point (0.5, -0.625, -0.2),
                 },
             };
             joint.f_boolean_type = {
@@ -2507,202 +2452,202 @@ ss_e_r_1 (wood::joint &joint, int type)
         default:
             joint.f[0] = {
                 {
-                    IK::Point_3 (0.5, -0.825, 0),
-                    IK::Point_3 (0.5, -0.825, -0.151041813),
-                    IK::Point_3 (0.5, -0.825, -0.302083626),
-                    IK::Point_3 (0.5, -0.825, -0.39066965),
-                    IK::Point_3 (0.5, -0.764910275, -0.37364172),
-                    IK::Point_3 (0.5, -0.619590501, -0.332461718),
-                    IK::Point_3 (0.5, -0.474270727, -0.291281717),
-                    IK::Point_3 (0.5, -0.328950953, -0.250101715),
-                    IK::Point_3 (0.5, -0.183631179, -0.208921714),
-                    IK::Point_3 (0.5, -0.038311405, -0.167741712),
-                    IK::Point_3 (0.5, 0.078145959, -0.134740598),
-                    IK::Point_3 (0.5, 0.097349939, -0.129031066),
-                    IK::Point_3 (0.5, 0.106158874, -0.124374202),
-                    IK::Point_3 (0.5, 0.11914747, -0.117507751),
-                    IK::Point_3 (0.5, 0.138265279, -0.101937742),
-                    IK::Point_3 (0.5, 0.153962352, -0.082924124),
-                    IK::Point_3 (0.5, 0.165630347, -0.061203771),
-                    IK::Point_3 (0.5, 0.172817069, -0.037618462),
-                    IK::Point_3 (0.5, 0.175, -0.01554903),
-                    IK::Point_3 (0.5, 0.175, -3.4E-08),
-                    IK::Point_3 (0.5, 0.175, 0.01554903),
-                    IK::Point_3 (0.5, 0.172817069, 0.037618462),
-                    IK::Point_3 (0.5, 0.165630347, 0.061203771),
-                    IK::Point_3 (0.5, 0.153962352, 0.082924124),
-                    IK::Point_3 (0.5, 0.138265279, 0.101937742),
-                    IK::Point_3 (0.5, 0.11914747, 0.117507751),
-                    IK::Point_3 (0.5, 0.106158839, 0.12437399),
-                    IK::Point_3 (0.5, 0.09734984, 0.129030732),
-                    IK::Point_3 (0.5, 0.078145959, 0.134740598),
-                    IK::Point_3 (0.5, -0.038311405, 0.167741712),
-                    IK::Point_3 (0.5, -0.183631179, 0.208921714),
-                    IK::Point_3 (0.5, -0.328950953, 0.250101715),
-                    IK::Point_3 (0.5, -0.474270727, 0.291281717),
-                    IK::Point_3 (0.5, -0.619590501, 0.332461718),
-                    IK::Point_3 (0.5, -0.764910275, 0.37364172),
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
-                    IK::Point_3 (0.5, -0.825, 0.302083626),
-                    IK::Point_3 (0.5, -0.825, 0.151041813),
-                    IK::Point_3 (0.5, -0.825, 0),
+                    session_cpp::Point (0.5, -0.825, 0),
+                    session_cpp::Point (0.5, -0.825, -0.151041813),
+                    session_cpp::Point (0.5, -0.825, -0.302083626),
+                    session_cpp::Point (0.5, -0.825, -0.39066965),
+                    session_cpp::Point (0.5, -0.764910275, -0.37364172),
+                    session_cpp::Point (0.5, -0.619590501, -0.332461718),
+                    session_cpp::Point (0.5, -0.474270727, -0.291281717),
+                    session_cpp::Point (0.5, -0.328950953, -0.250101715),
+                    session_cpp::Point (0.5, -0.183631179, -0.208921714),
+                    session_cpp::Point (0.5, -0.038311405, -0.167741712),
+                    session_cpp::Point (0.5, 0.078145959, -0.134740598),
+                    session_cpp::Point (0.5, 0.097349939, -0.129031066),
+                    session_cpp::Point (0.5, 0.106158874, -0.124374202),
+                    session_cpp::Point (0.5, 0.11914747, -0.117507751),
+                    session_cpp::Point (0.5, 0.138265279, -0.101937742),
+                    session_cpp::Point (0.5, 0.153962352, -0.082924124),
+                    session_cpp::Point (0.5, 0.165630347, -0.061203771),
+                    session_cpp::Point (0.5, 0.172817069, -0.037618462),
+                    session_cpp::Point (0.5, 0.175, -0.01554903),
+                    session_cpp::Point (0.5, 0.175, -3.4E-08),
+                    session_cpp::Point (0.5, 0.175, 0.01554903),
+                    session_cpp::Point (0.5, 0.172817069, 0.037618462),
+                    session_cpp::Point (0.5, 0.165630347, 0.061203771),
+                    session_cpp::Point (0.5, 0.153962352, 0.082924124),
+                    session_cpp::Point (0.5, 0.138265279, 0.101937742),
+                    session_cpp::Point (0.5, 0.11914747, 0.117507751),
+                    session_cpp::Point (0.5, 0.106158839, 0.12437399),
+                    session_cpp::Point (0.5, 0.09734984, 0.129030732),
+                    session_cpp::Point (0.5, 0.078145959, 0.134740598),
+                    session_cpp::Point (0.5, -0.038311405, 0.167741712),
+                    session_cpp::Point (0.5, -0.183631179, 0.208921714),
+                    session_cpp::Point (0.5, -0.328950953, 0.250101715),
+                    session_cpp::Point (0.5, -0.474270727, 0.291281717),
+                    session_cpp::Point (0.5, -0.619590501, 0.332461718),
+                    session_cpp::Point (0.5, -0.764910275, 0.37364172),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.302083626),
+                    session_cpp::Point (0.5, -0.825, 0.151041813),
+                    session_cpp::Point (0.5, -0.825, 0),
                 },
                 {
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
-                    IK::Point_3 (0.5, 0.175, 0.39066965),
-                    IK::Point_3 (0.5, 0.175, -0.39066965),
-                    IK::Point_3 (0.5, -0.825, -0.39066965),
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, 0.175, 0.39066965),
+                    session_cpp::Point (0.5, 0.175, -0.39066965),
+                    session_cpp::Point (0.5, -0.825, -0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
                 },
             };
             joint.f[1] = {
                 {
-                    IK::Point_3 (0, -0.825, 0),
-                    IK::Point_3 (0, -0.825, -0.151041813),
-                    IK::Point_3 (0, -0.825, -0.302083626),
-                    IK::Point_3 (0, -0.825, -0.39066965),
-                    IK::Point_3 (0, -0.764910275, -0.37364172),
-                    IK::Point_3 (0, -0.619590501, -0.332461718),
-                    IK::Point_3 (0, -0.474270727, -0.291281717),
-                    IK::Point_3 (0, -0.328950953, -0.250101715),
-                    IK::Point_3 (0, -0.183631179, -0.208921714),
-                    IK::Point_3 (0, -0.038311405, -0.167741712),
-                    IK::Point_3 (0, 0.078145959, -0.134740598),
-                    IK::Point_3 (0, 0.097349939, -0.129031066),
-                    IK::Point_3 (0, 0.106158874, -0.124374202),
-                    IK::Point_3 (0, 0.11914747, -0.117507751),
-                    IK::Point_3 (0, 0.138265279, -0.101937742),
-                    IK::Point_3 (0, 0.153962352, -0.082924124),
-                    IK::Point_3 (0, 0.165630347, -0.061203771),
-                    IK::Point_3 (0, 0.172817069, -0.037618462),
-                    IK::Point_3 (0, 0.175, -0.01554903),
-                    IK::Point_3 (0, 0.175, -3.4E-08),
-                    IK::Point_3 (0, 0.175, 0.01554903),
-                    IK::Point_3 (0, 0.172817069, 0.037618462),
-                    IK::Point_3 (0, 0.165630347, 0.061203771),
-                    IK::Point_3 (0, 0.153962352, 0.082924124),
-                    IK::Point_3 (0, 0.138265279, 0.101937742),
-                    IK::Point_3 (0, 0.11914747, 0.117507751),
-                    IK::Point_3 (0, 0.106158839, 0.12437399),
-                    IK::Point_3 (0, 0.09734984, 0.129030732),
-                    IK::Point_3 (0, 0.078145959, 0.134740598),
-                    IK::Point_3 (0, -0.038311405, 0.167741712),
-                    IK::Point_3 (0, -0.183631179, 0.208921714),
-                    IK::Point_3 (0, -0.328950953, 0.250101715),
-                    IK::Point_3 (0, -0.474270727, 0.291281717),
-                    IK::Point_3 (0, -0.619590501, 0.332461718),
-                    IK::Point_3 (0, -0.764910275, 0.37364172),
-                    IK::Point_3 (0, -0.825, 0.39066965),
-                    IK::Point_3 (0, -0.825, 0.302083626),
-                    IK::Point_3 (0, -0.825, 0.151041813),
-                    IK::Point_3 (0, -0.825, 0),
+                    session_cpp::Point (0, -0.825, 0),
+                    session_cpp::Point (0, -0.825, -0.151041813),
+                    session_cpp::Point (0, -0.825, -0.302083626),
+                    session_cpp::Point (0, -0.825, -0.39066965),
+                    session_cpp::Point (0, -0.764910275, -0.37364172),
+                    session_cpp::Point (0, -0.619590501, -0.332461718),
+                    session_cpp::Point (0, -0.474270727, -0.291281717),
+                    session_cpp::Point (0, -0.328950953, -0.250101715),
+                    session_cpp::Point (0, -0.183631179, -0.208921714),
+                    session_cpp::Point (0, -0.038311405, -0.167741712),
+                    session_cpp::Point (0, 0.078145959, -0.134740598),
+                    session_cpp::Point (0, 0.097349939, -0.129031066),
+                    session_cpp::Point (0, 0.106158874, -0.124374202),
+                    session_cpp::Point (0, 0.11914747, -0.117507751),
+                    session_cpp::Point (0, 0.138265279, -0.101937742),
+                    session_cpp::Point (0, 0.153962352, -0.082924124),
+                    session_cpp::Point (0, 0.165630347, -0.061203771),
+                    session_cpp::Point (0, 0.172817069, -0.037618462),
+                    session_cpp::Point (0, 0.175, -0.01554903),
+                    session_cpp::Point (0, 0.175, -3.4E-08),
+                    session_cpp::Point (0, 0.175, 0.01554903),
+                    session_cpp::Point (0, 0.172817069, 0.037618462),
+                    session_cpp::Point (0, 0.165630347, 0.061203771),
+                    session_cpp::Point (0, 0.153962352, 0.082924124),
+                    session_cpp::Point (0, 0.138265279, 0.101937742),
+                    session_cpp::Point (0, 0.11914747, 0.117507751),
+                    session_cpp::Point (0, 0.106158839, 0.12437399),
+                    session_cpp::Point (0, 0.09734984, 0.129030732),
+                    session_cpp::Point (0, 0.078145959, 0.134740598),
+                    session_cpp::Point (0, -0.038311405, 0.167741712),
+                    session_cpp::Point (0, -0.183631179, 0.208921714),
+                    session_cpp::Point (0, -0.328950953, 0.250101715),
+                    session_cpp::Point (0, -0.474270727, 0.291281717),
+                    session_cpp::Point (0, -0.619590501, 0.332461718),
+                    session_cpp::Point (0, -0.764910275, 0.37364172),
+                    session_cpp::Point (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, -0.825, 0.302083626),
+                    session_cpp::Point (0, -0.825, 0.151041813),
+                    session_cpp::Point (0, -0.825, 0),
                 },
                 {
-                    IK::Point_3 (0, -0.825, 0.39066965),
-                    IK::Point_3 (0, 0.175, 0.39066965),
-                    IK::Point_3 (0, 0.175, -0.39066965),
-                    IK::Point_3 (0, -0.825, -0.39066965),
-                    IK::Point_3 (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, 0.175, 0.39066965),
+                    session_cpp::Point (0, 0.175, -0.39066965),
+                    session_cpp::Point (0, -0.825, -0.39066965),
+                    session_cpp::Point (0, -0.825, 0.39066965),
                 },
             };
             joint.m[0] = {
                 {
-                    IK::Point_3 (0, -0.825, 0),
-                    IK::Point_3 (0, -0.825, -0.151041813),
-                    IK::Point_3 (0, -0.825, -0.302083626),
-                    IK::Point_3 (0, -0.825, -0.39066965),
-                    IK::Point_3 (0, -0.764910275, -0.37364172),
-                    IK::Point_3 (0, -0.619590501, -0.332461718),
-                    IK::Point_3 (0, -0.474270727, -0.291281717),
-                    IK::Point_3 (0, -0.328950953, -0.250101715),
-                    IK::Point_3 (0, -0.183631179, -0.208921714),
-                    IK::Point_3 (0, -0.038311405, -0.167741712),
-                    IK::Point_3 (0, 0.078145959, -0.134740598),
-                    IK::Point_3 (0, 0.097349939, -0.129031066),
-                    IK::Point_3 (0, 0.106158874, -0.124374202),
-                    IK::Point_3 (0, 0.11914747, -0.117507751),
-                    IK::Point_3 (0, 0.138265279, -0.101937742),
-                    IK::Point_3 (0, 0.153962352, -0.082924124),
-                    IK::Point_3 (0, 0.165630347, -0.061203771),
-                    IK::Point_3 (0, 0.172817069, -0.037618462),
-                    IK::Point_3 (0, 0.175, -0.01554903),
-                    IK::Point_3 (0, 0.175, -3.4E-08),
-                    IK::Point_3 (0, 0.175, 0.01554903),
-                    IK::Point_3 (0, 0.172817069, 0.037618462),
-                    IK::Point_3 (0, 0.165630347, 0.061203771),
-                    IK::Point_3 (0, 0.153962352, 0.082924124),
-                    IK::Point_3 (0, 0.138265279, 0.101937742),
-                    IK::Point_3 (0, 0.11914747, 0.117507751),
-                    IK::Point_3 (0, 0.106158839, 0.12437399),
-                    IK::Point_3 (0, 0.09734984, 0.129030732),
-                    IK::Point_3 (0, 0.078145959, 0.134740598),
-                    IK::Point_3 (0, -0.038311405, 0.167741712),
-                    IK::Point_3 (0, -0.183631179, 0.208921714),
-                    IK::Point_3 (0, -0.328950953, 0.250101715),
-                    IK::Point_3 (0, -0.474270727, 0.291281717),
-                    IK::Point_3 (0, -0.619590501, 0.332461718),
-                    IK::Point_3 (0, -0.764910275, 0.37364172),
-                    IK::Point_3 (0, -0.825, 0.39066965),
-                    IK::Point_3 (0, -0.825, 0.302083626),
-                    IK::Point_3 (0, -0.825, 0.151041813),
-                    IK::Point_3 (0, -0.825, 0),
+                    session_cpp::Point (0, -0.825, 0),
+                    session_cpp::Point (0, -0.825, -0.151041813),
+                    session_cpp::Point (0, -0.825, -0.302083626),
+                    session_cpp::Point (0, -0.825, -0.39066965),
+                    session_cpp::Point (0, -0.764910275, -0.37364172),
+                    session_cpp::Point (0, -0.619590501, -0.332461718),
+                    session_cpp::Point (0, -0.474270727, -0.291281717),
+                    session_cpp::Point (0, -0.328950953, -0.250101715),
+                    session_cpp::Point (0, -0.183631179, -0.208921714),
+                    session_cpp::Point (0, -0.038311405, -0.167741712),
+                    session_cpp::Point (0, 0.078145959, -0.134740598),
+                    session_cpp::Point (0, 0.097349939, -0.129031066),
+                    session_cpp::Point (0, 0.106158874, -0.124374202),
+                    session_cpp::Point (0, 0.11914747, -0.117507751),
+                    session_cpp::Point (0, 0.138265279, -0.101937742),
+                    session_cpp::Point (0, 0.153962352, -0.082924124),
+                    session_cpp::Point (0, 0.165630347, -0.061203771),
+                    session_cpp::Point (0, 0.172817069, -0.037618462),
+                    session_cpp::Point (0, 0.175, -0.01554903),
+                    session_cpp::Point (0, 0.175, -3.4E-08),
+                    session_cpp::Point (0, 0.175, 0.01554903),
+                    session_cpp::Point (0, 0.172817069, 0.037618462),
+                    session_cpp::Point (0, 0.165630347, 0.061203771),
+                    session_cpp::Point (0, 0.153962352, 0.082924124),
+                    session_cpp::Point (0, 0.138265279, 0.101937742),
+                    session_cpp::Point (0, 0.11914747, 0.117507751),
+                    session_cpp::Point (0, 0.106158839, 0.12437399),
+                    session_cpp::Point (0, 0.09734984, 0.129030732),
+                    session_cpp::Point (0, 0.078145959, 0.134740598),
+                    session_cpp::Point (0, -0.038311405, 0.167741712),
+                    session_cpp::Point (0, -0.183631179, 0.208921714),
+                    session_cpp::Point (0, -0.328950953, 0.250101715),
+                    session_cpp::Point (0, -0.474270727, 0.291281717),
+                    session_cpp::Point (0, -0.619590501, 0.332461718),
+                    session_cpp::Point (0, -0.764910275, 0.37364172),
+                    session_cpp::Point (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, -0.825, 0.302083626),
+                    session_cpp::Point (0, -0.825, 0.151041813),
+                    session_cpp::Point (0, -0.825, 0),
                 },
                 {
-                    IK::Point_3 (0, -0.825, 0.39066965),
-                    IK::Point_3 (0, 0.175, 0.39066965),
-                    IK::Point_3 (0, 0.175, -0.39066965),
-                    IK::Point_3 (0, -0.825, -0.39066965),
-                    IK::Point_3 (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, -0.825, 0.39066965),
+                    session_cpp::Point (0, 0.175, 0.39066965),
+                    session_cpp::Point (0, 0.175, -0.39066965),
+                    session_cpp::Point (0, -0.825, -0.39066965),
+                    session_cpp::Point (0, -0.825, 0.39066965),
                 },
             };
             joint.m[1] = {
                 {
-                    IK::Point_3 (0.5, -0.825, 0),
-                    IK::Point_3 (0.5, -0.825, -0.151041813),
-                    IK::Point_3 (0.5, -0.825, -0.302083626),
-                    IK::Point_3 (0.5, -0.825, -0.39066965),
-                    IK::Point_3 (0.5, -0.764910275, -0.37364172),
-                    IK::Point_3 (0.5, -0.619590501, -0.332461718),
-                    IK::Point_3 (0.5, -0.474270727, -0.291281717),
-                    IK::Point_3 (0.5, -0.328950953, -0.250101715),
-                    IK::Point_3 (0.5, -0.183631179, -0.208921714),
-                    IK::Point_3 (0.5, -0.038311405, -0.167741712),
-                    IK::Point_3 (0.5, 0.078145959, -0.134740598),
-                    IK::Point_3 (0.5, 0.097349939, -0.129031066),
-                    IK::Point_3 (0.5, 0.106158874, -0.124374202),
-                    IK::Point_3 (0.5, 0.11914747, -0.117507751),
-                    IK::Point_3 (0.5, 0.138265279, -0.101937742),
-                    IK::Point_3 (0.5, 0.153962352, -0.082924124),
-                    IK::Point_3 (0.5, 0.165630347, -0.061203771),
-                    IK::Point_3 (0.5, 0.172817069, -0.037618462),
-                    IK::Point_3 (0.5, 0.175, -0.01554903),
-                    IK::Point_3 (0.5, 0.175, -3.4E-08),
-                    IK::Point_3 (0.5, 0.175, 0.01554903),
-                    IK::Point_3 (0.5, 0.172817069, 0.037618462),
-                    IK::Point_3 (0.5, 0.165630347, 0.061203771),
-                    IK::Point_3 (0.5, 0.153962352, 0.082924124),
-                    IK::Point_3 (0.5, 0.138265279, 0.101937742),
-                    IK::Point_3 (0.5, 0.11914747, 0.117507751),
-                    IK::Point_3 (0.5, 0.106158839, 0.12437399),
-                    IK::Point_3 (0.5, 0.09734984, 0.129030732),
-                    IK::Point_3 (0.5, 0.078145959, 0.134740598),
-                    IK::Point_3 (0.5, -0.038311405, 0.167741712),
-                    IK::Point_3 (0.5, -0.183631179, 0.208921714),
-                    IK::Point_3 (0.5, -0.328950953, 0.250101715),
-                    IK::Point_3 (0.5, -0.474270727, 0.291281717),
-                    IK::Point_3 (0.5, -0.619590501, 0.332461718),
-                    IK::Point_3 (0.5, -0.764910275, 0.37364172),
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
-                    IK::Point_3 (0.5, -0.825, 0.302083626),
-                    IK::Point_3 (0.5, -0.825, 0.151041813),
-                    IK::Point_3 (0.5, -0.825, 0),
+                    session_cpp::Point (0.5, -0.825, 0),
+                    session_cpp::Point (0.5, -0.825, -0.151041813),
+                    session_cpp::Point (0.5, -0.825, -0.302083626),
+                    session_cpp::Point (0.5, -0.825, -0.39066965),
+                    session_cpp::Point (0.5, -0.764910275, -0.37364172),
+                    session_cpp::Point (0.5, -0.619590501, -0.332461718),
+                    session_cpp::Point (0.5, -0.474270727, -0.291281717),
+                    session_cpp::Point (0.5, -0.328950953, -0.250101715),
+                    session_cpp::Point (0.5, -0.183631179, -0.208921714),
+                    session_cpp::Point (0.5, -0.038311405, -0.167741712),
+                    session_cpp::Point (0.5, 0.078145959, -0.134740598),
+                    session_cpp::Point (0.5, 0.097349939, -0.129031066),
+                    session_cpp::Point (0.5, 0.106158874, -0.124374202),
+                    session_cpp::Point (0.5, 0.11914747, -0.117507751),
+                    session_cpp::Point (0.5, 0.138265279, -0.101937742),
+                    session_cpp::Point (0.5, 0.153962352, -0.082924124),
+                    session_cpp::Point (0.5, 0.165630347, -0.061203771),
+                    session_cpp::Point (0.5, 0.172817069, -0.037618462),
+                    session_cpp::Point (0.5, 0.175, -0.01554903),
+                    session_cpp::Point (0.5, 0.175, -3.4E-08),
+                    session_cpp::Point (0.5, 0.175, 0.01554903),
+                    session_cpp::Point (0.5, 0.172817069, 0.037618462),
+                    session_cpp::Point (0.5, 0.165630347, 0.061203771),
+                    session_cpp::Point (0.5, 0.153962352, 0.082924124),
+                    session_cpp::Point (0.5, 0.138265279, 0.101937742),
+                    session_cpp::Point (0.5, 0.11914747, 0.117507751),
+                    session_cpp::Point (0.5, 0.106158839, 0.12437399),
+                    session_cpp::Point (0.5, 0.09734984, 0.129030732),
+                    session_cpp::Point (0.5, 0.078145959, 0.134740598),
+                    session_cpp::Point (0.5, -0.038311405, 0.167741712),
+                    session_cpp::Point (0.5, -0.183631179, 0.208921714),
+                    session_cpp::Point (0.5, -0.328950953, 0.250101715),
+                    session_cpp::Point (0.5, -0.474270727, 0.291281717),
+                    session_cpp::Point (0.5, -0.619590501, 0.332461718),
+                    session_cpp::Point (0.5, -0.764910275, 0.37364172),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.302083626),
+                    session_cpp::Point (0.5, -0.825, 0.151041813),
+                    session_cpp::Point (0.5, -0.825, 0),
                 },
                 {
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
-                    IK::Point_3 (0.5, 0.175, 0.39066965),
-                    IK::Point_3 (0.5, 0.175, -0.39066965),
-                    IK::Point_3 (0.5, -0.825, -0.39066965),
-                    IK::Point_3 (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
+                    session_cpp::Point (0.5, 0.175, 0.39066965),
+                    session_cpp::Point (0.5, 0.175, -0.39066965),
+                    session_cpp::Point (0.5, -0.825, -0.39066965),
+                    session_cpp::Point (0.5, -0.825, 0.39066965),
                 },
             };
 
@@ -2736,20 +2681,20 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
     /////////////////////////////////////////////////////////////////////////////////
     // offset vector
     /////////////////////////////////////////////////////////////////////////////////
-    IK::Vector_3 f0_0_normal = elements[jo.v0].planes[jo.f0_0].orthogonal_vector ();
-    cgal::vector_util::unitize (f0_0_normal);
+    session_cpp::Vector f0_0_normal = elements[jo.v0].planes[jo.f0_0].z_axis ();
+    session_cpp::unitize (f0_0_normal);
     // v0 *= (jo.scale[2] + jo.shift);
     f0_0_normal *= (jo.scale[2]);
 
-    IK::Vector_3 f1_0_normal = elements[jo.v1].planes[jo.f1_0].orthogonal_vector ();
-    cgal::vector_util::unitize (f1_0_normal);
+    session_cpp::Vector f1_0_normal = elements[jo.v1].planes[jo.f1_0].z_axis ();
+    session_cpp::unitize (f1_0_normal);
     f1_0_normal *= (jo.scale[2] + 2); // Forced for safety
 
     /////////////////////////////////////////////////////////////////////////////////
     // copy side rectangles
     /////////////////////////////////////////////////////////////////////////////////
-    CGAL_Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
-    CGAL_Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
+    Polyline pline0 = elements[jo.v0].polylines[jo.f0_0];
+    Polyline pline1 = elements[jo.v1].polylines[jo.f1_0];
 
     /////////////////////////////////////////////////////////////////////////////////
     // extend only convex angles and side polygons
@@ -2762,7 +2707,7 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
             // get convex_concave corners
             std::vector<bool> convex_corner0;
 
-            cgal::polyline_util::get_convex_corners (elements[jo.v0].polylines[0], convex_corner0);
+            session_cpp::get_convex_corners (elements[jo.v0].polylines[0], convex_corner0);
 
             int id = 15;
 
@@ -2770,44 +2715,44 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
             double scale0_1 = convex_corner0[(jo.f0_0 - 2 + 1) % convex_corner0.size ()] ? jo.scale[0] : 0;
 
             std::vector<bool> convex_corner1;
-            cgal::polyline_util::get_convex_corners (elements[jo.v1].polylines[0], convex_corner1);
+            session_cpp::get_convex_corners (elements[jo.v1].polylines[0], convex_corner1);
             double scale1_0 = convex_corner1[jo.f1_0 - 2] ? jo.scale[0] : 0;
             double scale1_1 = convex_corner1[(jo.f1_0 - 2 + 1) % convex_corner1.size ()] ? jo.scale[0] : 0;
 
             // currrent
-            cgal::polyline_util::extend (pline0, 0, scale0_0, scale0_1);
-            cgal::polyline_util::extend (pline0, 2, scale0_1, scale0_0);
+            session_cpp::extend (pline0, 0, scale0_0, scale0_1);
+            session_cpp::extend (pline0, 2, scale0_1, scale0_0);
 
             // neighbor
-            cgal::polyline_util::extend (pline1, 0, scale1_0, scale1_1);
-            cgal::polyline_util::extend (pline1, 2, scale1_1, scale1_0);
+            session_cpp::extend (pline1, 0, scale1_0, scale1_1);
+            session_cpp::extend (pline1, 2, scale1_1, scale1_0);
 
             // extend vertical
-            cgal::polyline_util::extend (pline0, 1, jo.scale[1], jo.scale[1]);
-            cgal::polyline_util::extend (pline0, 3, jo.scale[1], jo.scale[1]);
-            cgal::polyline_util::extend (pline1, 1, jo.scale[1], jo.scale[1]);
-            cgal::polyline_util::extend (pline1, 3, jo.scale[1], jo.scale[1]);
+            session_cpp::extend (pline0, 1, jo.scale[1], jo.scale[1]);
+            session_cpp::extend (pline0, 3, jo.scale[1], jo.scale[1]);
+            session_cpp::extend (pline1, 1, jo.scale[1], jo.scale[1]);
+            session_cpp::extend (pline1, 3, jo.scale[1], jo.scale[1]);
         }
 
     /////////////////////////////////////////////////////////////////////////////////
     // move outlines by vector
     /////////////////////////////////////////////////////////////////////////////////
-    CGAL_Polyline pline0_moved0 = pline0; // side 0
-    CGAL_Polyline pline0_moved1 = pline0; // side 0
-    CGAL_Polyline pline1_moved = pline1;  // side 1
+    Polyline pline0_moved0 = pline0; // side 0
+    Polyline pline0_moved1 = pline0; // side 0
+    Polyline pline1_moved = pline1;  // side 1
 
-    IK::Vector_3 f0_1_normal = f0_0_normal;
-    cgal::vector_util::unitize (f0_1_normal);
+    session_cpp::Vector f0_1_normal = f0_0_normal;
+    session_cpp::unitize (f0_1_normal);
     f0_1_normal *= (jo.scale[2] + 2) + jo.shift; // Forced offset for safety
 
     // Move twice to remove one side and the cut
     // surface around
-    cgal::polyline_util::move (pline0_moved0, f0_0_normal);
-    cgal::polyline_util::move (pline0_moved1, f0_1_normal);
+    session_cpp::move (pline0_moved0, f0_0_normal);
+    session_cpp::move (pline0_moved1, f0_1_normal);
 
     // Move once to remove the side and the cut
     // the female joint
-    cgal::polyline_util::move (pline1_moved, f1_0_normal);
+    session_cpp::move (pline1_moved, f1_0_normal);
 
     /////////////////////////////////////////////////////////////////////////////////
     // orient a tile
@@ -2820,51 +2765,51 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
 
     // 1) Create rectangle between two edge of the
     // side
-    IK::Point_3 edge_mid_0 = CGAL::midpoint (CGAL::midpoint (pline0[0], pline1[0]), CGAL::midpoint (pline0[1], pline1[1]));
-    IK::Point_3 edge_mid_1 = CGAL::midpoint (CGAL::midpoint (pline0[3], pline1[3]), CGAL::midpoint (pline0[2], pline1[2]));
-    double half_dist = std::sqrt (CGAL::squared_distance (edge_mid_0, edge_mid_1)) * 0.5;
+    session_cpp::Point edge_mid_0 = session_cpp::Point::mid_point(session_cpp::Point::mid_point(pline0[0], pline1[0]), session_cpp::Point::mid_point(pline0[1], pline1[1]));
+    session_cpp::Point edge_mid_1 = session_cpp::Point::mid_point(session_cpp::Point::mid_point(pline0[3], pline1[3]), session_cpp::Point::mid_point(pline0[2], pline1[2]));
+    double half_dist = std::sqrt (session_cpp::Point::squared_distance(edge_mid_0, edge_mid_1)) * 0.5;
     half_dist = 10; // Change to scale
 
-    IK::Vector_3 z_axis = f0_0_normal;
-    cgal::vector_util::unitize (z_axis);
+    session_cpp::Vector z_axis = f0_0_normal;
+    session_cpp::unitize (z_axis);
 
     z_axis *= jo.scale[2] / half_dist;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     // Get average line
-    IK::Segment_3 average_line;
-    cgal::polyline_util::line_line_overlap_average (jo.joint_lines[0], jo.joint_lines[1], average_line);
-    // viewer_polylines.emplace_back(CGAL_Polyline({average_line[0],
+    session_cpp::Line average_line;
+    session_cpp::line_line_overlap_average (jo.joint_lines[0], jo.joint_lines[1], average_line);
+    // viewer_polylines.emplace_back(Polyline({average_line[0],
     // average_line[1]}));
 
     // Get average thickness
     double half_thickness = (elements[jo.v0].thickness + elements[jo.v1].thickness) / 4.0;
 
     // Move points up and down using cross product
-    auto x_axis = CGAL::cross_product (z_axis, average_line.to_vector ());
-    cgal::vector_util::unitize (x_axis);
+    auto x_axis = (z_axis).cross (average_line.to_vector ());
+    session_cpp::unitize (x_axis);
 
-    IK::Point_3 p0 = CGAL::midpoint (average_line[0], average_line[1]) + x_axis * half_thickness;
-    IK::Point_3 p1 = CGAL::midpoint (average_line[0], average_line[1]) - x_axis * half_thickness;
-    if (CGAL::has_smaller_distance_to_point (CGAL::midpoint (pline0[0], pline0[1]), p0, p1))
+    session_cpp::Point p0 = session_cpp::Point::mid_point(average_line.start(), average_line.end()) + x_axis * half_thickness;
+    session_cpp::Point p1 = session_cpp::Point::mid_point(average_line.start(), average_line.end()) - x_axis * half_thickness;
+    if (session_cpp::Point::squared_distance(session_cpp::Point::mid_point(pline0[0], pline0[1]), p0) < session_cpp::Point::squared_distance(session_cpp::Point::mid_point(pline0[0], pline0[1]), p1))
         std::swap (p0, p1);
 
     // set y-axis
     auto y_axis = average_line.to_vector ();
-    cgal::vector_util::unitize (y_axis);
+    session_cpp::unitize (y_axis);
     /////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // y_axis = result.to_vector();
     // y_axis =
-    // (IK::Segment_3(jo.joint_lines[1][0],
+    // (session_cpp::Line(jo.joint_lines[1][0],
     // jo.joint_lines[1][1])).to_vector();
     // cgal_vector_util::unitize(y_axis);
 
-    CGAL_Polyline rect0 = {
+    Polyline rect0 = {
         p0 - y_axis * half_dist * 1 - z_axis * half_dist, p0 - y_axis * half_dist * 1 + z_axis * half_dist, p1 - y_axis * half_dist * 1 + z_axis * half_dist,
         p1 - y_axis * half_dist * 1 - z_axis * half_dist, p0 - y_axis * half_dist * 1 - z_axis * half_dist,
     };
-    CGAL_Polyline rect1 = {
+    Polyline rect1 = {
         p0 - y_axis * half_dist * -1 - z_axis * half_dist, p0 - y_axis * half_dist * -1 + z_axis * half_dist, p1 - y_axis * half_dist * -1 + z_axis * half_dist,
         p1 - y_axis * half_dist * -1 - z_axis * half_dist, p0 - y_axis * half_dist * -1 - z_axis * half_dist,
     };
@@ -2879,7 +2824,7 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
     //  vector2.begin(), vector2.end() );
     /////////////////////////////////////////////////////////////////////////////////
 
-    CGAL_Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
+    Polyline pline0_moved0_surfacing_tolerance_male = pline0_moved0;
     // cgal_polyline_util::move(pline0_moved0_surfacing_tolerance_male,
     // z_axis * 0.20);
 
@@ -2973,11 +2918,14 @@ side_removal_ss_e_r_1 (wood::joint &jo, std::vector<wood::element> &elements, bo
                     joint_2.orient_to_connection_area (); // and orient to
                                                           // connection volume
 
-                    IK::Plane_3 plane_0_0 (jo.m[0][0][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector ());
-                    IK::Plane_3 plane_0_1 (jo.m[0][2][0], elements[jo.v0].planes[jo.f0_0].orthogonal_vector ());
+                    session_cpp::Point  _pn_p0  = jo.m[0][0][0];
+                    session_cpp::Point  _pn_p1  = jo.m[0][2][0];
+                    session_cpp::Vector _pn_nrm = elements[jo.v0].planes[jo.f0_0].z_axis ();
+                    session_cpp::Plane plane_0_0 = session_cpp::Plane::from_point_normal (_pn_p0, _pn_nrm);
+                    session_cpp::Plane plane_0_1 = session_cpp::Plane::from_point_normal (_pn_p1, _pn_nrm);
                     // wood::cut::conical offset
-                    double dist_two_outlines = std::sqrt (CGAL::squared_distance (jo.m[0][0][0], plane_0_1.projection (jo.m[0][0][0])));
-                    double conic_offset = -cgal::math_util::triangle_edge_by_angle (dist_two_outlines, 15.0);
+                    double dist_two_outlines = std::sqrt (session_cpp::Point::squared_distance (jo.m[0][0][0], plane_0_1.project (jo.m[0][0][0])));
+                    double conic_offset = -session_cpp::triangle_edge_by_angle (dist_two_outlines, 15.0);
                     double conic_offset_opposite = -(0.8440 + conic_offset);
                     // wood::cut::conic_offset =
                     // 0.8440; printf("\n %f",
@@ -3124,14 +3072,11 @@ ss_e_r_2 (wood::joint &joint, std::vector<wood::element> &elements)
 
     // parameters that comes from the joint
     bool default_values = false;
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0],
-                                                                              joint.joint_lines[0][1]))
-                                         : 1000; // std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0],
-                                                 // joint.joint_lines[0][1]))
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1]))
+                                         : 1000; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_lines[0][0], // joint.joint_lines[0][1]))
                                                  // : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(CGAL::squared_distance(joint.joint_volumes[0][1],
-                                                                                        // joint.joint_volumes[0][2]))
+    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_volumes[0][1], // joint.joint_volumes[0][2]))
                                                                                         // : 40;
 
     // scale down the edge, since wood_joint ->
@@ -3149,38 +3094,38 @@ ss_e_r_2 (wood::joint &joint, std::vector<wood::element> &elements)
     // movement vectors to translate the unit
     // joint to the end of the edge and then to
     // its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> male_0 = { {
+    std::vector<Polyline> male_0 = { {
 
-                                              IK::Point_3 (0.2, 0.275, 0.166667),
-                                              IK::Point_3 (-0.116667, 0.275, 0.166667),
-                                              IK::Point_3 (-0.619628, 0.275, 0.375),
-                                              IK::Point_3 (-1.0, 0.275, 0.375),
-                                              IK::Point_3 (-1.0, 0.275, -0.375),
-                                              IK::Point_3 (-0.619628, 0.275, -0.375),
-                                              IK::Point_3 (-0.116667, 0.275, -0.166667),
-                                              IK::Point_3 (0.2, 0.275, -0.166667),
-                                              IK::Point_3 (0.2, 0.275, 0.166667),
+                                              session_cpp::Point (0.2, 0.275, 0.166667),
+                                              session_cpp::Point (-0.116667, 0.275, 0.166667),
+                                              session_cpp::Point (-0.619628, 0.275, 0.375),
+                                              session_cpp::Point (-1.0, 0.275, 0.375),
+                                              session_cpp::Point (-1.0, 0.275, -0.375),
+                                              session_cpp::Point (-0.619628, 0.275, -0.375),
+                                              session_cpp::Point (-0.116667, 0.275, -0.166667),
+                                              session_cpp::Point (0.2, 0.275, -0.166667),
+                                              session_cpp::Point (0.2, 0.275, 0.166667),
 
                                           },
                                           {
-                                              IK::Point_3 (0.2, 0.275, -0.166667),
-                                              IK::Point_3 (0.2, 0.275, 0.166667),
+                                              session_cpp::Point (0.2, 0.275, -0.166667),
+                                              session_cpp::Point (0.2, 0.275, 0.166667),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = {
+    std::vector<Polyline> male_1 = {
 
-        { IK::Point_3 (0.2, -0.7, 0.166667), IK::Point_3 (-0.116667, -0.7, 0.166667), IK::Point_3 (-0.619628, -0.7, 0.375), IK::Point_3 (-1.0, -0.7, 0.375), IK::Point_3 (-1.0, -0.7, -0.375),
-          IK::Point_3 (-0.619628, -0.7, -0.375), IK::Point_3 (-0.116667, -0.7, -0.166667), IK::Point_3 (0.2, -0.7, -0.166667), IK::Point_3 (0.2, -0.7, 0.166667) },
+        { session_cpp::Point (0.2, -0.7, 0.166667), session_cpp::Point (-0.116667, -0.7, 0.166667), session_cpp::Point (-0.619628, -0.7, 0.375), session_cpp::Point (-1.0, -0.7, 0.375), session_cpp::Point (-1.0, -0.7, -0.375),
+          session_cpp::Point (-0.619628, -0.7, -0.375), session_cpp::Point (-0.116667, -0.7, -0.166667), session_cpp::Point (0.2, -0.7, -0.166667), session_cpp::Point (0.2, -0.7, 0.166667) },
         {
-            IK::Point_3 (0.2, -0.7, 0.166667),
-            IK::Point_3 (0.2, -0.7, -0.166667),
+            session_cpp::Point (0.2, -0.7, 0.166667),
+            session_cpp::Point (0.2, -0.7, -0.166667),
         }
     };
 
@@ -3189,28 +3134,28 @@ ss_e_r_2 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> female_0 = { {
-                                                IK::Point_3 (-0.2, 0.275, 0.166667),
-                                                IK::Point_3 (-0.2, 0.275, -0.166667),
-                                                IK::Point_3 (0.116667, 0.275, -0.166667),
-                                                IK::Point_3 (0.619628, 0.275, -0.375),
-                                                IK::Point_3 (1, 0.275, -0.375),
-                                                IK::Point_3 (1, 0.275, 0.375),
-                                                IK::Point_3 (0.619628, 0.275, 0.375),
-                                                IK::Point_3 (0.116667, 0.275, 0.166667),
-                                                IK::Point_3 (-0.2, 0.275, 0.166667),
+    std::vector<Polyline> female_0 = { {
+                                                session_cpp::Point (-0.2, 0.275, 0.166667),
+                                                session_cpp::Point (-0.2, 0.275, -0.166667),
+                                                session_cpp::Point (0.116667, 0.275, -0.166667),
+                                                session_cpp::Point (0.619628, 0.275, -0.375),
+                                                session_cpp::Point (1, 0.275, -0.375),
+                                                session_cpp::Point (1, 0.275, 0.375),
+                                                session_cpp::Point (0.619628, 0.275, 0.375),
+                                                session_cpp::Point (0.116667, 0.275, 0.166667),
+                                                session_cpp::Point (-0.2, 0.275, 0.166667),
                                             },
                                             {
-                                                IK::Point_3 (-0.2, 0.275, -0.166667),
-                                                IK::Point_3 (-0.2, 0.275, 0.166667),
+                                                session_cpp::Point (-0.2, 0.275, -0.166667),
+                                                session_cpp::Point (-0.2, 0.275, 0.166667),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1
-        = { { IK::Point_3 (-0.2, -0.7, 0.166667), IK::Point_3 (-0.2, -0.7, -0.166667), IK::Point_3 (0.116667, -0.7, -0.166667), IK::Point_3 (0.619628, -0.7, -0.375), IK::Point_3 (1, -0.7, -0.375),
-              IK::Point_3 (1, -0.7, 0.375), IK::Point_3 (0.619628, -0.7, 0.375), IK::Point_3 (0.116667, -0.7, 0.166667), IK::Point_3 (-0.2, -0.7, 0.166667) },
+    std::vector<Polyline> female_1
+        = { { session_cpp::Point (-0.2, -0.7, 0.166667), session_cpp::Point (-0.2, -0.7, -0.166667), session_cpp::Point (0.116667, -0.7, -0.166667), session_cpp::Point (0.619628, -0.7, -0.375), session_cpp::Point (1, -0.7, -0.375),
+              session_cpp::Point (1, -0.7, 0.375), session_cpp::Point (0.619628, -0.7, 0.375), session_cpp::Point (0.116667, -0.7, 0.166667), session_cpp::Point (-0.2, -0.7, 0.166667) },
             {
-                IK::Point_3 (-0.2, -0.7, -0.166667),
-                IK::Point_3 (-0.2, -0.7, 0.166667),
+                session_cpp::Point (-0.2, -0.7, -0.166667),
+                session_cpp::Point (-0.2, -0.7, 0.166667),
             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::mill_project, wood::cut::mill_project };
@@ -3237,10 +3182,10 @@ ss_e_r_2 (wood::joint &joint, std::vector<wood::element> &elements)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at
             // the center to the end of the
@@ -3296,11 +3241,11 @@ ss_e_r_2 (wood::joint &joint, std::vector<wood::element> &elements)
         {
             if (joint_volume.size () != 5)
                 continue;
-            IK::Point_3 center = CGAL::midpoint (joint_volume[0], joint_volume[1]);
-            IK::Vector_3 x_dir = joint_volume[1] - joint_volume[0];
-            IK::Vector_3 y_dir = joint_volume[2] - joint_volume[1];
-            cgal::vector_util::unitize (x_dir);
-            cgal::vector_util::unitize (y_dir);
+            session_cpp::Point center = session_cpp::Point::mid_point(joint_volume[0], joint_volume[1]);
+            session_cpp::Vector x_dir = joint_volume[1] - joint_volume[0];
+            session_cpp::Vector y_dir = joint_volume[2] - joint_volume[1];
+            session_cpp::unitize (x_dir);
+            session_cpp::unitize (y_dir);
             x_dir *= x_dir_length * 0.5;
             y_dir *= y_dir_length * 0.5;
             joint_volume = {
@@ -3326,14 +3271,11 @@ ss_e_r_3 (wood::joint &joint, std::vector<wood::element> &elements)
 
     // parameters that comes from the joint
     bool default_values = false;
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0],
-                                                                              joint.joint_lines[0][1]))
-                                         : 1000; // std::sqrt(CGAL::squared_distance(joint.joint_lines[0][0],
-                                                 // joint.joint_lines[0][1]))
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1]))
+                                         : 1000; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_lines[0][0], // joint.joint_lines[0][1]))
                                                  // : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(CGAL::squared_distance(joint.joint_volumes[0][1],
-                                                                                        // joint.joint_volumes[0][2]))
+    double joint_volume_edge_length = !default_values ? joint.unit_scale_distance : 40; // std::sqrt(session_cpp::Point::squared_distance(joint.joint_volumes[0][1], // joint.joint_volumes[0][2]))
                                                                                         // : 40;
 
     // scale down the edge, since wood_joint ->
@@ -3351,38 +3293,38 @@ ss_e_r_3 (wood::joint &joint, std::vector<wood::element> &elements)
     // movement vectors to translate the unit
     // joint to the end of the edge and then to
     // its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> male_0 = { {
-                                              IK::Point_3 (0.40237, 0.6, 0),
-                                              IK::Point_3 (-0.502961, 0.6, 0.375),
-                                              IK::Point_3 (-1, 0.6, 0.375),
-                                              IK::Point_3 (-1, 0.6, -0.375),
-                                              IK::Point_3 (-0.502961, 0.6, -0.375),
-                                              IK::Point_3 (0.40237, 0.6, 0),
+    std::vector<Polyline> male_0 = { {
+                                              session_cpp::Point (0.40237, 0.6, 0),
+                                              session_cpp::Point (-0.502961, 0.6, 0.375),
+                                              session_cpp::Point (-1, 0.6, 0.375),
+                                              session_cpp::Point (-1, 0.6, -0.375),
+                                              session_cpp::Point (-0.502961, 0.6, -0.375),
+                                              session_cpp::Point (0.40237, 0.6, 0),
                                           },
                                           {
-                                              IK::Point_3 (0.2, 0.6, -0.166667),
-                                              IK::Point_3 (0.2, 0.6, 0.166667),
+                                              session_cpp::Point (0.2, 0.6, -0.166667),
+                                              session_cpp::Point (0.2, 0.6, 0.166667),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = { {
-                                              IK::Point_3 (0.40237, -0.6, 0),
-                                              IK::Point_3 (-0.502961, -0.6, 0.375),
-                                              IK::Point_3 (-1, -0.6, 0.375),
-                                              IK::Point_3 (-1, -0.6, -0.375),
-                                              IK::Point_3 (-0.502961, -0.6, -0.375),
-                                              IK::Point_3 (0.40237, -0.6, 0),
+    std::vector<Polyline> male_1 = { {
+                                              session_cpp::Point (0.40237, -0.6, 0),
+                                              session_cpp::Point (-0.502961, -0.6, 0.375),
+                                              session_cpp::Point (-1, -0.6, 0.375),
+                                              session_cpp::Point (-1, -0.6, -0.375),
+                                              session_cpp::Point (-0.502961, -0.6, -0.375),
+                                              session_cpp::Point (0.40237, -0.6, 0),
                                           },
                                           {
-                                              IK::Point_3 (0.2, -0.6, 0.166667),
-                                              IK::Point_3 (0.2, -0.6, -0.166667),
+                                              session_cpp::Point (0.2, -0.6, 0.166667),
+                                              session_cpp::Point (0.2, -0.6, -0.166667),
                                           } };
 
     std::vector<wood::cut::cut_type> male_types{ wood::cut::mill_project, wood::cut::mill_project };
@@ -3390,32 +3332,32 @@ ss_e_r_3 (wood::joint &joint, std::vector<wood::element> &elements)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> female_0 = { {
-                                                IK::Point_3 (-0.40237, 0.6, 0),
-                                                IK::Point_3 (0.502961, 0.6, -0.375),
-                                                IK::Point_3 (1, 0.6, -0.375),
-                                                IK::Point_3 (1, 0.6, 0.375),
-                                                IK::Point_3 (0.502961, 0.6, 0.375),
-                                                IK::Point_3 (-0.40237, 0.6, 0),
+    std::vector<Polyline> female_0 = { {
+                                                session_cpp::Point (-0.40237, 0.6, 0),
+                                                session_cpp::Point (0.502961, 0.6, -0.375),
+                                                session_cpp::Point (1, 0.6, -0.375),
+                                                session_cpp::Point (1, 0.6, 0.375),
+                                                session_cpp::Point (0.502961, 0.6, 0.375),
+                                                session_cpp::Point (-0.40237, 0.6, 0),
 
                                             },
                                             {
-                                                IK::Point_3 (-0.2, 0.6, 0.166667),
-                                                IK::Point_3 (-0.2, 0.6, -0.166667),
+                                                session_cpp::Point (-0.2, 0.6, 0.166667),
+                                                session_cpp::Point (-0.2, 0.6, -0.166667),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { {
-                                                IK::Point_3 (-0.40237, -0.6, 0),
-                                                IK::Point_3 (0.502961, -0.6, -0.375),
-                                                IK::Point_3 (1, -0.6, -0.375),
-                                                IK::Point_3 (1, -0.6, 0.375),
-                                                IK::Point_3 (0.502961, -0.6, 0.375),
-                                                IK::Point_3 (-0.40237, -0.6, 0),
+    std::vector<Polyline> female_1 = { {
+                                                session_cpp::Point (-0.40237, -0.6, 0),
+                                                session_cpp::Point (0.502961, -0.6, -0.375),
+                                                session_cpp::Point (1, -0.6, -0.375),
+                                                session_cpp::Point (1, -0.6, 0.375),
+                                                session_cpp::Point (0.502961, -0.6, 0.375),
+                                                session_cpp::Point (-0.40237, -0.6, 0),
 
                                             },
                                             {
-                                                IK::Point_3 (-0.2, -0.6, 0.166667),
-                                                IK::Point_3 (-0.2, -0.6, -0.166667),
+                                                session_cpp::Point (-0.2, -0.6, 0.166667),
+                                                session_cpp::Point (-0.2, -0.6, -0.166667),
 
                                             } };
 
@@ -3443,10 +3385,10 @@ ss_e_r_3 (wood::joint &joint, std::vector<wood::element> &elements)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at
             // the center to the end of the
@@ -3502,11 +3444,11 @@ ss_e_r_3 (wood::joint &joint, std::vector<wood::element> &elements)
         {
             if (joint_volume.size () != 5)
                 continue;
-            IK::Point_3 center = CGAL::midpoint (joint_volume[0], joint_volume[1]);
-            IK::Vector_3 x_dir = joint_volume[1] - joint_volume[0];
-            IK::Vector_3 y_dir = joint_volume[2] - joint_volume[1];
-            cgal::vector_util::unitize (x_dir);
-            cgal::vector_util::unitize (y_dir);
+            session_cpp::Point center = session_cpp::Point::mid_point(joint_volume[0], joint_volume[1]);
+            session_cpp::Vector x_dir = joint_volume[1] - joint_volume[0];
+            session_cpp::Vector y_dir = joint_volume[2] - joint_volume[1];
+            session_cpp::unitize (x_dir);
+            session_cpp::unitize (y_dir);
             x_dir *= x_dir_length * 0.5;
             y_dir *= y_dir_length * 0.5;
             joint_volume = {
@@ -3528,36 +3470,36 @@ ts_e_p_0 (wood::joint &joint)
 {
     joint.name = __func__;
 
-    joint.f[0] = { { IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (0.5, -0.5, 0.357142857142857), IK::Point_3 (0.5, -0.5, 0.214285714285714), IK::Point_3 (-0.5, -0.5, 0.214285714285714),
-                     IK::Point_3 (-0.5, -0.5, 0.357142857142857) },
-                   { IK::Point_3 (-0.5, -0.5, 0.0714285714285715), IK::Point_3 (0.5, -0.5, 0.0714285714285715), IK::Point_3 (0.5, -0.5, -0.0714285714285713), IK::Point_3 (-0.5, -0.5, -0.0714285714285713),
-                     IK::Point_3 (-0.5, -0.5, 0.0714285714285715) },
-                   { IK::Point_3 (-0.5, -0.5, -0.214285714285714), IK::Point_3 (0.5, -0.5, -0.214285714285714), IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (-0.5, -0.5, -0.357142857142857),
-                     IK::Point_3 (-0.5, -0.5, -0.214285714285714) },
-                   { IK::Point_3 (-0.5, -0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (0.5, -0.5, 0.357142857142857),
-                     IK::Point_3 (-0.5, -0.5, 0.357142857142857) } };
+    joint.f[0] = { { session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (0.5, -0.5, 0.357142857142857), session_cpp::Point (0.5, -0.5, 0.214285714285714), session_cpp::Point (-0.5, -0.5, 0.214285714285714),
+                     session_cpp::Point (-0.5, -0.5, 0.357142857142857) },
+                   { session_cpp::Point (-0.5, -0.5, 0.0714285714285715), session_cpp::Point (0.5, -0.5, 0.0714285714285715), session_cpp::Point (0.5, -0.5, -0.0714285714285713), session_cpp::Point (-0.5, -0.5, -0.0714285714285713),
+                     session_cpp::Point (-0.5, -0.5, 0.0714285714285715) },
+                   { session_cpp::Point (-0.5, -0.5, -0.214285714285714), session_cpp::Point (0.5, -0.5, -0.214285714285714), session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (-0.5, -0.5, -0.357142857142857),
+                     session_cpp::Point (-0.5, -0.5, -0.214285714285714) },
+                   { session_cpp::Point (-0.5, -0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (0.5, -0.5, 0.357142857142857),
+                     session_cpp::Point (-0.5, -0.5, 0.357142857142857) } };
 
-    joint.f[1] = { { IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (0.5, 0.5, 0.357142857142857), IK::Point_3 (0.5, 0.5, 0.214285714285714), IK::Point_3 (-0.5, 0.5, 0.214285714285714),
-                     IK::Point_3 (-0.5, 0.5, 0.357142857142857) },
-                   { IK::Point_3 (-0.5, 0.5, 0.0714285714285713), IK::Point_3 (0.5, 0.5, 0.0714285714285713), IK::Point_3 (0.5, 0.5, -0.0714285714285715), IK::Point_3 (-0.5, 0.5, -0.0714285714285715),
-                     IK::Point_3 (-0.5, 0.5, 0.0714285714285713) },
-                   { IK::Point_3 (-0.5, 0.5, -0.214285714285714), IK::Point_3 (0.5, 0.5, -0.214285714285714), IK::Point_3 (0.5, 0.5, -0.357142857142857), IK::Point_3 (-0.5, 0.5, -0.357142857142857),
-                     IK::Point_3 (-0.5, 0.5, -0.214285714285714) },
-                   { IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (-0.5, 0.5, -0.357142857142857), IK::Point_3 (0.5, 0.5, -0.357142857142857), IK::Point_3 (0.5, 0.5, 0.357142857142857),
-                     IK::Point_3 (-0.5, 0.5, 0.357142857142857) } };
+    joint.f[1] = { { session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (0.5, 0.5, 0.357142857142857), session_cpp::Point (0.5, 0.5, 0.214285714285714), session_cpp::Point (-0.5, 0.5, 0.214285714285714),
+                     session_cpp::Point (-0.5, 0.5, 0.357142857142857) },
+                   { session_cpp::Point (-0.5, 0.5, 0.0714285714285713), session_cpp::Point (0.5, 0.5, 0.0714285714285713), session_cpp::Point (0.5, 0.5, -0.0714285714285715), session_cpp::Point (-0.5, 0.5, -0.0714285714285715),
+                     session_cpp::Point (-0.5, 0.5, 0.0714285714285713) },
+                   { session_cpp::Point (-0.5, 0.5, -0.214285714285714), session_cpp::Point (0.5, 0.5, -0.214285714285714), session_cpp::Point (0.5, 0.5, -0.357142857142857), session_cpp::Point (-0.5, 0.5, -0.357142857142857),
+                     session_cpp::Point (-0.5, 0.5, -0.214285714285714) },
+                   { session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (-0.5, 0.5, -0.357142857142857), session_cpp::Point (0.5, 0.5, -0.357142857142857), session_cpp::Point (0.5, 0.5, 0.357142857142857),
+                     session_cpp::Point (-0.5, 0.5, 0.357142857142857) } };
 
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an
     // cutting wood::element
-    joint.m[0] = { { IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (0.5, 0.5, -0.357142857142857), IK::Point_3 (0.5, 0.5, -0.214285714285714), IK::Point_3 (0.5, -0.5, -0.214285714285714),
-                     IK::Point_3 (0.5, -0.5, -0.0714285714285715), IK::Point_3 (0.5, 0.5, -0.0714285714285713), IK::Point_3 (0.5, 0.5, 0.0714285714285715), IK::Point_3 (0.5, -0.5, 0.0714285714285714),
-                     IK::Point_3 (0.5, -0.5, 0.214285714285714), IK::Point_3 (0.5, 0.5, 0.214285714285714), IK::Point_3 (0.5, 0.5, 0.357142857142857), IK::Point_3 (0.5, -0.5, 0.357142857142857) },
-                   { IK::Point_3 (0.5, -0.5, -0.357142857142857), IK::Point_3 (0.5, -0.5, 0.357142857142857) } };
+    joint.m[0] = { { session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (0.5, 0.5, -0.357142857142857), session_cpp::Point (0.5, 0.5, -0.214285714285714), session_cpp::Point (0.5, -0.5, -0.214285714285714),
+                     session_cpp::Point (0.5, -0.5, -0.0714285714285715), session_cpp::Point (0.5, 0.5, -0.0714285714285713), session_cpp::Point (0.5, 0.5, 0.0714285714285715), session_cpp::Point (0.5, -0.5, 0.0714285714285714),
+                     session_cpp::Point (0.5, -0.5, 0.214285714285714), session_cpp::Point (0.5, 0.5, 0.214285714285714), session_cpp::Point (0.5, 0.5, 0.357142857142857), session_cpp::Point (0.5, -0.5, 0.357142857142857) },
+                   { session_cpp::Point (0.5, -0.5, -0.357142857142857), session_cpp::Point (0.5, -0.5, 0.357142857142857) } };
 
-    joint.m[1] = { { IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (-0.5, 0.5, -0.357142857142857), IK::Point_3 (-0.5, 0.5, -0.214285714285714), IK::Point_3 (-0.5, -0.5, -0.214285714285714),
-                     IK::Point_3 (-0.5, -0.5, -0.0714285714285715), IK::Point_3 (-0.5, 0.5, -0.0714285714285713), IK::Point_3 (-0.5, 0.5, 0.0714285714285715), IK::Point_3 (-0.5, -0.5, 0.0714285714285714),
-                     IK::Point_3 (-0.5, -0.5, 0.214285714285714), IK::Point_3 (-0.5, 0.5, 0.214285714285714), IK::Point_3 (-0.5, 0.5, 0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.357142857142857) },
-                   { IK::Point_3 (-0.5, -0.5, -0.357142857142857), IK::Point_3 (-0.5, -0.5, 0.357142857142857) } };
+    joint.m[1] = { { session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (-0.5, 0.5, -0.357142857142857), session_cpp::Point (-0.5, 0.5, -0.214285714285714), session_cpp::Point (-0.5, -0.5, -0.214285714285714),
+                     session_cpp::Point (-0.5, -0.5, -0.0714285714285715), session_cpp::Point (-0.5, 0.5, -0.0714285714285713), session_cpp::Point (-0.5, 0.5, 0.0714285714285715), session_cpp::Point (-0.5, -0.5, 0.0714285714285714),
+                     session_cpp::Point (-0.5, -0.5, 0.214285714285714), session_cpp::Point (-0.5, 0.5, 0.214285714285714), session_cpp::Point (-0.5, 0.5, 0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.357142857142857) },
+                   { session_cpp::Point (-0.5, -0.5, -0.357142857142857), session_cpp::Point (-0.5, -0.5, 0.357142857142857) } };
 
     joint.f_boolean_type = { wood::cut::hole, wood::cut::hole, wood::cut::hole, wood::cut::hole };
     joint.m_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -3568,30 +3510,30 @@ ts_e_p_1 (wood::joint &joint)
 {
     joint.name = __func__; // Annen
 
-    joint.f[0] = { { IK::Point_3 (-0.5, -0.5, -0.277777777777778), IK::Point_3 (0.5, -0.5, -0.277777777777778), IK::Point_3 (0.5, -0.5, -0.388888888888889), IK::Point_3 (-0.5, -0.5, -0.388888888888889),
-                     IK::Point_3 (-0.5, -0.5, -0.277777777777778) },
-                   { IK::Point_3 (-0.5, -0.5, 0.166666666666667), IK::Point_3 (0.5, -0.5, 0.166666666666667), IK::Point_3 (0.5, -0.5, 0.0555555555555556), IK::Point_3 (-0.5, -0.5, 0.0555555555555556),
-                     IK::Point_3 (-0.5, -0.5, 0.166666666666667) },
-                   { IK::Point_3 (-0.5, -0.5, 0.166666666666667), IK::Point_3 (-0.5, -0.5, -0.388888888888889), IK::Point_3 (0.5, -0.5, -0.388888888888889), IK::Point_3 (0.5, -0.5, 0.166666666666667),
-                     IK::Point_3 (-0.5, -0.5, 0.166666666666667) } };
+    joint.f[0] = { { session_cpp::Point (-0.5, -0.5, -0.277777777777778), session_cpp::Point (0.5, -0.5, -0.277777777777778), session_cpp::Point (0.5, -0.5, -0.388888888888889), session_cpp::Point (-0.5, -0.5, -0.388888888888889),
+                     session_cpp::Point (-0.5, -0.5, -0.277777777777778) },
+                   { session_cpp::Point (-0.5, -0.5, 0.166666666666667), session_cpp::Point (0.5, -0.5, 0.166666666666667), session_cpp::Point (0.5, -0.5, 0.0555555555555556), session_cpp::Point (-0.5, -0.5, 0.0555555555555556),
+                     session_cpp::Point (-0.5, -0.5, 0.166666666666667) },
+                   { session_cpp::Point (-0.5, -0.5, 0.166666666666667), session_cpp::Point (-0.5, -0.5, -0.388888888888889), session_cpp::Point (0.5, -0.5, -0.388888888888889), session_cpp::Point (0.5, -0.5, 0.166666666666667),
+                     session_cpp::Point (-0.5, -0.5, 0.166666666666667) } };
 
-    joint.f[1] = { { IK::Point_3 (-0.5, 0.5, -0.277777777777778), IK::Point_3 (0.5, 0.5, -0.277777777777778), IK::Point_3 (0.5, 0.5, -0.388888888888889), IK::Point_3 (-0.5, 0.5, -0.388888888888889),
-                     IK::Point_3 (-0.5, 0.5, -0.277777777777778) },
-                   { IK::Point_3 (-0.5, 0.5, 0.166666666666667), IK::Point_3 (0.5, 0.5, 0.166666666666667), IK::Point_3 (0.5, 0.5, 0.0555555555555556), IK::Point_3 (-0.5, 0.5, 0.0555555555555556),
-                     IK::Point_3 (-0.5, 0.5, 0.166666666666667) },
-                   { IK::Point_3 (-0.5, 0.5, 0.166666666666667), IK::Point_3 (-0.5, 0.5, -0.388888888888889), IK::Point_3 (0.5, 0.5, -0.388888888888889), IK::Point_3 (0.5, 0.5, 0.166666666666667),
-                     IK::Point_3 (-0.5, 0.5, 0.166666666666667) } };
+    joint.f[1] = { { session_cpp::Point (-0.5, 0.5, -0.277777777777778), session_cpp::Point (0.5, 0.5, -0.277777777777778), session_cpp::Point (0.5, 0.5, -0.388888888888889), session_cpp::Point (-0.5, 0.5, -0.388888888888889),
+                     session_cpp::Point (-0.5, 0.5, -0.277777777777778) },
+                   { session_cpp::Point (-0.5, 0.5, 0.166666666666667), session_cpp::Point (0.5, 0.5, 0.166666666666667), session_cpp::Point (0.5, 0.5, 0.0555555555555556), session_cpp::Point (-0.5, 0.5, 0.0555555555555556),
+                     session_cpp::Point (-0.5, 0.5, 0.166666666666667) },
+                   { session_cpp::Point (-0.5, 0.5, 0.166666666666667), session_cpp::Point (-0.5, 0.5, -0.388888888888889), session_cpp::Point (0.5, 0.5, -0.388888888888889), session_cpp::Point (0.5, 0.5, 0.166666666666667),
+                     session_cpp::Point (-0.5, 0.5, 0.166666666666667) } };
 
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an
     // cutting wood::element
-    joint.m[0] = { { IK::Point_3 (0.5, -0.5, 0.166666666666667), IK::Point_3 (0.5, 0.5, 0.166666666666667), IK::Point_3 (0.5, 0.5, 0.0555555555555556), IK::Point_3 (0.5, -0.5, 0.0555555555555556),
-                     IK::Point_3 (0.5, -0.5, -0.277777777777778), IK::Point_3 (0.5, 0.5, -0.277777777777778), IK::Point_3 (0.5, 0.5, -0.388888888888889), IK::Point_3 (0.5, -0.5, -0.388888888888889) },
-                   { IK::Point_3 (0.5, -0.5, 0.5), IK::Point_3 (0.5, -0.5, -0.5) } };
+    joint.m[0] = { { session_cpp::Point (0.5, -0.5, 0.166666666666667), session_cpp::Point (0.5, 0.5, 0.166666666666667), session_cpp::Point (0.5, 0.5, 0.0555555555555556), session_cpp::Point (0.5, -0.5, 0.0555555555555556),
+                     session_cpp::Point (0.5, -0.5, -0.277777777777778), session_cpp::Point (0.5, 0.5, -0.277777777777778), session_cpp::Point (0.5, 0.5, -0.388888888888889), session_cpp::Point (0.5, -0.5, -0.388888888888889) },
+                   { session_cpp::Point (0.5, -0.5, 0.5), session_cpp::Point (0.5, -0.5, -0.5) } };
 
-    joint.m[1] = { { IK::Point_3 (-0.5, -0.5, 0.166666666666667), IK::Point_3 (-0.5, 0.5, 0.166666666666667), IK::Point_3 (-0.5, 0.5, 0.0555555555555558), IK::Point_3 (-0.5, -0.5, 0.0555555555555557),
-                     IK::Point_3 (-0.5, -0.5, -0.277777777777778), IK::Point_3 (-0.5, 0.5, -0.277777777777778), IK::Point_3 (-0.5, 0.5, -0.388888888888889), IK::Point_3 (-0.5, -0.5, -0.388888888888889) },
-                   { IK::Point_3 (-0.5, -0.5, 0.5), IK::Point_3 (-0.5, -0.5, -0.5) } };
+    joint.m[1] = { { session_cpp::Point (-0.5, -0.5, 0.166666666666667), session_cpp::Point (-0.5, 0.5, 0.166666666666667), session_cpp::Point (-0.5, 0.5, 0.0555555555555558), session_cpp::Point (-0.5, -0.5, 0.0555555555555557),
+                     session_cpp::Point (-0.5, -0.5, -0.277777777777778), session_cpp::Point (-0.5, 0.5, -0.277777777777778), session_cpp::Point (-0.5, 0.5, -0.388888888888889), session_cpp::Point (-0.5, -0.5, -0.388888888888889) },
+                   { session_cpp::Point (-0.5, -0.5, 0.5), session_cpp::Point (-0.5, -0.5, -0.5) } };
 
     joint.f_boolean_type = { wood::cut::hole, wood::cut::hole, wood::cut::hole, wood::cut::hole };
     joint.m_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -3627,19 +3569,19 @@ ts_e_p_2 (wood::joint &joint)
     ////////////////////////////////////////////////////////////////////
     // Interpolate points
     ////////////////////////////////////////////////////////////////////
-    std::vector<IK::Point_3> arrays[4];
+    Polyline arrays[4];
 
-    internal::interpolate_points (IK::Point_3 (0.5, -0.5, -0.5), IK::Point_3 (0.5, -0.5, 0.5), divisions, false, arrays[3]);
-    internal::interpolate_points (IK::Point_3 (-0.5, -0.5, -0.5), IK::Point_3 (-0.5, -0.5, 0.5), divisions, false, arrays[0]);
-    internal::interpolate_points (IK::Point_3 (-0.5, 0.5, -0.5), IK::Point_3 (-0.5, 0.5, 0.5), divisions, false, arrays[1]);
-    internal::interpolate_points (IK::Point_3 (0.5, 0.5, -0.5), IK::Point_3 (0.5, 0.5, 0.5), divisions, false, arrays[2]);
+    internal::interpolate_points (session_cpp::Point (0.5, -0.5, -0.5), session_cpp::Point (0.5, -0.5, 0.5), divisions, false, arrays[3]);
+    internal::interpolate_points (session_cpp::Point (-0.5, -0.5, -0.5), session_cpp::Point (-0.5, -0.5, 0.5), divisions, false, arrays[0]);
+    internal::interpolate_points (session_cpp::Point (-0.5, 0.5, -0.5), session_cpp::Point (-0.5, 0.5, 0.5), divisions, false, arrays[1]);
+    internal::interpolate_points (session_cpp::Point (0.5, 0.5, -0.5), session_cpp::Point (0.5, 0.5, 0.5), divisions, false, arrays[2]);
 
     ////////////////////////////////////////////////////////////////////
     // Move segments
     ////////////////////////////////////////////////////////////////////
     int start = 0;
 
-    IK::Vector_3 v = joint.shift == 0 ? IK::Vector_3 (0, 0, 0) : IK::Vector_3 (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
+    session_cpp::Vector v = joint.shift == 0 ? session_cpp::Vector (0, 0, 0) : session_cpp::Vector (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
     for (int i = start; i < 4; i++)
         {
             int mid = (int)(arrays[i].size () * 0.5);
@@ -3649,7 +3591,7 @@ ts_e_p_2 (wood::joint &joint)
                     int flip = (j % 2 == 0) ? 1 : -1;
                     flip = i < 2 ? flip : flip * -1;
 
-                    arrays[i][j] += v * flip;
+                    arrays[i][j] = arrays[i][j] + v * flip;
                 }
         }
 
@@ -3659,7 +3601,7 @@ ts_e_p_2 (wood::joint &joint)
 
     for (int i = 0; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             for (int j = 0; j < arrays[0].size (); j++)
@@ -3699,11 +3641,11 @@ ts_e_p_2 (wood::joint &joint)
 
     for (int i = 0; i < joint.m[0][0].size (); i += 4)
         {
-            joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.m[0][0][i + 0], joint.m[0][0][i + 3], joint.m[1][0][i + 3], joint.m[1][0][i + 0], joint.m[0][0][i + 0] });
-            joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.m[0][0][i + 1], joint.m[0][0][i + 2], joint.m[1][0][i + 2], joint.m[1][0][i + 1], joint.m[0][0][i + 1] });
+            joint.f[0].emplace_back (std::initializer_list<session_cpp::Point>{ joint.m[0][0][i + 0], joint.m[0][0][i + 3], joint.m[1][0][i + 3], joint.m[1][0][i + 0], joint.m[0][0][i + 0] });
+            joint.f[1].emplace_back (std::initializer_list<session_cpp::Point>{ joint.m[0][0][i + 1], joint.m[0][0][i + 2], joint.m[1][0][i + 2], joint.m[1][0][i + 1], joint.m[0][0][i + 1] });
         }
-    joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[0][0][0], joint.f[0][0][3], joint.f[0][size - 2][3], joint.f[0][size - 2][0], joint.f[0][0][0] });
-    joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0] });
+    joint.f[0].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[0][0][0], joint.f[0][0][3], joint.f[0][size - 2][3], joint.f[0][size - 2][0], joint.f[0][0][0] });
+    joint.f[1].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0] });
 
     joint.f_boolean_type = std::vector<wood::cut::cut_type> (size, wood::cut::hole);
     joint.m_boolean_type = { wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -3752,13 +3694,13 @@ ts_e_p_3 (wood::joint &joint)
     ////////////////////////////////////////////////////////////////////
     // Interpolate points
     ////////////////////////////////////////////////////////////////////
-    std::vector<IK::Point_3> arrays[4];
+    Polyline arrays[4];
     if (divisions == 0)
         return;
-    internal::interpolate_points (IK::Point_3 (0.5, -0.5, -0.5), IK::Point_3 (0.5, -0.5, 0.5), divisions, false, arrays[3]);
-    internal::interpolate_points (IK::Point_3 (-0.5, -0.5, -0.5), IK::Point_3 (-0.5, -0.5, 0.5), divisions, false, arrays[0]);
-    internal::interpolate_points (IK::Point_3 (-0.5, 0.5, -0.5), IK::Point_3 (-0.5, 0.5, 0.5), divisions, false, arrays[1]);
-    internal::interpolate_points (IK::Point_3 (0.5, 0.5, -0.5), IK::Point_3 (0.5, 0.5, 0.5), divisions, false, arrays[2]);
+    internal::interpolate_points (session_cpp::Point (0.5, -0.5, -0.5), session_cpp::Point (0.5, -0.5, 0.5), divisions, false, arrays[3]);
+    internal::interpolate_points (session_cpp::Point (-0.5, -0.5, -0.5), session_cpp::Point (-0.5, -0.5, 0.5), divisions, false, arrays[0]);
+    internal::interpolate_points (session_cpp::Point (-0.5, 0.5, -0.5), session_cpp::Point (-0.5, 0.5, 0.5), divisions, false, arrays[1]);
+    internal::interpolate_points (session_cpp::Point (0.5, 0.5, -0.5), session_cpp::Point (0.5, 0.5, 0.5), divisions, false, arrays[2]);
 
     // CGAL_Debug(divisions);
     // CGAL_Debug(arrays[0].size());
@@ -3778,7 +3720,7 @@ ts_e_p_3 (wood::joint &joint)
     ////////////////////////////////////////////////////////////////////
     int start = 0;
 
-    IK::Vector_3 v = joint.shift == 0 ? IK::Vector_3 (0, 0, 0) : IK::Vector_3 (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
+    session_cpp::Vector v = joint.shift == 0 ? session_cpp::Vector (0, 0, 0) : session_cpp::Vector (0, 0, internal::remap_numbers (joint.shift, 0, 1.0, -0.5, 0.5) / (divisions + 1));
     for (int i = start; i < 4; i++)
         {
             int mid = (int)(arrays[i].size () * 0.5);
@@ -3788,7 +3730,7 @@ ts_e_p_3 (wood::joint &joint)
                     int flip = (j % 2 == 0) ? 1 : -1;
                     flip = i < 2 ? flip : flip * -1;
 
-                    arrays[i][j] += v * flip;
+                    arrays[i][j] = arrays[i][j] + v * flip;
                 }
         }
 
@@ -3806,7 +3748,7 @@ ts_e_p_3 (wood::joint &joint)
 
     for (int i = 0; i < 4; i += 2)
         {
-            CGAL_Polyline pline;
+            Polyline pline;
             pline.reserve (arrays[0].size () * 2);
 
             // CGAL_Debug(1);
@@ -3863,11 +3805,11 @@ ts_e_p_3 (wood::joint &joint)
 
     for (int i = 0; i < joint.m[0][0].size () - joint.m[0][0].size () % 4; i += 4)
         {
-            joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.m[0][0][i + 0], joint.m[0][0][i + 3], joint.m[1][0][i + 3], joint.m[1][0][i + 0], joint.m[0][0][i + 0] });
-            joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.m[0][0][i + 1], joint.m[0][0][i + 2], joint.m[1][0][i + 2], joint.m[1][0][i + 1], joint.m[0][0][i + 1] });
+            joint.f[0].emplace_back (std::initializer_list<session_cpp::Point>{ joint.m[0][0][i + 0], joint.m[0][0][i + 3], joint.m[1][0][i + 3], joint.m[1][0][i + 0], joint.m[0][0][i + 0] });
+            joint.f[1].emplace_back (std::initializer_list<session_cpp::Point>{ joint.m[0][0][i + 1], joint.m[0][0][i + 2], joint.m[1][0][i + 2], joint.m[1][0][i + 1], joint.m[0][0][i + 1] });
         }
-    joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[0][0][0], joint.f[0][0][3], joint.f[0][size - 2][3], joint.f[0][size - 2][0], joint.f[0][0][0] });
-    joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0] });
+    joint.f[0].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[0][0][0], joint.f[0][0][3], joint.f[0][size - 2][3], joint.f[0][size - 2][0], joint.f[0][0][0] });
+    joint.f[1].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[1][0][0], joint.f[1][0][3], joint.f[1][size - 2][3], joint.f[1][size - 2][0], joint.f[1][0][0] });
 
     // CGAL_Debug(30);
     joint.f_boolean_type = std::vector<wood::cut::cut_type> (size, wood::cut::hole);
@@ -3888,67 +3830,67 @@ ts_e_p_4 (wood::joint &joint)
     joint.f[0] = {
 
         {
-            IK::Point_3 (0.64333, -0.78666, -0.01),
-            IK::Point_3 (0.375, -0.25, -0.01),
-            IK::Point_3 (-0.375, -0.25, -0.01),
-            IK::Point_3 (-0.64333, -0.78666, -0.01),
-            IK::Point_3 (0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.375, -0.25, -0.01),
+            session_cpp::Point (-0.375, -0.25, -0.01),
+            session_cpp::Point (-0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.64333, -0.78666, -0.01),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, -0.01),
-            IK::Point_3 (0.375, -0.25, -0.01),
-            IK::Point_3 (-0.375, -0.25, -0.01),
-            IK::Point_3 (-0.64333, -0.78666, -0.01),
-            IK::Point_3 (0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.375, -0.25, -0.01),
+            session_cpp::Point (-0.375, -0.25, -0.01),
+            session_cpp::Point (-0.64333, -0.78666, -0.01),
+            session_cpp::Point (0.64333, -0.78666, -0.01),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, 0.01),
-            IK::Point_3 (0.375, -0.25, 0.01),
-            IK::Point_3 (-0.375, -0.25, 0.01),
-            IK::Point_3 (-0.64333, -0.78666, 0.01),
-            IK::Point_3 (0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.375, -0.25, 0.01),
+            session_cpp::Point (-0.375, -0.25, 0.01),
+            session_cpp::Point (-0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.64333, -0.78666, 0.01),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, 0.01),
-            IK::Point_3 (0.375, -0.25, 0.01),
-            IK::Point_3 (-0.375, -0.25, 0.01),
-            IK::Point_3 (-0.64333, -0.78666, 0.01),
-            IK::Point_3 (0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.375, -0.25, 0.01),
+            session_cpp::Point (-0.375, -0.25, 0.01),
+            session_cpp::Point (-0.64333, -0.78666, 0.01),
+            session_cpp::Point (0.64333, -0.78666, 0.01),
         },
 
         {
-            IK::Point_3 (-0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, 0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, 0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, 0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, 0.15),
-            IK::Point_3 (0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, -0.15),
-            IK::Point_3 (-0.375, 0.075, 0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, 0.15),
+            session_cpp::Point (0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, -0.15),
+            session_cpp::Point (-0.375, 0.075, 0.15),
         },
 
     };
@@ -3956,67 +3898,67 @@ ts_e_p_4 (wood::joint &joint)
     joint.f[1] = {
 
         {
-            IK::Point_3 (0.64333, -0.78666, 0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.64333, -0.78666, 0.5),
-            IK::Point_3 (0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.64333, -0.78666, 0.5),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, 0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.64333, -0.78666, 0.5),
-            IK::Point_3 (0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.64333, -0.78666, 0.5),
+            session_cpp::Point (0.64333, -0.78666, 0.5),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, -0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.64333, -0.78666, -0.5),
-            IK::Point_3 (0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.64333, -0.78666, -0.5),
         },
 
         {
-            IK::Point_3 (0.64333, -0.78666, -0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.64333, -0.78666, -0.5),
-            IK::Point_3 (0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.64333, -0.78666, -0.5),
+            session_cpp::Point (0.64333, -0.78666, -0.5),
         },
 
         {
-            IK::Point_3 (-0.375, -0.35, 0.15),
-            IK::Point_3 (0.375, -0.35, 0.15),
-            IK::Point_3 (0.375, -0.35, -0.15),
-            IK::Point_3 (-0.375, -0.35, -0.15),
-            IK::Point_3 (-0.375, -0.35, 0.15),
+            session_cpp::Point (-0.375, -0.35, 0.15),
+            session_cpp::Point (0.375, -0.35, 0.15),
+            session_cpp::Point (0.375, -0.35, -0.15),
+            session_cpp::Point (-0.375, -0.35, -0.15),
+            session_cpp::Point (-0.375, -0.35, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, -0.35, 0.15),
-            IK::Point_3 (0.375, -0.35, 0.15),
-            IK::Point_3 (0.375, -0.35, -0.15),
-            IK::Point_3 (-0.375, -0.35, -0.15),
-            IK::Point_3 (-0.375, -0.35, 0.15),
+            session_cpp::Point (-0.375, -0.35, 0.15),
+            session_cpp::Point (0.375, -0.35, 0.15),
+            session_cpp::Point (0.375, -0.35, -0.15),
+            session_cpp::Point (-0.375, -0.35, -0.15),
+            session_cpp::Point (-0.375, -0.35, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, 0.5, 0.15),
-            IK::Point_3 (0.375, 0.5, 0.15),
-            IK::Point_3 (0.375, 0.5, -0.15),
-            IK::Point_3 (-0.375, 0.5, -0.15),
-            IK::Point_3 (-0.375, 0.5, 0.15),
+            session_cpp::Point (-0.375, 0.5, 0.15),
+            session_cpp::Point (0.375, 0.5, 0.15),
+            session_cpp::Point (0.375, 0.5, -0.15),
+            session_cpp::Point (-0.375, 0.5, -0.15),
+            session_cpp::Point (-0.375, 0.5, 0.15),
         },
 
         {
-            IK::Point_3 (-0.375, 0.5, 0.15),
-            IK::Point_3 (0.375, 0.5, 0.15),
-            IK::Point_3 (0.375, 0.5, -0.15),
-            IK::Point_3 (-0.375, 0.5, -0.15),
-            IK::Point_3 (-0.375, 0.5, 0.15),
+            session_cpp::Point (-0.375, 0.5, 0.15),
+            session_cpp::Point (0.375, 0.5, 0.15),
+            session_cpp::Point (0.375, 0.5, -0.15),
+            session_cpp::Point (-0.375, 0.5, -0.15),
+            session_cpp::Point (-0.375, 0.5, 0.15),
         },
 
     };
@@ -4024,131 +3966,131 @@ ts_e_p_4 (wood::joint &joint)
     joint.m[0] = {
 
         {
-            IK::Point_3 (-0.59861, -0.69721, 0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.59861, -0.69721, -0.5),
-            IK::Point_3 (-0.59861, -0.69721, 0.5),
+            session_cpp::Point (-0.59861, -0.69721, 0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.59861, -0.69721, -0.5),
+            session_cpp::Point (-0.59861, -0.69721, 0.5),
         },
 
         {
-            IK::Point_3 (-0.59861, -0.69721, 0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.59861, -0.69721, -0.5),
-            IK::Point_3 (-0.59861, -0.69721, 0.5),
+            session_cpp::Point (-0.59861, -0.69721, 0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.59861, -0.69721, -0.5),
+            session_cpp::Point (-0.59861, -0.69721, 0.5),
         },
 
         {
-            IK::Point_3 (0.59861, -0.69721, 0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (0.59861, -0.69721, -0.5),
-            IK::Point_3 (0.59861, -0.69721, 0.5),
+            session_cpp::Point (0.59861, -0.69721, 0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (0.59861, -0.69721, -0.5),
+            session_cpp::Point (0.59861, -0.69721, 0.5),
         },
 
         {
-            IK::Point_3 (0.59861, -0.69721, 0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (0.59861, -0.69721, -0.5),
-            IK::Point_3 (0.59861, -0.69721, 0.5),
+            session_cpp::Point (0.59861, -0.69721, 0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (0.59861, -0.69721, -0.5),
+            session_cpp::Point (0.59861, -0.69721, 0.5),
         },
 
         {
-            IK::Point_3 (-0.375, 0.7, 0.5),
-            IK::Point_3 (-0.375, 0.7, -0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, 0.7, 0.5),
+            session_cpp::Point (-0.375, 0.7, 0.5),
+            session_cpp::Point (-0.375, 0.7, -0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (-0.375, 0.7, 0.5),
-            IK::Point_3 (-0.375, 0.7, -0.5),
-            IK::Point_3 (-0.375, -0.25, -0.5),
-            IK::Point_3 (-0.375, -0.25, 0.5),
-            IK::Point_3 (-0.375, 0.7, 0.5),
+            session_cpp::Point (-0.375, 0.7, 0.5),
+            session_cpp::Point (-0.375, 0.7, -0.5),
+            session_cpp::Point (-0.375, -0.25, -0.5),
+            session_cpp::Point (-0.375, -0.25, 0.5),
+            session_cpp::Point (-0.375, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (0.375, 0.7, 0.5),
-            IK::Point_3 (0.375, 0.7, -0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (0.375, 0.7, 0.5),
+            session_cpp::Point (0.375, 0.7, 0.5),
+            session_cpp::Point (0.375, 0.7, -0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (0.375, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (0.375, 0.7, 0.5),
-            IK::Point_3 (0.375, 0.7, -0.5),
-            IK::Point_3 (0.375, -0.25, -0.5),
-            IK::Point_3 (0.375, -0.25, 0.5),
-            IK::Point_3 (0.375, 0.7, 0.5),
+            session_cpp::Point (0.375, 0.7, 0.5),
+            session_cpp::Point (0.375, 0.7, -0.5),
+            session_cpp::Point (0.375, -0.25, -0.5),
+            session_cpp::Point (0.375, -0.25, 0.5),
+            session_cpp::Point (0.375, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, 0.15),
-            IK::Point_3 (0.5, 0.7, 0.15),
-            IK::Point_3 (0.5, -0.25, 0.15),
-            IK::Point_3 (-0.5, -0.25, 0.15),
-            IK::Point_3 (-0.5, 0.7, 0.15),
+            session_cpp::Point (-0.5, 0.7, 0.15),
+            session_cpp::Point (0.5, 0.7, 0.15),
+            session_cpp::Point (0.5, -0.25, 0.15),
+            session_cpp::Point (-0.5, -0.25, 0.15),
+            session_cpp::Point (-0.5, 0.7, 0.15),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, 0.15),
-            IK::Point_3 (0.5, 0.7, 0.15),
-            IK::Point_3 (0.5, -0.25, 0.15),
-            IK::Point_3 (-0.5, -0.25, 0.15),
-            IK::Point_3 (-0.5, 0.7, 0.15),
+            session_cpp::Point (-0.5, 0.7, 0.15),
+            session_cpp::Point (0.5, 0.7, 0.15),
+            session_cpp::Point (0.5, -0.25, 0.15),
+            session_cpp::Point (-0.5, -0.25, 0.15),
+            session_cpp::Point (-0.5, 0.7, 0.15),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, -0.15),
-            IK::Point_3 (0.5, 0.7, -0.15),
-            IK::Point_3 (0.5, -0.25, -0.15),
-            IK::Point_3 (-0.5, -0.25, -0.15),
-            IK::Point_3 (-0.5, 0.7, -0.15),
+            session_cpp::Point (-0.5, 0.7, -0.15),
+            session_cpp::Point (0.5, 0.7, -0.15),
+            session_cpp::Point (0.5, -0.25, -0.15),
+            session_cpp::Point (-0.5, -0.25, -0.15),
+            session_cpp::Point (-0.5, 0.7, -0.15),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, -0.15),
-            IK::Point_3 (0.5, 0.7, -0.15),
-            IK::Point_3 (0.5, -0.25, -0.15),
-            IK::Point_3 (-0.5, -0.25, -0.15),
-            IK::Point_3 (-0.5, 0.7, -0.15),
+            session_cpp::Point (-0.5, 0.7, -0.15),
+            session_cpp::Point (0.5, 0.7, -0.15),
+            session_cpp::Point (0.5, -0.25, -0.15),
+            session_cpp::Point (-0.5, -0.25, -0.15),
+            session_cpp::Point (-0.5, 0.7, -0.15),
         },
 
         {
-            IK::Point_3 (0.05, 0.7, -0.6),
-            IK::Point_3 (0.05, 0.8, -0.6),
-            IK::Point_3 (0.05, 0.8, 0.6),
-            IK::Point_3 (0.05, 0.7, 0.6),
-            IK::Point_3 (0.05, 0.7, -0.6),
+            session_cpp::Point (0.05, 0.7, -0.6),
+            session_cpp::Point (0.05, 0.8, -0.6),
+            session_cpp::Point (0.05, 0.8, 0.6),
+            session_cpp::Point (0.05, 0.7, 0.6),
+            session_cpp::Point (0.05, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (0.05, 0.7, -0.6),
-            IK::Point_3 (0.05, 0.8, -0.6),
-            IK::Point_3 (0.05, 0.8, 0.6),
-            IK::Point_3 (0.05, 0.7, 0.6),
-            IK::Point_3 (0.05, 0.7, -0.6),
+            session_cpp::Point (0.05, 0.7, -0.6),
+            session_cpp::Point (0.05, 0.8, -0.6),
+            session_cpp::Point (0.05, 0.8, 0.6),
+            session_cpp::Point (0.05, 0.7, 0.6),
+            session_cpp::Point (0.05, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (-0.05, 0.7, -0.6),
-            IK::Point_3 (-0.05, 0.8, -0.6),
-            IK::Point_3 (-0.05, 0.8, 0.6),
-            IK::Point_3 (-0.05, 0.7, 0.6),
-            IK::Point_3 (-0.05, 0.7, -0.6),
+            session_cpp::Point (-0.05, 0.7, -0.6),
+            session_cpp::Point (-0.05, 0.8, -0.6),
+            session_cpp::Point (-0.05, 0.8, 0.6),
+            session_cpp::Point (-0.05, 0.7, 0.6),
+            session_cpp::Point (-0.05, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (-0.05, 0.7, -0.6),
-            IK::Point_3 (-0.05, 0.8, -0.6),
-            IK::Point_3 (-0.05, 0.8, 0.6),
-            IK::Point_3 (-0.05, 0.7, 0.6),
-            IK::Point_3 (-0.05, 0.7, -0.6),
+            session_cpp::Point (-0.05, 0.7, -0.6),
+            session_cpp::Point (-0.05, 0.8, -0.6),
+            session_cpp::Point (-0.05, 0.8, 0.6),
+            session_cpp::Point (-0.05, 0.7, 0.6),
+            session_cpp::Point (-0.05, 0.7, -0.6),
         },
 
     };
@@ -4156,131 +4098,131 @@ ts_e_p_4 (wood::joint &joint)
     joint.m[1] = {
 
         {
-            IK::Point_3 (-0.95638, -0.51833, 0.5),
-            IK::Point_3 (-0.73277, -0.07111, 0.5),
-            IK::Point_3 (-0.73277, -0.07111, -0.5),
-            IK::Point_3 (-0.95638, -0.51833, -0.5),
-            IK::Point_3 (-0.95638, -0.51833, 0.5),
+            session_cpp::Point (-0.95638, -0.51833, 0.5),
+            session_cpp::Point (-0.73277, -0.07111, 0.5),
+            session_cpp::Point (-0.73277, -0.07111, -0.5),
+            session_cpp::Point (-0.95638, -0.51833, -0.5),
+            session_cpp::Point (-0.95638, -0.51833, 0.5),
         },
 
         {
-            IK::Point_3 (-0.95638, -0.51833, 0.5),
-            IK::Point_3 (-0.73277, -0.07111, 0.5),
-            IK::Point_3 (-0.73277, -0.07111, -0.5),
-            IK::Point_3 (-0.95638, -0.51833, -0.5),
-            IK::Point_3 (-0.95638, -0.51833, 0.5),
+            session_cpp::Point (-0.95638, -0.51833, 0.5),
+            session_cpp::Point (-0.73277, -0.07111, 0.5),
+            session_cpp::Point (-0.73277, -0.07111, -0.5),
+            session_cpp::Point (-0.95638, -0.51833, -0.5),
+            session_cpp::Point (-0.95638, -0.51833, 0.5),
         },
 
         {
-            IK::Point_3 (0.95638, -0.51833, 0.5),
-            IK::Point_3 (0.73277, -0.07111, 0.5),
-            IK::Point_3 (0.73277, -0.07111, -0.5),
-            IK::Point_3 (0.95638, -0.51833, -0.5),
-            IK::Point_3 (0.95638, -0.51833, 0.5),
+            session_cpp::Point (0.95638, -0.51833, 0.5),
+            session_cpp::Point (0.73277, -0.07111, 0.5),
+            session_cpp::Point (0.73277, -0.07111, -0.5),
+            session_cpp::Point (0.95638, -0.51833, -0.5),
+            session_cpp::Point (0.95638, -0.51833, 0.5),
         },
 
         {
-            IK::Point_3 (0.95638, -0.51833, 0.5),
-            IK::Point_3 (0.73277, -0.07111, 0.5),
-            IK::Point_3 (0.73277, -0.07111, -0.5),
-            IK::Point_3 (0.95638, -0.51833, -0.5),
-            IK::Point_3 (0.95638, -0.51833, 0.5),
+            session_cpp::Point (0.95638, -0.51833, 0.5),
+            session_cpp::Point (0.73277, -0.07111, 0.5),
+            session_cpp::Point (0.73277, -0.07111, -0.5),
+            session_cpp::Point (0.95638, -0.51833, -0.5),
+            session_cpp::Point (0.95638, -0.51833, 0.5),
         },
 
         {
-            IK::Point_3 (-0.675, 0.7, 0.5),
-            IK::Point_3 (-0.675, 0.7, -0.5),
-            IK::Point_3 (-0.675, -0.25, -0.5),
-            IK::Point_3 (-0.675, -0.25, 0.5),
-            IK::Point_3 (-0.675, 0.7, 0.5),
+            session_cpp::Point (-0.675, 0.7, 0.5),
+            session_cpp::Point (-0.675, 0.7, -0.5),
+            session_cpp::Point (-0.675, -0.25, -0.5),
+            session_cpp::Point (-0.675, -0.25, 0.5),
+            session_cpp::Point (-0.675, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (-0.675, 0.7, 0.5),
-            IK::Point_3 (-0.675, 0.7, -0.5),
-            IK::Point_3 (-0.675, -0.25, -0.5),
-            IK::Point_3 (-0.675, -0.25, 0.5),
-            IK::Point_3 (-0.675, 0.7, 0.5),
+            session_cpp::Point (-0.675, 0.7, 0.5),
+            session_cpp::Point (-0.675, 0.7, -0.5),
+            session_cpp::Point (-0.675, -0.25, -0.5),
+            session_cpp::Point (-0.675, -0.25, 0.5),
+            session_cpp::Point (-0.675, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (0.675, 0.7, 0.5),
-            IK::Point_3 (0.675, 0.7, -0.5),
-            IK::Point_3 (0.675, -0.25, -0.5),
-            IK::Point_3 (0.675, -0.25, 0.5),
-            IK::Point_3 (0.675, 0.7, 0.5),
+            session_cpp::Point (0.675, 0.7, 0.5),
+            session_cpp::Point (0.675, 0.7, -0.5),
+            session_cpp::Point (0.675, -0.25, -0.5),
+            session_cpp::Point (0.675, -0.25, 0.5),
+            session_cpp::Point (0.675, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (0.675, 0.7, 0.5),
-            IK::Point_3 (0.675, 0.7, -0.5),
-            IK::Point_3 (0.675, -0.25, -0.5),
-            IK::Point_3 (0.675, -0.25, 0.5),
-            IK::Point_3 (0.675, 0.7, 0.5),
+            session_cpp::Point (0.675, 0.7, 0.5),
+            session_cpp::Point (0.675, 0.7, -0.5),
+            session_cpp::Point (0.675, -0.25, -0.5),
+            session_cpp::Point (0.675, -0.25, 0.5),
+            session_cpp::Point (0.675, 0.7, 0.5),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, 0.55),
-            IK::Point_3 (0.5, 0.7, 0.55),
-            IK::Point_3 (0.5, -0.25, 0.55),
-            IK::Point_3 (-0.5, -0.25, 0.55),
-            IK::Point_3 (-0.5, 0.7, 0.55),
+            session_cpp::Point (-0.5, 0.7, 0.55),
+            session_cpp::Point (0.5, 0.7, 0.55),
+            session_cpp::Point (0.5, -0.25, 0.55),
+            session_cpp::Point (-0.5, -0.25, 0.55),
+            session_cpp::Point (-0.5, 0.7, 0.55),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, 0.55),
-            IK::Point_3 (0.5, 0.7, 0.55),
-            IK::Point_3 (0.5, -0.25, 0.55),
-            IK::Point_3 (-0.5, -0.25, 0.55),
-            IK::Point_3 (-0.5, 0.7, 0.55),
+            session_cpp::Point (-0.5, 0.7, 0.55),
+            session_cpp::Point (0.5, 0.7, 0.55),
+            session_cpp::Point (0.5, -0.25, 0.55),
+            session_cpp::Point (-0.5, -0.25, 0.55),
+            session_cpp::Point (-0.5, 0.7, 0.55),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, -0.55),
-            IK::Point_3 (0.5, 0.7, -0.55),
-            IK::Point_3 (0.5, -0.25, -0.55),
-            IK::Point_3 (-0.5, -0.25, -0.55),
-            IK::Point_3 (-0.5, 0.7, -0.55),
+            session_cpp::Point (-0.5, 0.7, -0.55),
+            session_cpp::Point (0.5, 0.7, -0.55),
+            session_cpp::Point (0.5, -0.25, -0.55),
+            session_cpp::Point (-0.5, -0.25, -0.55),
+            session_cpp::Point (-0.5, 0.7, -0.55),
         },
 
         {
-            IK::Point_3 (-0.5, 0.7, -0.55),
-            IK::Point_3 (0.5, 0.7, -0.55),
-            IK::Point_3 (0.5, -0.25, -0.55),
-            IK::Point_3 (-0.5, -0.25, -0.55),
-            IK::Point_3 (-0.5, 0.7, -0.55),
+            session_cpp::Point (-0.5, 0.7, -0.55),
+            session_cpp::Point (0.5, 0.7, -0.55),
+            session_cpp::Point (0.5, -0.25, -0.55),
+            session_cpp::Point (-0.5, -0.25, -0.55),
+            session_cpp::Point (-0.5, 0.7, -0.55),
         },
 
         {
-            IK::Point_3 (0.7, 0.7, -0.6),
-            IK::Point_3 (0.7, 0.8, -0.6),
-            IK::Point_3 (0.7, 0.8, 0.6),
-            IK::Point_3 (0.7, 0.7, 0.6),
-            IK::Point_3 (0.7, 0.7, -0.6),
+            session_cpp::Point (0.7, 0.7, -0.6),
+            session_cpp::Point (0.7, 0.8, -0.6),
+            session_cpp::Point (0.7, 0.8, 0.6),
+            session_cpp::Point (0.7, 0.7, 0.6),
+            session_cpp::Point (0.7, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (0.7, 0.7, -0.6),
-            IK::Point_3 (0.7, 0.8, -0.6),
-            IK::Point_3 (0.7, 0.8, 0.6),
-            IK::Point_3 (0.7, 0.7, 0.6),
-            IK::Point_3 (0.7, 0.7, -0.6),
+            session_cpp::Point (0.7, 0.7, -0.6),
+            session_cpp::Point (0.7, 0.8, -0.6),
+            session_cpp::Point (0.7, 0.8, 0.6),
+            session_cpp::Point (0.7, 0.7, 0.6),
+            session_cpp::Point (0.7, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (-0.7, 0.7, -0.6),
-            IK::Point_3 (-0.7, 0.8, -0.6),
-            IK::Point_3 (-0.7, 0.8, 0.6),
-            IK::Point_3 (-0.7, 0.7, 0.6),
-            IK::Point_3 (-0.7, 0.7, -0.6),
+            session_cpp::Point (-0.7, 0.7, -0.6),
+            session_cpp::Point (-0.7, 0.8, -0.6),
+            session_cpp::Point (-0.7, 0.8, 0.6),
+            session_cpp::Point (-0.7, 0.7, 0.6),
+            session_cpp::Point (-0.7, 0.7, -0.6),
         },
 
         {
-            IK::Point_3 (-0.7, 0.7, -0.6),
-            IK::Point_3 (-0.7, 0.8, -0.6),
-            IK::Point_3 (-0.7, 0.8, 0.6),
-            IK::Point_3 (-0.7, 0.7, 0.6),
-            IK::Point_3 (-0.7, 0.7, -0.6),
+            session_cpp::Point (-0.7, 0.7, -0.6),
+            session_cpp::Point (-0.7, 0.8, -0.6),
+            session_cpp::Point (-0.7, 0.8, 0.6),
+            session_cpp::Point (-0.7, 0.7, 0.6),
+            session_cpp::Point (-0.7, 0.7, -0.6),
         },
 
     };
@@ -4294,41 +4236,41 @@ ts_e_p_4 (wood::joint &joint)
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an
     // cutting wood::element joint.m[0] = {
-    // {IK::Point_3(0.5, -0.5,
-    // -0.357142857142857), IK::Point_3(0.5, 0.5,
-    // -0.357142857142857), IK::Point_3(0.5, 0.5,
-    // -0.214285714285714), IK::Point_3(0.5, -0.5,
-    // -0.214285714285714), IK::Point_3(0.5, -0.5,
-    // -0.0714285714285715), IK::Point_3(0.5, 0.5,
-    // -0.0714285714285713), IK::Point_3(0.5, 0.5,
-    // 0.0714285714285715), IK::Point_3(0.5, -0.5,
-    // 0.0714285714285714), IK::Point_3(0.5, -0.5,
-    // 0.214285714285714), IK::Point_3(0.5, 0.5,
-    // 0.214285714285714), IK::Point_3(0.5, 0.5,
-    // 0.357142857142857), IK::Point_3(0.5, -0.5,
+    // {session_cpp::Point(0.5, -0.5,
+    // -0.357142857142857), session_cpp::Point(0.5, 0.5,
+    // -0.357142857142857), session_cpp::Point(0.5, 0.5,
+    // -0.214285714285714), session_cpp::Point(0.5, -0.5,
+    // -0.214285714285714), session_cpp::Point(0.5, -0.5,
+    // -0.0714285714285715), session_cpp::Point(0.5, 0.5,
+    // -0.0714285714285713), session_cpp::Point(0.5, 0.5,
+    // 0.0714285714285715), session_cpp::Point(0.5, -0.5,
+    // 0.0714285714285714), session_cpp::Point(0.5, -0.5,
+    // 0.214285714285714), session_cpp::Point(0.5, 0.5,
+    // 0.214285714285714), session_cpp::Point(0.5, 0.5,
+    // 0.357142857142857), session_cpp::Point(0.5, -0.5,
     // 0.357142857142857)},
-    //         {IK::Point_3(0.5, -0.5,
+    //         {session_cpp::Point(0.5, -0.5,
     //         -0.357142857142857),
-    //         IK::Point_3(0.5, -0.5,
+    //         session_cpp::Point(0.5, -0.5,
     //         0.357142857142857)} };
 
-    // joint.m[1] = { {IK::Point_3(-0.5, -0.5,
-    // -0.357142857142857), IK::Point_3(-0.5, 0.5,
-    // -0.357142857142857), IK::Point_3(-0.5, 0.5,
-    // -0.214285714285714), IK::Point_3(-0.5,
+    // joint.m[1] = { {session_cpp::Point(-0.5, -0.5,
+    // -0.357142857142857), session_cpp::Point(-0.5, 0.5,
+    // -0.357142857142857), session_cpp::Point(-0.5, 0.5,
+    // -0.214285714285714), session_cpp::Point(-0.5,
     // -0.5, -0.214285714285714),
-    // IK::Point_3(-0.5, -0.5,
-    // -0.0714285714285715), IK::Point_3(-0.5,
+    // session_cpp::Point(-0.5, -0.5,
+    // -0.0714285714285715), session_cpp::Point(-0.5,
     // 0.5, -0.0714285714285713),
-    // IK::Point_3(-0.5, 0.5, 0.0714285714285715),
-    // IK::Point_3(-0.5, -0.5,
-    // 0.0714285714285714), IK::Point_3(-0.5,
-    // -0.5, 0.214285714285714), IK::Point_3(-0.5,
-    // 0.5, 0.214285714285714), IK::Point_3(-0.5,
-    // 0.5, 0.357142857142857), IK::Point_3(-0.5,
+    // session_cpp::Point(-0.5, 0.5, 0.0714285714285715),
+    // session_cpp::Point(-0.5, -0.5,
+    // 0.0714285714285714), session_cpp::Point(-0.5,
+    // -0.5, 0.214285714285714), session_cpp::Point(-0.5,
+    // 0.5, 0.214285714285714), session_cpp::Point(-0.5,
+    // 0.5, 0.357142857142857), session_cpp::Point(-0.5,
     // -0.5, 0.357142857142857)},
-    // {IK::Point_3(-0.5, -0.5,
-    // -0.357142857142857), IK::Point_3(-0.5,
+    // {session_cpp::Point(-0.5, -0.5,
+    // -0.357142857142857), session_cpp::Point(-0.5,
     // -0.5, 0.357142857142857)} };
 
     // joint.f_boolean_type = { '6', '6', '6',
@@ -4350,9 +4292,9 @@ ts_e_p_5 (wood::joint &joint)
     // parameters that comes from the joint
     bool default_values = !true;
 
-    double edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
+    double edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_lines[0][0], joint.joint_lines[0][1])) : 1000;
     int divisions = !default_values ? joint.divisions : 5;
-    double joint_volume_edge_length = !default_values ? std::sqrt (CGAL::squared_distance (joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
+    double joint_volume_edge_length = !default_values ? std::sqrt (session_cpp::Point::squared_distance(joint.joint_volumes[0][1], joint.joint_volumes[0][2])) : 40;
     //  scale down the edge, since wood_joint ->
     //  bool joint::orient_to_connection_area()
     //  make the distance between joint volumes
@@ -4368,52 +4310,52 @@ ts_e_p_5 (wood::joint &joint)
     // movement vectors to translate the unit
     // joint to the end of the edge and then to
     // its middle
-    IK::Vector_3 dir (0, 0, 1);
-    IK::Vector_3 move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
-    IK::Vector_3 move_length_dir = -dir * move_length_scaled;
+    session_cpp::Vector dir (0, 0, 1);
+    session_cpp::Vector move_from_center_to_the_end = dir * ((total_length_scaled * 0.5) - (move_length_scaled * 0.5));
+    session_cpp::Vector move_length_dir = dir * (-move_length_scaled);
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Male default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> male_0 = { {
+    std::vector<Polyline> male_0 = { {
 
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, 1.62789509252326),   IK::Point_3 (-0.499996349848395, -3.40695187221018, 1.62789509252326),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, 1.10464309849792),    IK::Point_3 (-0.499996349848395, -0.0232556441796868, 1.10464309849801),
-                                              IK::Point_3 (-0.499996349848395, -0.0232556441796339, 0.843017101485296), IK::Point_3 (-0.499996349848395, 0.49999634984571, 0.843017101485296),
-                                              IK::Point_3 (-0.499996349848395, 0.49999634984571, 1.19185176416881),     IK::Point_3 (-0.499996349848395, 0.6038871791861, 1.19185176416881),
-                                              IK::Point_3 (-0.499996349848395, 1.01079104575736, 1.04650398805065),     IK::Point_3 (-0.499996349848395, 1.01079104575736, 0.261625997012692),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, 0.261625997012692),   IK::Point_3 (-0.499996349848395, -3.40695187221018, -0.261625997012652),
-                                              IK::Point_3 (-0.499996349848395, 1.01079104575736, -0.261625997012652),   IK::Point_3 (-0.499996349848395, 1.01079104575736, -1.04650398805062),
-                                              IK::Point_3 (-0.499996349848395, 0.6038871791861, -1.19185176416877),     IK::Point_3 (-0.499996349848395, 0.49999634984571, -1.19185176416877),
-                                              IK::Point_3 (-0.499996349848395, 0.49999634984571, -0.843017101485257),   IK::Point_3 (-0.499996349848395, -0.0232556441796339, -0.843017101485257),
-                                              IK::Point_3 (-0.499996349848395, -0.0232556441796868, -1.10464309849797), IK::Point_3 (-0.499996349848395, -3.40695187221018, -1.10464309849788),
-                                              IK::Point_3 (-0.499996349848395, -3.40695187221018, -1.62789509252322),   IK::Point_3 (-0.499996349848395, -0.499996349847159, -1.62789509252322),
+                                              session_cpp::Point (-0.499996349848395, -0.499996349847159, 1.62789509252326),   session_cpp::Point (-0.499996349848395, -3.40695187221018, 1.62789509252326),
+                                              session_cpp::Point (-0.499996349848395, -3.40695187221018, 1.10464309849792),    session_cpp::Point (-0.499996349848395, -0.0232556441796868, 1.10464309849801),
+                                              session_cpp::Point (-0.499996349848395, -0.0232556441796339, 0.843017101485296), session_cpp::Point (-0.499996349848395, 0.49999634984571, 0.843017101485296),
+                                              session_cpp::Point (-0.499996349848395, 0.49999634984571, 1.19185176416881),     session_cpp::Point (-0.499996349848395, 0.6038871791861, 1.19185176416881),
+                                              session_cpp::Point (-0.499996349848395, 1.01079104575736, 1.04650398805065),     session_cpp::Point (-0.499996349848395, 1.01079104575736, 0.261625997012692),
+                                              session_cpp::Point (-0.499996349848395, -3.40695187221018, 0.261625997012692),   session_cpp::Point (-0.499996349848395, -3.40695187221018, -0.261625997012652),
+                                              session_cpp::Point (-0.499996349848395, 1.01079104575736, -0.261625997012652),   session_cpp::Point (-0.499996349848395, 1.01079104575736, -1.04650398805062),
+                                              session_cpp::Point (-0.499996349848395, 0.6038871791861, -1.19185176416877),     session_cpp::Point (-0.499996349848395, 0.49999634984571, -1.19185176416877),
+                                              session_cpp::Point (-0.499996349848395, 0.49999634984571, -0.843017101485257),   session_cpp::Point (-0.499996349848395, -0.0232556441796339, -0.843017101485257),
+                                              session_cpp::Point (-0.499996349848395, -0.0232556441796868, -1.10464309849797), session_cpp::Point (-0.499996349848395, -3.40695187221018, -1.10464309849788),
+                                              session_cpp::Point (-0.499996349848395, -3.40695187221018, -1.62789509252322),   session_cpp::Point (-0.499996349848395, -0.499996349847159, -1.62789509252322),
                                           },
                                           {
 
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, 1.62789509252326),
-                                              IK::Point_3 (-0.499996349848395, -0.499996349847159, -1.62789509252322),
+                                              session_cpp::Point (-0.499996349848395, -0.499996349847159, 1.62789509252326),
+                                              session_cpp::Point (-0.499996349848395, -0.499996349847159, -1.62789509252322),
                                           } };
 
-    std::vector<CGAL_Polyline> male_1 = { {
+    std::vector<Polyline> male_1 = { {
 
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, 1.62789509252334),    IK::Point_3 (0.499996349844421, -3.40695187221039, 1.62789509252334),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, 1.10464309849799),    IK::Point_3 (0.499996349844421, -0.0232556441798983, 1.10464309849809),
-                                              IK::Point_3 (0.499996349844421, -0.0232556441798454, 0.843017101485375), IK::Point_3 (0.499996349844421, 0.499996349845499, 0.843017101485375),
-                                              IK::Point_3 (0.499996349844421, 0.499996349845499, 1.19185176416889),    IK::Point_3 (0.499996349844421, 0.603887179185889, 1.19185176416889),
-                                              IK::Point_3 (0.499996349844421, 1.01079104575715, 1.04650398805073),     IK::Point_3 (0.499996349844421, 1.01079104575715, 0.261625997012771),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, 0.261625997012771),   IK::Point_3 (0.499996349844421, -3.40695187221039, -0.261625997012573),
-                                              IK::Point_3 (0.499996349844421, 1.01079104575715, -0.261625997012573),   IK::Point_3 (0.499996349844421, 1.01079104575715, -1.04650398805054),
-                                              IK::Point_3 (0.499996349844421, 0.603887179185889, -1.19185176416869),   IK::Point_3 (0.499996349844421, 0.499996349845499, -1.19185176416869),
-                                              IK::Point_3 (0.499996349844421, 0.499996349845499, -0.843017101485177),  IK::Point_3 (0.499996349844421, -0.0232556441798454, -0.843017101485177),
-                                              IK::Point_3 (0.499996349844421, -0.0232556441798983, -1.1046430984979),  IK::Point_3 (0.499996349844421, -3.40695187221039, -1.1046430984978),
-                                              IK::Point_3 (0.499996349844421, -3.40695187221039, -1.62789509252314),   IK::Point_3 (0.499996349844421, -0.49999634984737, -1.62789509252314),
+                                              session_cpp::Point (0.499996349844421, -0.49999634984737, 1.62789509252334),    session_cpp::Point (0.499996349844421, -3.40695187221039, 1.62789509252334),
+                                              session_cpp::Point (0.499996349844421, -3.40695187221039, 1.10464309849799),    session_cpp::Point (0.499996349844421, -0.0232556441798983, 1.10464309849809),
+                                              session_cpp::Point (0.499996349844421, -0.0232556441798454, 0.843017101485375), session_cpp::Point (0.499996349844421, 0.499996349845499, 0.843017101485375),
+                                              session_cpp::Point (0.499996349844421, 0.499996349845499, 1.19185176416889),    session_cpp::Point (0.499996349844421, 0.603887179185889, 1.19185176416889),
+                                              session_cpp::Point (0.499996349844421, 1.01079104575715, 1.04650398805073),     session_cpp::Point (0.499996349844421, 1.01079104575715, 0.261625997012771),
+                                              session_cpp::Point (0.499996349844421, -3.40695187221039, 0.261625997012771),   session_cpp::Point (0.499996349844421, -3.40695187221039, -0.261625997012573),
+                                              session_cpp::Point (0.499996349844421, 1.01079104575715, -0.261625997012573),   session_cpp::Point (0.499996349844421, 1.01079104575715, -1.04650398805054),
+                                              session_cpp::Point (0.499996349844421, 0.603887179185889, -1.19185176416869),   session_cpp::Point (0.499996349844421, 0.499996349845499, -1.19185176416869),
+                                              session_cpp::Point (0.499996349844421, 0.499996349845499, -0.843017101485177),  session_cpp::Point (0.499996349844421, -0.0232556441798454, -0.843017101485177),
+                                              session_cpp::Point (0.499996349844421, -0.0232556441798983, -1.1046430984979),  session_cpp::Point (0.499996349844421, -3.40695187221039, -1.1046430984978),
+                                              session_cpp::Point (0.499996349844421, -3.40695187221039, -1.62789509252314),   session_cpp::Point (0.499996349844421, -0.49999634984737, -1.62789509252314),
                                           },
 
                                           {
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, 1.62789509252334),
-                                              IK::Point_3 (0.499996349844421, -0.49999634984737, -1.62789509252314),
+                                              session_cpp::Point (0.499996349844421, -0.49999634984737, 1.62789509252334),
+                                              session_cpp::Point (0.499996349844421, -0.49999634984737, -1.62789509252314),
                                           } };
 
     std::vector<wood::cut::cut_type> male_types{ wood::cut::edge_insertion, wood::cut::edge_insertion };
@@ -4422,37 +4364,37 @@ ts_e_p_5 (wood::joint &joint)
     // female default shape
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::vector<CGAL_Polyline> female_0 = { {
+    std::vector<Polyline> female_0 = { {
 
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, -1.104643098498),
+                                                session_cpp::Point (0.499996349844421, -0.499996349847317, -1.104643098498),
+                                                session_cpp::Point (0.499996349844421, -0.499996349847317, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, 1.10464309849788),
                                             },
                                             {
 
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, -1.104643098498),
-                                                IK::Point_3 (0.499996349844421, -0.499996349847317, 1.10464309849788),
-                                                IK::Point_3 (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, -1.104643098498),
+                                                session_cpp::Point (0.499996349844421, -0.499996349847317, -1.104643098498),
+                                                session_cpp::Point (0.499996349844421, -0.499996349847317, 1.10464309849788),
+                                                session_cpp::Point (-0.499996349848395, -0.499996349847212, 1.10464309849788),
                                             } };
 
-    std::vector<CGAL_Polyline> female_1 = { {
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
+    std::vector<Polyline> female_1 = { {
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, -1.10464309849788),
+                                                session_cpp::Point (0.499996349844421, 0.499996349845499, -1.10464309849788),
+                                                session_cpp::Point (0.499996349844421, 0.499996349845499, 1.104643098498),
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, 1.104643098498),
                                             },
                                             {
 
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, -1.10464309849788),
-                                                IK::Point_3 (0.499996349844421, 0.499996349845499, 1.104643098498),
-                                                IK::Point_3 (-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, 1.104643098498),
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, -1.10464309849788),
+                                                session_cpp::Point (0.499996349844421, 0.499996349845499, -1.10464309849788),
+                                                session_cpp::Point (0.499996349844421, 0.499996349845499, 1.104643098498),
+                                                session_cpp::Point (-0.499996349848395, 0.499996349845604, 1.104643098498),
                                             } };
 
     std::vector<wood::cut::cut_type> female_types{ wood::cut::hole, wood::cut::hole };
@@ -4471,8 +4413,8 @@ ts_e_p_5 (wood::joint &joint)
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Copy the default shapes and move them
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline ());
-    joint.m[1].emplace_back (CGAL_Polyline ());
+    joint.m[0].emplace_back (Polyline ());
+    joint.m[1].emplace_back (Polyline ());
 
     joint.m[0].back ().reserve (male_0[0].size () * divisions);
     joint.m[1].back ().reserve (male_1[0].size () * divisions);
@@ -4483,8 +4425,8 @@ ts_e_p_5 (wood::joint &joint)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline male_moved_0 = male_0[0];
-            CGAL_Polyline male_moved_1 = male_1[0];
+            Polyline male_moved_0 = male_0[0];
+            Polyline male_moved_1 = male_1[0];
 
             // move joints that are positioned at
             // the center to the end of the
@@ -4507,8 +4449,8 @@ ts_e_p_5 (wood::joint &joint)
             // that the point order is correct, so
             // that the non-internsecting polyline
             // can be created, else reverse it
-            CGAL_Polyline female_moved_0 = female_0[0];
-            CGAL_Polyline female_moved_1 = female_1[0];
+            Polyline female_moved_0 = female_0[0];
+            Polyline female_moved_1 = female_1[0];
 
             // move joints that are positioned at
             // the center to the end of the
@@ -4524,14 +4466,14 @@ ts_e_p_5 (wood::joint &joint)
             joint.f[0].emplace_back (female_moved_0);
             joint.f[1].emplace_back (female_moved_1);
         }
-    joint.f[0].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[0].front ()[0], joint.f[0].front ()[3], joint.f[0].back ()[2], joint.f[0].back ()[1], joint.f[0].front ()[0] });
-    joint.f[1].emplace_back (std::initializer_list<IK::Point_3>{ joint.f[1].front ()[0], joint.f[1].front ()[3], joint.f[1].back ()[2], joint.f[1].back ()[1], joint.f[1].front ()[0] });
+    joint.f[0].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[0].front ()[0], joint.f[0].front ()[3], joint.f[0].back ()[2], joint.f[0].back ()[1], joint.f[0].front ()[0] });
+    joint.f[1].emplace_back (std::initializer_list<session_cpp::Point>{ joint.f[1].front ()[0], joint.f[1].front ()[3], joint.f[1].back ()[2], joint.f[1].back ()[1], joint.f[1].front ()[0] });
     joint.f_boolean_type = std::vector<wood::cut::cut_type> (joint.f[0].size (), wood::cut::hole);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add the insertion lines
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    joint.m[0].emplace_back (CGAL_Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
-    joint.m[1].emplace_back (CGAL_Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
+    joint.m[0].emplace_back (Polyline{ joint.m[0].front ().front (), joint.m[0].front ().back () });
+    joint.m[1].emplace_back (Polyline{ joint.m[1].front ().front (), joint.m[1].front ().back () });
 
     joint.m_boolean_type = male_types;
 
@@ -4585,17 +4527,17 @@ cr_c_ip_0 (wood::joint &joint)
     joint.name = __func__;
 
     double scale = 1;
-    joint.f[0] = { { IK::Point_3 (-0.5, 0.5, scale), IK::Point_3 (-0.5, -0.5, scale), IK::Point_3 (-0.5, -0.5, 0), IK::Point_3 (-0.5, 0.5, 0), IK::Point_3 (-0.5, 0.5, scale) },
-                   { IK::Point_3 (-0.5, 0.5, scale), IK::Point_3 (-0.5, -0.5, scale), IK::Point_3 (-0.5, -0.5, 0), IK::Point_3 (-0.5, 0.5, 0), IK::Point_3 (-0.5, 0.5, scale) } };
+    joint.f[0] = { { session_cpp::Point (-0.5, 0.5, scale), session_cpp::Point (-0.5, -0.5, scale), session_cpp::Point (-0.5, -0.5, 0), session_cpp::Point (-0.5, 0.5, 0), session_cpp::Point (-0.5, 0.5, scale) },
+                   { session_cpp::Point (-0.5, 0.5, scale), session_cpp::Point (-0.5, -0.5, scale), session_cpp::Point (-0.5, -0.5, 0), session_cpp::Point (-0.5, 0.5, 0), session_cpp::Point (-0.5, 0.5, scale) } };
 
-    joint.f[1] = { { IK::Point_3 (0.5, 0.5, scale), IK::Point_3 (0.5, -0.5, scale), IK::Point_3 (0.5, -0.5, 0), IK::Point_3 (0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, scale) },
-                   { IK::Point_3 (0.5, 0.5, scale), IK::Point_3 (0.5, -0.5, scale), IK::Point_3 (0.5, -0.5, 0), IK::Point_3 (0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, scale) } };
+    joint.f[1] = { { session_cpp::Point (0.5, 0.5, scale), session_cpp::Point (0.5, -0.5, scale), session_cpp::Point (0.5, -0.5, 0), session_cpp::Point (0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, scale) },
+                   { session_cpp::Point (0.5, 0.5, scale), session_cpp::Point (0.5, -0.5, scale), session_cpp::Point (0.5, -0.5, 0), session_cpp::Point (0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, scale) } };
 
-    joint.m[0] = { { IK::Point_3 (0.5, 0.5, -scale), IK::Point_3 (-0.5, 0.5, -scale), IK::Point_3 (-0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, -scale) },
-                   { IK::Point_3 (0.5, 0.5, -scale), IK::Point_3 (-0.5, 0.5, -scale), IK::Point_3 (-0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, 0), IK::Point_3 (0.5, 0.5, -scale) } };
+    joint.m[0] = { { session_cpp::Point (0.5, 0.5, -scale), session_cpp::Point (-0.5, 0.5, -scale), session_cpp::Point (-0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, -scale) },
+                   { session_cpp::Point (0.5, 0.5, -scale), session_cpp::Point (-0.5, 0.5, -scale), session_cpp::Point (-0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, 0), session_cpp::Point (0.5, 0.5, -scale) } };
 
-    joint.m[1] = { { IK::Point_3 (0.5, -0.5, -scale), IK::Point_3 (-0.5, -0.5, -scale), IK::Point_3 (-0.5, -0.5, 0), IK::Point_3 (0.5, -0.5, 0), IK::Point_3 (0.5, -0.5, -scale) },
-                   { IK::Point_3 (0.5, -0.5, -scale), IK::Point_3 (-0.5, -0.5, -scale), IK::Point_3 (-0.5, -0.5, 0), IK::Point_3 (0.5, -0.5, 0), IK::Point_3 (0.5, -0.5, -scale) } };
+    joint.m[1] = { { session_cpp::Point (0.5, -0.5, -scale), session_cpp::Point (-0.5, -0.5, -scale), session_cpp::Point (-0.5, -0.5, 0), session_cpp::Point (0.5, -0.5, 0), session_cpp::Point (0.5, -0.5, -scale) },
+                   { session_cpp::Point (0.5, -0.5, -scale), session_cpp::Point (-0.5, -0.5, -scale), session_cpp::Point (-0.5, -0.5, 0), session_cpp::Point (0.5, -0.5, 0), session_cpp::Point (0.5, -0.5, -scale) } };
 
     joint.m_boolean_type = { wood::cut::insert_between_multiple_edges, wood::cut::insert_between_multiple_edges };
     joint.f_boolean_type = { wood::cut::insert_between_multiple_edges, wood::cut::insert_between_multiple_edges };
@@ -4615,23 +4557,24 @@ cr_c_ip_1 (wood::joint &joint)
     double c = 2 * (b - a);
     double z = 0.5;
 
-    IK::Point_3 p[16] = {
-        IK::Point_3 (a, -a, 0),         IK::Point_3 (-a, -a, 0),         IK::Point_3 (-a, a, 0),         IK::Point_3 (a, a, 0), // center
-        IK::Point_3 (a + c, -a - c, 0), IK::Point_3 (-a - c, -a - c, 0), IK::Point_3 (-a - c, a + c, 0), IK::Point_3 (a + c, a + c,
+    session_cpp::Point p[16] = {
+        session_cpp::Point (a, -a, 0),         session_cpp::Point (-a, -a, 0),         session_cpp::Point (-a, a, 0),         session_cpp::Point (a, a, 0), // center
+        session_cpp::Point (a + c, -a - c, 0), session_cpp::Point (-a - c, -a - c, 0), session_cpp::Point (-a - c, a + c, 0), session_cpp::Point (a + c, a + c,
                                                                                                                       0),       // CenterOffset
-        IK::Point_3 (b, -b, z),         IK::Point_3 (-b, -b, z),         IK::Point_3 (-b, b, z),         IK::Point_3 (b, b, z), // Top
-        IK::Point_3 (b, -b, -z),        IK::Point_3 (-b, -b, -z),        IK::Point_3 (-b, b, -z),        IK::Point_3 (b, b, -z) // Bottom
+        session_cpp::Point (b, -b, z),         session_cpp::Point (-b, -b, z),         session_cpp::Point (-b, b, z),         session_cpp::Point (b, b, z), // Top
+        session_cpp::Point (b, -b, -z),        session_cpp::Point (-b, -b, -z),        session_cpp::Point (-b, b, -z),        session_cpp::Point (b, b, -z) // Bottom
     };
 
-    IK::Vector_3 v0 = ((p[0] - p[1]) * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector v0 = (p[0] - p[1] * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector sc_v0 = v0;
 
     joint.f[0].reserve (9 * 2);
     // Construct polylines from points
     joint.f[0] = {
-        { p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0 }, // center
+        { p[0] + sc_v0, p[1] - sc_v0, p[2] - sc_v0, p[3] + sc_v0, p[0] + sc_v0 }, // center
 
-        { p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0 }, // TopSide0
-        { p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0 }, // TopSide1
+        { p[1] - sc_v0, p[0] + sc_v0, p[0 + 8] + sc_v0, p[1 + 8] - sc_v0, p[1] - sc_v0 }, // TopSide0
+        { p[3] + sc_v0, p[2] - sc_v0, p[2 + 8] - sc_v0, p[3 + 8] + sc_v0, p[3] + sc_v0 }, // TopSide1
 
         { p[2], p[1], p[1 + 12], p[2 + 12], p[2] }, // BotSide0
         { p[0], p[3], p[3 + 12], p[0 + 12], p[0] }, // BotSide1
@@ -4645,7 +4588,7 @@ cr_c_ip_1 (wood::joint &joint)
     // for (int i = 0; i < 9; i++) {
     //     for (auto it = joint.f[0][i].begin();
     //     it != joint.f[0][i].end(); ++it)
-    //         *it = it->transform(xform_scale);
+    //         *it = *it.transform(xform_scale);
     // }
 
     // Offset and
@@ -4654,7 +4597,7 @@ cr_c_ip_1 (wood::joint &joint)
     joint.m[0].reserve (9 * 2);
     joint.m[1].reserve (9 * 2);
 
-    auto xform = internal::rotation_in_xy_plane (IK::Vector_3 (0, 1, 0), IK::Vector_3 (1, 0, 0), IK::Vector_3 (0, 0, -1));
+    auto xform = internal::rotation_in_xy_plane (session_cpp::Vector (0, 1, 0), session_cpp::Vector (1, 0, 0), session_cpp::Vector (0, 0, -1));
 
     double lenghts[9] = { 0.5, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.1, 0.1 };
     for (int i = 0; i < 9; i++)
@@ -4662,20 +4605,18 @@ cr_c_ip_1 (wood::joint &joint)
             joint.f[1].emplace_back (joint.f[0][i]);
 
             // offset distance
-            IK::Vector_3 cross = CGAL::cross_product (joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
+            session_cpp::Vector cross = (joint.f[1][i][1] - joint.f[1][i][0]).cross(joint.f[1][i][1] - joint.f[1][i][2]);
             internal::unitize (cross);
 
             // offset
             for (int j = 0; j < joint.f[1][i].size (); j++)
-                joint.f[1][i][j] += cross * lenghts[i];
+                joint.f[1][i][j] = joint.f[1][i][j] + cross * lenghts[i];
 
             joint.m[0].emplace_back (joint.f[0][i]);
-            for (auto it = joint.m[0][i].begin (); it != joint.m[0][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[0][i], xform);
 
             joint.m[1].emplace_back (joint.f[1][i]);
-            for (auto it = joint.m[1][i].begin (); it != joint.m[1][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[1][i], xform);
         }
 
     // duplicate two times
@@ -4730,15 +4671,16 @@ cr_c_ip_2 (wood::joint &joint)
     double c = 2 * (b - a);
     double z = 0.5;
 
-    IK::Point_3 p[16] = {
-        IK::Point_3 (a, -a, 0),         IK::Point_3 (-a, -a, 0),         IK::Point_3 (-a, a, 0),         IK::Point_3 (a, a, 0), // center
-        IK::Point_3 (a + c, -a - c, 0), IK::Point_3 (-a - c, -a - c, 0), IK::Point_3 (-a - c, a + c, 0), IK::Point_3 (a + c, a + c,
+    session_cpp::Point p[16] = {
+        session_cpp::Point (a, -a, 0),         session_cpp::Point (-a, -a, 0),         session_cpp::Point (-a, a, 0),         session_cpp::Point (a, a, 0), // center
+        session_cpp::Point (a + c, -a - c, 0), session_cpp::Point (-a - c, -a - c, 0), session_cpp::Point (-a - c, a + c, 0), session_cpp::Point (a + c, a + c,
                                                                                                                       0),       // CenterOffset
-        IK::Point_3 (b, -b, z),         IK::Point_3 (-b, -b, z),         IK::Point_3 (-b, b, z),         IK::Point_3 (b, b, z), // Top
-        IK::Point_3 (b, -b, -z),        IK::Point_3 (-b, -b, -z),        IK::Point_3 (-b, b, -z),        IK::Point_3 (b, b, -z) // Bottom
+        session_cpp::Point (b, -b, z),         session_cpp::Point (-b, -b, z),         session_cpp::Point (-b, b, z),         session_cpp::Point (b, b, z), // Top
+        session_cpp::Point (b, -b, -z),        session_cpp::Point (-b, -b, -z),        session_cpp::Point (-b, b, -z),        session_cpp::Point (b, b, -z) // Bottom
     };
 
-    IK::Vector_3 v0 = ((p[0] - p[1]) * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector v0 = (p[0] - p[1] * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector sc_v0 = v0;
 
     int n = 5;
 
@@ -4746,19 +4688,19 @@ cr_c_ip_2 (wood::joint &joint)
     // Construct polylines from points
     joint.f[0] = {
 
-        { p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0 }, // center
+        { p[0] + sc_v0, p[1] - sc_v0, p[2] - sc_v0, p[3] + sc_v0, p[0] + sc_v0 }, // center
 
-        { p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0 }, // wood::cut::slice TopSide0
-        { p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0 }, // wood::cut::slice TopSide1
+        { p[1] - sc_v0, p[0] + sc_v0, p[0 + 8] + sc_v0, p[1 + 8] - sc_v0, p[1] - sc_v0 }, // wood::cut::slice TopSide0
+        { p[3] + sc_v0, p[2] - sc_v0, p[2 + 8] - sc_v0, p[3 + 8] + sc_v0, p[3] + sc_v0 }, // wood::cut::slice TopSide1
 
         { p[2], p[1], p[1 + 12], p[2 + 12], p[2] }, // wood::cut::mill BotSide0
         { p[0], p[3], p[3 + 12], p[0 + 12], p[0] }, // wood::cut::mill BotSide1
 
-        // {IK::Point_3(0.3, 0.041421, -0.928477),
-        // IK::Point_3(0.041421, 0.3, 0.928477)},
+        // {session_cpp::Point(0.3, 0.041421, -0.928477),
+        // session_cpp::Point(0.041421, 0.3, 0.928477)},
         // // wood::cut::drill line
-        // {IK::Point_3(-0.3, -0.041421,
-        // -0.928477), IK::Point_3(-0.041421,
+        // {session_cpp::Point(-0.3, -0.041421,
+        // -0.928477), session_cpp::Point(-0.041421,
         // -0.3, 0.928477)}, // wood::cut::drill
         // line
 
@@ -4771,16 +4713,16 @@ cr_c_ip_2 (wood::joint &joint)
 
     // to sides
 
-    cgal::polyline_util::extend_equally (joint.f[0][3], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 2, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 2, 0.15);
 
     // vertically
-    cgal::polyline_util::extend_equally (joint.f[0][3], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 3, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 3, 0.6);
 
     // Offset and
     // flip polylines
@@ -4788,7 +4730,7 @@ cr_c_ip_2 (wood::joint &joint)
     joint.m[0].reserve (n * 2);
     joint.m[1].reserve (n * 2);
 
-    auto xform = internal::rotation_in_xy_plane (IK::Vector_3 (0, 1, 0), IK::Vector_3 (1, 0, 0), IK::Vector_3 (0, 0, -1));
+    auto xform = internal::rotation_in_xy_plane (session_cpp::Vector (0, 1, 0), session_cpp::Vector (1, 0, 0), session_cpp::Vector (0, 0, -1));
 
     double lenghts[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };
     for (int i = 0; i < n; i++)
@@ -4796,21 +4738,19 @@ cr_c_ip_2 (wood::joint &joint)
             joint.f[1].emplace_back (joint.f[0][i]);
 
             // offset distance
-            IK::Vector_3 cross = CGAL::cross_product (joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
+            session_cpp::Vector cross = (joint.f[1][i][1] - joint.f[1][i][0]).cross(joint.f[1][i][1] - joint.f[1][i][2]);
             internal::unitize (cross);
 
             // offset| skip wood::cut::drill lines
             if (joint.f[1][i].size ()) //> 2
                 for (int j = 0; j < joint.f[1][i].size (); j++)
-                    joint.f[1][i][j] += cross * lenghts[i];
+                    joint.f[1][i][j] = joint.f[1][i][j] + cross * lenghts[i];
 
             joint.m[0].emplace_back (joint.f[0][i]);
-            for (auto it = joint.m[0][i].begin (); it != joint.m[0][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[0][i], xform);
 
             joint.m[1].emplace_back (joint.f[1][i]);
-            for (auto it = joint.m[1][i].begin (); it != joint.m[1][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[1][i], xform);
         }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4848,8 +4788,8 @@ cr_c_ip_2 (wood::joint &joint)
     for (int i = 0; i < 2; i++)
         {
             int id = (i + 1) * 2;
-            CGAL_Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
-            CGAL_Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
+            Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
+            Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
             joint.f[0][id] = side00;
             joint.f[1][id] = side01;
             joint.f[0][id + 1] = side00;
@@ -4916,15 +4856,16 @@ cr_c_ip_3 (wood::joint &joint)
     double c = 2 * (b - a);
     double z = 0.5;
 
-    IK::Point_3 p[16] = {
-        IK::Point_3 (a, -a, 0),         IK::Point_3 (-a, -a, 0),         IK::Point_3 (-a, a, 0),         IK::Point_3 (a, a, 0), // center
-        IK::Point_3 (a + c, -a - c, 0), IK::Point_3 (-a - c, -a - c, 0), IK::Point_3 (-a - c, a + c, 0), IK::Point_3 (a + c, a + c,
+    session_cpp::Point p[16] = {
+        session_cpp::Point (a, -a, 0),         session_cpp::Point (-a, -a, 0),         session_cpp::Point (-a, a, 0),         session_cpp::Point (a, a, 0), // center
+        session_cpp::Point (a + c, -a - c, 0), session_cpp::Point (-a - c, -a - c, 0), session_cpp::Point (-a - c, a + c, 0), session_cpp::Point (a + c, a + c,
                                                                                                                       0),       // CenterOffset
-        IK::Point_3 (b, -b, z),         IK::Point_3 (-b, -b, z),         IK::Point_3 (-b, b, z),         IK::Point_3 (b, b, z), // Top
-        IK::Point_3 (b, -b, -z),        IK::Point_3 (-b, -b, -z),        IK::Point_3 (-b, b, -z),        IK::Point_3 (b, b, -z) // Bottom
+        session_cpp::Point (b, -b, z),         session_cpp::Point (-b, -b, z),         session_cpp::Point (-b, b, z),         session_cpp::Point (b, b, z), // Top
+        session_cpp::Point (b, -b, -z),        session_cpp::Point (-b, -b, -z),        session_cpp::Point (-b, b, -z),        session_cpp::Point (b, b, -z) // Bottom
     };
 
-    IK::Vector_3 v0 = ((p[0] - p[1]) * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector v0 = (p[0] - p[1] * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector sc_v0 = v0;
 
     int n = 7;
 
@@ -4932,17 +4873,17 @@ cr_c_ip_3 (wood::joint &joint)
     // Construct polylines from points
     joint.f[0] = {
 
-        { p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0 }, // center
+        { p[0] + sc_v0, p[1] - sc_v0, p[2] - sc_v0, p[3] + sc_v0, p[0] + sc_v0 }, // center
 
-        { p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0 }, // wood::cut::slice TopSide0
-        { p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0 }, // wood::cut::slice TopSide1
+        { p[1] - sc_v0, p[0] + sc_v0, p[0 + 8] + sc_v0, p[1 + 8] - sc_v0, p[1] - sc_v0 }, // wood::cut::slice TopSide0
+        { p[3] + sc_v0, p[2] - sc_v0, p[2 + 8] - sc_v0, p[3 + 8] + sc_v0, p[3] + sc_v0 }, // wood::cut::slice TopSide1
 
         { p[2], p[1], p[1 + 12], p[2 + 12], p[2] }, // wood::cut::mill BotSide0
         { p[0], p[3], p[3 + 12], p[0 + 12], p[0] }, // wood::cut::mill BotSide1
 
-        { IK::Point_3 (0.3, 0.041421, -0.928477), IK::Point_3 (0.041421, 0.3, 0.928477) },     // wood::cut::drill
+        { session_cpp::Point (0.3, 0.041421, -0.928477), session_cpp::Point (0.041421, 0.3, 0.928477) },     // wood::cut::drill
                                                                                                // line
-        { IK::Point_3 (-0.3, -0.041421, -0.928477), IK::Point_3 (-0.041421, -0.3, 0.928477) }, // wood::cut::drill
+        { session_cpp::Point (-0.3, -0.041421, -0.928477), session_cpp::Point (-0.041421, -0.3, 0.928477) }, // wood::cut::drill
                                                                                                // line
 
     };
@@ -4954,16 +4895,16 @@ cr_c_ip_3 (wood::joint &joint)
 
     // to sides
 
-    cgal::polyline_util::extend_equally (joint.f[0][3], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 2, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 2, 0.15);
 
     // vertically
-    cgal::polyline_util::extend_equally (joint.f[0][3], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 3, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 3, 0.6);
 
     // Offset and
     // flip polylines
@@ -4971,29 +4912,27 @@ cr_c_ip_3 (wood::joint &joint)
     joint.m[0].reserve (n * 2);
     joint.m[1].reserve (n * 2);
 
-    auto xform = internal::rotation_in_xy_plane (IK::Vector_3 (0, 1, 0), IK::Vector_3 (1, 0, 0), IK::Vector_3 (0, 0, -1));
+    auto xform = internal::rotation_in_xy_plane (session_cpp::Vector (0, 1, 0), session_cpp::Vector (1, 0, 0), session_cpp::Vector (0, 0, -1));
 
     double lenghts[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };
     for (int i = 0; i < n; i++)
         {
             joint.f[1].emplace_back (joint.f[0][i]);
 
-            // offset distance
-            IK::Vector_3 cross = CGAL::cross_product (joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
-            internal::unitize (cross);
-
-            // offset| skip wood::cut::drill lines
+            // offset| skip wood::cut::drill lines (2-point polylines)
             if (joint.f[1][i].size () > 2)
-                for (int j = 0; j < joint.f[1][i].size (); j++)
-                    joint.f[1][i][j] += cross * lenghts[i];
+                {
+                    session_cpp::Vector cross = (joint.f[1][i][1] - joint.f[1][i][0]).cross (joint.f[1][i][1] - joint.f[1][i][2]);
+                    internal::unitize (cross);
+                    for (int j = 0; j < (int)joint.f[1][i].size (); j++)
+                        joint.f[1][i][j] = joint.f[1][i][j] + cross * lenghts[i];
+                }
 
             joint.m[0].emplace_back (joint.f[0][i]);
-            for (auto it = joint.m[0][i].begin (); it != joint.m[0][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[0][i], xform);
 
             joint.m[1].emplace_back (joint.f[1][i]);
-            for (auto it = joint.m[1][i].begin (); it != joint.m[1][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[1][i], xform);
         }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5031,8 +4970,8 @@ cr_c_ip_3 (wood::joint &joint)
     for (int i = 0; i < 2; i++)
         {
             int id = (i + 1) * 2;
-            CGAL_Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
-            CGAL_Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
+            Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
+            Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
             joint.f[0][id] = side00;
             joint.f[1][id] = side01;
             joint.f[0][id + 1] = side00;
@@ -5105,15 +5044,16 @@ cr_c_ip_4 (wood::joint &joint)
     double c = 2 * (b - a);
     double z = 0.5;
 
-    IK::Point_3 p[16] = {
-        IK::Point_3 (a, -a, 0),         IK::Point_3 (-a, -a, 0),         IK::Point_3 (-a, a, 0),         IK::Point_3 (a, a, 0), // center
-        IK::Point_3 (a + c, -a - c, 0), IK::Point_3 (-a - c, -a - c, 0), IK::Point_3 (-a - c, a + c, 0), IK::Point_3 (a + c, a + c,
+    session_cpp::Point p[16] = {
+        session_cpp::Point (a, -a, 0),         session_cpp::Point (-a, -a, 0),         session_cpp::Point (-a, a, 0),         session_cpp::Point (a, a, 0), // center
+        session_cpp::Point (a + c, -a - c, 0), session_cpp::Point (-a - c, -a - c, 0), session_cpp::Point (-a - c, a + c, 0), session_cpp::Point (a + c, a + c,
                                                                                                                       0),       // CenterOffset
-        IK::Point_3 (b, -b, z),         IK::Point_3 (-b, -b, z),         IK::Point_3 (-b, b, z),         IK::Point_3 (b, b, z), // Top
-        IK::Point_3 (b, -b, -z),        IK::Point_3 (-b, -b, -z),        IK::Point_3 (-b, b, -z),        IK::Point_3 (b, b, -z) // Bottom
+        session_cpp::Point (b, -b, z),         session_cpp::Point (-b, -b, z),         session_cpp::Point (-b, b, z),         session_cpp::Point (b, b, z), // Top
+        session_cpp::Point (b, -b, -z),        session_cpp::Point (-b, -b, -z),        session_cpp::Point (-b, b, -z),        session_cpp::Point (b, b, -z) // Bottom
     };
 
-    IK::Vector_3 v0 = ((p[0] - p[1]) * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector v0 = (p[0] - p[1] * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector sc_v0 = v0;
 
     int n = 6;
 
@@ -5121,21 +5061,21 @@ cr_c_ip_4 (wood::joint &joint)
     // Construct polylines from points
     joint.f[0] = {
 
-        { p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0 }, // center
+        { p[0] + sc_v0, p[1] - sc_v0, p[2] - sc_v0, p[3] + sc_v0, p[0] + sc_v0 }, // center
 
-        { p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0 }, // wood::cut::slice TopSide0
-        { p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0 }, // wood::cut::slice TopSide1
+        { p[1] - sc_v0, p[0] + sc_v0, p[0 + 8] + sc_v0, p[1 + 8] - sc_v0, p[1] - sc_v0 }, // wood::cut::slice TopSide0
+        { p[3] + sc_v0, p[2] - sc_v0, p[2 + 8] - sc_v0, p[3 + 8] + sc_v0, p[3] + sc_v0 }, // wood::cut::slice TopSide1
 
         { p[2], p[1], p[1 + 12], p[2 + 12], p[2] }, // wood::cut::mill BotSide0
         { p[0], p[3], p[3 + 12], p[0 + 12], p[0] }, // wood::cut::mill BotSide1
 
-        { IK::Point_3 (0.0, 0.0, -1.0), IK::Point_3 (0.0, 0.0, 1.0) }, // wood::cut::drill line
+        { session_cpp::Point (0.0, 0.0, -1.0), session_cpp::Point (0.0, 0.0, 1.0) }, // wood::cut::drill line
 
-        // {IK::Point_3(0.3, 0.041421, -0.928477),
-        // IK::Point_3(0.041421, 0.3, 0.928477)},
+        // {session_cpp::Point(0.3, 0.041421, -0.928477),
+        // session_cpp::Point(0.041421, 0.3, 0.928477)},
         // // wood::cut::drill line
-        // {IK::Point_3(-0.3, -0.041421,
-        // -0.928477), IK::Point_3(-0.041421,
+        // {session_cpp::Point(-0.3, -0.041421,
+        // -0.928477), session_cpp::Point(-0.041421,
         // -0.3, 0.928477)}, // wood::cut::drill
         // line
 
@@ -5148,16 +5088,16 @@ cr_c_ip_4 (wood::joint &joint)
 
     // to sides
 
-    cgal::polyline_util::extend_equally (joint.f[0][3], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 2, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 0, 0.15);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][3], 2, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 0, 0.15);
+    session_cpp::extend_equally (joint.f[0][4], 2, 0.15);
 
     // vertically
-    cgal::polyline_util::extend_equally (joint.f[0][3], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 3, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 3, 0.6);
 
     // Offset and
     // flip polylines
@@ -5165,29 +5105,27 @@ cr_c_ip_4 (wood::joint &joint)
     joint.m[0].reserve (n * 2);
     joint.m[1].reserve (n * 2);
 
-    auto xform = internal::rotation_in_xy_plane (IK::Vector_3 (0, 1, 0), IK::Vector_3 (1, 0, 0), IK::Vector_3 (0, 0, -1));
+    auto xform = internal::rotation_in_xy_plane (session_cpp::Vector (0, 1, 0), session_cpp::Vector (1, 0, 0), session_cpp::Vector (0, 0, -1));
 
     double lenghts[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };
     for (int i = 0; i < n; i++)
         {
             joint.f[1].emplace_back (joint.f[0][i]);
 
-            // offset distance
-            IK::Vector_3 cross = CGAL::cross_product (joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
-            internal::unitize (cross);
-
-            // offset| skip wood::cut::drill lines
-            if (joint.f[1][i].size () > 1) //
-                for (int j = 0; j < joint.f[1][i].size (); j++)
-                    joint.f[1][i][j] += cross * lenghts[i];
+            // offset| skip wood::cut::drill lines (2-point polylines)
+            if (joint.f[1][i].size () > 2)
+                {
+                    session_cpp::Vector cross = (joint.f[1][i][1] - joint.f[1][i][0]).cross (joint.f[1][i][1] - joint.f[1][i][2]);
+                    internal::unitize (cross);
+                    for (int j = 0; j < (int)joint.f[1][i].size (); j++)
+                        joint.f[1][i][j] = joint.f[1][i][j] + cross * lenghts[i];
+                }
 
             joint.m[0].emplace_back (joint.f[0][i]);
-            for (auto it = joint.m[0][i].begin (); it != joint.m[0][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[0][i], xform);
 
             joint.m[1].emplace_back (joint.f[1][i]);
-            for (auto it = joint.m[1][i].begin (); it != joint.m[1][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[1][i], xform);
         }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5225,8 +5163,8 @@ cr_c_ip_4 (wood::joint &joint)
     for (int i = 0; i < 2; i++)
         {
             int id = (i + 1) * 2;
-            CGAL_Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
-            CGAL_Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
+            Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
+            Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
             joint.f[0][id] = side00;
             joint.f[1][id] = side01;
             joint.f[0][id + 1] = side00;
@@ -5307,15 +5245,16 @@ cr_c_ip_5 (wood::joint &joint)
     double c = 2 * (b - a);
     double z = 0.5;
 
-    IK::Point_3 p[16] = {
-        IK::Point_3 (a, -a, 0),         IK::Point_3 (-a, -a, 0),         IK::Point_3 (-a, a, 0),         IK::Point_3 (a, a, 0), // center
-        IK::Point_3 (a + c, -a - c, 0), IK::Point_3 (-a - c, -a - c, 0), IK::Point_3 (-a - c, a + c, 0), IK::Point_3 (a + c, a + c,
+    session_cpp::Point p[16] = {
+        session_cpp::Point (a, -a, 0),         session_cpp::Point (-a, -a, 0),         session_cpp::Point (-a, a, 0),         session_cpp::Point (a, a, 0), // center
+        session_cpp::Point (a + c, -a - c, 0), session_cpp::Point (-a - c, -a - c, 0), session_cpp::Point (-a - c, a + c, 0), session_cpp::Point (a + c, a + c,
                                                                                                                       0),       // CenterOffset
-        IK::Point_3 (b, -b, z),         IK::Point_3 (-b, -b, z),         IK::Point_3 (-b, b, z),         IK::Point_3 (b, b, z), // Top
-        IK::Point_3 (b, -b, -z),        IK::Point_3 (-b, -b, -z),        IK::Point_3 (-b, b, -z),        IK::Point_3 (b, b, -z) // Bottom
+        session_cpp::Point (b, -b, z),         session_cpp::Point (-b, -b, z),         session_cpp::Point (-b, b, z),         session_cpp::Point (b, b, z), // Top
+        session_cpp::Point (b, -b, -z),        session_cpp::Point (-b, -b, -z),        session_cpp::Point (-b, b, -z),        session_cpp::Point (b, b, -z) // Bottom
     };
 
-    IK::Vector_3 v0 = ((p[0] - p[1]) * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector v0 = (p[0] - p[1] * (1 / (a * 2))) * (0.5 - a);
+    session_cpp::Vector sc_v0 = v0;
 
     int n = 7;
 
@@ -5323,17 +5262,17 @@ cr_c_ip_5 (wood::joint &joint)
     // Construct polylines from points
     joint.f[0] = {
 
-        { p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0 }, // center
+        { p[0] + sc_v0, p[1] - sc_v0, p[2] - sc_v0, p[3] + sc_v0, p[0] + sc_v0 }, // center
 
-        { p[1] - v0, p[0] + v0, p[0 + 8] + v0, p[1 + 8] - v0, p[1] - v0 }, // wood::cut::slice TopSide0
-        { p[3] + v0, p[2] - v0, p[2 + 8] - v0, p[3 + 8] + v0, p[3] + v0 }, // wood::cut::slice TopSide1
+        { p[1] - sc_v0, p[0] + sc_v0, p[0 + 8] + sc_v0, p[1 + 8] - sc_v0, p[1] - sc_v0 }, // wood::cut::slice TopSide0
+        { p[3] + sc_v0, p[2] - sc_v0, p[2 + 8] - sc_v0, p[3 + 8] + sc_v0, p[3] + sc_v0 }, // wood::cut::slice TopSide1
 
         { p[2], p[1], p[1 + 12], p[2 + 12], p[2] }, // wood::cut::mill BotSide0
         { p[0], p[3], p[3 + 12], p[0 + 12], p[0] }, // wood::cut::mill BotSide1
 
-        { IK::Point_3 (0.0, 0.0, -1.0), IK::Point_3 (0.0, 0.0, 1.0) }, // wood::cut::drill line
-        { IK::Point_3 (-0.5, 0, -0.55), IK::Point_3 (0.5, 0, -0.55) },
-        //{IK::Point_3(0, 1, 1), IK::Point_3(0,
+        { session_cpp::Point (0.0, 0.0, -1.0), session_cpp::Point (0.0, 0.0, 1.0) }, // wood::cut::drill line
+        { session_cpp::Point (-0.5, 0, -0.55), session_cpp::Point (0.5, 0, -0.55) },
+        //{session_cpp::Point(0, 1, 1), session_cpp::Point(0,
         //-1, 1)},     // wood::cut::drill line
         //(smaller
         // element)
@@ -5347,16 +5286,16 @@ cr_c_ip_5 (wood::joint &joint)
 
     // to sides
 
-    cgal::polyline_util::extend_equally (joint.f[0][3], 0, 0.15 * 1.8);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 2, -0.15 * 0.5);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 0, 0.15 * 1.8);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 2, -0.15 * 0.5);
+    session_cpp::extend_equally (joint.f[0][3], 0, 0.15 * 1.8);
+    session_cpp::extend_equally (joint.f[0][3], 2, -0.15 * 0.5);
+    session_cpp::extend_equally (joint.f[0][4], 0, 0.15 * 1.8);
+    session_cpp::extend_equally (joint.f[0][4], 2, -0.15 * 0.5);
 
     // vertically
-    cgal::polyline_util::extend_equally (joint.f[0][3], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][3], 3, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 1, 0.6);
-    cgal::polyline_util::extend_equally (joint.f[0][4], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][3], 3, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 1, 0.6);
+    session_cpp::extend_equally (joint.f[0][4], 3, 0.6);
 
     // Offset and
     // flip polylines
@@ -5364,29 +5303,27 @@ cr_c_ip_5 (wood::joint &joint)
     joint.m[0].reserve (n * 2);
     joint.m[1].reserve (n * 2);
 
-    auto xform = internal::rotation_in_xy_plane (IK::Vector_3 (0, 1, 0), IK::Vector_3 (1, 0, 0), IK::Vector_3 (0, 0, -1));
+    auto xform = internal::rotation_in_xy_plane (session_cpp::Vector (0, 1, 0), session_cpp::Vector (1, 0, 0), session_cpp::Vector (0, 0, -1));
 
     double lenghts[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };
     for (int i = 0; i < n; i++)
         {
             joint.f[1].emplace_back (joint.f[0][i]);
 
-            // offset distance
-            IK::Vector_3 cross = CGAL::cross_product (joint.f[1][i][1] - joint.f[1][i][0], joint.f[1][i][1] - joint.f[1][i][2]);
-            internal::unitize (cross);
-
-            // offset| skip wood::cut::drill lines
-            if (joint.f[1][i].size () > 2) //
-                for (int j = 0; j < joint.f[1][i].size (); j++)
-                    joint.f[1][i][j] += cross * lenghts[i];
+            // offset| skip wood::cut::drill lines (2-point polylines)
+            if (joint.f[1][i].size () > 2)
+                {
+                    session_cpp::Vector cross = (joint.f[1][i][1] - joint.f[1][i][0]).cross (joint.f[1][i][1] - joint.f[1][i][2]);
+                    internal::unitize (cross);
+                    for (int j = 0; j < (int)joint.f[1][i].size (); j++)
+                        joint.f[1][i][j] = joint.f[1][i][j] + cross * lenghts[i];
+                }
 
             joint.m[0].emplace_back (joint.f[0][i]);
-            for (auto it = joint.m[0][i].begin (); it != joint.m[0][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[0][i], xform);
 
             joint.m[1].emplace_back (joint.f[1][i]);
-            for (auto it = joint.m[1][i].begin (); it != joint.m[1][i].end (); ++it)
-                *it = it->transform (xform);
+            session_cpp::transform (joint.m[1][i], xform);
         }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5424,8 +5361,8 @@ cr_c_ip_5 (wood::joint &joint)
     for (int i = 0; i < 2; i++)
         {
             int id = (i + 1) * 2;
-            CGAL_Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
-            CGAL_Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
+            Polyline side00 = { joint.f[0][id][0], joint.f[0][id][1], joint.f[1][id][1], joint.f[1][id][0], joint.f[0][id][0] };
+            Polyline side01 = { joint.f[0][id][3], joint.f[0][id][2], joint.f[1][id][2], joint.f[1][id][3], joint.f[0][id][3] };
             joint.f[0][id] = side00;
             joint.f[1][id] = side01;
             joint.f[0][id + 1] = side00;
@@ -5516,20 +5453,20 @@ tt_e_p_0 (wood::joint &joint,
     joint.name = __func__;
 
     // compute the center of the joint_area
-    IK::Point_3 center = cgal::polyline_util::center (joint.joint_area);
+    session_cpp::Point center = session_cpp::center (joint.joint_area);
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    session_cpp::unitize (dir0);
+    session_cpp::Vector dir1 = dir0 * -1.0;
     dir0 *= elements[joint.v0].thickness;
     dir1 *= elements[joint.v1].thickness;
 
     // create polyline segments that represents
     // the drilling holes
-    CGAL_Polyline line0 = { center, center + dir0 };
-    CGAL_Polyline line1 = { center, center + dir1 };
+    Polyline line0 = { center, center + dir0 };
+    Polyline line1 = { center, center + dir1 };
 
     // output
     joint.f[0] = { line0, line0 };
@@ -5556,21 +5493,21 @@ tt_e_p_1 (wood::joint &joint,
     // compute the inscribed rectangle and
     // subdivide it into points WARNING the offset
     // distance and division has to come from user
-    std::tuple<IK::Point_3, IK::Plane_3, double> result = cgal::inscribe_util::get_polylabel ({ joint.joint_area }, 1.0);
-    IK::Point_3 center = std::get<0> (result);
+    auto result = cgal::inscribe_util::get_polylabel ({ joint.joint_area }, 1.0);
+    session_cpp::Point center = std::get<0> (result);
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    session_cpp::unitize (dir0);
+    session_cpp::Vector dir1 = dir0 * -1.0;
     dir0 *= elements[joint.v0].thickness;
     dir1 *= elements[joint.v1].thickness;
 
     // create polyline segments that represents
     // the drilling holes
-    CGAL_Polyline line0 = { center, center + dir0 };
-    CGAL_Polyline line1 = { center, center + dir1 };
+    Polyline line0 = { center, center + dir0 };
+    Polyline line1 = { center, center + dir1 };
 
     // output
     joint.f[0] = { line0, line0 };
@@ -5597,21 +5534,21 @@ tt_e_p_2 (wood::joint &joint,
     // compute the inscribed rectangle and
     // subdivide it into points WARNING the offset
     // distance and division has to come from user
-    std::vector<IK::Point_3> points;
+    std::vector<session_cpp::Point> points;
     double scale = joint.shift;
     double number_of_points = joint.division_length;
-    cgal::inscribe_util::get_polylabel_circle_division_points (IK::Vector_3 (0, 0, 0), { joint.joint_area }, points, number_of_points, scale, 1.0,
+    cgal::inscribe_util::get_polylabel_circle_division_points (session_cpp::Vector{0, 0, 0}, { joint.joint_area }, points, number_of_points, scale, 1.0,
                                                                true); //  joint.divisions,
                                                                       //  joint.shift 6, 0.75, 1.0,
                                                                       //  true
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
-    dir0 *= elements[joint.v0].thickness;
-    dir1 *= elements[joint.v1].thickness;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    dir0.normalize_self ();
+    session_cpp::Vector dir1 = dir0 * -1.0;
+    dir0 = dir0 * elements[joint.v0].thickness;
+    dir1 = dir1 * elements[joint.v1].thickness;
 
     // output
     joint.f[0].reserve (points.size () * 2);
@@ -5624,8 +5561,8 @@ tt_e_p_2 (wood::joint &joint,
         {
             // create polyline segments that
             // represents the drilling holes
-            CGAL_Polyline line0 = { point, point + dir0 };
-            CGAL_Polyline line1 = { point, point + dir1 };
+            Polyline line0 = { point, point + dir0 };
+            Polyline line1 = { point, point + dir1 };
             joint.f[0].emplace_back (line0);
             joint.f[0].emplace_back (line0);
             joint.f[1].emplace_back (line0);
@@ -5656,19 +5593,24 @@ tt_e_p_3 (wood::joint &joint,
     // compute the inscribed rectangle and
     // subdivide it into points WARNING the offset
     // distance and division has to come from user
-    std::vector<IK::Point_3> points;
+    std::vector<session_cpp::Point> points;
     double offset_distance = -joint.shift;
     double division_distance = joint.division_length; // negative value
                                                       // = grid,
                                                       // positive =
                                                       // edge division
-    collider::clipper_util::offset_and_divide_to_points (points, joint.joint_area, offset_distance, division_distance);
+    {
+        std::vector<session_cpp::Point> joint_area_ik;
+        joint_area_ik.reserve(joint.joint_area.size());
+        for (const auto& p : joint.joint_area) joint_area_ik.push_back(p);
+        collider::clipper_util::offset_and_divide_to_points (points, joint_area_ik, offset_distance, division_distance);
+    }
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    session_cpp::unitize (dir0);
+    session_cpp::Vector dir1 = dir0 * -1.0;
     dir0 *= elements[joint.v0].thickness;
     dir1 *= elements[joint.v1].thickness;
 
@@ -5683,8 +5625,8 @@ tt_e_p_3 (wood::joint &joint,
         {
             // create polyline segments that
             // represents the drilling holes
-            CGAL_Polyline line0 = { point, point + dir0 };
-            CGAL_Polyline line1 = { point, point + dir1 };
+            Polyline line0 = { point, point + dir0 };
+            Polyline line1 = { point, point + dir1 };
             double offset_distance = -joint.shift; // negative means
                                                    // offset inwards
             double division_distance = joint.division_length;
@@ -5716,17 +5658,17 @@ tt_e_p_4 (wood::joint &joint,
     joint.name = __func__;
 
     // compute the center of the joint_area
-    std::vector<IK::Point_3> points;
+    std::vector<session_cpp::Point> points;
     double offset_distance = -joint.shift; // negative means offset
                                            // inwards
     double division_distance = joint.division_length;
-    cgal::rectangle_util::grid_of_points_in_a_polygon (joint.joint_area, offset_distance, division_distance, 100, points);
+    session_cpp::grid_of_points_in_a_polygon (joint.joint_area, offset_distance, division_distance, 100, points);
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    session_cpp::unitize (dir0);
+    session_cpp::Vector dir1 = dir0 * -1.0;
     dir0 *= elements[joint.v0].thickness;
     dir1 *= elements[joint.v1].thickness;
 
@@ -5741,8 +5683,8 @@ tt_e_p_4 (wood::joint &joint,
         {
             // create polyline segments that
             // represents the drilling holes
-            CGAL_Polyline line0 = { point, point + dir0 };
-            CGAL_Polyline line1 = { point, point + dir1 };
+            Polyline line0 = { point, point + dir0 };
+            Polyline line1 = { point, point + dir1 };
             joint.f[0].emplace_back (line0);
             joint.f[0].emplace_back (line0);
             joint.f[1].emplace_back (line0);
@@ -5773,9 +5715,9 @@ tt_e_p_5 (wood::joint &joint,
     // compute the inscribed rectangle and
     // subdivide it into points WARNING the
     // division has to come from user
-    std::vector<IK::Point_3> points;
-    CGAL_Polyline polygon_inscribed_rectangle;
-    IK::Segment_3 segment;
+    std::vector<session_cpp::Point> points;
+    Polyline polygon_inscribed_rectangle;
+    session_cpp::Line segment;
     double scale = joint.shift;
     double division_length = joint.division_length; // negative value
                                                     // = grid,
@@ -5786,11 +5728,11 @@ tt_e_p_5 (wood::joint &joint,
 
     // move the center by the direction of
     // rectangle 2nd edge, because it is vertical
-    IK::Vector_3 dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
-    cgal::vector_util::unitize (dir0);
-    IK::Vector_3 dir1 = -dir0;
-    dir0 *= elements[joint.v0].thickness;
-    dir1 *= elements[joint.v1].thickness;
+    session_cpp::Vector dir0 = joint.joint_volumes[0][1] - joint.joint_volumes[0][2];
+    dir0.normalize_self ();
+    session_cpp::Vector dir1 = dir0 * -1.0;
+    dir0 = dir0 * elements[joint.v0].thickness;
+    dir1 = dir1 * elements[joint.v1].thickness;
 
     // output
 
@@ -5810,8 +5752,8 @@ tt_e_p_5 (wood::joint &joint,
         {
             // create polyline segments that
             // represents the drilling holes
-            CGAL_Polyline line0 = { point, point + dir0 };
-            CGAL_Polyline line1 = { point, point + dir1 };
+            Polyline line0 = { point, point + dir0 };
+            Polyline line1 = { point, point + dir1 };
             joint.f[0].emplace_back (line0);
             joint.f[0].emplace_back (line0);
             joint.f[1].emplace_back (line0);
@@ -5876,15 +5818,15 @@ b_0 (wood::joint &joint)
     // printf("\nb_0\n");
 
     // Get center rectangle
-    CGAL_Polyline mid_rectangle = cgal::polyline_util::tween_two_polylines (joint.joint_volumes[0], joint.joint_volumes[1], 0.5);
+    Polyline mid_rectangle = session_cpp::tween_two_polylines (joint.joint_volumes[0], joint.joint_volumes[1], 0.5);
 
     // X-Axis extend polyline in scale[0]
-    cgal::polyline_util::extend_equally (mid_rectangle, 1, joint.scale[0] + 0);
-    cgal::polyline_util::extend_equally (mid_rectangle, 3, joint.scale[0] + 0);
+    session_cpp::extend_equally (mid_rectangle, 1, joint.scale[0] + 0);
+    session_cpp::extend_equally (mid_rectangle, 3, joint.scale[0] + 0);
 
     // Y-Axis Move rectangle down and give it a
     // length of scale[1] move to center
-    IK::Vector_3 v = mid_rectangle[1] - mid_rectangle[0];
+    session_cpp::Vector v = mid_rectangle[1] - mid_rectangle[0];
     v *= 0.5;
 
     mid_rectangle[0] += v;
@@ -5893,7 +5835,7 @@ b_0 (wood::joint &joint)
     mid_rectangle[3] += v;
     mid_rectangle[4] += v;
 
-    cgal::vector_util::unitize (v);
+    session_cpp::unitize (v);
     v *= joint.scale[1] + temp_scale_y;
     mid_rectangle[0] += v;
     mid_rectangle[3] += v;
@@ -5901,23 +5843,26 @@ b_0 (wood::joint &joint)
 
     // Z-AxisOffset by normal, scale value gives
     // the offset from the center
-    IK::Vector_3 z_axis;
-    cgal::vector_util::average_normal (mid_rectangle, z_axis);
-    IK::Vector_3 z_axis_offset_from_center = z_axis * offset_from_center;
-    double len = cgal::vector_util::length (z_axis.x (), z_axis.y (), z_axis.z ());
+    session_cpp::Vector z_axis_sc;
+    session_cpp::average_normal (mid_rectangle, z_axis_sc);
+    session_cpp::Vector z_axis = z_axis_sc;
+    session_cpp::Vector z_axis_offset_from_center = z_axis * offset_from_center;
+    double len = z_axis_sc.magnitude();
 
     z_axis *= (joint.scale[2] + temp_scale_z);
 
-    cgal::polyline_util::shift (mid_rectangle, 2);
+    session_cpp::shift (mid_rectangle, 2);
 
-    CGAL_Polyline rect0 = mid_rectangle;
-    CGAL_Polyline rect1 = mid_rectangle;
-    CGAL_Polyline rect2 = mid_rectangle;
-    CGAL_Polyline rect3 = mid_rectangle;
-    cgal::polyline_util::move (rect1, z_axis);
-    cgal::polyline_util::move (rect3, -z_axis);
-    cgal::polyline_util::move (rect0, z_axis_offset_from_center);
-    cgal::polyline_util::move (rect2, -z_axis_offset_from_center);
+    Polyline rect0 = mid_rectangle;
+    Polyline rect1 = mid_rectangle;
+    Polyline rect2 = mid_rectangle;
+    Polyline rect3 = mid_rectangle;
+    session_cpp::Vector neg_z_axis = z_axis * -1.0;
+    session_cpp::Vector neg_z_axis_offset = z_axis_offset_from_center * -1.0;
+    session_cpp::move (rect1, z_axis);
+    session_cpp::move (rect3, neg_z_axis);
+    session_cpp::move (rect0, z_axis_offset_from_center);
+    session_cpp::move (rect2, neg_z_axis_offset);
     // printf("\n length %f %f %f", len,
     // joint.scale[2], temp_scale_z);
     // rect0=cgal_polyline_util::tween_two_polylines(rect0,
@@ -6205,10 +6150,6 @@ construct_joint_by_index (std::vector<wood::element> &elements, std::vector<wood
             if (id_representing_joint_name < 1 || group == -1)
                 {
                     ids_to_remove.emplace_back (counter - 1);
-                    // printf("%i %i %i ",
-                    // jo.type, jo.v0, jo.v1);
-                    // std::cout << "Joint is
-                    // skipped \n";
                     continue;
                 }
             else

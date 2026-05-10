@@ -358,10 +358,10 @@ std::vector<SQLPointCloud> SQL_POINTCLOUDS{};
 
 // done
 void
-add_polygon_mesh (const std::vector<CGAL_Polyline> &polylines)
+add_polygon_mesh (const std::vector<Polyline> &polylines)
 {
     SQLMesh sqlmesh;
-    IK::Plane_3 base_plane = IK::Plane_3 (polylines[0][0], polylines[0][1], polylines[0][2]);
+    IK::Plane_3 base_plane = IK::Plane_3 (to_cgal_pt (polylines[0][0]), to_cgal_pt (polylines[0][1]), to_cgal_pt (polylines[0][2]));
     IK::Vector_3 normal = base_plane.orthogonal_vector ();
     internal::unitize (normal);
 
@@ -371,7 +371,7 @@ add_polygon_mesh (const std::vector<CGAL_Polyline> &polylines)
                 {
                     for (int axis : { 0, 1, 2 })
                         { // Loop over x, y, z coordinates
-                            sqlmesh.vertices.emplace_back (static_cast<double> (polyline[i].cartesian (axis) / SCALE));
+                            sqlmesh.vertices.emplace_back (static_cast<double> (polyline[i][axis] / SCALE));
                             sqlmesh.normals.emplace_back (static_cast<double> (normal.cartesian (axis)));
                         }
                 }
@@ -385,7 +385,7 @@ add_polygon_mesh (const std::vector<CGAL_Polyline> &polylines)
 
 // done
 void
-add_loft (std::vector<std::vector<CGAL_Polyline> > &output_plines)
+add_loft (std::vector<std::vector<Polyline> > &output_plines)
 {
     std::vector<double> out_vertices;
     std::vector<double> out_normals;
@@ -401,7 +401,7 @@ add_loft (std::vector<std::vector<CGAL_Polyline> > &output_plines)
 }
 
 void
-closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles, const double &scale)
+closed_mesh_from_polylines_vnf (const std::vector<Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles, const double &scale)
 {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sanity Check
@@ -410,7 +410,7 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
     // RowMatrixXi f_empty(0, 0);
     // auto empty_tuple = std::make_tuple(v_empty, f_empty);
 
-    std::vector<CGAL_Polyline> polylines_with_holes;
+    std::vector<Polyline> polylines_with_holes;
     polylines_with_holes.reserve (polylines_with_holes_not_clean.size ());
 
     // ignore line segments with less than 2 points
@@ -435,7 +435,7 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Clean duplicate points
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<CGAL_Polyline> polylines (polylines_with_holes.size ());
+    std::vector<Polyline> polylines (polylines_with_holes.size ());
 
     for (auto i = 0; i < polylines_with_holes.size (); i += 2)
         {
@@ -445,7 +445,7 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
             polylines[i + 1].emplace_back (polylines_with_holes[i + 1][0]);
             for (auto j = 1; j < polylines_with_holes[i + 0].size (); j++)
                 {
-                    if (CGAL::squared_distance (polylines_with_holes[i + 0][j - 1], polylines_with_holes[i + 0][j]) > wood::GLOBALS::DISTANCE_SQUARED)
+                    if (CGAL::squared_distance (to_cgal_pt (polylines_with_holes[i + 0][j - 1]), to_cgal_pt (polylines_with_holes[i + 0][j])) > wood::GLOBALS::DISTANCE_SQUARED)
                         {
                             polylines[i + 0].emplace_back (polylines_with_holes[i + 0][j]);
                             polylines[i + 1].emplace_back (polylines_with_holes[i + 1][j]);
@@ -464,13 +464,13 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
         {
             auto prev = ((i - 1) + len) % len;
             auto next = ((i + 1) + len) % len;
-            average_normal = average_normal + CGAL::cross_product (polylines[lastID][i] - polylines[lastID][prev], polylines[lastID][next] - polylines[lastID][i]);
+            average_normal = average_normal + CGAL::cross_product (to_cgal_pt (polylines[lastID][i]) - to_cgal_pt (polylines[lastID][prev]), to_cgal_pt (polylines[lastID][next]) - to_cgal_pt (polylines[lastID][i]));
         }
     internal::unitize (average_normal);
 
     // flip if needed
-    IK::Plane_3 base_plane (polylines[lastID][0], average_normal);
-    if (base_plane.has_on_positive_side (polylines[polylines.size () - 1][0]))
+    IK::Plane_3 base_plane (to_cgal_pt (polylines[lastID][0]), average_normal);
+    if (base_plane.has_on_positive_side (to_cgal_pt (polylines[polylines.size () - 1][0])))
         average_normal *= -1;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -523,9 +523,9 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
             for (auto j = 0; j < polylines[i].size () - 1; j++)
                 {
                     // vertices
-                    out_vertices_temp.emplace_back ((double)polylines[i][j].hx () / scale);
-                    out_vertices_temp.emplace_back ((double)polylines[i][j].hy () / scale);
-                    out_vertices_temp.emplace_back ((double)polylines[i][j].hz () / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i][j][0] / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i][j][1] / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i][j][2] / scale);
 
                     // last faces
                     if (j == polylines[i].size () - 2)
@@ -587,9 +587,9 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
             for (auto j = 0; j < polylines[i].size () - 1; j++)
                 {
                     // vertices
-                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j].hx () / scale);
-                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j].hy () / scale);
-                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j].hz () / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j][0] / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j][1] / scale);
+                    out_vertices_temp.emplace_back ((double)polylines[i + 1][j][2] / scale);
                     vid++;
                 }
         }
@@ -761,12 +761,12 @@ closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with
 }
 
 void
-mesh_from_polylines (const std::vector<CGAL_Polyline> &polylines_with_holes, const IK::Plane_3 &base_plane, std::vector<int> &top_outline_face_vertex_indices, int &v_count, int &f_count)
+mesh_from_polylines (const std::vector<Polyline> &polylines_with_holes, const IK::Plane_3 &base_plane, std::vector<int> &top_outline_face_vertex_indices, int &v_count, int &f_count)
 {
     //////////////////////////////////////////////////////////////////////////////
     // Create Transformation | Orient to 2D
     //////////////////////////////////////////////////////////////////////////////
-    CGAL::Aff_transformation_3<IK> xform_toXY = internal::plane_to_xy (polylines_with_holes[0][0], base_plane);
+    CGAL::Aff_transformation_3<IK> xform_toXY = internal::plane_to_xy (to_cgal_pt (polylines_with_holes[0][0]), base_plane);
     CGAL::Aff_transformation_3<IK> xform_toXY_Inv = xform_toXY.inverse ();
 
     CGALCDT CGALCDT;
@@ -775,7 +775,7 @@ mesh_from_polylines (const std::vector<CGAL_Polyline> &polylines_with_holes, con
             Polygon_2 polygon_2d;
             for (int j = 0; j < polylines_with_holes[i].size () - 1; j++)
                 {
-                    IK::Point_3 p = polylines_with_holes[i][j].transform (xform_toXY);
+                    IK::Point_3 p = to_cgal_pt (polylines_with_holes[i][j]).transform (xform_toXY);
                     auto pt_2d = Point (p.hx (), p.hy ());
 
                     CGALCDT::Locate_type l_t;
@@ -860,11 +860,11 @@ mesh_from_polylines (const std::vector<CGAL_Polyline> &polylines_with_holes, con
 
 // done
 void
-add_mesh_boolean_difference (std::vector<CGAL_Polyline> &input_plines, std::vector<std::vector<CGAL_Polyline> > &output_plines)
+add_mesh_boolean_difference (std::vector<Polyline> &input_plines, std::vector<std::vector<Polyline> > &output_plines)
 {
     for (int i = 0; i < input_plines.size (); i += 2)
         {
-            std::vector<CGAL_Polyline> input_plines_pair = { input_plines[i], input_plines[i + 1] };
+            std::vector<Polyline> input_plines_pair = { input_plines[i], input_plines[i + 1] };
 
             // create mesh list for boolean difference
             std::vector<CGAL::Surface_mesh<CGAL::Exact_predicates_inexact_constructions_kernel::Point_3> > mesh_list;
@@ -877,7 +877,7 @@ add_mesh_boolean_difference (std::vector<CGAL_Polyline> &input_plines, std::vect
             for (int j = 0; j < output_plines[(size_t)(i * 0.5)].size (); j += 2)
                 {
                     mesh_list.emplace_back (CGAL::Surface_mesh<CGAL::Exact_predicates_inexact_constructions_kernel::Point_3> ());
-                    std::vector<CGAL_Polyline> polylines_single = { output_plines[(size_t)(i * 0.5)][j], output_plines[(size_t)(i * 0.5)][j + 1] };
+                    std::vector<Polyline> polylines_single = { output_plines[(size_t)(i * 0.5)][j], output_plines[(size_t)(i * 0.5)][j + 1] };
                     cgal::polyline_mesh_util::closed_mesh_from_polylines (polylines_single, mesh_list.back (), 1000);
                 }
 
@@ -1092,6 +1092,16 @@ add_points (const std::vector<IK::Point_3> &points)
         }
 
     SQL_POINTCLOUDS.emplace_back (sqlpointcloud);
+}
+
+void
+add_points (const std::vector<session_cpp::Point> &points)
+{
+    std::vector<IK::Point_3> ik_pts;
+    ik_pts.reserve (points.size ());
+    for (const auto &p : points)
+        ik_pts.emplace_back (p[0], p[1], p[2]);
+    add_points (ik_pts);
 }
 
 } // namespace database_writer

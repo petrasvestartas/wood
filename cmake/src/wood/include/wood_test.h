@@ -46,7 +46,6 @@
 // geometry methods
 #include "cgal_inscribe_util.h"
 #include "cgal_mesh_boolean.h"
-#include "cgal_rectangle_util.h"
 
 // 3rd party libraries
 #include <gtest/gtest.h>
@@ -75,7 +74,7 @@ void set_file_path_for_input_xml_and_screenshot (const std::string &function_nam
  * set properties for saving the screenshot and input xml files e.g.
  * "C:\IBOIS57\_Code\Software\Python\compas_wood\backend\src\wood\dataset"
  */
-void set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, const std::string &function_name, bool remove_duplicate_points = false);
+void set_file_path_for_input_xml_and_screenshot (std::vector<Polyline> &input_polyline_pairs, const std::string &function_name, bool remove_duplicate_points = false);
 
 /**
  *  this function is run first
@@ -83,7 +82,7 @@ void set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Poi
  * "C:\IBOIS57\_Code\Software\Python\compas_wood\backend\src\wood\dataset"
  * with this method you can get polylines with all the properties
  */
-void set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<IK::Vector_3> > &input_insertion_vectors,
+void set_file_path_for_input_xml_and_screenshot (std::vector<Polyline> &input_polyline_pairs, std::vector<std::vector<session_cpp::Vector> > &input_insertion_vectors,
                                                  std::vector<std::vector<int> > &input_JOINTS_TYPES, std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency,
                                                  const std::string &function_name, bool remove_duplicate_points);
 
@@ -91,7 +90,7 @@ void set_file_path_for_input_xml_and_screenshot (std::vector<std::vector<IK::Poi
  * this function is run at the end of the example
  * define OpenGL vizualizer parameters
  */
-void set_plate_display (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<CGAL_Polyline> > &output_plines, bool add_loft = true);
+void set_plate_display (std::vector<Polyline> &input_polyline_pairs, std::vector<std::vector<Polyline> > &output_plines, bool add_loft = true);
 } // namespace internal
 //! \endcond
 

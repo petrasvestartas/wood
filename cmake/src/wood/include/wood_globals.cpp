@@ -57,20 +57,20 @@ std::vector<double> GLOBALS::JOINTS_PARAMETERS_AND_TYPES{
 };
 
 // custom joint types
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_B_MALE{};
-std::vector<CGAL_Polyline> GLOBALS::CUSTOM_JOINTS_B_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_IP_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_IP_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_OP_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_OP_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_TS_E_P_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_TS_E_P_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_CR_C_IP_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_CR_C_IP_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_TT_E_P_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_R_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_SS_E_R_FEMALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_B_MALE{};
+std::vector<Polyline> GLOBALS::CUSTOM_JOINTS_B_FEMALE{};
 
 // IMGUI
 size_t GLOBALS::RUN_COUNT = 0;

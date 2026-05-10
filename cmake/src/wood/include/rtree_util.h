@@ -63,7 +63,7 @@ bool closest_point_to (const IK::Point_3 &point, const IK::Segment_3 &line, doub
  * @param [out] edge_id polygon edge id
  * @return the closest distance
  */
-double get_closest_distance (const IK::Point_3 &point, CGAL_Polyline &polyline, size_t &edge_id);
+double get_closest_distance (const IK::Point_3 &point, Polyline &polyline, size_t &edge_id);
 } // namespace internal
 //! \endcond
 
@@ -75,7 +75,7 @@ double get_closest_distance (const IK::Point_3 &point, CGAL_Polyline &polyline, 
  * @param [out] output_insertion_vectors polygon edge vectors, default vectors are set to
  * IK::Vector_3(0, 0, 0)
  */
-void find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_pairs, std::vector<IK::Segment_3> &input_insertion_lines, std::vector<std::vector<IK::Vector_3> > &output_insertion_vectors);
+void find_closest_plateside_to_line (std::vector<Polyline> &input_polyline_pairs, std::vector<IK::Segment_3> &input_insertion_lines, std::vector<std::vector<IK::Vector_3> > &output_insertion_vectors);
 
 /**
  * Assign edge vectors to the element, by iterating each line segment and measuring the distance
@@ -86,7 +86,7 @@ void find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_
  * points must be equal to the number of indices
  * @param [out] output_joint_types joint type per face (side+top+bottom)
  */
-void find_closest_plateside_to_indexedpoint (std::vector<CGAL_Polyline> &input_polyline_pairs, std::vector<IK::Point_3> &input_points, std::vector<int> &input_points_types,
+void find_closest_plateside_to_indexedpoint (std::vector<Polyline> &input_polyline_pairs, std::vector<IK::Point_3> &input_points, std::vector<int> &input_points_types,
                                              std::vector<std::vector<int> > &output_joint_types);
 } // namespace rtree_util
 

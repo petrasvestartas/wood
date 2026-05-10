@@ -51,15 +51,15 @@ closest_point_to (const IK::Point_3 &point, const IK::Segment_3 &line, double &t
 }
 
 double
-get_closest_distance (const IK::Point_3 &point, CGAL_Polyline &polyline, size_t &edge_id)
+get_closest_distance (const IK::Point_3 &point, Polyline &polyline, size_t &edge_id)
 {
     edge_id = 0;
-    IK::Segment_3 segment (polyline[0], polyline[1]);
+    IK::Segment_3 segment (to_cgal_pt (polyline[0]), to_cgal_pt (polyline[1]));
     double closest_distance = DBL_MAX;
 
     for (size_t i = 0; i < polyline.size () - 1; i++)
         {
-            IK::Segment_3 segment_ (polyline[i], polyline[i + 1]);
+            IK::Segment_3 segment_ (to_cgal_pt (polyline[i]), to_cgal_pt (polyline[i + 1]));
 
             double t;
             closest_point_to (point, segment_, t);
@@ -81,7 +81,7 @@ get_closest_distance (const IK::Point_3 &point, CGAL_Polyline &polyline, size_t 
 //! \endcond
 
 void
-find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_pairs, std::vector<IK::Segment_3> &input_insertion_lines, std::vector<std::vector<IK::Vector_3> > &output_insertion_vectors)
+find_closest_plateside_to_line (std::vector<Polyline> &input_polyline_pairs, std::vector<IK::Segment_3> &input_insertion_lines, std::vector<std::vector<IK::Vector_3> > &output_insertion_vectors)
 {
     // Create a container to store full empty insertion vectors
     size_t n = (size_t)(input_polyline_pairs.size () * 0.5);
@@ -101,22 +101,22 @@ find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_pairs
     for (auto i = 0; i < n; i++)
         {
             // Create copy of a polyline and transform points
-            CGAL_Polyline twoPolylines;
+            std::vector<IK::Point_3> twoPolylines;
             twoPolylines.reserve (input_polyline_pairs[i * 2].size () + input_polyline_pairs[i * 2 + 1].size ());
 
             for (auto &p : input_polyline_pairs[i * 2])
                 {
-                    twoPolylines.emplace_back (p);
+                    twoPolylines.emplace_back (to_cgal_pt (p));
                 }
 
             for (auto &p : input_polyline_pairs[i * 2 + 1])
                 {
-                    twoPolylines.emplace_back (p);
+                    twoPolylines.emplace_back (to_cgal_pt (p));
                 }
 
             CGAL::Bbox_3 AABB = CGAL::bbox_3 (twoPolylines.begin (), twoPolylines.end (), IK ());
 
-            CGAL_Polyline AABB_Min_Max = {
+            std::vector<IK::Point_3> AABB_Min_Max = {
                 IK::Point_3 (AABB.xmin () - 1 * wood::GLOBALS::DISTANCE, AABB.ymin () - 1 * wood::GLOBALS::DISTANCE, AABB.zmin () - 1 * wood::GLOBALS::DISTANCE),
                 IK::Point_3 (AABB.xmax () + 1 * wood::GLOBALS::DISTANCE, AABB.ymax () + 1 * wood::GLOBALS::DISTANCE, AABB.zmax () + 1 * wood::GLOBALS::DISTANCE),
             };
@@ -173,7 +173,7 @@ find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_pairs
                 return true;
             };
 
-            CGAL_Polyline pline{ input_insertion_lines[i][0], input_insertion_lines[i][1] };
+            std::vector<IK::Point_3> pline{ input_insertion_lines[i][0], input_insertion_lines[i][1] };
             CGAL::Bbox_3 AABB = CGAL::bbox_3 (pline.begin (), pline.end (), IK ());
 
             double min[3] = { AABB.xmin () - wood::GLOBALS::DISTANCE, AABB.ymin () - wood::GLOBALS::DISTANCE, AABB.zmin () - wood::GLOBALS::DISTANCE };
@@ -186,7 +186,7 @@ find_closest_plateside_to_line (std::vector<CGAL_Polyline> &input_polyline_pairs
 }
 
 void
-find_closest_plateside_to_indexedpoint (std::vector<CGAL_Polyline> &input_polyline_pairs, std::vector<IK::Point_3> &input_points, std::vector<int> &input_points_types, std::vector<std::vector<int> > &output_joint_types)
+find_closest_plateside_to_indexedpoint (std::vector<Polyline> &input_polyline_pairs, std::vector<IK::Point_3> &input_points, std::vector<int> &input_points_types, std::vector<std::vector<int> > &output_joint_types)
 {
     // Create a container to store full empty insertion vectors
     size_t n = (size_t)(input_polyline_pairs.size () * 0.5);
@@ -209,18 +209,18 @@ find_closest_plateside_to_indexedpoint (std::vector<CGAL_Polyline> &input_polyli
     for (size_t i = 0; i < n; i++)
         {
             // Create copy of a polyline and transform points
-            CGAL_Polyline twoPolylines;
+            std::vector<IK::Point_3> twoPolylines;
             twoPolylines.reserve (input_polyline_pairs[i * 2].size () + input_polyline_pairs[i * 2 + 1].size ());
 
             for (auto &p : input_polyline_pairs[i * 2])
-                twoPolylines.emplace_back (p);
+                twoPolylines.emplace_back (to_cgal_pt (p));
 
             for (auto &p : input_polyline_pairs[i * 2 + 1])
-                twoPolylines.emplace_back (p);
+                twoPolylines.emplace_back (to_cgal_pt (p));
 
             CGAL::Bbox_3 AABB = CGAL::bbox_3 (twoPolylines.begin (), twoPolylines.end (), IK ());
 
-            CGAL_Polyline AABB_Min_Max = {
+            std::vector<IK::Point_3> AABB_Min_Max = {
                 IK::Point_3 (AABB.xmin () - 1 * wood::GLOBALS::DISTANCE, AABB.ymin () - 1 * wood::GLOBALS::DISTANCE, AABB.zmin () - 1 * wood::GLOBALS::DISTANCE),
                 IK::Point_3 (AABB.xmax () + 1 * wood::GLOBALS::DISTANCE, AABB.ymax () + 1 * wood::GLOBALS::DISTANCE, AABB.zmax () + 1 * wood::GLOBALS::DISTANCE),
             };

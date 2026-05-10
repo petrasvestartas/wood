@@ -30,7 +30,7 @@ bool read_xml_numbers (std::vector<std::vector<double> > &numbers);
  * @param [in] remove_duplicates remove duplicate points in polylines
  * @return true if the file reading was successful
  */
-bool read_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const bool &simple_case = false, const bool &remove_duplicates = false);
+bool read_xml_polylines (std::vector<std::vector<session_cpp::Point> > &polylines, const bool &simple_case = false, const bool &remove_duplicates = false);
 
 /**
  * xml reader - <?xml version="1.0" encoding="UTF-8"?>
@@ -69,7 +69,7 @@ bool read_xml_polylines (std::vector<std::vector<double> > &polylines, const boo
  * @param [in] remove_duplicates remove duplicate points in polylines
  * @return true if the file reading was successful
  */
-bool read_xml_polylines_and_properties (std::vector<std::vector<IK::Point_3> > &input_polyline_pairs, std::vector<std::vector<IK::Vector_3> > &input_insertion_vectors, std::vector<std::vector<int> > &input_JOINTS_TYPES,
+bool read_xml_polylines_and_properties (std::vector<std::vector<session_cpp::Point> > &input_polyline_pairs, std::vector<std::vector<session_cpp::Vector> > &input_insertion_vectors, std::vector<std::vector<int> > &input_JOINTS_TYPES,
                                         std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency, const bool &simple_case = false,
                                         const bool &remove_duplicates = false);
 
@@ -101,9 +101,9 @@ bool read_xml_polylines_and_properties (std::vector<std::vector<double> > &input
                                         std::vector<std::vector<int> > &input_three_valence_element_indices_and_instruction, std::vector<int> &input_adjacency, const bool &simple_case = false,
                                         const bool &remove_duplicates = false);
 
-bool write_xml_polylines (std::vector<std::vector<IK::Point_3> > &polylines, const bool &simple_case = false);
+bool write_xml_polylines (std::vector<std::vector<session_cpp::Point> > &polylines, const bool &simple_case = false);
 
-bool write_xml_polylines (std::vector<std::vector<std::vector<IK::Point_3> > > &polylines_tree, int id = -1);
+bool write_xml_polylines (std::vector<std::vector<std::vector<session_cpp::Point> > > &polylines_tree, int id = -1);
 
 /**
  * xml writer - <?xml version="1.0" encoding="UTF-8"?>
@@ -122,7 +122,7 @@ bool write_xml_polylines (std::vector<std::vector<std::vector<IK::Point_3> > > &
  * "path_and_file_for_input_polylines_simple_case"
  * @return true if the file reading was successful
  */
-bool write_xml_polylines_and_types (std::vector<std::vector<std::vector<IK::Point_3> > > &polylines_tree, std::vector<std::vector<wood::cut::cut_type> > &types_tree, int id = -1, bool simple_case = false);
+bool write_xml_polylines_and_types (std::vector<std::vector<Polyline> > &polylines_tree, std::vector<std::vector<wood::cut::cut_type> > &types_tree, int id = -1, bool simple_case = false);
 } // namespace xml
 } // namespace wood
 #endif

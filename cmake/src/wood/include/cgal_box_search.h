@@ -1,5 +1,6 @@
 #pragma once
-// #include "../../stdafx.h"
+#include "../../../ext/session_cpp/src/point.h"
+#include "../../../ext/session_cpp/src/bvh.h"
 
 // ToDo
 // What happens when 3 beams meet in one node when only two joints are needed, maybe move ends apart
@@ -9,72 +10,6 @@ namespace cgal
 {
 namespace box_search
 {
-inline double
-value_at (IK::Plane_3 &Pl, IK::Point_3 &P)
-{
-    return (Pl.a () * P.hx () + Pl.b () * P.hy () + Pl.c () * P.hz () + Pl.d ());
-}
-
-inline bool
-line_plane (IK::Segment_3 &L, IK::Plane_3 &Pl, IK::Point_3 &P
-
-            // double* line_parameter
-)
-{
-    bool rc = false;
-    double a, b, d, fd, t;
-
-    auto pt0 = L[0];
-    auto pt1 = L[1];
-    a = value_at (Pl, pt0);
-    b = value_at (Pl, pt1);
-    d = a - b;
-    if (d == 0.0)
-        {
-            if (fabs (a) < fabs (b))
-                t = 0.0;
-            else if (fabs (b) < fabs (a))
-                t = 1.0;
-            else
-                t = 0.5;
-        }
-    else
-        {
-            d = 1.0 / d;
-            fd = fabs (d);
-            if (fd > 1.0 && (fabs (a) >= ON_DBL_MAX / fd || fabs (b) >= ON_DBL_MAX / fd))
-                {
-                    // double overflow - line may be (nearly) parallel to plane
-                    t = 0.5;
-                }
-            else
-                {
-                    t = a / (a - b); // = a*d;  a/(a-b) has more precision than a*d
-                    rc = true;
-                }
-        }
-
-    // if (line_parameter)
-    //     *line_parameter = t;
-
-    // s[0].z()
-    //  26 Feb 2003 Dale Lear
-    //      Changed
-    //           return (1-t)*from + t*to;
-    //      to the following so that axis aligned lines will
-    //      return exact answers for large values of t.
-    //      See RR 9683.
-
-    const double s = 1.0 - t;
-
-    P = IK::Point_3 ((L[0].x () == L[1].x ()) ? L[0].x () : s * L[0].x () + t * L[1].x (), (L[0].y () == L[1].y ()) ? L[0].y () : s * L[0].y () + t * L[1].y (),
-                     (L[0].z () == L[1].z ()) ? L[0].z () : s * L[0].z () + t * L[1].z ());
-
-    // if (finite && (t < 0 || t>1))
-    //     return false;
-
-    return rc;
-}
 
 inline double
 remap (const double &value, const double &from1, const double &to1, const double &from2, const double &to2)
@@ -85,8 +20,6 @@ remap (const double &value, const double &from1, const double &to1, const double
 inline double
 length (double x, double y, double z)
 {
-    // double ON_DBL_MIN = 2.22507385850720200e-308;
-
     double len;
     x = fabs (x);
     y = fabs (y);
@@ -104,14 +37,6 @@ length (double x, double y, double z)
             z = len;
         }
 
-    // 15 September 2003 Dale Lear
-    //     For small denormalized doubles (positive but smaller
-    //     than DBL_MIN), some compilers/FPUs set 1.0/x to +INF.
-    //     Without the ON_DBL_MIN test we end up with
-    //     microscopic vectors that have infinte length!
-    //
-    //     This code is absolutely necessary.  It is a critical
-    //     part of the bug fix for RR 11217.
     if (x > ON_DBL_MIN)
         {
             y /= x;
@@ -126,317 +51,379 @@ length (double x, double y, double z)
     return len;
 }
 
-inline bool
-unitize (IK::Vector_3 &v)
+// ── Helper: project 3D point onto infinite line (segment used as line direction) ──
+inline session_cpp::Point
+project_point_to_line_3d (const session_cpp::Point &pt, const session_cpp::Line &seg)
 {
-    bool rc = false;
-    // Since x,y,z are floats, d will not be renormalized and the
-    // ON_DBL_MIN tests in ON_2dVector::Unitize() are not needed.
+    session_cpp::Vector d = seg.end () - seg.start ();
+    session_cpp::Vector dp (pt[0] - seg.start ()[0], pt[1] - seg.start ()[1], pt[2] - seg.start ()[2]);
+    double len2 = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+    if (len2 < 1e-20)
+        return seg.start ();
+    double t = (dp[0] * d[0] + dp[1] * d[1] + dp[2] * d[2]) / len2;
+    return session_cpp::Point (seg.start ()[0] + t * d[0], seg.start ()[1] + t * d[1], seg.start ()[2] + t * d[2]);
+}
 
-    double d = length (v.x (), v.y (), v.z ());
-    if (d > 0.0)
+// ── plane_to_xy using session_cpp::Xform ─────────────────────────────────────
+inline session_cpp::Xform
+plane_to_xy (session_cpp::Point &O0, session_cpp::Plane &plane)
+{
+    session_cpp::Vector X0 = plane.x_axis ();
+    session_cpp::Vector Y0 = plane.y_axis ();
+    session_cpp::Vector Z0 = plane.z_axis ();
+    return session_cpp::Xform::plane_to_xy (O0, X0, Y0, Z0);
+}
+
+// ── closest_point_to (private to cgal::box_search; renamed to avoid session_cpp ADL clash) ──
+inline bool
+_closest_t (const session_cpp::Point &point, const session_cpp::Line &s, double &t)
+{
+    session_cpp::Vector D = s.end () - s.start ();
+    double DoD = D[0] * D[0] + D[1] * D[1] + D[2] * D[2];
+
+    if (DoD > 0.0)
         {
-            double dx = v.x ();
-            double dy = v.y ();
-            double dz = v.z ();
-            v = IK::Vector_3 ((dx / d), (dy / d), (dz / d));
-            rc = true;
+            session_cpp::Vector to_pt (point[0] - s.start ()[0], point[1] - s.start ()[1], point[2] - s.start ()[2]);
+            session_cpp::Vector to_end (point[0] - s.end ()[0], point[1] - s.end ()[1], point[2] - s.end ()[2]);
+            if (to_pt[0] * to_pt[0] + to_pt[1] * to_pt[1] + to_pt[2] * to_pt[2] <= to_end[0] * to_end[0] + to_end[1] * to_end[1] + to_end[2] * to_end[2])
+                t = (to_pt[0] * D[0] + to_pt[1] * D[1] + to_pt[2] * D[2]) / DoD;
+            else
+                t = 1.0 + (to_end[0] * D[0] + to_end[1] * D[1] + to_end[2] * D[2]) / DoD;
+            return true;
         }
-    return rc;
+    else
+        {
+            t = 0.0;
+            return true;
+        }
+}
+
+// ── 2D line intersection (used in skew-line case) ────────────────────────────
+// Returns true and sets t_out (parameter on L0) if lines intersect non-parallel
+inline bool
+line_line_2d (double x00, double y00, double x01, double y01, double x10, double y10, double x11, double y11, double &t_out, double &px, double &py)
+{
+    double d0x = x01 - x00, d0y = y01 - y00;
+    double d1x = x11 - x10, d1y = y11 - y10;
+    double det = d0x * d1y - d0y * d1x;
+    if (std::fabs (det) < 1e-12)
+        return false;
+    double rx = x10 - x00, ry = y10 - y00;
+    t_out = (rx * d1y - ry * d1x) / det;
+    px = x00 + t_out * d0x;
+    py = y00 + t_out * d0y;
+    return true;
+}
+
+// ── Segment-segment squared distance ─────────────────────────────────────────
+inline double
+segment_segment_sq_distance (const session_cpp::Line &s0, const session_cpp::Line &s1)
+{
+    // Using Eberly's method for segment-segment distance
+    session_cpp::Vector d1 = s0.end () - s0.start ();
+    session_cpp::Vector d2 = s1.end () - s1.start ();
+    session_cpp::Vector r (s0.start ()[0] - s1.start ()[0], s0.start ()[1] - s1.start ()[1], s0.start ()[2] - s1.start ()[2]);
+    double a = d1[0] * d1[0] + d1[1] * d1[1] + d1[2] * d1[2];
+    double e = d2[0] * d2[0] + d2[1] * d2[1] + d2[2] * d2[2];
+    double f = d2[0] * r[0] + d2[1] * r[1] + d2[2] * r[2];
+
+    double s, t;
+    if (a <= 1e-10 && e <= 1e-10)
+        {
+            s = t = 0.0;
+        }
+    else if (a <= 1e-10)
+        {
+            s = 0.0;
+            t = std::max (0.0, std::min (1.0, f / e));
+        }
+    else
+        {
+            double c = d1[0] * r[0] + d1[1] * r[1] + d1[2] * r[2];
+            if (e <= 1e-10)
+                {
+                    t = 0.0;
+                    s = std::max (0.0, std::min (1.0, -c / a));
+                }
+            else
+                {
+                    double b = d1[0] * d2[0] + d1[1] * d2[1] + d1[2] * d2[2];
+                    double denom = a * e - b * b;
+                    if (denom != 0.0)
+                        s = std::max (0.0, std::min (1.0, (b * f - c * e) / denom));
+                    else
+                        s = 0.0;
+                    t = (b * s + f) / e;
+                    if (t < 0.0)
+                        {
+                            t = 0.0;
+                            s = std::max (0.0, std::min (1.0, -c / a));
+                        }
+                    else if (t > 1.0)
+                        {
+                            t = 1.0;
+                            s = std::max (0.0, std::min (1.0, (b - c) / a));
+                        }
+                }
+        }
+    double dx = (s0.start ()[0] + s * d1[0]) - (s1.start ()[0] + t * d2[0]);
+    double dy = (s0.start ()[1] + s * d1[1]) - (s1.start ()[1] + t * d2[1]);
+    double dz = (s0.start ()[2] + s * d1[2]) - (s1.start ()[2] + t * d2[2]);
+    return dx * dx + dy * dy + dz * dz;
 }
 
 inline void
-two_rect_from_point_vector_and_zaxis (IK::Point_3 &p, IK::Vector_3 &segment_vector, IK::Vector_3 &zaxis, bool middle, double radius, double length, int flip_male, CGAL_Polyline &rect0, CGAL_Polyline &rect1)
+two_rect_from_point_vector_and_zaxis (session_cpp::Point &p, session_cpp::Vector &segment_vector, session_cpp::Vector &zaxis, bool middle, double radius, double length, int flip_male, Polyline &rect0, Polyline &rect1)
 {
-    IK::Vector_3 x_axis = zaxis;
-    IK::Vector_3 y_axis = CGAL::cross_product (zaxis, segment_vector); // CGAL::cross_product(x_axis, zaxis);
-    x_axis = CGAL::cross_product (y_axis, segment_vector);             // CGAL::cross_product(x_axis, zaxis);
-    unitize (x_axis);
-    unitize (y_axis);
-    x_axis *= radius;
-    y_axis *= radius;
+    session_cpp::Vector x_axis = zaxis;
+    session_cpp::Vector y_axis = zaxis.cross (segment_vector);
+    x_axis = y_axis.cross (segment_vector);
+    x_axis.normalize_self ();
+    y_axis.normalize_self ();
+    x_axis = x_axis * radius;
+    y_axis = y_axis * radius;
 
-    // IK::Vector_3 segment_vector0 = middle ? segment_vector * length * -0.5 : segment_vector *
-    // length * 0.0; IK::Vector_3 segment_vector1 = middle ? segment_vector * length * 0.5 :
-    // segment_vector * length * 1.0;
-    IK::Vector_3 segment_vector0 = segment_vector * length * -0.5;
-    IK::Vector_3 segment_vector1 = segment_vector * length * 0.5;
+    session_cpp::Vector sv0 = segment_vector * (length * -0.5);
+    session_cpp::Vector sv1 = segment_vector * (length * 0.5);
 
-    std::array<IK::Vector_3, 4> v = {
-        -x_axis - y_axis,
-        x_axis - y_axis,
+    std::array<session_cpp::Vector, 4> v = {
+        x_axis * -1.0 + y_axis * -1.0,
+        x_axis + y_axis * -1.0,
         x_axis + y_axis,
-        -x_axis + y_axis,
+        x_axis * -1.0 + y_axis,
     };
 
     if (!middle)
         {
             if (flip_male == 1)
-                // simple rotation to the left
                 std::rotate (v.begin (), v.begin () + 1, v.end ());
             else if (flip_male == -1)
-                // simple rotation to the right
                 std::rotate (v.rbegin (), v.rbegin () + 1, v.rend ());
         }
 
-    // draw two rectangles
     rect0 = {
-        p + segment_vector0 + v[1], p + segment_vector1 + v[1], p + segment_vector1 + v[0], p + segment_vector0 + v[0],
-
-        p + segment_vector0 + v[1],
+        session_cpp::Point (p[0] + sv0[0] + v[1][0], p[1] + sv0[1] + v[1][1], p[2] + sv0[2] + v[1][2]),
+        session_cpp::Point (p[0] + sv1[0] + v[1][0], p[1] + sv1[1] + v[1][1], p[2] + sv1[2] + v[1][2]),
+        session_cpp::Point (p[0] + sv1[0] + v[0][0], p[1] + sv1[1] + v[0][1], p[2] + sv1[2] + v[0][2]),
+        session_cpp::Point (p[0] + sv0[0] + v[0][0], p[1] + sv0[1] + v[0][1], p[2] + sv0[2] + v[0][2]),
+        session_cpp::Point (p[0] + sv0[0] + v[1][0], p[1] + sv0[1] + v[1][1], p[2] + sv0[2] + v[1][2]),
     };
 
     rect1 = {
-        p + segment_vector0 + v[2], p + segment_vector1 + v[2], p + segment_vector1 + v[3], p + segment_vector0 + v[3],
-
-        p + segment_vector0 + v[2],
+        session_cpp::Point (p[0] + sv0[0] + v[2][0], p[1] + sv0[1] + v[2][1], p[2] + sv0[2] + v[2][2]),
+        session_cpp::Point (p[0] + sv1[0] + v[2][0], p[1] + sv1[1] + v[2][1], p[2] + sv1[2] + v[2][2]),
+        session_cpp::Point (p[0] + sv1[0] + v[3][0], p[1] + sv1[1] + v[3][1], p[2] + sv1[2] + v[3][2]),
+        session_cpp::Point (p[0] + sv0[0] + v[3][0], p[1] + sv0[1] + v[3][1], p[2] + sv0[2] + v[3][2]),
+        session_cpp::Point (p[0] + sv0[0] + v[2][0], p[1] + sv0[1] + v[2][1], p[2] + sv0[2] + v[2][2]),
     };
 }
 
-inline CGAL::Aff_transformation_3<IK>
-plane_to_xy (IK::Point_3 O0, IK::Plane_3 plane)
-{
-    auto X0 = plane.base1 ();
-    auto Y0 = plane.base2 ();
-    auto Z0 = plane.orthogonal_vector ();
-    unitize (X0);
-    unitize (Y0);
-    unitize (Z0);
-
-    // transformation maps P0 to P1, P0+X0 to P1+X1, ...
-
-    // Move to origin -> T0 translates point P0 to (0,0,0)
-    CGAL::Aff_transformation_3<IK> T0 (CGAL::TRANSLATION, IK::Vector_3 (0 - O0.x (), 0 - O0.y (), 0 - O0.z ()));
-
-    // Rotate ->
-    CGAL::Aff_transformation_3<IK> F0 (X0.x (), X0.y (), X0.z (), Y0.x (), Y0.y (), Y0.z (), Z0.x (), Z0.y (), Z0.z ());
-
-    return F0 * T0;
-}
-
-inline IK::Point_3
-point_at (const IK::Segment_3 &l, double t)
-{
-    const double s = 1.0 - t;
-
-    return IK::Point_3 ((l[0].x () == l[1].x ()) ? l[0].x () : s * l[0].x () + t * l[1].x (), (l[0].y () == l[1].y ()) ? l[0].y () : s * l[0].y () + t * l[1].y (),
-                        (l[0].z () == l[1].z ()) ? l[0].z () : s * l[0].z () + t * l[1].z ());
-}
-
 inline bool
-closest_point_to (const IK::Point_3 &point, const IK::Segment_3 &s, double &t)
-{
-    bool rc = false;
-
-    const IK::Vector_3 D = s.to_vector ();
-    const double DoD = D.squared_length ();
-
-    if (DoD > 0.0)
-        {
-            if ((point - s[0]).squared_length () <= (point - s[1]).squared_length ())
-                t = ((point - s[0]) * D) / DoD;
-            else
-                t = 1.0 + ((point - s[1]) * D) / DoD;
-
-            rc = true;
-        }
-    else
-        { // (GBA) Closest point to a degenerate line works as well
-            t = 0.0;
-            rc = true;
-        }
-
-    return rc;
-}
-
-inline bool
-line_line_intersection_with_properties (IK::Segment_3 &s0, IK::Segment_3 &s1, int number_of_polyline_segments0, int number_of_polyline_segments1, int current_polyline_segment0, int current_polyline_segment1,
+line_line_intersection_with_properties (session_cpp::Line &s0, session_cpp::Line &s1, int number_of_polyline_segments0, int number_of_polyline_segments1, int current_polyline_segment0, int current_polyline_segment1,
                                         double above_closer_to_edge,
 
-                                        IK::Point_3 &p0, IK::Point_3 &p1, IK::Vector_3 &v0, IK::Vector_3 &v1, IK::Vector_3 &normal, bool &type0, bool &type1, bool &is_parallel
+                                        session_cpp::Point &p0, session_cpp::Point &p1, session_cpp::Vector &v0, session_cpp::Vector &v1, session_cpp::Vector &normal, bool &type0, bool &type1, bool &is_parallel
 
 )
 {
-    // Unlike lines, segments do not extend beyond their start and end points.
+    // Segment vectors
+    v0 = s0.end () - s0.start ();
+    v1 = s1.end () - s1.start ();
 
-    // Segment vector
-    v0 = s0.to_vector ();
-    v1 = s1.to_vector ();
+    // Normal = cross product, used to detect parallelism
+    normal = v0.cross (v1);
+    double normal_len2 = normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2];
 
-    // normal that can be parallel and thus not valid
-    normal = CGAL::cross_product (v0, v1);
-    is_parallel = normal == CGAL::NULL_VECTOR || (90.0 - fabs (CGAL::approximate_angle (v0, v1) - 90)) < 1;
-    normal = is_parallel ? IK::Plane_3 (s0[0], s0.to_vector ()).base1 () : normal;
-    unitize (normal);
+    // Approximate angle between v0 and v1 (degrees)
+    double len_v0 = std::sqrt (v0[0] * v0[0] + v0[1] * v0[1] + v0[2] * v0[2]);
+    double len_v1 = std::sqrt (v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]);
+    double cos_angle = 0.0;
+    if (len_v0 > 1e-10 && len_v1 > 1e-10)
+        cos_angle = (v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]) / (len_v0 * len_v1);
+    cos_angle = std::max (-1.0, std::min (1.0, cos_angle));
+    double angle_deg = std::acos (std::fabs (cos_angle)) * (180.0 / 3.14159265358979323846);
 
-    // The 2 intersection points of intersecting segments are identical.
-    if (CGAL::squared_distance (s0[0], s1[0]) < wood::GLOBALS::DISTANCE)
-        {
-            p0 = s0[0];
-            p1 = s0[0];
-            v0 = s0[1] - s0[0];
-            v1 = s1[1] - s1[0];
-            unitize (v0);
-            unitize (v1);
-            type0 = 0;
-            type1 = 0;
-            return true;
-        }
-    else if (CGAL::squared_distance (s0[0], s1[1]) < wood::GLOBALS::DISTANCE)
-        {
-            p0 = s0[0];
-            p1 = s0[0];
-            v0 = s0[1] - s0[0];
-            v1 = s1[0] - s1[1];
-            unitize (v0);
-            unitize (v1);
-            type0 = 0;
-            type1 = 0;
-            return true;
-        }
-    else if (CGAL::squared_distance (s0[1], s1[0]) < wood::GLOBALS::DISTANCE)
-        {
-            p0 = s0[1];
-            p1 = s0[1];
-            v0 = s0[0] - s0[1];
-            v1 = s1[1] - s1[0];
-            unitize (v0);
-            unitize (v1);
-            type0 = 0;
-            type1 = 0;
-            return true;
-        }
-    else if (CGAL::squared_distance (s0[1], s1[1]) < wood::GLOBALS::DISTANCE)
-        {
-            p0 = s0[1];
-            p1 = s0[1];
-            v0 = s0[0] - s0[1];
-            v1 = s1[0] - s1[1];
-            unitize (v0);
-            unitize (v1);
-            type0 = 0;
-            type1 = 0;
-            return true;
-        }
-
-    // Collinear segments or //Parallel segments do not intersect.
+    is_parallel = normal_len2 < 1e-10 || (90.0 - std::fabs (angle_deg - 90.0)) < 1.0;
 
     if (is_parallel)
         {
-            IK::Line_3 l0 = s0.supporting_line ();
-            IK::Line_3 l1 = s1.supporting_line ();
-            v0 = s0.to_vector ();
-            v0 = v0 / CGAL::approximate_sqrt (v0 * v0);
-            v1 = s1.to_vector ();
-            v1 = v1 / CGAL::approximate_sqrt (v1 * v1);
+            // Fall back to normal of s0's perpendicular plane
+            session_cpp::Point orig = s0.start ();
+            session_cpp::Vector v0u = v0;
+            v0u.normalize_self ();
+            // Create a plane whose normal is v0u
+            session_cpp::Plane plane_s0 = session_cpp::Plane::from_point_normal (orig, v0u);
+            session_cpp::Vector base1 = plane_s0.x_axis ();
+            normal = base1;
+        }
+    normal.normalize_self ();
 
-            std::vector<std::pair<IK::FT, IK::FT> > points_along_lines;
+    // Check coincident endpoints
+    if (s0.start ().squared_distance (s1.start ()) < wood::GLOBALS::DISTANCE)
+        {
+            p0 = s0.start ();
+            p1 = s0.start ();
+            v0 = s0.end () - s0.start ();
+            v1 = s1.end () - s1.start ();
+            v0.normalize_self ();
+            v1.normalize_self ();
+            type0 = 0;
+            type1 = 0;
+            return true;
+        }
+    else if (s0.start ().squared_distance (s1.end ()) < wood::GLOBALS::DISTANCE)
+        {
+            p0 = s0.start ();
+            p1 = s0.start ();
+            v0 = s0.end () - s0.start ();
+            v1 = s1.start () - s1.end ();
+            v0.normalize_self ();
+            v1.normalize_self ();
+            type0 = 0;
+            type1 = 0;
+            return true;
+        }
+    else if (s0.end ().squared_distance (s1.start ()) < wood::GLOBALS::DISTANCE)
+        {
+            p0 = s0.end ();
+            p1 = s0.end ();
+            v0 = s0.start () - s0.end ();
+            v1 = s1.end () - s1.start ();
+            v0.normalize_self ();
+            v1.normalize_self ();
+            type0 = 0;
+            type1 = 0;
+            return true;
+        }
+    else if (s0.end ().squared_distance (s1.end ()) < wood::GLOBALS::DISTANCE)
+        {
+            p0 = s0.end ();
+            p1 = s0.end ();
+            v0 = s0.start () - s0.end ();
+            v1 = s1.start () - s1.end ();
+            v0.normalize_self ();
+            v1.normalize_self ();
+            type0 = 0;
+            type1 = 0;
+            return true;
+        }
 
-            auto create_projection = [&] (const IK::Point_3 &p) {
-                IK::Point_3 p0 = l0.projection (p);
-                IK::Vector_3 vec0 (s0.source (), p0);
-                IK::FT pos0 = vec0 * v0;
+    if (is_parallel)
+        {
+            // Parallel: find overlap midpoint
+            session_cpp::Vector v0u = v0;
+            session_cpp::Vector v1u = v1;
+            v0u.normalize_self ();
+            v1u.normalize_self ();
 
-                IK::Point_3 p1 = l1.projection (p);
-                IK::Vector_3 vec1 (s1.source (), p1);
-                IK::FT pos1 = vec1 * v1;
-
-                points_along_lines.emplace_back (pos0, pos1);
+            // Project all 4 endpoints onto both lines
+            auto proj_onto = [&] (const session_cpp::Point &pt, const session_cpp::Line &line, const session_cpp::Vector &unit_dir) -> double
+            {
+                session_cpp::Vector vec (pt[0] - line.start ()[0], pt[1] - line.start ()[1], pt[2] - line.start ()[2]);
+                return vec[0] * unit_dir[0] + vec[1] * unit_dir[1] + vec[2] * unit_dir[2];
             };
-            create_projection (s0.source ());
-            create_projection (s0.target ());
-            create_projection (s1.source ());
-            create_projection (s1.target ());
 
-            std::sort (points_along_lines.begin (), points_along_lines.end (), [] (const auto &a, const auto &b) -> bool { return a.first < b.first; });
+            std::vector<std::pair<double, double>> pals;
+            auto add_pt = [&] (const session_cpp::Point &pt)
+            {
+                double pos0 = proj_onto (pt, s0, v0u);
+                // Project pt onto s1's line
+                session_cpp::Point q0 (s0.start ()[0] + pos0 * v0u[0], s0.start ()[1] + pos0 * v0u[1], s0.start ()[2] + pos0 * v0u[2]);
+                session_cpp::Point q1 = project_point_to_line_3d (pt, s1);
+                double pos1 = proj_onto (q1, s1, v1u);
+                pals.emplace_back (pos0, pos1);
+            };
+            add_pt (s0.start ());
+            add_pt (s0.end ());
+            add_pt (s1.start ());
+            add_pt (s1.end ());
+            std::sort (pals.begin (), pals.end (), [] (const auto &a, const auto &b) { return a.first < b.first; });
 
-            IK::Segment_3 seg0 (s0.source () + points_along_lines[1].first * v0, s0.source () + points_along_lines[2].first * v0);
-            IK::Segment_3 seg1 (s1.source () + points_along_lines[1].second * v1, s1.source () + points_along_lines[2].second * v1);
+            // Midpoint of overlap (indices 1..2 out of 4 sorted)
+            session_cpp::Point seg0_mid0 (s0.start ()[0] + pals[1].first * v0u[0], s0.start ()[1] + pals[1].first * v0u[1], s0.start ()[2] + pals[1].first * v0u[2]);
+            session_cpp::Point seg0_mid1 (s0.start ()[0] + pals[2].first * v0u[0], s0.start ()[1] + pals[2].first * v0u[1], s0.start ()[2] + pals[2].first * v0u[2]);
+            session_cpp::Point seg1_mid0 (s1.start ()[0] + pals[1].second * v1u[0], s1.start ()[1] + pals[1].second * v1u[1], s1.start ()[2] + pals[1].second * v1u[2]);
+            session_cpp::Point seg1_mid1 (s1.start ()[0] + pals[2].second * v1u[0], s1.start ()[1] + pals[2].second * v1u[1], s1.start ()[2] + pals[2].second * v1u[2]);
 
-            // Not sure this is correct
-            p0 = CGAL::midpoint (seg0[0], seg0[1]);
-            p1 = CGAL::midpoint (seg1[0], seg1[1]);
-            p0 = CGAL::midpoint (p0, p1);
-            p1 = l1.projection (p0);
-            p0 = l0.projection (p0);
+            session_cpp::Point m0 = seg0_mid0.mid_point (seg0_mid1);
+            session_cpp::Point m1 = seg1_mid0.mid_point (seg1_mid1);
+            session_cpp::Point mid = m0.mid_point (m1);
+
+            p0 = project_point_to_line_3d (mid, s0);
+            p1 = project_point_to_line_3d (mid, s1);
 
             double t0, t1;
-            closest_point_to (p0, s0, t0);
-            closest_point_to (p1, s1, t1);
+            _closest_t (p0, s0, t0);
+            _closest_t (p1, s1, t1);
             if (t0 > 0.5)
-                v0 *= -1;
-
+                v0 = v0 * -1.0;
             if (t1 > 0.5)
-                v1 *= -1;
+                v1 = v1 * -1.0;
 
             type0 = 0;
             type1 = 0;
         }
     else
-        { // Skew segments have two different intersection points.
-            // Works only if segments are not co-linear
+        {
+            // Skew: project both segments to the plane normal=cross(v0,v1) through s0[0]
+            v0.normalize_self ();
+            v1.normalize_self ();
 
-            unitize (v0);
-            unitize (v1);
-            IK::Plane_3 plane (s0[0], normal);
+            session_cpp::Point plane_origin = s0.start ();
+            session_cpp::Vector plane_normal = normal;
+            session_cpp::Plane plane_skew = session_cpp::Plane::from_point_normal (plane_origin, plane_normal);
+            session_cpp::Xform xform = plane_to_xy (plane_origin, plane_skew);
+            auto xform_inv_opt = xform.inverse ();
+            if (!xform_inv_opt)
+                return false;
+            session_cpp::Xform xform_Inv = *xform_inv_opt;
 
-            CGAL::Aff_transformation_3<IK> xform = plane_to_xy (s0[0], plane);
-            CGAL::Aff_transformation_3<IK> xform_Inv = xform.inverse ();
+            auto apply = [&] (const session_cpp::Point &pt) -> session_cpp::Point
+            {
+                session_cpp::Point r = pt;
+                xform.transform_point (r);
+                return r;
+            };
 
-            IK::Point_3 p0_0 = xform.transform (s0[0]);
-            IK::Point_3 p0_1 = xform.transform (s0[1]);
+            session_cpp::Point p0_0 = apply (s0.start ());
+            session_cpp::Point p0_1 = apply (s0.end ());
+            session_cpp::Point p1_0 = apply (s1.start ());
+            session_cpp::Point p1_1 = apply (s1.end ());
 
-            IK::Point_3 p1_0 = xform.transform (s1[0]);
-            IK::Point_3 p1_1 = xform.transform (s1[1]);
+            double t_param, px, py;
+            bool ok = line_line_2d (p0_0[0], p0_0[1], p0_1[0], p0_1[1], p1_0[0], p1_0[1], p1_1[0], p1_1[1], t_param, px, py);
+            if (!ok)
+                return false;
 
-            IK::Line_2 l0 (IK::Point_2 (p0_0.hx (), p0_0.hy ()), IK::Point_2 (p0_1.hx (), p0_1.hy ()));
-            IK::Line_2 l1 (IK::Point_2 (p1_0.hx (), p1_0.hy ()), IK::Point_2 (p1_1.hx (), p1_1.hy ()));
-            IK::Line_3 l1_3d = s1.supporting_line ();
+            // Backproject to 3D
+            session_cpp::Point p0_3d (px, py, 0);
+            xform_Inv.transform_point (p0_3d);
+            p0 = p0_3d;
 
-            const auto result = CGAL::intersection (l0, l1);
             double t0, t1;
+            _closest_t (p0, s0, t0);
 
-            if (!result)
-                return false;
-
-            if (const IK::Point_2 *p = std::get_if<IK::Point_2> (&*result))
+            bool outside0 = t0 > 1.0 || t0 < 0.0;
+            if (outside0)
                 {
-                    p0 = IK::Point_3 (p->hx (), p->hy (), 0);
-                    p0 = xform_Inv.transform (p0);
-
-                    closest_point_to (p0, s0, t0);
-
-                    bool outside0 = t0 > 1.0 || t0 < 0.0;
-
-                    if (outside0)
-                        {
-                            t0 = std::max (0.0, std::min (t0, 1.0));
-                            p0 = point_at (s0, t0);
-                        }
-
-                    p1 = l1_3d.projection (p0); // is it ok?
-                    closest_point_to (p1, s1, t1);
-
-                    bool outside1 = t1 > 1.0 || t1 < 0.0;
-
-                    if (outside1)
-                        {
-                            t1 = std::max (0.0, std::min (t1, 1.0));
-                            p1 = point_at (s1, t1);
-                        }
+                    t0 = std::max (0.0, std::min (t0, 1.0));
+                    p0 = s0.point_at (t0);
                 }
-            else
-                return false;
+
+            // Project p0 onto s1 (infinite line)
+            p1 = project_point_to_line_3d (p0, s1);
+            _closest_t (p1, s1, t1);
+
+            bool outside1 = t1 > 1.0 || t1 < 0.0;
+            if (outside1)
+                {
+                    t1 = std::max (0.0, std::min (t1, 1.0));
+                    p1 = s1.point_at (t1);
+                }
 
             ////////////////////////////////////////////////////////////////////
             // Type and parameter
             ////////////////////////////////////////////////////////////////////
-
-            ////reverse 0 if point is located on the other side
-            // bool reverse_v0 = t0 > 0.5;
-            // bool reverse_v1 = t1 > 0.5;
-
-            // remap to the whole polyline parameter
             t0 += current_polyline_segment0;
             t1 += current_polyline_segment1;
             t0 = remap (t0, 0.0, number_of_polyline_segments0 * 1.0, 0.0, 1.0);
@@ -444,30 +431,21 @@ line_line_intersection_with_properties (IK::Segment_3 &s0, IK::Segment_3 &s1, in
             double how_close_to_line_end_0 = 2 * std::abs (0.5 - t0);
             double how_close_to_line_end_1 = 2 * std::abs (0.5 - t1);
 
-            // decide what type it is
-            // CGAL_Debug(diff0);
-            // CGAL_Debug(diff1);
-            // cross
             if (above_closer_to_edge < 0.0)
                 {
                     type0 = 1;
                     type1 = 1;
-
-                    // side-to-end sorted
                 }
             else if (above_closer_to_edge > 1.0)
                 {
                     type0 = t0 < t1 ? 0 : 1;
                     type1 = t0 < t1 ? 1 : 0;
-
-                    // according to parameter
                 }
             else
                 {
                     type0 = how_close_to_line_end_0 > above_closer_to_edge ? 0 : 1;
                     type1 = how_close_to_line_end_1 > above_closer_to_edge ? 0 : 1;
 
-                    // sort types
                     if (how_close_to_line_end_0 > how_close_to_line_end_1 && type0 == 0 && type1 == 0)
                         {
                             type0 = 0;
@@ -480,15 +458,10 @@ line_line_intersection_with_properties (IK::Segment_3 &s0, IK::Segment_3 &s1, in
                         }
                 }
 
-            // cross or female edge direction does not matter?
-            // orient male vectors, if t-parameter > 0.5, flip segment vector to orient the joint
-            // towards the longer side
-            //<---------------------*----. 0.25 no-flip          .---------------------*----> 0.75 flip
             if (t0 > 0.5 && type0 == 0)
-                v0 *= -1;
-
+                v0 = v0 * -1.0;
             if (t1 > 0.5 && type1 == 0)
-                v1 *= -1;
+                v1 = v1 * -1.0;
 
             return true;
         }
@@ -496,136 +469,135 @@ line_line_intersection_with_properties (IK::Segment_3 &s0, IK::Segment_3 &s1, in
 }
 
 inline bool
-line_line_intersection (IK::Segment_3 &s0, IK::Segment_3 &s1, bool finite, IK::Point_3 &p0, IK::Point_3 &p1)
+line_line_intersection (session_cpp::Line &s0, session_cpp::Line &s1, bool finite, session_cpp::Point &p0, session_cpp::Point &p1)
 {
-    IK::Vector_3 v0 = s0.to_vector ();
-    IK::Vector_3 v1 = s1.to_vector ();
-    IK::Vector_3 normal = CGAL::cross_product (v0, v1);
+    session_cpp::Vector v0 = s0.end () - s0.start ();
+    session_cpp::Vector v1 = s1.end () - s1.start ();
+    session_cpp::Vector normal = v0.cross (v1);
 
     printf ("line_line_intersection \n");
 
-    double angle = 90.0 - fabs (CGAL::approximate_angle (v0, v1) - 90);
+    double len_v0 = std::sqrt (v0[0] * v0[0] + v0[1] * v0[1] + v0[2] * v0[2]);
+    double len_v1 = std::sqrt (v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]);
+    double cos_angle = 0.0;
+    if (len_v0 > 1e-10 && len_v1 > 1e-10)
+        cos_angle = (v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]) / (len_v0 * len_v1);
+    double angle_deg = std::acos (std::max (-1.0, std::min (1.0, std::fabs (cos_angle)))) * (180.0 / 3.14159265358979323846);
+    double normal_len2 = normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2];
 
-    // The 2 intersection points of intersecting segments are identical.
-    if (CGAL::squared_distance (s0[0], s1[0]) < wood::GLOBALS::DISTANCE || CGAL::squared_distance (s0[0], s1[1]) < wood::GLOBALS::DISTANCE)
+    // Coincident endpoints
+    if (s0.start ().squared_distance (s1.start ()) < wood::GLOBALS::DISTANCE || s0.start ().squared_distance (s1.end ()) < wood::GLOBALS::DISTANCE)
         {
-            p0 = s0[0];
-            p1 = s0[0];
+            p0 = s0.start ();
+            p1 = s0.start ();
             return true;
         }
-    else if (CGAL::squared_distance (s0[1], s1[0]) < wood::GLOBALS::DISTANCE || CGAL::squared_distance (s0[1], s1[1]) < wood::GLOBALS::DISTANCE)
+    else if (s0.end ().squared_distance (s1.start ()) < wood::GLOBALS::DISTANCE || s0.end ().squared_distance (s1.end ()) < wood::GLOBALS::DISTANCE)
         {
-            p0 = s0[1];
-            p1 = s0[1];
+            p0 = s0.end ();
+            p1 = s0.end ();
             return true;
         }
 
-    // Collinear segments or //Parallel segments do not intersect.
+    bool is_parallel = normal_len2 < 1e-10 || (90.0 - std::fabs (angle_deg - 90.0)) < 1.0;
 
-    if (normal == CGAL::NULL_VECTOR || angle < 1)
+    if (is_parallel)
         {
-            IK::Line_3 l0 = s0.supporting_line ();
-            IK::Line_3 l1 = s1.supporting_line ();
-            IK::Vector_3 v0 = s0.to_vector ();
-            v0 = v0 / CGAL::approximate_sqrt (v0 * v0);
-            IK::Vector_3 v1 = s1.to_vector ();
-            v1 = v1 / CGAL::approximate_sqrt (v1 * v1);
+            session_cpp::Vector v0u = v0;
+            session_cpp::Vector v1u = v1;
+            v0u.normalize_self ();
+            v1u.normalize_self ();
 
-            std::vector<std::pair<IK::FT, IK::FT> > points_along_lines;
-
-            auto create_projection = [&] (const IK::Point_3 &p) {
-                IK::Point_3 p0 = l0.projection (p);
-                IK::Vector_3 vec0 (s0.source (), p0);
-                IK::FT pos0 = vec0 * v0;
-
-                IK::Point_3 p1 = l1.projection (p);
-                IK::Vector_3 vec1 (s1.source (), p1);
-                IK::FT pos1 = vec1 * v1;
-
-                points_along_lines.emplace_back (pos0, pos1);
+            auto proj_t = [&] (const session_cpp::Point &pt, const session_cpp::Line &line, const session_cpp::Vector &udir) -> double
+            {
+                session_cpp::Vector vec (pt[0] - line.start ()[0], pt[1] - line.start ()[1], pt[2] - line.start ()[2]);
+                return vec[0] * udir[0] + vec[1] * udir[1] + vec[2] * udir[2];
             };
-            create_projection (s0.source ());
-            create_projection (s0.target ());
-            create_projection (s1.source ());
-            create_projection (s1.target ());
 
-            std::sort (points_along_lines.begin (), points_along_lines.end (), [] (const auto &a, const auto &b) -> bool { return a.first < b.first; });
+            std::vector<std::pair<double, double>> pals;
+            auto add = [&] (const session_cpp::Point &pt)
+            {
+                double t0 = proj_t (pt, s0, v0u);
+                session_cpp::Point q1 = project_point_to_line_3d (pt, s1);
+                double t1 = proj_t (q1, s1, v1u);
+                pals.emplace_back (t0, t1);
+            };
+            add (s0.start ());
+            add (s0.end ());
+            add (s1.start ());
+            add (s1.end ());
+            std::sort (pals.begin (), pals.end (), [] (const auto &a, const auto &b) { return a.first < b.first; });
 
-            IK::Segment_3 seg0 (s0.source () + points_along_lines[1].first * v0, s0.source () + points_along_lines[2].first * v0);
-            IK::Segment_3 seg1 (s1.source () + points_along_lines[1].second * v1, s1.source () + points_along_lines[2].second * v1);
+            session_cpp::Point seg0_a (s0.start ()[0] + pals[1].first * v0u[0], s0.start ()[1] + pals[1].first * v0u[1], s0.start ()[2] + pals[1].first * v0u[2]);
+            session_cpp::Point seg0_b (s0.start ()[0] + pals[2].first * v0u[0], s0.start ()[1] + pals[2].first * v0u[1], s0.start ()[2] + pals[2].first * v0u[2]);
+            session_cpp::Point seg1_a (s1.start ()[0] + pals[1].second * v1u[0], s1.start ()[1] + pals[1].second * v1u[1], s1.start ()[2] + pals[1].second * v1u[2]);
+            session_cpp::Point seg1_b (s1.start ()[0] + pals[2].second * v1u[0], s1.start ()[1] + pals[2].second * v1u[1], s1.start ()[2] + pals[2].second * v1u[2]);
 
-            // Not sure this is correct
-            p0 = CGAL::midpoint (seg0[0], seg0[1]);
-            p1 = CGAL::midpoint (seg1[0], seg1[1]);
-            p0 = CGAL::midpoint (p0, p1);
-            p1 = l1.projection (p0);
-            p0 = l0.projection (p0);
+            session_cpp::Point m0 = seg0_a.mid_point (seg0_b);
+            session_cpp::Point m1 = seg1_a.mid_point (seg1_b);
+            session_cpp::Point mid = m0.mid_point (m1);
+
+            p0 = project_point_to_line_3d (mid, s0);
+            p1 = project_point_to_line_3d (mid, s1);
         }
     else
-        { // Skew segments have two different intersection points.
-            // Co-linear - check ends
+        {
+            session_cpp::Point plane_origin = s0.start ();
+            session_cpp::Vector plane_normal = normal;
+            plane_normal.normalize_self ();
+            session_cpp::Plane plane_skew = session_cpp::Plane::from_point_normal (plane_origin, plane_normal);
+            session_cpp::Xform xform = plane_to_xy (plane_origin, plane_skew);
+            auto xform_inv_opt = xform.inverse ();
+            if (!xform_inv_opt)
+                return false;
+            session_cpp::Xform xform_Inv = *xform_inv_opt;
 
-            // Works only if segments are not co-linear
-            IK::Plane_3 plane (s0[0], normal);
-            CGAL::Aff_transformation_3<IK> xform = plane_to_xy (s0[0], plane);
-            CGAL::Aff_transformation_3<IK> xform_Inv = xform.inverse ();
+            auto apply = [&] (const session_cpp::Point &pt) -> session_cpp::Point
+            {
+                session_cpp::Point r = pt;
+                xform.transform_point (r);
+                return r;
+            };
 
-            IK::Point_3 p0_0 = xform.transform (s0[0]);
-            IK::Point_3 p0_1 = xform.transform (s0[1]);
+            session_cpp::Point p0_0 = apply (s0.start ());
+            session_cpp::Point p0_1 = apply (s0.end ());
+            session_cpp::Point p1_0 = apply (s1.start ());
+            session_cpp::Point p1_1 = apply (s1.end ());
 
-            IK::Point_3 p1_0 = xform.transform (s1[0]);
-            IK::Point_3 p1_1 = xform.transform (s1[1]);
+            double t_param, px, py;
+            bool ok = line_line_2d (p0_0[0], p0_0[1], p0_1[0], p0_1[1], p1_0[0], p1_0[1], p1_1[0], p1_1[1], t_param, px, py);
+            if (!ok)
+                return false;
 
-            IK::Line_2 l0 (IK::Point_2 (p0_0.hx (), p0_0.hy ()), IK::Point_2 (p0_1.hx (), p0_1.hy ()));
-            IK::Line_2 l1 (IK::Point_2 (p1_0.hx (), p1_0.hy ()), IK::Point_2 (p1_1.hx (), p1_1.hy ()));
-            IK::Line_3 l1_3d = s1.supporting_line ();
+            session_cpp::Point p0_3d (px, py, 0);
+            xform_Inv.transform_point (p0_3d);
+            p0 = p0_3d;
 
-            const auto result = CGAL::intersection (l0, l1);
-
-            if (result)
+            if (finite)
                 {
-                    if (const IK::Point_2 *p = std::get_if<IK::Point_2> (&*result))
+                    double t0, t1;
+                    _closest_t (p0, s0, t0);
+
+                    bool outside0 = t0 > 1.0 || t0 < 0.0;
+                    if (outside0)
                         {
-                            p0 = IK::Point_3 (p->hx (), p->hy (), 0);
-                            p0 = xform_Inv.transform (p0);
-
-                            if (finite)
-                                {
-                                    double t0, t1;
-                                    closest_point_to (p0, s0, t0);
-
-                                    bool outside0 = t0 > 1.0 || t0 < 0.0;
-
-                                    if (outside0)
-                                        {
-                                            t0 = std::max (0.0, std::min (t0, 1.0));
-                                            p0 = point_at (s0, t0);
-                                        }
-
-                                    p1 = l1_3d.projection (p0); // is it ok?
-                                    closest_point_to (p1, s1, t1);
-
-                                    bool outside1 = t1 > 1.0 || t1 < 0.0;
-
-                                    if (outside1)
-                                        {
-                                            t1 = std::max (0.0, std::min (t1, 1.0));
-                                            p1 = point_at (s1, t1);
-                                        }
-                                }
-                            else
-                                {
-                                    p1 = l1_3d.projection (p0); // is it ok?
-                                }
+                            t0 = std::max (0.0, std::min (t0, 1.0));
+                            p0 = s0.point_at (t0);
                         }
-                    else
+
+                    p1 = project_point_to_line_3d (p0, s1);
+                    _closest_t (p1, s1, t1);
+
+                    bool outside1 = t1 > 1.0 || t1 < 0.0;
+                    if (outside1)
                         {
-                            return false;
+                            t1 = std::max (0.0, std::min (t1, 1.0));
+                            p1 = s1.point_at (t1);
                         }
                 }
             else
                 {
-                    return false;
+                    p1 = project_point_to_line_3d (p0, s1);
                 }
             return true;
         }
@@ -633,149 +605,146 @@ line_line_intersection (IK::Segment_3 &s0, IK::Segment_3 &s1, bool finite, IK::P
 }
 
 // https://github.com/CGAL/cgal/issues/6089
-// https://gist.github.com/sloriot/0943fec878401e04930b7bcbd73baf91
+// Replaced CGAL::box_self_intersection_d with session_cpp BVH
 inline void
-intersecting_sequences_of_dD_iso_oriented_boxes (std::vector<CGAL_Polyline> &polylines, std::vector<std::vector<double> > &polylines_segment_radii, double &min_distance,
-                                                 std::vector<std::array<int, 4> > &polyline0_id_segment0_id_polyline1_id_segment1_id, std::vector<std::array<IK::Point_3, 2> > &point_pairs
-
-)
+intersecting_sequences_of_dD_iso_oriented_boxes (std::vector<Polyline> &polylines, std::vector<std::vector<double>> &polylines_segment_radii, double &min_distance,
+                                                  std::vector<std::array<int, 4>> &polyline0_id_segment0_id_polyline1_id_segment1_id, std::vector<std::array<session_cpp::Point, 2>> &point_pairs)
 {
-    // CGAL_Debug(polylines.size());
     /////////////////////////////////////////////////////////////////////
-    // Segment callback
+    // Segment accessor
     /////////////////////////////////////////////////////////////////////
-
-    auto segment = [&polylines] (std::size_t pid, std::size_t sid) {
-        return IK::Segment_3 (polylines[pid][sid], polylines[pid][sid + 1]);
-        // return EK::Segment_3(
-        //     EK::Point_3(polylines[pid][sid][0], polylines[pid][sid][1], polylines[pid][sid][2]),
-        //     EK::Point_3(polylines[pid + 1][sid][0], polylines[pid][sid + 1][1],
-        //     polylines[pid][sid + 1][2])
-        //);
-    };
-
-    auto segment_inflated = [&polylines, &polylines_segment_radii] (std::size_t pid, std::size_t sid) {
-        IK::Segment_3 segment (polylines[pid][sid], polylines[pid][sid + 1]);
-
-        // IK::Vector_3 v0 = segment.to_vector();
-        // segment = IK::Segment_3(segment[0] - v0*1, segment[1] + v0*1);
-
-        double radius = polylines_segment_radii[pid][sid];
-
-        IK::Vector_3 zaxis = segment.to_vector ();
-        IK::Plane_3 plane (segment[0], zaxis);
-        IK::Vector_3 x_axis = plane.base1 ();
-        IK::Vector_3 y_axis = plane.base2 (); // CGAL::cross_product(x_axis, zaxis);
-
-        unitize (x_axis);
-        unitize (y_axis);
-        // x_axis = cgal_vector_util::Unit(x_axis);
-        // y_axis = cgal_vector_util::Unit(y_axis);
-        x_axis *= radius;
-        y_axis *= radius;
-
-        std::array<IK::Point_3, 8> pts = {
-            segment[0] + x_axis + y_axis, segment[0] - x_axis + y_axis, segment[0] - x_axis - y_axis, segment[0] + x_axis - y_axis,
-
-            segment[1] + x_axis + y_axis, segment[1] - x_axis + y_axis, segment[1] - x_axis - y_axis, segment[1] + x_axis - y_axis,
-        };
-
-        CGAL::Bbox_3 box = CGAL::bbox_3 (pts.begin (), pts.end (), IK ());
-        IK::Segment_3 segment_inflated (IK::Point_3 (box.xmin (), box.ymin (), box.zmin ()), IK::Point_3 (box.xmax (), box.ymax (), box.zmax ()));
-        // CGAL_Debug(box.xmin(), box.ymin(), box.zmin());
-        // CGAL_Debug(box.xmax(), box.ymax(), box.zmax());
-
-        return segment_inflated;
+    auto segment = [&] (std::size_t pid, std::size_t sid) -> session_cpp::Line
+    {
+        return session_cpp::Line::from_points (polylines[pid][sid], polylines[pid][sid + 1]);
     };
 
     /////////////////////////////////////////////////////////////////////
-    // Create the corresponding vector of bounding boxes
+    // Build inflated AABB bounding boxes for each segment
     /////////////////////////////////////////////////////////////////////
-    std::vector<Box> boxes;
+    // seg_refs[i] = {pid, sid} for box index i
+    std::vector<std::pair<std::size_t, std::size_t>> seg_refs;
+    std::vector<session_cpp::BoundingBox> boxes;
+
     for (std::size_t pid = 0; pid < polylines.size (); ++pid)
-        for (std::size_t sid = 0; sid < polylines[pid].size () - 1; ++sid)
-            boxes.push_back (Box (segment_inflated (pid, sid).bbox (), std::make_pair (pid, sid)));
+        {
+            for (std::size_t sid = 0; sid < polylines[pid].size () - 1; ++sid)
+                {
+                    session_cpp::Line seg = segment (pid, sid);
+                    double radius = polylines_segment_radii[pid][sid];
+
+                    // Compute 8 inflated corners
+                    session_cpp::Vector zaxis = seg.end () - seg.start ();
+                    session_cpp::Point z_pt = seg.start ();
+                    session_cpp::Vector z_normalized = zaxis;
+                    z_normalized.normalize_self ();
+
+                    // Build a local frame
+                    session_cpp::Plane seg_plane = session_cpp::Plane::from_point_normal (z_pt, z_normalized);
+                    session_cpp::Vector x_axis = seg_plane.x_axis () * radius;
+                    session_cpp::Vector y_axis = seg_plane.y_axis () * radius;
+
+                    std::array<session_cpp::Point, 8> pts = {
+                        session_cpp::Point (seg.start ()[0] + x_axis[0] + y_axis[0], seg.start ()[1] + x_axis[1] + y_axis[1], seg.start ()[2] + x_axis[2] + y_axis[2]),
+                        session_cpp::Point (seg.start ()[0] - x_axis[0] + y_axis[0], seg.start ()[1] - x_axis[1] + y_axis[1], seg.start ()[2] - x_axis[2] + y_axis[2]),
+                        session_cpp::Point (seg.start ()[0] - x_axis[0] - y_axis[0], seg.start ()[1] - x_axis[1] - y_axis[1], seg.start ()[2] - x_axis[2] - y_axis[2]),
+                        session_cpp::Point (seg.start ()[0] + x_axis[0] - y_axis[0], seg.start ()[1] + x_axis[1] - y_axis[1], seg.start ()[2] + x_axis[2] - y_axis[2]),
+                        session_cpp::Point (seg.end ()[0] + x_axis[0] + y_axis[0], seg.end ()[1] + x_axis[1] + y_axis[1], seg.end ()[2] + x_axis[2] + y_axis[2]),
+                        session_cpp::Point (seg.end ()[0] - x_axis[0] + y_axis[0], seg.end ()[1] - x_axis[1] + y_axis[1], seg.end ()[2] - x_axis[2] + y_axis[2]),
+                        session_cpp::Point (seg.end ()[0] - x_axis[0] - y_axis[0], seg.end ()[1] - x_axis[1] - y_axis[1], seg.end ()[2] - x_axis[2] - y_axis[2]),
+                        session_cpp::Point (seg.end ()[0] + x_axis[0] - y_axis[0], seg.end ()[1] + x_axis[1] - y_axis[1], seg.end ()[2] + x_axis[2] - y_axis[2]),
+                    };
+
+                    // Build AABB from 8 points
+                    double xmin = pts[0][0], xmax = xmin;
+                    double ymin = pts[0][1], ymax = ymin;
+                    double zmin = pts[0][2], zmax = zmin;
+                    for (int k = 1; k < 8; k++)
+                        {
+                            xmin = std::min (xmin, pts[k][0]);
+                            xmax = std::max (xmax, pts[k][0]);
+                            ymin = std::min (ymin, pts[k][1]);
+                            ymax = std::max (ymax, pts[k][1]);
+                            zmin = std::min (zmin, pts[k][2]);
+                            zmax = std::max (zmax, pts[k][2]);
+                        }
+
+                    session_cpp::Point center ((xmin + xmax) * 0.5, (ymin + ymax) * 0.5, (zmin + zmax) * 0.5);
+                    session_cpp::Vector half_size ((xmax - xmin) * 0.5, (ymax - ymin) * 0.5, (zmax - zmin) * 0.5);
+                    boxes.emplace_back (center, session_cpp::Vector::x_axis (), session_cpp::Vector::y_axis (), session_cpp::Vector::z_axis (), half_size);
+                    seg_refs.emplace_back (pid, sid);
+                }
+        }
+
+    if (boxes.empty ())
+        return;
 
     /////////////////////////////////////////////////////////////////////
-    // do_interesect call_back
+    // BVH self-intersection
     /////////////////////////////////////////////////////////////////////
-
-    std::map<uint64_t, std::tuple<double, int, int, int, int> > pair_collisions;
-    std::vector<std::tuple<double, int, int, int, int> > pair_collisionslist;
-    auto callback = [&segment, &min_distance, &pair_collisions, &pair_collisionslist] (const Box &b1, const Box &b2) {
-        if (b1.info ().first != b2.info ().first)
-            {
-                IK::Segment_3 s0 = segment (b1.info ().first, b1.info ().second);
-                IK::Segment_3 s1 = segment (b2.info ().first, b2.info ().second);
-                // IK::Vector_3 v0 = s0.to_vector();
-                //  IK::Vector_3 v1 = s1.to_vector();
-                //  s0 = IK::Segment_3(s0[0] - v0, s0[1] + v0);
-                //  s1 = IK::Segment_3(s1[0] - v1, s1[1] + v1);
-                double distance = CGAL::squared_distance (s0, s1);
-
-                if (distance < min_distance * min_distance)
-                    {
-                        // size_t first_0 = 0, first_1 = 0;
-                        bool flipped = false;
-                        uint64_t id;
-                        if (b2.info ().first > b1.info ().first)
-                            {
-                                flipped = true;
-                                id = (uint64_t)b2.info ().first << 32 | b1.info ().first;
-                            }
-                        else
-                            {
-                                flipped = false;
-                                id = (uint64_t)b1.info ().first << 32 | b2.info ().first;
-                            }
-
-                        std::tuple<double, int, int, int, int> dist_and_segment_ids
-                            = flipped ? std::make_tuple ((double)distance, (int)b1.info ().first, (int)b1.info ().second, (int)b2.info ().first, (int)b2.info ().second)
-                                      : std::make_tuple ((double)distance, (int)b2.info ().first, (int)b2.info ().second, (int)b1.info ().first, (int)b1.info ().second);
-
-                        // Add elements to std::map
-                        if (pair_collisions.find (id) == pair_collisions.end ())
-                            {
-                                // not found
-                                pair_collisions.insert (std::make_pair ((uint64_t)id, dist_and_segment_ids));
-                                pair_collisionslist.emplace_back (dist_and_segment_ids);
-                            }
-                        else if (distance < std::get<0> (pair_collisions[id]))
-                            {
-                                pair_collisions.insert (std::make_pair ((uint64_t)id, dist_and_segment_ids));
-                                // found and distance is smaller that before found
-                                pair_collisions[id] = dist_and_segment_ids;
-                                pair_collisionslist.emplace_back (dist_and_segment_ids);
-                            }
-                        //}
-                    } // check if lines closer than the given distance
-            } // check if boxes do not belong to the same group b.info().first
-    };
+    double world_size = session_cpp::BVH::compute_world_size (boxes);
+    session_cpp::BVH bvh = session_cpp::BVH::from_boxes (boxes, world_size);
+    auto [collision_pairs, unused, count] = bvh.check_all_collisions (boxes);
 
     /////////////////////////////////////////////////////////////////////
-    // self intersection
+    // Filter and process collisions
     /////////////////////////////////////////////////////////////////////
-    CGAL::box_self_intersection_d (boxes.begin (), boxes.end (), callback);
+    std::map<uint64_t, std::tuple<double, int, int, int, int>> pair_collisions;
+
+    for (auto &[bi, bj] : collision_pairs)
+        {
+            auto [pid0, sid0] = seg_refs[bi];
+            auto [pid1, sid1] = seg_refs[bj];
+
+            // Skip same polyline
+            if (pid0 == pid1)
+                continue;
+
+            session_cpp::Line s0 = segment (pid0, sid0);
+            session_cpp::Line s1 = segment (pid1, sid1);
+            double distance = segment_segment_sq_distance (s0, s1);
+
+            if (distance < min_distance * min_distance)
+                {
+                    bool flipped = pid1 > pid0;
+                    uint64_t id = flipped ? ((uint64_t)pid1 << 32 | pid0) : ((uint64_t)pid0 << 32 | pid1);
+
+                    auto dist_ids = flipped ? std::make_tuple (distance, (int)pid0, (int)sid0, (int)pid1, (int)sid1) : std::make_tuple (distance, (int)pid1, (int)sid1, (int)pid0, (int)sid0);
+
+                    if (pair_collisions.find (id) == pair_collisions.end ())
+                        pair_collisions.insert ({ id, dist_ids });
+                    else if (distance < std::get<0> (pair_collisions[id]))
+                        pair_collisions[id] = dist_ids;
+                }
+        }
 
     /////////////////////////////////////////////////////////////////////
-    // Iterate the result, get insertion points and parameter on the lines
+    // Output
     /////////////////////////////////////////////////////////////////////
-    polyline0_id_segment0_id_polyline1_id_segment1_id.reserve (pair_collisions.size () * 4);
-    point_pairs.reserve (point_pairs.size () * 2);
+    polyline0_id_segment0_id_polyline1_id_segment1_id.reserve (pair_collisions.size ());
+    point_pairs.reserve (pair_collisions.size ());
 
     for (auto const &x : pair_collisions)
         {
             auto &v = x.second;
-            IK::Segment_3 s0 = segment (std::get<1> (v), std::get<2> (v));
-            IK::Segment_3 s1 = segment (std::get<3> (v), std::get<4> (v));
+            session_cpp::Line s0 = segment (std::get<1> (v), std::get<2> (v));
+            session_cpp::Line s1 = segment (std::get<3> (v), std::get<4> (v));
 
-            IK::Point_3 p0;
-            IK::Point_3 p1;
-            bool r = line_line_intersection (s0, s1, true, p0, p1);
+            session_cpp::Point pp0, pp1;
+            bool r = line_line_intersection (s0, s1, true, pp0, pp1);
             if (!r)
                 continue;
-            point_pairs.emplace_back (std::array<IK::Point_3, 2>{ p0, p1 });
+            point_pairs.emplace_back (std::array<session_cpp::Point, 2>{ pp0, pp1 });
         }
 }
+
+// ── line_plane bridge (moved from stdafx.h) ──────────────────────────────────
+// Delegates to session_cpp::Intersection::line_plane; exposed under the
+// cgal::box_search namespace so existing call sites in wood_main.cpp are stable.
+inline bool
+line_plane (const session_cpp::Line &line, const session_cpp::Plane &plane, session_cpp::Point &output, bool is_finite = false)
+{
+    return session_cpp::Intersection::line_plane (line, plane, output, is_finite);
+}
+
 } // namespace box_search
 } // namespace cgal

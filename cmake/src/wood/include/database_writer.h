@@ -7,6 +7,31 @@
 #include "cgal_mesh_boolean.h"
 #include "database_writer.h"
 
+// CGAL CDT types used internally by database_writer
+#include <CGAL/Constrained_Delaunay_triangulation_2.h>
+#include <CGAL/Triangulation_face_base_with_info_2.h>
+#include <CGAL/Polygon_2.h>
+
+struct FaceInfo2
+{
+    FaceInfo2() {}
+    int nesting_level;
+    bool in_domain()
+    {
+        return nesting_level % 2 == 1;
+    }
+};
+
+typedef CGAL::Triangulation_vertex_base_2<CGAL::Exact_predicates_inexact_constructions_kernel> Vb;
+typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, CGAL::Exact_predicates_inexact_constructions_kernel> Fbb;
+typedef CGAL::Constrained_triangulation_face_base_2<CGAL::Exact_predicates_inexact_constructions_kernel, Fbb> Fb;
+typedef CGAL::Triangulation_data_structure_2<Vb, Fb> TDS;
+typedef CGAL::Exact_predicates_tag Itag;
+typedef CGAL::Constrained_Delaunay_triangulation_2<CGAL::Exact_predicates_inexact_constructions_kernel, TDS, Itag> CGALCDT;
+typedef CGALCDT::Point Point;
+typedef CGAL::Polygon_2<CGAL::Exact_predicates_inexact_constructions_kernel> Polygon_2;
+typedef CGALCDT::Face_handle Face_handle;
+
 namespace database_writer
 {
 
@@ -69,12 +94,11 @@ struct Visitor : public PMP::Corefinement::Default_visitor<Mesh>
 {
     typedef Mesh::Face_index face_descriptor;
 
-    boost::container::flat_map<const Mesh *, Mesh::Property_map<Mesh::Face_index, int> > properties;
+    std::map<const Mesh *, Mesh::Property_map<Mesh::Face_index, int> > properties;
     int face_id;
 
     Visitor ()
     {
-        properties.reserve (3);
         face_id = -1;
     }
 
@@ -164,11 +188,12 @@ add_polylines (Iterator begin, Iterator end)
 {
     for (auto it = begin; it != end; ++it)
         {
-            if constexpr (std::is_same_v<typename std::iterator_traits<Iterator>::value_type, std::vector<IK::Point_3> >)
+            if constexpr (std::is_same_v<typename std::iterator_traits<Iterator>::value_type, std::vector<IK::Point_3> >
+                          || std::is_same_v<typename std::iterator_traits<Iterator>::value_type, Polyline>)
                 {
-                    // Directly add the polyline
+                    // Directly add the polyline (works for both IK::Point_3 and session_cpp::Point via operator[])
                     if (it->empty ())
-                        return;
+                        continue;
 
                     double scale_inv = 1.0f / SCALE;
                     SQL_POLYLINES.emplace_back (SQLPolyline ());
@@ -191,20 +216,21 @@ add_polylines (Iterator begin, Iterator end)
         }
 }
 
-void add_polygon_mesh (const std::vector<CGAL_Polyline> &polylines);
+void add_polygon_mesh (const std::vector<Polyline> &polylines);
 
-void add_loft (std::vector<std::vector<CGAL_Polyline> > &output_plines);
+void add_loft (std::vector<std::vector<Polyline> > &output_plines);
 
-void closed_mesh_from_polylines_vnf (const std::vector<CGAL_Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles,
+void closed_mesh_from_polylines_vnf (const std::vector<Polyline> &polylines_with_holes_not_clean, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles,
                                      const double &scale);
 
-void mesh_from_polylines (const std::vector<CGAL_Polyline> &polylines_with_holes, const IK::Plane_3 &base_plane, std::vector<int> &top_outline_face_vertex_indices, int &v_count, int &f_count);
+void mesh_from_polylines (const std::vector<Polyline> &polylines_with_holes, const IK::Plane_3 &base_plane, std::vector<int> &top_outline_face_vertex_indices, int &v_count, int &f_count);
 
-void add_mesh_boolean_difference (std::vector<CGAL_Polyline> &input_plines, std::vector<std::vector<CGAL_Polyline> > &output_plines);
+void add_mesh_boolean_difference (std::vector<Polyline> &input_plines, std::vector<std::vector<Polyline> > &output_plines);
 
 void mesh_boolean_difference_to_viewer (std::vector<Mesh> &mesh_list, size_t difference_union_intersection, std::vector<double> &out_vertices, std::vector<double> &out_normals, std::vector<int> &out_triangles);
 
 void add_points (const std::vector<IK::Point_3> &points);
+void add_points (const std::vector<session_cpp::Point> &points);
 
 }; // namespace database_writer
 #endif // POLYLINES_DATABASE_HPP

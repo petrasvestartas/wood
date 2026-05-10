@@ -67,7 +67,7 @@ CGAL::Aff_transformation_3<IK> plane_to_xy (const IK::Point_3 &origin, const IK:
  * @param [out] average_normal The sum of cross-products, computed from the current and neighboring
  * points, considering both open and closed polylines
  */
-void get_average_normal (const CGAL_Polyline &polyline, IK::Vector_3 &average_normal);
+void get_average_normal (const Polyline &polyline, IK::Vector_3 &average_normal);
 
 /**
  * Get a plane and its origin point, often used for orienting polylines from 3D to 2D
@@ -76,7 +76,7 @@ void get_average_normal (const CGAL_Polyline &polyline, IK::Vector_3 &average_no
  * @param [out] center The first point of the polyline is taken as the output
  * @param [out] plane The plane is computed using the get_average_normal method
  */
-void get_fast_plane (const CGAL_Polyline &polyline, IK::Point_3 &center, IK::Plane_3 &plane);
+void get_fast_plane (const Polyline &polyline, IK::Point_3 &center, IK::Plane_3 &plane);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Orient polylines from 3D to 2D, overloads includes no copy and copy
@@ -89,7 +89,7 @@ void get_fast_plane (const CGAL_Polyline &polyline, IK::Point_3 &center, IK::Pla
  * @param [out] xform_to_xy_inv inverse transformation matrix, because orientation to 2D is often
  * followed by orienting geometry back to 3D
  */
-void orient_3d_to_2d (const std::vector<CGAL_Polyline> &input, std::vector<CGAL_Polyline> &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
+void orient_3d_to_2d (const std::vector<Polyline> &input, std::vector<Polyline> &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
 
 /**
  * Copy and orient a polygon from 3D to 2D and ouput the inverse transformation matrix
@@ -99,7 +99,7 @@ void orient_3d_to_2d (const std::vector<CGAL_Polyline> &input, std::vector<CGAL_
  * @param [out] xform_to_xy_inv inverse transformation matrix, because orientation to 2D is often
  * followed by orienting geometry back to 3D
  */
-void orient_3d_to_2d (const CGAL_Polyline &input, CGAL_Polyline &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
+void orient_3d_to_2d (const Polyline &input, Polyline &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
 
 /**
  * Orient a list of polygons from 3D to 2D and ouput the inverse transformation matrix
@@ -108,7 +108,7 @@ void orient_3d_to_2d (const CGAL_Polyline &input, CGAL_Polyline &output, CGAL::A
  * @param [out] xform_to_xy_inv inverse transformation matrix, because orientation to 2D is often
  * followed by orienting geometry back to 3D
  */
-void orient_3d_to_2d (std::vector<CGAL_Polyline> &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
+void orient_3d_to_2d (std::vector<Polyline> &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
 
 /**
  * Orient a polygon from 3D to 2D and ouput the inverse transformation matrix
@@ -117,10 +117,10 @@ void orient_3d_to_2d (std::vector<CGAL_Polyline> &input, CGAL::Aff_transformatio
  * @param [out] xform_to_xy_inv inverse transformation matrix, because orientation to 2D is often
  * followed by orienting geometry back to 3D
  */
-void orient_3d_to_2d (CGAL_Polyline &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
+void orient_3d_to_2d (Polyline &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Conversions of CGAL_Polyline and Clipper in 2D
+// Conversions of Polyline and Clipper in 2D
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * Convert cgal polylines to clipper polylines
@@ -129,7 +129,7 @@ void orient_3d_to_2d (CGAL_Polyline &input, CGAL::Aff_transformation_3<IK> &xfor
  * @param [out] output clipper list of polyline
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolylines_to_clipper_2d (const std::vector<CGAL_Polyline> &input, Clipper2Lib::Paths64 &output, bool closed_polyline = true);
+void cgalpolylines_to_clipper_2d (const std::vector<Polyline> &input, Clipper2Lib::Paths64 &output, bool closed_polyline = true);
 
 /**
  * Convert clipper polylines to cgal polylines
@@ -138,7 +138,7 @@ void cgalpolylines_to_clipper_2d (const std::vector<CGAL_Polyline> &input, Clipp
  * @param [out] output cgal list of polyline
  * @param [in] closed_polyline adds the first point from the clipper polyline to the end
  */
-void clipper_to_cgalpolylines_2d (const Clipper2Lib::Paths64 &input, std::vector<CGAL_Polyline> &output, bool closed_polyline = true);
+void clipper_to_cgalpolylines_2d (const Clipper2Lib::Paths64 &input, std::vector<Polyline> &output, bool closed_polyline = true);
 
 /**
  * Convert cgal polyline to clipper polyline
@@ -147,7 +147,7 @@ void clipper_to_cgalpolylines_2d (const Clipper2Lib::Paths64 &input, std::vector
  * @param [out] output clipper polyline
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolyline_to_clipper_2d (const CGAL_Polyline &input, Clipper2Lib::Path64 &output, bool closed_polyline = true);
+void cgalpolyline_to_clipper_2d (const Polyline &input, Clipper2Lib::Path64 &output, bool closed_polyline = true);
 
 /**
  * Convert clipper polyline to cgal polyline
@@ -156,10 +156,10 @@ void cgalpolyline_to_clipper_2d (const CGAL_Polyline &input, Clipper2Lib::Path64
  * @param [out] output cgal polyline
  * @param [in] closed_polyline adds the first point from the clipper polyline to the end
  */
-void clipper_to_cgalpolyline_2d (const Clipper2Lib::Path64 &input, CGAL_Polyline &output, bool closed_polyline = true);
+void clipper_to_cgalpolyline_2d (const Clipper2Lib::Path64 &input, Polyline &output, bool closed_polyline = true);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Conversions of CGAL_Polyline and Clipper in 3D
+// Conversions of Polyline and Clipper in 3D
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * Convert cgal polylines to clipper polylines
@@ -169,7 +169,7 @@ void clipper_to_cgalpolyline_2d (const Clipper2Lib::Path64 &input, CGAL_Polyline
  * @param [out] xform_to_xy_inv orientation matrix to 3D
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolylines_to_clipper_3d (const std::vector<CGAL_Polyline> &input, Clipper2Lib::Paths64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
+void cgalpolylines_to_clipper_3d (const std::vector<Polyline> &input, Clipper2Lib::Paths64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
 
 /**
  * Convert clipper polylines to cgal polylines
@@ -179,7 +179,7 @@ void cgalpolylines_to_clipper_3d (const std::vector<CGAL_Polyline> &input, Clipp
  * @param [out] output cgal list of polyline
  * @param [in] closed_polyline adds the first point from the clipper polyline to the end
  */
-void clipper_to_cgalpolylines_3d (const Clipper2Lib::Paths64 &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, std::vector<CGAL_Polyline> &output, bool closed_polyline = true);
+void clipper_to_cgalpolylines_3d (const Clipper2Lib::Paths64 &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, std::vector<Polyline> &output, bool closed_polyline = true);
 
 /**
  * Convert cgal polyline to clipper polyline
@@ -189,7 +189,7 @@ void clipper_to_cgalpolylines_3d (const Clipper2Lib::Paths64 &input, CGAL::Aff_t
  * @param [out] xform_to_xy_inv orientation matrix to 3D
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolyline_to_clipper_3d (const CGAL_Polyline &input, Clipper2Lib::Path64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
+void cgalpolyline_to_clipper_3d (const Polyline &input, Clipper2Lib::Path64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
 
 /**
  * Convert clipper polyline to cgal polyline
@@ -199,7 +199,7 @@ void cgalpolyline_to_clipper_3d (const CGAL_Polyline &input, Clipper2Lib::Path64
  * @param [out] output cgal polyline
  * @param [in] closed_polyline adds the first point from the clipper polyline to the end
  */
-void clipper_to_cgalpolyline_3d (const Clipper2Lib::Path64 &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, CGAL_Polyline &output, bool closed_polyline = true);
+void clipper_to_cgalpolyline_3d (const Clipper2Lib::Path64 &input, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, Polyline &output, bool closed_polyline = true);
 
 /**
  * Convert cgal polylines to clipper polylines
@@ -210,7 +210,7 @@ void clipper_to_cgalpolyline_3d (const Clipper2Lib::Path64 &input, CGAL::Aff_tra
  * @param [out] xform_to_xy_inv orientation matrix to 3D
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolylines_to_clipper_3d (const std::vector<CGAL_Polyline> &input, const IK::Plane_3 &plane, Clipper2Lib::Paths64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
+void cgalpolylines_to_clipper_3d (const std::vector<Polyline> &input, const IK::Plane_3 &plane, Clipper2Lib::Paths64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
 
 /**
  * Convert cgal polyline to clipper polyline
@@ -222,7 +222,7 @@ void cgalpolylines_to_clipper_3d (const std::vector<CGAL_Polyline> &input, const
  * @param [out] xform_to_xy_inv orientation matrix to 3D
  * @param [in] closed_polyline skips the last point from the cgal polyline
  */
-void cgalpolyline_to_clipper_3d (const CGAL_Polyline &input, const IK::Plane_3 &plane, Clipper2Lib::Path64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
+void cgalpolyline_to_clipper_3d (const Polyline &input, const IK::Plane_3 &plane, Clipper2Lib::Path64 &output, CGAL::Aff_transformation_3<IK> &xform_to_xy_inv, bool closed_polyline = true);
 } // namespace internal
 //! \endcond
 
@@ -234,7 +234,7 @@ void cgalpolyline_to_clipper_3d (const CGAL_Polyline &input, const IK::Plane_3 &
  * @param [in] point point to check the inclusion
  * @return return true if the point is inside the polyline or touching
  */
-bool is_point_inside (CGAL_Polyline &polyline, IK::Plane_3 &plane, IK::Point_3 &point);
+bool is_point_inside (Polyline &polyline, IK::Plane_3 &plane, IK::Point_3 &point);
 
 /**
  * Orient two polylines using the first polyline's plane, computed the boolean intersection, and
@@ -250,7 +250,7 @@ bool is_point_inside (CGAL_Polyline &polyline, IK::Plane_3 &plane, IK::Point_3 &
  * @param [in] include_triangles the default paramter to skip polygons consisting of only 3 points
  * @return return true if the point is inside the polyline or touching
  */
-bool get_intersection_between_two_polylines (CGAL_Polyline &polyline0, CGAL_Polyline &polyline1, IK::Plane_3 &plane, CGAL_Polyline &intersection_result, int intersection_type = 0, bool include_triangles = false);
+bool get_intersection_between_two_polylines (Polyline &polyline0, Polyline &polyline1, IK::Plane_3 &plane, Polyline &intersection_result, int intersection_type = 0, bool include_triangles = false);
 
 /**
  * Offset polyline without holes in 2D
@@ -261,7 +261,7 @@ bool get_intersection_between_two_polylines (CGAL_Polyline &polyline0, CGAL_Poly
  * @param [in] offset the distance
  * @return true if the offset the polylgon is not super small
  */
-bool offset_in_2d (CGAL_Polyline &polyline, const double &offset);
+bool offset_in_2d (Polyline &polyline, const double &offset);
 
 /**
  * Offset polyline without holes in 3D
@@ -271,7 +271,7 @@ bool offset_in_2d (CGAL_Polyline &polyline, const double &offset);
  * @param [in] offset the distance
  * @return true if the offset the polylgon is not super small
  */
-bool offset_in_3d (CGAL_Polyline &polyline, IK::Plane_3 &plane, const double &offset);
+bool offset_in_3d (Polyline &polyline, IK::Plane_3 &plane, const double &offset);
 
 /**
  * Check if the points are inside the polyline or touching
@@ -282,7 +282,8 @@ bool offset_in_3d (CGAL_Polyline &polyline, IK::Plane_3 &plane, const double &of
  * @param [out] test_points_ids return the ids of the points that are inside the polyline
  * @return number of ponts that are inside the polyline
  */
-int are_points_inside (CGAL_Polyline &polyline, IK::Plane_3 &plane, std::vector<IK::Point_3> &test_points, std::vector<int> &test_points_ids);
+int are_points_inside (Polyline &polyline, IK::Plane_3 &plane, std::vector<IK::Point_3> &test_points, std::vector<int> &test_points_ids);
+int are_points_inside (Polyline &polyline, session_cpp::Plane &plane, std::vector<session_cpp::Point> &test_points, std::vector<int> &test_points_ids);
 
 /**
  * bounding rectangle of a planar polyline
@@ -298,7 +299,7 @@ int are_points_inside (CGAL_Polyline &polyline, IK::Plane_3 &plane, std::vector<
  * @return bool if the result is successful, e.g. box is valid or the input polyline has less than 3
  * points
  */
-bool bounding_rectangle (CGAL_Polyline &polyline, IK::Plane_3 &plane, CGAL_Polyline &result);
+bool bounding_rectangle (Polyline &polyline, IK::Plane_3 &plane, Polyline &result);
 
 /**
  * offset and divide a planar polyline to points
@@ -316,6 +317,50 @@ bool bounding_rectangle (CGAL_Polyline &polyline, IK::Plane_3 &plane, CGAL_Polyl
  * points
  */
 bool offset_and_divide_to_points (std::vector<IK::Point_3> &result, std::vector<IK::Point_3> &polygon, double offset_distance = -2.5, double division_distance = 10);
+
+// ── session_cpp-typed overloads ───────────────────────────────────────────────
+// These accept session_cpp::Plane / session_cpp::Point and delegate to the
+// IK-typed implementations above.  The bridge conversions are inlined here
+// so that clipper_util.h has no dependency on stdafx.h bridge helpers.
+
+inline bool is_point_inside (Polyline &polyline, session_cpp::Plane plane, session_cpp::Point &point)
+{
+    IK::Plane_3 ik_plane = { plane.a (), plane.b (), plane.c (), plane.d () };
+    IK::Point_3 ik_pt    = { point[0], point[1], point[2] };
+    return is_point_inside (polyline, ik_plane, ik_pt);
+}
+
+inline bool offset_in_3d (Polyline &polyline, session_cpp::Plane plane, const double &offset)
+{
+    IK::Plane_3 ik_plane = { plane.a (), plane.b (), plane.c (), plane.d () };
+    return offset_in_3d (polyline, ik_plane, offset);
+}
+
+inline bool get_intersection_between_two_polylines (Polyline &poly0, Polyline &poly1, session_cpp::Plane plane, Polyline &result, int type = 0, bool inc_tri = false)
+{
+    IK::Plane_3 ik_plane = { plane.a (), plane.b (), plane.c (), plane.d () };
+    return get_intersection_between_two_polylines (poly0, poly1, ik_plane, result, type, inc_tri);
+}
+
+inline bool bounding_rectangle (Polyline &polyline, session_cpp::Plane plane, Polyline &result)
+{
+    IK::Plane_3 ik_plane = { plane.a (), plane.b (), plane.c (), plane.d () };
+    return bounding_rectangle (polyline, ik_plane, result);
+}
+
+inline bool offset_and_divide_to_points (Polyline &result, Polyline &polygon, double offset_distance = -2.5, double division_distance = 10)
+{
+    std::vector<IK::Point_3> ik_result, ik_polygon;
+    ik_polygon.reserve (polygon.size ());
+    for (auto &p : polygon)
+        ik_polygon.push_back ({ p[0], p[1], p[2] });
+    bool r = offset_and_divide_to_points (ik_result, ik_polygon, offset_distance, division_distance);
+    result.reserve (ik_result.size ());
+    for (auto &p : ik_result)
+        result.push_back ({ p.x (), p.y (), p.z () });
+    return r;
+}
+
 } // namespace clipper_util
 
 } // namespace collider

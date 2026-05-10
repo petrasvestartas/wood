@@ -10,14 +10,14 @@ joint::joint ()
     // Empty constructor
 }
 
-joint::joint (int _id, int _v0, int _v1, int _f0_0, int _f1_0, int _f0_1, int _f1_1, std::array<CGAL_Polyline, 4> &_joint_volumes)
+joint::joint (int _id, int _v0, int _v1, int _f0_0, int _f1_0, int _f0_1, int _f1_1, std::array<Polyline, 4> &_joint_volumes)
     : id (_id), v0 (_v0), v1 (_v1), f0_0 (_f0_0), f1_0 (_f1_0), f0_1 (_f0_1), f1_1 (_f1_1), type (-1)
 {
     for (int i = 0; i < 4; i++)
         this->joint_volumes[i] = _joint_volumes[i];
 }
 
-joint::joint (int _id, int _v0, int _v1, int _f0_0, int _f1_0, int _f0_1, int _f1_1, CGAL_Polyline (&_joint_area), std::array<CGAL_Polyline, 2> &_joint_lines, std::array<CGAL_Polyline, 4> &_joint_volumes, int _type)
+joint::joint (int _id, int _v0, int _v1, int _f0_0, int _f1_0, int _f0_1, int _f1_1, Polyline (&_joint_area), std::array<Polyline, 2> &_joint_lines, std::array<Polyline, 4> &_joint_volumes, int _type)
     : id (_id), v0 (_v0), v1 (_v1), f0_0 (_f0_0), f1_0 (_f1_0), f0_1 (_f0_1), f1_1 (_f1_1), type (_type)
 {
     for (int i = 0; i < 4; i++)
@@ -29,7 +29,7 @@ joint::joint (int _id, int _v0, int _v1, int _f0_0, int _f1_0, int _f0_1, int _f
     this->joint_area = _joint_area;
 }
 
-std::vector<CGAL_Polyline> &
+std::vector<Polyline> &
 joint::operator() (bool male_or_female, bool first_or_second)
 {
     if (male_or_female)
@@ -100,17 +100,17 @@ joint::get_key ()
 }
 
 bool
-joint::change_basis (CGAL_Polyline &rect0, CGAL_Polyline &rect1, CGAL::Aff_transformation_3<IK> &xform)
+joint::change_basis (Polyline &rect0, Polyline &rect1, session_cpp::Xform &xform)
 {
-    IK::Point_3 O1 (-0.5, -0.5, -0.5);
-    IK::Vector_3 X1 (1, 0, 0); // final frame X (X,Y,Z = arbitrary basis)
-    IK::Vector_3 Y1 (0, 1, 0); // final frame Y
-    IK::Vector_3 Z1 (0, 0, 1); // final frame Z
+    session_cpp::Point O1 (-0.5, -0.5, -0.5);
+    session_cpp::Vector X1 (1, 0, 0); // final frame X (X,Y,Z = arbitrary basis)
+    session_cpp::Vector Y1 (0, 1, 0); // final frame Y
+    session_cpp::Vector Z1 (0, 0, 1); // final frame Z
 
-    IK::Point_3 O0 = rect0[0];
-    IK::Vector_3 X0 = (rect0[1] - rect0[0]); // initial frame X (X,Y,Z = arbitrary basis)
-    IK::Vector_3 Y0 = (rect0[3] - rect0[0]); // initial frame Y
-    IK::Vector_3 Z0 = (rect1[0] - rect0[0]); // initial frame Z
+    session_cpp::Point O0 = rect0[0];
+    session_cpp::Vector X0 = session_cpp::Vector(rect0[1][0]-rect0[0][0], rect0[1][1]-rect0[0][1], rect0[1][2]-rect0[0][2]); // initial frame X (X,Y,Z = arbitrary basis)
+    session_cpp::Vector Y0 = session_cpp::Vector(rect0[3][0]-rect0[0][0], rect0[3][1]-rect0[0][1], rect0[3][2]-rect0[0][2]); // initial frame Y
+    session_cpp::Vector Z0 = session_cpp::Vector(rect1[0][0]-rect0[0][0], rect1[0][1]-rect0[0][1], rect1[0][2]-rect0[0][2]); // initial frame Z
 
     // Q = a0*X0 + b0*Y0 + c0*Z0 = a1*X1 + b1*Y1 + c1*Z1
     // then this transform will map the point (a0,b0,c0) to (a1,b1,c1)
@@ -118,10 +118,10 @@ joint::change_basis (CGAL_Polyline &rect0, CGAL_Polyline &rect1, CGAL::Aff_trans
     //*this = ON_Xform::ZeroTransformation;
 
     double a, b, c, d;
-    a = X1 * Y1;
-    b = X1 * Z1;
-    c = Y1 * Z1;
-    double R[3][6] = { { X1 * X1, a, b, X1 * X0, X1 * Y0, X1 * Z0 }, { a, Y1 * Y1, c, Y1 * X0, Y1 * Y0, Y1 * Z0 }, { b, c, Z1 * Z1, Z1 * X0, Z1 * Y0, Z1 * Z0 } };
+    a = X1.dot(Y1);
+    b = X1.dot(Z1);
+    c = Y1.dot(Z1);
+    double R[3][6] = { { X1.dot(X1), a, b, X1.dot(X0), X1.dot(Y0), X1.dot(Z0) }, { a, Y1.dot(Y1), c, Y1.dot(X0), Y1.dot(Y0), Y1.dot(Z0) }, { b, c, Z1.dot(Z1), Z1.dot(X0), Z1.dot(Y0), Z1.dot(Z0) } };
 
     // row reduce R
     int i0 = (R[0][0] >= R[1][1]) ? 0 : 1;
@@ -234,10 +234,9 @@ joint::change_basis (CGAL_Polyline &rect0, CGAL_Polyline &rect1, CGAL::Aff_trans
             R[i1][i2] = 0.0;
         }
 
-    CGAL::Aff_transformation_3<IK> m_xform (R[0][3], R[0][4], R[0][5], R[1][3], R[1][4], R[1][5], R[2][3], R[2][4], R[2][5]);
-
-    CGAL::Aff_transformation_3<IK> T0 (CGAL::TRANSLATION, IK::Vector_3 (0 - O1.x (), 0 - O1.y (), 0 - O1.z ()));
-    CGAL::Aff_transformation_3<IK> T2 (CGAL::TRANSLATION, IK::Vector_3 (O0.x (), O0.y (), O0.z ()));
+    session_cpp::Xform m_xform ({R[0][3], R[1][3], R[2][3], 0, R[0][4], R[1][4], R[2][4], 0, R[0][5], R[1][5], R[2][5], 0, 0, 0, 0, 1});
+    session_cpp::Xform T0 = session_cpp::Xform::translation (0 - O1[0], 0 - O1[1], 0 - O1[2]);
+    session_cpp::Xform T2 = session_cpp::Xform::translation (O0[0], O0[1], O0[2]);
 
     xform = (T2 * m_xform * T0);
 
@@ -245,25 +244,25 @@ joint::change_basis (CGAL_Polyline &rect0, CGAL_Polyline &rect1, CGAL::Aff_trans
 }
 
 void
-joint::transform (CGAL::Aff_transformation_3<IK> &xform0, CGAL::Aff_transformation_3<IK> &xform1)
+joint::transform (session_cpp::Xform &xform0, session_cpp::Xform &xform1)
 {
     // Apply transformation xform0 to all polylines in the male part
     for (auto &polyline : m[0])
         for (auto &point : polyline)
-            point = point.transform (xform0);
+            point = xform0.transformed_point (point);
 
     for (auto &polyline : m[1])
         for (auto &point : polyline)
-            point = point.transform (xform0);
+            point = xform0.transformed_point (point);
 
     // Apply transformation xform1 to all polylines in the female part
     for (auto &polyline : f[0])
         for (auto &point : polyline)
-            point = point.transform (xform1);
+            point = xform1.transformed_point (point);
 
     for (auto &polyline : f[1])
         for (auto &point : polyline)
-            point = point.transform (xform1);
+            point = xform1.transformed_point (point);
 }
 
 bool
@@ -278,7 +277,7 @@ joint::orient_to_connection_area ()
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Distance between two rectangles is equal to the joint volume second edge length
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            unit_scale_distance = unit_scale_distance == 0 ? std::floor (std::sqrt (CGAL::squared_distance (joint_volumes[0][1], joint_volumes[0][2]))) : unit_scale_distance;
+            unit_scale_distance = unit_scale_distance == 0 ? std::floor (std::sqrt (session_cpp::Point::squared_distance (joint_volumes[0][1], joint_volumes[0][2]))) : unit_scale_distance;
             // std::cout << std::sqrt(CGAL::squared_distance(joint_volumes[0][0], joint_volumes[0][1]))
             // << std::endl; std::cout << std::sqrt(CGAL::squared_distance(joint_volumes[0][1],
             // joint_volumes[0][2])) << std::endl;
@@ -287,16 +286,18 @@ joint::orient_to_connection_area ()
             // The joint volumes are move in z-axis, so that the joint geometry would not be stretched
             // The distance of the movement is equal to the joint-volume rectangle edge length
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            IK::Segment_3 volume_segment (joint_volumes[0][0], joint_volumes[1][0]);
-            IK::Vector_3 vec = volume_segment.to_vector () * 0.5;
-            IK::Vector_3 vec_unit = volume_segment.to_vector ();
-            cgal::vector_util::unitize (vec_unit);
+            session_cpp::Line volume_segment = session_cpp::Line::from_points (joint_volumes[0][0], joint_volumes[1][0]);
+            session_cpp::Vector vec = volume_segment.to_vector () * 0.5;
+            session_cpp::Vector vec_unit = volume_segment.to_vector ();
+            session_cpp::unitize (vec_unit);
             vec_unit *= (unit_scale_distance * 0.5);
 
-            cgal::polyline_util::move (joint_volumes[0], vec);
-            cgal::polyline_util::move (joint_volumes[1], -vec);
-            cgal::polyline_util::move (joint_volumes[0], -vec_unit);
-            cgal::polyline_util::move (joint_volumes[1], vec_unit);
+            session_cpp::Vector neg_vec = vec * -1.0;
+            session_cpp::Vector neg_vec_unit = vec_unit * -1.0;
+            session_cpp::move (joint_volumes[0], vec);
+            session_cpp::move (joint_volumes[1], neg_vec);
+            session_cpp::move (joint_volumes[0], neg_vec_unit);
+            session_cpp::move (joint_volumes[1], vec_unit);
 
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Second pair of joint volumes
@@ -305,16 +306,18 @@ joint::orient_to_connection_area ()
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (joint_volumes[2].size () > 0)
                 {
-                    IK::Segment_3 volume_segment (joint_volumes[2][0], joint_volumes[3][0]);
+                    volume_segment = session_cpp::Line::from_points (joint_volumes[2][0], joint_volumes[3][0]);
                     vec = volume_segment.to_vector () * 0.5;
                     vec_unit = volume_segment.to_vector ();
-                    cgal::vector_util::unitize (vec_unit);
+                    session_cpp::unitize (vec_unit);
                     vec_unit *= (unit_scale_distance * 0.5);
 
-                    cgal::polyline_util::move (joint_volumes[2], vec);
-                    cgal::polyline_util::move (joint_volumes[3], -vec);
-                    cgal::polyline_util::move (joint_volumes[2], -vec_unit);
-                    cgal::polyline_util::move (joint_volumes[3], vec_unit);
+                    session_cpp::Vector neg_vec2 = vec * -1.0;
+                    session_cpp::Vector neg_vec_unit2 = vec_unit * -1.0;
+                    session_cpp::move (joint_volumes[2], vec);
+                    session_cpp::move (joint_volumes[3], neg_vec2);
+                    session_cpp::move (joint_volumes[2], neg_vec_unit2);
+                    session_cpp::move (joint_volumes[3], vec_unit);
                 }
         }
 
@@ -325,7 +328,7 @@ joint::orient_to_connection_area ()
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if (scale[0] != 1.0 || scale[1] != 1.0 || scale[2] != 1.0)
         {
-            auto xform_scale = cgal::xform_util::scale (scale[0], scale[1], scale[2]);
+            session_cpp::Xform xform_scale = session_cpp::Xform::scale_xyz (scale[0], scale[1], scale[2]);
 
             // std::cout << "Scale transformation: " << scale[0] << " " << scale[1] << " " << scale[2]
             // << std::endl;
@@ -339,10 +342,10 @@ joint::orient_to_connection_area ()
     // 2. The joint volume is made from 2 pairs of rectangles e.g. side-to-side edge out-of-plane
     // joint
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    CGAL::Aff_transformation_3<IK> xform0;
+    session_cpp::Xform xform0;
     bool flag0 = change_basis (joint_volumes[0], joint_volumes[1], xform0);
 
-    CGAL::Aff_transformation_3<IK> xform1;
+    session_cpp::Xform xform1;
     bool flag1 = joint_volumes[2].size () > 0 ? change_basis (joint_volumes[2], joint_volumes[3], xform1) : change_basis (joint_volumes[0], joint_volumes[1], xform1);
 
     transform (xform0, xform1);
@@ -403,7 +406,7 @@ joint::get_divisions (double &division_distance)
             if (!joint_lines[0].empty ())
                 {
                     // Calculate joint length as the distance between two points of the joint line
-                    length = CGAL::squared_distance (joint_lines[0][0], joint_lines[0][1]);
+                    length = session_cpp::Point::squared_distance (joint_lines[0][0], joint_lines[0][1]);
 
                     // Calculate the number of divisions based on the joint length and division distance
                     divisions = (int)std::ceil (std::sqrt (length) / division_distance);
@@ -463,8 +466,8 @@ joint::remove_geo_from_linked_joint_and_merge_with_current_joint (std::vector<jo
                         continue;
 
                     // create outlines
-                    CGAL_Polyline merged_polyline_0;
-                    CGAL_Polyline merged_polyline_1;
+                    Polyline merged_polyline_0;
+                    Polyline merged_polyline_1;
                     merged_polyline_0.reserve ((*this) (m_f_curr, true).size () + all_joints[linked_joints[i]](m_f_next, true).size ());
                     merged_polyline_1.reserve ((*this) (m_f_curr, false).size () + all_joints[linked_joints[i]](m_f_next, false).size ());
 
