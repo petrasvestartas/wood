@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    void _build(const Mesh& m, int nx_stagger,
+    void _build(const Mesh& m, int /*nx_stagger*/,
                 double angle, double scale, double beam_w, double beam_h,
                 double extend_factor, double cut_offset_factor)
     {
@@ -82,17 +82,8 @@ private:
 
         std::vector<std::pair<size_t,size_t>> ekeys = m.edges();
         for (int ei = 0; ei < (int)r.center.size(); ei++) {
-            size_t u = ekeys[ei].first;
-            size_t v = ekeys[ei].second;
-            bool is_v_edge = (nx_stagger > 0) &&
-                             ((size_t)std::abs((long long)u - (long long)v)
-                              == (size_t)(nx_stagger + 1));
-
             Line          ln  = r.center[ei];
             const Vector& up  = r.lineplanes[ei].y_axis();
-            if (is_v_edge) {
-                ln += up * (beam_h * 0.5);
-            }
             const Vector dir = ln.to_direction();
 
             Plane ps = side_cut_plane(

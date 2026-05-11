@@ -828,8 +828,11 @@ std::vector<WoodJoint> get_connection_zones(
                                total_loaded, ei, iv_name); }
     }
     // Move insertion vectors into WoodElement so face_to_face_wood has one object per plate.
+    // Skip assignment when the element already has vectors pre-set by the caller
+    // (_joinery_solver.cpp iv-only path); reversal still applies in that case.
     for (size_t ei = 0; ei < wood_elems.size(); ei++) {
-        wood_elems[ei].insertion_vectors = per_element_insertion_vectors[ei];
+        if (wood_elems[ei].insertion_vectors.empty())
+            wood_elems[ei].insertion_vectors = per_element_insertion_vectors[ei];
         if (wood_elems[ei].reversed) {
             auto& vecs = wood_elems[ei].insertion_vectors;
             if (vecs.size() > 2) {
@@ -982,6 +985,12 @@ std::vector<WoodJoint> get_connection_zones(
                        total_loaded, ei, jt_name);
         }
     }
+    // In-memory override: element.joint_types set directly by _joinery_solver.cpp
+    // (direct path, no temp files). Takes precedence only when no file data exists.
+    for (size_t ei = 0; ei < wood_elems.size(); ++ei) {
+        if (per_element_joints_types[ei].empty() && !wood_elems[ei].joint_types.empty())
+            per_element_joints_types[ei] = wood_elems[ei].joint_types;
+    }
 
     // Create unit joinery + orient to connection area.
     // Per-type div_dist + shift, mirroring wood's
@@ -1050,12 +1059,13 @@ std::vector<WoodJoint> get_connection_zones(
                 (per_element_joints_types[e0].size() > 0 ||
                  per_element_joints_types[e1].size() > 0)) {
                 id_representing_joint_name = std::max(id0, id1);
-                // Wood: `if (id_representing_joint_name == 0) continue;`
-                // (`wood_joint_lib.cpp:6109-6112`)
-                if (id_representing_joint_name == 0) {
-                    n_filtered++;
-                    continue;
-                }
+                // id == 0 means the face slot exists in the jt table but was not
+                // explicitly assigned (was -1 → 0 after Python sentinel conversion).
+                // Fall through to auto-detection (-1 path below) instead of skipping.
+                // Only skip when the type code is explicitly set to 0 by the user,
+                // which is not currently possible through the Python assignment tools.
+                if (id_representing_joint_name == 0)
+                    id_representing_joint_name = -1;
             }
         }
 
@@ -1309,6 +1319,80 @@ std::vector<WoodJoint> get_connection_zones(
         fmt::print("  time: {:.0f}ms\n", ms(t0, t4));
     }
     return all_joints;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// get_connection_zones — in-memory chevron data overload.
+//
+// Writes the ChevronJoineryData fields to temporary txt files in
+// session_data_dir(), then delegates to the file-based overload.  This
+// avoids duplicating the large detection + geometry + merge pipeline while
+// still feeding adjacency, insertion vectors, joint types, and three-valence
+// groups to the algorithm.
+//
+// Temporary files are removed after the call.  The prefix "_wood_nano_chevron"
+// is chosen to avoid collisions with any existing named dataset.
+// ═══════════════════════════════════════════════════════════════════════════
+std::vector<wood_session::WoodJoint> get_connection_zones(
+        std::vector<wood_session::WoodElement>& elements,
+        SearchType search_type,
+        const wood_session::ChevronJoineryData& joinery_data)
+{
+    using namespace wood_session::globals;
+
+    const std::string prefix = "_wood_nano_chevron";
+    auto base = internal::session_data_dir();
+
+    // adjacency.txt — one "a b" pair per line.
+    {
+        std::ofstream f((base / (prefix + "_adjacency.txt")).string());
+        for (const auto& [a, b] : joinery_data.adjacency)
+            f << a << " " << b << "\n";
+    }
+
+    // insertion_vectors.txt — one element per line, 18 space-separated doubles.
+    {
+        std::ofstream f((base / (prefix + "_insertion_vectors.txt")).string());
+        for (const auto& iv : joinery_data.insertion_vectors) {
+            for (int k = 0; k < 18; ++k)
+                f << (k ? " " : "") << iv[k];
+            f << "\n";
+        }
+    }
+
+    // joints_types.txt — one element per line, 6 space-separated ints.
+    {
+        std::ofstream f((base / (prefix + "_joints_types.txt")).string());
+        for (const auto& jf : joinery_data.joints_per_face) {
+            for (int k = 0; k < 6; ++k)
+                f << (k ? " " : "") << jf[k];
+            f << "\n";
+        }
+    }
+
+    // three_valence.txt — first line is the instruction flag (0 = Annen),
+    // then one "[s0] [s1] [e20] [e31]" group per line.
+    {
+        std::ofstream f((base / (prefix + "_three_valence.txt")).string());
+        f << "0\n";   // Annen joint-line alignment instruction
+        for (const auto& tv : joinery_data.three_valence)
+            f << tv[0] << " " << tv[1] << " " << tv[2] << " " << tv[3] << "\n";
+    }
+
+    // Temporarily redirect DATA_SET_INPUT_NAME to our temp files.
+    const std::string prev_name = DATA_SET_INPUT_NAME;
+    DATA_SET_INPUT_NAME = prefix;
+
+    auto joints = get_connection_zones(elements, search_type);
+
+    // Restore and clean up temp files.
+    DATA_SET_INPUT_NAME = prev_name;
+    std::filesystem::remove(base / (prefix + "_adjacency.txt"));
+    std::filesystem::remove(base / (prefix + "_insertion_vectors.txt"));
+    std::filesystem::remove(base / (prefix + "_joints_types.txt"));
+    std::filesystem::remove(base / (prefix + "_three_valence.txt"));
+
+    return joints;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -228,6 +228,27 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
         SearchType search_type = face_to_face);
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ChevronJoineryData — pre-computed joinery metadata for chevron assemblies.
+//
+// When passed to the overload below, bypasses txt-file loading
+// (DATA_SET_INPUT_NAME) and uses in-memory data instead.
+// ═══════════════════════════════════════════════════════════════════════════
+namespace wood_session {
+struct ChevronJoineryData {
+    std::vector<std::pair<int,int>>    adjacency;         ///< adjacent plate-pair indices
+    std::vector<std::array<double,18>> insertion_vectors; ///< 6 Vec3 per element, flat (18 doubles)
+    std::vector<std::array<int,6>>     joints_per_face;   ///< joint-type code per face per element
+    std::vector<std::array<int,4>>     three_valence;     ///< Annen [s0,s1,e20,e31] groups
+};
+} // namespace wood_session
+
+/// Overload: uses in-memory chevron joinery data instead of DATA_SET_INPUT_NAME txt files.
+std::vector<wood_session::WoodJoint> get_connection_zones(
+        std::vector<wood_session::WoodElement>& elements,
+        SearchType search_type,
+        const wood_session::ChevronJoineryData& joinery_data);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // fill_session — splat the result of get_connection_zones into a Session for
 // visualization / .pb persistence. Recreates the legacy group layout:
 //   "Elements"                               — input plates as ElementPlate

@@ -863,12 +863,14 @@ inline ChevronResult chevron_plates(
         // Top/bottom face plates: positions 2-5 are mortises (20).
         out.joints_per_face[counter*4+0] = {0,0,20,20,20,20};
         out.joints_per_face[counter*4+1] = {0,0,20,20,20,20};
-        // Side plates: one tenon at position 4, the other at position 2.
-        // The wrap-around case [3,0] swaps which side gets which.
-        int a_idx = (e_s[0] == 3 && e_s[1] == 0) ? 1 : 0;
-        int b_idx = 1 - a_idx;
-        out.joints_per_face[counter*4+2+a_idx] = {0,0,0,0,10,0};  // tenon at pos 4
-        out.joints_per_face[counter*4+2+b_idx] = {0,0,10,0,0,0};  // tenon at pos 2
+        // type-10 at ALL side faces (2-5): build_wood_element may reverse the
+        // polyline orientation, which re-numbers face indices.  Covering all
+        // four side positions ensures BVH detection succeeds regardless of
+        // which face index the shared edge lands on after reversal.
+        out.joints_per_face[counter*4+2] = {0,0,10,10,10,10};
+        out.joints_per_face[counter*4+3] = {0,0,10,10,10,10};
+
+        // Side plates: insertion_vectors stay all-zeros (already default-initialised).
 
         // ── Within-box adjacency ──────────────────────────────────────────
         // top↔side0, top↔side1, bot↔side0, bot↔side1, side0↔side1

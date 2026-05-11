@@ -58,6 +58,7 @@ struct WoodElement {
     std::vector<session_cpp::Polyline> polylines;
     std::vector<session_cpp::Plane>    planes;
     std::vector<session_cpp::Vector>   insertion_vectors;
+    std::vector<int>                   joint_types;   // per-face codes; empty = auto
     bool reversed;
     double thickness;
     Features features;
