@@ -60,6 +60,11 @@
 
 using namespace session_cpp;
 
+// In-memory overrides for ChevronJoineryData path — avoids writing/reading
+// __FILE__-relative temp files that don't exist on PyPI wheel installs.
+static thread_local std::vector<std::pair<int,int>>  tl_adjacency_override;
+static thread_local std::vector<std::vector<int>>     tl_three_valence_override;
+
 namespace {
 
 using wood_session::WoodJoint;
@@ -752,6 +757,10 @@ std::vector<WoodJoint> get_connection_zones(
         while (adj_in >> a >> b) { adjacency_pairs.emplace_back(a, b); }
         if (verbose) { fmt::print("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adj_name); }
     }
+    // In-memory override: set by ChevronJoineryData overload to skip BVH search.
+    if (adjacency_pairs.empty() && !tl_adjacency_override.empty())
+        adjacency_pairs = tl_adjacency_override;
+
     if (adjacency_pairs.empty()) {
         fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr);
         std::vector<std::shared_ptr<ElementPlate>> tmp_plates;
@@ -944,6 +953,27 @@ std::vector<WoodJoint> get_connection_zones(
             }
         }
         if (verbose) { fmt::print("three_valence: {} groups applied\n", tv_groups.size()); }
+    } else if (!tl_three_valence_override.empty()) {
+        // In-memory override: no TV file was found, but ChevronJoineryData overload
+        // provided three_valence groups directly — run the same alignment logic.
+        auto& tv_groups = tl_three_valence_override;
+        if (tv_groups.size() > 1) {
+            auto pair_key = [](int a, int b) -> uint64_t {
+                if (a > b) { std::swap(a, b); }
+                return ((uint64_t)a << 32) | (uint64_t)b;
+            };
+            std::unordered_map<uint64_t, int> joints_map;
+            for (size_t ji = 0; ji < all_joints.size(); ji++) {
+                int e0 = all_joints[ji].el_ids.first, e1 = all_joints[ji].el_ids.second;
+                joints_map[pair_key(e0, e1)] = (int)ji;
+            }
+            int instruction = tv_groups[0].empty() ? 0 : tv_groups[0][0];
+            if (instruction == 1) {
+                three_valence_joint_addition_vidy(tv_groups, wood_elems, all_joints, joints_map, adjacency_pairs);
+            } else {
+                three_valence_joint_alignment_annen(tv_groups, wood_elems, all_joints, adjacency_pairs);
+            }
+        }
     }
 
     // Per-element per-face joint type IDs (the wood JOINTS_TYPES filter).
@@ -1338,60 +1368,54 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
         SearchType search_type,
         const wood_session::ChevronJoineryData& joinery_data)
 {
-    using namespace wood_session::globals;
+    // In-memory path — no temp files written or read.
+    //
+    // Previously this overload wrote adjacency/IV/JT/TV to temp files under
+    // internal::session_data_dir() (a path computed from __FILE__ at compile
+    // time) and then called the file-based 2-arg overload.  On PyPI/wheel
+    // installs the compile-time source path does not exist on the user's
+    // machine, so the ofstream writes silently fail, the 2-arg overload finds
+    // no files, falls back to full BVH adjacency search, and returns wrong joints.
+    //
+    // Fix: set IVs and JTs directly on the WoodElements (the 2-arg overload
+    // already has in-memory fallback logic for both), and inject adjacency /
+    // three_valence via thread-local overrides that the 2-arg overload checks
+    // before falling back to BVH / file respectively.
 
-    const std::string prefix = "_wood_nano_chevron";
-    auto base = internal::session_data_dir();
-
-    // adjacency.txt — one "a b" pair per line.
-    {
-        std::ofstream f((base / (prefix + "_adjacency.txt")).string());
-        for (const auto& [a, b] : joinery_data.adjacency)
-            f << a << " " << b << "\n";
-    }
-
-    // insertion_vectors.txt — one element per line, 18 space-separated doubles.
-    {
-        std::ofstream f((base / (prefix + "_insertion_vectors.txt")).string());
-        for (const auto& iv : joinery_data.insertion_vectors) {
-            for (int k = 0; k < 18; ++k)
-                f << (k ? " " : "") << iv[k];
-            f << "\n";
+    // 1. Insertion vectors — convert array<double,18> → vector<Vector> per element.
+    for (size_t ei = 0; ei < elements.size(); ++ei) {
+        if (elements[ei].insertion_vectors.empty() &&
+            ei < joinery_data.insertion_vectors.size()) {
+            const auto& iv18 = joinery_data.insertion_vectors[ei];
+            auto& ivec = elements[ei].insertion_vectors;
+            for (int s = 0; s < 6; ++s)
+                ivec.emplace_back(iv18[s*3+0], iv18[s*3+1], iv18[s*3+2]);
         }
     }
 
-    // joints_types.txt — one element per line, 6 space-separated ints.
-    {
-        std::ofstream f((base / (prefix + "_joints_types.txt")).string());
-        for (const auto& jf : joinery_data.joints_per_face) {
-            for (int k = 0; k < 6; ++k)
-                f << (k ? " " : "") << jf[k];
-            f << "\n";
+    // 2. Joint types — convert array<int,6> → vector<int> per element.
+    for (size_t ei = 0; ei < elements.size(); ++ei) {
+        if (elements[ei].joint_types.empty() &&
+            ei < joinery_data.joints_per_face.size()) {
+            const auto& jt6 = joinery_data.joints_per_face[ei];
+            elements[ei].joint_types.assign(jt6.begin(), jt6.end());
         }
     }
 
-    // three_valence.txt — first line is the instruction flag (0 = Annen),
-    // then one "[s0] [s1] [e20] [e31]" group per line.
-    {
-        std::ofstream f((base / (prefix + "_three_valence.txt")).string());
-        f << "0\n";   // Annen joint-line alignment instruction
-        for (const auto& tv : joinery_data.three_valence)
-            f << tv[0] << " " << tv[1] << " " << tv[2] << " " << tv[3] << "\n";
-    }
+    // 3. Adjacency — inject via thread-local so the 2-arg overload skips BVH.
+    tl_adjacency_override = joinery_data.adjacency;
 
-    // Temporarily redirect DATA_SET_INPUT_NAME to our temp files.
-    const std::string prev_name = DATA_SET_INPUT_NAME;
-    DATA_SET_INPUT_NAME = prefix;
+    // 4. Three-valence — build the same group format the file-based path produces:
+    //    first group is {0} (instruction = 0, Annen alignment).
+    tl_three_valence_override.clear();
+    tl_three_valence_override.push_back({0});
+    for (const auto& tv : joinery_data.three_valence)
+        tl_three_valence_override.push_back({tv[0], tv[1], tv[2], tv[3]});
 
     auto joints = get_connection_zones(elements, search_type);
 
-    // Restore and clean up temp files.
-    DATA_SET_INPUT_NAME = prev_name;
-    std::filesystem::remove(base / (prefix + "_adjacency.txt"));
-    std::filesystem::remove(base / (prefix + "_insertion_vectors.txt"));
-    std::filesystem::remove(base / (prefix + "_joints_types.txt"));
-    std::filesystem::remove(base / (prefix + "_three_valence.txt"));
-
+    tl_adjacency_override.clear();
+    tl_three_valence_override.clear();
     return joints;
 }
 
