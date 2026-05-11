@@ -1,0 +1,3 @@
+[submodule "cmake/ext/session_cpp"]
+	path = cmake/ext/session_cpp
+	url = https://github.com/petrasvestartas/session_cpp.git
