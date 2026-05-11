@@ -343,7 +343,7 @@ private:
             corners.push_back(pt);
         }
 
-        if (corners.empty()) return Polyline({});
+        if (corners.empty()) return Polyline(std::vector<session_cpp::Point>{});
         corners.push_back(corners[0]); // close
         return Polyline(corners);
     }
@@ -533,8 +533,8 @@ private:
                 const Plane& pl = e90_multi[ei][j];
 
                 if (!pl.is_valid() || rect_width <= 0.0 || rect_height <= 0.0) {
-                    e_polylines[ei][j * 2 + 0] = Polyline({});
-                    e_polylines[ei][j * 2 + 1] = Polyline({});
+                    e_polylines[ei][j * 2 + 0] = Polyline(std::vector<session_cpp::Point>{});
+                    e_polylines[ei][j * 2 + 1] = Polyline(std::vector<session_cpp::Point>{});
                     e_polylines_planes[ei][j]   = Plane::invalid();
                     e_polylines_index[ei][j]    = "";
                     continue;
