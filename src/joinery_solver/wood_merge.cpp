@@ -35,8 +35,11 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
     std::ofstream* dbg_merge_log = nullptr;
     std::ofstream dbg_merge_owned;
     {
-        const char* dpath = std::getenv("WOOD_MERGE_DUMP");
-        const char* dfilter = std::getenv("DIAG_TEST");
+        // getenv is looked up once: the environment cannot change mid-process,
+        // and this runs once per element. The DATA_SET_INPUT_NAME comparison
+        // below stays dynamic.
+        static const char* const dpath = std::getenv("WOOD_MERGE_DUMP");
+        static const char* const dfilter = std::getenv("DIAG_TEST");
         if (dpath && (!dfilter || wood_session::globals::DATA_SET_INPUT_NAME == dfilter)) {
             dbg_merge_owned.open(dpath, std::ios::app);
             if (dbg_merge_owned.is_open()) {
@@ -190,8 +193,9 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                             + (size_t)(scale_1 * std::fmod(cp_pair_0.first, 1.0));
                 size_t key1 = (size_t)(scale_0 * std::floor(cp_pair_1.first))
                             + (size_t)(scale_1 * std::fmod(cp_pair_1.first, 1.0));
-                sorted_by_id_plines_0.insert({key0, {cp_pair_0, joint_pline_0}});
-                sorted_by_id_plines_1.insert({key1, {cp_pair_1, joint_pline_1}});
+                // joint_pline_0/1 are locals that nothing reads after this.
+                sorted_by_id_plines_0.insert({key0, {cp_pair_0, std::move(joint_pline_0)}});
+                sorted_by_id_plines_1.insert({key1, {cp_pair_1, std::move(joint_pline_1)}});
                 continue; // case 5 is done; skip the case 2 logic below
             }
 

@@ -36,6 +36,7 @@
 #include "../src/xform.h"
 #include "../src/tolerance.h"
 #include "../src/aabb.h"
+#include "../src/obb.h"
 #include "../src/spatial_bvh.h"
 #include "../src/mesh.h"
 #include "wood_element.h"
@@ -695,13 +696,23 @@ using JMF = std::vector<std::vector<std::vector<std::pair<int,bool>>>>;
 // Reads dataset auxiliary files (adjacency, tv, iv, jt) via DATA_SET_INPUT_NAME global.
 //
 // To visualize the result, call fill_session(session, elements, joints, true).
+// [GCZ] pipeline trace. Off unless WOOD_TRACE is set. The trace emitted one
+// fprintf + fflush per adjacency pair and per joint, and an unbuffered write
+// syscall each is measurable on assemblies with hundreds of joints.
+static bool wood_trace_enabled() {
+    static const bool on = (std::getenv("WOOD_TRACE") != nullptr);
+    return on;
+}
+
 std::vector<WoodJoint> get_connection_zones(
     std::vector<WoodElement>& wood_elems,
     SearchType search_type) {
 
-    fprintf(stderr, "[GCZ] enter  n_elems=%zu  search_type=%d\n",
-            wood_elems.size(), (int)search_type);
-    fflush(stderr);
+    if (wood_trace_enabled()) {
+        fprintf(stderr, "[GCZ] enter  n_elems=%zu  search_type=%d\n",
+                wood_elems.size(), (int)search_type);
+        fflush(stderr);
+    }
 
     using namespace wood_session::globals;
     const std::string short_name      = DATA_SET_INPUT_NAME;
@@ -747,9 +758,9 @@ std::vector<WoodJoint> get_connection_zones(
     auto t1 = Clock::now();
 
     // 3. Adjacency: load from file if provided, otherwise OBB+BVH search.
-    //    OBB+BVH path constructs ephemeral ElementPlates from each WoodElement's
-    //    top/bottom polylines (we.polylines[0]/[1]) — used only for AABB
-    //    geometry, discarded immediately.
+    //    The OBB+BVH path reads each WoodElement's top/bottom polylines
+    //    (we.polylines[0]/[1]) directly — they carry every corner the bounding
+    //    volumes need.
     std::vector<std::pair<int, int>> adjacency_pairs;
     if (!adj_name.empty()) {
         std::ifstream adj_in((base / adj_name).string());
@@ -762,27 +773,70 @@ std::vector<WoodJoint> get_connection_zones(
         adjacency_pairs = tl_adjacency_override;
 
     if (adjacency_pairs.empty()) {
-        fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr);
-        std::vector<std::shared_ptr<ElementPlate>> tmp_plates;
-        tmp_plates.reserve(wood_elems.size());
-        for (size_t i = 0; i < wood_elems.size(); i++) {
-            // wood_elems[i].polylines[0] = top, [1] = bottom (set by build_wood_element)
-            tmp_plates.push_back(std::make_shared<ElementPlate>(
-                wood_elems[i].polylines[1],   // bottom
-                wood_elems[i].polylines[0],   // top
-                "plate_" + std::to_string(i * 2)));
+        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr); }
+        // Broad phase, inlined from Intersection::adjacency_search so it can run
+        // straight off the WoodElement outlines.
+        //
+        // The previous route materialised a session_cpp::ElementPlate per plate
+        // just to hand adjacency_search an Element*. That constructor builds a
+        // halfedge Mesh with a per-face triangulation, and adjacency_search then
+        // called polylines() — recomputing and copying the top, bottom and every
+        // side quad — while all it ever uses is the point set's extents:
+        // OBB::from_points(points, inflate) is obb_from_aabb(AABB::from_points(...)),
+        // an axis-aligned box. The side quads are built from the very corners the
+        // top and bottom outlines already hold, so they cannot widen the extents;
+        // feeding those two outlines directly yields the identical box.
+        //
+        // strip_closing is mirrored exactly (session_cpp/src/element.cpp) so that
+        // a closing vertex sitting up to 1e-6 outside the first one is dropped
+        // here as well and the extents stay bit-identical.
+        const size_t n_el = wood_elems.size();
+        std::vector<OBB> obbs(n_el);
+        std::vector<AABB> aabbs(n_el);
+        std::vector<Point> corner_pts;
+        for (size_t i = 0; i < n_el; i++) {
+            corner_pts.clear();
+            auto add_outline = [&corner_pts](const Polyline& pl) {
+                size_t n = pl.point_count();
+                if (n > 3) {
+                    const Point& f = pl.get_point(0);
+                    const Point& l = pl.get_point(n - 1);
+                    if (std::abs(f[0]-l[0]) < 1e-6 &&
+                        std::abs(f[1]-l[1]) < 1e-6 &&
+                        std::abs(f[2]-l[2]) < 1e-6) { --n; }
+                }
+                for (size_t k = 0; k < n; k++) { corner_pts.push_back(pl.get_point(k)); }
+            };
+            const auto& plines = wood_elems[i].polylines;
+            if (plines.size() > 1) {
+                corner_pts.reserve(plines[0].point_count() + plines[1].point_count());
+                add_outline(plines[1]);   // bottom
+                add_outline(plines[0]);   // top
+            }
+            // Inflation matches wood's AABB expansion at wood_main.cpp:58-63:
+            // wood::GLOBALS::DISTANCE — defaults to 0.1 mm, tunable from YAML.
+            obbs[i]  = OBB::from_points(corner_pts, DISTANCE);
+            aabbs[i] = obbs[i].aabb();
         }
-        std::vector<Element*> elem_ptrs(tmp_plates.size());
-        for (size_t k = 0; k < tmp_plates.size(); k++) { elem_ptrs[k] = tmp_plates[k].get(); }
-        // Inflation matches wood's AABB expansion at wood_main.cpp:58-63:
-        // wood::GLOBALS::DISTANCE — defaults to 0.1 mm, tunable from YAML.
-        fprintf(stderr, "[GCZ] calling adjacency_search\n"); fflush(stderr);
-        auto adj_flat = Intersection::adjacency_search(elem_ptrs, DISTANCE);
-        fprintf(stderr, "[GCZ] adjacency_search done  adj_flat.size=%zu\n", adj_flat.size()); fflush(stderr);
-        for (size_t i = 0; i + 3 < adj_flat.size(); i += 4) {
-            adjacency_pairs.emplace_back(adj_flat[i], adj_flat[i + 1]);
+        double ws = 0;
+        for (const auto& a : aabbs) {
+            ws = std::max(ws, std::abs(a.cx + a.hx)); ws = std::max(ws, std::abs(a.cy + a.hy));
+            ws = std::max(ws, std::abs(a.cz + a.hz)); ws = std::max(ws, std::abs(a.cx - a.hx));
+            ws = std::max(ws, std::abs(a.cy - a.hy)); ws = std::max(ws, std::abs(a.cz - a.hz));
         }
-        fprintf(stderr, "[GCZ] adjacency pairs=%zu\n", adjacency_pairs.size()); fflush(stderr);
+        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] calling adjacency_search\n"); fflush(stderr); }
+        if (n_el > 0) {
+            SpatialBVH bvh;
+            bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
+            for (size_t i = 0; i < n_el; i++) {
+                for (int j : bvh.query_aabb(aabbs[i])) {
+                    if ((int)i < j && obbs[i].collides_with(obbs[j])) {
+                        adjacency_pairs.emplace_back((int)i, j);
+                    }
+                }
+            }
+        }
+        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
         if (verbose) { fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size()); }
     }
     auto t2 = Clock::now();
@@ -854,11 +908,11 @@ std::vector<WoodJoint> get_connection_zones(
     int n_failed  = 0;
     int n_success = 0;
     std::vector<WoodJoint> all_joints;
-    fprintf(stderr, "[GCZ] joint detection loop  pairs=%zu\n", adjacency_pairs.size()); fflush(stderr);
+    if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] joint detection loop  pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
     for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
         int ia = adjacency_pairs[k].first;
         int ib = adjacency_pairs[k].second;
-        fprintf(stderr, "[GCZ]   pair k=%zu  ia=%d ib=%d\n", k, ia, ib); fflush(stderr);
+        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ]   pair k=%zu  ia=%d ib=%d\n", k, ia, ib); fflush(stderr); }
 
         WoodJoint joint;
         bool swap_planes_b = false;
@@ -877,8 +931,10 @@ std::vector<WoodJoint> get_connection_zones(
             search_type,
             joint,
             swap_planes_b);
-        fprintf(stderr, "[GCZ]   face_to_face_wood done  ok=%d  type=%d\n",
-                (int)ok, ok ? joint.joint_type : -1); fflush(stderr);
+        if (wood_trace_enabled()) {
+            fprintf(stderr, "[GCZ]   face_to_face_wood done  ok=%d  type=%d\n",
+                    (int)ok, ok ? joint.joint_type : -1); fflush(stderr);
+        }
         if (swap_planes_b) {
             std::swap(wood_elems[ib].planes[0], wood_elems[ib].planes[1]);
             std::swap(wood_elems[ib].polylines[0], wood_elems[ib].polylines[1]);
@@ -1044,10 +1100,13 @@ std::vector<WoodJoint> get_connection_zones(
     };
     std::map<std::string, CachedJointGeom> unique_joints_cache;
     int n_filtered = 0;
-    fprintf(stderr, "[GCZ] geometry loop start  all_joints=%zu\n", all_joints.size()); fflush(stderr);
+    auto t3a = Clock::now();
+    if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] geometry loop start  all_joints=%zu\n", all_joints.size()); fflush(stderr); }
     for (auto& j : all_joints) {
-        fprintf(stderr, "[GCZ]   geom joint type=%d  e0=%d e1=%d\n",
-                j.joint_type, j.el_ids.first, j.el_ids.second); fflush(stderr);
+        if (wood_trace_enabled()) {
+            fprintf(stderr, "[GCZ]   geom joint type=%d  e0=%d e1=%d\n",
+                    j.joint_type, j.el_ids.first, j.el_ids.second); fflush(stderr);
+        }
         // Wood-style id_representing_joint_name (`wood_joint_lib.cpp:6075-6079`).
         // Sentinel `-1` = no JOINTS_TYPES file → topology-based default in
         // `joint_create_geometry`. Empty per-element vector = same effect.
@@ -1212,11 +1271,11 @@ std::vector<WoodJoint> get_connection_zones(
             u.unit_scale_distance = j.unit_scale_distance;
             unique_joints_cache.emplace(cache_key, std::move(u));
         }
-        fprintf(stderr, "[GCZ]   after joint_create_geometry  no_orient=%d\n", (int)j.no_orient); fflush(stderr);
+        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ]   after joint_create_geometry  no_orient=%d\n", (int)j.no_orient); fflush(stderr); }
         if (!j.no_orient) {
-            fprintf(stderr, "[GCZ]   calling joint_orient_to_connection_area\n"); fflush(stderr);
+            if (wood_trace_enabled()) { fprintf(stderr, "[GCZ]   calling joint_orient_to_connection_area\n"); fflush(stderr); }
             joint_orient_to_connection_area(j);
-            fprintf(stderr, "[GCZ]   joint_orient done\n"); fflush(stderr);
+            if (wood_trace_enabled()) { fprintf(stderr, "[GCZ]   joint_orient done\n"); fflush(stderr); }
         }
         // wood_joint_lib.cpp:6621-6626: orient shadows then interleave geometry into primary
         if (!j.linked_joints.empty() &&
@@ -1283,7 +1342,8 @@ std::vector<WoodJoint> get_connection_zones(
         }
     }
 
-    fprintf(stderr, "[GCZ] geometry dispatch done  all_joints=%zu\n", all_joints.size()); fflush(stderr);
+    auto t3b = Clock::now();
+    if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] geometry dispatch done  all_joints=%zu\n", all_joints.size()); fflush(stderr); }
     // Build per-element j_mf mapping: j_mf[element_id][face_id] = [(joint_idx, is_male)]
     // Wood sizes j_mf as (sides)+2+1: +1 is the extra slot for shadow joints (j_mf.back()).
     // Phase C in merge_joints_for_element processes j_mf.back() — shadow joints carry
@@ -1315,7 +1375,8 @@ std::vector<WoodJoint> get_connection_zones(
         }
     }
 
-    fprintf(stderr, "[GCZ] j_mf built  starting merge\n"); fflush(stderr);
+    auto t3c = Clock::now();
+    if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] j_mf built  starting merge\n"); fflush(stderr); }
     // Merge joints with plate polylines, then de-interleave into each
     // WoodElement's `features` (top + bottom lists, outer first then holes).
     // Layout that merge_joints_for_element returns per element:
@@ -1326,11 +1387,16 @@ std::vector<WoodJoint> get_connection_zones(
         feat.top.clear();
         feat.bottom.clear();
         if (merged.size() >= 2) {
-            feat.top.push_back(merged[merged.size() - 2]);     // outer top
-            feat.bottom.push_back(merged[merged.size() - 1]);  // outer bot
-            for (size_t hi = 0; hi + 2 <= merged.size() - 2; hi += 2) {
-                feat.top.push_back(merged[hi]);
-                feat.bottom.push_back(merged[hi + 1]);
+            // `merged` is a local about to die and every entry is consumed
+            // exactly once, so the outlines move across instead of being copied.
+            const size_t n_holes = merged.size() - 2;
+            feat.top.reserve(1 + n_holes / 2);
+            feat.bottom.reserve(1 + n_holes / 2);
+            feat.top.push_back(std::move(merged[merged.size() - 2]));     // outer top
+            feat.bottom.push_back(std::move(merged[merged.size() - 1]));  // outer bot
+            for (size_t hi = 0; hi + 2 <= n_holes; hi += 2) {
+                feat.top.push_back(std::move(merged[hi]));
+                feat.bottom.push_back(std::move(merged[hi + 1]));
             }
         }
     }
@@ -1347,6 +1413,8 @@ std::vector<WoodJoint> get_connection_zones(
         fmt::print("  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n",
                    counts[0], counts[1], counts[2], counts[3], counts[4], counts[5]);
         fmt::print("  time: {:.0f}ms\n", ms(t0, t4));
+        fmt::print("  stages(ms): setup={:.1f} adjacency={:.1f} detect={:.1f} tv={:.1f} geom={:.1f} jmf={:.1f} merge={:.1f}\n",
+                   ms(t0, t2) - ms(t1, t2), ms(t1, t2), ms(t2, t3), ms(t3, t3a), ms(t3a, t3b), ms(t3b, t3c), ms(t3c, t4));
     }
     return all_joints;
 }

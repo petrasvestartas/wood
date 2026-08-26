@@ -31,7 +31,8 @@ namespace {
 namespace wood_session {
 
 void apply_unit_scale(WoodJoint& joint) {
-    if (const char* dp = std::getenv("WOOD_APPLY_DUMP")) {
+    static const char* const dp = std::getenv("WOOD_APPLY_DUMP");
+    if (dp) {
         std::ofstream alog(dp, std::ios::app);
         alog << "apply_unit_scale: joint v0=" << joint.el_ids.first << " v1=" << joint.el_ids.second
              << " unit_scale=" << joint.unit_scale << " usd=" << joint.unit_scale_distance << "\n";
@@ -110,10 +111,12 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
         ? Xform::from_change_of_basis(*vols[2], *vols[3])
         : Xform::from_change_of_basis(*vols[0], *vols[1]);
 
-    // Transform male outlines with xf0, female with xf1.
+    // Transform male outlines with xf0, female with xf1, in place.
+    // Polyline::transformed is itself copy-then-transform, so `pl = pl.transformed(x)`
+    // ran the same arithmetic through an extra copy and an assignment back.
     for (int face = 0; face < 2; face++) {
-        for (auto& pl : joint.m_outlines[face]) { pl = pl.transformed(xf0); }
-        for (auto& pl : joint.f_outlines[face]) { pl = pl.transformed(xf1); }
+        for (auto& pl : joint.m_outlines[face]) { pl.transform(xf0); }
+        for (auto& pl : joint.f_outlines[face]) { pl.transform(xf1); }
     }
 }
 

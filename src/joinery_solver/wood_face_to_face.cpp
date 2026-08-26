@@ -15,6 +15,7 @@
 #include "../src/plane.h"
 #include "../src/tolerance.h"
 #include <cmath>
+#include <cstdlib>
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -119,15 +120,58 @@ bool face_to_face_wood(
     // ── Outer loop over face pairs ─────────────────────────────────────────
     int dbg_coplanar = 0, dbg_boolean = 0;
     std::string dbg_fail_reason;
+    // dbg_fail_reason feeds one fmt::print in get_connection_zones that only
+    // runs under WOOD_VERBOSE; nothing else reads it. Formatting a std::string
+    // for every rejected face pair is otherwise pure allocation, so every
+    // assignment below is gated on this flag.
+    static const bool dbg_reasons = (std::getenv("WOOD_VERBOSE") != nullptr);
     if (search_type != 1) {
-    for (size_t i = 0; i < el0.planes.size(); ++i) {
-        for (size_t j = 0; j < el1.planes.size(); ++j) {
+    const size_t n_faces0 = el0.planes.size();
+    const size_t n_faces1 = el1.planes.size();
 
-            // 1. Coplanarity test (antiparallel-only — touching back-to-back).
-            Point  o0 = el0.planes[i].origin();
-            Vector n0 = el0.planes[i].z_axis();
-            Point  o1 = el1.planes[j].origin();
-            Vector n1 = el1.planes[j].z_axis();
+    // Loop-invariant scan data, gathered once per element pair instead of once
+    // per (i, j). Plane::origin()/z_axis() hand back references, but
+    // Point/Vector::operator[] is an out-of-line call in session_core, so the
+    // coordinates are unpacked here and the O(faces^2) scan reads plain doubles.
+    struct FacePlane { double ox, oy, oz, nx, ny, nz, mag_sq; };
+    std::vector<FacePlane> faces1(n_faces1);
+    for (size_t j = 0; j < n_faces1; ++j) {
+        const Point&  o = el1.planes[j].origin();
+        const Vector& n = el1.planes[j].z_axis();
+        faces1[j] = { o[0], o[1], o[2], n[0], n[1], n[2],
+                      n[0]*n[0] + n[1]*n[1] + n[2]*n[2] };
+    }
+    // ANGLE is a mutable global, so the compiler cannot fold this cosine; it
+    // used to be evaluated on every face pair.
+    const double cos_angle = std::cos(wood_session::globals::ANGLE);
+
+    // Mid-thickness average plane of each element. These depend on nothing but
+    // the element, yet used to be rebuilt for every face pair that reached the
+    // alignment-line step.
+    Plane avg_plane_0 = Plane::xy_plane();
+    Plane avg_plane_1 = Plane::xy_plane();
+    if (el0.polylines.size() >= 2 && !el0.planes.empty()) {
+        Point  avg_origin_0 = Point::mid_point(el0.polylines[0].get_point(0),
+                                               el0.polylines[1].get_point(0));
+        Vector avg_normal_0 = el0.planes[0].z_axis();
+        avg_plane_0 = Plane::from_point_normal(avg_origin_0, avg_normal_0);
+    }
+    if (el1.polylines.size() >= 2 && !el1.planes.empty()) {
+        Point  avg_origin_1 = Point::mid_point(el1.polylines[0].get_point(0),
+                                               el1.polylines[1].get_point(0));
+        Vector avg_normal_1 = el1.planes[0].z_axis();
+        avg_plane_1 = Plane::from_point_normal(avg_origin_1, avg_normal_1);
+    }
+    for (size_t i = 0; i < n_faces0; ++i) {
+        // 1. Coplanarity test (antiparallel-only — touching back-to-back).
+        const Point&  o0r = el0.planes[i].origin();
+        const Vector& n0r = el0.planes[i].z_axis();
+        const double o0x = o0r[0], o0y = o0r[1], o0z = o0r[2];
+        const double n0x = n0r[0], n0y = n0r[1], n0z = n0r[2];
+        const double mag0_sq = n0x*n0x + n0y*n0y + n0z*n0z;
+
+        for (size_t j = 0; j < n_faces1; ++j) {
+            const FacePlane& f1 = faces1[j];
             // Coplanarity check matching wood's cgal::plane_util::is_coplanar:
             // 1. Check anti-parallel (is_parallel_to == -1)
             // 2. Check squared_distance(projection, point) < DISTANCE_SQUARED
@@ -135,17 +179,15 @@ bool face_to_face_wood(
             // Session's Vector::is_parallel_to uses ANGLE_TOLERANCE_DEGREES=0.11° which
             // is far too strict and misses ts_e_p connections in one_layer/full datasets.
             {
-                double n0n1 = n0[0]*n1[0]+n0[1]*n1[1]+n0[2]*n1[2];
-                double ll = std::sqrt((n0[0]*n0[0]+n0[1]*n0[1]+n0[2]*n0[2])*(n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2]));
-                if (ll <= 0.0 || n0n1/ll > -std::cos(wood_session::globals::ANGLE)) { continue; } // not antiparallel
+                double n0n1 = n0x*f1.nx + n0y*f1.ny + n0z*f1.nz;
+                double ll = std::sqrt(mag0_sq * f1.mag_sq);
+                if (ll <= 0.0 || n0n1/ll > -cos_angle) { continue; } // not antiparallel
             }
             // Projection-based distance (invariant to normal magnitude):
-            double mag0_sq = n0[0]*n0[0]+n0[1]*n0[1]+n0[2]*n0[2];
-            double mag1_sq = n1[0]*n1[0]+n1[1]*n1[1]+n1[2]*n1[2];
-            double dot0 = n0[0]*(o1[0]-o0[0])+n0[1]*(o1[1]-o0[1])+n0[2]*(o1[2]-o0[2]);
-            double dot1 = n1[0]*(o0[0]-o1[0])+n1[1]*(o0[1]-o1[1])+n1[2]*(o0[2]-o1[2]);
-            double sq_dist0 = (mag0_sq > 1e-20) ? (dot0*dot0/mag0_sq) : 1e30;
-            double sq_dist1 = (mag1_sq > 1e-20) ? (dot1*dot1/mag1_sq) : 1e30;
+            double dot0 = n0x*(f1.ox-o0x) + n0y*(f1.oy-o0y) + n0z*(f1.oz-o0z);
+            double dot1 = f1.nx*(o0x-f1.ox) + f1.ny*(o0y-f1.oy) + f1.nz*(o0z-f1.oz);
+            double sq_dist0 = (mag0_sq  > 1e-20) ? (dot0*dot0/mag0_sq)  : 1e30;
+            double sq_dist1 = (f1.mag_sq > 1e-20) ? (dot1*dot1/f1.mag_sq) : 1e30;
             bool coplanar = (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
             if (!coplanar) { continue; }
             dbg_coplanar++;
@@ -160,7 +202,7 @@ bool face_to_face_wood(
             if (!Intersection::polyline_boolean_2d_in_plane(
                     el0.polylines[i], el1.polylines[j], el0.planes[i],
                     joint_area, 0, include_triangles, 0.01, 1.0/1024.0)) {
-                dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j);
+                if (dbg_reasons) { dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j); }
                 continue;
             }
             dbg_boolean++;
@@ -182,11 +224,6 @@ bool face_to_face_wood(
             //    LIMIT_MIN_JOINT_LENGTH check, so top-top naturally bypasses
             //    it via the `joint_type == 2` branch below.
             Line joint_line0 = Line::from_points(Point(0,0,0), Point(0,0,0));
-            // Mid-thickness average plane of element 0.
-            Point  avg_origin_0 = Point::mid_point(el0.polylines[0].get_point(0),
-                                                   el0.polylines[1].get_point(0));
-            Vector avg_normal_0 = el0.planes[0].z_axis();
-            Plane  avg_plane_0  = Plane::from_point_normal(avg_origin_0, avg_normal_0);
             Polyline joint_quads0(std::vector<Point>{});
             bool has_quads0 = false;
             if (i > 1) {
@@ -198,23 +235,19 @@ bool face_to_face_wood(
                                                            Point::mid_point(b0, b1));
                 if (!Intersection::polyline_plane_to_line(joint_area, avg_plane_0,
                                             alignment_segment.start(), joint_line0)) {
-                    dbg_fail_reason = fmt::format("ppl0_fail f({},{})", i, j); continue;
+                    if (dbg_reasons) { dbg_fail_reason = fmt::format("ppl0_fail f({},{})", i, j); } continue;
                 }
-                if (joint_line0.squared_length() <= distance_squared) { dbg_fail_reason = fmt::format("jl0_short f({},{})", i, j); continue; }
+                if (joint_line0.squared_length() <= distance_squared) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_short f({},{})", i, j); continue; }
                 if (!Intersection::quad_from_line_top_bottom_planes(el0.planes[i], joint_line0,
                                                         el0.planes[0], el0.planes[1],
                                                         joint_quads0)) {
-                    dbg_fail_reason = fmt::format("quad0_fail f({},{})", i, j); continue;
+                    if (dbg_reasons) { dbg_fail_reason = fmt::format("quad0_fail f({},{})", i, j); } continue;
                 }
                 has_quads0 = true;
             }
 
             // 6. Same for side-B alignment line (`joint_line1`).
             Line joint_line1 = Line::from_points(Point(0,0,0), Point(0,0,0));
-            Point  avg_origin_1 = Point::mid_point(el1.polylines[0].get_point(0),
-                                                   el1.polylines[1].get_point(0));
-            Vector avg_normal_1 = el1.planes[0].z_axis();
-            Plane  avg_plane_1  = Plane::from_point_normal(avg_origin_1, avg_normal_1);
             Polyline joint_quads1(std::vector<Point>{});
             bool has_quads1 = false;
             if (j > 1) {
@@ -226,13 +259,13 @@ bool face_to_face_wood(
                                                            Point::mid_point(b0, b1));
                 if (!Intersection::polyline_plane_to_line(joint_area, avg_plane_1,
                                             alignment_segment.start(), joint_line1)) {
-                    dbg_fail_reason = fmt::format("ppl1_fail f({},{})", i, j); continue;
+                    if (dbg_reasons) { dbg_fail_reason = fmt::format("ppl1_fail f({},{})", i, j); } continue;
                 }
-                if (joint_line1.squared_length() <= distance_squared) { dbg_fail_reason = fmt::format("jl1_short f({},{})", i, j); continue; }
+                if (joint_line1.squared_length() <= distance_squared) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_short f({},{})", i, j); continue; }
                 if (!Intersection::quad_from_line_top_bottom_planes(el1.planes[j], joint_line1,
                                                         el1.planes[0], el1.planes[1],
                                                         joint_quads1)) {
-                    dbg_fail_reason = fmt::format("quad1_fail f({},{})", i, j); continue;
+                    if (dbg_reasons) { dbg_fail_reason = fmt::format("quad1_fail f({},{})", i, j); } continue;
                 }
                 has_quads1 = true;
             }
@@ -243,11 +276,11 @@ bool face_to_face_wood(
             //    shrink the original line below the configured minimum.
             if (joint_type < 2) {
                 double ext_sq = (ext_l * 2.0) * (ext_l * 2.0);
-                if (i > 1 && ext_sq >= joint_line0.squared_length()) { dbg_fail_reason = fmt::format("jl0_ext f({},{})", i, j); continue; }
-                if (j > 1 && ext_sq >= joint_line1.squared_length()) { dbg_fail_reason = fmt::format("jl1_ext f({},{})", i, j); continue; }
+                if (i > 1 && ext_sq >= joint_line0.squared_length()) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_ext f({},{})", i, j); continue; }
+                if (j > 1 && ext_sq >= joint_line1.squared_length()) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_ext f({},{})", i, j); continue; }
                 if (limit_min_joint_length > 0.0) {
-                    if (i > 1 && joint_line0.length() < limit_min_joint_length) { dbg_fail_reason = fmt::format("jl0_min f({},{})", i, j); continue; }
-                    if (j > 1 && joint_line1.length() < limit_min_joint_length) { dbg_fail_reason = fmt::format("jl1_min f({},{})", i, j); continue; }
+                    if (i > 1 && joint_line0.length() < limit_min_joint_length) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_min f({},{})", i, j); continue; }
+                    if (j > 1 && joint_line1.length() < limit_min_joint_length) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_min f({},{})", i, j); continue; }
                 }
                 joint_line0.extend_equally(ext_l);
                 joint_line1.extend_equally(ext_l);
@@ -390,7 +423,7 @@ bool face_to_face_wood(
                     Xform world_to_local = Xform::world_to_frame(o, x, y, z);
                     std::vector<Point> proj_pts = joint_area.get_points();
                     for (auto& p : proj_pts) { p.transform(world_to_local); }
-                    if (proj_pts.empty()) { dbg_fail_reason = fmt::format("proj_empty f({},{})", i, j); continue; }
+                    if (proj_pts.empty()) { if (dbg_reasons) dbg_fail_reason = fmt::format("proj_empty f({},{})", i, j); continue; }
                     double xmin = proj_pts[0][0], xmax = xmin;
                     double ymin = proj_pts[0][1], ymax = ymin;
                     for (size_t k = 1; k < proj_pts.size(); ++k) {
@@ -454,7 +487,8 @@ bool face_to_face_wood(
                     vol1.extend_edge_equally(1, ext_h);
                     vol1.extend_edge_equally(3, ext_h);
 
-                    if (const char* fp = std::getenv("WOOD_F2F_DUMP")) {
+                    static const char* const fp = std::getenv("WOOD_F2F_DUMP");
+                    if (fp) {
                         std::ofstream flog(fp, std::ios::app);
                         flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j << "\n";
                         flog << "  vol0: ";
@@ -505,7 +539,7 @@ bool face_to_face_wood(
                     double dihedral = Point::dihedral_angle_deg(
                         lj.start(), lj.end(), center0, center1);
 
-                    if (dihedral < 20.0) { dbg_fail_reason = fmt::format("dihedral<20 f({},{})", i, j); continue; }
+                    if (dihedral < 20.0) { if (dbg_reasons) dbg_fail_reason = fmt::format("dihedral<20 f({},{})", i, j); continue; }
 
                     if (dihedral <= dihedral_angle_threshold) {
                         // ── Out-of-plane parallel (type 11) ─────────────
@@ -526,9 +560,9 @@ bool face_to_face_wood(
                                   lj.start()[1]+lj_v_90[1],
                                   lj.start()[2]+lj_v_90[2]));
                         Point pl0_0_p, pl1_0_p, pl1_1_p;
-                        if (!Intersection::line_plane(lj_l_90, el0.planes[0], pl0_0_p, false)) { dbg_fail_reason = fmt::format("lp0 f({},{})", i, j); continue; }
-                        if (!Intersection::line_plane(lj_l_90, el1.planes[0], pl1_0_p, false)) { dbg_fail_reason = fmt::format("lp1 f({},{})", i, j); continue; }
-                        if (!Intersection::line_plane(lj_l_90, el1.planes[1], pl1_1_p, false)) { dbg_fail_reason = fmt::format("lp2 f({},{})", i, j); continue; }
+                        if (!Intersection::line_plane(lj_l_90, el0.planes[0], pl0_0_p, false)) { if (dbg_reasons) dbg_fail_reason = fmt::format("lp0 f({},{})", i, j); continue; }
+                        if (!Intersection::line_plane(lj_l_90, el1.planes[0], pl1_0_p, false)) { if (dbg_reasons) dbg_fail_reason = fmt::format("lp1 f({},{})", i, j); continue; }
+                        if (!Intersection::line_plane(lj_l_90, el1.planes[1], pl1_1_p, false)) { if (dbg_reasons) dbg_fail_reason = fmt::format("lp2 f({},{})", i, j); continue; }
 
                         double d_to_pl1_0 = Point::distance(pl0_0_p, pl1_0_p);
                         double d_to_pl1_1 = Point::distance(pl0_0_p, pl1_1_p);
@@ -542,8 +576,8 @@ bool face_to_face_wood(
 
                         Polyline vol0(std::vector<Point>{});
                         Polyline vol1(std::vector<Point>{});
-                        if (!Intersection::plane_4planes_open(pl_end0, planes4, vol0)) { dbg_fail_reason = fmt::format("p4p_open0 f({},{})", i, j); continue; }
-                        if (!Intersection::plane_4planes_open(pl_end1, planes4, vol1)) { dbg_fail_reason = fmt::format("p4p_open1 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes_open(pl_end0, planes4, vol0)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p_open0 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes_open(pl_end1, planes4, vol1)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p_open1 f({},{})", i, j); continue; }
 
                         // Consistent volume orientation: rotate by 2 if
                         // vertex 1 is not on the negative side of plane[i].
@@ -684,10 +718,10 @@ bool face_to_face_wood(
                         Polyline vol1(std::vector<Point>{});
                         Polyline vol2(std::vector<Point>{});
                         Polyline vol3(std::vector<Point>{});
-                        if (!Intersection::plane_4planes(pl_end0, loop_planes_0, vol0)) { dbg_fail_reason = fmt::format("p4p0 f({},{})", i, j); continue; }
-                        if (!Intersection::plane_4planes(pl_end1, loop_planes_0, vol1)) { dbg_fail_reason = fmt::format("p4p1 f({},{})", i, j); continue; }
-                        if (!Intersection::plane_4planes(pl_end0, loop_planes_1, vol2)) { dbg_fail_reason = fmt::format("p4p2 f({},{})", i, j); continue; }
-                        if (!Intersection::plane_4planes(pl_end1, loop_planes_1, vol3)) { dbg_fail_reason = fmt::format("p4p3 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes(pl_end0, loop_planes_0, vol0)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p0 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes(pl_end1, loop_planes_0, vol1)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p1 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes(pl_end0, loop_planes_1, vol2)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p2 f({},{})", i, j); continue; }
+                        if (!Intersection::plane_4planes(pl_end1, loop_planes_1, vol3)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p3 f({},{})", i, j); continue; }
 
                         for (Polyline* vp : {&vol0, &vol1, &vol2, &vol3}) {
                             (*vp).extend_edge_equally(0, ext_w);
@@ -735,7 +769,7 @@ bool face_to_face_wood(
                 Plane plane1_1 = !male_or_female ? el0.planes[other_idx] : el1.planes[other_idx];
 
                 bool quad_available = male_or_female ? has_quads0 : has_quads1;
-                if (!quad_available) { dbg_fail_reason = fmt::format("no_quad f({},{})", i, j); continue; }
+                if (!quad_available) { if (dbg_reasons) dbg_fail_reason = fmt::format("no_quad f({},{})", i, j); continue; }
                 Polyline quad_0 = male_or_female ? joint_quads0 : joint_quads1;
 
                 Vector offset_vector(0,0,0);
@@ -805,7 +839,7 @@ bool face_to_face_wood(
                 // wood::joint_lib convention.
 
                 auto rect_opt = Polyline::bounding_rectangle(joint_area);
-                if (!rect_opt) { dbg_fail_reason = fmt::format("no_rect f({},{})", i, j); continue; }
+                if (!rect_opt) { if (dbg_reasons) dbg_fail_reason = fmt::format("no_rect f({},{})", i, j); continue; }
                 Polyline vol_a = *rect_opt;
                 Polyline vol_b = *rect_opt;
 
