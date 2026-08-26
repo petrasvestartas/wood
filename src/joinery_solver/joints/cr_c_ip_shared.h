@@ -74,8 +74,8 @@ static void cr_c_ip_shared(WoodJoint& joint,
                 f1[i].set_point(j, Point(pt[0]+cross[0]*lengths[i], pt[1]+cross[1]*lengths[i], pt[2]+cross[2]*lengths[i]));
             }
         }
-        m0[i] = base[i].transformed_xform(xf_rot);
-        m1[i] = f1[i].transformed_xform(xf_rot);
+        m0[i] = base[i].transformed(xf_rot);
+        m1[i] = f1[i].transformed(xf_rot);
     }
 
     // Duplicate 2×

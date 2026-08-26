@@ -112,8 +112,8 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
 
     // Transform male outlines with xf0, female with xf1.
     for (int face = 0; face < 2; face++) {
-        for (auto& pl : joint.m_outlines[face]) { pl = pl.transformed_xform(xf0); }
-        for (auto& pl : joint.f_outlines[face]) { pl = pl.transformed_xform(xf1); }
+        for (auto& pl : joint.m_outlines[face]) { pl = pl.transformed(xf0); }
+        for (auto& pl : joint.f_outlines[face]) { pl = pl.transformed(xf1); }
     }
 }
 

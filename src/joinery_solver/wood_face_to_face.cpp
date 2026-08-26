@@ -389,7 +389,7 @@ bool face_to_face_wood(
                     // aligns with a basis axis (the hilti failure mode).
                     Xform world_to_local = Xform::world_to_frame(o, x, y, z);
                     std::vector<Point> proj_pts = joint_area.get_points();
-                    for (auto& p : proj_pts) { p.xform = world_to_local; p.transform(); }
+                    for (auto& p : proj_pts) { p.transform(world_to_local); }
                     if (proj_pts.empty()) { dbg_fail_reason = fmt::format("proj_empty f({},{})", i, j); continue; }
                     double xmin = proj_pts[0][0], xmax = xmin;
                     double ymin = proj_pts[0][1], ymax = ymin;
@@ -416,7 +416,7 @@ bool face_to_face_wood(
                     };
                     // Inverse projection (local→world) using the same basis.
                     Xform local_to_world = Xform::frame_to_world(o, x, y, z);
-                    for (auto& p : rect_local) { p.xform = local_to_world; p.transform(); }
+                    for (auto& p : rect_local) { p.transform(local_to_world); }
 
                     // Offset by element thickness along z (or insertion dir).
                     Vector offset_vector = dir_set ? dir : z;
