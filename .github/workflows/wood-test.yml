@@ -11,7 +11,11 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-22.04
+    # ubuntu-22.04 defaults to GCC 11, which cannot compile this project's
+    # C++23 - it fails inside <type_traits> with "'size_t' has not been
+    # declared". 24.04 ships GCC 13. wood_nano hit the same wall and pins
+    # manylinux_2_28 for gcc 12+ for exactly this reason.
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
