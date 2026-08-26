@@ -9,7 +9,38 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-set(SESSION_CPP_DIR "C:/pc/3_code/code_rust/session/session_cpp")
+# session_cpp: use a local checkout when there is one, otherwise fetch it.
+#
+# This used to be a bare `set(SESSION_CPP_DIR "C:/pc/3_code/.../session_cpp")`
+# pointing at one developer's machine, so configuring anywhere else failed with
+# `add_subdirectory given source ... which is not an existing directory`, and
+# then `Unknown CMake command "LINK_PROTOBUF"` because that macro comes from
+# session_cpp and was never defined. CI has been red since that landed.
+#
+# wood_nano already resolves it this way; the same order is used here so a
+# developer with the checkout keeps building against it.
+include(FetchContent)
+
+set(SESSION_CPP_LOCAL "C:/pc/3_code/code_rust/session/session_cpp" CACHE PATH
+    "Local session_cpp checkout; fetched from GitHub when absent")
+
+if(EXISTS "${SESSION_CPP_LOCAL}/CMakeLists.txt")
+    set(SESSION_CPP_DIR "${SESSION_CPP_LOCAL}")
+    message(STATUS "wood: using local session_cpp at ${SESSION_CPP_DIR}")
+else()
+    FetchContent_Declare(session_cpp
+        GIT_REPOSITORY https://github.com/petrasvestartas/session_cpp.git
+        GIT_TAG        main
+        GIT_SHALLOW    TRUE
+    )
+    FetchContent_GetProperties(session_cpp)
+    if(NOT session_cpp_POPULATED)
+        FetchContent_Populate(session_cpp)
+    endif()
+    set(SESSION_CPP_DIR "${session_cpp_SOURCE_DIR}")
+    message(STATUS "wood: fetched session_cpp to ${SESSION_CPP_DIR}")
+endif()
+
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
