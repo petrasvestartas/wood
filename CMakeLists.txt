@@ -41,6 +41,16 @@ else()
     message(STATUS "wood: fetched session_cpp to ${SESSION_CPP_DIR}")
 endif()
 
+# session_cpp's CMakeLists locates its generated protobuf sources through
+# CMAKE_SOURCE_DIR, which is the TOP-level source dir - this project, not
+# session_cpp - once it is added as a subdirectory. Without this it stops with
+# "No generated protobuf files found in <wood>/generated". wood_nano carries
+# the same copy step for the same reason.
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/generated")
+    message(STATUS "wood: copying session_cpp/generated into ${CMAKE_SOURCE_DIR}/generated")
+    file(COPY "${SESSION_CPP_DIR}/generated" DESTINATION "${CMAKE_SOURCE_DIR}")
+endif()
+
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
