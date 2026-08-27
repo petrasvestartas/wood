@@ -26,6 +26,12 @@ session_data/
 *.lo
 *.o
 *.obj
+# ...but data/*.obj are Wavefront OBJ geometry, not MSVC object files. This
+# rule silently excluded all 46 dataset meshes, so CI cloned a repo with the
+# adjacency .txt files but none of the geometry they index into. Every dataset
+# then loaded zero elements and the sweep segfaulted on the first adjacency
+# pair. 2.5 MB total.
+!data/*.obj
 *.suo
 
 # Precompiled Headers

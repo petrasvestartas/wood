@@ -56,24 +56,11 @@ jobs:
     # <- type_plates_name_joint_linking_vidychapel_corner, the second dataset.
     # A Release build has no line numbers, so this rebuilds that one target with
     # -g and ASan/UBSan to get the exact file:line and the kind of fault.
-    # Only -g here. An earlier attempt added -O1 and ASan; -O1 broke absl's own
-    # constexpr in hash_policy_traits.h, so the build died in a dependency
-    # before reaching any wood code. CMakeLists does a plain
-    # `set(CMAKE_BUILD_TYPE Release)`, which overrides -DCMAKE_BUILD_TYPE
-    # outright, so debug info has to arrive through CMAKE_CXX_FLAGS and the
-    # optimisation level stays whatever Release picked.
-    - name: Diagnose
-      continue-on-error: true
-      run: |
-        sudo apt-get install -y gdb
-        cmake -S . -B build-dbg -DCMAKE_CXX_FLAGS="-g -fno-omit-frame-pointer"
-        cmake --build build-dbg --target main_all_datasets --parallel 4
-        gdb -batch -ex run -ex 'bt 15' -ex 'info locals' \
-            --args build-dbg/main_all_datasets 2>&1 | tail -50
-
     # Bounded on purpose, see CLAUDE.md: the sweep is ~2.5 s and ~0.3 GB, so
     # ten minutes detects a wedged process rather than budgeting for a slow one.
-    # timeout exits 124 on expiry.
+    # timeout exits 124 on expiry. stdbuf because a crash never flushes a
+    # buffered stdout, and losing the output is what made the first failure here
+    # look like it produced nothing at all.
     - name: Run all datasets
       run: |
         stdbuf -oL -eL timeout 600 build/main_all_datasets

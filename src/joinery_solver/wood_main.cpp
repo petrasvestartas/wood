@@ -909,10 +909,27 @@ std::vector<WoodJoint> get_connection_zones(
     int n_success = 0;
     std::vector<WoodJoint> all_joints;
     if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] joint detection loop  pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
+    const int n_wood_elems = static_cast<int>(wood_elems.size());
     for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
         int ia = adjacency_pairs[k].first;
         int ib = adjacency_pairs[k].second;
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ]   pair k=%zu  ia=%d ib=%d\n", k, ia, ib); fflush(stderr); }
+
+        // The adjacency list need not agree with the element list. It may come
+        // from a file next to the dataset, or straight from a caller through
+        // the Python bindings, so its indices are input rather than an
+        // invariant. Indexing wood_elems with them unchecked segfaulted on a
+        // reference to element 0 of an empty vector - vector::size() with
+        // this=0x18 - so a dataset whose .obj had not loaded took the entire
+        // sweep down instead of skipping one entry.
+        if (ia < 0 || ib < 0 || ia >= n_wood_elems || ib >= n_wood_elems) {
+            fprintf(stderr,
+                    "  WARNING: adjacency pair %zu references elements (%d, %d) "
+                    "but only %d were loaded - skipping.\n",
+                    k, ia, ib, n_wood_elems);
+            fflush(stderr);
+            continue;
+        }
 
         WoodJoint joint;
         bool swap_planes_b = false;
