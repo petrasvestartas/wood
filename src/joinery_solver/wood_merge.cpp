@@ -94,8 +94,12 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
     // long edges exactly align with plate edges → cp = integer corner), a
     // std::map would silently drop all but the first insert. Multimap keeps
     // all entries, so Phase 3 emits every joint's clipped polyline.
-    std::multimap<size_t, std::pair<std::pair<double,double>, Polyline>> sorted_by_id_plines_0;
-    std::multimap<size_t, std::pair<std::pair<double,double>, Polyline>> sorted_by_id_plines_1;
+    // Mapped values are raw point runs. Storing Polylines here cost a
+    // flat-coords copy per insert plus an out-of-line get_point (a
+    // name/guid/Color-bearing Point) per vertex at concatenation, and a
+    // heap Polyline per surviving plate vertex.
+    std::multimap<size_t, std::pair<std::pair<double,double>, std::vector<Point>>> sorted_by_id_plines_0;
+    std::multimap<size_t, std::pair<std::pair<double,double>, std::vector<Point>>> sorted_by_id_plines_1;
 
     int last_id = -1;
     // Closing-corner trackers (wood_element.cpp:684-687). When the first and
@@ -198,8 +202,8 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                 size_t key1 = (size_t)(scale_0 * std::floor(cp_pair_1.first))
                             + (size_t)(scale_1 * std::fmod(cp_pair_1.first, 1.0));
                 // joint_pline_0/1 are locals that nothing reads after this.
-                sorted_by_id_plines_0.insert({key0, {cp_pair_0, std::move(joint_pline_0)}});
-                sorted_by_id_plines_1.insert({key1, {cp_pair_1, std::move(joint_pline_1)}});
+                sorted_by_id_plines_0.insert({key0, {cp_pair_0, joint_pline_0.get_points()}});
+                sorted_by_id_plines_1.insert({key1, {cp_pair_1, joint_pline_1.get_points()}});
                 continue; // case 5 is done; skip the case 2 logic below
             }
 
@@ -363,15 +367,15 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
                                << (jm[0][0].point_count() != jm[1][0].point_count() ? " COUNT_DIFF" : "")
                                << "\n";
             }
-            sorted_by_id_plines_0.insert({key, {cp_pair, jm[0][0]}});
-            sorted_by_id_plines_1.insert({key, {cp_pair, jm[1][0]}});
+            sorted_by_id_plines_0.insert({key, {cp_pair, jm[0][0].get_points()}});
+            sorted_by_id_plines_1.insert({key, {cp_pair, jm[1][0].get_points()}});
         }
     }
 
     // ── Build merged polylines from sorted maps ────────────────────────────
     // wood_element.cpp:1129-1253
     auto build_merged = [&](std::vector<Point>& pline,
-                            std::multimap<size_t, std::pair<std::pair<double,double>, Polyline>>& sorted,
+                            std::multimap<size_t, std::pair<std::pair<double,double>, std::vector<Point>>>& sorted,
                             const Point& orig_front)
         -> Polyline
     {
@@ -416,7 +420,7 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
         for (size_t k = 0; k < point_flags.size(); k++) {
             if (point_flags[k]) {
                 size_t kk = (size_t)(k * scale_0);
-                sorted.insert({kk, {{(double)k, (double)k}, Polyline(std::vector<Point>{pline[k]})}});
+                sorted.insert({kk, {{(double)k, (double)k}, std::vector<Point>{pline[k]}}});
             }
         }
 
@@ -424,9 +428,8 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
         // wood_element.cpp:1178-1182, 1252 — no deduplication, wood preserves C_dup
         std::vector<Point> merged;
         for (auto& kv : sorted) {
-            for (size_t pi = 0; pi < kv.second.second.point_count(); pi++) {
-                merged.push_back(kv.second.second.get_point(pi));
-            }
+            const auto& run = kv.second.second;
+            merged.insert(merged.end(), run.begin(), run.end());
         }
         if (!merged.empty()) {
             merged.push_back(merged.front());
