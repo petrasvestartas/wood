@@ -56,16 +56,20 @@ jobs:
     # <- type_plates_name_joint_linking_vidychapel_corner, the second dataset.
     # A Release build has no line numbers, so this rebuilds that one target with
     # -g and ASan/UBSan to get the exact file:line and the kind of fault.
+    # Only -g here. An earlier attempt added -O1 and ASan; -O1 broke absl's own
+    # constexpr in hash_policy_traits.h, so the build died in a dependency
+    # before reaching any wood code. CMakeLists does a plain
+    # `set(CMAKE_BUILD_TYPE Release)`, which overrides -DCMAKE_BUILD_TYPE
+    # outright, so debug info has to arrive through CMAKE_CXX_FLAGS and the
+    # optimisation level stays whatever Release picked.
     - name: Diagnose
       continue-on-error: true
       run: |
-        cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCMAKE_CXX_FLAGS="-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined" \
-              -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
-        cmake --build build-asan --target main_all_datasets --parallel 4
-        ASAN_OPTIONS=detect_leaks=0:abort_on_error=0 \
-        UBSAN_OPTIONS=print_stacktrace=1 \
-        stdbuf -oL -eL timeout 900 build-asan/main_all_datasets 2>&1 | tail -60
+        sudo apt-get install -y gdb
+        cmake -S . -B build-dbg -DCMAKE_CXX_FLAGS="-g -fno-omit-frame-pointer"
+        cmake --build build-dbg --target main_all_datasets --parallel 4
+        gdb -batch -ex run -ex 'bt 15' -ex 'info locals' \
+            --args build-dbg/main_all_datasets 2>&1 | tail -50
 
     # Bounded on purpose, see CLAUDE.md: the sweep is ~2.5 s and ~0.3 GB, so
     # ten minutes detects a wedged process rather than budgeting for a slow one.
