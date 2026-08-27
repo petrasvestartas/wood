@@ -50,6 +50,18 @@ struct CrossJoint {
 };
 
 /// Cross/lap joint detection between two plate elements (side-to-side).
+/// Core overload: by reference, so the hot detection loop can pass the
+/// element's stored polylines/planes without deep-copying 4 Polylines and
+/// 4 Planes per candidate pair just to reach the parallelism reject.
+bool plane_to_face(
+    const session_cpp::Polyline& a_bottom, const session_cpp::Polyline& a_top,
+    const session_cpp::Polyline& b_bottom, const session_cpp::Polyline& b_top,
+    const session_cpp::Plane& a_plane_bottom, const session_cpp::Plane& a_plane_top,
+    const session_cpp::Plane& b_plane_bottom, const session_cpp::Plane& b_plane_top,
+    CrossJoint& result,
+    double angle_tol = 5.0,
+    const std::array<double,3>& extension = {0.0, 0.0, 0.0});
+
 bool plane_to_face(
     const std::array<session_cpp::Polyline,2>& polylines_a,
     const std::array<session_cpp::Polyline,2>& polylines_b,
@@ -66,6 +78,11 @@ bool plane_to_face(
     CrossJoint& result,
     double angle_tol = 5.0,
     const std::array<double,3>& extension = {0.0, 0.0, 0.0});
+
+/// Override the directory globals_yaml() reads configs from. Empty string
+/// restores the compile-time default (a __FILE__-derived path that only
+/// exists on the machine that built the binary).
+namespace globals { void set_config_dir(const std::string& dir); }
 
 /// Set the near-coplanar rejection threshold used internally by plane_to_face.
 /// Wood reads from wood_session::globals::DISTANCE_SQUARED which some tests

@@ -1,4 +1,5 @@
 #include "wood_element.h"
+#include <cstdio>
 
 #include "../src/line.h"
 #include "../src/plane.h"
@@ -51,6 +52,30 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
 {
     std::vector<Point> pp0 = bot.get_points();
     std::vector<Point> pp1 = top.get_points();
+
+    // Outline sizes are INPUT (OBJ curves paired blindly, or Python lists),
+    // not an invariant. Empty outlines reached average_normal's
+    // front()/back() as UB; a top outline shorter than the bottom read
+    // pp1[j+1] past the end in the side loop - heap OOB producing garbage
+    // side planes or a crash. Degrade to an empty element (detection skips
+    // it) instead: throwing would take down whole-dataset runs for one bad
+    // pair.
+    if (pp0.size() < 3 || pp1.size() < 3) {
+        fprintf(stderr,
+                "  WARNING: WoodElement built from outlines with %zu/%zu points "
+                "(need >= 3 each) - element left empty.\n",
+                pp0.size(), pp1.size());
+        fflush(stderr);
+        return;
+    }
+    if (pp1.size() < pp0.size()) {
+        fprintf(stderr,
+                "  WARNING: WoodElement top outline has %zu points but bottom has "
+                "%zu - element left empty (side faces would index past the end).\n",
+                pp1.size(), pp0.size());
+        fflush(stderr);
+        return;
+    }
 
     auto strip = [](std::vector<Point>& v) {
         if (v.size() > 3) {
@@ -149,8 +174,17 @@ session_cpp::Mesh WoodElement::loft_mesh() const {
 
     std::vector<Point> bot = strip(polylines[0]);
     std::vector<Point> top = strip(polylines[1]);
-    size_t n = std::min(bot.size(), top.size());
-    if (n < 2) return session_cpp::Mesh{};
+    if (bot.size() != top.size()) {
+        // Truncating to the shorter ring shifted every side quad - a
+        // plausible-looking but wrong solid. Fail visibly instead.
+        fprintf(stderr,
+                "  WARNING: loft_mesh outlines have %zu vs %zu points - "
+                "returning empty mesh.\n", bot.size(), top.size());
+        fflush(stderr);
+        return session_cpp::Mesh{};
+    }
+    size_t n = bot.size();
+    if (n < 3) return session_cpp::Mesh{};
 
     std::vector<Point> verts;
     verts.reserve(2 * n);

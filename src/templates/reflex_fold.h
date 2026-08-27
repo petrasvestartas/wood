@@ -57,7 +57,10 @@ public:
             }
 
             std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
-            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer_bot, mask);
+            // chamfer_top was accepted by the constructor and then silently
+            // ignored - both contours used chamfer_bot, so distinct values
+            // produced wrong top-plate geometry with no error.
+            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer_top, mask);
             std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
 
             if (!bot_ch.empty()) {
@@ -182,7 +185,16 @@ private:
                 v1 = v1.normalized();
                 v2 = v2.normalized();
                 normal = Vector(v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2]);
-                normal.normalize_self();
+                if (!normal.normalize_self()) {
+                    // Collinear neighbours: v1 ~ -v2, the bisector sum is
+                    // ~zero and the old code used the zero normal anyway -
+                    // a degenerate plane whose downstream dot-product guard
+                    // forced t=0 and silently duplicated the previous
+                    // profile row into zero-area quads. Use the edge
+                    // direction as the section normal instead.
+                    normal = Vector(cn[0]-cp[0], cn[1]-cp[1], cn[2]-cp[2]);
+                    normal.normalize_self();
+                }
             }
             Point origin = cross_section[i];
             planes.push_back(Plane::from_point_normal(origin, normal));

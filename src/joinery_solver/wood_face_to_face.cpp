@@ -271,17 +271,17 @@ bool face_to_face_wood(
             }
 
             // 7. Validate joint line lengths and apply axial extension.
-            //    The C++ rejects when (ext_l*2)^2 > line.squared_length() - min^2,
-            //    i.e. when extending the line by ext_l on each end would
-            //    shrink the original line below the configured minimum.
+            //    Legacy formula (wood_main.cpp:583-597): reject when
+            //    (ext_l*2)^2 > line.squared_length() - min^2 - ONE combined
+            //    test, so a line that would survive extension but land under
+            //    the minimum is rejected too. The previous split test here
+            //    (extension and minimum checked independently) accepted lines
+            //    the legacy rejects near the threshold.
             if (joint_type < 2) {
                 double ext_sq = (ext_l * 2.0) * (ext_l * 2.0);
-                if (i > 1 && ext_sq >= joint_line0.squared_length()) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_ext f({},{})", i, j); continue; }
-                if (j > 1 && ext_sq >= joint_line1.squared_length()) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_ext f({},{})", i, j); continue; }
-                if (limit_min_joint_length > 0.0) {
-                    if (i > 1 && joint_line0.length() < limit_min_joint_length) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_min f({},{})", i, j); continue; }
-                    if (j > 1 && joint_line1.length() < limit_min_joint_length) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_min f({},{})", i, j); continue; }
-                }
+                double min_sq = limit_min_joint_length * limit_min_joint_length;
+                if (i > 1 && ext_sq > joint_line0.squared_length() - min_sq) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl0_ext f({},{})", i, j); continue; }
+                if (j > 1 && ext_sq > joint_line1.squared_length() - min_sq) { if (dbg_reasons) dbg_fail_reason = fmt::format("jl1_ext f({},{})", i, j); continue; }
                 joint_line0.extend_equally(ext_l);
                 joint_line1.extend_equally(ext_l);
             }
@@ -317,7 +317,7 @@ bool face_to_face_wood(
                           joint_line1.start()[2] - joint_line1.end()[2]);
                 int parallel;
                 {
-                    const double wood_cos_tol = std::cos(wood_session::globals::ANGLE);
+                    const double wood_cos_tol = cos_angle;  // hoisted at the top of the scan
                     double ll_ = v0.magnitude() * v1.magnitude();
                     if (ll_ <= 0.0) { parallel = 0; }
                     else {
@@ -515,7 +515,17 @@ bool face_to_face_wood(
                     // Parallel elements: split on dihedral angle
                     // ────────────────────────────────────────────────────────
                     Line lj;
-                    joint_line0.overlap_average(joint_line1, lj);
+                    bool lj_ok = joint_line0.overlap_average(joint_line1, lj);
+                    // Collinear-but-disjoint alignment chords (possible with
+                    // partial contact patches) used to average into the GAP
+                    // between them, planting end-cap planes and the dihedral
+                    // tetrahedron where there is no physical contact; a
+                    // near-zero overlap likewise feeds a degenerate normal to
+                    // Plane::from_point_normal below.
+                    if (!lj_ok || lj.squared_length() <= distance_squared) {
+                        if (dbg_reasons) dbg_fail_reason = fmt::format("lj_overlap f({},{})", i, j);
+                        continue;
+                    }
                     joint_lines[0] = lj;
                     joint_lines[1] = lj;
 
@@ -844,13 +854,26 @@ bool face_to_face_wood(
                 Polyline vol_b = *rect_opt;
 
                 // Movement direction (insertion vector if available, else
-                // the face normal). The original C++ flips the sign twice,
-                // leaving dir0 in its original direction and dir1 = -dir0.
+                // the face normal). Matches legacy wood_main.cpp:1201-1205
+                // exactly: dir1 = -dir0 is taken first, then BOTH are negated,
+                // so the net result is dir0 = -original, dir1 = +original.
+                // (An earlier comment here claimed the opposite; the legacy
+                // source is the arbiter and the code agrees with it.) Legacy
+                // also always reads ELEMENT 0's insertion vector even when
+                // dir_set was established from element 1's - kept for parity.
                 Vector dir0 = dir_set
                     ? (i < el0.insertion_vectors.size() ? el0.insertion_vectors[i]
                                                       : el0.planes[i].z_axis())
                     : el0.planes[i].z_axis();
-                dir0.normalize_self();
+                if (!dir0.normalize_self()) {
+                    // Zero insertion vector in this slot (top/bottom slots
+                    // are zero by convention): legacy silently left both
+                    // volume slabs untranslated - coincident, degenerate
+                    // joint volumes with no diagnostic. Fall back to the
+                    // face normal, which is what dir_set=false uses.
+                    dir0 = el0.planes[i].z_axis();
+                    dir0.normalize_self();
+                }
                 Vector dir1_pre(-dir0[0], -dir0[1], -dir0[2]);
                 dir0 = Vector(-dir0[0], -dir0[1], -dir0[2]);
                 Vector dir1(-dir1_pre[0], -dir1_pre[1], -dir1_pre[2]);
@@ -922,13 +945,27 @@ bool face_to_face_wood(
     if (search_type != 0 &&
         el0.polylines.size() >= 2 && el1.polylines.size() >= 2 &&
         el0.planes.size() >= 2 && el1.planes.size() >= 2) {
-        std::array<Polyline, 2> pa = { el0.polylines[0], el0.polylines[1] };
-        std::array<Polyline, 2> pb = { el1.polylines[0], el1.polylines[1] };
-        std::array<Plane, 2> pla = { el0.planes[0], el0.planes[1] };
-        std::array<Plane, 2> plb = { el1.planes[0], el1.planes[1] };
         wood_session::CrossJoint cj;
         std::array<double, 3> cj_ext = { ext_w, ext_h, ext_l };
-        if (wood_session::plane_to_face(pa, pb, pla, plb, cj, coplanar_tolerance, cj_ext)) {
+        // By-reference overload: the old std::array staging deep-copied 4
+        // Polylines + 4 Planes for every pair that reached the fallback, only
+        // for most to be rejected by the parallelism guard immediately.
+        //
+        // The angle argument is plane_to_face's parallelism tolerance in
+        // DEGREES; legacy wood used angleTol = 30 (wood_main.h:23) with every
+        // caller on the default. It used to receive coplanar_tolerance -
+        // DISTANCE_SQUARED, a squared length in mm^2, 0.01 by default - which
+        // shrank the guard to 0.01 degrees and let near-parallel plate pairs
+        // through as type-30 cross joints with catastrophically skewed
+        // intersection axes (and let a dataset that tunes distance_squared
+        // silently retune an ANGLE). The distance threshold reaches the
+        // detector separately via set_cross_joint_distance_squared.
+        constexpr double CROSS_JOINT_PARALLEL_ANGLE_DEG = 30.0;
+        if (wood_session::plane_to_face(el0.polylines[0], el0.polylines[1],
+                                        el1.polylines[0], el1.polylines[1],
+                                        el0.planes[0], el0.planes[1],
+                                        el1.planes[0], el1.planes[1],
+                                        cj, CROSS_JOINT_PARALLEL_ANGLE_DEG, cj_ext)) {
             out_joint.el_ids       = el_ids;
             out_joint.face_ids     = { {{ cj.face_ids_a.first,  cj.face_ids_a.second }},
                                        {{ cj.face_ids_b.first,  cj.face_ids_b.second }} };

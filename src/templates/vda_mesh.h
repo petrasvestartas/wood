@@ -37,7 +37,7 @@ public:
 
     // ── constructor ──────────────────────────────────────────────────────────
     VdaMesh(
-        Mesh                 input_mesh         = default_mesh(),
+        const Mesh&          input_mesh         = default_mesh(),
         double               face_thickness     = 20.0,
         std::vector<double>  face_positions     = {0.0},
         std::vector<int>     edge_divisions     = {2},
@@ -182,6 +182,15 @@ private:
     void get_face_edge_planes(const Mesh& m)
     {
         fe_planes.resize(f_count);
+        // One pass over the faces: undirected edge -> adjacent face indices.
+        std::map<std::pair<size_t,size_t>, std::vector<int>> edge_to_faces;
+        for (int fi2 = 0; fi2 < f_count; ++fi2) {
+            auto fe_opt2 = m.face_edges(face_keys[fi2]);
+            if (!fe_opt2) continue;
+            for (auto& [eu, ev] : *fe_opt2) {
+                edge_to_faces[{std::min(eu, ev), std::max(eu, ev)}].push_back(fi2);
+            }
+        }
         for (int fi = 0; fi < f_count; ++fi) {
             std::optional<std::vector<std::pair<size_t,size_t>>> edges_opt = m.face_edges(face_keys[fi]);
             if (!edges_opt) {
@@ -205,14 +214,19 @@ private:
                     xaxis = Vector::x_axis();
                 }
 
-                // y_axis: average normal of all adjacent faces
-                std::optional<std::vector<size_t>> adj_opt = m.edge_faces(u, v);
+                // y_axis: average normal of all adjacent faces.
+                // (Adjacency comes from the map built once below the face
+                // loop's entry - edge_faces() scans every face per call, and
+                // this ran per edge of every face: O(E^2). face_normal is
+                // likewise served from the cached f_planes.)
                 Vector yaxis(0, 0, 0);
-                if (adj_opt) {
-                    for (size_t fk : *adj_opt) {
-                        std::optional<Vector> fn = m.face_normal(fk);
-                        if (fn) {
-                            yaxis += *fn;
+                {
+                    auto key = std::make_pair(std::min(u, v), std::max(u, v));
+                    auto it = edge_to_faces.find(key);
+                    if (it != edge_to_faces.end()) {
+                        for (int adj_fi : it->second) {
+                            if (!f_planes[adj_fi].is_valid()) continue;
+                            yaxis += f_planes[adj_fi].z_axis();
                         }
                     }
                 }
@@ -385,10 +399,14 @@ private:
         e_lines.resize(e_count);
 
         for (int ei = 0; ei < e_count; ++ei) {
+            // edge_line() rebuilds the full directed-edge set per call only
+            // to validate an edge that came from face_edges and is known to
+            // exist: two vertex lookups suffice.
             size_t u = edge_keys[ei].first;
             size_t v = edge_keys[ei].second;
-            std::optional<Line> el = m.edge_line(u, v);
-            e_lines[ei] = el.value_or(Line());
+            auto pu = m.vertex_point(u);
+            auto pv = m.vertex_point(v);
+            e_lines[ei] = (pu && pv) ? Line::from_points(*pu, *pv) : Line();
         }
 
         if (lines.empty()) {

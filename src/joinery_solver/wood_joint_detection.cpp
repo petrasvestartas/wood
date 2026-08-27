@@ -55,9 +55,14 @@ bool polyline_plane_cross(const Polyline& polyline, const Plane& plane,
         double num = dx*n_plane[0] + dy*n_plane[1] + dz*n_plane[2];
         return (n_mag_sq > 0.0) ? (num * num / n_mag_sq) : 0.0;
     };
+    // Materialize the point set once: get_point() is an out-of-line call
+    // constructing a name/guid/Color-bearing Point per invocation, and the old
+    // loop fetched every interior point twice. This runs 4x per candidate
+    // pair inside the O(n^2) detection scan.
+    const std::vector<Point> ppts = polyline.get_points();
     for (size_t i = 0; i < n - 1; i++) {
-        Point a = polyline.get_point(i);
-        Point b = polyline.get_point(i + 1);
+        const Point& a = ppts[i];
+        const Point& b = ppts[i + 1];
         if (sq_dist_to_plane(a) < DISTANCE_SQUARED) { points.clear(); edge_ids.clear(); return false; }
         if (sq_dist_to_plane(b) < DISTANCE_SQUARED) { points.clear(); edge_ids.clear(); return false; }
         Line seg(a[0], a[1], a[2], b[0], b[1], b[2]);
@@ -272,6 +277,12 @@ bool polyline_plane_cross_joint(
             double d_hi = (q-hi).magnitude_squared();
             if (d_lo < 0.001 || d_hi < 0.001) { e1 = edge_ids_1[ID1[i]]; break; }
         }
+        // NOTE: e0/e1 can legitimately remain -1 - lo/hi are componentwise
+        // bbox corners that need not coincide with any intersection point -
+        // and this is the NORMAL case for plates crossing in general
+        // position, not an error. Type-30 joints do not consume these face
+        // ids for geometry (merge works from the joint volumes); rejecting
+        // here removed every cross joint from the cross_* datasets.
         edge_pair_out = std::pair<int,int>(e0, e1);
         return true;
     }
@@ -311,10 +322,10 @@ void set_cross_joint_distance_squared(double dist_sq) {
 }
 
 bool plane_to_face(
-    const std::array<Polyline,2>& polylines_a,
-    const std::array<Polyline,2>& polylines_b,
-    const std::array<Plane,2>& planes_a,
-    const std::array<Plane,2>& planes_b,
+    const Polyline& cx0, const Polyline& cx1,
+    const Polyline& cy0, const Polyline& cy1,
+    const Plane& px0, const Plane& px1,
+    const Plane& py0, const Plane& py1,
     CrossJoint& result,
     double angle_tol,
     const std::array<double,3>& extension) {
@@ -324,19 +335,9 @@ bool plane_to_face(
     result.type = 30;
 
     // 1. Parallelism guard.
-    double raw_angle = approximate_angle_deg(planes_a[0].z_axis(), planes_b[0].z_axis());
+    double raw_angle = approximate_angle_deg(px0.z_axis(), py0.z_axis());
     double angle = 90.0 - std::fabs(raw_angle - 90.0);
     if (angle < angle_tol) { return false; }
-
-    // 2. Four cross-joint contact segments.
-    const Polyline& cx0 = polylines_a[0];
-    const Polyline& cx1 = polylines_a[1];
-    const Polyline& cy0 = polylines_b[0];
-    const Polyline& cy1 = polylines_b[1];
-    const Plane& px0 = planes_a[0];
-    const Plane& px1 = planes_a[1];
-    const Plane& py0 = planes_b[0];
-    const Plane& py1 = planes_b[1];
 
     Line cx0_py0__cy0_px0;
     std::pair<int,int> e0_0__e1_0;
@@ -364,19 +365,19 @@ bool plane_to_face(
     Vector ref_v = segment_to_vector(cx0_py0__cy0_px0);
     {
         Vector v = segment_to_vector(cx0_py1__cy1_px0);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
+        if (ref_v.dot(v) < 0.0) {
             cx0_py1__cy1_px0 = opposite_segment(cx0_py1__cy1_px0);
         }
     }
     {
         Vector v = segment_to_vector(cx1_py0__cy0_px1);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
+        if (ref_v.dot(v) < 0.0) {
             cx1_py0__cy0_px1 = opposite_segment(cx1_py0__cy0_px1);
         }
     }
     {
         Vector v = segment_to_vector(cx1_py1__cy1_px1);
-        if (approximate_angle_deg(ref_v, v) > approximate_angle_deg(ref_v, Vector(-v[0], -v[1], -v[2]))) {
+        if (ref_v.dot(v) < 0.0) {
             cx1_py1__cy1_px1 = opposite_segment(cx1_py1__cy1_px1);
         }
     }
@@ -420,6 +421,12 @@ bool plane_to_face(
     double cpt[8] = { cpt0[0], cpt0[1], cpt0[2], cpt0[3], cpt1[0], cpt1[1], cpt1[2], cpt1[3] };
     std::sort(cpt, cpt + 8);
 
+    // NOTE: cpt0[3] > cpt1[0] (an "inverted" lMin) is the NORMAL
+    // configuration for genuine X-crossings - the four contact segments'
+    // projections need not share a common interval, and lMin's center and
+    // axis are what downstream consumes, both of which are orientation
+    // agnostic. Rejecting inversion here removed every cross joint from the
+    // cross_* datasets.
     Line lMin = Line::from_points(c.point_at(cpt0[3]), c.point_at(cpt1[0]));
     Line lMax = Line::from_points(c.point_at(cpt[0]),  c.point_at(cpt[7]));
 
@@ -499,6 +506,9 @@ bool plane_to_face(
     const std::array<double,3>& extension) {
 
     if (!a || !b) { return false; }
+    // polylines()/planes() return by value (deep copies of every face); keep
+    // the copies alive in locals but forward references into the core so the
+    // former array-of-values staging copies are gone.
     auto polys_a = a->polylines();
     auto polys_b = b->polylines();
     auto planes_a = a->planes();
@@ -506,11 +516,24 @@ bool plane_to_face(
     if (polys_a.size() < 2 || polys_b.size() < 2) { return false; }
     if (planes_a.size() < 2 || planes_b.size() < 2) { return false; }
 
-    std::array<Polyline,2> pa{ polys_a[0], polys_a[1] };
-    std::array<Polyline,2> pb{ polys_b[0], polys_b[1] };
-    std::array<Plane,2> npa{ planes_a[0], planes_a[1] };
-    std::array<Plane,2> npb{ planes_b[0], planes_b[1] };
-    return plane_to_face(pa, pb, npa, npb, result, angle_tol, extension);
+    return plane_to_face(polys_a[0], polys_a[1], polys_b[0], polys_b[1],
+                         planes_a[0], planes_a[1], planes_b[0], planes_b[1],
+                         result, angle_tol, extension);
+}
+
+bool plane_to_face(
+    const std::array<Polyline,2>& polylines_a,
+    const std::array<Polyline,2>& polylines_b,
+    const std::array<Plane,2>& planes_a,
+    const std::array<Plane,2>& planes_b,
+    CrossJoint& result,
+    double angle_tol,
+    const std::array<double,3>& extension) {
+    return plane_to_face(polylines_a[0], polylines_a[1],
+                         polylines_b[0], polylines_b[1],
+                         planes_a[0], planes_a[1],
+                         planes_b[0], planes_b[1],
+                         result, angle_tol, extension);
 }
 
 } // namespace wood_session

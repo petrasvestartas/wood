@@ -60,19 +60,29 @@ public:
             idx += 3;
         };
 
-        double u = u0;
-        for (int i = 0; i < u_div; i++, u += su) {
-            double v = v0;
-            for (int j = 0; j < v_div; j++, v += sv) {
+        for (int i = 0; i < u_div; i++) {
+            // u = u0 + i*su, not u += su: the accumulated form drifts by one
+            // rounding step per cell across the surface.
+            double u = u0 + i * su;
+            for (int j = 0; j < v_div; j++) {
+                double v = v0 + j * sv;
                 Point p0 = surface.point_at(u,          v);
                 Point p1 = surface.point_at(u + su,     v);
                 Point p2 = surface.point_at(u,          v + sv);
                 Point p3 = surface.point_at(u + su,     v + sv);
-                Point p4 = surface.point_at(u + su*0.5, v + sv*1.5);
                 Point p5 = surface.point_at(u + su*0.5, v + sv*0.5);
-                Point p6 = surface.point_at(u + su*0.5, v - sv*0.5);
-                Point p7((p5[0]+p6[0])*0.5, (p5[1]+p6[1])*0.5, (p5[2]+p6[2])*0.5);
-                Point p8((p4[0]+p5[0])*0.5, (p4[1]+p5[1])*0.5, (p4[2]+p5[2])*0.5);
+                // Interior rows use p4 = next row's midpoint (in-domain for
+                // j < v_div-1). Boundary rows previously sampled half a cell
+                // OUTSIDE the domain (v - sv*0.5 / v + sv*1.5 - point_at
+                // extrapolates, it does not clamp) and averaged with p5, so
+                // border plates missed the true surface edge by
+                // O(curvature*sv^2) - tens of mm at default divisions.
+                // Evaluate the boundary parameter directly instead.
+                Point p4 = (j != v_div - 1)
+                    ? surface.point_at(u + su*0.5, v + sv*1.5)
+                    : Point(0, 0, 0);   // unused on the last row
+                Point p7 = surface.point_at(u + su*0.5, v0);
+                Point p8 = surface.point_at(u + su*0.5, v1);
 
                 if (j == 0) {
                     add_tri(p1, p5, p7);
@@ -92,7 +102,12 @@ public:
             }
         }
 
-        mesh = Mesh::from_vertices_and_faces(pts, faces).weld(3.14159);
+        // Weld tolerance is a DISTANCE in model units. 3.14159 was pi
+        // pasted into a millimetre slot: 300x the 0.01 the sibling templates
+        // use, and enough to fuse genuinely distinct vertices once cells
+        // shrink below ~6 mm. The vertices to merge differ only by floating
+        // point rounding, so the small tolerance is the correct one.
+        mesh = Mesh::from_vertices_and_faces(pts, faces).weld(0.01);
 
         // Generate WoodElement plates via miter_contours.
         // chamfer_mask/chamfer_apply are applied after to maintain equal

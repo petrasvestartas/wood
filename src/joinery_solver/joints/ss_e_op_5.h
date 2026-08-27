@@ -14,6 +14,8 @@ static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool di
     // Create geometry for linked joint 0
     int a = 0;
     int b = 1;
+    if (jo.linked_joints[a] < 0 ||
+        jo.linked_joints[a] >= (int)all_joints.size()) { return; }
     all_joints[jo.linked_joints[a]].divisions = jo.divisions;
     ss_e_op_4(all_joints[jo.linked_joints[a]], 0.5, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 

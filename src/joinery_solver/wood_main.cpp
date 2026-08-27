@@ -189,7 +189,10 @@ static void joint_create_geometry(WoodJoint& joint, double division_distance,
     // constructor is still called (falls through to the group's default)
     // so behaviour is unchanged — but the first encounter is now visible
     // in the log instead of silently producing wrong geometry.
-    static std::set<int> warned_ids;
+    // thread_local: this file supports concurrent get_connection_zones
+    // calls (see the thread_local overrides below); a shared static set
+    // mutated without synchronization was a data race.
+    static thread_local std::set<int> warned_ids;
     auto warn_unimpl = [&](const char* family) {
         if (warned_ids.insert(id).second) {
             fmt::print("joint_create_geometry: id={} ({}) not ported, using family default\n",
@@ -522,7 +525,7 @@ static void three_valence_joint_addition_vidy(
         shadow0.joint_volumes_pair_a_pair_b = {jv0_copy[0], jv0_copy[1], std::nullopt, std::nullopt};
         shadow0.link = true;
         int shadow0_idx = (int)joints.size();
-        joints.push_back(shadow0);
+        joints.push_back(std::move(shadow0));
         joints_map[pair_key(s0, e20)] = shadow0_idx;
 
         // Create shadow joint 1 if e20 != e31 — wood lines 1831-1839
@@ -537,7 +540,7 @@ static void three_valence_joint_addition_vidy(
             shadow1.joint_volumes_pair_a_pair_b = {jv1_copy[0], jv1_copy[1], std::nullopt, std::nullopt};
             shadow1.link = true;
             shadow1_idx = (int)joints.size();
-            joints.push_back(shadow1);
+            joints.push_back(std::move(shadow1));
             joints_map[pair_key(s1, e31)] = shadow1_idx;
         }
 
@@ -595,7 +598,11 @@ static void three_valence_joint_alignment_annen(
             : Line::from_points(j1.joint_lines[0].end(), j1.joint_lines[0].start());
 
         Line overlap;
-        l0.overlap_average(l1, overlap);
+        // A degenerate overlap (parallel-but-disjoint joint lines at a
+        // 3-plate corner) used to fall through with whatever 'overlap'
+        // contained and then get shrunk below, planting end caps at garbage
+        // positions. Skip the group instead.
+        if (!l0.overlap_average(l1, overlap)) { continue; }
 
         // Shorten by element thickness.
         double thickness = 0;
@@ -608,6 +615,12 @@ static void three_valence_joint_alignment_annen(
                 thickness = Point::distance(p0, p1_proj);
             }
         }
+        // Line::extend with a negative amount has no clamp: shrinking a short
+        // shared edge by more than half its length INVERTS the segment
+        // (start passes end) and the end-cap clip planes built from it then
+        // clip the joint volumes inside-out.
+        thickness = std::min(thickness, overlap.length() * 0.5 - 1e-9);
+        if (thickness < 0.0) { thickness = 0.0; }
         overlap.extend(-thickness, -thickness);
 
         // Update both joint lines to the shortened overlap.
@@ -815,7 +828,20 @@ std::vector<WoodJoint> get_connection_zones(
             }
             // Inflation matches wood's AABB expansion at wood_main.cpp:58-63:
             // wood::GLOBALS::DISTANCE — defaults to 0.1 mm, tunable from YAML.
-            obbs[i]  = OBB::from_points(corner_pts, DISTANCE);
+            //
+            // Use the plate's own frame: the (points, inflate) overload is
+            // obb_from_aabb(AABB(...)) — a WORLD-axis box, so a thin plate
+            // lying diagonal to the world axes got a box the size of its
+            // diagonal extent and the narrow phase paid for a storm of false
+            // candidate pairs. The plane overload builds a genuinely oriented
+            // box; the subsequent SAT is what the OBB path always intended.
+            // Candidate sets only shrink (both boxes contain the plate plus
+            // the same inflation), so no true contact is lost.
+            if (!wood_elems[i].planes.empty()) {
+                obbs[i] = OBB::from_points(corner_pts, wood_elems[i].planes[0], DISTANCE);
+            } else {
+                obbs[i] = OBB::from_points(corner_pts, DISTANCE);
+            }
             aabbs[i] = obbs[i].aabb();
         }
         double ws = 0;
@@ -908,6 +934,9 @@ std::vector<WoodJoint> get_connection_zones(
     int n_failed  = 0;
     int n_success = 0;
     std::vector<WoodJoint> all_joints;
+    // WoodJoint is heavyweight (several Polyline vectors + strings);
+    // growth reallocation moves the whole population repeatedly.
+    all_joints.reserve(adjacency_pairs.size());
     if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] joint detection loop  pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
     const int n_wood_elems = static_cast<int>(wood_elems.size());
     for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
@@ -1196,7 +1225,33 @@ std::vector<WoodJoint> get_connection_zones(
                 default: return 1;
             }
         };
-        const auto& JPT = wood_session::globals::JOINTS_PARAMETERS_AND_TYPES;
+        // JPT is input, not an invariant: it starts EMPTY at namespace scope,
+        // reset_defaults() fills 21 entries, and YAML replaces it with a list
+        // of any length. Indexing row*3+2 (up to 20) into a short vector was
+        // UB reachable from a config edit. Fall back to the reset_defaults
+        // table (kept in sync by inspection) when the global is unusable.
+        static constexpr double JPT_DEFAULTS[21] = {
+            300, 0.5,  3,
+            450, 0.64, 15,
+            450, 0.5,  20,
+            300, 0.5,  30,
+              6, 0.95, 40,
+            300, 0.5,  58,
+            300, 1.0,  60,
+        };
+        const auto& JPT_global = wood_session::globals::JOINTS_PARAMETERS_AND_TYPES;
+        const bool jpt_ok = JPT_global.size() >= 21;
+        static thread_local bool jpt_warned = false;
+        if (!jpt_ok && !jpt_warned) {
+            fprintf(stderr,
+                    "  WARNING: JOINTS_PARAMETERS_AND_TYPES has %zu entries, expected 21 - "
+                    "using built-in defaults.\n", JPT_global.size());
+            fflush(stderr);
+            jpt_warned = true;
+        }
+        auto JPT = [&](size_t idx) -> double {
+            return jpt_ok ? JPT_global[idx] : JPT_DEFAULTS[idx];
+        };
         int row = row_for_type(j.joint_type);
 
         // id_representing_joint_name fallback: when no JOINTS_TYPES file
@@ -1204,7 +1259,7 @@ std::vector<WoodJoint> get_connection_zones(
         // row (col 2). Wood defaults:  ss_e_ip=3, ss_e_op=15, ts_e_p=20,
         // cr_c_ip=30, tt_e_p=40, ss_e_r=58, b=60.
         if (id_representing_joint_name == -1) {
-            id_representing_joint_name = (int)JPT[row*3 + 2];
+            id_representing_joint_name = (int)JPT(row*3 + 2);
         }
 
         if (j.link) {
@@ -1219,8 +1274,8 @@ std::vector<WoodJoint> get_connection_zones(
                     wood_session::globals::JOINT_SCALE[1],
                     wood_session::globals::JOINT_SCALE[2] };
 
-        double div_dist  = JPT[row*3 + 0];
-        double shift_val = JPT[row*3 + 1];
+        double div_dist  = JPT(row*3 + 0);
+        double shift_val = JPT(row*3 + 1);
         if (j.joint_type == 13 || j.joint_type == 12) {
             // Pre-set element thickness for ss_e_r_2/3 (type 13) and
             // ss_e_ip_2 (type 12, butterfly). Wood's ss_e_ip_2 (line 765)
@@ -1487,21 +1542,28 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
         }
     }
 
-    // 3. Adjacency — inject via thread-local so the 2-arg overload skips BVH.
+    // 3+4. Adjacency and three-valence — injected via thread-locals so the
+    // 2-arg overload skips the BVH / file paths. Cleared by RAII: if the
+    // delegated pipeline throws (bad geometry, misconfigured globals), a
+    // plain clear-after-call was skipped and the NEXT solve on this thread
+    // silently reused this model's adjacency — wrong joints, no diagnostic.
+    // Swap-with-empty in the destructor also releases the capacity that
+    // clear() would pin per thread for the process lifetime.
+    struct TlOverrideGuard {
+        ~TlOverrideGuard() {
+            std::vector<std::pair<int,int>>().swap(tl_adjacency_override);
+            std::vector<std::vector<int>>().swap(tl_three_valence_override);
+        }
+    } tl_guard;
+
     tl_adjacency_override = joinery_data.adjacency;
 
-    // 4. Three-valence — build the same group format the file-based path produces:
-    //    first group is {0} (instruction = 0, Annen alignment).
     tl_three_valence_override.clear();
     tl_three_valence_override.push_back({0});
     for (const auto& tv : joinery_data.three_valence)
         tl_three_valence_override.push_back({tv[0], tv[1], tv[2], tv[3]});
 
-    auto joints = get_connection_zones(elements, search_type);
-
-    tl_adjacency_override.clear();
-    tl_three_valence_override.clear();
-    return joints;
+    return get_connection_zones(elements, search_type);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

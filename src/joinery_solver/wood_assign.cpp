@@ -29,11 +29,23 @@ closest_segment_to_point(const session_cpp::Polyline& poly,
 {
     size_t best_seg = 0;
     double best_d2  = std::numeric_limits<double>::max();
-    const size_t n  = poly.point_count();
-    for (size_t i = 0; i + 1 < n; i++) {
-        auto seg            = session_cpp::Line::from_points(poly[i], poly[i + 1]);
-        auto [cp, t, dist]  = session_cpp::Closest::line_point(seg, p);
-        const double d2     = dist * dist;
+    // Inline squared point-segment distance on raw doubles. The old loop
+    // built a Line (name string + copies) and two by-value Points PER
+    // SEGMENT, then paid a sqrt in line_point only to square the result -
+    // and it runs O(query points x elements x 2 faces x segments), twice
+    // per solve.
+    const auto pts = poly.get_points();
+    const double qx = p[0], qy = p[1], qz = p[2];
+    for (size_t i = 0; i + 1 < pts.size(); i++) {
+        const double ax = pts[i][0],   ay = pts[i][1],   az = pts[i][2];
+        const double bx = pts[i+1][0], by = pts[i+1][1], bz = pts[i+1][2];
+        const double abx = bx-ax, aby = by-ay, abz = bz-az;
+        const double apx = qx-ax, apy = qy-ay, apz = qz-az;
+        const double len2 = abx*abx + aby*aby + abz*abz;
+        double t = len2 > 0.0 ? (apx*abx + apy*aby + apz*abz) / len2 : 0.0;
+        if (t < 0.0) t = 0.0; else if (t > 1.0) t = 1.0;
+        const double dx = apx - t*abx, dy = apy - t*aby, dz = apz - t*abz;
+        const double d2 = dx*dx + dy*dy + dz*dz;
         if (d2 < best_d2) { best_d2 = d2; best_seg = i; }
     }
     return {best_seg, best_d2};
@@ -77,9 +89,10 @@ RTree3 build_element_rtree(const std::vector<WoodElement>& elements, double infl
 // Returns 0 when the element has fewer than two polylines.
 size_t n_side_slots(const WoodElement& elem)
 {
-    return elem.polylines.size() > 1
-           ? elem.polylines[1].point_count() - 1
-           : 0;
+    // point_count() is size_t: 0 - 1 wrapped to SIZE_MAX for an element
+    // whose top polyline is empty, silently mis-sizing the slot vectors.
+    size_t n = elem.polylines.size() > 1 ? elem.polylines[1].point_count() : 0;
+    return n > 0 ? n - 1 : 0;
 }
 
 } // anonymous namespace
@@ -92,9 +105,15 @@ void assign_joint(
     const std::vector<int>&                point_types,
     std::vector<std::vector<int>>&         out_joint_types)
 {
-    const double dist   = globals::DISTANCE;
     // Same threshold as main branch: DISTANCE_SQUARED * 100 (rtree_util.cpp:227,245)
     const double d2_thr = globals::DISTANCE_SQUARED * 100.0;
+    // The broad phase must reach at least as far as the narrow phase
+    // accepts: with the defaults (DISTANCE 0.1, d2_thr 1.0 mm^2 -> 1.0 mm)
+    // a drawn point 0.2-1.0 mm outside an element's box passed the distance
+    // test but was never delivered by the R-tree - assignment silently
+    // skipped, and the failure moved whenever the two knobs were retuned
+    // independently.
+    const double dist = std::max(globals::DISTANCE, std::sqrt(d2_thr));
 
     // Initialize output.  Slot layout: 0=bot, 1=top, 2..N=side edges.
     out_joint_types.clear();

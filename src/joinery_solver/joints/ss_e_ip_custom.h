@@ -86,6 +86,10 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     session_cpp::Polyline pl_m1(m1);
     session_cpp::Polyline pl_f0(f0);
     session_cpp::Polyline pl_f1(f1);
+    // Guard mirrors b_custom/cr_c_ip_custom/ss_e_op_custom/ts_e_p_custom:
+    // custom joint polylines are user-set globals, and tile_face only checks
+    // the polyline COUNT, not point counts - front() on empty is UB.
+    if (m0.empty() || m1.empty() || f0.empty() || f1.empty()) { return; }
     session_cpp::Polyline ep_m0(std::vector<session_cpp::Point>{ m0.front(), m0.back() });
     session_cpp::Polyline ep_m1(std::vector<session_cpp::Point>{ m1.front(), m1.back() });
     session_cpp::Polyline ep_f0(std::vector<session_cpp::Point>{ f0.front(), f0.back() });

@@ -84,11 +84,33 @@ bool plates_exist(const std::string& wood_name) {
 // Load dataset → WoodElements.
 // Sets DATA_SET_INPUT_NAME + DATA_SET_OUTPUT_FILE globals.
 std::vector<wood_session::WoodElement> load_plates(const std::string& dataset_name, double duplicate_pts_tol) {
-    wood_session::globals::DUPLICATE_PTS_TOL = duplicate_pts_tol;
+    // The YAML knob was dead: globals_yaml() sets DUPLICATE_PTS_TOL from the
+    // config, and this unconditional overwrite with the parameter default
+    // (0.0) then stomped it before any dedup could run. Parameter wins when
+    // explicitly set; otherwise the config value applies. (Every shipped
+    // config currently says 0.0, so behaviour is unchanged until someone
+    // actually uses the knob - which is the point.)
+    double effective_tol = duplicate_pts_tol > 0.0
+                               ? duplicate_pts_tol
+                               : wood_session::globals::DUPLICATE_PTS_TOL;
+    wood_session::globals::DUPLICATE_PTS_TOL = effective_tol;
+    duplicate_pts_tol = effective_tol;
 
     const std::string obj_short = wood_name_to_obj_short(dataset_name);
     const std::string obj_path  = (session_data_dir() / (obj_short + ".obj")).string();
+    // read_file_obj_polylines opens an ifstream and just loops getline: a
+    // missing or unreadable file yields an EMPTY vector, no error. Combined
+    // with the __FILE__-baked data dir, that meant zero elements, a full
+    // pipeline run on nothing, and a green test - the false-green this repo
+    // has already shipped once. Fail loudly instead; callers that want to
+    // skip missing datasets check existence first (plates_exist).
+    if (!std::filesystem::exists(obj_path)) {
+        throw std::runtime_error("load_plates: dataset OBJ not found: " + obj_path);
+    }
     auto polylines = file_obj::read_file_obj_polylines(obj_path);
+    if (polylines.empty()) {
+        throw std::runtime_error("load_plates: no polylines in " + obj_path);
+    }
 
     if (duplicate_pts_tol > 0.0) {
         for (auto& pl : polylines) {

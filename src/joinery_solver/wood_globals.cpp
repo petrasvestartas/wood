@@ -65,7 +65,17 @@ std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
 namespace {
 
+// Runtime-settable override for the YAML config directory. __FILE__ bakes the
+// BUILD machine's checkout path into the binary - this repo's documented
+// wheel-breaking pattern (cf. the in-memory adjacency/TV overrides in
+// wood_main.cpp, 32a00ad): on any machine that did not build the binary,
+// globals_yaml() could only ever throw, and the whole "retune via YAML
+// without rebuilding" mechanism was dead for installed users.
+std::string g_config_dir_override;
+
 std::filesystem::path config_dir() {
+    if (!g_config_dir_override.empty())
+        return std::filesystem::path(g_config_dir_override);
     return std::filesystem::path(__FILE__).parent_path().parent_path() / "config";
 }
 
@@ -94,7 +104,12 @@ void reset_defaults() {
         300, 0.5,  58,
         300, 1.0,  60,
     };
-    JOINT_VOLUME_EXTENSION = { 0.0, 0.0, 0.0, 0.0, 0.0 };
+    // One shared [w, h, l] triple, matching the header's contract
+    // ("consecutive triples per joint-type override; default is one
+    // shared triple"). The old 5-entry default was a half triple that
+    // any consumer honoring the documented layout would misread; all
+    // entries were 0.0, so behaviour is unchanged.
+    JOINT_VOLUME_EXTENSION = { 0.0, 0.0, 0.0 };
     JOINT_SCALE = { 1.0, 1.0, 1.0 };
     OUTPUT_GEOMETRY_TYPE                              = 4;
     FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE   = 150.0;
@@ -133,6 +148,10 @@ void reset_defaults() {
     CUSTOM_JOINTS_B_MALE.clear();         CUSTOM_JOINTS_B_FEMALE.clear();
 }
 
+void set_config_dir(const std::string& dir) {
+    g_config_dir_override = dir;
+}
+
 void globals_yaml(const std::string& dataset_name) {
     reset_defaults();
 
@@ -146,23 +165,51 @@ void globals_yaml(const std::string& dataset_name) {
     // Every read is gated by y.has(...). Missing keys keep the value set by
     // reset_defaults() above — TinyYaml's operator[] dereferences a null
     // shared_ptr on miss (UB), so we must NOT touch absent keys.
-    auto str  = [&](const char* k) -> std::string& { return y[k].getData<std::string>(); };
-    auto list = [&](const char* k) -> std::vector<std::string>& { return y[k].getData<std::vector<std::string>>(); };
+    // hasData() must ALSO be checked per read: y.has(k) only proves the key
+    // exists, but TinyYaml stores a bare `key:` (no value) as a nullptr
+    // payload, and getData<T> is *static_pointer_cast<T>(m_data) with no null
+    // check - a user-edited config could null-deref here. (TinyYaml carries
+    // no type tag either, so a scalar where a list is expected still
+    // reinterprets - that half needs an upstream yaml.hpp fix; every read
+    // below at least validates the PARSED content before applying it.)
+    auto str = [&](const char* k) -> std::string {
+        if (!y[k].hasData()) {
+            throw std::runtime_error(std::string("globals_yaml: key '") + k +
+                                     "' is present but has no value");
+        }
+        return y[k].getData<std::string>();
+    };
+    auto list = [&](const char* k) -> std::vector<std::string> {
+        if (!y[k].hasData()) {
+            throw std::runtime_error(std::string("globals_yaml: key '") + k +
+                                     "' is present but has no value");
+        }
+        return y[k].getData<std::vector<std::string>>();
+    };
 
     if (y.has("joints_parameters_and_types")) {
-        auto& jpt = list("joints_parameters_and_types");
+        auto jpt = list("joints_parameters_and_types");
         if (!jpt.empty()) {
-            JOINTS_PARAMETERS_AND_TYPES = parse_doubles(jpt);
+            auto parsed = parse_doubles(jpt);
+            // 7 families x [division_length, shift, type]. A truncated list
+            // used to reach the geometry stage and index out of bounds.
+            if (parsed.size() < 21 || parsed.size() % 3 != 0) {
+                throw std::runtime_error(
+                    "globals_yaml: joints_parameters_and_types has " +
+                    std::to_string(parsed.size()) +
+                    " values; expected at least 21 (7 families x 3) in multiples of 3");
+            }
+            JOINTS_PARAMETERS_AND_TYPES = std::move(parsed);
         }
     }
     if (y.has("joint_volume_extension")) {
-        auto& jve = list("joint_volume_extension");
+        auto jve = list("joint_volume_extension");
         if (!jve.empty()) {
             JOINT_VOLUME_EXTENSION = parse_doubles(jve);
         }
     }
     if (y.has("joint_scale")) {
-        auto& jsc = list("joint_scale");
+        auto jsc = list("joint_scale");
         if (jsc.size() >= 3) {
             std::vector<double> s = parse_doubles(jsc);
             JOINT_SCALE = { s[0], s[1], s[2] };
@@ -219,7 +266,7 @@ void globals_yaml(const std::string& dataset_name) {
     }
 
     if (y.has("existing_types")) {
-        auto& et = list("existing_types");
+        auto et = list("existing_types");
         if (!et.empty()) {
             EXISTING_TYPES = et;
         }

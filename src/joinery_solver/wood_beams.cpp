@@ -1,6 +1,7 @@
 // wood/wood_beams.cpp — beam volumes pipeline.
 // Implementation of beam_volumes_pipeline declared in wood_session.h.
 // Takes beam axes and radii as input; no OBJ file I/O.
+#include <cstdlib>
 #include "wood_session.h"
 #include "wood_element.h"
 #include "wood_face_to_face.h"
@@ -64,12 +65,18 @@ void beam_volumes_pipeline(
         int pid0, sid0, pid1, sid1;
     };
     std::map<uint64_t, Contact> contacts;
+    // Materialize each axis's points ONCE: get_points() builds a fresh
+    // vector of string-bearing Points, and the old inner-loop copy ran
+    // O(axes x segments x axes) times instead of O(axes).
+    std::vector<std::vector<Point>> all_axis_pts;
+    all_axis_pts.reserve(axes.size());
+    for (const auto& ax : axes) all_axis_pts.push_back(ax.get_points());
     for (size_t a = 0; a < axes.size(); a++) {
-        auto pa = axes[a].get_points();
+        const auto& pa = all_axis_pts[a];
         for (size_t sa = 0; sa + 1 < pa.size(); sa++) {
             Line la = Line::from_points(pa[sa], pa[sa+1]);
             for (size_t b = a + 1; b < axes.size(); b++) {
-                auto pb = axes[b].get_points();
+                const auto& pb = all_axis_pts[b];
                 for (size_t sb = 0; sb + 1 < pb.size(); sb++) {
                     Line lb = Line::from_points(pb[sb], pb[sb+1]);
                     double t0, t1;
@@ -164,10 +171,23 @@ void beam_volumes_pipeline(
 
         // Rectangle generation. The prism reference z-axis is the caller-
         // supplied segment direction when present, else the contact normal.
-        Vector sn0 = segment_direction.empty() ? normal : segment_direction[c.pid0][c.sid0];
-        Vector sn1 = segment_direction.empty() ? normal : segment_direction[c.pid1][c.sid1];
-        double r0 = segment_radii[c.pid0][c.sid0];
-        double r1 = segment_radii[c.pid1][c.sid1];
+        // Caller-supplied per-axis arrays are input: a segment_direction or
+        // segment_radii list shorter than the contact ids was a raw OOB
+        // read. The eccentricity pass below already distrusts the same data.
+        auto seg_dir_ok = [&](int pid, int sid) {
+            return !segment_direction.empty() &&
+                   pid >= 0 && pid < (int)segment_direction.size() &&
+                   sid >= 0 && sid < (int)segment_direction[pid].size();
+        };
+        auto seg_rad = [&](int pid, int sid) -> double {
+            if (pid < 0 || pid >= (int)segment_radii.size()) return 0.0;
+            if (sid < 0 || sid >= (int)segment_radii[pid].size()) return 0.0;
+            return segment_radii[pid][sid];
+        };
+        Vector sn0 = seg_dir_ok(c.pid0, c.sid0) ? segment_direction[c.pid0][c.sid0] : normal;
+        Vector sn1 = seg_dir_ok(c.pid1, c.sid1) ? segment_direction[c.pid1][c.sid1] : normal;
+        double r0 = seg_rad(c.pid0, c.sid0);
+        double r1 = seg_rad(c.pid1, c.sid1);
 
         std::array<Polyline, 4> beam_vol;
         Polyline::two_rects_from_frame(
@@ -355,7 +375,7 @@ void beam_volumes_pipeline(
     //                             match wood's `output_plines` granularity
     //                             where each CGAL_Polyline gets its own
     //                             `polyline_group` — wood_test.cpp:3749-3752)
-    {
+    if (std::getenv("WOOD_F2F_DUMP") != nullptr) {
         std::ofstream meta_out((base / (pb_name + "_meta.txt")).string());
         std::ofstream coord_out((base / (pb_name + "_coords.txt")).string());
         auto emit = [&](int ei, const Polyline& pl) {

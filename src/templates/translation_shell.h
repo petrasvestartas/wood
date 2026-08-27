@@ -176,14 +176,17 @@ private:
 
         std::vector<std::vector<size_t>> faces;
         for (size_t i = 1; i < nP; ++i) {
-            Point  pi  = profile[i];
-            Point  pip = profile[i - 1];
-            Vector step(pi[0]-pip[0], pi[1]-pip[1], pi[2]-pip[2]);
+            // Closed form per row: building row i from row i-1 compounded a
+            // rounding step per row; the offset from profile[0] is exact and
+            // equally cheap.
+            Vector off(profile[i][0]-profile[0][0],
+                       profile[i][1]-profile[0][1],
+                       profile[i][2]-profile[0][2]);
 
             size_t row = all_pts.size();
             for (size_t j = 0; j < nC; ++j) {
-                const Point& prev = all_pts[row - nC + j];
-                all_pts.push_back(Point(prev[0]+step[0], prev[1]+step[1], prev[2]+step[2]));
+                const Point& base = all_pts[j];
+                all_pts.push_back(Point(base[0]+off[0], base[1]+off[1], base[2]+off[2]));
             }
             for (size_t j = 0; j + 1 < nC; ++j) {
                 size_t new_j  = row + j;

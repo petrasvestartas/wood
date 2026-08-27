@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include "session.h"
 #include "polyline.h"
 #include "tolerance.h"
@@ -51,7 +52,7 @@ public:
         if (nx < 1 || ny < 1)
             throw std::invalid_argument("ReciprocalMove: nx and ny must be >= 1");
         dome_mesh = _make_dome(nx, ny, W, D, h);
-        _build(dome_mesh, angle, beam_w, beam_h, extend_factor);
+        _build(dome_mesh, angle, beam_w, beam_h, extend_factor, cut_offset_factor);
     }
 
     /// External mesh constructor — use any mesh as the base.
@@ -63,7 +64,7 @@ public:
                             double cut_offset_factor = 1.0)
     {
         dome_mesh = std::move(ext_mesh);
-        _build(dome_mesh, angle, beam_w, beam_h, extend_factor);
+        _build(dome_mesh, angle, beam_w, beam_h, extend_factor, cut_offset_factor);
     }
 
 private:
@@ -257,7 +258,7 @@ private:
     // ── main build ───────────────────────────────────────────────────────────
 
     void _build(const Mesh& m, double angle, double beam_w, double beam_h,
-                double extend_factor)
+                double extend_factor, double cut_offset_factor = 1.0)
     {
         if (beam_w <= 0.0)
             throw std::invalid_argument("ReciprocalMove: beam_w must be positive");
@@ -341,17 +342,40 @@ private:
         }
         std::vector<int> edgeColors(total_he, -1);
         {
+            // total_he == 0 (a mesh with no faces, reachable through the
+            // any-mesh constructor) used to write edgeColors[0] into an
+            // empty vector - UB straight from the Python binding.
+            if (total_he == 0) { return; }
+            // Seed a BFS in EVERY unvisited component: the old single seed
+            // at index 0 left all other components at -1, which the `!= 0`
+            // consumer below treated as color 1 - disconnected mesh parts
+            // silently produced no beams at all. Odd face cycles (triangles,
+            // pentagons) cannot be 2-colored; detect the conflict instead of
+            // breaking the one-beam-per-physical-edge invariant silently.
             std::queue<int> q;
-            edgeColors[0] = 0;
-            q.push(0);
-            while (!q.empty()) {
-                int v = q.front(); q.pop();
-                for (int nb : he_adj[v]) {
-                    if (edgeColors[nb] == -1) {
-                        edgeColors[nb] = 1 - edgeColors[v];
-                        q.push(nb);
+            bool conflict = false;
+            for (int seed = 0; seed < total_he; ++seed) {
+                if (edgeColors[seed] != -1) continue;
+                edgeColors[seed] = 0;
+                q.push(seed);
+                while (!q.empty()) {
+                    int v = q.front(); q.pop();
+                    for (int nb : he_adj[v]) {
+                        if (edgeColors[nb] == -1) {
+                            edgeColors[nb] = 1 - edgeColors[v];
+                            q.push(nb);
+                        } else if (edgeColors[nb] == edgeColors[v]) {
+                            conflict = true;
+                        }
                     }
                 }
+            }
+            if (conflict) {
+                fprintf(stderr,
+                        "  WARNING: ReciprocalMove half-edge 2-coloring found an odd "
+                        "cycle (non-quad face) - beam selection may be inconsistent. "
+                        "Use an even-gon (quad) mesh.\n");
+                fflush(stderr);
             }
         }
 
@@ -470,17 +494,31 @@ private:
                     double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
                     if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
                     else             raw = cross3(EF[ci][cj].dir, face_norms[i]);
-                    // Degenerate: cut plane normal ⊥ beam direction → flat cap fallback
+                    // Degenerate: cut plane normal ~perpendicular to beam
+                    // direction -> flat cap fallback. NOTE the breadth of
+                    // this net: cos(angle) < 0.15 means any crossing beam
+                    // within ~8.6 deg of perpendicular to our cut normal
+                    // (i.e. up to ~81 deg from the beam axis) gets a flat
+                    // cap instead of the angled interlock. Kept at the
+                    // historical value for output stability; tighten
+                    // deliberately if flat caps appear where interlocks are
+                    // expected.
+                    constexpr double FLAT_CAP_ALIGNMENT_THRESHOLD = 0.15;
                     double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
-                    if (alignment < 0.15) return {endpoint, bdir};
+                    if (alignment < FLAT_CAP_ALIGNMENT_THRESHOLD) return {endpoint, bdir};
                     Point org = midpt(EF[ci][cj].from, EF[ci][cj].to);
                     double dot = (our_center[0]-org[0])*raw[0]
                                + (our_center[1]-org[1])*raw[1]
                                + (our_center[2]-org[2])*raw[2];
                     if (dot < 0) raw = Vector(-raw[0], -raw[1], -raw[2]);
-                    Point face_org(org[0] + (beam_w*0.5)*raw[0],
-                                   org[1] + (beam_w*0.5)*raw[1],
-                                   org[2] + (beam_w*0.5)*raw[2]);
+                    // cut_offset_factor was accepted by both constructors
+                    // and silently dropped; ReciprocalRotation applies it to
+                    // the face offset, so mirror that here. Default 1.0
+                    // preserves all existing output.
+                    const double face_off = beam_w * 0.5 * cut_offset_factor;
+                    Point face_org(org[0] + face_off*raw[0],
+                                   org[1] + face_off*raw[1],
+                                   org[2] + face_off*raw[2]);
                     return {face_org, raw};
                 };
 
@@ -492,7 +530,7 @@ private:
                     double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
                     if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
                     double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
-                    if (alignment < 0.15) return {endpoint, bdir};
+                    if (alignment < 0.15) return {endpoint, bdir};  // see FLAT_CAP note above
                     return {endpoint, raw};
                 };
 

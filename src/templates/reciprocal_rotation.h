@@ -80,7 +80,8 @@ private:
 
         Reciprocal::Result r = Reciprocal::from_mesh(m, angle, scale, true, beam_h);
 
-        std::vector<std::pair<size_t,size_t>> ekeys = m.edges();
+        // (m.edges() was computed here and never used - a full directed-edge
+        // set build per construction.)
         for (int ei = 0; ei < (int)r.center.size(); ei++) {
             Line          ln  = r.center[ei];
             const Vector& up  = r.lineplanes[ei].y_axis();

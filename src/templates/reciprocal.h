@@ -127,9 +127,14 @@ inline Reciprocal::Result Reciprocal::from_mesh(
 
     std::map<size_t, Plane> fplane;
     for (size_t fk : fkeys) {
-        auto n = mesh.face_normal(fk).value();
-        auto c = mesh.face_centroid(fk).value();
-        fplane[fk] = Plane::from_point_normal(c, n);
+        // A single degenerate face (<3 vertices) used to abort the whole
+        // build with bad_optional_access surfacing as an opaque error in the
+        // Python binding. Skip it; edges bordering only skipped faces get a
+        // zero direction vector below and are themselves skipped.
+        auto n = mesh.face_normal(fk);
+        auto c = mesh.face_centroid(fk);
+        if (!n || !c) { continue; }
+        fplane[fk] = Plane::from_point_normal(*c, *n);
     }
 
     std::vector<std::vector<int>> fe(nf);
@@ -140,21 +145,48 @@ inline Reciprocal::Result Reciprocal::from_mesh(
         }
     }
 
+    // Adjacency built ONCE from the faces. edge_faces() scans every face on
+    // every call (O(E*F) over the loop) and edge_line() rebuilds the whole
+    // directed-edge set per call (O(E^2 log E)) just to validate an edge we
+    // already know exists - session_cpp's own header warns against exactly
+    // this pattern.
+    std::map<std::pair<size_t,size_t>, std::vector<size_t>> edge_adj_faces;
+    for (int fi = 0; fi < nf; fi++) {
+        auto fe_opt = mesh.face_edges(fkeys[fi]);
+        if (!fe_opt) continue;
+        for (auto& [u, v] : *fe_opt) {
+            auto key = std::make_pair(std::min(u, v), std::max(u, v));
+            edge_adj_faces[key].push_back(fkeys[fi]);
+        }
+    }
+
     std::vector<Vector> vecs(ne, Vector(0, 0, 0));
     for (int ei = 0; ei < ne; ei++) {
-        auto adj = mesh.edge_faces(ekeys[ei].first, ekeys[ei].second);
-        if (!adj) continue;
+        auto key = std::make_pair(std::min(ekeys[ei].first, ekeys[ei].second),
+                                  std::max(ekeys[ei].first, ekeys[ei].second));
+        auto it = edge_adj_faces.find(key);
+        if (it == edge_adj_faces.end() || it->second.empty()) continue;
         Vector sum(0, 0, 0);
-        for (size_t fk : *adj)
-            sum += fplane[fk].z_axis();
-        Vector avg = sum / (double)adj->size();
+        size_t used = 0;
+        for (size_t fk : it->second) {
+            auto pit = fplane.find(fk);
+            if (pit == fplane.end()) continue;  // degenerate face skipped above
+            sum += pit->second.z_axis();
+            used++;
+        }
+        if (used == 0) continue;
+        Vector avg = sum / (double)used;
         if (!avg.is_zero())
             vecs[ei] = avg.normalized();
     }
 
     std::vector<Line> lines(ne);
-    for (int ei = 0; ei < ne; ei++)
-        lines[ei] = mesh.edge_line(ekeys[ei].first, ekeys[ei].second).value();
+    for (int ei = 0; ei < ne; ei++) {
+        auto pu = mesh.vertex_point(ekeys[ei].first);
+        auto pv = mesh.vertex_point(ekeys[ei].second);
+        if (!pu || !pv) continue;  // paired with zero vecs -> edge skipped
+        lines[ei] = Line::from_points(*pu, *pv);
+    }
 
     for (int ei = 0; ei < ne; ei++) {
         if (vecs[ei].is_zero()) continue;

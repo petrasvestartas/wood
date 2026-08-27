@@ -127,7 +127,11 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             if (jm[0].size() < 2 || jm[1].size() < 2) {
                 continue;
             }
-            if (jm[0][1].point_count() == 0 || jm[1][1].point_count() == 0) {
+            if (jm[0][1].point_count() < 2 || jm[1][1].point_count() < 2) {
+                // Read at indices 0 AND 1 below; Polyline::get_point returns
+                // the (0,0,0) sentinel for out-of-range indices, so a 1-point
+                // marker did not fail - it silently relocated the merged
+                // outline's vertices toward the world origin.
                 continue;
             }
 
@@ -223,6 +227,11 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
             }
 
             // wood_element.cpp:861-867
+            // Element data comes from input files; the counts are not an
+            // invariant. pline0.size()==1 made n==0 and `% 0` is a hardware
+            // integer-divide fault; a plane list inconsistent with the
+            // outline made joint_planes[2+prev] and pline0[id] raw OOB.
+            if (pline0.size() < 4 || joint_planes.size() != pline0.size() + 1) { continue; }
             size_t n = pline0.size() - 1;       // open count
             int    id = static_cast<int>(i) - 2;
             int    prev = ((int)n + id - 1) % (int)n;

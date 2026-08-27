@@ -107,9 +107,12 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
     apply_unit_scale(joint);
 
     Xform xf0 = Xform::from_change_of_basis(*vols[0], *vols[1]);
+    // Two-volume joints (every type-30 cross joint) take the fallback; it
+    // used to re-run the full Gaussian-elimination basis solve with the
+    // exact inputs of xf0 one line above.
     Xform xf1 = (vols[2].has_value() && vols[3].has_value())
         ? Xform::from_change_of_basis(*vols[2], *vols[3])
-        : Xform::from_change_of_basis(*vols[0], *vols[1]);
+        : xf0;
 
     // Transform male outlines with xf0, female with xf1, in place.
     // Polyline::transformed is itself copy-then-transform, so `pl = pl.transformed(x)`
@@ -127,6 +130,11 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
     if (joint.linked_joints_seq.size() != joint.linked_joints.size()) { return; }
 
     for (int i = 0; i < (int)joint.linked_joints.size(); i++) {
+        // linked_joints carries indices produced by an earlier pipeline
+        // stage; a stale or corrupted entry was raw operator[] UB while
+        // everything else in this file bounds-checks its element ids.
+        if (joint.linked_joints[i] < 0 ||
+            joint.linked_joints[i] >= (int)all_joints.size()) { continue; }
         // wood: m_f_curr = v0 == linked.v0
         bool m_f_curr = joint.el_ids.first == all_joints[joint.linked_joints[i]].el_ids.first;
         bool m_f_next = m_f_curr;
@@ -454,7 +462,11 @@ void tt_e_p_3(WoodJoint& joint,
         double dx = op_pts.front()[0] - op_pts.back()[0];
         double dy = op_pts.front()[1] - op_pts.back()[1];
         double dz = op_pts.front()[2] - op_pts.back()[2];
-        if (dx*dx + dy*dy + dz*dz > 0.01 /* DISTANCE_SQUARED */) {
+        // Read the runtime global rather than freezing its default: datasets
+        // that scale DISTANCE_SQUARED from YAML (hexboxes: 1.0) otherwise had
+        // the drill-point generator disagreeing with merge/detection about
+        // whether this polygon is closed.
+        if (dx*dx + dy*dy + dz*dz > wood_session::globals::DISTANCE_SQUARED) {
             points.push_back(op_pts.back());
         }
     }
@@ -480,6 +492,15 @@ void tt_e_p_3(WoodJoint& joint,
     joint.m_cut_types[1].clear();
     joint.f_cut_types[0].clear();
     joint.f_cut_types[1].clear();
+    // 4 Polyline copies + 4 cut-type ints land in each of the 8 vectors per
+    // drill point (up to ~100 points per tt_e_p joint) - without reserve
+    // that was repeated reallocation of string-bearing Polylines.
+    for (int f = 0; f < 2; f++) {
+        joint.m_outlines[f].reserve(points.size() * 2);
+        joint.f_outlines[f].reserve(points.size() * 2);
+        joint.m_cut_types[f].reserve(points.size() * 2);
+        joint.f_cut_types[f].reserve(points.size() * 2);
+    }
 
     for (const Point& pt : points) {
         Polyline line0(std::vector<Point>{
