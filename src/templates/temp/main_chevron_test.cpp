@@ -52,7 +52,7 @@ int main() {
         760.0, // box_height
         80.0,  // top_plate_inlet
         40.0,  // plate_thickness
-        true); // ortho
+        {1,1,1,1}); // ortho_edges (was `true`)
 
     std::cout << "Plates: " << plates.plines.size() << "\n";
 

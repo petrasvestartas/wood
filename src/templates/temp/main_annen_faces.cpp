@@ -3,6 +3,7 @@
 #include "session.h"
 #include "element.h"
 #include "file_obj.h"
+#include "pair_polylines.h"
 using namespace session_cpp;
 
 int main() {
@@ -12,7 +13,7 @@ int main() {
 
     // 1. Import + pair polylines
     auto polylines = file_obj::read_file_obj_polylines((base / "data" / "annen_polylines.obj").string());
-    auto pairs = file_obj::pair_polylines(polylines);
+    auto pairs = wood::pair_polylines(polylines);
     auto t1 = Clock::now();
 
     // 2. Create session with elements

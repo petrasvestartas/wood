@@ -98,6 +98,13 @@ function(ADD_SESSION_EXE NAME SRC)
         ${SESSION_CPP_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        # The template headers (reciprocal.h, vda_mesh.h, chevron.h) live here
+        # and are included unqualified by the mains under src/templates/temp/.
+        # Without this, main_beam_reciprocal and main_vda_mesh fail to compile.
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
+        # nlohmann/json, header-only, vendored in session_cpp. main_vda_mesh
+        # needs it; wood_nano adds the same path for its _datasets module.
+        ${SESSION_CPP_DIR}/src/json/include
     )
     target_link_libraries(${NAME} PRIVATE session_core)
     LINK_PROTOBUF(${NAME})
@@ -109,7 +116,11 @@ ADD_WOOD_EXE(main_joint_types        examples/main_joint_types.cpp)
 ADD_WOOD_EXE(main_cross_corners      examples/main_cross_corners.cpp)
 ADD_WOOD_EXE(main_all_datasets       examples/main_all_datasets.cpp src/joinery_solver/wood_test.cpp)
 ADD_WOOD_EXE(main_dataset_runner     examples/main_dataset_runner.cpp src/joinery_solver/wood_test.cpp)
-ADD_WOOD_EXE(main_cross_polylines    examples/main_cross_polylines.cpp)
+# main_cross_polylines is gone: it was built on session_cpp's ElementFeature /
+# CrossElementFeature subsystem, deleted upstream in 57a9b3f7 as "dead
+# ElementFeature/Joint subsystem (only-self-referential, real joinery bypasses
+# it)". There is no replacement to port it to - Element::add_feature is a mesh
+# transform, not a pairwise relation - and it was the only caller left.
 ADD_WOOD_EXE(main_cdt_probe          examples/main_cdt_probe.cpp)
 ADD_SESSION_EXE(main_annen_chevron    src/templates/temp/main_annen_chevron.cpp)
 ADD_SESSION_EXE(main_beam_reciprocal  src/templates/temp/main_beam_reciprocal.cpp)

@@ -86,7 +86,7 @@ int main() {
         Mesh m = wood_chevron::chevron_mesh(surfaces[i], 4, 900.0, 0.5, 0.05799);
         m.name = "chevron_" + std::to_string(i);
 
-        auto res = wood_chevron::chevron_plates(m, 1.0, 0.5, 760.0, 80.0, 40.0, true);
+        auto res = wood_chevron::chevron_plates(m, 1.0, 0.5, 760.0, 80.0, 40.0, {1,1,1,1});
 
         std::cout << "  [" << i << "] v=" << m.number_of_vertices()
                   << " f=" << m.number_of_faces()

@@ -1,6 +1,6 @@
 #include "vda_mesh.h"
 
-#include "json.hpp"
+#include "json.h"   // nlohmann 3.11.3, vendored in session_cpp as json.h (not .hpp)
 #include <fstream>
 #include <iostream>
 

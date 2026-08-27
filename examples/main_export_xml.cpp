@@ -1,4 +1,5 @@
 #include "file_obj.h"
+#include "pair_polylines.h"
 #include "polyline.h"
 #include <fstream>
 #include <filesystem>
@@ -9,7 +10,7 @@ int main() {
     auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
     auto polylines = file_obj::read_file_obj_polylines(
         (base / "session_data" / "annen_polylines.obj").string());
-    auto pairs = file_obj::pair_polylines(polylines);
+    auto pairs = wood::pair_polylines(polylines);
 
     fmt::print("{} polylines, {} pairs\n", polylines.size(), pairs.size());
 
