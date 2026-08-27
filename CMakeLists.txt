@@ -46,8 +46,23 @@ endif()
 # session_cpp - once it is added as a subdirectory. Without this it stops with
 # "No generated protobuf files found in <wood>/generated". wood_nano carries
 # the same copy step for the same reason.
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/generated")
-    message(STATUS "wood: copying session_cpp/generated into ${CMAKE_SOURCE_DIR}/generated")
+# Refresh it on every configure rather than copying once. This was guarded by
+# `if(NOT EXISTS "${CMAKE_SOURCE_DIR}/generated")`, so once the directory
+# existed it was never updated again. session_cpp regenerated its protobuf
+# sources with a newer protoc, and every build here went on using the stale
+# snapshot until it stopped compiling altogether with
+#   error C1189: "Protobuf C++ gencode is built with an incompatible version"
+# because the pinned PROTOBUF_VERSION no longer matched the runtime headers.
+# That is why wood could not be rebuilt for months.
+#
+# file(COPY) preserves timestamps and skips files that already match, so this
+# costs nothing when it is already current.
+if(IS_SYMLINK "${CMAKE_SOURCE_DIR}/generated")
+    # A developer may symlink it straight at session_cpp; that is always fresh,
+    # and copying onto it would have source and destination be the same files.
+    message(STATUS "wood: generated/ is a symlink, leaving it as is")
+else()
+    message(STATUS "wood: syncing session_cpp/generated into ${CMAKE_SOURCE_DIR}/generated")
     file(COPY "${SESSION_CPP_DIR}/generated" DESTINATION "${CMAKE_SOURCE_DIR}")
 endif()
 

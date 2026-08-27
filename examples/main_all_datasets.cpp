@@ -1,6 +1,6 @@
 // main_all_datasets.cpp — run all 43 wood datasets in sequence.
 //
-Each dataset writes WoodF2F_<name>.pb
+// Each dataset writes WoodF2F_<name>.pb
 // to session_data/ — datasets missing their OBJ are silently skipped.
 //
 // ── Rhino viewer (paste into Rhino 8 ScriptEditor, venv: session_py) ──────

@@ -212,3 +212,13 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# One-off build log captures. Twenty of these were committed to the repo root
+# (build_log.txt, build_out2.txt, build_output_fresh.txt, ...), all of them
+# snapshots of a single May 2026 debugging session pointing at a layout that no
+# longer exists. Redirect build output to a scratch directory, not the repo.
+build_*.txt
+error_lines.txt
+
+# Program output belongs in data/output/, not the repo root.
+/translation_shell.json

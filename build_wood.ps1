@@ -1,1 +1,0 @@
-Set-Location 'C:\pc\3_code\wood\cmake\build'n | Out-File 'C:\pc\3_code\wood\build_errors.txt' -Encoding utf8nWrite-Host 'Build complete'n | Select-String 'error C[0-9]+'nif ( | Select-Object -First 50 } else { Write-Host 'NO_COMPILER_ERRORS' }nif (Test-Path 'C:\pc\3_code\wood\cmake\build\Release\wood.exe') { Write-Host 'wood.exe EXISTS' } else { Write-Host 'wood.exe MISSING' }n
