@@ -47,11 +47,25 @@ jobs:
     - name: Build
       run: cmake --build build --config Release --parallel 4
 
-    # Smoke-test the kernel across all 44 datasets. Bounded on purpose, see
-    # CLAUDE.md: the whole sweep is ~2.5 s and ~0.3 GB, so ten minutes is a
-    # wedged-process detector rather than a budget. timeout exits 124 on expiry.
+    # This sweep has never actually run on Linux - CI died at the build, or at
+    # the old `./wood` step, long before reaching it - and it segfaults here
+    # within 0.1 s while working fine on Windows. stdbuf keeps the output when
+    # the process dies, since a segfault never flushes a buffered stdout, and
+    # gdb turns "exit 139" into a stack to read.
+    - name: Diagnose
+      run: |
+        sudo apt-get install -y gdb
+        echo "pwd: $(pwd)"
+        echo "data/ entries: $(ls data 2>/dev/null | wc -l)"
+        echo "config/ entries: $(ls config 2>/dev/null | wc -l)"
+        echo "--- main_hello (does any wood binary run at all?) ---"
+        stdbuf -oL -eL timeout 60 build/main_hello || echo "main_hello exit=$?"
+        echo "--- main_all_datasets backtrace ---"
+        gdb -batch -ex run -ex 'bt 25' --args build/main_all_datasets 2>&1 | tail -45
+
+    # Bounded on purpose, see CLAUDE.md: the sweep is ~2.5 s and ~0.3 GB, so
+    # ten minutes detects a wedged process rather than budgeting for a slow one.
+    # timeout exits 124 on expiry.
     - name: Run all datasets
       run: |
-        BIN=build/main_all_datasets
-        [ -x "$BIN" ] || BIN=build/Release/main_all_datasets
-        timeout 600 "$BIN"
+        stdbuf -oL -eL timeout 600 build/main_all_datasets
