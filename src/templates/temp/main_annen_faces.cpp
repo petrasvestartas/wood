@@ -4,6 +4,8 @@
 #include "element.h"
 #include "file_obj.h"
 #include "pair_polylines.h"
+#include "wood_element.h"
+#include "wood_session.h"
 using namespace session_cpp;
 
 int main() {
@@ -16,26 +18,31 @@ int main() {
     auto pairs = wood::pair_polylines(polylines);
     auto t1 = Clock::now();
 
-    // 2. Create session with elements
-    Session session("WoodComplete");
-    auto g = session.add_group("Elements");
-    for (auto [a, b] : pairs) {
-        session.add_element(std::make_shared<ElementPlate>(
-            polylines[a], polylines[b], "plate_" + std::to_string(a)), g);
-    }
+    // 2. Build WoodElements from the (bottom, top) outline pairs.
+    //
+    // This used to make a session_cpp::ElementPlate per pair and then call
+    // Session::compute_face_to_face. Both were deleted from session_cpp in
+    // 89da090c ("refactoring"), so the contact search now runs through wood's
+    // own pipeline, which is what that session-side helper was standing in for.
+    std::vector<wood_session::WoodElement> elements;
+    elements.reserve(pairs.size());
+    for (auto [a, b] : pairs) { elements.emplace_back(polylines[a], polylines[b]); }
     auto t2 = Clock::now();
 
-    // 3. Compute face-to-face contacts (adjacency + boolean intersection → graph edges)
-    session.compute_face_to_face(5.0, 50.0);
+    // 3. Face-to-face contacts: broad-phase adjacency + joint classification.
+    std::vector<wood_session::WoodJoint> joints =
+        get_connection_zones(elements, face_to_face);
     auto t3 = Clock::now();
 
     // 4. Save
+    Session session("WoodComplete");
+    fill_session(session, elements, joints, true);
     session.pb_dump((base / "data" / "output" / "WoodComplete.pb").string());
     auto t4 = Clock::now();
 
     auto ms = [](auto a, auto b) { return std::chrono::duration<double,std::milli>(b-a).count(); };
     fmt::print("{} polylines -> {} elements -> {} joints\n",
-        polylines.size(), pairs.size(), session.graph.number_of_edges());
+        polylines.size(), elements.size(), joints.size());
     fmt::print("  import+pair: {:.0f}ms  elements: {:.0f}ms  contacts: {:.0f}ms  save: {:.0f}ms  total: {:.0f}ms\n",
         ms(t0,t1), ms(t1,t2), ms(t2,t3), ms(t3,t4), ms(t0,t4));
     return 0;

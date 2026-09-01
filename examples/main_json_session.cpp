@@ -5,6 +5,7 @@
 #include "element.h"
 #include "intersection.h"
 #include "json.h"
+#include "wood_element.h"   // WoodElement replaces the deleted ElementPlate
 using namespace session_cpp;
 
 static std::vector<Point> json_to_points(const nlohmann::json& arr) {
@@ -33,7 +34,7 @@ int main() {
 
     auto t0 = std::chrono::high_resolution_clock::now();
 
-    // 2. Create ElementPlates and add to session
+    // 2. Create plate Elements and add to session
     Session session("WoodStep4_Joints");
     auto g_elem = session.add_group("Elements");
     std::vector<Element*> elem_ptrs(N);
@@ -41,7 +42,10 @@ int main() {
         auto& e = data["elements"][i];
         auto bottom = json_to_points(e["polygon"]);
         auto top = e.contains("polygon_top") ? json_to_points(e["polygon_top"]) : bottom;
-        auto elem = std::make_shared<ElementPlate>(bottom, top, "plate_" + std::to_string(i));
+        // ElementPlate was deleted from session_cpp in 89da090c; WoodElement
+        // lofts the same (bottom, top) pair into the plate solid.
+        wood_session::WoodElement plate{Polyline(bottom), Polyline(top)};
+        auto elem = std::make_shared<Element>(plate.loft_mesh(), "plate_" + std::to_string(i));
         session.add_element(elem, g_elem);
         elem_ptrs[i] = elem.get();
     }

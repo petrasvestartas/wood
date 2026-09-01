@@ -499,29 +499,6 @@ bool plane_to_face(
 }
 
 bool plane_to_face(
-    ElementPlate* a,
-    ElementPlate* b,
-    CrossJoint& result,
-    double angle_tol,
-    const std::array<double,3>& extension) {
-
-    if (!a || !b) { return false; }
-    // polylines()/planes() return by value (deep copies of every face); keep
-    // the copies alive in locals but forward references into the core so the
-    // former array-of-values staging copies are gone.
-    auto polys_a = a->polylines();
-    auto polys_b = b->polylines();
-    auto planes_a = a->planes();
-    auto planes_b = b->planes();
-    if (polys_a.size() < 2 || polys_b.size() < 2) { return false; }
-    if (planes_a.size() < 2 || planes_b.size() < 2) { return false; }
-
-    return plane_to_face(polys_a[0], polys_a[1], polys_b[0], polys_b[1],
-                         planes_a[0], planes_a[1], planes_b[0], planes_b[1],
-                         result, angle_tol, extension);
-}
-
-bool plane_to_face(
     const std::array<Polyline,2>& polylines_a,
     const std::array<Polyline,2>& polylines_b,
     const std::array<Plane,2>& planes_a,

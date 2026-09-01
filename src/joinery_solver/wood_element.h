@@ -71,4 +71,31 @@ struct WoodElement {
     friend std::ostream& operator<<(std::ostream& os, const WoodElement& e);
 };
 
+/// A minimal element for CONTACT DETECTION only: closed outlines plus one
+/// plane per outline, and nothing else.
+///
+/// WoodElement carries the plate convention the joint classifier depends on -
+/// polylines[0] is the top face, [1] the bottom, [2..] the sides, in that
+/// order, plus thickness, insertion vectors and merged features. That
+/// convention is exactly what loose geometry does NOT have: a list of closed
+/// loops off a brep says nothing about which loop is which.
+///
+/// BlockElement drops all of it. It is enough for adjacency_search,
+/// faces_coplanar and face_overlap_area - which only ever read `polylines` and
+/// `planes` - and deliberately not enough for face_to_face_wood, which needs
+/// the ordering to tell a side joint from a top joint.
+struct BlockElement {
+    BlockElement();
+
+    /// One plane per loop: origin at the loop centroid, normal from
+    /// Vector::average_normal (Newell). Loops with fewer than 3 points are
+    /// dropped, matching WoodElement's degrade-rather-than-throw behaviour.
+    explicit BlockElement(const std::vector<session_cpp::Polyline>& loops);
+
+    std::vector<session_cpp::Polyline> polylines;
+    std::vector<session_cpp::Plane>    planes;
+
+    std::string str() const;
+};
+
 } // namespace wood_session

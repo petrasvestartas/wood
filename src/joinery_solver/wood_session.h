@@ -24,7 +24,6 @@
 
 // Polyline is held by value inside CrossJoint → need the full type here.
 #include "../src/polyline.h"
-// ElementPlate is still used by the cross-joint convenience overload below.
 #include "../src/element.h"
 // WoodElement / WoodJoint are passed by value/ref through this API surface.
 #include "wood_element.h"
@@ -67,14 +66,6 @@ bool plane_to_face(
     const std::array<session_cpp::Polyline,2>& polylines_b,
     const std::array<session_cpp::Plane,2>& planes_a,
     const std::array<session_cpp::Plane,2>& planes_b,
-    CrossJoint& result,
-    double angle_tol = 5.0,
-    const std::array<double,3>& extension = {0.0, 0.0, 0.0});
-
-/// Convenience overload taking ElementPlate pointers (extracts polylines/planes).
-bool plane_to_face(
-    session_cpp::ElementPlate* a,
-    session_cpp::ElementPlate* b,
     CrossJoint& result,
     double angle_tol = 5.0,
     const std::array<double,3>& extension = {0.0, 0.0, 0.0});

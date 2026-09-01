@@ -228,3 +228,8 @@ error_lines.txt
 
 # Program output belongs in data/output/, not the repo root.
 /translation_shell.json
+
+# Editor compile database: a symlink into the ignored build/ tree. Regenerate
+# with `ln -sfn build/compile_commands.json compile_commands.json` — committing
+# it would leave a dangling link in a fresh clone until the first configure.
+/compile_commands.json

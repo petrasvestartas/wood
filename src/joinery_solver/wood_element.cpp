@@ -41,6 +41,34 @@ WoodJoint::WoodJoint()
     , dbg_boolean{0}
 {}
 
+BlockElement::BlockElement() {}
+
+BlockElement::BlockElement(const std::vector<Polyline>& loops) {
+    polylines.reserve(loops.size());
+    planes.reserve(loops.size());
+    for (const Polyline& loop : loops) {
+        std::vector<Point> pts = loop.get_points();
+        if (pts.size() > 3) {
+            const Point& f = pts.front();
+            const Point& l = pts.back();
+            if (std::abs(f[0]-l[0]) < 1e-6 && std::abs(f[1]-l[1]) < 1e-6 &&
+                std::abs(f[2]-l[2]) < 1e-6) { pts.pop_back(); }
+        }
+        if (pts.size() < 3) { continue; }
+        polylines.push_back(loop);
+        // from_point_normal takes non-const refs, so both need to be lvalues.
+        Point  origin = Point::centroid(pts);
+        Vector normal = Vector::average_normal(pts);
+        planes.push_back(Plane::from_point_normal(origin, normal));
+    }
+}
+
+std::string BlockElement::str() const {
+    std::ostringstream os;
+    os << "BlockElement(loops=" << polylines.size() << ")";
+    return os.str();
+}
+
 WoodElement::WoodElement()
     : reversed{false}
     , thickness{0.0}

@@ -55,7 +55,9 @@ inline std::vector<std::pair<int, int>> pair_polylines(
         double cx = 0, cy = 0, cz = 0;
         for (auto& p : pts) { cx += p[0]; cy += p[1]; cz += p[2]; }
         centroids[i] = Point(cx/pts.size(), cy/pts.size(), cz/pts.size());
-        normals[i]   = ElementPlate::polygon_normal(pts);
+        // ElementPlate::polygon_normal went with ElementPlate in session_cpp
+        // 89da090c; Vector::average_normal is the surviving Newell normal.
+        normals[i]   = Vector::average_normal(pts);
         aabbs[i]     = AABB::from_polyline(polylines[i], search_radius);
         double mn[3] = {aabbs[i].cx-aabbs[i].hx, aabbs[i].cy-aabbs[i].hy, aabbs[i].cz-aabbs[i].hz};
         double mx[3] = {aabbs[i].cx+aabbs[i].hx, aabbs[i].cy+aabbs[i].hy, aabbs[i].cz+aabbs[i].hz};

@@ -6,7 +6,10 @@
 #include "wood_face_to_face.h"
 #include "wood_element.h"
 #include "wood_session.h"
+#include "../src/aabb.h"
 #include "../src/intersection.h"
+#include "../src/obb.h"
+#include "../src/spatial_bvh.h"
 #include "../src/polyline.h"
 #include "../src/line.h"
 #include "../src/vector.h"
@@ -32,6 +35,147 @@ using wood_session::WoodElement;
 //   polyline_two_rects_from_frame   → src/polyline.h (src/polyline.cpp)
 //   Intersection::line_line_classified → src/intersection.h (src/intersection.cpp)
 // Call sites below use the kernel versions directly.
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Contact detection — "do these touch?", broad phase then narrow phase.
+// Everything below the next banner answers the separate question of what
+// joint a detected contact becomes.
+// ═══════════════════════════════════════════════════════════════════════════
+namespace wood_session {
+
+namespace {
+
+// Mirrors session_cpp/src/element.cpp's strip_closing exactly, so that a
+// closing vertex sitting up to 1e-6 outside the first one is dropped here as
+// well and the extents stay bit-identical to the old ElementPlate route.
+void add_outline(const Polyline& pl, std::vector<Point>& corner_pts) {
+    size_t n = pl.point_count();
+    if (n > 3) {
+        const Point& f = pl.get_point(0);
+        const Point& l = pl.get_point(n - 1);
+        if (std::abs(f[0] - l[0]) < 1e-6 &&
+            std::abs(f[1] - l[1]) < 1e-6 &&
+            std::abs(f[2] - l[2]) < 1e-6) { --n; }
+    }
+    for (size_t k = 0; k < n; k++) { corner_pts.push_back(pl.get_point(k)); }
+}
+
+}  // namespace
+
+template <class Element>
+std::vector<std::pair<int, int>> adjacency_search(
+    const std::vector<Element>& elements,
+    double inflate) {
+
+    std::vector<std::pair<int, int>> pairs;
+
+    // The previous route materialised a session_cpp::ElementPlate per plate
+    // just to hand Intersection::adjacency_search an Element*. That
+    // constructor builds a halfedge Mesh with a per-face triangulation, and
+    // adjacency_search then called polylines() — recomputing and copying the
+    // top, bottom and every side quad — while all it ever uses is the point
+    // set's extents. The side quads are built from the very corners the top
+    // and bottom outlines already hold, so they cannot widen the extents;
+    // feeding those two outlines directly yields the identical box.
+    const size_t n_el = elements.size();
+    if (n_el == 0) { return pairs; }
+
+    std::vector<OBB>  obbs(n_el);
+    std::vector<AABB> aabbs(n_el);
+    std::vector<Point> corner_pts;
+    for (size_t i = 0; i < n_el; i++) {
+        corner_pts.clear();
+        const auto& plines = elements[i].polylines;
+        if (plines.size() > 1) {
+            corner_pts.reserve(plines[0].point_count() + plines[1].point_count());
+            add_outline(plines[1], corner_pts);   // bottom
+            add_outline(plines[0], corner_pts);   // top
+        }
+        if (!elements[i].planes.empty()) {
+            obbs[i] = OBB::from_points(corner_pts, elements[i].planes[0], inflate);
+        } else {
+            obbs[i] = OBB::from_points(corner_pts, inflate);
+        }
+        aabbs[i] = obbs[i].aabb();
+    }
+
+    double ws = 0;
+    for (const auto& a : aabbs) {
+        ws = std::max(ws, std::abs(a.cx + a.hx)); ws = std::max(ws, std::abs(a.cy + a.hy));
+        ws = std::max(ws, std::abs(a.cz + a.hz)); ws = std::max(ws, std::abs(a.cx - a.hx));
+        ws = std::max(ws, std::abs(a.cy - a.hy)); ws = std::max(ws, std::abs(a.cz - a.hz));
+    }
+
+    SpatialBVH bvh;
+    bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
+    for (size_t i = 0; i < n_el; i++) {
+        for (int j : bvh.query_aabb(aabbs[i])) {
+            if ((int)i < j && obbs[i].collides_with(obbs[j])) {
+                pairs.emplace_back((int)i, j);
+            }
+        }
+    }
+    return pairs;
+}
+
+template <class Element>
+std::vector<FacePlane> face_planes(const Element& element) {
+    const size_t n = element.planes.size();
+    std::vector<FacePlane> out(n);
+    for (size_t j = 0; j < n; ++j) {
+        const Point&  o = element.planes[j].origin();
+        const Vector& v = element.planes[j].z_axis();
+        out[j] = { o[0], o[1], o[2], v[0], v[1], v[2],
+                   v[0]*v[0] + v[1]*v[1] + v[2]*v[2] };
+    }
+    return out;
+}
+
+bool faces_coplanar(
+    const FacePlane& face0,
+    const FacePlane& face1,
+    double cos_angle,
+    double coplanar_tolerance) {
+
+    const double o0x = face0.ox, o0y = face0.oy, o0z = face0.oz;
+    const double n0x = face0.nx, n0y = face0.ny, n0z = face0.nz;
+    const double mag0_sq = face0.mag_sq;
+
+    // 1. Antiparallel check (wood's is_parallel_to == -1).
+    const double n0n1 = n0x*face1.nx + n0y*face1.ny + n0z*face1.nz;
+    const double ll   = std::sqrt(mag0_sq * face1.mag_sq);
+    if (ll <= 0.0 || n0n1/ll > -cos_angle) { return false; }
+
+    // 2. Projection-based distance, invariant to normal magnitude.
+    const double dot0 = n0x*(face1.ox-o0x) + n0y*(face1.oy-o0y) + n0z*(face1.oz-o0z);
+    const double dot1 = face1.nx*(o0x-face1.ox) + face1.ny*(o0y-face1.oy) + face1.nz*(o0z-face1.oz);
+    const double sq_dist0 = (mag0_sq      > 1e-20) ? (dot0*dot0/mag0_sq)      : 1e30;
+    const double sq_dist1 = (face1.mag_sq > 1e-20) ? (dot1*dot1/face1.mag_sq) : 1e30;
+    return (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
+}
+
+bool face_overlap_area(
+    const Polyline& outline0,
+    const Polyline& outline1,
+    const Plane& plane0,
+    bool include_triangles,
+    Polyline& out_area) {
+
+    return Intersection::polyline_boolean_2d_in_plane(
+        outline0, outline1, plane0,
+        out_area, 0, include_triangles, 0.01, 1.0/1024.0);
+}
+
+// The element types the contact detector is used with. Keeping the bodies in
+// this file (rather than the header) means only these two ever instantiate.
+template std::vector<std::pair<int, int>>
+adjacency_search<WoodElement>(const std::vector<WoodElement>&, double);
+template std::vector<std::pair<int, int>>
+adjacency_search<BlockElement>(const std::vector<BlockElement>&, double);
+template std::vector<FacePlane> face_planes<WoodElement>(const WoodElement&);
+template std::vector<FacePlane> face_planes<BlockElement>(const BlockElement&);
+
+}  // namespace wood_session
 
 // ───────────────────────────────────────────────────────────────────────────
 // face_to_face_wood — main timber-joint topology detector
@@ -130,17 +274,11 @@ bool face_to_face_wood(
     const size_t n_faces1 = el1.planes.size();
 
     // Loop-invariant scan data, gathered once per element pair instead of once
-    // per (i, j). Plane::origin()/z_axis() hand back references, but
-    // Point/Vector::operator[] is an out-of-line call in session_core, so the
-    // coordinates are unpacked here and the O(faces^2) scan reads plain doubles.
-    struct FacePlane { double ox, oy, oz, nx, ny, nz, mag_sq; };
-    std::vector<FacePlane> faces1(n_faces1);
-    for (size_t j = 0; j < n_faces1; ++j) {
-        const Point&  o = el1.planes[j].origin();
-        const Vector& n = el1.planes[j].z_axis();
-        faces1[j] = { o[0], o[1], o[2], n[0], n[1], n[2],
-                      n[0]*n[0] + n[1]*n[1] + n[2]*n[2] };
-    }
+    // per (i, j). See FacePlane above for why the coordinates are
+    // unpacked rather than read through Point/Vector::operator[].
+    using wood_session::FacePlane;
+    const std::vector<FacePlane> faces0 = wood_session::face_planes(el0);
+    const std::vector<FacePlane> faces1 = wood_session::face_planes(el1);
     // ANGLE is a mutable global, so the compiler cannot fold this cosine; it
     // used to be evaluated on every face pair.
     const double cos_angle = std::cos(wood_session::globals::ANGLE);
@@ -163,45 +301,21 @@ bool face_to_face_wood(
         avg_plane_1 = Plane::from_point_normal(avg_origin_1, avg_normal_1);
     }
     for (size_t i = 0; i < n_faces0; ++i) {
-        // 1. Coplanarity test (antiparallel-only — touching back-to-back).
-        const Point&  o0r = el0.planes[i].origin();
-        const Vector& n0r = el0.planes[i].z_axis();
-        const double o0x = o0r[0], o0y = o0r[1], o0z = o0r[2];
-        const double n0x = n0r[0], n0y = n0r[1], n0z = n0r[2];
-        const double mag0_sq = n0x*n0x + n0y*n0y + n0z*n0z;
-
         for (size_t j = 0; j < n_faces1; ++j) {
             const FacePlane& f1 = faces1[j];
-            // Coplanarity check matching wood's cgal::plane_util::is_coplanar:
-            // 1. Check anti-parallel (is_parallel_to == -1)
-            // 2. Check squared_distance(projection, point) < DISTANCE_SQUARED
-            // Wood uses ANGLE = 0.11 RADIANS (cos ≈ 0.9940, ~6.3°), not 0.11 degrees.
-            // Session's Vector::is_parallel_to uses ANGLE_TOLERANCE_DEGREES=0.11° which
-            // is far too strict and misses ts_e_p connections in one_layer/full datasets.
-            {
-                double n0n1 = n0x*f1.nx + n0y*f1.ny + n0z*f1.nz;
-                double ll = std::sqrt(mag0_sq * f1.mag_sq);
-                if (ll <= 0.0 || n0n1/ll > -cos_angle) { continue; } // not antiparallel
-            }
-            // Projection-based distance (invariant to normal magnitude):
-            double dot0 = n0x*(f1.ox-o0x) + n0y*(f1.oy-o0y) + n0z*(f1.oz-o0z);
-            double dot1 = f1.nx*(o0x-f1.ox) + f1.ny*(o0y-f1.oy) + f1.nz*(o0z-f1.oz);
-            double sq_dist0 = (mag0_sq  > 1e-20) ? (dot0*dot0/mag0_sq)  : 1e30;
-            double sq_dist1 = (f1.mag_sq > 1e-20) ? (dot1*dot1/f1.mag_sq) : 1e30;
-            bool coplanar = (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
-            if (!coplanar) { continue; }
+
+            // 1. Contact test: are the two faces touching back-to-back?
+            if (!wood_session::faces_coplanar(
+                    faces0[i], f1, cos_angle, coplanar_tolerance)) { continue; }
             dbg_coplanar++;
 
-            // 2. 2D Boolean intersection using the kernel's plane-frame
-            //    Vatti wrapper. Wood accepts 3-vertex triangles only for
-            //    top/bottom face pairs (i<2 && j<2); side-face pairs reject
-            //    them. collapse_eps=1/1024mm removes Vatti FP duplicates on
-            //    near-coincident edges (hexbox-family datasets).
+            // 2. Contact area: do the two coplanar outlines actually overlap?
+            //    Triangles count only for top/bottom face pairs (i<2 && j<2).
             Polyline joint_area(std::vector<Point>{});
             bool include_triangles = (i < 2 && j < 2);
-            if (!Intersection::polyline_boolean_2d_in_plane(
+            if (!wood_session::face_overlap_area(
                     el0.polylines[i], el1.polylines[j], el0.planes[i],
-                    joint_area, 0, include_triangles, 0.01, 1.0/1024.0)) {
+                    include_triangles, joint_area)) {
                 if (dbg_reasons) { dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j); }
                 continue;
             }
