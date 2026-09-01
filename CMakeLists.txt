@@ -41,30 +41,20 @@ else()
     message(STATUS "wood: fetched session_cpp to ${SESSION_CPP_DIR}")
 endif()
 
-# session_cpp's CMakeLists locates its generated protobuf sources through
-# CMAKE_SOURCE_DIR, which is the TOP-level source dir - this project, not
-# session_cpp - once it is added as a subdirectory. Without this it stops with
-# "No generated protobuf files found in <wood>/generated". wood_nano carries
-# the same copy step for the same reason.
-# Refresh it on every configure rather than copying once. This was guarded by
-# `if(NOT EXISTS "${CMAKE_SOURCE_DIR}/generated")`, so once the directory
-# existed it was never updated again. session_cpp regenerated its protobuf
-# sources with a newer protoc, and every build here went on using the stale
-# snapshot until it stopped compiling altogether with
-#   error C1189: "Protobuf C++ gencode is built with an incompatible version"
-# because the pinned PROTOBUF_VERSION no longer matched the runtime headers.
-# That is why wood could not be rebuilt for months.
+# No generated/ mirror here any more.
 #
-# file(COPY) preserves timestamps and skips files that already match, so this
-# costs nothing when it is already current.
-if(IS_SYMLINK "${CMAKE_SOURCE_DIR}/generated")
-    # A developer may symlink it straight at session_cpp; that is always fresh,
-    # and copying onto it would have source and destination be the same files.
-    message(STATUS "wood: generated/ is a symlink, leaving it as is")
-else()
-    message(STATUS "wood: syncing session_cpp/generated into ${CMAKE_SOURCE_DIR}/generated")
-    file(COPY "${SESSION_CPP_DIR}/generated" DESTINATION "${CMAKE_SOURCE_DIR}")
-endif()
+# session_cpp used to locate its own protobuf sources through CMAKE_SOURCE_DIR, which
+# under add_subdirectory() is THIS project rather than session_cpp - so every consumer
+# had to copy session_cpp/generated into its own root just to be found. session_cpp now
+# anchors those paths to its own directory (SESSION_CPP_ROOT), so the copy is obsolete.
+#
+# Deleting it also removes the failure it caused. file(COPY) preserves timestamps, so a
+# regenerated element.pb.h could land here OLDER than the objects already compiled
+# against the previous one; make skipped the rebuild and linked two different layouts of
+# session_proto::Element together. That surfaced at runtime as
+#   malloc(): invalid size (unsorted)   in Element::pb_dumps -> ArenaStringPtr::Set
+# which reads as a serialization bug in whatever you last touched. There is now one copy
+# of the generated sources, in session_cpp, and nothing to go stale.
 
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
@@ -81,57 +71,66 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_merge.cpp
 )
 
-function(ADD_WOOD_EXE NAME SRC)
-    add_executable(${NAME} ${SRC} ${WOOD_SOURCES} ${ARGN})
-    target_include_directories(${NAME} PRIVATE
-        ${SESSION_CPP_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
-    )
-    target_link_libraries(${NAME} PRIVATE session_core)
+# wood_core: the joinery solver, compiled ONCE and shared by every target.
+#
+# This used to be a bare ${WOOD_SOURCES} file list splatted into each
+# add_executable, so the 11 sources were rebuilt for each of the 11 wood
+# targets - 121 compilations of the same translation units, measured at ~5.8 s
+# and ~5.8 MB of objects per target. That cost is also the only reason there
+# were two exe macros: ADD_SESSION_EXE existed purely to avoid paying it on the
+# 10 targets that never call wood. session_cpp already does the right thing
+# (add_library(session_core OBJECT ...) at its CMakeLists:234); this mirrors it,
+# so one macro now serves everything.
+add_library(wood_core OBJECT ${WOOD_SOURCES})
+target_include_directories(wood_core PUBLIC
+    ${SESSION_CPP_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
+    # The template headers (reciprocal.h, vda_mesh.h, chevron.h) live here and
+    # are included unqualified by the mains under src/templates/temp/.
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
+    # session_core's own PUBLIC set: src, fmt, json, guid, yaml. Taken from the
+    # target rather than respelled, so it cannot drift from session_cpp.
+    $<TARGET_PROPERTY:session_core,INTERFACE_INCLUDE_DIRECTORIES>
+    # Protobuf gencode headers - what LINK_PROTOBUF adds to each executable. Read from
+    # session_cpp, which is the one place they exist; this used to point at a local
+    # mirror of them (see the note above add_subdirectory).
+    ${SESSION_CPP_DIR}/generated
+)
+
+# Every executable in this project: wood solver + session kernel + protobuf.
+# Extra sources (e.g. wood_test.cpp) go in ${ARGN} and are compiled per target.
+function(ADD_EXE NAME SRC)
+    add_executable(${NAME} ${SRC} ${ARGN})
+    target_link_libraries(${NAME} PRIVATE wood_core session_core)
     LINK_PROTOBUF(${NAME})
 endfunction()
 
-function(ADD_SESSION_EXE NAME SRC)
-    add_executable(${NAME} ${SRC})
-    target_include_directories(${NAME} PRIVATE
-        ${SESSION_CPP_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        # The template headers (reciprocal.h, vda_mesh.h, chevron.h) live here
-        # and are included unqualified by the mains under src/templates/temp/.
-        # Without this, main_beam_reciprocal and main_vda_mesh fail to compile.
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
-        # nlohmann/json, header-only, vendored in session_cpp. main_vda_mesh
-        # needs it; wood_nano adds the same path for its _datasets module.
-        ${SESSION_CPP_DIR}/src/json/include
-    )
-    target_link_libraries(${NAME} PRIVATE session_core)
-    LINK_PROTOBUF(${NAME})
-endfunction()
-
-ADD_WOOD_EXE(main_hello              examples/main_hello.cpp)
-ADD_WOOD_EXE(main_annen_corner       examples/main_annen_corner.cpp)
-ADD_WOOD_EXE(main_joint_types        examples/main_joint_types.cpp)
-ADD_WOOD_EXE(main_cross_corners      examples/main_cross_corners.cpp)
-ADD_WOOD_EXE(main_all_datasets       examples/main_all_datasets.cpp src/joinery_solver/wood_test.cpp)
-ADD_WOOD_EXE(main_dataset_runner     examples/main_dataset_runner.cpp src/joinery_solver/wood_test.cpp)
+ADD_EXE(main_hello               examples/main_hello.cpp)
+ADD_EXE(main_annen_corner        examples/main_annen_corner.cpp)
+ADD_EXE(main_element_mapping_check examples/main_element_mapping_check.cpp)
+ADD_EXE(main_joint_types         examples/main_joint_types.cpp)
+ADD_EXE(main_cross_corners       examples/main_cross_corners.cpp)
+ADD_EXE(main_all_datasets        examples/main_all_datasets.cpp src/joinery_solver/wood_test.cpp)
+ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_solver/wood_test.cpp)
 # main_cross_polylines is gone: it was built on session_cpp's ElementFeature /
 # CrossElementFeature subsystem, deleted upstream in 57a9b3f7 as "dead
 # ElementFeature/Joint subsystem (only-self-referential, real joinery bypasses
 # it)". There is no replacement to port it to - Element::add_feature is a mesh
 # transform, not a pairwise relation - and it was the only caller left.
-ADD_WOOD_EXE(main_cdt_probe          examples/main_cdt_probe.cpp)
-ADD_SESSION_EXE(main_annen_chevron    src/templates/temp/main_annen_chevron.cpp)
-ADD_SESSION_EXE(main_beam_reciprocal  src/templates/temp/main_beam_reciprocal.cpp)
-ADD_SESSION_EXE(main_annen_faces      src/templates/temp/main_annen_faces.cpp)
-ADD_SESSION_EXE(main_json_session     examples/main_json_session.cpp)
-ADD_SESSION_EXE(main_loft_holes       examples/main_loft_holes.cpp)
-ADD_SESSION_EXE(main_export_xml       examples/main_export_xml.cpp)
-ADD_SESSION_EXE(main_chevron_test     src/templates/temp/main_chevron_test.cpp)
-ADD_SESSION_EXE(main_vda_mesh         src/templates/temp/main_vda_mesh_test.cpp)
-ADD_WOOD_EXE(main_translation_shell   examples/templates/main_translation_shell.cpp)
-ADD_WOOD_EXE(main_reflex_fold         examples/templates/main_reflex_fold.cpp)
-ADD_WOOD_EXE(main_chevron             examples/templates/main_chevron.cpp)
-ADD_SESSION_EXE(main_reciprocal_rotation  examples/templates/main_reciprocal_rotation.cpp)
-ADD_SESSION_EXE(main_reciprocal_move      examples/templates/main_reciprocal_move.cpp)
+ADD_EXE(main_cdt_probe           examples/main_cdt_probe.cpp)
+ADD_EXE(main_face_to_face        examples/main_face_to_face.cpp)
+ADD_EXE(main_annen_chevron       src/templates/temp/main_annen_chevron.cpp)
+ADD_EXE(main_beam_reciprocal     src/templates/temp/main_beam_reciprocal.cpp)
+ADD_EXE(main_annen_faces         src/templates/temp/main_annen_faces.cpp)
+ADD_EXE(main_json_session        examples/main_json_session.cpp)
+ADD_EXE(main_loft_holes          examples/main_loft_holes.cpp)
+ADD_EXE(main_export_xml          examples/main_export_xml.cpp)
+ADD_EXE(main_chevron_test        src/templates/temp/main_chevron_test.cpp)
+ADD_EXE(main_vda_mesh            src/templates/temp/main_vda_mesh_test.cpp)
+ADD_EXE(main_translation_shell   examples/templates/main_translation_shell.cpp)
+ADD_EXE(main_reflex_fold         examples/templates/main_reflex_fold.cpp)
+ADD_EXE(main_chevron             examples/templates/main_chevron.cpp)
+ADD_EXE(main_reciprocal_rotation examples/templates/main_reciprocal_rotation.cpp)
+ADD_EXE(main_reciprocal_move     examples/templates/main_reciprocal_move.cpp)

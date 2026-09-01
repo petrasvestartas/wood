@@ -9,7 +9,8 @@
 //     Splats the result into a Session for .pb persistence / visualization.
 //
 // Pipeline stages:
-//   1. BVH broad-phase to find candidate adjacent element pairs.
+//   1. BVH broad-phase to find candidate adjacent element pairs
+//      (adjacency_search, wood_face_to_face.cpp).
 //   2. For every adjacent pair, call face_to_face_wood to classify the
 //      joint (type 11/12/13/20/30/40) and compute area / lines / volumes.
 //   3. Three-valence alignment or shadow-joint insertion (if tv file exists).
@@ -35,9 +36,6 @@
 #include "../src/point.h"
 #include "../src/xform.h"
 #include "../src/tolerance.h"
-#include "../src/aabb.h"
-#include "../src/obb.h"
-#include "../src/spatial_bvh.h"
 #include "../src/mesh.h"
 #include "wood_element.h"
 #include "wood_face_to_face.h"
@@ -787,81 +785,7 @@ std::vector<WoodJoint> get_connection_zones(
 
     if (adjacency_pairs.empty()) {
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr); }
-        // Broad phase, inlined from Intersection::adjacency_search so it can run
-        // straight off the WoodElement outlines.
-        //
-        // The previous route materialised a session_cpp::ElementPlate per plate
-        // just to hand adjacency_search an Element*. That constructor builds a
-        // halfedge Mesh with a per-face triangulation, and adjacency_search then
-        // called polylines() — recomputing and copying the top, bottom and every
-        // side quad — while all it ever uses is the point set's extents:
-        // OBB::from_points(points, inflate) is obb_from_aabb(AABB::from_points(...)),
-        // an axis-aligned box. The side quads are built from the very corners the
-        // top and bottom outlines already hold, so they cannot widen the extents;
-        // feeding those two outlines directly yields the identical box.
-        //
-        // strip_closing is mirrored exactly (session_cpp/src/element.cpp) so that
-        // a closing vertex sitting up to 1e-6 outside the first one is dropped
-        // here as well and the extents stay bit-identical.
-        const size_t n_el = wood_elems.size();
-        std::vector<OBB> obbs(n_el);
-        std::vector<AABB> aabbs(n_el);
-        std::vector<Point> corner_pts;
-        for (size_t i = 0; i < n_el; i++) {
-            corner_pts.clear();
-            auto add_outline = [&corner_pts](const Polyline& pl) {
-                size_t n = pl.point_count();
-                if (n > 3) {
-                    const Point& f = pl.get_point(0);
-                    const Point& l = pl.get_point(n - 1);
-                    if (std::abs(f[0]-l[0]) < 1e-6 &&
-                        std::abs(f[1]-l[1]) < 1e-6 &&
-                        std::abs(f[2]-l[2]) < 1e-6) { --n; }
-                }
-                for (size_t k = 0; k < n; k++) { corner_pts.push_back(pl.get_point(k)); }
-            };
-            const auto& plines = wood_elems[i].polylines;
-            if (plines.size() > 1) {
-                corner_pts.reserve(plines[0].point_count() + plines[1].point_count());
-                add_outline(plines[1]);   // bottom
-                add_outline(plines[0]);   // top
-            }
-            // Inflation matches wood's AABB expansion at wood_main.cpp:58-63:
-            // wood::GLOBALS::DISTANCE — defaults to 0.1 mm, tunable from YAML.
-            //
-            // Use the plate's own frame: the (points, inflate) overload is
-            // obb_from_aabb(AABB(...)) — a WORLD-axis box, so a thin plate
-            // lying diagonal to the world axes got a box the size of its
-            // diagonal extent and the narrow phase paid for a storm of false
-            // candidate pairs. The plane overload builds a genuinely oriented
-            // box; the subsequent SAT is what the OBB path always intended.
-            // Candidate sets only shrink (both boxes contain the plate plus
-            // the same inflation), so no true contact is lost.
-            if (!wood_elems[i].planes.empty()) {
-                obbs[i] = OBB::from_points(corner_pts, wood_elems[i].planes[0], DISTANCE);
-            } else {
-                obbs[i] = OBB::from_points(corner_pts, DISTANCE);
-            }
-            aabbs[i] = obbs[i].aabb();
-        }
-        double ws = 0;
-        for (const auto& a : aabbs) {
-            ws = std::max(ws, std::abs(a.cx + a.hx)); ws = std::max(ws, std::abs(a.cy + a.hy));
-            ws = std::max(ws, std::abs(a.cz + a.hz)); ws = std::max(ws, std::abs(a.cx - a.hx));
-            ws = std::max(ws, std::abs(a.cy - a.hy)); ws = std::max(ws, std::abs(a.cz - a.hz));
-        }
-        if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] calling adjacency_search\n"); fflush(stderr); }
-        if (n_el > 0) {
-            SpatialBVH bvh;
-            bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
-            for (size_t i = 0; i < n_el; i++) {
-                for (int j : bvh.query_aabb(aabbs[i])) {
-                    if ((int)i < j && obbs[i].collides_with(obbs[j])) {
-                        adjacency_pairs.emplace_back((int)i, j);
-                    }
-                }
-            }
-        }
+        adjacency_pairs = wood_session::adjacency_search(wood_elems, DISTANCE);
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
         if (verbose) { fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size()); }
     }
@@ -1567,6 +1491,81 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodElement -> session_cpp::Element field mapping.
+//
+// These exist so the plate written into a Session carries what wood knows about it, not just
+// its loft mesh. Before Element grew dimensions/insertion_vectors/features, the only way to
+// ship a joint type code was a bespoke field on the kernel message - which is how joint_types
+// and friends ended up in element.proto and had to be reserved out again.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Nominal plate box in the plate's OWN frame: outline extent in x/y, thickness in z.
+///
+/// Measured against planes[0]'s axes rather than a world AABB, so a plate keeps the same
+/// numbers however it is oriented - a world box would report a tilted plate as thick.
+static Vector nominal_dimensions(const WoodElement& we) {
+    if (we.polylines.empty() || we.planes.empty()) {
+        return Vector(0.0, 0.0, we.thickness);
+    }
+    const Plane& frame = we.planes[0];
+    const Point& origin = frame.origin();
+    const Vector& ex = frame.x_axis();
+    const Vector& ey = frame.y_axis();
+
+    bool first = true;
+    double min_u = 0.0, max_u = 0.0, min_v = 0.0, max_v = 0.0;
+    for (const auto& polyline : we.polylines) {
+        for (const auto& pt : polyline.get_points()) {
+            Vector d(pt[0] - origin[0], pt[1] - origin[1], pt[2] - origin[2]);
+            double u = d[0]*ex[0] + d[1]*ex[1] + d[2]*ex[2];
+            double v = d[0]*ey[0] + d[1]*ey[1] + d[2]*ey[2];
+            if (first) { min_u = max_u = u; min_v = max_v = v; first = false; }
+            else {
+                min_u = std::min(min_u, u); max_u = std::max(max_u, u);
+                min_v = std::min(min_v, v); max_v = std::max(max_v, v);
+            }
+        }
+    }
+    return Vector(max_u - min_u, max_v - min_v, we.thickness);
+}
+
+/// One ElementFeature per face that has a joint type, an outline, or both.
+///
+/// joint_types is indexed by face - [0] bottom, [1] top, [2..] side slots (wood_assign.cpp) -
+/// and Features.top/bottom hold the cut outlines for faces 1 and 0. Those are two descriptions
+/// of the same thing, which is why they collapse into one list here: the face index that used
+/// to be implied by array position becomes ElementFeature::face_index.
+static std::vector<ElementFeature> element_features(const WoodElement& we) {
+    std::vector<ElementFeature> out;
+
+    // -1 is wood's "no joint assigned"; a face with neither a type nor an outline is not a
+    // feature and must not be written as an empty one.
+    auto joint_type_of = [&we](size_t face) -> int {
+        return face < we.joint_types.size() ? we.joint_types[face] : -1;
+    };
+    auto outlines_of = [&we](size_t face) -> const std::vector<Polyline>& {
+        static const std::vector<Polyline> none;
+        if (face == 0) return we.features.bottom;
+        if (face == 1) return we.features.top;
+        return none;
+    };
+
+    size_t face_count = std::max(we.joint_types.size(), size_t{2});
+    for (size_t face = 0; face < face_count; face++) {
+        int type = joint_type_of(face);
+        const std::vector<Polyline>& outlines = outlines_of(face);
+        if (type < 0 && outlines.empty()) { continue; }
+
+        // The code, not a label: wood has no joint-type vocabulary to spell it with, and an
+        // invented one would be a second thing to keep in sync with the solver.
+        std::string feature_type = type >= 0 ? "joint_" + std::to_string(type) : "cut";
+        out.emplace_back(feature_type, static_cast<int>(face), outlines,
+                         "face_" + std::to_string(face));
+    }
+    return out;
+}
+
 // fill_session — splat get_connection_zones output into a Session for
 // visualization / .pb persistence. Recreates the legacy group layout that
 // the Vue/Rhino viewers expect, plus optional loft meshes.
@@ -1581,14 +1580,30 @@ void fill_session(
     const std::vector<WoodJoint>&   joints,
     bool include_loft)
 {
-    // Plates as ElementPlates in an "Elements" group.
+    // Plates as Elements in an "Elements" group.
+    //
+    // This used to build a session_cpp::ElementPlate from the (bottom, top)
+    // outline pair. That class was deleted from session_cpp in 89da090c
+    // ("refactoring"); the surviving Element takes a Mesh, and WoodElement
+    // already knows how to loft its own outlines into one, so the plate
+    // geometry is identical - Element::polylines()/planes() still recover the
+    // faces from it.
+    //
+    // Everything else a WoodElement carries now has a typed home on Element, so none of it has
+    // to be re-encoded by hand or dropped:
+    //   thickness         -> dimensions[2]      (x/y are the outline extent in the plate frame)
+    //   insertion_vectors -> insertion_vectors  (same meaning, straight across)
+    //   joint_types[i]    -> features[i].feature_type
+    //   features.top/bot  -> features[i].outlines
     auto g_elem = session.add_group("Elements");
     for (size_t i = 0; i < elements.size(); i++) {
-        // wood_elems polylines: [0]=top, [1]=bottom (build_wood_element convention).
-        auto plate = std::make_shared<ElementPlate>(
-            elements[i].polylines[1],   // bottom
-            elements[i].polylines[0],   // top
-            "plate_" + std::to_string(i * 2));
+        const WoodElement& we = elements[i];
+        auto plate = std::make_shared<Element>(we.loft_mesh(), "plate_" + std::to_string(i * 2));
+
+        plate->set_insertion_vectors(we.insertion_vectors);
+        plate->set_dimensions(nominal_dimensions(we));
+        plate->set_features(element_features(we));
+
         session.add_element(plate, g_elem);
     }
 
