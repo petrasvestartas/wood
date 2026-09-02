@@ -6,7 +6,9 @@
 //     adjacency_search : element-level broad phase (oriented boxes + BVH + SAT)
 //                        producing the candidate pairs everything below consumes.
 //     face_planes / faces_coplanar / face_overlap_area
-//                      : the per-face-pair contact test.
+//                      : the per-face-pair contact test - antiparallel coplanar
+//                        planes, then a Clipper2 boolean of the two outlines.
+//     face_contacts    : the two phases wired together for any element type.
 //
 //   Joint classification — what does that contact become? (face_to_face_wood)
 //
@@ -40,24 +42,34 @@ namespace wood_session {
 
 // Candidate element pairs, as (i, j) with i < j, in ascending i then j order.
 //
-// Each plate gets an OBB in its own frame (planes[0]) built from its top and
-// bottom outline corners and inflated by `inflate` — wood::GLOBALS::DISTANCE,
-// 0.1 mm by default. The AABBs of those boxes go into a SpatialBVH for the
-// candidate query; every candidate is then confirmed by an OBB/OBB SAT test.
+// Each element gets an OBB in its own frame (planes[0]) built from its
+// bounding points and inflated by `inflate` — wood::GLOBALS::DISTANCE, 0.1 mm
+// by default. The AABBs of those boxes go into a SpatialBVH (static, built
+// once per call — the R-tree in the kernel is for sets that change, and this
+// one does not) for the candidate query; every candidate is then confirmed by
+// an OBB/OBB SAT test.
 //
-// Using the plate's own frame matters: the (points, inflate) overload of
+// Using the element's own frame matters: the (points, inflate) overload of
 // OBB::from_points is obb_from_aabb(AABB::from_points(...)) — a WORLD-axis
 // box, so a thin plate lying diagonal to the world axes got a box the size of
 // its diagonal extent and the narrow phase paid for a storm of false candidate
 // pairs. Candidate sets only shrink under the oriented box (both boxes contain
-// the plate plus the same inflation), so no true contact is lost.
+// the element plus the same inflation), so no true contact is lost.
 //
-// Elements with fewer than two polylines contribute an empty box and simply
-// never pair.
+// Which points bound an element depends on the type. A WoodElement's side
+// quads are built from the very corners its top and bottom outlines hold, so
+// those two outlines give the identical box at a fraction of the work. A
+// BlockElement has no such convention - any of its loops may stick out - so
+// every loop counts. (Reading only the first two loops of a block, as this
+// used to, boxed a six-face block by two of its faces and could miss a
+// contact on the other four.)
+//
+// Elements with no bounding points contribute an empty box and never pair.
 //
 // Generic over the element type: anything with `polylines` and `planes` works.
 // Instantiated for WoodElement (the plate convention the joint classifier
-// needs) and BlockElement (loose loops, contact detection only).
+// needs) and BlockElement (loose loops, contact detection only); add an
+// overload of `bounding_points` in wood_face_to_face.cpp for a new type.
 template <class Element>
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<Element>& elements,
@@ -106,23 +118,63 @@ bool faces_coplanar(
     double cos_angle,
     double coplanar_tolerance);
 
-// Overlap region of two coplanar face outlines, as a polygon in `plane0`.
+// Overlap region of two coplanar face outlines, as a closed polygon in `plane0`.
 // Returns false when they do not overlap, and `out_area` is then untouched.
 //
-// Coplanarity is a precondition, not a check: the 2D boolean projects both
-// outlines along plane0's normal, so two parallel faces a metre apart would
-// report a healthy overlap. Gate every call on faces_coplanar.
+// Both outlines are projected into plane0's canonical 2D frame and intersected
+// with Clipper2 on int64 coordinates at wood::GLOBALS::CLIPPER_SCALE (1e6: a
+// nanometre grid). Touching plates share edges exactly, and exactly-coincident
+// edges are the case a floating-point sweep gets wrong - the previous engine
+// needed a 1/1024 mm vertex-collapse pass to survive the hexbox datasets.
+// Integer arithmetic has no such failure mode, and the result is exact on its
+// grid. Of several overlap pieces (possible with concave outlines) the largest
+// is returned. Results with area ≤ CLIPPER_AREA (0.01 mm²) are rejected.
+//
+// Coplanarity is a precondition, not a check: two parallel faces a metre apart
+// would report a healthy overlap. Gate every call on faces_coplanar.
 //
 // `include_triangles` must be true only for top/bottom face pairs: wood
-// accepts 3-vertex triangles there and rejects them for side-face pairs. The
-// 1/1024 mm collapse epsilon removes Vatti FP duplicates on near-coincident
-// edges (hexbox-family datasets).
+// accepts 3-vertex triangles there and rejects them for side-face pairs.
 bool face_overlap_area(
     const session_cpp::Polyline& outline0,
     const session_cpp::Polyline& outline1,
     const session_cpp::Plane& plane0,
     bool include_triangles,
     session_cpp::Polyline& out_area);
+
+// ── Contact detection: both phases ─────────────────────────────────────────
+
+// One face pair in real contact: which faces of which elements, and the
+// overlap region between them (closed, in element_a's face plane).
+struct FaceContact {
+    int element_a;
+    int element_b;   // element_a < element_b
+    int face_a;
+    int face_b;
+    session_cpp::Polyline area;
+};
+
+// Every face pair in contact across a set of elements: adjacency_search for
+// the candidate pairs, then faces_coplanar + face_overlap_area over each
+// candidate's face pairs. `angle` is in RADIANS (wood::GLOBALS::ANGLE),
+// `coplanar_tolerance` a SQUARED distance (wood::GLOBALS::DISTANCE_SQUARED).
+// Triangular overlaps count only between a WoodElement's top/bottom faces;
+// a BlockElement has no outer faces, so never.
+//
+// This is what face_to_face_wood runs before it classifies, spelled out for
+// callers that want the contacts and not the joints - block assemblies, or a
+// viewer showing where things touch. Ordered by element pair, then face pair.
+template <class Element>
+std::vector<FaceContact> face_contacts(
+    const std::vector<Element>& elements,
+    double inflate,
+    double angle,
+    double coplanar_tolerance);
+
+extern template std::vector<FaceContact>
+face_contacts<WoodElement>(const std::vector<WoodElement>&, double, double, double);
+extern template std::vector<FaceContact>
+face_contacts<BlockElement>(const std::vector<BlockElement>&, double, double, double);
 
 }  // namespace wood_session
 

@@ -9,23 +9,39 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-# session_cpp: use a local checkout when there is one, otherwise fetch it.
+# session_cpp: where the kernel comes from. First hit wins:
+#
+#   1. -DSESSION_CPP_LOCAL=<dir>, or the SESSION_CPP_LOCAL environment variable
+#   2. ../session_cpp next to this repo - a checkout, or a symlink to one. This is
+#      the wood_project layout (see ../README.md): one kernel checkout shared by
+#      wood and wood_nano, so `git pull` there updates both.
+#   3. a fresh FetchContent clone of GitHub main (CI, or a lone checkout)
 #
 # This used to be a bare `set(SESSION_CPP_DIR "C:/pc/3_code/.../session_cpp")`
 # pointing at one developer's machine, so configuring anywhere else failed with
 # `add_subdirectory given source ... which is not an existing directory`, and
 # then `Unknown CMake command "LINK_PROTOBUF"` because that macro comes from
-# session_cpp and was never defined. CI has been red since that landed.
-#
-# wood_nano already resolves it this way; the same order is used here so a
-# developer with the checkout keeps building against it.
+# session_cpp and was never defined. That path stays as a last local candidate
+# so the machine it named keeps working. wood_nano resolves the kernel the same
+# way, in the same order.
 include(FetchContent)
 
-set(SESSION_CPP_LOCAL "C:/pc/3_code/code_rust/session/session_cpp" CACHE PATH
-    "Local session_cpp checkout; fetched from GitHub when absent")
+set(SESSION_CPP_LOCAL "" CACHE PATH
+    "Local session_cpp checkout; ../session_cpp or a GitHub clone when empty")
 
-if(EXISTS "${SESSION_CPP_LOCAL}/CMakeLists.txt")
-    set(SESSION_CPP_DIR "${SESSION_CPP_LOCAL}")
+set(SESSION_CPP_DIR "")
+foreach(_candidate IN ITEMS
+        "${SESSION_CPP_LOCAL}"
+        "$ENV{SESSION_CPP_LOCAL}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../session_cpp"
+        "C:/pc/3_code/code_rust/session/session_cpp")
+    if(NOT "${_candidate}" STREQUAL "" AND EXISTS "${_candidate}/CMakeLists.txt")
+        get_filename_component(SESSION_CPP_DIR "${_candidate}" REALPATH)
+        break()
+    endif()
+endforeach()
+
+if(SESSION_CPP_DIR)
     message(STATUS "wood: using local session_cpp at ${SESSION_CPP_DIR}")
 else()
     FetchContent_Declare(session_cpp
@@ -81,7 +97,17 @@ set(WOOD_SOURCES
 # 10 targets that never call wood. session_cpp already does the right thing
 # (add_library(session_core OBJECT ...) at its CMakeLists:234); this mirrors it,
 # so one macro now serves everything.
-add_library(wood_core OBJECT ${WOOD_SOURCES})
+# Clipper2 does the 2D polygon boolean in face_overlap_area (wood_face_to_face.cpp).
+# It ships inside session_cpp but session_core does not compile it, so the three
+# translation units it needs are built here. Any consumer that compiles
+# wood_face_to_face.cpp itself (wood_nano's _joinery_solver) has to add them too.
+set(WOOD_CLIPPER2_SOURCES
+    ${SESSION_CPP_DIR}/src/clipper2/clipper.engine.cpp
+    ${SESSION_CPP_DIR}/src/clipper2/clipper.offset.cpp
+    ${SESSION_CPP_DIR}/src/clipper2/clipper.rectclip.cpp
+)
+
+add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES})
 target_include_directories(wood_core PUBLIC
     ${SESSION_CPP_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}

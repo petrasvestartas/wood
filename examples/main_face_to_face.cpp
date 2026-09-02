@@ -1,35 +1,37 @@
-// examples/main_face_to_face.cpp — contact detection and face-to-face joints.
+// examples/main_face_to_face.cpp — contact detection, written straight to the live scene.
 //
-// Two scenarios, both ending in the same place: WoodElements handed to
-// get_connection_zones.
+// Writes ONE file: wood/data/output/pb/live.pb, the scene bash/publish_scene.sh pushes.
+// Nothing else — no manifest, no per-scenario dumps.
 //
-//   A. Plates built in code. The (bottom, top) outline pairs are known, so a
-//      WoodElement is constructed directly and the face-to-face algorithm runs
-//      on them.
+// CHOOSE WHAT IT PUBLISHES with the PUBLISH line below, then rebuild and run:
 //
-//   B. Loose closed polylines loaded from a .pb, grouped one list per element.
-//      Nothing says which loop is bottom and which is top, so WoodElement does
-//      not fit. These become BlockElements — outlines plus a plane each — and
-//      only contact detection runs on them. That is the whole point of the
-//      type: contact detection needs no plate convention, joint classification
-//      does.
+//   Plates — four plates built in code here. Their (bottom, top) outline pairs are known,
+//            so WoodElement applies and the full pipeline runs: contact detection AND
+//            joint classification.
+//   Blocks — the compas_tf floor system, read from data/floor_model.pb: 237 solids as
+//            closed face loops, converted from compas_tf/data/fabrication/model_0_fab.stp
+//            by data/face_to_face_detection/step_to_pb.py. Nothing says which loop is
+//            bottom and which is top, so WoodElement does not fit: these are BlockElements
+//            and only contact detection runs. That is the point of the type — contact
+//            detection needs no plate convention, joint classification does.
 //
-// The collision-detection entry points used here all live in
-// wood_face_to_face.h alongside face_to_face_wood:
+// The .pb holds plain geometry, never the solver's types: every input outline as a
+// Polyline, every detected contact polygon as a triangulated Mesh. A viewer needs shapes.
+//
+// Contact detection entry points all live in wood_face_to_face.h:
 //   adjacency_search  — element-level broad phase, candidate pairs
-//   face_planes       — unpack an element's face planes once
-//   faces_coplanar    — do two faces touch back-to-back?
-//   face_overlap_area — do two coplanar faces actually overlap, and where?
+//   face_contacts     — broad phase + per-face-pair narrow phase, any element type
 #include "wood_session.h"
 #include "wood_face_to_face.h"
 #include "wood_element.h"
 #include "../src/session.h"
 #include "../src/polyline.h"
 #include "../src/plane.h"
+#include "../src/mesh.h"
 
 #include <fmt/core.h>
 #include <algorithm>
-#include <cmath>
+#include <chrono>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -37,75 +39,31 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-// ───────────────────────────────────────────────────────────────────────────
-// Shared reporting
-// ───────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// Choose
+// ═══════════════════════════════════════════════════════════════════════════
 
-// Contact detection, and nothing else. Works on any element type carrying
-// outlines and planes — WoodElement in scenario A, BlockElement in scenario B.
-template <class Element>
-static std::vector<std::pair<int, int>> report_contacts(
-    const std::vector<Element>& elements) {
+enum class Case { Plates, Blocks };
 
-    std::vector<std::pair<int, int>> pairs =
-        adjacency_search(elements, globals::DISTANCE);
-    fmt::print("  broad phase : {} candidate pairs from {} elements\n",
-               pairs.size(), elements.size());
+static constexpr Case PUBLISH = Case::Plates;
 
-    // Narrow phase, spelled out rather than left to face_to_face_wood, so the
-    // contact test is visible on its own. Same two steps the classifier runs:
-    // coplanar back-to-back faces, then a real 2D overlap between them.
-    const double cos_angle = std::cos(globals::ANGLE);
-    int touching_faces = 0;
-    for (const auto& [ia, ib] : pairs) {
-        const std::vector<FacePlane> fa = face_planes(elements[ia]);
-        const std::vector<FacePlane> fb = face_planes(elements[ib]);
-        for (size_t i = 0; i < fa.size(); ++i) {
-            for (size_t j = 0; j < fb.size(); ++j) {
-                if (!faces_coplanar(fa[i], fb[j], cos_angle, globals::DISTANCE_SQUARED)) {
-                    continue;
-                }
-                Polyline overlap(std::vector<Point>{});
-                if (face_overlap_area(elements[ia].polylines[i],
-                                      elements[ib].polylines[j],
-                                      elements[ia].planes[i],
-                                      i < 2 && j < 2, overlap)) {
-                    ++touching_faces;
-                }
-            }
-        }
-    }
-    fmt::print("  narrow phase: {} face pairs in real contact\n", touching_faces);
-    return pairs;
-}
+// Plates only: how high the folded plate's far edge rides, in mm. Change it and the
+// published scene visibly changes. The plate is SHEARED, not rotated: the shared edge stays
+// at y = 0, z = 0..-15, so the two touching side faces stay coplanar and the contact stays
+// exactly 15 x 1000 mm at any height. A true rotation would swing that face out of the
+// y = 0 plane and detect nothing at all.
+static constexpr double FOLD_HEIGHT = 174.0;
 
-// Full pipeline: contact detection + joint classification.
-static void report_joints(std::vector<WoodElement>& elements, const char* out_name) {
-    std::vector<WoodJoint> joints = get_connection_zones(elements, face_to_face);
-
-    int n_ss = 0, n_ts = 0, n_tt = 0;
-    for (const WoodJoint& j : joints) {
-        if (j.joint_type >= 10 && j.joint_type < 20)      { ++n_ss; }
-        else if (j.joint_type >= 20 && j.joint_type < 40) { ++n_ts; }
-        else                                              { ++n_tt; }
-    }
-    fmt::print("  joints      : {} total ({} side-side, {} top-side, {} top-top)\n",
-               joints.size(), n_ss, n_ts, n_tt);
-
-    Session session(out_name);
-    fill_session(session, elements, joints, true);
-    const std::string out = (internal::output_dir() / (std::string(out_name) + ".pb")).string();
-    session.pb_dump(out);
-    fmt::print("  wrote       : {}\n", out);
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Scenario A — plates created in code
-// ───────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// A — plates built in code
+// ═══════════════════════════════════════════════════════════════════════════
 //
-// WoodElement's constructor takes the outline pair directly, in (bottom, top)
-// order. Three plates: a floor, and two walls standing on it that also meet
-// each other along a shared vertical edge.
+// Plates are 15 mm thick, given as the outline at z = 0 and its copy at z = -15, in
+// (bottom, top) order. Two coplanar plates meeting along y = 0 give a side-to-side IN-PLANE
+// joint; the folded pair at x >= 1000 shares an edge and gives an OUT-OF-PLANE one.
+//
+// Plates must TOUCH, not interpenetrate: a wall sunk into a slab shares no coplanar face
+// pair and is detected as nothing at all.
 
 static Polyline rect(double ax, double ay, double az,
                      double bx, double by, double bz,
@@ -116,17 +74,8 @@ static Polyline rect(double ax, double ay, double az,
         Point(cx, cy, cz), Point(dx, dy, dz), Point(ax, ay, az)});
 }
 
-static void scenario_a() {
-    fmt::print("\nA. plates built in code\n");
-
-    // Same layout main_hello.cpp uses, because it is known to produce joints:
-    // plates are 15 mm thick, given as the outline at z=0 and its copy at
-    // z=-15. Two coplanar plates meeting along y=0 give a side-to-side
-    // IN-PLANE joint; the angled pair at x>=1000 folds over a shared edge and
-    // gives a side-to-side OUT-OF-PLANE joint.
-    //
-    // Plates must TOUCH, not interpenetrate: a wall sunk into a slab shares no
-    // coplanar face pair and is detected as nothing at all.
+static std::vector<WoodElement> plates() {
+    const double h = FOLD_HEIGHT;
     std::vector<WoodElement> elements;
 
     // Coplanar pair, sharing the edge y = 0.
@@ -142,47 +91,33 @@ static void scenario_a() {
         rect(1000,   0,   0,  2000,   0,   0,  2000, 500,   0,  1000, 500,   0),
         rect(1000,   0, -15,  2000,   0, -15,  2000, 500, -15,  1000, 500, -15));
     elements.emplace_back(
-        rect(1000, -500, 134, 2000, -500, 134, 2000,   0,   0,  1000,   0,   0),
-        rect(1000, -500, 119, 2000, -500, 119, 2000,   0, -15,  1000,   0, -15));
-
-    report_contacts(elements);
-    report_joints(elements, "face_to_face_scenario_a");
+        rect(1000, -500,    h, 2000, -500,    h, 2000,   0,   0,  1000,   0,   0),
+        rect(1000, -500, h-15, 2000, -500, h-15, 2000,   0, -15,  1000,   0, -15));
+    return elements;
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// Scenario B — loose closed polylines, grouped per element
-// ───────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// B — the compas_tf floor system, as closed polylines
+// ═══════════════════════════════════════════════════════════════════════════
 //
-// Input is a list of lists: each inner list is the closed loops of ONE
-// colliding element, unordered and unlabelled. That is what
-// data/face_to_face_detection/face_to_face_detection.pb holds — the face loops
-// of each plate solid, one session group per element.
-//
-// No bottom/top means no WoodElement, so these become BlockElements and only
-// the contact detector runs. Feeding such loops to WoodElement would silently
-// invent a plate convention that the geometry never had.
+// A list of lists: each child of the tree root is one solid, its children are that solid's
+// closed face loops, unordered and unlabelled.
 
-static void scenario_b() {
-    fmt::print("\nB. loose closed polylines -> BlockElement, contact detection only\n");
+static std::vector<BlockElement> blocks() {
+    const std::filesystem::path pb = internal::session_data_dir() / "floor_model.pb";
 
-    const std::filesystem::path pb_path = internal::session_data_dir()
-        / "face_to_face_detection" / "face_to_face_detection.pb";
-
-    // pb_load returns an EMPTY session for a missing file rather than throwing,
-    // so a silent zero-polyline run is indistinguishable from a bad path.
-    if (!std::filesystem::exists(pb_path)) {
-        fmt::print(stderr, "  not found: {}\n", pb_path.string());
-        fmt::print(stderr, "  generate it with:\n"
-                           "    cd data/face_to_face_detection && .venv/bin/python brep_to_pb.py\n");
-        return;
+    // pb_load answers a missing file with an EMPTY session rather than throwing, which would
+    // make a bad path look like a run that found nothing. Check first.
+    if (!std::filesystem::exists(pb)) {
+        fmt::print(stderr, "not found: {}\ngenerate it with:\n"
+                           "  cd data/face_to_face_detection && .venv/bin/python step_to_pb.py\n",
+                   pb.string());
+        return {};
     }
-    Session session = Session::pb_load(pb_path.string());
 
-    // Recover the list of lists: each child of the tree root is one element,
-    // and its children are geometry nodes whose `name` is the polyline's GUID.
+    Session session = Session::pb_load(pb.string());
     std::vector<BlockElement> elements;
-    std::shared_ptr<TreeNode> root = session.tree.root();
-    if (root) {
+    if (std::shared_ptr<TreeNode> root = session.tree.root()) {
         for (TreeNode* group : root->children()) {
             std::vector<Polyline> loops;
             for (TreeNode* leaf : group->children()) {
@@ -191,48 +126,105 @@ static void scenario_b() {
             if (!loops.empty()) { elements.emplace_back(loops); }
         }
     }
-    fmt::print("  loaded      : {} elements, {} loops total\n", elements.size(),
-               session.get_geometry().polylines->size());
-    if (elements.empty()) {
-        fmt::print("  nothing grouped in the tree, stopping\n");
-        return;
-    }
+    return elements;
+}
 
-    std::vector<std::pair<int, int>> pairs = report_contacts(elements);
+// ═══════════════════════════════════════════════════════════════════════════
+// Run and write
+// ═══════════════════════════════════════════════════════════════════════════
 
-    // The contact regions themselves, which is what a BlockElement run is for.
-    Session out("face_to_face_scenario_b");
-    auto g = out.add_group("ContactAreas");
-    const double cos_angle = std::cos(globals::ANGLE);
-    int n_areas = 0;
-    for (const auto& [ia, ib] : pairs) {
-        const std::vector<FacePlane> fa = face_planes(elements[ia]);
-        const std::vector<FacePlane> fb = face_planes(elements[ib]);
-        for (size_t i = 0; i < fa.size(); ++i) {
-            for (size_t j = 0; j < fb.size(); ++j) {
-                if (!faces_coplanar(fa[i], fb[j], cos_angle, globals::DISTANCE_SQUARED)) {
-                    continue;
-                }
-                Polyline area(std::vector<Point>{});
-                // include_triangles is false: without the plate convention
-                // there is no "these two are the outer faces" exception.
-                if (face_overlap_area(elements[ia].polylines[i],
-                                      elements[ib].polylines[j],
-                                      elements[ia].planes[i], false, area)) {
-                    out.add_polyline(std::make_shared<Polyline>(area), g);
-                    ++n_areas;
-                }
-            }
+static double ms_since(std::chrono::steady_clock::time_point t0) {
+    return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+}
+
+// Works on either element type: both carry outlines and planes.
+template <class Element>
+static std::vector<FaceContact> contacts_of(const std::vector<Element>& elements) {
+    auto t0 = std::chrono::steady_clock::now();
+    const std::vector<std::pair<int, int>> pairs = adjacency_search(elements, globals::DISTANCE);
+    const double t_broad = ms_since(t0);
+
+    // face_contacts runs the broad phase again internally; the call above is only so the two
+    // phases can be reported apart.
+    t0 = std::chrono::steady_clock::now();
+    std::vector<FaceContact> contacts =
+        face_contacts(elements, globals::DISTANCE, globals::ANGLE, globals::DISTANCE_SQUARED);
+    const double t_both = ms_since(t0);
+
+    size_t faces = 0;
+    for (const Element& e : elements) { faces += e.polylines.size(); }
+    fmt::print("elements    : {} ({} faces)\n", elements.size(), faces);
+    fmt::print("broad phase : {} candidate pairs            {:8.3f} ms\n", pairs.size(), t_broad);
+    fmt::print("narrow phase: {} face pairs in real contact {:8.3f} ms\n",
+               contacts.size(), std::max(0.0, t_both - t_broad));
+    return contacts;
+}
+
+// Contact areas come out of the boolean as one closed ring, which the CDT meshes directly;
+// `false` keeps that ring as the boundary rather than picking one by bounding box.
+template <class Element>
+static int write_live(const std::vector<Element>& elements,
+                      const std::vector<FaceContact>& contacts) {
+    Session session("wood - face to face contacts");
+
+    // Inputs keep Polyline's default black pen. The contacts carry their colour on the mesh
+    // itself, not on the group - the viewer draws an object from its own colour.
+    auto g_inputs = session.add_group("Inputs");
+    size_t outlines = 0;
+    for (size_t i = 0; i < elements.size(); ++i) {
+        for (size_t f = 0; f < elements[i].polylines.size(); ++f) {
+            auto pl = std::make_shared<Polyline>(elements[i].polylines[f]);
+            pl->name = fmt::format("element_{}_face_{}", i, f);
+            session.add_polyline(pl, g_inputs);
+            ++outlines;
         }
     }
-    const std::string path = (internal::output_dir() / "face_to_face_scenario_b.pb").string();
-    out.pb_dump(path);
-    fmt::print("  contact areas: {}\n  wrote       : {}\n", n_areas, path);
+
+    auto g_contacts = session.add_group("Contacts");
+    size_t meshed = 0;
+    for (const FaceContact& c : contacts) {
+        auto mesh = std::make_shared<Mesh>(Mesh::from_polygon_with_holes({c.area.get_points()}, false));
+        if (mesh->number_of_faces() == 0) { continue; }   // degenerate ring, nothing to draw
+        mesh->name = fmt::format("contact_{}_{}", c.element_a, c.element_b);
+        // Color takes 0..1 FLOATS and clamps. Passing 0..255 makes every channel clamp to
+        // 1.0 - white - which is what shipped, and why the contacts were invisible against
+        // the background. One objectcolor per mesh is enough: to_render only prefers
+        // per-vertex colors when color_mode is POINTCOLORS, so no vertex colors are needed.
+        mesh->set_objectcolor(Color(1.0f, 0.0f, 0.0f, 1.0f, "red"));
+        session.add_mesh(mesh, g_contacts);
+        ++meshed;
+    }
+
+    const std::filesystem::path dir = internal::output_dir() / "pb";
+    std::filesystem::create_directories(dir);
+    const std::string path = (dir / "live.pb").string();
+    session.pb_dump(path);
+
+    fmt::print("wrote       : {} polylines, {} meshes\n", outlines, meshed);
+    fmt::print("              {}\n", path);
+    return outlines > 0 ? 0 : 1;
 }
 
 int main() {
     globals::globals_yaml("hello");
-    scenario_a();
-    scenario_b();
-    return 0;
+
+    if constexpr (PUBLISH == Case::Plates) {
+        fmt::print("A. plates built in code, fold at z = {:.0f} mm\n", FOLD_HEIGHT);
+        const std::vector<WoodElement> elements = plates();
+        const std::vector<FaceContact> contacts = contacts_of(elements);
+
+        // The reason this case is a WoodElement and case B is not: only a known
+        // (bottom, top) pair lets the joints be classified.
+        std::vector<WoodElement> mutable_elements = elements;
+        const std::vector<WoodJoint> joints = get_connection_zones(mutable_elements, face_to_face);
+        fmt::print("joints      : {}\n", joints.size());
+
+        return write_live(elements, contacts);
+    } else {
+        fmt::print("B. compas_tf floor system from data/floor_model.pb\n");
+        const std::vector<BlockElement> elements = blocks();
+        if (elements.empty()) { return 1; }
+        const std::vector<FaceContact> contacts = contacts_of(elements);
+        return write_live(elements, contacts);
+    }
 }

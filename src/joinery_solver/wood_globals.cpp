@@ -33,7 +33,7 @@ double ANGLE                                             = 0.11;  // wood_global
 double DUPLICATE_PTS_TOL                                 = 0.0;
 double LIMIT_MIN_JOINT_LENGTH                            = 0.0;   // wood_globals.cpp:36
 
-// Clipper2 layer (informational — Clipper2 is no longer linked).
+// Clipper2 layer: read by face_overlap_area (wood_face_to_face.cpp).
 int64_t CLIPPER_SCALE                                    = 1000000; // wood_globals.cpp:10
 double  CLIPPER_AREA                                     = 0.01;    // wood_globals.cpp:11
 

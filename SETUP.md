@@ -98,10 +98,10 @@ compas_wood   COMPAS wrapper      <- imports wood_nano
 working copy** when found. So a C++ edit here reaches Python only after
 rebuilding `wood_nano` (`uv pip install --no-build-isolation -e .` in that repo).
 
-Be aware that source build is currently failing on an upstream API skew — a stale
-`session_cpp::ElementPlate` declaration at
-`src/joinery_solver/wood_session.h:74-80` referencing a type `session_cpp` no
-longer defines. Details and the suggested fix are in `../wood_nano/SETUP.md`.
+The kernel is resolved the same way in both repos: `-DSESSION_CPP_LOCAL` / the
+`SESSION_CPP_LOCAL` environment variable, then the sibling `../session_cpp` (here a symlink
+into the session monorepo), then a clone of GitHub `main`. `../README.md` has the
+one-command update and the per-repo commands.
 
 ## Notes
 

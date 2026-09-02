@@ -65,7 +65,7 @@ public:
         get_bisector_planes();
         get_face_polylines(face_positions, face_thickness);
         get_edge_vectors(m, insertion_lines);
-        get_edge_planes(m, edge_divisions, edge_division_len);
+        get_edge_planes(edge_divisions, edge_division_len);
         get_connectors(rect_width, rect_height, rect_thickness);
     }
 
@@ -434,7 +434,6 @@ private:
 
     // ── edge perpendicular planes + subdivision ────────────────────────────────
     void get_edge_planes(
-        const Mesh&               m,
         const std::vector<int>&   edge_divisions,
         const std::vector<double>& edge_division_len)
     {

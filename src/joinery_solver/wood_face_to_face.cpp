@@ -17,6 +17,7 @@
 #include "../src/xform.h"
 #include "../src/plane.h"
 #include "../src/tolerance.h"
+#include "../src/clipper2/clipper.h"
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
@@ -45,10 +46,9 @@ namespace wood_session {
 
 namespace {
 
-// Mirrors session_cpp/src/element.cpp's strip_closing exactly, so that a
-// closing vertex sitting up to 1e-6 outside the first one is dropped here as
-// well and the extents stay bit-identical to the old ElementPlate route.
-void add_outline(const Polyline& pl, std::vector<Point>& corner_pts) {
+// Number of vertices of an outline once a closing vertex that repeats the
+// first one (to 1e-6, the test WoodElement itself uses) is dropped.
+size_t open_count(const Polyline& pl) {
     size_t n = pl.point_count();
     if (n > 3) {
         const Point& f = pl.get_point(0);
@@ -57,8 +57,35 @@ void add_outline(const Polyline& pl, std::vector<Point>& corner_pts) {
             std::abs(f[1] - l[1]) < 1e-6 &&
             std::abs(f[2] - l[2]) < 1e-6) { --n; }
     }
+    return n;
+}
+
+void add_outline(const Polyline& pl, std::vector<Point>& corner_pts) {
+    const size_t n = open_count(pl);
     for (size_t k = 0; k < n; k++) { corner_pts.push_back(pl.get_point(k)); }
 }
+
+// The points that bound an element - one overload per element type, which is
+// where the type-specific knowledge lives (see the header).
+void bounding_points(const WoodElement& e, std::vector<Point>& out) {
+    // The side quads are built from the very corners the top and bottom
+    // outlines already hold, so they cannot widen the extents; the two
+    // outlines yield the identical box.
+    if (e.polylines.size() > 1) {
+        out.reserve(e.polylines[0].point_count() + e.polylines[1].point_count());
+        add_outline(e.polylines[1], out);   // bottom
+        add_outline(e.polylines[0], out);   // top
+    }
+}
+void bounding_points(const BlockElement& e, std::vector<Point>& out) {
+    // No convention says which loop is which, so every loop counts.
+    for (const Polyline& loop : e.polylines) { add_outline(loop, out); }
+}
+
+// Whether face i is an "outer" (top/bottom) face, where wood accepts a
+// triangular overlap. Only the plate convention has outer faces.
+bool outer_face(const WoodElement&, size_t i) { return i < 2; }
+bool outer_face(const BlockElement&, size_t)  { return false; }
 
 }  // namespace
 
@@ -69,14 +96,10 @@ std::vector<std::pair<int, int>> adjacency_search(
 
     std::vector<std::pair<int, int>> pairs;
 
-    // The previous route materialised a session_cpp::ElementPlate per plate
-    // just to hand Intersection::adjacency_search an Element*. That
-    // constructor builds a halfedge Mesh with a per-face triangulation, and
-    // adjacency_search then called polylines() — recomputing and copying the
-    // top, bottom and every side quad — while all it ever uses is the point
-    // set's extents. The side quads are built from the very corners the top
-    // and bottom outlines already hold, so they cannot widen the extents;
-    // feeding those two outlines directly yields the identical box.
+    // Boxes come straight off the outlines: the previous route materialised a
+    // kernel element per plate, built a halfedge mesh, and then read the same
+    // corners back out of it. Which outlines bound an element is the one
+    // type-specific step, and bounding_points() above owns it.
     const size_t n_el = elements.size();
     if (n_el == 0) { return pairs; }
 
@@ -85,12 +108,7 @@ std::vector<std::pair<int, int>> adjacency_search(
     std::vector<Point> corner_pts;
     for (size_t i = 0; i < n_el; i++) {
         corner_pts.clear();
-        const auto& plines = elements[i].polylines;
-        if (plines.size() > 1) {
-            corner_pts.reserve(plines[0].point_count() + plines[1].point_count());
-            add_outline(plines[1], corner_pts);   // bottom
-            add_outline(plines[0], corner_pts);   // top
-        }
+        bounding_points(elements[i], corner_pts);
         if (!elements[i].planes.empty()) {
             obbs[i] = OBB::from_points(corner_pts, elements[i].planes[0], inflate);
         } else {
@@ -161,9 +179,97 @@ bool face_overlap_area(
     bool include_triangles,
     Polyline& out_area) {
 
-    return Intersection::polyline_boolean_2d_in_plane(
-        outline0, outline1, plane0,
-        out_area, 0, include_triangles, 0.01, 1.0/1024.0);
+    if (outline0.point_count() < 3 || outline1.point_count() < 3) { return false; }
+
+    // Plane-space 2D frame. base1/base2 depend only on the plane's normal, so
+    // the projection is the same however plane0 was constructed; the origin at
+    // outline0's first vertex keeps the integer coordinates small.
+    const Point  origin = outline0.get_point(0);
+    const Vector xax = plane0.base1();
+    const Vector yax = plane0.base2();
+    const double scale = static_cast<double>(globals::CLIPPER_SCALE);
+
+    auto to_path = [&](const Polyline& pl) {
+        Clipper2Lib::Path64 path;
+        const size_t n = open_count(pl);   // Clipper wants an open ring
+        path.reserve(n);
+        for (size_t k = 0; k < n; ++k) {
+            const Point& p = pl.get_point(k);
+            const double dx = p[0] - origin[0], dy = p[1] - origin[1], dz = p[2] - origin[2];
+            const double u = dx*xax[0] + dy*xax[1] + dz*xax[2];
+            const double v = dx*yax[0] + dy*yax[1] + dz*yax[2];
+            path.emplace_back(static_cast<int64_t>(std::llround(u * scale)),
+                              static_cast<int64_t>(std::llround(v * scale)));
+        }
+        return path;
+    };
+    const Clipper2Lib::Paths64 subject{to_path(outline0)};
+    const Clipper2Lib::Paths64 clip{to_path(outline1)};
+    const Clipper2Lib::Paths64 solution =
+        Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero);
+    if (solution.empty()) { return false; }
+
+    // Two convex outlines overlap in one region; concave ones can meet in
+    // several. Take the largest rather than whichever Clipper listed first.
+    const Clipper2Lib::Path64* best = nullptr;
+    double best_area = -1.0;
+    for (const Clipper2Lib::Path64& path : solution) {
+        const double a = std::abs(Clipper2Lib::Area(path));
+        if (a > best_area) { best_area = a; best = &path; }
+    }
+    // Two outlines that share an edge to within nanometres (side faces of
+    // plates cut from one surface, the vda_floor datasets) cross each other
+    // along that edge, and the crossing point of two near-parallel segments
+    // is wherever the rounding puts it. The result is still the right polygon,
+    // with extra vertices ON its edges; this drops them (and any vertex within
+    // a micrometre of the line between its neighbours) so the same contact
+    // gives the same polygon whichever way the input happened to round.
+    // 1/1024 mm is the epsilon the previous engine used for the same purpose.
+    const Clipper2Lib::Path64 cleaned = Clipper2Lib::SimplifyPath(*best, scale / 1024.0, true);
+    const size_t nc = cleaned.size();
+    if (nc < 3) { return false; }
+    if (nc == 3 && !include_triangles) { return false; }
+    if (std::abs(Clipper2Lib::Area(cleaned)) / (scale * scale) <= globals::CLIPPER_AREA) { return false; }
+
+    std::vector<Point> pts;
+    pts.reserve(nc + 1);
+    for (const Clipper2Lib::Point64& q : cleaned) {
+        const double u = static_cast<double>(q.x) / scale;
+        const double v = static_cast<double>(q.y) / scale;
+        pts.emplace_back(origin[0] + u*xax[0] + v*yax[0],
+                         origin[1] + u*xax[1] + v*yax[1],
+                         origin[2] + u*xax[2] + v*yax[2]);
+    }
+    pts.push_back(pts.front());
+    out_area = Polyline(pts);
+    return true;
+}
+
+template <class Element>
+std::vector<FaceContact> face_contacts(
+    const std::vector<Element>& elements,
+    double inflate,
+    double angle,
+    double coplanar_tolerance) {
+
+    std::vector<FaceContact> contacts;
+    const double cos_angle = std::cos(angle);
+    for (const auto& [ia, ib] : adjacency_search(elements, inflate)) {
+        const Element& ea = elements[ia];
+        const Element& eb = elements[ib];
+        const std::vector<FacePlane> fa = face_planes(ea);
+        const std::vector<FacePlane> fb = face_planes(eb);
+        for (size_t i = 0; i < fa.size(); ++i) {
+            for (size_t j = 0; j < fb.size(); ++j) {
+                if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance)) { continue; }
+                Polyline area(std::vector<Point>{});
+                if (!face_overlap_area(ea.polylines[i], eb.polylines[j], ea.planes[i],
+                                       outer_face(ea, i) && outer_face(eb, j), area)) { continue; }
+                contacts.push_back({ia, ib, static_cast<int>(i), static_cast<int>(j), std::move(area)});
+            }
+        }
+    }
+    return contacts;
 }
 
 // The element types the contact detector is used with. Keeping the bodies in
@@ -174,6 +280,10 @@ template std::vector<std::pair<int, int>>
 adjacency_search<BlockElement>(const std::vector<BlockElement>&, double);
 template std::vector<FacePlane> face_planes<WoodElement>(const WoodElement&);
 template std::vector<FacePlane> face_planes<BlockElement>(const BlockElement&);
+template std::vector<FaceContact>
+face_contacts<WoodElement>(const std::vector<WoodElement>&, double, double, double);
+template std::vector<FaceContact>
+face_contacts<BlockElement>(const std::vector<BlockElement>&, double, double, double);
 
 }  // namespace wood_session
 

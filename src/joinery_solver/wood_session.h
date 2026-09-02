@@ -124,9 +124,9 @@ namespace globals {
     extern double DUPLICATE_PTS_TOL;                         ///< consecutive-duplicate-points removal in load_plates
     extern double LIMIT_MIN_JOINT_LENGTH;                    ///< filters out joints whose centerline is shorter
 
-    // ── Clipper2 layer (unused in session port — Clipper2 was dropped) ───
-    extern int64_t CLIPPER_SCALE;                            ///< upstream Clipper2 integer scale; informational
-    extern double  CLIPPER_AREA;                             ///< upstream Clipper2 minimum polygon area; informational
+    // ── Clipper2 layer (face_overlap_area, wood_face_to_face.cpp) ────────
+    extern int64_t CLIPPER_SCALE;                            ///< mm -> int64 scale for the 2D boolean (1e6 = nanometre grid)
+    extern double  CLIPPER_AREA;                             ///< overlap areas at or below this (mm²) are not a contact
 
     // ── Filesystem strings ────────────────────────────────────────────────
     extern std::string DATA_SET_INPUT_NAME;                  ///< short obj basename (set by load_plates)
@@ -259,7 +259,8 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 // ═══════════════════════════════════════════════════════════════════════════
 // fill_session — splat the result of get_connection_zones into a Session for
 // visualization / .pb persistence. Recreates the legacy group layout:
-//   "Elements"                               — input plates as ElementPlate
+//   "Elements"                               — input plates as Element (WoodElement::to_element),
+//                                              each detected joint attached as a "joint" ElementFeature
 //   "JointAreas_SS_11" / "_TS_20" / "_Other" — per-type joint area polygons
 //   "JointLines_SS_11" / "_TS_20" / "_Other" — per-type joint centerlines
 //   "JointVols_SS_11"  / "_TS_20" / "_Other" — per-type joint volume quads

@@ -1069,7 +1069,6 @@ std::vector<WoodJoint> get_connection_zones(
         double unit_scale_distance;
     };
     std::map<std::string, CachedJointGeom> unique_joints_cache;
-    int n_filtered = 0;
     auto t3a = Clock::now();
     if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] geometry loop start  all_joints=%zu\n", all_joints.size()); fflush(stderr); }
     for (auto& j : all_joints) {
@@ -1412,6 +1411,10 @@ std::vector<WoodJoint> get_connection_zones(
         fmt::print("  stages(ms): setup={:.1f} adjacency={:.1f} detect={:.1f} tv={:.1f} geom={:.1f} jmf={:.1f} merge={:.1f}\n",
                    ms(t0, t2) - ms(t1, t2), ms(t1, t2), ms(t2, t3), ms(t3, t3a), ms(t3a, t3b), ms(t3b, t3c), ms(t3c, t4));
     }
+    // The kernel view of every joint - its two ElementFeatures - is derived from the solver
+    // fields, which are final only now that the merge has run. Refresh it here so a joint
+    // handed to a caller (or to fill_session) is never stale.
+    for (WoodJoint& j : all_joints) { j.sync_features(); }
     return all_joints;
 }
 
@@ -1490,82 +1493,6 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
     return get_connection_zones(elements, search_type);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodElement -> session_cpp::Element field mapping.
-//
-// These exist so the plate written into a Session carries what wood knows about it, not just
-// its loft mesh. Before Element grew dimensions/insertion_vectors/features, the only way to
-// ship a joint type code was a bespoke field on the kernel message - which is how joint_types
-// and friends ended up in element.proto and had to be reserved out again.
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Nominal plate box in the plate's OWN frame: outline extent in x/y, thickness in z.
-///
-/// Measured against planes[0]'s axes rather than a world AABB, so a plate keeps the same
-/// numbers however it is oriented - a world box would report a tilted plate as thick.
-static Vector nominal_dimensions(const WoodElement& we) {
-    if (we.polylines.empty() || we.planes.empty()) {
-        return Vector(0.0, 0.0, we.thickness);
-    }
-    const Plane& frame = we.planes[0];
-    const Point& origin = frame.origin();
-    const Vector& ex = frame.x_axis();
-    const Vector& ey = frame.y_axis();
-
-    bool first = true;
-    double min_u = 0.0, max_u = 0.0, min_v = 0.0, max_v = 0.0;
-    for (const auto& polyline : we.polylines) {
-        for (const auto& pt : polyline.get_points()) {
-            Vector d(pt[0] - origin[0], pt[1] - origin[1], pt[2] - origin[2]);
-            double u = d[0]*ex[0] + d[1]*ex[1] + d[2]*ex[2];
-            double v = d[0]*ey[0] + d[1]*ey[1] + d[2]*ey[2];
-            if (first) { min_u = max_u = u; min_v = max_v = v; first = false; }
-            else {
-                min_u = std::min(min_u, u); max_u = std::max(max_u, u);
-                min_v = std::min(min_v, v); max_v = std::max(max_v, v);
-            }
-        }
-    }
-    return Vector(max_u - min_u, max_v - min_v, we.thickness);
-}
-
-/// One ElementFeature per face that has a joint type, an outline, or both.
-///
-/// joint_types is indexed by face - [0] bottom, [1] top, [2..] side slots (wood_assign.cpp) -
-/// and Features.top/bottom hold the cut outlines for faces 1 and 0. Those are two descriptions
-/// of the same thing, which is why they collapse into one list here: the face index that used
-/// to be implied by array position becomes ElementFeature::face_index.
-static std::vector<ElementFeature> element_features(const WoodElement& we) {
-    std::vector<ElementFeature> out;
-
-    // -1 is wood's "no joint assigned"; a face with neither a type nor an outline is not a
-    // feature and must not be written as an empty one.
-    auto joint_type_of = [&we](size_t face) -> int {
-        return face < we.joint_types.size() ? we.joint_types[face] : -1;
-    };
-    auto outlines_of = [&we](size_t face) -> const std::vector<Polyline>& {
-        static const std::vector<Polyline> none;
-        if (face == 0) return we.features.bottom;
-        if (face == 1) return we.features.top;
-        return none;
-    };
-
-    size_t face_count = std::max(we.joint_types.size(), size_t{2});
-    for (size_t face = 0; face < face_count; face++) {
-        int type = joint_type_of(face);
-        const std::vector<Polyline>& outlines = outlines_of(face);
-        if (type < 0 && outlines.empty()) { continue; }
-
-        // The code, not a label: wood has no joint-type vocabulary to spell it with, and an
-        // invented one would be a second thing to keep in sync with the solver.
-        std::string feature_type = type >= 0 ? "joint_" + std::to_string(type) : "cut";
-        out.emplace_back(feature_type, static_cast<int>(face), outlines,
-                         "face_" + std::to_string(face));
-    }
-    return out;
-}
-
 // fill_session — splat get_connection_zones output into a Session for
 // visualization / .pb persistence. Recreates the legacy group layout that
 // the Vue/Rhino viewers expect, plus optional loft meshes.
@@ -1582,28 +1509,27 @@ void fill_session(
 {
     // Plates as Elements in an "Elements" group.
     //
-    // This used to build a session_cpp::ElementPlate from the (bottom, top)
-    // outline pair. That class was deleted from session_cpp in 89da090c
-    // ("refactoring"); the surviving Element takes a Mesh, and WoodElement
-    // already knows how to loft its own outlines into one, so the plate
-    // geometry is identical - Element::polylines()/planes() still recover the
-    // faces from it.
-    //
-    // Everything else a WoodElement carries now has a typed home on Element, so none of it has
-    // to be re-encoded by hand or dropped:
-    //   thickness         -> dimensions[2]      (x/y are the outline extent in the plate frame)
-    //   insertion_vectors -> insertion_vectors  (same meaning, straight across)
-    //   joint_types[i]    -> features[i].feature_type
-    //   features.top/bot  -> features[i].outlines
+    // WoodElement::to_element() is the whole mapping: loft mesh as geometry, insertion
+    // vectors straight across, thickness in dimensions[2], per-face joint types and merged
+    // cut outlines as face features, and the two outlines in element_data under
+    // element_type "WoodElement" so the plate reads back as one. Each detected joint is
+    // then attached as a "joint" feature to both of its elements - the same ElementFeature
+    // the joint carries as WoodJoint::element_features, so its guid is the joint's guid.
+    std::vector<std::vector<std::pair<int, int>>> joints_of(elements.size());   // (joint, side)
+    for (size_t ji = 0; ji < joints.size(); ji++) {
+        const int e0 = joints[ji].el_ids.first, e1 = joints[ji].el_ids.second;
+        if (e0 >= 0 && e0 < (int)elements.size()) { joints_of[e0].push_back({(int)ji, 0}); }
+        if (e1 >= 0 && e1 < (int)elements.size()) { joints_of[e1].push_back({(int)ji, 1}); }
+    }
     auto g_elem = session.add_group("Elements");
     for (size_t i = 0; i < elements.size(); i++) {
         const WoodElement& we = elements[i];
-        auto plate = std::make_shared<Element>(we.loft_mesh(), "plate_" + std::to_string(i * 2));
-
-        plate->set_insertion_vectors(we.insertion_vectors);
-        plate->set_dimensions(nominal_dimensions(we));
-        plate->set_features(element_features(we));
-
+        std::shared_ptr<Element> plate = we.to_element();
+        // Legacy viewers key on this name; a plate the caller named keeps its name.
+        if (plate->name == "plate") { plate->name = "plate_" + std::to_string(i * 2); }
+        for (const auto& [ji, side] : joints_of[i]) {
+            plate->add_feature(std::move(joints[ji].to_features()[side]));
+        }
         session.add_element(plate, g_elem);
     }
 

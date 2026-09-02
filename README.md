@@ -47,12 +47,25 @@ cmake --build build --config Release --target <target>
 
 | Type | File | What it is |
 |---|---|---|
-| `ElementPlate` | `src/element.h` | Input: bottom + top polyline pair |
-| `WoodElement` | `wood_element.h` | Plate with planes, thickness, side faces |
-| `WoodJoint` | `wood_element.h` | One connection: type, area, tooth profiles |
+| `WoodElement` | `src/joinery_solver/wood_element.h` | Plate: bottom + top outline pair, side faces, planes, thickness. Owns a `session_cpp::Element` |
+| `BlockElement` | `src/joinery_solver/wood_element.h` | Any closed loops, one plane each - contact detection only. Owns a `session_cpp::Element` |
+| `WoodJoint` | `src/joinery_solver/wood_element.h` | One connection: type, area, lines, volumes, cut outlines. Owns two `session_cpp::ElementFeature` (one per element) |
+| `FaceContact` | `src/joinery_solver/wood_face_to_face.h` | One touching face pair and its overlap polygon |
 | `TranslationShell` | `src/templates/translation_shell.cpp` | Swept quad mesh + per-face plates |
 
----
+The wood types are composed over the kernel rather than derived from it: `to_element()` /
+`from_element()` move between a `WoodElement` and the `session_cpp::Element` a Session stores
+(`element_type = "WoodElement"`), and `WoodJoint::to_features()` is the joint as each host
+element carries it. `examples/main_element_mapping_check.cpp` checks the mapping both ways.
+
+## Contact detection
+
+`wood_face_to_face.h`: `adjacency_search` (oriented box per element, BVH, SAT) → candidate
+pairs; `faces_coplanar` → touching back-to-back faces; `face_overlap_area` → the overlap polygon,
+computed by Clipper2 on int64 coordinates (`CLIPPER_SCALE`, 1e-6 mm). `face_contacts` runs the
+whole thing for any element type. `examples/main_face_to_face.cpp` checks it on plates, on
+loose loops, and on rotated block grids with a known number of contacts, and exits non-zero
+if any check fails.
 
 ## Joint type codes
 
@@ -68,19 +81,17 @@ cmake --build build --config Release --target <target>
 
 ## Serialization
 
-Wood types use JSON. Session types support JSON and protobuf.
+Every wood type serializes through the kernel: `jsondump` / `jsonload`, `file_json_dump(s)` /
+`file_json_load(s)`, and for elements `pb_dumps` / `pb_loads`, `pb_dump` / `pb_load`.
 
 ```cpp
-TranslationShell ts;
-ts.file_json_dump("shell.json");
-auto ts2 = TranslationShell::file_json_load("shell.json");
+WoodElement plate(bottom, top);
+std::string bytes = plate.pb_dumps();                 // a session_proto.Element, element_type "WoodElement"
+WoodElement back  = WoodElement::pb_loads(bytes);     // outlines, planes, thickness, joint types restored
 
+session.add_element(plate.to_element());              // into a Session, with the joints as features
 session.pb_dump("session.pb");
+
+WoodJoint joint = joints[0];
+joint.file_json_dump("joint.json");                   // solver fields + its two ElementFeatures
 ```
-
----
-
-## Dependencies
-
-- CMake ≥ 3.22, MSVC / GCC / Clang with C++23
-- `session_cpp` at `C:/pc/3_code/code_rust/session/session_cpp` (hardcoded in `CMakeLists.txt`)

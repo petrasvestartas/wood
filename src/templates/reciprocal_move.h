@@ -293,27 +293,6 @@ private:
             return std::nullopt;  // boundary edge
         };
 
-        // _OppositeFE(fi, fj, shift): C# _OppositeFE(i, j, next).
-        // Find the opposite face of edge (fi,fj), then shift the local edge index by 'shift'.
-        // Used by Beams2: op=_OppositeFE(i,j,-1) for "To" cut, on=_OppositeFE(i,j,+1) for "From" cut.
-        auto get_opp_shifted = [&](int fi, int fj, int shift)
-            -> std::optional<std::pair<int,int>>
-        {
-            const auto& fv = faces[fi];
-            int n = (int)fv.size();
-            size_t u = fv[fj], v = fv[(fj+1)%n];
-            auto it = edge_to_fe.find({std::min(u,v), std::max(u,v)});
-            if (it == edge_to_fe.end()) return std::nullopt;
-            for (auto& [fi2, fj2] : it->second) {
-                if (fi2 != fi) {
-                    int n2 = (int)faces[fi2].size();
-                    int shifted = ((fj2 + shift) % n2 + n2) % n2;
-                    return std::make_pair(fi2, shifted);
-                }
-            }
-            return std::nullopt;
-        };
-
         // ── FEFlatten: sequential half-edge IDs ──
         // FEFlat[i][j] = global half-edge index (same as C# FEFlatten)
         int total_he = 0;

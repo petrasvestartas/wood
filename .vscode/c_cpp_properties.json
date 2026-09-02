@@ -8,9 +8,20 @@
       "cppStandard": "c++23",
       "intelliSenseMode": "linux-gcc-x64",
       "includePath": [
-        "${workspaceFolder}/src/joinery_solver",
         "${workspaceFolder}",
-        "${workspaceFolder}/generated"
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/src/joinery_solver",
+        "${workspaceFolder}/src/templates",
+        "${workspaceFolder}/../session_cpp",
+        "${workspaceFolder}/../session_cpp/src",
+        "${workspaceFolder}/../session_cpp/src/fmt/include",
+        "${workspaceFolder}/../session_cpp/src/json/include",
+        "${workspaceFolder}/../session_cpp/src/guid/include",
+        "${workspaceFolder}/../session_cpp/src/yaml",
+        "${workspaceFolder}/../session_cpp/generated",
+        "${workspaceFolder}/build/_deps/absl-src",
+        "${workspaceFolder}/build/_deps/protobuf-src/src",
+        "${workspaceFolder}/build/_deps/protobuf-src/third_party/utf8_range"
       ]
     },
     {
