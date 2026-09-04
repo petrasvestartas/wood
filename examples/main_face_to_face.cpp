@@ -3,12 +3,9 @@
 #include "wood_element.h"
 #include "../src/session.h"
 #include "../src/polyline.h"
-#include "../src/plane.h"
 #include "../src/mesh.h"
 
 #include <fmt/core.h>
-#include <algorithm>
-#include <chrono>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -20,63 +17,50 @@ using namespace wood_session;
 // Choose
 // ═══════════════════════════════════════════════════════════════════════════
 
-enum class Case { Plates, Blocks };
-
-static constexpr Case PUBLISH = Case::Plates;
+const bool plates_or_blocks = true;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // A — plates built in code
 // ═══════════════════════════════════════════════════════════════════════════
-//
-// Plates are 15 mm thick, given as the outline at z = 0 and its copy at z = -15, in
-// (bottom, top) order. Two coplanar plates meeting along y = 0 give a side-to-side IN-PLANE
-// joint; the folded pair at x >= 1000 shares an edge and gives an OUT-OF-PLANE one.
-//
-// Plates must TOUCH, not interpenetrate: a wall sunk into a slab shares no coplanar face
-// pair and is detected as nothing at all.
-
 static std::vector<WoodElement> plates() {
     const double h = 174.0;
+    const double width = 1000.0;
+    const double height = 500.0;
+    const double thickness = 15.0;
     const Vector x(1.0, 0.0, 0.0);
     const Vector y(0.0, 1.0, 0.0);
 
-    // The folded plate leans: its second edge runs +500 in y while dropping h in z, so it is
-    // handed to Plane unnormalized and its true length becomes the rectangle height.
-    const Vector fold(0.0, 500.0, -h);
+    // Folded plate: unnormalized edge, its true length is the height.
+    const Vector fold(0.0, height, -h);
     const double fold_length = fold.magnitude();
 
     std::vector<WoodElement> elements;
 
     // Coplanar pair, sharing the edge y = 0.
     elements.emplace_back(
-        Polyline::rectangle(Plane(Point(-500,   0,   0), x, y), 1000.0, 500.0),
-        Polyline::rectangle(Plane(Point(-500,   0, -15), x, y), 1000.0, 500.0));
+        Polyline::rectangle(Point(-500, 0, 0), x, y, width, height),
+        Polyline::rectangle(Point(-500, 0, -thickness), x, y, width, height));
     elements.emplace_back(
-        Polyline::rectangle(Plane(Point(-500, -500,   0), x, y), 1000.0, 500.0),
-        Polyline::rectangle(Plane(Point(-500, -500, -15), x, y), 1000.0, 500.0));
+        Polyline::rectangle(Point(-500, -500, 0), x, y, width, height),
+        Polyline::rectangle(Point(-500, -500, -thickness), x, y, width, height));
 
     // Folded pair, sharing the edge x = 1000..2000, y = 0.
     elements.emplace_back(
-        Polyline::rectangle(Plane(Point(1000,   0,   0), x, y), 1000.0, 500.0),
-        Polyline::rectangle(Plane(Point(1000,   0, -15), x, y), 1000.0, 500.0));
+        Polyline::rectangle(Point(1000, 0, 0), x, y, width, height),
+        Polyline::rectangle(Point(1000, 0, -thickness), x, y, width, height));
     elements.emplace_back(
-        Polyline::rectangle(Plane(Point(1000, -500,      h), x, fold), 1000.0, fold_length),
-        Polyline::rectangle(Plane(Point(1000, -500, h - 15), x, fold), 1000.0, fold_length));
+        Polyline::rectangle(Point(1000, -500, h), x, fold, width, fold_length),
+        Polyline::rectangle(Point(1000, -500, h - thickness), x, fold, width, fold_length));
     return elements;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // B — the compas_tf floor system, as closed polylines
 // ═══════════════════════════════════════════════════════════════════════════
-//
-// A list of lists: each child of the tree root is one solid, its children are that solid's
-// closed face loops, unordered and unlabelled.
 
 static std::vector<BlockElement> blocks() {
     const std::filesystem::path pb = internal::session_data_dir() / "floor_model.pb";
 
-    // pb_load answers a missing file with an EMPTY session rather than throwing, which would
-    // make a bad path look like a run that found nothing. Check first.
     if (!std::filesystem::exists(pb)) {
         fmt::print(stderr, "not found: {}\ngenerate it with:\n"
                            "  cd data/face_to_face_detection && .venv/bin/python step_to_pb.py\n",
@@ -86,14 +70,8 @@ static std::vector<BlockElement> blocks() {
 
     Session session = Session::pb_load(pb.string());
     std::vector<BlockElement> elements;
-    if (std::shared_ptr<TreeNode> root = session.tree.root()) {
-        for (TreeNode* group : root->children()) {
-            std::vector<Polyline> loops;
-            for (TreeNode* leaf : group->children()) {
-                if (auto pl = session.get_object<Polyline>(leaf->name)) { loops.push_back(*pl); }
-            }
-            if (!loops.empty()) { elements.emplace_back(loops); }
-        }
+    for (const std::vector<Polyline>& loops : session.select_by_type<Polyline>()) {
+        elements.emplace_back(loops);
     }
     return elements;
 }
@@ -101,33 +79,6 @@ static std::vector<BlockElement> blocks() {
 // ═══════════════════════════════════════════════════════════════════════════
 // Run and write
 // ═══════════════════════════════════════════════════════════════════════════
-
-static double ms_since(std::chrono::steady_clock::time_point t0) {
-    return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
-}
-
-// Works on either element type: both carry outlines and planes.
-template <class Element>
-static std::vector<FaceContact> contacts_of(const std::vector<Element>& elements) {
-    auto t0 = std::chrono::steady_clock::now();
-    const std::vector<std::pair<int, int>> pairs = adjacency_search(elements, globals::DISTANCE);
-    const double t_broad = ms_since(t0);
-
-    // face_contacts runs the broad phase again internally; the call above is only so the two
-    // phases can be reported apart.
-    t0 = std::chrono::steady_clock::now();
-    std::vector<FaceContact> contacts =
-        face_contacts(elements, globals::DISTANCE, globals::ANGLE, globals::DISTANCE_SQUARED);
-    const double t_both = ms_since(t0);
-
-    size_t faces = 0;
-    for (const Element& e : elements) { faces += e.polylines.size(); }
-    fmt::print("elements    : {} ({} faces)\n", elements.size(), faces);
-    fmt::print("broad phase : {} candidate pairs            {:8.3f} ms\n", pairs.size(), t_broad);
-    fmt::print("narrow phase: {} face pairs in real contact {:8.3f} ms\n",
-               contacts.size(), std::max(0.0, t_both - t_broad));
-    return contacts;
-}
 
 // Contact areas come out of the boolean as one closed ring, which the CDT meshes directly;
 // `false` keeps that ring as the boundary rather than picking one by bounding box.
@@ -150,7 +101,6 @@ static int write_live(const std::vector<Element>& elements,
     }
 
     auto g_contacts = session.add_group("Contacts");
-    size_t meshed = 0;
     for (const FaceContact& c : contacts) {
         auto mesh = std::make_shared<Mesh>(Mesh::from_polygon_with_holes({c.area.get_points()}, false));
         if (mesh->number_of_faces() == 0) { continue; }   // degenerate ring, nothing to draw
@@ -161,25 +111,22 @@ static int write_live(const std::vector<Element>& elements,
         // per-vertex colors when color_mode is POINTCOLORS, so no vertex colors are needed.
         mesh->set_objectcolor(Color(1.0f, 0.0f, 0.0f, 1.0f, "red"));
         session.add_mesh(mesh, g_contacts);
-        ++meshed;
     }
 
     const std::filesystem::path dir = internal::output_dir() / "pb";
     std::filesystem::create_directories(dir);
     const std::string path = (dir / "live.pb").string();
     session.pb_dump(path);
-
-    fmt::print("wrote       : {} polylines, {} meshes\n", outlines, meshed);
-    fmt::print("              {}\n", path);
     return outlines > 0 ? 0 : 1;
 }
 
 int main() {
     globals::globals_yaml("hello");
 
-    if constexpr (PUBLISH == Case::Plates) {
+    if constexpr (plates_or_blocks) {
         const std::vector<WoodElement> elements = plates();
-        const std::vector<FaceContact> contacts = contacts_of(elements);
+        const std::vector<FaceContact> contacts =
+            face_contacts(elements, globals::DISTANCE, globals::ANGLE, globals::DISTANCE_SQUARED);
 
         // The reason this case is a WoodElement and case B is not: only a known
         // (bottom, top) pair lets the joints be classified.
@@ -190,7 +137,8 @@ int main() {
     } else {
         const std::vector<BlockElement> elements = blocks();
         if (elements.empty()) { return 1; }
-        const std::vector<FaceContact> contacts = contacts_of(elements);
+        const std::vector<FaceContact> contacts =
+            face_contacts(elements, globals::DISTANCE, globals::ANGLE, globals::DISTANCE_SQUARED);
         return write_live(elements, contacts);
     }
 }
