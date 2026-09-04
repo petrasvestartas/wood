@@ -1,26 +1,3 @@
-// examples/main_face_to_face.cpp — contact detection, written straight to the live scene.
-//
-// Writes ONE file: wood/data/output/pb/live.pb, the scene bash/publish_scene.sh pushes.
-// Nothing else — no manifest, no per-scenario dumps.
-//
-// CHOOSE WHAT IT PUBLISHES with the PUBLISH line below, then rebuild and run:
-//
-//   Plates — four plates built in code here. Their (bottom, top) outline pairs are known,
-//            so WoodElement applies and the full pipeline runs: contact detection AND
-//            joint classification.
-//   Blocks — the compas_tf floor system, read from data/floor_model.pb: 237 solids as
-//            closed face loops, converted from compas_tf/data/fabrication/model_0_fab.stp
-//            by data/face_to_face_detection/step_to_pb.py. Nothing says which loop is
-//            bottom and which is top, so WoodElement does not fit: these are BlockElements
-//            and only contact detection runs. That is the point of the type — contact
-//            detection needs no plate convention, joint classification does.
-//
-// The .pb holds plain geometry, never the solver's types: every input outline as a
-// Polyline, every detected contact polygon as a triangulated Mesh. A viewer needs shapes.
-//
-// Contact detection entry points all live in wood_face_to_face.h:
-//   adjacency_search  — element-level broad phase, candidate pairs
-//   face_contacts     — broad phase + per-face-pair narrow phase, any element type
 #include "wood_session.h"
 #include "wood_face_to_face.h"
 #include "wood_element.h"
@@ -47,13 +24,6 @@ enum class Case { Plates, Blocks };
 
 static constexpr Case PUBLISH = Case::Plates;
 
-// Plates only: how high the folded plate's far edge rides, in mm. Change it and the
-// published scene visibly changes. The plate is SHEARED, not rotated: the shared edge stays
-// at y = 0, z = 0..-15, so the two touching side faces stay coplanar and the contact stays
-// exactly 15 x 1000 mm at any height. A true rotation would swing that face out of the
-// y = 0 plane and detect nothing at all.
-static constexpr double FOLD_HEIGHT = 174.0;
-
 // ═══════════════════════════════════════════════════════════════════════════
 // A — plates built in code
 // ═══════════════════════════════════════════════════════════════════════════
@@ -65,34 +35,33 @@ static constexpr double FOLD_HEIGHT = 174.0;
 // Plates must TOUCH, not interpenetrate: a wall sunk into a slab shares no coplanar face
 // pair and is detected as nothing at all.
 
-static Polyline rect(double ax, double ay, double az,
-                     double bx, double by, double bz,
-                     double cx, double cy, double cz,
-                     double dx, double dy, double dz) {
-    return Polyline(std::vector<Point>{
-        Point(ax, ay, az), Point(bx, by, bz),
-        Point(cx, cy, cz), Point(dx, dy, dz), Point(ax, ay, az)});
-}
-
 static std::vector<WoodElement> plates() {
-    const double h = FOLD_HEIGHT;
+    const double h = 174.0;
+    const Vector x(1.0, 0.0, 0.0);
+    const Vector y(0.0, 1.0, 0.0);
+
+    // The folded plate leans: its second edge runs +500 in y while dropping h in z, so it is
+    // handed to Plane unnormalized and its true length becomes the rectangle height.
+    const Vector fold(0.0, 500.0, -h);
+    const double fold_length = fold.magnitude();
+
     std::vector<WoodElement> elements;
 
     // Coplanar pair, sharing the edge y = 0.
     elements.emplace_back(
-        rect(-500,   0,   0,   500,   0,   0,   500, 500,   0,  -500, 500,   0),
-        rect(-500,   0, -15,   500,   0, -15,   500, 500, -15,  -500, 500, -15));
+        Polyline::rectangle(Plane(Point(-500,   0,   0), x, y), 1000.0, 500.0),
+        Polyline::rectangle(Plane(Point(-500,   0, -15), x, y), 1000.0, 500.0));
     elements.emplace_back(
-        rect(-500, -500,   0,  500, -500,   0,  500,   0,   0,  -500,   0,   0),
-        rect(-500, -500, -15,  500, -500, -15,  500,   0, -15,  -500,   0, -15));
+        Polyline::rectangle(Plane(Point(-500, -500,   0), x, y), 1000.0, 500.0),
+        Polyline::rectangle(Plane(Point(-500, -500, -15), x, y), 1000.0, 500.0));
 
     // Folded pair, sharing the edge x = 1000..2000, y = 0.
     elements.emplace_back(
-        rect(1000,   0,   0,  2000,   0,   0,  2000, 500,   0,  1000, 500,   0),
-        rect(1000,   0, -15,  2000,   0, -15,  2000, 500, -15,  1000, 500, -15));
+        Polyline::rectangle(Plane(Point(1000,   0,   0), x, y), 1000.0, 500.0),
+        Polyline::rectangle(Plane(Point(1000,   0, -15), x, y), 1000.0, 500.0));
     elements.emplace_back(
-        rect(1000, -500,    h, 2000, -500,    h, 2000,   0,   0,  1000,   0,   0),
-        rect(1000, -500, h-15, 2000, -500, h-15, 2000,   0, -15,  1000,   0, -15));
+        Polyline::rectangle(Plane(Point(1000, -500,      h), x, fold), 1000.0, fold_length),
+        Polyline::rectangle(Plane(Point(1000, -500, h - 15), x, fold), 1000.0, fold_length));
     return elements;
 }
 
@@ -209,7 +178,6 @@ int main() {
     globals::globals_yaml("hello");
 
     if constexpr (PUBLISH == Case::Plates) {
-        fmt::print("A. plates built in code, fold at z = {:.0f} mm\n", FOLD_HEIGHT);
         const std::vector<WoodElement> elements = plates();
         const std::vector<FaceContact> contacts = contacts_of(elements);
 
@@ -217,11 +185,9 @@ int main() {
         // (bottom, top) pair lets the joints be classified.
         std::vector<WoodElement> mutable_elements = elements;
         const std::vector<WoodJoint> joints = get_connection_zones(mutable_elements, face_to_face);
-        fmt::print("joints      : {}\n", joints.size());
 
         return write_live(elements, contacts);
     } else {
-        fmt::print("B. compas_tf floor system from data/floor_model.pb\n");
         const std::vector<BlockElement> elements = blocks();
         if (elements.empty()) { return 1; }
         const std::vector<FaceContact> contacts = contacts_of(elements);
