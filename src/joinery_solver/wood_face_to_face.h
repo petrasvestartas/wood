@@ -25,6 +25,7 @@
 #pragma once
 
 #include "wood_element.h"
+#include "wood_session.h"
 #include "../src/point.h"
 #include "../src/line.h"
 #include "../src/polyline.h"
@@ -167,9 +168,9 @@ struct FaceContact {
 template <class Element>
 std::vector<FaceContact> face_contacts(
     const std::vector<Element>& elements,
-    double inflate,
-    double angle,
-    double coplanar_tolerance);
+    double inflate            = globals::DISTANCE,
+    double angle              = globals::ANGLE,
+    double coplanar_tolerance = globals::DISTANCE_SQUARED);
 
 extern template std::vector<FaceContact>
 face_contacts<WoodElement>(const std::vector<WoodElement>&, double, double, double);

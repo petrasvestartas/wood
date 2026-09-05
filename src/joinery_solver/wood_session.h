@@ -8,8 +8,9 @@
 //   wood::main::   → get_connection_zones    (wood_main.cpp)
 //   wood_test.h    → 43 type_plates_name_*() (wood_test.cpp)
 //
-// Implementations are split across the translation units listed above.
-// `main_5.cpp` is a near-empty entry point that only contains `int main()`.
+// Implementations are split across the translation units listed above, plus
+// wood_session.cpp, which owns the scene-writing block near the bottom of this
+// header. `main_5.cpp` is a near-empty entry point that only contains `int main()`.
 //
 // Structs: wood/wood_joint.h (WoodJoint) and wood/wood_element.h (WoodElement).
 // Pipeline helpers (orient, merge) remain in wood_main.cpp's anonymous namespace.
@@ -18,6 +19,7 @@
 
 #include <array>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -28,7 +30,7 @@
 // WoodElement / WoodJoint are passed by value/ref through this API surface.
 #include "wood_element.h"
 
-namespace session_cpp { class Vector; class Plane; class Line; class Session; }
+namespace session_cpp { class Vector; class Plane; class Line; class Session; class TreeNode; }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // wood_session::CrossJoint + plane_to_face — side-to-side cross/lap joint
@@ -221,9 +223,14 @@ enum SearchType : int {
 //
 // elements    — timber plates as WoodElements (built via the WoodElement
 //               (bot, top) ctor, or returned by internal::load_plates(name)).
-//               MUTATED: each
-//               element's `features` field is populated with the merged
-//               top/bottom outlines produced by the merge pass.
+//               IN-OUT, and the second half of the result: each element's
+//               `features` is populated with the merged top/bottom outlines from
+//               the merge pass, `insertion_vectors` with the vectors the solver
+//               resolved, and a reversed plate has its (bot, top) pair swapped.
+//               fill_session() and every other consumer read the outlines back
+//               off these elements, so never hold your plates in a `const`
+//               vector - the only way to pass one is to copy it, and the copy is
+//               what carries the result you then throw away.
 // search_type — face_to_face (default), cross_joint, or face_to_face_then_cross.
 // Returns:    — every detected joint (per-pair), with type / area / lines /
 //               volumes / male+female cut outlines populated.
@@ -273,6 +280,77 @@ void fill_session(
         const std::vector<wood_session::WoodElement>& elements,
         const std::vector<wood_session::WoodJoint>&   joints,
         bool include_loft = true);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Writing a scene — every way wood puts geometry into a session .pb.
+//
+// fill_session above is the solver's full legacy layout. These are the smaller
+// scenes an example wants: what was in front of the detector, and what it found.
+// They used to be copied into each example as a local write_live(), which is why
+// they drifted; the .pb path lived in each copy too.
+//
+// FaceContact is only named here - wood_face_to_face.h includes this header, so
+// this one cannot include it back.
+// ═══════════════════════════════════════════════════════════════════════════
+namespace wood_session {
+
+struct FaceContact;
+
+/// data/output/pb/<name>.pb, with the directory created. The one place a wood
+/// scene's path is spelled out.
+std::filesystem::path pb_path(const std::string& name);
+
+/// Write the session to pb_path(name) and return that path. The default "live"
+/// is the file session_viewer watches.
+std::filesystem::path pb_dump(const session_cpp::Session& session,
+                              const std::string& name = "live");
+
+/// The scene an example asks for after running contact detection: every element
+/// face outline under "Inputs", every contact area under "Contacts", written to
+/// pb_path(name). `title` names the session as the viewer shows it; `name` is
+/// the file stem, and the default is the one session_viewer watches. Two
+/// overloads rather than a template, so this header need not pull in session.h.
+std::filesystem::path write_element_and_contacts(
+        const std::string& title,
+        const std::vector<WoodElement>& elements,
+        const std::vector<FaceContact>& contacts,
+        const std::string& name = "live");
+
+std::filesystem::path write_element_and_contacts(
+        const std::string& title,
+        const std::vector<BlockElement>& elements,
+        const std::vector<FaceContact>& contacts,
+        const std::string& name = "live");
+
+// ── Pieces, for a scene that needs more than the above ────────────────────
+
+/// Every face outline of every element, named `element_<i>_face_<f>`.
+void add_faces(session_cpp::Session& session,
+               const std::shared_ptr<session_cpp::TreeNode>& parent,
+               const std::vector<WoodElement>& elements);
+
+void add_faces(session_cpp::Session& session,
+               const std::shared_ptr<session_cpp::TreeNode>& parent,
+               const std::vector<BlockElement>& elements);
+
+/// The overlap region of each face pair in contact, as a red mesh named
+/// `contact_<a>_<b>`. A ring that triangulates to nothing draws nothing and is
+/// dropped by Session::add_mesh.
+void add_contacts(session_cpp::Session& session,
+                  const std::shared_ptr<session_cpp::TreeNode>& parent,
+                  const std::vector<FaceContact>& contacts);
+
+/// Joint areas, centerlines and volumes, each into its own group under the
+/// session root - the three belong together, so the groups are made here.
+void add_joints(session_cpp::Session& session, const std::vector<WoodJoint>& joints);
+
+/// One lofted solid per element, from its merged bottom outlines to its top
+/// ones. An element missing either side contributes nothing.
+void add_lofts(session_cpp::Session& session,
+               const std::shared_ptr<session_cpp::TreeNode>& parent,
+               const std::vector<WoodElement>& elements);
+
+} // namespace wood_session
 
 // ═══════════════════════════════════════════════════════════════════════════
 // beam_volumes_pipeline — beam (axis+radius) entry point. Equivalent of
