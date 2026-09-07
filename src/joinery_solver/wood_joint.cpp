@@ -34,7 +34,7 @@ void apply_unit_scale(WoodJoint& joint) {
     static const char* const dp = std::getenv("WOOD_APPLY_DUMP");
     if (dp) {
         std::ofstream alog(dp, std::ios::app);
-        alog << "apply_unit_scale: joint v0=" << joint.el_ids.first << " v1=" << joint.el_ids.second
+        alog << "apply_unit_scale: joint v0=" << joint.contact.element_a << " v1=" << joint.contact.element_b
              << " unit_scale=" << joint.unit_scale << " usd=" << joint.unit_scale_distance << "\n";
         auto& vols = joint.joint_volumes_pair_a_pair_b;
         for (int i = 0; i < 4; i++) {
@@ -136,7 +136,7 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
         if (joint.linked_joints[i] < 0 ||
             joint.linked_joints[i] >= (int)all_joints.size()) { continue; }
         // wood: m_f_curr = v0 == linked.v0
-        bool m_f_curr = joint.el_ids.first == all_joints[joint.linked_joints[i]].el_ids.first;
+        bool m_f_curr = joint.contact.element_a == all_joints[joint.linked_joints[i]].contact.element_a;
         bool m_f_next = m_f_curr;
         if (i == 1) { m_f_next = !m_f_next; } // wood: invert for second link
 
@@ -233,15 +233,15 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
 
     // Wood swaps the joint's own fields (wood_joint_lib.cpp:438-443), not
     // just local copies.
-    std::swap(joint.el_ids.first, joint.el_ids.second);
-    std::swap(joint.face_ids.first[0], joint.face_ids.second[0]);
-    std::swap(joint.face_ids.first[1], joint.face_ids.second[1]);
+    std::swap(joint.contact.element_a, joint.contact.element_b);
+    std::swap(joint.contact.face_a, joint.contact.face_b);
+    std::swap(joint.cross_faces[0], joint.cross_faces[1]);
     std::swap(joint.joint_lines[0], joint.joint_lines[1]);
 
-    int v0 = joint.el_ids.first;
-    int v1 = joint.el_ids.second;
-    int f0_0 = joint.face_ids.first[0];
-    int f1_0 = joint.face_ids.second[0];
+    int v0 = joint.contact.element_a;
+    int v1 = joint.contact.element_b;
+    int f0_0 = joint.contact.face_a;
+    int f1_0 = joint.contact.face_b;
 
     if (v0 < 0 || v0 >= (int)elements.size() || v1 < 0 || v1 >= (int)elements.size()) {
         ss_e_r_0(joint); // fall back to world-space rect split
@@ -422,8 +422,8 @@ void tt_e_p_3(WoodJoint& joint,
     joint.name = "tt_e_p_3";
     joint.no_orient = true;
 
-    int v0 = joint.el_ids.first;
-    int v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a;
+    int v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
 
@@ -436,8 +436,8 @@ void tt_e_p_3(WoodJoint& joint,
     // 1. Get fast plane of joint_area
     // 2. Offset polygon in 3D by offset_distance
     // 3. For each edge, interpolate points (mode=2 = include start only)
-    if (joint.joint_area.point_count() < 4) { return; }
-    Polyline poly_copy = joint.joint_area;
+    if (joint.contact.area.point_count() < 4) { return; }
+    Polyline poly_copy = joint.contact.area;
     Point fast_origin;
     Plane fast_plane;
     poly_copy.get_fast_plane(fast_origin, fast_plane);
@@ -552,18 +552,18 @@ void side_removal(WoodJoint& joint,
 void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_0";
     joint.no_orient = true;
-    int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
     if (jv0.point_count() < 3) { return; }
-    if (joint.joint_area.point_count() < 3) { return; }
+    if (joint.contact.area.point_count() < 3) { return; }
 
     // centroid of joint_area
     Point center;
     {
-        auto pts = joint.joint_area.get_points();
+        auto pts = joint.contact.area.get_points();
         double sx=0, sy=0, sz=0;
         for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
         double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
@@ -598,18 +598,18 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_1";
     joint.no_orient = true;
-    int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
     if (jv0.point_count() < 3) { return; }
-    if (joint.joint_area.point_count() < 3) { return; }
+    if (joint.contact.area.point_count() < 3) { return; }
 
     // Approximate polylabel with centroid (exact for convex regular polygons).
     Point center;
     {
-        auto pts = joint.joint_area.get_points();
+        auto pts = joint.contact.area.get_points();
         double sx=0, sy=0, sz=0;
         for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
         double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
@@ -644,13 +644,13 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_2";
     joint.no_orient = true;
-    int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
     if (jv0.point_count() < 3) { return; }
-    if (joint.joint_area.point_count() < 3) { return; }
+    if (joint.contact.area.point_count() < 3) { return; }
 
     double radius = joint.shift;
     int n_pts = std::max(1, std::min(100, (int)joint.division_length));
@@ -658,14 +658,14 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     // Centroid + plane of joint_area
     Point center;
     {
-        auto pts = joint.joint_area.get_points();
+        auto pts = joint.contact.area.get_points();
         double sx=0, sy=0, sz=0;
         for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
         double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
     }
     Point fo, dummy;
     Plane fast_plane;
-    Polyline area_copy = joint.joint_area;
+    Polyline area_copy = joint.contact.area;
     area_copy.get_fast_plane(fo, fast_plane);
     Vector zp = fast_plane.z_axis(); zp.normalize_self();
     Vector xp = fast_plane.x_axis(); xp.normalize_self();
@@ -717,18 +717,18 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_4";
     joint.no_orient = true;
-    int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
     if (jv0.point_count() < 3) { return; }
-    if (joint.joint_area.point_count() < 4) { return; }
+    if (joint.contact.area.point_count() < 4) { return; }
 
     double division_distance = joint.division_length;
     if (division_distance <= 0.0) { return; }
 
-    Polyline poly_copy = joint.joint_area;
+    Polyline poly_copy = joint.contact.area;
     Point fast_origin; Plane fast_plane;
     poly_copy.get_fast_plane(fast_origin, fast_plane);
     double offset_distance = -joint.shift;
@@ -780,18 +780,18 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_5";
     joint.no_orient = true;
-    int v0 = joint.el_ids.first, v1 = joint.el_ids.second;
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
     if (jv0.point_count() < 3) { return; }
-    if (joint.joint_area.point_count() < 4) { return; }
+    if (joint.contact.area.point_count() < 4) { return; }
 
     double division_distance = std::abs(joint.division_length);
     if (division_distance <= 0.0) { return; }
 
-    Polyline poly_copy = joint.joint_area;
+    Polyline poly_copy = joint.contact.area;
     Point fast_origin; Plane fast_plane;
     poly_copy.get_fast_plane(fast_origin, fast_plane);
     double offset_distance = -joint.shift;

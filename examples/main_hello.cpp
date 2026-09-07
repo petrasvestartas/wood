@@ -135,7 +135,7 @@ int main() {
     // Joint areas
     std::shared_ptr<TreeNode> group_areas = session.add_group("Joint Areas");
     for (const WoodJoint& j : joints) {
-        session.add_polyline(std::make_shared<Polyline>(j.joint_area), group_areas);
+        session.add_polyline(std::make_shared<Polyline>(j.contact.area), group_areas);
     }
 
     // Joint volumes

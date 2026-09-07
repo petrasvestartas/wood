@@ -12,10 +12,11 @@ endif()
 # session_cpp: where the kernel comes from. First hit wins:
 #
 #   1. -DSESSION_CPP_LOCAL=<dir>, or the SESSION_CPP_LOCAL environment variable
-#   2. ../session_cpp next to this repo - a checkout, or a symlink to one. This is
-#      the wood_project layout (see ../README.md): one kernel checkout shared by
-#      wood and wood_nano, so `git pull` there updates both.
-#   3. a fresh FetchContent clone of GitHub main (CI, or a lone checkout)
+#   2. ../session_cpp next to this repo - a plain checkout beside wood.
+#   3. ../session/session_cpp - the wood_research layout (see ../README.md), where
+#      the kernel arrives inside the `session` monorepo it is authored in. One
+#      checkout shared by wood and wood_nano, so `git pull` there updates both.
+#   4. a fresh FetchContent clone of GitHub main (CI, or a lone checkout)
 #
 # This used to be a bare `set(SESSION_CPP_DIR "C:/pc/3_code/.../session_cpp")`
 # pointing at one developer's machine, so configuring anywhere else failed with
@@ -27,13 +28,14 @@ endif()
 include(FetchContent)
 
 set(SESSION_CPP_LOCAL "" CACHE PATH
-    "Local session_cpp checkout; ../session_cpp or a GitHub clone when empty")
+    "Local session_cpp checkout; ../session_cpp, ../session/session_cpp, or a GitHub clone when empty")
 
 set(SESSION_CPP_DIR "")
 foreach(_candidate IN ITEMS
         "${SESSION_CPP_LOCAL}"
         "$ENV{SESSION_CPP_LOCAL}"
         "${CMAKE_CURRENT_SOURCE_DIR}/../session_cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../session/session_cpp"
         "C:/pc/3_code/code_rust/session/session_cpp")
     if(NOT "${_candidate}" STREQUAL "" AND EXISTS "${_candidate}/CMakeLists.txt")
         get_filename_component(SESSION_CPP_DIR "${_candidate}" REALPATH)
@@ -148,6 +150,7 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # transform, not a pairwise relation - and it was the only caller left.
 ADD_EXE(main_cdt_probe           examples/main_cdt_probe.cpp)
 ADD_EXE(main_face_to_face        examples/main_face_to_face.cpp)
+ADD_EXE(main_deserialize         examples/main_deserialize.cpp)
 ADD_EXE(main_annen_chevron       src/templates/temp/main_annen_chevron.cpp)
 ADD_EXE(main_beam_reciprocal     src/templates/temp/main_beam_reciprocal.cpp)
 ADD_EXE(main_annen_faces         src/templates/temp/main_annen_faces.cpp)

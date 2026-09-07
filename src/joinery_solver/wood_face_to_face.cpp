@@ -21,6 +21,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include <array>
@@ -82,17 +84,67 @@ void bounding_points(const BlockElement& e, std::vector<Point>& out) {
     for (const Polyline& loop : e.polylines) { add_outline(loop, out); }
 }
 
+// The three things the detection templates need off an element. Overloaded rather
+// than accessed as members so ContactElement - which holds pointers, not values -
+// can be a fourth element type without duplicating any of the scan.
+const std::vector<Polyline>& faces_of(const WoodElement& e)    { return e.polylines; }
+const std::vector<Polyline>& faces_of(const BlockElement& e)   { return e.polylines; }
+const std::vector<Polyline>& faces_of(const ContactElement& e) { return *e.polylines; }
+const std::vector<Plane>& planes_of(const WoodElement& e)      { return e.planes; }
+const std::vector<Plane>& planes_of(const BlockElement& e)     { return e.planes; }
+const std::vector<Plane>& planes_of(const ContactElement& e)   { return *e.planes; }
+const std::string& name_of(const WoodElement& e)               { return e.element.name; }
+const std::string& name_of(const BlockElement& e)              { return e.element.name; }
+const std::string& name_of(const ContactElement& e)            { return *e.name; }
+
 // Whether face i is an "outer" (top/bottom) face, where wood accepts a
 // triangular overlap. Only the plate convention has outer faces.
+void bounding_points(const ContactElement& e, std::vector<Point>& out) {
+    // A viewed plate is bounded by its two outlines, exactly as a WoodElement is;
+    // anything else has no such convention, so every loop counts.
+    if (e.plate_convention && e.polylines->size() > 1) {
+        out.reserve((*e.polylines)[0].point_count() + (*e.polylines)[1].point_count());
+        add_outline((*e.polylines)[1], out);
+        add_outline((*e.polylines)[0], out);
+        return;
+    }
+    for (const Polyline& loop : *e.polylines) { add_outline(loop, out); }
+}
+
 bool outer_face(const WoodElement&, size_t i) { return i < 2; }
 bool outer_face(const BlockElement&, size_t)  { return false; }
+bool outer_face(const ContactElement& e, size_t i) { return e.plate_convention && i < 2; }
+
+// Topology class of a face pair, overloaded on element type for the same reason
+// outer_face is: only the plate convention distinguishes an outer face from a
+// side. A BlockElement has no such convention, so its contacts stay `unknown`
+// rather than claiming to all be side-to-side.
+//
+// The single definition of the rule, and face_contacts_for_pair is its only
+// caller: every contact is classified once, as it is found. face_to_face_wood
+// used to spell `(i > 1) ? 0 : 1` out inline and now reads contact.type off the
+// FaceContact the shared scan hands it.
+ContactType contact_type(const WoodElement& a, size_t i, const WoodElement& b, size_t j) {
+    return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
+}
+ContactType contact_type(const BlockElement&, size_t, const BlockElement&, size_t) {
+    return ContactType::unknown;
+}
+ContactType contact_type(const ContactElement& a, size_t i, const ContactElement& b, size_t j) {
+    // BOTH sides must have the convention. A plate touching a column is genuinely
+    // unclassifiable as side/top: there is no face convention on the column to compare
+    // against, and calling it side_side would be a claim the geometry does not support.
+    if (!a.plate_convention || !b.plate_convention) { return ContactType::unknown; }
+    return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
+}
 
 }  // namespace
 
 template <class Element>
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<Element>& elements,
-    double inflate) {
+    double inflate,
+    const std::vector<std::string>& names) {
 
     std::vector<std::pair<int, int>> pairs;
 
@@ -103,14 +155,22 @@ std::vector<std::pair<int, int>> adjacency_search(
     const size_t n_el = elements.size();
     if (n_el == 0) { return pairs; }
 
+    // Excluded elements keep their slot in obbs/aabbs (a zero box at the origin)
+    // so every index below is still an element index.
+    const std::unordered_set<std::string> wanted(names.begin(), names.end());
+    auto included = [&elements, &wanted](size_t i) {
+        return wanted.empty() || wanted.count(name_of(elements[i])) != 0;
+    };
+
     std::vector<OBB>  obbs(n_el);
     std::vector<AABB> aabbs(n_el);
     std::vector<Point> corner_pts;
     for (size_t i = 0; i < n_el; i++) {
+        if (!included(i)) { continue; }
         corner_pts.clear();
         bounding_points(elements[i], corner_pts);
-        if (!elements[i].planes.empty()) {
-            obbs[i] = OBB::from_points(corner_pts, elements[i].planes[0], inflate);
+        if (!planes_of(elements[i]).empty()) {
+            obbs[i] = OBB::from_points(corner_pts, planes_of(elements[i])[0], inflate);
         } else {
             obbs[i] = OBB::from_points(corner_pts, inflate);
         }
@@ -127,8 +187,10 @@ std::vector<std::pair<int, int>> adjacency_search(
     SpatialBVH bvh;
     bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
     for (size_t i = 0; i < n_el; i++) {
+        if (!included(i)) { continue; }
         for (int j : bvh.query_aabb(aabbs[i])) {
-            if ((int)i < j && obbs[i].collides_with(obbs[j])) {
+            // An excluded j is still in the tree: its zero box sits at the origin.
+            if ((int)i < j && included((size_t)j) && obbs[i].collides_with(obbs[j])) {
                 pairs.emplace_back((int)i, j);
             }
         }
@@ -138,11 +200,11 @@ std::vector<std::pair<int, int>> adjacency_search(
 
 template <class Element>
 std::vector<FacePlane> face_planes(const Element& element) {
-    const size_t n = element.planes.size();
+    const size_t n = planes_of(element).size();
     std::vector<FacePlane> out(n);
     for (size_t j = 0; j < n; ++j) {
-        const Point&  o = element.planes[j].origin();
-        const Vector& v = element.planes[j].z_axis();
+        const Point&  o = planes_of(element)[j].origin();
+        const Vector& v = planes_of(element)[j].z_axis();
         out[j] = { o[0], o[1], o[2], v[0], v[1], v[2],
                    v[0]*v[0] + v[1]*v[1] + v[2]*v[2] };
     }
@@ -246,28 +308,53 @@ bool face_overlap_area(
 }
 
 template <class Element>
+std::vector<FaceContact> face_contacts_for_pair(
+    const Element& ea,
+    const Element& eb,
+    int ia,
+    int ib,
+    double cos_angle,
+    double coplanar_tolerance,
+    PairScanStats* stats) {
+
+    std::vector<FaceContact> contacts;
+    const std::vector<FacePlane> fa = face_planes(ea);
+    const std::vector<FacePlane> fb = face_planes(eb);
+    for (size_t i = 0; i < fa.size(); ++i) {
+        for (size_t j = 0; j < fb.size(); ++j) {
+            if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance)) { continue; }
+            if (stats) { stats->coplanar++; }
+            Polyline area(std::vector<Point>{});
+            if (!face_overlap_area(faces_of(ea)[i], faces_of(eb)[j], planes_of(ea)[i],
+                                   outer_face(ea, i) && outer_face(eb, j), area)) {
+                if (stats) { stats->empty_i = static_cast<int>(i); stats->empty_j = static_cast<int>(j); }
+                continue;
+            }
+            if (stats) { stats->overlapping++; }
+            contacts.push_back({ia, ib, static_cast<int>(i), static_cast<int>(j),
+                                contact_type(ea, i, eb, j), std::move(area)});
+        }
+    }
+    return contacts;
+}
+
+template <class Element>
 std::vector<FaceContact> face_contacts(
     const std::vector<Element>& elements,
+    const std::vector<std::string>& names,
     double inflate,
     double angle,
     double coplanar_tolerance) {
 
     std::vector<FaceContact> contacts;
     const double cos_angle = std::cos(angle);
-    for (const auto& [ia, ib] : adjacency_search(elements, inflate)) {
-        const Element& ea = elements[ia];
-        const Element& eb = elements[ib];
-        const std::vector<FacePlane> fa = face_planes(ea);
-        const std::vector<FacePlane> fb = face_planes(eb);
-        for (size_t i = 0; i < fa.size(); ++i) {
-            for (size_t j = 0; j < fb.size(); ++j) {
-                if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance)) { continue; }
-                Polyline area(std::vector<Point>{});
-                if (!face_overlap_area(ea.polylines[i], eb.polylines[j], ea.planes[i],
-                                       outer_face(ea, i) && outer_face(eb, j), area)) { continue; }
-                contacts.push_back({ia, ib, static_cast<int>(i), static_cast<int>(j), std::move(area)});
-            }
-        }
+    // Selection happens once, in the broad phase.
+    for (const auto& [ia, ib] : adjacency_search(elements, inflate, names)) {
+        std::vector<FaceContact> pair_contacts = face_contacts_for_pair(
+            elements[ia], elements[ib], ia, ib, cos_angle, coplanar_tolerance);
+        contacts.insert(contacts.end(),
+                        std::make_move_iterator(pair_contacts.begin()),
+                        std::make_move_iterator(pair_contacts.end()));
     }
     return contacts;
 }
@@ -275,15 +362,26 @@ std::vector<FaceContact> face_contacts(
 // The element types the contact detector is used with. Keeping the bodies in
 // this file (rather than the header) means only these two ever instantiate.
 template std::vector<std::pair<int, int>>
-adjacency_search<WoodElement>(const std::vector<WoodElement>&, double);
+adjacency_search<WoodElement>(const std::vector<WoodElement>&, double, const std::vector<std::string>&);
 template std::vector<std::pair<int, int>>
-adjacency_search<BlockElement>(const std::vector<BlockElement>&, double);
+adjacency_search<BlockElement>(const std::vector<BlockElement>&, double, const std::vector<std::string>&);
 template std::vector<FacePlane> face_planes<WoodElement>(const WoodElement&);
 template std::vector<FacePlane> face_planes<BlockElement>(const BlockElement&);
+template std::vector<std::pair<int, int>>
+adjacency_search<ContactElement>(const std::vector<ContactElement>&, double, const std::vector<std::string>&);
+template std::vector<FacePlane> face_planes<ContactElement>(const ContactElement&);
 template std::vector<FaceContact>
-face_contacts<WoodElement>(const std::vector<WoodElement>&, double, double, double);
+face_contacts_for_pair<ContactElement>(const ContactElement&, const ContactElement&, int, int, double, double, PairScanStats*);
 template std::vector<FaceContact>
-face_contacts<BlockElement>(const std::vector<BlockElement>&, double, double, double);
+face_contacts<ContactElement>(const std::vector<ContactElement>&, const std::vector<std::string>&, double, double, double);
+template std::vector<FaceContact>
+face_contacts_for_pair<WoodElement>(const WoodElement&, const WoodElement&, int, int, double, double, PairScanStats*);
+template std::vector<FaceContact>
+face_contacts_for_pair<BlockElement>(const BlockElement&, const BlockElement&, int, int, double, double, PairScanStats*);
+template std::vector<FaceContact>
+face_contacts<WoodElement>(const std::vector<WoodElement>&, const std::vector<std::string>&, double, double, double);
+template std::vector<FaceContact>
+face_contacts<BlockElement>(const std::vector<BlockElement>&, const std::vector<std::string>&, double, double, double);
 
 }  // namespace wood_session
 
@@ -380,15 +478,6 @@ bool face_to_face_wood(
     // assignment below is gated on this flag.
     static const bool dbg_reasons = (std::getenv("WOOD_VERBOSE") != nullptr);
     if (search_type != 1) {
-    const size_t n_faces0 = el0.planes.size();
-    const size_t n_faces1 = el1.planes.size();
-
-    // Loop-invariant scan data, gathered once per element pair instead of once
-    // per (i, j). See FacePlane above for why the coordinates are
-    // unpacked rather than read through Point/Vector::operator[].
-    using wood_session::FacePlane;
-    const std::vector<FacePlane> faces0 = wood_session::face_planes(el0);
-    const std::vector<FacePlane> faces1 = wood_session::face_planes(el1);
     // ANGLE is a mutable global, so the compiler cannot fold this cosine; it
     // used to be evaluated on every face pair.
     const double cos_angle = std::cos(wood_session::globals::ANGLE);
@@ -410,37 +499,43 @@ bool face_to_face_wood(
         Vector avg_normal_1 = el1.planes[0].z_axis();
         avg_plane_1 = Plane::from_point_normal(avg_origin_1, avg_normal_1);
     }
-    for (size_t i = 0; i < n_faces0; ++i) {
-        for (size_t j = 0; j < n_faces1; ++j) {
-            const FacePlane& f1 = faces1[j];
+    // 1 + 2. Which faces touch, and where - the scan shared with face_contacts.
+    // Run here, inside get_connection_zones' loop over element pairs, because
+    // that loop may swap this element's faces 0 and 1 between pairs; a contact
+    // list built once up front would name the wrong faces afterwards.
+    wood_session::PairScanStats scan;
+    const std::vector<wood_session::FaceContact> pair_contacts =
+        wood_session::face_contacts_for_pair(el0, el1, el_ids_in.first, el_ids_in.second,
+                                             cos_angle, coplanar_tolerance, &scan);
+    dbg_coplanar = scan.coplanar;
+    dbg_boolean  = scan.overlapping;
+    // The whole scan now happens before any classification, so an empty-boolean
+    // reason is recorded up front rather than interleaved. Under WOOD_VERBOSE a
+    // pair that fails both ways therefore reports the classification reason
+    // where it used to report a later bool_empty. Diagnostics only - nothing
+    // reads dbg_fail_reason except one fmt::print on the no-joint path.
+    if (dbg_reasons && scan.empty_i >= 0) {
+        dbg_fail_reason = fmt::format("bool_empty f({},{})", scan.empty_i, scan.empty_j);
+    }
 
-            // 1. Contact test: are the two faces touching back-to-back?
-            if (!wood_session::faces_coplanar(
-                    faces0[i], f1, cos_angle, coplanar_tolerance)) { continue; }
-            dbg_coplanar++;
+    for (const wood_session::FaceContact& contact : pair_contacts) {
+        {
+            const size_t i = static_cast<size_t>(contact.face_a);
+            const size_t j = static_cast<size_t>(contact.face_b);
+            Polyline joint_area = contact.area;
 
-            // 2. Contact area: do the two coplanar outlines actually overlap?
-            //    Triangles count only for top/bottom face pairs (i<2 && j<2).
-            Polyline joint_area(std::vector<Point>{});
-            bool include_triangles = (i < 2 && j < 2);
-            if (!wood_session::face_overlap_area(
-                    el0.polylines[i], el1.polylines[j], el0.planes[i],
-                    include_triangles, joint_area)) {
-                if (dbg_reasons) { dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j); }
-                continue;
-            }
-            dbg_boolean++;
             // 3. Record matched face indices for the output.
-            face_ids.first[0]  = static_cast<int>(i);
-            face_ids.first[1]  = static_cast<int>(i);
-            face_ids.second[0] = static_cast<int>(j);
-            face_ids.second[1] = static_cast<int>(j);
+            face_ids.first[0]  = contact.face_a;
+            face_ids.first[1]  = contact.face_a;
+            face_ids.second[0] = contact.face_b;
+            face_ids.second[1] = contact.face_b;
 
-            // 4. Joint type from face class.
-            //    type0/type1 = 0 if face is a side, 1 if face is top/bottom.
-            int type0 = (i > 1) ? 0 : 1;
-            int type1 = (j > 1) ? 0 : 1;
-            int joint_type = type0 + type1;
+            // 4. Joint type from face class, classified once by the shared scan.
+            //    0 = side-side, 1 = top-side, 2 = top-top. The value is
+            //    symmetric in (i, j), so the male/female swaps below leave it
+            //    correct even though they reorder the pair.
+            const wood_session::ContactType ctype = contact.type;
+            int joint_type = static_cast<int>(ctype);
 
             // 5. Build the side-A alignment line (`joint_line0`) when face A
             //    is a side face. For top faces, this stays a degenerate
@@ -727,10 +822,11 @@ bool face_to_face_wood(
                     joint_volumes[1] = vol1;
                     joint_type = 13;
 
-                    out_joint.el_ids       = el_ids;
-                    out_joint.face_ids     = face_ids;
+                    out_joint.contact      = { el_ids.first, el_ids.second,
+                                               face_ids.first[0], face_ids.second[0],
+                                               ctype, joint_area };
+                    out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                     out_joint.joint_type   = joint_type;
-                    out_joint.joint_area   = joint_area;
                     out_joint.joint_lines  = joint_lines;
                     out_joint.joint_volumes_pair_a_pair_b = joint_volumes;
                     return true;
@@ -868,10 +964,11 @@ bool face_to_face_wood(
 
                         // DEBUG
 
-                        out_joint.el_ids       = el_ids;
-                        out_joint.face_ids     = face_ids;
+                        out_joint.contact      = { el_ids.first, el_ids.second,
+                                                   face_ids.first[0], face_ids.second[0],
+                                                   ctype, joint_area };
+                        out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                         out_joint.joint_type   = joint_type;
-                        out_joint.joint_area   = joint_area;
                         out_joint.joint_lines  = joint_lines;
                         out_joint.joint_volumes_pair_a_pair_b = joint_volumes;
                         return true;
@@ -971,10 +1068,11 @@ bool face_to_face_wood(
                         joint_type = 12;
 
 
-                        out_joint.el_ids       = el_ids;
-                        out_joint.face_ids     = face_ids;
+                        out_joint.contact      = { el_ids.first, el_ids.second,
+                                                   face_ids.first[0], face_ids.second[0],
+                                                   ctype, joint_area };
+                        out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                         out_joint.joint_type   = joint_type;
-                        out_joint.joint_area   = joint_area;
                         out_joint.joint_lines  = joint_lines;
                         out_joint.joint_volumes_pair_a_pair_b = joint_volumes;
                         return true;
@@ -1055,10 +1153,11 @@ bool face_to_face_wood(
                 joint_volumes[f_id] = female_vol;
                 joint_type = 20;
 
-                out_joint.el_ids       = el_ids;
-                out_joint.face_ids     = face_ids;
+                out_joint.contact      = { el_ids.first, el_ids.second,
+                                           face_ids.first[0], face_ids.second[0],
+                                           ctype, joint_area };
+                out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                 out_joint.joint_type   = joint_type;
-                out_joint.joint_area   = joint_area;
                 out_joint.joint_lines  = joint_lines;
                 out_joint.joint_volumes_pair_a_pair_b = joint_volumes;
                 return true;
@@ -1153,10 +1252,11 @@ bool face_to_face_wood(
                 joint_volumes[1] = temp1;
                 joint_type = 40;
 
-                out_joint.el_ids       = el_ids;
-                out_joint.face_ids     = face_ids;
+                out_joint.contact      = { el_ids.first, el_ids.second,
+                                           face_ids.first[0], face_ids.second[0],
+                                           ctype, joint_area };
+                out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                 out_joint.joint_type   = joint_type;
-                out_joint.joint_area   = joint_area;
                 out_joint.joint_lines  = joint_lines;
                 out_joint.joint_volumes_pair_a_pair_b = joint_volumes;
                 return true;
@@ -1190,11 +1290,15 @@ bool face_to_face_wood(
                                         el0.planes[0], el0.planes[1],
                                         el1.planes[0], el1.planes[1],
                                         cj, CROSS_JOINT_PARALLEL_ANGLE_DEG, cj_ext)) {
-            out_joint.el_ids       = el_ids;
-            out_joint.face_ids     = { {{ cj.face_ids_a.first,  cj.face_ids_a.second }},
-                                       {{ cj.face_ids_b.first,  cj.face_ids_b.second }} };
+            // A cross joint is not a coplanar face contact - the two elements
+            // pass through each other - so its "contact" is the crossing region
+            // and the topology class stays unknown. It is also the one joint
+            // that involves TWO side faces per element, hence cross_faces.
+            out_joint.contact      = { el_ids.first, el_ids.second,
+                                       cj.face_ids_a.first, cj.face_ids_b.first,
+                                       wood_session::ContactType::unknown, cj.joint_area };
+            out_joint.cross_faces  = { cj.face_ids_a.second, cj.face_ids_b.second };
             out_joint.joint_type   = 30;
-            out_joint.joint_area   = cj.joint_area;
             out_joint.joint_lines  = {{
                 Line::from_points(cj.joint_lines[0].get_point(0), cj.joint_lines[0].get_point(1)),
                 Line::from_points(cj.joint_lines[1].get_point(0), cj.joint_lines[1].get_point(1)),

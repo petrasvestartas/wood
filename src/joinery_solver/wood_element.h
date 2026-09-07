@@ -35,14 +35,75 @@
 
 namespace wood_session {
 
+/// Topology class of a face contact, derived from the two face indices alone.
+/// Available on any element type, because it needs no geometry beyond the plate
+/// face convention (index < 2 = outer face, >= 2 = side face).
+///
+/// NOT the same vocabulary as WoodJoint::joint_type. That one is the refined
+/// solver code (11/12/13/20/30/40) and needs plate geometry - dihedral angle,
+/// alignment chords, thickness - to compute. ContactType is what a contact can
+/// say about itself; joint_type is what the solver decided afterwards. The two
+/// spaces do not even agree numerically: ContactType::side_top is 1, the
+/// top-to-side joint code is 20.
+enum class ContactType : int {
+    unknown   = -1,  ///< no plate face convention - every BlockElement contact
+    side_side = 0,   ///< both faces are sides     (refines to 11 / 12 / 13)
+    side_top  = 1,   ///< one side, one outer face (refines to 20)
+    top_top   = 2,   ///< both outer faces         (refines to 40)
+};
+
+/// One face pair in real contact: which faces of which elements, the topology
+/// class, and the overlap region between them (closed, in element_a's face
+/// plane).
+///
+/// face_contacts() emits these with element_a < element_b. A WoodJoint's
+/// embedded contact does NOT keep that ordering: the solver swaps the pair to
+/// put the male side first (wood_face_to_face.cpp, wood_joint.cpp
+/// merge_linked_joints), so the ordering is a property of face_contacts, not of
+/// this type.
+///
+/// Lives here rather than in wood_face_to_face.h because WoodJoint embeds one
+/// by value, and that header includes wood_session.h, which includes this one.
+struct FaceContact {
+    int element_a = 0;
+    int element_b = 0;
+    int face_a = 0;
+    int face_b = 0;
+    ContactType type = ContactType::unknown;
+    session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
+};
+
+/// A read-only view of any element, for contact detection over a MIXED set.
+///
+/// Detection needs three things from an element - its face outlines, their planes, and a
+/// name to filter on - plus one bit: whether the plate face convention applies, which is
+/// what lets a contact be classified side/top. A WoodElement has it, a WoodColumn and a
+/// BlockElement do not. Wrapping all three in one view is what lets a model of 153 plates,
+/// 4 columns and 80 solids go through a single detection pass.
+///
+/// Holds POINTERS into the elements it views. It must not outlive them, and the vectors it
+/// points into must not be reallocated while it is alive.
+struct ContactElement {
+    const std::vector<session_cpp::Polyline>* polylines = nullptr;
+    const std::vector<session_cpp::Plane>*    planes    = nullptr;
+    const std::string*                        name      = nullptr;
+    bool plate_convention = false;
+};
+
 struct WoodJoint {
     WoodJoint();
 
-    std::pair<int, int> el_ids;
-    std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
+    /// Which faces of which elements touched, and where. Replaces the el_ids /
+    /// face_ids / joint_area triple this struct used to spell out by hand.
+    FaceContact contact;
+    /// Type-30 (cross) joints only: the SECOND side face of each element that
+    /// the crossing involves, from CrossJoint::face_ids_a/.face_ids_b. Every
+    /// other joint has one face per element and leaves this at {-1,-1}.
+    std::array<int, 2> cross_faces{-1, -1};
+    /// Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40
+    /// top-top. See ContactType above - a different vocabulary, not this one.
     int joint_type;
     std::string name;
-    session_cpp::Polyline joint_area;
     std::array<session_cpp::Line, 2> joint_lines;
     std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes_pair_a_pair_b;
     std::array<std::vector<session_cpp::Polyline>, 2> m_outlines;
@@ -67,8 +128,8 @@ struct WoodJoint {
     // ── Kernel view, by composition ────────────────────────────────────────
     //
     // The joint as each of its two host elements carries it: [0] is the male side
-    // (el_ids.first, detected on face face_ids.first[0]), [1] the female side
-    // (el_ids.second, face_ids.second[0]). Identity lives here - element_features[k].guid()
+    // (contact.element_a, detected on face contact.face_a), [1] the female side
+    // (contact.element_b, contact.face_b). Identity lives here - element_features[k].guid()
     // is the handle a Session consumer uses to name this side of the joint again. Copying
     // an ElementFeature mints a fresh guid, so copying a joint copies its geometry, not its
     // identity, exactly as the kernel does.
@@ -105,10 +166,17 @@ struct Features {
 
 struct WoodElement {
     WoodElement();
-    WoodElement(const session_cpp::Polyline& bot, const session_cpp::Polyline& top);
+    /// `name` is the plate's type flag: face_contacts() filters on it.
+    WoodElement(const session_cpp::Polyline& bot, const session_cpp::Polyline& top,
+                const std::string& name = "plate");
 
-    /// Value of `element_type` this plate is written under.
-    static constexpr const char* ELEMENT_TYPE = "WoodElement";
+    /// Value of `element_type` this plate is written under. A DOMAIN name, not this
+    /// struct's name: the tag says what the thing is, so a producer that has never heard
+    /// of wood (compas_tf) and a consumer that has (wood) agree on one vocabulary, and
+    /// wood's class names stay free to change. LEGACY_ELEMENT_TYPE is the name wood wrote
+    /// before that, still accepted on read.
+    static constexpr const char* ELEMENT_TYPE = "Plate";
+    static constexpr const char* LEGACY_ELEMENT_TYPE = "WoodElement";
 
     /// The kernel half. Identity (guid, name) is authoritative here; everything else on it
     /// mirrors the wood fields below and is refreshed by sync_element(). Read it after a
@@ -172,14 +240,17 @@ struct WoodElement {
     friend std::ostream& operator<<(std::ostream& os, const WoodElement& e);
 };
 
-/// A minimal element for CONTACT DETECTION only: closed outlines plus one
-/// plane per outline, and nothing else.
+/// An element for CONTACT DETECTION only, and a SOLID is all it is: the mesh in
+/// `element`, one n-gon face per closed loop. `polylines` / `planes` are that solid's
+/// face outlines (Mesh::face_outlines(), via Element::polylines()) and one plane each,
+/// cached because the O(faces²) scan reads them per candidate pair.
 ///
 /// WoodElement carries the plate convention the joint classifier depends on -
 /// polylines[0] is the top face, [1] the bottom, [2..] the sides, in that
 /// order, plus thickness, insertion vectors and merged features. That
 /// convention is exactly what loose geometry does NOT have: a list of closed
-/// loops off a brep says nothing about which loop is which.
+/// loops off a brep says nothing about which loop is which, and neither does
+/// mesh face order.
 ///
 /// BlockElement drops all of it. It is enough for adjacency_search,
 /// faces_coplanar and face_overlap_area - which only ever read `polylines` and
@@ -188,29 +259,34 @@ struct WoodElement {
 struct BlockElement {
     BlockElement();
 
-    /// One plane per loop: origin at the loop centroid, normal from
-    /// Vector::average_normal (Newell). Loops with fewer than 3 points are
-    /// dropped, matching WoodElement's degrade-rather-than-throw behaviour.
-    explicit BlockElement(const std::vector<session_cpp::Polyline>& loops);
+    /// Builds the solid from `loops` - one face per loop, vertices unwelded - and reads
+    /// the face views back off it. Loops with fewer than 3 points are dropped.
+    /// `name` is the block's type flag - "column", "inner_ribs" - and face_contacts()
+    /// filters on it.
+    explicit BlockElement(const std::vector<session_cpp::Polyline>& loops,
+                          const std::string& name = "block");
 
-    static constexpr const char* ELEMENT_TYPE = "BlockElement";
+    static constexpr const char* ELEMENT_TYPE = "Solid";
+    static constexpr const char* LEGACY_ELEMENT_TYPE = "BlockElement";
 
-    /// The kernel half; see WoodElement::element. Its geometry is mesh(): the loops are the
-    /// faces, so a block needs no payload beyond the mesh to come back whole.
+    /// The kernel half, and the block itself: its geometry is the solid, so a block needs
+    /// no payload beyond the mesh to come back whole. Identity (guid, name) lives here.
     session_cpp::Element element;
 
+    /// The solid's face outlines and their planes; refreshed by sync_faces().
     std::vector<session_cpp::Polyline> polylines;
     std::vector<session_cpp::Plane>    planes;
 
-    /// One n-gon face per loop, vertices unwelded. Nothing says the loops close up into a
-    /// solid, so nothing here pretends they do.
+    /// The solid. Empty when the element carries no mesh.
     session_cpp::Mesh mesh() const;
 
+    /// Refresh `polylines` / `planes` from the solid, after replacing the geometry.
+    void sync_faces();
+    /// Nothing to do - the solid in `element` IS the block.
     void sync_element();
     std::shared_ptr<session_cpp::Element> to_element() const;
-    /// Any Element whose geometry is a Mesh: its faces become the loops. That is the
-    /// contact-detection view of an arbitrary mesh element, not just of one written by
-    /// to_element(). An element with no mesh degrades to an empty block.
+    /// Any Element whose geometry is a Mesh: its face outlines become the block's faces.
+    /// An element with no mesh degrades to an empty block.
     static BlockElement from_element(const session_cpp::Element& e);
 
     nlohmann::ordered_json jsondump() const;
@@ -227,6 +303,45 @@ struct BlockElement {
 
     std::string str() const;
     friend std::ostream& operator<<(std::ostream& os, const BlockElement& e);
+};
+
+/// A column: a solid that knows its own axis.
+///
+/// For CONTACT detection a column is exactly a BlockElement - `polylines` / `planes` are
+/// the solid's faces, and it has no top/bottom convention, so every contact it takes part
+/// in is ContactType::unknown. What it adds is `axis` and `section`, which is what a
+/// plate-to-column joint needs and a bare mesh cannot supply: the centreline gives the
+/// notch direction, the section the stock it is cut from.
+///
+/// Nothing in wood consumes `axis` / `section` yet. They are carried because the producer
+/// has them and a mesh cannot be reverse-engineered back into them.
+struct WoodColumn {
+    WoodColumn();
+
+    static constexpr const char* ELEMENT_TYPE = "Column";
+
+    /// The kernel half - identity (guid, name) and the solid.
+    session_cpp::Element element;
+
+    /// Centreline, base to head, in world space.
+    session_cpp::Line axis;
+    /// Closed cross-section outline about the axis base. Empty when the producer had none.
+    session_cpp::Polyline section;
+
+    /// The solid's face outlines and their planes; refreshed by sync_faces().
+    std::vector<session_cpp::Polyline> polylines;
+    std::vector<session_cpp::Plane>    planes;
+
+    session_cpp::Mesh mesh() const;
+    void sync_faces();
+    std::shared_ptr<session_cpp::Element> to_element() const;
+    /// An Element tagged "Column": the mesh becomes the faces, `element_data`
+    /// {"axis","section"} the axis and section. A missing payload leaves those default and
+    /// still yields a usable solid.
+    static WoodColumn from_element(const session_cpp::Element& e);
+
+    std::string str() const;
+    friend std::ostream& operator<<(std::ostream& os, const WoodColumn& e);
 };
 
 } // namespace wood_session

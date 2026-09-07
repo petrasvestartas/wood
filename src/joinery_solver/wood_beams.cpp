@@ -46,8 +46,10 @@ void beam_volumes_pipeline(
     Session session("WoodF2F");
     auto g_axes = session.add_group("BeamAxes");
     auto g_vols = session.add_group("JointVolumes");
-    g_axes->color = Color(180,180,180,255,"grey");
-    g_vols->color = Color(220, 80,180,255,"magenta");
+    // Floats: Color clamps to [0,1], so the 0-255 literals these replace both
+    // saturated to white.
+    g_axes->color = Color(0.70f, 0.70f, 0.70f, 1.0f, "grey");
+    g_vols->color = Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta");
 
     // Emit each input axis as ONE polyline (matches the OBJ `curv` entry).
     for (size_t i = 0; i < axes.size(); i++) {

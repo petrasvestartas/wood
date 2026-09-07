@@ -99,8 +99,9 @@ working copy** when found. So a C++ edit here reaches Python only after
 rebuilding `wood_nano` (`uv pip install --no-build-isolation -e .` in that repo).
 
 The kernel is resolved the same way in both repos: `-DSESSION_CPP_LOCAL` / the
-`SESSION_CPP_LOCAL` environment variable, then the sibling `../session_cpp` (here a symlink
-into the session monorepo), then a clone of GitHub `main`. `../README.md` has the
+`SESSION_CPP_LOCAL` environment variable, then the sibling `../session_cpp`, then
+`../session/session_cpp` (the wood_research layout, where the kernel lives inside the
+`session` monorepo submodule), then a clone of GitHub `main`. `../README.md` has the
 one-command update and the per-repo commands.
 
 ## Notes

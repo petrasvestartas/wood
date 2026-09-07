@@ -77,10 +77,7 @@ std::string read_binary(const std::string& filename) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 WoodJoint::WoodJoint()
-    : el_ids{0, 0}
-    , face_ids{ {{0,0}}, {{0,0}} }
-    , joint_type{0}
-    , joint_area{session_cpp::Polyline(std::vector<session_cpp::Point>{})}
+    : joint_type{0}
     , joint_lines{
         session_cpp::Line::from_points(session_cpp::Point(0,0,0), session_cpp::Point(0,0,0)),
         session_cpp::Line::from_points(session_cpp::Point(0,0,0), session_cpp::Point(0,0,0)),
@@ -103,7 +100,7 @@ void WoodJoint::sync_features() {
         ElementFeature& f = element_features[side];
         f.feature_type = "joint";
         f.name = name.empty() ? "joint_" + std::to_string(joint_type) : name;
-        f.face_index = side == 0 ? face_ids.first[0] : face_ids.second[0];
+        f.face_index = side == 0 ? contact.face_a : contact.face_b;
         const auto& outlines = side == 0 ? m_outlines : f_outlines;
         f.outlines.clear();
         f.outlines.reserve(outlines[0].size() + outlines[1].size());
@@ -145,11 +142,12 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
     std::array<ElementFeature, 2> feats = to_features();
     return ordered_json{
         {"type", "WoodJoint"},
-        {"el_ids", {el_ids.first, el_ids.second}},
-        {"face_ids", {{face_ids.first[0], face_ids.first[1]}, {face_ids.second[0], face_ids.second[1]}}},
+        {"el_ids", {contact.element_a, contact.element_b}},
+        {"face_ids", {{contact.face_a, cross_faces[0]}, {contact.face_b, cross_faces[1]}}},
+        {"contact_type", static_cast<int>(contact.type)},
         {"joint_type", joint_type},
         {"name", name},
-        {"joint_area", joint_area.jsondump()},
+        {"joint_area", contact.area.jsondump()},
         {"joint_lines", {joint_lines[0].jsondump(), joint_lines[1].jsondump()}},
         {"joint_volumes", volumes},
         {"m_outlines", {polylines(m_outlines[0]), polylines(m_outlines[1])}},
@@ -178,14 +176,20 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
         for (const auto& p : a) { v.push_back(Polyline::jsonload(p)); }
         return v;
     };
-    if (data.contains("el_ids")) { j.el_ids = {data["el_ids"][0], data["el_ids"][1]}; }
-    if (data.contains("face_ids")) {
-        j.face_ids.first  = {data["face_ids"][0][0], data["face_ids"][0][1]};
-        j.face_ids.second = {data["face_ids"][1][0], data["face_ids"][1][1]};
+    if (data.contains("el_ids")) {
+        j.contact.element_a = data["el_ids"][0];
+        j.contact.element_b = data["el_ids"][1];
     }
+    if (data.contains("face_ids")) {
+        j.contact.face_a = data["face_ids"][0][0];
+        j.contact.face_b = data["face_ids"][1][0];
+        j.cross_faces    = {data["face_ids"][0][1], data["face_ids"][1][1]};
+    }
+    // Absent in payloads written before ContactType existed; -1 is `unknown`.
+    j.contact.type = static_cast<ContactType>(data.value("contact_type", -1));
     j.joint_type = data.value("joint_type", 0);
     j.name       = data.value("name", std::string());
-    if (data.contains("joint_area")) { j.joint_area = Polyline::jsonload(data["joint_area"]); }
+    if (data.contains("joint_area")) { j.contact.area = Polyline::jsonload(data["joint_area"]); }
     if (data.contains("joint_lines")) {
         j.joint_lines[0] = Line::jsonload(data["joint_lines"][0]);
         j.joint_lines[1] = Line::jsonload(data["joint_lines"][1]);
@@ -249,8 +253,8 @@ WoodJoint WoodJoint::file_json_load(const std::string& filename) {
 std::string WoodJoint::str() const {
     std::ostringstream os;
     os << "WoodJoint(type=" << joint_type
-       << ", elements=(" << el_ids.first << "," << el_ids.second << ")"
-       << ", faces=(" << face_ids.first[0] << "," << face_ids.second[0] << ")"
+       << ", elements=(" << contact.element_a << "," << contact.element_b << ")"
+       << ", faces=(" << contact.face_a << "," << contact.face_b << ")"
        << ", name=" << (name.empty() ? "-" : name) << ")";
     return os.str();
 }
@@ -260,28 +264,15 @@ std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.
 // BlockElement
 // ═══════════════════════════════════════════════════════════════════════════
 
-BlockElement::BlockElement() : element("block") {}
+namespace {
 
-BlockElement::BlockElement(const std::vector<Polyline>& loops) : element("block") {
-    polylines.reserve(loops.size());
-    planes.reserve(loops.size());
-    for (const Polyline& loop : loops) {
-        std::vector<Point> pts = loop.get_points();
-        strip_closing(pts);
-        if (pts.size() < 3) { continue; }
-        polylines.push_back(loop);
-        // from_point_normal takes non-const refs, so both need to be lvalues.
-        Point  origin = Point::centroid(pts);
-        Vector normal = Vector::average_normal(pts);
-        planes.push_back(Plane::from_point_normal(origin, normal));
-    }
-}
-
-Mesh BlockElement::mesh() const {
+/// The loops as one mesh: one n-gon face per loop, vertices NOT shared between faces -
+/// unwelded, the mesh is exactly those loops, so Mesh::face_outlines() gives them back.
+Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
     std::vector<Point> verts;
     std::vector<std::vector<size_t>> faces;
-    faces.reserve(polylines.size());
-    for (const Polyline& loop : polylines) {
+    faces.reserve(loops.size());
+    for (const Polyline& loop : loops) {
         std::vector<Point> pts = loop.get_points();
         strip_closing(pts);
         if (pts.size() < 3) { continue; }
@@ -296,40 +287,119 @@ Mesh BlockElement::mesh() const {
     return Mesh::from_vertices_and_faces(verts, faces);
 }
 
-void BlockElement::sync_element() {
-    element.set_geometry(mesh());
+}  // namespace
+
+BlockElement::BlockElement() : element("block") {}
+
+BlockElement::BlockElement(const std::vector<Polyline>& loops, const std::string& name) : element(name) {
+    element.set_geometry(mesh_from_loops(loops));
+    sync_faces();
 }
 
+Mesh BlockElement::mesh() const {
+    if (const Mesh* m = std::get_if<Mesh>(&element.geometry())) { return *m; }
+    return Mesh{};
+}
+
+void BlockElement::sync_faces() {
+    polylines = element.polylines();   // Mesh::face_outlines()
+    planes    = element.planes();      // one per outline
+}
+
+void BlockElement::sync_element() {}   // the solid in `element` IS the block
+
 std::shared_ptr<Element> BlockElement::to_element() const {
-    auto out = std::make_shared<TaggedElement>(element, ELEMENT_TYPE, std::string());
-    out->set_geometry(mesh());
-    return out;
+    return std::make_shared<TaggedElement>(element, ELEMENT_TYPE, std::string());
 }
 
 BlockElement BlockElement::from_element(const Element& e) {
-    std::vector<Polyline> loops;
-    if (const Mesh* m = std::get_if<Mesh>(&e.geometry())) {
-        auto [verts, faces] = m->to_vertices_and_faces();
-        loops.reserve(faces.size());
-        for (const auto& face : faces) {
-            if (face.size() < 3) { continue; }
-            std::vector<Point> pts;
-            pts.reserve(face.size() + 1);
-            for (size_t v : face) { pts.push_back(verts[v]); }
-            pts.push_back(pts.front());
-            loops.emplace_back(pts);
-        }
-    } else {
-        fprintf(stderr, "  WARNING: BlockElement::from_element: element '%s' carries %s, not a "
-                        "Mesh - block left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
-        fflush(stderr);
-    }
-    BlockElement out(loops);
+    BlockElement out;
     // Same object, same identity: the copy assignment mints a guid, so put the original back.
     out.element = e;
     out.element.guid() = e.guid();
+    if (!std::holds_alternative<Mesh>(e.geometry())) {
+        fprintf(stderr, "  WARNING: BlockElement::from_element: element '%s' carries %s, not a "
+                        "Mesh - block left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
+        fflush(stderr);
+        return out;
+    }
+    out.sync_faces();
     return out;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodColumn
+// ═══════════════════════════════════════════════════════════════════════════
+
+WoodColumn::WoodColumn()
+    : element("column")
+    , axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0)))
+    , section(Polyline(std::vector<Point>{})) {}
+
+Mesh WoodColumn::mesh() const {
+    if (const Mesh* m = std::get_if<Mesh>(&element.geometry())) { return *m; }
+    return Mesh{};
+}
+
+void WoodColumn::sync_faces() {
+    polylines = element.polylines();
+    planes    = element.planes();
+}
+
+std::shared_ptr<Element> WoodColumn::to_element() const {
+    nlohmann::ordered_json payload{
+        {"type", ELEMENT_TYPE},
+        {"axis", axis.jsondump()},
+    };
+    if (section.point_count() > 0) { payload["section"] = section.jsondump(); }
+    return std::make_shared<TaggedElement>(element, ELEMENT_TYPE, payload.dump());
+}
+
+WoodColumn WoodColumn::from_element(const Element& e) {
+    WoodColumn out;
+    out.element = e;
+    out.element.guid() = e.guid();
+
+    if (!std::holds_alternative<Mesh>(e.geometry())) {
+        fprintf(stderr, "  WARNING: WoodColumn::from_element: element '%s' carries %s, not a "
+                        "Mesh - column left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
+        fflush(stderr);
+        return out;
+    }
+    out.sync_faces();
+
+    // The payload is optional: without it the column is still a usable solid, it just
+    // cannot say where its axis runs.
+    const std::string data = e.element_data_dumps();
+    if (data.empty()) { return out; }
+    nlohmann::json payload;
+    try {
+        payload = nlohmann::json::parse(data);
+    } catch (const std::exception& ex) {
+        fprintf(stderr, "  WARNING: WoodColumn::from_element: element '%s' has unparseable "
+                        "element_data (%s) - axis and section left empty.\n", e.name.c_str(), ex.what());
+        fflush(stderr);
+        return out;
+    }
+    if (payload.contains("axis") && !payload["axis"].is_null()) {
+        out.axis = Line::jsonload(payload["axis"]);
+    }
+    if (payload.contains("section") && !payload["section"].is_null()) {
+        out.section = Polyline::jsonload(payload["section"]);
+    }
+    return out;
+}
+
+std::string WoodColumn::str() const {
+    std::ostringstream os;
+    os << "WoodColumn(name=" << element.name
+       << ", faces=" << polylines.size()
+       << ", axis_length=" << axis.length()
+       << ", section_pts=" << section.point_count() << ")";
+    return os.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const WoodColumn& e) { return os << e.str(); }
 
 nlohmann::ordered_json BlockElement::jsondump() const { return to_element()->jsondump(); }
 BlockElement BlockElement::jsonload(const nlohmann::json& data) { return from_element(Element::jsonload(data)); }
@@ -367,8 +437,8 @@ WoodElement::WoodElement()
     , thickness{0.0}
 {}
 
-WoodElement::WoodElement(const Polyline& bot, const Polyline& top)
-    : element("plate")
+WoodElement::WoodElement(const Polyline& bot, const Polyline& top, const std::string& name)
+    : element(name)
     , reversed{false}
     , thickness{0.0}
 {
@@ -628,10 +698,11 @@ WoodElement WoodElement::from_element(const Element& e) {
     out.element = e;
     out.element.guid() = e.guid();
 
-    if (e.element_type_name() != ELEMENT_TYPE) {
+    const std::string& tag = e.element_type_name();
+    if (tag != ELEMENT_TYPE && tag != LEGACY_ELEMENT_TYPE) {
         fprintf(stderr, "  WARNING: WoodElement::from_element: element '%s' has element_type "
                         "'%s', not '%s' - element left empty.\n",
-                e.name.c_str(), e.element_type_name().c_str(), ELEMENT_TYPE);
+                e.name.c_str(), tag.c_str(), ELEMENT_TYPE);
         fflush(stderr);
         return out;
     }

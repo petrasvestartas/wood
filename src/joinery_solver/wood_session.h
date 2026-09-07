@@ -288,13 +288,43 @@ void fill_session(
 // scenes an example wants: what was in front of the detector, and what it found.
 // They used to be copied into each example as a local write_live(), which is why
 // they drifted; the .pb path lived in each copy too.
-//
-// FaceContact is only named here - wood_face_to_face.h includes this header, so
-// this one cannot include it back.
 // ═══════════════════════════════════════════════════════════════════════════
 namespace wood_session {
 
-struct FaceContact;
+// ── Reading a scene ───────────────────────────────────────────────────────
+
+/// The typed contents of a session .pb, split by `element_type`.
+///
+/// The tag is a DOMAIN name written by the producer - compas_tf's exporter writes "Plate",
+/// "Column" and "Solid" - so this is a lookup, not a guess from the element's name. An
+/// unknown or absent tag degrades to a solid, which is what every file written before the
+/// tag existed contains.
+struct SessionElements {
+    std::vector<WoodElement>  plates;
+    std::vector<WoodColumn>   columns;
+    std::vector<BlockElement> solids;
+
+    size_t size() const { return plates.size() + columns.size() + solids.size(); }
+};
+
+/// Read a session .pb and build one wood struct per element, chosen by `element_type`.
+/// A missing file yields an empty result and a line on stderr.
+SessionElements load_elements(const std::filesystem::path& pb);
+
+/// One detection view per element, plates first, then columns, then solids.
+///
+/// The views hold POINTERS into `elements`, so the returned vector must not outlive it and
+/// `elements` must not be modified while the view is alive. Take it, run detection, drop it.
+/// A contact's element_a / element_b index into THIS vector, not into any one of the three.
+std::vector<ContactElement> contact_view(const SessionElements& elements);
+
+/// One BlockElement per Element in a session .pb - the flat view, every element a solid -
+/// keeping the element's name and guid. A file holding no Element falls back to the
+/// older layout, one group of loose polylines per solid named by the group node.
+/// A missing file returns an empty vector after a line on stderr.
+std::vector<BlockElement> load_block_elements(const std::filesystem::path& pb);
+
+// ── Writing a scene ───────────────────────────────────────────────────────
 
 /// data/output/pb/<name>.pb, with the directory created. The one place a wood
 /// scene's path is spelled out.
@@ -333,12 +363,72 @@ void add_faces(session_cpp::Session& session,
                const std::shared_ptr<session_cpp::TreeNode>& parent,
                const std::vector<BlockElement>& elements);
 
-/// The overlap region of each face pair in contact, as a red mesh named
-/// `contact_<a>_<b>`. A ring that triangulates to nothing draws nothing and is
-/// dropped by Session::add_mesh.
+void add_faces(session_cpp::Session& session,
+               const std::shared_ptr<session_cpp::TreeNode>& parent,
+               const std::vector<WoodColumn>& elements);
+
+/// Every element's own geometry, named after the element - the SOLID itself, not the
+/// outlines add_faces draws. The viewer shades a Mesh through walk_mesh and a BRep
+/// through walk_brep, so this is what makes a scene read as solid rather than wireframe.
+void add_solids(session_cpp::Session& session,
+                const std::shared_ptr<session_cpp::TreeNode>& parent,
+                const std::vector<WoodElement>& elements);
+
+void add_solids(session_cpp::Session& session,
+                const std::shared_ptr<session_cpp::TreeNode>& parent,
+                const std::vector<BlockElement>& elements);
+
+void add_solids(session_cpp::Session& session,
+                const std::shared_ptr<session_cpp::TreeNode>& parent,
+                const std::vector<WoodColumn>& elements);
+
+/// The overlap region of each face pair in contact, as a mesh named
+/// `contact_<a>_<b>` colored by contact_color(c.type). A ring that triangulates
+/// to nothing draws nothing and is dropped by Session::add_mesh.
 void add_contacts(session_cpp::Session& session,
                   const std::shared_ptr<session_cpp::TreeNode>& parent,
                   const std::vector<FaceContact>& contacts);
+
+// ── The contact / joint coloring scheme ───────────────────────────────────
+//
+// One scheme across both layers: a joint takes a shade of the family its
+// contact belongs to, so the two views read together. Side-side is the warm
+// family because it is the one that splits three ways.
+//
+//   contact side_side  red     ->  joint 12 ss in-plane      red
+//                              ->  joint 11 ss out-of-plane  orange
+//                              ->  joint 13 ss rotated       magenta
+//   contact side_top   blue    ->  joint 20 top-to-side      blue
+//   contact top_top    green   ->  joint 40 top-to-top       green
+//   contact unknown    grey    ->  joint 30 cross            violet
+//
+// Colors are floats in [0,1]. session_cpp::Color clamps to that range, so an
+// 0-255 literal silently saturates to white.
+
+/// "side_side" / "side_top" / "top_top" / "unknown" - the group name a contact
+/// of that class is filed under.
+const char* contact_type_name(ContactType type);
+
+/// "ss_ip_12" / "ss_op_11" / "ss_rot_13" / "ts_20" / "cross_30" / "tt_40", or
+/// "type_<n>" for a code the table does not name.
+std::string joint_type_name(int joint_type);
+
+session_cpp::Color contact_color(ContactType type);
+session_cpp::Color joint_color(int joint_type);
+
+/// Contacts split into one group per contact class that actually occurs, named
+/// `<prefix>_<class>`, each mesh colored by contact_color. Groups are flat -
+/// Session::add_group always attaches to the root - which is why the class goes
+/// in the name, the way fill_session already names JointAreas_SS_11.
+void add_contacts_by_type(session_cpp::Session& session,
+                          const std::vector<FaceContact>& contacts,
+                          const std::string& prefix = "Contacts");
+
+/// Joint areas split into one group per joint_type that actually occurs, named
+/// `<prefix>_<code>`, each mesh colored by joint_color.
+void add_joints_by_type(session_cpp::Session& session,
+                        const std::vector<WoodJoint>& joints,
+                        const std::string& prefix = "Joints");
 
 /// Joint areas, centerlines and volumes, each into its own group under the
 /// session root - the three belong together, so the groups are made here.
