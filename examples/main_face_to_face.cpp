@@ -98,16 +98,17 @@ int run_pb(const std::string& name) {
 
     // Split by element_type, so a model that mixes plates with columns and loose solids
     // goes through one detection pass and each part is treated as what it is.
-    wood_session::SessionElements elements = wood_session::load_elements(pb);
-    const std::vector<wood_session::ContactElement> view = wood_session::contact_view(elements);
+    const wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
+    const std::vector<wood_session::ContactElement> view = wood_session::contact_view(scene);
     const std::vector<wood_session::FaceContact> contacts = wood_session::face_contacts(view);
 
     std::map<std::string, int> by_type;
     for (const wood_session::FaceContact& c : contacts) {
         by_type[wood_session::contact_type_name(c.type)]++;
     }
+    const std::vector<wood_session::WoodElement*> plates = scene.plates();
     fmt::print("\n=== {} — {} plates, {} columns, {} solids ===\n",
-               name, elements.plates.size(), elements.columns.size(), elements.solids.size());
+               name, plates.size(), scene.columns().size(), scene.solids().size());
     report("Contacts", by_type, contacts.size());
 
     // Joints need the plate convention, so only the plates go to the solver - and they go
@@ -116,8 +117,12 @@ int run_pb(const std::string& name) {
     // silently change the geometry.
     std::map<std::string, int> joints_by_type;
     size_t n_joints = 0;
-    if (!elements.plates.empty()) {
-        std::vector<wood_session::WoodElement> solver_elements = elements.plates;
+    if (!plates.empty()) {
+        // The wrappers are copied, the kernel elements are not: `element` is a shared_ptr,
+        // so a joint's guids still name the objects the scene holds.
+        std::vector<wood_session::WoodElement> solver_elements;
+        solver_elements.reserve(plates.size());
+        for (const wood_session::WoodElement* p : plates) { solver_elements.push_back(*p); }
         const std::vector<wood_session::WoodJoint> joints =
             get_connection_zones(solver_elements, face_to_face);
         for (const wood_session::WoodJoint& j : joints) {
@@ -131,8 +136,13 @@ int run_pb(const std::string& name) {
 
     session_cpp::Session session(fmt::format("wood - contacts - {}", name));
     auto inputs = session.add_group("Inputs");
-    wood_session::add_faces(session, inputs, elements.plates);
-    wood_session::add_faces(session, inputs, elements.solids);
+    // Wrapper copies again, so the faces are named by their position within each type.
+    std::vector<wood_session::WoodElement> plate_faces;
+    for (const wood_session::WoodElement* p : plates) { plate_faces.push_back(*p); }
+    std::vector<wood_session::BlockElement> solid_faces;
+    for (const wood_session::BlockElement* b : scene.solids()) { solid_faces.push_back(*b); }
+    wood_session::add_faces(session, inputs, plate_faces);
+    wood_session::add_faces(session, inputs, solid_faces);
     wood_session::add_contacts_by_type(session, contacts);
     fmt::print("wrote {}\n", wood_session::pb_dump(session, "live").string());
     return 0;

@@ -18,6 +18,7 @@
 #include <fmt/core.h>
 
 #include <map>
+#include <sstream>
 #include <string>
 
 namespace wood_session {
@@ -128,78 +129,101 @@ std::filesystem::path write_element_and_contacts(
 // Reading
 // ═══════════════════════════════════════════════════════════════════════════
 
-SessionElements load_elements(const std::filesystem::path& pb) {
-    SessionElements out;
-    if (!std::filesystem::exists(pb)) {
-        fmt::print(stderr, "not found: {}\n", pb.string());
-        return out;
-    }
-    Session session = Session::pb_load(pb.string());
-    if (!session.objects.elements) { return out; }
+/// Every wood object answers `element`, so its guid is one visit away.
+static const std::string& object_guid(const WoodGeometry& object) {
+    return std::visit([](const auto& o) -> const std::string& { return o->element->guid(); }, object);
+}
 
-    for (const std::shared_ptr<Element>& e : *session.objects.elements) {
+WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
+    WoodSession out;
+    out.session = session;
+    if (!session || !session->objects.elements) { return out; }
+
+    for (const std::shared_ptr<Element>& e : *session->objects.elements) {
         if (!e) { continue; }
         const std::string& tag = e->element_type_name();
+        WoodGeometry object;
         if (tag == WoodElement::ELEMENT_TYPE || tag == WoodElement::LEGACY_ELEMENT_TYPE) {
-            out.plates.push_back(WoodElement::from_element(*e));
+            object = std::make_shared<WoodElement>(WoodElement::from_element(*e));
         } else if (tag == WoodColumn::ELEMENT_TYPE) {
-            out.columns.push_back(WoodColumn::from_element(*e));
+            object = std::make_shared<WoodColumn>(WoodColumn::from_element(*e));
         } else {
             // Untagged, or a type this build has never heard of. The kernel carried the tag
             // and payload through untouched, so nothing is destroyed by treating it as a
             // solid - and a solid is enough to take part in contact detection.
-            out.solids.push_back(BlockElement::from_element(*e));
+            object = std::make_shared<BlockElement>(BlockElement::from_element(*e));
         }
+        out.lookup[object_guid(object)] = object;
+        out.objects.push_back(std::move(object));
     }
     return out;
 }
 
-std::vector<ContactElement> contact_view(const SessionElements& elements) {
-    std::vector<ContactElement> view;
-    view.reserve(elements.size());
-    for (const WoodElement& e : elements.plates) {
-        view.push_back({&e.polylines, &e.planes, &e.element->name, /*plate_convention=*/true});
-    }
-    for (const WoodColumn& e : elements.columns) {
-        view.push_back({&e.polylines, &e.planes, &e.element->name, false});
-    }
-    for (const BlockElement& e : elements.solids) {
-        view.push_back({&e.polylines, &e.planes, &e.element->name, false});
-    }
-    return view;
-}
-
-std::vector<BlockElement> load_block_elements(const std::filesystem::path& pb) {
-    std::vector<BlockElement> elements;
+WoodSession WoodSession::load(const std::filesystem::path& pb) {
     if (!std::filesystem::exists(pb)) {
         fmt::print(stderr, "not found: {}\n", pb.string());
-        return elements;
+        return WoodSession{};
     }
+    return from_session(std::make_shared<Session>(Session::pb_load(pb.string())));
+}
 
-    Session session = Session::pb_load(pb.string());
-    std::shared_ptr<TreeNode> root = session.tree.root();
-    if (!root) { return elements; }
-
-    // objects.elements, not the tree: add_element only puts a node in the tree when
-    // it is given a parent, and the list keeps insertion order anyway.
-    for (const std::shared_ptr<Element>& e : *session.objects.elements) {
-        if (e) { elements.push_back(BlockElement::from_element(*e)); }
+const std::shared_ptr<Session>& WoodSession::to_session() const {
+    for (const WoodGeometry& object : objects) {
+        std::visit([](const auto& o) { o->to_element(); }, object);
     }
-    if (!elements.empty()) { return elements; }
+    return session;
+}
 
-    // Older files (and brep_to_pb.py) hold one GROUP of loose polylines per solid,
-    // with the name on the group node - which select_by_type() drops, hence the walk.
-    for (TreeNode* group : root->children()) {
-        std::vector<Polyline> loops;
-        for (TreeNode* node : group->descendants()) {
-            if (std::shared_ptr<const Polyline> loop = session.get_object<Polyline>(node->name)) {
-                loops.push_back(*loop);
-            }
-        }
-        if (loops.empty()) { continue; }
-        elements.emplace_back(loops, group->name);
+std::filesystem::path WoodSession::pb_dump(const std::string& name) const {
+    to_session();
+    return session ? wood_session::pb_dump(*session, name) : std::filesystem::path();
+}
+
+const std::string& WoodSession::name() const {
+    static const std::string none;
+    return session ? session->name : none;
+}
+
+const std::string& WoodSession::guid() const {
+    static const std::string none;
+    return session ? session->guid() : none;
+}
+
+/// The typed views: one pass over the collection, keeping the alternatives that match.
+template <class T>
+static std::vector<T*> objects_of(const std::vector<WoodGeometry>& objects) {
+    std::vector<T*> out;
+    for (const WoodGeometry& object : objects)
+        if (const std::shared_ptr<T>* p = std::get_if<std::shared_ptr<T>>(&object)) { out.push_back(p->get()); }
+    return out;
+}
+
+std::vector<WoodElement*>  WoodSession::plates() const  { return objects_of<WoodElement>(objects); }
+std::vector<WoodColumn*>   WoodSession::columns() const { return objects_of<WoodColumn>(objects); }
+std::vector<BlockElement*> WoodSession::solids() const  { return objects_of<BlockElement>(objects); }
+
+std::string WoodSession::str() const {
+    std::ostringstream os;
+    const std::vector<WoodElement*>  p = plates();
+    const std::vector<WoodColumn*>   c = columns();
+    const std::vector<BlockElement*> b = solids();
+    os << "WoodSession(name=" << name() << ", objects=" << objects.size()
+       << ", plates=" << p.size() << ", columns=" << c.size() << ", solids=" << b.size() << ")";
+    return os.str();
+}
+std::ostream& operator<<(std::ostream& os, const WoodSession& s) { return os << s.str(); }
+
+std::vector<ContactElement> contact_view(const WoodSession& scene) {
+    std::vector<ContactElement> view;
+    view.reserve(scene.size());
+    for (const WoodGeometry& object : scene.objects) {
+        std::visit([&view](const auto& o) {
+            using T = std::decay_t<decltype(*o)>;
+            view.push_back({&o->polylines, &o->planes, &o->element->name,
+                            std::is_same_v<T, WoodElement>});
+        }, object);
     }
-    return elements;
+    return view;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

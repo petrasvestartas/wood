@@ -22,6 +22,8 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 // Polyline is held by value inside CrossJoint → need the full type here.
@@ -293,36 +295,71 @@ namespace wood_session {
 
 // ── Reading a scene ───────────────────────────────────────────────────────
 
-/// The typed contents of a session .pb, split by `element_type`.
-///
-/// The tag is a DOMAIN name written by the producer - compas_tf's exporter writes "Plate",
-/// "Column" and "Solid" - so this is a lookup, not a guess from the element's name. An
-/// unknown or absent tag degrades to a solid, which is what every file written before the
-/// tag existed contains.
-struct SessionElements {
-    std::vector<WoodElement>  plates;
-    std::vector<WoodColumn>   columns;
-    std::vector<BlockElement> solids;
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodSession — the scene, shaped like session_cpp::Session
+// ═══════════════════════════════════════════════════════════════════════════
 
-    size_t size() const { return plates.size() + columns.size() + solids.size(); }
+/// One object of the scene. Mirrors session_cpp::Geometry: one alternative per type, every
+/// one a shared_ptr, so an object here IS the object the session holds - never a copy of it.
+/// A new wood type joins by adding an alternative, a tag and a from_element factory; the
+/// kernel schema does not change, because element_type / element_data already carry a
+/// domain type through protobuf and JSON alike.
+using WoodGeometry = std::variant<
+    std::shared_ptr<WoodElement>,
+    std::shared_ptr<WoodColumn>,
+    std::shared_ptr<BlockElement>>;
+
+/// The scene: a session_cpp::Session, and wood's typed view of the objects inside it.
+///
+/// The Session is held by HANDLE, not by value, and that is forced rather than stylistic.
+/// Objects holds twelve shared_ptr<vector<...>>, so a copied Session aliases the original's
+/// object vectors; Tree shares its whole node graph; and SpatialBVH holds raw pointers into
+/// its own arena with no copy constructor, so a memberwise copy leaves them dangling.
+/// session_viewer reached the same conclusion - `Rc<Session>`, documented "never copied".
+///
+/// Holding it also means nothing is lost: the loose polylines, the meshes, the six-deep
+/// tree and the xforms a .pb carried are all still there after a round trip, because this
+/// IS the loaded session rather than a rebuild of it.
+struct WoodSession {
+    std::shared_ptr<session_cpp::Session> session;
+
+    /// One continuous collection, in session->objects.elements order - the order
+    /// Session::order() defines and pb_loads preserves. An index here means the same thing
+    /// before and after a .pb, which was never true of the three vectors this replaces.
+    std::vector<WoodGeometry> objects;
+    /// guid -> object, the mirror of Session::lookup. Derived; rebuilt by from_session.
+    std::unordered_map<std::string, WoodGeometry> lookup;
+
+    size_t size() const { return objects.size(); }
+    const std::string& name() const;
+    const std::string& guid() const;
+
+    /// Typed views over the one collection, in file order. Pointers into `objects`, so they
+    /// must not outlive it.
+    std::vector<WoodElement*>  plates() const;
+    std::vector<WoodColumn*>   columns() const;
+    std::vector<BlockElement*> solids() const;
+
+    /// One wood object per element of a session, chosen by `element_type`. The session is
+    /// kept, not consumed: everything wood does not model rides along in it.
+    static WoodSession from_session(const std::shared_ptr<session_cpp::Session>& session);
+    /// The held session, with every wood object's payload refreshed into it.
+    const std::shared_ptr<session_cpp::Session>& to_session() const;
+
+    std::filesystem::path pb_dump(const std::string& name = "live") const;
+    /// data/<name>.pb read into a scene. `load_` reads a FILE; `from_` converts an object.
+    static WoodSession load(const std::filesystem::path& pb);
+
+    std::string str() const;
+    friend std::ostream& operator<<(std::ostream& os, const WoodSession& s);
 };
 
-/// Read a session .pb and build one wood struct per element, chosen by `element_type`.
-/// A missing file yields an empty result and a line on stderr.
-SessionElements load_elements(const std::filesystem::path& pb);
-
-/// One detection view per element, plates first, then columns, then solids.
+/// One detection view per object, in collection order.
 ///
-/// The views hold POINTERS into `elements`, so the returned vector must not outlive it and
-/// `elements` must not be modified while the view is alive. Take it, run detection, drop it.
-/// A contact's element_a / element_b index into THIS vector, not into any one of the three.
-std::vector<ContactElement> contact_view(const SessionElements& elements);
-
-/// One BlockElement per Element in a session .pb - the flat view, every element a solid -
-/// keeping the element's name and guid. A file holding no Element falls back to the
-/// older layout, one group of loose polylines per solid named by the group node.
-/// A missing file returns an empty vector after a line on stderr.
-std::vector<BlockElement> load_block_elements(const std::filesystem::path& pb);
+/// The views hold POINTERS into the scene, so the returned vector must not outlive it and
+/// the scene must not be modified while the view is alive. Take it, run detection, drop it.
+/// A ContactPair's indices are positions in THIS vector, which is the collection's order.
+std::vector<ContactElement> contact_view(const WoodSession& scene);
 
 // ── Writing a scene ───────────────────────────────────────────────────────
 
