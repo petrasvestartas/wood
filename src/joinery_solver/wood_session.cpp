@@ -58,7 +58,9 @@ template <class WoodType>
 void add_solids_impl(Session& session, const Group& parent,
                      const std::vector<WoodType>& elements) {
     for (const WoodType& element : elements) {
-        auto copy = std::make_shared<session_cpp::Element>(element.element);
+        // The element itself, shared - never a copy, which would mint a new guid and enter
+        // the session as a different object. to_element() refreshes its payload first.
+        const std::shared_ptr<session_cpp::Element> copy = element.to_element();
         // geometry() is const, so the colour goes on a copy that is set back.
         if (const session_cpp::Mesh* mesh = std::get_if<session_cpp::Mesh>(&copy->geometry())) {
             session_cpp::Mesh grey = *mesh;
@@ -156,13 +158,13 @@ std::vector<ContactElement> contact_view(const SessionElements& elements) {
     std::vector<ContactElement> view;
     view.reserve(elements.size());
     for (const WoodElement& e : elements.plates) {
-        view.push_back({&e.polylines, &e.planes, &e.element.name, /*plate_convention=*/true});
+        view.push_back({&e.polylines, &e.planes, &e.element->name, /*plate_convention=*/true});
     }
     for (const WoodColumn& e : elements.columns) {
-        view.push_back({&e.polylines, &e.planes, &e.element.name, false});
+        view.push_back({&e.polylines, &e.planes, &e.element->name, false});
     }
     for (const BlockElement& e : elements.solids) {
-        view.push_back({&e.polylines, &e.planes, &e.element.name, false});
+        view.push_back({&e.polylines, &e.planes, &e.element->name, false});
     }
     return view;
 }

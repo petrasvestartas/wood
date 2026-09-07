@@ -93,8 +93,8 @@ const std::vector<Polyline>& faces_of(const ContactElement& e) { return *e.polyl
 const std::vector<Plane>& planes_of(const WoodElement& e)      { return e.planes; }
 const std::vector<Plane>& planes_of(const BlockElement& e)     { return e.planes; }
 const std::vector<Plane>& planes_of(const ContactElement& e)   { return *e.planes; }
-const std::string& name_of(const WoodElement& e)               { return e.element.name; }
-const std::string& name_of(const BlockElement& e)              { return e.element.name; }
+const std::string& name_of(const WoodElement& e)               { return e.element->name; }
+const std::string& name_of(const BlockElement& e)              { return e.element->name; }
 const std::string& name_of(const ContactElement& e)            { return *e.name; }
 
 // Whether face i is an "outer" (top/bottom) face, where wood accepts a

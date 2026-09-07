@@ -52,6 +52,39 @@ enum class ContactType : int {
     top_top   = 2,   ///< both outer faces         (refines to 40)
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TaggedElement — the kernel half a wood object holds
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// An Element that carries a domain tag. The kernel has no public setter for `element_type`
+/// or `element_data` - only the two virtuals that read them (element.h) - so the only way to
+/// own a tagged element is to derive one.
+///
+/// A wood object holds this by shared_ptr and hands the SAME object to a Session, so an
+/// element is never copied on the way in and its guid can never be re-minted. That is not a
+/// style choice: Element's copy constructor omits _guid deliberately, and before this every
+/// element entered a session as a new object - 0 of 153 plate guids survived a round trip.
+class TaggedElement final : public session_cpp::Element {
+public:
+    TaggedElement(const std::string& name, std::string type)
+        : session_cpp::Element(name), _type(std::move(type)) {}
+    /// Wraps a loaded element, keeping its identity. Done once, at load, so that everything
+    /// afterwards shares one object rather than copying it per write.
+    TaggedElement(const session_cpp::Element& base, std::string type, std::string data)
+        : session_cpp::Element(base), _type(std::move(type)), _data(std::move(data)) {
+        guid() = base.guid();
+    }
+
+    std::string element_type_name() const override { return _type; }
+    std::string element_data_dumps() const override { return _data; }
+    /// The payload this object writes. Set by its owner's sync_element().
+    void set_element_data(std::string data) { _data = std::move(data); }
+
+private:
+    std::string _type;
+    std::string _data;
+};
+
 /// One face pair in real contact: which faces of which elements, the topology
 /// class, and the overlap region between them (closed, in element_a's face
 /// plane).
@@ -182,7 +215,9 @@ struct WoodElement {
     /// mirrors the wood fields below and is refreshed by sync_element(). Read it after a
     /// sync, or take a fresh copy with to_element(). Serialize through WoodElement, not
     /// through this member: only WoodElement knows the element_type / element_data pair.
-    session_cpp::Element element;
+    /// The kernel half - SHARED, not owned by value. This is the same object a Session
+    /// holds, so adding it to one copies nothing and its guid is the guid on the wire.
+    std::shared_ptr<TaggedElement> element;
 
     std::vector<session_cpp::Polyline> polylines;
     std::vector<session_cpp::Plane>    planes;
@@ -271,7 +306,9 @@ struct BlockElement {
 
     /// The kernel half, and the block itself: its geometry is the solid, so a block needs
     /// no payload beyond the mesh to come back whole. Identity (guid, name) lives here.
-    session_cpp::Element element;
+    /// The kernel half - SHARED, not owned by value. This is the same object a Session
+    /// holds, so adding it to one copies nothing and its guid is the guid on the wire.
+    std::shared_ptr<TaggedElement> element;
 
     /// The solid's face outlines and their planes; refreshed by sync_faces().
     std::vector<session_cpp::Polyline> polylines;
@@ -321,7 +358,9 @@ struct WoodColumn {
     static constexpr const char* ELEMENT_TYPE = "Column";
 
     /// The kernel half - identity (guid, name) and the solid.
-    session_cpp::Element element;
+    /// The kernel half - SHARED, not owned by value. This is the same object a Session
+    /// holds, so adding it to one copies nothing and its guid is the guid on the wire.
+    std::shared_ptr<TaggedElement> element;
 
     /// Centreline, base to head, in world space.
     session_cpp::Line axis;

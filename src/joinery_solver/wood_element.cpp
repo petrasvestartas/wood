@@ -40,25 +40,6 @@ void strip_closing(std::vector<Point>& v) {
     }
 }
 
-// The one thing composition cannot reach. Element leaves its type name and payload to two
-// virtuals so that a domain package can write a derived element; everything else about it
-// is public. The copy handed to a Session is therefore this: a session_cpp::Element that
-// answers those two virtuals, and nothing more. WoodElement / BlockElement own a plain
-// Element and only produce one of these on the way out.
-class TaggedElement final : public Element {
-public:
-    TaggedElement(const Element& base, std::string type, std::string data)
-        : Element(base), _type(std::move(type)), _data(std::move(data)) {
-        // Element's copy constructor mints a fresh guid; this copy IS the plate, so it
-        // keeps the plate's identity.
-        guid() = base.guid();
-    }
-    std::string element_type_name() const override { return _type; }
-    std::string element_data_dumps() const override { return _data; }
-private:
-    std::string _type;
-    std::string _data;
-};
 
 void write_binary(const std::string& filename, const std::string& data) {
     std::ofstream file(filename, std::ios::binary);
@@ -289,34 +270,38 @@ Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
 
 }  // namespace
 
-BlockElement::BlockElement() : element("block") {}
+BlockElement::BlockElement() : element(std::make_shared<TaggedElement>("block", ELEMENT_TYPE)) {}
 
-BlockElement::BlockElement(const std::vector<Polyline>& loops, const std::string& name) : element(name) {
-    element.set_geometry(mesh_from_loops(loops));
+BlockElement::BlockElement(const std::vector<Polyline>& loops, const std::string& name)
+    : element(std::make_shared<TaggedElement>(name, ELEMENT_TYPE)) {
+    element->set_geometry(mesh_from_loops(loops));
     sync_faces();
 }
 
 Mesh BlockElement::mesh() const {
-    if (const Mesh* m = std::get_if<Mesh>(&element.geometry())) { return *m; }
+    if (const Mesh* m = std::get_if<Mesh>(&element->geometry())) { return *m; }
     return Mesh{};
 }
 
 void BlockElement::sync_faces() {
-    polylines = element.polylines();   // Mesh::face_outlines()
-    planes    = element.planes();      // one per outline
+    polylines = element->polylines();   // Mesh::face_outlines()
+    planes    = element->planes();      // one per outline
 }
 
 void BlockElement::sync_element() {}   // the solid in `element` IS the block
 
 std::shared_ptr<Element> BlockElement::to_element() const {
-    return std::make_shared<TaggedElement>(element, ELEMENT_TYPE, std::string());
+    // The same object, not a copy of it: a block IS its mesh, so there is no payload to
+    // refresh and nothing to build.
+    return element;
 }
 
 BlockElement BlockElement::from_element(const Element& e) {
     BlockElement out;
-    // Same object, same identity: the copy assignment mints a guid, so put the original back.
-    out.element = e;
-    out.element.guid() = e.guid();
+    // Wrapped once, here, and shared from now on: the kernel has no public setter for
+    // element_type / element_data, so owning a tagged element means deriving one. The
+    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
     if (!std::holds_alternative<Mesh>(e.geometry())) {
         fprintf(stderr, "  WARNING: BlockElement::from_element: element '%s' carries %s, not a "
                         "Mesh - block left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
@@ -332,18 +317,18 @@ BlockElement BlockElement::from_element(const Element& e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 WoodColumn::WoodColumn()
-    : element("column")
+    : element(std::make_shared<TaggedElement>("column", ELEMENT_TYPE))
     , axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0)))
     , section(Polyline(std::vector<Point>{})) {}
 
 Mesh WoodColumn::mesh() const {
-    if (const Mesh* m = std::get_if<Mesh>(&element.geometry())) { return *m; }
+    if (const Mesh* m = std::get_if<Mesh>(&element->geometry())) { return *m; }
     return Mesh{};
 }
 
 void WoodColumn::sync_faces() {
-    polylines = element.polylines();
-    planes    = element.planes();
+    polylines = element->polylines();
+    planes    = element->planes();
 }
 
 std::shared_ptr<Element> WoodColumn::to_element() const {
@@ -352,13 +337,17 @@ std::shared_ptr<Element> WoodColumn::to_element() const {
         {"axis", axis.jsondump()},
     };
     if (section.point_count() > 0) { payload["section"] = section.jsondump(); }
-    return std::make_shared<TaggedElement>(element, ELEMENT_TYPE, payload.dump());
+    // The same object, payload refreshed - not a copy.
+    element->set_element_data(payload.dump());
+    return element;
 }
 
 WoodColumn WoodColumn::from_element(const Element& e) {
     WoodColumn out;
-    out.element = e;
-    out.element.guid() = e.guid();
+    // Wrapped once, here, and shared from now on: the kernel has no public setter for
+    // element_type / element_data, so owning a tagged element means deriving one. The
+    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
 
     if (!std::holds_alternative<Mesh>(e.geometry())) {
         fprintf(stderr, "  WARNING: WoodColumn::from_element: element '%s' carries %s, not a "
@@ -392,7 +381,7 @@ WoodColumn WoodColumn::from_element(const Element& e) {
 
 std::string WoodColumn::str() const {
     std::ostringstream os;
-    os << "WoodColumn(name=" << element.name
+    os << "WoodColumn(name=" << element->name
        << ", faces=" << polylines.size()
        << ", axis_length=" << axis.length()
        << ", section_pts=" << section.point_count() << ")";
@@ -422,7 +411,7 @@ BlockElement BlockElement::pb_load(const std::string& filename) { return pb_load
 
 std::string BlockElement::str() const {
     std::ostringstream os;
-    os << "BlockElement(name=" << element.name << ", loops=" << polylines.size() << ")";
+    os << "BlockElement(name=" << element->name << ", loops=" << polylines.size() << ")";
     return os.str();
 }
 std::ostream& operator<<(std::ostream& os, const BlockElement& e) { return os << e.str(); }
@@ -432,13 +421,13 @@ std::ostream& operator<<(std::ostream& os, const BlockElement& e) { return os <<
 // ═══════════════════════════════════════════════════════════════════════════
 
 WoodElement::WoodElement()
-    : element("plate")
+    : element(std::make_shared<TaggedElement>("plate", ELEMENT_TYPE))
     , reversed{false}
     , thickness{0.0}
 {}
 
 WoodElement::WoodElement(const Polyline& bot, const Polyline& top, const std::string& name)
-    : element(name)
+    : element(std::make_shared<TaggedElement>(name, ELEMENT_TYPE))
     , reversed{false}
     , thickness{0.0}
 {
@@ -684,19 +673,23 @@ void fill_kernel(const WoodElement& we, Element& out) {
 }  // namespace
 
 void WoodElement::sync_element() {
-    fill_kernel(*this, element);
+    fill_kernel(*this, *element);
+    element->set_element_data(wood_payload(*this));
 }
 
 std::shared_ptr<Element> WoodElement::to_element() const {
-    auto out = std::make_shared<TaggedElement>(element, ELEMENT_TYPE, wood_payload(*this));
-    fill_kernel(*this, *out);
-    return out;
+    // The same object, refreshed - not a copy. sync_element() writes the geometry, the face
+    // features and the payload into the element this plate already shares with its session.
+    const_cast<WoodElement*>(this)->sync_element();
+    return element;
 }
 
 WoodElement WoodElement::from_element(const Element& e) {
     WoodElement out;
-    out.element = e;
-    out.element.guid() = e.guid();
+    // Wrapped once, here, and shared from now on: the kernel has no public setter for
+    // element_type / element_data, so owning a tagged element means deriving one. The
+    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
 
     const std::string& tag = e.element_type_name();
     if (tag != ELEMENT_TYPE && tag != LEGACY_ELEMENT_TYPE) {
@@ -725,8 +718,10 @@ WoodElement WoodElement::from_element(const Element& e) {
     Polyline bottom = Polyline::jsonload(payload["bottom"]);
     Polyline top    = Polyline::jsonload(payload["top"]);
     out = WoodElement(bottom, top);
-    out.element = e;
-    out.element.guid() = e.guid();
+    // Wrapped once, here, and shared from now on: the kernel has no public setter for
+    // element_type / element_data, so owning a tagged element means deriving one. The
+    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
     out.reversed = payload.value("reversed", false);
     out.insertion_vectors = e.insertion_vectors();
 
@@ -776,13 +771,13 @@ WoodElement WoodElement::pb_load(const std::string& filename) { return pb_loads(
 
 std::string WoodElement::str() const {
     std::ostringstream os;
-    os << "WoodElement(name=" << element.name << ", polylines=" << polylines.size()
+    os << "WoodElement(name=" << element->name << ", polylines=" << polylines.size()
        << ", thickness=" << thickness << ")";
     return os.str();
 }
 std::string WoodElement::repr() const {
     std::ostringstream os;
-    os << "WoodElement(name=" << element.name
+    os << "WoodElement(name=" << element->name
        << ", polylines=" << polylines.size()
        << ", planes=" << planes.size()
        << ", reversed=" << (reversed ? "true" : "false")

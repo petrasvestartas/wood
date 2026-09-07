@@ -38,7 +38,7 @@ int main() {
     std::vector<WoodElement> elements;
     elements.emplace_back(bottom, top);
     WoodElement& we = elements[0];
-    we.element.name = "square";
+    we.element->name = "square";
     we.insertion_vectors = {Vector(0,0,1), Vector(1,0,0)};
     we.joint_types = {-1, 30, 11};                 // face 0 none, face 1 type 30, face 2 type 11
     // fill_session also writes per-element merged outlines, and expects top and bottom to be
@@ -47,7 +47,7 @@ int main() {
                                     Point(0.4,0.4,0.0), Point(0.2,0.4,0.0), Point(0.2,0.2,0.0)})};
     we.features.top    = {Polyline({Point(0.2,0.2,0.2), Point(0.4,0.2,0.2),
                                     Point(0.4,0.4,0.2), Point(0.2,0.4,0.2), Point(0.2,0.2,0.2)})};
-    const std::string guid = we.element.guid();
+    const std::string guid = we.element->guid();
 
     Session session("mapping_check");
     fill_session(session, elements, {}, false);
@@ -100,7 +100,7 @@ int main() {
     printf("WoodElement::from_element\n");
     WoodElement back = WoodElement::from_element(e);
     printf("    %s\n", back.repr().c_str());
-    check(back.element.guid() == guid, "guid");
+    check(back.element->guid() == guid, "guid");
     check(back.polylines.size() == we.polylines.size() && back.planes.size() == we.planes.size(),
           std::to_string(back.polylines.size()) + " outlines and planes");
     check(std::abs(back.thickness - we.thickness) < 1e-9, "thickness");
@@ -121,20 +121,20 @@ int main() {
     printf("standalone formats\n");
     WoodElement pb = WoodElement::pb_loads(we.pb_dumps());
     WoodElement js = WoodElement::file_json_loads(we.file_json_dumps());
-    check(pb.element.guid() == guid && pb.polylines.size() == we.polylines.size() && pb.joint_types == we.joint_types,
+    check(pb.element->guid() == guid && pb.polylines.size() == we.polylines.size() && pb.joint_types == we.joint_types,
           "WoodElement pb_dumps / pb_loads");
-    check(js.element.guid() == guid && js.polylines.size() == we.polylines.size() && js.joint_types == we.joint_types,
+    check(js.element->guid() == guid && js.polylines.size() == we.polylines.size() && js.joint_types == we.joint_types,
           "WoodElement file_json_dumps / file_json_loads");
 
     // BlockElement: the loops ARE the mesh faces, so no payload is needed.
     BlockElement block(std::vector<Polyline>{bottom, top});
-    block.element.name = "two_loops";
+    block.element->name = "two_loops";
     BlockElement block_pb = BlockElement::pb_loads(block.pb_dumps());
     BlockElement block_js = BlockElement::file_json_loads(block.file_json_dumps());
     check(block_pb.polylines.size() == 2 && block_pb.planes.size() == 2 &&
-          block_pb.element.guid() == block.element.guid() && block_pb.element.name == "two_loops",
+          block_pb.element->guid() == block.element->guid() && block_pb.element->name == "two_loops",
           "BlockElement pb: loops, planes, identity, name");
-    check(block_js.polylines.size() == 2 && block_js.element.guid() == block.element.guid(),
+    check(block_js.polylines.size() == 2 && block_js.element->guid() == block.element->guid(),
           "BlockElement json");
 
     std::filesystem::remove(path);
