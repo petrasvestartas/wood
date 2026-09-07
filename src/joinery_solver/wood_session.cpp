@@ -106,6 +106,8 @@ static const std::string& object_guid(const WoodGeometry& object) {
     return std::visit([](const auto& o) -> const std::string& { return o->element->guid(); }, object);
 }
 
+WoodSession::WoodSession(const std::string& name) : session(std::make_shared<Session>(name)) {}
+
 WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
     WoodSession out;
     out.session = session;

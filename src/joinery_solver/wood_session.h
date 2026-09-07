@@ -330,6 +330,9 @@ struct EdgeLink {
 struct WoodSession {
     std::shared_ptr<session_cpp::Session> session;
 
+    WoodSession() = default;
+    explicit WoodSession(const std::string& name);
+
     /// In session->objects.elements order, which pb_loads preserves.
     std::vector<WoodGeometry> objects;
     /// Session::lookup, one variant up.

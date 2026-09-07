@@ -117,78 +117,9 @@ int main() {
 
 
     // Run the joint-detection algorithm.
-    std::vector<WoodJoint> joints = get_connection_zones(elements, face_to_face);
-
-    // Session for visualization and export. 
-    Session session(globals::DATA_SET_INPUT_NAME);
-
-    // Merged Polylines
-    std::shared_ptr<TreeNode> group_outlines = session.add_group("Outlines");
-    for (const WoodElement& element : elements) {
-        for (const Polyline& top : element.features.top)
-            session.add_polyline(std::make_shared<Polyline>(top), group_outlines);
-
-        for (const Polyline& bot : element.features.bottom)
-            session.add_polyline(std::make_shared<Polyline>(bot), group_outlines);
-    }
-
-    // Joint areas
-    std::shared_ptr<TreeNode> group_areas = session.add_group("Joint Areas");
-    for (const WoodJoint& j : joints) {
-        session.add_polyline(std::make_shared<Polyline>(j.contact.area), group_areas);
-    }
-
-    // Joint volumes
-    std::shared_ptr<TreeNode> group_volumes  = session.add_group("Joint Volumes");
-    for (const WoodJoint& j : joints) {   
-        for (const std::optional<Polyline>& v : j.joint_volumes_pair_a_pair_b)
-            if (v.has_value()) 
-                session.add_polyline(std::make_shared<Polyline>(*v), group_volumes);
-    }
-
-    // Joint lines
-    std::shared_ptr<TreeNode> group_lines  = session.add_group("Joint Lines");
-    for (const WoodJoint& j : joints) {   
-        for (const Line& l : j.joint_lines)
-                session.add_line(std::make_shared<Line>(l), group_lines);
-    }
-
-    // Joint outlines, before merge
-    std::shared_ptr<TreeNode> group_connectors = session.add_group("Connectors");
-    for (const auto& j : joints) {
-        if (!j.m_outlines[0].empty() && !j.m_outlines[1].empty()) {
-            session.add_polyline(std::make_shared<Polyline>(j.m_outlines[0][0]), group_connectors);
-            session.add_polyline(std::make_shared<Polyline>(j.m_outlines[1][0]), group_connectors);
-        }
-        if (!j.f_outlines[0].empty() && !j.f_outlines[1].empty()) {
-            session.add_polyline(std::make_shared<Polyline>(j.f_outlines[0][0]), group_connectors);
-            session.add_polyline(std::make_shared<Polyline>(j.f_outlines[1][0]), group_connectors);
-        }
-    }
-
-    // Lofted volumes from merged outlines (bottom → top, with holes)
-    std::shared_ptr<TreeNode> group_lofts = session.add_group("Lofts");
-    for (const WoodElement& element : elements) {
-        if (element.features.bottom.empty() || element.features.top.empty())
-            continue;
-        session.add_mesh(std::make_shared<Mesh>(Mesh::loft(element.features.bottom, element.features.top)), group_lofts);
-    }
-
-    // ── Rhino viewer (paste into Rhino 8 ScriptEditor, venv: session_py) ──────
-    //
-    //   #! python3
-    //   # venv: session_py
-    //
-    //   import importlib
-    //   import session_rhino.session
-    //   importlib.reload(session_rhino.session)
-    //   from session_rhino.session import Session
-    //
-    //   filepath = r"C:\brg\code_rust\session\session_data\wood_face_to_face.pb"
-    //
-    //   scene = Session.load(filepath)
-    //   scene.draw(delete=True)
-    session.pb_dump((internal::output_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE).string());
-
+    wood_session::WoodSession scene(globals::DATA_SET_INPUT_NAME);
+    for (const WoodElement& element : elements) scene.add(std::make_shared<WoodElement>(element));
+    scene.compute_joints(face_to_face);
+    scene.pb_dump(internal::output_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE);
     return 0;
 }

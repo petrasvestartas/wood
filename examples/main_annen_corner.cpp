@@ -141,18 +141,9 @@ int main() {
         elements.emplace_back(polylines[i], polylines[i+1]);
 
     // Run the joint-detection algorithm.
-    std::vector<WoodJoint> joints = get_connection_zones(elements, face_to_face);
-
-    // Session for visualization and export.
-    Session session(globals::DATA_SET_INPUT_NAME);
-    std::shared_ptr<TreeNode> g_input = session.add_group("InputPlates");
-    for (size_t i = 0; i < polylines.size(); i++) {
-        std::shared_ptr<Polyline> pl = std::make_shared<Polyline>(polylines[i]);
-        pl->name = "plate_" + std::to_string(i);
-        session.add_polyline(pl, g_input);
-    }
-    fill_session(session, elements, joints);
-
-    session.pb_dump((internal::output_dir() / globals::DATA_SET_OUTPUT_FILE).string());
+    wood_session::WoodSession scene(globals::DATA_SET_INPUT_NAME);
+    for (const WoodElement& element : elements) scene.add(std::make_shared<WoodElement>(element));
+    scene.compute_joints(face_to_face);
+    scene.pb_dump(internal::output_dir() / globals::DATA_SET_OUTPUT_FILE);
     return 0;
 }
