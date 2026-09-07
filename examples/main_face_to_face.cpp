@@ -98,7 +98,7 @@ int run_pb(const std::string& name) {
 
     // Split by element_type, so a model that mixes plates with columns and loose solids
     // goes through one detection pass and each part is treated as what it is.
-    const wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
+    wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
     const std::vector<wood_session::ContactElement> view = wood_session::contact_view(scene);
     const std::vector<wood_session::ContactPair> contacts = wood_session::face_contacts(view);
 
@@ -133,21 +133,15 @@ int run_pb(const std::string& name) {
         }
         n_joints = joints.size();
         report("Joints", joints_by_type, n_joints);
+        scene.add_joints(joints);
     } else {
         fmt::print("Joints: none — nothing in this file carries the plate convention.\n");
     }
 
-    session_cpp::Session session(fmt::format("wood - contacts - {}", name));
-    auto inputs = session.add_group("Inputs");
-    // Wrapper copies again, so the faces are named by their position within each type.
-    std::vector<wood_session::WoodElement> plate_faces;
-    for (const wood_session::WoodElement* p : plates) { plate_faces.push_back(*p); }
-    std::vector<wood_session::BlockElement> solid_faces;
-    for (const wood_session::BlockElement* b : scene.solids()) { solid_faces.push_back(*b); }
-    wood_session::add_faces(session, inputs, plate_faces);
-    wood_session::add_faces(session, inputs, solid_faces);
-    wood_session::add_contacts_by_type(session, contacts);
-    fmt::print("wrote {}\n", wood_session::pb_dump(session, "live").string());
+    // The scene itself - elements, contacts on the graph, joints on the same edges - is
+    // what the viewer gets, not a hand-built session beside it.
+    scene.add_contacts(contacts);
+    fmt::print("{}\nwrote {}\n", scene.str(), scene.pb_dump("live").string());
     return 0;
 }
 
