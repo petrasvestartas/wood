@@ -96,7 +96,7 @@ int run_pb(const std::string& name) {
 
     wood_session::globals::reset_defaults();
 
-    wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
+    wood_session::WoodSession scene = wood_session::WoodSession::pb_load(pb);
     scene.compute_contacts();
     scene.compute_joints(face_to_face);
 
@@ -114,7 +114,9 @@ int run_pb(const std::string& name) {
                name, scene.plates().size(), scene.columns().size(), scene.solids().size());
     report("Contacts", contacts_by_type, n_contacts);
     report("Joints", joints_by_type, scene.joints().size());
-    fmt::print("{}\nwrote {}\n", scene.str(), scene.pb_dump("live").string());
+    const std::filesystem::path out = wood_session::pb_path("live");
+    scene.pb_dump(out);
+    fmt::print("{}\nwrote {}\n", scene.str(), out.string());
     return 0;
 }
 

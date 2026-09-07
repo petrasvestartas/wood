@@ -110,7 +110,7 @@ struct WoodContact {
     std::vector<FaceContact> faces;
 
     session_cpp::Mesh mesh() const;
-    void sync_element();
+    void sync_element() const;
     std::shared_ptr<session_cpp::Element> to_element() const;
     static WoodContact from_element(const session_cpp::Element& e);
 
@@ -199,8 +199,8 @@ struct WoodJoint {
     /// Value of `element_type` a stored joint is written under, beside "Plate" / "Contact".
     static constexpr const char* ELEMENT_TYPE = "Joint";
     /// Null while the joint is only the solver's, which copies joints freely; to_element()
-    /// creates it on first use.
-    std::shared_ptr<TaggedElement> element;
+    /// creates it on first use. A cache of this joint, hence mutable.
+    mutable std::shared_ptr<TaggedElement> element;
     /// Geometry the contact area, features the two host sides, element_data jsondump() minus
     /// those features.
     std::shared_ptr<session_cpp::Element> to_element() const;
@@ -273,7 +273,7 @@ struct WoodElement {
 
     /// Refresh `element` from the wood fields: loft mesh, insertion vectors, nominal
     /// dimensions, face features.
-    void sync_element();
+    void sync_element() const;
     /// A synced copy for a Session, tagged with ELEMENT_TYPE and the outline payload so it
     /// serializes as a WoodElement wherever it ends up. Same guid as `element`.
     std::shared_ptr<session_cpp::Element> to_element() const;
@@ -345,7 +345,7 @@ struct BlockElement {
     /// Refresh `polylines` / `planes` from the solid, after replacing the geometry.
     void sync_faces();
     /// Nothing to do - the solid in `element` IS the block.
-    void sync_element();
+    void sync_element() const;
     std::shared_ptr<session_cpp::Element> to_element() const;
     /// Any Element whose geometry is a Mesh: its face outlines become the block's faces.
     /// An element with no mesh degrades to an empty block.

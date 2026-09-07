@@ -6,9 +6,9 @@
 const char* DATASET = "data/floor_model.pb";
 
 int main() {
-    const wood_session::WoodSession scene = wood_session::WoodSession::load(DATASET);
+    const wood_session::WoodSession scene = wood_session::WoodSession::pb_load(DATASET);
     std::cout << scene << "\n";
-    scene.pb_dump("live");
+    scene.pb_dump(wood_session::pb_path("live"));
     return 0;
 }
 

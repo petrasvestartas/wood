@@ -394,9 +394,8 @@ struct WoodSession {
     /// The held session, every payload refreshed.
     const std::shared_ptr<session_cpp::Session>& to_session() const;
 
-    std::filesystem::path pb_dump(const std::string& name = "live") const;
-    /// data/<name>.pb read into a scene. `load_` reads a FILE; `from_` converts an object.
-    static WoodSession load(const std::filesystem::path& pb);
+    void pb_dump(const std::filesystem::path& path) const;
+    static WoodSession pb_load(const std::filesystem::path& path);
 
     std::string str() const;
     friend std::ostream& operator<<(std::ostream& os, const WoodSession& s);

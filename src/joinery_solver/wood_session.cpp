@@ -58,8 +58,7 @@ void add_faces_impl(Session& session, const Group& parent,
 const session_cpp::Color SOLID_GREY(0.84f, 0.84f, 0.86f, 1.0f, "solid_grey");
 
 template <class WoodType>
-void add_solids_impl(Session& session, const Group& parent,
-                     const std::vector<WoodType>& elements) {
+void add_solids_impl(Session& session, const Group& parent, const std::vector<WoodType>& elements) {
     for (const WoodType& element : elements) {
         // The element itself, never a copy: an Element copy mints a new guid.
         const std::shared_ptr<session_cpp::Element> copy = element.to_element();
@@ -142,24 +141,23 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
     return out;
 }
 
-WoodSession WoodSession::load(const std::filesystem::path& pb) {
-    if (!std::filesystem::exists(pb)) {
-        fmt::print(stderr, "not found: {}\n", pb.string());
+WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
+    if (!std::filesystem::exists(path)) {
+        fmt::print(stderr, "not found: {}\n", path.string());
         return WoodSession{};
     }
-    return from_session(std::make_shared<Session>(Session::pb_load(pb.string())));
+    return from_session(std::make_shared<Session>(Session::pb_load(path.string())));
 }
 
 const std::shared_ptr<Session>& WoodSession::to_session() const {
-    for (const WoodGeometry& object : objects) {
+    for (const WoodGeometry& object : objects)
         std::visit([](const auto& o) { o->to_element(); }, object);
-    }
     return session;
 }
 
-std::filesystem::path WoodSession::pb_dump(const std::string& name) const {
+void WoodSession::pb_dump(const std::filesystem::path& path) const {
     to_session();
-    return session ? wood_session::pb_dump(*session, name) : std::filesystem::path();
+    if (session) { session->pb_dump(path.string()); }
 }
 
 const std::string& WoodSession::name() const {
@@ -307,41 +305,34 @@ void WoodSession::compute_joints(SearchType search_type) {
     add_joints(joints);
 }
 
-std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() const {
-    std::unordered_map<std::string, std::pair<std::string, std::string>> by_joint;
-    if (session)
-        for (const auto& [u, neighbours] : session->graph.edges)
-            for (const auto& [v, edge] : neighbours)
-                if (u < v) {
-                    const EdgeLink link = EdgeLink::from_attribute(edge.attribute);
-                    if (!link.joint.empty()) { by_joint[link.joint] = {u, v}; }
-                }
+/// Contact or joint guid -> the two element guids its edge joins. Every edge is stored
+/// twice; u < v takes each once.
+static std::unordered_map<std::string, std::pair<std::string, std::string>> edge_links(const Session& session) {
+    std::unordered_map<std::string, std::pair<std::string, std::string>> links;
+    for (const auto& [u, neighbours] : session.graph.edges)
+        for (const auto& [v, edge] : neighbours) {
+            if (!(u < v)) { continue; }
+            const EdgeLink link = EdgeLink::from_attribute(edge.attribute);
+            if (!link.contact.empty()) { links[link.contact] = {u, v}; }
+            if (!link.joint.empty())   { links[link.joint]   = {u, v}; }
+        }
+    return links;
+}
+
+template <class T>
+static std::vector<std::pair<std::string, std::string>> pairs_of(const WoodSession& scene) {
     std::vector<std::pair<std::string, std::string>> pairs;
-    for (const std::shared_ptr<WoodJoint>& j : joints()) {
-        const auto it = by_joint.find(j->element->guid());
-        pairs.push_back(it == by_joint.end() ? std::pair<std::string, std::string>{} : it->second);
+    if (!scene.session) { return pairs; }
+    const auto links = edge_links(*scene.session);
+    for (const std::shared_ptr<T>& o : scene.objects_of<T>()) {
+        const auto it = links.find(o->element->guid());
+        pairs.push_back(it == links.end() ? std::pair<std::string, std::string>{} : it->second);
     }
     return pairs;
 }
 
-std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() const {
-    std::unordered_map<std::string, std::pair<std::string, std::string>> by_contact;
-    if (session) {
-        // Every edge is stored twice; u < v takes each once.
-        for (const auto& [u, neighbours] : session->graph.edges)
-            for (const auto& [v, edge] : neighbours)
-                if (u < v) {
-                    const EdgeLink link = EdgeLink::from_attribute(edge.attribute);
-                    if (!link.contact.empty()) { by_contact[link.contact] = {u, v}; }
-                }
-    }
-    std::vector<std::pair<std::string, std::string>> pairs;
-    for (const std::shared_ptr<WoodContact>& c : contacts()) {
-        const auto it = by_contact.find(c->element->guid());
-        pairs.push_back(it == by_contact.end() ? std::pair<std::string, std::string>{} : it->second);
-    }
-    return pairs;
-}
+std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() const { return pairs_of<WoodContact>(*this); }
+std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() const   { return pairs_of<WoodJoint>(*this); }
 
 std::string WoodSession::str() const {
     std::ostringstream os;
@@ -387,18 +378,15 @@ void add_faces(Session& session, const Group& parent,
     add_faces_impl(session, parent, elements);
 }
 
-void add_solids(Session& session, const Group& parent,
-                const std::vector<WoodElement>& elements) {
+void add_solids(Session& session, const Group& parent, const std::vector<WoodElement>& elements) {
     add_solids_impl(session, parent, elements);
 }
 
-void add_solids(Session& session, const Group& parent,
-                const std::vector<BlockElement>& elements) {
+void add_solids(Session& session, const Group& parent, const std::vector<BlockElement>& elements) {
     add_solids_impl(session, parent, elements);
 }
 
-void add_solids(Session& session, const Group& parent,
-                const std::vector<WoodColumn>& elements) {
+void add_solids(Session& session, const Group& parent, const std::vector<WoodColumn>& elements) {
     add_solids_impl(session, parent, elements);
 }
 

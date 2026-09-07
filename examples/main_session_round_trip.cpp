@@ -17,7 +17,7 @@ static size_t tree_nodes(const session_cpp::Session& s) {
 }
 
 int main() {
-    wood_session::WoodSession a = wood_session::WoodSession::load(DATASET);
+    wood_session::WoodSession a = wood_session::WoodSession::pb_load(DATASET);
     wood_session::globals::reset_defaults();
     a.compute_contacts();
     a.compute_joints();

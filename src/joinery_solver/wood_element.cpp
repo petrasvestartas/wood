@@ -288,7 +288,7 @@ void BlockElement::sync_faces() {
     planes    = element->planes();      // one per outline
 }
 
-void BlockElement::sync_element() {}   // the solid in `element` IS the block
+void BlockElement::sync_element() const {}   // the solid in `element` IS the block
 
 std::shared_ptr<Element> BlockElement::to_element() const {
     // The same object, not a copy of it: a block IS its mesh, so there is no payload to
@@ -672,15 +672,13 @@ void fill_kernel(const WoodElement& we, Element& out) {
 
 }  // namespace
 
-void WoodElement::sync_element() {
+void WoodElement::sync_element() const {
     fill_kernel(*this, *element);
     element->set_element_data(wood_payload(*this));
 }
 
 std::shared_ptr<Element> WoodElement::to_element() const {
-    // The same object, refreshed - not a copy. sync_element() writes the geometry, the face
-    // features and the payload into the element this plate already shares with its session.
-    const_cast<WoodElement*>(this)->sync_element();
+    sync_element();
     return element;
 }
 
@@ -795,10 +793,9 @@ std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
 
 std::shared_ptr<Element> WoodJoint::to_element() const {
     using nlohmann::ordered_json;
-    WoodJoint& self = *const_cast<WoodJoint*>(this);
-    if (!self.element)
-        self.element = std::make_shared<TaggedElement>(name.empty() ? "joint_" + std::to_string(joint_type) : name, ELEMENT_TYPE);
-    self.element->set_geometry(mesh_from_loops({contact.area}));
+    if (!element)
+        element = std::make_shared<TaggedElement>(name.empty() ? "joint_" + std::to_string(joint_type) : name, ELEMENT_TYPE);
+    element->set_geometry(mesh_from_loops({contact.area}));
 
     // Geometry rides as features, verbatim; element_data keeps the scalars and the per-face
     // split of the outlines, which flattening into two features loses.
@@ -812,15 +809,15 @@ std::shared_ptr<Element> WoodJoint::to_element() const {
     for (size_t k = 0; k < joint_volumes_pair_a_pair_b.size(); ++k)
         if (joint_volumes_pair_a_pair_b[k])
             features.emplace_back("joint_volume", -1, std::vector<Polyline>{*joint_volumes_pair_a_pair_b[k]}, "volume_" + std::to_string(k));
-    self.element->set_features(std::move(features));
+    element->set_features(std::move(features));
 
     ordered_json payload = jsondump();
     for (const char* key : {"joint_area", "joint_lines", "joint_volumes", "m_outlines", "f_outlines", "element_features"})
         payload.erase(key);
     payload["m_counts"] = {m_outlines[0].size(), m_outlines[1].size()};
     payload["f_counts"] = {f_outlines[0].size(), f_outlines[1].size()};
-    self.element->set_element_data(payload.dump());
-    return self.element;
+    element->set_element_data(payload.dump());
+    return element;
 }
 
 WoodJoint WoodJoint::from_element(const Element& e) {
@@ -880,7 +877,7 @@ Mesh WoodContact::mesh() const {
     return mesh_from_loops(rings);
 }
 
-void WoodContact::sync_element() {
+void WoodContact::sync_element() const {
     using nlohmann::ordered_json;
     element->set_geometry(mesh());
     // The rings again, verbatim: mesh() unwelds and may re-close a ring, so the mesh is for
@@ -899,7 +896,7 @@ void WoodContact::sync_element() {
 }
 
 std::shared_ptr<Element> WoodContact::to_element() const {
-    const_cast<WoodContact*>(this)->sync_element();
+    sync_element();
     return element;
 }
 
