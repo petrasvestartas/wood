@@ -123,6 +123,8 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
             object = std::make_shared<WoodColumn>(WoodColumn::from_element(*e));
         } else if (tag == WoodContact::ELEMENT_TYPE) {
             object = std::make_shared<WoodContact>(WoodContact::from_element(*e));
+        } else if (tag == WoodJoint::ELEMENT_TYPE) {
+            object = std::make_shared<WoodJoint>(WoodJoint::from_element(*e));
         } else {
             // Untagged, or a type this build has never heard of. The kernel carried the tag
             // and payload through untouched, so nothing is destroyed by treating it as a
@@ -178,13 +180,14 @@ std::vector<WoodElement*>  WoodSession::plates() const  { return objects_of<Wood
 std::vector<WoodColumn*>   WoodSession::columns() const { return objects_of<WoodColumn>(objects); }
 std::vector<BlockElement*> WoodSession::solids() const  { return objects_of<BlockElement>(objects); }
 std::vector<WoodContact*>  WoodSession::contacts() const { return objects_of<WoodContact>(objects); }
+std::vector<WoodJoint*>    WoodSession::joints() const   { return objects_of<WoodJoint>(objects); }
 
 std::vector<std::string> WoodSession::element_guids() const {
     std::vector<std::string> guids;
     for (const WoodGeometry& object : objects)
         std::visit([&guids](const auto& o) {
             using T = std::decay_t<decltype(*o)>;
-            if constexpr (!std::is_same_v<T, WoodContact>) guids.push_back(o->element->guid());
+            if constexpr (!std::is_same_v<T, WoodContact> && !std::is_same_v<T, WoodJoint>) guids.push_back(o->element->guid());
         }, object);
     return guids;
 }
@@ -207,11 +210,12 @@ EdgeLink EdgeLink::from_attribute(const std::string& attribute) {
     if (attribute.empty() || attribute[0] != 'c') { return link; }
     size_t i = 1;
     while (i < attribute.size() && is_guid_char(attribute[i])) { link.contact += attribute[i++]; }
-    if (link.contact.empty()) { return EdgeLink{}; }
-    if (i == attribute.size()) { return link; }
-    if (attribute[i++] != 'j') { return EdgeLink{}; }
-    while (i < attribute.size() && is_guid_char(attribute[i])) { link.joint += attribute[i++]; }
-    return (i == attribute.size() && !link.joint.empty()) ? link : EdgeLink{};
+    if (i < attribute.size()) {
+        if (attribute[i++] != 'j') { return EdgeLink{}; }
+        while (i < attribute.size() && is_guid_char(attribute[i])) { link.joint += attribute[i++]; }
+        if (link.joint.empty()) { return EdgeLink{}; }
+    }
+    return (i == attribute.size() && !(link.contact.empty() && link.joint.empty())) ? link : EdgeLink{};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -226,7 +230,6 @@ void WoodSession::add_contacts(const std::vector<ContactPair>& detected) {
         if (pair.element_a < 0 || pair.element_b < 0 ||
             pair.element_a >= (int)guids.size() || pair.element_b >= (int)guids.size()) { continue; }
         if (!group) {
-            // find_group throws on a miss rather than returning null.
             try { group = session->find_group("Contacts"); }
             catch (const std::runtime_error&) { group = session->add_group("Contacts"); }
         }
@@ -240,6 +243,52 @@ void WoodSession::add_contacts(const std::vector<ContactPair>& detected) {
         lookup[contact->element->guid()] = contact;
         objects.push_back(std::move(contact));
     }
+}
+
+void WoodSession::add_joints(const std::vector<WoodJoint>& detected) {
+    if (!session) { return; }
+    std::shared_ptr<TreeNode> group;
+    for (const WoodJoint& j : detected) {
+        if (j.element_a.empty() || j.element_b.empty()) { continue; }
+        if (!lookup.count(j.element_a) || !lookup.count(j.element_b)) { continue; }
+        if (!group) {
+            try { group = session->find_group("Joints"); }
+            catch (const std::runtime_error&) { group = session->add_group("Joints"); }
+        }
+        auto joint = std::make_shared<WoodJoint>(j);
+        joint->element.reset();                        // never share the solver copy's
+        session->add_element(joint->to_element(), group);
+
+        // The pair's edge, if a contact made one, keeps its contact; add_edge overwrites,
+        // so read first. has_edge / edge_attribute are non-const, hence the map walk.
+        EdgeLink link;
+        const auto u = session->graph.edges.find(j.element_a);
+        if (u != session->graph.edges.end()) {
+            const auto v = u->second.find(j.element_b);
+            if (v != u->second.end()) { link = EdgeLink::from_attribute(v->second.attribute); }
+        }
+        link.joint = joint->element->guid();
+        session->add_edge(j.element_a, j.element_b, link.to_attribute());
+        lookup[joint->element->guid()] = joint;
+        objects.push_back(std::move(joint));
+    }
+}
+
+std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() const {
+    std::unordered_map<std::string, std::pair<std::string, std::string>> by_joint;
+    if (session)
+        for (const auto& [u, neighbours] : session->graph.edges)
+            for (const auto& [v, edge] : neighbours)
+                if (u < v) {
+                    const EdgeLink link = EdgeLink::from_attribute(edge.attribute);
+                    if (!link.joint.empty()) { by_joint[link.joint] = {u, v}; }
+                }
+    std::vector<std::pair<std::string, std::string>> pairs;
+    for (const WoodJoint* j : joints()) {
+        const auto it = by_joint.find(j->element->guid());
+        pairs.push_back(it == by_joint.end() ? std::pair<std::string, std::string>{} : it->second);
+    }
+    return pairs;
 }
 
 std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() const {
@@ -269,7 +318,7 @@ std::string WoodSession::str() const {
     const std::vector<BlockElement*> b = solids();
     os << "WoodSession(name=" << name() << ", objects=" << objects.size()
        << ", plates=" << p.size() << ", columns=" << c.size() << ", solids=" << b.size()
-       << ", contacts=" << contacts().size()
+       << ", contacts=" << contacts().size() << ", joints=" << joints().size()
        << ", edges=" << (session ? session->graph.number_of_edges() : 0) << ")";
     return os.str();
 }
@@ -281,7 +330,7 @@ std::vector<ContactElement> contact_view(const WoodSession& scene) {
     for (const WoodGeometry& object : scene.objects) {
         std::visit([&view](const auto& o) {
             using T = std::decay_t<decltype(*o)>;
-            if constexpr (!std::is_same_v<T, WoodContact>)
+            if constexpr (!std::is_same_v<T, WoodContact> && !std::is_same_v<T, WoodJoint>)
                 view.push_back({&o->polylines, &o->planes, &o->element->name,
                                 std::is_same_v<T, WoodElement>});
         }, object);

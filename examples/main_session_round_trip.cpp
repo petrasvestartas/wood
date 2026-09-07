@@ -19,6 +19,11 @@ static size_t tree_nodes(const session_cpp::Session& s) {
 int main() {
     wood_session::WoodSession a = wood_session::WoodSession::load(DATASET);
     a.add_contacts(wood_session::face_contacts(wood_session::contact_view(a)));
+    // Wrapper copies share the kernel element, so the solver's guids name the scene's plates.
+    std::vector<wood_session::WoodElement> solver_plates;
+    for (const wood_session::WoodElement* p : a.plates()) { solver_plates.push_back(*p); }
+    wood_session::globals::reset_defaults();
+    a.add_joints(get_connection_zones(solver_plates, face_to_face));
     const session_cpp::Session& sa = *a.to_session();
     const wood_session::WoodSession b = wood_session::WoodSession::from_session(
         std::make_shared<session_cpp::Session>(session_cpp::Session::pb_loads(sa.pb_dumps())));
@@ -69,12 +74,37 @@ int main() {
     for (const auto& [u, v] : b.contact_pairs()) resolved = resolved && b.lookup.count(u) && b.lookup.count(v);
     check(resolved, "every edge endpoint is an object the scene owns");
 
+    check(a.joints().size() == b.joints().size(), fmt::format("joint count ({})", a.joints().size()));
+    check(a.joint_pairs() == b.joint_pairs(), "every joint edge resolves to the same element guids");
+    bool joints_ok = a.joints().size() == b.joints().size();
+    for (size_t i = 0; joints_ok && i < a.joints().size(); ++i) {
+        const wood_session::WoodJoint& ja = *a.joints()[i];
+        const wood_session::WoodJoint& jb = *b.joints()[i];
+        joints_ok = ja.element->guid() == jb.element->guid() && ja.element_a == jb.element_a
+                    && ja.element_b == jb.element_b && ja.joint_type == jb.joint_type
+                    && ja.contact.face_a == jb.contact.face_a && ja.contact.face_b == jb.contact.face_b
+                    && ja.contact.area.point_count() == jb.contact.area.point_count()
+                    && ja.m_outlines[0].size() == jb.m_outlines[0].size()
+                    && ja.f_outlines[0].size() == jb.f_outlines[0].size()
+                    && ja.divisions == jb.divisions && ja.shift == jb.shift
+                    && ja.linked_joints == jb.linked_joints;
+    }
+    check(joints_ok, "every joint: guid, elements, type, faces, area, outlines, divisions, links");
+    size_t on_contact = 0, alone = 0;
+    for (const auto& [u, v] : a.joint_pairs()) {
+        const auto it = sa.graph.edges.find(u);
+        const wood_session::EdgeLink l = wood_session::EdgeLink::from_attribute(it->second.at(v).attribute);
+        (l.contact.empty() ? alone : on_contact)++;
+    }
+    fmt::print("  joints on a contact edge: {}, joints on a pair with no contact: {}\n", on_contact, alone);
+
     const wood_session::EdgeLink l = wood_session::EdgeLink::from_attribute("cabc-1j0f-2");
     check(l.contact == "abc-1" && l.joint == "0f-2", "EdgeLink parses c<guid>j<guid>");
     check(wood_session::EdgeLink{"abc", ""}.to_attribute() == "cabc", "EdgeLink writes c<guid>");
     check(wood_session::EdgeLink::from_attribute("bvh_collision").contact.empty(), "EdgeLink rejects bvh_collision");
     check(wood_session::EdgeLink::from_attribute("default").contact.empty(), "EdgeLink rejects default");
     check(wood_session::EdgeLink::from_attribute("").contact.empty(), "EdgeLink rejects an empty attribute");
+    check(wood_session::EdgeLink::from_attribute("cj0f-2").joint == "0f-2", "EdgeLink parses a joint-only edge cj<guid>");
 
     fmt::print("\n{} failed\n", failures);
     return failures;

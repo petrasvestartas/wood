@@ -308,15 +308,17 @@ using WoodGeometry = std::variant<
     std::shared_ptr<WoodElement>,
     std::shared_ptr<WoodColumn>,
     std::shared_ptr<BlockElement>,
-    std::shared_ptr<WoodContact>>;
+    std::shared_ptr<WoodContact>,
+    std::shared_ptr<WoodJoint>>;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EdgeLink — what one connectivity edge points at
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A wood graph edge is one element pair, and its whole payload is Edge::attribute - a
-/// string. This is that string, parsed: "c<guid>" names the pair's WoodContact, and
-/// "c<guid>j<guid>" its WoodJoint as well. Guids, because they are what `lookup` is keyed
+/// string. This is that string, parsed: "c<guid>" names the pair's WoodContact,
+/// "c<guid>j<guid>" its WoodJoint as well, and "cj<guid>" a joint on a pair with nothing
+/// coplanar between them - a type-30 cross joint. Guids, because they are what `lookup` is keyed
 /// by and what survives a .pb; a guid is hex and dashes, so 'j' cannot occur inside one.
 ///
 /// The sigil is not decoration. Session::get_collisions() overwrites every edge attribute
@@ -363,6 +365,7 @@ struct WoodSession {
     std::vector<WoodColumn*>   columns() const;
     std::vector<BlockElement*> solids() const;
     std::vector<WoodContact*>  contacts() const;
+    std::vector<WoodJoint*>    joints() const;
 
     /// Guids of the ELEMENTS - plates, columns, solids - in collection order. This is the
     /// index space contact_view() and face_contacts() use; contacts are not in it.
@@ -375,6 +378,13 @@ struct WoodSession {
     /// For every contact, in contacts() order: the two element guids its edge joins, read
     /// back off the graph. Empty strings for a contact no edge names.
     std::vector<std::pair<std::string, std::string>> contact_pairs() const;
+
+    /// Store what get_connection_zones() found. A joint names its elements by guid, so it
+    /// lands on the edge of that pair - joining the pair's contact when there is one, and
+    /// making the edge when the two elements cross without touching.
+    void add_joints(const std::vector<WoodJoint>& detected);
+    /// For every joint, in joints() order: the two element guids its edge joins.
+    std::vector<std::pair<std::string, std::string>> joint_pairs() const;
 
     /// One wood object per element of a session, chosen by `element_type`. The session is
     /// kept, not consumed: everything wood does not model rides along in it.

@@ -222,6 +222,18 @@ struct WoodJoint {
 
     /// The whole joint, solver fields included, as JSON. There is no protobuf message for a
     /// joint - on the wire a joint IS its two ElementFeatures, written with their elements.
+    /// Value of `element_type` a stored joint is written under, beside "Plate" / "Contact".
+    static constexpr const char* ELEMENT_TYPE = "Joint";
+    /// The kernel half, shared with the session once the joint is stored there. Null while
+    /// the joint is only the solver's: the solver copies joints freely, and a shared element
+    /// would make every copy the same object. to_element() creates it on first use.
+    std::shared_ptr<TaggedElement> element;
+    /// The joint as a session Element: geometry is the contact area so a viewer shades it,
+    /// features are the two sides each host carries, and element_data is jsondump() minus
+    /// those same features - jsonload rebuilds them - so no outline is written twice.
+    std::shared_ptr<session_cpp::Element> to_element() const;
+    static WoodJoint from_element(const session_cpp::Element& e);
+
     nlohmann::ordered_json jsondump() const;
     static WoodJoint jsonload(const nlohmann::json& data);
     std::string file_json_dumps() const;

@@ -790,6 +790,37 @@ std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint - kernel view
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::shared_ptr<Element> WoodJoint::to_element() const {
+    WoodJoint& self = *const_cast<WoodJoint*>(this);
+    if (!self.element)
+        self.element = std::make_shared<TaggedElement>(name.empty() ? "joint_" + std::to_string(joint_type) : name,
+                                                       ELEMENT_TYPE);
+    self.element->set_geometry(mesh_from_loops({contact.area}));
+    const std::array<ElementFeature, 2> feats = to_features();
+    self.element->set_features({feats[0], feats[1]});
+    nlohmann::ordered_json payload = jsondump();
+    payload.erase("element_features");
+    self.element->set_element_data(payload.dump());
+    return self.element;
+}
+
+WoodJoint WoodJoint::from_element(const Element& e) {
+    WoodJoint out;
+    try {
+        out = jsonload(nlohmann::json::parse(e.element_data_dumps()));
+    } catch (const std::exception&) {
+        fprintf(stderr, "  WARNING: WoodJoint::from_element: element '%s' carries no readable "
+                        "payload - joint left empty.\n", e.name.c_str());
+        fflush(stderr);
+    }
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
+    return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // WoodContact
 // ═══════════════════════════════════════════════════════════════════════════
 
