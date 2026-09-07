@@ -84,18 +84,6 @@ void bounding_points(const BlockElement& e, std::vector<Point>& out) {
     for (const Polyline& loop : e.polylines) { add_outline(loop, out); }
 }
 
-// The three things the detection templates need off an element. Overloaded rather
-// than accessed as members so ContactElement - which holds pointers, not values -
-// can be a fourth element type without duplicating any of the scan.
-const std::vector<Polyline>& faces_of(const WoodElement& e)    { return e.polylines; }
-const std::vector<Polyline>& faces_of(const BlockElement& e)   { return e.polylines; }
-const std::vector<Polyline>& faces_of(const ContactElement& e) { return *e.polylines; }
-const std::vector<Plane>& planes_of(const WoodElement& e)      { return e.planes; }
-const std::vector<Plane>& planes_of(const BlockElement& e)     { return e.planes; }
-const std::vector<Plane>& planes_of(const ContactElement& e)   { return *e.planes; }
-const std::string& name_of(const WoodElement& e)               { return e.element->name; }
-const std::string& name_of(const BlockElement& e)              { return e.element->name; }
-const std::string& name_of(const ContactElement& e)            { return *e.name; }
 
 // Whether face i is an "outer" (top/bottom) face, where wood accepts a
 // triangular overlap. Only the plate convention has outer faces.
@@ -140,7 +128,21 @@ ContactType contact_type(const ContactElement& a, size_t i, const ContactElement
 
 }  // namespace
 
-template <class Element>
+// ═══════════════════════════════════════════════════════════════════════════
+// ElementLike
+// ═══════════════════════════════════════════════════════════════════════════
+
+const std::vector<Polyline>& faces_of(const WoodElement& e)    { return e.polylines; }
+const std::vector<Polyline>& faces_of(const BlockElement& e)   { return e.polylines; }
+const std::vector<Polyline>& faces_of(const ContactElement& e) { return *e.polylines; }
+const std::vector<Plane>& planes_of(const WoodElement& e)      { return e.planes; }
+const std::vector<Plane>& planes_of(const BlockElement& e)     { return e.planes; }
+const std::vector<Plane>& planes_of(const ContactElement& e)   { return *e.planes; }
+const std::string& name_of(const WoodElement& e)               { return e.element->name; }
+const std::string& name_of(const BlockElement& e)              { return e.element->name; }
+const std::string& name_of(const ContactElement& e)            { return *e.name; }
+
+template <ElementLike Element>
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<Element>& elements,
     double inflate,
@@ -198,7 +200,7 @@ std::vector<std::pair<int, int>> adjacency_search(
     return pairs;
 }
 
-template <class Element>
+template <ElementLike Element>
 std::vector<FacePlane> face_planes(const Element& element) {
     const size_t n = planes_of(element).size();
     std::vector<FacePlane> out(n);
@@ -307,7 +309,7 @@ bool face_overlap_area(
     return true;
 }
 
-template <class Element>
+template <ElementLike Element>
 std::vector<FaceContact> face_contacts_for_pair(
     const Element& ea,
     const Element& eb,
@@ -338,7 +340,7 @@ std::vector<FaceContact> face_contacts_for_pair(
     return contacts;
 }
 
-template <class Element>
+template <ElementLike Element>
 std::vector<FaceContact> face_contacts(
     const std::vector<Element>& elements,
     const std::vector<std::string>& names,
