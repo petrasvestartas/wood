@@ -61,10 +61,8 @@ template <class WoodType>
 void add_solids_impl(Session& session, const Group& parent,
                      const std::vector<WoodType>& elements) {
     for (const WoodType& element : elements) {
-        // The element itself, shared - never a copy, which would mint a new guid and enter
-        // the session as a different object. to_element() refreshes its payload first.
+        // The element itself, never a copy: an Element copy mints a new guid.
         const std::shared_ptr<session_cpp::Element> copy = element.to_element();
-        // geometry() is const, so the colour goes on a copy that is set back.
         if (const session_cpp::Mesh* mesh = std::get_if<session_cpp::Mesh>(&copy->geometry())) {
             session_cpp::Mesh grey = *mesh;
             // set_objectcolor only assigns the colour; it does NOT switch color_mode, so a
@@ -132,8 +130,7 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
             // solid - and a solid is enough to take part in contact detection.
             object = std::make_shared<BlockElement>(BlockElement::from_element(*e));
         }
-        // from_element wrapped the loaded element into a TaggedElement. The session must hold
-        // that same object, or the wrapper and the session diverge from here on.
+        // The session must hold the wrapped element too, or the two diverge from here on.
         const std::shared_ptr<Element> shared =
             std::visit([](const auto& o) -> std::shared_ptr<Element> { return o->element; }, object);
         e = shared;
@@ -222,8 +219,7 @@ std::string EdgeLink::to_attribute() const {
 }
 
 EdgeLink EdgeLink::from_attribute(const std::string& attribute) {
-    // A guid is hex digits and dashes, so 'j' is unambiguous as the separator. Anything
-    // off-grammar - "bvh_collision", "default", "" - is someone else's edge, not an error.
+    // A guid is hex and dashes, so 'j' is unambiguous. Off-grammar is someone else's edge.
     const auto is_guid_char = [](char c) {
         return std::isxdigit(static_cast<unsigned char>(c)) || c == '-';
     };
@@ -256,8 +252,6 @@ void WoodSession::add_contacts(const std::vector<ContactPair>& detected) {
         }
 
         auto contact = std::make_shared<WoodContact>(pair.faces);
-        // add_element mints the graph node for the contact and puts it in the tree; the
-        // element nodes already exist, so the edge below joins two known nodes.
         session->add_element(contact->to_element(), group);
         session->add_edge(guids[pair.element_a], guids[pair.element_b],
                           EdgeLink{contact->element->guid(), ""}.to_attribute());
@@ -277,11 +271,10 @@ void WoodSession::add_joints(const std::vector<WoodJoint>& detected) {
             catch (const std::runtime_error&) { group = session->add_group("Joints"); }
         }
         auto joint = std::make_shared<WoodJoint>(j);
-        joint->element.reset();                        // never share the solver copy's
+        joint->element.reset();
         session->add_element(joint->to_element(), group);
 
-        // The pair's edge, if a contact made one, keeps its contact; add_edge overwrites,
-        // so read first. has_edge / edge_attribute are non-const, hence the map walk.
+        // add_edge overwrites, so a pair's contact is read back before the joint is added.
         EdgeLink link;
         const auto u = session->graph.edges.find(j.element_a);
         if (u != session->graph.edges.end()) {
@@ -302,8 +295,7 @@ void WoodSession::compute_contacts() {
 void WoodSession::compute_joints(SearchType search_type) {
     const std::vector<std::shared_ptr<WoodElement>> plates = objects_of<WoodElement>();
     if (plates.empty()) { return; }
-    // get_connection_zones runs on a vector of values and writes its results into them, so
-    // it gets copies - which share the kernel element - and the results are assigned back.
+    // get_connection_zones writes into the vector it is given: copies in, results back.
     std::vector<WoodElement> solved;
     solved.reserve(plates.size());
     for (const std::shared_ptr<WoodElement>& p : plates) { solved.push_back(*p); }
@@ -335,8 +327,7 @@ std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() cons
 std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() const {
     std::unordered_map<std::string, std::pair<std::string, std::string>> by_contact;
     if (session) {
-        // graph.edges holds every edge twice, once per direction; u < v takes each once,
-        // the way Graph::pb_dumps does.
+        // Every edge is stored twice; u < v takes each once.
         for (const auto& [u, neighbours] : session->graph.edges)
             for (const auto& [v, edge] : neighbours)
                 if (u < v) {

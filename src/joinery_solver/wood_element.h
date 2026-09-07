@@ -56,20 +56,14 @@ enum class ContactType : int {
 // TaggedElement — the kernel half a wood object holds
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// An Element that carries a domain tag. The kernel has no public setter for `element_type`
-/// or `element_data` - only the two virtuals that read them (element.h) - so the only way to
-/// own a tagged element is to derive one.
-///
-/// A wood object holds this by shared_ptr and hands the SAME object to a Session, so an
-/// element is never copied on the way in and its guid can never be re-minted. That is not a
-/// style choice: Element's copy constructor omits _guid deliberately, and before this every
-/// element entered a session as a new object - 0 of 153 plate guids survived a round trip.
+/// An Element with a domain tag. The kernel has no setter for element_type / element_data,
+/// only the two virtuals, so a tagged element is a derived one. Held by shared_ptr and
+/// handed to a Session as the same object: never copied, so the guid is never re-minted.
 class TaggedElement final : public session_cpp::Element {
 public:
     TaggedElement(const std::string& name, std::string type)
         : session_cpp::Element(name), _type(std::move(type)) {}
-    /// Wraps a loaded element, keeping its identity. Done once, at load, so that everything
-    /// afterwards shares one object rather than copying it per write.
+    /// Wraps a loaded element once, keeping its guid.
     TaggedElement(const session_cpp::Element& base, std::string type, std::string data)
         : session_cpp::Element(base), _type(std::move(type)), _data(std::move(data)) {
         guid() = base.guid();
@@ -77,7 +71,6 @@ public:
 
     std::string element_type_name() const override { return _type; }
     std::string element_data_dumps() const override { return _data; }
-    /// The payload this object writes. Set by its owner's sync_element().
     void set_element_data(std::string data) { _data = std::move(data); }
 
 private:
@@ -85,13 +78,8 @@ private:
     std::string _data;
 };
 
-/// One face pair in real contact: which two faces, the topology class, and the
-/// overlap region between them (closed, in the first face's plane).
-///
-/// WHICH ELEMENTS is not here. A stored contact hangs off a graph edge and the
-/// edge names the pair by guid; a joint names its two elements itself. Face
-/// indices are element-local and stay, because a face index means nothing
-/// without the element whose polylines it indexes.
+/// One face pair in contact: the two faces, the class, the overlap region (closed, in the
+/// first face's plane). Which ELEMENTS is on the graph edge, by guid, not here.
 ///
 /// Lives here rather than in wood_face_to_face.h because WoodJoint embeds one
 /// by value, and that header includes wood_session.h, which includes this one.
@@ -102,33 +90,22 @@ struct FaceContact {
     session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
 };
 
-/// One element pair in contact: the two POSITIONAL indices into the vector passed to
-/// face_contacts, and every overlap polygon between them. Positional because detection
-/// is one call over one vector; a scene turns these into a graph edge keyed by guid and
-/// keeps only the faces.
+/// face_contacts() output: one element pair as positions in the vector it was given, and
+/// every overlap polygon between them. A scene turns this into an edge and a WoodContact.
 struct ContactPair {
     int element_a = -1;
     int element_b = -1;
     std::vector<FaceContact> faces;
 };
 
-/// Every overlap region between ONE pair of elements, and nothing about which pair.
-///
-/// A ContactPair above is what detection emits, carrying the positional indices of the run
-/// it came from. This is what a scene STORES: the same face pairs with the adjacency taken
-/// out, because which two elements touch is the graph edge this contact hangs off, and the
-/// edge names both of them - and this - by guid.
-///
-/// On the wire the rings are ElementFeature outlines: a Polyline there keeps its coordinates
-/// verbatim, while the display mesh unwelds and may re-close a ring. Face pairs and classes
-/// ride in element_data.
+/// Every overlap region between ONE pair of elements; which pair is the graph edge. On the
+/// wire the rings are ElementFeature outlines (verbatim), the mesh is for drawing only.
 struct WoodContact {
     WoodContact();
     explicit WoodContact(std::vector<FaceContact> faces, const std::string& name = "contact");
 
     static constexpr const char* ELEMENT_TYPE = "Contact";
 
-    /// The kernel half - shared with the session, like every wood object's.
     std::shared_ptr<TaggedElement> element;
     std::vector<FaceContact> faces;
 
@@ -161,14 +138,11 @@ struct ContactElement {
 struct WoodJoint {
     WoodJoint();
 
-    /// The two elements this joint connects, by guid - a male, b female. Guids rather
-    /// than positions because a joint outlives the vector it was detected in, and only
-    /// a guid names the same element in the scene that vector was copied from. index_of()
-    /// below is how a caller that needs a position gets one. The solver swaps the two to
-    /// put the male side first, so this pair is NOT ordered.
+    /// The two elements, by guid - a male, b female; swapped by the solver, so not ordered.
+    /// index_of() turns one into a position.
     std::string element_a;
     std::string element_b;
-    /// Which faces touched, and where. Face indices are into the elements named above.
+    /// Which faces touched, and where.
     FaceContact contact;
     /// Type-30 (cross) joints only: the SECOND side face of each element that
     /// the crossing involves, from CrossJoint::face_ids_a/.face_ids_b. Every
@@ -224,13 +198,11 @@ struct WoodJoint {
     /// joint - on the wire a joint IS its two ElementFeatures, written with their elements.
     /// Value of `element_type` a stored joint is written under, beside "Plate" / "Contact".
     static constexpr const char* ELEMENT_TYPE = "Joint";
-    /// The kernel half, shared with the session once the joint is stored there. Null while
-    /// the joint is only the solver's: the solver copies joints freely, and a shared element
-    /// would make every copy the same object. to_element() creates it on first use.
+    /// Null while the joint is only the solver's, which copies joints freely; to_element()
+    /// creates it on first use.
     std::shared_ptr<TaggedElement> element;
-    /// The joint as a session Element: geometry is the contact area so a viewer shades it,
-    /// features are the two sides each host carries, and element_data is jsondump() minus
-    /// those same features - jsonload rebuilds them - so no outline is written twice.
+    /// Geometry the contact area, features the two host sides, element_data jsondump() minus
+    /// those features.
     std::shared_ptr<session_cpp::Element> to_element() const;
     static WoodJoint from_element(const session_cpp::Element& e);
 
@@ -436,10 +408,7 @@ struct WoodColumn {
     friend std::ostream& operator<<(std::ostream& os, const WoodColumn& e);
 };
 
-/// Position of the element with this guid in `elements`, or -1 when it holds none.
-/// A joint names its elements by guid; the solver indexes them by position. This is
-/// the one place that gap is closed - a linear scan, because the vectors are small
-/// (hundreds) and the alternative is threading a map through every joint helper.
+/// Position of the element with this guid, or -1. A linear scan: the vectors are small.
 int index_of(const std::vector<WoodElement>& elements, const std::string& guid);
 
 } // namespace wood_session

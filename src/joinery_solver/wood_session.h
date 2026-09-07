@@ -299,11 +299,8 @@ namespace wood_session {
 // WoodSession — the scene, shaped like session_cpp::Session
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One object of the scene. Mirrors session_cpp::Geometry: one alternative per type, every
-/// one a shared_ptr, so an object here IS the object the session holds - never a copy of it.
-/// A new wood type joins by adding an alternative, a tag and a from_element factory; the
-/// kernel schema does not change, because element_type / element_data already carry a
-/// domain type through protobuf and JSON alike.
+/// session_cpp::Geometry, one variant up: an object here IS the object the session holds.
+/// A new type is an alternative, a tag and a from_element factory - no schema change.
 using WoodGeometry = std::variant<
     std::shared_ptr<WoodElement>,
     std::shared_ptr<WoodColumn>,
@@ -315,16 +312,9 @@ using WoodGeometry = std::variant<
 // EdgeLink — what one connectivity edge points at
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A wood graph edge is one element pair, and its whole payload is Edge::attribute - a
-/// string. This is that string, parsed: "c<guid>" names the pair's WoodContact,
-/// "c<guid>j<guid>" its WoodJoint as well, and "cj<guid>" a joint on a pair with nothing
-/// coplanar between them - a type-30 cross joint. Guids, because they are what `lookup` is keyed
-/// by and what survives a .pb; a guid is hex and dashes, so 'j' cannot occur inside one.
-///
-/// The sigil is not decoration. Session::get_collisions() overwrites every edge attribute
-/// with "bvh_collision" and add_relationship writes "default"; from_attribute has to reject
-/// those rather than misread them. And the payload is never the empty string, because
-/// Graph::edge_attribute reads an empty value as a GET.
+/// Edge::attribute, parsed: "c<guid>" the pair's contact, "c<guid>j<guid>" its joint too,
+/// "cj<guid>" a cross joint with no contact. The sigil rejects Session::get_collisions()'s
+/// "bvh_collision"; the payload is never empty, which Graph::edge_attribute reads as a GET.
 struct EdgeLink {
     std::string contact;
     std::string joint;
@@ -334,41 +324,28 @@ struct EdgeLink {
     static EdgeLink from_attribute(const std::string& attribute);
 };
 
-/// The scene: a session_cpp::Session, and wood's typed view of the objects inside it.
-///
-/// The Session is held by HANDLE, not by value, and that is forced rather than stylistic.
-/// Objects holds twelve shared_ptr<vector<...>>, so a copied Session aliases the original's
-/// object vectors; Tree shares its whole node graph; and SpatialBVH holds raw pointers into
-/// its own arena with no copy constructor, so a memberwise copy leaves them dangling.
-/// session_viewer reached the same conclusion - `Rc<Session>`, documented "never copied".
-///
-/// Holding it also means nothing is lost: the loose polylines, the meshes, the six-deep
-/// tree and the xforms a .pb carried are all still there after a round trip, because this
-/// IS the loaded session rather than a rebuild of it.
+/// A session_cpp::Session and wood's typed view of the objects in it. Held by handle: a
+/// Session copy aliases its Objects and Tree and dangles its BVH arena pointers. Nothing a
+/// .pb carried is lost, because this IS the loaded session, not a rebuild of it.
 struct WoodSession {
     std::shared_ptr<session_cpp::Session> session;
 
-    /// One continuous collection, in session->objects.elements order - the order
-    /// Session::order() defines and pb_loads preserves. An index here means the same thing
-    /// before and after a .pb, which was never true of the three vectors this replaces.
+    /// In session->objects.elements order, which pb_loads preserves.
     std::vector<WoodGeometry> objects;
-    /// guid -> object, the mirror of Session::lookup. Derived; rebuilt by from_session.
+    /// Session::lookup, one variant up.
     std::unordered_map<std::string, WoodGeometry> lookup;
 
     size_t size() const { return objects.size(); }
     const std::string& name() const;
     const std::string& guid() const;
 
-    /// Put an object in - the session under `parent` (the root when null), the collection,
-    /// and the lookup - the mirror of Session::add_element. Returns the tree node.
+    /// Session::add_element: into the session under `parent`, the collection and the lookup.
     std::shared_ptr<session_cpp::TreeNode> add(const WoodGeometry& object,
                                                const std::shared_ptr<session_cpp::TreeNode>& parent = nullptr);
-    /// Take an object out of everything at once - session, tree, graph, lookup, collection -
-    /// as Session::remove_object does. False when no object has that guid.
+    /// Session::remove_object, plus the collection and the lookup.
     bool remove_object(const std::string& guid);
 
-    /// An object by guid, typed - Session::get_object, one variant down. Null when absent or
-    /// of another type.
+    /// Session::get_object: null when absent or of another type.
     template <class T>
     std::shared_ptr<T> get_object(const std::string& guid) const {
         const auto it = lookup.find(guid);
@@ -396,33 +373,25 @@ struct WoodSession {
 
     /// Detection over the elements, stored: one contact per touching pair, on the graph.
     void compute_contacts();
-    /// The solver over the plates, IN PLACE: merged outlines and insertion vectors land on
-    /// the scene's own plates, and every joint lands on its pair's edge.
+    /// get_connection_zones over the plates, in place; every joint on its pair's edge.
     void compute_joints(SearchType search_type = face_to_face);
 
-    /// Guids of the ELEMENTS - plates, columns, solids - in collection order. This is the
-    /// index space contact_view() and face_contacts() use; contacts are not in it.
+    /// Element guids in collection order - the index space contact_view() uses.
     std::vector<std::string> element_guids() const;
 
-    /// Store what face_contacts() found: one WoodContact per pair, added to the session under
-    /// a "Contacts" group, and one graph edge between the pair's two element guids whose
-    /// attribute names the contact. The ContactPair indices are positions in element_guids().
+    /// One WoodContact per pair under "Contacts", and its edge. Indices are into element_guids().
     void add_contacts(const std::vector<ContactPair>& detected);
-    /// For every contact, in contacts() order: the two element guids its edge joins, read
-    /// back off the graph. Empty strings for a contact no edge names.
+    /// Per contact, in contacts() order: the two element guids its edge joins.
     std::vector<std::pair<std::string, std::string>> contact_pairs() const;
 
-    /// Store what get_connection_zones() found. A joint names its elements by guid, so it
-    /// lands on the edge of that pair - joining the pair's contact when there is one, and
-    /// making the edge when the two elements cross without touching.
+    /// One WoodJoint under "Joints", on its pair's edge - made when no contact made one.
     void add_joints(const std::vector<WoodJoint>& detected);
-    /// For every joint, in joints() order: the two element guids its edge joins.
+    /// Per joint, in joints() order: the two element guids its edge joins.
     std::vector<std::pair<std::string, std::string>> joint_pairs() const;
 
-    /// One wood object per element of a session, chosen by `element_type`. The session is
-    /// kept, not consumed: everything wood does not model rides along in it.
+    /// One wood object per element, by `element_type`; the session is kept, not consumed.
     static WoodSession from_session(const std::shared_ptr<session_cpp::Session>& session);
-    /// The held session, with every wood object's payload refreshed into it.
+    /// The held session, every payload refreshed.
     const std::shared_ptr<session_cpp::Session>& to_session() const;
 
     std::filesystem::path pb_dump(const std::string& name = "live") const;
@@ -433,11 +402,8 @@ struct WoodSession {
     friend std::ostream& operator<<(std::ostream& os, const WoodSession& s);
 };
 
-/// One detection view per object, in collection order.
-///
-/// The views hold POINTERS into the scene, so the returned vector must not outlive it and
-/// the scene must not be modified while the view is alive. Take it, run detection, drop it.
-/// A ContactPair's indices are positions in THIS vector, which is the collection's order.
+/// One view per element in collection order; pointers into the scene, so drop it before
+/// the scene changes. ContactPair indices are positions in this vector.
 std::vector<ContactElement> contact_view(const WoodSession& scene);
 
 // ── Writing a scene ───────────────────────────────────────────────────────
