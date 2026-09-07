@@ -1,27 +1,19 @@
-// Build and run from wood/ root:
-//   cmake -B build
-//   cmake --build build --config Release --target main_reciprocal_move
-//   ./build/Release/main_reciprocal_move.exe
-
 #include "src/templates/reciprocal_move.h"
+
 #include <filesystem>
-#include <iostream>
+
+const char* OUTPUT = "data/templates/reciprocal_move_dome.json";
 
 int main() {
-    auto out = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
-               / "data" / "templates";
-    std::filesystem::create_directories(out);
-
-    // Default 12×10 sinusoidal dome, 50mm translation offset, 100mm beam width
-    ReciprocalMove rm(12, 10, 12000.0, 10000.0, 3000.0, 50.0, 100.0, 200.0);
-
-    std::cout << "dome:   " << rm.dome_mesh.number_of_vertices() << " vertices  "
-              << rm.dome_mesh.number_of_faces() << " faces\n";
-    std::cout << "beams:  " << rm.beams.size() << "\n";
-    std::cout << "side0:  " << rm.side0.size() << " outlines\n";
-    std::cout << "side1:  " << rm.side1.size() << " outlines\n";
-
-    rm.dome_mesh.file_json_dump((out / "reciprocal_move_dome.json").string());
-
+    std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+    const ReciprocalMove shell(12, 10, 12000.0, 10000.0, 3000.0, 50.0, 100.0, 200.0);
+    shell.dome_mesh.file_json_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: build the reciprocal_move template -> write its mesh to data/templates/reciprocal_move_dome.json.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_reciprocal_move -j8 && ./build/main_reciprocal_move
+*/

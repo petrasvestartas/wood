@@ -1,34 +1,37 @@
 #include "file_obj.h"
 #include "pair_polylines.h"
 #include "polyline.h"
-#include <fstream>
-#include <filesystem>
+
 #include <fmt/core.h>
+
+#include <filesystem>
+#include <fstream>
+
 using namespace session_cpp;
 
+const char* INPUT = "data/annen_polylines.obj";
+const char* OUTPUT = "data/annen_for_wood.xml";
+
 int main() {
-    auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
-    auto polylines = file_obj::read_file_obj_polylines(
-        (base / "session_data" / "annen_polylines.obj").string());
-    auto pairs = wood::pair_polylines(polylines);
-
-    fmt::print("{} polylines, {} pairs\n", polylines.size(), pairs.size());
-
-    std::ofstream out((base / "session_data" / "annen_for_wood.xml").string());
+    const std::vector<Polyline> polylines = file_obj::read_file_obj_polylines(INPUT);
+    std::ofstream out(OUTPUT);
     out << "<?xml version=\"1.0\" encoding=\"utf-8\"?><input_polylines>";
-    for (auto [a, b] : pairs) {
-        for (int idx : {a, b}) {
+    for (const auto& [a, b] : wood::pair_polylines(polylines))
+        for (const int index : {a, b}) {
             out << "<polyline>";
-            for (size_t k = 0; k < polylines[idx].point_count(); k++) {
-                auto p = polylines[idx].get_point(k);
-                out << fmt::format("<point><x>{}</x><y>{}</y><z>{}</z></point>",
-                    p[0], p[1], p[2]);
+            for (size_t k = 0; k < polylines[index].point_count(); k++) {
+                const Point point = polylines[index].get_point(k);
+                out << fmt::format("<point><x>{}</x><y>{}</y><z>{}</z></point>", point[0], point[1], point[2]);
             }
             out << "</polyline>";
         }
-    }
     out << "</input_polylines>";
-    out.close();
-    fmt::print("Wrote {}\n", (base / "session_data" / "annen_for_wood.xml").string());
     return 0;
 }
+
+/*
+description: pair the annen polylines from an .obj -> write them as a wood input XML.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_export_xml -j8 && ./build/main_export_xml
+*/

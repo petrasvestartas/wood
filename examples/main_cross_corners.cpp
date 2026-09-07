@@ -1,25 +1,3 @@
-// main_cross_corners.cpp — cross_corners from hardcoded polylines.
-//
-// Coordinates extracted verbatim from session_data/cross_corners.obj.
-// 20 elements (40 polylines), search_type = cross_joint (plane_to_face, type-30).
-// Output: session_data/WoodF2F_cross_corners_custom.pb
-//
-// ── Rhino viewer (paste into Rhino 8 ScriptEditor, venv: session_py) ──────
-//
-//   #! python3
-//   # venv: session_py
-//
-//   import importlib
-//   import session_rhino.session
-//   importlib.reload(session_rhino.session)
-//   from session_rhino.session import Session
-//
-//   filepath = r"C:\brg\code_rust\session\session_data\WoodF2F_cross_corners_custom.pb"
-//
-//   scene = Session.load(filepath)
-//   scene.draw(delete=True)
-//
-// ─────────────────────────────────────────────────────────────────────────
 #include "wood_session.h"
 #include "../src/session.h"
 
@@ -27,15 +5,12 @@ using namespace session_cpp;
 using namespace wood_session;
 
 int main() {
-
-    // Load global wood parameters.
     globals::reset_defaults();
     globals::JOINT_VOLUME_EXTENSION[1] = 2;
-    globals::DATA_SET_INPUT_NAME  = "cross_corners_custom";
+    globals::DATA_SET_INPUT_NAME = "cross_corners_custom";
     globals::DATA_SET_OUTPUT_FILE = "WoodF2F_cross_corners_custom.pb";
 
-    // Main Input - Polylines
-    std::vector<Polyline> polylines = {
+    const std::vector<Polyline> polylines = {
         Polyline({ {-487.707780261317,-262.545668944569,-45.2995080427285}, {-487.707780261317,-131.041055779523,-45.2995080427285}, {-664.561369343444,-131.041055779523,-45.2995080427285}, {-664.561369343444,-262.545668944569,-45.2995080427285}, {-487.707780261317,-262.545668944569,-45.2995080427285} }),
         Polyline({ {-487.707780261317,-262.545668944569,-30.2995080427318}, {-487.707780261317,-131.041055779523,-30.2995080427318}, {-664.561369343444,-131.041055779523,-30.2995080427318}, {-664.561369343444,-262.545668944569,-30.2995080427318}, {-487.707780261317,-262.545668944569,-30.2995080427318} }),
         Polyline({ {-568.634574802383,-304.545668944569,-126.226302583794}, {-568.634574802383,-173.041055779523,-126.226302583794}, {-568.634574802381,-173.041055779523,50.6272864983331}, {-568.634574802381,-304.545668944569,50.6272864983331}, {-568.634574802383,-304.545668944569,-126.226302583794} }),
@@ -78,15 +53,19 @@ int main() {
         Polyline({ {600.101952383697,109.718869550992,-38.6720517701402}, {601.649075095825,289.340502610428,124.815687950251}, {592.531643591835,297.821548773065,111.535210145529}, {591.012273988904,121.422064000418,-49.0197996387254}, {600.101952383697,109.718869550992,-38.6720517701402} }),
     };
 
-    // Build WoodElements from the flat polyline list (even=bottom, odd=top).
-    std::vector<WoodElement> elements;
+    WoodSession scene(globals::DATA_SET_INPUT_NAME);
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
-        elements.emplace_back(polylines[i], polylines[i+1]);
-
-    // Run the joint-detection algorithm.
-    wood_session::WoodSession scene(globals::DATA_SET_INPUT_NAME);
-    for (const WoodElement& element : elements) scene.add(std::make_shared<WoodElement>(element));
+        scene.add(std::make_shared<WoodElement>(polylines[i], polylines[i + 1]));
     scene.compute_joints(cross_joint);
     scene.pb_dump(internal::output_dir() / globals::DATA_SET_OUTPUT_FILE);
     return 0;
 }
+
+/*
+description: cross_corners from hardcoded polylines -> cross_joint joints -> data/output/WoodF2F_cross_corners_custom.pb.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_cross_corners -j8 && ./build/main_cross_corners
+cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_cross_corners_custom.pb
+view: https://petrasvestartas.github.io/session/
+*/

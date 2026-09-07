@@ -1,25 +1,3 @@
-// main_all_datasets.cpp — run all 43 wood datasets in sequence.
-//
-// Each dataset writes WoodF2F_<name>.pb
-// to session_data/ — datasets missing their OBJ are silently skipped.
-//
-// ── Rhino viewer (paste into Rhino 8 ScriptEditor, venv: session_py) ──────
-//
-//   #! python3
-//   # venv: session_py
-//
-//   import importlib
-//   import session_rhino.session
-//   importlib.reload(session_rhino.session)
-//   from session_rhino.session import Session
-//
-//   filepath = r"C:\brg\code_rust\session\session_data\WoodF2F_annen_corner.pb"
-//   # swap filepath to view any other dataset produced by this binary
-//
-//   scene = Session.load(filepath)
-//   scene.draw(delete=True)
-//
-// ─────────────────────────────────────────────────────────────────────────
 #include "wood_session.h"
 
 int main() {
@@ -69,3 +47,12 @@ int main() {
     type_beams_name_phanomema_node();
     return 0;
 }
+
+/*
+description: run every wood dataset -> each writes data/output/WoodF2F_<name>.pb.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_all_datasets -j8 && ./build/main_all_datasets
+cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_annen_corner.pb
+view: https://petrasvestartas.github.io/session/
+*/

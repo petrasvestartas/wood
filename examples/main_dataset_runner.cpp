@@ -1,17 +1,7 @@
-// main_dataset_runner.cpp — entry point for the wood face-to-face port.
-//
-// All pipeline code lives in wood/wood_main.cpp; test harness in
-// wood/wood_test.cpp; shared declarations in wood/wood_session.h.
-// This file is just main() — a flat call list in wood_test.cpp order.
 #include "wood_session.h"
 
-// ═══════════════════════════════════════════════════════════════════════════
-// main() — flat call list matching wood_test.cpp:4684+ TEST() section order.
-// The 43 test-function definitions live in wood/wood_test.cpp; declarations
-// in wood/wood_session.h.
-// ═══════════════════════════════════════════════════════════════════════════
 int main() {
-    type_plates_name_hexbox_and_corner();                                            // 204
+    type_plates_name_hexbox_and_corner();
     type_plates_name_joint_linking_vidychapel_corner();
     type_plates_name_joint_linking_vidychapel_one_layer();
     type_plates_name_joint_linking_vidychapel_one_axis_two_layers();
@@ -56,3 +46,12 @@ int main() {
     type_beams_name_phanomema_node();
     return 0;
 }
+
+/*
+description: run one wood dataset at a time -> data/output/WoodF2F_<name>.pb; comment out the rest.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_dataset_runner -j8 && ./build/main_dataset_runner
+cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_hexbox_and_corner.pb
+view: https://petrasvestartas.github.io/session/
+*/

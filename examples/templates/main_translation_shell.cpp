@@ -1,30 +1,19 @@
-// Build and run from wood/ root:
-//   cmake -B build
-//   cmake --build build --config Release --target main_translation_shell
-//   ./build/Release/main_translation_shell.exe
-
 #include "src/templates/translation_shell.h"
+
 #include <filesystem>
-#include <iostream>
+
+const char* OUTPUT = "data/templates/translation_shell_mesh.json";
 
 int main() {
-
-    auto out = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path() / "data" / "templates";
-    std::filesystem::create_directories(out);
-
-    // Construct the translation shell with default cross-section and profile.
-    TranslationShell ts;
-
-
-    // plate meshes: loft each element's bottom/top polylines into a solid
-    for (const auto& el : ts.elements) {
-        Mesh plate = el.loft_mesh();
-        std::cout << plate << "\n";
-    }
-
-    // Write shell mesh to json
-    std::cout << ts.mesh << "\n";
-    ts.mesh.file_json_dump((out / "translation_shell_mesh.json").string());
-
+    std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+    const TranslationShell shell;
+    shell.mesh.file_json_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: build the translation_shell template -> write its mesh to data/templates/translation_shell_mesh.json.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_translation_shell -j8 && ./build/main_translation_shell
+*/

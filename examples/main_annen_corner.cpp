@@ -1,25 +1,3 @@
-// main_annen_corner.cpp — annen_corner from hardcoded polylines.
-//
-// Coordinates extracted verbatim from session_data/annen_corner.obj.
-// 6 elements (12 polylines), same joint parameters as the file-backed test.
-// Output: session_data/WoodF2F_annen_corner_custom.pb
-//
-// ── Rhino viewer (paste into Rhino 8 ScriptEditor, venv: session_py) ──────
-//
-//   #! python3
-//   # venv: session_py
-//
-//   import importlib
-//   import session_rhino.session
-//   importlib.reload(session_rhino.session)
-//   from session_rhino.session import Session
-//
-//   filepath = r"C:\brg\code_rust\session\session_data\WoodF2F_annen_corner_custom.pb"
-//
-//   scene = Session.load(filepath)
-//   scene.draw(delete=True)
-//
-// ─────────────────────────────────────────────────────────────────────────
 #include "wood_session.h"
 #include "../src/session.h"
 
@@ -27,17 +5,13 @@ using namespace session_cpp;
 using namespace wood_session;
 
 int main() {
-
-    // Load global wood parameters.
     globals::reset_defaults();
     globals::JOINTS_PARAMETERS_AND_TYPES[1*3+2] = 10;
     globals::JOINTS_PARAMETERS_AND_TYPES[2*3+2] = 20;
-    globals::DATA_SET_INPUT_NAME  = "annen_corner_custom";
+    globals::DATA_SET_INPUT_NAME = "annen_corner_custom";
     globals::DATA_SET_OUTPUT_FILE = "WoodF2F_annen_corner_custom.pb";
 
-    // Main Input - Polylines
-    std::vector<Polyline> polylines = {
-        // pair 0 — vertical plate at X≈2142 (top)
+    const std::vector<Polyline> polylines = {
         Polyline({
             { 2142.00812383331, -530.170014651827,  1172.48735988095},
             { 2142.00812383328, -530.170014651827,  -318.768161457628},
@@ -45,7 +19,6 @@ int main() {
             { 2142.00812383331,  530.170014651827,  1172.48735988095},
             { 2142.00812383331, -530.170014651827,  1172.48735988095},
         }),
-        // pair 0 (bottom)
         Polyline({
             { 2223.41611737943, -530.170014651827,  1172.48735988095},
             { 2223.4161173794,  -530.170014651827,  -364.483096862165},
@@ -53,7 +26,6 @@ int main() {
             { 2223.41611737943,  530.170014651827,  1172.48735988095},
             { 2223.41611737943, -530.170014651827,  1172.48735988095},
         }),
-        // pair 1 — diagonal plate (top)
         Polyline({
             {  868.697507990728, -530.170014651827, -1094.99177969239},
             { 2142.00812383328,  -530.170014651827,  -318.768161457628},
@@ -61,7 +33,6 @@ int main() {
             {  868.697507990728,  530.170014651827, -1094.99177969239},
             {  868.697507990728, -530.170014651827, -1094.99177969239},
         }),
-        // pair 1 (bottom)
         Polyline({
             {  868.697507990728, -530.170014651827, -1190.33388895175},
             { 2223.4161173794,   -530.170014651827,  -364.483096862165},
@@ -69,7 +40,6 @@ int main() {
             {  868.697507990728,  530.170014651827, -1190.33388895175},
             {  868.697507990728, -530.170014651827, -1190.33388895175},
         }),
-        // pair 2 — central connector at Y≈97 (top)
         Polyline({
             {  868.697507990739, 97.4481444578238,  396.263741646029},
             { 2142.00812383329,  97.4481444579578, 1172.48735988079},
@@ -77,7 +47,6 @@ int main() {
             {  868.697507990728, 97.4481444581148, -1094.99177969239},
             {  868.697507990739, 97.4481444578238,  396.263741646029},
         }),
-        // pair 2 (bottom, Y≈0)
         Polyline({
             {  868.697507990739, -4.39627001469489e-10,  396.263741646029},
             { 2142.00812383329,  -3.05590219795704e-10, 1172.48735988079},
@@ -85,7 +54,6 @@ int main() {
             {  868.697507990728, -1.48588696902152e-10, -1094.99177969239},
             {  868.697507990739, -4.39627001469489e-10,  396.263741646029},
         }),
-        // pair 3 — vertical plate at X≈-633 (top)
         Polyline({
             { -632.906073423899, -530.170014651827, 1190.33388895175},
             { -632.906073423932, -530.170014651827, -400.176155003755},
@@ -93,7 +61,6 @@ int main() {
             { -632.906073423899,  530.170014651827, 1190.33388895175},
             { -632.906073423899, -530.170014651827, 1190.33388895175},
         }),
-        // pair 3 (bottom, X≈-714)
         Polyline({
             { -714.314066970026, -530.170014651827, 1190.33388895175},
             { -714.314066970057, -530.170014651827, -318.768161457628},
@@ -101,7 +68,6 @@ int main() {
             { -714.314066970026,  530.170014651827, 1190.33388895175},
             { -714.314066970026, -530.170014651827, 1190.33388895175},
         }),
-        // pair 4 — horizontal plate at Z≈-400 (top)
         Polyline({
             { -2223.41611737943, -530.170014651827, -400.176155003755},
             {  -632.906073423932, -530.170014651827, -400.176155003755},
@@ -109,7 +75,6 @@ int main() {
             { -2223.41611737943,  530.170014651827, -400.176155003755},
             { -2223.41611737943, -530.170014651827, -400.176155003755},
         }),
-        // pair 4 (bottom, Z≈-319)
         Polyline({
             { -2223.41611737943, -530.170014651827, -318.768161457628},
             {  -714.314066970057, -530.170014651827, -318.768161457628},
@@ -117,7 +82,6 @@ int main() {
             { -2223.41611737943,  530.170014651827, -318.768161457628},
             { -2223.41611737943, -530.170014651827, -318.768161457628},
         }),
-        // pair 5 — connector at Y≈0 (top)
         Polyline({
             { -2223.41611737942, -3.05590219795704e-10, 1190.33388895159},
             {  -714.314066970046, -3.05590219795704e-10, 1190.33388895159},
@@ -125,7 +89,6 @@ int main() {
             { -2223.41611737943, -1.45519152283669e-11, -318.768161457628},
             { -2223.41611737942, -3.05590219795704e-10, 1190.33388895159},
         }),
-        // pair 5 (bottom, Y≈97)
         Polyline({
             { -2223.41611737942, 97.4481444579578, 1190.33388895159},
             {  -714.314066970046, 97.4481444579578, 1190.33388895159},
@@ -135,15 +98,19 @@ int main() {
         }),
     };
 
-    // Build WoodElements from the flat polyline list (even=bottom, odd=top).
-    std::vector<WoodElement> elements;
+    WoodSession scene(globals::DATA_SET_INPUT_NAME);
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
-        elements.emplace_back(polylines[i], polylines[i+1]);
-
-    // Run the joint-detection algorithm.
-    wood_session::WoodSession scene(globals::DATA_SET_INPUT_NAME);
-    for (const WoodElement& element : elements) scene.add(std::make_shared<WoodElement>(element));
+        scene.add(std::make_shared<WoodElement>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);
     scene.pb_dump(internal::output_dir() / globals::DATA_SET_OUTPUT_FILE);
     return 0;
 }
+
+/*
+description: annen_corner from hardcoded polylines -> face_to_face joints -> data/output/WoodF2F_annen_corner_custom.pb.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_annen_corner -j8 && ./build/main_annen_corner
+cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_annen_corner_custom.pb
+view: https://petrasvestartas.github.io/session/
+*/

@@ -1,85 +1,68 @@
-#include <filesystem>
-#include <fstream>
-#include <chrono>
 #include "session.h"
 #include "element.h"
 #include "intersection.h"
 #include "json.h"
-#include "wood_element.h"   // WoodElement replaces the deleted ElementPlate
+#include "wood_element.h"
+
+#include <fmt/core.h>
+
+#include <filesystem>
+#include <fstream>
+
 using namespace session_cpp;
 
-static std::vector<Point> json_to_points(const nlohmann::json& arr) {
-    std::vector<Point> pts;
-    pts.reserve(arr.size());
-    for (auto& p : arr)
-        pts.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
-    return pts;
+const char* INPUT = "data/output/WoodStep3_data.json";
+const char* OUTPUT = "data/output/WoodStep4.pb";
+const double COPLANAR_TOLERANCE = 5.0;
+
+static std::vector<Point> from_json(const nlohmann::json& array) {
+    std::vector<Point> points;
+    points.reserve(array.size());
+    for (const auto& p : array)
+        points.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
+    return points;
 }
 
 int main() {
-    auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
-    auto json_in = (base / "data" / "output" / "WoodStep3_data.json").string();
-    std::filesystem::create_directories(base / "data" / "output");
-    auto pb_path = (base / "data" / "output" / "WoodStep4.pb").string();
-
-    // 1. Load adjacency data from Step 3
-    std::ifstream fin(json_in);
-    if (!fin) {
-        fmt::print("main_json_session: input not found: {}\n", json_in);
-        return 0;
+    std::ifstream file(INPUT);
+    if (!file) {
+        fmt::print(stderr, "not found: {}\n", INPUT);
+        return 1;
     }
-    nlohmann::json data = nlohmann::json::parse(fin);
-    std::vector<int> adjacency = data["adjacency"].get<std::vector<int>>();
-    size_t N = data["elements"].size();
+    const nlohmann::json data = nlohmann::json::parse(file);
+    const std::vector<int> adjacency = data["adjacency"].get<std::vector<int>>();
 
-    auto t0 = std::chrono::high_resolution_clock::now();
-
-    // 2. Create plate Elements and add to session
     Session session("WoodStep4_Joints");
-    auto g_elem = session.add_group("Elements");
-    std::vector<Element*> elem_ptrs(N);
-    for (size_t i = 0; i < N; i++) {
-        auto& e = data["elements"][i];
-        auto bottom = json_to_points(e["polygon"]);
-        auto top = e.contains("polygon_top") ? json_to_points(e["polygon_top"]) : bottom;
-        // ElementPlate was deleted from session_cpp in 89da090c; WoodElement
-        // lofts the same (bottom, top) pair into the plate solid.
-        wood_session::WoodElement plate{Polyline(bottom), Polyline(top)};
-        auto elem = std::make_shared<Element>(plate.loft_mesh(), "plate_" + std::to_string(i));
-        session.add_element(elem, g_elem);
-        elem_ptrs[i] = elem.get();
+    const auto elements = session.add_group("Elements");
+    std::vector<Element*> plates;
+    for (size_t i = 0; i < data["elements"].size(); i++) {
+        const nlohmann::json& item = data["elements"][i];
+        const std::vector<Point> bottom = from_json(item["polygon"]);
+        const std::vector<Point> top = item.contains("polygon_top") ? from_json(item["polygon_top"]) : bottom;
+        const wood_session::WoodElement plate{Polyline(bottom), Polyline(top)};
+        const auto element = std::make_shared<Element>(plate.loft_mesh(), "plate_" + std::to_string(i));
+        session.add_element(element, elements);
+        plates.push_back(element.get());
     }
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-
-    // Face-to-face: coplanar check → 3D boolean intersection → graph edge
-    double coplanar_tolerance = 5.0; // mm — user-controllable
-    auto g_joints = session.add_group("Joints");
-    int t0c = 0, t1c = 0, t2c = 0;
-
-    auto joints = Intersection::face_to_face(adjacency, elem_ptrs, coplanar_tolerance);
-
-    for (size_t k = 0; k < joints.size(); k++) {
-        auto& [a, b, i, j, type, poly] = joints[k];
-        if (type == 0) t0c++; else if (type == 1) t1c++; else t2c++;
-
-        auto jpl = std::make_shared<Polyline>(std::move(poly));
-        jpl->name = "joint_" + std::to_string(k);
-        session.add_polyline(jpl, g_joints);
-
-        session.add_edge(elem_ptrs[a]->guid(), elem_ptrs[b]->guid(),
-            std::to_string(i) + "," + std::to_string(j) + "," +
-            std::to_string(type) + "," + jpl->guid());
+    const auto joints = session.add_group("Joints");
+    std::vector<std::tuple<int, int, int, int, int, Polyline>> found = Intersection::face_to_face(adjacency, plates, COPLANAR_TOLERANCE);
+    for (size_t k = 0; k < found.size(); k++) {
+        auto& [a, b, i, j, type, polygon] = found[k];
+        const auto outline = std::make_shared<Polyline>(std::move(polygon));
+        outline->name = "joint_" + std::to_string(k);
+        session.add_polyline(outline, joints);
+        session.add_edge(plates[a]->guid(), plates[b]->guid(), std::to_string(i) + "," + std::to_string(j) + "," + std::to_string(type) + "," + outline->guid());
     }
-
-    auto t2 = std::chrono::high_resolution_clock::now();
-    fmt::print("Precompute: {:.1f} ms\n", std::chrono::duration<double, std::milli>(t1 - t0).count());
-    fmt::print("Detect: {} joints in {:.1f} ms\n", joints.size(), std::chrono::duration<double, std::milli>(t2 - t1).count());
-    fmt::print("Total: {:.1f} ms\n", std::chrono::duration<double, std::milli>(t2 - t0).count());
-    fmt::print("  side-side: {}, side-top: {}, top-top: {}\n", t0c, t1c, t2c);
-    fmt::print("  Graph: {} nodes, {} edges\n", session.graph.number_of_vertices(), session.graph.number_of_edges());
-
-    session.pb_dump(pb_path);
-    fmt::print("Wrote {}\n", pb_path);
+    session.pb_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: plates and adjacency from a step-3 JSON -> face_to_face intersections -> joints as graph edges -> data/output/WoodStep4.pb.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_json_session -j8 && ./build/main_json_session
+cloudflare: ../bash/publish-scene.sh data/output/WoodStep4.pb
+view: https://petrasvestartas.github.io/session/
+*/

@@ -1,30 +1,19 @@
-// Build and run from wood/ root:
-//   cmake -B build
-//   cmake --build build --config Release --target main_chevron
-//   ./build/Release/main_chevron.exe
-
 #include "src/templates/chevron.h"
+
 #include <filesystem>
-#include <iostream>
+
+const char* OUTPUT = "data/templates/chevron_mesh.json";
 
 int main() {
-    auto out = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
-               / "data" / "templates";
-    std::filesystem::create_directories(out);
-
-    Chevron ch;
-
-    std::cout << "mesh:     " << ch.mesh.number_of_vertices() << " vertices  "
-              << ch.mesh.number_of_faces() << " faces\n";
-    std::cout << "elements: " << ch.elements.size()
-              << "  (4 plate-pairs per mesh face)\n";
-
-    for (const auto& el : ch.elements) {
-        Mesh plate = el.loft_mesh();
-        std::cout << plate << "\n";
-    }
-
-    ch.mesh.file_json_dump((out / "chevron_mesh.json").string());
-
+    std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+    const Chevron shell;
+    shell.mesh.file_json_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: build the chevron template -> write its mesh to data/templates/chevron_mesh.json.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_chevron -j8 && ./build/main_chevron
+*/

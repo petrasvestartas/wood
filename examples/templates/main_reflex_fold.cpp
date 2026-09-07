@@ -1,29 +1,19 @@
-// Build and run from wood/ root:
-//   cmake -B build
-//   cmake --build build --config Release --target main_reflex_fold
-//   ./build/Release/main_reflex_fold.exe
-
 #include "src/templates/reflex_fold.h"
+
 #include <filesystem>
-#include <iostream>
+
+const char* OUTPUT = "data/templates/reflex_fold_mesh.json";
 
 int main() {
-    auto out = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
-               / "data" / "templates";
-    std::filesystem::create_directories(out);
-
-    ReflexFold rf;
-
-    std::cout << "mesh:     " << rf.mesh.number_of_vertices() << " vertices  "
-              << rf.mesh.number_of_faces() << " faces\n";
-    std::cout << "elements: " << rf.elements.size() << "\n";
-
-    for (const auto& el : rf.elements) {
-        Mesh plate = el.loft_mesh();
-        std::cout << plate << "\n";
-    }
-
-    rf.mesh.file_json_dump((out / "reflex_fold_mesh.json").string());
-
+    std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+    const ReflexFold shell;
+    shell.mesh.file_json_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: build the reflex_fold template -> write its mesh to data/templates/reflex_fold_mesh.json.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_reflex_fold -j8 && ./build/main_reflex_fold
+*/

@@ -1,24 +1,16 @@
-// Standalone loft-with-holes example — demonstrates the three problematic
-// polyline shapes the recent Mesh::loft fixes now handle correctly:
-//   plate_rect    - simple rectangle + one rectangular hole (baseline)
-//   plate_annen   - 12-vert concave outline with 3 trapezoidal teeth + 2 holes
-//                   (the annen_corner plate_0 shape that triggered the CDT bug)
-//   plate_collin  - rectangle whose bottom edge is subdivided by 2 collinear
-//                   midpoints (exercises the strip_shared_collinear pre-pass)
-// Writes session_data/example_loft_holes_cpp.pb — load in Rhino to inspect.
-
-#include <filesystem>
 #include "src/session.h"
 #include "src/mesh.h"
 #include "src/polyline.h"
+
 using namespace session_cpp;
+
+const char* OUTPUT = "data/output/example_loft_holes_cpp.pb";
 
 int main() {
     Session session("LoftHoles");
-    auto g_mesh = session.add_group("Meshes");
+    const auto meshes = session.add_group("Meshes");
 
-    // ── plate_rect ────────────────────────────────────────────────────────
-    std::vector<Polyline> rect_bot = {
+    const std::vector<Polyline> rect_bot = {
         Polyline({
             { 0,  0, 0},
             {10,  0, 0},
@@ -34,7 +26,7 @@ int main() {
             {3, 3, 0},
         }),
     };
-    std::vector<Polyline> rect_top = {
+    const std::vector<Polyline> rect_top = {
         Polyline({
             { 0,  0, 2},
             {10,  0, 2},
@@ -50,14 +42,11 @@ int main() {
             {3, 3, 2},
         }),
     };
-    auto m_rect = std::make_shared<Mesh>(Mesh::loft(rect_bot, rect_top));
-    m_rect->name = "plate_rect";
-    session.add_mesh(m_rect, g_mesh);
+    const auto rect = std::make_shared<Mesh>(Mesh::loft(rect_bot, rect_top));
+    rect->name = "plate_rect";
+    session.add_mesh(rect, meshes);
 
-    // ── plate_annen (plate_0 from annen_corner) ───────────────────────────
-    // Vertical plate at X≈2142/2223; 3 joint "teeth" along the bottom edge;
-    // two rectangular through-holes for cross-joints.
-    std::vector<Polyline> annen_bot = {
+    const std::vector<Polyline> annen_bot = {
         Polyline({
             {2142.008, -530.170, 1172.487},
             {2142.008, -530.170, -318.768},
@@ -88,7 +77,7 @@ int main() {
             {2142.008, 97.448, 178.317},
         }),
     };
-    std::vector<Polyline> annen_top = {
+    const std::vector<Polyline> annen_top = {
         Polyline({
             {2223.416, -530.170, 1172.487},
             {2223.416, -530.170, -269.141},
@@ -119,15 +108,11 @@ int main() {
             {2223.416, 97.448, 178.317},
         }),
     };
-    auto m_annen = std::make_shared<Mesh>(Mesh::loft(annen_bot, annen_top));
-    m_annen->name = "plate_annen";
-    session.add_mesh(m_annen, g_mesh);
+    const auto annen = std::make_shared<Mesh>(Mesh::loft(annen_bot, annen_top));
+    annen->name = "plate_annen";
+    session.add_mesh(annen, meshes);
 
-    // ── plate_collin ──────────────────────────────────────────────────────
-    // 8-vert rectangle: bottom edge split by 2 collinear midpoints. The CDT
-    // internally strips them; without the pre-pass, side walls would create
-    // naked edges at those midpoints.
-    std::vector<Polyline> col_bot = {
+    const std::vector<Polyline> col_bot = {
         Polyline({
             { 0, 0, 0},
             { 4, 0, 0},
@@ -138,7 +123,7 @@ int main() {
             { 0, 0, 0},
         }),
     };
-    std::vector<Polyline> col_top = {
+    const std::vector<Polyline> col_top = {
         Polyline({
             { 0, 0, 1.5},
             { 4, 0, 1.5},
@@ -149,15 +134,12 @@ int main() {
             { 0, 0, 1.5},
         }),
     };
-    auto m_collin = std::make_shared<Mesh>(Mesh::loft(col_bot, col_top));
-    m_collin->name = "plate_collin";
-    session.add_mesh(m_collin, g_mesh);
+    const auto collin = std::make_shared<Mesh>(Mesh::loft(col_bot, col_top));
+    collin->name = "plate_collin";
+    session.add_mesh(collin, meshes);
 
-    // ── plate_failing (user-reported 4-hole case) ──────────────────────────
-    // 15-vertex concave outer polygon + 4 rectangular through-holes.
-    // CDT was producing triangles inside holes for this geometry.
-    std::vector<Polyline> fail_top = {
-        Polyline({  // outer boundary (15 pts)
+    const std::vector<Polyline> fail_top = {
+        Polyline({
             { 711.660594, -1906.59468,  1126.880036},
             { 605.549364, -1835.85386,   967.713191},
             { 601.577501, -1801.190331,  985.767113},
@@ -174,28 +156,28 @@ int main() {
             { 713.852165, -1917.0,       1123.459189},
             { 711.660594, -1906.59468,  1126.880036},
         }),
-        Polyline({  // hole 1
+        Polyline({
             { 308.393555, -1964.169906,  277.16454 },
             { 199.266354, -1964.169906,   58.910137},
             { 185.115382, -1917.0,        65.985623},
             { 294.242584, -1917.0,       284.240026},
             { 308.393555, -1964.169906,  277.16454 },
         }),
-        Polyline({  // hole 2
+        Polyline({
             { 526.647958, -1964.169906,  713.673346},
             { 417.520757, -1964.169906,  495.418943},
             { 403.369785, -1917.0,       502.494429},
             { 512.496987, -1917.0,       720.748832},
             { 526.647958, -1964.169906,  713.673346},
         }),
-        Polyline({  // hole 3
+        Polyline({
             { 401.278305, -1699.673154,  661.306602},
             { 503.413834, -1767.763507,  814.509897},
             { 507.385697, -1802.427037,  796.455975},
             { 405.250167, -1734.336684,  643.25268 },
             { 401.278305, -1699.673154,  661.306602},
         }),
-        Polyline({  // hole 4
+        Polyline({
             { 197.007245, -1563.492448,  354.900013},
             { 299.142775, -1631.582801,  508.103307},
             { 303.114638, -1666.246331,  490.049386},
@@ -203,8 +185,8 @@ int main() {
             { 197.007245, -1563.492448,  354.900013},
         }),
     };
-    std::vector<Polyline> fail_bot = {
-        Polyline({  // outer boundary (15 pts)
+    const std::vector<Polyline> fail_bot = {
+        Polyline({
             { 734.392021, -1906.59468,  1101.588031},
             { 632.396858, -1838.597905,  948.595287},
             { 624.453132, -1769.270846,  984.70313 },
@@ -221,28 +203,28 @@ int main() {
             { 736.583592, -1917.0,       1098.167184},
             { 734.392021, -1906.59468,  1101.588031},
         }),
-        Polyline({  // hole 1
+        Polyline({
             { 322.544527, -1917.0,       270.089054},
             { 213.417326, -1917.0,        51.834651},
             { 199.266354, -1869.830094,   58.910137},
             { 308.393555, -1869.830094,  277.16454 },
             { 322.544527, -1917.0,       270.089054},
         }),
-        Polyline({  // hole 2
+        Polyline({
             { 540.79893,  -1917.0,       706.59786 },
             { 431.671728, -1917.0,       488.343457},
             { 417.520757, -1869.830094,  495.418943},
             { 526.647958, -1869.830094,  713.673346},
             { 540.79893,  -1917.0,       706.59786 },
         }),
-        Polyline({  // hole 3
+        Polyline({
             { 424.153936, -1667.753669,  660.242619},
             { 526.289465, -1735.844022,  813.445914},
             { 530.261328, -1770.507552,  795.391992},
             { 428.125798, -1702.417199,  642.188697},
             { 424.153936, -1667.753669,  660.242619},
         }),
-        Polyline({  // hole 4
+        Polyline({
             { 219.882876, -1531.572963,  353.83603 },
             { 322.018406, -1599.663316,  507.039325},
             { 325.990269, -1634.326846,  488.985403},
@@ -250,20 +232,19 @@ int main() {
             { 219.882876, -1531.572963,  353.83603 },
         }),
     };
-    auto m_fail = std::make_shared<Mesh>(Mesh::loft(fail_top, fail_bot));
-    m_fail->name = "plate_failing";
-    session.add_mesh(m_fail, g_mesh);
+    const auto failing = std::make_shared<Mesh>(Mesh::loft(fail_top, fail_bot));
+    failing->name = "plate_failing";
+    session.add_mesh(failing, meshes);
 
-    auto base = std::filesystem::path(__FILE__).parent_path().parent_path();
-    std::filesystem::create_directories(base / "data" / "output");
-    auto pb = (base / "data" / "output" / "example_loft_holes_cpp.pb").string();
-    session.pb_dump(pb);
-
-    for (auto& m : {m_rect, m_annen, m_collin, m_fail}) {
-        std::cout << m->name << ": V=" << m->vertex.size()
-                  << " F=" << m->face.size()
-                  << " closed=" << m->is_closed() << std::endl;
-    }
-    std::cout << "wrote " << pb << std::endl;
+    session.pb_dump(OUTPUT);
     return 0;
 }
+
+/*
+description: loft four plates with holes and collinear points -> meshes -> data/output/example_loft_holes_cpp.pb.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_loft_holes -j8 && ./build/main_loft_holes
+cloudflare: ../bash/publish-scene.sh data/output/example_loft_holes_cpp.pb
+view: https://petrasvestartas.github.io/session/
+*/

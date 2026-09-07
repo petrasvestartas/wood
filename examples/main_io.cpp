@@ -13,7 +13,10 @@ int main() {
 }
 
 /*
-description: load a .pb into a WoodSession -> dump it back to "live.pb".
-run: cd ~/code/code_cpp/wood_research/wood && cmake --build build --target main_io -j8 && ./build/main_io
-cloudflare: cd ~/code/code_cpp/wood_research/wood && ../bash/publish-scene.sh --target main_io   ->   https://petrasvestartas.github.io/session/
+description: load a .pb into a WoodSession -> print it -> dump it back to "live.pb".
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_io -j8 && ./build/main_io
+cloudflare: ../bash/publish-scene.sh --target main_io
+view: https://petrasvestartas.github.io/session/
 */

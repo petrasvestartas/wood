@@ -7,13 +7,15 @@
 const char* DATASET = "data/floor_model.pb";
 
 static int failures = 0;
-static void check(bool ok, const std::string& what) {
-    fmt::print("  [{}] {}\n", ok ? "PASS" : "FAIL", what);
-    if (!ok) failures++;
+static void check(const bool ok, const std::string& what) {
+    if (ok)
+        return;
+    fmt::print("FAIL {}\n", what);
+    failures++;
 }
 
-static size_t tree_nodes(const session_cpp::Session& s) {
-    return s.tree.root() ? s.tree.root()->descendants().size() + 1 : 0;
+static size_t tree_nodes(const session_cpp::Session& session) {
+    return session.tree.root() ? session.tree.root()->descendants().size() + 1 : 0;
 }
 
 int main() {
@@ -26,8 +28,6 @@ int main() {
     const wood_session::WoodSession b = wood_session::WoodSession::from_session(
         std::make_shared<session_cpp::Session>(session_cpp::Session::pb_loads(sa.pb_dumps())));
     const session_cpp::Session& sb = *b.session;
-
-    fmt::print("{}\n", a.str());
 
     check(a.name() == b.name(), "session name");
     check(a.guid() == b.guid(), "session guid");
@@ -75,18 +75,19 @@ int main() {
     check(rings, "every contact: guid, and every ring's face pair, class and point count");
     check(a.contact_pairs() == b.contact_pairs(), "every edge resolves to the same element guids");
     bool resolved = true;
-    for (const auto& [u, v] : b.contact_pairs()) resolved = resolved && b.lookup.count(u) && b.lookup.count(v);
+    for (const auto& [u, v] : b.contact_pairs())
+        resolved = resolved && b.lookup.count(u) && b.lookup.count(v);
     check(resolved, "every edge endpoint is an object the scene owns");
 
-    size_t top_empty = 0, feat_empty = 0, mismatch = 0, ins_mismatch = 0;
+    size_t top_empty = 0, mismatch = 0, ins_mismatch = 0;
     for (size_t i = 0; i < a.plates().size(); ++i) {
-        if (a.plates()[i]->features.top.empty()) top_empty++;
-        if (a.plates()[i]->element->features().empty()) feat_empty++;
-        if (a.plates()[i]->features.top.size() != b.plates()[i]->features.top.size()) mismatch++;
-        if (a.plates()[i]->insertion_vectors.size() != b.plates()[i]->insertion_vectors.size()) ins_mismatch++;
+        if (a.plates()[i]->features.top.empty())
+            top_empty++;
+        if (a.plates()[i]->features.top.size() != b.plates()[i]->features.top.size())
+            mismatch++;
+        if (a.plates()[i]->insertion_vectors.size() != b.plates()[i]->insertion_vectors.size())
+            ins_mismatch++;
     }
-    fmt::print("  plates {}: features.top empty {}, element features empty {}, top mismatch after pb {}, insertion mismatch {}\n",
-               a.plates().size(), top_empty, feat_empty, mismatch, ins_mismatch);
     check(top_empty < a.plates().size() && mismatch == 0 && ins_mismatch == 0,
           "solver results landed on the scene's own plates, and survive the pb");
     check(a.joints().size() == b.joints().size(), fmt::format("joint count ({})", a.joints().size()));
@@ -110,23 +111,11 @@ int main() {
                     && ja.joint_volumes_pair_a_pair_b[0].has_value() == jb.joint_volumes_pair_a_pair_b[0].has_value()
                     && ja.element_features[0].guid() == jb.element_features[0].guid();
     }
-    if (!joints_ok && !a.joints().empty()) {
-        const wood_session::WoodJoint& ja = *a.joints()[0]; const wood_session::WoodJoint& jb = *b.joints()[0];
-        fmt::print("  joint[0] diff: cut={} m1={}/{} line0={} line1={} vol0={}/{} fguid={}\n",
-                   ja.m_cut_types == jb.m_cut_types && ja.f_cut_types == jb.f_cut_types,
-                   ja.m_outlines[1].size(), jb.m_outlines[1].size(),
-                   ja.joint_lines[0].start() == jb.joint_lines[0].start(), ja.joint_lines[1].end() == jb.joint_lines[1].end(),
-                   ja.joint_volumes_pair_a_pair_b[0].has_value(), jb.joint_volumes_pair_a_pair_b[0].has_value(),
-                   ja.element_features[0].guid() == jb.element_features[0].guid());
-    }
     check(joints_ok, "every joint: guid, elements, type, faces, area, both outline splits, lines, volumes, cut types, links, feature guids");
-    size_t on_contact = 0, alone = 0;
-    for (const auto& [u, v] : a.joint_pairs()) {
-        const auto it = sa.graph.edges.find(u);
-        const wood_session::EdgeLink l = wood_session::EdgeLink::from_attribute(it->second.at(v).attribute);
-        (l.contact.empty() ? alone : on_contact)++;
-    }
-    fmt::print("  joints on a contact edge: {}, joints on a pair with no contact: {}\n", on_contact, alone);
+    bool linked = true;
+    for (const auto& [u, v] : a.joint_pairs())
+        linked = linked && !wood_session::EdgeLink::from_attribute(sa.graph.edges.find(u)->second.at(v).attribute).joint.empty();
+    check(linked, "every joint pair has a joint on its edge");
 
     const wood_session::EdgeLink l = wood_session::EdgeLink::from_attribute("cabc-1j0f-2");
     check(l.contact == "abc-1" && l.joint == "0f-2", "EdgeLink parses c<guid>j<guid>");
@@ -153,6 +142,12 @@ int main() {
           && a.session->get_object<session_cpp::Element>(probe_guid) == nullptr,
           "remove_object() takes it out of all three");
 
-    fmt::print("\n{} failed\n", failures);
     return failures;
 }
+
+/*
+description: load floor_model.pb -> contacts and joints -> to_session -> pb round trip -> from_session; prints only what differs, exit code = failures.
+
+directory: cd ~/code/code_cpp/wood_research/wood
+run: cmake --build build --target main_session_round_trip -j8 && ./build/main_session_round_trip
+*/
