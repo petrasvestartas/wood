@@ -150,8 +150,7 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # transform, not a pairwise relation - and it was the only caller left.
 ADD_EXE(main_cdt_probe           examples/main_cdt_probe.cpp)
 ADD_EXE(main_face_to_face        examples/main_face_to_face.cpp)
-ADD_EXE(main_io                  examples/main_io.cpp)
-ADD_EXE(main_session_round_trip  examples/main_session_round_trip.cpp)
+ADD_EXE(main_deserialize         examples/main_deserialize.cpp)
 ADD_EXE(main_annen_chevron       src/templates/temp/main_annen_chevron.cpp)
 ADD_EXE(main_beam_reciprocal     src/templates/temp/main_beam_reciprocal.cpp)
 ADD_EXE(main_annen_faces         src/templates/temp/main_annen_faces.cpp)

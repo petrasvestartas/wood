@@ -19,7 +19,6 @@
 
 #include <array>
 #include <filesystem>
-#include <iosfwd>
 #include <memory>
 #include <string>
 #include <utility>
@@ -28,7 +27,6 @@
 // Polyline is held by value inside CrossJoint → need the full type here.
 #include "../src/polyline.h"
 #include "../src/element.h"
-#include "../src/graph.h"
 // WoodElement / WoodJoint are passed by value/ref through this API surface.
 #include "wood_element.h"
 
@@ -301,76 +299,24 @@ namespace wood_session {
 /// "Column" and "Solid" - so this is a lookup, not a guess from the element's name. An
 /// unknown or absent tag degrades to a solid, which is what every file written before the
 /// tag existed contains.
-// ═══════════════════════════════════════════════════════════════════════════
-// EdgeLink — what one connectivity edge points at
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// A wood graph edge is one element pair, and its whole payload is Edge::attribute - a
-/// string. This is that string, parsed: "c7" is contact 7, "c7j3" is contact 7 and joint 3,
-/// "c-1j3" a joint on a pair with nothing coplanar between them.
-///
-/// The sigil is not decoration. Session::get_collisions() overwrites every edge attribute
-/// with "bvh_collision" and add_relationship writes "default"; from_attribute has to reject
-/// those rather than throw on them. And the contact index is written even when it is -1,
-/// because Graph::edge_attribute reads an EMPTY value as a GET - an edge whose payload came
-/// out empty could never be written at all.
-struct EdgeLink {
-    int contact = -1;
-    int joint   = -1;
-
-    std::string to_attribute() const;
-    /// Total: anything this grammar does not describe comes back as {-1, -1}.
-    static EdgeLink from_attribute(const std::string& attribute);
-};
-
-struct WoodSession {
+struct SessionElements {
     std::vector<WoodElement>  plates;
     std::vector<WoodColumn>   columns;
     std::vector<BlockElement> solids;
-    /// One per element pair in contact. contacts[i] is the edge whose attribute reads "ci".
-    std::vector<WoodContact>  contacts;
-    /// Which elements touch. Nodes are element guids - the same keys Session::add_element
-    /// mints - so an edge survives a .pb and still names the same two elements after it.
-    session_cpp::Graph        graph;
 
     size_t size() const { return plates.size() + columns.size() + solids.size(); }
-
-    /// Element guids in contact_view order: plates, then columns, then solids. This is the
-    /// index space face_contacts() returns, and the bridge from one of its indices to a
-    /// graph key.
-    std::vector<std::string> element_guids() const;
-    /// That mapping backwards; -1 for a guid this scene does not own.
-    int element_index(const std::string& guid) const;
-
-    /// Store what face_contacts() found: one WoodContact per pair, and one graph edge per
-    /// contact carrying its index. The ContactPair indices are positions in contact_view
-    /// order, which is what element_guids() enumerates.
-    void add_contacts(const std::vector<ContactPair>& detected);
-    /// The element index pair of every contact, indexed as `contacts` is - the graph read
-    /// back the way a positional consumer wants it.
-    std::vector<std::pair<int, int>> contact_pairs() const;
-
-    /// The scene these elements make: every one of them as a solid under "Inputs".
-    session_cpp::Session to_session(const std::string& title) const;
-    /// That scene written to pb_path(name), which is also its title. Returns the path.
-    std::filesystem::path pb_dump(const std::string& name = "live") const;
-    /// One wood struct per element of a plain session, chosen by `element_type`.
-    static WoodSession from_session(const session_cpp::Session& session);
-
-    /// Summary line, then the scene as a tree - the shape compas Tree.__str__ returns.
-    std::string str() const;
-    friend std::ostream& operator<<(std::ostream& os, const WoodSession& s);
 };
 
-/// data/<name>.pb - the reading side's mirror of pb_path().
-std::filesystem::path dataset_pb(const std::string& name);
+/// Read a session .pb and build one wood struct per element, chosen by `element_type`.
+/// A missing file yields an empty result and a line on stderr.
+SessionElements load_elements(const std::filesystem::path& pb);
 
 /// One detection view per element, plates first, then columns, then solids.
 ///
 /// The views hold POINTERS into `elements`, so the returned vector must not outlive it and
 /// `elements` must not be modified while the view is alive. Take it, run detection, drop it.
 /// A contact's element_a / element_b index into THIS vector, not into any one of the three.
-std::vector<ContactElement> contact_view(const WoodSession& elements);
+std::vector<ContactElement> contact_view(const SessionElements& elements);
 
 /// One BlockElement per Element in a session .pb - the flat view, every element a solid -
 /// keeping the element's name and guid. A file holding no Element falls back to the
@@ -388,6 +334,23 @@ std::filesystem::path pb_path(const std::string& name);
 /// is the file session_viewer watches.
 std::filesystem::path pb_dump(const session_cpp::Session& session,
                               const std::string& name = "live");
+
+/// The scene an example asks for after running contact detection: every element
+/// face outline under "Inputs", every contact area under "Contacts", written to
+/// pb_path(name). `title` names the session as the viewer shows it; `name` is
+/// the file stem, and the default is the one session_viewer watches. Two
+/// overloads rather than a template, so this header need not pull in session.h.
+std::filesystem::path write_element_and_contacts(
+        const std::string& title,
+        const std::vector<WoodElement>& elements,
+        const std::vector<FaceContact>& contacts,
+        const std::string& name = "live");
+
+std::filesystem::path write_element_and_contacts(
+        const std::string& title,
+        const std::vector<BlockElement>& elements,
+        const std::vector<FaceContact>& contacts,
+        const std::string& name = "live");
 
 // ── Pieces, for a scene that needs more than the above ────────────────────
 
@@ -424,7 +387,7 @@ void add_solids(session_cpp::Session& session,
 /// to nothing draws nothing and is dropped by Session::add_mesh.
 void add_contacts(session_cpp::Session& session,
                   const std::shared_ptr<session_cpp::TreeNode>& parent,
-                  const std::vector<ContactPair>& contacts);
+                  const std::vector<FaceContact>& contacts);
 
 // ── The contact / joint coloring scheme ───────────────────────────────────
 //
@@ -458,7 +421,7 @@ session_cpp::Color joint_color(int joint_type);
 /// Session::add_group always attaches to the root - which is why the class goes
 /// in the name, the way fill_session already names JointAreas_SS_11.
 void add_contacts_by_type(session_cpp::Session& session,
-                          const std::vector<ContactPair>& contacts,
+                          const std::vector<FaceContact>& contacts,
                           const std::string& prefix = "Contacts");
 
 /// Joint areas split into one group per joint_type that actually occurs, named

@@ -504,7 +504,7 @@ static void three_valence_joint_addition_vidy(
         }
 
         // Check if joint order was reversed (wood line 1813)
-        if (index_of(elements, joints[id].element_a) == s1) {
+        if (joints[id].contact.element_a == s1) {
             std::swap(e20, e31);
             std::swap(s0, s1);
         }
@@ -517,8 +517,8 @@ static void three_valence_joint_addition_vidy(
 
         // Create shadow joint 0 (s0 ↔ e20) — wood lines 1824-1829
         WoodJoint shadow0;
-        shadow0.element_a = elements[s0].element.guid();
-        shadow0.element_b = elements[e20].element.guid();
+        shadow0.contact.element_a = s0;
+        shadow0.contact.element_b = e20;
         shadow0.contact.face_a = -1;
         shadow0.contact.face_b = -1;
         shadow0.cross_faces = {-1, -1};
@@ -535,8 +535,8 @@ static void three_valence_joint_addition_vidy(
         int shadow1_idx = -1;
         if (e20 != e31) {
             WoodJoint shadow1;
-            shadow1.element_a = elements[s1].element.guid();
-            shadow1.element_b = elements[e31].element.guid();
+            shadow1.contact.element_a = s1;
+            shadow1.contact.element_b = e31;
             shadow1.contact.face_a = -1;
             shadow1.contact.face_b = -1;
             shadow1.cross_faces = {-1, -1};
@@ -577,7 +577,7 @@ static void three_valence_joint_alignment_annen(
     };
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t ji = 0; ji < joints.size(); ji++) {
-        int e0 = index_of(elements, joints[ji].element_a), e1 = index_of(elements, joints[ji].element_b);
+        int e0 = joints[ji].contact.element_a, e1 = joints[ji].contact.element_b;
         joints_map[pair_key(e0, e1)] = (int)ji;
     }
 
@@ -612,7 +612,7 @@ static void three_valence_joint_alignment_annen(
 
         // Shorten by element thickness.
         double thickness = 0;
-        int e0_idx = index_of(elements, j0.element_a);
+        int e0_idx = j0.contact.element_a;
         if (e0_idx >= 0 && e0_idx < (int)elements.size()) {
             auto& el = elements[e0_idx];
             if (el.polylines.size() >= 2 && el.polylines[0].point_count() > 0 && el.polylines[1].point_count() > 0) {
@@ -967,7 +967,7 @@ std::vector<WoodJoint> get_connection_zones(
             };
             std::unordered_map<uint64_t, int> joints_map;
             for (size_t ji = 0; ji < all_joints.size(); ji++) {
-                int e0 = index_of(wood_elems, all_joints[ji].element_a), e1 = index_of(wood_elems, all_joints[ji].element_b);
+                int e0 = all_joints[ji].contact.element_a, e1 = all_joints[ji].contact.element_b;
                 joints_map[pair_key(e0, e1)] = (int)ji;
             }
             // The first group's first element is the instruction flag:
@@ -998,7 +998,7 @@ std::vector<WoodJoint> get_connection_zones(
             };
             std::unordered_map<uint64_t, int> joints_map;
             for (size_t ji = 0; ji < all_joints.size(); ji++) {
-                int e0 = index_of(wood_elems, all_joints[ji].element_a), e1 = index_of(wood_elems, all_joints[ji].element_b);
+                int e0 = all_joints[ji].contact.element_a, e1 = all_joints[ji].contact.element_b;
                 joints_map[pair_key(e0, e1)] = (int)ji;
             }
             int instruction = tv_groups[0].empty() ? 0 : tv_groups[0][0];
@@ -1081,15 +1081,15 @@ std::vector<WoodJoint> get_connection_zones(
     if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] geometry loop start  all_joints=%zu\n", all_joints.size()); fflush(stderr); }
     for (auto& j : all_joints) {
         if (wood_trace_enabled()) {
-            fprintf(stderr, "[GCZ]   geom joint type=%d  e0=%s e1=%s\n",
-                    j.joint_type, j.element_a.c_str(), j.element_b.c_str()); fflush(stderr);
+            fprintf(stderr, "[GCZ]   geom joint type=%d  e0=%d e1=%d\n",
+                    j.joint_type, j.contact.element_a, j.contact.element_b); fflush(stderr);
         }
         // Wood-style id_representing_joint_name (`wood_joint_lib.cpp:6075-6079`).
         // Sentinel `-1` = no JOINTS_TYPES file → topology-based default in
         // `joint_create_geometry`. Empty per-element vector = same effect.
         int id_representing_joint_name = -1;
         if (!per_element_joints_types.empty()) {
-            int e0 = index_of(wood_elems, j.element_a), e1 = index_of(wood_elems, j.element_b);
+            int e0 = j.contact.element_a, e1 = j.contact.element_b;
             int f0 = j.contact.face_a, f1 = j.contact.face_b;
             // Remap post-reversal face index back to original face index for
             // JOINTS_TYPES lookup. build_wood_element may reverse the winding,
@@ -1214,7 +1214,7 @@ std::vector<WoodJoint> get_connection_zones(
             // elements[joint.v0].thickness` as `joint_volume_edge_length`
             // for the division formula. Without this pre-set, session uses
             // the hardcoded default of 40mm and teeth land off-position.
-            int ei = index_of(wood_elems, j.element_a);
+            int ei = j.contact.element_a;
             if (ei >= 0 && ei < (int)wood_elems.size()) {
                 j.unit_scale_distance = wood_elems[ei].thickness;
             }
@@ -1310,7 +1310,7 @@ std::vector<WoodJoint> get_connection_zones(
             for (size_t ji = 0; ji < all_joints.size(); ji++) {
                 const auto& j = all_joints[ji];
                 df << "joint " << ji << " type=" << j.joint_type
-                   << " v0=" << j.element_a << " v1=" << j.element_b
+                   << " v0=" << j.contact.element_a << " v1=" << j.contact.element_b
                    << " f0_0=" << j.contact.face_a << " f1_0=" << j.contact.face_b
                    << " name=" << (j.name.empty() ? "undefined" : j.name)
                    << " orient=" << (j.no_orient ? 0 : 1)
@@ -1358,7 +1358,7 @@ std::vector<WoodJoint> get_connection_zones(
     }
     for (size_t ji = 0; ji < all_joints.size(); ji++) {
         auto& j = all_joints[ji];
-        int e0 = index_of(wood_elems, j.element_a), e1 = index_of(wood_elems, j.element_b);
+        int e0 = j.contact.element_a, e1 = j.contact.element_b;
         if (j.link) {
             // Shadow joints → j_mf.back() (wood line 1827-1828)
             if (e0 >= 0 && e0 < (int)n_elems) {
@@ -1525,7 +1525,7 @@ void fill_session(
     // the joint carries as WoodJoint::element_features, so its guid is the joint's guid.
     std::vector<std::vector<std::pair<int, int>>> joints_of(elements.size());   // (joint, side)
     for (size_t ji = 0; ji < joints.size(); ji++) {
-        const int e0 = index_of(elements, joints[ji].element_a), e1 = index_of(elements, joints[ji].element_b);
+        const int e0 = joints[ji].contact.element_a, e1 = joints[ji].contact.element_b;
         if (e0 >= 0 && e0 < (int)elements.size()) { joints_of[e0].push_back({(int)ji, 0}); }
         if (e1 >= 0 && e1 < (int)elements.size()) { joints_of[e1].push_back({(int)ji, 1}); }
     }
@@ -1605,7 +1605,7 @@ void fill_session(
     }
     for (size_t ji = 0; ji < joints.size(); ji++) {
         const auto& j = joints[ji];
-        int e0 = wood_session::index_of(elements, j.element_a), e1 = wood_session::index_of(elements, j.element_b);
+        int e0 = j.contact.element_a, e1 = j.contact.element_b;
         if (j.link) {
             if (e0 >= 0 && e0 < (int)n_elems) {
                 j_mf[e0].back().push_back({(int)ji, true});
@@ -1644,7 +1644,7 @@ void fill_session(
                     continue;
                 }
                 const auto& jt = joints[joint_id];
-                size_t male_or_female = (jt.element_a == elements[ei].element.guid()) ? 0 : 1;
+                size_t male_or_female = (jt.contact.element_a == (int)ei) ? 0 : 1;
                 const auto& outlines_cut = male_or_female ? jt.m_outlines : jt.f_outlines;
                 if (outlines_cut[0].size() < 2) {
                     continue;

@@ -7,7 +7,7 @@
 static void ss_e_ip_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "ss_e_ip_5";
 
-    int v0 = index_of(elements, joint.element_a);
+    int v0 = joint.contact.element_a;
     if (v0 < 0 || v0 >= (int)elements.size()) {
         return;
     }

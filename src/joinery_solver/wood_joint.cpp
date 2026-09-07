@@ -34,7 +34,7 @@ void apply_unit_scale(WoodJoint& joint) {
     static const char* const dp = std::getenv("WOOD_APPLY_DUMP");
     if (dp) {
         std::ofstream alog(dp, std::ios::app);
-        alog << "apply_unit_scale: joint v0=" << joint.element_a << " v1=" << joint.element_b
+        alog << "apply_unit_scale: joint v0=" << joint.contact.element_a << " v1=" << joint.contact.element_b
              << " unit_scale=" << joint.unit_scale << " usd=" << joint.unit_scale_distance << "\n";
         auto& vols = joint.joint_volumes_pair_a_pair_b;
         for (int i = 0; i < 4; i++) {
@@ -136,7 +136,7 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
         if (joint.linked_joints[i] < 0 ||
             joint.linked_joints[i] >= (int)all_joints.size()) { continue; }
         // wood: m_f_curr = v0 == linked.v0
-        bool m_f_curr = joint.element_a == all_joints[joint.linked_joints[i]].element_a;
+        bool m_f_curr = joint.contact.element_a == all_joints[joint.linked_joints[i]].contact.element_a;
         bool m_f_next = m_f_curr;
         if (i == 1) { m_f_next = !m_f_next; } // wood: invert for second link
 
@@ -233,13 +233,13 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
 
     // Wood swaps the joint's own fields (wood_joint_lib.cpp:438-443), not
     // just local copies.
-    std::swap(joint.element_a, joint.element_b);
+    std::swap(joint.contact.element_a, joint.contact.element_b);
     std::swap(joint.contact.face_a, joint.contact.face_b);
     std::swap(joint.cross_faces[0], joint.cross_faces[1]);
     std::swap(joint.joint_lines[0], joint.joint_lines[1]);
 
-    int v0 = index_of(elements, joint.element_a);
-    int v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a;
+    int v1 = joint.contact.element_b;
     int f0_0 = joint.contact.face_a;
     int f1_0 = joint.contact.face_b;
 
@@ -422,8 +422,8 @@ void tt_e_p_3(WoodJoint& joint,
     joint.name = "tt_e_p_3";
     joint.no_orient = true;
 
-    int v0 = index_of(elements, joint.element_a);
-    int v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a;
+    int v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
 
@@ -552,7 +552,7 @@ void side_removal(WoodJoint& joint,
 void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_0";
     joint.no_orient = true;
-    int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
@@ -598,7 +598,7 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_1";
     joint.no_orient = true;
-    int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
@@ -644,7 +644,7 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_2";
     joint.no_orient = true;
-    int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
@@ -717,7 +717,7 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_4";
     joint.no_orient = true;
-    int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }
@@ -780,7 +780,7 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 void tt_e_p_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
     joint.name = "tt_e_p_5";
     joint.no_orient = true;
-    int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
+    int v0 = joint.contact.element_a, v1 = joint.contact.element_b;
     if (v0 < 0 || v0 >= (int)elements.size() ||
         v1 < 0 || v1 >= (int)elements.size()) { return; }
     if (!joint.joint_volumes_pair_a_pair_b[0]) { return; }

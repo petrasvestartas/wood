@@ -52,61 +52,25 @@ enum class ContactType : int {
     top_top   = 2,   ///< both outer faces         (refines to 40)
 };
 
-/// One face pair in real contact: which two faces, the topology class, and the
-/// overlap region between them (closed, in the first face's plane).
+/// One face pair in real contact: which faces of which elements, the topology
+/// class, and the overlap region between them (closed, in element_a's face
+/// plane).
 ///
-/// WHICH ELEMENTS is not here. A stored contact hangs off a graph edge and the
-/// edge names the pair by guid; a joint names its two elements itself. Face
-/// indices are element-local and stay, because a face index means nothing
-/// without the element whose polylines it indexes.
+/// face_contacts() emits these with element_a < element_b. A WoodJoint's
+/// embedded contact does NOT keep that ordering: the solver swaps the pair to
+/// put the male side first (wood_face_to_face.cpp, wood_joint.cpp
+/// merge_linked_joints), so the ordering is a property of face_contacts, not of
+/// this type.
 ///
 /// Lives here rather than in wood_face_to_face.h because WoodJoint embeds one
 /// by value, and that header includes wood_session.h, which includes this one.
 struct FaceContact {
+    int element_a = 0;
+    int element_b = 0;
     int face_a = 0;
     int face_b = 0;
     ContactType type = ContactType::unknown;
     session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
-};
-
-/// One element pair in contact: the two POSITIONAL indices into the vector passed to
-/// face_contacts, and every overlap polygon between them. Positional because detection
-/// is one call over one vector; a scene turns these into a graph edge keyed by guid and
-/// keeps only the faces (see WoodSession).
-struct ContactPair {
-    int element_a = -1;
-    int element_b = -1;
-    std::vector<FaceContact> faces;
-};
-
-/// Every overlap region between ONE pair of elements, and nothing about which pair.
-///
-/// A ContactPair above is what detection emits, carrying the positional indices of the run
-/// it came from. This is what a scene STORES: the same face pairs with the adjacency taken
-/// out, because which two elements touch is the graph edge this contact hangs off. A guid
-/// means the same element after a .pb round trip; a position does not.
-///
-/// On the wire the rings are ElementFeature outlines - a Polyline there keeps its
-/// coordinates verbatim, while the display mesh unwelds and may re-close a ring - and the
-/// face pairs and classes ride in element_data.
-struct WoodContact {
-    WoodContact();
-    /// The faces of one element pair, in scan order.
-    explicit WoodContact(std::vector<FaceContact> faces, const std::string& name = "contact");
-
-    static constexpr const char* ELEMENT_TYPE = "Contact";
-
-    /// Identity (guid, name) and the display mesh, one n-gon face per ring.
-    session_cpp::Element element;
-    std::vector<FaceContact> faces;
-
-    session_cpp::Mesh mesh() const;
-    void sync_element();
-    std::shared_ptr<session_cpp::Element> to_element() const;
-    static WoodContact from_element(const session_cpp::Element& e);
-
-    std::string str() const;
-    friend std::ostream& operator<<(std::ostream& os, const WoodContact& c);
 };
 
 /// A read-only view of any element, for contact detection over a MIXED set.
@@ -129,15 +93,8 @@ struct ContactElement {
 struct WoodJoint {
     WoodJoint();
 
-    /// The two elements this joint connects, by guid - [a] male, [b] female. Guids
-    /// rather than positions because a joint outlives the vector it was detected in:
-    /// the solver runs on a copy, the scene stores the original, and only a guid means
-    /// the same element in both. index_of() below is how a caller that needs a position
-    /// gets one. The solver swaps the two to put the male side first, so this pair is
-    /// NOT ordered.
-    std::string element_a;
-    std::string element_b;
-    /// Which faces touched, and where. Face indices are into the elements named above.
+    /// Which faces of which elements touched, and where. Replaces the el_ids /
+    /// face_ids / joint_area triple this struct used to spell out by hand.
     FaceContact contact;
     /// Type-30 (cross) joints only: the SECOND side face of each element that
     /// the crossing involves, from CrossJoint::face_ids_a/.face_ids_b. Every
@@ -171,8 +128,8 @@ struct WoodJoint {
     // ── Kernel view, by composition ────────────────────────────────────────
     //
     // The joint as each of its two host elements carries it: [0] is the male side
-    // (element_a, detected on face contact.face_a), [1] the female side
-    // (element_b, contact.face_b). Identity lives here - element_features[k].guid()
+    // (contact.element_a, detected on face contact.face_a), [1] the female side
+    // (contact.element_b, contact.face_b). Identity lives here - element_features[k].guid()
     // is the handle a Session consumer uses to name this side of the joint again. Copying
     // an ElementFeature mints a fresh guid, so copying a joint copies its geometry, not its
     // identity, exactly as the kernel does.
@@ -386,11 +343,5 @@ struct WoodColumn {
     std::string str() const;
     friend std::ostream& operator<<(std::ostream& os, const WoodColumn& e);
 };
-
-/// Position of the element with this guid in `elements`, or -1 when it holds none.
-/// A joint names its elements by guid; the solver indexes them by position. This is
-/// the one place that gap is closed - a linear scan, because the vectors are small
-/// (hundreds) and the alternative is threading a map through every joint helper.
-int index_of(const std::vector<WoodElement>& elements, const std::string& guid);
 
 } // namespace wood_session
