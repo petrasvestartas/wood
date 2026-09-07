@@ -17,6 +17,7 @@
 
 #include <fmt/core.h>
 
+#include <cctype>
 #include <map>
 #include <sstream>
 #include <string>
@@ -120,6 +121,8 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
             object = std::make_shared<WoodElement>(WoodElement::from_element(*e));
         } else if (tag == WoodColumn::ELEMENT_TYPE) {
             object = std::make_shared<WoodColumn>(WoodColumn::from_element(*e));
+        } else if (tag == WoodContact::ELEMENT_TYPE) {
+            object = std::make_shared<WoodContact>(WoodContact::from_element(*e));
         } else {
             // Untagged, or a type this build has never heard of. The kernel carried the tag
             // and payload through untouched, so nothing is destroyed by treating it as a
@@ -174,6 +177,90 @@ static std::vector<T*> objects_of(const std::vector<WoodGeometry>& objects) {
 std::vector<WoodElement*>  WoodSession::plates() const  { return objects_of<WoodElement>(objects); }
 std::vector<WoodColumn*>   WoodSession::columns() const { return objects_of<WoodColumn>(objects); }
 std::vector<BlockElement*> WoodSession::solids() const  { return objects_of<BlockElement>(objects); }
+std::vector<WoodContact*>  WoodSession::contacts() const { return objects_of<WoodContact>(objects); }
+
+std::vector<std::string> WoodSession::element_guids() const {
+    std::vector<std::string> guids;
+    for (const WoodGeometry& object : objects)
+        std::visit([&guids](const auto& o) {
+            using T = std::decay_t<decltype(*o)>;
+            if constexpr (!std::is_same_v<T, WoodContact>) guids.push_back(o->element->guid());
+        }, object);
+    return guids;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EdgeLink
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::string EdgeLink::to_attribute() const {
+    return joint.empty() ? "c" + contact : "c" + contact + "j" + joint;
+}
+
+EdgeLink EdgeLink::from_attribute(const std::string& attribute) {
+    // A guid is hex digits and dashes, so 'j' is unambiguous as the separator. Anything
+    // off-grammar - "bvh_collision", "default", "" - is someone else's edge, not an error.
+    const auto is_guid_char = [](char c) {
+        return std::isxdigit(static_cast<unsigned char>(c)) || c == '-';
+    };
+    EdgeLink link;
+    if (attribute.empty() || attribute[0] != 'c') { return link; }
+    size_t i = 1;
+    while (i < attribute.size() && is_guid_char(attribute[i])) { link.contact += attribute[i++]; }
+    if (link.contact.empty()) { return EdgeLink{}; }
+    if (i == attribute.size()) { return link; }
+    if (attribute[i++] != 'j') { return EdgeLink{}; }
+    while (i < attribute.size() && is_guid_char(attribute[i])) { link.joint += attribute[i++]; }
+    return (i == attribute.size() && !link.joint.empty()) ? link : EdgeLink{};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Connectivity
+// ═══════════════════════════════════════════════════════════════════════════
+
+void WoodSession::add_contacts(const std::vector<ContactPair>& detected) {
+    if (!session) { return; }
+    const std::vector<std::string> guids = element_guids();
+    std::shared_ptr<TreeNode> group;
+    for (const ContactPair& pair : detected) {
+        if (pair.element_a < 0 || pair.element_b < 0 ||
+            pair.element_a >= (int)guids.size() || pair.element_b >= (int)guids.size()) { continue; }
+        if (!group) {
+            // find_group throws on a miss rather than returning null.
+            try { group = session->find_group("Contacts"); }
+            catch (const std::runtime_error&) { group = session->add_group("Contacts"); }
+        }
+
+        auto contact = std::make_shared<WoodContact>(pair.faces);
+        // add_element mints the graph node for the contact and puts it in the tree; the
+        // element nodes already exist, so the edge below joins two known nodes.
+        session->add_element(contact->to_element(), group);
+        session->add_edge(guids[pair.element_a], guids[pair.element_b],
+                          EdgeLink{contact->element->guid(), ""}.to_attribute());
+        lookup[contact->element->guid()] = contact;
+        objects.push_back(std::move(contact));
+    }
+}
+
+std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() const {
+    std::unordered_map<std::string, std::pair<std::string, std::string>> by_contact;
+    if (session) {
+        // graph.edges holds every edge twice, once per direction; u < v takes each once,
+        // the way Graph::pb_dumps does.
+        for (const auto& [u, neighbours] : session->graph.edges)
+            for (const auto& [v, edge] : neighbours)
+                if (u < v) {
+                    const EdgeLink link = EdgeLink::from_attribute(edge.attribute);
+                    if (!link.contact.empty()) { by_contact[link.contact] = {u, v}; }
+                }
+    }
+    std::vector<std::pair<std::string, std::string>> pairs;
+    for (const WoodContact* c : contacts()) {
+        const auto it = by_contact.find(c->element->guid());
+        pairs.push_back(it == by_contact.end() ? std::pair<std::string, std::string>{} : it->second);
+    }
+    return pairs;
+}
 
 std::string WoodSession::str() const {
     std::ostringstream os;
@@ -181,7 +268,9 @@ std::string WoodSession::str() const {
     const std::vector<WoodColumn*>   c = columns();
     const std::vector<BlockElement*> b = solids();
     os << "WoodSession(name=" << name() << ", objects=" << objects.size()
-       << ", plates=" << p.size() << ", columns=" << c.size() << ", solids=" << b.size() << ")";
+       << ", plates=" << p.size() << ", columns=" << c.size() << ", solids=" << b.size()
+       << ", contacts=" << contacts().size()
+       << ", edges=" << (session ? session->graph.number_of_edges() : 0) << ")";
     return os.str();
 }
 std::ostream& operator<<(std::ostream& os, const WoodSession& s) { return os << s.str(); }
@@ -192,8 +281,9 @@ std::vector<ContactElement> contact_view(const WoodSession& scene) {
     for (const WoodGeometry& object : scene.objects) {
         std::visit([&view](const auto& o) {
             using T = std::decay_t<decltype(*o)>;
-            view.push_back({&o->polylines, &o->planes, &o->element->name,
-                            std::is_same_v<T, WoodElement>});
+            if constexpr (!std::is_same_v<T, WoodContact>)
+                view.push_back({&o->polylines, &o->planes, &o->element->name,
+                                std::is_same_v<T, WoodElement>});
         }, object);
     }
     return view;

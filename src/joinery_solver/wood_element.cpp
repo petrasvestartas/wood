@@ -790,6 +790,80 @@ std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WoodContact
+// ═══════════════════════════════════════════════════════════════════════════
+
+WoodContact::WoodContact() : element(std::make_shared<TaggedElement>("contact", ELEMENT_TYPE)) {}
+
+WoodContact::WoodContact(std::vector<FaceContact> faces_in, const std::string& name)
+    : element(std::make_shared<TaggedElement>(name, ELEMENT_TYPE)), faces(std::move(faces_in)) {
+    sync_element();
+}
+
+Mesh WoodContact::mesh() const {
+    std::vector<Polyline> rings;
+    rings.reserve(faces.size());
+    for (const FaceContact& f : faces) { rings.push_back(f.area); }
+    return mesh_from_loops(rings);
+}
+
+void WoodContact::sync_element() {
+    using nlohmann::ordered_json;
+    element->set_geometry(mesh());
+    // The rings again, verbatim: mesh() unwelds and may re-close a ring, so the mesh is for
+    // drawing and these are what from_element reads back.
+    std::vector<ElementFeature> features;
+    features.reserve(faces.size());
+    for (const FaceContact& f : faces)
+        features.emplace_back("contact", f.face_a, std::vector<Polyline>{f.area},
+                              "face_" + std::to_string(f.face_a) + "_" + std::to_string(f.face_b));
+    element->set_features(std::move(features));
+
+    ordered_json pairs = ordered_json::array();
+    for (const FaceContact& f : faces)
+        pairs.push_back({{"face_a", f.face_a}, {"face_b", f.face_b}, {"type", static_cast<int>(f.type)}});
+    element->set_element_data(ordered_json{{"faces", pairs}, {"type", ELEMENT_TYPE}}.dump());
+}
+
+std::shared_ptr<Element> WoodContact::to_element() const {
+    const_cast<WoodContact*>(this)->sync_element();
+    return element;
+}
+
+WoodContact WoodContact::from_element(const Element& e) {
+    using nlohmann::ordered_json;
+    WoodContact out;
+    out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
+    ordered_json data;
+    try {
+        data = ordered_json::parse(e.element_data_dumps());
+    } catch (const std::exception&) {
+        fprintf(stderr, "  WARNING: WoodContact::from_element: element '%s' carries no readable "
+                        "payload - contact left empty.\n", e.name.c_str());
+        fflush(stderr);
+        return out;
+    }
+    const ordered_json pairs = data.contains("faces") ? data["faces"] : ordered_json::array();
+    const std::vector<ElementFeature>& features = out.element->features();
+    for (size_t i = 0; i < pairs.size(); ++i) {
+        FaceContact f;
+        f.face_a = pairs[i].value("face_a", 0);
+        f.face_b = pairs[i].value("face_b", 0);
+        f.type   = static_cast<ContactType>(pairs[i].value("type", -1));
+        if (i < features.size() && !features[i].outlines.empty()) { f.area = features[i].outlines[0]; }
+        out.faces.push_back(std::move(f));
+    }
+    return out;
+}
+
+std::string WoodContact::str() const {
+    std::ostringstream os;
+    os << "WoodContact(name=" << element->name << ", faces=" << faces.size() << ")";
+    return os.str();
+}
+std::ostream& operator<<(std::ostream& os, const WoodContact& c) { return os << c.str(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
 // index_of
 // ═══════════════════════════════════════════════════════════════════════════
 

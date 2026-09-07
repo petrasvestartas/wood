@@ -307,7 +307,30 @@ namespace wood_session {
 using WoodGeometry = std::variant<
     std::shared_ptr<WoodElement>,
     std::shared_ptr<WoodColumn>,
-    std::shared_ptr<BlockElement>>;
+    std::shared_ptr<BlockElement>,
+    std::shared_ptr<WoodContact>>;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EdgeLink — what one connectivity edge points at
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A wood graph edge is one element pair, and its whole payload is Edge::attribute - a
+/// string. This is that string, parsed: "c<guid>" names the pair's WoodContact, and
+/// "c<guid>j<guid>" its WoodJoint as well. Guids, because they are what `lookup` is keyed
+/// by and what survives a .pb; a guid is hex and dashes, so 'j' cannot occur inside one.
+///
+/// The sigil is not decoration. Session::get_collisions() overwrites every edge attribute
+/// with "bvh_collision" and add_relationship writes "default"; from_attribute has to reject
+/// those rather than misread them. And the payload is never the empty string, because
+/// Graph::edge_attribute reads an empty value as a GET.
+struct EdgeLink {
+    std::string contact;
+    std::string joint;
+
+    std::string to_attribute() const;
+    /// Total: anything this grammar does not describe comes back with both guids empty.
+    static EdgeLink from_attribute(const std::string& attribute);
+};
 
 /// The scene: a session_cpp::Session, and wood's typed view of the objects inside it.
 ///
@@ -339,6 +362,19 @@ struct WoodSession {
     std::vector<WoodElement*>  plates() const;
     std::vector<WoodColumn*>   columns() const;
     std::vector<BlockElement*> solids() const;
+    std::vector<WoodContact*>  contacts() const;
+
+    /// Guids of the ELEMENTS - plates, columns, solids - in collection order. This is the
+    /// index space contact_view() and face_contacts() use; contacts are not in it.
+    std::vector<std::string> element_guids() const;
+
+    /// Store what face_contacts() found: one WoodContact per pair, added to the session under
+    /// a "Contacts" group, and one graph edge between the pair's two element guids whose
+    /// attribute names the contact. The ContactPair indices are positions in element_guids().
+    void add_contacts(const std::vector<ContactPair>& detected);
+    /// For every contact, in contacts() order: the two element guids its edge joins, read
+    /// back off the graph. Empty strings for a contact no edge names.
+    std::vector<std::pair<std::string, std::string>> contact_pairs() const;
 
     /// One wood object per element of a session, chosen by `element_type`. The session is
     /// kept, not consumed: everything wood does not model rides along in it.

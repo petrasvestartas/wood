@@ -112,6 +112,35 @@ struct ContactPair {
     std::vector<FaceContact> faces;
 };
 
+/// Every overlap region between ONE pair of elements, and nothing about which pair.
+///
+/// A ContactPair above is what detection emits, carrying the positional indices of the run
+/// it came from. This is what a scene STORES: the same face pairs with the adjacency taken
+/// out, because which two elements touch is the graph edge this contact hangs off, and the
+/// edge names both of them - and this - by guid.
+///
+/// On the wire the rings are ElementFeature outlines: a Polyline there keeps its coordinates
+/// verbatim, while the display mesh unwelds and may re-close a ring. Face pairs and classes
+/// ride in element_data.
+struct WoodContact {
+    WoodContact();
+    explicit WoodContact(std::vector<FaceContact> faces, const std::string& name = "contact");
+
+    static constexpr const char* ELEMENT_TYPE = "Contact";
+
+    /// The kernel half - shared with the session, like every wood object's.
+    std::shared_ptr<TaggedElement> element;
+    std::vector<FaceContact> faces;
+
+    session_cpp::Mesh mesh() const;
+    void sync_element();
+    std::shared_ptr<session_cpp::Element> to_element() const;
+    static WoodContact from_element(const session_cpp::Element& e);
+
+    std::string str() const;
+    friend std::ostream& operator<<(std::ostream& os, const WoodContact& c);
+};
+
 /// A read-only view of any element, for contact detection over a MIXED set.
 ///
 /// Detection needs three things from an element - its face outlines, their planes, and a
