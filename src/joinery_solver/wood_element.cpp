@@ -123,7 +123,7 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
     std::array<ElementFeature, 2> feats = to_features();
     return ordered_json{
         {"type", "WoodJoint"},
-        {"el_ids", {contact.element_a, contact.element_b}},
+        {"el_ids", {element_a, element_b}},
         {"face_ids", {{contact.face_a, cross_faces[0]}, {contact.face_b, cross_faces[1]}}},
         {"contact_type", static_cast<int>(contact.type)},
         {"joint_type", joint_type},
@@ -158,8 +158,8 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
         return v;
     };
     if (data.contains("el_ids")) {
-        j.contact.element_a = data["el_ids"][0];
-        j.contact.element_b = data["el_ids"][1];
+        j.element_a = data["el_ids"][0];
+        j.element_b = data["el_ids"][1];
     }
     if (data.contains("face_ids")) {
         j.contact.face_a = data["face_ids"][0][0];
@@ -234,7 +234,7 @@ WoodJoint WoodJoint::file_json_load(const std::string& filename) {
 std::string WoodJoint::str() const {
     std::ostringstream os;
     os << "WoodJoint(type=" << joint_type
-       << ", elements=(" << contact.element_a << "," << contact.element_b << ")"
+       << ", elements=(" << element_a << "," << element_b << ")"
        << ", faces=(" << contact.face_a << "," << contact.face_b << ")"
        << ", name=" << (name.empty() ? "-" : name) << ")";
     return os.str();
@@ -787,6 +787,16 @@ std::string WoodElement::repr() const {
 }
 std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
     return os << e.str();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// index_of
+// ═══════════════════════════════════════════════════════════════════════════
+
+int index_of(const std::vector<WoodElement>& elements, const std::string& guid) {
+    for (size_t i = 0; i < elements.size(); ++i)
+        if (elements[i].element->guid() == guid) { return static_cast<int>(i); }
+    return -1;
 }
 
 } // namespace wood_session

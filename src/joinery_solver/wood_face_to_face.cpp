@@ -84,7 +84,6 @@ void bounding_points(const BlockElement& e, std::vector<Point>& out) {
     for (const Polyline& loop : e.polylines) { add_outline(loop, out); }
 }
 
-
 // Whether face i is an "outer" (top/bottom) face, where wood accepts a
 // triangular overlap. Only the plate convention has outer faces.
 void bounding_points(const ContactElement& e, std::vector<Point>& out) {
@@ -333,7 +332,7 @@ std::vector<FaceContact> face_contacts_for_pair(
                 continue;
             }
             if (stats) { stats->overlapping++; }
-            contacts.push_back({ia, ib, static_cast<int>(i), static_cast<int>(j),
+            contacts.push_back({static_cast<int>(i), static_cast<int>(j),
                                 contact_type(ea, i, eb, j), std::move(area)});
         }
     }
@@ -341,22 +340,20 @@ std::vector<FaceContact> face_contacts_for_pair(
 }
 
 template <ElementLike Element>
-std::vector<FaceContact> face_contacts(
+std::vector<ContactPair> face_contacts(
     const std::vector<Element>& elements,
     const std::vector<std::string>& names,
     double inflate,
     double angle,
     double coplanar_tolerance) {
 
-    std::vector<FaceContact> contacts;
+    std::vector<ContactPair> contacts;
     const double cos_angle = std::cos(angle);
     // Selection happens once, in the broad phase.
     for (const auto& [ia, ib] : adjacency_search(elements, inflate, names)) {
-        std::vector<FaceContact> pair_contacts = face_contacts_for_pair(
+        std::vector<FaceContact> faces = face_contacts_for_pair(
             elements[ia], elements[ib], ia, ib, cos_angle, coplanar_tolerance);
-        contacts.insert(contacts.end(),
-                        std::make_move_iterator(pair_contacts.begin()),
-                        std::make_move_iterator(pair_contacts.end()));
+        if (!faces.empty()) { contacts.push_back({ia, ib, std::move(faces)}); }
     }
     return contacts;
 }
@@ -374,15 +371,15 @@ adjacency_search<ContactElement>(const std::vector<ContactElement>&, double, con
 template std::vector<FacePlane> face_planes<ContactElement>(const ContactElement&);
 template std::vector<FaceContact>
 face_contacts_for_pair<ContactElement>(const ContactElement&, const ContactElement&, int, int, double, double, PairScanStats*);
-template std::vector<FaceContact>
+template std::vector<ContactPair>
 face_contacts<ContactElement>(const std::vector<ContactElement>&, const std::vector<std::string>&, double, double, double);
 template std::vector<FaceContact>
 face_contacts_for_pair<WoodElement>(const WoodElement&, const WoodElement&, int, int, double, double, PairScanStats*);
 template std::vector<FaceContact>
 face_contacts_for_pair<BlockElement>(const BlockElement&, const BlockElement&, int, int, double, double, PairScanStats*);
-template std::vector<FaceContact>
+template std::vector<ContactPair>
 face_contacts<WoodElement>(const std::vector<WoodElement>&, const std::vector<std::string>&, double, double, double);
-template std::vector<FaceContact>
+template std::vector<ContactPair>
 face_contacts<BlockElement>(const std::vector<BlockElement>&, const std::vector<std::string>&, double, double, double);
 
 }  // namespace wood_session
@@ -469,6 +466,12 @@ bool face_to_face_wood(
 
     // Mutable copies that may be reordered by the male/female flip branch.
     std::pair<int, int> el_ids = el_ids_in;
+
+    // el_ids is swapped mid-pass to put the male side first; el0/el1 never move. So a guid
+    // is resolved by asking which of the two ORIGINAL ids the current one is.
+    const auto guid_at = [&](int id) -> const std::string& {
+        return id == el_ids_in.first ? el0.element->guid() : el1.element->guid();
+    };
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids = { {{0,0}}, {{0,0}} };
 
     // ── Outer loop over face pairs ─────────────────────────────────────────
@@ -824,8 +827,9 @@ bool face_to_face_wood(
                     joint_volumes[1] = vol1;
                     joint_type = 13;
 
-                    out_joint.contact      = { el_ids.first, el_ids.second,
-                                               face_ids.first[0], face_ids.second[0],
+                    out_joint.element_a    = guid_at(el_ids.first);
+                    out_joint.element_b    = guid_at(el_ids.second);
+                    out_joint.contact      = { face_ids.first[0], face_ids.second[0],
                                                ctype, joint_area };
                     out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                     out_joint.joint_type   = joint_type;
@@ -966,8 +970,9 @@ bool face_to_face_wood(
 
                         // DEBUG
 
-                        out_joint.contact      = { el_ids.first, el_ids.second,
-                                                   face_ids.first[0], face_ids.second[0],
+                        out_joint.element_a    = guid_at(el_ids.first);
+                        out_joint.element_b    = guid_at(el_ids.second);
+                        out_joint.contact      = { face_ids.first[0], face_ids.second[0],
                                                    ctype, joint_area };
                         out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                         out_joint.joint_type   = joint_type;
@@ -1070,8 +1075,9 @@ bool face_to_face_wood(
                         joint_type = 12;
 
 
-                        out_joint.contact      = { el_ids.first, el_ids.second,
-                                                   face_ids.first[0], face_ids.second[0],
+                        out_joint.element_a    = guid_at(el_ids.first);
+                        out_joint.element_b    = guid_at(el_ids.second);
+                        out_joint.contact      = { face_ids.first[0], face_ids.second[0],
                                                    ctype, joint_area };
                         out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                         out_joint.joint_type   = joint_type;
@@ -1155,8 +1161,9 @@ bool face_to_face_wood(
                 joint_volumes[f_id] = female_vol;
                 joint_type = 20;
 
-                out_joint.contact      = { el_ids.first, el_ids.second,
-                                           face_ids.first[0], face_ids.second[0],
+                out_joint.element_a    = guid_at(el_ids.first);
+                out_joint.element_b    = guid_at(el_ids.second);
+                out_joint.contact      = { face_ids.first[0], face_ids.second[0],
                                            ctype, joint_area };
                 out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                 out_joint.joint_type   = joint_type;
@@ -1254,8 +1261,9 @@ bool face_to_face_wood(
                 joint_volumes[1] = temp1;
                 joint_type = 40;
 
-                out_joint.contact      = { el_ids.first, el_ids.second,
-                                           face_ids.first[0], face_ids.second[0],
+                out_joint.element_a    = guid_at(el_ids.first);
+                out_joint.element_b    = guid_at(el_ids.second);
+                out_joint.contact      = { face_ids.first[0], face_ids.second[0],
                                            ctype, joint_area };
                 out_joint.cross_faces  = { face_ids.first[1], face_ids.second[1] };
                 out_joint.joint_type   = joint_type;
@@ -1296,8 +1304,9 @@ bool face_to_face_wood(
             // pass through each other - so its "contact" is the crossing region
             // and the topology class stays unknown. It is also the one joint
             // that involves TWO side faces per element, hence cross_faces.
-            out_joint.contact      = { el_ids.first, el_ids.second,
-                                       cj.face_ids_a.first, cj.face_ids_b.first,
+            out_joint.element_a    = guid_at(el_ids.first);
+            out_joint.element_b    = guid_at(el_ids.second);
+            out_joint.contact      = { cj.face_ids_a.first, cj.face_ids_b.first,
                                        wood_session::ContactType::unknown, cj.joint_area };
             out_joint.cross_faces  = { cj.face_ids_a.second, cj.face_ids_b.second };
             out_joint.joint_type   = 30;

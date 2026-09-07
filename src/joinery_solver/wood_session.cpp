@@ -80,17 +80,6 @@ void add_solids_impl(Session& session, const Group& parent,
     }
 }
 
-template <class Element>
-std::filesystem::path write_impl(const std::string& title,
-                                 const std::vector<Element>& elements,
-                                 const std::vector<FaceContact>& contacts,
-                                 const std::string& name) {
-    Session session(title);
-    add_faces_impl(session, session.add_group("Inputs"), elements);
-    add_contacts(session, session.add_group("Contacts"), contacts);
-    return pb_dump(session, name);
-}
-
 } // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -107,22 +96,6 @@ std::filesystem::path pb_dump(const Session& session, const std::string& name) {
     const std::filesystem::path path = pb_path(name);
     session.pb_dump(path.string());
     return path;
-}
-
-std::filesystem::path write_element_and_contacts(
-        const std::string& title,
-        const std::vector<WoodElement>& elements,
-        const std::vector<FaceContact>& contacts,
-        const std::string& name) {
-    return write_impl(title, elements, contacts, name);
-}
-
-std::filesystem::path write_element_and_contacts(
-        const std::string& title,
-        const std::vector<BlockElement>& elements,
-        const std::vector<FaceContact>& contacts,
-        const std::string& name) {
-    return write_impl(title, elements, contacts, name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -316,31 +289,42 @@ Color joint_color(int joint_type) {
 }
 
 void add_contacts(Session& session, const Group& parent,
-                  const std::vector<FaceContact>& contacts) {
-    for (const FaceContact& c : contacts) {
-        auto mesh = std::make_shared<Mesh>(
-            Mesh::from_polygon_with_holes({c.area.get_points()}, false));
-        mesh->name = fmt::format("contact_{}_{}", c.element_a, c.element_b);
-        mesh->set_objectcolor(contact_color(c.type));
-        session.add_mesh(mesh, parent);
+                  const std::vector<ContactPair>& contacts) {
+    for (const ContactPair& pair : contacts) {
+        for (const FaceContact& c : pair.faces) {
+            auto mesh = std::make_shared<Mesh>(
+                Mesh::from_polygon_with_holes({c.area.get_points()}, false));
+            mesh->name = fmt::format("contact_{}_{}", pair.element_a, pair.element_b);
+            mesh->set_objectcolor(contact_color(c.type));
+            session.add_mesh(mesh, parent);
+        }
     }
 }
 
-void add_contacts_by_type(Session& session, const std::vector<FaceContact>& contacts,
+void add_contacts_by_type(Session& session, const std::vector<ContactPair>& contacts,
                           const std::string& prefix) {
     // A group per class that actually occurs, so the tree never shows an empty
     // "top_top" for an assembly that has none.
     std::map<std::string, Group> groups;
-    for (const FaceContact& c : contacts) {
-        const std::string label = fmt::format("{}_{}", prefix, contact_type_name(c.type));
-        auto it = groups.find(label);
-        if (it == groups.end()) { it = groups.emplace(label, session.add_group(label)).first; }
-        auto mesh = std::make_shared<Mesh>(
-            Mesh::from_polygon_with_holes({c.area.get_points()}, false));
-        mesh->name = fmt::format("contact_{}_{}_f{}_{}", c.element_a, c.element_b, c.face_a, c.face_b);
-        mesh->set_objectcolor(contact_color(c.type));
-        session.add_mesh(mesh, it->second);
+    for (const ContactPair& pair : contacts) {
+        for (const FaceContact& c : pair.faces) {
+            const std::string label = fmt::format("{}_{}", prefix, contact_type_name(c.type));
+            auto it = groups.find(label);
+            if (it == groups.end()) { it = groups.emplace(label, session.add_group(label)).first; }
+            auto mesh = std::make_shared<Mesh>(
+                Mesh::from_polygon_with_holes({c.area.get_points()}, false));
+            mesh->name = fmt::format("contact_{}_{}_f{}_{}", pair.element_a, pair.element_b,
+                                     c.face_a, c.face_b);
+            mesh->set_objectcolor(contact_color(c.type));
+            session.add_mesh(mesh, it->second);
+        }
     }
+}
+
+/// First block of a guid - enough to tell two elements apart in an object name, where a
+/// full 36-character guid twice over is unreadable.
+static std::string short_guid(const std::string& guid) {
+    return guid.substr(0, guid.find('-'));
 }
 
 void add_joints_by_type(Session& session, const std::vector<WoodJoint>& joints,
@@ -353,7 +337,7 @@ void add_joints_by_type(Session& session, const std::vector<WoodJoint>& joints,
         if (it == groups.end()) { it = groups.emplace(label, session.add_group(label)).first; }
         auto mesh = std::make_shared<Mesh>(
             Mesh::from_polygon_with_holes({j.contact.area.get_points()}, false));
-        mesh->name = fmt::format("joint_{}_{}_{}", j.contact.element_a, j.contact.element_b, type_name);
+        mesh->name = fmt::format("joint_{}_{}_{}", short_guid(j.element_a), short_guid(j.element_b), type_name);
         mesh->set_objectcolor(joint_color(j.joint_type));
         session.add_mesh(mesh, it->second);
     }

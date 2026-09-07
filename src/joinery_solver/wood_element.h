@@ -85,25 +85,31 @@ private:
     std::string _data;
 };
 
-/// One face pair in real contact: which faces of which elements, the topology
-/// class, and the overlap region between them (closed, in element_a's face
-/// plane).
+/// One face pair in real contact: which two faces, the topology class, and the
+/// overlap region between them (closed, in the first face's plane).
 ///
-/// face_contacts() emits these with element_a < element_b. A WoodJoint's
-/// embedded contact does NOT keep that ordering: the solver swaps the pair to
-/// put the male side first (wood_face_to_face.cpp, wood_joint.cpp
-/// merge_linked_joints), so the ordering is a property of face_contacts, not of
-/// this type.
+/// WHICH ELEMENTS is not here. A stored contact hangs off a graph edge and the
+/// edge names the pair by guid; a joint names its two elements itself. Face
+/// indices are element-local and stay, because a face index means nothing
+/// without the element whose polylines it indexes.
 ///
 /// Lives here rather than in wood_face_to_face.h because WoodJoint embeds one
 /// by value, and that header includes wood_session.h, which includes this one.
 struct FaceContact {
-    int element_a = 0;
-    int element_b = 0;
     int face_a = 0;
     int face_b = 0;
     ContactType type = ContactType::unknown;
     session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
+};
+
+/// One element pair in contact: the two POSITIONAL indices into the vector passed to
+/// face_contacts, and every overlap polygon between them. Positional because detection
+/// is one call over one vector; a scene turns these into a graph edge keyed by guid and
+/// keeps only the faces.
+struct ContactPair {
+    int element_a = -1;
+    int element_b = -1;
+    std::vector<FaceContact> faces;
 };
 
 /// A read-only view of any element, for contact detection over a MIXED set.
@@ -126,8 +132,14 @@ struct ContactElement {
 struct WoodJoint {
     WoodJoint();
 
-    /// Which faces of which elements touched, and where. Replaces the el_ids /
-    /// face_ids / joint_area triple this struct used to spell out by hand.
+    /// The two elements this joint connects, by guid - a male, b female. Guids rather
+    /// than positions because a joint outlives the vector it was detected in, and only
+    /// a guid names the same element in the scene that vector was copied from. index_of()
+    /// below is how a caller that needs a position gets one. The solver swaps the two to
+    /// put the male side first, so this pair is NOT ordered.
+    std::string element_a;
+    std::string element_b;
+    /// Which faces touched, and where. Face indices are into the elements named above.
     FaceContact contact;
     /// Type-30 (cross) joints only: the SECOND side face of each element that
     /// the crossing involves, from CrossJoint::face_ids_a/.face_ids_b. Every
@@ -161,8 +173,8 @@ struct WoodJoint {
     // ── Kernel view, by composition ────────────────────────────────────────
     //
     // The joint as each of its two host elements carries it: [0] is the male side
-    // (contact.element_a, detected on face contact.face_a), [1] the female side
-    // (contact.element_b, contact.face_b). Identity lives here - element_features[k].guid()
+    // (element_a, detected on face contact.face_a), [1] the female side
+    // (element_b, contact.face_b). Identity lives here - element_features[k].guid()
     // is the handle a Session consumer uses to name this side of the joint again. Copying
     // an ElementFeature mints a fresh guid, so copying a joint copies its geometry, not its
     // identity, exactly as the kernel does.
@@ -382,5 +394,11 @@ struct WoodColumn {
     std::string str() const;
     friend std::ostream& operator<<(std::ostream& os, const WoodColumn& e);
 };
+
+/// Position of the element with this guid in `elements`, or -1 when it holds none.
+/// A joint names its elements by guid; the solver indexes them by position. This is
+/// the one place that gap is closed - a linear scan, because the vectors are small
+/// (hundreds) and the alternative is threading a map through every joint helper.
+int index_of(const std::vector<WoodElement>& elements, const std::string& guid);
 
 } // namespace wood_session

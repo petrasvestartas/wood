@@ -372,23 +372,6 @@ std::filesystem::path pb_path(const std::string& name);
 std::filesystem::path pb_dump(const session_cpp::Session& session,
                               const std::string& name = "live");
 
-/// The scene an example asks for after running contact detection: every element
-/// face outline under "Inputs", every contact area under "Contacts", written to
-/// pb_path(name). `title` names the session as the viewer shows it; `name` is
-/// the file stem, and the default is the one session_viewer watches. Two
-/// overloads rather than a template, so this header need not pull in session.h.
-std::filesystem::path write_element_and_contacts(
-        const std::string& title,
-        const std::vector<WoodElement>& elements,
-        const std::vector<FaceContact>& contacts,
-        const std::string& name = "live");
-
-std::filesystem::path write_element_and_contacts(
-        const std::string& title,
-        const std::vector<BlockElement>& elements,
-        const std::vector<FaceContact>& contacts,
-        const std::string& name = "live");
-
 // ── Pieces, for a scene that needs more than the above ────────────────────
 
 /// Every face outline of every element, named `element_<i>_face_<f>`.
@@ -424,7 +407,7 @@ void add_solids(session_cpp::Session& session,
 /// to nothing draws nothing and is dropped by Session::add_mesh.
 void add_contacts(session_cpp::Session& session,
                   const std::shared_ptr<session_cpp::TreeNode>& parent,
-                  const std::vector<FaceContact>& contacts);
+                  const std::vector<ContactPair>& contacts);
 
 // ── The contact / joint coloring scheme ───────────────────────────────────
 //
@@ -458,7 +441,7 @@ session_cpp::Color joint_color(int joint_type);
 /// Session::add_group always attaches to the root - which is why the class goes
 /// in the name, the way fill_session already names JointAreas_SS_11.
 void add_contacts_by_type(session_cpp::Session& session,
-                          const std::vector<FaceContact>& contacts,
+                          const std::vector<ContactPair>& contacts,
                           const std::string& prefix = "Contacts");
 
 /// Joint areas split into one group per joint_type that actually occurs, named

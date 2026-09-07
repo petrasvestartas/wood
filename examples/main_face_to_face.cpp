@@ -100,16 +100,19 @@ int run_pb(const std::string& name) {
     // goes through one detection pass and each part is treated as what it is.
     const wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
     const std::vector<wood_session::ContactElement> view = wood_session::contact_view(scene);
-    const std::vector<wood_session::FaceContact> contacts = wood_session::face_contacts(view);
+    const std::vector<wood_session::ContactPair> contacts = wood_session::face_contacts(view);
 
     std::map<std::string, int> by_type;
-    for (const wood_session::FaceContact& c : contacts) {
-        by_type[wood_session::contact_type_name(c.type)]++;
-    }
+    size_t n_contacts = 0;
+    for (const wood_session::ContactPair& pair : contacts)
+        for (const wood_session::FaceContact& c : pair.faces) {
+            by_type[wood_session::contact_type_name(c.type)]++;
+            n_contacts++;
+        }
     const std::vector<wood_session::WoodElement*> plates = scene.plates();
     fmt::print("\n=== {} — {} plates, {} columns, {} solids ===\n",
                name, plates.size(), scene.columns().size(), scene.solids().size());
-    report("Contacts", by_type, contacts.size());
+    report("Contacts", by_type, n_contacts);
 
     // Joints need the plate convention, so only the plates go to the solver - and they go
     // in ONE call. Its type-12 geometry cache lets the first joint of a given key fix the
@@ -156,23 +159,26 @@ int run_plates(const std::string& short_name, const std::string& dataset) {
     // elements it is given - it installs insertion vectors, and swaps faces 0
     // and 1 of a plate whose partner asks for it - so the solver gets a copy and
     // the contact pass and the Inputs group both see the untouched geometry.
-    const std::vector<wood_session::FaceContact> contacts = wood_session::face_contacts(elements);
+    const std::vector<wood_session::ContactPair> contacts = wood_session::face_contacts(elements);
 
     std::vector<wood_session::WoodElement> solver_elements = elements;
     const std::vector<wood_session::WoodJoint> joints =
         get_connection_zones(solver_elements, face_to_face);
 
     std::map<std::string, int> contacts_by_type;
-    for (const wood_session::FaceContact& c : contacts) {
-        contacts_by_type[wood_session::contact_type_name(c.type)]++;
-    }
+    size_t n_contacts = 0;
+    for (const wood_session::ContactPair& pair : contacts)
+        for (const wood_session::FaceContact& c : pair.faces) {
+            contacts_by_type[wood_session::contact_type_name(c.type)]++;
+            n_contacts++;
+        }
     std::map<std::string, int> joints_by_type;
     for (const wood_session::WoodJoint& j : joints) {
         joints_by_type[wood_session::joint_type_name(j.joint_type)]++;
     }
 
     fmt::print("\n=== {} — {} plates ===\n", short_name, elements.size());
-    report("Contacts", contacts_by_type, contacts.size());
+    report("Contacts", contacts_by_type, n_contacts);
     report("Joints", joints_by_type, joints.size());
 
     session_cpp::Session session(fmt::format("wood - contacts and joints - {}", short_name));

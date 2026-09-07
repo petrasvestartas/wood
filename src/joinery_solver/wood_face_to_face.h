@@ -45,10 +45,10 @@ namespace wood_session {
 // ElementLike — what detection needs off an element
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Free functions rather than members, because ContactElement holds pointers and a member
-// cannot be written to cover it and a WoodElement at once. One overload set per type is the
-// whole implementation of the trait; the concept below is its bound, and a new element type
-// joins by adding three overloads. It adds no fields to anything - a trait never does.
+// Free functions rather than members, because ContactElement holds pointers and
+// a member cannot be written to cover it and a WoodElement at once. One overload
+// set per type is the whole implementation of the trait; the concept below is its
+// bound, and a new element type joins by adding three overloads.
 const std::vector<session_cpp::Polyline>& faces_of(const WoodElement& e);
 const std::vector<session_cpp::Polyline>& faces_of(const BlockElement& e);
 const std::vector<session_cpp::Polyline>& faces_of(const ContactElement& e);
@@ -59,8 +59,8 @@ const std::string& name_of(const WoodElement& e);
 const std::string& name_of(const BlockElement& e);
 const std::string& name_of(const ContactElement& e);
 
-/// Face outlines, their planes, and a name to filter on. Every detection template below is
-/// generic over this and nothing else.
+/// Face outlines, their planes, and a name to filter on. Every detection template
+/// below is generic over this and nothing else.
 template <class E>
 concept ElementLike = requires(const E& e) {
     { faces_of(e)  } -> std::same_as<const std::vector<session_cpp::Polyline>&>;
@@ -237,18 +237,18 @@ face_contacts_for_pair<ContactElement>(const ContactElement&, const ContactEleme
 // face_contacts(elements, {"column", "inner_ribs"}) needs no tolerances spelled
 // out; empty (the default) searches everything.
 template <ElementLike Element>
-std::vector<FaceContact> face_contacts(
+std::vector<ContactPair> face_contacts(
     const std::vector<Element>& elements,
     const std::vector<std::string>& names = {},
     double inflate            = globals::DISTANCE,
     double angle              = globals::ANGLE,
     double coplanar_tolerance = globals::DISTANCE_SQUARED);
 
-extern template std::vector<FaceContact>
+extern template std::vector<ContactPair>
 face_contacts<WoodElement>(const std::vector<WoodElement>&, const std::vector<std::string>&, double, double, double);
-extern template std::vector<FaceContact>
+extern template std::vector<ContactPair>
 face_contacts<BlockElement>(const std::vector<BlockElement>&, const std::vector<std::string>&, double, double, double);
-extern template std::vector<FaceContact>
+extern template std::vector<ContactPair>
 face_contacts<ContactElement>(const std::vector<ContactElement>&, const std::vector<std::string>&, double, double, double);
 
 }  // namespace wood_session
