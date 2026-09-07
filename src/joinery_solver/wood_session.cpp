@@ -52,7 +52,7 @@ void add_faces_impl(Session& session, const Group& parent,
 /// which is what a display copy wants - the scene never claims to BE the input.
 /// Grey unless the element says otherwise: a solid is read by its shape, and a colour per
 /// element would compete with the contact and joint colours that DO carry meaning.
-const session_cpp::Color SOLID_GREY(0.72f, 0.72f, 0.74f, 1.0f, "solid_grey");
+const session_cpp::Color SOLID_GREY(0.84f, 0.84f, 0.86f, 1.0f, "solid_grey");
 
 template <class WoodType>
 void add_solids_impl(Session& session, const Group& parent,
