@@ -100,9 +100,24 @@ int main() {
                     && ja.m_outlines[0].size() == jb.m_outlines[0].size()
                     && ja.f_outlines[0].size() == jb.f_outlines[0].size()
                     && ja.divisions == jb.divisions && ja.shift == jb.shift
-                    && ja.linked_joints == jb.linked_joints;
+                    && ja.linked_joints == jb.linked_joints
+                    && ja.m_cut_types == jb.m_cut_types && ja.f_cut_types == jb.f_cut_types
+                    && ja.m_outlines[1].size() == jb.m_outlines[1].size()
+                    && ja.joint_lines[0].start() == jb.joint_lines[0].start()
+                    && ja.joint_lines[1].end() == jb.joint_lines[1].end()
+                    && ja.joint_volumes_pair_a_pair_b[0].has_value() == jb.joint_volumes_pair_a_pair_b[0].has_value()
+                    && ja.element_features[0].guid() == jb.element_features[0].guid();
     }
-    check(joints_ok, "every joint: guid, elements, type, faces, area, outlines, divisions, links");
+    if (!joints_ok && !a.joints().empty()) {
+        const wood_session::WoodJoint& ja = *a.joints()[0]; const wood_session::WoodJoint& jb = *b.joints()[0];
+        fmt::print("  joint[0] diff: cut={} m1={}/{} line0={} line1={} vol0={}/{} fguid={}\n",
+                   ja.m_cut_types == jb.m_cut_types && ja.f_cut_types == jb.f_cut_types,
+                   ja.m_outlines[1].size(), jb.m_outlines[1].size(),
+                   ja.joint_lines[0].start() == jb.joint_lines[0].start(), ja.joint_lines[1].end() == jb.joint_lines[1].end(),
+                   ja.joint_volumes_pair_a_pair_b[0].has_value(), jb.joint_volumes_pair_a_pair_b[0].has_value(),
+                   ja.element_features[0].guid() == jb.element_features[0].guid());
+    }
+    check(joints_ok, "every joint: guid, elements, type, faces, area, both outline splits, lines, volumes, cut types, links, feature guids");
     size_t on_contact = 0, alone = 0;
     for (const auto& [u, v] : a.joint_pairs()) {
         const auto it = sa.graph.edges.find(u);

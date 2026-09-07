@@ -794,29 +794,71 @@ std::ostream& operator<<(std::ostream& os, const WoodElement& e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::shared_ptr<Element> WoodJoint::to_element() const {
+    using nlohmann::ordered_json;
     WoodJoint& self = *const_cast<WoodJoint*>(this);
     if (!self.element)
-        self.element = std::make_shared<TaggedElement>(name.empty() ? "joint_" + std::to_string(joint_type) : name,
-                                                       ELEMENT_TYPE);
+        self.element = std::make_shared<TaggedElement>(name.empty() ? "joint_" + std::to_string(joint_type) : name, ELEMENT_TYPE);
     self.element->set_geometry(mesh_from_loops({contact.area}));
-    const std::array<ElementFeature, 2> feats = to_features();
-    self.element->set_features({feats[0], feats[1]});
-    nlohmann::ordered_json payload = jsondump();
-    payload.erase("element_features");
+
+    // Geometry rides as features, verbatim; element_data keeps the scalars and the per-face
+    // split of the outlines, which flattening into two features loses.
+    std::array<ElementFeature, 2> sides = to_features();
+    std::vector<ElementFeature> features;                 // moved, not copied: a copy mints a guid
+    features.push_back(std::move(sides[0]));
+    features.push_back(std::move(sides[1]));
+    features.emplace_back("joint_area", -1, std::vector<Polyline>{contact.area}, "area");
+    for (const Line& l : joint_lines)
+        features.emplace_back("joint_line", -1, std::vector<Polyline>{Polyline({l.start(), l.end()})}, "line");
+    for (size_t k = 0; k < joint_volumes_pair_a_pair_b.size(); ++k)
+        if (joint_volumes_pair_a_pair_b[k])
+            features.emplace_back("joint_volume", -1, std::vector<Polyline>{*joint_volumes_pair_a_pair_b[k]}, "volume_" + std::to_string(k));
+    self.element->set_features(std::move(features));
+
+    ordered_json payload = jsondump();
+    for (const char* key : {"joint_area", "joint_lines", "joint_volumes", "m_outlines", "f_outlines", "element_features"})
+        payload.erase(key);
+    payload["m_counts"] = {m_outlines[0].size(), m_outlines[1].size()};
+    payload["f_counts"] = {f_outlines[0].size(), f_outlines[1].size()};
     self.element->set_element_data(payload.dump());
     return self.element;
 }
 
 WoodJoint WoodJoint::from_element(const Element& e) {
+    using nlohmann::json;
     WoodJoint out;
+    json data;
     try {
-        out = jsonload(nlohmann::json::parse(e.element_data_dumps()));
+        data = json::parse(e.element_data_dumps());
+        out = jsonload(data);
     } catch (const std::exception&) {
         fprintf(stderr, "  WARNING: WoodJoint::from_element: element '%s' carries no readable "
                         "payload - joint left empty.\n", e.name.c_str());
         fflush(stderr);
+        return out;
     }
     out.element = std::make_shared<TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
+
+    const auto split = [&data](const ElementFeature& f, const char* key, std::array<std::vector<Polyline>, 2>& into) {
+        const size_t n0 = data.contains(key) ? data[key][0].get<size_t>() : f.outlines.size();
+        into[0].assign(f.outlines.begin(), f.outlines.begin() + std::min(n0, f.outlines.size()));
+        into[1].assign(f.outlines.begin() + std::min(n0, f.outlines.size()), f.outlines.end());
+    };
+    int side = 0, line = 0;
+    for (const ElementFeature& f : e.features()) {
+        if (f.feature_type == "joint" && side < 2) {
+            split(f, side == 0 ? "m_counts" : "f_counts", side == 0 ? out.m_outlines : out.f_outlines);
+            out.element_features[side] = f;
+            out.element_features[side].guid() = f.guid();
+            side++;
+        } else if (f.feature_type == "joint_area" && !f.outlines.empty()) {
+            out.contact.area = f.outlines[0];
+        } else if (f.feature_type == "joint_line" && line < 2 && !f.outlines.empty() && f.outlines[0].point_count() == 2) {
+            out.joint_lines[line++] = Line::from_points(f.outlines[0].get_point(0), f.outlines[0].get_point(1));
+        } else if (f.feature_type == "joint_volume" && !f.outlines.empty()) {
+            const size_t k = std::stoul(f.name.substr(f.name.rfind('_') + 1));
+            if (k < out.joint_volumes_pair_a_pair_b.size()) { out.joint_volumes_pair_a_pair_b[k] = f.outlines[0]; }
+        }
+    }
     return out;
 }
 
