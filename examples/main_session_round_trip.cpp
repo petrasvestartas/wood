@@ -21,7 +21,7 @@ int main() {
     a.add_contacts(wood_session::face_contacts(wood_session::contact_view(a)));
     // Wrapper copies share the kernel element, so the solver's guids name the scene's plates.
     std::vector<wood_session::WoodElement> solver_plates;
-    for (const wood_session::WoodElement* p : a.plates()) { solver_plates.push_back(*p); }
+    for (const auto& p : a.plates()) { solver_plates.push_back(*p); }
     wood_session::globals::reset_defaults();
     a.add_joints(get_connection_zones(solver_plates, face_to_face));
     const session_cpp::Session& sa = *a.to_session();
@@ -56,8 +56,8 @@ int main() {
           fmt::format("edge count ({})", sa.graph.number_of_edges()));
     check(a.contacts().size() == (size_t)sa.graph.number_of_edges(), "one edge per contact, 1:1");
 
-    const std::vector<wood_session::WoodContact*> ca = a.contacts();
-    const std::vector<wood_session::WoodContact*> cb = b.contacts();
+    const auto ca = a.contacts();
+    const auto cb = b.contacts();
     bool rings = ca.size() == cb.size();
     for (size_t i = 0; rings && i < ca.size(); ++i) {
         rings = ca[i]->element->guid() == cb[i]->element->guid() && ca[i]->faces.size() == cb[i]->faces.size();
@@ -105,6 +105,23 @@ int main() {
     check(wood_session::EdgeLink::from_attribute("default").contact.empty(), "EdgeLink rejects default");
     check(wood_session::EdgeLink::from_attribute("").contact.empty(), "EdgeLink rejects an empty attribute");
     check(wood_session::EdgeLink::from_attribute("cj0f-2").joint == "0f-2", "EdgeLink parses a joint-only edge cj<guid>");
+
+    const std::vector<std::string> order = a.order();
+    check(order.size() == a.objects.size() && a.lookup.size() == a.objects.size(), "order() and lookup cover the collection");
+    check(a.get_object<wood_session::WoodElement>(order[0]) != nullptr, "get_object<WoodElement> by guid");
+    check(a.get_object<wood_session::WoodContact>(order[0]) == nullptr, "get_object rejects the wrong type");
+
+    const size_t before = a.objects.size();
+    const auto plate = a.plates()[0];
+    auto probe = std::make_shared<wood_session::WoodElement>(plate->polylines[0], plate->polylines[1], "probe");
+    const std::string probe_guid = probe->element->guid();
+    a.add(probe);
+    check(a.objects.size() == before + 1 && a.get_object<wood_session::WoodElement>(probe_guid) == probe
+          && a.session->get_object<session_cpp::Element>(probe_guid) == probe->element,
+          "add() puts the same object in the collection, the lookup and the session");
+    check(a.remove_object(probe_guid) && a.objects.size() == before && !a.lookup.count(probe_guid)
+          && a.session->get_object<session_cpp::Element>(probe_guid) == nullptr,
+          "remove_object() takes it out of all three");
 
     fmt::print("\n{} failed\n", failures);
     return failures;

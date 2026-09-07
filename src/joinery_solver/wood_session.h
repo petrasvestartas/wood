@@ -359,13 +359,40 @@ struct WoodSession {
     const std::string& name() const;
     const std::string& guid() const;
 
-    /// Typed views over the one collection, in file order. Pointers into `objects`, so they
-    /// must not outlive it.
-    std::vector<WoodElement*>  plates() const;
-    std::vector<WoodColumn*>   columns() const;
-    std::vector<BlockElement*> solids() const;
-    std::vector<WoodContact*>  contacts() const;
-    std::vector<WoodJoint*>    joints() const;
+    /// Put an object in - the session under `parent` (the root when null), the collection,
+    /// and the lookup - the mirror of Session::add_element. Returns the tree node.
+    std::shared_ptr<session_cpp::TreeNode> add(const WoodGeometry& object,
+                                               const std::shared_ptr<session_cpp::TreeNode>& parent = nullptr);
+    /// Take an object out of everything at once - session, tree, graph, lookup, collection -
+    /// as Session::remove_object does. False when no object has that guid.
+    bool remove_object(const std::string& guid);
+
+    /// An object by guid, typed - Session::get_object, one variant down. Null when absent or
+    /// of another type.
+    template <class T>
+    std::shared_ptr<T> get_object(const std::string& guid) const {
+        const auto it = lookup.find(guid);
+        if (it == lookup.end()) { return nullptr; }
+        const std::shared_ptr<T>* p = std::get_if<std::shared_ptr<T>>(&it->second);
+        return p ? *p : nullptr;
+    }
+
+    /// Every object of one type, in collection order.
+    template <class T>
+    std::vector<std::shared_ptr<T>> objects_of() const {
+        std::vector<std::shared_ptr<T>> out;
+        for (const WoodGeometry& object : objects)
+            if (const std::shared_ptr<T>* p = std::get_if<std::shared_ptr<T>>(&object)) { out.push_back(*p); }
+        return out;
+    }
+    std::vector<std::shared_ptr<WoodElement>>  plates() const   { return objects_of<WoodElement>(); }
+    std::vector<std::shared_ptr<WoodColumn>>   columns() const  { return objects_of<WoodColumn>(); }
+    std::vector<std::shared_ptr<BlockElement>> solids() const   { return objects_of<BlockElement>(); }
+    std::vector<std::shared_ptr<WoodContact>>  contacts() const { return objects_of<WoodContact>(); }
+    std::vector<std::shared_ptr<WoodJoint>>    joints() const   { return objects_of<WoodJoint>(); }
+
+    /// Every object's guid in collection order - Session::order(), for this collection.
+    std::vector<std::string> order() const;
 
     /// Guids of the ELEMENTS - plates, columns, solids - in collection order. This is the
     /// index space contact_view() and face_contacts() use; contacts are not in it.

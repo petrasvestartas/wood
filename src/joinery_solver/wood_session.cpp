@@ -17,6 +17,7 @@
 
 #include <fmt/core.h>
 
+#include <algorithm>
 #include <cctype>
 #include <map>
 #include <sstream>
@@ -167,20 +168,33 @@ const std::string& WoodSession::guid() const {
     return session ? session->guid() : none;
 }
 
-/// The typed views: one pass over the collection, keeping the alternatives that match.
-template <class T>
-static std::vector<T*> objects_of(const std::vector<WoodGeometry>& objects) {
-    std::vector<T*> out;
-    for (const WoodGeometry& object : objects)
-        if (const std::shared_ptr<T>* p = std::get_if<std::shared_ptr<T>>(&object)) { out.push_back(p->get()); }
-    return out;
+std::shared_ptr<TreeNode> WoodSession::add(const WoodGeometry& object,
+                                           const std::shared_ptr<TreeNode>& parent) {
+    if (!session) { return nullptr; }
+    const std::shared_ptr<Element> element =
+        std::visit([](const auto& o) -> std::shared_ptr<Element> { return o->to_element(); }, object);
+    const std::shared_ptr<TreeNode> node = session->add_element(element, parent);
+    lookup[element->guid()] = object;
+    objects.push_back(object);
+    return node;
 }
 
-std::vector<WoodElement*>  WoodSession::plates() const  { return objects_of<WoodElement>(objects); }
-std::vector<WoodColumn*>   WoodSession::columns() const { return objects_of<WoodColumn>(objects); }
-std::vector<BlockElement*> WoodSession::solids() const  { return objects_of<BlockElement>(objects); }
-std::vector<WoodContact*>  WoodSession::contacts() const { return objects_of<WoodContact>(objects); }
-std::vector<WoodJoint*>    WoodSession::joints() const   { return objects_of<WoodJoint>(objects); }
+bool WoodSession::remove_object(const std::string& guid) {
+    const auto it = lookup.find(guid);
+    if (it == lookup.end()) { return false; }
+    lookup.erase(it);
+    objects.erase(std::remove_if(objects.begin(), objects.end(),
+                                 [&guid](const WoodGeometry& o) { return object_guid(o) == guid; }),
+                  objects.end());
+    return session ? session->remove_object(guid) : true;
+}
+
+std::vector<std::string> WoodSession::order() const {
+    std::vector<std::string> guids;
+    guids.reserve(objects.size());
+    for (const WoodGeometry& object : objects) { guids.push_back(object_guid(object)); }
+    return guids;
+}
 
 std::vector<std::string> WoodSession::element_guids() const {
     std::vector<std::string> guids;
@@ -284,7 +298,7 @@ std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() cons
                     if (!link.joint.empty()) { by_joint[link.joint] = {u, v}; }
                 }
     std::vector<std::pair<std::string, std::string>> pairs;
-    for (const WoodJoint* j : joints()) {
+    for (const std::shared_ptr<WoodJoint>& j : joints()) {
         const auto it = by_joint.find(j->element->guid());
         pairs.push_back(it == by_joint.end() ? std::pair<std::string, std::string>{} : it->second);
     }
@@ -304,7 +318,7 @@ std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() co
                 }
     }
     std::vector<std::pair<std::string, std::string>> pairs;
-    for (const WoodContact* c : contacts()) {
+    for (const std::shared_ptr<WoodContact>& c : contacts()) {
         const auto it = by_contact.find(c->element->guid());
         pairs.push_back(it == by_contact.end() ? std::pair<std::string, std::string>{} : it->second);
     }
@@ -313,11 +327,9 @@ std::vector<std::pair<std::string, std::string>> WoodSession::contact_pairs() co
 
 std::string WoodSession::str() const {
     std::ostringstream os;
-    const std::vector<WoodElement*>  p = plates();
-    const std::vector<WoodColumn*>   c = columns();
-    const std::vector<BlockElement*> b = solids();
     os << "WoodSession(name=" << name() << ", objects=" << objects.size()
-       << ", plates=" << p.size() << ", columns=" << c.size() << ", solids=" << b.size()
+       << ", plates=" << plates().size() << ", columns=" << columns().size()
+       << ", solids=" << solids().size()
        << ", contacts=" << contacts().size() << ", joints=" << joints().size()
        << ", edges=" << (session ? session->graph.number_of_edges() : 0) << ")";
     return os.str();

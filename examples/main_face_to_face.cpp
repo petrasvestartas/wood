@@ -109,7 +109,7 @@ int run_pb(const std::string& name) {
             by_type[wood_session::contact_type_name(c.type)]++;
             n_contacts++;
         }
-    const std::vector<wood_session::WoodElement*> plates = scene.plates();
+    const std::vector<std::shared_ptr<wood_session::WoodElement>> plates = scene.plates();
     fmt::print("\n=== {} — {} plates, {} columns, {} solids ===\n",
                name, plates.size(), scene.columns().size(), scene.solids().size());
     report("Contacts", by_type, n_contacts);
@@ -125,7 +125,7 @@ int run_pb(const std::string& name) {
         // so a joint's guids still name the objects the scene holds.
         std::vector<wood_session::WoodElement> solver_elements;
         solver_elements.reserve(plates.size());
-        for (const wood_session::WoodElement* p : plates) { solver_elements.push_back(*p); }
+        for (const auto& p : plates) { solver_elements.push_back(*p); }
         const std::vector<wood_session::WoodJoint> joints =
             get_connection_zones(solver_elements, face_to_face);
         for (const wood_session::WoodJoint& j : joints) {
