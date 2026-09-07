@@ -114,7 +114,7 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
     out.session = session;
     if (!session || !session->objects.elements) { return out; }
 
-    for (const std::shared_ptr<Element>& e : *session->objects.elements) {
+    for (std::shared_ptr<Element>& e : *session->objects.elements) {
         if (!e) { continue; }
         const std::string& tag = e->element_type_name();
         WoodGeometry object;
@@ -132,9 +132,16 @@ WoodSession WoodSession::from_session(const std::shared_ptr<Session>& session) {
             // solid - and a solid is enough to take part in contact detection.
             object = std::make_shared<BlockElement>(BlockElement::from_element(*e));
         }
-        out.lookup[object_guid(object)] = object;
+        // from_element wrapped the loaded element into a TaggedElement. The session must hold
+        // that same object, or the wrapper and the session diverge from here on.
+        const std::shared_ptr<Element> shared =
+            std::visit([](const auto& o) -> std::shared_ptr<Element> { return o->element; }, object);
+        e = shared;
+        session->lookup[shared->guid()] = shared;
+        out.lookup[shared->guid()] = object;
         out.objects.push_back(std::move(object));
     }
+    session->bvh_cache_dirty = true;
     return out;
 }
 
@@ -286,6 +293,26 @@ void WoodSession::add_joints(const std::vector<WoodJoint>& detected) {
         lookup[joint->element->guid()] = joint;
         objects.push_back(std::move(joint));
     }
+}
+
+void WoodSession::compute_contacts() {
+    add_contacts(face_contacts(contact_view(*this)));
+}
+
+void WoodSession::compute_joints(SearchType search_type) {
+    const std::vector<std::shared_ptr<WoodElement>> plates = objects_of<WoodElement>();
+    if (plates.empty()) { return; }
+    // get_connection_zones runs on a vector of values and writes its results into them, so
+    // it gets copies - which share the kernel element - and the results are assigned back.
+    std::vector<WoodElement> solved;
+    solved.reserve(plates.size());
+    for (const std::shared_ptr<WoodElement>& p : plates) { solved.push_back(*p); }
+    const std::vector<WoodJoint> joints = get_connection_zones(solved, search_type);
+    for (size_t i = 0; i < plates.size(); ++i) {
+        *plates[i] = solved[i];
+        plates[i]->sync_element();
+    }
+    add_joints(joints);
 }
 
 std::vector<std::pair<std::string, std::string>> WoodSession::joint_pairs() const {

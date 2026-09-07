@@ -96,51 +96,24 @@ int run_pb(const std::string& name) {
 
     wood_session::globals::reset_defaults();
 
-    // Split by element_type, so a model that mixes plates with columns and loose solids
-    // goes through one detection pass and each part is treated as what it is.
     wood_session::WoodSession scene = wood_session::WoodSession::load(pb);
-    const std::vector<wood_session::ContactElement> view = wood_session::contact_view(scene);
-    const std::vector<wood_session::ContactPair> contacts = wood_session::face_contacts(view);
+    scene.compute_contacts();
+    scene.compute_joints(face_to_face);
 
-    std::map<std::string, int> by_type;
+    std::map<std::string, int> contacts_by_type;
     size_t n_contacts = 0;
-    for (const wood_session::ContactPair& pair : contacts)
-        for (const wood_session::FaceContact& c : pair.faces) {
-            by_type[wood_session::contact_type_name(c.type)]++;
+    for (const auto& c : scene.contacts())
+        for (const wood_session::FaceContact& f : c->faces) {
+            contacts_by_type[wood_session::contact_type_name(f.type)]++;
             n_contacts++;
         }
-    const std::vector<std::shared_ptr<wood_session::WoodElement>> plates = scene.plates();
-    fmt::print("\n=== {} — {} plates, {} columns, {} solids ===\n",
-               name, plates.size(), scene.columns().size(), scene.solids().size());
-    report("Contacts", by_type, n_contacts);
-
-    // Joints need the plate convention, so only the plates go to the solver - and they go
-    // in ONE call. Its type-12 geometry cache lets the first joint of a given key fix the
-    // tooth positions for every later joint with that key, so solving in batches would
-    // silently change the geometry.
     std::map<std::string, int> joints_by_type;
-    size_t n_joints = 0;
-    if (!plates.empty()) {
-        // The wrappers are copied, the kernel elements are not: `element` is a shared_ptr,
-        // so a joint's guids still name the objects the scene holds.
-        std::vector<wood_session::WoodElement> solver_elements;
-        solver_elements.reserve(plates.size());
-        for (const auto& p : plates) { solver_elements.push_back(*p); }
-        const std::vector<wood_session::WoodJoint> joints =
-            get_connection_zones(solver_elements, face_to_face);
-        for (const wood_session::WoodJoint& j : joints) {
-            joints_by_type[wood_session::joint_type_name(j.joint_type)]++;
-        }
-        n_joints = joints.size();
-        report("Joints", joints_by_type, n_joints);
-        scene.add_joints(joints);
-    } else {
-        fmt::print("Joints: none — nothing in this file carries the plate convention.\n");
-    }
+    for (const auto& j : scene.joints()) joints_by_type[wood_session::joint_type_name(j->joint_type)]++;
 
-    // The scene itself - elements, contacts on the graph, joints on the same edges - is
-    // what the viewer gets, not a hand-built session beside it.
-    scene.add_contacts(contacts);
+    fmt::print("\n=== {} — {} plates, {} columns, {} solids ===\n",
+               name, scene.plates().size(), scene.columns().size(), scene.solids().size());
+    report("Contacts", contacts_by_type, n_contacts);
+    report("Joints", joints_by_type, scene.joints().size());
     fmt::print("{}\nwrote {}\n", scene.str(), scene.pb_dump("live").string());
     return 0;
 }

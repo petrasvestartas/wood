@@ -18,12 +18,9 @@ static size_t tree_nodes(const session_cpp::Session& s) {
 
 int main() {
     wood_session::WoodSession a = wood_session::WoodSession::load(DATASET);
-    a.add_contacts(wood_session::face_contacts(wood_session::contact_view(a)));
-    // Wrapper copies share the kernel element, so the solver's guids name the scene's plates.
-    std::vector<wood_session::WoodElement> solver_plates;
-    for (const auto& p : a.plates()) { solver_plates.push_back(*p); }
     wood_session::globals::reset_defaults();
-    a.add_joints(get_connection_zones(solver_plates, face_to_face));
+    a.compute_contacts();
+    a.compute_joints();
     const session_cpp::Session& sa = *a.to_session();
     const wood_session::WoodSession b = wood_session::WoodSession::from_session(
         std::make_shared<session_cpp::Session>(session_cpp::Session::pb_loads(sa.pb_dumps())));
@@ -35,6 +32,11 @@ int main() {
     check(a.guid() == b.guid(), "session guid");
     check(a.objects.size() == b.objects.size(), "object count");
     check(a.plates().size() == b.plates().size(), "plate count");
+    bool shared = true;
+    for (const std::string& g : a.order())
+        shared = shared && a.session->get_object<session_cpp::Element>(g) ==
+                 std::visit([](const auto& o) -> std::shared_ptr<session_cpp::Element> { return o->element; }, a.lookup.at(g));
+    check(shared, "every wood object and the session hold the SAME Element object");
     check(a.columns().size() == b.columns().size(), "column count");
     check(a.solids().size() == b.solids().size(), "solid count");
 
@@ -74,6 +76,17 @@ int main() {
     for (const auto& [u, v] : b.contact_pairs()) resolved = resolved && b.lookup.count(u) && b.lookup.count(v);
     check(resolved, "every edge endpoint is an object the scene owns");
 
+    size_t top_empty = 0, feat_empty = 0, mismatch = 0, ins_mismatch = 0;
+    for (size_t i = 0; i < a.plates().size(); ++i) {
+        if (a.plates()[i]->features.top.empty()) top_empty++;
+        if (a.plates()[i]->element->features().empty()) feat_empty++;
+        if (a.plates()[i]->features.top.size() != b.plates()[i]->features.top.size()) mismatch++;
+        if (a.plates()[i]->insertion_vectors.size() != b.plates()[i]->insertion_vectors.size()) ins_mismatch++;
+    }
+    fmt::print("  plates {}: features.top empty {}, element features empty {}, top mismatch after pb {}, insertion mismatch {}\n",
+               a.plates().size(), top_empty, feat_empty, mismatch, ins_mismatch);
+    check(top_empty < a.plates().size() && mismatch == 0 && ins_mismatch == 0,
+          "solver results landed on the scene's own plates, and survive the pb");
     check(a.joints().size() == b.joints().size(), fmt::format("joint count ({})", a.joints().size()));
     check(a.joint_pairs() == b.joint_pairs(), "every joint edge resolves to the same element guids");
     bool joints_ok = a.joints().size() == b.joints().size();

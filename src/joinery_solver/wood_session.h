@@ -394,6 +394,12 @@ struct WoodSession {
     /// Every object's guid in collection order - Session::order(), for this collection.
     std::vector<std::string> order() const;
 
+    /// Detection over the elements, stored: one contact per touching pair, on the graph.
+    void compute_contacts();
+    /// The solver over the plates, IN PLACE: merged outlines and insertion vectors land on
+    /// the scene's own plates, and every joint lands on its pair's edge.
+    void compute_joints(SearchType search_type = face_to_face);
+
     /// Guids of the ELEMENTS - plates, columns, solids - in collection order. This is the
     /// index space contact_view() and face_contacts() use; contacts are not in it.
     std::vector<std::string> element_guids() const;
