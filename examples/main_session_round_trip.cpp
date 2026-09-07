@@ -19,6 +19,7 @@ static size_t tree_nodes(const session_cpp::Session& s) {
 int main() {
     wood_session::WoodSession a = wood_session::WoodSession::pb_load(DATASET);
     wood_session::globals::reset_defaults();
+    const int vertices_before = a.session->graph.number_of_vertices();
     a.compute_contacts();
     a.compute_joints();
     const session_cpp::Session& sa = *a.to_session();
@@ -51,6 +52,7 @@ int main() {
     check(sa.objects.polylines->size() == sb.objects.polylines->size(), "loose polyline count");
     check(sa.objects.meshes->size() == sb.objects.meshes->size(), "loose mesh count");
     check(sa.graph.number_of_vertices() == sb.graph.number_of_vertices(), "graph vertex count");
+    check(sa.graph.number_of_vertices() == vertices_before, "contacts and joints are edge payload, not graph nodes");
 
     check(a.contacts().size() == b.contacts().size(),
           fmt::format("contact count ({})", a.contacts().size()));

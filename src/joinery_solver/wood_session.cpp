@@ -251,6 +251,7 @@ void WoodSession::add_contacts(const std::vector<ContactPair>& detected) {
 
         auto contact = std::make_shared<WoodContact>(pair.faces);
         session->add_element(contact->to_element(), group);
+        session->graph.remove_node(contact->element->guid());   // an edge payload, not a node
         session->add_edge(guids[pair.element_a], guids[pair.element_b],
                           EdgeLink{contact->element->guid(), ""}.to_attribute());
         lookup[contact->element->guid()] = contact;
@@ -271,6 +272,7 @@ void WoodSession::add_joints(const std::vector<WoodJoint>& detected) {
         auto joint = std::make_shared<WoodJoint>(j);
         joint->element.reset();
         session->add_element(joint->to_element(), group);
+        session->graph.remove_node(joint->element->guid());
 
         // add_edge overwrites, so a pair's contact is read back before the joint is added.
         EdgeLink link;
