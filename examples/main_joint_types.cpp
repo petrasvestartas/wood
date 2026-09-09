@@ -21,11 +21,11 @@ static void run(const std::string& name, const double division) {
 }
 
 int main() {
-    run("type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner", 0);
-    run("type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box", 200);
-    run("type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair", 200);
-    run("type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small", 200);
-    run("type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch", 0);
+    run("annen_corner", 0);
+    run("annen_box", 200);
+    run("annen_box_pair", 200);
+    run("annen_grid_small", 200);
+    run("annen_grid_full_arch", 0);
     return 0;
 }
 

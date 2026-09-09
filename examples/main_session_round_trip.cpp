@@ -25,8 +25,7 @@ int main() {
     a.compute_contacts();
     a.compute_joints();
     const session_cpp::Session& sa = *a.to_session();
-    const wood_session::WoodSession b = wood_session::WoodSession::from_session(
-        std::make_shared<session_cpp::Session>(session_cpp::Session::pb_loads(sa.pb_dumps())));
+    const wood_session::WoodSession b = wood_session::WoodSession::from_session(session_cpp::Session::pb_loads(sa.pb_dumps()));
     const session_cpp::Session& sb = *b.session;
 
     check(a.name() == b.name(), "session name");

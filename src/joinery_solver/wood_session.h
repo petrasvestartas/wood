@@ -74,9 +74,8 @@ bool plane_to_face(
     double angle_tol = 5.0,
     const std::array<double,3>& extension = {0.0, 0.0, 0.0});
 
-/// Override the directory globals_yaml() reads configs from. Empty string
-/// restores the compile-time default (a __FILE__-derived path that only
-/// exists on the machine that built the binary).
+/// Override the directory globals_yaml(name) resolves a bare dataset name in.
+/// Empty string restores the default, the repo's data/ directory.
 namespace globals { void set_config_dir(const std::string& dir); }
 
 /// Set the near-coplanar rejection threshold used internally by plane_to_face.
@@ -133,7 +132,12 @@ namespace globals {
     extern double  CLIPPER_AREA;                             ///< overlap areas at or below this (mm²) are not a contact
 
     // ── Filesystem strings ────────────────────────────────────────────────
-    extern std::string DATA_SET_INPUT_NAME;                  ///< short obj basename (set by load_plates)
+    extern std::string DATA_SET_INPUT_NAME;                  ///< dataset name: the obj stem (set by globals_yaml and load_plates)
+    extern std::string DATA_SET_OBJ;                         ///< obj path named by the dataset yaml
+    extern std::string DATA_SET_ADJACENCY;                   ///< adjacency txt path from the yaml, empty when absent
+    extern std::string DATA_SET_THREE_VALENCE;               ///< three-valence txt path from the yaml, empty when absent
+    extern std::string DATA_SET_INSERTION_VECTORS;           ///< insertion-vectors txt path from the yaml, empty when absent
+    extern std::string DATA_SET_JOINTS_TYPES;                ///< joint-types txt path from the yaml, empty when absent
     extern std::string DATA_SET_OUTPUT_FILE;                 ///< output .pb filename, written into session_data/
     extern std::string DATA_SET_OUTPUT_DATABASE;             ///< sqlite output path; informational, unused
     extern std::string PATH_AND_FILE_FOR_JOINTS;             ///< wood custom-joint-config file path; informational
@@ -166,10 +170,10 @@ namespace globals {
     // loading a named dataset. Test wrappers should prefer `globals_yaml(name)`.
     void reset_defaults();
 
-    // Loads `wood/config/<dataset_name>.yml` and applies all keys to the globals
-    // above. Replaces the old `reset_defaults()` + per-dataset hardcoded
-    // overrides — users edit the YAML to retune a run without rebuilding.
-    // Throws std::runtime_error if the YAML file is missing.
+    // Loads a dataset yaml - `data/<name>.yml` for a bare name, or the given
+    // path when it ends in .yml - and applies every key to the globals above.
+    // The file keys (obj, adjacency, three_valence, insertion_vectors,
+    // joints_types) resolve relative to the yaml and land in DATA_SET_*.
     void globals_yaml(const std::string& dataset_name);
 }} // namespace wood_session::globals
 
@@ -185,15 +189,14 @@ std::filesystem::path session_data_dir();
 // Absolute path to `data/output/` — creates the directory on first call.
 std::filesystem::path output_dir();
 
-// Returns true iff the dataset for the given wood test function name exists
-// in session_data/ (checks the underlying .obj file).
-bool plates_exist(const std::string& wood_name);
+// True iff data/<name>.obj exists.
+bool plates_exist(const std::string& name);
 
 // Load a named wood dataset from session_data/ and return one WoodElement per
 // timber plate (planes, sides, thickness ready).
 // Consecutive polylines (even index = bottom, odd = top) are paired.
 // Also sets globals DATA_SET_INPUT_NAME and DATA_SET_OUTPUT_FILE as side effects.
-// dataset_name — full wood test function name, e.g. "type_plates_name_hexbox_and_corner"
+// dataset_name — a name (data/<name>.obj) or a path ending in .obj
 // duplicate_pts_tol — if > 0, removes consecutive duplicate points (vidychapel datasets)
 std::vector<wood_session::WoodElement> load_plates(
         const std::string& dataset_name,
@@ -394,6 +397,8 @@ struct WoodSession {
 
     /// One wood object per element, by `element_type`; the session is kept, not consumed.
     static WoodSession from_session(const std::shared_ptr<session_cpp::Session>& session);
+    /// data/<name>.yml: the obj and txt files it names become the plates, its globals apply.
+    static WoodSession yaml_load(const std::filesystem::path& path);
     /// The held session, every payload refreshed.
     const std::shared_ptr<session_cpp::Session>& to_session() const;
 

@@ -39,6 +39,11 @@ double  CLIPPER_AREA                                     = 0.01;    // wood_glob
 
 // Filesystem strings.
 std::string DATA_SET_INPUT_NAME;
+std::string DATA_SET_OBJ;
+std::string DATA_SET_ADJACENCY;
+std::string DATA_SET_THREE_VALENCE;
+std::string DATA_SET_INSERTION_VECTORS;
+std::string DATA_SET_JOINTS_TYPES;
 std::string DATA_SET_OUTPUT_FILE;
 std::string DATA_SET_OUTPUT_DATABASE;
 std::string PATH_AND_FILE_FOR_JOINTS;
@@ -65,18 +70,14 @@ std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
 namespace {
 
-// Runtime-settable override for the YAML config directory. __FILE__ bakes the
-// BUILD machine's checkout path into the binary - this repo's documented
-// wheel-breaking pattern (cf. the in-memory adjacency/TV overrides in
-// wood_main.cpp, 32a00ad): on any machine that did not build the binary,
-// globals_yaml() could only ever throw, and the whole "retune via YAML
-// without rebuilding" mechanism was dead for installed users.
+// Runtime-settable override for where a bare dataset name resolves; the
+// default is the repo's data/ directory, next to the obj files.
 std::string g_config_dir_override;
 
 std::filesystem::path config_dir() {
     if (!g_config_dir_override.empty())
         return std::filesystem::path(g_config_dir_override);
-    return std::filesystem::path(__FILE__).parent_path().parent_path() / "config";
+    return internal::session_data_dir();
 }
 
 bool parse_bool(const std::string& s) {
@@ -123,6 +124,11 @@ void reset_defaults() {
     CLIPPER_SCALE                                     = 1000000;
     CLIPPER_AREA                                      = 0.01;
     DATA_SET_INPUT_NAME.clear();
+    DATA_SET_OBJ.clear();
+    DATA_SET_ADJACENCY.clear();
+    DATA_SET_THREE_VALENCE.clear();
+    DATA_SET_INSERTION_VECTORS.clear();
+    DATA_SET_JOINTS_TYPES.clear();
     DATA_SET_OUTPUT_FILE.clear();
     DATA_SET_OUTPUT_DATABASE.clear();
     PATH_AND_FILE_FOR_JOINTS.clear();
@@ -155,7 +161,9 @@ void set_config_dir(const std::string& dir) {
 void globals_yaml(const std::string& dataset_name) {
     reset_defaults();
 
-    auto path = config_dir() / (dataset_name + ".yml");
+    const std::filesystem::path path = dataset_name.ends_with(".yml")
+        ? std::filesystem::path(dataset_name)
+        : config_dir() / (dataset_name + ".yml");
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("globals_yaml: missing config " + path.string());
     }
@@ -249,8 +257,23 @@ void globals_yaml(const std::string& dataset_name) {
     if (y.has("clipper_area")) {
         CLIPPER_AREA = std::stod(str("clipper_area"));
     }
-    if (y.has("data_set_input_name")) {
-        DATA_SET_INPUT_NAME = str("data_set_input_name");
+    // File keys, relative to the yaml. Naming a file that is not there is an error.
+    auto file = [&](const char* k, std::string& out) {
+        if (!y.has(k))
+            return;
+        const std::filesystem::path p = path.parent_path() / str(k);
+        if (!std::filesystem::exists(p))
+            throw std::runtime_error(std::string("globals_yaml: ") + k + " names a missing file " + p.string());
+        out = p.string();
+    };
+    file("obj", DATA_SET_OBJ);
+    file("adjacency", DATA_SET_ADJACENCY);
+    file("three_valence", DATA_SET_THREE_VALENCE);
+    file("insertion_vectors", DATA_SET_INSERTION_VECTORS);
+    file("joints_types", DATA_SET_JOINTS_TYPES);
+    if (!DATA_SET_OBJ.empty()) {
+        DATA_SET_INPUT_NAME  = std::filesystem::path(DATA_SET_OBJ).stem().string();
+        DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
     }
     if (y.has("data_set_output_file")) {
         DATA_SET_OUTPUT_FILE = str("data_set_output_file");

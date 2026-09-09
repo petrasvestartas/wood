@@ -148,7 +148,15 @@ WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
         fmt::print(stderr, "not found: {}\n", path.string());
         return WoodSession{};
     }
-    return from_session(std::make_shared<Session>(Session::pb_load(path.string())));
+    return from_session(Session::pb_load(path.string()));
+}
+
+WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
+    globals::globals_yaml(path.string());
+    WoodSession out(globals::DATA_SET_INPUT_NAME);
+    for (const WoodElement& plate : internal::load_plates(globals::DATA_SET_OBJ))
+        out.add(std::make_shared<WoodElement>(plate));
+    return out;
 }
 
 const std::shared_ptr<Session>& WoodSession::to_session() const {

@@ -738,16 +738,13 @@ std::vector<WoodJoint> get_connection_zones(
     const double      dihedral_threshold = FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
 
     using Clock = std::chrono::high_resolution_clock;
-    auto base = internal::session_data_dir();
     auto t0   = Clock::now();
 
-    auto exists_in_data = [&](const std::string& rel) {
-        return std::filesystem::exists(base / rel);
-    };
-    const std::string adj_name = exists_in_data(short_name + "_adjacency.txt")         ? short_name + "_adjacency.txt"         : "";
-    const std::string tv_name  = exists_in_data(short_name + "_three_valence.txt")     ? short_name + "_three_valence.txt"     : "";
-    const std::string iv_name  = exists_in_data(short_name + "_insertion_vectors.txt") ? short_name + "_insertion_vectors.txt" : "";
-    const std::string jt_name  = exists_in_data(short_name + "_joints_types.txt")      ? short_name + "_joints_types.txt"      : "";
+    // Sidecar tables the dataset yaml named; empty means derive it.
+    const std::string adj_name = DATA_SET_ADJACENCY;
+    const std::string tv_name  = DATA_SET_THREE_VALENCE;
+    const std::string iv_name  = DATA_SET_INSERTION_VECTORS;
+    const std::string jt_name  = DATA_SET_JOINTS_TYPES;
     const std::vector<double> ext_vec = JOINT_VOLUME_EXTENSION;
     const bool verbose = std::getenv("WOOD_VERBOSE") != nullptr;
 
@@ -782,7 +779,7 @@ std::vector<WoodJoint> get_connection_zones(
     //    volumes need.
     std::vector<std::pair<int, int>> adjacency_pairs;
     if (!adj_name.empty()) {
-        std::ifstream adj_in((base / adj_name).string());
+        std::ifstream adj_in(adj_name);
         int a, b;
         while (adj_in >> a >> b) { adjacency_pairs.emplace_back(a, b); }
         if (verbose) { fmt::print("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adj_name); }
@@ -831,7 +828,7 @@ std::vector<WoodJoint> get_connection_zones(
     std::vector<std::vector<Vector>> per_element_insertion_vectors(
         wood_elems.size(), std::vector<Vector>{});
     if (!iv_name.empty()) {
-        std::ifstream iv_in((base / iv_name).string());
+        std::ifstream iv_in(iv_name);
         std::string iv_line;
         size_t ei = 0;
         size_t total_loaded = 0;
@@ -950,7 +947,7 @@ std::vector<WoodJoint> get_connection_zones(
     // Three-valence joint alignment (Annen method).
     if (!tv_name.empty()) {
         std::vector<std::vector<int>> tv_groups;
-        std::ifstream tv_in((base / tv_name).string());
+        std::ifstream tv_in(tv_name);
         std::string tv_line;
         while (std::getline(tv_in, tv_line)) {
             std::istringstream iss(tv_line);
@@ -1031,7 +1028,7 @@ std::vector<WoodJoint> get_connection_zones(
     // dispatcher when the user wants per-face variant overrides.
     std::vector<std::vector<int>> per_element_joints_types(wood_elems.size());
     if (!jt_name.empty()) {
-        std::ifstream jt_in((base / jt_name).string());
+        std::ifstream jt_in(jt_name);
         std::string jt_line;
         size_t ei = 0;
         size_t total_loaded = 0;

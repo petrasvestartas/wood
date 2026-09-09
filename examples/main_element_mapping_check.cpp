@@ -43,11 +43,11 @@ int main() {
 
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_element_mapping_check.pb";
     session.pb_dump(path.string());
-    const Session loaded = Session::pb_load(path.string());
-    check(loaded.objects.elements->size() == 1, "one element in the Session");
-    if (loaded.objects.elements->empty())
+    const std::shared_ptr<Session> loaded = Session::pb_load(path.string());
+    check(loaded->objects.elements->size() == 1, "one element in the Session");
+    if (loaded->objects.elements->empty())
         return 1;
-    const Element& e = *(*loaded.objects.elements)[0];
+    const Element& e = *(*loaded->objects.elements)[0];
 
     check(e.guid() == guid, "guid preserved: " + e.guid());
     check(e.name == "square", "name preserved");

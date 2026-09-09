@@ -33,52 +33,13 @@ std::filesystem::path output_dir() {
     return out;
 }
 
-// Map wood test function name → session OBJ basename.
-static std::string wood_name_to_obj_short(const std::string& name) {
-    static const std::unordered_map<std::string, std::string> alias = {
-        {"type_plates_name_joint_linking_vidychapel_corner",                 "vidy_corner"},
-        {"type_plates_name_joint_linking_vidychapel_one_layer",              "vidy_one_layer"},
-        {"type_plates_name_joint_linking_vidychapel_one_axis_two_layers",    "vidy_one_axis_two_layers"},
-        {"type_plates_name_joint_linking_vidychapel_full",                   "vidy_full"},
-        {"type_plates_name_side_to_side_edge_inplane_2_butterflies",         "inplane_butterflies"},
-        {"type_plates_name_side_to_side_edge_inplane_hexshell",              "inplane_hexshell"},
-        {"type_plates_name_side_to_side_edge_inplane_differentdirections",   "inplane_differentdirections"},
-        {"type_plates_name_side_to_side_edge_inplane_hilti",                 "inplane_hilti"},
-        {"type_plates_name_side_to_side_edge_outofplane_folding",            "vidy_folding"},
-        {"type_plates_name_side_to_side_edge_outofplane_box",                "outofplane_box"},
-        {"type_plates_name_side_to_side_edge_outofplane_tetra",              "outofplane_tetra"},
-        {"type_plates_name_side_to_side_edge_outofplane_dodecahedron",       "outofplane_dodecahedron"},
-        {"type_plates_name_side_to_side_edge_outofplane_icosahedron",        "outofplane_icosahedron"},
-        {"type_plates_name_side_to_side_edge_outofplane_octahedron",         "outofplane_octahedron"},
-        {"type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners",                    "simple_corners"},
-        {"type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined",           "simple_corners_combined"},
-        {"type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths",  "simple_corners_diff_lengths"},
-        {"type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes",           "hexboxes"},
-        {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner",                   "annen_corner"},
-        {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box",                      "annen_box"},
-        {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair",                 "annen_box_pair"},
-        {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small",               "annen_grid_small"},
-        {"type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch",           "annen_grid_full_arch"},
-    };
-    auto it = alias.find(name);
-    if (it != alias.end()) {
-        return it->second;
-    }
-
-    static const std::string plate_prefix = "type_plates_name_";
-    static const std::string beam_prefix  = "type_beams_name_";
-    if (name.rfind(plate_prefix, 0) == 0) {
-        return name.substr(plate_prefix.size());
-    }
-    if (name.rfind(beam_prefix,  0) == 0) {
-        return name.substr(beam_prefix.size());
-    }
-    return name;
+// A name is data/<name>.obj; a path ending in .obj is itself.
+static std::filesystem::path obj_path_of(const std::string& dataset_name) {
+    return dataset_name.ends_with(".obj") ? std::filesystem::path(dataset_name) : session_data_dir() / (dataset_name + ".obj");
 }
 
-bool plates_exist(const std::string& wood_name) {
-    auto path = session_data_dir() / (wood_name_to_obj_short(wood_name) + ".obj");
-    return std::filesystem::exists(path);
+bool plates_exist(const std::string& name) {
+    return std::filesystem::exists(obj_path_of(name));
 }
 
 // Load dataset → WoodElements.
@@ -96,8 +57,8 @@ std::vector<wood_session::WoodElement> load_plates(const std::string& dataset_na
     wood_session::globals::DUPLICATE_PTS_TOL = effective_tol;
     duplicate_pts_tol = effective_tol;
 
-    const std::string obj_short = wood_name_to_obj_short(dataset_name);
-    const std::string obj_path  = (session_data_dir() / (obj_short + ".obj")).string();
+    const std::string obj_path  = obj_path_of(dataset_name).string();
+    const std::string obj_short = obj_path_of(dataset_name).stem().string();
     // read_file_obj_polylines opens an ifstream and just loops getline: a
     // missing or unreadable file yields an EMPTY vector, no error. Combined
     // with the __FILE__-baked data dir, that meant zero elements, a full
@@ -133,8 +94,8 @@ std::vector<wood_session::WoodElement> load_plates(const std::string& dataset_na
 std::vector<Polyline> load_polylines(const std::string& dataset_name, double duplicate_pts_tol) {
     wood_session::globals::DUPLICATE_PTS_TOL = duplicate_pts_tol;
 
-    const std::string obj_short = wood_name_to_obj_short(dataset_name);
-    const std::string obj_path  = (session_data_dir() / (obj_short + ".obj")).string();
+    const std::string obj_path  = obj_path_of(dataset_name).string();
+    const std::string obj_short = obj_path_of(dataset_name).stem().string();
     auto polylines = file_obj::read_file_obj_polylines(obj_path);
 
     if (duplicate_pts_tol > 0.0) {
