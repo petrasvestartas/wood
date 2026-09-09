@@ -1,19 +1,19 @@
 #include "wood_session.h"
 #include "../src/session.h"
 
-#include <iostream>
+#include <memory>
 
 const char* DATASET = "data/floor_model.pb";
 
 int main() {
-    const wood_session::WoodSession scene = wood_session::WoodSession::pb_load(DATASET);
-    std::cout << scene << "\n";
-    scene.pb_dump(wood_session::pb_path("live"));
+    const std::shared_ptr<session_cpp::Session> session = std::make_shared<session_cpp::Session>(session_cpp::Session::pb_load(DATASET));
+    const wood_session::WoodSession scene = wood_session::WoodSession::from_session(session);
+    wood_session::pb_dump(*scene.to_session());
     return 0;
 }
 
 /*
-description: load a .pb into a WoodSession -> print it -> dump it back to "live.pb".
+description: load a .pb session -> convert to WoodSession -> dump to "live.pb".
 
 directory: cd ~/code/code_cpp/wood_research/wood
 run: cmake --build build --target main_io -j8 && ./build/main_io
