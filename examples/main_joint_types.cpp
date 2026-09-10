@@ -17,7 +17,7 @@ static void run(const std::string& name, const double division) {
     for (const WoodElement& element : internal::load_plates(name))
         scene.add(std::make_shared<WoodElement>(element));
     scene.compute_joints(face_to_face);
-    scene.pb_dump(internal::output_dir() / globals::DATA_SET_OUTPUT_FILE);
+    pb_dump(scene, globals::DATA_SET_INPUT_NAME);
 }
 
 int main() {
@@ -30,10 +30,10 @@ int main() {
 }
 
 /*
-description: five annen datasets with ss_e_op (11) and ts_e_p (20) joints -> data/output/WoodF2F_<name>.pb each.
+description: five annen datasets with ss_e_op (11) and ts_e_p (20) joints -> data/output/pb/<name>.pb each.
 
 directory: cd ~/code/code_cpp/wood_research/wood
 run: cmake --build build --target main_joint_types -j8 && ./build/main_joint_types
-cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_annen_corner.pb
+cloudflare: ../bash/publish-scene.sh data/output/pb/annen_corner.pb
 view: https://petrasvestartas.github.io/session/
 */

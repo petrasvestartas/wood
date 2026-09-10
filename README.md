@@ -63,7 +63,7 @@ element carries it. `examples/main_element_mapping_check.cpp` checks the mapping
 `wood_face_to_face.h`: `adjacency_search` (oriented box per element, BVH, SAT) → candidate
 pairs; `faces_coplanar` → touching back-to-back faces; `face_overlap_area` → the overlap polygon,
 computed by Clipper2 on int64 coordinates (`CLIPPER_SCALE`, 1e-6 mm). `face_contacts` runs the
-whole thing for any element type. `examples/main_face_to_face.cpp` checks it on plates, on
+whole thing for any element type. `examples/2_contact_detection.cpp` checks it on plates, on
 loose loops, and on rotated block grids with a known number of contacts, and exits non-zero
 if any check fails.
 

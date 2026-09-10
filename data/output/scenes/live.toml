@@ -1,5 +1,5 @@
 # wood face-to-face contact detection: every element outline as a polyline,
-# every detected contact polygon as a mesh. Written by examples/main_face_to_face.cpp.
+# every detected contact polygon as a mesh. Written by examples/2_contact_detection.cpp.
 name = "wood - face to face contacts"
 
 [[items]]

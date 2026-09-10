@@ -94,15 +94,15 @@ int main() {
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<WoodElement>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);
-    scene.pb_dump(internal::output_dir() / globals::DATA_SET_OUTPUT_FILE);
+    pb_dump(scene, "live");
     return 0;
 }
 
 /*
-description: four hardcoded plates with a custom butterfly joint -> face_to_face joints -> data/output/wood_face_to_face.pb.
+description: four hardcoded plates with a custom butterfly joint -> face_to_face joints on the graph edges of their pairs.
 
 directory: cd ~/code/code_cpp/wood_research/wood
 run: cmake --build build --target main_hello -j8 && ./build/main_hello
-cloudflare: ../bash/publish-scene.sh data/output/wood_face_to_face.pb
+cloudflare: ../bash/publish-scene.sh --target main_hello
 view: https://petrasvestartas.github.io/session/
 */

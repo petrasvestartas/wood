@@ -3,6 +3,7 @@
 #include "intersection.h"
 #include "json.h"
 #include "wood_element.h"
+#include "wood_session.h"
 
 #include <fmt/core.h>
 
@@ -11,8 +12,8 @@
 
 using namespace session_cpp;
 
-const char* INPUT = "data/output/WoodStep3_data.json";
-const char* OUTPUT = "data/output/WoodStep4.pb";
+const char* INPUT = "WoodStep3_data.json";
+const char* OUTPUT = "WoodStep4.pb";
 const double COPLANAR_TOLERANCE = 5.0;
 
 static std::vector<Point> from_json(const nlohmann::json& array) {
@@ -24,9 +25,10 @@ static std::vector<Point> from_json(const nlohmann::json& array) {
 }
 
 int main() {
-    std::ifstream file(INPUT);
+    const std::filesystem::path input = internal::output_dir() / INPUT;
+    std::ifstream file(input);
     if (!file) {
-        fmt::print(stderr, "not found: {}\n", INPUT);
+        fmt::print(stderr, "not found: {}\n", input.string());
         return 1;
     }
     const nlohmann::json data = nlohmann::json::parse(file);
@@ -54,7 +56,7 @@ int main() {
         session.add_polyline(outline, joints);
         session.add_edge(plates[a]->guid(), plates[b]->guid(), std::to_string(i) + "," + std::to_string(j) + "," + std::to_string(type) + "," + outline->guid());
     }
-    session.pb_dump(OUTPUT);
+    session.pb_dump((internal::output_dir() / OUTPUT).string());
     return 0;
 }
 

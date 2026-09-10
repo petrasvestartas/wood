@@ -16,15 +16,8 @@ using namespace session_cpp;
 
 namespace internal {
 
-// Absolute path to `data/` at the repo root. Centralises the
-// `__FILE__.parent_path() × 2` walk so relocating this translation unit
-// stays a one-line change.
 std::filesystem::path session_data_dir() {
-    return std::filesystem::path(__FILE__)
-        .parent_path()   // joinery_solver/
-        .parent_path()   // src/
-        .parent_path()   // repo root
-        / "data";
+    return std::filesystem::path(wood_session::globals::DATA_SET_INPUT_FOLDER);
 }
 
 std::filesystem::path output_dir() {
@@ -33,9 +26,12 @@ std::filesystem::path output_dir() {
     return out;
 }
 
-// A name is data/<name>.obj; a path ending in .obj is itself.
+std::filesystem::path dataset_path(const std::string& name, const std::string& ext) {
+    return name.ends_with(ext) ? std::filesystem::path(name) : session_data_dir() / (name + ext);
+}
+
 static std::filesystem::path obj_path_of(const std::string& dataset_name) {
-    return dataset_name.ends_with(".obj") ? std::filesystem::path(dataset_name) : session_data_dir() / (dataset_name + ".obj");
+    return dataset_path(dataset_name, ".obj");
 }
 
 bool plates_exist(const std::string& name) {

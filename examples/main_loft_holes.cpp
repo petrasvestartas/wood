@@ -1,10 +1,11 @@
 #include "src/session.h"
 #include "src/mesh.h"
 #include "src/polyline.h"
+#include "wood_session.h"
 
 using namespace session_cpp;
 
-const char* OUTPUT = "data/output/example_loft_holes_cpp.pb";
+const char* OUTPUT = "example_loft_holes_cpp.pb";
 
 int main() {
     Session session("LoftHoles");
@@ -236,7 +237,7 @@ int main() {
     failing->name = "plate_failing";
     session.add_mesh(failing, meshes);
 
-    session.pb_dump(OUTPUT);
+    session.pb_dump((internal::output_dir() / OUTPUT).string());
     return 0;
 }
 

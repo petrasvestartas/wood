@@ -50,6 +50,8 @@ enum class ContactType : int {
     side_side = 0,   ///< both faces are sides     (refines to 11 / 12 / 13)
     side_top  = 1,   ///< one side, one outer face (refines to 20)
     top_top   = 2,   ///< both outer faces         (refines to 40)
+    cross     = 3,   ///< elements pass through each other - plane_to_face / CrossJoint
+    line      = 4,   ///< two elements' boundary polylines cross within tolerance
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -69,6 +71,10 @@ public:
         guid() = base.guid();
     }
 
+    /// The derived copy Session's own copy constructor needs; without it a wood plate comes
+    /// back from one as a plain Element that has forgotten how to update its payload.
+    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<TaggedElement>(*this); }
+
     std::string element_type_name() const override { return _type; }
     std::string element_data_dumps() const override { return _data; }
     void set_element_data(std::string data) { _data = std::move(data); }
@@ -79,7 +85,7 @@ private:
 };
 
 /// One face pair in contact: the two faces, the class, the overlap region (closed, in the
-/// first face's plane). Which ELEMENTS is on the graph edge, by guid, not here.
+/// first face's plane). Which ELEMENTS is the graph edge this rides on, not this.
 ///
 /// Lives here rather than in wood_face_to_face.h because WoodJoint embeds one
 /// by value, and that header includes wood_session.h, which includes this one.
@@ -88,34 +94,17 @@ struct FaceContact {
     int face_b = 0;
     ContactType type = ContactType::unknown;
     session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
+
+    nlohmann::ordered_json jsondump() const;
+    static FaceContact jsonload(const nlohmann::json& data);
 };
 
 /// face_contacts() output: one element pair as positions in the vector it was given, and
-/// every overlap polygon between them. A scene turns this into an edge and a WoodContact.
+/// every overlap polygon between them. A scene turns this into one graph edge.
 struct ContactPair {
     int element_a = -1;
     int element_b = -1;
     std::vector<FaceContact> faces;
-};
-
-/// Every overlap region between ONE pair of elements; which pair is the graph edge. On the
-/// wire the rings are ElementFeature outlines (verbatim), the mesh is for drawing only.
-struct WoodContact {
-    WoodContact();
-    explicit WoodContact(std::vector<FaceContact> faces, const std::string& name = "contact");
-
-    static constexpr const char* ELEMENT_TYPE = "Contact";
-
-    std::shared_ptr<TaggedElement> element;
-    std::vector<FaceContact> faces;
-
-    session_cpp::Mesh mesh() const;
-    void sync_element() const;
-    std::shared_ptr<session_cpp::Element> to_element() const;
-    static WoodContact from_element(const session_cpp::Element& e);
-
-    std::string str() const;
-    friend std::ostream& operator<<(std::ostream& os, const WoodContact& c);
 };
 
 /// A read-only view of any element, for contact detection over a MIXED set.
@@ -190,22 +179,21 @@ struct WoodJoint {
     // the shape every other consumer reads. get_connection_zones syncs these before it
     // returns, so a joint it hands back is always current.
     std::array<session_cpp::ElementFeature, 2> element_features;
+    /// The identity of the two sides, one guid each, minted on first read. Plain strings and
+    /// not the features' own guids, because an ElementFeature copy deliberately drops its
+    /// guid and a joint is copied constantly - through the solver, onto its edge and back -
+    /// so this is the only place a side's identity survives. Read them through
+    /// feature_guid() and the features through to_features(); element_features below is the
+    /// bodies, and its guids are only current right after sync_features().
+    mutable std::array<std::string, 2> feature_guids;
+    const std::string& feature_guid(int side) const;
     void sync_features();
     /// sync_features() applied to copies: identity preserved, the joint itself untouched.
     std::array<session_cpp::ElementFeature, 2> to_features() const;
 
-    /// The whole joint, solver fields included, as JSON. There is no protobuf message for a
-    /// joint - on the wire a joint IS its two ElementFeatures, written with their elements.
-    /// Value of `element_type` a stored joint is written under, beside "Plate" / "Contact".
-    static constexpr const char* ELEMENT_TYPE = "Joint";
-    /// Null while the joint is only the solver's, which copies joints freely; to_element()
-    /// creates it on first use. A cache of this joint, hence mutable.
-    mutable std::shared_ptr<TaggedElement> element;
-    /// Geometry the contact area, features the two host sides, element_data jsondump() minus
-    /// those features.
-    std::shared_ptr<session_cpp::Element> to_element() const;
-    static WoodJoint from_element(const session_cpp::Element& e);
-
+    /// The whole joint, solver fields included, as JSON - what a graph edge carries. The two
+    /// features travel as their guids alone: sync_features() re-derives everything else from
+    /// the solver fields, so writing them out in full would store every cut outline twice.
     nlohmann::ordered_json jsondump() const;
     static WoodJoint jsonload(const nlohmann::json& data);
     std::string file_json_dumps() const;

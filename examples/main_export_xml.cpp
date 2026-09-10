@@ -1,6 +1,7 @@
 #include "file_obj.h"
 #include "pair_polylines.h"
 #include "polyline.h"
+#include "wood_session.h"
 
 #include <fmt/core.h>
 
@@ -9,12 +10,12 @@
 
 using namespace session_cpp;
 
-const char* INPUT = "data/annen_polylines.obj";
-const char* OUTPUT = "data/annen_for_wood.xml";
+const char* INPUT = "annen_polylines.obj";
+const char* OUTPUT = "annen_for_wood.xml";
 
 int main() {
-    const std::vector<Polyline> polylines = file_obj::read_file_obj_polylines(INPUT);
-    std::ofstream out(OUTPUT);
+    const std::vector<Polyline> polylines = file_obj::read_file_obj_polylines((internal::session_data_dir() / INPUT).string());
+    std::ofstream out(internal::session_data_dir() / OUTPUT);
     out << "<?xml version=\"1.0\" encoding=\"utf-8\"?><input_polylines>";
     for (const auto& [a, b] : wood::pair_polylines(polylines))
         for (const int index : {a, b}) {

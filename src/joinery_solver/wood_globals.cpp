@@ -38,6 +38,68 @@ int64_t CLIPPER_SCALE                                    = 1000000; // wood_glob
 double  CLIPPER_AREA                                     = 0.01;    // wood_globals.cpp:11
 
 // Filesystem strings.
+std::string DATA_SET_INPUT_FOLDER = (std::filesystem::path(__FILE__)
+                                        .parent_path()   // joinery_solver/
+                                        .parent_path()   // src/
+                                        .parent_path()   // repo root
+                                    / "data").string();
+const std::vector<std::string> DATASET_NAMES = {
+    "hexbox_and_corner",
+    "vidy_corner",
+    "vidy_one_layer",
+    "vidy_one_axis_two_layers",
+    "vidy_full",
+    "inplane_butterflies",
+    "inplane_hexshell",
+    "inplane_differentdirections",
+    "vidy_folding",
+    "outofplane_box",
+    "outofplane_box_miter",
+    "outofplane_tetra",
+    "outofplane_dodecahedron",
+    "outofplane_icosahedron",
+    "outofplane_octahedron",
+    "simple_corners",
+    "simple_corners_combined",
+    "simple_corners_diff_lengths",
+    "inplane_hilti",
+    "top_to_top_pairs",
+    "hexboxes",
+    "hex_block_rossiniere",
+    "top_to_side_snap_fit",
+    "top_to_side_box",
+    "top_to_side_corners",
+    "annen_corner",
+    "annen_box",
+    "annen_box_pair",
+    "annen_grid_small",
+    "annen_grid_full_arch",
+    "vda_floor_0",
+    "vda_floor_2",
+    "cross_and_sides_corner",
+    "cross_corners",
+    "cross_vda_corner",
+    "cross_vda_hexshell",
+    "cross_vda_hexshell_reciprocal",
+    "cross_vda_single_arch",
+    "cross_vda_shell",
+    "cross_square_reciprocal_two_sides",
+    "cross_square_reciprocal_iseya",
+    "cross_ibois_pavilion",
+    "cross_brussels_sports_tower",
+    "phanomema_node",
+    "hello",
+    "top_to_side_test",
+    "vda_floor_1",
+    "cross_brg_slab_0",
+};
+const std::vector<std::string> SESSION_NAMES = {
+    "floor_model",
+    "session",
+};
+
+const std::string& dataset_name(size_t index) { return DATASET_NAMES.at(index); }
+
 std::string DATA_SET_INPUT_NAME;
 std::string DATA_SET_OBJ;
 std::string DATA_SET_ADJACENCY;
@@ -70,16 +132,6 @@ std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
 namespace {
 
-// Runtime-settable override for where a bare dataset name resolves; the
-// default is the repo's data/ directory, next to the obj files.
-std::string g_config_dir_override;
-
-std::filesystem::path config_dir() {
-    if (!g_config_dir_override.empty())
-        return std::filesystem::path(g_config_dir_override);
-    return internal::session_data_dir();
-}
-
 bool parse_bool(const std::string& s) {
     return s == "true" || s == "True" || s == "TRUE" || s == "1" || s == "yes";
 }
@@ -94,6 +146,12 @@ std::vector<double> parse_doubles(std::vector<std::string>& xs) {
 }
 
 } // namespace
+
+std::string session_pb(size_t index) {
+    if (index >= SESSION_NAMES.size())
+        throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
+    return internal::dataset_path(SESSION_NAMES[index], ".pb").string();
+}
 
 void reset_defaults() {
     JOINTS_PARAMETERS_AND_TYPES = {
@@ -154,16 +212,10 @@ void reset_defaults() {
     CUSTOM_JOINTS_B_MALE.clear();         CUSTOM_JOINTS_B_FEMALE.clear();
 }
 
-void set_config_dir(const std::string& dir) {
-    g_config_dir_override = dir;
-}
-
 void globals_yaml(const std::string& dataset_name) {
     reset_defaults();
 
-    const std::filesystem::path path = dataset_name.ends_with(".yml")
-        ? std::filesystem::path(dataset_name)
-        : config_dir() / (dataset_name + ".yml");
+    const std::filesystem::path path = internal::dataset_path(dataset_name, ".yml");
     if (!std::filesystem::exists(path)) {
         throw std::runtime_error("globals_yaml: missing config " + path.string());
     }
