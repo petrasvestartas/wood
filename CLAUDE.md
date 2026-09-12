@@ -2,16 +2,21 @@
 
 ## Running anything: use the guard
 
-**Never launch a solver, example or dataset sweep directly.** Run it through
-`tools/run_guarded.ps1`, which applies a wall-clock timeout, a kernel-enforced
-memory cap, and a one-at-a-time check:
+**Never launch a solver, example or dataset sweep directly.** Run it through the
+guard, which applies a wall-clock timeout, a kernel-enforced memory cap, and a
+one-at-a-time check:
 
+```bash
+tools/run_guarded.sh -t 10 -m 4 -- build/main_all_datasets          # Linux / macOS
+```
 ```powershell
 tools/run_guarded.ps1 -FilePath build/Release/main_all_datasets.exe `
-    -TimeoutMinutes 10 -MemoryLimitGB 4
+    -TimeoutMinutes 10 -MemoryLimitGB 4                              # Windows
 ```
 
-Defaults are 10 minutes and 4 GB. Exit code 124 means the timeout killed it.
+Defaults are 10 minutes and 4 GB. Exit code 124 means the timeout killed it, 137
+the memory cap, 75 that a copy was already running. Builds have their own limit:
+`cmake --build build --parallel 4`, never `-j$(nproc)`.
 
 Why this exists: on 2026-08-27 three concurrent copies of
 `main_wood_04_all_datasets.exe` reached 51 GB, 45 GB and 18 GB of committed

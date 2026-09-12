@@ -244,3 +244,7 @@ data/output/*.pb
 
 # Rhino/GH sources for the top_to_side_snap_fit dataset, restored from cf79120^; export data/top_to_side_snap_fit.obj from them
 data/snap_fit_sources/
+
+# Claude Code per-machine files
+.claude/settings.local.json
+CLAUDE.local.md
