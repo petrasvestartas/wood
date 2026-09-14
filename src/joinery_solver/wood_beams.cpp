@@ -1,6 +1,3 @@
-// wood/wood_beams.cpp — beam volumes pipeline.
-// Implementation of beam_volumes_pipeline declared in wood_session.h.
-// Takes beam axes and radii as input; no OBJ file I/O.
 #include <cstdlib>
 #include "wood_session.h"
 #include "wood_element.h"
@@ -12,13 +9,12 @@
 #include "../src/line.h"
 #include "../src/vector.h"
 #include "../src/point.h"
-#include "../src/xform.h"
 #include "../src/plane.h"
-#include "../src/tolerance.h"
 #include "../src/color.h"
 #include <fmt/core.h>
 #include <cmath>
-#include <algorithm>
+#include <array>
+#include <fstream>
 #include <utility>
 #include <vector>
 #include <map>
@@ -27,6 +23,48 @@
 using namespace session_cpp;
 using wood_session::WoodJoint;
 using wood_session::WoodElement;
+
+namespace {
+
+bool has_valid_frame(const Vector& direction, const Vector& normal) {
+    const double area = direction.cross(normal).magnitude_squared();
+    return area > 0.0 && std::isfinite(area);
+}
+
+bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& plane) {
+    auto top = first.get_points();
+    auto bottom = second.get_points();
+    if (top.size() != 5 || bottom.size() != 5)
+        return false;
+    std::array<Point, 4> points;
+    if (!Intersection::line_plane(Line::from_points(top[0], top[1]), plane, points[0], false) ||
+        !Intersection::line_plane(Line::from_points(top[3], top[2]), plane, points[1], false) ||
+        !Intersection::line_plane(Line::from_points(bottom[0], bottom[1]), plane, points[2], false) ||
+        !Intersection::line_plane(Line::from_points(bottom[3], bottom[2]), plane, points[3], false))
+        return false;
+    for (const Point& point : points)
+        for (size_t i = 0; i < 3; ++i)
+            if (!std::isfinite(point[i]))
+                return false;
+    if (plane.has_on_negative_side(top[0])) {
+        top[0] = points[0];
+        top[3] = points[1];
+        top[4] = top[0];
+        bottom[0] = points[2];
+        bottom[3] = points[3];
+        bottom[4] = bottom[0];
+    } else {
+        top[1] = points[0];
+        top[2] = points[1];
+        bottom[1] = points[2];
+        bottom[2] = points[3];
+    }
+    first = Polyline(top);
+    second = Polyline(bottom);
+    return true;
+}
+
+}
 
 void beam_volumes_pipeline(
     const std::vector<Polyline>& axes,
@@ -46,51 +84,46 @@ void beam_volumes_pipeline(
     Session session("WoodF2F");
     auto g_axes = session.add_group("BeamAxes");
     auto g_vols = session.add_group("JointVolumes");
-    // Floats: Color clamps to [0,1], so the 0-255 literals these replace both
-    // saturated to white.
     g_axes->color = Color(0.70f, 0.70f, 0.70f, 1.0f, "grey");
     g_vols->color = Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta");
 
-    // Emit each input axis as ONE polyline (matches the OBJ `curv` entry).
     for (size_t i = 0; i < axes.size(); i++) {
         auto pl = std::make_shared<Polyline>(axes[i]);
         pl->name = fmt::format("axis_{}", i);
         session.add_polyline(pl, g_axes);
     }
 
-    // ── Pass 1: collect closest per-element-pair contact ──────────────────
-    // Wood uses CGAL::box_self_intersection_d on inflated AABBs. For the
-    // small beam-count datasets (phanomema has 6 axes) a plain O(N²) scan
-    // is adequate and keeps the port self-contained.
     struct Contact {
         double dist_sq;
         int pid0, sid0, pid1, sid1;
     };
     std::map<uint64_t, Contact> contacts;
-    // Materialize each axis's points ONCE: get_points() builds a fresh
-    // vector of string-bearing Points, and the old inner-loop copy ran
-    // O(axes x segments x axes) times instead of O(axes).
     std::vector<std::vector<Point>> all_axis_pts;
     all_axis_pts.reserve(axes.size());
-    for (const auto& ax : axes) all_axis_pts.push_back(ax.get_points());
+    for (const auto& ax : axes)
+        all_axis_pts.push_back(ax.get_points());
     for (size_t a = 0; a < axes.size(); a++) {
         const auto& pa = all_axis_pts[a];
         for (size_t sa = 0; sa + 1 < pa.size(); sa++) {
-            Line la = Line::from_points(pa[sa], pa[sa+1]);
+            const Line la = Line::from_points(pa[sa], pa[sa+1]);
+            if (!(la.squared_length() > 0.0))
+                continue;
             for (size_t b = a + 1; b < axes.size(); b++) {
                 const auto& pb = all_axis_pts[b];
                 for (size_t sb = 0; sb + 1 < pb.size(); sb++) {
-                    Line lb = Line::from_points(pb[sb], pb[sb+1]);
+                    const Line lb = Line::from_points(pb[sb], pb[sb+1]);
+                    if (!(lb.squared_length() > 0.0))
+                        continue;
                     double t0, t1;
-                    (void)Intersection::line_line_parameters(
-                        la, lb, t0, t1, /*tolerance*/ 0.0,
-                        /*intersect_segments*/ true,
-                        /*near_parallel_as_closest*/ true);
+                    if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
+                        continue;
+                    if (!std::isfinite(t0) || !std::isfinite(t1))
+                        continue;
                     Point q0 = la.point_at(t0);
                     Point q1 = lb.point_at(t1);
                     double dx=q0[0]-q1[0], dy=q0[1]-q1[1], dz=q0[2]-q1[2];
                     double d2 = dx*dx + dy*dy + dz*dz;
-                    if (d2 > min_distance*min_distance) {
+                    if (!std::isfinite(d2) || d2 > min_distance*min_distance) {
                         continue;
                     }
                     uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
@@ -107,31 +140,14 @@ void beam_volumes_pipeline(
     int n_pairs = 0, n_success = 0, n_failed = 0;
     int counts[6] = {0,0,0,0,0,0};
 
-    // Collected rectangles per successful contact, in the same order as wood's
-    // `output_plines` (wood_test.cpp:3749-3752 → 4 rects per joint, each its
-    // own `polyline_group`). Written to `_meta.txt`/`_coords.txt` after the
-    // loop so the compare script can diff against wood's ref XML.
     std::vector<std::array<Polyline, 4>> joint_rects;
     joint_rects.reserve(contacts.size());
 
-    // Detected joints + their axis-space contact points (p0, p1). Wood's
-    // post-detection eccentricity-scaling step (`wood_main.cpp:2591-2630`)
-    // uses distance(p0, p1) vs. beam radii to pre-scale joint.scale so the
-    // unit-cube → world transform doesn't stretch teeth when the two beam
-    // axes don't intersect exactly.
-    std::vector<WoodJoint> all_joints;
-    std::vector<std::array<Point, 2>> point_pairs;
-    std::vector<std::array<int, 2>> axis_ids;  // (pid0, pid1) per joint
-    all_joints.reserve(contacts.size());
-    point_pairs.reserve(contacts.size());
-    axis_ids.reserve(contacts.size());
-
-    // ── Pass 2: per-contact rectangle generation + joint detection ────────
-    for (auto& [id, c] : contacts) {
-        (void)id;
+    for (const auto& entry : contacts) {
+        const auto& c = entry.second;
         n_pairs++;
-        auto pa_pts = axes[c.pid0].get_points();
-        auto pb_pts = axes[c.pid1].get_points();
+        const auto& pa_pts = all_axis_pts[c.pid0];
+        const auto& pb_pts = all_axis_pts[c.pid1];
         Line s0 = Line::from_points(pa_pts[c.sid0], pa_pts[c.sid0+1]);
         Line s1 = Line::from_points(pb_pts[c.sid1], pb_pts[c.sid1+1]);
 
@@ -147,8 +163,6 @@ void beam_volumes_pipeline(
             type0, type1, is_parallel);
         if (!ok) { n_failed++; continue; }
 
-        // allowed_types filter: 0 = end-only (sum=0); 1 = cross/side-to-end
-        // (sum=1 or 2); -1 = all. Same as wood_main.cpp:2392-2404.
         auto is_valid = [](int sum, int allowed) {
             switch (allowed) {
                 case 0:  return sum == 0;
@@ -171,11 +185,6 @@ void beam_volumes_pipeline(
             }
         }
 
-        // Rectangle generation. The prism reference z-axis is the caller-
-        // supplied segment direction when present, else the contact normal.
-        // Caller-supplied per-axis arrays are input: a segment_direction or
-        // segment_radii list shorter than the contact ids was a raw OOB
-        // read. The eccentricity pass below already distrusts the same data.
         auto seg_dir_ok = [&](int pid, int sid) {
             return !segment_direction.empty() &&
                    pid >= 0 && pid < (int)segment_direction.size() &&
@@ -190,6 +199,12 @@ void beam_volumes_pipeline(
         Vector sn1 = seg_dir_ok(c.pid1, c.sid1) ? segment_direction[c.pid1][c.sid1] : normal;
         double r0 = seg_rad(c.pid0, c.sid0);
         double r1 = seg_rad(c.pid1, c.sid1);
+        if (!(r0 > 0.0) || !(r1 > 0.0) || !std::isfinite(r0) || !std::isfinite(r1) ||
+            !(volume_length > 0.0) || !std::isfinite(volume_length) ||
+            !has_valid_frame(v0, sn0) || !has_valid_frame(v1, sn1)) {
+            n_failed++;
+            continue;
+        }
 
         std::array<Polyline, 4> beam_vol;
         Polyline::two_rects_from_frame(
@@ -198,13 +213,6 @@ void beam_volumes_pipeline(
         Polyline::two_rects_from_frame(
             p1, v1, sn1, type1 == 1, r1, volume_length, flip_male,
             beam_vol[2], beam_vol[3]);
-
-        // Trim rectangles by bisecting planes (wood_main.cpp:2445-2555).
-        std::array<Point, 4> ip;
-        auto seg_plane = [](const Point& a, const Point& b, const Plane& pl, Point& out) {
-            Line ln = Line::from_points(a, b);
-            Intersection::line_plane(ln, pl, out, /*is_finite*/ false);
-        };
 
         if (sum == 0) {
             Point pm((p0[0]+p1[0])*0.5, (p0[1]+p1[1])*0.5, (p0[2]+p1[2])*0.5);
@@ -223,21 +231,10 @@ void beam_volumes_pipeline(
             for (int lid = 0; lid < 2; lid++) {
                 int shift = lid == 0 ? 0 : 2;
                 const Plane& cutpl = lid == 0 ? cut_plane0 : cut_plane1;
-                auto p00 = beam_vol[0+shift].get_points();
-                auto p01 = beam_vol[1+shift].get_points();
-                seg_plane(p00[0], p00[1], cutpl, ip[0]);
-                seg_plane(p00[3], p00[2], cutpl, ip[1]);
-                seg_plane(p01[0], p01[1], cutpl, ip[2]);
-                seg_plane(p01[3], p01[2], cutpl, ip[3]);
-                if (cutpl.has_on_negative_side(p00[0])) {
-                    p00[0] = ip[0]; p00[3] = ip[1]; p00[4] = p00[0];
-                    p01[0] = ip[2]; p01[3] = ip[3]; p01[4] = p01[0];
-                } else {
-                    p00[1] = ip[0]; p00[2] = ip[1];
-                    p01[1] = ip[2]; p01[2] = ip[3];
+                if (!compute_trimmed_rectangles(beam_vol[shift], beam_vol[shift + 1], cutpl)) {
+                    ok = false;
+                    break;
                 }
-                beam_vol[0+shift] = Polyline(p00);
-                beam_vol[1+shift] = Polyline(p01);
             }
         } else if (sum == 1) {
             int closer_rect, farrer_rect;
@@ -269,34 +266,19 @@ void beam_volumes_pipeline(
                 cutpl = Plane::from_point_normal(rorig2, nneg);
             }
             int shift = type0 == 0 ? 0 : 2;
-            auto p00 = beam_vol[0+shift].get_points();
-            auto p01 = beam_vol[1+shift].get_points();
-            seg_plane(p00[0], p00[1], cutpl, ip[0]);
-            seg_plane(p00[3], p00[2], cutpl, ip[1]);
-            seg_plane(p01[0], p01[1], cutpl, ip[2]);
-            seg_plane(p01[3], p01[2], cutpl, ip[3]);
-            if (cutpl.has_on_negative_side(p00[0])) {
-                p00[0] = ip[0]; p00[3] = ip[1]; p00[4] = p00[0];
-                p01[0] = ip[2]; p01[3] = ip[3]; p01[4] = p01[0];
-            } else {
-                p00[1] = ip[0]; p00[2] = ip[1];
-                p01[1] = ip[2]; p01[2] = ip[3];
-            }
-            beam_vol[0+shift] = Polyline(p00);
-            beam_vol[1+shift] = Polyline(p01);
+            ok = compute_trimmed_rectangles(beam_vol[shift], beam_vol[shift + 1], cutpl);
         }
-        // sum == 2 (cross): no trimming — both beams pass through.
+        if (!ok) {
+            n_failed++;
+            continue;
+        }
 
-        // Serialize the 4 (possibly trimmed) rectangles for viz.
         for (int k = 0; k < 4; k++) {
             auto rect = std::make_shared<Polyline>(beam_vol[k]);
             rect->name = fmt::format("beam_{}_{}_rect{}", c.pid0, c.pid1, k);
             session.add_polyline(rect, g_vols);
         }
 
-        // Build wood elements from the rectangle pairs and run the existing
-        // plate-style face_to_face detector. [0,1] = beam 0 top/bottom at
-        // the joint; [2,3] = beam 1.
         WoodElement el0(beam_vol[0], beam_vol[1]);
         WoodElement el1(beam_vol[2], beam_vol[3]);
 
@@ -335,48 +317,8 @@ void beam_volumes_pipeline(
         }
 
         joint_rects.push_back(beam_vol);
-        all_joints.push_back(std::move(jt));
-        point_pairs.push_back({p0, p1});
-        axis_ids.push_back({c.pid0, c.pid1});
     }
 
-    // ── Eccentricity-scale joints. Ports wood_main.cpp:2591-2630.
-    //   L = 0.5·|p0 - p1|  (half axis-to-axis distance at contact)
-    //   r_max = 0.5·(r0 + r1)
-    //   scale_value = cos(asin(1 - min((r_max - L)/r_max, 1)))  if L > 0.01
-    //                else 1
-    //   joint.scale = {scale_value, scale_value, 1}
-    // Scale is consumed by joint_create_geometry's unit-cube transform; when
-    // joints aren't dispatched it's still set for algorithm parity with wood.
-    for (size_t i = 0; i < all_joints.size(); i++) {
-        double dx = point_pairs[i][0][0] - point_pairs[i][1][0];
-        double dy = point_pairs[i][0][1] - point_pairs[i][1][1];
-        double dz = point_pairs[i][0][2] - point_pairs[i][1][2];
-        double L = 0.5 * std::sqrt(dx*dx + dy*dy + dz*dz);
-        double scale_value = 1.0;
-        if (L > 0.01) {
-            int p0_id = axis_ids[i][0];
-            int p1_id = axis_ids[i][1];
-            double r0 = segment_radii[p0_id].empty() ? 0.0 : segment_radii[p0_id][0];
-            double r1 = segment_radii[p1_id].empty() ? 0.0 : segment_radii[p1_id][0];
-            double max_r = 0.5 * (r0 + r1);
-            if (max_r > 0.0) {
-                double v = (max_r - L) / max_r;
-                scale_value = std::cos(std::asin(1.0 - std::min(v, 1.0)));
-            }
-        }
-        all_joints[i].scale[0] = scale_value;
-        all_joints[i].scale[1] = scale_value;
-        all_joints[i].scale[2] = 1.0;
-    }
-
-    // Meta + coords dump. Two sections:
-    //   elements 0..N-1         = input beam axes (one element per axis,
-    //                             one polyline per axis)
-    //   elements N..N+4*J-1     = joint rectangles (one element per rect to
-    //                             match wood's `output_plines` granularity
-    //                             where each CGAL_Polyline gets its own
-    //                             `polyline_group` — wood_test.cpp:3749-3752)
     if (std::getenv("WOOD_F2F_DUMP") != nullptr) {
         std::ofstream meta_out((base / (pb_name + "_meta.txt")).string());
         std::ofstream coord_out((base / (pb_name + "_coords.txt")).string());
@@ -410,4 +352,3 @@ void beam_volumes_pipeline(
                    counts[0], counts[1], counts[2], counts[3], counts[4], counts[5]);
     }
 }
-

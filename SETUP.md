@@ -19,15 +19,8 @@ cmake --build build --config Release --target main_translation_shell
 The first configure downloads protobuf + abseil (needs internet, several
 minutes). See `README.md` for the full target list.
 
-Submodules must be present — they were initialised at clone time:
-
-```bash
-git submodule update --init --recursive
-```
-
-`cmake/ext/session_cpp` and its nested `session_data` / `session_proto` are
-pinned submodules; their `.git` files use relative paths, so moving the repo is
-safe.
+The kernel is not a submodule of this repo: `CMakeLists.txt` resolves it as
+`../session/session_cpp` (or `-DSESSION_CPP_LOCAL=<dir>`), see `README.md`.
 
 ## VS Code / IntelliSense
 
@@ -35,9 +28,7 @@ Include resolution comes entirely from the CMake compile database — the repo
 sets `CMAKE_EXPORT_COMPILE_COMMANDS ON`, so `cmake -B build` writes
 `build/compile_commands.json`. Both editors are already pointed at it:
 
-- `.vscode/c_cpp_properties.json` — the **Linux** configuration sets
-  `compileCommands`. Pick it via *C/C++: Select a Configuration*. (The second
-  entry, *Win32 (legacy cmake/ tree)*, serves the old `cmake/` sources only.)
+- `.vscode/c_cpp_properties.json` — sets `compileCommands`.
 - `.clangd` — points clangd at `build/`.
 - `compile_commands.json` in the repo root is a symlink into `build/`, for
   tools that only look there. It is gitignored; recreate with
@@ -69,7 +60,6 @@ That covers every third-party import in the repo's scripts:
 |---|---|
 | `src/templates/temp/pb_to_3dm.py` | `rhino3dm`, `session_py` — converts a `.pb` scene into a Rhino `.3dm` |
 | `src/templates/temp/chevron_ref.py` | `numpy` |
-| `cmake/fix_joint_lib*.py` | stdlib only (`re`, `json`, …) |
 
 Run one with:
 
@@ -79,12 +69,8 @@ uv run python src/templates/temp/pb_to_3dm.py
 
 ## Not Python
 
-Two other toolchains live in this repo and are unrelated to the venv:
-
-- `bash/` — shell drivers (`cpp.sh`, `wood_test.sh`).
-- `cmake/wood_test/` — a **Node/Vite** test viewer with its own `package.json`
-  and a committed `node_modules/`. Use `npm`, not pip. The `wasm` hits in there
-  are tree-sitter/esbuild internals, nothing to do with wood.
+- `bash/cpp.sh` — shell driver for the C++ build.
+- `tools/run_guarded.sh` / `.ps1` — the run guard every solver run goes through (`CLAUDE.md`).
 
 ## Relationship to the other two repos
 

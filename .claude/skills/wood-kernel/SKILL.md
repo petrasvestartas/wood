@@ -12,7 +12,7 @@ argument-hint: [add-joint | migrate <feature> | debug <symptom> | pipeline | <qu
 
 ## Instructions for Claude
 
-First read `memory/wood_kernel.md`. It documents the legacy CGAL tree under `cmake/src/wood/include/`; the current port is `src/joinery_solver/` with the same file names. Cite the current file unless the question is about the migration.
+First read `memory/wood_kernel.md`. It was written against the old CGAL tree, since deleted; the code is `src/joinery_solver/` with the same file names. Cite those files.
 
 Then dispatch on the argument:
 
@@ -23,7 +23,7 @@ Then dispatch on the argument:
 Produce a formatted architecture map with these 5 sections:
 
 **1. Entry Point**
-- `cmake/main.cpp` — arg parsing, test/shape selector
+- `examples/*.cpp` — one `main` per example; `main_dataset_runner.cpp` runs one dataset, `main_all_datasets.cpp` all 44 (guarded)
 - Key global flags: `OUTPUT_GEOMETRY_TYPE`, `DATA_SET_INPUT_FOLDER`
 
 **2. Detection Pipeline (9 steps)**
@@ -37,7 +37,7 @@ Show the 7-group table (detected type | group | slot range | category | example 
 XML → polyline_pairs → elements → joint detection → unit-box geometry → orient → XML/protobuf output
 
 **5. File Navigator**
-Key files (current tree; the legacy copies sit under `cmake/src/wood/include/`):
+Key files:
 - Detection: `src/joinery_solver/wood_main.cpp`
 - Joint library: `src/joinery_solver/wood_joint_lib.h`
 - Data types: `src/joinery_solver/wood_element.h`, `wood_joint.h`, `wood_cut.h`
@@ -83,12 +83,11 @@ void ss_e_ip_N(wood::joint& j) {
 
 ### `migrate <feature>`
 
-Steps:
-1. Grep `cmake/src/wood/include/` for CGAL uses in the named feature: `IK::`, `CGAL::`, `CGAL_Polyline`, `cgal_*_util`
-2. Group results by: type predicates | geometric algorithms | data structures
-3. Find session_cpp equivalent in `cmake/ext/session_cpp/src/`
-4. Produce before/after pattern showing the replacement
-5. Flag: precision differences, linking implications (proto_objects), typedef conflicts
+The CGAL migration is finished: `src/joinery_solver/` is CGAL-free and only comments still
+name CGAL functions (`grep -rn CGAL src/joinery_solver`). Use this mode for a feature that
+still exists only in git history: `git log --all --oneline -- cmake/src/wood/include/<file>`
+and `git show <sha>:cmake/src/wood/include/<file>` to read the old CGAL version, then port
+it against `../session/session_cpp/src/` with the naming rules in `session-format`.
 
 ---
 
@@ -117,7 +116,7 @@ For any symptom not in the table, search `memory/wood_kernel.md` Section 10 and 
 
 Produce the annotated 9-step trace. For each step show:
 - Step name
-- File: `cmake/src/wood/include/wood_main.cpp`
+- File: `src/joinery_solver/wood_main.cpp`
 - Function signature
 - Input → Output
 - Key algorithms used

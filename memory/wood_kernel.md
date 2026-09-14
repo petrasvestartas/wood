@@ -3,6 +3,10 @@
 Permanent architecture reference for the wood C++ timber joinery kernel.
 An AI can answer any architecture question from this file without reading source code.
 
+The layout below is the original CGAL tree (`cmake/`), deleted in 2026-09. The same files
+now live flat in `src/joinery_solver/`, without CGAL, and the kernel is `../session/session_cpp`.
+Sections 2-10 (pipeline, joint library, data types, constants) still describe the code.
+
 ---
 
 ## Section 1 — Repository Layout

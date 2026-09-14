@@ -1,7 +1,5 @@
-// wood/wood_joint.cpp — joint orientation, linking, and element-aware constructors.
-// Implementations of the functions declared in wood_joint.h.
 #include "wood_joint.h"
-#include "wood_session.h"  // CUSTOM_JOINTS_* externs read by ss_e_ip_2 inside the anon-namespaced wood_joint_lib.h
+#include "wood_session.h"
 #include "wood_cut.h"
 #include "../src/intersection.h"
 #include "../src/polyline.h"
@@ -123,103 +121,97 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
     }
 }
 
-// Port of wood_joint.cpp:418-510
-// remove_geo_from_linked_joint_and_merge_with_current_joint
-// Interleaves shadow joint outlines into the primary joint after both are oriented.
-void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
-    if (joint.linked_joints_seq.size() != joint.linked_joints.size()) { return; }
+namespace {
 
-    for (int i = 0; i < (int)joint.linked_joints.size(); i++) {
-        // linked_joints carries indices produced by an earlier pipeline
-        // stage; a stale or corrupted entry was raw operator[] UB while
-        // everything else in this file bounds-checks its element ids.
-        if (joint.linked_joints[i] < 0 ||
-            joint.linked_joints[i] >= (int)all_joints.size()) { continue; }
-        // wood: m_f_curr = v0 == linked.v0
-        bool m_f_curr = joint.element_a == all_joints[joint.linked_joints[i]].element_a;
-        bool m_f_next = m_f_curr;
-        if (i == 1) { m_f_next = !m_f_next; } // wood: invert for second link
-
-        // (true,true)=m[0], (true,false)=m[1], (false,true)=f[0], (false,false)=f[1]
-        auto& curr = m_f_curr ? joint.m_outlines : joint.f_outlines;
-        auto& next = m_f_next ? all_joints[joint.linked_joints[i]].m_outlines
-                               : all_joints[joint.linked_joints[i]].f_outlines;
-
-        if (joint.linked_joints_seq[i].size() * 2 != curr[0].size()) { continue; }
-
-        for (int j = 0; j < (int)curr[0].size(); j += 2) {
-            auto& seq      = joint.linked_joints_seq[i][j / 2];
-            int start_curr = seq[0];
-            int step_curr  = seq[1];
-            int start_next = seq[2];
-            int step_next  = seq[3];
-
-            if (start_curr == 0 && step_curr == 0 && start_next == 0 && step_next == 0) { continue; }
-            if (step_curr == 0 || step_next == 0) { continue; }
-
-            // wood always operates on [0] — the main outline of each face
-            auto pts_t  = curr[0][0].get_points(); // copy before curr is modified
-            auto pts_f  = curr[1][0].get_points();
-            auto npts_t = next[0][0].get_points();
-            auto npts_f = next[1][0].get_points();
-
-            std::vector<Point> m0, m1;
-            m0.reserve(pts_t.size() + npts_t.size());
-            m1.reserve(pts_f.size() + npts_f.size());
-
-            // begin shift (wood line 472)
-            m0.insert(m0.end(), pts_t.begin(), pts_t.begin() + start_curr);
-            m1.insert(m1.end(), pts_f.begin(), pts_f.begin() + start_curr);
-
-            // wood loop: k from start_curr while k < size - start_curr, step step_curr
-            int loop_limit = (int)pts_t.size() - start_curr;
-            for (int k = start_curr, it = 0; k < loop_limit; k += step_curr, it++) {
-                int half = step_curr / 2; // step_curr * 0.5 from wood (always even)
-                // current 1st half (wood line 479)
-                m0.insert(m0.end(),
-                    pts_t.begin() + start_curr + it * step_curr,
-                    pts_t.begin() + start_curr + it * step_curr + half);
-                m1.insert(m1.end(),
-                    pts_f.begin() + start_curr + it * step_curr,
-                    pts_f.begin() + start_curr + it * step_curr + half);
-                // linked insertion (wood line 485)
-                m0.insert(m0.end(),
-                    npts_t.begin() + start_next + it * step_next,
-                    npts_t.begin() + start_next + (it + 1) * step_next);
-                m1.insert(m1.end(),
-                    npts_f.begin() + start_next + it * step_next,
-                    npts_f.begin() + start_next + (it + 1) * step_next);
-                // current 2nd half (wood line 491)
-                m0.insert(m0.end(),
-                    pts_t.begin() + start_curr + it * step_curr + half,
-                    pts_t.begin() + start_curr + (it + 1) * step_curr);
-                m1.insert(m1.end(),
-                    pts_f.begin() + start_curr + it * step_curr + half,
-                    pts_f.begin() + start_curr + (it + 1) * step_curr);
-            }
-
-            // end shift (wood line 498)
-            m0.insert(m0.end(), pts_t.end() - start_curr, pts_t.end());
-            m1.insert(m1.end(), pts_f.end() - start_curr, pts_f.end());
-
-            curr[0][0] = Polyline(m0);
-            curr[1][0] = Polyline(m1);
+bool compute_linked_outline(
+    std::array<std::vector<Point>, 2>& current,
+    const std::array<std::vector<Point>, 2>& linked,
+    const std::array<int, 4>& sequence
+) {
+    if (sequence == std::array<int, 4>{0, 0, 0, 0})
+        return true;
+    if (sequence[0] < 0 || sequence[2] < 0 || sequence[1] <= 0 || sequence[3] <= 0)
+        return false;
+    const size_t start = sequence[0];
+    const size_t step = sequence[1];
+    const size_t offset = sequence[2];
+    const size_t stride = sequence[3];
+    if (start > current[0].size())
+        return false;
+    const size_t count = start < current[0].size() - start ? current[0].size() - 2 * start : 0;
+    const size_t iterations = count / step + (count % step != 0);
+    for (size_t i = 0; i < 2; ++i) {
+        if (start > current[i].size() || offset > linked[i].size())
+            return false;
+        if (iterations > (current[i].size() - start) / step ||
+            iterations > (linked[i].size() - offset) / stride)
+            return false;
+    }
+    std::array<std::vector<Point>, 2> result;
+    for (size_t i = 0; i < 2; ++i) {
+        result[i].insert(result[i].end(), current[i].begin(), current[i].begin() + start);
+        size_t position = start;
+        size_t index = offset;
+        for (size_t j = 0; j < iterations; ++j) {
+            result[i].insert(result[i].end(), current[i].begin() + position, current[i].begin() + position + step / 2);
+            result[i].insert(result[i].end(), linked[i].begin() + index, linked[i].begin() + index + stride);
+            result[i].insert(result[i].end(), current[i].begin() + position + step / 2, current[i].begin() + position + step);
+            position += step;
+            index += stride;
         }
+        result[i].insert(result[i].end(), current[i].end() - start, current[i].end());
+    }
+    current = std::move(result);
+    return true;
+}
 
-        // clear shadow geometry (wood line 507)
+}
+
+void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
+    if (joint.linked_joints_seq.size() != joint.linked_joints.size())
+        return;
+    for (size_t i = 0; i < joint.linked_joints.size(); ++i) {
+        const int index = joint.linked_joints[i];
+        if (index < 0 || static_cast<size_t>(index) >= all_joints.size())
+            continue;
+        WoodJoint& linked = all_joints[index];
+        if (&linked == &joint)
+            continue;
+        const bool male = joint.element_a == linked.element_a;
+        const bool side = i == 1 ? !male : male;
+        auto& current = male ? joint.m_outlines : joint.f_outlines;
+        auto& next = side ? linked.m_outlines : linked.f_outlines;
+        if (current[0].empty() || current[1].empty() || next[0].empty() || next[1].empty())
+            continue;
+        if (current[0].size() % 2 != 0 || joint.linked_joints_seq[i].size() != current[0].size() / 2)
+            continue;
+        std::array<std::vector<Point>, 2> points{current[0][0].get_points(), current[1][0].get_points()};
+        const std::array<std::vector<Point>, 2> addition{next[0][0].get_points(), next[1][0].get_points()};
+        bool valid = true;
+        for (const auto& sequence : joint.linked_joints_seq[i]) {
+            if (!compute_linked_outline(points, addition, sequence)) {
+                valid = false;
+                break;
+            }
+        }
+        if (!valid)
+            continue;
+        current[0][0] = Polyline(points[0]);
+        current[1][0] = Polyline(points[1]);
         next[0].clear();
         next[1].clear();
     }
 }
 
-// Compute divisions from joint line length and division_distance.
 void joint_get_divisions(WoodJoint& joint, double division_distance) {
     joint.division_length = division_distance;
-    if (joint.joint_lines[0].squared_length() > 1e-10) {
-        joint.length = std::sqrt(joint.joint_lines[0].squared_length());
-        joint.divisions = std::max(1, std::min(100,
-            (int)std::ceil(joint.length / division_distance)));
-    }
+    const double length = joint.joint_lines[0].squared_length();
+    if (!std::isfinite(length) || length <= 1e-10)
+        return;
+    joint.length = std::sqrt(length);
+    joint.divisions = division_distance > 0.0
+        ? static_cast<int>(std::clamp(std::ceil(joint.length / division_distance), 1.0, 100.0))
+        : 1;
 }
 
 void side_removal_ss_e_r_1_port(WoodJoint& joint,

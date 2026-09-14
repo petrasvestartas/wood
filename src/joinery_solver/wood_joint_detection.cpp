@@ -438,7 +438,7 @@ bool plane_to_face(
     Vector helper = (std::fabs(lMin_z[0]) < 0.9) ? Vector(1, 0, 0) : Vector(0, 1, 0);
     Vector mid_x = helper.cross(lMin_z); mid_x.normalize_self();
     Vector mid_y = lMin_z.cross(mid_x);  mid_y.normalize_self();
-    Plane midPlane(lMin_mid, mid_x, mid_y, lMin_z);
+    Plane midPlane(lMin_mid, mid_x, mid_y);
 
     // 8. Extension vector v.
     Point midPlane_lMax;

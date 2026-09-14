@@ -1,62 +1,37 @@
 #!/usr/bin/env bash
-# Build and run every wood executable.
-# Usage:
-#   ./bash/cpp.sh              # Build all + run every main_wood_*
-#   ./bash/cpp.sh main_wood_fold_1  # Build all + run only the listed exe
-#   ./bash/cpp.sh --clean      # Force cmake reconfigure
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/lib/common.sh"
+root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$root"
 
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-CPP_DIR="$REPO_ROOT"
-FORCE_CLEAN=false
-TARGETS=()
-
+clean=false
+targets=()
 for arg in "$@"; do
-    case $arg in
-        --clean|-c) FORCE_CLEAN=true ;;
-        *)          TARGETS+=("$arg") ;;
+    case "$arg" in
+        --clean|-c) clean=true ;;
+        *) targets+=("$arg") ;;
     esac
 done
 
-cd "$CPP_DIR"
-
-PLATFORM=$(detect_platform)
-JOBS=$(get_jobs)
-
-if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
-    log_lang "cpp" "Configuring CMake..."
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step|absl|abseil" || true
+if [[ ${#targets[@]} -eq 0 ]]; then
+    targets=(main_dataset_runner)
 fi
 
-log_lang "cpp" "Building..."
-if [[ "$PLATFORM" == "windows" ]]; then
-    cmake --build build --config Release --parallel "${JOBS}" 2>&1 | awk '!seen[$0]++' || true
-    BIN_DIR="build/Release"
-    EXE_EXT=".exe"
-else
-    cmake --build build --config Release -- -j"${JOBS}"
-    BIN_DIR="build"
-    EXE_EXT=""
+if [[ ! -f build/CMakeCache.txt || "$clean" == true ]]; then
+    tools/run_guarded.sh -m 6 -n wood-build -- cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 fi
+tools/run_guarded.sh -m 6 -n wood-build -- cmake --build build --config Release --parallel 4 --target "${targets[@]}"
 
-if [[ ${#TARGETS[@]} -eq 0 ]]; then
-    while IFS= read -r f; do
-        name=$(basename "$f" "$EXE_EXT")
-        TARGETS+=("$name")
-    done < <(ls "$BIN_DIR"/main_wood_*"$EXE_EXT" 2>/dev/null | sort)
-fi
-
-for t in "${TARGETS[@]}"; do
-    EXE="$BIN_DIR/${t}${EXE_EXT}"
-    if [[ ! -x "$EXE" && ! -f "$EXE" ]]; then
-        log_lang "cpp" "Skipping ${t}: ${EXE} not found"
-        continue
+for target in "${targets[@]}"; do
+    executable="build/$target"
+    if [[ -f "build/Release/$target.exe" ]]; then
+        executable="build/Release/$target.exe"
+    elif [[ -f "build/$target.exe" ]]; then
+        executable="build/$target.exe"
     fi
-    log_lang "cpp" "Running ${t}..."
-    if ! "$EXE"; then
-        log_lang "cpp" "${t} failed (exit=$?), continuing"
-    fi
+    tools/run_guarded.sh -n wood-solver -- "$executable"
 done
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Usage: bash bash/cpp.sh [--clean] [target ...]
+# ═══════════════════════════════════════════════════════════════════════════

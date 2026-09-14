@@ -1,31 +1,27 @@
-// ─── ss_e_op_5 ──────────────────────────────────────────────────────────────
-// Verbatim port of wood_joint_lib.cpp:2194-2270. Joint linking constructor.
-// If no linked_joints → falls back to ss_e_op_4 with chamfer.
-// Otherwise generates geometry for self AND linked shadow joints.
 static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool disable_joint_divisions) {
     jo.name = "ss_e_op_5";
     if (jo.linked_joints.empty() || jo.linked_joints.size() > 2) {
+        jo.linked_joints_seq.clear();
         ss_e_op_4(jo, 0.00, true, true, -0.75, 0.5, -0.5, 0.5, -0.5, 0.5);
         return;
     }
 
+    for (const int index : jo.linked_joints)
+        if (index < 0 || static_cast<size_t>(index) >= all_joints.size() || &all_joints[index] == &jo)
+            return;
+    jo.linked_joints_seq.clear();
     ss_e_op_4(jo, 0.00, false, true, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-    // Create geometry for linked joint 0
     int a = 0;
     int b = 1;
-    if (jo.linked_joints[a] < 0 ||
-        jo.linked_joints[a] >= (int)all_joints.size()) { return; }
     all_joints[jo.linked_joints[a]].divisions = jo.divisions;
     ss_e_op_4(all_joints[jo.linked_joints[a]], 0.5, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-    // Set linking sequence for joint 0
     std::vector<std::array<int, 4>> linked_joints_seq_0;
     linked_joints_seq_0.push_back({2, 4, 2, 8});
     jo.linked_joints_seq.push_back(linked_joints_seq_0);
 
     if (jo.linked_joints.size() == 2) {
-        // Create geometry for linked joint 1
         all_joints[jo.linked_joints[b]].divisions = disable_joint_divisions ? 0 : jo.divisions;
         ss_e_op_4(all_joints[jo.linked_joints[b]], 0.00, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 

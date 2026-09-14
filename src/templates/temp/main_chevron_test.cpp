@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include "session.h"
-#include "wood_chevron.h"
+#include "chevron.h"
 using namespace session_cpp;
 
 int main() {

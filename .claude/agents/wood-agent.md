@@ -14,12 +14,11 @@ You are a specialist agent for the wood C++ timber joinery kernel (this reposito
 ## Read Before Starting
 
 1. `CLAUDE.md` — run guard, one-run-at-a-time rule, trace flags
-2. `memory/wood_kernel.md` — architecture reference (10 sections). It describes the legacy
-   CGAL tree under `cmake/src/wood/include/`; the current, CGAL-free port lives in
-   `src/joinery_solver/` with the same file names (`wood_main.cpp`, `wood_joint_lib.h`,
-   `wood_element.h`, `wood_joint.h`, `wood_cut.h`, `wood_globals.cpp`, `wood_face_to_face.*`,
-   `wood_session.*`) and the kernel comes from `../session/session_cpp`. Answer from the
-   current tree; use `cmake/` only for the CGAL migration protocols.
+2. `memory/wood_kernel.md` — architecture reference (10 sections), written against the old
+   CGAL tree, which has been deleted; the code is `src/joinery_solver/` with the same file
+   names (`wood_main.cpp`, `wood_joint_lib.h`, `wood_element.h`, `wood_joint.h`, `wood_cut.h`,
+   `wood_globals.cpp`, `wood_face_to_face.*`, `wood_session.*`) and the kernel comes from
+   `../session/session_cpp`. CGAL survives only in comments; Protocols 1 and 3 are history.
 
 ## Expertise Domains
 
@@ -109,7 +108,7 @@ When asked to analyse why the pipeline produces wrong output:
    - Empty m[]/f[] arrays → Step 7 (construct_joint_by_index)
    - Wrong geometry shape → Step 7 (joint lib function) or orientation step
    - No output → Step 8/9 (get_joints_geometry / write_xml)
-2. Read that step in `src/joinery_solver/wood_main.cpp` (legacy: `cmake/src/wood/include/wood_main.cpp`)
+2. Read that step in `src/joinery_solver/wood_main.cpp`
 3. Check relevant `wood::GLOBALS` tolerances: `DISTANCE=0.1`, `ANGLE=0.11`
 4. Check `JOINTS_TYPES` sign on the element faces involved
 5. Trace type assignment: what type was detected, what type was requested

@@ -101,12 +101,13 @@ int main() {
 
     BlockElement block(std::vector<Polyline>{bottom, top});
     block.element->name = "two_loops";
+    const std::string block_guid = block.element->guid();
     const BlockElement block_pb = BlockElement::pb_loads(block.pb_dumps());
     const BlockElement block_js = BlockElement::file_json_loads(block.file_json_dumps());
     check(block_pb.polylines.size() == 2 && block_pb.planes.size() == 2 &&
-          block_pb.element->guid() == block.element->guid() && block_pb.element->name == "two_loops",
+          block_pb.element->guid() == block_guid && block_pb.element->name == "two_loops",
           "BlockElement pb: loops, planes, identity, name");
-    check(block_js.polylines.size() == 2 && block_js.element->guid() == block.element->guid(),
+    check(block_js.polylines.size() == 2 && block_js.element->guid() == block_guid,
           "BlockElement json");
 
     std::filesystem::remove(path);
@@ -117,5 +118,5 @@ int main() {
 description: one plate -> Session -> pb round trip -> Element fields and WoodElement::from_element checked; prints only what differs, exit code = failures.
 
 directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_element_mapping_check -j8 && ./build/main_element_mapping_check
+run: bash bash/cpp.sh main_element_mapping_check
 */

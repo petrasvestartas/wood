@@ -574,7 +574,7 @@ WoodElement::WoodElement(const Polyline& bot, const Polyline& top, const std::st
         sb1.normalize_self();
         sb2.normalize_self();
         snv.normalize_self();
-        planes[2+j] = Plane(side_origin, sb1, sb2, snv);
+        planes[2+j] = Plane(side_origin, sb1, sb2);
         polylines[2+j] = Polyline(std::vector<Point>{
             pp0[j], pp0[j+1], pp1[j+1], pp1[j], pp0[j]});
     }

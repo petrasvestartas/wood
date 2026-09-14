@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include "session.h"
-#include "wood_chevron.h"
+#include "chevron.h"
 using namespace session_cpp;
 
 // Write joinery txt files consumed by get_connection_zones().
