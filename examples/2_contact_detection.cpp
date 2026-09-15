@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int DATASET = 20;                 // globals::DATASET_NAMES
+const int DATASET = 19;                 // globals::DATASET_NAMES
 
 int main() {
 
@@ -28,12 +28,18 @@ int main() {
 }
 
 /*
-description: one dataset by index -> face contacts between its elements, or the joints the solver makes between its plates, each on the graph edge of its pair -> drawn as the elements' bottom and top outlines with one colored ring per contact or joint type..
+|||||||| DESCRIPTION ||||||||
+Compute contacts between wood elements in a dataset.
 
-directory: cd "$(git rev-parse --show-toplevel)"
-configure: cmake -S . -B build
-build:  cmake --build build --config Release --parallel
-run: ./build/2_contact_detection
-cloudflare: bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 2_contact_detection
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/2_contact_detection && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 2_contact_detection
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

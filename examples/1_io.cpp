@@ -20,12 +20,18 @@ int main() {
 }
 
 /*
-description: WoodSession serialization example.
+|||||||| DESCRIPTION ||||||||
+WoodSession serialization example.
 
-directory: cd "$(git rev-parse --show-toplevel)"
-configure: cmake -S . -B build
-build:  cmake --build build --config Release --parallel
-run: ./build/1_io
-cloudflare: bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 1_io
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/1_io && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 1_io
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

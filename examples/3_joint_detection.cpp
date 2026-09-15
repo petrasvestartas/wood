@@ -3,8 +3,8 @@
 using namespace wood_session;
 
 // globals::Dataset::Face::<name> for SEARCH = face_to_face, ::Cross::<name> for cross_joint.
-const std::string DATASET = globals::Dataset::Cross::cross_corners;
-const SearchType SEARCH = cross_joint;  // face_to_face | cross_joint | face_to_face_then_cross
+const std::string DATASET = globals::Dataset::inplane_hilti;
+const SearchType SEARCH = SearchType::face_to_face;  // face_to_face | cross_joint | face_to_face_then_cross <- these must be part of dataset, so we wont type that.
 
 int main() {
 
@@ -21,7 +21,7 @@ int main() {
     // dihedral angle
     // male/female orientation
     // joint volume and cut geometry
-    wood_session.compute_joints(face_to_face);
+    wood_session.compute_joints(SEARCH);
 
     // TODO: view.add_contacts_by_type | view.add_outlines | view.pb_dump
     // side-side, out-of-plane        orange    11
@@ -37,16 +37,18 @@ int main() {
 }
 
 /*
-description: one dataset by name -> get_connection_zones over its plates -> every joint the
-solver refined (cut volumes, insertion vectors, male/female outlines, linked joints), each on
-the graph edge of its pair, drawn as one group per joint_type. The raw contact preview this
-detail is refined from - no cut geometry, just where elements touch or cross - is
-2_contact_detection.cpp instead.
+|||||||| DESCRIPTION ||||||||
+Compute joints between wood elements in a dataset.
 
-directory: cd "$(git rev-parse --show-toplevel)"
-configure: cmake -S . -B build
-build:  cmake --build build --config Release --parallel
-run: ./build/3_joint_detection
-cloudflare: bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 3_joint_detection
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/3_joint_detection && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 3_joint_detection
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */
