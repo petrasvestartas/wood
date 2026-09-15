@@ -557,18 +557,21 @@ std::string joint_type_name(int joint_type) {
 //   #e07a26 orange #e8ac00 yellow #a83179 deep pink
 Color contact_color(ContactType type) {
     switch (type) {
-        case ContactType::side_side: return Color(0.102f, 0.118f, 0.698f, 1.0f, "ss_navy");
-        case ContactType::side_top:  return Color(0.808f, 0.251f, 0.584f, 1.0f, "ts_pink");
-        case ContactType::top_top:   return Color(0.247f, 0.612f, 0.125f, 1.0f, "tt_green");
+        // Use the joint palette for the corresponding coarse contact class.
+        // A contact does not yet know whether side-side will refine to 11, 12,
+        // or 13, so 12 is the representative side-side colour.
+        case ContactType::side_side: return joint_color(12);
+        case ContactType::side_top:  return joint_color(20);
+        case ContactType::top_top:   return joint_color(40);
         // Same yellow as joint_color(30): a cross contact previews the same crossing a
         // solved type-30 joint would refine.
-        case ContactType::cross:     return Color(0.910f, 0.675f, 0.000f, 1.0f, "cross_yellow");
+        case ContactType::cross:     return joint_color(30);
         case ContactType::line:      return Color(0.086f, 0.635f, 0.667f, 1.0f, "line_teal");
         case ContactType::unknown:   break;
     }
     // BRG's "zero" - a member that is neither in compression nor tension. A contact the
     // detector could not classify is the same statement, so it gets the same colour.
-    return Color(0.725f, 0.725f, 0.741f, 1.0f, "unknown_zero");
+    return joint_color(-1);
 }
 
 /// Same palette, and deliberately the same hue per contact class: a joint keeps the colour
@@ -629,10 +632,14 @@ void add_contacts_by_type(Session& session, const std::vector<ContactPair>& cont
             const std::string label = fmt::format("{}_{}", prefix, contact_type_name(contact.type));
             auto it = groups.find(label);
             if (it == groups.end()) { it = groups.emplace(label, session.add_group(label)).first; }
-            session.add_polyline(ring(contact.area, contact_color(contact.type),
-                                      fmt::format("contact_{}_{}_f{}_{}", pair.element_a, pair.element_b,
-                                                  contact.face_a, contact.face_b)),
-                                 it->second);
+
+            auto polylines = std::vector<std::vector<session_cpp::Point>>{contact.area.get_points()};
+            auto mesh = std::make_shared<Mesh>( Mesh::from_polylines(polylines) );
+            mesh->name = fmt::format("contact_{}_{}_f{}_{}", pair.element_a, pair.element_b, contact.face_a, contact.face_b);
+            mesh->set_objectcolor(contact_color(contact.type));
+            session.add_mesh(mesh, it->second);
+
+
         }
     }
 }

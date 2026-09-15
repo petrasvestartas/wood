@@ -642,7 +642,8 @@ std::filesystem::path pb_dump(const WoodSession& scene, const std::string& name 
 //                             ->  joint 13 ss rotated       deep pink
 //   contact side_top   pink   ->  joint 20 top-to-side      pink
 //   contact top_top    green  ->  joint 40 top-to-top       green
-//   contact unknown    grey   ->  joint 30 cross            yellow
+//   contact cross      yellow ->  joint 30 cross            yellow
+//   contact unknown    grey   ->  no joint equivalent
 //
 // Colors are floats in [0,1]. session_cpp::Color clamps to that range, so an 0-255 literal
 // silently saturates to white.
