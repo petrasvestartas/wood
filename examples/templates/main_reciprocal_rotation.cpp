@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "src/templates/reciprocal_rotation.h"
 
 const char* OUTPUT = "data/templates/reciprocal_dome.json";

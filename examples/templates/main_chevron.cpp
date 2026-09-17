@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "src/templates/chevron.h"
 
 const char* OUTPUT = "data/templates/chevron_mesh.json";

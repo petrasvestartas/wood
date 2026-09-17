@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "wood_joint.h"
 #include "wood_session.h"
 #include "wood_cut.h"

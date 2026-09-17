@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "wood_element_plate.h"
 #include "wood_session.h"
 

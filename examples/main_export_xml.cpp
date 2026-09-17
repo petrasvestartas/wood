@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "pair_polylines.h"
 #include "wood_session.h"
 

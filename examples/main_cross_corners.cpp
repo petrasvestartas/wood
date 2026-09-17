@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "wood_session.h"
 using namespace session_cpp;
 using namespace wood_session;

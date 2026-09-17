@@ -1,4 +1,3 @@
-#include "wood_pch.h"
 #include "../src/joinery_solver/wood_session.h"
 
 using namespace session_cpp;
