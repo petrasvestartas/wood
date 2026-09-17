@@ -10,56 +10,34 @@
 
 namespace wood_session {
 namespace globals {
-    // ── Joint algorithm tunables (pipeline reads these every run) ─────────
-    /// Flat array of joint-family parameters; read as consecutive triples (i*3+0, i*3+1, i*3+2):
-    ///   [i*3+0] division_length — spacing between fingers/notches along the joint line (mm)
-    ///   [i*3+1] shift           — lateral offset of the joint pattern (mm); 0 = centred
-    ///   [i*3+2] joint_type_id   — selects the joint geometry variant (e.g. 1=zigzag, 12=ss_e_op_0)
-    /// Family indices: 0 = ss_e_ip (in-plane), 1 = ss_e_op (out-of-plane), 2–6 = ts/cr/tt/b/ss_e_r families.
+    /// Joint-family triples [division_length (mm), shift, joint_type_id]; families 0=ss_e_ip 1=ss_e_op 2=ts_e_p 3=cr_c_ip 4=tt_e_p 5=ss_e_r 6=b.
     extern std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
 
-    /// Additive extension of joint cut volumes (mm); positive = grow, negative = shrink.
-    /// Read as consecutive triples per joint-type override; default is one shared triple (indices 0–2):
-    ///   [0] width  — extends/shrinks edges 0 and 2 of the volume quad (across the plate face)
-    ///   [1] height — extends/shrinks edges 1 and 3 of the volume quad (through the plate thickness)
-    ///   [2] length — extends/shrinks the joint centerline (along the shared edge / fold line)
-    /// To reduce the volume along the fold edge, set index [2] to a negative value, e.g. {0, 0, -5}.
+    /// Additive [width, height, length] extension (mm) of joint cut volumes, read as triples; negative shrinks.
     extern std::vector<double> JOINT_VOLUME_EXTENSION;
 
-    /// Multiplicative scale applied to joint geometry before insertion; 1.0 = no change.
-    ///   [0] sx — scale along joint local X (width direction)
-    ///   [1] sy — scale along joint local Y (height / thickness direction)
-    ///   [2] sz — scale along joint local Z (length / edge direction)
-    /// Used by joint types: ss_e_ip_2, ss_e_r_*, ts_e_p_5.
+    /// Multiplicative [sx, sy, sz] scale of joint geometry before insertion (ss_e_ip_2, ss_e_r_*, ts_e_p_5); 1 = no change.
     extern std::array<double, 3> JOINT_SCALE;
     extern int    OUTPUT_GEOMETRY_TYPE;                      ///< 4 = merged outlines + lofts
     extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;       ///< degrees; rotated-joint threshold
     extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;///< force rotated geometry path
     extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;///< averaged plane for rotated joints
 
-    // ── Tolerances (heavy use across the kernel) ──────────────────────────
     extern double DISTANCE;                                  ///< inflate AABBs / point-merge tolerance (mm)
     extern double DISTANCE_SQUARED;                          ///< squared coplanarity tolerance (mm²)
     extern double ANGLE;                                     ///< angular tolerance, RADIANS (cos-tolerance)
     extern double DUPLICATE_PTS_TOL;                         ///< consecutive-duplicate-points removal in load_plates
     extern double LIMIT_MIN_JOINT_LENGTH;                    ///< filters out joints whose centerline is shorter
 
-    // ── Clipper2 layer (face_overlap_area, wood_face_to_face.cpp) ────────
     extern int64_t CLIPPER_SCALE;                            ///< mm -> int64 scale for the 2D boolean (1e6 = nanometre grid)
     extern double  CLIPPER_AREA;                             ///< overlap areas at or below this (mm²) are not a contact
 
-    // ── Filesystem strings ────────────────────────────────────────────────
-    /// The data folder every yml, obj, txt and pb is named relative to, and where output/
-    /// is written. Absolute, baked from __FILE__, so the working directory of the executable
-    /// or the binding host does not matter. Set it from a binding to relocate the whole set.
+    /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
     extern std::string DATA_SET_INPUT_FOLDER;
     extern const std::vector<std::string> DATASET_NAMES;     ///< every dataset shipped in data/ as <name>.yml, in sweep order
     extern const std::vector<std::string> SESSION_NAMES;     ///< every session shipped in data/ as <name>.pb
 
-    /// Named access to every string in DATASET_NAMES: type `Dataset::` and the editor lists
-    /// every dataset shipped in data/, so a call site never carries a bare index into a
-    /// vector whose length - and therefore whose valid range - changes as datasets are added.
-    /// Same strings, same sweep order; kept in sync by dataset_names_test.cpp.
+    /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
     struct Dataset {
         static constexpr const char* hexbox_and_corner = "hexbox_and_corner";
         static constexpr const char* vidy_corner = "vidy_corner";
@@ -149,8 +127,7 @@ namespace globals {
             static constexpr const char* vda_floor_1 = Dataset::vda_floor_1;
         };
 
-        /// Plate outlines whose solved joints include type-30 crossings: compute_cross_contacts
-        /// / compute_joints(cross_joint).
+        /// Plate outlines whose solved joints include type-30 crossings: compute_cross_contacts / compute_joints(cross_joint).
         struct Cross {
             static constexpr const char* cross_and_sides_corner = Dataset::cross_and_sides_corner;
             static constexpr const char* cross_corners = Dataset::cross_corners;
@@ -166,20 +143,16 @@ namespace globals {
             static constexpr const char* cross_brg_slab_0 = Dataset::cross_brg_slab_0;
         };
 
-        /// Beam axes, not plate outlines (type_beams_name_*): compute_line_contacts /
-        /// beam_volumes_pipeline, never load_plates.
+        /// Beam axes, not plate outlines (type_beams_name_*): compute_line_contacts / beam_volumes_pipeline, never load_plates.
         struct Curves {
             static constexpr const char* phanomema_node = Dataset::phanomema_node;
         };
     };
 
-    /// DATASET_NAMES.at(index), so a stray index throws std::out_of_range instead of an
-    /// operator[] read past the end - the difference between "dataset 49 does not exist"
-    /// and a std::bad_alloc from whatever garbage bytes followed the vector in memory.
+    /// DATASET_NAMES.at(index): a stray index throws std::out_of_range instead of reading past the end.
     const std::string& dataset_name(size_t index);
 
-    /// data/<SESSION_NAMES[index]>.pb, for handing to session_cpp::Session::pb_load. Out of
-    /// range throws rather than returning a path that is not there.
+    /// data/<SESSION_NAMES[index]>.pb for Session::pb_load; out of range throws.
     std::string session_pb(size_t index);
     extern std::string DATA_SET_INPUT_NAME;                  ///< dataset name: the obj stem (set by globals_yaml and load_plates)
     extern std::string DATA_SET_OBJ;                         ///< obj path named by the dataset yaml
@@ -191,14 +164,10 @@ namespace globals {
     extern std::string DATA_SET_OUTPUT_DATABASE;             ///< sqlite output path; informational, unused
     extern std::string PATH_AND_FILE_FOR_JOINTS;             ///< wood custom-joint-config file path; informational
 
-    // ── Misc upstream-parity globals ──────────────────────────────────────
     extern std::vector<std::string> EXISTING_TYPES;          ///< upstream display table of joint variant names
     extern std::size_t RUN_COUNT;                            ///< upstream IMGUI loop counter; informational
 
-    // ── Custom joint polylines (set at C++ runtime; YAML loader skips these) ─
-    // Pairs (i, i+1) = (male, female) for one variant. Empty by default.
-    // Wood's `wood_joint_lib.cpp` reads these to override the per-family
-    // unit-cube geometry. No session-port consumer wired yet.
+    /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
@@ -214,14 +183,9 @@ namespace globals {
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_MALE;
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
-    // Reset every global above to wood baseline values. Used by the tutorial
-    // mains (main_wood_01/02/03) that build geometry from scratch instead of
-    // loading a named dataset. Test wrappers should prefer `globals_yaml(name)`.
+    /// Reset every global above to the wood baseline values.
     void reset_defaults();
 
-    // Loads a dataset yaml - `data/<name>.yml` for a bare name, or the given
-    // path when it ends in .yml - and applies every key to the globals above.
-    // The file keys (obj, adjacency, three_valence, insertion_vectors,
-    // joints_types) resolve relative to the yaml and land in DATA_SET_*.
+    /// Load `data/<name>.yml` (or the given .yml path) and apply every key to the globals above.
     void globals_yaml(const std::string& dataset_name);
 }} // namespace wood_session::globals
