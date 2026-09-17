@@ -6,33 +6,33 @@ static void ss_e_op_tutorial(WoodJoint& joint) {
     auto P = [](double x, double y, double z) { return Point(x, y, z); };
     // Female: rectangular slot on top face (x=+0.5) and bottom face (x=-0.5)
     joint.f_outlines[0] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P( 0.5,  0.5, -0.25), P( 0.5, -0.5, -0.25),
             P( 0.5, -0.5,  0.25), P( 0.5,  0.5,  0.25)
         }),
-        Polyline(std::vector<Point>{ P(0.5, 0.5, -0.5), P(0.5, 0.5, 0.5) })
+        Polyline({ P(0.5, 0.5, -0.5), P(0.5, 0.5, 0.5) })
     };
     joint.f_outlines[1] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5,  0.5, -0.25), P(-0.5, -0.5, -0.25),
             P(-0.5, -0.5,  0.25), P(-0.5,  0.5,  0.25)
         }),
-        Polyline(std::vector<Point>{ P(-0.5, 0.5, -0.5), P(-0.5, 0.5, 0.5) })
+        Polyline({ P(-0.5, 0.5, -0.5), P(-0.5, 0.5, 0.5) })
     };
     // Male: matching tab on sides (y=+0.5 and y=-0.5)
     joint.m_outlines[0] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5, 0.5, -0.25), P( 0.5, 0.5, -0.25),
             P( 0.5, 0.5,  0.25), P(-0.5, 0.5,  0.25)
         }),
-        Polyline(std::vector<Point>{ P(-0.5, 0.5, 0.5), P(-0.5, 0.5, -0.5) })
+        Polyline({ P(-0.5, 0.5, 0.5), P(-0.5, 0.5, -0.5) })
     };
     joint.m_outlines[1] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5, -0.5, -0.25), P( 0.5, -0.5, -0.25),
             P( 0.5, -0.5,  0.25), P(-0.5, -0.5,  0.25)
         }),
-        Polyline(std::vector<Point>{ P(-0.5, -0.5, 0.5), P(-0.5, -0.5, -0.5) })
+        Polyline({ P(-0.5, -0.5, 0.5), P(-0.5, -0.5, -0.5) })
     };
     joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };

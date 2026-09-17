@@ -37,7 +37,7 @@ static void ss_e_r_0(WoodJoint& joint) {
     }
 
     // rect_half_0: "male" half (points below midline)
-    Polyline rh0(std::vector<Point>{
+    Polyline rh0({
         p_mid_01,
         Point(r0[0]-zsx, r0[1]-zsy, r0[2]-zsz),
         Point(r3[0]-zsx, r3[1]-zsy, r3[2]-zsz),
@@ -45,7 +45,7 @@ static void ss_e_r_0(WoodJoint& joint) {
         p_mid_01,
     });
     // rect_half_1: "female" half (points above midline)
-    Polyline rh1(std::vector<Point>{
+    Polyline rh1({
         p_mid_01,
         Point(r1[0]+zsx, r1[1]+zsy, r1[2]+zsz),
         Point(r2[0]+zsx, r2[1]+zsy, r2[2]+zsz),

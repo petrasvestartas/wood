@@ -82,7 +82,7 @@ static void ss_e_r_impl(WoodJoint& joint,
         }
         ydx *= size*0.5/yl; ydy *= size*0.5/yl; ydz *= size*0.5/yl;
         // new vol: {center+x+2y, center-x+2y, center-x, center+x, center+x+2y}
-        vol = Polyline(std::vector<Point>{
+        vol = Polyline({
             Point(cx+xdx+2*ydx, cy+xdy+2*ydy, cz+xdz+2*ydz),
             Point(cx-xdx+2*ydx, cy-xdy+2*ydy, cz-xdz+2*ydz),
             Point(cx-xdx,       cy-xdy,        cz-xdz),

@@ -45,7 +45,7 @@ struct FaceContact {
     int face_a = 0;
     int face_b = 0;
     ContactType type = ContactType::unknown;
-    session_cpp::Polyline area{std::vector<session_cpp::Point>{}};
+    session_cpp::Polyline area;
 
     nlohmann::ordered_json jsondump() const;
     static FaceContact jsonload(const nlohmann::json& data);

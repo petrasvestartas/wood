@@ -59,7 +59,7 @@ static void ts_e_p_2(WoodJoint& joint) {
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
         Polyline outline(pts);
-        Polyline endpoints(std::vector<Point>{pts.front(), pts.back()});
+        Polyline endpoints({pts.front(), pts.back()});
         int idx = (i < 2) ? 1 : 0;
         joint.m_outlines[idx] = {outline, endpoints};
     }
@@ -72,22 +72,22 @@ static void ts_e_p_2(WoodJoint& joint) {
     for (int i = 0; i + 3 < m0n; i += 4) {
         Point p00 = m0pts.get_point(i),   p03 = m0pts.get_point(i+3);
         Point p10 = m1pts.get_point(i),   p13 = m1pts.get_point(i+3);
-        joint.f_outlines[0].push_back(Polyline(std::vector<Point>{p00, p03, p13, p10, p00}));
+        joint.f_outlines[0].push_back(Polyline({p00, p03, p13, p10, p00}));
         Point p01 = m0pts.get_point(i+1), p02 = m0pts.get_point(i+2);
         Point p11 = m1pts.get_point(i+1), p12 = m1pts.get_point(i+2);
-        joint.f_outlines[1].push_back(Polyline(std::vector<Point>{p01, p02, p12, p11, p01}));
+        joint.f_outlines[1].push_back(Polyline({p01, p02, p12, p11, p01}));
     }
     if (size >= 2 && !joint.f_outlines[0].empty()) {
         auto& first0 = joint.f_outlines[0].front();
         auto& last0  = joint.f_outlines[0][joint.f_outlines[0].size()-1];
-        joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+        joint.f_outlines[0].push_back(Polyline({
             first0.get_point(0), first0.get_point(3),
             last0.get_point(3),  last0.get_point(0),  first0.get_point(0)}));
     }
     if (size >= 2 && !joint.f_outlines[1].empty()) {
         auto& first1 = joint.f_outlines[1].front();
         auto& last1  = joint.f_outlines[1][joint.f_outlines[1].size()-1];
-        joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+        joint.f_outlines[1].push_back(Polyline({
             first1.get_point(0), first1.get_point(3),
             last1.get_point(3),  last1.get_point(0),  first1.get_point(0)}));
     }

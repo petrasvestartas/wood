@@ -317,12 +317,12 @@ void WoodSession::compute_line_contacts(double tolerance) {
             const std::vector<Polyline>& loops_a = view[a].polylines;
             const std::vector<Polyline>& loops_b = view[b].polylines;
             for (size_t la = 0; la < loops_a.size(); ++la) {
-                const std::vector<Point> pa = loops_a[la].get_points();
-                for (size_t sa = 0; sa + 1 < pa.size(); ++sa) {
+                const Polyline& pa = loops_a[la];
+                for (size_t sa = 0; sa + 1 < pa.point_count(); ++sa) {
                     const Line seg_a = Line::from_points(pa[sa], pa[sa + 1]);
                     for (size_t lb = 0; lb < loops_b.size(); ++lb) {
-                        const std::vector<Point> pb = loops_b[lb].get_points();
-                        for (size_t sb = 0; sb + 1 < pb.size(); ++sb) {
+                        const Polyline& pb = loops_b[lb];
+                        for (size_t sb = 0; sb + 1 < pb.point_count(); ++sb) {
                             const Line seg_b = Line::from_points(pb[sb], pb[sb + 1]);
                             double t0 = 0.0, t1 = 0.0;
                             if (!Intersection::line_line_parameters(seg_a, seg_b, t0, t1, 0.0,
@@ -338,7 +338,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
                             contact.face_a = static_cast<int>(la);
                             contact.face_b = static_cast<int>(lb);
                             contact.type = ContactType::line;
-                            contact.area = Polyline(std::vector<Point>{q0, q1});
+                            contact.area = Polyline({q0, q1});
                             const std::string& x = guids[a];
                             const std::string& y = guids[b];
                             WoodInteraction interaction = get_interaction(x, y);
@@ -594,7 +594,7 @@ void WoodSession::add_contacts(const std::string& prefix) {
                 add_polyline(polyline, it->second);
                 continue;
             }
-            auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<std::vector<Point>>{contact.area.get_points()}));
+            auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<Polyline>{contact.area}));
             mesh->name = name;
             mesh->set_objectcolor(contact_color(contact.type));
             add_mesh(mesh, it->second);
@@ -613,7 +613,7 @@ void WoodSession::add_joints(const std::string& prefix) {
         const Color color = joint_color(joint.joint_type);
         const std::string name = fmt::format("joint_{}_{}_{}", short_guid(joint.element_a), short_guid(joint.element_b), type_name);
 
-        auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<std::vector<Point>>{joint.contact.area.get_points()}));
+        auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<Polyline>{joint.contact.area}));
         mesh->name = name;
         mesh->set_objectcolor(color);
         add_mesh(mesh, group);

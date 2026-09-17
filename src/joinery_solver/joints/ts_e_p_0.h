@@ -19,28 +19,28 @@ static void ts_e_p_0(WoodJoint& joint) {
 
     // f[0] — 3 mortise holes + 1 bounding rectangle at y = -0.5
     joint.f_outlines[0].clear();
-    joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, a), P( 0.5,-0.5, a), P( 0.5,-0.5, b), P(-0.5,-0.5, b), P(-0.5,-0.5, a)}));
-    joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, c), P( 0.5,-0.5, c), P( 0.5,-0.5,-c), P(-0.5,-0.5,-c), P(-0.5,-0.5, c)}));
-    joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[0].push_back(Polyline({
         P(-0.5,-0.5,-b), P( 0.5,-0.5,-b), P( 0.5,-0.5,-a), P(-0.5,-0.5,-a), P(-0.5,-0.5,-b)}));
-    joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, a), P(-0.5,-0.5,-a), P( 0.5,-0.5,-a), P( 0.5,-0.5, a), P(-0.5,-0.5, a)}));
 
     // f[1] — 3 mortise holes + 1 bounding rectangle at y = +0.5
     joint.f_outlines[1].clear();
-    joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, a), P( 0.5, 0.5, a), P( 0.5, 0.5, b), P(-0.5, 0.5, b), P(-0.5, 0.5, a)}));
-    joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, c), P( 0.5, 0.5, c), P( 0.5, 0.5,-c), P(-0.5, 0.5,-c), P(-0.5, 0.5, c)}));
-    joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[1].push_back(Polyline({
         P(-0.5, 0.5,-b), P( 0.5, 0.5,-b), P( 0.5, 0.5,-a), P(-0.5, 0.5,-a), P(-0.5, 0.5,-b)}));
-    joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, a), P(-0.5, 0.5,-a), P( 0.5, 0.5,-a), P( 0.5, 0.5, a), P(-0.5, 0.5, a)}));
 
     // m[0] — 12-pt zigzag at x = +0.5
-    Polyline m0_outline(std::vector<Point>{
+    Polyline m0_outline({
         P( 0.5,-0.5,-a), P( 0.5, 0.5,-a),
         P( 0.5, 0.5,-b), P( 0.5,-0.5,-b),
         P( 0.5,-0.5,-c), P( 0.5, 0.5,-c),
@@ -48,11 +48,11 @@ static void ts_e_p_0(WoodJoint& joint) {
         P( 0.5,-0.5, b), P( 0.5, 0.5, b),
         P( 0.5, 0.5, a), P( 0.5,-0.5, a)
     });
-    Polyline m0_endpoints(std::vector<Point>{ P( 0.5,-0.5,-a), P( 0.5,-0.5, a) });
+    Polyline m0_endpoints({ P( 0.5,-0.5,-a), P( 0.5,-0.5, a) });
     joint.m_outlines[0] = { m0_outline, m0_endpoints };
 
     // m[1] — 12-pt zigzag at x = -0.5
-    Polyline m1_outline(std::vector<Point>{
+    Polyline m1_outline({
         P(-0.5,-0.5,-a), P(-0.5, 0.5,-a),
         P(-0.5, 0.5,-b), P(-0.5,-0.5,-b),
         P(-0.5,-0.5,-c), P(-0.5, 0.5,-c),
@@ -60,7 +60,7 @@ static void ts_e_p_0(WoodJoint& joint) {
         P(-0.5,-0.5, b), P(-0.5, 0.5, b),
         P(-0.5, 0.5, a), P(-0.5,-0.5, a)
     });
-    Polyline m1_endpoints(std::vector<Point>{ P(-0.5,-0.5,-a), P(-0.5,-0.5, a) });
+    Polyline m1_endpoints({ P(-0.5,-0.5,-a), P(-0.5,-0.5, a) });
     joint.m_outlines[1] = { m1_outline, m1_endpoints };
     // Wood: f_boolean_type = {hole, hole, hole, insert_between_multiple_edges}×2
     //       m_boolean_type = {edge_insertion, edge_insertion}

@@ -16,32 +16,14 @@ using session_cpp::Polyline;
 using session_cpp::Vector;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════════════════
-
-namespace {
-
-/// Drop a closing vertex that repeats the first one (to 1e-6).
-void strip_closing(std::vector<Point>& v) {
-    if (v.size() > 3) {
-        const Point& f = v.front();
-        const Point& l = v.back();
-        if (std::abs(f[0]-l[0]) < 1e-6 && std::abs(f[1]-l[1]) < 1e-6 &&
-            std::abs(f[2]-l[2]) < 1e-6) { v.pop_back(); }
-    }
-}
-
-}  // namespace
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
 Plate::Plate() : Element("plate") {}
 
 Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : Element(name) {
-    std::vector<Point> pp0 = bot.get_points();
-    std::vector<Point> pp1 = top.get_points();
+    Polyline pp0 = bot;
+    Polyline pp1 = top;
 
     // Outline sizes are INPUT (OBJ curves paired blindly, or Python lists),
     // not an invariant. Empty outlines reached average_normal's
@@ -50,50 +32,44 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     // side planes or a crash. Degrade to an empty element (detection skips
     // it) instead: throwing would take down whole-dataset runs for one bad
     // pair.
-    if (pp0.size() < 3 || pp1.size() < 3) {
+    if (pp0.point_count() < 3 || pp1.point_count() < 3) {
         fprintf(stderr,
                 "  WARNING: WoodElement built from outlines with %zu/%zu points "
                 "(need >= 3 each) - element left empty.\n",
-                pp0.size(), pp1.size());
+                pp0.point_count(), pp1.point_count());
         fflush(stderr);
         return;
     }
-    if (pp1.size() < pp0.size()) {
+    if (pp1.point_count() < pp0.point_count()) {
         fprintf(stderr,
                 "  WARNING: WoodElement top outline has %zu points but bottom has "
                 "%zu - element left empty (side faces would index past the end).\n",
-                pp1.size(), pp0.size());
+                pp1.point_count(), pp0.point_count());
         fflush(stderr);
         return;
     }
 
     Vector normal = Vector::average_normal(pp0);
-    auto pp0_open = pp0;
-    strip_closing(pp0_open);
-    Point c0 = Point::centroid(pp0_open);
-    Point last_p1 = pp1.back();
+    Point c0 = pp0.center();
+    Point last_p1 = pp1[pp1.point_count() - 1];
     double last_z = (last_p1[0]-c0[0])*normal[0]
                   + (last_p1[1]-c0[1])*normal[1]
                   + (last_p1[2]-c0[2])*normal[2];
     if (last_z > 0) {
-        std::reverse(pp0.begin(), pp0.end());
-        std::reverse(pp1.begin(), pp1.end());
+        pp0.reverse();
+        pp1.reverse();
         normal = Vector::average_normal(pp0);
         reversed = true;
     }
 
-    size_t n_sides = pp0.size() > 1 ? pp0.size() - 1 : 0;
+    size_t n_sides = pp0.point_count() > 1 ? pp0.point_count() - 1 : 0;
 
-    polylines.resize(2 + n_sides, Polyline(std::vector<Point>{}));
-    polylines[0] = Polyline(pp0);
-    polylines[1] = Polyline(pp1);
+    polylines.resize(2 + n_sides, Polyline());
+    polylines[0] = pp0;
+    polylines[1] = pp1;
 
-    auto pp0_stripped = pp0;
-    auto pp1_stripped = pp1;
-    strip_closing(pp0_stripped);
-    strip_closing(pp1_stripped);
-    Point cen0 = Point::centroid(pp0_stripped);
-    Point cen1 = Point::centroid(pp1_stripped);
+    Point cen0 = pp0.center();
+    Point cen1 = pp1.center();
     planes.resize(2 + n_sides);
     Vector neg_normal(-normal[0],-normal[1],-normal[2]);
     planes[0] = Plane::from_point_normal(cen0, normal);
@@ -132,7 +108,7 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
         sb2.normalize_self();
         snv.normalize_self();
         planes[2+j] = Plane(side_origin, sb1, sb2);
-        polylines[2+j] = Polyline(std::vector<Point>{
+        polylines[2+j] = Polyline({
             pp0[j], pp0[j+1], pp1[j+1], pp1[j], pp0[j]});
     }
     compute_geometry();
@@ -165,7 +141,8 @@ Vector Plate::nominal_dimensions() const {
     bool first = true;
     double min_u = 0.0, max_u = 0.0, min_v = 0.0, max_v = 0.0;
     for (const auto& polyline : polylines) {
-        for (const auto& pt : polyline.get_points()) {
+        for (size_t k = 0; k < polyline.point_count(); k++) {
+            const Point pt = polyline.get_point(k);
             Vector d(pt[0] - origin[0], pt[1] - origin[1], pt[2] - origin[2]);
             double u = d[0]*ex[0] + d[1]*ex[1] + d[2]*ex[2];
             double v = d[0]*ey[0] + d[1]*ey[1] + d[2]*ey[2];

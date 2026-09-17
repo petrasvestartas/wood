@@ -27,7 +27,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P( 0.5,  0.5,  0.5));
         pts.push_back(P( 0.5,  0.5,  0.5));
-        Polyline f0_endpoints(std::vector<Point>{ P( 0.5, 0.5, -0.5), P( 0.5, 0.5, 0.5) });
+        Polyline f0_endpoints({ P( 0.5, 0.5, -0.5), P( 0.5, 0.5, 0.5) });
         joint.f_outlines[0] = { Polyline(pts), f0_endpoints };
     }
 
@@ -44,7 +44,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5,  0.5,  0.5));
         pts.push_back(P(-0.5, -0.5,  0.5));
-        Polyline f1_endpoints(std::vector<Point>{ P(-0.5, -0.5, -0.5), P(-0.5, -0.5, 0.5) });
+        Polyline f1_endpoints({ P(-0.5, -0.5, -0.5), P(-0.5, -0.5, 0.5) });
         joint.f_outlines[1] = { Polyline(pts), f1_endpoints };
     }
 
@@ -61,7 +61,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5,  0.5, -0.5));
         pts.push_back(P( 0.5,  0.5, -0.5));
-        Polyline m0_endpoints(std::vector<Point>{ P( 0.5, 0.5, 0.5), P( 0.5, 0.5, -0.5) });
+        Polyline m0_endpoints({ P( 0.5, 0.5, 0.5), P( 0.5, 0.5, -0.5) });
         joint.m_outlines[0] = { Polyline(pts), m0_endpoints };
     }
 
@@ -78,7 +78,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5, -0.5, -0.5));
         pts.push_back(P(-0.5, -0.5, -0.5));
-        Polyline m1_endpoints(std::vector<Point>{ P(-0.5, -0.5, 0.5), P(-0.5, -0.5, -0.5) });
+        Polyline m1_endpoints({ P(-0.5, -0.5, 0.5), P(-0.5, -0.5, -0.5) });
         joint.m_outlines[1] = { Polyline(pts), m1_endpoints };
     }
 

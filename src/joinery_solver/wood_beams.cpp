@@ -32,35 +32,31 @@ bool has_valid_frame(const Vector& direction, const Vector& normal) {
 }
 
 bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& plane) {
-    auto top = first.get_points();
-    auto bottom = second.get_points();
-    if (top.size() != 5 || bottom.size() != 5)
+    if (first.point_count() != 5 || second.point_count() != 5)
         return false;
     std::array<Point, 4> points;
-    if (!Intersection::line_plane(Line::from_points(top[0], top[1]), plane, points[0], false) ||
-        !Intersection::line_plane(Line::from_points(top[3], top[2]), plane, points[1], false) ||
-        !Intersection::line_plane(Line::from_points(bottom[0], bottom[1]), plane, points[2], false) ||
-        !Intersection::line_plane(Line::from_points(bottom[3], bottom[2]), plane, points[3], false))
+    if (!Intersection::line_plane(Line::from_points(first[0], first[1]), plane, points[0], false) ||
+        !Intersection::line_plane(Line::from_points(first[3], first[2]), plane, points[1], false) ||
+        !Intersection::line_plane(Line::from_points(second[0], second[1]), plane, points[2], false) ||
+        !Intersection::line_plane(Line::from_points(second[3], second[2]), plane, points[3], false))
         return false;
     for (const Point& point : points)
         for (size_t i = 0; i < 3; ++i)
             if (!std::isfinite(point[i]))
                 return false;
-    if (plane.has_on_negative_side(top[0])) {
-        top[0] = points[0];
-        top[3] = points[1];
-        top[4] = top[0];
-        bottom[0] = points[2];
-        bottom[3] = points[3];
-        bottom[4] = bottom[0];
+    if (plane.has_on_negative_side(first[0])) {
+        first.set_point(0, points[0]);
+        first.set_point(3, points[1]);
+        first.set_point(4, points[0]);
+        second.set_point(0, points[2]);
+        second.set_point(3, points[3]);
+        second.set_point(4, points[2]);
     } else {
-        top[1] = points[0];
-        top[2] = points[1];
-        bottom[1] = points[2];
-        bottom[2] = points[3];
+        first.set_point(1, points[0]);
+        first.set_point(2, points[1]);
+        second.set_point(1, points[2]);
+        second.set_point(2, points[3]);
     }
-    first = Polyline(top);
-    second = Polyline(bottom);
     return true;
 }
 
@@ -98,19 +94,15 @@ void beam_volumes_pipeline(
         int pid0, sid0, pid1, sid1;
     };
     std::map<uint64_t, Contact> contacts;
-    std::vector<std::vector<Point>> all_axis_pts;
-    all_axis_pts.reserve(axes.size());
-    for (const auto& ax : axes)
-        all_axis_pts.push_back(ax.get_points());
     for (size_t a = 0; a < axes.size(); a++) {
-        const auto& pa = all_axis_pts[a];
-        for (size_t sa = 0; sa + 1 < pa.size(); sa++) {
+        const Polyline& pa = axes[a];
+        for (size_t sa = 0; sa + 1 < pa.point_count(); sa++) {
             const Line la = Line::from_points(pa[sa], pa[sa+1]);
             if (!(la.squared_length() > 0.0))
                 continue;
             for (size_t b = a + 1; b < axes.size(); b++) {
-                const auto& pb = all_axis_pts[b];
-                for (size_t sb = 0; sb + 1 < pb.size(); sb++) {
+                const Polyline& pb = axes[b];
+                for (size_t sb = 0; sb + 1 < pb.point_count(); sb++) {
                     const Line lb = Line::from_points(pb[sb], pb[sb+1]);
                     if (!(lb.squared_length() > 0.0))
                         continue;
@@ -146,8 +138,8 @@ void beam_volumes_pipeline(
     for (const auto& entry : contacts) {
         const auto& c = entry.second;
         n_pairs++;
-        const auto& pa_pts = all_axis_pts[c.pid0];
-        const auto& pb_pts = all_axis_pts[c.pid1];
+        const Polyline& pa_pts = axes[c.pid0];
+        const Polyline& pb_pts = axes[c.pid1];
         Line s0 = Line::from_points(pa_pts[c.sid0], pa_pts[c.sid0+1]);
         Line s1 = Line::from_points(pb_pts[c.sid1], pb_pts[c.sid1+1]);
 
@@ -156,7 +148,7 @@ void beam_volumes_pipeline(
         bool type0=false, type1=false, is_parallel=false;
         bool ok = Intersection::line_line_classified(
             s0, s1,
-            (int)(pa_pts.size() - 1), (int)(pb_pts.size() - 1),
+            (int)(pa_pts.point_count() - 1), (int)(pb_pts.point_count() - 1),
             c.sid0, c.sid1,
             cross_or_side_to_end,
             p0, p1, v0, v1, normal,
@@ -239,27 +231,27 @@ void beam_volumes_pipeline(
         } else if (sum == 1) {
             int closer_rect, farrer_rect;
             if (type0 == 0) {
-                auto q20 = beam_vol[2].get_points()[0];
-                auto q30 = beam_vol[3].get_points()[0];
+                auto q20 = beam_vol[2].get_point(0);
+                auto q30 = beam_vol[3].get_point(0);
                 Point pp(p0[0]+v0[0], p0[1]+v0[1], p0[2]+v0[2]);
                 bool closer = Point::distance(pp, q20) < Point::distance(pp, q30);
                 closer_rect = closer ? 2 : 3;
                 farrer_rect = closer ? 3 : 2;
             } else {
-                auto q00 = beam_vol[0].get_points()[0];
-                auto q10 = beam_vol[1].get_points()[0];
+                auto q00 = beam_vol[0].get_point(0);
+                auto q10 = beam_vol[1].get_point(0);
                 Point pp(p1[0]+v1[0], p1[1]+v1[1], p1[2]+v1[2]);
                 bool closer = Point::distance(pp, q00) < Point::distance(pp, q10);
                 closer_rect = closer ? 0 : 1;
                 farrer_rect = closer ? 1 : 0;
             }
-            auto qc = beam_vol[closer_rect].get_points();
+            const Polyline& qc = beam_vol[closer_rect];
             Vector rv0(qc[1][0]-qc[0][0], qc[1][1]-qc[0][1], qc[1][2]-qc[0][2]);
             Vector rv1(qc[2][0]-qc[0][0], qc[2][1]-qc[0][1], qc[2][2]-qc[0][2]);
             Vector rnrm = rv0.cross(rv1);
             Point  rorig = qc[0];
             Plane  cutpl = Plane::from_point_normal(rorig, rnrm);
-            auto qf = beam_vol[farrer_rect].get_points();
+            const Polyline& qf = beam_vol[farrer_rect];
             if (!cutpl.has_on_negative_side(qf[0])) {
                 Vector nneg(-rnrm[0], -rnrm[1], -rnrm[2]);
                 Point  rorig2 = qc[0];

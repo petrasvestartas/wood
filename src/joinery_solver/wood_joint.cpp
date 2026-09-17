@@ -39,7 +39,8 @@ namespace {
 /// writes of one scene would not agree. A joint's rings are geometry, not objects.
 nlohmann::ordered_json to_coords(const Polyline& ring) {
     nlohmann::ordered_json coords = nlohmann::ordered_json::array();
-    for (const Point& point : ring.get_points()) {
+    for (size_t i = 0; i < ring.point_count(); i++) {
+        const Point point = ring.get_point(i);
         coords.push_back(point[0]);
         coords.push_back(point[1]);
         coords.push_back(point[2]);
@@ -700,8 +701,8 @@ void tt_e_p_3(WoodJoint& joint,
     Intersection::offset_in_3d(poly_copy, fast_plane, offset_distance);
 
     std::vector<Point> points;
-    auto op_pts = poly_copy.get_points();
-    for (size_t i = 0; i + 1 < op_pts.size(); i++) {
+    const Polyline& op_pts = poly_copy;
+    for (size_t i = 0; i + 1 < op_pts.point_count(); i++) {
         double seg_len = Point::distance(op_pts[i], op_pts[i + 1]);
         int divisions = (int)std::min(100.0, seg_len / division_distance);
         std::vector<Point> dp = Polyline::interpolate_points(
@@ -709,16 +710,16 @@ void tt_e_p_3(WoodJoint& joint,
         points.insert(points.end(), dp.begin(), dp.end());
     }
     // Wood: if polygon is open (front != back), append back vertex.
-    if (!op_pts.empty()) {
-        double dx = op_pts.front()[0] - op_pts.back()[0];
-        double dy = op_pts.front()[1] - op_pts.back()[1];
-        double dz = op_pts.front()[2] - op_pts.back()[2];
+    if (op_pts.point_count() > 0) {
+        double dx = op_pts[0][0] - op_pts[op_pts.point_count() - 1][0];
+        double dy = op_pts[0][1] - op_pts[op_pts.point_count() - 1][1];
+        double dz = op_pts[0][2] - op_pts[op_pts.point_count() - 1][2];
         // Read the runtime global rather than freezing its default: datasets
         // that scale DISTANCE_SQUARED from YAML (hexboxes: 1.0) otherwise had
         // the drill-point generator disagreeing with merge/detection about
         // whether this polygon is closed.
         if (dx*dx + dy*dy + dz*dz > wood_session::globals::DISTANCE_SQUARED) {
-            points.push_back(op_pts.back());
+            points.push_back(op_pts[op_pts.point_count() - 1]);
         }
     }
 
@@ -754,11 +755,11 @@ void tt_e_p_3(WoodJoint& joint,
     }
 
     for (const Point& pt : points) {
-        Polyline line0(std::vector<Point>{
+        Polyline line0({
             pt,
             Point(pt[0] + dir0[0], pt[1] + dir0[1], pt[2] + dir0[2]),
         });
-        Polyline line1(std::vector<Point>{
+        Polyline line1({
             pt,
             Point(pt[0] + dir1[0], pt[1] + dir1[1], pt[2] + dir1[2]),
         });
@@ -814,10 +815,10 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     // centroid of joint_area
     Point center;
     {
-        auto pts = joint.contact.area.get_points();
+        const Polyline& area = joint.contact.area;
         double sx=0, sy=0, sz=0;
-        for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
-        double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
+        for (size_t k = 0; k < area.point_count(); k++) { const Point p = area[k]; sx+=p[0]; sy+=p[1]; sz+=p[2]; }
+        double n = static_cast<double>(area.point_count()); center = Point(sx/n, sy/n, sz/n);
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);
@@ -828,8 +829,8 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
-    Polyline line0(std::vector<Point>{center, Point(center[0]+dir0[0], center[1]+dir0[1], center[2]+dir0[2])});
-    Polyline line1(std::vector<Point>{center, Point(center[0]+dir1[0], center[1]+dir1[1], center[2]+dir1[2])});
+    Polyline line0({center, Point(center[0]+dir0[0], center[1]+dir0[1], center[2]+dir0[2])});
+    Polyline line1({center, Point(center[0]+dir1[0], center[1]+dir1[1], center[2]+dir1[2])});
 
     joint.f_outlines[0] = { line0, line0 };
     joint.f_outlines[1] = { line0, line0 };
@@ -860,10 +861,10 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     // Approximate polylabel with centroid (exact for convex regular polygons).
     Point center;
     {
-        auto pts = joint.contact.area.get_points();
+        const Polyline& area = joint.contact.area;
         double sx=0, sy=0, sz=0;
-        for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
-        double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
+        for (size_t k = 0; k < area.point_count(); k++) { const Point p = area[k]; sx+=p[0]; sy+=p[1]; sz+=p[2]; }
+        double n = static_cast<double>(area.point_count()); center = Point(sx/n, sy/n, sz/n);
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);
@@ -874,8 +875,8 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
-    Polyline line0(std::vector<Point>{center, Point(center[0]+dir0[0], center[1]+dir0[1], center[2]+dir0[2])});
-    Polyline line1(std::vector<Point>{center, Point(center[0]+dir1[0], center[1]+dir1[1], center[2]+dir1[2])});
+    Polyline line0({center, Point(center[0]+dir0[0], center[1]+dir0[1], center[2]+dir0[2])});
+    Polyline line1({center, Point(center[0]+dir1[0], center[1]+dir1[1], center[2]+dir1[2])});
 
     joint.f_outlines[0] = { line0, line0 };
     joint.f_outlines[1] = { line0, line0 };
@@ -909,10 +910,10 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     // Centroid + plane of joint_area
     Point center;
     {
-        auto pts = joint.contact.area.get_points();
+        const Polyline& area = joint.contact.area;
         double sx=0, sy=0, sz=0;
-        for (const auto& p : pts) { sx+=p[0]; sy+=p[1]; sz+=p[2]; }
-        double n = static_cast<double>(pts.size()); center = Point(sx/n, sy/n, sz/n);
+        for (size_t k = 0; k < area.point_count(); k++) { const Point p = area[k]; sx+=p[0]; sy+=p[1]; sz+=p[2]; }
+        double n = static_cast<double>(area.point_count()); center = Point(sx/n, sy/n, sz/n);
     }
     Point fo, dummy;
     Plane fast_plane;
@@ -948,8 +949,8 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     joint.m_cut_types[0].clear(); joint.m_cut_types[1].clear();
     joint.f_cut_types[0].clear(); joint.f_cut_types[1].clear();
     for (const Point& pt : points) {
-        Polyline l0(std::vector<Point>{pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
-        Polyline l1(std::vector<Point>{pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
+        Polyline l0({pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
+        Polyline l1({pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
         joint.f_outlines[0].push_back(l0); joint.f_outlines[0].push_back(l0);
         joint.f_outlines[1].push_back(l0); joint.f_outlines[1].push_back(l0);
         joint.m_outlines[0].push_back(l1); joint.m_outlines[0].push_back(l1);
@@ -986,16 +987,16 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     Intersection::offset_in_3d(poly_copy, fast_plane, offset_distance);
 
     std::vector<Point> points;
-    auto op_pts = poly_copy.get_points();
-    for (size_t i = 0; i + 1 < op_pts.size(); i++) {
+    const Polyline& op_pts = poly_copy;
+    for (size_t i = 0; i + 1 < op_pts.point_count(); i++) {
         double seg_len = Point::distance(op_pts[i], op_pts[i+1]);
         int divs = (int)std::min(100.0, seg_len / division_distance);
         auto dp = Polyline::interpolate_points(op_pts[i], op_pts[i+1], divs, 2);
         points.insert(points.end(), dp.begin(), dp.end());
     }
-    if (!op_pts.empty()) {
-        double dx=op_pts.front()[0]-op_pts.back()[0], dy=op_pts.front()[1]-op_pts.back()[1], dz=op_pts.front()[2]-op_pts.back()[2];
-        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts.back()); }
+    if (op_pts.point_count() > 0) {
+        double dx=op_pts[0][0]-op_pts[op_pts.point_count() - 1][0], dy=op_pts[0][1]-op_pts[op_pts.point_count() - 1][1], dz=op_pts[0][2]-op_pts[op_pts.point_count() - 1][2];
+        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts[op_pts.point_count() - 1]); }
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);
@@ -1011,8 +1012,8 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     joint.m_cut_types[0].clear(); joint.m_cut_types[1].clear();
     joint.f_cut_types[0].clear(); joint.f_cut_types[1].clear();
     for (const Point& pt : points) {
-        Polyline l0(std::vector<Point>{pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
-        Polyline l1(std::vector<Point>{pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
+        Polyline l0({pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
+        Polyline l1({pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
         joint.f_outlines[0].push_back(l0); joint.f_outlines[0].push_back(l0);
         joint.f_outlines[1].push_back(l0); joint.f_outlines[1].push_back(l0);
         joint.m_outlines[0].push_back(l1); joint.m_outlines[0].push_back(l1);
@@ -1049,16 +1050,16 @@ void tt_e_p_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     Intersection::offset_in_3d(poly_copy, fast_plane, offset_distance);
 
     std::vector<Point> points;
-    auto op_pts = poly_copy.get_points();
-    for (size_t i = 0; i + 1 < op_pts.size(); i++) {
+    const Polyline& op_pts = poly_copy;
+    for (size_t i = 0; i + 1 < op_pts.point_count(); i++) {
         double seg_len = Point::distance(op_pts[i], op_pts[i+1]);
         int divs = (int)std::min(100.0, seg_len / division_distance);
         auto dp = Polyline::interpolate_points(op_pts[i], op_pts[i+1], divs, 2);
         points.insert(points.end(), dp.begin(), dp.end());
     }
-    if (!op_pts.empty()) {
-        double dx=op_pts.front()[0]-op_pts.back()[0], dy=op_pts.front()[1]-op_pts.back()[1], dz=op_pts.front()[2]-op_pts.back()[2];
-        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts.back()); }
+    if (op_pts.point_count() > 0) {
+        double dx=op_pts[0][0]-op_pts[op_pts.point_count() - 1][0], dy=op_pts[0][1]-op_pts[op_pts.point_count() - 1][1], dz=op_pts[0][2]-op_pts[op_pts.point_count() - 1][2];
+        if (dx*dx+dy*dy+dz*dz > 0.01) { points.push_back(op_pts[op_pts.point_count() - 1]); }
     }
 
     Point jv1 = jv0.get_point(1), jv2 = jv0.get_point(2);
@@ -1074,8 +1075,8 @@ void tt_e_p_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     joint.m_cut_types[0].clear(); joint.m_cut_types[1].clear();
     joint.f_cut_types[0].clear(); joint.f_cut_types[1].clear();
     for (const Point& pt : points) {
-        Polyline l0(std::vector<Point>{pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
-        Polyline l1(std::vector<Point>{pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
+        Polyline l0({pt, Point(pt[0]+dir0[0], pt[1]+dir0[1], pt[2]+dir0[2])});
+        Polyline l1({pt, Point(pt[0]+dir1[0], pt[1]+dir1[1], pt[2]+dir1[2])});
         joint.f_outlines[0].push_back(l0); joint.f_outlines[0].push_back(l0);
         joint.f_outlines[1].push_back(l0); joint.f_outlines[1].push_back(l0);
         joint.m_outlines[0].push_back(l1); joint.m_outlines[0].push_back(l1);

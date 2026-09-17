@@ -55,14 +55,9 @@ bool polyline_plane_cross(const Polyline& polyline, const Plane& plane,
         double num = dx*n_plane[0] + dy*n_plane[1] + dz*n_plane[2];
         return (n_mag_sq > 0.0) ? (num * num / n_mag_sq) : 0.0;
     };
-    // Materialize the point set once: get_point() is an out-of-line call
-    // constructing a name/guid/Color-bearing Point per invocation, and the old
-    // loop fetched every interior point twice. This runs 4x per candidate
-    // pair inside the O(n^2) detection scan.
-    const std::vector<Point> ppts = polyline.get_points();
     for (size_t i = 0; i < n - 1; i++) {
-        const Point& a = ppts[i];
-        const Point& b = ppts[i + 1];
+        const Point a = polyline.get_point(i);
+        const Point b = polyline.get_point(i + 1);
         if (sq_dist_to_plane(a) < DISTANCE_SQUARED) { points.clear(); edge_ids.clear(); return false; }
         if (sq_dist_to_plane(b) < DISTANCE_SQUARED) { points.clear(); edge_ids.clear(); return false; }
         Line seg(a[0], a[1], a[2], b[0], b[1], b[2]);
@@ -88,11 +83,10 @@ int are_points_inside(
     Vector xa = plane.base1();
     Vector ya = plane.base2();
 
-    auto poly_pts = polygon.get_points();
-    size_t np_raw = poly_pts.size();
+    size_t np_raw = polygon.point_count();
     if (np_raw > 1) {
-        const Point& f = poly_pts.front();
-        const Point& l = poly_pts.back();
+        const Point f = polygon.get_point(0);
+        const Point l = polygon.get_point(np_raw - 1);
         if (std::fabs(f[0]-l[0])<1e-12 && std::fabs(f[1]-l[1])<1e-12 && std::fabs(f[2]-l[2])<1e-12) {
             np_raw--;
         }
@@ -102,7 +96,7 @@ int are_points_inside(
     px.reserve(np_raw);
     py.reserve(np_raw);
     for (size_t i = 0; i < np_raw; i++) {
-        const Point& p = poly_pts[i];
+        const Point p = polygon.get_point(i);
         double dx = p[0] - o[0], dy = p[1] - o[1], dz = p[2] - o[2];
         px.push_back(dx*xa[0]+dy*xa[1]+dz*xa[2]);
         py.push_back(dx*ya[0]+dy*ya[1]+dz*ya[2]);
@@ -308,11 +302,7 @@ Line opposite_segment(const Line& l) {
 }
 
 Polyline translate_quad(const Polyline& poly, const Vector& v) {
-    auto pts = poly.get_points();
-    for (auto& p : pts) {
-        p[0] += v[0]; p[1] += v[1]; p[2] += v[2];
-    }
-    return Polyline(pts);
+    return poly.translated(v);
 }
 
 } // anonymous namespace
@@ -468,7 +458,7 @@ bool plane_to_face(
 
     // 9b. Joint lines: two perpendicular centerlines of the joint area quad.
     {
-        const auto& jpts = result.joint_area.get_points();
+        const Polyline& jpts = result.joint_area;
         auto mid = [](const Point& p, const Point& q) {
             return Point((p[0]+q[0])*0.5, (p[1]+q[1])*0.5, (p[2]+q[2])*0.5);
         };
@@ -476,8 +466,8 @@ bool plane_to_face(
         Point m23 = mid(jpts[2], jpts[3]);
         Point m12 = mid(jpts[1], jpts[2]);
         Point m30 = mid(jpts[3], jpts[0]);
-        result.joint_lines[0] = Polyline(std::vector<Point>{m01, m23});
-        result.joint_lines[1] = Polyline(std::vector<Point>{m12, m30});
+        result.joint_lines[0] = Polyline({m01, m23});
+        result.joint_lines[1] = Polyline({m12, m30});
     }
 
     // 10. Joint volume faces = joint_area ± v (wood_main.cpp:436-437 convention).

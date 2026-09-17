@@ -62,8 +62,8 @@ static void ss_e_ip_1(WoodJoint& joint) {
 
     Polyline outline0(pline0);
     Polyline outline1(pline1);
-    Polyline endpoints0(std::vector<Point>{pline0.front(), pline0.back()});
-    Polyline endpoints1(std::vector<Point>{pline1.front(), pline1.back()});
+    Polyline endpoints0({pline0.front(), pline0.back()});
+    Polyline endpoints1({pline1.front(), pline1.back()});
 
     // Joint lines, always the last line or
     // rectangle is not a wood::joint but an

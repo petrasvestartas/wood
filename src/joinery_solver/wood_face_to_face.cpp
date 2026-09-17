@@ -291,7 +291,7 @@ std::vector<FaceContact> face_contacts_for_pair(
         for (size_t j = 0; j < fb.size(); ++j) {
             if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance)) { continue; }
             if (stats) { stats->coplanar++; }
-            Polyline area(std::vector<Point>{});
+            Polyline area;
             if (!face_overlap_area(ea.polylines[i], eb.polylines[j], ea.planes[i],
                                    outer_face(ea, i) && outer_face(eb, j), area)) {
                 if (stats) { stats->empty_i = static_cast<int>(i); stats->empty_j = static_cast<int>(j); }
@@ -490,7 +490,7 @@ bool face_to_face_wood(
             //    LIMIT_MIN_JOINT_LENGTH check, so top-top naturally bypasses
             //    it via the `joint_type == 2` branch below.
             Line joint_line0 = Line::from_points(Point(0,0,0), Point(0,0,0));
-            Polyline joint_quads0(std::vector<Point>{});
+            Polyline joint_quads0;
             bool has_quads0 = false;
             if (i > 1) {
                 Point a0 = el0.polylines[0].get_point(i - 2);
@@ -514,7 +514,7 @@ bool face_to_face_wood(
 
             // 6. Same for side-B alignment line (`joint_line1`).
             Line joint_line1 = Line::from_points(Point(0,0,0), Point(0,0,0));
-            Polyline joint_quads1(std::vector<Point>{});
+            Polyline joint_quads1;
             bool has_quads1 = false;
             if (j > 1) {
                 Point a0 = el1.polylines[0].get_point(j - 2);
@@ -687,8 +687,13 @@ bool face_to_face_wood(
                     // collapses a dimension when the input geometry's normal
                     // aligns with a basis axis (the hilti failure mode).
                     Xform world_to_local = Xform::world_to_frame(o, x, y, z);
-                    std::vector<Point> proj_pts = joint_area.get_points();
-                    for (auto& p : proj_pts) { p.transform(world_to_local); }
+                    std::vector<Point> proj_pts;
+                    proj_pts.reserve(joint_area.point_count());
+                    for (size_t k = 0; k < joint_area.point_count(); ++k) {
+                        Point p = joint_area.get_point(k);
+                        p.transform(world_to_local);
+                        proj_pts.push_back(p);
+                    }
                     if (proj_pts.empty()) { if (dbg_reasons) dbg_fail_reason = fmt::format("proj_empty f({},{})", i, j); continue; }
                     double xmin = proj_pts[0][0], xmax = xmin;
                     double ymin = proj_pts[0][1], ymax = ymin;
@@ -728,14 +733,14 @@ bool face_to_face_wood(
                                            offset_vector[2]*d0);
 
                     // Two extruded rectangles (closed quads, 5 points each).
-                    Polyline vol0(std::vector<Point>{
+                    Polyline vol0({
                         Point(rect_local[3][0]+offset_vector[0], rect_local[3][1]+offset_vector[1], rect_local[3][2]+offset_vector[2]),
                         Point(rect_local[3][0]-offset_vector[0], rect_local[3][1]-offset_vector[1], rect_local[3][2]-offset_vector[2]),
                         Point(rect_local[0][0]-offset_vector[0], rect_local[0][1]-offset_vector[1], rect_local[0][2]-offset_vector[2]),
                         Point(rect_local[0][0]+offset_vector[0], rect_local[0][1]+offset_vector[1], rect_local[0][2]+offset_vector[2]),
                         Point(rect_local[3][0]+offset_vector[0], rect_local[3][1]+offset_vector[1], rect_local[3][2]+offset_vector[2]),
                     });
-                    Polyline vol1(std::vector<Point>{
+                    Polyline vol1({
                         Point(rect_local[2][0]+offset_vector[0], rect_local[2][1]+offset_vector[1], rect_local[2][2]+offset_vector[2]),
                         Point(rect_local[2][0]-offset_vector[0], rect_local[2][1]-offset_vector[1], rect_local[2][2]-offset_vector[2]),
                         Point(rect_local[1][0]-offset_vector[0], rect_local[1][1]-offset_vector[1], rect_local[1][2]-offset_vector[2]),
@@ -852,8 +857,8 @@ bool face_to_face_wood(
                             planes4 = { el1.planes[0], el0.planes[0], el1.planes[1], el0.planes[1] };
                         }
 
-                        Polyline vol0(std::vector<Point>{});
-                        Polyline vol1(std::vector<Point>{});
+                        Polyline vol0;
+                        Polyline vol1;
                         if (!Intersection::plane_4planes_open(pl_end0, planes4, vol0)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p_open0 f({},{})", i, j); continue; }
                         if (!Intersection::plane_4planes_open(pl_end1, planes4, vol1)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p_open1 f({},{})", i, j); continue; }
 
@@ -861,41 +866,25 @@ bool face_to_face_wood(
                         // vertex 1 is not on the negative side of plane[i].
                         bool need_rotate = !el0.planes[i].has_on_negative_side(vol0.get_point(1));
                         if (need_rotate) {
-                            std::vector<Point> pts0 = vol0.get_points();
-                            std::vector<Point> pts1 = vol1.get_points();
-                            std::rotate(pts0.begin(), pts0.begin() + 2, pts0.end());
-                            std::rotate(pts1.begin(), pts1.begin() + 2, pts1.end());
-                            vol0 = Polyline(pts0);
-                            vol1 = Polyline(pts1);
+                            vol0.shift(2);
+                            vol1.shift(2);
                         }
 
                         // Reverse + rotate(3) — the male/female flip from the
                         // wood C++ original. We also swap el_ids and reverse
                         // joint_lines so the joint library always sees the
                         // male element first.
-                        {
-                            std::vector<Point> pts0 = vol0.get_points();
-                            std::vector<Point> pts1 = vol1.get_points();
-                            std::reverse(pts0.begin(), pts0.end());
-                            std::reverse(pts1.begin(), pts1.end());
-                            std::rotate(pts0.begin(), pts0.begin() + 3, pts0.end());
-                            std::rotate(pts1.begin(), pts1.begin() + 3, pts1.end());
-                            vol0 = Polyline(pts0);
-                            vol1 = Polyline(pts1);
-                        }
+                        vol0.reverse();
+                        vol1.reverse();
+                        vol0.shift(3);
+                        vol1.shift(3);
                         std::swap(el_ids.first, el_ids.second);
                         std::swap(face_ids.first, face_ids.second);
                         std::swap(joint_lines[0], joint_lines[1]);
 
                         // Close the rectangles (append the first vertex).
-                        {
-                            std::vector<Point> pts0 = vol0.get_points();
-                            std::vector<Point> pts1 = vol1.get_points();
-                            pts0.push_back(pts0.front());
-                            pts1.push_back(pts1.front());
-                            vol0 = Polyline(pts0);
-                            vol1 = Polyline(pts1);
-                        }
+                        vol0 = vol0.closed();
+                        vol1 = vol1.closed();
 
                         vol0.extend_edge_equally(0, ext_w);
                         vol0.extend_edge_equally(2, ext_w);
@@ -994,10 +983,10 @@ bool face_to_face_wood(
                             offset_plane_0, p1_0,        offset_plane_1, p1_1
                         };
 
-                        Polyline vol0(std::vector<Point>{});
-                        Polyline vol1(std::vector<Point>{});
-                        Polyline vol2(std::vector<Point>{});
-                        Polyline vol3(std::vector<Point>{});
+                        Polyline vol0;
+                        Polyline vol1;
+                        Polyline vol2;
+                        Polyline vol3;
                         if (!Intersection::plane_4planes(pl_end0, loop_planes_0, vol0)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p0 f({},{})", i, j); continue; }
                         if (!Intersection::plane_4planes(pl_end1, loop_planes_0, vol1)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p1 f({},{})", i, j); continue; }
                         if (!Intersection::plane_4planes(pl_end0, loop_planes_1, vol2)) { if (dbg_reasons) dbg_fail_reason = fmt::format("p4p2 f({},{})", i, j); continue; }
@@ -1077,13 +1066,13 @@ bool face_to_face_wood(
                 Point q2 = quad_0.get_point(2);
                 Point q3 = quad_0.get_point(3);
 
-                Polyline male_vol(std::vector<Point>{
+                Polyline male_vol({
                     q0, q1,
                     Point(q1[0]+offset_vector[0], q1[1]+offset_vector[1], q1[2]+offset_vector[2]),
                     Point(q0[0]+offset_vector[0], q0[1]+offset_vector[1], q0[2]+offset_vector[2]),
                     q0,
                 });
-                Polyline female_vol(std::vector<Point>{
+                Polyline female_vol({
                     q3, q2,
                     Point(q2[0]+offset_vector[0], q2[1]+offset_vector[1], q2[2]+offset_vector[2]),
                     Point(q3[0]+offset_vector[0], q3[1]+offset_vector[1], q3[2]+offset_vector[2]),
@@ -1187,8 +1176,8 @@ bool face_to_face_wood(
                 Point b2 = vol_b.get_point(2);
                 Point b3 = vol_b.get_point(3);
 
-                Polyline temp0(std::vector<Point>{a0, a1, b1, b0, a0});
-                Polyline temp1(std::vector<Point>{a3, a2, b2, b3, a3});
+                Polyline temp0({a0, a1, b1, b0, a0});
+                Polyline temp1({a3, a2, b2, b3, a3});
 
                 temp0.extend_edge_equally(0, ext_w);
                 temp0.extend_edge_equally(2, ext_w);

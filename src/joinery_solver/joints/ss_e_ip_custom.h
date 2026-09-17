@@ -90,10 +90,10 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     // custom joint polylines are user-set globals, and tile_face only checks
     // the polyline COUNT, not point counts - front() on empty is UB.
     if (m0.empty() || m1.empty() || f0.empty() || f1.empty()) { return; }
-    session_cpp::Polyline ep_m0(std::vector<session_cpp::Point>{ m0.front(), m0.back() });
-    session_cpp::Polyline ep_m1(std::vector<session_cpp::Point>{ m1.front(), m1.back() });
-    session_cpp::Polyline ep_f0(std::vector<session_cpp::Point>{ f0.front(), f0.back() });
-    session_cpp::Polyline ep_f1(std::vector<session_cpp::Point>{ f1.front(), f1.back() });
+    session_cpp::Polyline ep_m0({ m0.front(), m0.back() });
+    session_cpp::Polyline ep_m1({ m1.front(), m1.back() });
+    session_cpp::Polyline ep_f0({ f0.front(), f0.back() });
+    session_cpp::Polyline ep_f1({ f1.front(), f1.back() });
 
     joint.m_outlines[0] = { pl_m0, ep_m0 };
     joint.m_outlines[1] = { pl_m1, ep_m1 };

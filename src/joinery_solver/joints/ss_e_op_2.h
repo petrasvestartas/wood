@@ -65,7 +65,7 @@ static void ss_e_op_2(WoodJoint& joint) {
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
         Polyline outline(pts);
-        Polyline endpoints(std::vector<Point>{pts.front(), pts.back()});
+        Polyline endpoints({pts.front(), pts.back()});
         int idx = (i < 2) ? 1 : 0;
         joint.m_outlines[idx] = {outline, endpoints};
     }
@@ -85,7 +85,7 @@ static void ss_e_op_2(WoodJoint& joint) {
             else      { pts.push_back(aB[j]); pts.push_back(aA[j]); }
         }
         Polyline outline(pts);
-        Polyline endpoints(std::vector<Point>{pts.front(), pts.back()});
+        Polyline endpoints({pts.front(), pts.back()});
         int idx = (i < 2) ? 0 : 1;
         joint.f_outlines[idx] = {outline, endpoints};
     }

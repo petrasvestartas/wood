@@ -18,30 +18,30 @@
 
     // f[0] at y=-0.5: 2 mortise holes + 1 bounding rectangle
     joint.f_outlines[0] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5,-0.5, z_bot ), P( 0.5,-0.5, z_bot ),
             P( 0.5,-0.5, z_bot2), P(-0.5,-0.5, z_bot2),
             P(-0.5,-0.5, z_bot )}),
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5,-0.5, z_top ), P( 0.5,-0.5, z_top ),
             P( 0.5,-0.5, z_top2), P(-0.5,-0.5, z_top2),
             P(-0.5,-0.5, z_top )}),
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5,-0.5, z_top ), P(-0.5,-0.5, z_bot2),
             P( 0.5,-0.5, z_bot2), P( 0.5,-0.5, z_top ),
             P(-0.5,-0.5, z_top )}),
     };
     // f[1] at y=+0.5: same shape, mirrored to +y
     joint.f_outlines[1] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5, 0.5, z_bot ), P( 0.5, 0.5, z_bot ),
             P( 0.5, 0.5, z_bot2), P(-0.5, 0.5, z_bot2),
             P(-0.5, 0.5, z_bot )}),
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5, 0.5, z_top ), P( 0.5, 0.5, z_top ),
             P( 0.5, 0.5, z_top2), P(-0.5, 0.5, z_top2),
             P(-0.5, 0.5, z_top )}),
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5, 0.5, z_top ), P(-0.5, 0.5, z_bot2),
             P( 0.5, 0.5, z_bot2), P( 0.5, 0.5, z_top ),
             P(-0.5, 0.5, z_top )}),
@@ -49,21 +49,21 @@
 
     // m[0] at x=+0.5: 8-point male tenon zigzag + 2-pt endpoint marker
     joint.m_outlines[0] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P( 0.5,-0.5, z_top ), P( 0.5, 0.5, z_top ),
             P( 0.5, 0.5, z_top2), P( 0.5,-0.5, z_top2),
             P( 0.5,-0.5, z_bot ), P( 0.5, 0.5, z_bot ),
             P( 0.5, 0.5, z_bot2), P( 0.5,-0.5, z_bot2)}),
-        Polyline(std::vector<Point>{P( 0.5,-0.5, 0.5), P( 0.5,-0.5,-0.5)}),
+        Polyline({P( 0.5,-0.5, 0.5), P( 0.5,-0.5,-0.5)}),
     };
     // m[1] at x=-0.5
     joint.m_outlines[1] = {
-        Polyline(std::vector<Point>{
+        Polyline({
             P(-0.5,-0.5, z_top ), P(-0.5, 0.5, z_top ),
             P(-0.5, 0.5, z_top2), P(-0.5,-0.5, z_top2),
             P(-0.5,-0.5, z_bot ), P(-0.5, 0.5, z_bot ),
             P(-0.5, 0.5, z_bot2), P(-0.5,-0.5, z_bot2)}),
-        Polyline(std::vector<Point>{P(-0.5,-0.5, 0.5), P(-0.5,-0.5,-0.5)}),
+        Polyline({P(-0.5,-0.5, 0.5), P(-0.5,-0.5,-0.5)}),
     };
     // Wood: f_boolean_type = {hole, hole, insert_between_multiple_edges}×2
     //       m_boolean_type = {edge_insertion, edge_insertion}

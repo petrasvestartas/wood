@@ -11,7 +11,7 @@ const double NECK_RATIO = 0.2917;
 
 // One butterfly tooth face in unit-cube space: y at the plate face, x signed across the seam, z along it.
 static Polyline compute_tooth(const double y, const double depth, const double half, const double neck) {
-    return Polyline(std::vector<Point>{
+    return Polyline({
         Point(0.0, y, half * neck),
         Point(depth, y, half),
         Point(depth, y, -half),

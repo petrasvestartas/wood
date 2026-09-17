@@ -117,11 +117,11 @@ static void ts_e_p_5(WoodJoint& joint) {
     }
     joint.m_outlines[0] = {
         Polyline(m0_pts),
-        Polyline(std::vector<Point>{m0_pts.front(), m0_pts.back()}),
+        Polyline({m0_pts.front(), m0_pts.back()}),
     };
     joint.m_outlines[1] = {
         Polyline(m1_pts),
-        Polyline(std::vector<Point>{m1_pts.front(), m1_pts.back()}),
+        Polyline({m1_pts.front(), m1_pts.back()}),
     };
 
     // Build female: one 5-pt rectangle per division, then bounding rectangle.
@@ -141,14 +141,14 @@ static void ts_e_p_5(WoodJoint& joint) {
         joint.f_outlines[1].push_back(Polyline(fp1));
     }
     // Bounding rectangle spanning all divisions.
-    joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[0].push_back(Polyline({
         joint.f_outlines[0].front().get_point(0),
         joint.f_outlines[0].front().get_point(3),
         joint.f_outlines[0].back().get_point(2),
         joint.f_outlines[0].back().get_point(1),
         joint.f_outlines[0].front().get_point(0),
     }));
-    joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+    joint.f_outlines[1].push_back(Polyline({
         joint.f_outlines[1].front().get_point(0),
         joint.f_outlines[1].front().get_point(3),
         joint.f_outlines[1].back().get_point(2),

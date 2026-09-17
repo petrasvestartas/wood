@@ -16,17 +16,6 @@ using session_cpp::Polyline;
 
 namespace {
 
-/// Drop a closing vertex that repeats the first one (to 1e-6).
-void strip_closing(std::vector<Point>& v) {
-    if (v.size() > 3) {
-        const Point& f = v.front();
-        const Point& l = v.back();
-        if (std::abs(f[0]-l[0]) < 1e-6 && std::abs(f[1]-l[1]) < 1e-6 &&
-            std::abs(f[2]-l[2]) < 1e-6) { v.pop_back(); }
-    }
-}
-
-
 /// The loops as one mesh: one n-gon face per loop, vertices NOT shared between faces -
 /// unwelded, the mesh is exactly those loops, so Mesh::face_outlines() gives them back.
 Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
@@ -34,13 +23,13 @@ Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
     std::vector<std::vector<size_t>> faces;
     faces.reserve(loops.size());
     for (const Polyline& loop : loops) {
-        std::vector<Point> pts = loop.get_points();
-        strip_closing(pts);
-        if (pts.size() < 3) { continue; }
-        std::vector<size_t> face(pts.size());
-        for (size_t k = 0; k < pts.size(); ++k) {
+        size_t count = loop.point_count();
+        if (count > 3 && loop.get_point(0).distance(loop.get_point(count - 1)) < 1e-6) count--;
+        if (count < 3) { continue; }
+        std::vector<size_t> face(count);
+        for (size_t k = 0; k < count; ++k) {
             face[k] = verts.size();
-            verts.push_back(pts[k]);
+            verts.push_back(loop.get_point(k));
         }
         faces.push_back(std::move(face));
     }

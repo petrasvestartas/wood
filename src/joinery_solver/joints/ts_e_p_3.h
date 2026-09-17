@@ -70,7 +70,7 @@ static void ts_e_p_3(WoodJoint& joint) {
         }
 
         Polyline outline(pts);
-        Polyline endpoints(std::vector<Point>{pts.front(), pts.back()});
+        Polyline endpoints({pts.front(), pts.back()});
         // Wood `ts_e_p_3` (`wood_joint_lib.cpp:3842-3858`) writes
         // `i=0 → joint.m[1]` and `i=2 → joint.m[0]`. The labels are
         // intentionally swapped from what `(i < 2) ? 0 : 1` would suggest;
@@ -87,23 +87,23 @@ static void ts_e_p_3(WoodJoint& joint) {
     for (int i = 0; i < nrects; i += 4) {
         Point p00 = m0pts.get_point(i),   p03 = m0pts.get_point(i+3);
         Point p10 = m1pts.get_point(i),   p13 = m1pts.get_point(i+3);
-        joint.f_outlines[0].push_back(Polyline(std::vector<Point>{p00, p03, p13, p10, p00}));
+        joint.f_outlines[0].push_back(Polyline({p00, p03, p13, p10, p00}));
         Point p01 = m0pts.get_point(i+1), p02 = m0pts.get_point(i+2);
         Point p11 = m1pts.get_point(i+1), p12 = m1pts.get_point(i+2);
-        joint.f_outlines[1].push_back(Polyline(std::vector<Point>{p01, p02, p12, p11, p01}));
+        joint.f_outlines[1].push_back(Polyline({p01, p02, p12, p11, p01}));
     }
     // Bounding rectangle.
     if (size >= 2 && !joint.f_outlines[0].empty()) {
         auto& first0 = joint.f_outlines[0].front();
         auto& last0  = joint.f_outlines[0][joint.f_outlines[0].size()-1];
-        joint.f_outlines[0].push_back(Polyline(std::vector<Point>{
+        joint.f_outlines[0].push_back(Polyline({
             first0.get_point(0), first0.get_point(3),
             last0.get_point(3), last0.get_point(0), first0.get_point(0)}));
     }
     if (size >= 2 && !joint.f_outlines[1].empty()) {
         auto& first1 = joint.f_outlines[1].front();
         auto& last1  = joint.f_outlines[1][joint.f_outlines[1].size()-1];
-        joint.f_outlines[1].push_back(Polyline(std::vector<Point>{
+        joint.f_outlines[1].push_back(Polyline({
             first1.get_point(0), first1.get_point(3),
             last1.get_point(3), last1.get_point(0), first1.get_point(0)}));
     }

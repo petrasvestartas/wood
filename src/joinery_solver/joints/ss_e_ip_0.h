@@ -22,26 +22,26 @@ static void ss_e_ip_0(WoodJoint& joint) {
     // f[0] / m[0] at y=-0.5: 12-pt zigzag + 2-pt endpoint marker
     auto build_minus = [&]() -> std::vector<Polyline> {
         return {
-            Polyline(std::vector<Point>{
+            Polyline({
                 P( 0.0,-0.5, a),  P(-0.5,-0.5, a),
                 P(-0.5,-0.5, b),  P( 0.5,-0.5, b),
                 P( 0.5,-0.5, c),  P(-0.5,-0.5, c),
                 P(-0.5,-0.5,-c),  P( 0.5,-0.5,-c),
                 P( 0.5,-0.5,-b),  P(-0.5,-0.5,-b),
                 P(-0.5,-0.5,-a),  P( 0.0,-0.5,-a)}),
-            Polyline(std::vector<Point>{P( 0.0,-0.5, 0.5), P( 0.0,-0.5,-0.5)}),
+            Polyline({P( 0.0,-0.5, 0.5), P( 0.0,-0.5,-0.5)}),
         };
     };
     auto build_plus = [&]() -> std::vector<Polyline> {
         return {
-            Polyline(std::vector<Point>{
+            Polyline({
                 P( 0.0, 0.5, a),  P(-0.5, 0.5, a),
                 P(-0.5, 0.5, b),  P( 0.5, 0.5, b),
                 P( 0.5, 0.5, c),  P(-0.5, 0.5, c),
                 P(-0.5, 0.5,-c),  P( 0.5, 0.5,-c),
                 P( 0.5, 0.5,-b),  P(-0.5, 0.5,-b),
                 P(-0.5, 0.5,-a),  P( 0.0, 0.5,-a)}),
-            Polyline(std::vector<Point>{P( 0.0, 0.5, 0.5), P( 0.0, 0.5,-0.5)}),
+            Polyline({P( 0.0, 0.5, 0.5), P( 0.0, 0.5,-0.5)}),
         };
     };
     // Joint lines, always the last line or

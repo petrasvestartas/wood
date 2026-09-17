@@ -77,10 +77,10 @@ static void ss_e_ip_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>
     }
 
     Polyline pl_m0(m0), pl_m1(m1), pl_f0(f0), pl_f1(f1);
-    Polyline ep_m0(std::vector<Point>{ m0.front(), m0.back() });
-    Polyline ep_m1(std::vector<Point>{ m1.front(), m1.back() });
-    Polyline ep_f0(std::vector<Point>{ f0.front(), f0.back() });
-    Polyline ep_f1(std::vector<Point>{ f1.front(), f1.back() });
+    Polyline ep_m0({ m0.front(), m0.back() });
+    Polyline ep_m1({ m1.front(), m1.back() });
+    Polyline ep_f0({ f0.front(), f0.back() });
+    Polyline ep_f1({ f1.front(), f1.back() });
 
     joint.m_outlines[0] = { pl_m0, ep_m0 };
     joint.m_outlines[1] = { pl_m1, ep_m1 };
