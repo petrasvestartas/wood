@@ -1,6 +1,5 @@
+#include "wood_pch.h"
 #include "wood_element_column.h"
-
-#include <sstream>
 
 namespace wood_session {
 

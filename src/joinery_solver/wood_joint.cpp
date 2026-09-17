@@ -1,19 +1,7 @@
+#include "wood_pch.h"
 #include "wood_joint.h"
 #include "wood_session.h"
 #include "wood_cut.h"
-#include "../src/intersection.h"
-#include "../src/polyline.h"
-#include "../src/line.h"
-#include "../src/vector.h"
-#include "../src/point.h"
-#include "../src/xform.h"
-#include "../src/plane.h"
-#include "../src/tolerance.h"
-#include <cmath>
-#include <fstream>
-#include <algorithm>
-#include <vector>
-
 using namespace session_cpp;
 using wood_session::WoodJoint;
 using wood_session::Plate;

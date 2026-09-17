@@ -1,22 +1,6 @@
+#include "wood_pch.h"
 #include "wood_session.h"
 #include "wood_face_to_face.h"
-
-#include "../src/color.h"
-#include "../src/intersection.h"
-#include "../src/line.h"
-#include "../src/mesh.h"
-#include "../src/point.h"
-#include "../src/polyline.h"
-#include "../src/session.h"
-#include "../src/tree.h"
-
-#include <fmt/core.h>
-
-#include <algorithm>
-#include <fstream>
-#include <map>
-#include <sstream>
-#include <string>
 
 namespace wood_session {
 

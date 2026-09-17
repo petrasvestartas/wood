@@ -1,11 +1,4 @@
-#include "../src/mesh.h"
-
-#include <fmt/core.h>
-
-#include <array>
-#include <utility>
-#include <vector>
-
+#include "wood_pch.h"
 namespace session_cpp {
 std::vector<std::array<int, 3>> cdt_triangulate(
     const std::vector<std::pair<double, double>>&,

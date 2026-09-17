@@ -1,23 +1,7 @@
+#include "wood_pch.h"
 #include "wood_session.h"
 #include "wood_element_plate.h"
 #include "wood_face_to_face.h"
-#include "../src/session.h"
-#include "../src/element.h"
-#include "../src/intersection.h"
-#include "../src/polyline.h"
-#include "../src/line.h"
-#include "../src/vector.h"
-#include "../src/point.h"
-#include "../src/plane.h"
-#include "../src/color.h"
-#include <fmt/core.h>
-#include <cmath>
-#include <array>
-#include <filesystem>
-#include <map>
-#include <utility>
-#include <vector>
-
 using namespace session_cpp;
 using wood_session::WoodJoint;
 using wood_session::Plate;

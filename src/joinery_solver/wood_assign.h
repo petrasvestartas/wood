@@ -1,13 +1,8 @@
 #pragma once
 
+#include "wood_pch.h"
+
 #include "wood_element_plate.h"
-#include "../src/point.h"
-#include "../src/line.h"
-#include "../src/vector.h"
-
-#include <memory>
-#include <vector>
-
 namespace wood_session {
 
 /// Assign absolute joint types to bottom, top, or side slots; unassigned slots remain -1.

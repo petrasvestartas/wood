@@ -1,10 +1,6 @@
 #pragma once
 
-#include "../src/plane.h"
-#include "../src/polyline.h"
-
-#include <array>
-#include <utility>
+#include "wood_pch.h"
 
 namespace wood_session {
 

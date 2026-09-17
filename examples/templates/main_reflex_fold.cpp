@@ -1,6 +1,5 @@
+#include "wood_pch.h"
 #include "src/templates/reflex_fold.h"
-
-#include <filesystem>
 
 const char* OUTPUT = "data/templates/reflex_fold_mesh.json";
 

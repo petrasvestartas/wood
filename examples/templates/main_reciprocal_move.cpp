@@ -1,6 +1,5 @@
+#include "wood_pch.h"
 #include "src/templates/reciprocal_move.h"
-
-#include <filesystem>
 
 const char* OUTPUT = "data/templates/reciprocal_move_dome.json";
 

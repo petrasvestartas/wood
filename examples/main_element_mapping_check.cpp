@@ -1,15 +1,5 @@
-#include "../src/session.h"
-#include "../src/element.h"
-#include "../src/polyline.h"
-#include "../src/point.h"
-#include "../src/vector.h"
+#include "wood_pch.h"
 #include "../src/joinery_solver/wood_session.h"
-
-#include <fmt/core.h>
-
-#include <cmath>
-#include <filesystem>
-#include <string>
 
 using namespace session_cpp;
 using wood_session::Block;

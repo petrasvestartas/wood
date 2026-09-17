@@ -1,22 +1,13 @@
 #pragma once
 
-#include "../src/element.h"
-#include "../src/polyline.h"
-#include "../src/session.h"
+#include "wood_pch.h"
+
 #include "wood_element_block.h"
 #include "wood_element_column.h"
 #include "wood_element_plate.h"
 #include "wood_globals.h"
 #include "wood_joint.h"
 #include "wood_joint_detection.h"
-
-#include <array>
-#include <filesystem>
-#include <memory>
-#include <string>
-#include <tuple>
-#include <utility>
-#include <vector>
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Datasets
@@ -51,7 +42,6 @@ std::vector<session_cpp::Polyline> load_polylines(
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
-
 
 /// The 9-stage detection pipeline over the plates, in place: every plate's `features` and `insertion_vectors` are filled, and every detected joint is returned.
 std::vector<wood_session::WoodJoint> get_connection_zones(

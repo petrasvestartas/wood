@@ -1,12 +1,6 @@
-#include "file_obj.h"
+#include "wood_pch.h"
 #include "pair_polylines.h"
-#include "polyline.h"
 #include "wood_session.h"
-
-#include <fmt/core.h>
-
-#include <filesystem>
-#include <fstream>
 
 using namespace session_cpp;
 

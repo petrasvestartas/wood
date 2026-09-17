@@ -1,6 +1,5 @@
+#include "wood_pch.h"
 #include "src/templates/translation_shell.h"
-
-#include <filesystem>
 
 const char* OUTPUT = "data/templates/translation_shell_mesh.json";
 

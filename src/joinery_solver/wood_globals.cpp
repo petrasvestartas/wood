@@ -1,9 +1,6 @@
+#include "wood_pch.h"
 #include "wood_session.h"
 #include "yaml.hpp"
-
-#include <filesystem>
-#include <stdexcept>
-#include <string>
 
 namespace wood_session {
 namespace globals {

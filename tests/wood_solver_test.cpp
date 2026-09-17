@@ -1,15 +1,9 @@
+#include "wood_pch.h"
 #include "wood_joint.h"
 #include "wood_session.h"
 #include "wood_cut.h"
 
-#include <array>
-#include <cmath>
 #include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include <limits>
-#include <stdexcept>
-
 using namespace session_cpp;
 using namespace wood_session;
 

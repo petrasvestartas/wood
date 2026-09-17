@@ -1,29 +1,7 @@
+#include "wood_pch.h"
 #include "wood_face_to_face.h"
 #include "wood_joint_detection.h"
-#include "../src/aabb.h"
-#include "../src/intersection.h"
-#include "../src/obb.h"
-#include "../src/spatial_bvh.h"
-#include "../src/polyline.h"
-#include "../src/line.h"
-#include "../src/vector.h"
-#include "../src/point.h"
-#include "../src/xform.h"
-#include "../src/plane.h"
-#include "../src/tolerance.h"
 #include "../src/clipper2/clipper.h"
-#include <cmath>
-#include <cstdlib>
-#include <algorithm>
-#include <array>
-#include <fstream>
-#include <optional>
-#include <string>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-#include <fmt/core.h>
-
 using namespace session_cpp;
 using wood_session::WoodJoint;
 using wood_session::Plate;

@@ -1,15 +1,6 @@
+#include "wood_pch.h"
 #include "wood_assign.h"
 #include "wood_session.h"
-#include "../src/spatial_rtree.h"
-
-#include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <cstddef>
-#include <limits>
-#include <utility>
-#include <vector>
-
 namespace wood_session {
 
 namespace {

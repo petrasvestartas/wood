@@ -1,35 +1,9 @@
-#include "../src/session.h"
-#include "../src/element.h"
-#include "../src/intersection.h"
-#include "../src/plane.h"
-#include "../src/polyline.h"
-#include "../src/line.h"
-#include "../src/vector.h"
-#include "../src/point.h"
-#include "../src/xform.h"
-#include "../src/tolerance.h"
-#include "../src/mesh.h"
+#include "wood_pch.h"
 #include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 #include "wood_joint.h"
 #include "wood_merge.h"
 #include "wood_session.h"
-#include <fmt/core.h>
-#include <chrono>
-#include <filesystem>
-#include <vector>
-#include <array>
-#include <map>
-#include <optional>
-#include <utility>
-#include <cmath>
-#include <algorithm>
-#include <unordered_map>
-#include <set>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 using namespace session_cpp;
 
 constexpr bool TRACE = false;

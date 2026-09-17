@@ -1,18 +1,5 @@
-#include "../src/element.h"
-#include "../src/intersection.h"
-#include "../src/line.h"
-#include "../src/plane.h"
-#include "../src/point.h"
-#include "../src/polyline.h"
-#include "../src/tolerance.h"
-#include "../src/vector.h"
+#include "wood_pch.h"
 #include "wood_session.h"
-
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <utility>
-#include <vector>
 
 using namespace session_cpp;
 

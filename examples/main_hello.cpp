@@ -1,7 +1,5 @@
+#include "wood_pch.h"
 #include "wood_session.h"
-#include "../src/session.h"
-#include "../src/mesh.h"
-
 using namespace session_cpp;
 using namespace wood_session;
 

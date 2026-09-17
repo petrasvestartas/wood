@@ -1,17 +1,9 @@
 #pragma once
 
-#include "../src/line.h"
-#include "../src/plane.h"
-#include "../src/point.h"
-#include "../src/polyline.h"
-#include "../src/vector.h"
+#include "wood_pch.h"
+
 #include "wood_globals.h"
 #include "wood_joint.h"
-
-#include <cstddef>
-#include <string>
-#include <utility>
-#include <vector>
 
 namespace wood_session {
 

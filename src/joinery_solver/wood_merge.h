@@ -1,9 +1,8 @@
 #pragma once
 
-#include "wood_joint.h"
+#include "wood_pch.h"
 
-#include <utility>
-#include <vector>
+#include "wood_joint.h"
 
 using JMF = std::vector<std::vector<std::vector<std::pair<int, bool>>>>;
 

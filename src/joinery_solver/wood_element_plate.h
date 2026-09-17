@@ -1,16 +1,6 @@
 #pragma once
 
-#include "../src/element.h"
-#include "../src/line.h"
-#include "../src/mesh.h"
-#include "../src/plane.h"
-#include "../src/point.h"
-#include "../src/polyline.h"
-#include "../src/vector.h"
-
-#include <memory>
-#include <string>
-#include <vector>
+#include "wood_pch.h"
 
 namespace wood_session {
 

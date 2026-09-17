@@ -1,3 +1,4 @@
+#include "wood_pch.h"
 #include "wood_session.h"
 
 using namespace session_cpp;
@@ -7,13 +8,13 @@ const int SESSION = 0;   // globals::SESSION_NAMES
 const std::string DATASET = globals::Dataset::hex_block_rossiniere;  // globals::Dataset::<name> autocompletes
 
 int main() {
-    WoodSession scene = WoodSession::pb_load(globals::session_pb(SESSION));
-    std::cout << scene << std::endl;
-    scene.write(globals::SESSION_NAMES[SESSION]);
+    WoodSession wood_session = WoodSession::pb_load(globals::session_pb(SESSION));
+    std::cout << wood_session << std::endl;
+    wood_session.write(globals::SESSION_NAMES[SESSION]);
 
-    WoodSession scene_plates = WoodSession::yaml_load(DATASET);
-    std::cout << scene_plates << std::endl;
-    scene_plates.write("live"); // Live will be seen in the viewer.
+    WoodSession session_plates = WoodSession::yaml_load(DATASET);
+    std::cout << session_plates << std::endl;
+    session_plates.write("live"); // Live will be seen in the viewer.
 
     return 0;
 }

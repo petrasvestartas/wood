@@ -113,6 +113,12 @@ set(WOOD_CLIPPER2_SOURCES
 )
 
 add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES})
+# The std and kernel headers every wood file needs, compiled once and reused by every target.
+target_precompile_headers(wood_core PRIVATE src/joinery_solver/wood_pch.h)
+# One warning set for the library and every target, so the precompiled header matches everywhere.
+if(NOT MSVC)
+    target_compile_options(wood_core PRIVATE -Wall -Wextra -Wpedantic)
+endif()
 target_include_directories(wood_core PUBLIC
     ${SESSION_CPP_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -135,6 +141,10 @@ target_include_directories(wood_core PUBLIC
 function(ADD_EXE NAME SRC)
     add_executable(${NAME} ${SRC} ${ARGN})
     target_link_libraries(${NAME} PRIVATE wood_core session_core)
+    if(NOT MSVC)
+        target_compile_options(${NAME} PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    target_precompile_headers(${NAME} REUSE_FROM wood_core)
     LINK_PROTOBUF(${NAME})
 endfunction()
 
@@ -171,10 +181,6 @@ include(CTest)
 if(BUILD_TESTING)
     ADD_EXE(wood_assign_test tests/wood_assign_test.cpp)
     ADD_EXE(wood_solver_test tests/wood_solver_test.cpp)
-    if(NOT MSVC)
-        target_compile_options(wood_assign_test PRIVATE -Wall -Wextra -Wpedantic)
-        target_compile_options(wood_solver_test PRIVATE -Wall -Wextra -Wpedantic)
-    endif()
     if(UNIX)
         add_test(NAME wood_assign COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_assign_test>)
         set_tests_properties(wood_assign PROPERTIES RUN_SERIAL TRUE)

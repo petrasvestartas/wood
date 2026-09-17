@@ -1,12 +1,5 @@
+#include "wood_pch.h"
 #include "wood_session.h"
-#include "../src/file_obj.h"
-#include "../src/polyline.h"
-
-#include <filesystem>
-#include <stdexcept>
-#include <string>
-#include <vector>
-
 using namespace session_cpp;
 
 namespace internal {

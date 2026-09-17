@@ -1,14 +1,6 @@
-#include "session.h"
-#include "element.h"
-#include "intersection.h"
-#include "json.h"
+#include "wood_pch.h"
 #include "wood_element_plate.h"
 #include "wood_session.h"
-
-#include <fmt/core.h>
-
-#include <filesystem>
-#include <fstream>
 
 using namespace session_cpp;
 

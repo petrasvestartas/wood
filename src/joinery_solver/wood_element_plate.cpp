@@ -1,10 +1,5 @@
+#include "wood_pch.h"
 #include "wood_element_plate.h"
-
-#include <fmt/core.h>
-
-#include <algorithm>
-#include <cmath>
-#include <sstream>
 
 namespace wood_session {
 

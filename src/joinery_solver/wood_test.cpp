@@ -1,6 +1,5 @@
+#include "wood_pch.h"
 #include "wood_session.h"
-
-#include <fmt/core.h>
 
 using namespace session_cpp;
 using wood_session::WoodSession;

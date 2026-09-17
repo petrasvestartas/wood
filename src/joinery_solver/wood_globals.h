@@ -1,12 +1,6 @@
 #pragma once
 
-#include "../src/polyline.h"
-
-#include <array>
-#include <cstddef>
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "wood_pch.h"
 
 /// Which detection pass compute_joints runs.
 enum SearchType : int {

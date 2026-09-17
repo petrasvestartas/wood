@@ -1,10 +1,8 @@
+#include "wood_pch.h"
 #include "wood_assign.h"
 #include "wood_session.h"
 
-#include <cmath>
 #include <cstdio>
-#include <vector>
-
 using namespace session_cpp;
 using namespace wood_session;
 
