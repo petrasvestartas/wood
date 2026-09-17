@@ -2,13 +2,11 @@
 
 using namespace wood_session;
 
-// globals::Dataset::Face::<name> for SEARCH = face_to_face, ::Cross::<name> for cross_joint.
-const std::string DATASET = globals::Dataset::inplane_hexshell;
-const SearchType SEARCH = SearchType::face_to_face;  // face_to_face | cross_joint | face_to_face_then_cross
+const std::string DATASET = globals::Dataset::inplane_hexshell;   // globals::Dataset::<name> autocompletes
 
 int main() {
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
-    wood_session.compute_joints(SEARCH);
+    wood_session.compute_joints();
     wood_session.add_joints();
     wood_session.write("live");
     return 0;

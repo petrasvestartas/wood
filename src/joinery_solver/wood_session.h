@@ -52,11 +52,6 @@ std::vector<session_cpp::Polyline> load_polylines(
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-enum SearchType : int {
-    face_to_face            = 0,  // coplanar face detection: ss_e_ip/op/r, ts_e_p
-    cross_joint             = 1,  // crossing elements: plane_to_face (type-30)
-    face_to_face_then_cross = 2,  // face-to-face first, then cross-joint fallback
-};
 
 /// The 9-stage detection pipeline over the plates, in place: every plate's `features` and `insertion_vectors` are filled, and every detected joint is returned.
 std::vector<wood_session::WoodJoint> get_connection_zones(
@@ -156,7 +151,7 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads globals::DISTANCE), stored as ContactType::line.
     void compute_line_contacts(double tolerance = -1.0);
     /// get_connection_zones over the plates, in place; every joint onto its pair's edge.
-    void compute_joints(SearchType search_type = face_to_face);
+    void compute_joints(SearchType search_type = globals::SEARCH_TYPE);
 
     /// The interaction on the edge joining two elements, read from `a`; empty when there is none.
     WoodInteraction get_interaction(const std::string& a, const std::string& b) const;

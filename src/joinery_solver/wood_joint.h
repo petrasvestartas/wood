@@ -120,6 +120,9 @@ void tt_e_p_3(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
 void tt_e_p_4(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
 void tt_e_p_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
 
+/// The [width, height, length] extension for a joint type: side-side (11/12/13) reads triple 0, top-side (20) triple 1, top-top (40) triple 2, cross (30) triple 3; a 3-entry list serves every type.
+std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, int joint_type);
+
 /// Position of the plate with this guid, or -1.
 int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid);
 

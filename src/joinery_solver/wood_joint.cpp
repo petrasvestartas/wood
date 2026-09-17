@@ -281,6 +281,15 @@ std::string WoodJoint::str() const {
 }
 std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
 
+std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, int joint_type) {
+    const size_t triples = extension.size() / 3;
+    if (triples == 0)
+        return {0.0, 0.0, 0.0};
+    const size_t klass = joint_type == 20 ? 1 : joint_type == 40 ? 2 : joint_type == 30 ? 3 : 0;
+    const size_t at = std::min(klass, triples - 1) * 3;
+    return {extension[at], extension[at + 1], extension[at + 2]};
+}
+
 int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid) {
     for (size_t i = 0; i < elements.size(); ++i)
         if (elements[i]->guid() == guid)

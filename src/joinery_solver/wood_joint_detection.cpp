@@ -404,7 +404,7 @@ bool plane_to_face(
     const int maxID = ((lMax_b - midPlane_lMax).magnitude_squared() > (lMax_a - midPlane_lMax).magnitude_squared()) ? 1 : 0;
     Vector v = (maxID == 1) ? (lMax_b - midPlane_lMax) : -(lMax_a - midPlane_lMax);
 
-    if (extension[2] > 0.0) {
+    if (extension[2] != 0.0) {
         const double length = v.magnitude();
         if (length > Tolerance::ZERO_TOLERANCE) {
             const double target = length + extension[2];
@@ -428,7 +428,7 @@ bool plane_to_face(
     result.joint_volumes[0] = result.joint_area.translated(v);
     result.joint_volumes[1] = result.joint_area.translated(-v);
 
-    if (extension[0] + extension[1] > 0.0) {
+    if (extension[0] != 0.0 || extension[1] != 0.0) {
         for (int k = 0; k < 2; k++) {
             Polyline& pl = result.joint_volumes[k];
             pl.extend_segment(0, extension[0], extension[0], 0.0, 0.0);

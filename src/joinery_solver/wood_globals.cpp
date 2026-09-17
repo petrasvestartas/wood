@@ -14,8 +14,9 @@ namespace globals {
 
 std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
 std::vector<double> JOINT_VOLUME_EXTENSION;
+SearchType SEARCH_TYPE = face_to_face;
+std::vector<double> BEAMS;
 std::array<double, 3> JOINT_SCALE = {1.0, 1.0, 1.0};
-int OUTPUT_GEOMETRY_TYPE = 4;
 double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = 150.0;
 bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = false;
 bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = false;
@@ -94,11 +95,6 @@ std::string DATA_SET_THREE_VALENCE;
 std::string DATA_SET_INSERTION_VECTORS;
 std::string DATA_SET_JOINTS_TYPES;
 std::string DATA_SET_OUTPUT_FILE;
-std::string DATA_SET_OUTPUT_DATABASE;
-std::string PATH_AND_FILE_FOR_JOINTS;
-
-std::vector<std::string> EXISTING_TYPES;
-std::size_t RUN_COUNT = 0;
 
 std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
 std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
@@ -153,7 +149,6 @@ void reset_defaults() {
     };
     JOINT_VOLUME_EXTENSION = {0.0, 0.0, 0.0};
     JOINT_SCALE = {1.0, 1.0, 1.0};
-    OUTPUT_GEOMETRY_TYPE = 4;
     FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = 150.0;
     FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = false;
     FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = false;
@@ -171,20 +166,9 @@ void reset_defaults() {
     DATA_SET_INSERTION_VECTORS.clear();
     DATA_SET_JOINTS_TYPES.clear();
     DATA_SET_OUTPUT_FILE.clear();
-    DATA_SET_OUTPUT_DATABASE.clear();
-    PATH_AND_FILE_FOR_JOINTS.clear();
+    SEARCH_TYPE = face_to_face;
+    BEAMS.clear();
 
-    EXISTING_TYPES = {
-        "JOINT_NAMES[1] = ss_e_ip_0;",     "JOINT_NAMES[2] = ss_e_ip_1;",  "JOINT_NAMES[3] = ss_e_ip_2;",     "JOINT_NAMES[8] = side_removal;",
-        "JOINT_NAMES[9] = ss_e_ip_9;",     "JOINT_NAMES[10] = ss_e_op_0;", "JOINT_NAMES[11] = ss_e_op_1;",    "JOINT_NAMES[12] = ss_e_op_2;",
-        "JOINT_NAMES[13] = ss_e_op_3;",    "JOINT_NAMES[14] = ss_e_op_4;", "JOINT_NAMES[15] = ss_e_op_5;",    "JOINT_NAMES[18] = side_removal;",
-        "JOINT_NAMES[19] = ss_e_op_9;",    "JOINT_NAMES[20] = ts_e_p_0;",  "JOINT_NAMES[21] = ts_e_p_1;",     "JOINT_NAMES[22] = ts_e_p_2;",
-        "JOINT_NAMES[23] = ts_e_p_3;",     "JOINT_NAMES[24] = ts_e_p_4;",  "JOINT_NAMES[25] = ts_e_p_5;",     "JOINT_NAMES[28] = side_removal;",
-        "JOINT_NAMES[29] = ts_e_p_9;",     "JOINT_NAMES[30] = cr_c_ip_0;", "JOINT_NAMES[31] = cr_c_ip_1;",    "JOINT_NAMES[32] = cr_c_ip_2;",
-        "JOINT_NAMES[38] = side_removal;", "JOINT_NAMES[39] = cr_c_ip_9;", "JOINT_NAMES[48] = side_removal;", "JOINT_NAMES[58] = side_removal_ss_e_r_1;",
-        "JOINT_NAMES[59] = ss_e_r_9;",     "JOINT_NAMES[60] = b_0;",
-    };
-    RUN_COUNT = 0;
     CUSTOM_JOINTS_SS_E_IP_MALE.clear();
     CUSTOM_JOINTS_SS_E_IP_FEMALE.clear();
     CUSTOM_JOINTS_SS_E_OP_MALE.clear();
@@ -234,20 +218,35 @@ void globals_yaml(const std::string& dataset_name) {
         }
     }
     if (y.has("joint_volume_extension")) {
-        const std::vector<std::string> jve = list("joint_volume_extension");
-        if (!jve.empty())
-            JOINT_VOLUME_EXTENSION = parse_doubles(jve);
+        std::vector<double> parsed = parse_doubles(list("joint_volume_extension"));
+        if (parsed.size() < 3 || parsed.size() % 3 != 0)
+            throw std::runtime_error(
+                "globals_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
+                " values; expected 3 (every joint type) or a multiple of 3 (one triple per type)");
+        JOINT_VOLUME_EXTENSION = std::move(parsed);
     }
     if (y.has("joint_scale")) {
-        const std::vector<std::string> jsc = list("joint_scale");
-        if (jsc.size() >= 3) {
-            const std::vector<double> s = parse_doubles(jsc);
-            JOINT_SCALE = {s[0], s[1], s[2]};
-        }
+        const std::vector<double> s = parse_doubles(list("joint_scale"));
+        if (s.size() != 3)
+            throw std::runtime_error("globals_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
+        JOINT_SCALE = {s[0], s[1], s[2]};
     }
-
-    if (y.has("output_geometry_type"))
-        OUTPUT_GEOMETRY_TYPE = std::stoi(str("output_geometry_type"));
+    if (y.has("search_type")) {
+        const std::string search = str("search_type");
+        if (search == "face_to_face")
+            SEARCH_TYPE = face_to_face;
+        else if (search == "cross_joint")
+            SEARCH_TYPE = cross_joint;
+        else if (search == "face_to_face_then_cross")
+            SEARCH_TYPE = face_to_face_then_cross;
+        else
+            throw std::runtime_error("globals_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
+    }
+    if (y.has("beams")) {
+        BEAMS = parse_doubles(list("beams"));
+        if (BEAMS.size() != 6)
+            throw std::runtime_error("globals_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
+    }
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
         FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(str("face_to_face_side_to_side_joints_dihedral_angle"));
     if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))
@@ -283,24 +282,8 @@ void globals_yaml(const std::string& dataset_name) {
     file("three_valence", DATA_SET_THREE_VALENCE);
     file("insertion_vectors", DATA_SET_INSERTION_VECTORS);
     file("joints_types", DATA_SET_JOINTS_TYPES);
-    if (!DATA_SET_OBJ.empty()) {
-        DATA_SET_INPUT_NAME = std::filesystem::path(DATA_SET_OBJ).stem().string();
-        DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
-    }
-    if (y.has("data_set_output_file"))
-        DATA_SET_OUTPUT_FILE = str("data_set_output_file");
-    if (y.has("data_set_output_database"))
-        DATA_SET_OUTPUT_DATABASE = str("data_set_output_database");
-    if (y.has("path_and_file_for_joints"))
-        PATH_AND_FILE_FOR_JOINTS = str("path_and_file_for_joints");
-    if (y.has("run_count"))
-        RUN_COUNT = static_cast<std::size_t>(std::stoull(str("run_count")));
-
-    if (y.has("existing_types")) {
-        const std::vector<std::string> et = list("existing_types");
-        if (!et.empty())
-            EXISTING_TYPES = et;
-    }
+    DATA_SET_INPUT_NAME = path.stem().string();
+    DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
 }
 
 } // namespace globals

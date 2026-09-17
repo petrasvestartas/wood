@@ -8,17 +8,28 @@
 #include <string>
 #include <vector>
 
+/// Which detection pass compute_joints runs.
+enum SearchType : int {
+    face_to_face            = 0,  ///< coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p
+    cross_joint             = 1,  ///< elements passing through each other: plane_to_face, type 30
+    face_to_face_then_cross = 2,  ///< face-to-face first, cross as the fallback
+};
+
 namespace wood_session {
 namespace globals {
+    /// The detection pass the dataset asks for (yml `search_type`).
+    extern SearchType SEARCH_TYPE;
+
     /// Joint-family triples [division_length (mm), shift, joint_type_id]; families 0=ss_e_ip 1=ss_e_op 2=ts_e_p 3=cr_c_ip 4=tt_e_p 5=ss_e_r 6=b.
     extern std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
 
-    /// Additive [width, height, length] extension (mm) of joint cut volumes, read as triples; negative shrinks.
+    /// Additive [width, height, length] extension (mm) of joint volumes: one triple for every joint type, or one per type
+    /// (side-side, top-side, top-top, cross); width and height grow the volume, length the joint line; unit-scale joints
+    /// (ss_e_ip_2, ss_e_r_*, ts_e_p_5) keep their axial size at the plate thickness.
     extern std::vector<double> JOINT_VOLUME_EXTENSION;
 
     /// Multiplicative [sx, sy, sz] scale of joint geometry before insertion (ss_e_ip_2, ss_e_r_*, ts_e_p_5); 1 = no change.
     extern std::array<double, 3> JOINT_SCALE;
-    extern int    OUTPUT_GEOMETRY_TYPE;                      ///< 4 = merged outlines + lofts
     extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;       ///< degrees; rotated-joint threshold
     extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;///< force rotated geometry path
     extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;///< averaged plane for rotated joints
@@ -154,20 +165,19 @@ namespace globals {
 
     /// data/<SESSION_NAMES[index]>.pb for Session::pb_load; out of range throws.
     std::string session_pb(size_t index);
-    extern std::string DATA_SET_INPUT_NAME;                  ///< dataset name: the obj stem (set by globals_yaml and load_plates)
+    extern std::string DATA_SET_INPUT_NAME;                  ///< dataset name: the yml stem
     extern std::string DATA_SET_OBJ;                         ///< obj path named by the dataset yaml
     extern std::string DATA_SET_ADJACENCY;                   ///< adjacency txt path from the yaml, empty when absent
     extern std::string DATA_SET_THREE_VALENCE;               ///< three-valence txt path from the yaml, empty when absent
     extern std::string DATA_SET_INSERTION_VECTORS;           ///< insertion-vectors txt path from the yaml, empty when absent
     extern std::string DATA_SET_JOINTS_TYPES;                ///< joint-types txt path from the yaml, empty when absent
-    extern std::string DATA_SET_OUTPUT_FILE;                 ///< output .pb filename, written into session_data/
-    extern std::string DATA_SET_OUTPUT_DATABASE;             ///< sqlite output path; informational, unused
-    extern std::string PATH_AND_FILE_FOR_JOINTS;             ///< wood custom-joint-config file path; informational
+    extern std::string DATA_SET_OUTPUT_FILE;                 ///< WoodF2F_<yml stem>.pb, written into data/output/
 
-    extern std::vector<std::string> EXISTING_TYPES;          ///< upstream display table of joint variant names
-    extern std::size_t RUN_COUNT;                            ///< upstream IMGUI loop counter; informational
 
     /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
+    /// Beam datasets (yml `beams`): [radius, allowed joint type, min_distance, volume_length, cross_or_side_to_end, flip_male].
+    extern std::vector<double> BEAMS;
+
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;

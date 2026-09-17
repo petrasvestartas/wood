@@ -298,9 +298,7 @@ struct F2F {
     const std::pair<int, int> el_ids_in;
     std::pair<int, int> el_ids;
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
-    const double ext_w;
-    const double ext_h;
-    const double ext_l;
+    const std::vector<double>& extension;
     const double limit_min_joint_length;
     const double distance_squared;
     const double coplanar_tolerance;
@@ -318,6 +316,8 @@ struct F2F {
     const std::string& guid_at(int id) const {
         return id == el_ids_in.first ? el0.guid() : el1.guid();
     }
+    /// The [width, height, length] extension this joint type reads.
+    std::array<double, 3> ext(int joint_type) const { return wood_session::joint_volume_extension(extension, joint_type); }
 };
 
 /// What the alignment stage produces for one face contact and the joint branches consume.
@@ -341,18 +341,6 @@ struct FaceCandidate {
     };
     std::array<std::optional<Polyline>, 4> joint_volumes{};
 };
-
-/// The (width, height, line) extension triple for `joint_id`, clamped to the last one available.
-std::array<double, 3> extension_triple(size_t joint_id, const std::vector<double>& joint_volume_extension) {
-    const size_t triple_count = joint_volume_extension.size() / 3;
-    const size_t last = (triple_count == 0) ? 0 : (triple_count - 1);
-    const size_t extension_id = (last == 0) ? 0 : std::min(joint_id, last) * 3;
-    auto ext = [&](size_t k) -> double {
-        const size_t idx = k + extension_id;
-        return idx < joint_volume_extension.size() ? joint_volume_extension[idx] : 0.0;
-    };
-    return { ext(0), ext(1), ext(2) };
-}
 
 /// Mid-thickness average plane of an element; the xy plane when it has no two outlines.
 Plane average_plane(const Plate& el) {
@@ -420,18 +408,23 @@ bool prepare_candidate(F2F& s, const wood_session::FaceContact& contact, FaceCan
     if (j > 1 && !alignment_line(s, s.el1, s.avg_plane_1, 1, j, c, c.joint_line1, c.joint_quads1, c.has_quads1)) return false;
 
     if (c.joint_type < 2) {
-        const double ext_sq = (s.ext_l * 2.0) * (s.ext_l * 2.0);
+        const double ext_l = s.ext(c.joint_type == 1 ? 20 : 12)[2];
+        const double ext_sq = (ext_l * 2.0) * (ext_l * 2.0);
         const double min_sq = s.limit_min_joint_length * s.limit_min_joint_length;
-        if (i > 1 && ext_sq > c.joint_line0.squared_length() - min_sq) {
+        if (ext_l < 0.0 && i > 1 && ext_sq > c.joint_line0.squared_length() - min_sq) {
             if (TRACE) s.dbg_fail_reason = fmt::format("jl0_ext f({},{})", i, j);
             return false;
         }
-        if (j > 1 && ext_sq > c.joint_line1.squared_length() - min_sq) {
+        if (ext_l < 0.0 && j > 1 && ext_sq > c.joint_line1.squared_length() - min_sq) {
             if (TRACE) s.dbg_fail_reason = fmt::format("jl1_ext f({},{})", i, j);
             return false;
         }
-        c.joint_line0.extend_equally(s.ext_l);
-        c.joint_line1.extend_equally(s.ext_l);
+        c.joint_line0.extend_equally(ext_l);
+        c.joint_line1.extend_equally(ext_l);
+        if (ext_l != 0.0 && i > 1)
+            c.has_quads0 = Intersection::quad_from_line_top_bottom_planes(s.el0.planes[i], c.joint_line0, s.el0.planes[0], s.el0.planes[1], c.joint_quads0);
+        if (ext_l != 0.0 && j > 1)
+            c.has_quads1 = Intersection::quad_from_line_top_bottom_planes(s.el1.planes[j], c.joint_line1, s.el1.planes[0], s.el1.planes[1], c.joint_quads1);
     }
 
     if (i < s.el0.insertion_vectors().size() && j < s.el1.insertion_vectors().size()) {
@@ -515,6 +508,7 @@ bool rotated_volumes(
     Vector& offset,
     Polyline& vol0,
     Polyline& vol1) {
+    const std::array<double, 3> ext = s.ext(13);
 
     const Xform world_to_local = Xform::world_to_frame(o, x, y, z);
     std::vector<Point> proj;
@@ -572,14 +566,14 @@ bool rotated_volumes(
         rect[2] + offset,
     });
 
-    vol0.extend_edge_equally(0, s.ext_w);
-    vol0.extend_edge_equally(2, s.ext_w);
-    vol1.extend_edge_equally(0, s.ext_w);
-    vol1.extend_edge_equally(2, s.ext_w);
-    vol0.extend_edge_equally(1, s.ext_h);
-    vol0.extend_edge_equally(3, s.ext_h);
-    vol1.extend_edge_equally(1, s.ext_h);
-    vol1.extend_edge_equally(3, s.ext_h);
+    vol0.extend_edge_equally(0, ext[0]);
+    vol0.extend_edge_equally(2, ext[0]);
+    vol1.extend_edge_equally(0, ext[0]);
+    vol1.extend_edge_equally(2, ext[0]);
+    vol0.extend_edge_equally(1, ext[1]);
+    vol0.extend_edge_equally(3, ext[1]);
+    vol1.extend_edge_equally(1, ext[1]);
+    vol1.extend_edge_equally(3, ext[1]);
     return true;
 }
 
@@ -673,6 +667,7 @@ bool dihedral_angle(F2F& s, const FaceCandidate& c, const Line& lj, double& dihe
 
 /// Type 11: probe the joint axis 90° in the face plane to pick the nearer planes, then an open 4-plane quad.
 bool side_side_out_of_plane(F2F& s, FaceCandidate& c, const Line& lj, const Plane& pl_end0, const Plane& pl_end1) {
+    const std::array<double, 3> ext = s.ext(11);
     const size_t i = c.i;
     const size_t j = c.j;
     const Vector normal = s.el0.planes[i].z_axis();
@@ -728,14 +723,14 @@ bool side_side_out_of_plane(F2F& s, FaceCandidate& c, const Line& lj, const Plan
     vol0 = vol0.closed();
     vol1 = vol1.closed();
 
-    vol0.extend_edge_equally(0, s.ext_w);
-    vol0.extend_edge_equally(2, s.ext_w);
-    vol1.extend_edge_equally(0, s.ext_w);
-    vol1.extend_edge_equally(2, s.ext_w);
-    vol0.extend_edge_equally(1, s.ext_h);
-    vol0.extend_edge_equally(3, s.ext_h);
-    vol1.extend_edge_equally(1, s.ext_h);
-    vol1.extend_edge_equally(3, s.ext_h);
+    vol0.extend_edge_equally(0, ext[0]);
+    vol0.extend_edge_equally(2, ext[0]);
+    vol1.extend_edge_equally(0, ext[0]);
+    vol1.extend_edge_equally(2, ext[0]);
+    vol0.extend_edge_equally(1, ext[1]);
+    vol0.extend_edge_equally(3, ext[1]);
+    vol1.extend_edge_equally(1, ext[1]);
+    vol1.extend_edge_equally(3, ext[1]);
 
     c.joint_volumes[0] = vol0;
     c.joint_volumes[1] = vol1;
@@ -758,6 +753,7 @@ Point cgal_point_on_plane(const Plane& pl) {
 
 /// Type 12: two planes offset ±half-thickness from the matched face, two 4-plane loops, four volumes.
 bool side_side_in_plane(F2F& s, FaceCandidate& c, const Plane& pl_end0, const Plane& pl_end1) {
+    const std::array<double, 3> ext = s.ext(12);
     const size_t i = c.i;
     const size_t j = c.j;
     const double d0 = 0.5 * Point::distance(s.el0.planes[0].origin(), s.el0.planes[1].project(s.el0.planes[0].origin()));
@@ -798,10 +794,10 @@ bool side_side_in_plane(F2F& s, FaceCandidate& c, const Plane& pl_end0, const Pl
     }
 
     for (Polyline* vp : {&vol0, &vol1, &vol2, &vol3}) {
-        vp->extend_edge_equally(0, s.ext_w);
-        vp->extend_edge_equally(2, s.ext_w);
-        vp->extend_edge_equally(1, s.ext_h);
-        vp->extend_edge_equally(3, s.ext_h);
+        vp->extend_edge_equally(0, ext[0]);
+        vp->extend_edge_equally(2, ext[0]);
+        vp->extend_edge_equally(1, ext[1]);
+        vp->extend_edge_equally(3, ext[1]);
     }
 
     c.joint_volumes[0] = vol0;
@@ -835,6 +831,7 @@ bool side_side(F2F& s, FaceCandidate& c) {
 
 /// Type 20: the male's side-face quad extruded along an offset vector spanning the female's thickness.
 bool top_side(F2F& s, FaceCandidate& c) {
+    const std::array<double, 3> ext = s.ext(20);
     const size_t i = c.i;
     const size_t j = c.j;
     const bool male_first = i > j;
@@ -876,14 +873,14 @@ bool top_side(F2F& s, FaceCandidate& c) {
     Polyline male_vol({ q0, q1, q1 + offset, q0 + offset, q0 });
     Polyline female_vol({ q3, q2, q2 + offset, q3 + offset, q3 });
 
-    male_vol.extend_edge_equally(0, s.ext_w);
-    male_vol.extend_edge_equally(2, s.ext_w);
-    female_vol.extend_edge_equally(0, s.ext_w);
-    female_vol.extend_edge_equally(2, s.ext_w);
-    male_vol.extend_edge_equally(1, s.ext_h);
-    male_vol.extend_edge_equally(3, s.ext_h);
-    female_vol.extend_edge_equally(1, s.ext_h);
-    female_vol.extend_edge_equally(3, s.ext_h);
+    male_vol.extend_edge_equally(0, ext[0]);
+    male_vol.extend_edge_equally(2, ext[0]);
+    female_vol.extend_edge_equally(0, ext[0]);
+    female_vol.extend_edge_equally(2, ext[0]);
+    male_vol.extend_edge_equally(1, ext[1]);
+    male_vol.extend_edge_equally(3, ext[1]);
+    female_vol.extend_edge_equally(1, ext[1]);
+    female_vol.extend_edge_equally(3, ext[1]);
 
     c.joint_volumes[m_id] = male_vol;
     c.joint_volumes[f_id] = female_vol;
@@ -893,6 +890,7 @@ bool top_side(F2F& s, FaceCandidate& c) {
 
 /// Type 40: bounding rectangle of the joint area, translated ±thickness along each element's normal.
 bool top_top(F2F& s, FaceCandidate& c) {
+    const std::array<double, 3> ext = s.ext(40);
     const size_t i = c.i;
     const size_t j = c.j;
     const auto rect = Polyline::bounding_rectangle(c.joint_area);
@@ -933,14 +931,14 @@ bool top_top(F2F& s, FaceCandidate& c) {
     Polyline temp0({a0, a1, b1, b0, a0});
     Polyline temp1({a3, a2, b2, b3, a3});
 
-    temp0.extend_edge_equally(0, s.ext_w);
-    temp0.extend_edge_equally(2, s.ext_w);
-    temp1.extend_edge_equally(0, s.ext_w);
-    temp1.extend_edge_equally(2, s.ext_w);
-    temp0.extend_edge_equally(1, s.ext_h);
-    temp0.extend_edge_equally(3, s.ext_h);
-    temp1.extend_edge_equally(1, s.ext_h);
-    temp1.extend_edge_equally(3, s.ext_h);
+    temp0.extend_edge_equally(0, ext[0]);
+    temp0.extend_edge_equally(2, ext[0]);
+    temp1.extend_edge_equally(0, ext[0]);
+    temp1.extend_edge_equally(2, ext[0]);
+    temp0.extend_edge_equally(1, ext[1]);
+    temp0.extend_edge_equally(3, ext[1]);
+    temp1.extend_edge_equally(1, ext[1]);
+    temp1.extend_edge_equally(3, ext[1]);
 
     c.joint_volumes[0] = temp0;
     c.joint_volumes[1] = temp1;
@@ -951,7 +949,7 @@ bool top_top(F2F& s, FaceCandidate& c) {
 /// Type 30: plane_to_face cross joint when no face contact produced a joint.
 bool cross_fallback(F2F& s) {
     wood_session::CrossJoint cj;
-    const std::array<double, 3> cj_ext = { s.ext_w, s.ext_h, s.ext_l };
+    const std::array<double, 3> cj_ext = s.ext(30);
     constexpr double CROSS_JOINT_PARALLEL_ANGLE_DEG = 30.0;
     const bool found = wood_session::plane_to_face(
         s.el0.polylines[0], s.el0.polylines[1],
@@ -997,10 +995,9 @@ bool face_to_face_wood(
     bool& out_swap_planes_1
 ) {
     out_swap_planes_1 = false;
-    const std::array<double, 3> ext = extension_triple(joint_id, joint_volume_extension);
     F2F s = {
         el0, el1, el_ids_in, el_ids_in, { {{0,0}}, {{0,0}} },
-        ext[0], ext[1], ext[2],
+        joint_volume_extension,
         limit_min_joint_length, distance_squared, coplanar_tolerance, dihedral_angle_threshold,
         all_treated_as_rotated, rotated_joint_as_average,
         0.0, Plane::xy_plane(), Plane::xy_plane(), std::string(),
