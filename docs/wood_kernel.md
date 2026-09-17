@@ -48,10 +48,13 @@ constructor runs it).
 A plate has two geometries, as a compas_model element does. `element_geometry()` is the
 parametric shape alone, the loft of the two raw outlines, never cut. `model_geometry()` is the
 shape with its joints applied, `Mesh::loft(features.bottom, features.top)` once the merge has
-filled `features`, else the element geometry. Both are cached on the plate until
-`invalidate_geometry()`, which the merge calls after filling `features`.
-`Plate::compute_geometry()` writes the model geometry onto the Element slot the session file and
-the viewer read, then `set_dimensions` and `set_features(face_features())`. `Plate::face_features()` emits one `ElementFeature` per face:
+filled `features`, else the element geometry. Both are lazy: nothing lofts until one is
+asked for, and the result is cached on the plate until `invalidate_geometry()`, which the merge
+calls after filling `features`. `Plate::compute_geometry()` writes the model geometry onto the
+Element slot the session file and the viewer read, then `set_dimensions` and
+`set_features(face_features())`; `WoodSession::pb_dump` runs it for every plate whose slot is
+stale, so a solve of N plates lofts exactly N times, at write time. `model_geometry()` is the
+full featured one, compas_model's `modelgeometry`; `element_geometry()` is the plate alone. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
 ### `WoodJoint` (`wood_joint.h`)

@@ -202,6 +202,15 @@ public:
     /// Arranges the scene for the viewer, one group per element: the element itself, then `outlines`, `contacts` and `joints` child groups, each flag adding or leaving out that part; pb_dump writes it.
     void add_to_tree(bool geometry = true, bool outlines = true, bool contacts = true, bool joints = true);
 
+    /// Lofts every plate whose Element slot is stale, so the file carries the model geometry; the plates stay unlofted until this runs.
+    void sync_geometry() const;
+
+    /// sync_geometry(), then the kernel's writer.
+    void pb_dump(const std::string& filename) const;
+
+    /// sync_geometry(), then the kernel's serializer.
+    std::string pb_dumps() const;
+
     /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
     static WoodSession pb_load(const std::filesystem::path& path);
 

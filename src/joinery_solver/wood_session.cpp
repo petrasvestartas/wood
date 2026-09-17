@@ -351,8 +351,6 @@ void WoodSession::compute_joints(SearchType search_type) {
         return;
     clear_joints();
     const std::vector<WoodJoint> joints = get_connection_zones(plates, search_type);
-    for (const std::shared_ptr<Plate>& plate : plates)
-        plate->compute_geometry();
     for (const WoodJoint& joint : joints) {
         if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b))
             continue;
@@ -382,6 +380,22 @@ void WoodSession::sync_joint_features() {
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - files
 // ═══════════════════════════════════════════════════════════════════════════
+
+void WoodSession::sync_geometry() const {
+    for (const std::shared_ptr<Plate>& plate : plates())
+        if (!plate->geometry_synced())
+            plate->compute_geometry();
+}
+
+void WoodSession::pb_dump(const std::string& filename) const {
+    sync_geometry();
+    Session::pb_dump(filename);
+}
+
+std::string WoodSession::pb_dumps() const {
+    sync_geometry();
+    return Session::pb_dumps();
+}
 
 WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
     register_element_types();

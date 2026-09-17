@@ -78,7 +78,6 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
         planes[2 + j] = Plane(pp0[j + 1], sb1, sb2);
         polylines[2 + j] = Polyline({pp0[j], pp0[j + 1], pp1[j + 1], pp1[j], pp0[j]});
     }
-    compute_geometry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -114,14 +113,23 @@ const Mesh& Plate::model_geometry() const {
 void Plate::invalidate_geometry() {
     _element_geometry.reset();
     _model_geometry.reset();
+    _geometry_synced = false;
 }
 
 void Plate::compute_geometry() {
-    invalidate_geometry();
     if (polylines.size() > 1)
         set_geometry(model_geometry());
     set_dimensions(nominal_dimensions());
-    set_features(face_features());
+    std::vector<ElementFeature> next = face_features();
+    for (const ElementFeature& feature : Element::features()) {
+        if (feature.feature_type != "joint")
+            continue;
+        next.push_back(feature);
+        if (feature.has_guid())
+            next.back().guid() = feature.guid();
+    }
+    set_features(std::move(next));
+    _geometry_synced = true;
 }
 
 Vector Plate::nominal_dimensions() const {
@@ -203,6 +211,7 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
     static_cast<Element&>(*plate) = e;
     plate->guid() = e.guid();
     plate->reversed = payload.value("reversed", false);
+    plate->_geometry_synced = true;
     Plate& out = *plate;
     static const std::string prefix = "joint_type_";
     for (const ElementFeature& f : e.features()) {

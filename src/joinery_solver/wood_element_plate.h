@@ -40,10 +40,13 @@ public:
     /// The loft of the merged outlines when the plate is solved, else the element geometry.
     session_cpp::Mesh compute_model_geometry() const;
 
-    /// Drops both cached lofts; called by compute_geometry() and by the merge after it fills features.
+    /// Drops both cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
     void invalidate_geometry();
 
-    /// Writes the model geometry, the dimensions and the face features onto the Element, the slot the session file and the viewer read.
+    /// True once compute_geometry() wrote the current model geometry onto the Element; false after any invalidation.
+    bool geometry_synced() const { return _geometry_synced; }
+
+    /// Writes the model geometry (cached, lofted here at the latest), the dimensions and the face features onto the Element, keeping the joint features the session put there, the slot the session file and the viewer read; WoodSession::pb_dump calls it for every stale plate, so nothing lofts until a file is written or a geometry is asked for.
     void compute_geometry();
 
     /// Outline extent in the plate's own frame, thickness in z.
@@ -88,6 +91,7 @@ public:
 private:
     mutable std::optional<session_cpp::Mesh> _element_geometry; // Cache of compute_element_geometry().
     mutable std::optional<session_cpp::Mesh> _model_geometry; // Cache of compute_model_geometry().
+    bool _geometry_synced = false; // True while the Element slot holds the current model geometry.
 
 protected:
     /// The plate's own outlines, so Element::polylines() agrees with the solver's view.
