@@ -184,7 +184,7 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads globals::DISTANCE), stored as ContactType::line.
     void compute_line_contacts(double tolerance = -1.0);
 
-    /// get_connection_zones over the plates, in place; every joint onto its pair's edge, every plate lofted with its cuts.
+    /// get_connection_zones over the plates, in place; every joint onto its pair's edge and onto both host elements as features, every plate lofted with its cuts.
     void compute_joints(SearchType search_type = globals::SEARCH_TYPE);
 
     /// The interaction on the edge joining two elements, read from `a`; empty when there is none.
@@ -211,17 +211,8 @@ public:
     /// Puts every joint feature the graph holds back on its host element, replacing the previous ones.
     void sync_joint_features();
 
-    /// Every element as its outlines under `prefix`: a plate its bottom and top, anything else every face it has.
-    void add_outlines(const std::string& prefix = "Elements");
-
-    /// Every contact as a coloured ring, one group per contact class that occurs, named `<prefix>_<class>`.
-    void add_contacts(const std::string& prefix = "Contacts");
-
-    /// Every joint's area, volumes, lines and cut outlines, one group per joint type that occurs, named `<prefix>_<code>`.
-    void add_joints(const std::string& prefix = "Joints");
-
-    /// Writes the scene and returns the path: a bare name goes to pb_path(name) ("live" is what session_viewer watches), a name ending in .pb to data/output/ with the parity dumps beside it.
-    std::filesystem::path write(const std::string& name = "live");
+    /// Arranges the scene for the viewer, one group per element: the element itself, then `outlines`, `contacts` and `joints` child groups, each flag adding or leaving out that part; pb_dump writes it.
+    void add_to_tree(bool geometry = true, bool outlines = true, bool contacts = true, bool joints = true);
 
     /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
     static WoodSession pb_load(const std::filesystem::path& path);
@@ -234,14 +225,24 @@ public:
 
     /// str() onto a stream.
     friend std::ostream& operator<<(std::ostream& os, const WoodSession& scene);
+
+private:
+    /// Every contact as a coloured ring under the `contacts` group of its first element.
+    void add_contacts_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
+
+    /// Every joint's area, volumes, lines and male cuts under the `joints` group of its male element, the female cuts under the female's.
+    void add_joints_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Writing a scene
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// data/output/pb/<name>.pb, with the directory created.
+/// data/output/pb/<name>.pb, with the directory created; "live" is the file session_viewer watches.
 std::filesystem::path pb_path(const std::string& name);
+
+/// <pb>_meta.txt and <pb>_coords.txt beside a dataset's .pb: every plate's merged outlines, the parity record a refactor is diffed against.
+void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Colours

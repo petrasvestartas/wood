@@ -15,7 +15,8 @@ static void run(const std::string& name, const double division) {
     for (const std::shared_ptr<Plate>& plate : internal::load_plates(name))
         scene.add(plate);
     scene.compute_joints(face_to_face);
-    scene.write("live");
+    scene.add_to_tree();
+    scene.pb_dump(pb_path("live").string());
 }
 
 int main() {

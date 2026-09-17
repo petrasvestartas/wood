@@ -9,7 +9,10 @@ static bool run_dataset(const char* name) {
     try {
         WoodSession scene = WoodSession::yaml_load(name);
         scene.compute_joints();
-        scene.write(wood_session::globals::DATA_SET_OUTPUT_FILE);
+        scene.add_to_tree();
+        const std::filesystem::path pb = internal::output_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE;
+        wood_session::write_parity_dumps(scene, pb);
+        scene.pb_dump(pb.string());
         return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [{}]: {}\n", name, e.what());

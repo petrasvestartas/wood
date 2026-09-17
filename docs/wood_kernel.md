@@ -244,12 +244,17 @@ How wood uses it (`wood_session.h/.cpp`):
 - `compute_joints(search_type)` → `get_connection_zones` on `plates()` in place, then
   `compute_geometry()` on each plate, then each joint onto its pair's graph edge as a
   `WoodInteraction{contacts, joints}` attribute (`get_interaction` / `set_interaction`).
-- `add_outlines()`, `add_contacts()`, `add_joints()` add viewer groups (`Elements`,
-  `Contacts_<class>`, `Joints_<code>`).
-- `write(name)`: `sync_joint_features()` (joint `ElementFeature`s back onto their hosts), then
-  a bare name → `data/output/pb/<name>.pb` (`"live"` is what session_viewer watches); a name
-  ending in `.pb` → `data/output/<name>.pb` plus `<name>.pb_meta.txt` / `_coords.txt` dumps of
-  every plate's merged outlines, the files to diff to prove a refactor changed nothing.
+- `compute_joints` ends with `sync_joint_features()`: every joint's two `ElementFeature`s go back
+  onto their host elements, so `pb_dump` right after it writes them.
+- `add_to_tree(geometry, outlines, contacts, joints)` arranges the viewer tree: one group per
+  element (`<name>_<index>`) holding the element's node, an `outlines` child group (a plate's
+  bottom and top, any other element's faces), a `contacts` child group on the pair's first
+  element, and a `joints` child group (area, volumes, lines and male cuts on the male element,
+  female cuts on the female one). Each flag adds or leaves out that part.
+- Writing is the kernel's own `pb_dump(path)`; `pb_path(name)` gives `data/output/pb/<name>.pb`
+  (`"live"` is what session_viewer watches). `write_parity_dumps(scene, pb)` writes
+  `<pb>_meta.txt` / `_coords.txt`, every plate's merged outlines, the files to diff to prove a
+  refactor changed nothing; the sweep (`run_dataset`) writes them beside `data/output/WoodF2F_<name>.pb`.
 - `WoodSession::pb_load(name)` reads `data/<name>.pb` (or a path) and gets Plates, Columns
   and Blocks back through the registry.
 

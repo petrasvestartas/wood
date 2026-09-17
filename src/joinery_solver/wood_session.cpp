@@ -360,6 +360,7 @@ void WoodSession::compute_joints(SearchType search_type) {
         interaction.joints.push_back(joint);
         set_interaction(joint.element_a, joint.element_b, interaction);
     }
+    sync_joint_features();
 }
 
 void WoodSession::sync_joint_features() {
@@ -433,8 +434,16 @@ std::vector<Polyline> merged_outlines(const Features& f) {
     return merged;
 }
 
-/// <pb>_meta.txt and <pb>_coords.txt: every plate's merged outlines, the parity record a refactor is diffed against.
-void write_parity_dumps(const std::vector<std::shared_ptr<Plate>>& plates, const std::filesystem::path& pb) {
+}  // namespace
+
+std::filesystem::path pb_path(const std::string& name) {
+    const std::filesystem::path dir = internal::output_dir() / "pb";
+    std::filesystem::create_directories(dir);
+    return dir / (name + ".pb");
+}
+
+void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb) {
+    const std::vector<std::shared_ptr<Plate>> plates = scene.plates();
     std::ofstream meta(pb.string() + "_meta.txt");
     std::ofstream coords(pb.string() + "_coords.txt");
     for (size_t ei = 0; ei < plates.size(); ei++) {
@@ -453,24 +462,6 @@ void write_parity_dumps(const std::vector<std::shared_ptr<Plate>>& plates, const
             coords << "\n";
         }
     }
-}
-
-}  // namespace
-
-std::filesystem::path pb_path(const std::string& name) {
-    const std::filesystem::path dir = internal::output_dir() / "pb";
-    std::filesystem::create_directories(dir);
-    return dir / (name + ".pb");
-}
-
-std::filesystem::path WoodSession::write(const std::string& name) {
-    sync_joint_features();
-    const bool dataset = name.ends_with(".pb");
-    const std::filesystem::path path = dataset ? internal::output_dir() / name : pb_path(name);
-    if (dataset)
-        write_parity_dumps(plates(), path);
-    pb_dump(path.string());
-    return path;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -528,11 +519,13 @@ Color joint_color(int joint_type) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Viewer geometry
+// The viewer tree
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace {
+
 /// The ring of a contact or a joint, as a wide line loop in its own colour.
-static std::shared_ptr<Polyline> ring(const Polyline& area, const Color& color, const std::string& name) {
+std::shared_ptr<Polyline> ring(const Polyline& area, const Color& color, const std::string& name) {
     auto outline = std::make_shared<Polyline>(area);
     outline->linecolor = color;
     outline->width = 3.0;
@@ -540,59 +533,97 @@ static std::shared_ptr<Polyline> ring(const Polyline& area, const Color& color, 
     return outline;
 }
 
-void WoodSession::add_outlines(const std::string& prefix) {
-    const Group group = add_group(prefix);
+/// The tree node named by this guid, wherever it hangs; null when the element has none yet.
+std::shared_ptr<TreeNode> node_of(const session_cpp::Tree& tree, const std::string& guid) {
+    if (!tree.root())
+        return nullptr;
+    for (TreeNode* node : tree.root()->descendants())
+        if (node->name == guid)
+            return node->shared_from_this();
+    return nullptr;
+}
+
+/// The child group of `parent` called `name`, made on first use.
+Group child_group(WoodSession& scene, std::map<std::string, Group>& made, const Group& parent, const std::string& name) {
+    const std::string key = parent->name + "/" + name;
+    const auto it = made.find(key);
+    if (it != made.end())
+        return it->second;
+    const Group group = std::make_shared<TreeNode>(name);
+    scene.add(group, parent);
+    made[key] = group;
+    return group;
+}
+
+}  // namespace
+
+void WoodSession::add_to_tree(bool geometry, bool outlines, bool contacts, bool joints) {
+    std::map<std::string, Group> groups;
+    std::map<std::string, Group> children;
+    size_t index = 0;
     for (const std::shared_ptr<Element>& element : *objects.elements) {
         if (!element)
             continue;
+        const Group group = add_group(fmt::format("{}_{}", element->name, index++));
+        groups[element->guid()] = group;
+        if (geometry) {
+            const std::shared_ptr<TreeNode> node = node_of(tree, element->guid());
+            if (!node)
+                add(std::make_shared<TreeNode>(element->guid()), group);
+            else if (const std::shared_ptr<TreeNode> parent = node->parent()) {
+                parent->remove(node);
+                group->add(node);
+            }
+        }
+        if (!outlines)
+            continue;
         const Plate* plate = dynamic_cast<const Plate*>(element.get());
-        const std::vector<Polyline> outlines = plate
+        const std::vector<Polyline> faces = plate
             ? std::vector<Polyline>(plate->polylines.begin(), plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()))
             : element->polylines();
-        for (size_t i = 0; i < outlines.size(); ++i) {
-            auto outline = std::make_shared<Polyline>(outlines[i]);
-            outline->name = fmt::format("{}_{}", element->name, i);
-            add_polyline(outline, group);
+        const Group child = child_group(*this, children, group, "outlines");
+        for (size_t k = 0; k < faces.size(); k++) {
+            auto outline = std::make_shared<Polyline>(faces[k]);
+            outline->name = fmt::format("{}_{}", element->name, plate ? (k == 0 ? "bottom" : "top") : std::to_string(k));
+            add_polyline(outline, child);
         }
     }
+    if (contacts)
+        add_contacts_to(groups, children);
+    if (joints)
+        add_joints_to(groups, children);
 }
 
-void WoodSession::add_contacts(const std::string& prefix) {
-    std::map<std::string, Group> groups;
-    for (const ContactPair& pair : contacts()) {
+void WoodSession::add_contacts_to(const std::map<std::string, Group>& groups, std::map<std::string, Group>& children) {
+    const std::vector<std::string> guids = element_guids();
+    for (const ContactPair& pair : this->contacts()) {
+        const auto owner = groups.find(guids[pair.element_a]);
+        if (owner == groups.end())
+            continue;
+        const Group group = child_group(*this, children, owner->second, "contacts");
         for (const FaceContact& contact : pair.faces) {
-            const std::string label = fmt::format("{}_{}", prefix, contact_type_name(contact.type));
-            auto it = groups.find(label);
-            if (it == groups.end())
-                it = groups.emplace(label, add_group(label)).first;
-            const std::string name = fmt::format("contact_{}_{}_f{}_{}", pair.element_a, pair.element_b, contact.face_a, contact.face_b);
+            const std::string name = fmt::format("contact_{}_{}_f{}_{}_{}", pair.element_a, pair.element_b, contact.face_a, contact.face_b, contact_type_name(contact.type));
             if (contact.type == ContactType::line) {
-                auto polyline = std::make_shared<Polyline>(contact.area);
-                polyline->name = name;
-                polyline->linecolor = contact_color(contact.type);
-                add_polyline(polyline, it->second);
+                add_polyline(ring(contact.area, contact_color(contact.type), name), group);
                 continue;
             }
             auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<Polyline>{contact.area}));
             mesh->name = name;
             mesh->set_objectcolor(contact_color(contact.type));
-            add_mesh(mesh, it->second);
+            add_mesh(mesh, group);
         }
     }
 }
 
-void WoodSession::add_joints(const std::string& prefix) {
-    std::map<std::string, Group> groups;
-    for (const WoodJoint& joint : joints()) {
-        const std::string type_name = joint_type_name(joint.joint_type);
-        const std::string label = fmt::format("{}_{}", prefix, type_name);
-        auto it = groups.find(label);
-        if (it == groups.end())
-            it = groups.emplace(label, add_group(label)).first;
-        const Group& group = it->second;
+void WoodSession::add_joints_to(const std::map<std::string, Group>& groups, std::map<std::string, Group>& children) {
+    for (const WoodJoint& joint : this->joints()) {
+        const auto male = groups.find(joint.element_a);
+        const auto female = groups.find(joint.element_b);
+        if (male == groups.end() || female == groups.end())
+            continue;
         const Color color = joint_color(joint.joint_type);
-        const std::string name = fmt::format("joint_{}_{}_{}", short_guid(joint.element_a), short_guid(joint.element_b), type_name);
-
+        const std::string name = fmt::format("joint_{}_{}_{}", short_guid(joint.element_a), short_guid(joint.element_b), joint_type_name(joint.joint_type));
+        const Group group = child_group(*this, children, male->second, "joints");
         auto mesh = std::make_shared<Mesh>(Mesh::from_polylines(std::vector<Polyline>{joint.contact.area}));
         mesh->name = name;
         mesh->set_objectcolor(color);
@@ -611,10 +642,11 @@ void WoodSession::add_joints(const std::string& prefix) {
             add_polyline(ring(outline, color, name + "_male_bottom_cut"), group);
         for (const Polyline& outline : joint.m_outlines[1])
             add_polyline(ring(outline, color, name + "_male_top_cut"), group);
+        const Group other = child_group(*this, children, female->second, "joints");
         for (const Polyline& outline : joint.f_outlines[0])
-            add_polyline(ring(outline, color, name + "_female_bottom_cut"), group);
+            add_polyline(ring(outline, color, name + "_female_bottom_cut"), other);
         for (const Polyline& outline : joint.f_outlines[1])
-            add_polyline(ring(outline, color, name + "_female_top_cut"), group);
+            add_polyline(ring(outline, color, name + "_female_top_cut"), other);
     }
 }
 

@@ -9,11 +9,12 @@ const std::string DATASET = globals::Dataset::hex_block_rossiniere;  // globals:
 int main() {
     WoodSession wood_session = WoodSession::pb_load(globals::session_pb(SESSION));
     std::cout << wood_session << std::endl;
-    wood_session.write(globals::SESSION_NAMES[SESSION]);
+    wood_session.pb_dump(pb_path(globals::SESSION_NAMES[SESSION]).string());
 
     WoodSession session_plates = WoodSession::yaml_load(DATASET);
     std::cout << session_plates << std::endl;
-    session_plates.write("live"); // Live will be seen in the viewer.
+    session_plates.add_to_tree(true, true, false, false);
+    session_plates.pb_dump(pb_path("live").string()); // Live will be seen in the viewer.
 
     return 0;
 }

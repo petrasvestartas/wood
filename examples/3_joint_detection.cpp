@@ -7,8 +7,8 @@ const std::string DATASET = globals::Dataset::inplane_hexshell;   // globals::Da
 int main() {
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
     wood_session.compute_joints();
-    wood_session.add_joints();
-    wood_session.write("live");
+    wood_session.add_to_tree(true, true, false, true);
+    wood_session.pb_dump(pb_path("live").string());
     return 0;
 }
 

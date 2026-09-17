@@ -25,13 +25,13 @@ using namespace wood_session;
 
 WoodSession scene = WoodSession::yaml_load(globals::Dataset::inplane_hexshell);
 scene.compute_joints();      // search type and every tunable come from the yml
-scene.add_joints();          // coloured joint rings, one group per joint type
-scene.write();               // data/output/pb/live.pb, the file session_viewer watches
+scene.add_to_tree();         // one group per plate: the plate, its outlines, its contacts, its joints
+scene.pb_dump(pb_path("live").string());   // the file session_viewer watches
 ```
 
 `WoodSession` is a `session_cpp::Session`; every plate in it is a `Plate`, every joint
-sits on the graph edge between its two plates, and `write()` puts each joint back on its
-host element as an `ElementFeature`. `pb_load(name)` reads a session back with its plates,
+sits on the graph edge between its two plates and on both host elements as an
+`ElementFeature`. `pb_load(name)` reads a session back with its plates,
 columns and blocks as the classes below, through the kernel's element registry.
 
 | Method | What it does |
@@ -41,8 +41,8 @@ columns and blocks as the classes below, through the kernel's element registry.
 | `compute_contacts()` | coplanar face overlaps between every pair, onto the graph edges |
 | `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
 | `compute_joints(search)` | the solver over the plates, in place; each plate lofted once with its cuts |
-| `add_outlines()`, `add_contacts()`, `add_joints()` | viewer geometry, grouped by class or type |
-| `write(name)` | `data/output/pb/<name>.pb`; a name ending in `.pb` goes to `data/output/` with the outline dumps beside it |
+| `add_to_tree(geometry, outlines, contacts, joints)` | one group per element with those child groups; each flag adds or leaves out that part |
+| `pb_dump(pb_path(name))` | the kernel's own writer; `write_parity_dumps(scene, pb)` adds the outline dumps the sweep is diffed against |
 
 ## Types
 

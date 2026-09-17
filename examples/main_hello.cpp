@@ -91,7 +91,8 @@ int main() {
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);
-    scene.write("live");
+    scene.add_to_tree();
+    scene.pb_dump(pb_path("live").string());
     return 0;
 }
 

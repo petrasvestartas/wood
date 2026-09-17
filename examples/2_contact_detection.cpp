@@ -8,9 +8,8 @@ const int DATASET = 19;                 // globals::DATASET_NAMES
 int main() {
     WoodSession wood_session = WoodSession::yaml_load(globals::DATASET_NAMES[DATASET]);
     wood_session.compute_contacts();
-    wood_session.add_contacts();
-    wood_session.add_outlines();
-    wood_session.write("live");
+    wood_session.add_to_tree(true, true, true, false);
+    wood_session.pb_dump(pb_path("live").string());
     return 0;
 }
 
