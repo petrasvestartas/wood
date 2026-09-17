@@ -59,7 +59,6 @@ That covers every third-party import in the repo's scripts:
 | Script | Needs |
 |---|---|
 | `src/templates/temp/pb_to_3dm.py` | `rhino3dm`, `session_py` — converts a `.pb` scene into a Rhino `.3dm` |
-| `src/templates/temp/chevron_ref.py` | `numpy` |
 
 Run one with:
 

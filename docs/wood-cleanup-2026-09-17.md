@@ -38,8 +38,7 @@ safety : `3_joint_detection` wrote its joints into one session and dumped anothe
 dataset loader no longer overwrites the output name the yml chose.
 
 tests : the 43 dataset tests collapsed onto `run_dataset(name)`; ctest `wood_assign`,
-`wood_solver`, `wood_dataset_runner` pass (`wood_cpp_runner` needs `bash/cpp.sh`, absent
-before this work).
+`wood_solver`, `wood_dataset_runner` pass.
 
 ran : sweep identical.
 
@@ -104,6 +103,9 @@ the seam edge is 39.4 mm against 49.4 mm at 0 and 59.4 mm when the sign was drop
 
 - `wood_nano` binds the old API (`std::vector<WoodElement>`, `loft_mesh`, `_wood_element.cpp`,
   `_joinery_solver.cpp`, its CMake source list) and needs the same rename.
-- `bash/cpp.sh` does not exist, so the `wood_cpp_runner` ctest fails as it did before.
+- `tests/cpp_runner_test.py` and the `wood_cpp_runner` ctest are deleted: they tested a `bash/cpp.sh`
+  that does not exist. Also deleted: `main_export_xml` (legacy XML input), `main_json_session`
+  (legacy JSON input), `main_cdt_probe` and `main_loft_holes` (kernel-only probes), and the four
+  `src/templates/temp/` mains with the chevron reference files.
 - The `.claude/skills/wood-kernel` skill and `wood-agent` read `memory/wood_kernel.md`, which
   moved to `docs/wood_kernel.md`.

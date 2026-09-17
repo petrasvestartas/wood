@@ -24,7 +24,7 @@ named here exists in the current tree.
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
 | `examples/` | `1_io`, `2_contact_detection`, `3_joint_detection`, `main_dataset_runner`, `main_all_datasets`, `main_joint_types`, `templates/` mains |
 | `data/` | `<name>.yml` + `<name>.obj` + optional `<name>_{adjacency,three_valence,insertion_vectors,joints_types}.txt`; `output/` |
-| `tests/` | `wood_solver_test.cpp`, `wood_assign_test.cpp`, `cpp_runner_test.py`, `dataset_runner_test.py` |
+| `tests/` | `wood_solver_test.cpp`, `wood_assign_test.cpp`, `dataset_runner_test.py` |
 | `tools/` | `run_guarded.sh` / `.ps1` (always use), `xml_to_dataset.py` (legacy XML → yml/obj/txt) |
 
 `CMakeLists.txt` builds `wood_core` (OBJECT, C++23) and one `ADD_EXE` per example and test,

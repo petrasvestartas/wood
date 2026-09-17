@@ -125,8 +125,8 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
-    # The template headers (reciprocal.h, vda_mesh.h, chevron.h) live here and
-    # are included unqualified by the mains under src/templates/temp/.
+    # The template headers (reciprocal.h, chevron.h, ...) are included unqualified by
+    # the mains under examples/templates/.
     ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
     # session_core's own PUBLIC set: src, fmt, json, guid, yaml. Taken from the
     # target rather than respelled, so it cannot drift from session_cpp.
@@ -163,15 +163,7 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # ElementFeature/Joint subsystem (only-self-referential, real joinery bypasses
 # it)". There is no replacement to port it to - Element::add_feature is a mesh
 # transform, not a pairwise relation - and it was the only caller left.
-ADD_EXE(main_cdt_probe           examples/main_cdt_probe.cpp)
 ADD_EXE(main_session_round_trip  examples/main_session_round_trip.cpp)
-ADD_EXE(main_annen_chevron       src/templates/temp/main_annen_chevron.cpp)
-ADD_EXE(main_beam_reciprocal     src/templates/temp/main_beam_reciprocal.cpp)
-ADD_EXE(main_json_session        examples/main_json_session.cpp)
-ADD_EXE(main_loft_holes          examples/main_loft_holes.cpp)
-ADD_EXE(main_export_xml          examples/main_export_xml.cpp)
-ADD_EXE(main_chevron_test        src/templates/temp/main_chevron_test.cpp)
-ADD_EXE(main_vda_mesh            src/templates/temp/main_vda_mesh_test.cpp)
 ADD_EXE(main_translation_shell   examples/templates/main_translation_shell.cpp)
 ADD_EXE(main_reflex_fold         examples/templates/main_reflex_fold.cpp)
 ADD_EXE(main_chevron             examples/templates/main_chevron.cpp)
@@ -189,7 +181,6 @@ if(BUILD_TESTING)
         set_tests_properties(wood_solver PROPERTIES RUN_SERIAL TRUE)
         find_package(Python3 QUIET COMPONENTS Interpreter)
         if(Python3_Interpreter_FOUND)
-            add_test(NAME wood_cpp_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_runner_test.py)
             add_test(NAME wood_dataset_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/dataset_runner_test.py)
             set_tests_properties(wood_dataset_runner PROPERTIES RUN_SERIAL TRUE ENVIRONMENT "CXX=${CMAKE_CXX_COMPILER}")
         endif()
