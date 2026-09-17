@@ -90,6 +90,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_main.cpp
     src/joinery_solver/wood_polyline_merge.cpp
     src/joinery_solver/wood_session.cpp
+    src/joinery_solver/wood_three_valence.cpp
 )
 
 # wood_core: the joinery solver, compiled ONCE and shared by every target.
