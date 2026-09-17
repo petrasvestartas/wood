@@ -44,8 +44,8 @@ int main() {
     // top-to-side                              20
     // top-to-top                               40
     // crossing geometry                        30
-    add_joints_by_type(wood_session, wood_session.joints());
-    pb_dump(wood_session, "live");
+    wood_session.add_joints();
+    wood_session.write("live");
     
     return 0;
 }

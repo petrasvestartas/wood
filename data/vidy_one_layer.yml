@@ -49,7 +49,7 @@ distance_squared: 0.01
 # RADIANS; angular tolerance, used as cos(angle) (wood ANGLE)
 angle: 0.11
 # consecutive-duplicate-points removal in load_plates
-duplicate_pts_tol: 0.0
+duplicate_pts_tol: 0.1
 # mm; filters out joints shorter than this (wood LIMIT_MIN_JOINT_LENGTH)
 limit_min_joint_length: 0.0
 

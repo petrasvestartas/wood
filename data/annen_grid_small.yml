@@ -65,7 +65,7 @@ clipper_area: 0.01
 
 # ── Filesystem strings ─────────────────────────────────────────────────────
 # output .pb filename written into session_data/
-data_set_output_file: WoodF2F_annen_grid_small.pb
+data_set_output_file: WoodF2F_annen.pb
 # upstream sqlite output path (informational, unused)
 data_set_output_database: none
 # upstream wood custom-joint-config path (informational, unused)

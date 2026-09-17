@@ -20,9 +20,9 @@ int main() {
     // side_top - pink
     // top_top - green
     // unknown - grey
-    add_contacts_by_type(wood_session, wood_session.contacts());
-    add_outlines(wood_session, wood_session);
-    pb_dump(wood_session, "live");
+    wood_session.add_contacts();
+    wood_session.add_outlines();
+    wood_session.write("live");
 
     return 0;
 }

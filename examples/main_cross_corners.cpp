@@ -57,7 +57,7 @@ int main() {
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(cross_joint);
-    pb_dump(scene, "live");
+    scene.write("live");
     return 0;
 }
 

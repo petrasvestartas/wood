@@ -55,8 +55,6 @@ std::vector<Polyline> load_polylines(const std::string& dataset_name, double dup
         for (auto& polyline : polylines)
             polyline.remove_consecutive_duplicates(tolerance);
     wood_session::globals::DUPLICATE_PTS_TOL = tolerance;
-    wood_session::globals::DATA_SET_INPUT_NAME = path.stem().string();
-    wood_session::globals::DATA_SET_OUTPUT_FILE = "WoodF2F_" + path.stem().string() + ".pb";
     return polylines;
 }
 

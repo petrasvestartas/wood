@@ -116,31 +116,6 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
         SearchType search_type,
         const wood_session::ChevronJoineryData& joinery_data);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// fill_session — splat the result of get_connection_zones into a Session for
-// visualization / .pb persistence. Recreates the legacy group layout:
-//   "Elements"                               — input plates as Element (WoodElement::to_element),
-//                                              each detected joint attached as a "joint" ElementFeature
-//   "JointAreas_SS_11" / "_TS_20" / "_Other" — per-type joint area polygons
-//   "JointLines_SS_11" / "_TS_20" / "_Other" — per-type joint centerlines
-
-//   "element_<i>"                            — per-element merged outlines + cut polylines
-//   "MergedMeshes"                           — loft of features.top/bottom per element
-//                                              (only if include_loft = true)
-// ═══════════════════════════════════════════════════════════════════════════
-void fill_session(
-        session_cpp::Session& session,
-        const std::vector<std::shared_ptr<wood_session::Plate>>& elements,
-        const std::vector<wood_session::WoodJoint>&   joints,
-        bool include_loft = true);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// A scene — the elements, what relates them, and how it is written
-//
-// fill_session above is the solver's full legacy layout. A WoodSession is the
-// model: a session_cpp::Session whose elements wood knows the type of, and
-// whose graph edges carry what the detector and the solver found between them.
-
 namespace wood_session {
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -242,6 +217,15 @@ public:
     /// Put every joint feature the graph holds back on its host element, replacing the previous ones.
     void sync_joint_features();
 
+    /// Every element as its outlines under `prefix`: a plate its bottom and top, anything else every face it has.
+    void add_outlines(const std::string& prefix = "Elements");
+    /// Every contact as a coloured ring, one group per contact class that occurs, named `<prefix>_<class>`.
+    void add_contacts(const std::string& prefix = "Contacts");
+    /// Every joint's area, volumes, lines and cut outlines, one group per joint type that occurs, named `<prefix>_<code>`.
+    void add_joints(const std::string& prefix = "Joints");
+    /// Write the scene: a bare name goes to pb_path(name) ("live" is the file session_viewer watches); a name ending in .pb goes to data/output/ with the per-plate outline dumps beside it. Returns the path.
+    std::filesystem::path write(const std::string& name = "live");
+
     /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
     static WoodSession pb_load(const std::filesystem::path& path);
     /// A dataset name (data/<name>.yml) or a .yml path: its globals apply, and the obj it names becomes the scene's plates.
@@ -257,31 +241,9 @@ public:
 
 /// data/output/pb/<name>.pb, with the directory created.
 std::filesystem::path pb_path(const std::string& name);
-/// Write the session to pb_path(name) and return that path; "live" is the file session_viewer watches.
-std::filesystem::path pb_dump(const session_cpp::Session& session, const std::string& name = "live");
-/// The same, with every joint feature put back on its host element first.
-std::filesystem::path pb_dump(WoodSession& scene, const std::string& name = "live");
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Colours
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
-// The contact and joint coloring scheme
-//
-// One scheme across both layers: a joint takes a shade of the family its contact belongs
-// to, so the two views read together.
-//
-//   contact side_side  navy   ->  joint 12 ss in-plane      navy
-//                             ->  joint 11 ss out-of-plane  orange
-//                             ->  joint 13 ss rotated       deep pink
-//   contact side_top   pink   ->  joint 20 top-to-side      pink
-//   contact top_top    green  ->  joint 40 top-to-top       green
-//   contact cross      yellow ->  joint 30 cross            yellow
-//   contact unknown    grey   ->  no joint equivalent
-//
-// Colors are floats in [0,1]. session_cpp::Color clamps to that range, so an 0-255 literal
-// silently saturates to white.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// "side_side" / "side_top" / "top_top" / "unknown" / "cross" / "line" - the group name a
@@ -294,19 +256,6 @@ std::string joint_type_name(int joint_type);
 
 session_cpp::Color contact_color(ContactType type);
 session_cpp::Color joint_color(int joint_type);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Viewer geometry
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Every element as its outlines: a plate its bottom and top, anything else every face it has.
-void add_outlines(session_cpp::Session& session, const WoodSession& scene, const std::string& prefix = "Elements");
-/// Contacts as rings, one group per contact class that occurs, named `<prefix>_<class>`; line contacts are skipped.
-void add_contacts_by_type(session_cpp::Session& session, const std::vector<ContactPair>& contacts, const std::string& prefix = "Contacts");
-/// ContactType::line contacts only, as the short segment between the two curves' closest points.
-void add_line_contacts_by_type(session_cpp::Session& session, const std::vector<ContactPair>& contacts, const std::string& prefix = "LineContacts");
-/// Joint areas, volumes, lines and cut outlines, one group per joint type that occurs, named `<prefix>_<code>`.
-void add_joints_by_type(session_cpp::Session& session, const std::vector<WoodJoint>& joints, const std::string& prefix = "Joints");
 
 } // namespace wood_session
 
