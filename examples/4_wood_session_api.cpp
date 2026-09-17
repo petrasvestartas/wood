@@ -65,6 +65,31 @@ cmake -S . -B build
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --config Release --parallel && ./build/4_wood_session_api && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 4_wood_session_api
 
+|||||||| WORKFLOW ||||||||
+examples/4_wood_session_api.cpp
+ |
+ |-- Plate::from_rectangle(origin, x, y, w, h, thickness)   src/joinery_solver/wood_element_plate.cpp
+ |    |-- Polyline::rectangle, Polyline::translated          ../session/session_cpp/src/polyline.cpp
+ |    '-- Plate(bottom, top)                                  outlines, planes, thickness; no loft
+ |
+ |-- WoodSession("api"), add(plate)              wood_session.cpp -> Session::add_element (tree + graph)
+ |
+ |-- compute_contacts()                          see 2_contact_detection: face_contacts -> graph edges
+ |-- contacts()                                  the FaceContacts of every edge, grouped per element pair
+ |
+ |-- compute_joints()                            see 3_joint_detection: get_connection_zones -> graph edges
+ |-- joints()                                    every WoodJoint of every edge
+ |
+ |-- element_geometry_mesh()  model_geometry_mesh()      wood_element_plate.cpp: Mesh::loft, cached
+ |-- element_geometry_brep()  model_geometry_brep()      brep_between_loops -> BRep::from_polylines(faces, holes)
+ |                                               ../session/session_cpp/src/brep.cpp (planar fast path), cached
+ |
+ |-- add_to_tree(true, true, true, true)         the plate, "outlines", "contacts" (add_contacts_to),
+ |                                               "joints" (add_joints_to: areas, volumes, lines, cuts)
+ |-- pb_dump(pb_path("live"))                    sync_geometry, Session::pb_dump
+ |
+ '-- WoodSession::yaml_load(dataset), compute_joints(), joints()      the same over data/<dataset>.yml
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

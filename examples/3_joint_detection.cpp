@@ -36,6 +36,39 @@ cmake -S . -B build
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --config Release --parallel && ./build/3_joint_detection && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target 3_joint_detection
 
+|||||||| WORKFLOW ||||||||
+examples/3_joint_detection.cpp
+ |
+ |-- WoodSession::yaml_load(dataset)             wood_session.cpp   (see 1_io: yml, obj, Plate, add)
+ |
+ |-- compute_joints(search_type)                 wood_session.cpp
+ |    |-- clear_joints()
+ |    |-- get_connection_zones(plates, search)   src/joinery_solver/wood_main.cpp, in pipeline order:
+ |    |    |-- adjacent_pairs                     adjacency_search               wood_face_to_face.cpp
+ |    |    |-- load_insertion_vectors, load_joint_types      the txt sidecars   wood_internal.cpp
+ |    |    |-- detect_joints                      face_to_face_wood              wood_face_to_face.cpp
+ |    |    |    |   prepare_candidate -> side_side (in_plane | out_of_plane | rotated) | top_side | top_top
+ |    |    |    '-- cross_fallback -> plane_to_face, CrossJoint               wood_joint_detection.cpp
+ |    |    |-- link_three_valence_joints          vidy shadow joints, annen alignment   wood_three_valence.cpp
+ |    |    |-- joint_membership_per_face          which joints touch which face of which plate
+ |    |    |-- build_joints_geometry -> reuse_or_create_geometry -> create_<family>_joint
+ |    |    |    |-- joints/<family>_<id>.h        unit-box male/female outlines      wood_joint_lib.h
+ |    |    |    '-- joint_get_divisions, apply_unit_scale, joint_orient_to_connection_area, merge_linked_joints
+ |    |    |                                                                          wood_joint.cpp
+ |    |    '-- merge_joints_into_plates -> MergeModifier::apply(plate, membership, joints)
+ |    |                                                                    wood_merge_modifier.cpp
+ |    |         '-- plate.features = merged bottom/top outlines (+holes), plate.invalidate_geometry()
+ |    |-- set_interaction(a, b, joint)            every joint onto its graph edge
+ |    '-- sync_joint_features()                   the joint as an ElementFeature on both host elements
+ |
+ |-- plate->element_geometry_mesh()              wood_element_plate.cpp: Mesh::loft(bottom, top), cached
+ |-- plate->model_geometry_mesh()                Mesh::loft(features.bottom, features.top), cached
+ |
+ |-- add_to_tree(true, true, false, false)       one group per plate: the plate, "outlines" (the merged ones)
+ |
+ '-- pb_dump(pb_path("live"))                    sync_geometry -> compute_geometry (model mesh onto the
+                                                 Element, keeps the joint features), Session::pb_dump
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */
