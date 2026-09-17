@@ -105,7 +105,7 @@ struct WoodInteraction {
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session with typed element access and a WoodInteraction on each graph edge; Session has no virtual method, so never delete one through a Session*.
+/// A Session with typed element access and a WoodInteraction on each graph edge; Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry(), the plate alone, the loft of its two outlines, never cut; and model_geometry(), the plate with its joints cut in, the one to inspect. compute_joints() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
 class WoodSession : public session_cpp::Session {
 public:
     /// An empty scene; registers the three element factories with the kernel.
@@ -172,7 +172,7 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads globals::DISTANCE), stored as ContactType::line.
     void compute_line_contacts(double tolerance = -1.0);
 
-    /// get_connection_zones over the plates, in place; every joint onto its pair's edge and onto both host elements as features, every plate lofted with its cuts.
+    /// get_connection_zones over the plates, in place; every joint onto its pair's edge and onto both host elements as features, and the merged outlines onto each plate; no plate is lofted, model_geometry() or pb_dump() does that on demand.
     void compute_joints(SearchType search_type = globals::SEARCH_TYPE);
 
     /// The interaction on the edge joining two elements, read from `a`; empty when there is none.

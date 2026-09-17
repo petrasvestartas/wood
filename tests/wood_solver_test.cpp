@@ -34,8 +34,8 @@ static std::vector<WoodJoint> linked_joints(const std::array<int, 4>& sequence) 
     joints[0].linked_joints = {1};
     joints[0].linked_joints_seq = {{sequence}};
     for (size_t i = 0; i < 2; ++i) {
-        joints[0].m_outlines[i] = {outline(0), outline(0)};
-        joints[1].m_outlines[i] = {outline(10)};
+        joints[0].male_outlines[i] = {outline(0), outline(0)};
+        joints[1].male_outlines[i] = {outline(10)};
     }
     return joints;
 }
@@ -45,11 +45,11 @@ static void linked_geometry() {
     merge_linked_joints(joints[0], joints);
     const double expected[] = {0, 10, 1, 11, 2, 12, 3, 4};
     for (size_t i = 0; i < 2; ++i) {
-        const auto points = joints[0].m_outlines[i][0].get_points();
+        const auto points = joints[0].male_outlines[i][0].get_points();
         check(points.size() == 8, "Linked Outline Count");
         for (size_t j = 0; j < points.size() && j < 8; ++j)
             check(points[j][0] == expected[j], "Linked Outline Order");
-        check(joints[1].m_outlines[i].empty(), "Merged Shadow Cleared");
+        check(joints[1].male_outlines[i].empty(), "Merged Shadow Cleared");
     }
     const std::array<int, 4> invalid[] = {
         {1, -1, 0, 1}, {-1, 1, 0, 1}, {1, 0, 0, 1}, {1, 1, 0, -1},
@@ -58,23 +58,23 @@ static void linked_geometry() {
     for (const auto& sequence : invalid) {
         joints = linked_joints(sequence);
         merge_linked_joints(joints[0], joints);
-        check(joints[0].m_outlines[0][0].point_count() == 5, "Invalid Merge Preserves Primary");
-        check(joints[1].m_outlines[0].size() == 1, "Invalid Merge Preserves Shadow");
+        check(joints[0].male_outlines[0][0].point_count() == 5, "Invalid Merge Preserves Primary");
+        check(joints[1].male_outlines[0].size() == 1, "Invalid Merge Preserves Shadow");
     }
     joints = linked_joints({1, 1, 0, 1});
-    joints[1].m_outlines[1].clear();
+    joints[1].male_outlines[1].clear();
     merge_linked_joints(joints[0], joints);
-    check(joints[1].m_outlines[0].size() == 1, "Missing Shadow Face Preserves Geometry");
+    check(joints[1].male_outlines[0].size() == 1, "Missing Shadow Face Preserves Geometry");
     joints = linked_joints({1, 1, 0, 1});
     joints[0].linked_joints = {0};
     merge_linked_joints(joints[0], joints);
-    check(joints[0].m_outlines[0].size() == 2, "Self Link Preserves Geometry");
+    check(joints[0].male_outlines[0].size() == 2, "Self Link Preserves Geometry");
     joints = linked_joints({1, 1, 0, 1});
-    joints[0].m_outlines[0].resize(4);
+    joints[0].male_outlines[0].resize(4);
     joints[0].linked_joints_seq[0].push_back({1, -1, 0, 1});
     merge_linked_joints(joints[0], joints);
-    check(joints[0].m_outlines[0][0].point_count() == 5, "Later Invalid Sequence Rolls Back Merge");
-    check(joints[1].m_outlines[0].size() == 1, "Later Invalid Sequence Preserves Shadow");
+    check(joints[0].male_outlines[0][0].point_count() == 5, "Later Invalid Sequence Rolls Back Merge");
+    check(joints[1].male_outlines[0].size() == 1, "Later Invalid Sequence Preserves Shadow");
 }
 
 static void division_limits() {
@@ -100,12 +100,12 @@ static void linked_construction() {
     ss_e_op_5(joints[0], joints, false);
     check(joints[0].linked_joints_seq.size() == 2, "Repeated Construction Replaces Sequences");
     merge_linked_joints(joints[0], joints);
-    check(joints[0].m_outlines[0][0].point_count() == 28, "Linked Finger Outline");
-    check(joints[0].f_outlines[0][0].point_count() == 22, "Linked Female Outline");
-    check(joints[1].m_outlines[0].empty() && joints[2].m_outlines[0].empty(), "Both Shadows Merged");
+    check(joints[0].male_outlines[0][0].point_count() == 28, "Linked Finger Outline");
+    check(joints[0].female_outlines[0][0].point_count() == 22, "Linked Female Outline");
+    check(joints[1].male_outlines[0].empty() && joints[2].male_outlines[0].empty(), "Both Shadows Merged");
     joints[0].linked_joints = {1, 100};
     ss_e_op_5(joints[0], joints, false);
-    check(joints[0].m_outlines[0][0].point_count() == 28, "Invalid Second Link Preserves Geometry");
+    check(joints[0].male_outlines[0][0].point_count() == 28, "Invalid Second Link Preserves Geometry");
 }
 
 static void missing_datasets(const std::filesystem::path& folder) {

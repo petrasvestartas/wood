@@ -45,7 +45,7 @@ static void ss_e_op_2(WoodJoint& joint) {
         const Polyline outline(pts);
         const Polyline endpoints({pts.front(), pts.back()});
         const int idx = (i < 2) ? 1 : 0;
-        joint.m_outlines[idx] = {outline, endpoints};
+        joint.male_outlines[idx] = {outline, endpoints};
     }
 
     for (int i = 1; i < 4; i += 2) {
@@ -63,10 +63,10 @@ static void ss_e_op_2(WoodJoint& joint) {
         const Polyline outline(pts);
         const Polyline endpoints({pts.front(), pts.back()});
         const int idx = (i < 2) ? 0 : 1;
-        joint.f_outlines[idx] = {outline, endpoints};
+        joint.female_outlines[idx] = {outline, endpoints};
     }
-    joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
 }

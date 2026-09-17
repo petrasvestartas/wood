@@ -54,19 +54,19 @@ static void cr_c_ip_1(WoodJoint& joint) {
         m1[i] = f1[i].transformed(xf_rot);
     }
 
-    joint.f_outlines[0].clear();
-    joint.f_outlines[1].clear();
-    joint.m_outlines[0].clear();
-    joint.m_outlines[1].clear();
+    joint.female_outlines[0].clear();
+    joint.female_outlines[1].clear();
+    joint.male_outlines[0].clear();
+    joint.male_outlines[1].clear();
     for (int i = 0; i < 9; i++) {
-        joint.f_outlines[0].push_back(f0[i]);
-        joint.f_outlines[0].push_back(f0[i]);
-        joint.f_outlines[1].push_back(f1[i]);
-        joint.f_outlines[1].push_back(f1[i]);
-        joint.m_outlines[0].push_back(m0[i]);
-        joint.m_outlines[0].push_back(m0[i]);
-        joint.m_outlines[1].push_back(m1[i]);
-        joint.m_outlines[1].push_back(m1[i]);
+        joint.female_outlines[0].push_back(f0[i]);
+        joint.female_outlines[0].push_back(f0[i]);
+        joint.female_outlines[1].push_back(f1[i]);
+        joint.female_outlines[1].push_back(f1[i]);
+        joint.male_outlines[0].push_back(m0[i]);
+        joint.male_outlines[0].push_back(m0[i]);
+        joint.male_outlines[1].push_back(m1[i]);
+        joint.male_outlines[1].push_back(m1[i]);
     }
 
     std::vector<int> ct(18);
@@ -75,7 +75,7 @@ static void cr_c_ip_1(WoodJoint& joint) {
     for (int i = 6; i < 18; i++)
         ct[i] = wood_cut::slice;
     for (int face = 0; face < 2; face++) {
-        joint.f_cut_types[face] = ct;
-        joint.m_cut_types[face] = ct;
+        joint.female_cut_types[face] = ct;
+        joint.male_cut_types[face] = ct;
     }
 }

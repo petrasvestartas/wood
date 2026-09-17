@@ -65,8 +65,8 @@ static void b_0(WoodJoint& joint) {
     const Polyline rect2 = rect.translated(-off_near);
     const Polyline rect3 = rect.translated(-off_far);
 
-    joint.m_outlines[0] = { rect0, rect0, rect2, rect2 };
-    joint.m_outlines[1] = { rect1, rect1, rect3, rect3 };
-    joint.m_cut_types[0] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
-    joint.m_cut_types[1] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
+    joint.male_outlines[0] = { rect0, rect0, rect2, rect2 };
+    joint.male_outlines[1] = { rect1, rect1, rect3, rect3 };
+    joint.male_cut_types[0] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
+    joint.male_cut_types[1] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
 }

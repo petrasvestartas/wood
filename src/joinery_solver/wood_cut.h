@@ -2,7 +2,7 @@
 
 namespace wood_cut {
 
-/// What each outline a joint emits does to the plate body; one per entry of m_outlines / f_outlines.
+/// What each outline a joint emits does to the plate body; one per entry of male_outlines / female_outlines.
 enum cut_type : int {
     /// No cut.
     nothing = 0,

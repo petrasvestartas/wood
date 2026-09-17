@@ -66,10 +66,10 @@ struct WoodJoint {
     std::string name; // The joint library variant that built the outlines ("ss_e_ip_2", "side_removal"), empty before construction.
     std::array<session_cpp::Line, 2> joint_lines; // The two alignment lines, one per element, along the shared edge.
     std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes_pair_a_pair_b; // The volume rectangles: [0] and [1] bound the male side, [2] and [3] the female side when it differs.
-    std::array<std::vector<session_cpp::Polyline>, 2> m_outlines; // Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
-    std::array<std::vector<session_cpp::Polyline>, 2> f_outlines; // Female cut outlines per face, laid out like m_outlines.
-    std::array<std::vector<int>, 2> m_cut_types; // One cut_type per male outline.
-    std::array<std::vector<int>, 2> f_cut_types; // One cut_type per female outline.
+    std::array<std::vector<session_cpp::Polyline>, 2> male_outlines; // Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
+    std::array<std::vector<session_cpp::Polyline>, 2> female_outlines; // Female cut outlines per face, laid out like male_outlines.
+    std::array<std::vector<int>, 2> male_cut_types; // One cut_type per male outline.
+    std::array<std::vector<int>, 2> female_cut_types; // One cut_type per female outline.
     int divisions; // Number of teeth or notches along the joint line.
     double shift; // Lateral offset of the pattern along the joint line, 0..1.
     double length; // Length of the joint line.

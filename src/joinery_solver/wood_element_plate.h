@@ -10,7 +10,7 @@ struct Features {
     std::vector<session_cpp::Polyline> bottom; // Bottom face: the outer outline first, then one outline per hole.
 };
 
-/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it.
+/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry() is the plate alone, the loft of its two outlines, never cut; model_geometry() is the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
 class Plate : public session_cpp::Element {
 public:
     static constexpr const char* ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.

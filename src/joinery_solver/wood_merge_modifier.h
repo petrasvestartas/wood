@@ -10,10 +10,10 @@ using JointMembership = std::vector<std::vector<std::vector<std::pair<int, bool>
 namespace wood_session {
 
 /// Stitches the oriented joint cut outlines of one plate into its top and bottom outlines.
-class PolylineMerge {
+class MergeModifier {
 public:
     /// [hole0_top, hole0_bot, ..., merged_top, merged_bot] for the plate; a joint's outlines are swapped top/bottom in place when they arrive reversed.
-    static std::vector<session_cpp::Polyline> merge(
+    static std::vector<session_cpp::Polyline> apply(
         const Plate& plate,
         const std::vector<std::vector<std::pair<int, bool>>>& membership,
         std::vector<WoodJoint>& joints,
@@ -71,7 +71,7 @@ private:
     std::array<session_cpp::Point, 2> last_bottom_segment{{session_cpp::Point(0, 0, 0), session_cpp::Point(0, 0, 0)}};
 
     /// Copies the plate outlines and planes and opens the log.
-    PolylineMerge(const Plate& plate, int plate_index);
+    MergeModifier(const Plate& plate, int plate_index);
 
     /// Squared perpendicular distance from p to the infinite line through line_a and line_b.
     static double perpendicular_distance_squared(const session_cpp::Point& p, const session_cpp::Point& line_a, const session_cpp::Point& line_b);

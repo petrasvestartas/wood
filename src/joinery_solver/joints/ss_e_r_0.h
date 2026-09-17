@@ -50,22 +50,22 @@ static void ss_e_r_0(WoodJoint& joint) {
     };
 
     for (int fi = 0; fi < 2; fi++) {
-        joint.m_outlines[fi].clear();
-        joint.m_outlines[fi].reserve(4);
-        joint.f_outlines[fi].clear();
-        joint.f_outlines[fi].reserve(4);
+        joint.male_outlines[fi].clear();
+        joint.male_outlines[fi].reserve(4);
+        joint.female_outlines[fi].clear();
+        joint.female_outlines[fi].reserve(4);
     }
     for (const int oi : {0, 0, 2, 2})
-        joint.m_outlines[0].push_back(rh0.translated(offsets[oi]));
+        joint.male_outlines[0].push_back(rh0.translated(offsets[oi]));
     for (const int oi : {1, 1, 3, 3})
-        joint.m_outlines[1].push_back(rh0.translated(offsets[oi]));
+        joint.male_outlines[1].push_back(rh0.translated(offsets[oi]));
     for (const int oi : {0, 0, 2, 2})
-        joint.f_outlines[0].push_back(rh1.translated(offsets[oi]));
+        joint.female_outlines[0].push_back(rh1.translated(offsets[oi]));
     for (const int oi : {1, 1, 3, 3})
-        joint.f_outlines[1].push_back(rh1.translated(offsets[oi]));
-    joint.m_cut_types[0] = std::vector<int>(4, wood_cut::slice);
-    joint.m_cut_types[1] = std::vector<int>(4, wood_cut::slice);
-    joint.f_cut_types[0] = std::vector<int>(4, wood_cut::slice);
-    joint.f_cut_types[1] = std::vector<int>(4, wood_cut::slice);
+        joint.female_outlines[1].push_back(rh1.translated(offsets[oi]));
+    joint.male_cut_types[0] = std::vector<int>(4, wood_cut::slice);
+    joint.male_cut_types[1] = std::vector<int>(4, wood_cut::slice);
+    joint.female_cut_types[0] = std::vector<int>(4, wood_cut::slice);
+    joint.female_cut_types[1] = std::vector<int>(4, wood_cut::slice);
     joint.no_orient = true;
 }

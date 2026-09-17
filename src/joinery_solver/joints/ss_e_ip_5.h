@@ -63,13 +63,13 @@ static void ss_e_ip_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>
         }
     }
 
-    joint.m_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
-    joint.m_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
-    joint.f_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
-    joint.f_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
+    joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
+    joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
+    joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.unit_scale = true;
 }

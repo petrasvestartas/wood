@@ -6,24 +6,24 @@ static void ts_e_p_0(WoodJoint& joint) {
     const double b = 0.214285714285714;
     const double c = 0.0714285714285715;
 
-    joint.f_outlines[0].clear();
-    joint.f_outlines[0].push_back(Polyline({
+    joint.female_outlines[0].clear();
+    joint.female_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, a), P( 0.5,-0.5, a), P( 0.5,-0.5, b), P(-0.5,-0.5, b), P(-0.5,-0.5, a)}));
-    joint.f_outlines[0].push_back(Polyline({
+    joint.female_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, c), P( 0.5,-0.5, c), P( 0.5,-0.5,-c), P(-0.5,-0.5,-c), P(-0.5,-0.5, c)}));
-    joint.f_outlines[0].push_back(Polyline({
+    joint.female_outlines[0].push_back(Polyline({
         P(-0.5,-0.5,-b), P( 0.5,-0.5,-b), P( 0.5,-0.5,-a), P(-0.5,-0.5,-a), P(-0.5,-0.5,-b)}));
-    joint.f_outlines[0].push_back(Polyline({
+    joint.female_outlines[0].push_back(Polyline({
         P(-0.5,-0.5, a), P(-0.5,-0.5,-a), P( 0.5,-0.5,-a), P( 0.5,-0.5, a), P(-0.5,-0.5, a)}));
 
-    joint.f_outlines[1].clear();
-    joint.f_outlines[1].push_back(Polyline({
+    joint.female_outlines[1].clear();
+    joint.female_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, a), P( 0.5, 0.5, a), P( 0.5, 0.5, b), P(-0.5, 0.5, b), P(-0.5, 0.5, a)}));
-    joint.f_outlines[1].push_back(Polyline({
+    joint.female_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, c), P( 0.5, 0.5, c), P( 0.5, 0.5,-c), P(-0.5, 0.5,-c), P(-0.5, 0.5, c)}));
-    joint.f_outlines[1].push_back(Polyline({
+    joint.female_outlines[1].push_back(Polyline({
         P(-0.5, 0.5,-b), P( 0.5, 0.5,-b), P( 0.5, 0.5,-a), P(-0.5, 0.5,-a), P(-0.5, 0.5,-b)}));
-    joint.f_outlines[1].push_back(Polyline({
+    joint.female_outlines[1].push_back(Polyline({
         P(-0.5, 0.5, a), P(-0.5, 0.5,-a), P( 0.5, 0.5,-a), P( 0.5, 0.5, a), P(-0.5, 0.5, a)}));
 
     const Polyline m0_outline({
@@ -35,7 +35,7 @@ static void ts_e_p_0(WoodJoint& joint) {
         P( 0.5, 0.5, a), P( 0.5,-0.5, a)
     });
     const Polyline m0_endpoints({ P( 0.5,-0.5,-a), P( 0.5,-0.5, a) });
-    joint.m_outlines[0] = { m0_outline, m0_endpoints };
+    joint.male_outlines[0] = { m0_outline, m0_endpoints };
 
     const Polyline m1_outline({
         P(-0.5,-0.5,-a), P(-0.5, 0.5,-a),
@@ -46,9 +46,9 @@ static void ts_e_p_0(WoodJoint& joint) {
         P(-0.5, 0.5, a), P(-0.5,-0.5, a)
     });
     const Polyline m1_endpoints({ P(-0.5,-0.5,-a), P(-0.5,-0.5, a) });
-    joint.m_outlines[1] = { m1_outline, m1_endpoints };
-    joint.f_cut_types[0] = { wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
-    joint.f_cut_types[1] = { wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_outlines[1] = { m1_outline, m1_endpoints };
+    joint.female_cut_types[0] = { wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
+    joint.female_cut_types[1] = { wood_cut::hole, wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
 }

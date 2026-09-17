@@ -104,7 +104,7 @@ void WoodJoint::sync_features() {
         f.feature_type = "joint";
         f.name = name.empty() ? "joint_" + std::to_string(joint_type) : name;
         f.face_index = side == 0 ? contact.face_a : contact.face_b;
-        const auto& outlines = side == 0 ? m_outlines : f_outlines;
+        const auto& outlines = side == 0 ? male_outlines : female_outlines;
         f.outlines.clear();
         f.outlines.reserve(outlines[0].size() + outlines[1].size());
         for (int face = 0; face < 2; ++face)
@@ -149,10 +149,10 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
         {"joint_lines", {to_coords(Polyline({joint_lines[0].start(), joint_lines[0].end()})),
                          to_coords(Polyline({joint_lines[1].start(), joint_lines[1].end()}))}},
         {"joint_volumes", volumes},
-        {"m_outlines", {rings(m_outlines[0]), rings(m_outlines[1])}},
-        {"f_outlines", {rings(f_outlines[0]), rings(f_outlines[1])}},
-        {"m_cut_types", {m_cut_types[0], m_cut_types[1]}},
-        {"f_cut_types", {f_cut_types[0], f_cut_types[1]}},
+        {"male_outlines", {rings(male_outlines[0]), rings(male_outlines[1])}},
+        {"female_outlines", {rings(female_outlines[0]), rings(female_outlines[1])}},
+        {"male_cut_types", {male_cut_types[0], male_cut_types[1]}},
+        {"female_cut_types", {female_cut_types[0], female_cut_types[1]}},
         {"divisions", divisions},
         {"shift", shift},
         {"length", length},
@@ -210,14 +210,14 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
         }
     }
     for (int face = 0; face < 2; ++face) {
-        if (data.contains("m_outlines"))
-            j.m_outlines[face] = rings(data["m_outlines"][face]);
-        if (data.contains("f_outlines"))
-            j.f_outlines[face] = rings(data["f_outlines"][face]);
-        if (data.contains("m_cut_types"))
-            j.m_cut_types[face] = data["m_cut_types"][face].get<std::vector<int>>();
-        if (data.contains("f_cut_types"))
-            j.f_cut_types[face] = data["f_cut_types"][face].get<std::vector<int>>();
+        if (data.contains("male_outlines"))
+            j.male_outlines[face] = rings(data["male_outlines"][face]);
+        if (data.contains("female_outlines"))
+            j.female_outlines[face] = rings(data["female_outlines"][face]);
+        if (data.contains("male_cut_types"))
+            j.male_cut_types[face] = data["male_cut_types"][face].get<std::vector<int>>();
+        if (data.contains("female_cut_types"))
+            j.female_cut_types[face] = data["female_cut_types"][face].get<std::vector<int>>();
     }
     j.divisions       = data.value("divisions", 1);
     j.shift           = data.value("shift", 0.5);
@@ -354,9 +354,9 @@ void joint_orient_to_connection_area(WoodJoint& joint) {
         ? Xform::from_change_of_basis(*vols[2], *vols[3])
         : xf0;
     for (int face = 0; face < 2; face++) {
-        for (auto& pl : joint.m_outlines[face])
+        for (auto& pl : joint.male_outlines[face])
             pl.transform(xf0);
-        for (auto& pl : joint.f_outlines[face])
+        for (auto& pl : joint.female_outlines[face])
             pl.transform(xf1);
     }
 }
@@ -419,8 +419,8 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
             continue;
         const bool male = joint.element_a == linked.element_a;
         const bool side = i == 1 ? !male : male;
-        auto& current = male ? joint.m_outlines : joint.f_outlines;
-        auto& next = side ? linked.m_outlines : linked.f_outlines;
+        auto& current = male ? joint.male_outlines : joint.female_outlines;
+        auto& next = side ? linked.male_outlines : linked.female_outlines;
         if (current[0].empty() || current[1].empty() || next[0].empty() || next[1].empty())
             continue;
         if (current[0].size() % 2 != 0 || joint.linked_joints_seq[i].size() != current[0].size() / 2)
@@ -582,27 +582,27 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
     const Polyline pline1_moved  = pline1.translated(f1_0_normal);
 
     if (!(joint.shift > 0.0)) {
-        joint.m_outlines[0] = { pline0,        pline0 };
-        joint.m_outlines[1] = { pline0_moved0, pline0_moved0 };
-        joint.f_outlines[0] = { pline1,        pline1 };
-        joint.f_outlines[1] = { pline1_moved,  pline1_moved };
-        joint.m_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.m_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.f_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.f_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
+        joint.male_outlines[0] = { pline0,        pline0 };
+        joint.male_outlines[1] = { pline0_moved0, pline0_moved0 };
+        joint.female_outlines[0] = { pline1,        pline1 };
+        joint.female_outlines[1] = { pline1_moved,  pline1_moved };
+        joint.male_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
+        joint.male_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
+        joint.female_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
+        joint.female_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
         return;
     }
 
-    joint.m_outlines[0] = { pline0_moved0, pline0_moved0, pline0, pline0 };
-    joint.m_outlines[1] = { pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0 };
-    joint.f_outlines[0] = { pline1,        pline1 };
-    joint.f_outlines[1] = { pline1_moved,  pline1_moved };
-    joint.m_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project,
+    joint.male_outlines[0] = { pline0_moved0, pline0_moved0, pline0, pline0 };
+    joint.male_outlines[1] = { pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0 };
+    joint.female_outlines[0] = { pline1,        pline1 };
+    joint.female_outlines[1] = { pline1_moved,  pline1_moved };
+    joint.male_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project,
                              wood_cut::mill_project, wood_cut::mill_project };
-    joint.m_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project,
+    joint.male_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project,
                              wood_cut::mill_project, wood_cut::mill_project };
-    joint.f_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-    joint.f_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
+    joint.female_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
+    joint.female_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
 }
 
 /// side_removal_ss_e_r_1_port with the merge branch forced off unless merge_with_joint.
@@ -670,27 +670,27 @@ void drill_axes(const WoodJoint& joint, double t0, double t1, Vector& dir0, Vect
 /// One two-point drill line per point on every face, twice per face as the merge expects.
 void emit_drills(WoodJoint& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
     for (int f = 0; f < 2; f++) {
-        joint.m_outlines[f].clear();
-        joint.f_outlines[f].clear();
-        joint.m_cut_types[f].clear();
-        joint.f_cut_types[f].clear();
-        joint.m_outlines[f].reserve(points.size() * 2);
-        joint.f_outlines[f].reserve(points.size() * 2);
-        joint.m_cut_types[f].reserve(points.size() * 2);
-        joint.f_cut_types[f].reserve(points.size() * 2);
+        joint.male_outlines[f].clear();
+        joint.female_outlines[f].clear();
+        joint.male_cut_types[f].clear();
+        joint.female_cut_types[f].clear();
+        joint.male_outlines[f].reserve(points.size() * 2);
+        joint.female_outlines[f].reserve(points.size() * 2);
+        joint.male_cut_types[f].reserve(points.size() * 2);
+        joint.female_cut_types[f].reserve(points.size() * 2);
     }
     for (const Point& pt : points) {
         const Polyline line0({pt, pt + dir0});
         const Polyline line1({pt, pt + dir1});
         for (int f = 0; f < 2; f++) {
-            joint.f_outlines[f].push_back(line0);
-            joint.f_outlines[f].push_back(line0);
-            joint.m_outlines[f].push_back(line1);
-            joint.m_outlines[f].push_back(line1);
-            joint.m_cut_types[f].push_back(wood_cut::drill);
-            joint.m_cut_types[f].push_back(wood_cut::drill);
-            joint.f_cut_types[f].push_back(wood_cut::drill);
-            joint.f_cut_types[f].push_back(wood_cut::drill);
+            joint.female_outlines[f].push_back(line0);
+            joint.female_outlines[f].push_back(line0);
+            joint.male_outlines[f].push_back(line1);
+            joint.male_outlines[f].push_back(line1);
+            joint.male_cut_types[f].push_back(wood_cut::drill);
+            joint.male_cut_types[f].push_back(wood_cut::drill);
+            joint.female_cut_types[f].push_back(wood_cut::drill);
+            joint.female_cut_types[f].push_back(wood_cut::drill);
         }
     }
 }

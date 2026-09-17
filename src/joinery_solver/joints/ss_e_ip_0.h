@@ -26,12 +26,12 @@ static void ss_e_ip_0(WoodJoint& joint) {
             P(-0.5, 0.5,-a),  P( 0.0, 0.5,-a)}),
         Polyline({P( 0.0, 0.5, 0.5), P( 0.0, 0.5,-0.5)}),
     };
-    joint.f_outlines[0] = minus;
-    joint.f_outlines[1] = plus;
-    joint.m_outlines[0] = minus;
-    joint.m_outlines[1] = plus;
-    joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_outlines[0] = minus;
+    joint.female_outlines[1] = plus;
+    joint.male_outlines[0] = minus;
+    joint.male_outlines[1] = plus;
+    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
 }

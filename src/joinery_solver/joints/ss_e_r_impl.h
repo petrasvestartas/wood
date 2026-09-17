@@ -14,10 +14,10 @@ static void ss_e_r_impl(
     const double total = edge_length / jv_len;
     const double z0 = total * 0.5 - step * 0.5;
 
-    joint.m_outlines[0].reserve(2 * divisions);
-    joint.m_outlines[1].reserve(2 * divisions);
-    joint.f_outlines[0].reserve(2 * divisions);
-    joint.f_outlines[1].reserve(2 * divisions);
+    joint.male_outlines[0].reserve(2 * divisions);
+    joint.male_outlines[1].reserve(2 * divisions);
+    joint.female_outlines[0].reserve(2 * divisions);
+    joint.female_outlines[1].reserve(2 * divisions);
 
     for (int i = 0; i < divisions; i++) {
         const double z_off = z0 - step * i;
@@ -32,20 +32,20 @@ static void ss_e_r_impl(
         const Polyline pm1 = make_poly(m1, m1n);
         const Polyline pf0 = make_poly(f0, f0n);
         const Polyline pf1 = make_poly(f1, f1n);
-        joint.m_outlines[0].push_back(pm0);
-        joint.m_outlines[0].push_back(pm0);
-        joint.m_outlines[1].push_back(pm1);
-        joint.m_outlines[1].push_back(pm1);
-        joint.f_outlines[0].push_back(pf0);
-        joint.f_outlines[0].push_back(pf0);
-        joint.f_outlines[1].push_back(pf1);
-        joint.f_outlines[1].push_back(pf1);
+        joint.male_outlines[0].push_back(pm0);
+        joint.male_outlines[0].push_back(pm0);
+        joint.male_outlines[1].push_back(pm1);
+        joint.male_outlines[1].push_back(pm1);
+        joint.female_outlines[0].push_back(pf0);
+        joint.female_outlines[0].push_back(pf0);
+        joint.female_outlines[1].push_back(pf1);
+        joint.female_outlines[1].push_back(pf1);
     }
     const int n = 2 * divisions;
-    joint.m_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
-    joint.m_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
-    joint.f_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
-    joint.f_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
+    joint.male_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
+    joint.male_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
+    joint.female_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
+    joint.female_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
     joint.unit_scale = true;
 
     const double size = 120.0 * joint.shift;

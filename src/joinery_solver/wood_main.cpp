@@ -2,7 +2,7 @@
 #include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 #include "wood_joint.h"
-#include "wood_polyline_merge.h"
+#include "wood_merge_modifier.h"
 #include "wood_session.h"
 #include "wood_three_valence.h"
 using namespace session_cpp;
@@ -581,10 +581,10 @@ FamilyParameters family_parameters(const int joint_type, const int id_representi
 /// Pre-orient unit-cube geometry shared by joints with an equal cache key.
 struct CachedJointGeometry {
     std::string name; // Joint name the constructor gave.
-    std::array<std::vector<Polyline>, 2> m_outlines; // Male outlines, top and bottom.
-    std::array<std::vector<Polyline>, 2> f_outlines; // Female outlines, top and bottom.
-    std::array<std::vector<int>, 2> m_cut_types; // Male cut types, top and bottom.
-    std::array<std::vector<int>, 2> f_cut_types; // Female cut types, top and bottom.
+    std::array<std::vector<Polyline>, 2> male_outlines; // Male outlines, top and bottom.
+    std::array<std::vector<Polyline>, 2> female_outlines; // Female outlines, top and bottom.
+    std::array<std::vector<int>, 2> male_cut_types; // Male cut types, top and bottom.
+    std::array<std::vector<int>, 2> female_cut_types; // Female cut types, top and bottom.
     bool unit_scale; // Whether the constructor scales the unit cube.
     double unit_scale_distance; // The distance the unit cube is scaled by.
 };
@@ -623,20 +623,20 @@ void reuse_or_create_geometry(
     } else if (cache_entry != unique_joints_cache.end()) {
         const CachedJointGeometry& cached = cache_entry->second;
         joint.name = cached.name;
-        joint.m_outlines = cached.m_outlines;
-        joint.f_outlines = cached.f_outlines;
-        joint.m_cut_types = cached.m_cut_types;
-        joint.f_cut_types = cached.f_cut_types;
+        joint.male_outlines = cached.male_outlines;
+        joint.female_outlines = cached.female_outlines;
+        joint.male_cut_types = cached.male_cut_types;
+        joint.female_cut_types = cached.female_cut_types;
         joint.unit_scale = cached.unit_scale;
         joint.unit_scale_distance = cached.unit_scale_distance;
     } else {
         joint_create_geometry(joint, family.division_distance, family.shift, family.id, &all_joints, &elements);
         CachedJointGeometry cached;
         cached.name = joint.name;
-        cached.m_outlines = joint.m_outlines;
-        cached.f_outlines = joint.f_outlines;
-        cached.m_cut_types = joint.m_cut_types;
-        cached.f_cut_types = joint.f_cut_types;
+        cached.male_outlines = joint.male_outlines;
+        cached.female_outlines = joint.female_outlines;
+        cached.male_cut_types = joint.male_cut_types;
+        cached.female_cut_types = joint.female_cut_types;
         cached.unit_scale = joint.unit_scale;
         cached.unit_scale_distance = joint.unit_scale_distance;
         unique_joints_cache.emplace(cache_key, std::move(cached));
@@ -741,7 +741,7 @@ void merge_joints_into_plates(
     std::vector<WoodJoint>& all_joints) {
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
-        std::vector<Polyline> merged = wood_session::PolylineMerge::merge(*elements[element_index], membership[element_index], all_joints, (int)element_index);
+        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], all_joints, (int)element_index);
         auto& features = elements[element_index]->features;
         features.top.clear();
         features.bottom.clear();

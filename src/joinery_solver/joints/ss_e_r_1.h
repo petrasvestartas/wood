@@ -56,13 +56,13 @@ static void ss_e_r_1(WoodJoint& joint) {
             pts.emplace_back(x, data[i][0], data[i][1]);
         return Polyline(pts);
     };
-    joint.f_outlines[0] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
-    joint.f_outlines[1] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
-    joint.m_outlines[0] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
-    joint.m_outlines[1] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
-    joint.f_cut_types[0] = { wood_cut::conic, wood_cut::conic };
-    joint.f_cut_types[1] = { wood_cut::conic, wood_cut::conic };
-    joint.m_cut_types[0] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
-    joint.m_cut_types[1] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
+    joint.female_outlines[0] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
+    joint.female_outlines[1] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
+    joint.male_outlines[0] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
+    joint.male_outlines[1] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
+    joint.female_cut_types[0] = { wood_cut::conic, wood_cut::conic };
+    joint.female_cut_types[1] = { wood_cut::conic, wood_cut::conic };
+    joint.male_cut_types[0] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
+    joint.male_cut_types[1] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
     joint.unit_scale = true;
 }

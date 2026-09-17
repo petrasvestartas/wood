@@ -38,12 +38,12 @@ static void ss_e_ip_1(WoodJoint& joint) {
     const Polyline endpoints0({pline0.front(), pline0.back()});
     const Polyline endpoints1({pline1.front(), pline1.back()});
 
-    joint.f_outlines[0] = { outline0, endpoints0 };
-    joint.f_outlines[1] = { outline1, endpoints1 };
-    joint.m_outlines[0] = { outline0, endpoints0 };
-    joint.m_outlines[1] = { outline1, endpoints1 };
-    joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_outlines[0] = { outline0, endpoints0 };
+    joint.female_outlines[1] = { outline1, endpoints1 };
+    joint.male_outlines[0] = { outline0, endpoints0 };
+    joint.male_outlines[1] = { outline1, endpoints1 };
+    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
 }

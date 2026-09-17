@@ -661,14 +661,14 @@ void WoodSession::add_joints_to(const std::map<std::string, Group>& groups, std:
             line->name = fmt::format("{}_line{}", name, k);
             add_line(line, group);
         }
-        for (const Polyline& outline : joint.m_outlines[0])
+        for (const Polyline& outline : joint.male_outlines[0])
             add_polyline(ring(outline, color, name + "_male_bottom_cut"), group);
-        for (const Polyline& outline : joint.m_outlines[1])
+        for (const Polyline& outline : joint.male_outlines[1])
             add_polyline(ring(outline, color, name + "_male_top_cut"), group);
         const Group other = child_group(*this, children, female->second, "joints");
-        for (const Polyline& outline : joint.f_outlines[0])
+        for (const Polyline& outline : joint.female_outlines[0])
             add_polyline(ring(outline, color, name + "_female_bottom_cut"), other);
-        for (const Polyline& outline : joint.f_outlines[1])
+        for (const Polyline& outline : joint.female_outlines[1])
             add_polyline(ring(outline, color, name + "_female_top_cut"), other);
     }
 }

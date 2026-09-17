@@ -23,7 +23,7 @@ static void ss_e_op_4(
     step = 1.0 / ((double)number_of_tenons - 1);
 
     for (int j = 0; j < 2; j++) {
-        joint.m_outlines[j].resize(2);
+        joint.male_outlines[j].resize(2);
         const int sign = j == 0 ? -1 : 1;
         std::vector<Point> pts;
         pts.reserve(4 + number_of_tenons * 2);
@@ -65,27 +65,27 @@ static void ss_e_op_4(
         pts.emplace_back(x[1] + j * 0.01, y[j], z_ext[0]);
         pts.emplace_back(sign * x[1], y[j], z_ext[0]);
 
-        joint.m_outlines[j][0] = Polyline(pts);
-        joint.m_outlines[j][1] = Polyline({Point(sign * x[1], y[j], z_ext[1]), Point(sign * x[1], y[j], z_ext[0])});
+        joint.male_outlines[j][0] = Polyline(pts);
+        joint.male_outlines[j][1] = Polyline({Point(sign * x[1], y[j], z_ext[1]), Point(sign * x[1], y[j], z_ext[0])});
     }
 
     const int fmo_count = 2 * (int)female_modify_outline;
     for (int j = 0; j < 2; j++) {
         if (joint.divisions == 0)
-            joint.f_outlines[j].resize(fmo_count);
+            joint.female_outlines[j].resize(fmo_count);
         else
-            joint.f_outlines[j].resize(fmo_count + number_of_tenons);
+            joint.female_outlines[j].resize(fmo_count + number_of_tenons);
         const int sign = j == 0 ? 1 : -1;
         const int j_inv = j == 0 ? 1 : 0;
 
         if (female_modify_outline) {
-            joint.f_outlines[j][0] = Polyline({
+            joint.female_outlines[j][0] = Polyline({
                 Point(y[j_inv], sign * y[1], z_ext[1]),
                 Point(y[j_inv], 3 * y[0], z_ext[1]),
                 Point(y[j_inv], 3 * y[0], z_ext[0]),
                 Point(y[j_inv], sign * y[1], z_ext[0]),
             });
-            joint.f_outlines[j][1] = Polyline({
+            joint.female_outlines[j][1] = Polyline({
                 Point(y[j_inv], sign * y[1], z_ext[1]),
                 Point(y[j_inv], sign * y[1], z_ext[1]),
             });
@@ -110,14 +110,14 @@ static void ss_e_op_4(
                 hole_pts.emplace_back(y[j_inv], y[0], z2);
                 hole_pts.push_back(hole_pts.front());
 
-                joint.f_outlines[j][fmo_count + i] = Polyline(hole_pts);
-                joint.f_outlines[j][fmo_count + i + 1] = Polyline(hole_pts);
+                joint.female_outlines[j][fmo_count + i] = Polyline(hole_pts);
+                joint.female_outlines[j][fmo_count + i + 1] = Polyline(hole_pts);
             }
         }
     }
 
-    joint.m_cut_types[0] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
-    joint.m_cut_types[1] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+    joint.male_cut_types[0] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+    joint.male_cut_types[1] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
     for (int j = 0; j < 2; j++) {
         std::vector<int> fct;
         if (female_modify_outline) {
@@ -130,6 +130,6 @@ static void ss_e_op_4(
                 fct.push_back(wood_cut::hole);
             }
         }
-        joint.f_cut_types[j] = fct;
+        joint.female_cut_types[j] = fct;
     }
 }

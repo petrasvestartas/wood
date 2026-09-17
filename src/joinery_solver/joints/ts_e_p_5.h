@@ -91,17 +91,17 @@ static void ts_e_p_5(WoodJoint& joint) {
             m1_pts.emplace_back(m1[k][0], m1[k][1], m1[k][2] + z_off);
         }
     }
-    joint.m_outlines[0] = {
+    joint.male_outlines[0] = {
         Polyline(m0_pts),
         Polyline({m0_pts.front(), m0_pts.back()}),
     };
-    joint.m_outlines[1] = {
+    joint.male_outlines[1] = {
         Polyline(m1_pts),
         Polyline({m1_pts.front(), m1_pts.back()}),
     };
 
-    joint.f_outlines[0].reserve(divisions + 1);
-    joint.f_outlines[1].reserve(divisions + 1);
+    joint.female_outlines[0].reserve(divisions + 1);
+    joint.female_outlines[1].reserve(divisions + 1);
     for (int i = 0; i < divisions; i++) {
         const double z_off = z0 - step * i;
         std::vector<Point> fp0;
@@ -112,22 +112,22 @@ static void ts_e_p_5(WoodJoint& joint) {
             fp0.emplace_back(f0[k][0], f0[k][1], f0[k][2] + z_off);
             fp1.emplace_back(f1[k][0], f1[k][1], f1[k][2] + z_off);
         }
-        joint.f_outlines[0].push_back(Polyline(fp0));
-        joint.f_outlines[1].push_back(Polyline(fp1));
+        joint.female_outlines[0].push_back(Polyline(fp0));
+        joint.female_outlines[1].push_back(Polyline(fp1));
     }
     for (int f = 0; f < 2; f++) {
-        joint.f_outlines[f].push_back(Polyline({
-            joint.f_outlines[f].front().get_point(0),
-            joint.f_outlines[f].front().get_point(3),
-            joint.f_outlines[f].back().get_point(2),
-            joint.f_outlines[f].back().get_point(1),
-            joint.f_outlines[f].front().get_point(0),
+        joint.female_outlines[f].push_back(Polyline({
+            joint.female_outlines[f].front().get_point(0),
+            joint.female_outlines[f].front().get_point(3),
+            joint.female_outlines[f].back().get_point(2),
+            joint.female_outlines[f].back().get_point(1),
+            joint.female_outlines[f].front().get_point(0),
         }));
     }
 
-    joint.f_cut_types[0] = std::vector<int>(joint.f_outlines[0].size(), wood_cut::hole);
-    joint.f_cut_types[1] = std::vector<int>(joint.f_outlines[1].size(), wood_cut::hole);
-    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = std::vector<int>(joint.female_outlines[0].size(), wood_cut::hole);
+    joint.female_cut_types[1] = std::vector<int>(joint.female_outlines[1].size(), wood_cut::hole);
+    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.unit_scale = true;
 }

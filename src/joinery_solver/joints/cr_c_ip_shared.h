@@ -73,27 +73,27 @@ static void cr_c_ip_shared(
         m1[i] = f1[i].transformed(xf_rot);
     }
 
-    joint.f_outlines[0].clear();
-    joint.f_outlines[1].clear();
-    joint.m_outlines[0].clear();
-    joint.m_outlines[1].clear();
+    joint.female_outlines[0].clear();
+    joint.female_outlines[1].clear();
+    joint.male_outlines[0].clear();
+    joint.male_outlines[1].clear();
     for (int i = 0; i < n; i++) {
-        joint.f_outlines[0].push_back(f0[i]);
-        joint.f_outlines[0].push_back(f0[i]);
-        joint.f_outlines[1].push_back(f1[i]);
-        joint.f_outlines[1].push_back(f1[i]);
-        joint.m_outlines[0].push_back(m0[i]);
-        joint.m_outlines[0].push_back(m0[i]);
-        joint.m_outlines[1].push_back(m1[i]);
-        joint.m_outlines[1].push_back(m1[i]);
+        joint.female_outlines[0].push_back(f0[i]);
+        joint.female_outlines[0].push_back(f0[i]);
+        joint.female_outlines[1].push_back(f1[i]);
+        joint.female_outlines[1].push_back(f1[i]);
+        joint.male_outlines[0].push_back(m0[i]);
+        joint.male_outlines[0].push_back(m0[i]);
+        joint.male_outlines[1].push_back(m1[i]);
+        joint.male_outlines[1].push_back(m1[i]);
     }
 
     for (int i = 0; i < 2; i++) {
         const int id = (i + 1) * 2;
-        auto& fo0 = joint.f_outlines[0];
-        auto& fo1 = joint.f_outlines[1];
-        auto& mo0 = joint.m_outlines[0];
-        auto& mo1 = joint.m_outlines[1];
+        auto& fo0 = joint.female_outlines[0];
+        auto& fo1 = joint.female_outlines[1];
+        auto& mo0 = joint.male_outlines[0];
+        auto& mo1 = joint.male_outlines[1];
         const Polyline side00({fo0[id].get_point(0), fo0[id].get_point(1), fo1[id].get_point(1), fo1[id].get_point(0), fo0[id].get_point(0)});
         const Polyline side01({fo0[id].get_point(3), fo0[id].get_point(2), fo1[id].get_point(2), fo1[id].get_point(3), fo0[id].get_point(3)});
         fo0[id] = side00;
@@ -109,7 +109,7 @@ static void cr_c_ip_shared(
     }
 
     for (int face = 0; face < 2; face++) {
-        joint.f_cut_types[face] = cut_types;
-        joint.m_cut_types[face] = cut_types;
+        joint.female_cut_types[face] = cut_types;
+        joint.male_cut_types[face] = cut_types;
     }
 }

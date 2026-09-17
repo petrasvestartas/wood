@@ -81,12 +81,12 @@ int main() {
                     && ja.joint_type == jb.joint_type
                     && ja.contact.face_a == jb.contact.face_a && ja.contact.face_b == jb.contact.face_b
                     && ja.contact.area.point_count() == jb.contact.area.point_count()
-                    && ja.m_outlines[0].size() == jb.m_outlines[0].size()
-                    && ja.m_outlines[1].size() == jb.m_outlines[1].size()
-                    && ja.f_outlines[0].size() == jb.f_outlines[0].size()
+                    && ja.male_outlines[0].size() == jb.male_outlines[0].size()
+                    && ja.male_outlines[1].size() == jb.male_outlines[1].size()
+                    && ja.female_outlines[0].size() == jb.female_outlines[0].size()
                     && ja.divisions == jb.divisions && ja.shift == jb.shift
                     && ja.linked_joints == jb.linked_joints
-                    && ja.m_cut_types == jb.m_cut_types && ja.f_cut_types == jb.f_cut_types
+                    && ja.male_cut_types == jb.male_cut_types && ja.female_cut_types == jb.female_cut_types
                     && ja.joint_lines[0].start() == jb.joint_lines[0].start()
                     && ja.joint_lines[1].end() == jb.joint_lines[1].end()
                     && ja.joint_volumes_pair_a_pair_b[0].has_value() == jb.joint_volumes_pair_a_pair_b[0].has_value()
