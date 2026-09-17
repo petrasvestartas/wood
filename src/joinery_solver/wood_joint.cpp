@@ -17,7 +17,7 @@
 
 using namespace session_cpp;
 using wood_session::WoodJoint;
-using wood_session::WoodElement;
+using wood_session::Plate;
 
 // ss_e_r_0 and other joint-lib primitives needed by side_removal_ss_e_r_1_port.
 // Included in anonymous namespace to match wood_main.cpp's usage pattern.
@@ -27,6 +27,265 @@ namespace {
 
 
 namespace wood_session {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Contacts and joints
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+/// A ring as bare coordinates. Polyline::jsondump() would add a guid, a colour, a name, a
+/// width and a dash to every ring of every joint - and MINT that guid on each dump, so two
+/// writes of one scene would not agree. A joint's rings are geometry, not objects.
+nlohmann::ordered_json to_coords(const Polyline& ring) {
+    nlohmann::ordered_json coords = nlohmann::ordered_json::array();
+    for (const Point& point : ring.get_points()) {
+        coords.push_back(point[0]);
+        coords.push_back(point[1]);
+        coords.push_back(point[2]);
+    }
+    return coords;
+}
+
+Polyline from_coords(const nlohmann::json& data) {
+    std::vector<Point> points;
+    points.reserve(data.size() / 3);
+    for (size_t i = 0; i + 2 < data.size(); i += 3)
+        points.emplace_back(data[i].get<double>(), data[i + 1].get<double>(), data[i + 2].get<double>());
+    return Polyline(points);
+}
+
+}  // namespace
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FaceContact
+// ═══════════════════════════════════════════════════════════════════════════
+
+nlohmann::ordered_json FaceContact::jsondump() const {
+    return nlohmann::ordered_json{
+        {"face_a", face_a},
+        {"face_b", face_b},
+        {"type", static_cast<int>(type)},
+        {"area", to_coords(area)},
+    };
+}
+
+FaceContact FaceContact::jsonload(const nlohmann::json& data) {
+    FaceContact contact;
+    contact.face_a = data.value("face_a", 0);
+    contact.face_b = data.value("face_b", 0);
+    contact.type   = static_cast<ContactType>(data.value("type", -1));
+    if (data.contains("area")) { contact.area = from_coords(data["area"]); }
+    return contact;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint
+// ═══════════════════════════════════════════════════════════════════════════
+
+WoodJoint::WoodJoint()
+    : joint_type{0}
+    , joint_lines{
+        session_cpp::Line::from_points(session_cpp::Point(0,0,0), session_cpp::Point(0,0,0)),
+        session_cpp::Line::from_points(session_cpp::Point(0,0,0), session_cpp::Point(0,0,0)),
+      }
+    , divisions{1}
+    , shift{0.5}
+    , length{0}
+    , division_length{0.0}
+    , scale{1.0, 1.0, 1.0}
+    , unit_scale{false}
+    , unit_scale_distance{0.0}
+    , link{false}
+    , no_orient{false}
+    , dbg_coplanar{0}
+    , dbg_boolean{0}
+{}
+
+const std::string& WoodJoint::feature_guid(int side) const {
+    std::string& id = feature_guids[side];
+    if (id.empty()) { id = ::guid(); }
+    return id;
+}
+
+void WoodJoint::sync_features() {
+    for (int side = 0; side < 2; ++side) {
+        ElementFeature& f = element_features[side];
+        f.guid() = feature_guid(side);
+        f.feature_type = "joint";
+        f.name = name.empty() ? "joint_" + std::to_string(joint_type) : name;
+        f.face_index = side == 0 ? contact.face_a : contact.face_b;
+        const auto& outlines = side == 0 ? m_outlines : f_outlines;
+        f.outlines.clear();
+        f.outlines.reserve(outlines[0].size() + outlines[1].size());
+        for (int face = 0; face < 2; ++face) {
+            f.outlines.insert(f.outlines.end(), outlines[face].begin(), outlines[face].end());
+        }
+    }
+}
+
+std::array<ElementFeature, 2> WoodJoint::to_features() const {
+    // Copy the joint's solver fields into a scratch joint and sync that, so a const joint can
+    // be read without a stale element_features slipping through. The scratch carries
+    // feature_guids across, so the two sides keep their identity; minting one here would
+    // leave the original without it, hence feature_guid() below rather than scratch's.
+    WoodJoint scratch = *this;
+    scratch.feature_guids = {feature_guid(0), feature_guid(1)};
+    scratch.sync_features();
+    return std::move(scratch.element_features);
+}
+
+nlohmann::ordered_json WoodJoint::jsondump() const {
+    using nlohmann::ordered_json;
+    auto rings = [](const std::vector<Polyline>& v) {
+        ordered_json a = ordered_json::array();
+        for (const Polyline& ring : v) { a.push_back(to_coords(ring)); }
+        return a;
+    };
+    ordered_json volumes = ordered_json::array();
+    for (const auto& v : joint_volumes_pair_a_pair_b) {
+        volumes.push_back(v.has_value() ? to_coords(*v) : ordered_json(nullptr));
+    }
+    ordered_json seq = ordered_json::array();
+    for (const auto& group : linked_joints_seq) {
+        ordered_json g = ordered_json::array();
+        for (const auto& q : group) { g.push_back({q[0], q[1], q[2], q[3]}); }
+        seq.push_back(g);
+    }
+    return ordered_json{
+        {"type", "WoodJoint"},
+        {"el_ids", {element_a, element_b}},
+        {"face_ids", {{contact.face_a, cross_faces[0]}, {contact.face_b, cross_faces[1]}}},
+        {"contact_type", static_cast<int>(contact.type)},
+        {"joint_type", joint_type},
+        {"name", name},
+        {"joint_area", to_coords(contact.area)},
+        {"joint_lines", {to_coords(Polyline({joint_lines[0].start(), joint_lines[0].end()})),
+                         to_coords(Polyline({joint_lines[1].start(), joint_lines[1].end()}))}},
+        {"joint_volumes", volumes},
+        {"m_outlines", {rings(m_outlines[0]), rings(m_outlines[1])}},
+        {"f_outlines", {rings(f_outlines[0]), rings(f_outlines[1])}},
+        {"m_cut_types", {m_cut_types[0], m_cut_types[1]}},
+        {"f_cut_types", {f_cut_types[0], f_cut_types[1]}},
+        {"divisions", divisions},
+        {"shift", shift},
+        {"length", length},
+        {"division_length", division_length},
+        {"scale", {scale[0], scale[1], scale[2]}},
+        {"unit_scale", unit_scale},
+        {"unit_scale_distance", unit_scale_distance},
+        {"linked_joints", linked_joints},
+        {"linked_joints_seq", seq},
+        {"link", link},
+        {"no_orient", no_orient},
+        {"feature_guids", {feature_guid(0), feature_guid(1)}},
+    };
+}
+
+WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
+    WoodJoint j;
+    auto rings = [](const nlohmann::json& a) {
+        std::vector<Polyline> v;
+        for (const auto& ring : a) { v.push_back(from_coords(ring)); }
+        return v;
+    };
+    auto line = [](const nlohmann::json& a) {
+        const Polyline ring = from_coords(a);
+        return ring.point_count() >= 2 ? Line::from_points(ring.get_point(0), ring.get_point(1))
+                                       : Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
+    };
+    if (data.contains("el_ids")) {
+        j.element_a = data["el_ids"][0];
+        j.element_b = data["el_ids"][1];
+    }
+    if (data.contains("face_ids")) {
+        j.contact.face_a = data["face_ids"][0][0];
+        j.contact.face_b = data["face_ids"][1][0];
+        j.cross_faces    = {data["face_ids"][0][1], data["face_ids"][1][1]};
+    }
+    // Absent in payloads written before ContactType existed; -1 is `unknown`.
+    j.contact.type = static_cast<ContactType>(data.value("contact_type", -1));
+    j.joint_type = data.value("joint_type", 0);
+    j.name       = data.value("name", std::string());
+    if (data.contains("joint_area")) { j.contact.area = from_coords(data["joint_area"]); }
+    if (data.contains("joint_lines")) {
+        j.joint_lines[0] = line(data["joint_lines"][0]);
+        j.joint_lines[1] = line(data["joint_lines"][1]);
+    }
+    if (data.contains("joint_volumes")) {
+        size_t k = 0;
+        for (const auto& v : data["joint_volumes"]) {
+            if (k >= 4) { break; }
+            if (!v.is_null()) { j.joint_volumes_pair_a_pair_b[k] = from_coords(v); }
+            ++k;
+        }
+    }
+    for (int face = 0; face < 2; ++face) {
+        if (data.contains("m_outlines"))  { j.m_outlines[face]  = rings(data["m_outlines"][face]); }
+        if (data.contains("f_outlines"))  { j.f_outlines[face]  = rings(data["f_outlines"][face]); }
+        if (data.contains("m_cut_types")) { j.m_cut_types[face] = data["m_cut_types"][face].get<std::vector<int>>(); }
+        if (data.contains("f_cut_types")) { j.f_cut_types[face] = data["f_cut_types"][face].get<std::vector<int>>(); }
+    }
+    j.divisions       = data.value("divisions", 1);
+    j.shift           = data.value("shift", 0.5);
+    j.length          = data.value("length", 0.0);
+    j.division_length = data.value("division_length", 0.0);
+    if (data.contains("scale")) { j.scale = {data["scale"][0], data["scale"][1], data["scale"][2]}; }
+    j.unit_scale          = data.value("unit_scale", false);
+    j.unit_scale_distance = data.value("unit_scale_distance", 0.0);
+    if (data.contains("linked_joints")) { j.linked_joints = data["linked_joints"].get<std::vector<int>>(); }
+    if (data.contains("linked_joints_seq")) {
+        for (const auto& group : data["linked_joints_seq"]) {
+            std::vector<std::array<int, 4>> g;
+            for (const auto& q : group) { g.push_back({q[0], q[1], q[2], q[3]}); }
+            j.linked_joints_seq.push_back(std::move(g));
+        }
+    }
+    j.link      = data.value("link", false);
+    j.no_orient = data.value("no_orient", false);
+    // Identity comes back on its own; the content is re-derived from the solver fields
+    // above, so the two halves cannot disagree.
+    if (data.contains("feature_guids")) {
+        for (int side = 0; side < 2 && side < (int)data["feature_guids"].size(); ++side)
+            j.feature_guids[side] = data["feature_guids"][side].get<std::string>();
+    }
+    j.sync_features();
+    return j;
+}
+
+std::string WoodJoint::file_json_dumps() const { return jsondump().dump(); }
+WoodJoint WoodJoint::file_json_loads(const std::string& json_string) {
+    return jsonload(nlohmann::ordered_json::parse(json_string));
+}
+void WoodJoint::file_json_dump(const std::string& filename) const {
+    std::ofstream file(filename);
+    file << jsondump().dump(2);
+}
+WoodJoint WoodJoint::file_json_load(const std::string& filename) {
+    std::ifstream file(filename);
+    return jsonload(nlohmann::json::parse(file));
+}
+
+std::string WoodJoint::str() const {
+    std::ostringstream os;
+    os << "WoodJoint(type=" << joint_type
+       << ", elements=(" << element_a << "," << element_b << ")"
+       << ", faces=(" << contact.face_a << "," << contact.face_b << ")"
+       << ", name=" << (name.empty() ? "-" : name) << ")";
+    return os.str();
+}
+std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
+
+int index_of(const std::vector<Plate>& elements, const std::string& guid) {
+    for (size_t i = 0; i < elements.size(); ++i)
+        if (elements[i].guid() == guid) { return static_cast<int>(i); }
+    return -1;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Joint construction
+// ═══════════════════════════════════════════════════════════════════════════
+
 
 void apply_unit_scale(WoodJoint& joint) {
     static const char* const dp = std::getenv("WOOD_APPLY_DUMP");
@@ -215,7 +474,7 @@ void joint_get_divisions(WoodJoint& joint, double division_distance) {
 }
 
 void side_removal_ss_e_r_1_port(WoodJoint& joint,
-                                        const std::vector<WoodElement>& elements) {
+                                        const std::vector<Plate>& elements) {
     // Wood's case 58 dispatch calls `side_removal(jo, elements, true)` — the
     // simpler side_removal at wood_joint_lib.cpp:432, NOT the more complex
     // side_removal_ss_e_r_1 at line 2723. The simple variant emits four
@@ -410,7 +669,7 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
 // f[0], f[1]) with wood::cut::drill cut type. unit_scale stays false; orient
 // is disabled (joint geometry is world-space).
 void tt_e_p_3(WoodJoint& joint,
-                     const std::vector<WoodElement>& elements) {
+                     const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_3";
     joint.no_orient = true;
 
@@ -529,7 +788,7 @@ void tt_e_p_3(WoodJoint& joint,
 // an explicit merge_with_joint flag. When merge_with_joint=false the merge
 // branch is suppressed regardless of joint.shift.
 void side_removal(WoodJoint& joint,
-                  const std::vector<WoodElement>& elements,
+                  const std::vector<Plate>& elements,
                   bool merge_with_joint) {
     double saved_shift = joint.shift;
     if (!merge_with_joint) { joint.shift = 0.0; } // force simple 2-outline branch
@@ -541,7 +800,7 @@ void side_removal(WoodJoint& joint,
 // Port of wood_joint_lib.cpp:5513-5548. Uses the centroid of joint_area as
 // the drill point. dir0 = unit(jv[1]-jv[2]) * thickness_v0,
 // dir1 = -dir0_unit * thickness_v1. Emits 2 outlines per face (doubled).
-void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+void tt_e_p_0(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_0";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -587,7 +846,7 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 // circle center) to find the visually centered drill point. For convex/regular
 // joint areas (typical plate overlap zones), polylabel ≈ centroid. Same
 // drill-line structure as tt_e_p_0.
-void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+void tt_e_p_1(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_1";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -633,7 +892,7 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 // division to generate N points on a circle of radius `shift` around the
 // inscribed center. Approximation: places N points on a circle of radius
 // `shift` around the joint_area centroid in the joint_area plane.
-void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+void tt_e_p_2(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_2";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -706,7 +965,7 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 // Port of wood_joint_lib.cpp:5713-5765. Original uses grid_of_points_in_a_polygon
 // (2D grid within offset polygon). Approximation: offset boundary + edge
 // subdivision (same as tt_e_p_3 but with different parameter mapping).
-void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+void tt_e_p_4(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_4";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -769,7 +1028,7 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<WoodElement>& elements) {
 // Port of wood_joint_lib.cpp:5768-5834. Original uses inscribe_rectangle_in_
 // convex_polygon + edge/grid subdivision. Approximation: offset boundary +
 // edge subdivision (same approach as tt_e_p_4).
-void tt_e_p_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+void tt_e_p_5(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "tt_e_p_5";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);

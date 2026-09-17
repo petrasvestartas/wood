@@ -932,7 +932,7 @@ using namespace wood_session;
 ///
 /// Subdivides a NURBS surface into a V-shaped zigzag (chevron) quad mesh,
 /// then offsets each face into 4 plate-pairs per face (top, bottom, side0, side1)
-/// stored as WoodElement objects. Joinery data is also stored for use with
+/// stored as Plate objects. Joinery data is also stored for use with
 /// get_connection_zones().
 ///
 /// Usage:
@@ -941,7 +941,7 @@ using namespace wood_session;
 class Chevron {
 public:
     Mesh mesh;
-    std::vector<WoodElement> elements;
+    std::vector<Plate> elements;
 
     /// Joinery solver inputs (see wood_chevron::ChevronResult)
     std::vector<std::array<double,18>> insertion_vectors;

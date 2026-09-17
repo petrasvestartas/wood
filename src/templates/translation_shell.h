@@ -13,7 +13,7 @@ using namespace wood_session;
 ///
 /// Sweeps a cross_section curve along a profile by accumulating the
 /// displacement steps of the profile, producing a quad mesh. Each quad face
-/// is then offset into a top/bottom plate pair (WoodElement) using miter chamfers.
+/// is then offset into a top/bottom plate pair (Plate) using miter chamfers.
 ///
 /// chamfer_angle controls which corners are chamfered (interior angle < chamfer_angle
 /// in degrees). The same mask is applied to both top and bottom contours so that
@@ -25,7 +25,7 @@ using namespace wood_session;
 class TranslationShell {
 public:
     Mesh mesh;
-    std::vector<WoodElement> elements;
+    std::vector<Plate> elements;
 
     TranslationShell(const Polyline& cross_section = default_cross_section(),
                      const Polyline& profile        = default_profile(),

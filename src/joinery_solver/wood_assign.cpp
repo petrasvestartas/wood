@@ -51,7 +51,7 @@ std::pair<size_t, double> compute_closest_segment(const session_cpp::Polyline& p
     return {segment, distance};
 }
 
-void compute_element_aabb(const WoodElement& elem, double inflate, double out_min[3], double out_max[3]) {
+void compute_element_aabb(const Plate& elem, double inflate, double out_min[3], double out_max[3]) {
     for (int k = 0; k < 3; k++) {
         out_min[k] =  DBL_MAX;
         out_max[k] = -DBL_MAX;
@@ -69,7 +69,7 @@ void compute_element_aabb(const WoodElement& elem, double inflate, double out_mi
     }
 }
 
-void compute_element_rtree(const std::vector<WoodElement>& elements, double inflate, RTree3& rtree) {
+void compute_element_rtree(const std::vector<Plate>& elements, double inflate, RTree3& rtree) {
     for (int ei = 0; ei < static_cast<int>(elements.size()); ei++) {
         double mn[3];
         double mx[3];
@@ -80,7 +80,7 @@ void compute_element_rtree(const std::vector<WoodElement>& elements, double infl
     }
 }
 
-size_t get_side_slots(const WoodElement& elem) {
+size_t get_side_slots(const Plate& elem) {
     const size_t n = elem.polylines.size() > 1 ? elem.polylines[1].point_count() : 0;
     return n > 0 ? n - 1 : 0;
 }
@@ -88,7 +88,7 @@ size_t get_side_slots(const WoodElement& elem) {
 }
 
 void assign_joint(
-    const std::vector<WoodElement>&        elements,
+    const std::vector<Plate>&        elements,
     const std::vector<session_cpp::Point>& points,
     const std::vector<int>&                point_types,
     std::vector<std::vector<int>>&         out_joint_types)
@@ -142,7 +142,7 @@ void assign_joint(
 }
 
 void assign_insertion(
-    const std::vector<WoodElement>&                elements,
+    const std::vector<Plate>&                elements,
     const std::vector<session_cpp::Line>&          lines,
     std::vector<std::vector<session_cpp::Vector>>& out_insertion_vectors)
 {

@@ -2,7 +2,7 @@
 // wood/wood_main.cpp — wood joint detection pipeline orchestration.
 //
 // Public entries:
-//   get_connection_zones(vector<WoodElement>&, SearchType) -> vector<WoodJoint>
+//   get_connection_zones(vector<Plate>&, SearchType) -> vector<WoodJoint>
 //     Mutates each element's `features` (top/bottom merged outlines).
 //     Returns every detected joint with full geometry.
 //   fill_session(Session&, elements, joints, include_loft = true)
@@ -37,7 +37,7 @@
 #include "../src/xform.h"
 #include "../src/tolerance.h"
 #include "../src/mesh.h"
-#include "wood_element.h"
+#include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 #include "wood_joint.h"
 #include "wood_merge.h"
@@ -67,7 +67,7 @@ static thread_local std::vector<std::vector<int>>     tl_three_valence_override;
 namespace {
 
 using wood_session::WoodJoint;
-using wood_session::WoodElement;
+using wood_session::Plate;
 using wood_session::joint_orient_to_connection_area;
 using wood_session::merge_linked_joints;
 using wood_session::joint_get_divisions;
@@ -118,7 +118,7 @@ using wood_session::tt_e_p_5;
 static void joint_create_geometry(WoodJoint& joint, double division_distance,
                                   double shift_param, int id,
                                   std::vector<WoodJoint>* all_joints = nullptr,
-                                  const std::vector<struct WoodElement>* elements = nullptr) {
+                                  const std::vector<Plate>* elements = nullptr) {
     joint_get_divisions(joint, division_distance);
     joint.shift = shift_param;
 
@@ -341,7 +341,7 @@ static void joint_create_geometry(WoodJoint& joint, double division_distance,
 // wood_elems[v0].polylines[f0_0] is the 5-pt side rectangle on plate v0.
 static void three_valence_joint_addition_vidy(
     const std::vector<std::vector<int>>& tv_groups,
-    std::vector<WoodElement>& elements,
+    std::vector<Plate>& elements,
     std::vector<WoodJoint>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
     const std::vector<std::pair<int,int>>& /*adjacency_pairs*/)
@@ -517,8 +517,8 @@ static void three_valence_joint_addition_vidy(
 
         // Create shadow joint 0 (s0 ↔ e20) — wood lines 1824-1829
         WoodJoint shadow0;
-        shadow0.element_a = elements[s0].element->guid();
-        shadow0.element_b = elements[e20].element->guid();
+        shadow0.element_a = elements[s0].guid();
+        shadow0.element_b = elements[e20].guid();
         shadow0.contact.face_a = -1;
         shadow0.contact.face_b = -1;
         shadow0.cross_faces = {-1, -1};
@@ -535,8 +535,8 @@ static void three_valence_joint_addition_vidy(
         int shadow1_idx = -1;
         if (e20 != e31) {
             WoodJoint shadow1;
-            shadow1.element_a = elements[s1].element->guid();
-            shadow1.element_b = elements[e31].element->guid();
+            shadow1.element_a = elements[s1].guid();
+            shadow1.element_b = elements[e31].guid();
             shadow1.contact.face_a = -1;
             shadow1.contact.face_b = -1;
             shadow1.cross_faces = {-1, -1};
@@ -566,7 +566,7 @@ static void three_valence_joint_addition_vidy(
 // ───────────────────────────────────────────────────────────────────────────
 static void three_valence_joint_alignment_annen(
     const std::vector<std::vector<int>>& tv_groups,
-    const std::vector<WoodElement>& elements,
+    const std::vector<Plate>& elements,
     std::vector<WoodJoint>& joints,
     const std::vector<std::pair<int,int>>& /*adjacency_pairs*/)
 {
@@ -724,7 +724,7 @@ static bool wood_trace_enabled() {
 }
 
 std::vector<WoodJoint> get_connection_zones(
-    std::vector<WoodElement>& wood_elems,
+    std::vector<Plate>& wood_elems,
     SearchType search_type) {
 
     if (wood_trace_enabled()) {
@@ -774,7 +774,7 @@ std::vector<WoodJoint> get_connection_zones(
     auto t1 = Clock::now();
 
     // 3. Adjacency: load from file if provided, otherwise OBB+BVH search.
-    //    The OBB+BVH path reads each WoodElement's top/bottom polylines
+    //    The OBB+BVH path reads each Plate's top/bottom polylines
     //    (we.polylines[0]/[1]) directly — they carry every corner the bounding
     //    volumes need.
     std::vector<std::pair<int, int>> adjacency_pairs;
@@ -790,7 +790,8 @@ std::vector<WoodJoint> get_connection_zones(
 
     if (adjacency_pairs.empty()) {
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr); }
-        adjacency_pairs = wood_session::adjacency_search(wood_elems, DISTANCE);
+        const std::vector<wood_session::ContactElement> view(wood_elems.begin(), wood_elems.end());
+        adjacency_pairs = wood_session::adjacency_search(view, DISTANCE);
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
         if (verbose) { fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size()); }
     }
@@ -845,14 +846,14 @@ std::vector<WoodJoint> get_connection_zones(
         if (verbose) { fmt::print("insertion_vectors: {} vectors across {} elements from {}\n",
                                total_loaded, ei, iv_name); }
     }
-    // Move insertion vectors into WoodElement so face_to_face_wood has one object per plate.
+    // Move insertion vectors into Plate so face_to_face_wood has one object per plate.
     // Skip assignment when the element already has vectors pre-set by the caller
     // (_joinery_solver.cpp iv-only path); reversal still applies in that case.
     for (size_t ei = 0; ei < wood_elems.size(); ei++) {
-        if (wood_elems[ei].insertion_vectors.empty())
-            wood_elems[ei].insertion_vectors = per_element_insertion_vectors[ei];
+        if (wood_elems[ei].insertion_vectors().empty())
+            wood_elems[ei].insertion_vectors() = per_element_insertion_vectors[ei];
         if (wood_elems[ei].reversed) {
-            auto& vecs = wood_elems[ei].insertion_vectors;
+            auto& vecs = wood_elems[ei].insertion_vectors();
             if (vecs.size() > 2) {
                 std::reverse(vecs.begin() + 2, vecs.end());
             }
@@ -1378,7 +1379,7 @@ std::vector<WoodJoint> get_connection_zones(
     auto t3c = Clock::now();
     if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] j_mf built  starting merge\n"); fflush(stderr); }
     // Merge joints with plate polylines, then de-interleave into each
-    // WoodElement's `features` (top + bottom lists, outer first then holes).
+    // Plate's `features` (top + bottom lists, outer first then holes).
     // Layout that merge_joints_for_element returns per element:
     //   [hole0_top, hole0_bot, hole1_top, hole1_bot, ..., outer_top, outer_bot]
     for (size_t ei = 0; ei < n_elems; ei++) {
@@ -1436,7 +1437,7 @@ std::vector<WoodJoint> get_connection_zones(
 // is chosen to avoid collisions with any existing named dataset.
 // ═══════════════════════════════════════════════════════════════════════════
 std::vector<wood_session::WoodJoint> get_connection_zones(
-        std::vector<wood_session::WoodElement>& elements,
+        std::vector<wood_session::Plate>& elements,
         SearchType search_type,
         const wood_session::ChevronJoineryData& joinery_data)
 {
@@ -1456,10 +1457,10 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 
     // 1. Insertion vectors — convert array<double,18> → vector<Vector> per element.
     for (size_t ei = 0; ei < elements.size(); ++ei) {
-        if (elements[ei].insertion_vectors.empty() &&
+        if (elements[ei].insertion_vectors().empty() &&
             ei < joinery_data.insertion_vectors.size()) {
             const auto& iv18 = joinery_data.insertion_vectors[ei];
-            auto& ivec = elements[ei].insertion_vectors;
+            auto& ivec = elements[ei].insertion_vectors();
             for (int s = 0; s < 6; ++s)
                 ivec.emplace_back(iv18[s*3+0], iv18[s*3+1], iv18[s*3+2]);
         }
@@ -1508,16 +1509,16 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 // ═══════════════════════════════════════════════════════════════════════════
 void fill_session(
     Session& session,
-    const std::vector<WoodElement>& elements,
+    const std::vector<Plate>& elements,
     const std::vector<WoodJoint>&   joints,
     bool include_loft)
 {
     // Plates as Elements in an "Elements" group.
     //
-    // WoodElement::to_element() is the whole mapping: loft mesh as geometry, insertion
+    // Plate::to_element() is the whole mapping: loft mesh as geometry, insertion
     // vectors straight across, thickness in dimensions[2], per-face joint types and merged
     // cut outlines as face features, and the two outlines in element_data under
-    // element_type "WoodElement" so the plate reads back as one. Each detected joint is
+    // element_type "Plate" so the plate reads back as one. Each detected joint is
     // then attached as a "joint" feature to both of its elements - the same ElementFeature
     // the joint carries as WoodJoint::element_features, so its guid is the joint's guid.
     std::vector<std::vector<std::pair<int, int>>> joints_of(elements.size());   // (joint, side)
@@ -1528,8 +1529,10 @@ void fill_session(
     }
     auto g_elem = session.add_group("Elements");
     for (size_t i = 0; i < elements.size(); i++) {
-        const WoodElement& we = elements[i];
-        std::shared_ptr<Element> plate = we.to_element();
+        const Plate& we = elements[i];
+        std::shared_ptr<Plate> plate = std::make_shared<Plate>(we);
+        plate->guid() = we.guid();
+        plate->compute_geometry();
         // Legacy viewers key on this name; a plate the caller named keeps its name.
         if (plate->name == "plate") { plate->name = "plate_" + std::to_string(i * 2); }
         for (const auto& [ji, side] : joints_of[i]) {
@@ -1641,7 +1644,7 @@ void fill_session(
                     continue;
                 }
                 const auto& jt = joints[joint_id];
-                size_t male_or_female = (jt.element_a == elements[ei].element->guid()) ? 0 : 1;
+                size_t male_or_female = (jt.element_a == elements[ei].guid()) ? 0 : 1;
                 const auto& outlines_cut = male_or_female ? jt.m_outlines : jt.f_outlines;
                 if (outlines_cut[0].size() < 2) {
                     continue;

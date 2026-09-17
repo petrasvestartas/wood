@@ -17,7 +17,7 @@ using namespace wood_session;
 /// placing triangle pairs that share alternating edge-midpoint vertices.
 /// Each cell produces 6 triangles (first row) or 4 triangles (other rows).
 /// Result mesh is welded to merge coincident vertices.
-/// After building the mesh, miter_contours generates a WoodElement (bottom +
+/// After building the mesh, miter_contours generates a Plate (bottom +
 /// top polyline) for every triangular face. Chamfer is applied to any corner
 /// whose edge-vector angle is less than chamfer_angle degrees.
 ///
@@ -27,7 +27,7 @@ using namespace wood_session;
 class DiamondMesh {
 public:
     Mesh mesh;
-    std::vector<WoodElement> elements;
+    std::vector<Plate> elements;
 
     DiamondMesh(NurbsSurface surface = default_surface(),
                 int u_div = 8,
@@ -109,7 +109,7 @@ public:
         // point rounding, so the small tolerance is the correct one.
         mesh = Mesh::from_vertices_and_faces(pts, faces).weld(0.01);
 
-        // Generate WoodElement plates via miter_contours.
+        // Generate Plate plates via miter_contours.
         // chamfer_mask/chamfer_apply are applied after to maintain equal
         // point counts in both top and bottom contours.
         using MiterTuple = std::tuple<std::vector<Point>, std::vector<Point>,

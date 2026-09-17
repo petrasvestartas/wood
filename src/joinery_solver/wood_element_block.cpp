@@ -1,18 +1,22 @@
 #include "wood_element_block.h"
 
-#include <fstream>
-#include <iterator>
+#include <cmath>
+#include <sstream>
 
 namespace wood_session {
 
+using session_cpp::Element;
+using session_cpp::Mesh;
+using session_cpp::Point;
+using session_cpp::Polyline;
+
 // ═══════════════════════════════════════════════════════════════════════════
-// BlockElement
+// Helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
 namespace {
 
-// Drop a closing vertex that repeats the first one (to 1e-6), the same test the
-// (bottom, top) constructor and loft_mesh apply.
+/// Drop a closing vertex that repeats the first one (to 1e-6).
 void strip_closing(std::vector<Point>& v) {
     if (v.size() > 3) {
         const Point& f = v.front();
@@ -44,85 +48,43 @@ Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
     return Mesh::from_vertices_and_faces(verts, faces);
 }
 
-
-void write_binary(const std::string& filename, const std::string& data) {
-    std::ofstream file(filename, std::ios::binary);
-    file.write(data.data(), static_cast<std::streamsize>(data.size()));
-}
-
-std::string read_binary(const std::string& filename) {
-    std::ifstream file(filename, std::ios::binary);
-    return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-}
-
 }  // namespace
 
-BlockElement::BlockElement() : element(std::make_shared<wood_session::TaggedElement>("block", ELEMENT_TYPE)) {}
+// ═══════════════════════════════════════════════════════════════════════════
+// Constructors
+// ═══════════════════════════════════════════════════════════════════════════
 
-BlockElement::BlockElement(const std::vector<Polyline>& loops, const std::string& name)
-    : element(std::make_shared<wood_session::TaggedElement>(name, ELEMENT_TYPE)) {
-    element->set_geometry(mesh_from_loops(loops));
-    sync_faces();
+Block::Block() : Element("block") {}
+
+Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(mesh_from_loops(loops), name) {}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Serialization
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::shared_ptr<Block> Block::from_element(const Element& e) {
+    auto block = std::make_shared<Block>();
+    static_cast<Element&>(*block) = e;
+    block->guid() = e.guid();
+    return block;
 }
 
-Mesh BlockElement::mesh() const {
-    if (const Mesh* m = std::get_if<Mesh>(&element->geometry())) { return *m; }
-    return Mesh{};
+void Block::register_type() {
+    const Element::Factory factory = [](const std::string& data) -> std::shared_ptr<Element> {
+        return from_element(Element::pb_loads(data));
+    };
+    Element::register_type(ELEMENT_TYPE, factory);
+    Element::register_type(LEGACY_ELEMENT_TYPE, factory);
 }
 
-void BlockElement::sync_faces() {
-    polylines = element->polylines();   // Mesh::face_outlines()
-    planes    = element->planes();      // one per outline
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Text
+// ═══════════════════════════════════════════════════════════════════════════
 
-void BlockElement::sync_element() const {}   // the solid in `element` IS the block
-
-std::shared_ptr<Element> BlockElement::to_element() const {
-    // The same object, not a copy of it: a block IS its mesh, so there is no payload to
-    // refresh and nothing to build.
-    return element;
-}
-
-BlockElement BlockElement::from_element(const Element& e) {
-    BlockElement out;
-    // Wrapped once, here, and shared from now on: the kernel has no public setter for
-    // element_type / element_data, so owning a tagged element means deriving one. The
-    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
-    out.element = std::make_shared<wood_session::TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
-    if (!std::holds_alternative<Mesh>(e.geometry())) {
-        fprintf(stderr, "  WARNING: BlockElement::from_element: element '%s' carries %s, not a "
-                        "Mesh - block left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
-        fflush(stderr);
-        return out;
-    }
-    out.sync_faces();
-    return out;
-}
-
-nlohmann::ordered_json BlockElement::jsondump() const { return to_element()->jsondump(); }
-BlockElement BlockElement::jsonload(const nlohmann::json& data) { return from_element(Element::jsonload(data)); }
-std::string BlockElement::file_json_dumps() const { return jsondump().dump(); }
-BlockElement BlockElement::file_json_loads(const std::string& json_string) {
-    return jsonload(nlohmann::ordered_json::parse(json_string));
-}
-void BlockElement::file_json_dump(const std::string& filename) const {
-    std::ofstream file(filename);
-    file << jsondump().dump(2);
-}
-BlockElement BlockElement::file_json_load(const std::string& filename) {
-    std::ifstream file(filename);
-    return jsonload(nlohmann::json::parse(file));
-}
-std::string BlockElement::pb_dumps() const { return to_element()->pb_dumps(); }
-BlockElement BlockElement::pb_loads(const std::string& data) { return from_element(Element::pb_loads(data)); }
-void BlockElement::pb_dump(const std::string& filename) const { write_binary(filename, pb_dumps()); }
-BlockElement BlockElement::pb_load(const std::string& filename) { return pb_loads(read_binary(filename)); }
-
-std::string BlockElement::str() const {
+std::string Block::str() const {
     std::ostringstream os;
-    os << "BlockElement(name=" << element->name << ", loops=" << polylines.size() << ")";
+    os << "Block(name=" << name << ", faces=" << (std::holds_alternative<Mesh>(geometry()) ? std::get<Mesh>(geometry()).number_of_faces() : 0) << ")";
     return os.str();
 }
-std::ostream& operator<<(std::ostream& os, const BlockElement& e) { return os << e.str(); }
 
 } // namespace wood_session

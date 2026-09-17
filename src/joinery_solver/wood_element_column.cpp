@@ -1,83 +1,68 @@
 #include "wood_element_column.h"
 
+#include <sstream>
+
 namespace wood_session {
 
+using session_cpp::Element;
+using session_cpp::Line;
+using session_cpp::Mesh;
+using session_cpp::Point;
+using session_cpp::Polyline;
+
 // ═══════════════════════════════════════════════════════════════════════════
-// WoodColumn
+// Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-WoodColumn::WoodColumn()
-    : element(std::make_shared<wood_session::TaggedElement>("column", ELEMENT_TYPE))
-    , axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0)))
-    , section(Polyline(std::vector<Point>{})) {}
+Column::Column() : Element("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {}
 
-Mesh WoodColumn::mesh() const {
-    if (const Mesh* m = std::get_if<Mesh>(&element->geometry())) { return *m; }
-    return Mesh{};
-}
+Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name)
+    : Element(solid, name), axis(axis), section(section) {}
 
-void WoodColumn::sync_faces() {
-    polylines = element->polylines();
-    planes    = element->planes();
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Serialization
+// ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Element> WoodColumn::to_element() const {
-    nlohmann::ordered_json payload{
-        {"type", ELEMENT_TYPE},
+std::string Column::element_data_dumps() const {
+    nlohmann::ordered_json data{
         {"axis", axis.jsondump()},
+        {"section", section.point_count() > 0 ? section.jsondump() : nlohmann::ordered_json(nullptr)},
+        {"type", ELEMENT_TYPE},
     };
-    if (section.point_count() > 0) { payload["section"] = section.jsondump(); }
-    // The same object, payload refreshed - not a copy.
-    element->set_element_data(payload.dump());
-    return element;
+    return data.dump();
 }
 
-WoodColumn WoodColumn::from_element(const Element& e) {
-    WoodColumn out;
-    // Wrapped once, here, and shared from now on: the kernel has no public setter for
-    // element_type / element_data, so owning a tagged element means deriving one. The
-    // TaggedElement ctor carries the guid across, so this is the same element, not a new one.
-    out.element = std::make_shared<wood_session::TaggedElement>(e, ELEMENT_TYPE, e.element_data_dumps());
-
-    if (!std::holds_alternative<Mesh>(e.geometry())) {
-        fprintf(stderr, "  WARNING: WoodColumn::from_element: element '%s' carries %s, not a "
-                        "Mesh - column left empty.\n", e.name.c_str(), e.geometry_type_name().c_str());
-        fflush(stderr);
-        return out;
-    }
-    out.sync_faces();
-
-    // The payload is optional: without it the column is still a usable solid, it just
-    // cannot say where its axis runs.
-    const std::string data = e.element_data_dumps();
-    if (data.empty()) { return out; }
+std::shared_ptr<Column> Column::from_element(const Element& e) {
+    auto column = std::make_shared<Column>();
+    static_cast<Element&>(*column) = e;
+    column->guid() = e.guid();
     nlohmann::json payload;
     try {
-        payload = nlohmann::json::parse(data);
-    } catch (const std::exception& ex) {
-        fprintf(stderr, "  WARNING: WoodColumn::from_element: element '%s' has unparseable "
-                        "element_data (%s) - axis and section left empty.\n", e.name.c_str(), ex.what());
-        fflush(stderr);
-        return out;
+        payload = nlohmann::json::parse(e.element_data_dumps());
+    } catch (const std::exception&) {
+        return column;
     }
-    if (payload.contains("axis") && !payload["axis"].is_null()) {
-        out.axis = Line::jsonload(payload["axis"]);
-    }
-    if (payload.contains("section") && !payload["section"].is_null()) {
-        out.section = Polyline::jsonload(payload["section"]);
-    }
-    return out;
+    if (payload.contains("axis") && !payload["axis"].is_null())
+        column->axis = Line::jsonload(payload["axis"]);
+    if (payload.contains("section") && !payload["section"].is_null())
+        column->section = Polyline::jsonload(payload["section"]);
+    return column;
 }
 
-std::string WoodColumn::str() const {
+void Column::register_type() {
+    Element::register_type(ELEMENT_TYPE, [](const std::string& data) -> std::shared_ptr<Element> {
+        return from_element(Element::pb_loads(data));
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Text
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::string Column::str() const {
     std::ostringstream os;
-    os << "WoodColumn(name=" << element->name
-       << ", faces=" << polylines.size()
-       << ", axis_length=" << axis.length()
-       << ", section_pts=" << section.point_count() << ")";
+    os << "Column(name=" << name << ", axis_length=" << axis.length() << ", section_pts=" << section.point_count() << ")";
     return os.str();
 }
-
-std::ostream& operator<<(std::ostream& os, const WoodColumn& e) { return os << e.str(); }
 
 } // namespace wood_session

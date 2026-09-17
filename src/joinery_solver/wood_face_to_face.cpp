@@ -1,11 +1,10 @@
 // wood/wood_face_to_face.cpp — plate face-to-face joint detection.
 // Implementation of face_to_face_wood declared in wood_face_to_face.h.
 // No file I/O: operates purely on geometry data passed by the caller.
-// (Stage 1 — building a WoodElement from a bottom/top polyline pair — lives
-//  on the WoodElement constructor in wood_element.cpp.)
+// (Stage 1 — building a Plate from a bottom/top polyline pair — lives
+//  on the Plate constructor in wood_element.cpp.)
 #include "wood_face_to_face.h"
-#include "wood_element.h"
-#include "wood_session.h"
+#include "wood_joint_detection.h"
 #include "../src/aabb.h"
 #include "../src/intersection.h"
 #include "../src/obb.h"
@@ -31,7 +30,9 @@
 
 using namespace session_cpp;
 using wood_session::WoodJoint;
-using wood_session::WoodElement;
+using wood_session::Plate;
+using wood_session::ContactElement;
+using wood_session::ContactType;
 
 // Geometry helpers two_rect_from_point_vector_and_zaxis and
 // line_line_intersection_with_properties have moved to the session kernel:
@@ -49,7 +50,7 @@ namespace wood_session {
 namespace {
 
 // Number of vertices of an outline once a closing vertex that repeats the
-// first one (to 1e-6, the test WoodElement itself uses) is dropped.
+// first one (to 1e-6, the test Plate itself uses) is dropped.
 size_t open_count(const Polyline& pl) {
     size_t n = pl.point_count();
     if (n > 3) {
@@ -67,60 +68,24 @@ void add_outline(const Polyline& pl, std::vector<Point>& corner_pts) {
     for (size_t k = 0; k < n; k++) { corner_pts.push_back(pl.get_point(k)); }
 }
 
-// The points that bound an element - one overload per element type, which is
-// where the type-specific knowledge lives (see the header).
-void bounding_points(const WoodElement& e, std::vector<Point>& out) {
-    // The side quads are built from the very corners the top and bottom
-    // outlines already hold, so they cannot widen the extents; the two
-    // outlines yield the identical box.
-    if (e.polylines.size() > 1) {
+// The points that bound an element: a plate by its two outlines (its side quads are built
+// from those very corners), anything else by every loop it has.
+void bounding_points(const ContactElement& e, std::vector<Point>& out) {
+    if (e.plate_convention && e.polylines.size() > 1) {
         out.reserve(e.polylines[0].point_count() + e.polylines[1].point_count());
-        add_outline(e.polylines[1], out);   // bottom
-        add_outline(e.polylines[0], out);   // top
+        add_outline(e.polylines[1], out);
+        add_outline(e.polylines[0], out);
+        return;
     }
-}
-void bounding_points(const BlockElement& e, std::vector<Point>& out) {
-    // No convention says which loop is which, so every loop counts.
     for (const Polyline& loop : e.polylines) { add_outline(loop, out); }
 }
 
-// Whether face i is an "outer" (top/bottom) face, where wood accepts a
-// triangular overlap. Only the plate convention has outer faces.
-void bounding_points(const ContactElement& e, std::vector<Point>& out) {
-    // A viewed plate is bounded by its two outlines, exactly as a WoodElement is;
-    // anything else has no such convention, so every loop counts.
-    if (e.plate_convention && e.polylines->size() > 1) {
-        out.reserve((*e.polylines)[0].point_count() + (*e.polylines)[1].point_count());
-        add_outline((*e.polylines)[1], out);
-        add_outline((*e.polylines)[0], out);
-        return;
-    }
-    for (const Polyline& loop : *e.polylines) { add_outline(loop, out); }
-}
-
-bool outer_face(const WoodElement&, size_t i) { return i < 2; }
-bool outer_face(const BlockElement&, size_t)  { return false; }
+// Whether face i is an outer (top/bottom) face, where wood accepts a triangular overlap.
 bool outer_face(const ContactElement& e, size_t i) { return e.plate_convention && i < 2; }
 
-// Topology class of a face pair, overloaded on element type for the same reason
-// outer_face is: only the plate convention distinguishes an outer face from a
-// side. A BlockElement has no such convention, so its contacts stay `unknown`
-// rather than claiming to all be side-to-side.
-//
-// The single definition of the rule, and face_contacts_for_pair is its only
-// caller: every contact is classified once, as it is found. face_to_face_wood
-// used to spell `(i > 1) ? 0 : 1` out inline and now reads contact.type off the
-// FaceContact the shared scan hands it.
-ContactType contact_type(const WoodElement& a, size_t i, const WoodElement& b, size_t j) {
-    return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
-}
-ContactType contact_type(const BlockElement&, size_t, const BlockElement&, size_t) {
-    return ContactType::unknown;
-}
+// Topology class of a face pair. Both sides must have the plate convention: a plate touching
+// a column is genuinely unclassifiable as side/top.
 ContactType contact_type(const ContactElement& a, size_t i, const ContactElement& b, size_t j) {
-    // BOTH sides must have the convention. A plate touching a column is genuinely
-    // unclassifiable as side/top: there is no face convention on the column to compare
-    // against, and calling it side_side would be a claim the geometry does not support.
     if (!a.plate_convention || !b.plate_convention) { return ContactType::unknown; }
     return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
 }
@@ -128,22 +93,25 @@ ContactType contact_type(const ContactElement& a, size_t i, const ContactElement
 }  // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ElementLike
+// ContactElement
 // ═══════════════════════════════════════════════════════════════════════════
 
-const std::vector<Polyline>& faces_of(const WoodElement& e)    { return e.polylines; }
-const std::vector<Polyline>& faces_of(const BlockElement& e)   { return e.polylines; }
-const std::vector<Polyline>& faces_of(const ContactElement& e) { return *e.polylines; }
-const std::vector<Plane>& planes_of(const WoodElement& e)      { return e.planes; }
-const std::vector<Plane>& planes_of(const BlockElement& e)     { return e.planes; }
-const std::vector<Plane>& planes_of(const ContactElement& e)   { return *e.planes; }
-const std::string& name_of(const WoodElement& e)               { return e.element->name; }
-const std::string& name_of(const BlockElement& e)              { return e.element->name; }
-const std::string& name_of(const ContactElement& e)            { return *e.name; }
+ContactElement::ContactElement(const Plate& plate)
+    : polylines(plate.polylines), planes(plate.planes), name(plate.name), plate_convention(true) {}
 
-template <ElementLike Element>
+ContactElement::ContactElement(Element& element) : name(element.name) {
+    if (const Plate* plate = dynamic_cast<const Plate*>(&element)) {
+        polylines = plate->polylines;
+        planes = plate->planes;
+        plate_convention = true;
+        return;
+    }
+    polylines = element.polylines();
+    planes = element.planes();
+}
+
 std::vector<std::pair<int, int>> adjacency_search(
-    const std::vector<Element>& elements,
+    const std::vector<ContactElement>& elements,
     double inflate,
     const std::vector<std::string>& names) {
 
@@ -160,7 +128,7 @@ std::vector<std::pair<int, int>> adjacency_search(
     // so every index below is still an element index.
     const std::unordered_set<std::string> wanted(names.begin(), names.end());
     auto included = [&elements, &wanted](size_t i) {
-        return wanted.empty() || wanted.count(name_of(elements[i])) != 0;
+        return wanted.empty() || wanted.count(elements[i].name) != 0;
     };
 
     std::vector<OBB>  obbs(n_el);
@@ -170,8 +138,8 @@ std::vector<std::pair<int, int>> adjacency_search(
         if (!included(i)) { continue; }
         corner_pts.clear();
         bounding_points(elements[i], corner_pts);
-        if (!planes_of(elements[i]).empty()) {
-            obbs[i] = OBB::from_points(corner_pts, planes_of(elements[i])[0], inflate);
+        if (!elements[i].planes.empty()) {
+            obbs[i] = OBB::from_points(corner_pts, elements[i].planes[0], inflate);
         } else {
             obbs[i] = OBB::from_points(corner_pts, inflate);
         }
@@ -199,13 +167,12 @@ std::vector<std::pair<int, int>> adjacency_search(
     return pairs;
 }
 
-template <ElementLike Element>
-std::vector<FacePlane> face_planes(const Element& element) {
-    const size_t n = planes_of(element).size();
+std::vector<FacePlane> face_planes(const ContactElement& element) {
+    const size_t n = element.planes.size();
     std::vector<FacePlane> out(n);
     for (size_t j = 0; j < n; ++j) {
-        const Point&  o = planes_of(element)[j].origin();
-        const Vector& v = planes_of(element)[j].z_axis();
+        const Point&  o = element.planes[j].origin();
+        const Vector& v = element.planes[j].z_axis();
         out[j] = { o[0], o[1], o[2], v[0], v[1], v[2],
                    v[0]*v[0] + v[1]*v[1] + v[2]*v[2] };
     }
@@ -308,10 +275,9 @@ bool face_overlap_area(
     return true;
 }
 
-template <ElementLike Element>
 std::vector<FaceContact> face_contacts_for_pair(
-    const Element& ea,
-    const Element& eb,
+    const ContactElement& ea,
+    const ContactElement& eb,
     int ia,
     int ib,
     double cos_angle,
@@ -326,7 +292,7 @@ std::vector<FaceContact> face_contacts_for_pair(
             if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance)) { continue; }
             if (stats) { stats->coplanar++; }
             Polyline area(std::vector<Point>{});
-            if (!face_overlap_area(faces_of(ea)[i], faces_of(eb)[j], planes_of(ea)[i],
+            if (!face_overlap_area(ea.polylines[i], eb.polylines[j], ea.planes[i],
                                    outer_face(ea, i) && outer_face(eb, j), area)) {
                 if (stats) { stats->empty_i = static_cast<int>(i); stats->empty_j = static_cast<int>(j); }
                 continue;
@@ -339,9 +305,8 @@ std::vector<FaceContact> face_contacts_for_pair(
     return contacts;
 }
 
-template <ElementLike Element>
 std::vector<ContactPair> face_contacts(
-    const std::vector<Element>& elements,
+    const std::vector<ContactElement>& elements,
     const std::vector<std::string>& names,
     double inflate,
     double angle,
@@ -357,30 +322,6 @@ std::vector<ContactPair> face_contacts(
     }
     return contacts;
 }
-
-// The element types the contact detector is used with. Keeping the bodies in
-// this file (rather than the header) means only these two ever instantiate.
-template std::vector<std::pair<int, int>>
-adjacency_search<WoodElement>(const std::vector<WoodElement>&, double, const std::vector<std::string>&);
-template std::vector<std::pair<int, int>>
-adjacency_search<BlockElement>(const std::vector<BlockElement>&, double, const std::vector<std::string>&);
-template std::vector<FacePlane> face_planes<WoodElement>(const WoodElement&);
-template std::vector<FacePlane> face_planes<BlockElement>(const BlockElement&);
-template std::vector<std::pair<int, int>>
-adjacency_search<ContactElement>(const std::vector<ContactElement>&, double, const std::vector<std::string>&);
-template std::vector<FacePlane> face_planes<ContactElement>(const ContactElement&);
-template std::vector<FaceContact>
-face_contacts_for_pair<ContactElement>(const ContactElement&, const ContactElement&, int, int, double, double, PairScanStats*);
-template std::vector<ContactPair>
-face_contacts<ContactElement>(const std::vector<ContactElement>&, const std::vector<std::string>&, double, double, double);
-template std::vector<FaceContact>
-face_contacts_for_pair<WoodElement>(const WoodElement&, const WoodElement&, int, int, double, double, PairScanStats*);
-template std::vector<FaceContact>
-face_contacts_for_pair<BlockElement>(const BlockElement&, const BlockElement&, int, int, double, double, PairScanStats*);
-template std::vector<ContactPair>
-face_contacts<WoodElement>(const std::vector<WoodElement>&, const std::vector<std::string>&, double, double, double);
-template std::vector<ContactPair>
-face_contacts<BlockElement>(const std::vector<BlockElement>&, const std::vector<std::string>&, double, double, double);
 
 }  // namespace wood_session
 
@@ -433,8 +374,8 @@ face_contacts<BlockElement>(const std::vector<BlockElement>&, const std::vector<
 
 bool face_to_face_wood(
     size_t joint_id,
-    const WoodElement& el0,
-    const WoodElement& el1,
+    const Plate& el0,
+    const Plate& el1,
     std::pair<int, int> el_ids_in,
     const std::vector<double>& joint_volume_extension,
     double limit_min_joint_length,
@@ -470,7 +411,7 @@ bool face_to_face_wood(
     // el_ids is swapped mid-pass to put the male side first; el0/el1 never move. So a guid
     // is resolved by asking which of the two ORIGINAL ids the current one is.
     const auto guid_at = [&](int id) -> const std::string& {
-        return id == el_ids_in.first ? el0.element->guid() : el1.element->guid();
+        return id == el_ids_in.first ? el0.guid() : el1.guid();
     };
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids = { {{0,0}}, {{0,0}} };
 
@@ -510,7 +451,8 @@ bool face_to_face_wood(
     // list built once up front would name the wrong faces afterwards.
     wood_session::PairScanStats scan;
     const std::vector<wood_session::FaceContact> pair_contacts =
-        wood_session::face_contacts_for_pair(el0, el1, el_ids_in.first, el_ids_in.second,
+        wood_session::face_contacts_for_pair(wood_session::ContactElement(el0), wood_session::ContactElement(el1),
+                                             el_ids_in.first, el_ids_in.second,
                                              cos_angle, coplanar_tolerance, &scan);
     dbg_coplanar = scan.coplanar;
     dbg_boolean  = scan.overlapping;
@@ -613,8 +555,8 @@ bool face_to_face_wood(
             // 8. Optional insertion direction (the male takes priority).
             Vector dir(0, 0, 0);
             bool dir_set = false;
-            if (i < el0.insertion_vectors.size() && j < el1.insertion_vectors.size()) {
-                dir = (i > j) ? el0.insertion_vectors[i] : el1.insertion_vectors[j];
+            if (i < el0.insertion_vectors().size() && j < el1.insertion_vectors().size()) {
+                dir = (i > j) ? el0.insertion_vectors()[i] : el1.insertion_vectors()[j];
                 dir_set = (std::abs(dir[0]) + std::abs(dir[1]) + std::abs(dir[2])) > 0.01;
             }
             // 9. Branch on joint type.
@@ -1194,7 +1136,7 @@ bool face_to_face_wood(
                 // also always reads ELEMENT 0's insertion vector even when
                 // dir_set was established from element 1's - kept for parity.
                 Vector dir0 = dir_set
-                    ? (i < el0.insertion_vectors.size() ? el0.insertion_vectors[i]
+                    ? (i < el0.insertion_vectors().size() ? el0.insertion_vectors()[i]
                                                       : el0.planes[i].z_axis())
                     : el0.planes[i].z_axis();
                 if (!dir0.normalize_self()) {

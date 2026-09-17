@@ -13,7 +13,7 @@ using namespace wood_session;
 /// Folds a profile along a cross_section by projecting each profile row
 /// onto the perpendicular bisector plane at each cross-section point,
 /// producing a quad mesh. Each quad face is then offset into a top/bottom
-/// plate pair (WoodElement) using miter offsets.
+/// plate pair (Plate) using miter offsets.
 ///
 /// chamfer_bot / chamfer_top  — miter offset distances on the two faces.
 /// chamfer_angle              — corners with interior angle < this (degrees)
@@ -25,7 +25,7 @@ using namespace wood_session;
 class ReflexFold {
 public:
     Mesh mesh;
-    std::vector<WoodElement> elements;
+    std::vector<Plate> elements;
 
     ReflexFold(const Polyline& cross_section = default_cross_section(),
                const Polyline& profile       = default_profile(),

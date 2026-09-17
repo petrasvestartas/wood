@@ -9,7 +9,7 @@
 //   — holes (Phase A/B/C) come first, the outer boundary pair last.
 #pragma once
 
-#include "wood_element.h"
+#include "wood_joint.h"
 
 #include <utility>
 #include <vector>
@@ -17,7 +17,7 @@
 using JMF = std::vector<std::vector<std::vector<std::pair<int,bool>>>>;
 
 std::vector<session_cpp::Polyline> merge_joints_for_element(
-    const wood_session::WoodElement& el,
+    const wood_session::Plate& el,
     const std::vector<std::vector<std::pair<int,bool>>>& el_jmf,
     std::vector<wood_session::WoodJoint>& joints,
     int ei);

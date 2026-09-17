@@ -20,10 +20,10 @@
 
 using namespace session_cpp;
 using wood_session::WoodJoint;
-using wood_session::WoodElement;
+using wood_session::Plate;
 
 std::vector<session_cpp::Polyline> merge_joints_for_element(
-    const WoodElement& el,
+    const Plate& el,
     const std::vector<std::vector<std::pair<int,bool>>>& el_jmf,
     std::vector<WoodJoint>& joints,
     int dbg_element_id = -1)

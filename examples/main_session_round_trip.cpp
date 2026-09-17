@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 
 #include <algorithm>
+#include <filesystem>
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -28,24 +29,26 @@ int main() {
     a.compute_contacts();
     a.compute_joints();
 
-    const Session reloaded = Session::pb_loads(a.to_session().pb_dumps());
-    const WoodSession b = WoodSession::from_session(reloaded);
+    a.sync_joint_features();
+    const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
+    a.pb_dump(path.string());
+    const WoodSession b = WoodSession::pb_load(path);
+    std::filesystem::remove(path);
 
     check(a.name == b.name, "session name");
     check(a.guid() == b.guid(), "session guid");
-    check(a.elements.size() == b.elements.size(), fmt::format("element count ({})", a.elements.size()));
-    const std::vector<std::shared_ptr<WoodElement>> plates_a = a.plates();
-    const std::vector<std::shared_ptr<WoodElement>> plates_b = b.plates();
+    check(a.objects.elements->size() == b.objects.elements->size(), fmt::format("element count ({})", a.objects.elements->size()));
+    const std::vector<std::shared_ptr<Plate>> plates_a = a.plates();
+    const std::vector<std::shared_ptr<Plate>> plates_b = b.plates();
     check(plates_a.size() == plates_b.size(), fmt::format("plate count ({})", plates_a.size()));
     check(a.columns().size() == b.columns().size(), "column count");
-    check(a.solids().size() == b.solids().size(), "solid count");
+    check(a.blocks().size() == b.blocks().size(), "block count");
 
-    bool shared = true;
+    bool typed = true;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)
-        shared = shared && a.get_object<Element>(element->guid()) ==
-                 std::visit([](const auto& wood) -> std::shared_ptr<Element> { return wood->element; },
-                            a.elements.at(element->guid()));
-    check(shared, "every wood object and the session hold the SAME Element object");
+        typed = typed && a.get_element<Element>(element->guid()) == element
+                && (element->element_type_name() != Plate::ELEMENT_TYPE || std::dynamic_pointer_cast<Plate>(element));
+    check(typed, "every element is held once, and every \"Plate\" is a Plate object");
     check(a.element_guids() == b.element_guids(), "every element guid, in order");
 
     check(tree_nodes(a) == tree_nodes(b), fmt::format("tree node count ({})", tree_nodes(a)));
@@ -99,7 +102,7 @@ int main() {
 
     bool hosted = true;
     for (const WoodJoint& joint : joints_a)
-        hosted = hosted && a.elements.count(joint.element_a) && a.elements.count(joint.element_b);
+        hosted = hosted && a.get_element<Element>(joint.element_a) && a.get_element<Element>(joint.element_b);
     check(hosted, "every joint edge resolves to two elements the scene owns");
 
     size_t attached = 0;
@@ -123,7 +126,7 @@ int main() {
             top_empty++;
         if (plates_a[i]->features.top.size() != plates_b[i]->features.top.size())
             mismatch++;
-        if (plates_a[i]->insertion_vectors.size() != plates_b[i]->insertion_vectors.size())
+        if (plates_a[i]->insertion_vectors().size() != plates_b[i]->insertion_vectors().size())
             ins_mismatch++;
     }
     check(top_empty < plates_a.size() && mismatch == 0 && ins_mismatch == 0,
@@ -142,18 +145,18 @@ int main() {
     if (plates_a.empty())
         return failures;
 
-    const size_t before = a.elements.size();
-    const std::shared_ptr<WoodElement> plate = plates_a[0];
-    const auto probe = std::make_shared<WoodElement>(plate->polylines[0], plate->polylines[1], "probe");
-    const std::string probe_guid = probe->element->guid();
+    const size_t before = a.objects.elements->size();
+    const std::shared_ptr<Plate> plate = plates_a[0];
+    const auto probe = std::make_shared<Plate>(plate->polylines[0], plate->polylines[1], "probe");
+    const std::string probe_guid = probe->guid();
     a.add(probe);
-    check(a.elements.size() == before + 1 && a.get_element<WoodElement>(probe_guid) == probe
-          && a.get_object<Element>(probe_guid) == probe->element,
-          "add() puts the same object in the map, the lookup and the session");
-    check(a.get_element<WoodColumn>(probe_guid) == nullptr, "get_element rejects the wrong type");
-    check(a.remove_object(probe_guid) && a.elements.size() == before && !a.elements.count(probe_guid)
+    check(a.objects.elements->size() == before + 1 && a.get_element<Plate>(probe_guid) == probe
+          && a.get_object<Element>(probe_guid) == probe,
+          "add() puts the same object in the lookup and the session");
+    check(a.get_element<Column>(probe_guid) == nullptr, "get_element rejects the wrong type");
+    check(a.remove_object(probe_guid) && a.objects.elements->size() == before
           && a.get_object<Element>(probe_guid) == nullptr,
-          "remove_object() takes it out of all three");
+          "remove_object() takes it out of both");
 
     return failures;
 }

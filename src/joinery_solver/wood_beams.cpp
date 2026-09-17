@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include "wood_session.h"
-#include "wood_element.h"
+#include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 #include "../src/session.h"
 #include "../src/element.h"
@@ -22,7 +22,7 @@
 
 using namespace session_cpp;
 using wood_session::WoodJoint;
-using wood_session::WoodElement;
+using wood_session::Plate;
 
 namespace {
 
@@ -279,8 +279,8 @@ void beam_volumes_pipeline(
             session.add_polyline(rect, g_vols);
         }
 
-        WoodElement el0(beam_vol[0], beam_vol[1]);
-        WoodElement el1(beam_vol[2], beam_vol[3]);
+        Plate el0(beam_vol[0], beam_vol[1]);
+        Plate el1(beam_vol[2], beam_vol[3]);
 
         WoodJoint jt;
         bool swap_planes_1 = false;

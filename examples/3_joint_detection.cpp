@@ -9,7 +9,7 @@ using namespace wood_session;
 // 4. Apply the /session-reviewer
 // 5. We are using loft_mesh function in wood_element but is must be rather in session_cpp
 // 6. wood_session.cpp Group WoodSession::add(const WoodGeometry& object, const Group& parent)  Why here we convert from woo to element again??? we are in woodsesion so it remains!
-// 7. WoodElement must extend Element class 
+// 7. Plate must extend Element class 
 // 8. Each type of element Plate, Column, Block must have separate file.
 // 9. Why loft method is computed three times?
 // 10. add to viewer methods, must be attributes of session class, so that we call them like that wood_session.add_joints_by_type wood_session.add_element_geometry
@@ -45,11 +45,7 @@ int main() {
     // top-to-top                               40
     // crossing geometry                        30
     add_joints_by_type(wood_session, wood_session.joints());
-
-    // Add geometry merged from element features to the session for visualization and export.
-    session_cpp::Session view_session = session_cpp::Session();
-    add_element_geometry(view_session, wood_session);
-    pb_dump(view_session, "live");
+    pb_dump(wood_session, "live");
     
     return 0;
 }

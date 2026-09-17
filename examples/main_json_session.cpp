@@ -2,7 +2,7 @@
 #include "element.h"
 #include "intersection.h"
 #include "json.h"
-#include "wood_element.h"
+#include "wood_element_plate.h"
 #include "wood_session.h"
 
 #include <fmt/core.h>
@@ -41,8 +41,7 @@ int main() {
         const nlohmann::json& item = data["elements"][i];
         const std::vector<Point> bottom = from_json(item["polygon"]);
         const std::vector<Point> top = item.contains("polygon_top") ? from_json(item["polygon_top"]) : bottom;
-        const wood_session::WoodElement plate{Polyline(bottom), Polyline(top)};
-        const auto element = std::make_shared<Element>(plate.loft_mesh(), "plate_" + std::to_string(i));
+        const auto element = std::make_shared<wood_session::Plate>(Polyline(bottom), Polyline(top), "plate_" + std::to_string(i));
         session.add_element(element, elements);
         plates.push_back(element.get());
     }

@@ -4,7 +4,7 @@
 // before appending (so the concatenated polyline forms a non-self-intersecting
 // outline). Male goes to -X, female goes to +X (mirror of ss_e_ip_1/2).
 // Requires element thickness via elements[joint.v0].thickness.
-static void ss_e_ip_5(WoodJoint& joint, const std::vector<WoodElement>& elements) {
+static void ss_e_ip_5(WoodJoint& joint, const std::vector<Plate>& elements) {
     joint.name = "ss_e_ip_5";
 
     int v0 = index_of(elements, joint.element_a);

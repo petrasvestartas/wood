@@ -1,10 +1,3 @@
-// wood/wood_session.cpp — the scene half of wood_session.h.
-//
-// The declarations in that header are implemented across several translation units (see its
-// own comment); this one owns the model: a WoodSession, the WoodInteraction its graph edges
-// carry, and the few writers that turn either into drawable geometry. It is the only file in
-// wood that knows the layout of a live scene or where a .pb goes.
-
 #include "wood_session.h"
 #include "wood_face_to_face.h"
 
@@ -23,7 +16,6 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <type_traits>
 
 namespace wood_session {
 
@@ -42,25 +34,27 @@ using Group = std::shared_ptr<TreeNode>;
 
 namespace {
 
-/// One view per wrapped element, in objects.elements order - the index space element_guids()
-/// and every ContactPair share. An element the scene does not wrap is skipped by both.
+/// Registers the three element factories with the kernel, once.
+void register_element_types() {
+    static const bool done = [] {
+        Plate::register_type();
+        Column::register_type();
+        Block::register_type();
+        return true;
+    }();
+    (void)done;
+}
+
+/// One detection view per element, in objects.elements order - the index space element_guids() and every ContactPair share.
 std::vector<ContactElement> contact_view(const WoodSession& scene) {
     std::vector<ContactElement> view;
-    view.reserve(scene.elements.size());
-    for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        const auto it = scene.elements.find(element->guid());
-        if (it == scene.elements.end()) { continue; }
-        std::visit([&view](const auto& object) {
-            using Wood = std::decay_t<decltype(*object)>;
-            view.push_back({&object->polylines, &object->planes, &object->element->name,
-                            std::is_same_v<Wood, WoodElement>});
-        }, it->second);
-    }
+    view.reserve(scene.objects.elements->size());
+    for (const std::shared_ptr<Element>& element : *scene.objects.elements)
+        if (element) view.emplace_back(*element);
     return view;
 }
 
-/// First block of a guid - enough to tell two elements apart in an object name, where a full
-/// 36-character guid twice over is unreadable.
+/// First block of a guid - enough to tell two elements apart in an object name.
 std::string short_guid(const std::string& guid) {
     return guid.substr(0, guid.find('-'));
 }
@@ -122,33 +116,27 @@ std::string WoodInteraction::str() const {
 std::ostream& operator<<(std::ostream& os, const WoodInteraction& interaction) { return os << interaction.str(); }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// WoodSession — the elements
+// WoodSession - elements
 // ═══════════════════════════════════════════════════════════════════════════
 
-Group WoodSession::add(const WoodGeometry& object, const Group& parent) {
-    // TODO: why here we convert from woo to element again??? we are in woodsesion so it remains!
-    const std::shared_ptr<Element> element =
-        std::visit([](const auto& wood) -> std::shared_ptr<Element> { return wood->to_element(); }, object);
-    const Group node = add_element(element, parent);
-    elements[element->guid()] = object;
-    return node;
-}
+WoodSession::WoodSession() { register_element_types(); }
 
-bool WoodSession::remove_object(const std::string& guid) {
-    elements.erase(guid);
-    return Session::remove_object(guid);
+WoodSession::WoodSession(const std::string& name) : Session(name) { register_element_types(); }
+
+Group WoodSession::add(std::shared_ptr<Element> element, Group parent) {
+    return add_element(std::move(element), std::move(parent));
 }
 
 std::vector<std::string> WoodSession::element_guids() const {
     std::vector<std::string> guids;
-    guids.reserve(elements.size());
+    guids.reserve(objects.elements->size());
     for (const std::shared_ptr<Element>& element : *objects.elements)
-        if (elements.count(element->guid())) { guids.push_back(element->guid()); }
+        if (element) guids.push_back(element->guid());
     return guids;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// WoodSession — the interactions
+// WoodSession - interactions
 // ═══════════════════════════════════════════════════════════════════════════
 
 WoodInteraction WoodSession::get_interaction(const std::string& a, const std::string& b) const {
@@ -290,7 +278,7 @@ void WoodSession::compute_contacts() { compute_face_contacts(); }
 
 void WoodSession::compute_cross_contacts(double angle_tol) {
     erase_contacts_of_type(*this, ContactType::cross);
-    const std::vector<std::shared_ptr<WoodElement>> plates = this->plates();
+    const std::vector<std::shared_ptr<Plate>> plates = this->plates();
     for (size_t i = 0; i < plates.size(); ++i) {
         if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2) { continue; }
         for (size_t j = i + 1; j < plates.size(); ++j) {
@@ -308,8 +296,8 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
             contact.face_b = cj.face_ids_b.first;
             contact.type = ContactType::cross;
             contact.area = cj.joint_area;
-            const std::string& a = plates[i]->element->guid();
-            const std::string& b = plates[j]->element->guid();
+            const std::string& a = plates[i]->guid();
+            const std::string& b = plates[j]->guid();
             WoodInteraction interaction = get_interaction(a, b);
             interaction.contacts.push_back(contact);
             set_interaction(a, b, interaction);
@@ -325,8 +313,8 @@ void WoodSession::compute_line_contacts(double tolerance) {
     const std::vector<ContactElement> view = contact_view(*this);
     for (size_t a = 0; a < view.size(); ++a) {
         for (size_t b = a + 1; b < view.size(); ++b) {
-            const std::vector<Polyline>& loops_a = *view[a].polylines;
-            const std::vector<Polyline>& loops_b = *view[b].polylines;
+            const std::vector<Polyline>& loops_a = view[a].polylines;
+            const std::vector<Polyline>& loops_b = view[b].polylines;
             for (size_t la = 0; la < loops_a.size(); ++la) {
                 const std::vector<Point> pa = loops_a[la].get_points();
                 for (size_t sa = 0; sa + 1 < pa.size(); ++sa) {
@@ -364,144 +352,74 @@ void WoodSession::compute_line_contacts(double tolerance) {
 }
 
 void WoodSession::compute_joints(SearchType search_type) {
-
-    const std::vector<std::shared_ptr<WoodElement>> plates = this->plates();
-    if (plates.empty()) 
+    const std::vector<std::shared_ptr<Plate>> plates = this->plates();
+    if (plates.empty())
         return;
-
     clear_joints();
-    // get_connection_zones writes into the vector it is given: copies in, results back. A
-    // WoodElement copy shares its TaggedElement, so the guid survives the round trip.
-    std::vector<WoodElement> solved;
+    std::vector<Plate> solved;
     solved.reserve(plates.size());
-    for (const std::shared_ptr<WoodElement>& plate : plates) 
+    for (const std::shared_ptr<Plate>& plate : plates) {
         solved.push_back(*plate);
-
+        solved.back().guid() = plate->guid();
+    }
     const std::vector<WoodJoint> joints = get_connection_zones(solved, search_type);
     for (size_t i = 0; i < plates.size(); ++i) {
+        const std::string guid = plates[i]->guid();
         *plates[i] = solved[i];
-        plates[i]->sync_element();
+        plates[i]->guid() = guid;
+        plates[i]->compute_geometry();
     }
-
     for (const WoodJoint& joint : joints) {
-        if (!elements.count(joint.element_a) || !elements.count(joint.element_b)) { continue; }
+        if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b)) continue;
         WoodInteraction interaction = get_interaction(joint.element_a, joint.element_b);
         interaction.joints.push_back(joint);
         set_interaction(joint.element_a, joint.element_b, interaction);
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodSession — conversion
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// One wood object for one loaded element, by its `element_type` tag.
-static WoodGeometry from_element(const Element& element) {
-    const std::string tag = element.element_type_name();
-    if (tag == WoodElement::ELEMENT_TYPE || tag == WoodElement::LEGACY_ELEMENT_TYPE)
-        return std::make_shared<WoodElement>(WoodElement::from_element(element));
-    if (tag == WoodColumn::ELEMENT_TYPE)
-        return std::make_shared<WoodColumn>(WoodColumn::from_element(element));
-    // Untagged, or a type this build has never heard of. The kernel carried the tag and the
-    // payload through untouched, so nothing is destroyed by treating it as a solid - and a
-    // solid is enough to take part in contact detection.
-    return std::make_shared<BlockElement>(BlockElement::from_element(element));
-}
-
-/// `source`'s subtree under `node`, rebuilt under `parent`. A child whose name is a guid the
-/// source holds is an object; anything else is a group, and groups nest, which is why they are
-/// made here rather than with Session::add_group - that one always attaches to the root.
-static void rebuild(WoodSession& scene, const Session& source, const TreeNode& node, const Group& parent) {
-    for (const TreeNode* child : node.children()) {
-        if (const std::shared_ptr<const Element> element = source.get_object<Element>(child->name)) {
-            scene.add(from_element(*element), parent);
-            continue;
-        }
-        if (source.lookup.count(child->name)) { continue; }   // an object, but not an Element
-        const Group group = std::make_shared<TreeNode>(child->name);
-        group->color = child->color;
-        scene.add(group, parent);
-        rebuild(scene, source, *child, group);
-    }
-}
-
-WoodSession WoodSession::from_session(const Session& session) {
-    WoodSession scene(session.name);
-    scene.guid() = session.guid();
-
-    // The tree first, so every element lands under the node it was under. Session::add_element
-    // makes the graph node as it goes, so the graph's vertices come with the elements.
-    if (session.tree.root()) { rebuild(scene, session, *session.tree.root(), nullptr); }
-    // An element the tree never named is still the session's; it joins at the root.
-    for (const std::shared_ptr<Element>& element : *session.objects.elements)
-        if (element && !scene.elements.count(element->guid())) { scene.add(from_element(*element), nullptr); }
-
-    // Guids do not change, so everything keyed on one comes across by name: the placements,
-    // and the edges with the contacts and joints they carry.
-    for (const auto& [guid, xform] : session.xforms)
-        if (scene.elements.count(guid)) { scene.set_xform(guid, xform); }
-    for (const auto& [a, neighbours] : session.graph.edges)
-        for (const auto& [b, edge] : neighbours)
-            if (a < b && scene.elements.count(a) && scene.elements.count(b)) { scene.add_edge(a, b, edge.attribute); }
-
-    // A wood scene is elements. Anything else the session held is not carried, and saying so is
-    // the difference between a conversion and a quiet loss.
-    if (session.lookup.size() > scene.elements.size()) {
-        fprintf(stderr, "  WARNING: WoodSession::from_session: %zu of %zu objects are not elements "
-                        "and were not carried over.\n",
-                session.lookup.size() - scene.elements.size(), session.lookup.size());
-        fflush(stderr);
-    }
-    return scene;
-}
-
-const Session& WoodSession::to_session() const {
-    for (const std::shared_ptr<Element>& element : *objects.elements) {
-        const auto it = elements.find(element->guid());
-        if (it != elements.end())
-            std::visit([](const auto& wood) { wood->to_element(); }, it->second);
-    }
-    // Second pass, and the order matters: WoodElement::to_element() replaces the whole
-    // feature list, so a joint feature added before it would be wiped. Rebuilding the list
-    // without the previous joint features is what makes writing twice idempotent for a
-    // column or a solid, whose to_element() leaves the list alone.
+void WoodSession::sync_joint_features() {
     for (const std::shared_ptr<Element>& element : *objects.elements) {
         std::vector<ElementFeature> features;
         for (const ElementFeature& feature : element->features()) {
-            if (feature.feature_type == "joint") { continue; }
+            if (feature.feature_type == "joint") continue;
             features.push_back(feature);
-            // A copy mints a fresh guid; put the old one back.
-            if (feature.has_guid()) { features.back().guid() = feature.guid(); }
+            if (feature.has_guid()) features.back().guid() = feature.guid();
         }
         for (ElementFeature& feature : get_element_features(element->guid()))
             features.push_back(std::move(feature));
         element->set_features(std::move(features));
     }
-    return *this;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodSession - files
+// ═══════════════════════════════════════════════════════════════════════════
+
 WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
+    register_element_types();
     const std::filesystem::path file = internal::dataset_path(path.string(), ".pb");
+    WoodSession scene;
     if (!std::filesystem::exists(file)) {
         fmt::print(stderr, "not found: {}\n", file.string());
-        return WoodSession{};
+        return scene;
     }
-    return from_session(Session::pb_load(file.string()));
+    static_cast<Session&>(scene) = Session::pb_load(file.string());
+    return scene;
 }
 
 WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
     globals::globals_yaml(path.string());
     WoodSession scene(globals::DATA_SET_INPUT_NAME);
-    for (const WoodElement& plate : internal::load_plates(globals::DATA_SET_OBJ))
-        scene.add(std::make_shared<WoodElement>(plate));
+    for (const Plate& plate : internal::load_plates(globals::DATA_SET_OBJ))
+        scene.add(std::make_shared<Plate>(plate));
     return scene;
 }
 
 std::string WoodSession::str() const {
     std::ostringstream os;
-    os << "WoodSession(name=" << name << ", elements=" << elements.size()
+    os << "WoodSession(name=" << name << ", elements=" << objects.elements->size()
        << ", plates=" << plates().size() << ", columns=" << columns().size()
-       << ", solids=" << solids().size()
+       << ", blocks=" << blocks().size()
        << ", edges=" << graph.number_of_edges() << ")";
     return os.str();
 }
@@ -523,13 +441,13 @@ std::filesystem::path pb_dump(const Session& session, const std::string& name) {
     return path;
 }
 
-std::filesystem::path pb_dump(const WoodSession& scene, const std::string& name) {
-    scene.to_session();
+std::filesystem::path pb_dump(WoodSession& scene, const std::string& name) {
+    scene.sync_joint_features();
     return pb_dump(static_cast<const Session&>(scene), name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// The contact and joint coloring scheme
+// Colours
 // ═══════════════════════════════════════════════════════════════════════════
 
 const char* contact_type_name(ContactType type) {
@@ -596,23 +514,23 @@ Color joint_color(int joint_type) {
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Viewer geometry
+// ═══════════════════════════════════════════════════════════════════════════
+
 void add_outlines(Session& session, const WoodSession& scene, const std::string& prefix) {
     const Group group = session.add_group(prefix);
     for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        const auto it = scene.elements.find(element->guid());
-        if (it == scene.elements.end()) { continue; }
-        std::visit([&session, &group](const auto& wood) {
-            using Wood = std::decay_t<decltype(*wood)>;
-            // A plate keeps the convention: [0] bottom, [1] top. A column or a solid has no
-            // such pair, so every face outline it has is drawn instead.
-            const size_t count = std::is_same_v<Wood, WoodElement> ? std::min<size_t>(2, wood->polylines.size())
-                                                                   : wood->polylines.size();
-            for (size_t i = 0; i < count; ++i) {
-                auto outline = std::make_shared<Polyline>(wood->polylines[i]);
-                outline->name = fmt::format("{}_{}", wood->element->name, i);
-                session.add_polyline(outline, group);
-            }
-        }, it->second);
+        if (!element) continue;
+        const Plate* plate = dynamic_cast<const Plate*>(element.get());
+        const std::vector<Polyline> outlines = plate ? std::vector<Polyline>(plate->polylines.begin(),
+                                                                             plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()))
+                                                     : element->polylines();
+        for (size_t i = 0; i < outlines.size(); ++i) {
+            auto outline = std::make_shared<Polyline>(outlines[i]);
+            outline->name = fmt::format("{}_{}", element->name, i);
+            session.add_polyline(outline, group);
+        }
     }
 }
 
@@ -736,29 +654,5 @@ void add_joints_by_type(Session& session, const std::vector<WoodJoint>& joints, 
 
     }
 }
-
-void add_element_geometry(
-    session_cpp::Session& session,
-    WoodSession& wood_session,
-    const std::string& prefix,
-    bool include_mesh,
-    bool include_polylines){
-
-        std::cout << "Number of plates: " << wood_session.plates().size() << std::endl;
-
-        for (const std::shared_ptr<WoodElement>& plate : wood_session.plates()) {
-
-            if(include_mesh)// 
-                session.add_mesh(std::make_shared<session_cpp::Mesh>(plate->loft_mesh(true)));
-            
-            if(include_polylines)
-                for (session_cpp::ElementFeature& feature : plate->face_features())
-                    for (const session_cpp::Polyline& outline : feature.outlines)
-                        session.add_polyline(std::make_shared<session_cpp::Polyline>(outline));
-            
-        }
-
-    
-    }
 
 } // namespace wood_session

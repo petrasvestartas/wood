@@ -92,7 +92,7 @@ int main() {
 
     WoodSession scene(globals::DATA_SET_INPUT_NAME);
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
-        scene.add(std::make_shared<WoodElement>(polylines[i], polylines[i + 1]));
+        scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);
     pb_dump(scene, "live");
     return 0;

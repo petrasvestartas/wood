@@ -4,7 +4,7 @@
 #include "element.h"
 #include "file_obj.h"
 #include "pair_polylines.h"
-#include "wood_element.h"
+#include "wood_element_plate.h"
 #include "wood_session.h"
 using namespace session_cpp;
 
@@ -24,7 +24,7 @@ int main() {
     // Session::compute_face_to_face. Both were deleted from session_cpp in
     // 89da090c ("refactoring"), so the contact search now runs through wood's
     // own pipeline, which is what that session-side helper was standing in for.
-    std::vector<wood_session::WoodElement> elements;
+    std::vector<wood_session::Plate> elements;
     elements.reserve(pairs.size());
     for (auto [a, b] : pairs) { elements.emplace_back(polylines[a], polylines[b]); }
     auto t2 = Clock::now();
