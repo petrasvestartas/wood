@@ -1,97 +1,86 @@
-# wood — timber joint pipeline
+# wood
 
-Two plates of wood touch. This figures out **where** they touch, **which teeth** fit that spot, and **carves** them into both plates.
-
----
+Timber joinery over the `session_cpp` kernel: plates touch, the solver finds where, decides
+which joint fits, and cuts it into both plates.
 
 ## Build
 
 ```bash
-cmake -B build
-cmake --build build --config Release --target main_translation_shell
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 4
 ```
 
-First build downloads protobuf + abseil (needs internet, takes a few minutes). Subsequent builds are fast.
-
----
-
-## Run an example
+The kernel is resolved from `../session/session_cpp` (or `-DSESSION_CPP_LOCAL=<dir>`).
+Run every solver and example through the guard, never directly:
 
 ```bash
-.\build\Release\main_translation_shell.exe
+tools/run_guarded.sh -t 10 -m 4 -- build/3_joint_detection
 ```
 
-Output writes `translation_shell.json` to the working directory.
+## Use
 
----
+```cpp
+#include "wood_session.h"
+using namespace wood_session;
 
-## All targets
+WoodSession scene = WoodSession::yaml_load(globals::Dataset::inplane_hexshell);
+scene.compute_joints();      // search type and every tunable come from the yml
+scene.add_joints();          // coloured joint rings, one group per joint type
+scene.write();               // data/output/pb/live.pb, the file session_viewer watches
+```
 
-| Target | Source |
+`WoodSession` is a `session_cpp::Session`; every plate in it is a `Plate`, every joint
+sits on the graph edge between its two plates, and `write()` puts each joint back on its
+host element as an `ElementFeature`. `pb_load(name)` reads a session back with its plates,
+columns and blocks as the classes below, through the kernel's element registry.
+
+| Method | What it does |
 |---|---|
-| `main_hello` | `examples/main_hello.cpp` |
-| `main_annen_corner` | `examples/main_annen_corner.cpp` |
-| `main_translation_shell` | `examples/templates/main_translation_shell.cpp` |
-| `main_fold_reflex` | `src/templates/main_fold_reflex.cpp` |
-| `main_fold_translation` | `src/templates/main_fold_translation.cpp` |
-| `main_chevron_test` | `src/templates/main_chevron_test.cpp` |
-| `main_json_session` | `examples/main_json_session.cpp` |
+| `yaml_load(name)` | data/`name`.yml globals, then the obj it names as plates |
+| `pb_load(name)` | data/`name`.pb, elements rebuilt as `Plate` / `Column` / `Block` |
+| `compute_contacts()` | coplanar face overlaps between every pair, onto the graph edges |
+| `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
+| `compute_joints(search)` | the solver over the plates, in place; each plate lofted once with its cuts |
+| `add_outlines()`, `add_contacts()`, `add_joints()` | viewer geometry, grouped by class or type |
+| `write(name)` | `data/output/pb/<name>.pb`; a name ending in `.pb` goes to `data/output/` with the outline dumps beside it |
 
-```bash
-cmake --build build --config Release --target <target>
-```
-
----
-
-## Key types
+## Types
 
 | Type | File | What it is |
 |---|---|---|
-| `WoodElement` | `src/joinery_solver/wood_element.h` | Plate: bottom + top outline pair, side faces, planes, thickness. Owns a `session_cpp::Element` |
-| `BlockElement` | `src/joinery_solver/wood_element.h` | Any closed loops, one plane each - contact detection only. Owns a `session_cpp::Element` |
-| `WoodJoint` | `src/joinery_solver/wood_element.h` | One connection: type, area, lines, volumes, cut outlines. Owns two `session_cpp::ElementFeature` (one per element) |
-| `FaceContact` | `src/joinery_solver/wood_face_to_face.h` | One touching face pair and its overlap polygon |
-| `TranslationShell` | `src/templates/translation_shell.cpp` | Swept quad mesh + per-face plates |
+| `Plate` | `src/joinery_solver/wood_element_plate.h` | bottom + top outline, one side face per edge, thickness, joint types, merged cut outlines; lofts itself once |
+| `Column` | `src/joinery_solver/wood_element_column.h` | a solid with an axis and a section |
+| `Block` | `src/joinery_solver/wood_element_block.h` | a solid, one face per closed loop, contact detection only |
+| `WoodJoint` | `src/joinery_solver/wood_joint.h` | one connection: type, area, lines, volumes, male and female cut outlines |
+| `WoodSession` | `src/joinery_solver/wood_session.h` | the scene |
 
-The wood types are composed over the kernel rather than derived from it: `to_element()` /
-`from_element()` move between a `WoodElement` and the `session_cpp::Element` a Session stores
-(`element_type = "WoodElement"`), and `WoodJoint::to_features()` is the joint as each host
-element carries it. `examples/main_element_mapping_check.cpp` checks the mapping both ways.
+All three element classes derive from `session_cpp::Element` and register a factory, so any
+`Session` that holds them reads and writes them without knowing wood.
 
-## Contact detection
+Joint type codes: 11 side-side out of plane, 12 side-side in plane, 13 side-side rotated,
+20 top-side, 30 cross, 40 top-top.
 
-`wood_face_to_face.h`: `adjacency_search` (oriented box per element, BVH, SAT) → candidate
-pairs; `faces_coplanar` → touching back-to-back faces; `face_overlap_area` → the overlap polygon,
-computed by Clipper2 on int64 coordinates (`CLIPPER_SCALE`, 1e-6 mm). `face_contacts` runs the
-whole thing for any element type. `examples/2_contact_detection.cpp` checks it on plates, on
-loose loops, and on rotated block grids with a known number of contacts, and exits non-zero
-if any check fails.
+## Datasets
 
-## Joint type codes
+Every dataset is `data/<name>.yml` plus the obj it names, with optional `adjacency`,
+`three_valence`, `insertion_vectors` and `joints_types` text sidecars. The yml carries every
+tunable the solver reads: `search_type`, `joints_parameters_and_types` (7 families x
+division length, shift, joint id), `joint_volume_extension` (width, height, length in mm, one
+triple for all families or one per family), `joint_scale`, the tolerances, and for beam
+datasets a `beams` block. `globals::Dataset::<name>` names every shipped dataset.
 
-| Code | Meaning |
+`main_all_datasets` runs all of them and writes `data/output/WoodF2F_<name>.pb` with
+`_meta.txt` and `_coords.txt` beside each: the record a refactor is diffed against.
+
+## Targets
+
+| Target | Source |
 |---|---|
-| 11 | side–side, teeth out |
-| 12 | side–side, teeth in |
-| 20 | top–side |
-| 30 | cross (scissors) |
-| 40 | top–top |
+| `1_io`, `2_contact_detection`, `3_joint_detection` | `examples/` walk-throughs of load, contacts, joints |
+| `main_hello` | plates and a custom butterfly joint built in code |
+| `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
+| `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
+| `main_json_session`, `main_joint_types`, `main_cross_corners`, `main_loft_holes`, `main_cdt_probe`, `main_export_xml` | smaller probes |
+| `main_translation_shell`, `main_reflex_fold`, `main_chevron`, `main_reciprocal_*`, `main_annen_chevron`, `main_beam_reciprocal`, `main_chevron_test`, `main_vda_mesh` | `src/templates/` generators |
 
----
-
-## Serialization
-
-Every wood type serializes through the kernel: `jsondump` / `jsonload`, `file_json_dump(s)` /
-`file_json_load(s)`, and for elements `pb_dumps` / `pb_loads`, `pb_dump` / `pb_load`.
-
-```cpp
-WoodElement plate(bottom, top);
-std::string bytes = plate.pb_dumps();                 // a session_proto.Element, element_type "WoodElement"
-WoodElement back  = WoodElement::pb_loads(bytes);     // outlines, planes, thickness, joint types restored
-
-session.add_element(plate.to_element());              // into a Session, with the joints as features
-session.pb_dump("session.pb");
-
-WoodJoint joint = joints[0];
-joint.file_json_dump("joint.json");                   // solver fields + its two ElementFeatures
-```
+Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.

@@ -52,13 +52,17 @@ contend for memory and cache and give numbers that are noise.
 
 ## Verifying "output unchanged"
 
-`WOOD_F2F_DUMP` writes `<name>.pb_coords.txt` and `<name>.pb_meta.txt` next to
-each `.pb`. Diff those between two builds to prove a refactor changed nothing.
+Every dataset run (`WoodSession::write` with a `.pb` name, so the whole sweep) writes
+`<name>.pb_coords.txt` and `<name>.pb_meta.txt` next to the `.pb`: every plate's merged
+outlines. Diff those between two builds to prove a refactor changed nothing.
 Compare against a dump taken from a **clean checkout of the baseline commit** —
 a dump left behind by a half-finished or concurrent run is not a baseline.
 
 ## Trace and diagnostics flags
 
-`WOOD_TRACE`, `WOOD_VERBOSE`, `WOOD_MERGE_DUMP`, `WOOD_APPLY_DUMP` and
-`WOOD_F2F_DUMP` are all off unless set. They cost real time when on — the [GCZ]
-trace alone was 7-12% of a solve — so leave them off for timing runs.
+`WOOD_F2F_DUMP=<path>` is the only environment flag: it appends every rotated (type 13) joint
+volume to that file and is the parity harness beside the `_coords.txt` / `_meta.txt` dumps.
+Everything else is a compile-time `constexpr bool TRACE = false;` at the top of the file it
+belongs to (`wood_main.cpp`, `wood_face_to_face.cpp`, `wood_merge.cpp`, `wood_joint.cpp`,
+`wood_beams.cpp`); flip it and rebuild to see that file's trace. Traces cost real time when
+on, so they are never on for timing runs.
