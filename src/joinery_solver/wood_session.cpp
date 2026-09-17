@@ -35,7 +35,8 @@ std::vector<ContactElement> contact_view(const WoodSession& scene) {
     std::vector<ContactElement> view;
     view.reserve(scene.objects.elements->size());
     for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-        if (element) view.emplace_back(*element);
+        if (element)
+            view.emplace_back(*element);
     return view;
 }
 
@@ -132,7 +133,8 @@ std::vector<std::string> WoodSession::element_guids() const {
     std::vector<std::string> guids;
     guids.reserve(objects.elements->size());
     for (const std::shared_ptr<Element>& element : *objects.elements)
-        if (element) guids.push_back(element->guid());
+        if (element)
+            guids.push_back(element->guid());
     return guids;
 }
 
@@ -596,7 +598,8 @@ void WoodSession::add_joints(const std::string& prefix) {
         mesh->set_objectcolor(color);
         add_mesh(mesh, group);
         for (const std::optional<Polyline>& volume : joint.joint_volumes_pair_a_pair_b)
-            if (volume.has_value()) add_polyline(ring(*volume, color, name + "_volume"), group);
+            if (volume.has_value())
+                add_polyline(ring(*volume, color, name + "_volume"), group);
         for (int k = 0; k < 2; ++k) {
             auto line = std::make_shared<Line>(joint.joint_lines[k]);
             line->linecolor = color;
@@ -604,10 +607,14 @@ void WoodSession::add_joints(const std::string& prefix) {
             line->name = fmt::format("{}_line{}", name, k);
             add_line(line, group);
         }
-        for (const Polyline& outline : joint.m_outlines[0]) add_polyline(ring(outline, color, name + "_male_bottom_cut"), group);
-        for (const Polyline& outline : joint.m_outlines[1]) add_polyline(ring(outline, color, name + "_male_top_cut"), group);
-        for (const Polyline& outline : joint.f_outlines[0]) add_polyline(ring(outline, color, name + "_female_bottom_cut"), group);
-        for (const Polyline& outline : joint.f_outlines[1]) add_polyline(ring(outline, color, name + "_female_top_cut"), group);
+        for (const Polyline& outline : joint.m_outlines[0])
+            add_polyline(ring(outline, color, name + "_male_bottom_cut"), group);
+        for (const Polyline& outline : joint.m_outlines[1])
+            add_polyline(ring(outline, color, name + "_male_top_cut"), group);
+        for (const Polyline& outline : joint.f_outlines[0])
+            add_polyline(ring(outline, color, name + "_female_bottom_cut"), group);
+        for (const Polyline& outline : joint.f_outlines[1])
+            add_polyline(ring(outline, color, name + "_female_top_cut"), group);
     }
 }
 

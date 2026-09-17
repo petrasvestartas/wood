@@ -590,21 +590,25 @@ static std::vector<std::pair<int, int>> gcz_adjacency(
         int b;
         while (adj_in >> a >> b)
             adjacency_pairs.emplace_back(a, b);
-        if (TRACE) fmt::print("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adj_name);
+        if (TRACE)
+            fmt::print("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adj_name);
     }
     if (adjacency_pairs.empty() && !tl_adjacency_override.empty())
         adjacency_pairs = tl_adjacency_override;
 
     if (adjacency_pairs.empty()) {
         const double distance = wood_session::globals::DISTANCE;
-        if (TRACE) fmt::print(stderr, "[GCZ] adjacency_search start  DISTANCE={}\n", distance);
+        if (TRACE)
+            fmt::print(stderr, "[GCZ] adjacency_search start  DISTANCE={}\n", distance);
         std::vector<wood_session::ContactElement> view;
         view.reserve(wood_elems.size());
         for (const std::shared_ptr<Plate>& plate : wood_elems)
             view.emplace_back(*plate);
         adjacency_pairs = wood_session::adjacency_search(view, distance);
-        if (TRACE) fmt::print(stderr, "[GCZ] adjacency pairs={}\n", adjacency_pairs.size());
-        if (TRACE) fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size());
+        if (TRACE)
+            fmt::print(stderr, "[GCZ] adjacency pairs={}\n", adjacency_pairs.size());
+        if (TRACE)
+            fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size());
     }
     return adjacency_pairs;
 }
@@ -631,7 +635,8 @@ static void gcz_load_insertion_vectors(
             }
             ei++;
         }
-        if (TRACE) fmt::print("insertion_vectors: {} vectors across {} elements from {}\n", total_loaded, ei, iv_name);
+        if (TRACE)
+            fmt::print("insertion_vectors: {} vectors across {} elements from {}\n", total_loaded, ei, iv_name);
     }
     for (size_t ei = 0; ei < wood_elems.size(); ei++) {
         if (wood_elems[ei]->insertion_vectors().empty())
@@ -653,12 +658,14 @@ static std::vector<WoodJoint> gcz_detect(
     GczDetectStats& stats) {
     std::vector<WoodJoint> all_joints;
     all_joints.reserve(adjacency_pairs.size());
-    if (TRACE) fmt::print(stderr, "[GCZ] joint detection loop  pairs={}\n", adjacency_pairs.size());
+    if (TRACE)
+        fmt::print(stderr, "[GCZ] joint detection loop  pairs={}\n", adjacency_pairs.size());
     const int n_wood_elems = static_cast<int>(wood_elems.size());
     for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
         const int ia = adjacency_pairs[k].first;
         const int ib = adjacency_pairs[k].second;
-        if (TRACE) fmt::print(stderr, "[GCZ]   pair k={}  ia={} ib={}\n", k, ia, ib);
+        if (TRACE)
+            fmt::print(stderr, "[GCZ]   pair k={}  ia={} ib={}\n", k, ia, ib);
 
         if (ia < 0 || ib < 0 || ia >= n_wood_elems || ib >= n_wood_elems) {
             fmt::print(stderr, "  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, ia, ib, n_wood_elems);
@@ -668,7 +675,6 @@ static std::vector<WoodJoint> gcz_detect(
         WoodJoint joint;
         bool swap_planes_b = false;
         const bool ok = face_to_face_wood(
-            k,
             *wood_elems[ia],
             *wood_elems[ib],
             {ia, ib},
@@ -682,7 +688,8 @@ static std::vector<WoodJoint> gcz_detect(
             search_type,
             joint,
             swap_planes_b);
-        if (TRACE) fmt::print(stderr, "[GCZ]   face_to_face_wood done  ok={}  type={}\n", (int)ok, ok ? joint.joint_type : -1);
+        if (TRACE)
+            fmt::print(stderr, "[GCZ]   face_to_face_wood done  ok={}  type={}\n", (int)ok, ok ? joint.joint_type : -1);
         if (swap_planes_b) {
             std::swap(wood_elems[ib]->planes[0], wood_elems[ib]->planes[1]);
             std::swap(wood_elems[ib]->polylines[0], wood_elems[ib]->polylines[1]);
@@ -737,12 +744,14 @@ static void gcz_three_valence(
         if (instruction == 1) {
             const size_t before_vidy = all_joints.size();
             three_valence_joint_addition_vidy(tv_groups, wood_elems, all_joints, joints_map);
-            if (TRACE) fmt::print("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
+            if (TRACE)
+                fmt::print("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
         } else {
             three_valence_joint_alignment_annen(tv_groups, wood_elems, all_joints);
         }
     }
-    if (TRACE && !tv_name.empty()) fmt::print("three_valence: {} groups applied\n", tv_groups.size());
+    if (TRACE && !tv_name.empty())
+        fmt::print("three_valence: {} groups applied\n", tv_groups.size());
 }
 
 /// Stage 5: per-element per-face joint type ids (the wood JOINTS_TYPES filter); 0 = no joint, tens digit = family.
@@ -764,7 +773,8 @@ static std::vector<std::vector<int>> gcz_joint_types(
             }
             ei++;
         }
-        if (TRACE) fmt::print("joints_types: {} ids across {} elements from {}\n", total_loaded, ei, jt_name);
+        if (TRACE)
+            fmt::print("joints_types: {} ids across {} elements from {}\n", total_loaded, ei, jt_name);
     }
     for (size_t ei = 0; ei < wood_elems.size(); ++ei)
         if (per_element[ei].empty() && !wood_elems[ei]->joint_types.empty())
@@ -922,11 +932,14 @@ static void gcz_build_one_joint(
         u.unit_scale_distance = j.unit_scale_distance;
         unique_joints_cache.emplace(cache_key, std::move(u));
     }
-    if (TRACE) fmt::print(stderr, "[GCZ]   after joint_create_geometry  no_orient={}\n", (int)j.no_orient);
+    if (TRACE)
+        fmt::print(stderr, "[GCZ]   after joint_create_geometry  no_orient={}\n", (int)j.no_orient);
     if (!j.no_orient) {
-        if (TRACE) fmt::print(stderr, "[GCZ]   calling joint_orient_to_connection_area\n");
+        if (TRACE)
+            fmt::print(stderr, "[GCZ]   calling joint_orient_to_connection_area\n");
         joint_orient_to_connection_area(j);
-        if (TRACE) fmt::print(stderr, "[GCZ]   joint_orient done\n");
+        if (TRACE)
+            fmt::print(stderr, "[GCZ]   joint_orient done\n");
     }
     if (!j.linked_joints.empty() && (fam.id == 15 || fam.id == 16)) {
         for (int sid : j.linked_joints)
@@ -942,9 +955,11 @@ static void gcz_geometry(
     std::vector<std::shared_ptr<Plate>>& wood_elems,
     const std::vector<std::vector<int>>& per_element_joints_types) {
     GczJointCache unique_joints_cache;
-    if (TRACE) fmt::print(stderr, "[GCZ] geometry loop start  all_joints={}\n", all_joints.size());
+    if (TRACE)
+        fmt::print(stderr, "[GCZ] geometry loop start  all_joints={}\n", all_joints.size());
     for (WoodJoint& j : all_joints) {
-        if (TRACE) fmt::print(stderr, "[GCZ]   geom joint type={}  e0={} e1={}\n", j.joint_type, j.element_a, j.element_b);
+        if (TRACE)
+            fmt::print(stderr, "[GCZ]   geom joint type={}  e0={} e1={}\n", j.joint_type, j.element_a, j.element_b);
         const int id_representing_joint_name = gcz_representing_id(j, per_element_joints_types, wood_elems);
         const GczFamilyParams fam = gcz_family_params(j.joint_type, id_representing_joint_name);
         if (j.link)
@@ -1037,7 +1052,8 @@ std::vector<WoodJoint> get_connection_zones(
     std::vector<std::shared_ptr<Plate>>& wood_elems,
     SearchType search_type) {
 
-    if (TRACE) fmt::print(stderr, "[GCZ] enter  n_elems={}  search_type={}\n", wood_elems.size(), (int)search_type);
+    if (TRACE)
+        fmt::print(stderr, "[GCZ] enter  n_elems={}  search_type={}\n", wood_elems.size(), (int)search_type);
 
     using namespace wood_session::globals;
     const std::string short_name = DATA_SET_INPUT_NAME;
@@ -1052,7 +1068,8 @@ std::vector<WoodJoint> get_connection_zones(
     const std::string jt_name = DATA_SET_JOINTS_TYPES;
     const std::vector<double> ext_vec = JOINT_VOLUME_EXTENSION;
 
-    if (TRACE) fmt::print("\n=== {}.obj ===\n", short_name);
+    if (TRACE)
+        fmt::print("\n=== {}.obj ===\n", short_name);
 
     times.t1 = GczClock::now();
 
@@ -1083,16 +1100,19 @@ std::vector<WoodJoint> get_connection_zones(
     times.t3a = GczClock::now();
     gcz_geometry(all_joints, wood_elems, per_element_joints_types);
     times.t3b = GczClock::now();
-    if (TRACE) fmt::print(stderr, "[GCZ] geometry dispatch done  all_joints={}\n", all_joints.size());
+    if (TRACE)
+        fmt::print(stderr, "[GCZ] geometry dispatch done  all_joints={}\n", all_joints.size());
 
     const JMF j_mf = gcz_build_jmf(wood_elems, all_joints);
     times.t3c = GczClock::now();
-    if (TRACE) fmt::print(stderr, "[GCZ] j_mf built  starting merge\n");
+    if (TRACE)
+        fmt::print(stderr, "[GCZ] j_mf built  starting merge\n");
 
     gcz_merge(wood_elems, j_mf, all_joints);
     times.t4 = GczClock::now();
 
-    if (TRACE) gcz_report(wood_elems, adjacency_pairs, stats, times);
+    if (TRACE)
+        gcz_report(wood_elems, adjacency_pairs, stats, times);
     for (WoodJoint& j : all_joints)
         j.sync_features();
     return all_joints;

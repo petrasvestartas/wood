@@ -262,7 +262,6 @@ void beam_volumes_pipeline(
         WoodJoint jt;
         bool swap_planes_1 = false;
         const bool jok = face_to_face_wood(
-            (size_t)(n_success + n_failed),
             el0,
             el1,
             {c.pid0, c.pid1},

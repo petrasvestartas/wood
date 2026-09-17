@@ -8,7 +8,8 @@ using wood_session::Plate;
 
 /// The joint library is header-only and static; it lands in this TU's anonymous namespace.
 namespace {
-#include "wood_joint_lib.h"
+#include "wood_cut.h"
+#include "joints/ss_e_r_0.h"
 }
 
 namespace wood_session {

@@ -114,8 +114,6 @@ struct PairScanStats {
 std::vector<FaceContact> face_contacts_for_pair(
     const ContactElement& ea,
     const ContactElement& eb,
-    int ia,
-    int ib,
     double cos_angle,
     double coplanar_tolerance,
     PairScanStats* stats = nullptr);
@@ -136,7 +134,6 @@ std::vector<ContactPair> face_contacts(
 
 /// Classifies one element pair as a wood joint with every tunable explicit; true fills out_joint, and out_swap_planes_1 asks the caller to swap el1's faces 0 and 1.
 bool face_to_face_wood(
-    size_t joint_id,
     const wood_session::Plate& el0,
     const wood_session::Plate& el1,
     std::pair<int, int> el_ids_in,

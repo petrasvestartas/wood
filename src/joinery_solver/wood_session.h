@@ -139,7 +139,8 @@ public:
     template <class T>
     std::shared_ptr<T> get_element(const std::string& guid) const {
         for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
-            if (element && element->guid() == guid) return std::dynamic_pointer_cast<T>(element);
+            if (element && element->guid() == guid)
+                return std::dynamic_pointer_cast<T>(element);
         return nullptr;
     }
 
@@ -148,7 +149,8 @@ public:
     std::vector<std::shared_ptr<T>> get_elements() const {
         std::vector<std::shared_ptr<T>> out;
         for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
-            if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element)) out.push_back(object);
+            if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
+                out.push_back(object);
         return out;
     }
 
