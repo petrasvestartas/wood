@@ -99,10 +99,18 @@ int main() {
 }
 
 /*
-description: four hardcoded plates with a custom butterfly joint -> face_to_face joints on the graph edges of their pairs.
+|||||||| DESCRIPTION ||||||||
+Compute joints between wood elements in a dataset.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_hello -j8 && ./build/main_hello
-cloudflare: ../bash/publish-scene.sh --target main_hello
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/main_hello && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_hello
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

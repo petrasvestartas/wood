@@ -79,6 +79,9 @@ add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 set(WOOD_SOURCES
     src/joinery_solver/wood_assign.cpp
     src/joinery_solver/wood_beams.cpp
+    src/joinery_solver/wood_element_plate.cpp
+    src/joinery_solver/wood_element_column.cpp
+    src/joinery_solver/wood_element_block.cpp
     src/joinery_solver/wood_element.cpp
     src/joinery_solver/wood_face_to_face.cpp
     src/joinery_solver/wood_globals.cpp
@@ -136,8 +139,10 @@ function(ADD_EXE NAME SRC)
     LINK_PROTOBUF(${NAME})
 endfunction()
 
+ADD_EXE(1_io                     examples/1_io.cpp)
+ADD_EXE(2_contact_detection      examples/2_contact_detection.cpp)
+ADD_EXE(3_joint_detection        examples/3_joint_detection.cpp)
 ADD_EXE(main_hello               examples/main_hello.cpp)
-ADD_EXE(main_annen_corner        examples/main_annen_corner.cpp)
 ADD_EXE(main_element_mapping_check examples/main_element_mapping_check.cpp)
 ADD_EXE(main_joint_types         examples/main_joint_types.cpp)
 ADD_EXE(main_cross_corners       examples/main_cross_corners.cpp)
@@ -149,9 +154,6 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # it)". There is no replacement to port it to - Element::add_feature is a mesh
 # transform, not a pairwise relation - and it was the only caller left.
 ADD_EXE(main_cdt_probe           examples/main_cdt_probe.cpp)
-ADD_EXE(2_contact_detection      examples/2_contact_detection.cpp)
-ADD_EXE(3_joint_detection        examples/3_joint_detection.cpp)
-ADD_EXE(1_io                     examples/1_io.cpp)
 ADD_EXE(main_session_round_trip  examples/main_session_round_trip.cpp)
 ADD_EXE(main_annen_chevron       src/templates/temp/main_annen_chevron.cpp)
 ADD_EXE(main_beam_reciprocal     src/templates/temp/main_beam_reciprocal.cpp)

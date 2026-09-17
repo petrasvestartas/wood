@@ -61,11 +61,20 @@ int main() {
     return 0;
 }
 
-/*
-description: cross_corners from hardcoded polylines -> cross_joint joints on the graph edges of their pairs.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_cross_corners -j8 && ./build/main_cross_corners
-cloudflare: ../bash/publish-scene.sh --target main_cross_corners
-view: https://petrasvestartas.github.io/session/
+/*
+|||||||| DESCRIPTION ||||||||
+Compute joints between wood elements in a dataset.
+
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/main_cross_corners && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_cross_corners
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

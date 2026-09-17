@@ -126,6 +126,7 @@ std::ostream& operator<<(std::ostream& os, const WoodInteraction& interaction) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 Group WoodSession::add(const WoodGeometry& object, const Group& parent) {
+    // TODO: why here we convert from woo to element again??? we are in woodsesion so it remains!
     const std::shared_ptr<Element> element =
         std::visit([](const auto& wood) -> std::shared_ptr<Element> { return wood->to_element(); }, object);
     const Group node = add_element(element, parent);
@@ -735,5 +736,29 @@ void add_joints_by_type(Session& session, const std::vector<WoodJoint>& joints, 
 
     }
 }
+
+void add_element_geometry(
+    session_cpp::Session& session,
+    WoodSession& wood_session,
+    const std::string& prefix,
+    bool include_mesh,
+    bool include_polylines){
+
+        std::cout << "Number of plates: " << wood_session.plates().size() << std::endl;
+
+        for (const std::shared_ptr<WoodElement>& plate : wood_session.plates()) {
+
+            if(include_mesh)// 
+                session.add_mesh(std::make_shared<session_cpp::Mesh>(plate->loft_mesh(true)));
+            
+            if(include_polylines)
+                for (session_cpp::ElementFeature& feature : plate->face_features())
+                    for (const session_cpp::Polyline& outline : feature.outlines)
+                        session.add_polyline(std::make_shared<session_cpp::Polyline>(outline));
+            
+        }
+
+    
+    }
 
 } // namespace wood_session

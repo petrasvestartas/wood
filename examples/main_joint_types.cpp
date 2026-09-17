@@ -17,23 +17,37 @@ static void run(const std::string& name, const double division) {
     for (const WoodElement& element : internal::load_plates(name))
         scene.add(std::make_shared<WoodElement>(element));
     scene.compute_joints(face_to_face);
-    pb_dump(scene, globals::DATA_SET_INPUT_NAME);
+    for (const std::shared_ptr<WoodElement>& plate : scene.plates()) {
+        for (auto& feature : plate->face_features())
+            for (const session_cpp::Polyline& outline : feature.outlines)
+                scene.add_polyline(std::make_shared<session_cpp::Polyline>(outline));
+    }
+    pb_dump(scene, "live");
 }
 
 int main() {
-    run("annen_corner", 0);
+    
     run("annen_box", 200);
     run("annen_box_pair", 200);
     run("annen_grid_small", 200);
     run("annen_grid_full_arch", 0);
+    run("annen_corner", 0);
     return 0;
 }
 
 /*
-description: five annen datasets with ss_e_op (11) and ts_e_p (20) joints -> data/output/pb/<name>.pb each.
+|||||||| DESCRIPTION ||||||||
+Compute joints between wood elements in a dataset.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_joint_types -j8 && ./build/main_joint_types
-cloudflare: ../bash/publish-scene.sh data/output/pb/annen_corner.pb
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/main_joint_types && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_joint_types
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

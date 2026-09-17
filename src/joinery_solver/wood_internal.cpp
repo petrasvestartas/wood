@@ -30,13 +30,16 @@ bool plates_exist(const std::string& name) {
 }
 
 std::vector<wood_session::WoodElement> load_plates(const std::string& dataset_name, double duplicate_pts_tol) {
+
     const auto polylines = load_polylines(dataset_name, duplicate_pts_tol);
     if (polylines.size() % 2 != 0)
         throw std::runtime_error("load_plates: unpaired outline in " + dataset_name);
+
     std::vector<wood_session::WoodElement> elements;
     elements.reserve(polylines.size() / 2);
     for (size_t i = 0; i < polylines.size(); i += 2)
         elements.emplace_back(polylines[i], polylines[i + 1]);
+        
     return elements;
 }
 

@@ -34,6 +34,8 @@
 #include "../src/session.h"
 // WoodElement / WoodJoint are passed by value/ref through this API surface.
 #include "wood_element.h"
+#include "wood_element_block.h"
+#include "wood_element_column.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // wood_session::CrossJoint + plane_to_face — side-to-side cross/lap joint
@@ -688,6 +690,13 @@ void add_joints_by_type(session_cpp::Session& session,
                         const std::vector<WoodJoint>& joints,
                         const std::string& prefix = "Joints");
 
+// Add element geometry to the session.
+void add_element_geometry(
+    session_cpp::Session& session,
+    WoodSession& wood_session,
+    const std::string& prefix = "Elements",
+    bool include_mesh = true,
+    bool include_polylines = true);
 } // namespace wood_session
 
 // ═══════════════════════════════════════════════════════════════════════════
