@@ -10,9 +10,14 @@
 
 /// Which detection pass compute_joints runs.
 enum SearchType : int {
-    face_to_face            = 0,  ///< coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p
-    cross_joint             = 1,  ///< elements passing through each other: plane_to_face, type 30
-    face_to_face_then_cross = 2,  ///< face-to-face first, cross as the fallback
+    /// Coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p.
+    face_to_face = 0,
+
+    /// Elements passing through each other: plane_to_face, type 30.
+    cross_joint = 1,
+
+    /// Face-to-face first, cross as the fallback.
+    face_to_face_then_cross = 2,
 };
 
 namespace wood_session {
@@ -30,23 +35,45 @@ namespace globals {
 
     /// Multiplicative [sx, sy, sz] scale of joint geometry before insertion (ss_e_ip_2, ss_e_r_*, ts_e_p_5); 1 = no change.
     extern std::array<double, 3> JOINT_SCALE;
-    extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;       ///< degrees; rotated-joint threshold
-    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;///< force rotated geometry path
-    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;///< averaged plane for rotated joints
 
-    extern double DISTANCE;                                  ///< inflate AABBs / point-merge tolerance (mm)
-    extern double DISTANCE_SQUARED;                          ///< squared coplanarity tolerance (mm²)
-    extern double ANGLE;                                     ///< angular tolerance, RADIANS (cos-tolerance)
-    extern double DUPLICATE_PTS_TOL;                         ///< consecutive-duplicate-points removal in load_plates
-    extern double LIMIT_MIN_JOINT_LENGTH;                    ///< filters out joints whose centerline is shorter
+    /// Degrees; rotated-joint threshold.
+    extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
 
-    extern int64_t CLIPPER_SCALE;                            ///< mm -> int64 scale for the 2D boolean (1e6 = nanometre grid)
-    extern double  CLIPPER_AREA;                             ///< overlap areas at or below this (mm²) are not a contact
+    /// Force rotated geometry path.
+    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;
+
+    /// Averaged plane for rotated joints.
+    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;
+
+    /// Inflate AABBs / point-merge tolerance (mm).
+    extern double DISTANCE;
+
+    /// Squared coplanarity tolerance (mm²).
+    extern double DISTANCE_SQUARED;
+
+    /// Angular tolerance, RADIANS (cos-tolerance).
+    extern double ANGLE;
+
+    /// Consecutive-duplicate-points removal in load_plates.
+    extern double DUPLICATE_PTS_TOL;
+
+    /// Filters out joints whose centerline is shorter.
+    extern double LIMIT_MIN_JOINT_LENGTH;
+
+    /// Mm -> int64 scale for the 2D boolean (1e6 = nanometre grid).
+    extern int64_t CLIPPER_SCALE;
+
+    /// Overlap areas at or below this (mm²) are not a contact.
+    extern double  CLIPPER_AREA;
 
     /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
     extern std::string DATA_SET_INPUT_FOLDER;
-    extern const std::vector<std::string> DATASET_NAMES;     ///< every dataset shipped in data/ as <name>.yml, in sweep order
-    extern const std::vector<std::string> SESSION_NAMES;     ///< every session shipped in data/ as <name>.pb
+
+    /// Every dataset shipped in data/ as <name>.yml, in sweep order.
+    extern const std::vector<std::string> DATASET_NAMES;
+
+    /// Every session shipped in data/ as <name>.pb.
+    extern const std::vector<std::string> SESSION_NAMES;
 
     /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
     struct Dataset {
@@ -93,7 +120,7 @@ namespace globals {
         static constexpr const char* cross_square_reciprocal_iseya = "cross_square_reciprocal_iseya";
         static constexpr const char* cross_ibois_pavilion = "cross_ibois_pavilion";
         static constexpr const char* cross_brussels_sports_tower = "cross_brussels_sports_tower";
-        static constexpr const char* phanomema_node = "phanomema_node";               ///< beam axes, not plates - use beam_volumes_pipeline
+        static constexpr const char* phanomema_node = "phanomema_node";
         static constexpr const char* hello = "hello";
         static constexpr const char* top_to_side_test = "top_to_side_test";
         static constexpr const char* vda_floor_1 = "vda_floor_1";
@@ -165,32 +192,71 @@ namespace globals {
 
     /// data/<SESSION_NAMES[index]>.pb for Session::pb_load; out of range throws.
     std::string session_pb(size_t index);
-    extern std::string DATA_SET_INPUT_NAME;                  ///< dataset name: the yml stem
-    extern std::string DATA_SET_OBJ;                         ///< obj path named by the dataset yaml
-    extern std::string DATA_SET_ADJACENCY;                   ///< adjacency txt path from the yaml, empty when absent
-    extern std::string DATA_SET_THREE_VALENCE;               ///< three-valence txt path from the yaml, empty when absent
-    extern std::string DATA_SET_INSERTION_VECTORS;           ///< insertion-vectors txt path from the yaml, empty when absent
-    extern std::string DATA_SET_JOINTS_TYPES;                ///< joint-types txt path from the yaml, empty when absent
-    extern std::string DATA_SET_OUTPUT_FILE;                 ///< WoodF2F_<yml stem>.pb, written into data/output/
 
+    /// Dataset name: the yml stem.
+    extern std::string DATA_SET_INPUT_NAME;
 
-    /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
+    /// Obj path named by the dataset yaml.
+    extern std::string DATA_SET_OBJ;
+
+    /// Adjacency txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_ADJACENCY;
+
+    /// Three-valence txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_THREE_VALENCE;
+
+    /// Insertion-vectors txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_INSERTION_VECTORS;
+
+    /// Joint-types txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_JOINTS_TYPES;
+
+    /// WoodF2F_<yml stem>.pb, written into data/output/.
+    extern std::string DATA_SET_OUTPUT_FILE;
+
     /// Beam datasets (yml `beams`): [radius, allowed joint type, min_distance, volume_length, cross_or_side_to_end, flip_male].
     extern std::vector<double> BEAMS;
 
+    /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
     extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
     /// Reset every global above to the wood baseline values.

@@ -8,16 +8,28 @@
 
 namespace wood_session {
 
+/// One crossing of two plates: where their side faces pass through each other.
 struct CrossJoint {
-    int type = 30;                                          ///< Joint type code (30 = side-to-side cross)
-    std::pair<int, int> face_ids_a{-1, -1};                 ///< Two side-face indices of element A involved
-    std::pair<int, int> face_ids_b{-1, -1};                 ///< Two side-face indices of element B involved
-    session_cpp::Polyline joint_area;                       ///< Closed quad on the mid-plane (5 pts)
-    std::array<session_cpp::Polyline, 2> joint_lines;       ///< Two perpendicular centerlines of joint_area
-    std::array<session_cpp::Polyline, 2> joint_volumes;     ///< Two parallel quads bounding the joint volume
+    /// Joint type code, 30 for a cross.
+    int type = 30;
+
+    /// The two side faces of element A the crossing involves.
+    std::pair<int, int> face_ids_a{-1, -1};
+
+    /// The two side faces of element B the crossing involves.
+    std::pair<int, int> face_ids_b{-1, -1};
+
+    /// Closed quad on the mid-plane, 5 points.
+    session_cpp::Polyline joint_area;
+
+    /// The two perpendicular centrelines of joint_area, 2 points each.
+    std::array<session_cpp::Polyline, 2> joint_lines;
+
+    /// The two parallel quads bounding the joint volume.
+    std::array<session_cpp::Polyline, 2> joint_volumes;
 };
 
-/// Cross/lap joint detection between two plate elements (side-to-side); by reference so the hot loop copies nothing.
+/// Cross/lap joint detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing.
 bool plane_to_face(
     const session_cpp::Polyline& a_bottom, const session_cpp::Polyline& a_top,
     const session_cpp::Polyline& b_bottom, const session_cpp::Polyline& b_top,
@@ -27,6 +39,7 @@ bool plane_to_face(
     double angle_tol = 5.0,
     const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
 
+/// The same, with each plate's bottom/top outlines and planes as arrays.
 bool plane_to_face(
     const std::array<session_cpp::Polyline, 2>& polylines_a,
     const std::array<session_cpp::Polyline, 2>& polylines_b,
