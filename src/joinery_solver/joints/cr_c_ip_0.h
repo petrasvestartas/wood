@@ -1,9 +1,7 @@
-// ─── cr_c_ip_0 ──────────────────────────────────────────────────────────────
-// Verbatim port of wood_joint_lib.cpp:4583-4602. Trivial cross-joint stub:
-// each face has 2 identical closed rectangles.
+/// cr_c_ip_0: cross-joint stub, two identical closed rectangles per face.
 static void cr_c_ip_0(WoodJoint& joint) {
     joint.name = "cr_c_ip_0";
-    double s = 1.0;
+    const double s = 1.0;
     joint.f_outlines[0] = {
         Polyline({Point(-0.5,0.5,s), Point(-0.5,-0.5,s), Point(-0.5,-0.5,0), Point(-0.5,0.5,0), Point(-0.5,0.5,s)}),
         Polyline({Point(-0.5,0.5,s), Point(-0.5,-0.5,s), Point(-0.5,-0.5,0), Point(-0.5,0.5,0), Point(-0.5,0.5,s)}),

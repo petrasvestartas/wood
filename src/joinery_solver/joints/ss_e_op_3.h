@@ -1,7 +1,4 @@
-// ─── ss_e_op_3 ──────────────────────────────────────────────────────────────
-// Verbatim port of wood_joint_lib.cpp:1901-2003. Miter tenon-mortise with
-// 4 female outlines (2 insert_between + 2 hole) and 2 male outlines
-// (2 insert_between).
+/// ss_e_op_3: miter tenon-mortise - four female outlines (two insert_between, two hole), two male.
 static void ss_e_op_3(WoodJoint& joint) {
     joint.name = "ss_e_op_3";
     joint.f_outlines[0] = {

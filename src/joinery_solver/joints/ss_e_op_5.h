@@ -1,3 +1,4 @@
+/// ss_e_op_5: ss_e_op_4 on this joint and on its one or two linked joints, with the merge sequences that stitch them.
 static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool disable_joint_divisions) {
     jo.name = "ss_e_op_5";
     if (jo.linked_joints.empty() || jo.linked_joints.size() > 2) {
@@ -12,8 +13,8 @@ static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool di
     jo.linked_joints_seq.clear();
     ss_e_op_4(jo, 0.00, false, true, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
-    int a = 0;
-    int b = 1;
+    const int a = 0;
+    const int b = 1;
     all_joints[jo.linked_joints[a]].divisions = jo.divisions;
     ss_e_op_4(all_joints[jo.linked_joints[a]], 0.5, true, false, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
@@ -27,12 +28,15 @@ static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool di
 
         std::vector<std::array<int, 4>> linked_joints_seq_1;
         for (size_t i = 0; i < jo.f_outlines[0].size(); i += 2) {
-            if (i == 0) {
-                linked_joints_seq_1.push_back({1, (int)jo.f_outlines[0][0].point_count() - 2,
-                                                1, (int)all_joints[jo.linked_joints[1]].m_outlines[0][0].point_count() - 2});
-            } else {
+            if (i == 0)
+                linked_joints_seq_1.push_back({
+                    1,
+                    (int)jo.f_outlines[0][0].point_count() - 2,
+                    1,
+                    (int)all_joints[jo.linked_joints[1]].m_outlines[0][0].point_count() - 2,
+                });
+            else
                 linked_joints_seq_1.push_back({0, 0, 0, 0});
-            }
         }
         jo.linked_joints_seq.push_back(linked_joints_seq_1);
     }

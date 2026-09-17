@@ -1,20 +1,8 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// wood/wood_cut.h — verbatim port of wood's `wood_cut.h`.
-//
-// The `wood_cut::cut_type` enum labels each polyline emitted by a joint
-// constructor as a specific boolean operation against the plate body:
-// `hole` cuts a through-pocket, `edge_insertion` trims the edge, `drill`
-// punches a vertical shaft, etc. The merge step reads these labels to
-// decide what to do with each polyline.
-//
-// Each joint constructor populates `WoodJoint::m_cut_types[face]` and
-// `f_cut_types[face]` with one value per corresponding entry in
-// `m_outlines[face]` / `f_outlines[face]`. An empty `*_cut_types` array
-// means "all polylines are `edge_insertion`" — the pre-Stage-3 default.
-// ═══════════════════════════════════════════════════════════════════════════
 #pragma once
 
 namespace wood_cut {
+
+/// What each outline a joint emits does to the plate body; one per entry of m_outlines / f_outlines.
 enum cut_type : int {
     nothing                       = 0,
 
@@ -39,4 +27,5 @@ enum cut_type : int {
     // Vertical drill (plates & beams)
     drill                         = 15,
 };
+
 } // namespace wood_cut

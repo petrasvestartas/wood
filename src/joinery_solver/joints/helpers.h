@@ -1,25 +1,32 @@
-// Wood verbatim: `interpolate_points(from, to, steps, include_ends=false, ...)`
-// from wood_joint_lib.cpp:392-416 produces `steps` points at parameters
-//   i / (1 + steps)  for i = 1..steps
-// — i.e. NEITHER endpoint is included. ts_e_p_3 / ss_e_op_1 rely on this:
-// arrays have `steps` points (not steps+1), so the loop `for j = 0..size-1`
-// stops one iteration earlier than it would if the endpoint was included,
-// and the explicit `pline.push_back(arrays[*][size-1])` at the end of each
-// joint outline build adds the array's LAST point — which is the
-// `steps/(1+steps)` parameter point, NOT the geometric endpoint.
-//
-// Producing `steps+1` points with include-ends semantics introduces a
-// duplicate at the end of the outline (the explicit append duplicates the
-// last loop push) and creates a visible back-and-forth spike where the
-// joint outline meets the surrounding plate polyline.
-// Wrapper around `session_cpp::Polyline::interpolate_points(a, b, steps, 0)`.
-// The session primitive already has the no-endpoints variant wood needs;
-// keeping a thin free function here preserves the short call-site spelling
-// used across every joint constructor below.
-static inline std::vector<Point> interpolate_points(const Point& a, const Point& b, int steps) {
-    return Point::interpolate(a, b, steps, /*kind=*/0);
+/// User-supplied joint geometry: pairs (face0, face1) from the male and female lists, every pair
+/// concatenated into one outline per face plus a two-point endpoint marker, all edge_insertion.
+static void custom_outlines(WoodJoint& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
+    if (cm.size() < 2 || cf.size() < 2)
+        return;
+    std::vector<Point> m0;
+    std::vector<Point> m1;
+    std::vector<Point> f0;
+    std::vector<Point> f1;
+    for (size_t i = 0; i + 1 < cm.size(); i += 2) {
+        for (size_t k = 0; k < cm[i].point_count(); k++)
+            m0.push_back(cm[i].get_point(k));
+        for (size_t k = 0; k < cm[i + 1].point_count(); k++)
+            m1.push_back(cm[i + 1].get_point(k));
+    }
+    for (size_t i = 0; i + 1 < cf.size(); i += 2) {
+        for (size_t k = 0; k < cf[i].point_count(); k++)
+            f0.push_back(cf[i].get_point(k));
+        for (size_t k = 0; k < cf[i + 1].point_count(); k++)
+            f1.push_back(cf[i + 1].get_point(k));
+    }
+    if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
+        return;
+    joint.m_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
+    joint.m_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
+    joint.f_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
+    joint.f_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
+    joint.m_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.m_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.f_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.f_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
 }
-
-// Wood's `internal::remap_numbers` already exists in session as
-// `Intersection::remap(value, in_min, in_max, out_min, out_max)` —
-// callers use it directly.

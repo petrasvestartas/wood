@@ -1,11 +1,6 @@
-// ─── ss_e_r_1 (default case — miter tenon-mortise) ─────────────────────────
-// Verbatim port of wood_joint_lib.cpp:2507-2720 default case. 39-pt circular
-// arc profile in YZ-plane, replicated at x=0 and x=0.5 for the two faces.
-// Cut types: f=conic, m=conic_reverse. unit_scale=true.
+/// ss_e_r_1: miter tenon-mortise - a 39-point arc profile in the yz-plane at x=0 and x=0.5; conic cuts, unit_scale.
 static void ss_e_r_1(WoodJoint& joint) {
     joint.name = "ss_e_r_1";
-    // The 39 outline points share identical (y, z) for all four face outlines.
-    // X is 0.5 for face index 0 of f/m[1], 0.0 for the others (matching wood).
     static const double yz[][2] = {
         {-0.825,  0.0         },
         {-0.825, -0.151041813 },
@@ -57,9 +52,8 @@ static void ss_e_r_1(WoodJoint& joint) {
     auto make_poly = [&](double x, const double data[][2], size_t n) {
         std::vector<Point> pts;
         pts.reserve(n);
-        for (size_t i = 0; i < n; ++i) {
+        for (size_t i = 0; i < n; ++i)
             pts.emplace_back(x, data[i][0], data[i][1]);
-        }
         return Polyline(pts);
     };
     joint.f_outlines[0] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };

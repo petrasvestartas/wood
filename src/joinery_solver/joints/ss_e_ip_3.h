@@ -1,6 +1,4 @@
-// ─── ss_e_ip_3 ──────────────────────────────────────────────────────────────
-// Verbatim port of wood_joint_lib.cpp:970-1116. Hardcoded mill+drill in-plane
-// joint with 6 outlines per face (2 mill_project + 4 drill).
+/// ss_e_ip_3: hardcoded mill-and-drill in-plane joint, six outlines per face (two mill_project, four drill).
 static void ss_e_ip_3(WoodJoint& joint) {
     joint.name = "ss_e_ip_3";
     joint.f_outlines[0] = {
