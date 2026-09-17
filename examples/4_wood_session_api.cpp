@@ -44,12 +44,13 @@ int main() {
     for (const WoodJoint& joint : model.joints())
         std::cout << fmt::format("joint: type {} ({})\n", joint.joint_type, joint.name);
 
-    // Geometry: element_geometry() is the plate alone, model_geometry() the plate with its joints cut in; both loft on first call and stay cached.
+    // Geometry: element_geometry is the plate alone, model_geometry the plate with its joints cut in, each as a mesh or a brep; every one is built on first call and cached until the plate changes.
     for (const std::shared_ptr<Plate>& plate : model.plates()) {
-        const Mesh& alone = plate->element_geometry();
-        const Mesh& with_joints = plate->model_geometry();
-        const BRep& brep = plate->model_brep();
-        std::cout << fmt::format("{}: {} faces alone, {} faces with joints, brep {} faces, volume {:.0f} mm3\n", plate->name, alone.number_of_faces(), with_joints.number_of_faces(), brep.face_count(), with_joints.volume());
+        const Mesh& element_mesh = plate->element_geometry_mesh();
+        const BRep& element_brep = plate->element_geometry_brep();
+        const Mesh& model_mesh = plate->model_geometry_mesh();
+        const BRep& model_brep = plate->model_geometry_brep();
+        std::cout << fmt::format("{}: element {} faces (brep {}), model {} faces (brep {}), volume {:.0f} mm3\n", plate->name, element_mesh.number_of_faces(), element_brep.face_count(), model_mesh.number_of_faces(), model_brep.face_count(), model_mesh.volume());
     }
 
     // File: one group per plate with its outlines, contacts and joints; pb_dump lofts every plate not yet lofted and writes the model geometry.

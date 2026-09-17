@@ -87,7 +87,7 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // Computation
 // ═══════════════════════════════════════════════════════════════════════════
 
-Mesh Plate::compute_element_geometry() const {
+Mesh Plate::compute_element_geometry_mesh() const {
 
     if (polylines.size() < 2)
         return Mesh();
@@ -97,35 +97,28 @@ Mesh Plate::compute_element_geometry() const {
     return Mesh::loft(bottom_outlines, top_outlines);
 }
 
-Mesh Plate::compute_model_geometry() const {
+Mesh Plate::compute_model_geometry_mesh() const {
 
     if (features.top.empty())
-        return element_geometry();
+        return element_geometry_mesh();
 
     return Mesh::loft(features.bottom, features.top);
 }
 
-BRep Plate::compute_model_brep() const {
+/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
+static BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top) {
 
-    const std::vector<Polyline>& bottom = features.top.empty() ? polylines : features.bottom;
-    const std::vector<Polyline>& top = features.top.empty() ? polylines : features.top;
-    if (polylines.size() < 2)
-        return BRep();
-
-    const Polyline& bottom_outer = features.top.empty() ? polylines[0] : bottom[0];
-    const Polyline& top_outer = features.top.empty() ? polylines[1] : top[0];
-    std::vector<Polyline> faces{bottom_outer, top_outer};
+    std::vector<Polyline> faces{bottom[0], top[0]};
     std::vector<std::vector<Polyline>> holes(2);
 
-    const size_t loop_count = features.top.empty() ? 1 : bottom.size();
-    for (size_t loop = 1; loop < loop_count; loop++) {
+    for (size_t loop = 1; loop < bottom.size(); loop++) {
         holes[0].push_back(bottom[loop]);
         holes[1].push_back(top[loop]);
     }
 
-    for (size_t loop = 0; loop < loop_count; loop++) {
-        const Polyline& lower = loop == 0 ? bottom_outer : bottom[loop];
-        const Polyline& upper = loop == 0 ? top_outer : top[loop];
+    for (size_t loop = 0; loop < bottom.size(); loop++) {
+        const Polyline& lower = bottom[loop];
+        const Polyline& upper = top[loop];
         const size_t segment_count = lower.point_count() - 1;
         for (size_t segment = 0; segment < segment_count; segment++) {
             faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
@@ -136,41 +129,62 @@ BRep Plate::compute_model_brep() const {
     return BRep::from_polylines(faces, holes);
 }
 
-const BRep& Plate::model_brep() const {
-
-    if (!_model_brep)
-        _model_brep = compute_model_brep();
-
-    return *_model_brep;
+BRep Plate::compute_element_geometry_brep() const {
+    if (polylines.size() < 2)
+        return BRep();
+    return brep_between_loops({polylines[0]}, {polylines[1]});
 }
 
-const Mesh& Plate::element_geometry() const {
-
-    if (!_element_geometry)
-        _element_geometry = compute_element_geometry();
-
-    return *_element_geometry;
+BRep Plate::compute_model_geometry_brep() const {
+    if (features.top.empty())
+        return element_geometry_brep();
+    return brep_between_loops(features.bottom, features.top);
 }
 
-const Mesh& Plate::model_geometry() const {
+const BRep& Plate::element_geometry_brep() const {
 
-    if (!_model_geometry)
-        _model_geometry = compute_model_geometry();
+    if (!_element_geometry_brep)
+        _element_geometry_brep = compute_element_geometry_brep();
 
-    return *_model_geometry;
+    return *_element_geometry_brep;
+}
+
+const BRep& Plate::model_geometry_brep() const {
+
+    if (!_model_geometry_brep)
+        _model_geometry_brep = compute_model_geometry_brep();
+
+    return *_model_geometry_brep;
+}
+
+const Mesh& Plate::element_geometry_mesh() const {
+
+    if (!_element_geometry_mesh)
+        _element_geometry_mesh = compute_element_geometry_mesh();
+
+    return *_element_geometry_mesh;
+}
+
+const Mesh& Plate::model_geometry_mesh() const {
+
+    if (!_model_geometry_mesh)
+        _model_geometry_mesh = compute_model_geometry_mesh();
+
+    return *_model_geometry_mesh;
 }
 
 void Plate::invalidate_geometry() {
-    _element_geometry.reset();
-    _model_geometry.reset();
-    _model_brep.reset();
+    _element_geometry_mesh.reset();
+    _model_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_brep.reset();
     _geometry_synced = false;
 }
 
 void Plate::compute_geometry() {
 
     if (polylines.size() > 1)
-        set_geometry(model_geometry());
+        set_geometry(model_geometry_mesh());
     set_dimensions(nominal_dimensions());
 
     std::vector<ElementFeature> next = face_features();

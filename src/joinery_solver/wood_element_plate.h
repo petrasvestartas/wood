@@ -10,7 +10,7 @@ struct Features {
     std::vector<session_cpp::Polyline> bottom; // Bottom face: the outer outline first, then one outline per hole.
 };
 
-/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry() is the plate alone, the loft of its two outlines, never cut; model_geometry() is the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
+/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry_mesh() is the plate alone, the loft of its two outlines, never cut; model_geometry_mesh() is the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
 class Plate : public session_cpp::Element {
 public:
     static constexpr const char* ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
@@ -29,22 +29,28 @@ public:
     Features features; // Merged cut outlines after compute_joints; empty before. Call invalidate_geometry() after assigning.
 
     /// The parametric shape alone, the loft of the two outlines, never cut; cached until invalidate_geometry().
-    const session_cpp::Mesh& element_geometry() const;
+    const session_cpp::Mesh& element_geometry_mesh() const;
 
     /// The shape with its joints applied, the loft of the merged outlines, the element geometry while unsolved; cached until invalidate_geometry().
-    const session_cpp::Mesh& model_geometry() const;
+    const session_cpp::Mesh& model_geometry_mesh() const;
 
     /// The loft of the two outlines, empty when the plate has fewer than two.
-    session_cpp::Mesh compute_element_geometry() const;
+    session_cpp::Mesh compute_element_geometry_mesh() const;
 
     /// The loft of the merged outlines when the plate is solved, else the element geometry.
-    session_cpp::Mesh compute_model_geometry() const;
+    session_cpp::Mesh compute_model_geometry_mesh() const;
 
-    /// The model geometry as a boundary representation: one planar face per outline with its holes, one quad per outer and hole edge; cached until invalidate_geometry(); opt-in, the file keeps the mesh.
-    const session_cpp::BRep& model_brep() const;
+    /// The element geometry as a boundary representation: the two outlines as planar faces and one quad per edge; cached until invalidate_geometry().
+    const session_cpp::BRep& element_geometry_brep() const;
 
-    /// The boundary representation of the merged outlines when the plate is solved, else of the two outlines; empty for a plate without outlines.
-    session_cpp::BRep compute_model_brep() const;
+    /// The model geometry as a boundary representation: one planar face per merged outline with its holes, one quad per outer and hole edge; cached until invalidate_geometry(); opt-in, the file keeps the mesh.
+    const session_cpp::BRep& model_geometry_brep() const;
+
+    /// The boundary representation of the two outlines; empty for a plate without outlines.
+    session_cpp::BRep compute_element_geometry_brep() const;
+
+    /// The boundary representation of the merged outlines when the plate is solved, else the element geometry brep.
+    session_cpp::BRep compute_model_geometry_brep() const;
 
     /// Drops both cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
     void invalidate_geometry();
@@ -95,9 +101,10 @@ public:
     std::vector<session_cpp::Vector>& insertion_vectors() { return _insertion_vectors; }
 
 private:
-    mutable std::optional<session_cpp::Mesh> _element_geometry; // Cache of compute_element_geometry().
-    mutable std::optional<session_cpp::Mesh> _model_geometry; // Cache of compute_model_geometry().
-    mutable std::optional<session_cpp::BRep> _model_brep; // Cache of compute_model_brep().
+    mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of compute_element_geometry_mesh().
+    mutable std::optional<session_cpp::Mesh> _model_geometry_mesh; // Cache of compute_model_geometry_mesh().
+    mutable std::optional<session_cpp::BRep> _element_geometry_brep; // Cache of compute_element_geometry_brep().
+    mutable std::optional<session_cpp::BRep> _model_geometry_brep; // Cache of compute_model_geometry_brep().
     bool _geometry_synced = false; // True while the Element slot holds the current model geometry.
 
 protected:

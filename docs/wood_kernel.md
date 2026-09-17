@@ -44,16 +44,19 @@ constructor runs it).
 | `Column` | `wood_element_column.h` | `"Column"` | `axis` (Line), `section` (Polyline), mesh solid |
 | `Block` | `wood_element_block.h` | `"Solid"` (legacy `"BlockElement"`) | one n-gon face per loop; contact detection only |
 
-A plate has two geometries, as a compas_model element does. `element_geometry()` is the
-parametric shape alone, the loft of the two raw outlines, never cut. `model_geometry()` is the
+A plate has two geometries, as a compas_model element does. `element_geometry_mesh()` is the
+parametric shape alone, the loft of the two raw outlines, never cut. `model_geometry_mesh()` is the
 shape with its joints applied, `Mesh::loft(features.bottom, features.top)` once the merge has
 filled `features`, else the element geometry. Both are lazy: nothing lofts until one is
 asked for, and the result is cached on the plate until `invalidate_geometry()`, which the merge
 calls after filling `features`. `Plate::compute_geometry()` writes the model geometry onto the
 Element slot the session file and the viewer read, then `set_dimensions` and
 `set_features(face_features())`; `WoodSession::pb_dump` runs it for every plate whose slot is
-stale, so a solve of N plates lofts exactly N times, at write time. `model_geometry()` is the
-full featured one, compas_model's `modelgeometry`; `element_geometry()` is the plate alone. `Plate::face_features()` emits one `ElementFeature` per face:
+stale, so a solve of N plates lofts exactly N times, at write time. `model_geometry_mesh()` is the
+full featured one, compas_model's `modelgeometry`; `element_geometry_mesh()` is the plate alone. Each
+stage also exists as a boundary representation, `element_geometry_brep()` and
+`model_geometry_brep()`, built through `BRep::from_polylines` with holes, cached the same way,
+opt-in: the file keeps the mesh. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
 ### `WoodJoint` (`wood_joint.h`)

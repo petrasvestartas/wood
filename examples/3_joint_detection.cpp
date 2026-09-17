@@ -10,11 +10,11 @@ int main() {
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
     wood_session.compute_joints();
 
-    /// element_geometry(): the plate alone, the loft of its two outlines, never cut; compas_model's elementgeometry.
-    /// model_geometry(): the plate with its joints cut in, the loft of the merged outlines; compas_model's modelgeometry, the one to inspect.
+    /// element_geometry_mesh(): the plate alone, the loft of its two outlines, never cut; compas_model's elementgeometry.
+    /// model_geometry_mesh(): the plate with its joints cut in, the loft of the merged outlines; compas_model's modelgeometry, the one to inspect.
     /// Both loft on first call and stay cached until the plate changes; asking for neither keeps the plates as outlines only.
     const std::shared_ptr<Plate> plate = wood_session.plates().front();
-    std::cout << fmt::format("{}: {} faces alone, {} faces with joints\n", plate->name, plate->element_geometry().number_of_faces(), plate->model_geometry().number_of_faces());
+    std::cout << fmt::format("{}: {} faces alone, {} faces with joints\n", plate->name, plate->element_geometry_mesh().number_of_faces(), plate->model_geometry_mesh().number_of_faces());
 
     /// pb_dump lofts every plate not yet lofted (model geometry) so the viewer sees the cut plates; the tree decides what else is drawn.
     wood_session.add_to_tree(true, true, false, false);
