@@ -88,7 +88,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_joint.cpp
     src/joinery_solver/wood_joint_detection.cpp
     src/joinery_solver/wood_main.cpp
-    src/joinery_solver/wood_merge.cpp
+    src/joinery_solver/wood_polyline_merge.cpp
     src/joinery_solver/wood_session.cpp
 )
 

@@ -2,7 +2,7 @@
 #include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 #include "wood_joint.h"
-#include "wood_merge.h"
+#include "wood_polyline_merge.h"
 #include "wood_session.h"
 using namespace session_cpp;
 
@@ -1001,7 +1001,7 @@ static void merge_joints_into_plates(
     std::vector<WoodJoint>& all_joints) {
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
-        std::vector<Polyline> merged = merge_joints_for_element(*elements[element_index], membership[element_index], all_joints, (int)element_index);
+        std::vector<Polyline> merged = wood_session::PolylineMerge::merge(*elements[element_index], membership[element_index], all_joints, (int)element_index);
         auto& features = elements[element_index]->features;
         features.top.clear();
         features.bottom.clear();
