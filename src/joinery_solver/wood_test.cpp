@@ -17,7 +17,7 @@ static bool run_dataset(const char* name) {
 
         return true;
     } catch (const std::exception& e) {
-        fmt::print("  ERROR [{}]: {}\n", name, e.what());
+        std::cout << fmt::format("  ERROR [{}]: {}\n", name, e.what());
         return false;
     }
 }
@@ -88,7 +88,7 @@ bool type_beams_name_phanomema_node() {
 
         return true;
     } catch (const std::exception& e) {
-        fmt::print("  ERROR [type_beams_name_phanomema_node]: {}\n", e.what());
+        std::cout << fmt::format("  ERROR [type_beams_name_phanomema_node]: {}\n", e.what());
         return false;
     }
 }

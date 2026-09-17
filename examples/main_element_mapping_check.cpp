@@ -11,7 +11,7 @@ static void check(const bool ok, const std::string& what) {
     if (ok)
         return;
 
-    fmt::print("FAIL {}\n", what);
+    std::cout << fmt::format("FAIL {}\n", what);
     failures++;
 }
 

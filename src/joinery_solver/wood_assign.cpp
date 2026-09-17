@@ -68,6 +68,59 @@ size_t get_side_slots(const Plate& elem) {
     return n > 0 ? n - 1 : 0;
 }
 
+/// R-tree visitor for one query point: writes |type| into the slot of every plate whose nearest outline segment lies within threshold.
+struct JointSlotVisitor {
+    const std::vector<std::shared_ptr<Plate>>& elements;  // the plates the r-tree indexes
+    const Point& point;                                   // the query point
+    int type;                                             // negative selects bottom or top, otherwise a side slot
+    double threshold;                                     // squared distance limit
+    std::vector<std::vector<int>>& out_joint_types;       // one slot list per plate
+
+    bool operator()(const int ei) const {
+        const Plate& elem = *elements[ei];
+        if (elem.polylines.size() < 2)
+            return true;
+        const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
+        const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
+        const bool is_top = d2_top <= d2_bot;
+        const double d2_min = is_top ? d2_top : d2_bot;
+        const size_t segment = is_top ? seg_top : seg_bot;
+        if (d2_min >= threshold)
+            return true;
+        const int slot = type < 0 ? (is_top ? 1 : 0) : static_cast<int>(2 + segment);
+        std::vector<int>& slots = out_joint_types[ei];
+        if (slot >= 0 && slot < static_cast<int>(slots.size()))
+            slots[slot] = std::abs(type);
+        return true;
+    }
+};
+
+/// R-tree visitor for one insertion line: writes its direction into the side slot of every plate whose nearest outline segment lies within threshold.
+struct InsertionSlotVisitor {
+    const std::vector<std::shared_ptr<Plate>>& elements;      // the plates the r-tree indexes
+    const Point& point;                                       // the line start
+    const Vector& direction;                                  // the line vector
+    double threshold;                                         // squared distance limit
+    std::vector<std::vector<Vector>>& out_insertion_vectors;  // one slot list per plate
+
+    bool operator()(const int ei) const {
+        const Plate& elem = *elements[ei];
+        if (elem.polylines.size() < 2)
+            return true;
+        const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
+        const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
+        const double d2_min = std::min(d2_top, d2_bot);
+        const size_t segment = d2_top <= d2_bot ? seg_top : seg_bot;
+        if (d2_min >= threshold)
+            return true;
+        std::vector<Vector>& slots = out_insertion_vectors[ei];
+        const int slot = static_cast<int>(segment + 2);
+        if (slot < static_cast<int>(slots.size()))
+            slots[slot] = direction;
+        return true;
+    }
+};
+
 }  // namespace
 
 void assign_joint(
@@ -96,23 +149,7 @@ void assign_joint(
         const int type = point_types[pi];
         const double qmin[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-        rtree.search(qmin, qmax, [&](const int ei) -> bool {
-            const Plate& elem = *elements[ei];
-            if (elem.polylines.size() < 2)
-                return true;
-            const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
-            const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
-            const bool is_top = d2_top <= d2_bot;
-            const double d2_min = is_top ? d2_top : d2_bot;
-            const size_t segment = is_top ? seg_top : seg_bot;
-            if (d2_min >= threshold)
-                return true;
-            const int slot = type < 0 ? (is_top ? 1 : 0) : static_cast<int>(2 + segment);
-            std::vector<int>& slots = out_joint_types[ei];
-            if (slot >= 0 && slot < static_cast<int>(slots.size()))
-                slots[slot] = std::abs(type);
-            return true;
-        });
+        rtree.search(qmin, qmax, JointSlotVisitor{elements, point, type, threshold, out_joint_types});
     }
 }
 
@@ -141,22 +178,7 @@ void assign_insertion(
         const Vector direction = line.to_vector();
         const double qmin[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-        rtree.search(qmin, qmax, [&](const int ei) -> bool {
-            const Plate& elem = *elements[ei];
-            if (elem.polylines.size() < 2)
-                return true;
-            const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
-            const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
-            const double d2_min = std::min(d2_top, d2_bot);
-            const size_t segment = d2_top <= d2_bot ? seg_top : seg_bot;
-            if (d2_min >= threshold)
-                return true;
-            std::vector<Vector>& slots = out_insertion_vectors[ei];
-            const int slot = static_cast<int>(segment + 2);
-            if (slot < static_cast<int>(slots.size()))
-                slots[slot] = direction;
-            return true;
-        });
+        rtree.search(qmin, qmax, InsertionSlotVisitor{elements, point, direction, threshold, out_insertion_vectors});
     }
 }
 

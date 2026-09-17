@@ -24,11 +24,11 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     Polyline pp0 = bot;
     Polyline pp1 = top;
     if (pp0.point_count() < 3 || pp1.point_count() < 3) {
-        fmt::print(stderr, "  WARNING: WoodElement built from outlines with {}/{} points (need >= 3 each) - element left empty.\n", pp0.point_count(), pp1.point_count());
+        std::cerr << fmt::format("  WARNING: WoodElement built from outlines with {}/{} points (need >= 3 each) - element left empty.\n", pp0.point_count(), pp1.point_count());
         return;
     }
     if (pp1.point_count() < pp0.point_count()) {
-        fmt::print(stderr, "  WARNING: WoodElement top outline has {} points but bottom has {} - element left empty (side faces would index past the end).\n", pp1.point_count(), pp0.point_count());
+        std::cerr << fmt::format("  WARNING: WoodElement top outline has {} points but bottom has {} - element left empty (side faces would index past the end).\n", pp1.point_count(), pp0.point_count());
         return;
     }
 
@@ -309,12 +309,14 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
     return plate;
 }
 
+/// The element factory of a serialized plate: the protobuf bytes decoded as an Element and promoted to a Plate.
+static std::shared_ptr<Element> plate_from_protobuf(const std::string& data) {
+    return Plate::from_element(Element::pb_loads(data));
+}
+
 void Plate::register_type() {
-    const Element::Factory factory = [](const std::string& data) -> std::shared_ptr<Element> {
-        return from_element(Element::pb_loads(data));
-    };
-    Element::register_type(ELEMENT_TYPE, factory);
-    Element::register_type(LEGACY_ELEMENT_TYPE, factory);
+    Element::register_type(ELEMENT_TYPE, plate_from_protobuf);
+    Element::register_type(LEGACY_ELEMENT_TYPE, plate_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

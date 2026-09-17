@@ -85,6 +85,11 @@ ContactElement::ContactElement(Element& element) : name(element.name) {
     planes = element.planes();
 }
 
+/// Whether element i takes part in the search: every element when no names were given, else only the named ones.
+static bool element_included(const std::vector<ContactElement>& elements, const std::unordered_set<std::string>& wanted, size_t i) {
+    return wanted.empty() || wanted.count(elements[i].name) != 0;
+}
+
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<ContactElement>& elements,
     double inflate,
@@ -97,16 +102,13 @@ std::vector<std::pair<int, int>> adjacency_search(
         return pairs;
 
     const std::unordered_set<std::string> wanted(names.begin(), names.end());
-    auto included = [&elements, &wanted](size_t i) {
-        return wanted.empty() || wanted.count(elements[i].name) != 0;
-    };
 
     std::vector<OBB> obbs(n_el);
     std::vector<AABB> aabbs(n_el);
     std::vector<Point> corners;
     for (size_t i = 0; i < n_el; i++) {
 
-        if (!included(i))
+        if (!element_included(elements, wanted, i))
             continue;
 
         corners.clear();
@@ -133,11 +135,11 @@ std::vector<std::pair<int, int>> adjacency_search(
 
     for (size_t i = 0; i < n_el; i++) {
 
-        if (!included(i))
+        if (!element_included(elements, wanted, i))
             continue;
 
         for (int j : bvh.query_aabb(aabbs[i]))
-            if ((int)i < j && included((size_t)j) && obbs[i].collides_with(obbs[j]))
+            if ((int)i < j && element_included(elements, wanted, (size_t)j) && obbs[i].collides_with(obbs[j]))
                 pairs.emplace_back((int)i, j);
     }
 
@@ -177,6 +179,25 @@ bool faces_coplanar(
     return (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
 }
 
+/// An outline as a Clipper path in the plane's 2D frame, scaled to integers and without its closing vertex.
+static Clipper2Lib::Path64 outline_to_clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, double scale) {
+
+    Clipper2Lib::Path64 path;
+    const size_t n = open_count(outline);
+    path.reserve(n);
+    for (size_t k = 0; k < n; ++k) {
+        const Vector d = outline.get_point(k) - origin;
+        const double u = d.dot(x_axis);
+        const double v = d.dot(y_axis);
+        path.emplace_back(
+            static_cast<int64_t>(std::llround(u * scale)),
+            static_cast<int64_t>(std::llround(v * scale))
+        );
+    }
+
+    return path;
+}
+
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
@@ -192,24 +213,8 @@ bool face_overlap_area(
     const Vector yax = plane0.base2();
     const double scale = static_cast<double>(globals::CLIPPER_SCALE);
 
-    auto to_path = [&](const Polyline& pl) {
-        Clipper2Lib::Path64 path;
-        const size_t n = open_count(pl);
-        path.reserve(n);
-        for (size_t k = 0; k < n; ++k) {
-            const Vector d = pl.get_point(k) - origin;
-            const double u = d.dot(xax);
-            const double v = d.dot(yax);
-            path.emplace_back(
-                static_cast<int64_t>(std::llround(u * scale)),
-                static_cast<int64_t>(std::llround(v * scale))
-            );
-        }
-        return path;
-    };
-
-    const Clipper2Lib::Paths64 subject{to_path(outline0)};
-    const Clipper2Lib::Paths64 clip{to_path(outline1)};
+    const Clipper2Lib::Paths64 subject{outline_to_clipper_path(outline0, origin, xax, yax, scale)};
+    const Clipper2Lib::Paths64 clip{outline_to_clipper_path(outline1, origin, xax, yax, scale)};
     const Clipper2Lib::Paths64 solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero);
 
     if (solution.empty())

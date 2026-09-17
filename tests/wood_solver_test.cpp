@@ -18,7 +18,7 @@ static void check(bool condition, const char* name) {
     if (condition)
         return;
 
-    std::fprintf(stderr, "FAIL %s\n", name);
+    std::cerr << "FAIL " << name << "\n";
     ++failures;
 }
 
@@ -217,7 +217,7 @@ int main() {
         dataset_tolerance(folder);
         beam_geometry(folder);
     } catch (const std::exception& error) {
-        std::fprintf(stderr, "FAIL %s\n", error.what());
+        std::cerr << "FAIL " << error.what() << "\n";
         ++failures;
     }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <cstdio>
 #include "session.h"
 #include "polyline.h"
@@ -152,6 +153,31 @@ private:
     };
 
     struct CutPlane { Point org; Vector n; };
+    struct FELine { Point from, to; Vector dir; };  // one face-edge centerline
+    using EdgeKey = std::pair<size_t, size_t>;  // sorted vertex pair of a mesh edge
+    using EdgeToFaceEdges = std::map<EdgeKey, std::vector<std::pair<int,int>>>;  // edge → [(face_idx, local_edge_idx), …]
+
+    /// One box corner: p offset by sr times r and by sn times nn.
+    static Point corner_point(const Point& p, const Vector& r, int sr,
+                              const Vector& nn, int sn)
+    {
+        return Point(p[0] + sr*r[0] + sn*nn[0],
+                     p[1] + sr*r[1] + sn*nn[1],
+                     p[2] + sr*r[2] + sn*nn[2]);
+    }
+
+    /// Where the ray from origin along direction meets the cut plane; origin itself when they are parallel.
+    static Point ray_plane_intersection(const Point& origin, const Vector& direction, const CutPlane& cut)
+    {
+
+        double denom = cut.n[0]*direction[0] + cut.n[1]*direction[1] + cut.n[2]*direction[2];
+        if (std::abs(denom) < 1e-10) return origin;  // parallel → no cut
+
+        double t = ((cut.org[0]-origin[0])*cut.n[0] +
+                    (cut.org[1]-origin[1])*cut.n[1] +
+                    (cut.org[2]-origin[2])*cut.n[2]) / denom;
+        return Point(origin[0]+t*direction[0], origin[1]+t*direction[1], origin[2]+t*direction[2]);
+    }
 
     // Build a box beam whose ends are cut by arbitrary planes (not flat perpendicular caps).
     // Each of the 4 corner rays (parallel to bdir, offset by ±right, ±up) is intersected
@@ -171,25 +197,12 @@ private:
         const int sr[4] = {-1, +1, +1, -1};
         const int sn[4] = {-1, -1, +1, +1};
 
-        auto isect = [&](const CutPlane& cp, int k) -> Point {
-
-            // Ray: (ref + sr*right + sn*n_up) + t*bdir
-            Point ro(ref[0] + sr[k]*right[0] + sn[k]*n_up[0],
-                     ref[1] + sr[k]*right[1] + sn[k]*n_up[1],
-                     ref[2] + sr[k]*right[2] + sn[k]*n_up[2]);
-            double denom = cp.n[0]*bdir[0] + cp.n[1]*bdir[1] + cp.n[2]*bdir[2];
-            if (std::abs(denom) < 1e-10) return ro;  // parallel → no cut
-
-            double t = ((cp.org[0]-ro[0])*cp.n[0] +
-                        (cp.org[1]-ro[1])*cp.n[1] +
-                        (cp.org[2]-ro[2])*cp.n[2]) / denom;
-            return Point(ro[0]+t*bdir[0], ro[1]+t*bdir[1], ro[2]+t*bdir[2]);
-        };
-
         std::array<Point, 4> sc, ec;
         for (int k = 0; k < 4; k++) {
-            sc[k] = isect(cp_from, k);
-            ec[k] = isect(cp_to,   k);
+            // Ray: (ref + sr*right + sn*n_up) + t*bdir
+            Point ro = corner_point(ref, right, sr[k], n_up, sn[k]);
+            sc[k] = ray_plane_intersection(ro, bdir, cp_from);
+            ec[k] = ray_plane_intersection(ro, bdir, cp_to);
         }
 
         std::vector<Point> pts = {
@@ -230,24 +243,17 @@ private:
         right = right.normalized() * (w * 0.5);
         Vector n = up * (h * 0.5);
 
-        auto corner = [](const Point& p, const Vector& r, int sr,
-                         const Vector& nn, int sn) {
-            return Point(p[0] + sr*r[0] + sn*nn[0],
-                         p[1] + sr*r[1] + sn*nn[1],
-                         p[2] + sr*r[2] + sn*nn[2]);
-        };
-
         std::array<Point, 4> sc = {
-            corner(from, right, -1, n, -1),
-            corner(from, right, +1, n, -1),
-            corner(from, right, +1, n, +1),
-            corner(from, right, -1, n, +1),
+            corner_point(from, right, -1, n, -1),
+            corner_point(from, right, +1, n, -1),
+            corner_point(from, right, +1, n, +1),
+            corner_point(from, right, -1, n, +1),
         };
         std::array<Point, 4> ec = {
-            corner(to, right, -1, n, -1),
-            corner(to, right, +1, n, -1),
-            corner(to, right, +1, n, +1),
-            corner(to, right, -1, n, +1),
+            corner_point(to, right, -1, n, -1),
+            corner_point(to, right, +1, n, -1),
+            corner_point(to, right, +1, n, +1),
+            corner_point(to, right, -1, n, +1),
         };
 
         std::vector<Point> pts = {
@@ -273,6 +279,89 @@ private:
         return bg;
     }
 
+    /// Opposite half-edge: (fi, fj) → (fi2, fj2) in the adjacent face, nullopt on a boundary edge.
+    static std::optional<std::pair<int,int>> opposite_face(const std::vector<std::vector<size_t>>& faces,
+                                                           const EdgeToFaceEdges& edge_to_fe,
+                                                           int fi, int fj)
+    {
+
+        const std::vector<size_t>& fv = faces[fi];
+        int n = (int)fv.size();
+        size_t u = fv[fj], v = fv[(fj+1)%n];
+        auto it = edge_to_fe.find({std::min(u,v), std::max(u,v)});
+        if (it == edge_to_fe.end()) return std::nullopt;
+
+        for (auto& [fi2, fj2] : it->second)
+            if (fi2 != fi) return std::make_pair(fi2, fj2);
+
+        return std::nullopt;  // boundary edge
+    }
+
+    /// Interior cut: the side face of the crossing beam (ci, cj), offset by half the beam width and
+    /// signed towards our_center. Falls back to a flat perpendicular cap at `endpoint` when the computed
+    /// normal is ⊥ to our beam (degenerate intersection — happens at cone apex where cutting beam is parallel to ours).
+    static CutPlane cut_plane(const std::vector<std::vector<FELine>>& EF,
+                              const std::vector<Vector>& face_norms,
+                              int i, const Vector& bdir, const Point& our_center,
+                              double beam_w, double cut_offset_factor,
+                              int ci, int cj, const Point& endpoint)
+    {
+
+        Vector cup = face_norms[ci];
+        if (cup[2] < 0) cup = Vector(-cup[0], -cup[1], -cup[2]);
+        Vector raw = EF[ci][cj].dir.cross(cup);
+        double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
+        if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
+        else             raw = EF[ci][cj].dir.cross(face_norms[i]);
+        // Degenerate: cut plane normal ~perpendicular to beam
+        // direction -> flat cap fallback. NOTE the breadth of
+        // this net: cos(angle) < 0.15 means any crossing beam
+        // within ~8.6 deg of perpendicular to our cut normal
+        // (i.e. up to ~81 deg from the beam axis) gets a flat
+        // cap instead of the angled interlock. Kept at the
+        // historical value for output stability; tighten
+        // deliberately if flat caps appear where interlocks are
+        // expected.
+        constexpr double FLAT_CAP_ALIGNMENT_THRESHOLD = 0.15;
+        double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
+        if (alignment < FLAT_CAP_ALIGNMENT_THRESHOLD) return {endpoint, bdir};
+
+        Point org = Point::mid_point(EF[ci][cj].from, EF[ci][cj].to);
+        double dot = (our_center[0]-org[0])*raw[0]
+                   + (our_center[1]-org[1])*raw[1]
+                   + (our_center[2]-org[2])*raw[2];
+        if (dot < 0) raw = Vector(-raw[0], -raw[1], -raw[2]);
+
+        // cut_offset_factor was accepted by both constructors
+        // and silently dropped; ReciprocalRotation applies it to
+        // the face offset, so mirror that here. Default 1.0
+        // preserves all existing output.
+        const double face_off = beam_w * 0.5 * cut_offset_factor;
+        Point face_org(org[0] + face_off*raw[0],
+                       org[1] + face_off*raw[1],
+                       org[2] + face_off*raw[2]);
+
+        return {face_org, raw};
+    }
+
+    /// Boundary cut: plane at the beam endpoint, normal = cross(boundary_edge_dir, face_normal).
+    /// Same degenerate fallback as cut_plane.
+    static CutPlane boundary_cut_plane(const std::vector<std::vector<FELine>>& EF,
+                                       const std::vector<Vector>& face_norms,
+                                       int i, const Vector& bdir,
+                                       int adj_j, const Point& endpoint)
+    {
+
+        const Vector& edge_dir = EF[i][adj_j].dir;
+        Vector raw = edge_dir.cross(face_norms[i]);
+        double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
+        if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
+        double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
+        if (alignment < 0.15) return {endpoint, bdir};  // see FLAT_CAP note in cut_plane
+
+        return {endpoint, raw};
+    }
+
     // ── main build ───────────────────────────────────────────────────────────
 
     void _build(const Mesh& m, double angle, double beam_w, double beam_h,
@@ -289,8 +378,7 @@ private:
         int nf = (int)faces.size();
 
         // ── edge → [(face_idx, local_edge_idx), …] ──
-        using EdgeKey = std::pair<size_t, size_t>;
-        std::map<EdgeKey, std::vector<std::pair<int,int>>> edge_to_fe;
+        EdgeToFaceEdges edge_to_fe;
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
             for (int j = 0; j < n; j++) {
@@ -298,23 +386,6 @@ private:
                 edge_to_fe[{std::min(u,v), std::max(u,v)}].emplace_back(i, j);
             }
         }
-
-        // Opposite half-edge: (fi, fj) → (fi2, fj2) in the adjacent face.
-        auto get_opp = [&](int fi, int fj)
-            -> std::optional<std::pair<int,int>>
-        {
-
-            const std::vector<size_t>& fv = faces[fi];
-            int n = (int)fv.size();
-            size_t u = fv[fj], v = fv[(fj+1)%n];
-            auto it = edge_to_fe.find({std::min(u,v), std::max(u,v)});
-            if (it == edge_to_fe.end()) return std::nullopt;
-
-            for (auto& [fi2, fj2] : it->second)
-                if (fi2 != fi) return std::make_pair(fi2, fj2);
-
-            return std::nullopt;  // boundary edge
-        };
 
         // ── FEFlatten: sequential half-edge IDs ──
         // FEFlat[i][j] = global half-edge index (same as C# FEFlatten)
@@ -339,7 +410,7 @@ private:
                 int id = FEFlat[i][j];
                 he_adj[id].push_back(FEFlat[i][(j+1)%n]);
                 he_adj[id].push_back(FEFlat[i][(j-1+n)%n]);
-                std::optional<std::pair<int,int>> opp = get_opp(i, j);
+                std::optional<std::pair<int,int>> opp = opposite_face(faces, edge_to_fe, i, j);
                 if (opp) he_adj[id].push_back(FEFlat[opp->first][opp->second]);
             }
         }
@@ -378,17 +449,11 @@ private:
                 }
             }
 
-            if (conflict) {
-                fprintf(stderr,
-                        "  WARNING: ReciprocalMove half-edge 2-coloring found an odd "
-                        "cycle (non-quad face) - beam selection may be inconsistent. "
-                        "Use an even-gon (quad) mesh.\n");
-                fflush(stderr);
-            }
+            if (conflict)
+                std::cerr << "  WARNING: ReciprocalMove half-edge 2-coloring found an odd cycle (non-quad face) - beam selection may be inconsistent. Use an even-gon (quad) mesh." << std::endl;
         }
 
         // ── build face-edge centerlines (raw mesh vertices, no extension) ──
-        struct FELine { Point from, to; Vector dir; };
         std::vector<std::vector<FELine>> EF(nf);
 
         for (int i = 0; i < nf; i++) {
@@ -442,13 +507,13 @@ private:
                 const FELine cur = EF[i][j];  // local copy before in-place modification
 
                 // Trim TO: opposite of next edge, fallback to same-face next
-                std::optional<std::pair<int,int>> opp_next = get_opp(i, (j+1)%n);
+                std::optional<std::pair<int,int>> opp_next = opposite_face(faces, edge_to_fe, i, (j+1)%n);
                 int tni = opp_next ? opp_next->first  : i;
                 int tnj = opp_next ? opp_next->second : (j+1)%n;
                 EF[i][j].to = _lcp1(cur.from, cur.dir, EF[tni][tnj].from, EF[tni][tnj].dir);
 
                 // Trim FROM: opposite of prev edge, fallback to same-face prev
-                std::optional<std::pair<int,int>> opp_prev = get_opp(i, (j-1+n)%n);
+                std::optional<std::pair<int,int>> opp_prev = opposite_face(faces, edge_to_fe, i, (j-1+n)%n);
                 int tpi = opp_prev ? opp_prev->first  : i;
                 int tpj = opp_prev ? opp_prev->second : (j-1+n)%n;
                 EF[i][j].from = _lcp1(cur.from, cur.dir, EF[tpi][tpj].from, EF[tpi][tpj].dir);
@@ -459,14 +524,6 @@ private:
         std::vector<Vector> face_norms(nf);
         for (int i = 0; i < nf; i++)
             face_norms[i] = _face_normal(pts, faces[i]);
-
-        // ── helpers for plane-based end cutting ──
-        auto cross3 = [](const Vector& a, const Vector& b) -> Vector {
-            return Vector(a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]);
-        };
-        auto midpt = [](const Point& a, const Point& b) -> Point {
-            return Point((a[0]+b[0])*0.5, (a[1]+b[1])*0.5, (a[2]+b[2])*0.5);
-        };
 
         // ── build box beams: interior color-0 edges, ends cut by crossing beam planes ──
         // Matches C# Beams2:
@@ -484,81 +541,27 @@ private:
                 if (edgeColors[FEFlat[i][j]] != 0) continue;
 
                 // Skip boundary beams (C# Beams2: if (!p.M.IsNaked(fe[j])))
-                if (!get_opp(i, j)) continue;
+                if (!opposite_face(faces, edge_to_fe, i, j)) continue;
 
                 // Cutting beams come from the prev/next edges of OUR face:
                 //   FROM end cut: prev edge (j-1) → its opposite face beam
                 //   TO   end cut: next edge (j+1) → its opposite face beam
-                std::optional<std::pair<int,int>> op_to   = get_opp(i, (j + 1) % n);
-                std::optional<std::pair<int,int>> op_from = get_opp(i, (j - 1 + n) % n);
+                std::optional<std::pair<int,int>> op_to   = opposite_face(faces, edge_to_fe, i, (j + 1) % n);
+                std::optional<std::pair<int,int>> op_from = opposite_face(faces, edge_to_fe, i, (j - 1 + n) % n);
 
                 // Interior cut: crossing beam's side face (normal = crossing_dir × crossing_up, signed).
                 // Use OUR beam's center (not endpoint) for sign selection — more stable.
-                Point our_center = midpt(EF[i][j].from, EF[i][j].to);
+                Point our_center = Point::mid_point(EF[i][j].from, EF[i][j].to);
                 const Vector& bdir = EF[i][j].dir;
 
-                // Interior cut: crossing beam's side face. Falls back to flat perpendicular
-                // cap at `endpoint` when the computed normal is ⊥ to our beam (degenerate
-                // intersection — happens at cone apex where cutting beam is parallel to ours).
-                auto make_cut_plane = [&](int ci, int cj, const Point& endpoint) -> CutPlane {
-
-                    Vector cup = face_norms[ci];
-                    if (cup[2] < 0) cup = Vector(-cup[0], -cup[1], -cup[2]);
-                    Vector raw = cross3(EF[ci][cj].dir, cup);
-                    double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
-                    if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
-                    else             raw = cross3(EF[ci][cj].dir, face_norms[i]);
-                    // Degenerate: cut plane normal ~perpendicular to beam
-                    // direction -> flat cap fallback. NOTE the breadth of
-                    // this net: cos(angle) < 0.15 means any crossing beam
-                    // within ~8.6 deg of perpendicular to our cut normal
-                    // (i.e. up to ~81 deg from the beam axis) gets a flat
-                    // cap instead of the angled interlock. Kept at the
-                    // historical value for output stability; tighten
-                    // deliberately if flat caps appear where interlocks are
-                    // expected.
-                    constexpr double FLAT_CAP_ALIGNMENT_THRESHOLD = 0.15;
-                    double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
-                    if (alignment < FLAT_CAP_ALIGNMENT_THRESHOLD) return {endpoint, bdir};
-
-                    Point org = midpt(EF[ci][cj].from, EF[ci][cj].to);
-                    double dot = (our_center[0]-org[0])*raw[0]
-                               + (our_center[1]-org[1])*raw[1]
-                               + (our_center[2]-org[2])*raw[2];
-                    if (dot < 0) raw = Vector(-raw[0], -raw[1], -raw[2]);
-
-                    // cut_offset_factor was accepted by both constructors
-                    // and silently dropped; ReciprocalRotation applies it to
-                    // the face offset, so mirror that here. Default 1.0
-                    // preserves all existing output.
-                    const double face_off = beam_w * 0.5 * cut_offset_factor;
-                    Point face_org(org[0] + face_off*raw[0],
-                                   org[1] + face_off*raw[1],
-                                   org[2] + face_off*raw[2]);
-
-                    return {face_org, raw};
-                };
-
-                // Boundary cut: plane at beam endpoint, normal = cross(boundary_edge_dir, face_normal).
-                // Same degenerate fallback as above.
-                auto make_boundary_cut_plane = [&](int adj_j, const Point& endpoint) -> CutPlane {
-
-                    const Vector& edge_dir = EF[i][adj_j].dir;
-                    Vector raw = cross3(edge_dir, face_norms[i]);
-                    double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
-                    if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
-                    double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
-                    if (alignment < 0.15) return {endpoint, bdir};  // see FLAT_CAP note above
-
-                    return {endpoint, raw};
-                };
-
                 CutPlane cp_to   = op_to
-                    ? make_cut_plane(op_to->first,   op_to->second,   EF[i][j].to)
-                    : make_boundary_cut_plane((j + 1) % n,             EF[i][j].to);
+                    ? cut_plane(EF, face_norms, i, bdir, our_center, beam_w, cut_offset_factor,
+                                op_to->first, op_to->second, EF[i][j].to)
+                    : boundary_cut_plane(EF, face_norms, i, bdir, (j + 1) % n, EF[i][j].to);
                 CutPlane cp_from = op_from
-                    ? make_cut_plane(op_from->first, op_from->second, EF[i][j].from)
-                    : make_boundary_cut_plane((j - 1 + n) % n,        EF[i][j].from);
+                    ? cut_plane(EF, face_norms, i, bdir, our_center, beam_w, cut_offset_factor,
+                                op_from->first, op_from->second, EF[i][j].from)
+                    : boundary_cut_plane(EF, face_norms, i, bdir, (j - 1 + n) % n, EF[i][j].from);
                 BeamGeom bg = _make_beam_cut(EF[i][j].from, bdir, up,
                                              beam_w, beam_h, cp_from, cp_to);
                 if (bg.mesh.number_of_vertices() == 0) continue;

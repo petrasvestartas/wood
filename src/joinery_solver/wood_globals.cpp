@@ -128,6 +128,37 @@ std::vector<double> parse_doubles(const std::vector<std::string>& xs) {
     return out;
 }
 
+/// The string value of a yaml key; TinyYaml null-derefs on a bare `key:`, so a present key without a value is an error.
+std::string yaml_string(TINY_YAML::Yaml& y, const char* key) {
+
+    if (!y[key].hasData())
+        throw std::runtime_error(std::string("globals_yaml: key '") + key + "' is present but has no value");
+
+    return y[key].getData<std::string>();
+}
+
+/// The list-of-strings value of a yaml key; a present key without a value is an error.
+std::vector<std::string> yaml_string_list(TINY_YAML::Yaml& y, const char* key) {
+
+    if (!y[key].hasData())
+        throw std::runtime_error(std::string("globals_yaml: key '") + key + "' is present but has no value");
+
+    return y[key].getData<std::vector<std::string>>();
+}
+
+/// A file key resolved relative to the yaml into out; naming a file that is not there is an error.
+void yaml_file(TINY_YAML::Yaml& y, const std::filesystem::path& path, const char* key, std::string& out) {
+
+    if (!y.has(key))
+        return;
+
+    const std::filesystem::path p = path.parent_path() / yaml_string(y, key);
+    if (!std::filesystem::exists(p))
+        throw std::runtime_error(std::string("globals_yaml: ") + key + " names a missing file " + p.string());
+
+    out = p.string();
+}
+
 } // namespace
 
 std::string session_pb(size_t index) {
@@ -198,19 +229,8 @@ void globals_yaml(const std::string& dataset_name) {
     TINY_YAML::Yaml y(path.string());
 
     // Every read is gated by y.has(k) and hasData(): TinyYaml null-derefs on an absent key or a bare `key:`.
-    auto str = [&](const char* k) -> std::string {
-        if (!y[k].hasData())
-            throw std::runtime_error(std::string("globals_yaml: key '") + k + "' is present but has no value");
-        return y[k].getData<std::string>();
-    };
-    auto list = [&](const char* k) -> std::vector<std::string> {
-        if (!y[k].hasData())
-            throw std::runtime_error(std::string("globals_yaml: key '") + k + "' is present but has no value");
-        return y[k].getData<std::vector<std::string>>();
-    };
-
     if (y.has("joints_parameters_and_types")) {
-        const std::vector<std::string> jpt = list("joints_parameters_and_types");
+        const std::vector<std::string> jpt = yaml_string_list(y, "joints_parameters_and_types");
         if (!jpt.empty()) {
             std::vector<double> parsed = parse_doubles(jpt);
             if (parsed.size() < 21 || parsed.size() % 3 != 0)
@@ -222,7 +242,7 @@ void globals_yaml(const std::string& dataset_name) {
     }
 
     if (y.has("joint_volume_extension")) {
-        std::vector<double> parsed = parse_doubles(list("joint_volume_extension"));
+        std::vector<double> parsed = parse_doubles(yaml_string_list(y, "joint_volume_extension"));
         if (parsed.size() < 3 || parsed.size() % 3 != 0)
             throw std::runtime_error(
                 "globals_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
@@ -231,14 +251,14 @@ void globals_yaml(const std::string& dataset_name) {
     }
 
     if (y.has("joint_scale")) {
-        const std::vector<double> s = parse_doubles(list("joint_scale"));
+        const std::vector<double> s = parse_doubles(yaml_string_list(y, "joint_scale"));
         if (s.size() != 3)
             throw std::runtime_error("globals_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
         JOINT_SCALE = {s[0], s[1], s[2]};
     }
 
     if (y.has("search_type")) {
-        const std::string search = str("search_type");
+        const std::string search = yaml_string(y, "search_type");
         if (search == "face_to_face")
             SEARCH_TYPE = face_to_face;
         else if (search == "cross_joint")
@@ -250,46 +270,38 @@ void globals_yaml(const std::string& dataset_name) {
     }
 
     if (y.has("beams")) {
-        BEAMS = parse_doubles(list("beams"));
+        BEAMS = parse_doubles(yaml_string_list(y, "beams"));
         if (BEAMS.size() != 6)
             throw std::runtime_error("globals_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
     }
 
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(str("face_to_face_side_to_side_joints_dihedral_angle"));
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
     if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = parse_bool(str("face_to_face_side_to_side_joints_all_treated_as_rotated"));
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_all_treated_as_rotated"));
     if (y.has("face_to_face_side_to_side_joints_rotated_joint_as_average"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = parse_bool(str("face_to_face_side_to_side_joints_rotated_joint_as_average"));
+        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_rotated_joint_as_average"));
     if (y.has("distance"))
-        DISTANCE = std::stod(str("distance"));
+        DISTANCE = std::stod(yaml_string(y, "distance"));
     if (y.has("distance_squared"))
-        DISTANCE_SQUARED = std::stod(str("distance_squared"));
+        DISTANCE_SQUARED = std::stod(yaml_string(y, "distance_squared"));
     if (y.has("angle"))
-        ANGLE = std::stod(str("angle"));
+        ANGLE = std::stod(yaml_string(y, "angle"));
     if (y.has("duplicate_pts_tol"))
-        DUPLICATE_PTS_TOL = std::stod(str("duplicate_pts_tol"));
+        DUPLICATE_PTS_TOL = std::stod(yaml_string(y, "duplicate_pts_tol"));
     if (y.has("limit_min_joint_length"))
-        LIMIT_MIN_JOINT_LENGTH = std::stod(str("limit_min_joint_length"));
+        LIMIT_MIN_JOINT_LENGTH = std::stod(yaml_string(y, "limit_min_joint_length"));
     if (y.has("clipper_scale"))
-        CLIPPER_SCALE = std::stoll(str("clipper_scale"));
+        CLIPPER_SCALE = std::stoll(yaml_string(y, "clipper_scale"));
     if (y.has("clipper_area"))
-        CLIPPER_AREA = std::stod(str("clipper_area"));
+        CLIPPER_AREA = std::stod(yaml_string(y, "clipper_area"));
 
     // File keys resolve relative to the yaml; naming a file that is not there is an error.
-    auto file = [&](const char* k, std::string& out) {
-        if (!y.has(k))
-            return;
-        const std::filesystem::path p = path.parent_path() / str(k);
-        if (!std::filesystem::exists(p))
-            throw std::runtime_error(std::string("globals_yaml: ") + k + " names a missing file " + p.string());
-        out = p.string();
-    };
-    file("obj", DATA_SET_OBJ);
-    file("adjacency", DATA_SET_ADJACENCY);
-    file("three_valence", DATA_SET_THREE_VALENCE);
-    file("insertion_vectors", DATA_SET_INSERTION_VECTORS);
-    file("joints_types", DATA_SET_JOINTS_TYPES);
+    yaml_file(y, path, "obj", DATA_SET_OBJ);
+    yaml_file(y, path, "adjacency", DATA_SET_ADJACENCY);
+    yaml_file(y, path, "three_valence", DATA_SET_THREE_VALENCE);
+    yaml_file(y, path, "insertion_vectors", DATA_SET_INSERTION_VECTORS);
+    yaml_file(y, path, "joints_types", DATA_SET_JOINTS_TYPES);
 
     DATA_SET_INPUT_NAME = path.stem().string();
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";

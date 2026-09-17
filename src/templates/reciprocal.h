@@ -46,6 +46,17 @@ private:
 // in-class declaration only.
 // ---------------------------------------------------------------------------
 
+/// Orders point indices by their closest-point parameter along line.
+struct ClosestParameterLess {
+    const Line&               line;    // the line the parameters are measured on
+    const std::vector<Point>& points;  // the points the indices refer to
+
+    bool operator()(int a, int b) const {
+        return line.closest_point(points[a], false).first <
+               line.closest_point(points[b], false).first;
+    }
+};
+
 inline std::vector<Line> Reciprocal::get_lines(
     const std::vector<Line>&             lines,
     const std::vector<Plane>&            lp,
@@ -98,10 +109,7 @@ inline std::vector<Line> Reciprocal::get_lines(
         int np = (int)pts[ei].size();
         std::vector<int> ids(np);
         std::iota(ids.begin(), ids.end(), 0);
-        std::sort(ids.begin(), ids.end(), [&](int a, int b) {
-            return moved[ei].closest_point(pts[ei][a], false).first <
-                   moved[ei].closest_point(pts[ei][b], false).first;
-        });
+        std::sort(ids.begin(), ids.end(), ClosestParameterLess{moved[ei], pts[ei]});
 
         int s = ids[0];
         int e = ids.back();

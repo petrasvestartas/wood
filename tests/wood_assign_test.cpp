@@ -12,7 +12,7 @@ static void check(bool condition, const char* name) {
     if (condition)
         return;
 
-    std::fprintf(stderr, "FAIL %s\n", name);
+    std::cerr << "FAIL " << name << "\n";
     ++failures;
 }
 

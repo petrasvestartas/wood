@@ -4,7 +4,6 @@
 #include "wood_session.h"
 
 #include <cmath>
-#include <functional>
 #include <limits>
 #include <stdexcept>
 
@@ -56,12 +55,6 @@ public:
         std::vector<std::vector<size_t>> faces;
         size_t idx = 0;
 
-        std::function<void(const Point&, const Point&, const Point&)> add_tri = [&](const Point& a, const Point& b, const Point& c) {
-            pts.push_back(a); pts.push_back(b); pts.push_back(c);
-            faces.push_back({idx, idx + 1, idx + 2});
-            idx += 3;
-        };
-
         for (int i = 0; i < u_div; i++) {
             // u = u0 + i*su, not u += su: the accumulated form drifts by one
             // rounding step per cell across the surface.
@@ -87,19 +80,19 @@ public:
                 Point p8 = surface.point_at(u + su*0.5, v1);
 
                 if (j == 0) {
-                    add_tri(p1, p5, p7);
-                    add_tri(p7, p5, p0);
+                    add_triangle(pts, faces, idx, p1, p5, p7);
+                    add_triangle(pts, faces, idx, p7, p5, p0);
                 }
 
-                add_tri(p1, p3, p5);
-                add_tri(p0, p5, p2);
+                add_triangle(pts, faces, idx, p1, p3, p5);
+                add_triangle(pts, faces, idx, p0, p5, p2);
 
                 if (j != v_div - 1) {
-                    add_tri(p3, p4, p5);
-                    add_tri(p4, p2, p5);
+                    add_triangle(pts, faces, idx, p3, p4, p5);
+                    add_triangle(pts, faces, idx, p4, p2, p5);
                 } else {
-                    add_tri(p3, p8, p5);
-                    add_tri(p8, p2, p5);
+                    add_triangle(pts, faces, idx, p3, p8, p5);
+                    add_triangle(pts, faces, idx, p8, p2, p5);
                 }
             }
         }
@@ -172,6 +165,14 @@ public:
     }
 
 private:
+    /// Appends one triangle a, b, c as three fresh vertices and one face, advancing idx by three.
+    static void add_triangle(std::vector<Point>& pts, std::vector<std::vector<size_t>>& faces, size_t& idx,
+                             const Point& a, const Point& b, const Point& c) {
+        pts.push_back(a); pts.push_back(b); pts.push_back(c);
+        faces.push_back({idx, idx + 1, idx + 2});
+        idx += 3;
+    }
+
     static std::vector<bool> chamfer_mask(const std::vector<Point>& pts,
                                            double max_angle_deg) {
 

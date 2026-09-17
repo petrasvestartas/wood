@@ -28,12 +28,14 @@ std::shared_ptr<Block> Block::from_element(const Element& e) {
     return block;
 }
 
+/// The element factory of a serialized block: the protobuf bytes decoded as an Element and promoted to a Block.
+static std::shared_ptr<Element> block_from_protobuf(const std::string& data) {
+    return Block::from_element(Element::pb_loads(data));
+}
+
 void Block::register_type() {
-    const Element::Factory factory = [](const std::string& data) -> std::shared_ptr<Element> {
-        return from_element(Element::pb_loads(data));
-    };
-    Element::register_type(ELEMENT_TYPE, factory);
-    Element::register_type(LEGACY_ELEMENT_TYPE, factory);
+    Element::register_type(ELEMENT_TYPE, block_from_protobuf);
+    Element::register_type(LEGACY_ELEMENT_TYPE, block_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

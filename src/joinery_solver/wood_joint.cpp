@@ -46,6 +46,35 @@ Polyline from_coords(const nlohmann::json& data) {
     return Polyline(points);
 }
 
+/// Rings as bare coordinate arrays, one per ring.
+nlohmann::ordered_json rings_to_coords(const std::vector<Polyline>& rings) {
+
+    nlohmann::ordered_json array = nlohmann::ordered_json::array();
+    for (const Polyline& ring : rings)
+        array.push_back(to_coords(ring));
+
+    return array;
+}
+
+/// Rings read back from coordinate arrays.
+std::vector<Polyline> rings_from_coords(const nlohmann::json& data) {
+
+    std::vector<Polyline> rings;
+    for (const nlohmann::json& ring : data)
+        rings.push_back(from_coords(ring));
+
+    return rings;
+}
+
+/// A line read back from a two-point coordinate array; a degenerate line at the origin when fewer than two points came.
+Line line_from_coords(const nlohmann::json& data) {
+
+    const Polyline ring = from_coords(data);
+
+    return ring.point_count() >= 2 ? Line::from_points(ring.get_point(0), ring.get_point(1))
+                                   : Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
+}
+
 }  // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -134,12 +163,6 @@ std::array<ElementFeature, 2> WoodJoint::to_features() const {
 nlohmann::ordered_json WoodJoint::jsondump() const {
 
     using nlohmann::ordered_json;
-    auto rings = [](const std::vector<Polyline>& v) {
-        ordered_json a = ordered_json::array();
-        for (const Polyline& ring : v)
-            a.push_back(to_coords(ring));
-        return a;
-    };
 
     ordered_json volumes = ordered_json::array();
     for (const std::optional<Polyline>& v : joint_volumes_pair_a_pair_b)
@@ -164,8 +187,8 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
         {"joint_lines", {to_coords(Polyline({joint_lines[0].start(), joint_lines[0].end()})),
                          to_coords(Polyline({joint_lines[1].start(), joint_lines[1].end()}))}},
         {"joint_volumes", volumes},
-        {"male_outlines", {rings(male_outlines[0]), rings(male_outlines[1])}},
-        {"female_outlines", {rings(female_outlines[0]), rings(female_outlines[1])}},
+        {"male_outlines", {rings_to_coords(male_outlines[0]), rings_to_coords(male_outlines[1])}},
+        {"female_outlines", {rings_to_coords(female_outlines[0]), rings_to_coords(female_outlines[1])}},
         {"male_cut_types", {male_cut_types[0], male_cut_types[1]}},
         {"female_cut_types", {female_cut_types[0], female_cut_types[1]}},
         {"divisions", divisions},
@@ -186,17 +209,6 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
 WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
 
     WoodJoint j;
-    auto rings = [](const nlohmann::json& a) {
-        std::vector<Polyline> v;
-        for (const nlohmann::json& ring : a)
-            v.push_back(from_coords(ring));
-        return v;
-    };
-    auto line = [](const nlohmann::json& a) {
-        const Polyline ring = from_coords(a);
-        return ring.point_count() >= 2 ? Line::from_points(ring.get_point(0), ring.get_point(1))
-                                       : Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
-    };
 
     if (data.contains("el_ids")) {
         j.element_a = data["el_ids"][0];
@@ -216,8 +228,8 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
         j.contact.area = from_coords(data["joint_area"]);
 
     if (data.contains("joint_lines")) {
-        j.joint_lines[0] = line(data["joint_lines"][0]);
-        j.joint_lines[1] = line(data["joint_lines"][1]);
+        j.joint_lines[0] = line_from_coords(data["joint_lines"][0]);
+        j.joint_lines[1] = line_from_coords(data["joint_lines"][1]);
     }
 
     if (data.contains("joint_volumes")) {
@@ -233,9 +245,9 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
 
     for (int face = 0; face < 2; ++face) {
         if (data.contains("male_outlines"))
-            j.male_outlines[face] = rings(data["male_outlines"][face]);
+            j.male_outlines[face] = rings_from_coords(data["male_outlines"][face]);
         if (data.contains("female_outlines"))
-            j.female_outlines[face] = rings(data["female_outlines"][face]);
+            j.female_outlines[face] = rings_from_coords(data["female_outlines"][face]);
         if (data.contains("male_cut_types"))
             j.male_cut_types[face] = data["male_cut_types"][face].get<std::vector<int>>();
         if (data.contains("female_cut_types"))

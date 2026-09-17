@@ -3,30 +3,29 @@ static void ss_e_ip_0(WoodJoint& joint) {
 
     joint.name = "ss_e_ip_0";
 
-    auto P = [](double x, double y, double z) { return Point(x, y, z); };
     const double a = 0.357142857142857;
     const double b = 0.214285714285714;
     const double c = 0.0714285714285715;
 
     const std::vector<Polyline> minus = {
         Polyline({
-            P( 0.0,-0.5, a),  P(-0.5,-0.5, a),
-            P(-0.5,-0.5, b),  P( 0.5,-0.5, b),
-            P( 0.5,-0.5, c),  P(-0.5,-0.5, c),
-            P(-0.5,-0.5,-c),  P( 0.5,-0.5,-c),
-            P( 0.5,-0.5,-b),  P(-0.5,-0.5,-b),
-            P(-0.5,-0.5,-a),  P( 0.0,-0.5,-a)}),
-        Polyline({P( 0.0,-0.5, 0.5), P( 0.0,-0.5,-0.5)}),
+            Point( 0.0,-0.5, a),  Point(-0.5,-0.5, a),
+            Point(-0.5,-0.5, b),  Point( 0.5,-0.5, b),
+            Point( 0.5,-0.5, c),  Point(-0.5,-0.5, c),
+            Point(-0.5,-0.5,-c),  Point( 0.5,-0.5,-c),
+            Point( 0.5,-0.5,-b),  Point(-0.5,-0.5,-b),
+            Point(-0.5,-0.5,-a),  Point( 0.0,-0.5,-a)}),
+        Polyline({Point( 0.0,-0.5, 0.5), Point( 0.0,-0.5,-0.5)}),
     };
     const std::vector<Polyline> plus = {
         Polyline({
-            P( 0.0, 0.5, a),  P(-0.5, 0.5, a),
-            P(-0.5, 0.5, b),  P( 0.5, 0.5, b),
-            P( 0.5, 0.5, c),  P(-0.5, 0.5, c),
-            P(-0.5, 0.5,-c),  P( 0.5, 0.5,-c),
-            P( 0.5, 0.5,-b),  P(-0.5, 0.5,-b),
-            P(-0.5, 0.5,-a),  P( 0.0, 0.5,-a)}),
-        Polyline({P( 0.0, 0.5, 0.5), P( 0.0, 0.5,-0.5)}),
+            Point( 0.0, 0.5, a),  Point(-0.5, 0.5, a),
+            Point(-0.5, 0.5, b),  Point( 0.5, 0.5, b),
+            Point( 0.5, 0.5, c),  Point(-0.5, 0.5, c),
+            Point(-0.5, 0.5,-c),  Point( 0.5, 0.5,-c),
+            Point( 0.5, 0.5,-b),  Point(-0.5, 0.5,-b),
+            Point(-0.5, 0.5,-a),  Point( 0.0, 0.5,-a)}),
+        Polyline({Point( 0.0, 0.5, 0.5), Point( 0.0, 0.5,-0.5)}),
     };
 
     joint.female_outlines[0] = minus;

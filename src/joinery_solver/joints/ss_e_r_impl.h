@@ -1,3 +1,14 @@
+/// A profile of xyz points shifted along z.
+static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_offset) {
+
+    std::vector<Point> v;
+    v.reserve(n);
+    for (int k = 0; k < n; k++)
+        v.emplace_back(pts[k][0], pts[k][1], pts[k][2] + z_offset);
+
+    return Polyline(v);
+}
+
 /// ss_e_r_2/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
 /// every joint volume rebuilt as a 120*shift square. unit_scale_distance must already hold the element thickness.
 static void ss_e_r_impl(
@@ -23,18 +34,10 @@ static void ss_e_r_impl(
     for (int i = 0; i < divisions; i++) {
 
         const double z_off = z0 - step * i;
-        auto make_poly = [&](const double pts[][3], int n) {
-            std::vector<Point> v;
-            v.reserve(n);
-            for (int k = 0; k < n; k++)
-                v.emplace_back(pts[k][0], pts[k][1], pts[k][2] + z_off);
-            return Polyline(v);
-        };
-
-        const Polyline pm0 = make_poly(m0, m0n);
-        const Polyline pm1 = make_poly(m1, m1n);
-        const Polyline pf0 = make_poly(f0, f0n);
-        const Polyline pf1 = make_poly(f1, f1n);
+        const Polyline pm0 = profile_shifted_along_z(m0, m0n, z_off);
+        const Polyline pm1 = profile_shifted_along_z(m1, m1n, z_off);
+        const Polyline pf0 = profile_shifted_along_z(f0, f0n, z_off);
+        const Polyline pf1 = profile_shifted_along_z(f1, f1n, z_off);
 
         joint.male_outlines[0].push_back(pm0);
         joint.male_outlines[0].push_back(pm0);

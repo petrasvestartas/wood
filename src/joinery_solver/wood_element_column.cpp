@@ -52,10 +52,13 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
     return column;
 }
 
+/// The element factory of a serialized column: the protobuf bytes decoded as an Element and promoted to a Column.
+static std::shared_ptr<Element> column_from_protobuf(const std::string& data) {
+    return Column::from_element(Element::pb_loads(data));
+}
+
 void Column::register_type() {
-    Element::register_type(ELEMENT_TYPE, [](const std::string& data) -> std::shared_ptr<Element> {
-        return from_element(Element::pb_loads(data));
-    });
+    Element::register_type(ELEMENT_TYPE, column_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

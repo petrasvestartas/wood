@@ -312,8 +312,8 @@ void beam_volumes_pipeline(
     session.pb_dump((base / pb_name).string());
 
     if (TRACE) {
-        fmt::print("\n=== beam_volumes_pipeline ===\n");
-        fmt::print("{} axes -> {} contacts -> {} volumes ({} failed)\n", axes.size(), n_pairs, n_success, n_failed);
-        fmt::print("  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n", counts[0], counts[1], counts[2], counts[3], counts[4], counts[5]);
+        std::cout << fmt::format("\n=== beam_volumes_pipeline ===\n");
+        std::cout << fmt::format("{} axes -> {} contacts -> {} volumes ({} failed)\n", axes.size(), n_pairs, n_success, n_failed);
+        std::cout << fmt::format("  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n", counts[0], counts[1], counts[2], counts[3], counts[4], counts[5]);
     }
 }

@@ -84,7 +84,7 @@ int joint_family(const int id, const int joint_type) {
 void warn_unimplemented(const int id, const char* family) {
     static thread_local std::set<int> warned_ids;
     if (warned_ids.insert(id).second)
-        fmt::print(stderr, "joint_create_geometry: id={} ({}) not ported, using family default\n", id, family);
+        std::cerr << fmt::format("joint_create_geometry: id={} ({}) not ported, using family default\n", id, family);
 }
 
 /// Family 0, side-to-side in-plane: ss_e_ip_* by id.
@@ -295,7 +295,7 @@ std::vector<std::pair<int, int>> read_adjacency_sidecar(const std::string& adjac
         adjacency_pairs.emplace_back(a, b);
 
     if (TRACE)
-        fmt::print("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adjacency_name);
+        std::cout << fmt::format("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adjacency_name);
 
     return adjacency_pairs;
 }
@@ -326,7 +326,7 @@ void load_insertion_vectors(
         }
 
         if (TRACE)
-            fmt::print("insertion_vectors: {} vectors across {} elements from {}\n", total_loaded, element_index, insertion_vectors_name);
+            std::cout << fmt::format("insertion_vectors: {} vectors across {} elements from {}\n", total_loaded, element_index, insertion_vectors_name);
     }
 
     for (size_t element_index = 0; element_index < elements.size(); element_index++) {
@@ -365,7 +365,7 @@ std::vector<std::vector<int>> load_joint_types(
         }
 
         if (TRACE)
-            fmt::print("joints_types: {} ids across {} elements from {}\n", total_loaded, element_index, joint_types_name);
+            std::cout << fmt::format("joints_types: {} ids across {} elements from {}\n", total_loaded, element_index, joint_types_name);
     }
 
     for (size_t element_index = 0; element_index < elements.size(); ++element_index)
@@ -415,7 +415,7 @@ std::vector<std::pair<int, int>> adjacent_pairs(
 
         const double distance = wood_session::globals::DISTANCE;
         if (TRACE)
-            fmt::print(stderr, "[GCZ] adjacency_search start  DISTANCE={}\n", distance);
+            std::cerr << fmt::format("[GCZ] adjacency_search start  DISTANCE={}\n", distance);
 
         std::vector<wood_session::ContactElement> view;
         view.reserve(elements.size());
@@ -424,9 +424,9 @@ std::vector<std::pair<int, int>> adjacent_pairs(
 
         adjacency_pairs = wood_session::adjacency_search(view, distance);
         if (TRACE)
-            fmt::print(stderr, "[GCZ] adjacency pairs={}\n", adjacency_pairs.size());
+            std::cerr << fmt::format("[GCZ] adjacency pairs={}\n", adjacency_pairs.size());
         if (TRACE)
-            fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size());
+            std::cout << fmt::format("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size());
     }
     return adjacency_pairs;
 }
@@ -458,7 +458,7 @@ std::vector<WoodJoint> detect_joints(
     std::vector<WoodJoint> all_joints;
     all_joints.reserve(adjacency_pairs.size());
     if (TRACE)
-        fmt::print(stderr, "[GCZ] joint detection loop  pairs={}\n", adjacency_pairs.size());
+        std::cerr << fmt::format("[GCZ] joint detection loop  pairs={}\n", adjacency_pairs.size());
 
     const int element_count = static_cast<int>(elements.size());
     for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
@@ -466,10 +466,10 @@ std::vector<WoodJoint> detect_joints(
         const int index_a = adjacency_pairs[k].first;
         const int index_b = adjacency_pairs[k].second;
         if (TRACE)
-            fmt::print(stderr, "[GCZ]   pair k={}  index_a={} index_b={}\n", k, index_a, index_b);
+            std::cerr << fmt::format("[GCZ]   pair k={}  index_a={} index_b={}\n", k, index_a, index_b);
 
         if (index_a < 0 || index_b < 0 || index_a >= element_count || index_b >= element_count) {
-            fmt::print(stderr, "  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, index_a, index_b, element_count);
+            std::cerr << fmt::format("  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, index_a, index_b, element_count);
             continue;
         }
 
@@ -490,7 +490,7 @@ std::vector<WoodJoint> detect_joints(
             joint,
             swap_planes_b);
         if (TRACE)
-            fmt::print(stderr, "[GCZ]   face_to_face_wood done  ok={}  type={}\n", (int)ok, ok ? joint.joint_type : -1);
+            std::cerr << fmt::format("[GCZ]   face_to_face_wood done  ok={}  type={}\n", (int)ok, ok ? joint.joint_type : -1);
 
         if (swap_planes_b) {
             std::swap(elements[index_b]->planes[0], elements[index_b]->planes[1]);
@@ -499,7 +499,7 @@ std::vector<WoodJoint> detect_joints(
 
         if (!ok) {
             if (TRACE && !joint.dbg_fail_reason.empty())
-                fmt::print("  FAIL pair ({},{}) coplanar={} boolean={} reason={}\n", index_a, index_b, joint.dbg_coplanar, joint.dbg_boolean, joint.dbg_fail_reason);
+                std::cout << fmt::format("  FAIL pair ({},{}) coplanar={} boolean={} reason={}\n", index_a, index_b, joint.dbg_coplanar, joint.dbg_boolean, joint.dbg_fail_reason);
             ++statistics.failed;
             continue;
         }
@@ -582,38 +582,42 @@ int parameter_row(const int joint_type) {
     }
 }
 
+/// Built-in JOINTS_PARAMETERS_AND_TYPES: division length, shift and joint id per family row.
+constexpr double PARAMETER_DEFAULTS[21] = {
+    300, 0.5,  3,
+    450, 0.64, 15,
+    450, 0.5,  20,
+    300, 0.5,  30,
+      6, 0.95, 40,
+    300, 0.5,  58,
+    300, 1.0,  60,
+};
+
+/// One JOINTS_PARAMETERS_AND_TYPES entry, from the globals when they are complete and from the built-in defaults otherwise.
+double joint_parameter(const std::vector<double>& parameters_global, bool parameters_ok, size_t index) {
+    return parameters_ok ? parameters_global[index] : PARAMETER_DEFAULTS[index];
+}
+
 /// Per-family row of JOINTS_PARAMETERS_AND_TYPES: division length, shift and the default id when none was given.
 FamilyParameters family_parameters(const int joint_type, const int id_representing_joint_name) {
 
-    static constexpr double PARAMETER_DEFAULTS[21] = {
-        300, 0.5,  3,
-        450, 0.64, 15,
-        450, 0.5,  20,
-        300, 0.5,  30,
-          6, 0.95, 40,
-        300, 0.5,  58,
-        300, 1.0,  60,
-    };
     const std::vector<double>& parameters_global = wood_session::globals::JOINTS_PARAMETERS_AND_TYPES;
     const bool parameters_ok = parameters_global.size() >= 21;
 
     static thread_local bool parameters_warned = false;
     if (!parameters_ok && !parameters_warned) {
-        fmt::print(stderr, "  WARNING: JOINTS_PARAMETERS_AND_TYPES has {} entries, expected 21 - using built-in defaults.\n", parameters_global.size());
+        std::cerr << fmt::format("  WARNING: JOINTS_PARAMETERS_AND_TYPES has {} entries, expected 21 - using built-in defaults.\n", parameters_global.size());
         parameters_warned = true;
     }
 
-    auto parameter = [&](size_t idx) -> double {
-        return parameters_ok ? parameters_global[idx] : PARAMETER_DEFAULTS[idx];
-    };
     const int row = parameter_row(joint_type);
 
     FamilyParameters family;
     family.id = id_representing_joint_name;
     if (family.id == -1)
-        family.id = (int)parameter(row * 3 + 2);
-    family.division_distance = parameter(row * 3 + 0);
-    family.shift = parameter(row * 3 + 1);
+        family.id = (int)joint_parameter(parameters_global, parameters_ok, row * 3 + 2);
+    family.division_distance = joint_parameter(parameters_global, parameters_ok, row * 3 + 0);
+    family.shift = joint_parameter(parameters_global, parameters_ok, row * 3 + 1);
 
     return family;
 }
@@ -715,14 +719,14 @@ void build_joint_geometry(
     joint.shift = family.shift;
     reuse_or_create_geometry(joint, family, elements, all_joints, unique_joints_cache);
     if (TRACE)
-        fmt::print(stderr, "[GCZ]   after joint_create_geometry  no_orient={}\n", (int)joint.no_orient);
+        std::cerr << fmt::format("[GCZ]   after joint_create_geometry  no_orient={}\n", (int)joint.no_orient);
 
     if (!joint.no_orient) {
         if (TRACE)
-            fmt::print(stderr, "[GCZ]   calling joint_orient_to_connection_area\n");
+            std::cerr << fmt::format("[GCZ]   calling joint_orient_to_connection_area\n");
         joint_orient_to_connection_area(joint);
         if (TRACE)
-            fmt::print(stderr, "[GCZ]   joint_orient done\n");
+            std::cerr << fmt::format("[GCZ]   joint_orient done\n");
     }
 
     if (!joint.linked_joints.empty() && (family.id == 15 || family.id == 16)) {
@@ -742,12 +746,12 @@ void build_joints_geometry(
 
     JointGeometryCache unique_joints_cache;
     if (TRACE)
-        fmt::print(stderr, "[GCZ] geometry loop start  all_joints={}\n", all_joints.size());
+        std::cerr << fmt::format("[GCZ] geometry loop start  all_joints={}\n", all_joints.size());
 
     for (WoodJoint& joint : all_joints) {
 
         if (TRACE)
-            fmt::print(stderr, "[GCZ]   geom joint type={}  element0={} element1={}\n", joint.joint_type, joint.element_a, joint.element_b);
+            std::cerr << fmt::format("[GCZ]   geom joint type={}  element0={} element1={}\n", joint.joint_type, joint.element_a, joint.element_b);
 
         const int id_representing_joint_name = joint_id_for(joint, per_element_joints_types, elements);
         const FamilyParameters family = family_parameters(joint.joint_type, id_representing_joint_name);
@@ -844,6 +848,11 @@ struct StageTimes {
     Clock::time_point end; // Merge done.
 };
 
+/// Milliseconds elapsed from a to b.
+double milliseconds_between(Clock::time_point a, Clock::time_point b) {
+    return std::chrono::duration<double, std::milli>(b - a).count();
+}
+
 /// Trace summary: counts per type and per-stage timings.
 void report_timings(
     const std::vector<std::shared_ptr<Plate>>& elements,
@@ -851,25 +860,21 @@ void report_timings(
     const DetectionStatistics& statistics,
     const StageTimes& times) {
 
-    auto milliseconds = [](Clock::time_point a, Clock::time_point b) {
-        return std::chrono::duration<double, std::milli>(b - a).count();
-    };
-
-    fmt::print("{} elements -> {} adjacency pairs\n", elements.size(), adjacency_pairs.size());
-    fmt::print("  joints: {} success / {} failed\n", statistics.succeeded, statistics.failed);
-    fmt::print(
+    std::cout << fmt::format("{} elements -> {} adjacency pairs\n", elements.size(), adjacency_pairs.size());
+    std::cout << fmt::format("  joints: {} success / {} failed\n", statistics.succeeded, statistics.failed);
+    std::cout << fmt::format(
         "  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n",
         statistics.counts[0], statistics.counts[1], statistics.counts[2], statistics.counts[3], statistics.counts[4], statistics.counts[5]);
-    fmt::print("  time: {:.0f}ms\n", milliseconds(times.start, times.end));
-    fmt::print(
+    std::cout << fmt::format("  time: {:.0f}ms\n", milliseconds_between(times.start, times.end));
+    std::cout << fmt::format(
         "  stages(ms): setup={:.1f} adjacency={:.1f} detect={:.1f} tv={:.1f} geom={:.1f} jmf={:.1f} merge={:.1f}\n",
-        milliseconds(times.start, times.after_adjacency) - milliseconds(times.before_adjacency, times.after_adjacency),
-        milliseconds(times.before_adjacency, times.after_adjacency),
-        milliseconds(times.after_adjacency, times.after_detection),
-        milliseconds(times.after_detection, times.after_three_valence),
-        milliseconds(times.after_three_valence, times.after_geometry),
-        milliseconds(times.after_geometry, times.after_membership),
-        milliseconds(times.after_membership, times.end));
+        milliseconds_between(times.start, times.after_adjacency) - milliseconds_between(times.before_adjacency, times.after_adjacency),
+        milliseconds_between(times.before_adjacency, times.after_adjacency),
+        milliseconds_between(times.after_adjacency, times.after_detection),
+        milliseconds_between(times.after_detection, times.after_three_valence),
+        milliseconds_between(times.after_three_valence, times.after_geometry),
+        milliseconds_between(times.after_geometry, times.after_membership),
+        milliseconds_between(times.after_membership, times.end));
 }
 
 } // anonymous namespace
@@ -879,7 +884,7 @@ std::vector<WoodJoint> get_connection_zones(
     SearchType search_type) {
 
     if (TRACE)
-        fmt::print(stderr, "[GCZ] enter  element_count={}  search_type={}\n", elements.size(), (int)search_type);
+        std::cerr << fmt::format("[GCZ] enter  element_count={}  search_type={}\n", elements.size(), (int)search_type);
 
     using namespace wood_session::globals;
     const std::string dataset_name = DATA_SET_INPUT_NAME;
@@ -895,7 +900,7 @@ std::vector<WoodJoint> get_connection_zones(
     const std::vector<double> volume_extension = JOINT_VOLUME_EXTENSION;
 
     if (TRACE)
-        fmt::print("\n=== {}.obj ===\n", dataset_name);
+        std::cout << fmt::format("\n=== {}.obj ===\n", dataset_name);
 
     times.before_adjacency = Clock::now();
 
@@ -927,12 +932,12 @@ std::vector<WoodJoint> get_connection_zones(
     build_joints_geometry(all_joints, elements, per_element_joints_types);
     times.after_geometry = Clock::now();
     if (TRACE)
-        fmt::print(stderr, "[GCZ] geometry dispatch done  all_joints={}\n", all_joints.size());
+        std::cerr << fmt::format("[GCZ] geometry dispatch done  all_joints={}\n", all_joints.size());
 
     const JointMembership membership = joint_membership_per_face(elements, all_joints);
     times.after_membership = Clock::now();
     if (TRACE)
-        fmt::print(stderr, "[GCZ] membership built  starting merge\n");
+        std::cerr << fmt::format("[GCZ] membership built  starting merge\n");
 
     merge_joints_into_plates(elements, membership, all_joints);
     times.end = Clock::now();

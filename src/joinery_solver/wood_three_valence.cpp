@@ -103,6 +103,27 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
 // Vidy shadow joints
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Whether two plate normals are parallel within globals::ANGLE, either way round.
+static bool normals_parallel(const Vector& a, const Vector& b) {
+
+    const double length_product = a.magnitude() * b.magnitude();
+    if (length_product <= 0.0)
+        return false;
+
+    return std::abs(a.dot(b) / length_product) >= std::cos(wood_session::globals::ANGLE);
+}
+
+/// The four joint volumes of a joint copied out, an empty polyline where one is missing.
+static std::array<Polyline, 4> copy_joint_volumes(const WoodJoint& joint) {
+
+    std::array<Polyline, 4> volumes;
+    for (int k = 0; k < 4; k++)
+        if (joint.joint_volumes_pair_a_pair_b[k].has_value())
+            volumes[k] = *joint.joint_volumes_pair_a_pair_b[k];
+
+    return volumes;
+}
+
 /// Vidy method: shadow joints (link = true) between each side plate and the plate it is glued to, translated to that plate's far face.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
@@ -136,18 +157,12 @@ void add_vidy_shadow_joints(
             return;
 
         if (glued0 != glued1) {
-            auto is_parallel_wood = [](const Vector& a, const Vector& b) -> bool {
-                const double length_product = a.magnitude() * b.magnitude();
-                if (length_product <= 0.0)
-                    return false;
-                return std::abs(a.dot(b) / length_product) >= std::cos(wood_session::globals::ANGLE);
-            };
             const Vector normal_side0 = elements[side0]->planes[0].z_axis();
             const Vector normal_glued1 = elements[glued1]->planes[0].z_axis();
             const Vector normal_side1 = elements[side1]->planes[0].z_axis();
             const Vector normal_glued0 = elements[glued0]->planes[0].z_axis();
 
-            if (!is_parallel_wood(normal_side0, normal_glued1) || !is_parallel_wood(normal_side1, normal_glued0))
+            if (!normals_parallel(normal_side0, normal_glued1) || !normals_parallel(normal_side1, normal_glued0))
                 continue;
         }
 
@@ -214,15 +229,8 @@ void add_vidy_shadow_joints(
         if (translation_sum < -1e8 || translation_sum > 1e8)
             continue;
 
-        auto copy_volumes = [&]() -> std::array<Polyline, 4> {
-            std::array<Polyline, 4> volumes;
-            for (int k = 0; k < 4; k++)
-                if (joints[joint_index].joint_volumes_pair_a_pair_b[k].has_value())
-                    volumes[k] = *joints[joint_index].joint_volumes_pair_a_pair_b[k];
-            return volumes;
-        };
-        std::array<Polyline, 4> volumes0 = copy_volumes();
-        std::array<Polyline, 4> volumes1 = copy_volumes();
+        std::array<Polyline, 4> volumes0 = copy_joint_volumes(joints[joint_index]);
+        std::array<Polyline, 4> volumes1 = copy_joint_volumes(joints[joint_index]);
 
         int shift_amount = 0;
         for (int j = 0; j < 4; j++) {
@@ -387,14 +395,14 @@ void link_three_valence_joints(
             const size_t before_vidy = all_joints.size();
             add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map);
             if (TRACE)
-                fmt::print("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
+                std::cout << fmt::format("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
         } else {
             align_annen_joints(three_valence_groups, elements, all_joints);
         }
     }
 
     if (TRACE && !three_valence_name.empty())
-        fmt::print("three_valence: {} groups applied\n", three_valence_groups.size());
+        std::cout << fmt::format("three_valence: {} groups applied\n", three_valence_groups.size());
 }
 
 } // namespace wood_session

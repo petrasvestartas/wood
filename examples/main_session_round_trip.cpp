@@ -11,12 +11,22 @@ static void check(const bool ok, const std::string& what) {
     if (ok)
         return;
 
-    fmt::print("FAIL {}\n", what);
+    std::cout << fmt::format("FAIL {}\n", what);
     failures++;
 }
 
 static size_t tree_nodes(const Session& session) {
     return session.tree.root() ? session.tree.root()->descendants().size() + 1 : 0;
+}
+
+/// Whether one of features is the male side of joint.
+static bool hosts_male_side(const std::vector<ElementFeature>& features, const WoodJoint& joint) {
+
+    for (const ElementFeature& feature : features)
+        if (feature.guid() == joint.feature_guid(0))
+            return true;
+
+    return false;
 }
 
 int main() {
@@ -120,9 +130,7 @@ int main() {
     bool sides = true;
     for (const WoodJoint& joint : joints_a) {
         const std::vector<ElementFeature> male = a.get_element_features(joint.element_a);
-        sides = sides && std::any_of(male.begin(), male.end(), [&joint](const ElementFeature& feature) {
-            return feature.guid() == joint.feature_guid(0);
-        });
+        sides = sides && hosts_male_side(male, joint);
     }
 
     check(sides, "the graph hands each element the joint side it hosts");

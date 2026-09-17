@@ -1,3 +1,18 @@
+/// One face of the custom tooth tiled `divisions` times along z: pair i % n_pairs of the source list, face0 or face1, shifted by mv_end + mv_step * i.
+static void tile_custom_face(const std::vector<Polyline>& source, bool pick_face0, int divisions, double mv_end, double mv_step, std::vector<Point>& out) {
+
+    const size_t n_pairs = source.size() / 2;
+    out.reserve(divisions * 8);
+    for (int i = 0; i < divisions; ++i) {
+        const double dz = mv_end + mv_step * i;
+        const Polyline& base = pick_face0 ? source[2 * (i % n_pairs)] : source[2 * (i % n_pairs) + 1];
+        for (size_t k = 0; k < base.point_count(); k++) {
+            const Point p = base.get_point(k);
+            out.emplace_back(p[0], p[1], p[2] + dz);
+        }
+    }
+}
+
 /// ss_e_ip_custom: each user pair (face0, face1) from CUSTOM_JOINTS_SS_E_IP_MALE / FEMALE is one tooth,
 /// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
 static void ss_e_ip_custom(WoodJoint& joint) {
@@ -25,27 +40,14 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     const double mv_end  = (total_length_scaled * 0.5) - (move_length_scaled * 0.5);
     const double mv_step = -move_length_scaled;
 
-    auto tile_face = [&](const std::vector<Polyline>& src, bool pick_face0, std::vector<Point>& out) {
-        const size_t n_pairs = src.size() / 2;
-        out.reserve(divisions * 8);
-        for (int i = 0; i < divisions; ++i) {
-            const double dz = mv_end + mv_step * i;
-            const Polyline& base = pick_face0 ? src[2 * (i % n_pairs)] : src[2 * (i % n_pairs) + 1];
-            for (size_t k = 0; k < base.point_count(); k++) {
-                const Point p = base.get_point(k);
-                out.emplace_back(p[0], p[1], p[2] + dz);
-            }
-        }
-    };
-
     std::vector<Point> m0;
     std::vector<Point> m1;
     std::vector<Point> f0;
     std::vector<Point> f1;
-    tile_face(cm, true,  m0);
-    tile_face(cm, false, m1);
-    tile_face(cf, true,  f0);
-    tile_face(cf, false, f1);
+    tile_custom_face(cm, true, divisions, mv_end, mv_step, m0);
+    tile_custom_face(cm, false, divisions, mv_end, mv_step, m1);
+    tile_custom_face(cf, true, divisions, mv_end, mv_step, f0);
+    tile_custom_face(cf, false, divisions, mv_end, mv_step, f1);
 
     if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
         return;

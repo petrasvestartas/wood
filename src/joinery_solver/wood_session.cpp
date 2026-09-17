@@ -19,14 +19,19 @@ using Group = std::shared_ptr<TreeNode>;
 
 namespace {
 
+/// Registers the three element factories with the kernel; always returns true so a static can hold the result.
+bool register_element_factories() {
+
+    Plate::register_type();
+    Column::register_type();
+    Block::register_type();
+
+    return true;
+}
+
 /// Registers the three element factories with the kernel, once.
 void register_element_types() {
-    static const bool done = [] {
-        Plate::register_type();
-        Column::register_type();
-        Block::register_type();
-        return true;
-    }();
+    static const bool done = register_element_factories();
     (void)done;
 }
 
@@ -51,8 +56,10 @@ std::string short_guid(const std::string& guid) {
 void erase_contacts_of_type(WoodSession& scene, ContactType type) {
     for (const auto& [a, b, interaction] : scene.get_interactions()) {
         WoodInteraction kept = interaction;
-        std::vector<FaceContact>& contacts = kept.contacts;
-        contacts.erase(std::remove_if(contacts.begin(), contacts.end(), [type](const FaceContact& fc) { return fc.type == type; }), contacts.end());
+        kept.contacts.clear();
+        for (const FaceContact& contact : interaction.contacts)
+            if (contact.type != type)
+                kept.contacts.push_back(contact);
         scene.set_interaction(a, b, kept);
     }
 }
@@ -475,7 +482,7 @@ WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
     const std::filesystem::path file = internal::dataset_path(path.string(), ".pb");
     WoodSession scene;
     if (!std::filesystem::exists(file)) {
-        fmt::print(stderr, "not found: {}\n", file.string());
+        std::cerr << fmt::format("not found: {}\n", file.string());
         return scene;
     }
 

@@ -1,3 +1,14 @@
+/// A yz profile placed in the plane x = constant.
+static Polyline yz_profile_at_x(double x, const double data[][2], size_t n) {
+
+    std::vector<Point> pts;
+    pts.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+        pts.emplace_back(x, data[i][0], data[i][1]);
+
+    return Polyline(pts);
+}
+
 /// ss_e_r_1: miter tenon-mortise - a 39-point arc profile in the yz-plane at x=0 and x=0.5; conic cuts, unit_scale.
 static void ss_e_r_1(WoodJoint& joint) {
 
@@ -52,19 +63,11 @@ static void ss_e_r_1(WoodJoint& joint) {
         {-0.825,  0.39066965 },
     };
 
-    auto make_poly = [&](double x, const double data[][2], size_t n) {
-        std::vector<Point> pts;
-        pts.reserve(n);
-        for (size_t i = 0; i < n; ++i)
-            pts.emplace_back(x, data[i][0], data[i][1]);
-        return Polyline(pts);
-    };
+    joint.female_outlines[0] = { yz_profile_at_x(0.5, yz, 39), yz_profile_at_x(0.5, yz_marker, 5) };
+    joint.female_outlines[1] = { yz_profile_at_x(0.0, yz, 39), yz_profile_at_x(0.0, yz_marker, 5) };
 
-    joint.female_outlines[0] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
-    joint.female_outlines[1] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
-
-    joint.male_outlines[0] = { make_poly(0.0, yz, 39), make_poly(0.0, yz_marker, 5) };
-    joint.male_outlines[1] = { make_poly(0.5, yz, 39), make_poly(0.5, yz_marker, 5) };
+    joint.male_outlines[0] = { yz_profile_at_x(0.0, yz, 39), yz_profile_at_x(0.0, yz_marker, 5) };
+    joint.male_outlines[1] = { yz_profile_at_x(0.5, yz, 39), yz_profile_at_x(0.5, yz_marker, 5) };
 
     joint.female_cut_types[0] = { wood_cut::conic, wood_cut::conic };
     joint.female_cut_types[1] = { wood_cut::conic, wood_cut::conic };

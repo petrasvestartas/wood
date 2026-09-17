@@ -6,7 +6,6 @@
 #include "tolerance.h"
 
 #include <cmath>
-#include <functional>
 #include <stdexcept>
 
 using namespace session_cpp;
@@ -190,6 +189,30 @@ private:
         return Plane::from_point_normal(face_pt, face_normal);
     }
 
+    /// One box corner: p offset by sr times r and by sn times nn.
+    static Point corner_point(const Point& p, const Vector& r, int sr,
+                              const Vector& nn, int sn)
+    {
+        return Point(p[0] + sr*r[0] + sn*nn[0],
+                     p[1] + sr*r[1] + sn*nn[1],
+                     p[2] + sr*r[2] + sn*nn[2]);
+    }
+
+    /// Where the ray from p along dir meets the plane; p itself when they do not intersect.
+    static Point ray_plane_intersection(const Point& p, const Vector& dir, const Plane& pl)
+    {
+
+        Point pt;
+        Line ray = Line::from_points(
+            p, Point(p[0]+dir[0], p[1]+dir[1], p[2]+dir[2]));
+
+        if (Intersection::line_plane(ray, pl, pt, false)) {
+            return pt;
+        }
+
+        return p;
+    }
+
     static BeamGeom make_beam(const Line& line, const Vector& up,
                                double w, double h, double extend,
                                const Plane& cut_s, const Plane& cut_e)
@@ -210,37 +233,17 @@ private:
                         line.end()[1]   + extend * dir[1],
                         line.end()[2]   + extend * dir[2]);
 
-        Point (*corner)(const Point&, const Vector&, int, const Vector&, int) =
-            [](const Point& p, const Vector& r, int sr,
-               const Vector& nn, int sn) {
-                return Point(p[0] + sr*r[0] + sn*nn[0],
-                             p[1] + sr*r[1] + sn*nn[1],
-                             p[2] + sr*r[2] + sn*nn[2]);
-            };
-        std::function<Point(const Point&, const Plane&)> cut = [&](const Point& p, const Plane& pl) -> Point {
-
-            Point pt;
-            Line ray = Line::from_points(
-                p, Point(p[0]+dir[0], p[1]+dir[1], p[2]+dir[2]));
-
-            if (Intersection::line_plane(ray, pl, pt, false)) {
-                return pt;
-            }
-
-            return p;
-        };
-
         std::array<Point, 4> sc = {
-            cut(corner(s, right, -1, n, -1), cut_s),
-            cut(corner(s, right, +1, n, -1), cut_s),
-            cut(corner(s, right, +1, n, +1), cut_s),
-            cut(corner(s, right, -1, n, +1), cut_s),
+            ray_plane_intersection(corner_point(s, right, -1, n, -1), dir, cut_s),
+            ray_plane_intersection(corner_point(s, right, +1, n, -1), dir, cut_s),
+            ray_plane_intersection(corner_point(s, right, +1, n, +1), dir, cut_s),
+            ray_plane_intersection(corner_point(s, right, -1, n, +1), dir, cut_s),
         };
         std::array<Point, 4> ec = {
-            cut(corner(e, right, -1, n, -1), cut_e),
-            cut(corner(e, right, +1, n, -1), cut_e),
-            cut(corner(e, right, +1, n, +1), cut_e),
-            cut(corner(e, right, -1, n, +1), cut_e),
+            ray_plane_intersection(corner_point(e, right, -1, n, -1), dir, cut_e),
+            ray_plane_intersection(corner_point(e, right, +1, n, -1), dir, cut_e),
+            ray_plane_intersection(corner_point(e, right, +1, n, +1), dir, cut_e),
+            ray_plane_intersection(corner_point(e, right, -1, n, +1), dir, cut_e),
         };
 
         std::vector<Point> pts = {
