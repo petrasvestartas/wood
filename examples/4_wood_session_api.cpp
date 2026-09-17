@@ -3,18 +3,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A rectangular plate: the bottom outline, the same outline shifted by the thickness vector as the top.
-static std::shared_ptr<Plate> rectangular_plate(const Point& origin, const Vector& x_axis, const Vector& y_axis, const Vector& thickness) {
-
-    const Point corner_0 = origin;
-    const Point corner_1 = origin + x_axis;
-    const Point corner_2 = origin + x_axis + y_axis;
-    const Point corner_3 = origin + y_axis;
-
-    const Polyline bottom({corner_0, corner_1, corner_2, corner_3, corner_0});
-    const Polyline top({corner_0 + thickness, corner_1 + thickness, corner_2 + thickness, corner_3 + thickness, corner_0 + thickness});
-
-    return std::make_shared<Plate>(bottom, top, "plate");
+/// A rectangular plate: the kernel's rectangle as the bottom outline, the same rectangle moved by the thickness vector as the top.
+static std::shared_ptr<Plate> rectangular_plate(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, const Vector& thickness) {
+    const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
+    return std::make_shared<Plate>(bottom, bottom.translated(thickness), "plate");
 }
 
 /// The WoodSession API in the order compas_model presents a model: elements, model, interactions, geometry, file.
@@ -23,8 +15,8 @@ int main() {
     globals::reset_defaults();
 
     // Elements: a Plate is a session_cpp::Element; the constructor keeps the outlines, nothing is lofted yet.
-    const std::shared_ptr<Plate> plate_a = rectangular_plate(Point(0, 0, 0), Vector(400, 0, 0), Vector(0, 300, 0), Vector(0, 0, 40));
-    const std::shared_ptr<Plate> plate_b = rectangular_plate(Point(400, 0, 0), Vector(0, 300, 0), Vector(0, 0, 300), Vector(40, 0, 0));
+    const std::shared_ptr<Plate> plate_a = rectangular_plate(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 400, 300, Vector(0, 0, 40));
+    const std::shared_ptr<Plate> plate_b = rectangular_plate(Point(400, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 300, 300, Vector(40, 0, 0));
     std::cout << fmt::format("plate_a: {} outlines, thickness {}\n", plate_a->polylines.size(), plate_a->thickness);
 
     // Model: a WoodSession is a session_cpp::Session; add() puts an element in the tree and in the interaction graph.
