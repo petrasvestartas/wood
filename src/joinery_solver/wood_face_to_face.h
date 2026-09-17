@@ -13,17 +13,10 @@ namespace wood_session {
 
 /// One element as detection sees it: face outlines, their planes, the name to filter on, and whether the plate face convention ([0] bottom, [1] top, [2..] sides) applies.
 struct ContactElement {
-    /// The face outlines.
-    std::vector<session_cpp::Polyline> polylines;
-
-    /// One plane per outline.
-    std::vector<session_cpp::Plane> planes;
-
-    /// The element name, what `names` filters on.
-    std::string name;
-
-    /// True when polylines follow the plate convention: [0] bottom, [1] top, [2..] sides.
-    bool plate_convention = false;
+    std::vector<session_cpp::Polyline> polylines; // The face outlines.
+    std::vector<session_cpp::Plane> planes; // One plane per outline.
+    std::string name; // The element name, what `names` filters on.
+    bool plate_convention = false; // True when polylines follow the plate convention: [0] bottom, [1] top, [2..] sides.
 
     /// An empty view.
     ContactElement() = default;
@@ -51,26 +44,13 @@ std::vector<std::pair<int, int>> adjacency_search(
 
 /// One face plane unpacked to plain doubles so the O(faces²) scan never calls Point/Vector::operator[]; the normal need not be unit length, `mag_sq` carries its scale.
 struct FacePlane {
-    /// Origin x.
-    double ox;
-
-    /// Origin y.
-    double oy;
-
-    /// Origin z.
-    double oz;
-
-    /// Normal x.
-    double nx;
-
-    /// Normal y.
-    double ny;
-
-    /// Normal z.
-    double nz;
-
-    /// Squared length of the normal.
-    double mag_sq;
+    double ox; // Origin x.
+    double oy; // Origin y.
+    double oz; // Origin z.
+    double nx; // Normal x.
+    double ny; // Normal y.
+    double nz; // Normal z.
+    double mag_sq; // Squared length of the normal.
 };
 
 /// Every face plane of an element unpacked, once per element pair rather than once per face pair.
@@ -97,17 +77,10 @@ bool face_overlap_area(
 
 /// Tallies from one element-pair scan; face_to_face_wood reports them as dbg_coplanar / dbg_boolean.
 struct PairScanStats {
-    /// Face pairs that passed the coplanarity test.
-    int coplanar = 0;
-
-    /// Of those, the ones with a real overlap area.
-    int overlapping = 0;
-
-    /// Face of the first element in the last pair whose boolean came back empty, -1 when none.
-    int empty_i = -1;
-
-    /// Face of the second element in that pair, -1 when none.
-    int empty_j = -1;
+    int coplanar = 0; // Face pairs that passed the coplanarity test.
+    int overlapping = 0; // Of those, the ones with a real overlap area.
+    int empty_i = -1; // Face of the first element in the last pair whose boolean came back empty, -1 when none.
+    int empty_j = -1; // Face of the second element in that pair, -1 when none.
 };
 
 /// Every contacting face pair between ONE element pair, ordered by face index; call it inside the caller's loop over element pairs, since get_connection_zones swaps faces 0 and 1 mid-run.

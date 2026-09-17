@@ -543,6 +543,19 @@ std::shared_ptr<TreeNode> node_of(const session_cpp::Tree& tree, const std::stri
     return nullptr;
 }
 
+/// What an element draws as outlines: a solved plate its merged bottom and top with their holes, an unsolved plate its two outlines, anything else the faces of its mesh.
+std::vector<Polyline> element_outlines(session_cpp::Element& element) {
+    const Plate* plate = dynamic_cast<const Plate*>(&element);
+    if (!plate)
+        return element.polylines();
+    if (!plate->features.top.empty()) {
+        std::vector<Polyline> outlines = plate->features.bottom;
+        outlines.insert(outlines.end(), plate->features.top.begin(), plate->features.top.end());
+        return outlines;
+    }
+    return std::vector<Polyline>(plate->polylines.begin(), plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()));
+}
+
 /// The child group of `parent` called `name`, made on first use.
 Group child_group(WoodSession& scene, std::map<std::string, Group>& made, const Group& parent, const std::string& name) {
     const std::string key = parent->name + "/" + name;
@@ -577,15 +590,11 @@ void WoodSession::add_to_tree(bool geometry, bool outlines, bool contacts, bool 
         }
         if (!outlines)
             continue;
-        const Plate* plate = dynamic_cast<const Plate*>(element.get());
-        const std::vector<Polyline> faces = plate
-            ? std::vector<Polyline>(plate->polylines.begin(), plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()))
-            : element->polylines();
         const Group child = child_group(*this, children, group, "outlines");
-        for (size_t k = 0; k < faces.size(); k++) {
-            auto outline = std::make_shared<Polyline>(faces[k]);
-            outline->name = fmt::format("{}_{}", element->name, plate ? (k == 0 ? "bottom" : "top") : std::to_string(k));
-            add_polyline(outline, child);
+        for (const Polyline& outline : element_outlines(*element)) {
+            auto copy = std::make_shared<Polyline>(outline);
+            copy->name = fmt::format("{}_outline", element->name);
+            add_polyline(copy, child);
         }
     }
     if (contacts)

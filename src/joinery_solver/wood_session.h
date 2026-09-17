@@ -51,17 +51,10 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 namespace wood_session {
 /// Pre-computed joinery metadata for chevron assemblies, used instead of the DATA_SET_INPUT_NAME txt files.
 struct ChevronJoineryData {
-    /// Adjacent plate pairs, by position.
-    std::vector<std::pair<int, int>> adjacency;
-
-    /// Six vectors per element, flat: 18 doubles.
-    std::vector<std::array<double, 18>> insertion_vectors;
-
-    /// Joint type code per face per element.
-    std::vector<std::array<int, 6>> joints_per_face;
-
-    /// Annen three-valence groups [s0, s1, e20, e31].
-    std::vector<std::array<int, 4>> three_valence;
+    std::vector<std::pair<int, int>> adjacency; // Adjacent plate pairs, by position.
+    std::vector<std::array<double, 18>> insertion_vectors; // Six vectors per element, flat: 18 doubles.
+    std::vector<std::array<int, 6>> joints_per_face; // Joint type code per face per element.
+    std::vector<std::array<int, 4>> three_valence; // Annen three-valence groups [s0, s1, e20, e31].
 };
 } // namespace wood_session
 
@@ -79,14 +72,9 @@ namespace wood_session {
 
 /// Everything the relation between two elements is made of: where they touch, and what the solver made of it.
 struct WoodInteraction {
-    /// Every overlap region between the pair, face_a on the element the edge was read from.
-    std::vector<FaceContact> contacts;
-
-    /// What get_connection_zones made of them; a joint names its own two elements.
-    std::vector<WoodJoint> joints;
-
-    /// Value of "type" the attribute is written under, and the grammar's whole guard.
-    static constexpr const char* TYPE = "WoodInteraction";
+    std::vector<FaceContact> contacts; // Every overlap region between the pair, face_a on the element the edge was read from.
+    std::vector<WoodJoint> joints; // What get_connection_zones made of them; a joint names its own two elements.
+    static constexpr const char* TYPE = "WoodInteraction"; // Value of "type" the attribute is written under, and the grammar's whole guard.
 
     /// True when there is neither a contact nor a joint.
     bool empty() const { return contacts.empty() && joints.empty(); }

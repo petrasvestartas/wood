@@ -32,75 +32,31 @@ private:
 
     /// Relocated plate corners at a line joint's two ends, top and bottom.
     struct RelocatedCorners {
-        /// Top corner at the previous edge.
-        session_cpp::Point top_at_previous;
-
-        /// Top corner at the next edge.
-        session_cpp::Point top_at_next;
-
-        /// Bottom corner at the previous edge.
-        session_cpp::Point bottom_at_previous;
-
-        /// Bottom corner at the next edge.
-        session_cpp::Point bottom_at_next;
-
-        /// Whether the three planes met at the top previous corner.
-        bool has_top_at_previous = false;
-
-        /// Whether the three planes met at the top next corner.
-        bool has_top_at_next = false;
-
-        /// Whether the three planes met at the bottom previous corner.
-        bool has_bottom_at_previous = false;
-
-        /// Whether the three planes met at the bottom next corner.
-        bool has_bottom_at_next = false;
+        session_cpp::Point top_at_previous; // Top corner at the previous edge.
+        session_cpp::Point top_at_next; // Top corner at the next edge.
+        session_cpp::Point bottom_at_previous; // Bottom corner at the previous edge.
+        session_cpp::Point bottom_at_next; // Bottom corner at the next edge.
+        bool has_top_at_previous = false; // Whether the three planes met at the top previous corner.
+        bool has_top_at_next = false; // Whether the three planes met at the top next corner.
+        bool has_bottom_at_previous = false; // Whether the three planes met at the bottom previous corner.
+        bool has_bottom_at_next = false; // Whether the three planes met at the bottom next corner.
     };
 
-    /// Sort keys pack the edge id scaled by this.
-    static constexpr double EDGE_SCALE = 1000000.0;
-
-    /// Sort keys pack the sub-edge fraction scaled by this.
-    static constexpr double FRACTION_SCALE = 1000.0;
-
-    /// The plate being merged.
-    const Plate& plate;
-
-    /// Position of the plate in the element list, for the log.
-    int plate_index = -1;
-
-    /// The diagnostic log file, open only when tracing.
-    std::ofstream log_file;
-
-    /// The open log, or null when tracing is off.
-    std::ofstream* log = nullptr;
-
-    /// Top outline vertices, relocated by the line joints.
-    std::vector<session_cpp::Point> top_points;
-
-    /// Bottom outline vertices, relocated by the line joints.
-    std::vector<session_cpp::Point> bottom_points;
-
-    /// The plate planes; side planes are replaced by the joint planes as the joints are visited.
-    std::vector<session_cpp::Plane> joint_planes;
-
-    /// First top point before relocation: the closing duplicate is never relocated, so closure is tested against this.
-    session_cpp::Point top_original_front;
-
-    /// First bottom point before relocation.
-    session_cpp::Point bottom_original_front;
-
-    /// The global DISTANCE_SQUARED tolerance.
-    double distance_squared = 0.0;
-
-    /// Joint point runs on the top outline, keyed by edge.
-    SortedRuns top_runs;
-
-    /// Joint point runs on the bottom outline, keyed by edge.
-    SortedRuns bottom_runs;
-
-    /// Face index of the last line joint visited.
-    int last_id = -1;
+    static constexpr double EDGE_SCALE = 1000000.0; // Sort keys pack the edge id scaled by this.
+    static constexpr double FRACTION_SCALE = 1000.0; // Sort keys pack the sub-edge fraction scaled by this.
+    const Plate& plate; // The plate being merged.
+    int plate_index = -1; // Position of the plate in the element list, for the log.
+    std::ofstream log_file; // The diagnostic log file, open only when tracing.
+    std::ofstream* log = nullptr; // The open log, or null when tracing is off.
+    std::vector<session_cpp::Point> top_points; // Top outline vertices, relocated by the line joints.
+    std::vector<session_cpp::Point> bottom_points; // Bottom outline vertices, relocated by the line joints.
+    std::vector<session_cpp::Plane> joint_planes; // The plate planes; side planes are replaced by the joint planes as the joints are visited.
+    session_cpp::Point top_original_front; // First top point before relocation: the closing duplicate is never relocated, so closure is tested against this.
+    session_cpp::Point bottom_original_front; // First bottom point before relocation.
+    double distance_squared = 0.0; // The global DISTANCE_SQUARED tolerance.
+    SortedRuns top_runs; // Joint point runs on the top outline, keyed by edge.
+    SortedRuns bottom_runs; // Joint point runs on the bottom outline, keyed by edge.
+    int last_id = -1; // Face index of the last line joint visited.
 
     /// First joint line on the top outline: the closing corner moves to its intersection with the last.
     std::array<session_cpp::Point, 2> first_top_segment{{session_cpp::Point(0, 0, 0), session_cpp::Point(0, 0, 0)}};

@@ -7,11 +7,8 @@ namespace wood_session {
 /// A solid for contact detection only: one face per closed loop, no plate convention.
 class Block : public session_cpp::Element {
 public:
-    /// The element_type this block is written under.
-    static constexpr const char* ELEMENT_TYPE = "Solid";
-
-    /// The element_type wood wrote before, still accepted on read.
-    static constexpr const char* LEGACY_ELEMENT_TYPE = "BlockElement";
+    static constexpr const char* ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
+    static constexpr const char* LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
 
     /// An empty block: no solid.
     Block();

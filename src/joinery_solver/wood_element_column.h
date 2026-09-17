@@ -7,8 +7,7 @@ namespace wood_session {
 /// A column: a solid that knows its own axis and the section it is cut from.
 class Column : public session_cpp::Element {
 public:
-    /// The element_type this column is written under.
-    static constexpr const char* ELEMENT_TYPE = "Column";
+    static constexpr const char* ELEMENT_TYPE = "Column"; // The element_type this column is written under.
 
     /// An empty column: no solid, a zero-length axis, no section.
     Column();
@@ -21,11 +20,8 @@ public:
         const std::string& name = "column"
     );
 
-    /// Centreline, base to head, in world space.
-    session_cpp::Line axis;
-
-    /// Closed cross-section about the axis base; empty when unknown.
-    session_cpp::Polyline section;
+    session_cpp::Line axis; // Centreline, base to head, in world space.
+    session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
     std::string element_type_name() const override { return ELEMENT_TYPE; }

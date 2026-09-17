@@ -363,26 +363,13 @@ thread_local std::vector<std::pair<int, int>> tl_adjacency_override;
 
 /// Detection parameters handed to face_to_face_wood for every adjacent pair.
 struct DetectionParameters {
-    /// Additive joint volume extension: width, height, length per family.
-    std::vector<double> joint_volume_extension;
-
-    /// Joints shorter than this are dropped.
-    double limit_min_joint_length;
-
-    /// Squared distance below which two points coincide.
-    double distance_squared;
-
-    /// Tolerance for two faces to count as coplanar.
-    double coplanar_tolerance;
-
-    /// Dihedral angle threshold of the side-to-side joints.
-    double dihedral_angle_threshold;
-
-    /// Whether every side-to-side joint is treated as rotated.
-    bool all_treated_as_rotated;
-
-    /// Whether a rotated joint takes the average of the two faces.
-    bool rotated_joint_as_average;
+    std::vector<double> joint_volume_extension; // Additive joint volume extension: width, height, length per family.
+    double limit_min_joint_length; // Joints shorter than this are dropped.
+    double distance_squared; // Squared distance below which two points coincide.
+    double coplanar_tolerance; // Tolerance for two faces to count as coplanar.
+    double dihedral_angle_threshold; // Dihedral angle threshold of the side-to-side joints.
+    bool all_treated_as_rotated; // Whether every side-to-side joint is treated as rotated.
+    bool rotated_joint_as_average; // Whether a rotated joint takes the average of the two faces.
 };
 
 /// Detection counters: successes, failures and successes per joint type.
@@ -390,11 +377,8 @@ struct DetectionStatistics {
     /// Successes per joint type, in the order 11, 12, 13, 20, 30, 40.
     int counts[6] = {0, 0, 0, 0, 0, 0};
 
-    /// Pairs face_to_face_wood found no joint for.
-    int failed = 0;
-
-    /// Pairs that produced a joint.
-    int succeeded = 0;
+    int failed = 0; // Pairs face_to_face_wood found no joint for.
+    int succeeded = 0; // Pairs that produced a joint.
 };
 
 /// Candidate pairs from the adjacency sidecar, the thread-local override or the OBB+BVH search.
@@ -499,14 +483,9 @@ std::vector<WoodJoint> detect_joints(
 
 /// Family lookup for one joint: representing id, division length and shift.
 struct FamilyParameters {
-    /// The id the JOINTS_TYPES table gives the joint, or the family default.
-    int id;
-
-    /// Division length of the family.
-    double division_distance;
-
-    /// Shift of the family.
-    double shift;
+    int id; // The id the JOINTS_TYPES table gives the joint, or the family default.
+    double division_distance; // Division length of the family.
+    double shift; // Shift of the family.
 };
 
 /// The face index before the plate was reversed: the JOINTS_TYPES table uses pre-reversal indices, and a reversed winding reorders the side planes.
@@ -601,26 +580,13 @@ FamilyParameters family_parameters(const int joint_type, const int id_representi
 
 /// Pre-orient unit-cube geometry shared by joints with an equal cache key.
 struct CachedJointGeometry {
-    /// Joint name the constructor gave.
-    std::string name;
-
-    /// Male outlines, top and bottom.
-    std::array<std::vector<Polyline>, 2> m_outlines;
-
-    /// Female outlines, top and bottom.
-    std::array<std::vector<Polyline>, 2> f_outlines;
-
-    /// Male cut types, top and bottom.
-    std::array<std::vector<int>, 2> m_cut_types;
-
-    /// Female cut types, top and bottom.
-    std::array<std::vector<int>, 2> f_cut_types;
-
-    /// Whether the constructor scales the unit cube.
-    bool unit_scale;
-
-    /// The distance the unit cube is scaled by.
-    double unit_scale_distance;
+    std::string name; // Joint name the constructor gave.
+    std::array<std::vector<Polyline>, 2> m_outlines; // Male outlines, top and bottom.
+    std::array<std::vector<Polyline>, 2> f_outlines; // Female outlines, top and bottom.
+    std::array<std::vector<int>, 2> m_cut_types; // Male cut types, top and bottom.
+    std::array<std::vector<int>, 2> f_cut_types; // Female cut types, top and bottom.
+    bool unit_scale; // Whether the constructor scales the unit cube.
+    double unit_scale_distance; // The distance the unit cube is scaled by.
 };
 
 /// Unit geometry by cache key.
@@ -802,29 +768,14 @@ using Clock = std::chrono::high_resolution_clock;
 
 /// Stage boundaries for the trace timing report.
 struct StageTimes {
-    /// Entry.
-    Clock::time_point start;
-
-    /// Sidecar names read, before the adjacency search.
-    Clock::time_point before_adjacency;
-
-    /// Adjacent pairs known.
-    Clock::time_point after_adjacency;
-
-    /// Joints detected.
-    Clock::time_point after_detection;
-
-    /// Three-valence groups applied and joint types loaded.
-    Clock::time_point after_three_valence;
-
-    /// Joint geometry built and oriented.
-    Clock::time_point after_geometry;
-
-    /// Membership per face built.
-    Clock::time_point after_membership;
-
-    /// Merge done.
-    Clock::time_point end;
+    Clock::time_point start; // Entry.
+    Clock::time_point before_adjacency; // Sidecar names read, before the adjacency search.
+    Clock::time_point after_adjacency; // Adjacent pairs known.
+    Clock::time_point after_detection; // Joints detected.
+    Clock::time_point after_three_valence; // Three-valence groups applied and joint types loaded.
+    Clock::time_point after_geometry; // Joint geometry built and oriented.
+    Clock::time_point after_membership; // Membership per face built.
+    Clock::time_point end; // Merge done.
 };
 
 /// Trace summary: counts per type and per-stage timings.

@@ -34,17 +34,10 @@ enum class ContactType : int {
 
 /// One face pair in contact: the two faces, the class, the overlap region (closed, in the first face's plane).
 struct FaceContact {
-    /// Face index on the first element.
-    int face_a = 0;
-
-    /// Face index on the second element.
-    int face_b = 0;
-
-    /// Topology class of the pair.
-    ContactType type = ContactType::unknown;
-
-    /// The overlap region, closed, in face_a's plane.
-    session_cpp::Polyline area;
+    int face_a = 0; // Face index on the first element.
+    int face_b = 0; // Face index on the second element.
+    ContactType type = ContactType::unknown; // Topology class of the pair.
+    session_cpp::Polyline area; // The overlap region, closed, in face_a's plane.
 
     /// The contact as JSON: area, face_a, face_b, type.
     nlohmann::ordered_json jsondump() const;
@@ -55,14 +48,9 @@ struct FaceContact {
 
 /// face_contacts() output: one element pair as positions in the vector it was given, and every overlap between them.
 struct ContactPair {
-    /// Position of the first element.
-    int element_a = -1;
-
-    /// Position of the second element.
-    int element_b = -1;
-
-    /// Every face pair in contact between the two.
-    std::vector<FaceContact> faces;
+    int element_a = -1; // Position of the first element.
+    int element_b = -1; // Position of the second element.
+    std::vector<FaceContact> faces; // Every face pair in contact between the two.
 };
 
 /// One connection between two plates: what was detected, how it was classified, and the cut outlines the joint library made of it.
@@ -70,89 +58,34 @@ struct WoodJoint {
     /// An empty joint: type 0, one division, shift 0.5, unit scale off.
     WoodJoint();
 
-    /// The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
-    std::string element_a;
-
-    /// The female element, by guid.
-    std::string element_b;
-
-    /// Which faces touched, and where.
-    FaceContact contact;
-
-    /// Cross joints only: the second side face of each element in the crossing; {-1, -1} otherwise.
-    std::array<int, 2> cross_faces{-1, -1};
-
-    /// Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top.
-    int joint_type;
-
-    /// The joint library variant that built the outlines ("ss_e_ip_2", "side_removal"), empty before construction.
-    std::string name;
-
-    /// The two alignment lines, one per element, along the shared edge.
-    std::array<session_cpp::Line, 2> joint_lines;
-
-    /// The volume rectangles: [0] and [1] bound the male side, [2] and [3] the female side when it differs.
-    std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes_pair_a_pair_b;
-
-    /// Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
-    std::array<std::vector<session_cpp::Polyline>, 2> m_outlines;
-
-    /// Female cut outlines per face, laid out like m_outlines.
-    std::array<std::vector<session_cpp::Polyline>, 2> f_outlines;
-
-    /// One cut_type per male outline.
-    std::array<std::vector<int>, 2> m_cut_types;
-
-    /// One cut_type per female outline.
-    std::array<std::vector<int>, 2> f_cut_types;
-
-    /// Number of teeth or notches along the joint line.
-    int divisions;
-
-    /// Lateral offset of the pattern along the joint line, 0..1.
-    double shift;
-
-    /// Length of the joint line.
-    double length;
-
-    /// Spacing between divisions along the joint line.
-    double division_length;
-
-    /// Multiplicative scale of the unit-box geometry, x, y, z.
-    std::array<double, 3> scale;
-
-    /// True when the variant pins its axial size to unit_scale_distance.
-    bool unit_scale;
-
-    /// The axial size a unit-scale variant is pinned to; 0 reads it off the volume rectangle.
-    double unit_scale_distance;
-
-    /// Indices of the joints this one is linked with (three-valence).
-    std::vector<int> linked_joints;
-
-    /// Per linked joint, the vertex ranges merge_linked_joints interleaves.
-    std::vector<std::vector<std::array<int, 4>>> linked_joints_seq;
-
-    /// True when this joint is the link of a three-valence group.
-    bool link;
-
-    /// True when the outlines are already in world space and must not be oriented.
-    bool no_orient;
-
-    /// Face pairs that passed the coplanarity test in detection.
-    int dbg_coplanar;
-
-    /// Face pairs with a real overlap area in detection.
-    int dbg_boolean;
-
-    /// Why detection rejected the pair, filled only under TRACE.
-    std::string dbg_fail_reason;
-
-    /// The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
-    std::array<session_cpp::ElementFeature, 2> element_features;
-
-    /// Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
-    mutable std::array<std::string, 2> feature_guids;
+    std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
+    std::string element_b; // The female element, by guid.
+    FaceContact contact; // Which faces touched, and where.
+    std::array<int, 2> cross_faces{-1, -1}; // Cross joints only: the second side face of each element in the crossing; {-1, -1} otherwise.
+    int joint_type; // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top.
+    std::string name; // The joint library variant that built the outlines ("ss_e_ip_2", "side_removal"), empty before construction.
+    std::array<session_cpp::Line, 2> joint_lines; // The two alignment lines, one per element, along the shared edge.
+    std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes_pair_a_pair_b; // The volume rectangles: [0] and [1] bound the male side, [2] and [3] the female side when it differs.
+    std::array<std::vector<session_cpp::Polyline>, 2> m_outlines; // Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
+    std::array<std::vector<session_cpp::Polyline>, 2> f_outlines; // Female cut outlines per face, laid out like m_outlines.
+    std::array<std::vector<int>, 2> m_cut_types; // One cut_type per male outline.
+    std::array<std::vector<int>, 2> f_cut_types; // One cut_type per female outline.
+    int divisions; // Number of teeth or notches along the joint line.
+    double shift; // Lateral offset of the pattern along the joint line, 0..1.
+    double length; // Length of the joint line.
+    double division_length; // Spacing between divisions along the joint line.
+    std::array<double, 3> scale; // Multiplicative scale of the unit-box geometry, x, y, z.
+    bool unit_scale; // True when the variant pins its axial size to unit_scale_distance.
+    double unit_scale_distance; // The axial size a unit-scale variant is pinned to; 0 reads it off the volume rectangle.
+    std::vector<int> linked_joints; // Indices of the joints this one is linked with (three-valence).
+    std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // Per linked joint, the vertex ranges merge_linked_joints interleaves.
+    bool link; // True when this joint is the link of a three-valence group.
+    bool no_orient; // True when the outlines are already in world space and must not be oriented.
+    int dbg_coplanar; // Face pairs that passed the coplanarity test in detection.
+    int dbg_boolean; // Face pairs with a real overlap area in detection.
+    std::string dbg_fail_reason; // Why detection rejected the pair, filled only under TRACE.
+    std::array<session_cpp::ElementFeature, 2> element_features; // The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
+    mutable std::array<std::string, 2> feature_guids; // Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
 
     /// The guid of one side, minted on first read.
     const std::string& feature_guid(int side) const;

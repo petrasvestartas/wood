@@ -6,21 +6,15 @@ namespace wood_session {
 
 /// Merged cut outlines of a plate, per face: [0] the outer boundary, [1..] holes.
 struct Features {
-    /// Top face: the outer outline first, then one outline per hole.
-    std::vector<session_cpp::Polyline> top;
-
-    /// Bottom face: the outer outline first, then one outline per hole.
-    std::vector<session_cpp::Polyline> bottom;
+    std::vector<session_cpp::Polyline> top; // Top face: the outer outline first, then one outline per hole.
+    std::vector<session_cpp::Polyline> bottom; // Bottom face: the outer outline first, then one outline per hole.
 };
 
 /// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it.
 class Plate : public session_cpp::Element {
 public:
-    /// The element_type this plate is written under.
-    static constexpr const char* ELEMENT_TYPE = "Plate";
-
-    /// The element_type wood wrote before, still accepted on read.
-    static constexpr const char* LEGACY_ELEMENT_TYPE = "WoodElement";
+    static constexpr const char* ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
+    static constexpr const char* LEGACY_ELEMENT_TYPE = "WoodElement"; // The element_type wood wrote before, still accepted on read.
 
     /// An empty plate: no outlines, no planes, nothing to loft.
     Plate();
@@ -28,29 +22,11 @@ public:
     /// A plate from its bottom and top outline; `name` is the type flag face_contacts() filters on.
     Plate(const session_cpp::Polyline& bottom, const session_cpp::Polyline& top, const std::string& name = "plate");
 
-    /// Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
-    std::vector<session_cpp::Polyline> polylines;
-
-    /// One plane per outline, normals pointing out of the plate.
-    std::vector<session_cpp::Plane> planes;
-
-    /// Joint type per face, indexed like polylines; empty lets the solver decide.
-    std::vector<int> joint_types;
-
-    /// True when the constructor reversed both outlines to make the bottom normal point away from the top.
-    bool reversed = false;
-
-    /// Distance between the bottom and the top plane.
-    double thickness = 0.0;
-
-    /// Merged cut outlines after compute_joints; empty before.
-    Features features;
-
-    /// The insertion vectors the Element holds, read-only.
-    using session_cpp::Element::insertion_vectors;
-
-    /// The insertion vectors the Element holds, one per face, writable by the solver.
-    std::vector<session_cpp::Vector>& insertion_vectors() { return _insertion_vectors; }
+    std::vector<session_cpp::Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
+    std::vector<session_cpp::Plane> planes; // One plane per outline, normals pointing out of the plate.
+    double thickness = 0.0; // Distance between the bottom and the top plane.
+    bool reversed = false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
+    Features features; // Merged cut outlines after compute_joints; empty before.
 
     /// Lofts the plate onto the Element (its cut outlines when solved, its two outlines otherwise) and sets dimensions and face features.
     void compute_geometry();
@@ -81,6 +57,18 @@ public:
 
     /// "Plate(name, polylines, planes, reversed, thickness, features)".
     std::string repr() const override;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Dataset overrides - the annen and vidy datasets only
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    std::vector<int> joint_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide.
+
+    /// The insertion vectors the Element holds, read-only.
+    using session_cpp::Element::insertion_vectors;
+
+    /// The insertion vectors the Element holds, one per face from the insertion_vectors sidecar, writable by the solver.
+    std::vector<session_cpp::Vector>& insertion_vectors() { return _insertion_vectors; }
 
 protected:
     /// The plate's own outlines, so Element::polylines() agrees with the solver's view.

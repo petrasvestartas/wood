@@ -6,23 +6,12 @@ namespace wood_session {
 
 /// One crossing of two plates: where their side faces pass through each other.
 struct CrossJoint {
-    /// Joint type code, 30 for a cross.
-    int type = 30;
-
-    /// The two side faces of element A the crossing involves.
-    std::pair<int, int> face_ids_a{-1, -1};
-
-    /// The two side faces of element B the crossing involves.
-    std::pair<int, int> face_ids_b{-1, -1};
-
-    /// Closed quad on the mid-plane, 5 points.
-    session_cpp::Polyline joint_area;
-
-    /// The two perpendicular centrelines of joint_area, 2 points each.
-    std::array<session_cpp::Polyline, 2> joint_lines;
-
-    /// The two parallel quads bounding the joint volume.
-    std::array<session_cpp::Polyline, 2> joint_volumes;
+    int type = 30; // Joint type code, 30 for a cross.
+    std::pair<int, int> face_ids_a{-1, -1}; // The two side faces of element A the crossing involves.
+    std::pair<int, int> face_ids_b{-1, -1}; // The two side faces of element B the crossing involves.
+    session_cpp::Polyline joint_area; // Closed quad on the mid-plane, 5 points.
+    std::array<session_cpp::Polyline, 2> joint_lines; // The two perpendicular centrelines of joint_area, 2 points each.
+    std::array<session_cpp::Polyline, 2> joint_volumes; // The two parallel quads bounding the joint volume.
 };
 
 /// Cross/lap joint detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing.
