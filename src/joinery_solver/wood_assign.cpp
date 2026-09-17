@@ -69,11 +69,11 @@ void compute_element_aabb(const Plate& elem, double inflate, double out_min[3], 
     }
 }
 
-void compute_element_rtree(const std::vector<Plate>& elements, double inflate, RTree3& rtree) {
+void compute_element_rtree(const std::vector<std::shared_ptr<Plate>>& elements, double inflate, RTree3& rtree) {
     for (int ei = 0; ei < static_cast<int>(elements.size()); ei++) {
         double mn[3];
         double mx[3];
-        compute_element_aabb(elements[ei], inflate, mn, mx);
+        compute_element_aabb(*elements[ei], inflate, mn, mx);
         if (mn[0] > mx[0])
             continue;
         rtree.insert(mn, mx, ei);
@@ -88,7 +88,7 @@ size_t get_side_slots(const Plate& elem) {
 }
 
 void assign_joint(
-    const std::vector<Plate>&        elements,
+    const std::vector<std::shared_ptr<Plate>>&        elements,
     const std::vector<session_cpp::Point>& points,
     const std::vector<int>&                point_types,
     std::vector<std::vector<int>>&         out_joint_types)
@@ -99,7 +99,7 @@ void assign_joint(
     out_joint_types.clear();
     out_joint_types.resize(elements.size());
     for (size_t ei = 0; ei < elements.size(); ei++)
-        out_joint_types[ei].assign(2 + get_side_slots(elements[ei]), -1);
+        out_joint_types[ei].assign(2 + get_side_slots(*elements[ei]), -1);
 
     if (points.empty() || point_types.size() < points.size())
         return;
@@ -115,7 +115,7 @@ void assign_joint(
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
 
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
-            const auto& elem = elements[ei];
+            const Plate& elem = *elements[ei];
             if (elem.polylines.size() < 2)
                 return true;
 
@@ -142,7 +142,7 @@ void assign_joint(
 }
 
 void assign_insertion(
-    const std::vector<Plate>&                elements,
+    const std::vector<std::shared_ptr<Plate>>&                elements,
     const std::vector<session_cpp::Line>&          lines,
     std::vector<std::vector<session_cpp::Vector>>& out_insertion_vectors)
 {
@@ -152,7 +152,7 @@ void assign_insertion(
     out_insertion_vectors.clear();
     out_insertion_vectors.resize(elements.size());
     for (size_t ei = 0; ei < elements.size(); ei++)
-        out_insertion_vectors[ei].assign(2 + get_side_slots(elements[ei]), session_cpp::Vector(0.0, 0.0, 0.0));
+        out_insertion_vectors[ei].assign(2 + get_side_slots(*elements[ei]), session_cpp::Vector(0.0, 0.0, 0.0));
 
     if (lines.empty())
         return;
@@ -168,7 +168,7 @@ void assign_insertion(
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
 
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
-            const auto& elem = elements[ei];
+            const Plate& elem = *elements[ei];
             if (elem.polylines.size() < 2)
                 return true;
 

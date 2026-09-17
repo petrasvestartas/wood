@@ -941,7 +941,7 @@ using namespace wood_session;
 class Chevron {
 public:
     Mesh mesh;
-    std::vector<Plate> elements;
+    std::vector<std::shared_ptr<Plate>> elements;
 
     /// Joinery solver inputs (see wood_chevron::ChevronResult)
     std::vector<std::array<double,18>> insertion_vectors;
@@ -977,7 +977,7 @@ public:
 
         // 8 polylines per face → 4 plate-pairs → 4 WoodElements per face
         for (size_t i = 0; i + 1 < result.plines.size(); i += 2) {
-            elements.emplace_back(result.plines[i], result.plines[i + 1]);
+            elements.push_back(std::make_shared<Plate>(result.plines[i], result.plines[i + 1]));
         }
 
         insertion_vectors = std::move(result.insertion_vectors);

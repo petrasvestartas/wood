@@ -3,15 +3,15 @@
 // 8-point tooth shape along the joint Z-axis, reversing each copy's winding
 // before appending (so the concatenated polyline forms a non-self-intersecting
 // outline). Male goes to -X, female goes to +X (mirror of ss_e_ip_1/2).
-// Requires element thickness via elements[joint.v0].thickness.
-static void ss_e_ip_5(WoodJoint& joint, const std::vector<Plate>& elements) {
+// Requires element thickness via elements[joint.v0]->thickness.
+static void ss_e_ip_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "ss_e_ip_5";
 
     int v0 = index_of(elements, joint.element_a);
     if (v0 < 0 || v0 >= (int)elements.size()) {
         return;
     }
-    joint.unit_scale_distance = elements[v0].thickness;
+    joint.unit_scale_distance = elements[v0]->thickness;
 
     double edge_length = 1000.0;
     {

@@ -17,9 +17,9 @@ static void check(bool condition, const char* name) {
     ++failures;
 }
 
-static std::vector<Plate> plates() {
-    Plate element;
-    element.polylines = {
+static std::vector<std::shared_ptr<Plate>> plates() {
+    auto element = std::make_shared<Plate>();
+    element->polylines = {
         Polyline({Point(0, 0, 0), Point(10, 0, 0), Point(10, 10, 0), Point(0, 10, 0), Point(0, 0, 0)}),
         Polyline({Point(0, 0, 2), Point(10, 0, 2), Point(10, 10, 2), Point(0, 10, 2), Point(0, 0, 2)})
     };
@@ -70,8 +70,8 @@ static void empty_inputs() {
     check(types[0] == std::vector<int>(6, -1), "Empty Points Reset Types");
     for (const Vector& vector : vectors[0])
         check(vector.magnitude() == 0.0, "Empty Lines Reset Vectors");
-    assign_joint({Plate()}, {Point(0, 0, 0)}, {12}, types);
-    assign_insertion({Plate()}, {Line::from_points(Point(0, 0, 0), Point(0, 0, 1))}, vectors);
+    assign_joint({std::make_shared<Plate>()}, {Point(0, 0, 0)}, {12}, types);
+    assign_insertion({std::make_shared<Plate>()}, {Line::from_points(Point(0, 0, 0), Point(0, 0, 1))}, vectors);
     check(types[0] == std::vector<int>(2, -1) && vectors[0].size() == 2, "Empty Element Outlines");
 }
 

@@ -352,23 +352,13 @@ void WoodSession::compute_line_contacts(double tolerance) {
 }
 
 void WoodSession::compute_joints(SearchType search_type) {
-    const std::vector<std::shared_ptr<Plate>> plates = this->plates();
+    std::vector<std::shared_ptr<Plate>> plates = this->plates();
     if (plates.empty())
         return;
     clear_joints();
-    std::vector<Plate> solved;
-    solved.reserve(plates.size());
-    for (const std::shared_ptr<Plate>& plate : plates) {
-        solved.push_back(*plate);
-        solved.back().guid() = plate->guid();
-    }
-    const std::vector<WoodJoint> joints = get_connection_zones(solved, search_type);
-    for (size_t i = 0; i < plates.size(); ++i) {
-        const std::string guid = plates[i]->guid();
-        *plates[i] = solved[i];
-        plates[i]->guid() = guid;
-        plates[i]->compute_geometry();
-    }
+    const std::vector<WoodJoint> joints = get_connection_zones(plates, search_type);
+    for (const std::shared_ptr<Plate>& plate : plates)
+        plate->compute_geometry();
     for (const WoodJoint& joint : joints) {
         if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b)) continue;
         WoodInteraction interaction = get_interaction(joint.element_a, joint.element_b);
@@ -410,8 +400,8 @@ WoodSession WoodSession::pb_load(const std::filesystem::path& path) {
 WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
     globals::globals_yaml(path.string());
     WoodSession scene(globals::DATA_SET_INPUT_NAME);
-    for (const Plate& plate : internal::load_plates(globals::DATA_SET_OBJ))
-        scene.add(std::make_shared<Plate>(plate));
+    for (const std::shared_ptr<Plate>& plate : internal::load_plates(globals::DATA_SET_OBJ))
+        scene.add(plate);
     return scene;
 }
 

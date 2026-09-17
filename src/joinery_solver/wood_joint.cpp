@@ -276,9 +276,9 @@ std::string WoodJoint::str() const {
 }
 std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
 
-int index_of(const std::vector<Plate>& elements, const std::string& guid) {
+int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid) {
     for (size_t i = 0; i < elements.size(); ++i)
-        if (elements[i].guid() == guid) { return static_cast<int>(i); }
+        if (elements[i]->guid() == guid) { return static_cast<int>(i); }
     return -1;
 }
 
@@ -474,7 +474,7 @@ void joint_get_divisions(WoodJoint& joint, double division_distance) {
 }
 
 void side_removal_ss_e_r_1_port(WoodJoint& joint,
-                                        const std::vector<Plate>& elements) {
+                                        const std::vector<std::shared_ptr<Plate>>& elements) {
     // Wood's case 58 dispatch calls `side_removal(jo, elements, true)` — the
     // simpler side_removal at wood_joint_lib.cpp:432, NOT the more complex
     // side_removal_ss_e_r_1 at line 2723. The simple variant emits four
@@ -498,17 +498,17 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
         ss_e_r_0(joint); // fall back to world-space rect split
         return;
     }
-    if (f0_0 < 0 || f0_0 >= (int)elements[v0].planes.size() ||
-        f1_0 < 0 || f1_0 >= (int)elements[v1].planes.size() ||
-        f0_0 >= (int)elements[v0].polylines.size() ||
-        f1_0 >= (int)elements[v1].polylines.size()) {
+    if (f0_0 < 0 || f0_0 >= (int)elements[v0]->planes.size() ||
+        f1_0 < 0 || f1_0 >= (int)elements[v1]->planes.size() ||
+        f0_0 >= (int)elements[v0]->polylines.size() ||
+        f1_0 >= (int)elements[v1]->polylines.size()) {
         ss_e_r_0(joint);
         return;
     }
 
     // Normal vectors (unit), scaled by joint.scale[2].
-    Vector n0 = elements[v0].planes[f0_0].z_axis(); n0.normalize_self();
-    Vector n1 = elements[v1].planes[f1_0].z_axis(); n1.normalize_self();
+    Vector n0 = elements[v0]->planes[f0_0].z_axis(); n0.normalize_self();
+    Vector n1 = elements[v1]->planes[f1_0].z_axis(); n1.normalize_self();
 
     double s2 = joint.scale[2];
     Vector f0_0_normal(n0[0]*s2, n0[1]*s2, n0[2]*s2);
@@ -518,8 +518,8 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
                        n0[2]*(s2 + 2.0 + joint.shift));
 
     // Copy side-face rectangles (5-pt closed polylines).
-    Polyline pline0 = elements[v0].polylines[f0_0];
-    Polyline pline1 = elements[v1].polylines[f1_0];
+    Polyline pline0 = elements[v0]->polylines[f0_0];
+    Polyline pline1 = elements[v1]->polylines[f1_0];
 
     // Extend side rectangles at convex corners (wood_joint_lib.cpp:2760-2789).
     // For a 4-corner plate, each side-face-rect corner maps to a top-polygon
@@ -585,10 +585,10 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
         pl = Polyline(pts);
     };
     if (pline0.point_count() == 5 && pline1.point_count() == 5) {
-        const Polyline& top0 = elements[v0].polylines[0];
-        const Polyline& top1 = elements[v1].polylines[0];
-        Vector norm0 = elements[v0].planes[0].z_axis(); norm0.normalize_self();
-        Vector norm1 = elements[v1].planes[0].z_axis(); norm1.normalize_self();
+        const Polyline& top0 = elements[v0]->polylines[0];
+        const Polyline& top1 = elements[v1]->polylines[0];
+        Vector norm0 = elements[v0]->planes[0].z_axis(); norm0.normalize_self();
+        Vector norm1 = elements[v1]->planes[0].z_axis(); norm1.normalize_self();
         std::vector<bool> cc0 = get_convex(top0, norm0);
         std::vector<bool> cc1 = get_convex(top1, norm1);
         double sc0 = joint.scale[0];
@@ -669,7 +669,7 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint,
 // f[0], f[1]) with wood::cut::drill cut type. unit_scale stays false; orient
 // is disabled (joint geometry is world-space).
 void tt_e_p_3(WoodJoint& joint,
-                     const std::vector<Plate>& elements) {
+                     const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_3";
     joint.no_orient = true;
 
@@ -729,8 +729,8 @@ void tt_e_p_3(WoodJoint& joint,
     Vector dir0(jv_1[0] - jv_2[0], jv_1[1] - jv_2[1], jv_1[2] - jv_2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness;
-    double t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness;
+    double t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0] * t0, dir0[1] * t0, dir0[2] * t0);
     dir1 = Vector(dir1[0] * t1, dir1[1] * t1, dir1[2] * t1);
 
@@ -788,7 +788,7 @@ void tt_e_p_3(WoodJoint& joint,
 // an explicit merge_with_joint flag. When merge_with_joint=false the merge
 // branch is suppressed regardless of joint.shift.
 void side_removal(WoodJoint& joint,
-                  const std::vector<Plate>& elements,
+                  const std::vector<std::shared_ptr<Plate>>& elements,
                   bool merge_with_joint) {
     double saved_shift = joint.shift;
     if (!merge_with_joint) { joint.shift = 0.0; } // force simple 2-outline branch
@@ -800,7 +800,7 @@ void side_removal(WoodJoint& joint,
 // Port of wood_joint_lib.cpp:5513-5548. Uses the centroid of joint_area as
 // the drill point. dir0 = unit(jv[1]-jv[2]) * thickness_v0,
 // dir1 = -dir0_unit * thickness_v1. Emits 2 outlines per face (doubled).
-void tt_e_p_0(WoodJoint& joint, const std::vector<Plate>& elements) {
+void tt_e_p_0(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_0";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -824,7 +824,7 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<Plate>& elements) {
     Vector dir0(jv1[0]-jv2[0], jv1[1]-jv2[1], jv1[2]-jv2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness, t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness, t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
@@ -846,7 +846,7 @@ void tt_e_p_0(WoodJoint& joint, const std::vector<Plate>& elements) {
 // circle center) to find the visually centered drill point. For convex/regular
 // joint areas (typical plate overlap zones), polylabel ≈ centroid. Same
 // drill-line structure as tt_e_p_0.
-void tt_e_p_1(WoodJoint& joint, const std::vector<Plate>& elements) {
+void tt_e_p_1(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_1";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -870,7 +870,7 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<Plate>& elements) {
     Vector dir0(jv1[0]-jv2[0], jv1[1]-jv2[1], jv1[2]-jv2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness, t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness, t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
@@ -892,7 +892,7 @@ void tt_e_p_1(WoodJoint& joint, const std::vector<Plate>& elements) {
 // division to generate N points on a circle of radius `shift` around the
 // inscribed center. Approximation: places N points on a circle of radius
 // `shift` around the joint_area centroid in the joint_area plane.
-void tt_e_p_2(WoodJoint& joint, const std::vector<Plate>& elements) {
+void tt_e_p_2(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_2";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -939,7 +939,7 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<Plate>& elements) {
     Vector dir0(jv1[0]-jv2[0], jv1[1]-jv2[1], jv1[2]-jv2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness, t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness, t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
@@ -965,7 +965,7 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<Plate>& elements) {
 // Port of wood_joint_lib.cpp:5713-5765. Original uses grid_of_points_in_a_polygon
 // (2D grid within offset polygon). Approximation: offset boundary + edge
 // subdivision (same as tt_e_p_3 but with different parameter mapping).
-void tt_e_p_4(WoodJoint& joint, const std::vector<Plate>& elements) {
+void tt_e_p_4(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_4";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -1002,7 +1002,7 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<Plate>& elements) {
     Vector dir0(jv1[0]-jv2[0], jv1[1]-jv2[1], jv1[2]-jv2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness, t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness, t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 
@@ -1028,7 +1028,7 @@ void tt_e_p_4(WoodJoint& joint, const std::vector<Plate>& elements) {
 // Port of wood_joint_lib.cpp:5768-5834. Original uses inscribe_rectangle_in_
 // convex_polygon + edge/grid subdivision. Approximation: offset boundary +
 // edge subdivision (same approach as tt_e_p_4).
-void tt_e_p_5(WoodJoint& joint, const std::vector<Plate>& elements) {
+void tt_e_p_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
     joint.name = "tt_e_p_5";
     joint.no_orient = true;
     int v0 = index_of(elements, joint.element_a), v1 = index_of(elements, joint.element_b);
@@ -1065,7 +1065,7 @@ void tt_e_p_5(WoodJoint& joint, const std::vector<Plate>& elements) {
     Vector dir0(jv1[0]-jv2[0], jv1[1]-jv2[1], jv1[2]-jv2[2]);
     dir0.normalize_self();
     Vector dir1(-dir0[0], -dir0[1], -dir0[2]);
-    double t0 = elements[v0].thickness, t1 = elements[v1].thickness;
+    double t0 = elements[v0]->thickness, t1 = elements[v1]->thickness;
     dir0 = Vector(dir0[0]*t0, dir0[1]*t0, dir0[2]*t0);
     dir1 = Vector(dir1[0]*t1, dir1[1]*t1, dir1[2]*t1);
 

@@ -14,8 +14,8 @@ static void run(const std::string& name, const double division) {
     globals::JOINTS_PARAMETERS_AND_TYPES[2*3+2] = 20;
 
     WoodSession scene(globals::DATA_SET_INPUT_NAME);
-    for (const Plate& element : internal::load_plates(name))
-        scene.add(std::make_shared<Plate>(element));
+    for (const std::shared_ptr<Plate>& plate : internal::load_plates(name))
+        scene.add(plate);
     scene.compute_joints(face_to_face);
     pb_dump(scene, "live");
 }

@@ -24,9 +24,9 @@ int main() {
     // Session::compute_face_to_face. Both were deleted from session_cpp in
     // 89da090c ("refactoring"), so the contact search now runs through wood's
     // own pipeline, which is what that session-side helper was standing in for.
-    std::vector<wood_session::Plate> elements;
+    std::vector<std::shared_ptr<wood_session::Plate>> elements;
     elements.reserve(pairs.size());
-    for (auto [a, b] : pairs) { elements.emplace_back(polylines[a], polylines[b]); }
+    for (auto [a, b] : pairs) { elements.push_back(std::make_shared<wood_session::Plate>(polylines[a], polylines[b])); }
     auto t2 = Clock::now();
 
     // 3. Face-to-face contacts: broad-phase adjacency + joint classification.

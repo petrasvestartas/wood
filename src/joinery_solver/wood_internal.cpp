@@ -29,16 +29,16 @@ bool plates_exist(const std::string& name) {
     return std::filesystem::exists(dataset_path(name, ".obj"));
 }
 
-std::vector<wood_session::Plate> load_plates(const std::string& dataset_name, double duplicate_pts_tol) {
+std::vector<std::shared_ptr<wood_session::Plate>> load_plates(const std::string& dataset_name, double duplicate_pts_tol) {
 
     const auto polylines = load_polylines(dataset_name, duplicate_pts_tol);
     if (polylines.size() % 2 != 0)
         throw std::runtime_error("load_plates: unpaired outline in " + dataset_name);
 
-    std::vector<wood_session::Plate> elements;
+    std::vector<std::shared_ptr<wood_session::Plate>> elements;
     elements.reserve(polylines.size() / 2);
     for (size_t i = 0; i < polylines.size(); i += 2)
-        elements.emplace_back(polylines[i], polylines[i + 1]);
+        elements.push_back(std::make_shared<wood_session::Plate>(polylines[i], polylines[i + 1]));
         
     return elements;
 }

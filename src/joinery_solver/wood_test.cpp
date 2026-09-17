@@ -185,7 +185,7 @@ bool type_plates_name_side_to_side_edge_outofplane_folding() {
 // polygon corners. Every corner of the original face polyline must appear
 // unchanged in the merged outer outline after joint cutting. Max nearest-
 // neighbour distance over all corners tells us if plate corners survived.
-static void measure_corner_preservation(const std::vector<wood_session::Plate>& elements) {
+static void measure_corner_preservation(const std::vector<std::shared_ptr<wood_session::Plate>>& elements) {
     using session_cpp::Point;
     auto dist = [](const Point& a, const Point& b) {
         double dx = a[0]-b[0], dy = a[1]-b[1], dz = a[2]-b[2];
@@ -193,7 +193,8 @@ static void measure_corner_preservation(const std::vector<wood_session::Plate>& 
     };
     double max_gap = 0.0;
     int n_checked = 0;
-    for (const auto& el : elements) {
+    for (const std::shared_ptr<wood_session::Plate>& plate : elements) {
+        const wood_session::Plate& el = *plate;
         if (el.polylines.size() < 2 || el.features.top.empty()) {
             continue;
         }

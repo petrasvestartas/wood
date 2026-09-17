@@ -118,7 +118,7 @@ using wood_session::tt_e_p_5;
 static void joint_create_geometry(WoodJoint& joint, double division_distance,
                                   double shift_param, int id,
                                   std::vector<WoodJoint>* all_joints = nullptr,
-                                  const std::vector<Plate>* elements = nullptr) {
+                                  const std::vector<std::shared_ptr<Plate>>* elements = nullptr) {
     joint_get_divisions(joint, division_distance);
     joint.shift = shift_param;
 
@@ -338,10 +338,10 @@ static void joint_create_geometry(WoodJoint& joint, double division_distance,
 // should match wood's primary plate-side removal.
 //
 // joint.el_ids: (v0, v1) with f0_0 and f1_0 the side-face indices.
-// wood_elems[v0].polylines[f0_0] is the 5-pt side rectangle on plate v0.
+// wood_elems[v0]->polylines[f0_0] is the 5-pt side rectangle on plate v0.
 static void three_valence_joint_addition_vidy(
     const std::vector<std::vector<int>>& tv_groups,
-    std::vector<Plate>& elements,
+    std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
     const std::vector<std::pair<int,int>>& /*adjacency_pairs*/)
@@ -383,10 +383,10 @@ static void three_valence_joint_addition_vidy(
                 if (ll <= 0.0) { return false; }
                 return std::abs(a.dot(b) / ll) >= std::cos(wood_session::globals::ANGLE);
             };
-            Vector n_s0 = elements[s0].planes[0].z_axis();
-            Vector n_e31 = elements[e31].planes[0].z_axis();
-            Vector n_s1 = elements[s1].planes[0].z_axis();
-            Vector n_e20 = elements[e20].planes[0].z_axis();
+            Vector n_s0 = elements[s0]->planes[0].z_axis();
+            Vector n_e31 = elements[e31]->planes[0].z_axis();
+            Vector n_s1 = elements[s1]->planes[0].z_axis();
+            Vector n_e20 = elements[e20]->planes[0].z_axis();
             if (!is_parallel_wood(n_s0, n_e31) || !is_parallel_wood(n_s1, n_e20)) { continue; }
         }
 
@@ -397,21 +397,21 @@ static void three_valence_joint_addition_vidy(
         if (!joints[id].joint_volumes_pair_a_pair_b[0].has_value()) { continue; }
 
         // Find nearest/farthest planes between element pairs
-        double d00 = sq_dist_pt_plane(elements[s0].planes[0].origin(), elements[e31].planes[0]);
-        double d01 = sq_dist_pt_plane(elements[s0].planes[0].origin(), elements[e31].planes[1]);
-        Plane plane00_far = d00 < d01 ? elements[e31].planes[0] : elements[e31].planes[1];
+        double d00 = sq_dist_pt_plane(elements[s0]->planes[0].origin(), elements[e31]->planes[0]);
+        double d01 = sq_dist_pt_plane(elements[s0]->planes[0].origin(), elements[e31]->planes[1]);
+        Plane plane00_far = d00 < d01 ? elements[e31]->planes[0] : elements[e31]->planes[1];
 
-        d00 = sq_dist_pt_plane(plane00_far.origin(), elements[s0].planes[0]);
-        d01 = sq_dist_pt_plane(plane00_far.origin(), elements[s0].planes[1]);
-        Plane plane01_near = d00 < d01 ? elements[s0].planes[1] : elements[s0].planes[0];
+        d00 = sq_dist_pt_plane(plane00_far.origin(), elements[s0]->planes[0]);
+        d01 = sq_dist_pt_plane(plane00_far.origin(), elements[s0]->planes[1]);
+        Plane plane01_near = d00 < d01 ? elements[s0]->planes[1] : elements[s0]->planes[0];
 
-        double d10 = sq_dist_pt_plane(elements[s1].planes[0].origin(), elements[e20].planes[0]);
-        double d11 = sq_dist_pt_plane(elements[s1].planes[0].origin(), elements[e20].planes[1]);
-        Plane plane10_far = d10 < d11 ? elements[e20].planes[0] : elements[e20].planes[1];
+        double d10 = sq_dist_pt_plane(elements[s1]->planes[0].origin(), elements[e20]->planes[0]);
+        double d11 = sq_dist_pt_plane(elements[s1]->planes[0].origin(), elements[e20]->planes[1]);
+        Plane plane10_far = d10 < d11 ? elements[e20]->planes[0] : elements[e20]->planes[1];
 
-        d10 = sq_dist_pt_plane(plane10_far.origin(), elements[s1].planes[0]);
-        d11 = sq_dist_pt_plane(plane10_far.origin(), elements[s1].planes[1]);
-        Plane plane11_near = d10 < d11 ? elements[s1].planes[1] : elements[s1].planes[0];
+        d10 = sq_dist_pt_plane(plane10_far.origin(), elements[s1]->planes[0]);
+        d11 = sq_dist_pt_plane(plane10_far.origin(), elements[s1]->planes[1]);
+        Plane plane11_near = d10 < d11 ? elements[s1]->planes[1] : elements[s1]->planes[0];
 
         // Joint volume edge lines for projection (wood lines 1685-1686)
         auto& jvol = *joints[id].joint_volumes_pair_a_pair_b[0];
@@ -517,8 +517,8 @@ static void three_valence_joint_addition_vidy(
 
         // Create shadow joint 0 (s0 ↔ e20) — wood lines 1824-1829
         WoodJoint shadow0;
-        shadow0.element_a = elements[s0].guid();
-        shadow0.element_b = elements[e20].guid();
+        shadow0.element_a = elements[s0]->guid();
+        shadow0.element_b = elements[e20]->guid();
         shadow0.contact.face_a = -1;
         shadow0.contact.face_b = -1;
         shadow0.cross_faces = {-1, -1};
@@ -535,8 +535,8 @@ static void three_valence_joint_addition_vidy(
         int shadow1_idx = -1;
         if (e20 != e31) {
             WoodJoint shadow1;
-            shadow1.element_a = elements[s1].guid();
-            shadow1.element_b = elements[e31].guid();
+            shadow1.element_a = elements[s1]->guid();
+            shadow1.element_b = elements[e31]->guid();
             shadow1.contact.face_a = -1;
             shadow1.contact.face_b = -1;
             shadow1.cross_faces = {-1, -1};
@@ -566,7 +566,7 @@ static void three_valence_joint_addition_vidy(
 // ───────────────────────────────────────────────────────────────────────────
 static void three_valence_joint_alignment_annen(
     const std::vector<std::vector<int>>& tv_groups,
-    const std::vector<Plate>& elements,
+    const std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& joints,
     const std::vector<std::pair<int,int>>& /*adjacency_pairs*/)
 {
@@ -614,7 +614,7 @@ static void three_valence_joint_alignment_annen(
         double thickness = 0;
         int e0_idx = index_of(elements, j0.element_a);
         if (e0_idx >= 0 && e0_idx < (int)elements.size()) {
-            auto& el = elements[e0_idx];
+            Plate& el = *elements[e0_idx];
             if (el.polylines.size() >= 2 && el.polylines[0].point_count() > 0 && el.polylines[1].point_count() > 0) {
                 auto p0 = el.polylines[0].get_point(0);
                 auto p1_proj = el.planes[1].project(p0);
@@ -724,7 +724,7 @@ static bool wood_trace_enabled() {
 }
 
 std::vector<WoodJoint> get_connection_zones(
-    std::vector<Plate>& wood_elems,
+    std::vector<std::shared_ptr<Plate>>& wood_elems,
     SearchType search_type) {
 
     if (wood_trace_enabled()) {
@@ -756,7 +756,7 @@ std::vector<WoodJoint> get_connection_zones(
         if (!df || wood_session::globals::DATA_SET_INPUT_NAME == df) {
             std::ofstream el_log(ep);
             for (size_t ei = 0; ei < wood_elems.size(); ei++) {
-                const auto& we = wood_elems[ei];
+                const Plate& we = *wood_elems[ei];
                 el_log << "ELEMENT " << ei << " reversed=" << (we.reversed ? 1 : 0)
                        << " thickness=" << we.thickness
                        << " n_polylines=" << we.polylines.size() << "\n";
@@ -790,7 +790,10 @@ std::vector<WoodJoint> get_connection_zones(
 
     if (adjacency_pairs.empty()) {
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency_search start  DISTANCE=%g\n", DISTANCE); fflush(stderr); }
-        const std::vector<wood_session::ContactElement> view(wood_elems.begin(), wood_elems.end());
+        std::vector<wood_session::ContactElement> view;
+        view.reserve(wood_elems.size());
+        for (const std::shared_ptr<Plate>& plate : wood_elems)
+            view.emplace_back(*plate);
         adjacency_pairs = wood_session::adjacency_search(view, DISTANCE);
         if (wood_trace_enabled()) { fprintf(stderr, "[GCZ] adjacency pairs=%zu\n", adjacency_pairs.size()); fflush(stderr); }
         if (verbose) { fmt::print("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size()); }
@@ -850,10 +853,10 @@ std::vector<WoodJoint> get_connection_zones(
     // Skip assignment when the element already has vectors pre-set by the caller
     // (_joinery_solver.cpp iv-only path); reversal still applies in that case.
     for (size_t ei = 0; ei < wood_elems.size(); ei++) {
-        if (wood_elems[ei].insertion_vectors().empty())
-            wood_elems[ei].insertion_vectors() = per_element_insertion_vectors[ei];
-        if (wood_elems[ei].reversed) {
-            auto& vecs = wood_elems[ei].insertion_vectors();
+        if (wood_elems[ei]->insertion_vectors().empty())
+            wood_elems[ei]->insertion_vectors() = per_element_insertion_vectors[ei];
+        if (wood_elems[ei]->reversed) {
+            auto& vecs = wood_elems[ei]->insertion_vectors();
             if (vecs.size() > 2) {
                 std::reverse(vecs.begin() + 2, vecs.end());
             }
@@ -894,8 +897,8 @@ std::vector<WoodJoint> get_connection_zones(
         bool swap_planes_b = false;
         bool ok = face_to_face_wood(
             k,
-            wood_elems[ia],
-            wood_elems[ib],
+            *wood_elems[ia],
+            *wood_elems[ib],
             {ia, ib},
             joint_volume_extension,
             limit_min_joint_length,
@@ -912,8 +915,8 @@ std::vector<WoodJoint> get_connection_zones(
                     (int)ok, ok ? joint.joint_type : -1); fflush(stderr);
         }
         if (swap_planes_b) {
-            std::swap(wood_elems[ib].planes[0], wood_elems[ib].planes[1]);
-            std::swap(wood_elems[ib].polylines[0], wood_elems[ib].polylines[1]);
+            std::swap(wood_elems[ib]->planes[0], wood_elems[ib]->planes[1]);
+            std::swap(wood_elems[ib]->polylines[0], wood_elems[ib]->polylines[1]);
         }
         if (!ok) {
             if (verbose && !joint.dbg_fail_reason.empty()) {
@@ -1050,8 +1053,8 @@ std::vector<WoodJoint> get_connection_zones(
     // In-memory override: element.joint_types set directly by _joinery_solver.cpp
     // (direct path, no temp files). Takes precedence only when no file data exists.
     for (size_t ei = 0; ei < wood_elems.size(); ++ei) {
-        if (per_element_joints_types[ei].empty() && !wood_elems[ei].joint_types.empty())
-            per_element_joints_types[ei] = wood_elems[ei].joint_types;
+        if (per_element_joints_types[ei].empty() && !wood_elems[ei]->joint_types.empty())
+            per_element_joints_types[ei] = wood_elems[ei]->joint_types;
     }
 
     // Create unit joinery + orient to connection area.
@@ -1097,13 +1100,13 @@ std::vector<WoodJoint> get_connection_zones(
                 if (ei < 0 || ei >= (int)wood_elems.size()) {
                     return fi;
                 }
-                if (!wood_elems[ei].reversed) {
+                if (!wood_elems[ei]->reversed) {
                     return fi;
                 }
                 if (fi < 2) {
                     return 1 - fi; // top(0)↔bottom(1)
                 }
-                int n_sides = (int)wood_elems[ei].planes.size() - 2;
+                int n_sides = (int)wood_elems[ei]->planes.size() - 2;
                 return 2 + (n_sides - 1 - (fi - 2));
             };
             int of0 = orig_face(e0, f0);
@@ -1209,12 +1212,12 @@ std::vector<WoodJoint> get_connection_zones(
             // Pre-set element thickness for ss_e_r_2/3 (type 13) and
             // ss_e_ip_2 (type 12, butterfly). Wood's ss_e_ip_2 (line 765)
             // and ss_e_r_2/3 both use `joint.unit_scale_distance =
-            // elements[joint.v0].thickness` as `joint_volume_edge_length`
+            // elements[joint.v0]->thickness` as `joint_volume_edge_length`
             // for the division formula. Without this pre-set, session uses
             // the hardcoded default of 40mm and teeth land off-position.
             int ei = index_of(wood_elems, j.element_a);
             if (ei >= 0 && ei < (int)wood_elems.size()) {
-                j.unit_scale_distance = wood_elems[ei].thickness;
+                j.unit_scale_distance = wood_elems[ei]->thickness;
             }
         }
 
@@ -1352,7 +1355,7 @@ std::vector<WoodJoint> get_connection_zones(
     size_t n_elems = wood_elems.size();
     JMF j_mf(n_elems);
     for (size_t ei = 0; ei < n_elems; ei++) {
-        j_mf[ei].resize(wood_elems[ei].planes.size() + 1); // +1 = extra slot for shadow joints
+        j_mf[ei].resize(wood_elems[ei]->planes.size() + 1); // +1 = extra slot for shadow joints
     }
     for (size_t ji = 0; ji < all_joints.size(); ji++) {
         auto& j = all_joints[ji];
@@ -1383,8 +1386,8 @@ std::vector<WoodJoint> get_connection_zones(
     // Layout that merge_joints_for_element returns per element:
     //   [hole0_top, hole0_bot, hole1_top, hole1_bot, ..., outer_top, outer_bot]
     for (size_t ei = 0; ei < n_elems; ei++) {
-        auto merged = merge_joints_for_element(wood_elems[ei], j_mf[ei], all_joints, (int)ei);
-        auto& feat = wood_elems[ei].features;
+        auto merged = merge_joints_for_element(*wood_elems[ei], j_mf[ei], all_joints, (int)ei);
+        auto& feat = wood_elems[ei]->features;
         feat.top.clear();
         feat.bottom.clear();
         if (merged.size() >= 2) {
@@ -1437,7 +1440,7 @@ std::vector<WoodJoint> get_connection_zones(
 // is chosen to avoid collisions with any existing named dataset.
 // ═══════════════════════════════════════════════════════════════════════════
 std::vector<wood_session::WoodJoint> get_connection_zones(
-        std::vector<wood_session::Plate>& elements,
+        std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type,
         const wood_session::ChevronJoineryData& joinery_data)
 {
@@ -1457,10 +1460,10 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 
     // 1. Insertion vectors — convert array<double,18> → vector<Vector> per element.
     for (size_t ei = 0; ei < elements.size(); ++ei) {
-        if (elements[ei].insertion_vectors().empty() &&
+        if (elements[ei]->insertion_vectors().empty() &&
             ei < joinery_data.insertion_vectors.size()) {
             const auto& iv18 = joinery_data.insertion_vectors[ei];
-            auto& ivec = elements[ei].insertion_vectors();
+            auto& ivec = elements[ei]->insertion_vectors();
             for (int s = 0; s < 6; ++s)
                 ivec.emplace_back(iv18[s*3+0], iv18[s*3+1], iv18[s*3+2]);
         }
@@ -1468,10 +1471,10 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 
     // 2. Joint types — convert array<int,6> → vector<int> per element.
     for (size_t ei = 0; ei < elements.size(); ++ei) {
-        if (elements[ei].joint_types.empty() &&
+        if (elements[ei]->joint_types.empty() &&
             ei < joinery_data.joints_per_face.size()) {
             const auto& jt6 = joinery_data.joints_per_face[ei];
-            elements[ei].joint_types.assign(jt6.begin(), jt6.end());
+            elements[ei]->joint_types.assign(jt6.begin(), jt6.end());
         }
     }
 
@@ -1509,7 +1512,7 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 // ═══════════════════════════════════════════════════════════════════════════
 void fill_session(
     Session& session,
-    const std::vector<Plate>& elements,
+    const std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<WoodJoint>&   joints,
     bool include_loft)
 {
@@ -1529,9 +1532,7 @@ void fill_session(
     }
     auto g_elem = session.add_group("Elements");
     for (size_t i = 0; i < elements.size(); i++) {
-        const Plate& we = elements[i];
-        std::shared_ptr<Plate> plate = std::make_shared<Plate>(we);
-        plate->guid() = we.guid();
+        const std::shared_ptr<Plate> plate = elements[i];
         plate->compute_geometry();
         // Legacy viewers key on this name; a plate the caller named keeps its name.
         if (plate->name == "plate") { plate->name = "plate_" + std::to_string(i * 2); }
@@ -1601,7 +1602,7 @@ void fill_session(
     size_t n_elems = elements.size();
     std::vector<std::vector<std::vector<std::pair<int,bool>>>> j_mf(n_elems);
     for (size_t ei = 0; ei < n_elems; ei++) {
-        j_mf[ei].resize(elements[ei].planes.size() + 1);
+        j_mf[ei].resize(elements[ei]->planes.size() + 1);
     }
     for (size_t ji = 0; ji < joints.size(); ji++) {
         const auto& j = joints[ji];
@@ -1625,7 +1626,7 @@ void fill_session(
     }
 
     for (size_t ei = 0; ei < n_elems; ei++) {
-        auto merged = features_to_merged(elements[ei].features);
+        auto merged = features_to_merged(elements[ei]->features);
         auto g_el = session.add_group(fmt::format("element_{}", ei));
         g_el->color = col_merged;
         for (size_t mi = 0; mi < merged.size(); mi++) {
@@ -1644,7 +1645,7 @@ void fill_session(
                     continue;
                 }
                 const auto& jt = joints[joint_id];
-                size_t male_or_female = (jt.element_a == elements[ei].guid()) ? 0 : 1;
+                size_t male_or_female = (jt.element_a == elements[ei]->guid()) ? 0 : 1;
                 const auto& outlines_cut = male_or_female ? jt.m_outlines : jt.f_outlines;
                 if (outlines_cut[0].size() < 2) {
                     continue;
@@ -1708,7 +1709,7 @@ void fill_session(
     if (include_loft) {
         auto g = session.add_group("MergedMeshes");
         for (size_t ei = 0; ei < elements.size(); ei++) {
-            const auto& f = elements[ei].features;
+            const auto& f = elements[ei]->features;
             if (f.top.empty()) {
                 continue;
             }

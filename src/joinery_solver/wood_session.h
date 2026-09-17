@@ -45,7 +45,7 @@ bool plates_exist(const std::string& name);
 // Also sets globals DATA_SET_INPUT_NAME and DATA_SET_OUTPUT_FILE as side effects.
 // dataset_name — a name (data/<name>.obj) or a path ending in .obj
 // duplicate_pts_tol — if > 0, removes consecutive duplicate points (vidychapel datasets)
-std::vector<wood_session::Plate> load_plates(
+std::vector<std::shared_ptr<wood_session::Plate>> load_plates(
         const std::string& dataset_name,
         double duplicate_pts_tol = 0.0);
 
@@ -92,7 +92,7 @@ enum SearchType : int {
 // elements, joints, /*include_loft=*/true) — see below.
 // ═══════════════════════════════════════════════════════════════════════════
 std::vector<wood_session::WoodJoint> get_connection_zones(
-        std::vector<wood_session::Plate>& elements,
+        std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type = face_to_face);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -112,7 +112,7 @@ struct ChevronJoineryData {
 
 /// Overload: uses in-memory chevron joinery data instead of DATA_SET_INPUT_NAME txt files.
 std::vector<wood_session::WoodJoint> get_connection_zones(
-        std::vector<wood_session::Plate>& elements,
+        std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type,
         const wood_session::ChevronJoineryData& joinery_data);
 
@@ -130,7 +130,7 @@ std::vector<wood_session::WoodJoint> get_connection_zones(
 // ═══════════════════════════════════════════════════════════════════════════
 void fill_session(
         session_cpp::Session& session,
-        const std::vector<wood_session::Plate>& elements,
+        const std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         const std::vector<wood_session::WoodJoint>&   joints,
         bool include_loft = true);
 

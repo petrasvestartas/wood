@@ -149,17 +149,17 @@ void joint_orient_to_connection_area(WoodJoint& joint);
 void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints);
 void joint_get_divisions(WoodJoint& joint, double division_distance);
 
-void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<Plate>& elements);
-void side_removal(WoodJoint& joint, const std::vector<Plate>& elements, bool merge_with_joint = false);
+void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void side_removal(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint = false);
 
-void tt_e_p_0(WoodJoint& joint, const std::vector<Plate>& elements);
-void tt_e_p_1(WoodJoint& joint, const std::vector<Plate>& elements);
-void tt_e_p_2(WoodJoint& joint, const std::vector<Plate>& elements);
-void tt_e_p_3(WoodJoint& joint, const std::vector<Plate>& elements);
-void tt_e_p_4(WoodJoint& joint, const std::vector<Plate>& elements);
-void tt_e_p_5(WoodJoint& joint, const std::vector<Plate>& elements);
+void tt_e_p_0(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void tt_e_p_1(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void tt_e_p_2(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void tt_e_p_3(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void tt_e_p_4(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
+void tt_e_p_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements);
 
 /// Position of the plate with this guid, or -1.
-int index_of(const std::vector<Plate>& elements, const std::string& guid);
+int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid);
 
 } // namespace wood_session

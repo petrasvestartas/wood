@@ -27,7 +27,7 @@ using namespace wood_session;
 class DiamondMesh {
 public:
     Mesh mesh;
-    std::vector<Plate> elements;
+    std::vector<std::shared_ptr<Plate>> elements;
 
     DiamondMesh(NurbsSurface surface = default_surface(),
                 int u_div = 8,
@@ -132,7 +132,7 @@ public:
             if (!top_ch.empty()) {
                 top_ch.push_back(top_ch[0]);
             }
-            elements.emplace_back(Polyline(bot_ch), Polyline(top_ch));
+            elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
         }
     }
 
