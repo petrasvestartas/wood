@@ -26,9 +26,24 @@ public:
     std::vector<session_cpp::Plane> planes; // One plane per outline, normals pointing out of the plate.
     double thickness = 0.0; // Distance between the bottom and the top plane.
     bool reversed = false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
-    Features features; // Merged cut outlines after compute_joints; empty before.
+    Features features; // Merged cut outlines after compute_joints; empty before. Call invalidate_geometry() after assigning.
 
-    /// Lofts the plate onto the Element (its cut outlines when solved, its two outlines otherwise) and sets dimensions and face features.
+    /// The parametric shape alone, the loft of the two outlines, never cut; cached until invalidate_geometry().
+    const session_cpp::Mesh& element_geometry() const;
+
+    /// The shape with its joints applied, the loft of the merged outlines, the element geometry while unsolved; cached until invalidate_geometry().
+    const session_cpp::Mesh& model_geometry() const;
+
+    /// The loft of the two outlines, empty when the plate has fewer than two.
+    session_cpp::Mesh compute_element_geometry() const;
+
+    /// The loft of the merged outlines when the plate is solved, else the element geometry.
+    session_cpp::Mesh compute_model_geometry() const;
+
+    /// Drops both cached lofts; called by compute_geometry() and by the merge after it fills features.
+    void invalidate_geometry();
+
+    /// Writes the model geometry, the dimensions and the face features onto the Element, the slot the session file and the viewer read.
     void compute_geometry();
 
     /// Outline extent in the plate's own frame, thickness in z.
@@ -69,6 +84,10 @@ public:
 
     /// The insertion vectors the Element holds, one per face from the insertion_vectors sidecar, writable by the solver.
     std::vector<session_cpp::Vector>& insertion_vectors() { return _insertion_vectors; }
+
+private:
+    mutable std::optional<session_cpp::Mesh> _element_geometry; // Cache of compute_element_geometry().
+    mutable std::optional<session_cpp::Mesh> _model_geometry; // Cache of compute_model_geometry().
 
 protected:
     /// The plate's own outlines, so Element::polylines() agrees with the solver's view.

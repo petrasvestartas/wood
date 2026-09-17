@@ -85,12 +85,41 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // Computation
 // ═══════════════════════════════════════════════════════════════════════════
 
+Mesh Plate::compute_element_geometry() const {
+    if (polylines.size() < 2)
+        return Mesh();
+    const std::vector<Polyline> bottom_outlines{polylines[0]};
+    const std::vector<Polyline> top_outlines{polylines[1]};
+    return Mesh::loft(bottom_outlines, top_outlines);
+}
+
+Mesh Plate::compute_model_geometry() const {
+    if (features.top.empty())
+        return element_geometry();
+    return Mesh::loft(features.bottom, features.top);
+}
+
+const Mesh& Plate::element_geometry() const {
+    if (!_element_geometry)
+        _element_geometry = compute_element_geometry();
+    return *_element_geometry;
+}
+
+const Mesh& Plate::model_geometry() const {
+    if (!_model_geometry)
+        _model_geometry = compute_model_geometry();
+    return *_model_geometry;
+}
+
+void Plate::invalidate_geometry() {
+    _element_geometry.reset();
+    _model_geometry.reset();
+}
+
 void Plate::compute_geometry() {
-    if (polylines.size() > 1) {
-        const std::vector<Polyline> bottom_outlines{polylines[0]};
-        const std::vector<Polyline> top_outlines{polylines[1]};
-        set_geometry(features.top.empty() ? Mesh::loft(bottom_outlines, top_outlines) : Mesh::loft(features.bottom, features.top));
-    }
+    invalidate_geometry();
+    if (polylines.size() > 1)
+        set_geometry(model_geometry());
     set_dimensions(nominal_dimensions());
     set_features(face_features());
 }

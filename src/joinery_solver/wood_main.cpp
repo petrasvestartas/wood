@@ -756,6 +756,7 @@ void merge_joints_into_plates(
                 features.bottom.push_back(std::move(merged[hole_index + 1]));
             }
         }
+        elements[element_index]->invalidate_geometry();
     }
 }
 

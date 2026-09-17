@@ -45,9 +45,13 @@ constructor runs it).
 | `Column` | `wood_element_column.h` | `"Column"` | `axis` (Line), `section` (Polyline), mesh solid |
 | `Block` | `wood_element_block.h` | `"Solid"` (legacy `"BlockElement"`) | one n-gon face per loop; contact detection only |
 
-`Plate::compute_geometry()` lofts once: `Mesh::loft(features.bottom, features.top)` when the
-solver has filled `features`, else the two raw outlines; then `set_dimensions` and
-`set_features(face_features())`. `Plate::face_features()` emits one `ElementFeature` per face:
+A plate has two geometries, as a compas_model element does. `element_geometry()` is the
+parametric shape alone, the loft of the two raw outlines, never cut. `model_geometry()` is the
+shape with its joints applied, `Mesh::loft(features.bottom, features.top)` once the merge has
+filled `features`, else the element geometry. Both are cached on the plate until
+`invalidate_geometry()`, which the merge calls after filling `features`.
+`Plate::compute_geometry()` writes the model geometry onto the Element slot the session file and
+the viewer read, then `set_dimensions` and `set_features(face_features())`. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
 ### `WoodJoint` (`wood_joint.h`)
