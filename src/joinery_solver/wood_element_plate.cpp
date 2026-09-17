@@ -3,6 +3,7 @@
 
 namespace wood_session {
 
+using session_cpp::BRep;
 using session_cpp::Element;
 using session_cpp::ElementFeature;
 using session_cpp::Mesh;
@@ -98,6 +99,42 @@ Mesh Plate::compute_model_geometry() const {
     return Mesh::loft(features.bottom, features.top);
 }
 
+BRep Plate::compute_model_brep() const {
+    const std::vector<Polyline>& bottom = features.top.empty() ? polylines : features.bottom;
+    const std::vector<Polyline>& top = features.top.empty() ? polylines : features.top;
+    if (polylines.size() < 2)
+        return BRep();
+
+    const Polyline& bottom_outer = features.top.empty() ? polylines[0] : bottom[0];
+    const Polyline& top_outer = features.top.empty() ? polylines[1] : top[0];
+    std::vector<Polyline> faces{bottom_outer, top_outer};
+    std::vector<std::vector<Polyline>> holes(2);
+
+    const size_t loop_count = features.top.empty() ? 1 : bottom.size();
+    for (size_t loop = 1; loop < loop_count; loop++) {
+        holes[0].push_back(bottom[loop]);
+        holes[1].push_back(top[loop]);
+    }
+
+    for (size_t loop = 0; loop < loop_count; loop++) {
+        const Polyline& lower = loop == 0 ? bottom_outer : bottom[loop];
+        const Polyline& upper = loop == 0 ? top_outer : top[loop];
+        const size_t segment_count = lower.point_count() - 1;
+        for (size_t segment = 0; segment < segment_count; segment++) {
+            faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
+            holes.push_back({});
+        }
+    }
+
+    return BRep::from_polylines(faces, holes);
+}
+
+const BRep& Plate::model_brep() const {
+    if (!_model_brep)
+        _model_brep = compute_model_brep();
+    return *_model_brep;
+}
+
 const Mesh& Plate::element_geometry() const {
     if (!_element_geometry)
         _element_geometry = compute_element_geometry();
@@ -113,6 +150,7 @@ const Mesh& Plate::model_geometry() const {
 void Plate::invalidate_geometry() {
     _element_geometry.reset();
     _model_geometry.reset();
+    _model_brep.reset();
     _geometry_synced = false;
 }
 

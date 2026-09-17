@@ -76,7 +76,7 @@ datasets a `beams` block. `globals::Dataset::<name>` names every shipped dataset
 
 | Target | Source |
 |---|---|
-| `1_io`, `2_contact_detection`, `3_joint_detection` | `examples/` walk-throughs of load, contacts, joints |
+| `1_io`, `2_contact_detection`, `3_joint_detection`, `4_wood_session_api` | `examples/` walk-throughs of load, contacts, joints, and the whole API in compas_model order |
 | `main_hello` | plates and a custom butterfly joint built in code |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |

@@ -40,6 +40,12 @@ public:
     /// The loft of the merged outlines when the plate is solved, else the element geometry.
     session_cpp::Mesh compute_model_geometry() const;
 
+    /// The model geometry as a boundary representation: one planar face per outline with its holes, one quad per outer and hole edge; cached until invalidate_geometry(); opt-in, the file keeps the mesh.
+    const session_cpp::BRep& model_brep() const;
+
+    /// The boundary representation of the merged outlines when the plate is solved, else of the two outlines; empty for a plate without outlines.
+    session_cpp::BRep compute_model_brep() const;
+
     /// Drops both cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
     void invalidate_geometry();
 
@@ -91,6 +97,7 @@ public:
 private:
     mutable std::optional<session_cpp::Mesh> _element_geometry; // Cache of compute_element_geometry().
     mutable std::optional<session_cpp::Mesh> _model_geometry; // Cache of compute_model_geometry().
+    mutable std::optional<session_cpp::BRep> _model_brep; // Cache of compute_model_brep().
     bool _geometry_synced = false; // True while the Element slot holds the current model geometry.
 
 protected:
