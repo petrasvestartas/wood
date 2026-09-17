@@ -22,6 +22,9 @@ public:
     /// A plate from its bottom and top outline; `name` is the type flag face_contacts() filters on.
     Plate(const session_cpp::Polyline& bottom, const session_cpp::Polyline& top, const std::string& name = "plate");
 
+    /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
+    static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, const session_cpp::Vector& thickness, const std::string& name = "plate");
+
     std::vector<session_cpp::Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
     std::vector<session_cpp::Plane> planes; // One plane per outline, normals pointing out of the plate.
     double thickness = 0.0; // Distance between the bottom and the top plane.

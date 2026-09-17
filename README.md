@@ -48,7 +48,7 @@ columns and blocks as the classes below, through the kernel's element registry.
 
 | Type | File | What it is |
 |---|---|---|
-| `Plate` | `src/joinery_solver/wood_element_plate.h` | bottom + top outline, one side face per edge, thickness, joint types, merged cut outlines; lofts itself once |
+| `Plate` | `src/joinery_solver/wood_element_plate.h` | bottom + top outline (`Plate::from_rectangle` for the simple case), one side face per edge, thickness, joint types, merged cut outlines; element and model geometry as mesh or brep, lazy |
 | `Column` | `src/joinery_solver/wood_element_column.h` | a solid with an axis and a section |
 | `Block` | `src/joinery_solver/wood_element_block.h` | a solid, one face per closed loop, contact detection only |
 | `WoodJoint` | `src/joinery_solver/wood_joint.h` | one connection: type, area, lines, volumes, male and female cut outlines |

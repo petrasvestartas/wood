@@ -83,6 +83,11 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     }
 }
 
+std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, const Vector& thickness, const std::string& name) {
+    const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
+    return std::make_shared<Plate>(bottom, bottom.translated(thickness), name);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Computation
 // ═══════════════════════════════════════════════════════════════════════════
