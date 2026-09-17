@@ -82,11 +82,23 @@ joints re-derive their quads after the line extension, so the length now reaches
 reject guard only fires for a shrinking extension; the triple is chosen by joint class
 (side-side, top-side, top-top, cross), not by adjacency-pair index. Not done: pushing the
 length extension into `apply_unit_scale`; a unit-scale joint spans the plate thickness by
-design and the dataset values would collapse it.
+design and the dataset values would collapse it. The kernel's yaml reader dropped the minus of
+a negative list item (`- -20` read as `20`), so every negative extension in the ymls had been
+applied with the wrong sign since the ymls replaced the C++ test bodies; fixed in
+`session_cpp/src/yaml/yaml.cpp` (session commit 0cdb2bda).
 
-ran : sweep differs only in `hexboxes` (top-side joints, -50 mm length now applied),
-`vidy_folding` (restored value) and `vidy_one_axis_two_layers` (per-class triples); every
-other dataset identical.
+ran : with the yaml sign fixed the sweep differs from the baseline in 19 datasets, all of
+them carrying a negative extension: `cross_ibois_pavilion`, `hexboxes`,
+`inplane_differentdirections`, `inplane_hexshell`, `outofplane_box`, `outofplane_box_miter`,
+`outofplane_dodecahedron`, `outofplane_icosahedron`, `outofplane_octahedron`,
+`outofplane_tetra`, `simple_corners`, `simple_corners_combined`, `simple_corners_diff_lengths`,
+`vda_floor_2`, `vidy_corner`, `vidy_folding`, `vidy_full`, `vidy_one_axis_two_layers`,
+`vidy_one_layer`. In eleven of them the outline vertex counts drop as well, because a
+shortened joint line gets fewer divisions; in five (`hexboxes`, `outofplane_icosahedron`,
+`vidy_full`, `vidy_one_axis_two_layers`, `vidy_one_layer`) whole joints disappear, because the
+reject guard drops a joint whose line is shorter than twice the negative length extension, as
+the 2024 code did with the same values set in C++. Measured on `inplane_hexshell`, width -5:
+the seam edge is 39.4 mm against 49.4 mm at 0 and 59.4 mm when the sign was dropped.
 
 ## Left for a follow-up
 
