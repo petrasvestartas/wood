@@ -60,6 +60,16 @@ std::string short_guid(const std::string& guid) {
     return guid.substr(0, guid.find('-'));
 }
 
+/// Drops the contacts of one class from every edge, so a recompute of that class replaces rather than accumulates.
+void erase_contacts_of_type(WoodSession& scene, ContactType type) {
+    for (const auto& [a, b, interaction] : scene.get_interactions()) {
+        WoodInteraction kept = interaction;
+        auto& contacts = kept.contacts;
+        contacts.erase(std::remove_if(contacts.begin(), contacts.end(), [type](const FaceContact& fc) { return fc.type == type; }), contacts.end());
+        scene.set_interaction(a, b, kept);
+    }
+}
+
 }  // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -68,15 +78,18 @@ std::string short_guid(const std::string& guid) {
 
 WoodInteraction WoodInteraction::flipped() const {
     WoodInteraction out = *this;
-    for (FaceContact& contact : out.contacts) { std::swap(contact.face_a, contact.face_b); }
+    for (FaceContact& contact : out.contacts)
+        std::swap(contact.face_a, contact.face_b);
     return out;
 }
 
 nlohmann::ordered_json WoodInteraction::jsondump() const {
     nlohmann::ordered_json faces = nlohmann::ordered_json::array();
-    for (const FaceContact& contact : contacts) { faces.push_back(contact.jsondump()); }
+    for (const FaceContact& contact : contacts)
+        faces.push_back(contact.jsondump());
     nlohmann::ordered_json cuts = nlohmann::ordered_json::array();
-    for (const WoodJoint& joint : joints) { cuts.push_back(joint.jsondump()); }
+    for (const WoodJoint& joint : joints)
+        cuts.push_back(joint.jsondump());
     return nlohmann::ordered_json{
         {"type", TYPE},
         {"contacts", faces},
@@ -87,25 +100,28 @@ nlohmann::ordered_json WoodInteraction::jsondump() const {
 WoodInteraction WoodInteraction::jsonload(const nlohmann::json& data) {
     WoodInteraction interaction;
     if (data.contains("contacts"))
-        for (const auto& contact : data["contacts"]) { interaction.contacts.push_back(FaceContact::jsonload(contact)); }
+        for (const auto& contact : data["contacts"])
+            interaction.contacts.push_back(FaceContact::jsonload(contact));
     if (data.contains("joints"))
-        for (const auto& joint : data["joints"]) { interaction.joints.push_back(WoodJoint::jsonload(joint)); }
+        for (const auto& joint : data["joints"])
+            interaction.joints.push_back(WoodJoint::jsonload(joint));
     return interaction;
 }
 
 std::string WoodInteraction::to_attribute() const { return jsondump().dump(); }
 
+/// The "type" key is the whole grammar: any other attribute on an edge comes back empty.
 WoodInteraction WoodInteraction::from_attribute(const std::string& attribute) {
-    // The "type" key is the whole grammar: it rejects get_collisions()'s "bvh_collision",
-    // add_relationship's "default" and an edge somebody else wrote, without a parser.
-    if (attribute.empty() || attribute.front() != '{') { return WoodInteraction{}; }
+    if (attribute.empty() || attribute.front() != '{')
+        return WoodInteraction{};
     nlohmann::json data;
     try {
         data = nlohmann::json::parse(attribute);
     } catch (const std::exception&) {
         return WoodInteraction{};
     }
-    if (!data.is_object() || data.value("type", std::string()) != TYPE) { return WoodInteraction{}; }
+    if (!data.is_object() || data.value("type", std::string()) != TYPE)
+        return WoodInteraction{};
     return jsonload(data);
 }
 
@@ -140,20 +156,21 @@ std::vector<std::string> WoodSession::element_guids() const {
 // WoodSession - interactions
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Stored oriented to the low guid, so reading from the high one is the other end.
 WoodInteraction WoodSession::get_interaction(const std::string& a, const std::string& b) const {
     const auto neighbours = graph.edges.find(a);
-    if (neighbours == graph.edges.end()) { return WoodInteraction{}; }
+    if (neighbours == graph.edges.end())
+        return WoodInteraction{};
     const auto edge = neighbours->second.find(b);
-    if (edge == neighbours->second.end()) { return WoodInteraction{}; }
-    // Stored oriented to the low guid, so reading from the high one is the other end.
+    if (edge == neighbours->second.end())
+        return WoodInteraction{};
     const WoodInteraction interaction = WoodInteraction::from_attribute(edge->second.attribute);
     return a < b ? interaction : interaction.flipped();
 }
 
+/// A pair that already has an edge is written in place: Graph::add_edge would count an overwrite as one more edge.
 void WoodSession::set_interaction(const std::string& a, const std::string& b, const WoodInteraction& interaction) {
     const std::string attribute = (a < b ? interaction : interaction.flipped()).to_attribute();
-    // Graph::add_edge counts an overwrite as one more edge and re-mints the Edge, so a pair
-    // that already has one is written in place instead.
     const auto neighbours = graph.edges.find(a);
     if (neighbours != graph.edges.end() && neighbours->second.count(b)) {
         graph.edge_attribute(a, b, attribute);
@@ -162,15 +179,16 @@ void WoodSession::set_interaction(const std::string& a, const std::string& b, co
     add_edge(a, b, attribute);
 }
 
+/// Every edge is stored twice, once per direction; a < b takes each once, in the orientation it was written.
 std::vector<std::tuple<std::string, std::string, WoodInteraction>> WoodSession::get_interactions() const {
     std::vector<std::tuple<std::string, std::string, WoodInteraction>> out;
-    // Every edge is stored twice, once per direction; a < b takes each once, and is also the
-    // orientation the attribute was written in.
     for (const auto& [a, neighbours] : graph.edges)
         for (const auto& [b, edge] : neighbours) {
-            if (!(a < b)) { continue; }
+            if (!(a < b))
+                continue;
             WoodInteraction interaction = WoodInteraction::from_attribute(edge.attribute);
-            if (!interaction.empty()) { out.emplace_back(a, b, std::move(interaction)); }
+            if (!interaction.empty())
+                out.emplace_back(a, b, std::move(interaction));
         }
     return out;
 }
@@ -178,14 +196,17 @@ std::vector<std::tuple<std::string, std::string, WoodInteraction>> WoodSession::
 std::vector<ContactPair> WoodSession::contacts() const {
     const std::vector<std::string> guids = element_guids();
     std::unordered_map<std::string, int> index;
-    for (size_t i = 0; i < guids.size(); ++i) { index[guids[i]] = static_cast<int>(i); }
+    for (size_t i = 0; i < guids.size(); ++i)
+        index[guids[i]] = static_cast<int>(i);
 
     std::vector<ContactPair> pairs;
     for (const auto& [a, b, interaction] : get_interactions()) {
-        if (interaction.contacts.empty()) { continue; }
+        if (interaction.contacts.empty())
+            continue;
         const auto ia = index.find(a);
         const auto ib = index.find(b);
-        if (ia == index.end() || ib == index.end()) { continue; }
+        if (ia == index.end() || ib == index.end())
+            continue;
         pairs.push_back({ia->second, ib->second, interaction.contacts});
     }
     return pairs;
@@ -198,17 +219,18 @@ std::vector<WoodJoint> WoodSession::joints() const {
     return out;
 }
 
+/// The side comes from the joint's own two elements: an edge is stored in both directions with the same object.
 std::vector<ElementFeature> WoodSession::get_element_features(const std::string& guid) const {
     std::vector<ElementFeature> features;
     const auto neighbours = graph.edges.find(guid);
-    if (neighbours == graph.edges.end()) { return features; }
+    if (neighbours == graph.edges.end())
+        return features;
     for (const auto& [other, edge] : neighbours->second) {
         const WoodInteraction interaction = WoodInteraction::from_attribute(edge.attribute);
         for (const WoodJoint& joint : interaction.joints) {
-            // The side comes from the joint's own two elements: a kernel edge is stored in
-            // both directions with the same object, so its v0 is not a reliable source.
             const int side = joint.element_a == guid ? 0 : (joint.element_b == guid ? 1 : -1);
-            if (side < 0) { continue; }
+            if (side < 0)
+                continue;
             std::array<ElementFeature, 2> sides = joint.to_features();
             features.push_back(std::move(sides[side]));
         }
@@ -219,12 +241,11 @@ std::vector<ElementFeature> WoodSession::get_element_features(const std::string&
 std::vector<std::pair<std::string, std::string>> WoodSession::get_collisions() {
     const std::vector<std::tuple<std::string, std::string, WoodInteraction>> kept = get_interactions();
     std::vector<std::pair<std::string, std::string>> pairs = Session::get_collisions();
-    for (const auto& [a, b, interaction] : kept) { set_interaction(a, b, interaction); }
+    for (const auto& [a, b, interaction] : kept)
+        set_interaction(a, b, interaction);
     return pairs;
 }
 
-// Computing twice must replace, not accumulate: an edge keeps whatever the other compute put
-// there, and loses only what this one is about to write again.
 void WoodSession::clear_contacts() {
     for (const auto& [a, b, interaction] : get_interactions()) {
         WoodInteraction kept = interaction;
@@ -232,21 +253,6 @@ void WoodSession::clear_contacts() {
         set_interaction(a, b, kept);
     }
 }
-
-// Same idea as clear_contacts(), but scoped to one ContactType: compute_cross_contacts()
-// recomputing must not erase what compute_face_contacts() left on the same edge, and vice
-// versa, since both may legitimately hold a contact on the same element pair.
-static void erase_contacts_of_type(WoodSession& scene, ContactType type) {
-    for (const auto& [a, b, interaction] : scene.get_interactions()) {
-        WoodInteraction kept = interaction;
-        auto& contacts = kept.contacts;
-        contacts.erase(std::remove_if(contacts.begin(), contacts.end(),
-                                       [type](const FaceContact& fc) { return fc.type == type; }),
-                       contacts.end());
-        scene.set_interaction(a, b, kept);
-    }
-}
-
 
 void WoodSession::clear_joints() {
     for (const auto& [a, b, interaction] : get_interactions()) {
@@ -256,6 +262,7 @@ void WoodSession::clear_joints() {
     }
 }
 
+/// Read before write: the pair may already carry joints, or a cross/line contact this call must not disturb.
 void WoodSession::compute_face_contacts() {
     erase_contacts_of_type(*this, ContactType::side_side);
     erase_contacts_of_type(*this, ContactType::side_top);
@@ -263,12 +270,12 @@ void WoodSession::compute_face_contacts() {
     erase_contacts_of_type(*this, ContactType::unknown);
     const std::vector<std::string> guids = element_guids();
     for (const ContactPair& pair : face_contacts(contact_view(*this))) {
-        if (pair.element_a < 0 || pair.element_b < 0) { continue; }
-        if (pair.element_a >= (int)guids.size() || pair.element_b >= (int)guids.size()) { continue; }
+        if (pair.element_a < 0 || pair.element_b < 0)
+            continue;
+        if (pair.element_a >= (int)guids.size() || pair.element_b >= (int)guids.size())
+            continue;
         const std::string& a = guids[pair.element_a];
         const std::string& b = guids[pair.element_b];
-        // Read before write: add_edge overwrites the whole attribute, and the pair may
-        // already carry joints, or a cross/line contact this call must not disturb.
         WoodInteraction interaction = get_interaction(a, b);
         interaction.contacts.insert(interaction.contacts.end(), pair.faces.begin(), pair.faces.end());
         set_interaction(a, b, interaction);
@@ -281,17 +288,21 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
     erase_contacts_of_type(*this, ContactType::cross);
     const std::vector<std::shared_ptr<Plate>> plates = this->plates();
     for (size_t i = 0; i < plates.size(); ++i) {
-        if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2) { continue; }
+        if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2)
+            continue;
         for (size_t j = i + 1; j < plates.size(); ++j) {
-            if (plates[j]->polylines.size() < 2 || plates[j]->planes.size() < 2) { continue; }
-            CrossJoint cj;
-            if (!plane_to_face(plates[i]->polylines[0], plates[i]->polylines[1],
-                                plates[j]->polylines[0], plates[j]->polylines[1],
-                                plates[i]->planes[0], plates[i]->planes[1],
-                                plates[j]->planes[0], plates[j]->planes[1],
-                                cj, angle_tol)) {
+            if (plates[j]->polylines.size() < 2 || plates[j]->planes.size() < 2)
                 continue;
-            }
+            CrossJoint cj;
+            const bool crossing = plane_to_face(
+                plates[i]->polylines[0], plates[i]->polylines[1],
+                plates[j]->polylines[0], plates[j]->polylines[1],
+                plates[i]->planes[0], plates[i]->planes[1],
+                plates[j]->planes[0], plates[j]->planes[1],
+                cj, angle_tol
+            );
+            if (!crossing)
+                continue;
             FaceContact contact;
             contact.face_a = cj.face_ids_a.first;
             contact.face_b = cj.face_ids_b.first;
@@ -312,28 +323,24 @@ void WoodSession::compute_line_contacts(double tolerance) {
     const double tol_squared = tol * tol;
     const std::vector<std::string> guids = element_guids();
     const std::vector<ContactElement> view = contact_view(*this);
+    std::vector<std::vector<std::vector<Line>>> lines(view.size());
+    for (size_t a = 0; a < view.size(); ++a)
+        for (const Polyline& loop : view[a].polylines)
+            lines[a].push_back(loop.get_lines());
     for (size_t a = 0; a < view.size(); ++a) {
         for (size_t b = a + 1; b < view.size(); ++b) {
-            const std::vector<Polyline>& loops_a = view[a].polylines;
-            const std::vector<Polyline>& loops_b = view[b].polylines;
-            for (size_t la = 0; la < loops_a.size(); ++la) {
-                const Polyline& pa = loops_a[la];
-                for (size_t sa = 0; sa + 1 < pa.point_count(); ++sa) {
-                    const Line seg_a = Line::from_points(pa[sa], pa[sa + 1]);
-                    for (size_t lb = 0; lb < loops_b.size(); ++lb) {
-                        const Polyline& pb = loops_b[lb];
-                        for (size_t sb = 0; sb + 1 < pb.point_count(); ++sb) {
-                            const Line seg_b = Line::from_points(pb[sb], pb[sb + 1]);
-                            double t0 = 0.0, t1 = 0.0;
-                            if (!Intersection::line_line_parameters(seg_a, seg_b, t0, t1, 0.0,
-                                                                     /*intersect_segments=*/true,
-                                                                     /*near_parallel_as_closest=*/true)) {
+            for (size_t la = 0; la < lines[a].size(); ++la) {
+                for (const Line& seg_a : lines[a][la]) {
+                    for (size_t lb = 0; lb < lines[b].size(); ++lb) {
+                        for (const Line& seg_b : lines[b][lb]) {
+                            double t0 = 0.0;
+                            double t1 = 0.0;
+                            if (!Intersection::line_line_parameters(seg_a, seg_b, t0, t1, 0.0, true, true))
                                 continue;
-                            }
                             const Point q0 = seg_a.point_at(t0);
                             const Point q1 = seg_b.point_at(t1);
-                            const double dx = q0[0] - q1[0], dy = q0[1] - q1[1], dz = q0[2] - q1[2];
-                            if (dx * dx + dy * dy + dz * dz > tol_squared) { continue; }
+                            if ((q0 - q1).magnitude_squared() > tol_squared)
+                                continue;
                             FaceContact contact;
                             contact.face_a = static_cast<int>(la);
                             contact.face_b = static_cast<int>(lb);
@@ -361,7 +368,8 @@ void WoodSession::compute_joints(SearchType search_type) {
     for (const std::shared_ptr<Plate>& plate : plates)
         plate->compute_geometry();
     for (const WoodJoint& joint : joints) {
-        if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b)) continue;
+        if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b))
+            continue;
         WoodInteraction interaction = get_interaction(joint.element_a, joint.element_b);
         interaction.joints.push_back(joint);
         set_interaction(joint.element_a, joint.element_b, interaction);
@@ -372,9 +380,11 @@ void WoodSession::sync_joint_features() {
     for (const std::shared_ptr<Element>& element : *objects.elements) {
         std::vector<ElementFeature> features;
         for (const ElementFeature& feature : element->features()) {
-            if (feature.feature_type == "joint") continue;
+            if (feature.feature_type == "joint")
+                continue;
             features.push_back(feature);
-            if (feature.has_guid()) features.back().guid() = feature.guid();
+            if (feature.has_guid())
+                features.back().guid() = feature.guid();
         }
         for (ElementFeature& feature : get_element_features(element->guid()))
             features.push_back(std::move(feature));
@@ -484,11 +494,11 @@ std::filesystem::path WoodSession::write(const std::string& name) {
 const char* contact_type_name(ContactType type) {
     switch (type) {
         case ContactType::side_side: return "side_side";
-        case ContactType::side_top:  return "side_top";
-        case ContactType::top_top:   return "top_top";
-        case ContactType::cross:     return "cross";
-        case ContactType::line:      return "line";
-        case ContactType::unknown:   break;
+        case ContactType::side_top: return "side_top";
+        case ContactType::top_top: return "top_top";
+        case ContactType::cross: return "cross";
+        case ContactType::line: return "line";
+        case ContactType::unknown: break;
     }
     return "unknown";
 }
@@ -505,34 +515,20 @@ std::string joint_type_name(int joint_type) {
     }
 }
 
-// Palette: the BRG equilibrium drawings (brg-teaching.github.io), whose PAL is built for
-// white paper - navy/pink/green carry the meaning, grey is anything inert. Taken as is
-// rather than re-tuned, so a wood scene sits beside those drawings without clashing.
-//
-//   #1a1eb2 navy   #ce4095 pink   #3f9c20 green   #b9b9bd zero-grey
-//   #e07a26 orange #e8ac00 yellow #a83179 deep pink
+/// A contact takes the colour of the joint class it refines to; an unclassified one is BRG's zero-grey.
 Color contact_color(ContactType type) {
     switch (type) {
-        // Use the joint palette for the corresponding coarse contact class.
-        // A contact does not yet know whether side-side will refine to 11, 12,
-        // or 13, so 12 is the representative side-side colour.
         case ContactType::side_side: return joint_color(12);
-        case ContactType::side_top:  return joint_color(20);
-        case ContactType::top_top:   return joint_color(40);
-        // Same yellow as joint_color(30): a cross contact previews the same crossing a
-        // solved type-30 joint would refine.
-        case ContactType::cross:     return joint_color(30);
-        case ContactType::line:      return Color(0.086f, 0.635f, 0.667f, 1.0f, "line_teal");
-        case ContactType::unknown:   break;
+        case ContactType::side_top: return joint_color(20);
+        case ContactType::top_top: return joint_color(40);
+        case ContactType::cross: return joint_color(30);
+        case ContactType::line: return Color(0.086f, 0.635f, 0.667f, 1.0f, "line_teal");
+        case ContactType::unknown: break;
     }
-    // BRG's "zero" - a member that is neither in compression nor tension. A contact the
-    // detector could not classify is the same statement, so it gets the same colour.
     return joint_color(-1);
 }
 
-/// Same palette, and deliberately the same hue per contact class: a joint keeps the colour
-/// of the contact it came from (12/13 side-side navy, 20 top-side pink, 40 top-top green),
-/// so the Joints groups read as a subset of the Contacts groups rather than a second legend.
+/// The BRG equilibrium palette (brg-teaching.github.io): navy, pink and green carry the meaning, grey is anything inert.
 Color joint_color(int joint_type) {
     switch (joint_type) {
         case 12: return Color(0.102f, 0.118f, 0.698f, 1.0f, "ss_ip_navy");
@@ -549,12 +545,7 @@ Color joint_color(int joint_type) {
 // Viewer geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Viewer geometry
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// The ring of a contact or a joint, as a line loop in its own colour. Wide on purpose: it is
-/// read against the element outlines, and at hairline width the two are hard to tell apart.
+/// The ring of a contact or a joint, as a wide line loop in its own colour.
 static std::shared_ptr<Polyline> ring(const Polyline& area, const Color& color, const std::string& name) {
     auto outline = std::make_shared<Polyline>(area);
     outline->linecolor = color;
@@ -566,11 +557,12 @@ static std::shared_ptr<Polyline> ring(const Polyline& area, const Color& color, 
 void WoodSession::add_outlines(const std::string& prefix) {
     const Group group = add_group(prefix);
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        if (!element) continue;
+        if (!element)
+            continue;
         const Plate* plate = dynamic_cast<const Plate*>(element.get());
-        const std::vector<Polyline> outlines = plate ? std::vector<Polyline>(plate->polylines.begin(),
-                                                                             plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()))
-                                                     : element->polylines();
+        const std::vector<Polyline> outlines = plate
+            ? std::vector<Polyline>(plate->polylines.begin(), plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()))
+            : element->polylines();
         for (size_t i = 0; i < outlines.size(); ++i) {
             auto outline = std::make_shared<Polyline>(outlines[i]);
             outline->name = fmt::format("{}_{}", element->name, i);
@@ -585,7 +577,8 @@ void WoodSession::add_contacts(const std::string& prefix) {
         for (const FaceContact& contact : pair.faces) {
             const std::string label = fmt::format("{}_{}", prefix, contact_type_name(contact.type));
             auto it = groups.find(label);
-            if (it == groups.end()) it = groups.emplace(label, add_group(label)).first;
+            if (it == groups.end())
+                it = groups.emplace(label, add_group(label)).first;
             const std::string name = fmt::format("contact_{}_{}_f{}_{}", pair.element_a, pair.element_b, contact.face_a, contact.face_b);
             if (contact.type == ContactType::line) {
                 auto polyline = std::make_shared<Polyline>(contact.area);
@@ -608,7 +601,8 @@ void WoodSession::add_joints(const std::string& prefix) {
         const std::string type_name = joint_type_name(joint.joint_type);
         const std::string label = fmt::format("{}_{}", prefix, type_name);
         auto it = groups.find(label);
-        if (it == groups.end()) it = groups.emplace(label, add_group(label)).first;
+        if (it == groups.end())
+            it = groups.emplace(label, add_group(label)).first;
         const Group& group = it->second;
         const Color color = joint_color(joint.joint_type);
         const std::string name = fmt::format("joint_{}_{}_{}", short_guid(joint.element_a), short_guid(joint.element_b), type_name);
@@ -633,4 +627,4 @@ void WoodSession::add_joints(const std::string& prefix) {
     }
 }
 
-} // namespace wood_session
+}  // namespace wood_session

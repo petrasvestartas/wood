@@ -64,35 +64,23 @@ bool type_plates_name_cross_brussels_sports_tower() { return run_dataset("cross_
 
 bool type_beams_name_phanomema_node() {
     try {
-    using namespace wood_session::globals;
-    if (!internal::plates_exist("phanomema_node")) {
-        fmt::print("\n=== phanomema_node: dataset missing, skipping ===\n");
-        return false;
-    }
-    globals_yaml("phanomema_node");
-    auto axes = internal::load_polylines("phanomema_node");
-
-    std::vector<std::vector<double>> segment_radii;
-    segment_radii.reserve(axes.size());
-    for (const auto& ax : axes) {
-        std::vector<double> r;
-        size_t nseg = ax.point_count() > 1 ? ax.point_count() - 1 : 0;
-        r.assign(nseg, 150.0);
-        segment_radii.push_back(std::move(r));
-    }
-    std::vector<std::vector<Vector>> segment_direction;
-
-    std::vector<int> allowed_types{ 1 };
-    double min_distance         = 20.0;
-    double volume_length        = 500.0;
-    double cross_or_side_to_end = 0.91;
-    int    flip_male            = 1;
-
-    beam_volumes_pipeline(
-        axes, segment_radii, segment_direction,
-        allowed_types,
-        min_distance, volume_length, cross_or_side_to_end, flip_male);
-    return true;
+        using namespace wood_session::globals;
+        if (!internal::plates_exist("phanomema_node"))
+            return false;
+        globals_yaml("phanomema_node");
+        const std::vector<Polyline> axes = internal::load_polylines("phanomema_node");
+        std::vector<std::vector<double>> segment_radii;
+        segment_radii.reserve(axes.size());
+        for (const Polyline& ax : axes)
+            segment_radii.emplace_back(ax.segment_count(), 150.0);
+        const std::vector<std::vector<Vector>> segment_direction;
+        const std::vector<int> allowed_types{1};
+        const double min_distance = 20.0;
+        const double volume_length = 500.0;
+        const double cross_or_side_to_end = 0.91;
+        const int flip_male = 1;
+        beam_volumes_pipeline(axes, segment_radii, segment_direction, allowed_types, min_distance, volume_length, cross_or_side_to_end, flip_male);
+        return true;
     } catch (const std::exception& e) {
         fmt::print("  ERROR [type_beams_name_phanomema_node]: {}\n", e.what());
         return false;

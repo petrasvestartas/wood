@@ -14,37 +14,23 @@ namespace wood_session {
 
 namespace {
 
+using session_cpp::Line;
+using session_cpp::Point;
+using session_cpp::Polyline;
+using session_cpp::Vector;
 using RTree3 = session_cpp::SpatialRTree<int, double, 3>;
 
-std::pair<size_t, double> compute_closest_segment(const session_cpp::Polyline& poly, const session_cpp::Point& point) {
+/// The segment of poly nearest to point, and the squared distance to it.
+std::pair<size_t, double> compute_closest_segment(const Polyline& poly, const Point& point) {
     size_t segment = 0;
     double distance = std::numeric_limits<double>::max();
-    const size_t count = poly.point_count();
-    const double qx = point[0];
-    const double qy = point[1];
-    const double qz = point[2];
-    for (size_t i = 0; i + 1 < count; i++) {
-        const session_cpp::Point a = poly.get_point(i);
-        const session_cpp::Point b = poly.get_point(i + 1);
-        const double ax = a[0];
-        const double ay = a[1];
-        const double az = a[2];
-        const double bx = b[0];
-        const double by = b[1];
-        const double bz = b[2];
-        const double abx = bx - ax;
-        const double aby = by - ay;
-        const double abz = bz - az;
-        const double apx = qx - ax;
-        const double apy = qy - ay;
-        const double apz = qz - az;
-        const double len2 = abx*abx + aby*aby + abz*abz;
-        double parameter = len2 > 0.0 ? (apx*abx + apy*aby + apz*abz) / len2 : 0.0;
-        parameter = std::clamp(parameter, 0.0, 1.0);
-        const double dx = apx - parameter * abx;
-        const double dy = apy - parameter * aby;
-        const double dz = apz - parameter * abz;
-        const double d2 = dx*dx + dy*dy + dz*dz;
+    const std::vector<Line> lines = poly.get_lines();
+    for (size_t i = 0; i < lines.size(); i++) {
+        const Vector ab = lines[i].to_vector();
+        const Vector ap = point - lines[i].start();
+        const double len2 = ab.magnitude_squared();
+        const double parameter = std::clamp(len2 > 0.0 ? ap.dot(ab) / len2 : 0.0, 0.0, 1.0);
+        const double d2 = (ap - ab * parameter).magnitude_squared();
         if (d2 < distance) {
             distance = d2;
             segment = i;
@@ -55,18 +41,16 @@ std::pair<size_t, double> compute_closest_segment(const session_cpp::Polyline& p
 
 void compute_element_aabb(const Plate& elem, double inflate, double out_min[3], double out_max[3]) {
     for (int k = 0; k < 3; k++) {
-        out_min[k] =  DBL_MAX;
+        out_min[k] = DBL_MAX;
         out_max[k] = -DBL_MAX;
     }
-    for (const auto& poly : elem.polylines) {
+    for (const Polyline& poly : elem.polylines) {
         for (size_t i = 0; i < poly.point_count(); i++) {
-            const auto& pt = poly[i];
-            out_min[0] = std::min(out_min[0], pt[0] - inflate);
-            out_min[1] = std::min(out_min[1], pt[1] - inflate);
-            out_min[2] = std::min(out_min[2], pt[2] - inflate);
-            out_max[0] = std::max(out_max[0], pt[0] + inflate);
-            out_max[1] = std::max(out_max[1], pt[1] + inflate);
-            out_max[2] = std::max(out_max[2], pt[2] + inflate);
+            const Point pt = poly[i];
+            for (int k = 0; k < 3; k++) {
+                out_min[k] = std::min(out_min[k], pt[k] - inflate);
+                out_max[k] = std::max(out_max[k], pt[k] + inflate);
+            }
         }
     }
 }
@@ -87,14 +71,14 @@ size_t get_side_slots(const Plate& elem) {
     return n > 0 ? n - 1 : 0;
 }
 
-}
+}  // namespace
 
 void assign_joint(
-    const std::vector<std::shared_ptr<Plate>>&        elements,
+    const std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<session_cpp::Point>& points,
-    const std::vector<int>&                point_types,
-    std::vector<std::vector<int>>&         out_joint_types)
-{
+    const std::vector<int>& point_types,
+    std::vector<std::vector<int>>& out_joint_types
+) {
     const double threshold = globals::DISTANCE_SQUARED * 100.0;
     const double radius = std::max(globals::DISTANCE, std::sqrt(threshold));
 
@@ -110,32 +94,23 @@ void assign_joint(
     compute_element_rtree(elements, radius, rtree);
 
     for (size_t pi = 0; pi < points.size(); pi++) {
-        const session_cpp::Point& point = points[pi];
+        const Point& point = points[pi];
         const int type = point_types[pi];
-
         const double qmin[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
             const Plate& elem = *elements[ei];
             if (elem.polylines.size() < 2)
                 return true;
-
             const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
             const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
-
             const bool is_top = d2_top <= d2_bot;
             const double d2_min = is_top ? d2_top : d2_bot;
             const size_t segment = is_top ? seg_top : seg_bot;
-
             if (d2_min >= threshold)
                 return true;
-
-            const int slot = (type < 0)
-                             ? (is_top ? 1 : 0)
-                             : static_cast<int>(2 + segment);
-
-            auto& slots = out_joint_types[ei];
+            const int slot = type < 0 ? (is_top ? 1 : 0) : static_cast<int>(2 + segment);
+            std::vector<int>& slots = out_joint_types[ei];
             if (slot >= 0 && slot < static_cast<int>(slots.size()))
                 slots[slot] = std::abs(type);
             return true;
@@ -144,17 +119,17 @@ void assign_joint(
 }
 
 void assign_insertion(
-    const std::vector<std::shared_ptr<Plate>>&                elements,
-    const std::vector<session_cpp::Line>&          lines,
-    std::vector<std::vector<session_cpp::Vector>>& out_insertion_vectors)
-{
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<session_cpp::Line>& lines,
+    std::vector<std::vector<session_cpp::Vector>>& out_insertion_vectors
+) {
     const double threshold = globals::DISTANCE_SQUARED * 100.0;
     const double radius = std::max(globals::DISTANCE, std::sqrt(threshold));
 
     out_insertion_vectors.clear();
     out_insertion_vectors.resize(elements.size());
     for (size_t ei = 0; ei < elements.size(); ei++)
-        out_insertion_vectors[ei].assign(2 + get_side_slots(*elements[ei]), session_cpp::Vector(0.0, 0.0, 0.0));
+        out_insertion_vectors[ei].assign(2 + get_side_slots(*elements[ei]), Vector(0.0, 0.0, 0.0));
 
     if (lines.empty())
         return;
@@ -162,28 +137,22 @@ void assign_insertion(
     RTree3 rtree;
     compute_element_rtree(elements, radius, rtree);
 
-    for (const auto& line : lines) {
-        const session_cpp::Point point = line.start();
-        const session_cpp::Vector direction = line.to_vector();
-
+    for (const Line& line : lines) {
+        const Point point = line.start();
+        const Vector direction = line.to_vector();
         const double qmin[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
         const double qmax[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-
         rtree.search(qmin, qmax, [&](const int ei) -> bool {
             const Plate& elem = *elements[ei];
             if (elem.polylines.size() < 2)
                 return true;
-
             const auto [seg_top, d2_top] = compute_closest_segment(elem.polylines[1], point);
             const auto [seg_bot, d2_bot] = compute_closest_segment(elem.polylines[0], point);
-
             const double d2_min = std::min(d2_top, d2_bot);
             const size_t segment = d2_top <= d2_bot ? seg_top : seg_bot;
-
             if (d2_min >= threshold)
                 return true;
-
-            auto& slots = out_insertion_vectors[ei];
+            std::vector<Vector>& slots = out_insertion_vectors[ei];
             const int slot = static_cast<int>(segment + 2);
             if (slot < static_cast<int>(slots.size()))
                 slots[slot] = direction;
@@ -192,4 +161,4 @@ void assign_insertion(
     }
 }
 
-}
+}  // namespace wood_session

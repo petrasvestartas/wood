@@ -6,24 +6,11 @@ using namespace wood_session;
 const int DATASET = 19;                 // globals::DATASET_NAMES
 
 int main() {
-
     WoodSession wood_session = WoodSession::yaml_load(globals::DATASET_NAMES[DATASET]);
-    
-    // Finds nearby element pairs using OBB/BVH.
-    // Tests face planes for coplanarity.
-    // Computes the polygon overlap.
-    // Stores every valid touching face pair.
     wood_session.compute_contacts();
-
-    // TODO: view.add_contacts_by_type | view.add_outlines | view.pb_dump
-    // side_side - navy
-    // side_top - pink
-    // top_top - green
-    // unknown - grey
     wood_session.add_contacts();
     wood_session.add_outlines();
     wood_session.write("live");
-
     return 0;
 }
 

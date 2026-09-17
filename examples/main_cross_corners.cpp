@@ -61,7 +61,6 @@ int main() {
     return 0;
 }
 
-
 /*
 |||||||| DESCRIPTION ||||||||
 Compute joints between wood elements in a dataset.

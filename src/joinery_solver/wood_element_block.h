@@ -17,7 +17,7 @@ public:
     static constexpr const char* LEGACY_ELEMENT_TYPE = "BlockElement";
 
     Block();
-    /// One n-gon face per loop, vertices unwelded; loops with fewer than 3 points are dropped. `name` is the type flag face_contacts() filters on.
+    /// Mesh::from_polylines: one n-gon face per loop, loops with fewer than 3 points dropped. `name` is the type flag face_contacts() filters on.
     explicit Block(const std::vector<session_cpp::Polyline>& loops, const std::string& name = "block");
 
     std::string element_type_name() const override { return ELEMENT_TYPE; }

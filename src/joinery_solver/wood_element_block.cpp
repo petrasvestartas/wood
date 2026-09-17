@@ -1,43 +1,12 @@
 #include "wood_element_block.h"
 
-#include <cmath>
 #include <sstream>
 
 namespace wood_session {
 
 using session_cpp::Element;
 using session_cpp::Mesh;
-using session_cpp::Point;
 using session_cpp::Polyline;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════════════════
-
-namespace {
-
-/// The loops as one mesh: one n-gon face per loop, vertices NOT shared between faces -
-/// unwelded, the mesh is exactly those loops, so Mesh::face_outlines() gives them back.
-Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
-    std::vector<Point> verts;
-    std::vector<std::vector<size_t>> faces;
-    faces.reserve(loops.size());
-    for (const Polyline& loop : loops) {
-        size_t count = loop.point_count();
-        if (count > 3 && loop.get_point(0).distance(loop.get_point(count - 1)) < 1e-6) count--;
-        if (count < 3) { continue; }
-        std::vector<size_t> face(count);
-        for (size_t k = 0; k < count; ++k) {
-            face[k] = verts.size();
-            verts.push_back(loop.get_point(k));
-        }
-        faces.push_back(std::move(face));
-    }
-    if (faces.empty()) { return Mesh{}; }
-    return Mesh::from_vertices_and_faces(verts, faces);
-}
-
-}  // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -45,7 +14,7 @@ Mesh mesh_from_loops(const std::vector<Polyline>& loops) {
 
 Block::Block() : Element("block") {}
 
-Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(mesh_from_loops(loops), name) {}
+Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(Mesh::from_polylines(loops), name) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Serialization
@@ -76,4 +45,4 @@ std::string Block::str() const {
     return os.str();
 }
 
-} // namespace wood_session
+}  // namespace wood_session

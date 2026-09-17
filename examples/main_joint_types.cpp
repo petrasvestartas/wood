@@ -21,7 +21,6 @@ static void run(const std::string& name, const double division) {
 }
 
 int main() {
-    
     run("annen_box", 200);
     run("annen_box_pair", 200);
     run("annen_grid_small", 200);

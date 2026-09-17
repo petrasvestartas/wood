@@ -24,34 +24,24 @@
 
 namespace internal {
 
-// The dataset folder: globals::DATA_SET_INPUT_FOLDER when set, else the
-// repo's data/ next to this source tree. Absolute, so the working directory
-// of the executable or the binding host does not matter.
+/// The dataset folder, globals::DATA_SET_INPUT_FOLDER; absolute, so the working directory does not matter.
 std::filesystem::path session_data_dir();
 
-// Absolute path to `data/output/` — creates the directory on first call.
+/// Absolute path to data/output/, created on first call.
 std::filesystem::path output_dir();
 
-// A bare name resolves to <session_data_dir>/<name><ext>; a path already
-// ending in ext is returned as is.
+/// A bare name resolves to <session_data_dir>/<name><ext>; a path already ending in ext is returned as is.
 std::filesystem::path dataset_path(const std::string& name, const std::string& ext);
 
-// True iff data/<name>.obj exists.
+/// True iff data/<name>.obj exists.
 bool plates_exist(const std::string& name);
 
-// Load a named wood dataset from session_data/ and return one WoodElement per
-// timber plate (planes, sides, thickness ready).
-// Consecutive polylines (even index = bottom, odd = top) are paired.
-// Also sets globals DATA_SET_INPUT_NAME and DATA_SET_OUTPUT_FILE as side effects.
-// dataset_name — a name (data/<name>.obj) or a path ending in .obj
-// duplicate_pts_tol — if > 0, removes consecutive duplicate points (vidychapel datasets)
+/// One Plate per consecutive outline pair (even = bottom, odd = top) of data/<name>.obj or an .obj path; duplicate_pts_tol > 0 removes consecutive duplicate points.
 std::vector<std::shared_ptr<wood_session::Plate>> load_plates(
         const std::string& dataset_name,
         double duplicate_pts_tol = 0.0);
 
-// Load raw polylines from a named dataset (no top/bottom pairing).
-// Used by beam datasets where each polyline is a beam axis.
-// Also sets globals DATA_SET_INPUT_NAME and DATA_SET_OUTPUT_FILE as side effects.
+/// The raw polylines of data/<name>.obj or an .obj path, unpaired: beam datasets, one axis per polyline.
 std::vector<session_cpp::Polyline> load_polylines(
         const std::string& dataset_name,
         double duplicate_pts_tol = 0.0);
@@ -68,40 +58,13 @@ enum SearchType : int {
     face_to_face_then_cross = 2,  // face-to-face first, then cross-joint fallback
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// get_connection_zones — 9-stage wood joint detection pipeline.
-//
-// Stages: BVH adjacency → face_to_face_wood detection → three-valence linking
-//         → joint geometry creation → orientation → merge into plate outlines.
-//
-// elements    — timber plates as WoodElements (built via the WoodElement
-//               (bot, top) ctor, or returned by internal::load_plates(name)).
-//               IN-OUT, and the second half of the result: each element's
-//               `features` is populated with the merged top/bottom outlines from
-//               the merge pass, `insertion_vectors` with the vectors the solver
-//               resolved, and a reversed plate has its (bot, top) pair swapped.
-//               fill_session() and every other consumer read the outlines back
-//               off these elements, so never hold your plates in a `const`
-//               vector - the only way to pass one is to copy it, and the copy is
-//               what carries the result you then throw away.
-// search_type — face_to_face (default), cross_joint, or face_to_face_then_cross.
-// Returns:    — every detected joint (per-pair), with type / area / lines /
-//               volumes / male+female cut outlines populated.
-//
-// To visualize the result, build a Session and call fill_session(session,
-// elements, joints, /*include_loft=*/true) — see below.
-// ═══════════════════════════════════════════════════════════════════════════
+/// The 9-stage detection pipeline over the plates, in place: every plate's `features` and `insertion_vectors` are filled, and every detected joint is returned.
 std::vector<wood_session::WoodJoint> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type = face_to_face);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ChevronJoineryData — pre-computed joinery metadata for chevron assemblies.
-//
-// When passed to the overload below, bypasses txt-file loading
-// (DATA_SET_INPUT_NAME) and uses in-memory data instead.
-
 namespace wood_session {
+/// Pre-computed joinery metadata for chevron assemblies, used instead of the DATA_SET_INPUT_NAME txt files.
 struct ChevronJoineryData {
     std::vector<std::pair<int,int>>    adjacency;         ///< adjacent plate-pair indices
     std::vector<std::array<double,18>> insertion_vectors; ///< 6 Vec3 per element, flat (18 doubles)
@@ -125,8 +88,7 @@ namespace wood_session {
 struct WoodInteraction {
     /// Every overlap region between the pair, face_a on the element the edge was read from.
     std::vector<FaceContact> contacts;
-    /// What get_connection_zones made of them. A joint names its own two elements, because
-    /// male and female is a solver decision and not the edge's ordering.
+    /// What get_connection_zones made of them; a joint names its own two elements.
     std::vector<WoodJoint> joints;
 
     /// Value of "type" the attribute is written under, and the grammar's whole guard.
@@ -137,8 +99,7 @@ struct WoodInteraction {
     WoodInteraction flipped() const;
 
     std::string to_attribute() const;
-    /// Total: an attribute this grammar does not describe - Session::get_collisions()'s
-    /// "bvh_collision", add_relationship's "default", "" - comes back empty.
+    /// Total: an attribute this grammar does not describe ("bvh_collision", "default", "") comes back empty.
     static WoodInteraction from_attribute(const std::string& attribute);
 
     nlohmann::ordered_json jsondump() const;
@@ -152,9 +113,7 @@ struct WoodInteraction {
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session, extended: the objects, tree, graph, xforms and history ARE the kernel's. What it
-/// adds is typed access to the elements and the reading and writing of a WoodInteraction on a
-/// graph edge. Session has no virtual method, so never delete one through a Session*.
+/// A Session with typed element access and a WoodInteraction on each graph edge; Session has no virtual method, so never delete one through a Session*.
 class WoodSession : public session_cpp::Session {
 public:
     WoodSession();
@@ -223,7 +182,7 @@ public:
     void add_contacts(const std::string& prefix = "Contacts");
     /// Every joint's area, volumes, lines and cut outlines, one group per joint type that occurs, named `<prefix>_<code>`.
     void add_joints(const std::string& prefix = "Joints");
-    /// Write the scene: a bare name goes to pb_path(name) ("live" is the file session_viewer watches); a name ending in .pb goes to data/output/ with the per-plate outline dumps beside it. Returns the path.
+    /// Write the scene: a bare name goes to pb_path(name) ("live" is what session_viewer watches); a name ending in .pb goes to data/output/ with the parity dumps beside it. Returns the path.
     std::filesystem::path write(const std::string& name = "live");
 
     /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
@@ -246,12 +205,10 @@ std::filesystem::path pb_path(const std::string& name);
 // Colours
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// "side_side" / "side_top" / "top_top" / "unknown" / "cross" / "line" - the group name a
-/// contact of that class is filed under.
+/// "side_side" / "side_top" / "top_top" / "unknown" / "cross" / "line" - the group name a contact of that class is filed under.
 const char* contact_type_name(ContactType type);
 
-/// "ss_ip_12" / "ss_op_11" / "ss_rot_13" / "ts_20" / "cross_30" / "tt_40", or "type_<n>"
-/// for a code the table does not name.
+/// "ss_ip_12" / "ss_op_11" / "ss_rot_13" / "ts_20" / "cross_30" / "tt_40", or "type_<n>" for a code the table does not name.
 std::string joint_type_name(int joint_type);
 
 session_cpp::Color contact_color(ContactType type);
@@ -263,11 +220,7 @@ session_cpp::Color joint_color(int joint_type);
 // Beams
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════════════════════════
-// beam_volumes_pipeline — beam (axis+radius) entry point. Equivalent of
-// wood's `wood::main::beam_volumes`. Used by type_beams_name_* datasets
-// (e.g. phanomema_node) that store beam axes rather than plate outlines.
-// ═══════════════════════════════════════════════════════════════════════════
+/// Beam (axis + radius) entry point for the type_beams_name_* datasets: joint volumes per axis contact, written to data/output/<DATA_SET_OUTPUT_FILE>.
 void beam_volumes_pipeline(
         const std::vector<session_cpp::Polyline>& axes,
         const std::vector<std::vector<double>>& segment_radii,
@@ -279,53 +232,50 @@ void beam_volumes_pipeline(
         int    flip_male);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// wood_test.h — 43 test function declarations (wood line-number order).
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Datasets as tests
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool type_plates_name_hexbox_and_corner();                                            // 204
-bool type_plates_name_joint_linking_vidychapel_corner();                              // 265
-bool type_plates_name_joint_linking_vidychapel_one_layer();                           // 428
-bool type_plates_name_joint_linking_vidychapel_one_axis_two_layers();                 // 488
-bool type_plates_name_joint_linking_vidychapel_full();                                // 611
-bool type_plates_name_side_to_side_edge_inplane_2_butterflies();                      // 888
-bool type_plates_name_side_to_side_edge_inplane_hexshell();                           // 940
-bool type_plates_name_side_to_side_edge_inplane_differentdirections();                // 998
-bool type_plates_name_side_to_side_edge_outofplane_folding();                         // 1129
-bool type_plates_name_side_to_side_edge_outofplane_box();                             // 1384
+bool type_plates_name_hexbox_and_corner();
+bool type_plates_name_joint_linking_vidychapel_corner();
+bool type_plates_name_joint_linking_vidychapel_one_layer();
+bool type_plates_name_joint_linking_vidychapel_one_axis_two_layers();
+bool type_plates_name_joint_linking_vidychapel_full();
+bool type_plates_name_side_to_side_edge_inplane_2_butterflies();
+bool type_plates_name_side_to_side_edge_inplane_hexshell();
+bool type_plates_name_side_to_side_edge_inplane_differentdirections();
+bool type_plates_name_side_to_side_edge_outofplane_folding();
+bool type_plates_name_side_to_side_edge_outofplane_box();
 bool type_plates_name_side_to_side_edge_outofplane_box_miter();
-bool type_plates_name_side_to_side_edge_outofplane_tetra();                           // 1440
-bool type_plates_name_side_to_side_edge_outofplane_dodecahedron();                    // 1497
-bool type_plates_name_side_to_side_edge_outofplane_icosahedron();                     // 1555
-bool type_plates_name_side_to_side_edge_outofplane_octahedron();                      // 1613
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners();          // 1671
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined(); // 1729
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths(); // 1787
-bool type_plates_name_side_to_side_edge_inplane_hilti();                              // 1849
-bool type_plates_name_top_to_top_pairs();                                             // 1912
-bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes(); // 1965
-bool type_plates_name_hex_block_rossiniere();                                         // 2037
-bool type_plates_name_top_to_side_snap_fit();                                         // 2104
-bool type_plates_name_top_to_side_box();                                              // 2163
-bool type_plates_name_top_to_side_corners();                                          // 2220
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner();         // 2279
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box();            // 2391
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair();       // 2488
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small();     // 2698
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch(); // 2763
-bool type_plates_name_vda_floor_0();                                                  // 2829
-bool type_plates_name_vda_floor_2();                                                  // 2888
-bool type_plates_name_cross_and_sides_corner();                                       // 2955
-bool type_plates_name_cross_corners();                                                // 3016
-bool type_plates_name_cross_vda_corner();                                             // 3080
-bool type_plates_name_cross_vda_hexshell();                                           // 3144
-bool type_plates_name_cross_vda_hexshell_reciprocal();                                // 3207
-bool type_plates_name_cross_vda_single_arch();                                        // 3270
-bool type_plates_name_cross_vda_shell();                                              // 3333
-bool type_plates_name_cross_square_reciprocal_two_sides();                            // 3396
-bool type_plates_name_cross_square_reciprocal_iseya();                                // 3459
-bool type_plates_name_cross_ibois_pavilion();                                         // 3522
-bool type_plates_name_cross_brussels_sports_tower();                                  // 3588
-bool type_beams_name_phanomema_node();                                                // 3670
+bool type_plates_name_side_to_side_edge_outofplane_tetra();
+bool type_plates_name_side_to_side_edge_outofplane_dodecahedron();
+bool type_plates_name_side_to_side_edge_outofplane_icosahedron();
+bool type_plates_name_side_to_side_edge_outofplane_octahedron();
+bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners();
+bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined();
+bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
+bool type_plates_name_side_to_side_edge_inplane_hilti();
+bool type_plates_name_top_to_top_pairs();
+bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes();
+bool type_plates_name_hex_block_rossiniere();
+bool type_plates_name_top_to_side_snap_fit();
+bool type_plates_name_top_to_side_box();
+bool type_plates_name_top_to_side_corners();
+bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner();
+bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box();
+bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair();
+bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small();
+bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch();
+bool type_plates_name_vda_floor_0();
+bool type_plates_name_vda_floor_2();
+bool type_plates_name_cross_and_sides_corner();
+bool type_plates_name_cross_corners();
+bool type_plates_name_cross_vda_corner();
+bool type_plates_name_cross_vda_hexshell();
+bool type_plates_name_cross_vda_hexshell_reciprocal();
+bool type_plates_name_cross_vda_single_arch();
+bool type_plates_name_cross_vda_shell();
+bool type_plates_name_cross_square_reciprocal_two_sides();
+bool type_plates_name_cross_square_reciprocal_iseya();
+bool type_plates_name_cross_ibois_pavilion();
+bool type_plates_name_cross_brussels_sports_tower();
+bool type_beams_name_phanomema_node();
