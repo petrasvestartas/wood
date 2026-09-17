@@ -1,5 +1,6 @@
 /// ss_e_ip_1: parametric in-plane zigzag along z at y=-0.5, the other face offset by (0,1,0); symmetric male/female.
 static void ss_e_ip_1(WoodJoint& joint) {
+
     joint.name = "ss_e_ip_1";
 
     int div = std::max(2, std::min(100, joint.divisions));
@@ -40,8 +41,10 @@ static void ss_e_ip_1(WoodJoint& joint) {
 
     joint.female_outlines[0] = { outline0, endpoints0 };
     joint.female_outlines[1] = { outline1, endpoints1 };
+
     joint.male_outlines[0] = { outline0, endpoints0 };
     joint.male_outlines[1] = { outline1, endpoints1 };
+
     joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };

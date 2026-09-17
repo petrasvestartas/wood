@@ -1,6 +1,8 @@
 /// ss_e_op_5: ss_e_op_4 on this joint and on its one or two linked joints, with the merge sequences that stitch them.
 static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool disable_joint_divisions) {
+
     jo.name = "ss_e_op_5";
+
     if (jo.linked_joints.empty() || jo.linked_joints.size() > 2) {
         jo.linked_joints_seq.clear();
         ss_e_op_4(jo, 0.00, true, true, -0.75, 0.5, -0.5, 0.5, -0.5, 0.5);
@@ -10,6 +12,7 @@ static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool di
     for (const int index : jo.linked_joints)
         if (index < 0 || static_cast<size_t>(index) >= all_joints.size() || &all_joints[index] == &jo)
             return;
+
     jo.linked_joints_seq.clear();
     ss_e_op_4(jo, 0.00, false, true, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5);
 
@@ -38,6 +41,7 @@ static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool di
             else
                 linked_joints_seq_1.push_back({0, 0, 0, 0});
         }
+
         jo.linked_joints_seq.push_back(linked_joints_seq_1);
     }
 }

@@ -3,9 +3,12 @@
 const char* OUTPUT = "data/templates/chevron_mesh.json";
 
 int main() {
+
     std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+
     const Chevron shell;
     shell.mesh.file_json_dump(OUTPUT);
+
     return 0;
 }
 

@@ -3,6 +3,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 int main() {
+
     globals::reset_defaults();
     globals::JOINT_VOLUME_EXTENSION[1] = 2;
     globals::DATA_SET_INPUT_NAME = "cross_corners_custom";
@@ -57,6 +58,7 @@ int main() {
     scene.compute_joints(cross_joint);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());
+
     return 0;
 }
 

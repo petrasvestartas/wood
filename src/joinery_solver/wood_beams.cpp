@@ -39,17 +39,21 @@ bool has_direction(const std::vector<std::vector<Vector>>& directions, const int
 }
 
 double radius_of(const std::vector<std::vector<double>>& radii, const int pid, const int sid) {
+
     if (pid < 0 || pid >= (int)radii.size())
         return 0.0;
     if (sid < 0 || sid >= (int)radii[pid].size())
         return 0.0;
+
     return radii[pid][sid];
 }
 
 /// Cuts both rectangles of one beam volume at the plane; false when a corner misses it.
 bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& plane) {
+
     if (first.point_count() != 5 || second.point_count() != 5)
         return false;
+
     std::array<Point, 4> points;
     if (!Intersection::line_plane(Line::from_points(first[0], first[1]), plane, points[0], false) ||
         !Intersection::line_plane(Line::from_points(first[3], first[2]), plane, points[1], false) ||
@@ -60,6 +64,7 @@ bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& 
         for (size_t i = 0; i < 3; ++i)
             if (!std::isfinite(point[i]))
                 return false;
+
     if (plane.has_on_negative_side(first[0])) {
         first.set_point(0, points[0]);
         first.set_point(3, points[1]);
@@ -73,33 +78,41 @@ bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& 
         second.set_point(1, points[2]);
         second.set_point(2, points[3]);
     }
+
     return true;
 }
 
 /// The closest segment pair of every two axes within min_distance, keyed by axis pair.
 std::map<uint64_t, Contact> compute_contacts(const std::vector<std::vector<Line>>& lines, const double min_distance) {
+
     std::map<uint64_t, Contact> contacts;
     for (size_t a = 0; a < lines.size(); a++) {
         for (size_t sa = 0; sa < lines[a].size(); sa++) {
+
             const Line& la = lines[a][sa];
             if (!(la.squared_length() > 0.0))
                 continue;
+
             for (size_t b = a + 1; b < lines.size(); b++) {
                 for (size_t sb = 0; sb < lines[b].size(); sb++) {
+
                     const Line& lb = lines[b][sb];
                     if (!(lb.squared_length() > 0.0))
                         continue;
+
                     double t0;
                     double t1;
                     if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
                         continue;
                     if (!std::isfinite(t0) || !std::isfinite(t1))
                         continue;
+
                     const Point q0 = la.point_at(t0);
                     const Point q1 = lb.point_at(t1);
                     const double d2 = (q0 - q1).magnitude_squared();
                     if (!std::isfinite(d2) || d2 > min_distance * min_distance)
                         continue;
+
                     const uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
                     const Contact c{d2, (int)a, (int)sa, (int)b, (int)sb};
                     const auto it = contacts.find(id);
@@ -109,6 +122,7 @@ std::map<uint64_t, Contact> compute_contacts(const std::vector<std::vector<Line>
             }
         }
     }
+
     return contacts;
 }
 
@@ -124,21 +138,22 @@ void beam_volumes_pipeline(
     double cross_or_side_to_end,
     int flip_male
 ) {
+
     using namespace wood_session::globals;
 
     const std::string pb_name = DATA_SET_OUTPUT_FILE;
     const std::filesystem::path base = internal::output_dir();
 
     Session session("WoodF2F");
-    const auto g_axes = session.add_group("BeamAxes");
-    const auto g_vols = session.add_group("JointVolumes");
+    const std::shared_ptr<TreeNode> g_axes = session.add_group("BeamAxes");
+    const std::shared_ptr<TreeNode> g_vols = session.add_group("JointVolumes");
     g_axes->color = Color(0.70f, 0.70f, 0.70f, 1.0f, "grey");
     g_vols->color = Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta");
 
     std::vector<std::vector<Line>> lines;
     lines.reserve(axes.size());
     for (size_t i = 0; i < axes.size(); i++) {
-        auto pl = std::make_shared<Polyline>(axes[i]);
+        std::shared_ptr<Polyline> pl = std::make_shared<Polyline>(axes[i]);
         pl->name = fmt::format("axis_{}", i);
         session.add_polyline(pl, g_axes);
         lines.push_back(axes[i].get_lines());
@@ -151,7 +166,7 @@ void beam_volumes_pipeline(
     int n_failed = 0;
     int counts[6] = {0, 0, 0, 0, 0, 0};
 
-    for (const auto& entry : contacts) {
+    for (const std::pair<const uint64_t, Contact>& entry : contacts) {
         const Contact& c = entry.second;
         n_pairs++;
         const Polyline& pa_pts = axes[c.pid0];
@@ -245,13 +260,14 @@ void beam_volumes_pipeline(
             const int shift = type0 == 0 ? 0 : 2;
             ok = compute_trimmed_rectangles(beam_vol[shift], beam_vol[shift + 1], cutpl);
         }
+
         if (!ok) {
             n_failed++;
             continue;
         }
 
         for (int k = 0; k < 4; k++) {
-            auto rect = std::make_shared<Polyline>(beam_vol[k]);
+            std::shared_ptr<Polyline> rect = std::make_shared<Polyline>(beam_vol[k]);
             rect->name = fmt::format("beam_{}_{}_rect{}", c.pid0, c.pid1, k);
             session.add_polyline(rect, g_vols);
         }
@@ -280,6 +296,7 @@ void beam_volumes_pipeline(
             n_failed++;
             continue;
         }
+
         n_success++;
         switch (jt.joint_type) {
             case 11: counts[0]++; break;
@@ -293,6 +310,7 @@ void beam_volumes_pipeline(
     }
 
     session.pb_dump((base / pb_name).string());
+
     if (TRACE) {
         fmt::print("\n=== beam_volumes_pipeline ===\n");
         fmt::print("{} axes -> {} contacts -> {} volumes ({} failed)\n", axes.size(), n_pairs, n_success, n_failed);

@@ -1,10 +1,12 @@
 /// b_0: beam slice - the tween rectangle of the two volumes, widened by scale[0] / scale[1], as four slice planes.
 static void b_0(WoodJoint& joint) {
+
     joint.name = "b_0";
     joint.no_orient = true;
 
     if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1])
         return;
+
     const Polyline& vol0 = *joint.joint_volumes_pair_a_pair_b[0];
     const Polyline& vol1 = *joint.joint_volumes_pair_a_pair_b[1];
     if (vol0.point_count() < 5 || vol1.point_count() < 5)
@@ -49,10 +51,12 @@ static void b_0(WoodJoint& joint) {
         ny += (r[i][2] - r[j][2]) * (r[i][0] + r[j][0]);
         nz += (r[i][0] - r[j][0]) * (r[i][1] + r[j][1]);
     }
+
     Vector n(nx, ny, nz);
     const double nlen = std::sqrt(n.magnitude_squared());
     if (nlen < 1e-12)
         return;
+
     n = n / nlen;
     const Vector off_near = n * 0.25;
     const Vector off_far = n * (joint.scale[2] + 15.0);
@@ -67,6 +71,7 @@ static void b_0(WoodJoint& joint) {
 
     joint.male_outlines[0] = { rect0, rect0, rect2, rect2 };
     joint.male_outlines[1] = { rect1, rect1, rect3, rect3 };
+
     joint.male_cut_types[0] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
     joint.male_cut_types[1] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
 }

@@ -1,5 +1,6 @@
 /// ts_e_p_1: hardcoded two-mortise tenon joint; not routed by the dispatcher, kept complete.
 [[maybe_unused]] static void ts_e_p_1(WoodJoint& joint) {
+
     auto P = [](double x, double y, double z) { return Point(x, y, z); };
     const double z_top   = 0.166666666666667;
     const double z_top2  = 0.0555555555555556;
@@ -51,6 +52,7 @@
             P(-0.5, 0.5, z_bot2), P(-0.5,-0.5, z_bot2)}),
         Polyline({P(-0.5,-0.5, 0.5), P(-0.5,-0.5,-0.5)}),
     };
+
     joint.female_cut_types[0] = { wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
     joint.female_cut_types[1] = { wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
     joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };

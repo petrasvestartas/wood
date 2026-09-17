@@ -70,6 +70,7 @@ int main() {
     WoodSession dataset = WoodSession::yaml_load(globals::Dataset::inplane_hexshell);
     dataset.compute_joints();
     fmt::print("{}: {} plates, {} joints\n", globals::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
+
     return 0;
 }
 

@@ -20,6 +20,7 @@ Plate::Plate() : Element("plate") {}
 
 /// A bad outline pair degrades to an empty element, which detection skips, rather than taking a dataset run down.
 Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : Element(name) {
+
     Polyline pp0 = bot;
     Polyline pp1 = top;
     if (pp0.point_count() < 3 || pp1.point_count() < 3) {
@@ -73,6 +74,7 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
             sb1 = Vector(-n[2], 0, n[0]);
         else
             sb1 = Vector(-n[1], n[0], 0);
+
         Vector sb2 = n.cross(sb1);
         sb1.normalize_self();
         sb2.normalize_self();
@@ -86,20 +88,25 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // ═══════════════════════════════════════════════════════════════════════════
 
 Mesh Plate::compute_element_geometry() const {
+
     if (polylines.size() < 2)
         return Mesh();
+
     const std::vector<Polyline> bottom_outlines{polylines[0]};
     const std::vector<Polyline> top_outlines{polylines[1]};
     return Mesh::loft(bottom_outlines, top_outlines);
 }
 
 Mesh Plate::compute_model_geometry() const {
+
     if (features.top.empty())
         return element_geometry();
+
     return Mesh::loft(features.bottom, features.top);
 }
 
 BRep Plate::compute_model_brep() const {
+
     const std::vector<Polyline>& bottom = features.top.empty() ? polylines : features.bottom;
     const std::vector<Polyline>& top = features.top.empty() ? polylines : features.top;
     if (polylines.size() < 2)
@@ -130,20 +137,26 @@ BRep Plate::compute_model_brep() const {
 }
 
 const BRep& Plate::model_brep() const {
+
     if (!_model_brep)
         _model_brep = compute_model_brep();
+
     return *_model_brep;
 }
 
 const Mesh& Plate::element_geometry() const {
+
     if (!_element_geometry)
         _element_geometry = compute_element_geometry();
+
     return *_element_geometry;
 }
 
 const Mesh& Plate::model_geometry() const {
+
     if (!_model_geometry)
         _model_geometry = compute_model_geometry();
+
     return *_model_geometry;
 }
 
@@ -155,24 +168,31 @@ void Plate::invalidate_geometry() {
 }
 
 void Plate::compute_geometry() {
+
     if (polylines.size() > 1)
         set_geometry(model_geometry());
     set_dimensions(nominal_dimensions());
+
     std::vector<ElementFeature> next = face_features();
     for (const ElementFeature& feature : Element::features()) {
+
         if (feature.feature_type != "joint")
             continue;
+
         next.push_back(feature);
         if (feature.has_guid())
             next.back().guid() = feature.guid();
     }
+
     set_features(std::move(next));
     _geometry_synced = true;
 }
 
 Vector Plate::nominal_dimensions() const {
+
     if (polylines.empty() || planes.empty())
         return Vector(0.0, 0.0, thickness);
+
     const Plane& frame = planes[0];
     const Point& origin = frame.origin();
     const Vector& ex = frame.x_axis();
@@ -185,6 +205,7 @@ Vector Plate::nominal_dimensions() const {
     double max_v = 0.0;
     for (const Polyline& polyline : polylines) {
         for (size_t k = 0; k < polyline.point_count(); k++) {
+
             const Vector d = polyline.get_point(k) - origin;
             const double u = d.dot(ex);
             const double v = d.dot(ey);
@@ -196,28 +217,34 @@ Vector Plate::nominal_dimensions() const {
                 first = false;
                 continue;
             }
+
             min_u = std::min(min_u, u);
             max_u = std::max(max_u, u);
             min_v = std::min(min_v, v);
             max_v = std::max(max_v, v);
         }
     }
+
     return Vector(max_u - min_u, max_v - min_v, thickness);
 }
 
 /// -1 is "no joint assigned"; a face with neither a type nor an outline is not a feature.
 std::vector<ElementFeature> Plate::face_features() const {
+
     static const std::vector<Polyline> none;
     std::vector<ElementFeature> out;
     const size_t face_count = std::max(joint_types.size(), size_t{2});
     for (size_t face = 0; face < face_count; face++) {
+
         const int type = face < joint_types.size() ? joint_types[face] : -1;
         const std::vector<Polyline>& outlines = face == 0 ? features.bottom : (face == 1 ? features.top : none);
         if (type < 0 && outlines.empty())
             continue;
+
         const std::string feature_type = type >= 0 ? "joint_type_" + std::to_string(type) : "cut";
         out.emplace_back(feature_type, static_cast<int>(face), outlines, "face_" + std::to_string(face));
     }
+
     return out;
 }
 
@@ -236,12 +263,14 @@ std::string Plate::element_data_dumps() const {
 }
 
 std::shared_ptr<Plate> Plate::from_element(const Element& e) {
+
     nlohmann::json payload;
     try {
         payload = nlohmann::json::parse(e.element_data_dumps());
     } catch (const std::exception&) {
         payload = nlohmann::json::object();
     }
+
     const bool outlined = payload.contains("bottom") && !payload["bottom"].is_null() && payload.contains("top") && !payload["top"].is_null();
     std::shared_ptr<Plate> plate = outlined
         ? std::make_shared<Plate>(Polyline::jsonload(payload["bottom"]), Polyline::jsonload(payload["top"]))
@@ -250,11 +279,14 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
     plate->guid() = e.guid();
     plate->reversed = payload.value("reversed", false);
     plate->_geometry_synced = true;
+
     Plate& out = *plate;
     static const std::string prefix = "joint_type_";
     for (const ElementFeature& f : e.features()) {
+
         if (f.face_index < 0)
             continue;
+
         const size_t face = static_cast<size_t>(f.face_index);
         if (f.feature_type.compare(0, prefix.size(), prefix) == 0) {
             try {
@@ -267,11 +299,13 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
         } else if (f.feature_type != "cut") {
             continue;
         }
+
         if (face == 0)
             out.features.bottom.insert(out.features.bottom.end(), f.outlines.begin(), f.outlines.end());
         if (face == 1)
             out.features.top.insert(out.features.top.end(), f.outlines.begin(), f.outlines.end());
     }
+
     return plate;
 }
 
@@ -288,16 +322,20 @@ void Plate::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Plate::str() const {
+
     std::ostringstream os;
     os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", thickness=" << thickness << ")";
+
     return os.str();
 }
 
 std::string Plate::repr() const {
+
     std::ostringstream os;
     os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", planes=" << planes.size()
        << ", reversed=" << (reversed ? "true" : "false") << ", thickness=" << thickness
        << ", features=" << face_features().size() << ")";
+
     return os.str();
 }
 

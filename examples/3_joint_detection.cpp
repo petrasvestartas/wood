@@ -6,6 +6,7 @@ const std::string DATASET = globals::Dataset::inplane_hexshell;   // globals::Da
 
 /// Loads the plates, detects the joints, and writes the scene; no plate is lofted before the file is written.
 int main() {
+
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
     wood_session.compute_joints();
 
@@ -18,6 +19,7 @@ int main() {
     /// pb_dump lofts every plate not yet lofted (model geometry) so the viewer sees the cut plates; the tree decides what else is drawn.
     wood_session.add_to_tree(true, true, false, false);
     wood_session.pb_dump(pb_path("live").string());
+
     return 0;
 }
 

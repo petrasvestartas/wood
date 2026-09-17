@@ -126,19 +126,23 @@ public:
     /// The element with this guid as T, or null when the scene does not hold it as that type.
     template <class T>
     std::shared_ptr<T> get_element(const std::string& guid) const {
+
         for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
             if (element && element->guid() == guid)
                 return std::dynamic_pointer_cast<T>(element);
+
         return nullptr;
     }
 
     /// Every element of type T, in objects.elements order.
     template <class T>
     std::vector<std::shared_ptr<T>> get_elements() const {
+
         std::vector<std::shared_ptr<T>> out;
         for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
             if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
                 out.push_back(object);
+
         return out;
     }
 

@@ -1,6 +1,8 @@
 /// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_impl; the caller sets unit_scale_distance to the thickness.
 static void ss_e_r_2(WoodJoint& joint) {
+
     joint.name = "ss_e_r_2";
+
     static const double m0[][3] = {
         {0.2,  0.275, 0.166667}, {-0.116667, 0.275, 0.166667},
         {-0.619628, 0.275, 0.375}, {-1.0, 0.275, 0.375},
@@ -29,5 +31,6 @@ static void ss_e_r_2(WoodJoint& joint) {
         {0.619628, -0.7, 0.375}, {0.116667, -0.7, 0.166667},
         {-0.2, -0.7, 0.166667},
     };
+
     ss_e_r_impl(joint, m0, 9, m1, 9, f0, 9, f1, 9);
 }

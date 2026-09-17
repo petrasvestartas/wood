@@ -10,8 +10,10 @@ static void cr_c_ip_shared(
     size_t offset_min_pts,
     const std::vector<int>& cut_types
 ) {
+
     double s_param = std::max(std::min(joint.shift, 1.0), 0.0);
     s_param = 0.05 + (s_param - 0.0) * (0.4 - 0.05) / (1.0 - 0.0);
+
     const double a = 0.5 - s_param;
     const double b = 0.5;
     const double c = 2.0 * (b - a);
@@ -44,8 +46,9 @@ static void cr_c_ip_shared(
     base[4].extend_segment_equally(1, ext_vert, ext_vert);
     base[4].extend_segment_equally(3, ext_vert, ext_vert);
 
-    for (const auto& dr : extra_drills)
+    for (const Polyline& dr : extra_drills)
         base.push_back(dr);
+
     const int n = (int)base.size();
 
     const double lengths[5] = { 0.5, 0.4, 0.4, 0.4, 0.4 };
@@ -89,17 +92,20 @@ static void cr_c_ip_shared(
     }
 
     for (int i = 0; i < 2; i++) {
+
         const int id = (i + 1) * 2;
-        auto& fo0 = joint.female_outlines[0];
-        auto& fo1 = joint.female_outlines[1];
-        auto& mo0 = joint.male_outlines[0];
-        auto& mo1 = joint.male_outlines[1];
+        std::vector<Polyline>& fo0 = joint.female_outlines[0];
+        std::vector<Polyline>& fo1 = joint.female_outlines[1];
+        std::vector<Polyline>& mo0 = joint.male_outlines[0];
+        std::vector<Polyline>& mo1 = joint.male_outlines[1];
+
         const Polyline side00({fo0[id].get_point(0), fo0[id].get_point(1), fo1[id].get_point(1), fo1[id].get_point(0), fo0[id].get_point(0)});
         const Polyline side01({fo0[id].get_point(3), fo0[id].get_point(2), fo1[id].get_point(2), fo1[id].get_point(3), fo0[id].get_point(3)});
         fo0[id] = side00;
         fo1[id] = side01;
         fo0[id + 1] = side00;
         fo1[id + 1] = side01;
+
         const Polyline mside00({mo0[id].get_point(0), mo0[id].get_point(1), mo1[id].get_point(1), mo1[id].get_point(0), mo0[id].get_point(0)});
         const Polyline mside01({mo0[id].get_point(3), mo0[id].get_point(2), mo1[id].get_point(2), mo1[id].get_point(3), mo0[id].get_point(3)});
         mo0[id] = mside00;

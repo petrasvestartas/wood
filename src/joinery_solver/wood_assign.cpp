@@ -13,6 +13,7 @@ using RTree3 = session_cpp::SpatialRTree<int, double, 3>;
 
 /// The segment of poly nearest to point, and the squared distance to it.
 std::pair<size_t, double> compute_closest_segment(const Polyline& poly, const Point& point) {
+
     size_t segment = 0;
     double distance = std::numeric_limits<double>::max();
     const std::vector<Line> lines = poly.get_lines();
@@ -27,14 +28,17 @@ std::pair<size_t, double> compute_closest_segment(const Polyline& poly, const Po
             segment = i;
         }
     }
+
     return {segment, distance};
 }
 
 void compute_element_aabb(const Plate& elem, double inflate, double out_min[3], double out_max[3]) {
+
     for (int k = 0; k < 3; k++) {
         out_min[k] = DBL_MAX;
         out_max[k] = -DBL_MAX;
     }
+
     for (const Polyline& poly : elem.polylines) {
         for (size_t i = 0; i < poly.point_count(); i++) {
             const Point pt = poly[i];
@@ -48,11 +52,13 @@ void compute_element_aabb(const Plate& elem, double inflate, double out_min[3], 
 
 void compute_element_rtree(const std::vector<std::shared_ptr<Plate>>& elements, double inflate, RTree3& rtree) {
     for (int ei = 0; ei < static_cast<int>(elements.size()); ei++) {
+
         double mn[3];
         double mx[3];
         compute_element_aabb(*elements[ei], inflate, mn, mx);
         if (mn[0] > mx[0])
             continue;
+
         rtree.insert(mn, mx, ei);
     }
 }
@@ -70,6 +76,7 @@ void assign_joint(
     const std::vector<int>& point_types,
     std::vector<std::vector<int>>& out_joint_types
 ) {
+
     const double threshold = globals::DISTANCE_SQUARED * 100.0;
     const double radius = std::max(globals::DISTANCE, std::sqrt(threshold));
 
@@ -114,6 +121,7 @@ void assign_insertion(
     const std::vector<session_cpp::Line>& lines,
     std::vector<std::vector<session_cpp::Vector>>& out_insertion_vectors
 ) {
+
     const double threshold = globals::DISTANCE_SQUARED * 100.0;
     const double radius = std::max(globals::DISTANCE, std::sqrt(threshold));
 

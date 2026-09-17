@@ -53,6 +53,7 @@ inline std::vector<Line> Reciprocal::get_lines(
     std::vector<std::array<Plane,2>>&    end_planes,
     double move)
 {
+
     int ne = (int)lines.size();
     int nf = (int)fe.size();
 
@@ -70,10 +71,12 @@ inline std::vector<Line> Reciprocal::get_lines(
             int prev = fe[fi][((j - 1) % n + n) % n];
             int next = fe[fi][(j + 1) % n];
             Point p0, p1;
+
             if (Intersection::line_plane(moved[cur], lp[prev], p0, false)) {
                 pts[cur].push_back(p0);
                 pid[cur].push_back(prev);
             }
+
             if (Intersection::line_plane(moved[cur], lp[next], p1, false)) {
                 pts[cur].push_back(p1);
                 pid[cur].push_back(next);
@@ -85,11 +88,13 @@ inline std::vector<Line> Reciprocal::get_lines(
     end_planes.resize(ne);
 
     for (int ei = 0; ei < ne; ei++) {
+
         if ((int)pts[ei].size() < 2) {
             out[ei] = moved[ei];
             end_planes[ei] = {lp[ei], lp[ei]};
             continue;
         }
+
         int np = (int)pts[ei].size();
         std::vector<int> ids(np);
         std::iota(ids.begin(), ids.end(), 0);
@@ -97,6 +102,7 @@ inline std::vector<Line> Reciprocal::get_lines(
             return moved[ei].closest_point(pts[ei][a], false).first <
                    moved[ei].closest_point(pts[ei][b], false).first;
         });
+
         int s = ids[0];
         int e = ids.back();
         out[ei] = Line::from_points(pts[ei][s], pts[ei][e]);
@@ -104,6 +110,7 @@ inline std::vector<Line> Reciprocal::get_lines(
         Plane pe(pts[ei][e], lp[pid[ei][e]].x_axis(), lp[pid[ei][e]].y_axis());
         end_planes[ei] = {ps, pe};
     }
+
     return out;
 }
 
@@ -114,8 +121,9 @@ inline Reciprocal::Result Reciprocal::from_mesh(
     bool   /*use_ngon_normals*/,
     double height)
 {
-    auto fkeys = mesh.faces();
-    auto ekeys = mesh.edges();
+
+    std::vector<size_t> fkeys = mesh.faces();
+    std::vector<std::pair<size_t,size_t>> ekeys = mesh.edges();
     int ne = (int)ekeys.size();
     int nf = (int)fkeys.size();
 
@@ -131,16 +139,17 @@ inline Reciprocal::Result Reciprocal::from_mesh(
         // build with bad_optional_access surfacing as an opaque error in the
         // Python binding. Skip it; edges bordering only skipped faces get a
         // zero direction vector below and are themselves skipped.
-        auto n = mesh.face_normal(fk);
-        auto c = mesh.face_centroid(fk);
+        std::optional<Vector> n = mesh.face_normal(fk);
+        std::optional<Point> c = mesh.face_centroid(fk);
         if (!n || !c) { continue; }
+
         fplane[fk] = Plane::from_point_normal(*c, *n);
     }
 
     std::vector<std::vector<int>> fe(nf);
     for (int fi = 0; fi < nf; fi++) {
         for (auto& [u, v] : mesh.face_edges(fkeys[fi]).value()) {
-            auto key = std::make_pair(std::min(u, v), std::max(u, v));
+            std::pair<size_t,size_t> key = std::make_pair(std::min(u, v), std::max(u, v));
             fe[fi].push_back(edge_idx[key]);
         }
     }
@@ -152,29 +161,34 @@ inline Reciprocal::Result Reciprocal::from_mesh(
     // this pattern.
     std::map<std::pair<size_t,size_t>, std::vector<size_t>> edge_adj_faces;
     for (int fi = 0; fi < nf; fi++) {
-        auto fe_opt = mesh.face_edges(fkeys[fi]);
+        std::optional<std::vector<std::pair<size_t,size_t>>> fe_opt = mesh.face_edges(fkeys[fi]);
         if (!fe_opt) continue;
+
         for (auto& [u, v] : *fe_opt) {
-            auto key = std::make_pair(std::min(u, v), std::max(u, v));
+            std::pair<size_t,size_t> key = std::make_pair(std::min(u, v), std::max(u, v));
             edge_adj_faces[key].push_back(fkeys[fi]);
         }
     }
 
     std::vector<Vector> vecs(ne, Vector(0, 0, 0));
     for (int ei = 0; ei < ne; ei++) {
-        auto key = std::make_pair(std::min(ekeys[ei].first, ekeys[ei].second),
-                                  std::max(ekeys[ei].first, ekeys[ei].second));
+        std::pair<size_t,size_t> key = std::make_pair(std::min(ekeys[ei].first, ekeys[ei].second),
+                                                      std::max(ekeys[ei].first, ekeys[ei].second));
         auto it = edge_adj_faces.find(key);
         if (it == edge_adj_faces.end() || it->second.empty()) continue;
+
         Vector sum(0, 0, 0);
         size_t used = 0;
         for (size_t fk : it->second) {
             auto pit = fplane.find(fk);
             if (pit == fplane.end()) continue;  // degenerate face skipped above
+
             sum += pit->second.z_axis();
             used++;
         }
+
         if (used == 0) continue;
+
         Vector avg = sum / (double)used;
         if (!avg.is_zero())
             vecs[ei] = avg.normalized();
@@ -182,16 +196,20 @@ inline Reciprocal::Result Reciprocal::from_mesh(
 
     std::vector<Line> lines(ne);
     for (int ei = 0; ei < ne; ei++) {
-        auto pu = mesh.vertex_point(ekeys[ei].first);
-        auto pv = mesh.vertex_point(ekeys[ei].second);
+        std::optional<Point> pu = mesh.vertex_point(ekeys[ei].first);
+        std::optional<Point> pv = mesh.vertex_point(ekeys[ei].second);
         if (!pu || !pv) continue;  // paired with zero vecs -> edge skipped
+
         lines[ei] = Line::from_points(*pu, *pv);
     }
 
     for (int ei = 0; ei < ne; ei++) {
+
         if (vecs[ei].is_zero()) continue;
+
         Point mid = lines[ei].center();
         lines[ei].transform(Xform::scale_uniform(mid, scale));
+
         // rotation center is the original midpoint (unchanged by uniform scale about it)
         Point axis_end(mid[0] + vecs[ei][0], mid[1] + vecs[ei][1], mid[2] + vecs[ei][2]);
         Line rot_axis = Line::from_points(mid, axis_end);
@@ -214,6 +232,7 @@ inline Reciprocal::Result Reciprocal::from_mesh(
     std::vector<std::array<Plane,2>> dummy;
     result.top    = get_lines(lines, lp, fe, dummy,  height);
     result.bottom = get_lines(lines, lp, fe, dummy, -height);
+
     return result;
 }
 

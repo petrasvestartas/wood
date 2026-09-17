@@ -36,9 +36,11 @@ public:
                 double chamfer       = 1.0,
                 double chamfer_angle = 180.0)
     {
+
         if (u_div < 1) {
             u_div = 1;
         }
+
         if (v_div < 1) {
             v_div = 1;
         }
@@ -118,6 +120,7 @@ public:
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
+
             if (top_raw.empty() || bot_raw.empty()) {
                 continue;
             }
@@ -129,42 +132,53 @@ public:
             if (!bot_ch.empty()) {
                 bot_ch.push_back(bot_ch[0]);
             }
+
             if (!top_ch.empty()) {
                 top_ch.push_back(top_ch[0]);
             }
+
             elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
         }
     }
 
     /// Degree-3 bicubic arch surface: 3000×5000 mm, height 1500 mm (arc extrusion).
     static NurbsSurface default_surface() {
+
         const double W = 3000.0, L = 5000.0, H = 1500.0;
         NurbsSurface srf;
         srf.create_raw(3, false, 4, 4, 4, 4);
+
         const double ku[] = {0.0, 0.0, 0.0, W, W, W};
         const double kv[] = {0.0, 0.0, 0.0, L, L, L};
+
         for (int i = 0; i < 6; i++) {
             srf.set_nurbsknot(0, i, ku[i]);
             srf.set_nurbsknot(1, i, kv[i]);
         }
+
         const double us[] = {0.0, W/3.0, 2.0*W/3.0, W};
         const double zs[] = {0.0, H*4.0/3.0, H*4.0/3.0, 0.0};
         const double vs[] = {0.0, L/3.0, 2.0*L/3.0, L};
+
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 srf.set_cv(i, j, Point(us[i], vs[j], zs[i]));
             }
         }
+
         srf.transpose();   // arch along V so u_div runs across the long span
+
         return srf;
     }
 
 private:
     static std::vector<bool> chamfer_mask(const std::vector<Point>& pts,
                                            double max_angle_deg) {
+
         size_t n = pts.size();
         std::vector<bool> mask(n, false);
         constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
+
         for (size_t i = 0; i < n; ++i) {
             size_t prev = (i + n - 1) % n;
             size_t next = (i + 1) % n;
@@ -172,32 +186,39 @@ private:
             double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
             double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
             double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
+
             if (lp < 1e-12 || ln < 1e-12) {
                 continue;
             }
+
             double cosA = std::max(-1.0, std::min(1.0,
                 (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
             mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
         }
+
         return mask;
     }
 
     static std::vector<Point> chamfer_apply(const std::vector<Point>& pts,
                                              double s,
                                              const std::vector<bool>& mask) {
+
         size_t n = pts.size();
         if (s <= 0.0) {
             return pts;
         }
+
         double min_edge = std::numeric_limits<double>::max();
         for (size_t i = 0; i < n; ++i) {
             size_t j = (i + 1) % n;
             double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
             min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
         }
+
         double sc = std::min(s, min_edge / 3.0);
         std::vector<Point> result;
         result.reserve(2 * n);
+
         for (size_t i = 0; i < n; ++i) {
             size_t prev = (i + n - 1) % n;
             size_t next = (i + 1) % n;
@@ -205,6 +226,7 @@ private:
             double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
             double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
             double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
+
             if (mask[i]) {
                 double sp = (lp > 1e-12) ? sc/lp : 0.0;
                 double sn = (ln > 1e-12) ? sc/ln : 0.0;
@@ -214,6 +236,7 @@ private:
                 result.push_back(pts[i]);
             }
         }
+
         return result;
     }
 };

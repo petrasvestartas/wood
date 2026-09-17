@@ -7,17 +7,20 @@ using wood_session::WoodSession;
 
 static int failures = 0;
 static void check(const bool ok, const std::string& what) {
+
     if (ok)
         return;
+
     fmt::print("FAIL {}\n", what);
     failures++;
 }
 
 int main() {
+
     const Polyline bottom({Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(0,0,0)});
     const Polyline top({Point(0,0,0.2), Point(1,0,0.2), Point(1,1,0.2), Point(0,1,0.2), Point(0,0,0.2)});
 
-    const auto we = std::make_shared<Plate>(bottom, top, "square");
+    const std::shared_ptr<Plate> we = std::make_shared<Plate>(bottom, top, "square");
     we->insertion_vectors() = {Vector(0,0,1), Vector(1,0,0)};
     we->joint_types = {-1, 30, 11};
     we->features.bottom = {Polyline({Point(0.2,0.2,0.0), Point(0.4,0.2,0.0),
@@ -34,8 +37,10 @@ int main() {
     session.pb_dump(path.string());
     const Session loaded = Session::pb_load(path.string());
     check(loaded.objects.elements->size() == 1, "one element in the Session");
+
     if (loaded.objects.elements->empty())
         return 1;
+
     const std::shared_ptr<Element> element = (*loaded.objects.elements)[0];
     const Element& e = *element;
 
@@ -64,8 +69,10 @@ int main() {
 
     const std::shared_ptr<Plate> back = std::dynamic_pointer_cast<Plate>(element);
     check(back != nullptr, "Session::pb_load rebuilt the element as a Plate through the registry");
+
     if (!back)
         return failures;
+
     check(back->guid() == guid, "guid");
     check(back->polylines.size() == we->polylines.size() && back->planes.size() == we->planes.size(),
           std::to_string(back->polylines.size()) + " outlines and planes");
@@ -74,15 +81,19 @@ int main() {
     check(back->joint_types == we->joint_types, "joint_types");
     check(back->insertion_vectors().size() == 2, "insertion vectors");
     check(back->features.bottom.size() == 1 && back->features.top.size() == 1, "merged outlines per face");
+
     double worst = 0.0;
     for (size_t i = 0; i < we->polylines.size() && i < back->polylines.size(); i++) {
+
         if (back->polylines[i].point_count() != we->polylines[i].point_count()) {
             worst = 1e9;
             break;
         }
+
         for (size_t k = 0; k < we->polylines[i].point_count(); k++)
             worst = std::max(worst, Point::distance(back->polylines[i].get_point(k), we->polylines[i].get_point(k)));
     }
+
     check(worst < 1e-12, "every outline vertex identical (worst " + std::to_string(worst) + ")");
 
     const std::shared_ptr<Plate> pb = std::dynamic_pointer_cast<Plate>(Element::pb_loads_polymorphic(we->pb_dumps()));
@@ -103,6 +114,7 @@ int main() {
           "Block json");
 
     std::filesystem::remove(path);
+
     return failures;
 }
 

@@ -47,6 +47,7 @@ public:
         double               rect_height        = 200.0,
         double               rect_thickness     = 20.0)
     {
+
         // Validate / normalise inputs
         Mesh m = input_mesh.weld(0.01);
         if (face_positions.empty()) face_positions = {0.0};
@@ -120,6 +121,7 @@ private:
     // ── build face/edge sequential indices ───────────────────────────────────
     void build_topology(const Mesh& m)
     {
+
         face_keys = m.faces(); // sorted
         f_count   = (int)face_keys.size();
 
@@ -128,6 +130,7 @@ private:
             if (!edges_opt) {
                 continue;
             }
+
             for (const std::pair<size_t,size_t>& edge_uv : *edges_opt) {
                 size_t u = edge_uv.first;
                 size_t v = edge_uv.second;
@@ -146,6 +149,7 @@ private:
             if (!edges_opt) {
                 continue;
             }
+
             for (const std::pair<size_t,size_t>& edge_uv : *edges_opt) {
                 size_t u = edge_uv.first;
                 size_t v = edge_uv.second;
@@ -167,6 +171,7 @@ private:
             std::optional<Point>  c = m.face_centroid(face_keys[fi]);
             std::optional<Vector> n = m.face_normal(face_keys[fi]);
             if (!c || !n) { f_planes[fi] = Plane::invalid(); continue; }
+
             Point  origin = *c;
             Vector normal = *n;
             // from_point_normal takes non-const refs
@@ -181,21 +186,26 @@ private:
     //   origin = edge midpoint
     void get_face_edge_planes(const Mesh& m)
     {
+
         fe_planes.resize(f_count);
+
         // One pass over the faces: undirected edge -> adjacent face indices.
         std::map<std::pair<size_t,size_t>, std::vector<int>> edge_to_faces;
         for (int fi2 = 0; fi2 < f_count; ++fi2) {
-            auto fe_opt2 = m.face_edges(face_keys[fi2]);
+            std::optional<std::vector<std::pair<size_t,size_t>>> fe_opt2 = m.face_edges(face_keys[fi2]);
             if (!fe_opt2) continue;
+
             for (auto& [eu, ev] : *fe_opt2) {
                 edge_to_faces[{std::min(eu, ev), std::max(eu, ev)}].push_back(fi2);
             }
         }
+
         for (int fi = 0; fi < f_count; ++fi) {
             std::optional<std::vector<std::pair<size_t,size_t>>> edges_opt = m.face_edges(face_keys[fi]);
             if (!edges_opt) {
                 continue;
             }
+
             const std::vector<std::pair<size_t,size_t>>& edges = *edges_opt;
             int n = (int)edges.size();
             fe_planes[fi].resize(n);
@@ -221,7 +231,7 @@ private:
                 // likewise served from the cached f_planes.)
                 Vector yaxis(0, 0, 0);
                 {
-                    auto key = std::make_pair(std::min(u, v), std::max(u, v));
+                    std::pair<size_t,size_t> key = std::make_pair(std::min(u, v), std::max(u, v));
                     auto it = edge_to_faces.find(key);
                     if (it != edge_to_faces.end()) {
                         for (int adj_fi : it->second) {
@@ -242,6 +252,7 @@ private:
     // ── dihedral (bisector) plane between two face-edge planes ────────────────
     static Plane dihedral_plane(const Plane& p0, const Plane& p1)
     {
+
         // Intersection line of p0 and p1
         Line line;
         if (!Intersection::plane_plane(p0, p1, line)) {
@@ -307,6 +318,7 @@ private:
         double                    tol_zz_deg = 0.57, // ~0.01 rad
         double                    tol_xx_deg = 5.7)  // ~0.1 rad
     {
+
         int n = (int)edge_planes.size();
         std::vector<Plane> ep(edge_planes);
         std::vector<Point> corners;
@@ -345,26 +357,33 @@ private:
             // Standard: plane-plane → line, line-face-plane → corner
             Line  line;
             Point pt;
+
             if (!ep[j].is_valid() || !ep[(j + 1) % n].is_valid()) {
                 continue;
             }
+
             if (!Intersection::plane_plane(ep[j], ep[(j + 1) % n], line)) {
                 continue;
             }
+
             if (!Intersection::line_plane(line, base_plane, pt, /*is_finite=*/false)) {
                 continue;
             }
+
             corners.push_back(pt);
         }
 
         if (corners.empty()) return Polyline(std::vector<session_cpp::Point>{});
+
         corners.push_back(corners[0]); // close
+
         return Polyline(corners);
     }
 
     // ── face plate polylines ──────────────────────────────────────────────────
     void get_face_polylines(const std::vector<double>& face_positions, double face_thickness)
     {
+
         f_polylines.resize(f_count);
         f_polylines_planes.resize(f_count);
         f_polylines_index.resize(f_count);
@@ -395,6 +414,7 @@ private:
     // ── match insertion lines to mesh edges ──────────────────────────────────
     void get_edge_vectors(const Mesh& m, const std::vector<Line>& lines)
     {
+
         insertion_vectors.assign(e_count, Vector(0, 0, 0));
         e_lines.resize(e_count);
 
@@ -404,8 +424,8 @@ private:
             // exist: two vertex lookups suffice.
             size_t u = edge_keys[ei].first;
             size_t v = edge_keys[ei].second;
-            auto pu = m.vertex_point(u);
-            auto pv = m.vertex_point(v);
+            std::optional<Point> pu = m.vertex_point(u);
+            std::optional<Point> pv = m.vertex_point(v);
             e_lines[ei] = (pu && pv) ? Line::from_points(*pu, *pv) : Line();
         }
 
@@ -421,6 +441,7 @@ private:
                 Point cp_s = res_s.second;
                 std::pair<double,Point> res_e = el.closest_point(L.end(),   true);
                 Point cp_e = res_e.second;
+
                 if (cp_s.squared_distance(L.start()) < tol * tol ||
                     cp_e.squared_distance(L.end())   < tol * tol)
                 {
@@ -437,10 +458,12 @@ private:
         const std::vector<int>&   edge_divisions,
         const std::vector<double>& edge_division_len)
     {
+
         e90_planes.resize(e_count, Plane::invalid());
         e90_multi.resize(e_count);
 
         for (int ei = 0; ei < e_count; ++ei) {
+
             // Only internal edges (2 adjacent faces)
             if ((int)e_f_idx[ei].size() < 2) {
                 e90_multi[ei] = {Plane::invalid()};
@@ -519,10 +542,12 @@ private:
     // ── build rectangle polyline in a plane ──────────────────────────────────
     static Polyline make_rect(const Plane& pl, double w, double h)
     {
+
         Point  o = pl.origin();
         Vector x = pl.x_axis();
         Vector y = pl.y_axis();
         double hw = w * 0.5, hh = h * 0.5;
+
         std::vector<Point> pts = {
             o - x*hw - y*hh,
             o + x*hw - y*hh,
@@ -536,6 +561,7 @@ private:
     // ── edge connector rectangles ─────────────────────────────────────────────
     void get_connectors(double rect_width, double rect_height, double rect_thickness)
     {
+
         e_polylines.resize(e_count);
         e_polylines_planes.resize(e_count);
         e_polylines_index.resize(e_count);
@@ -576,6 +602,7 @@ private:
                 } else {
                     label = "naked_" + std::to_string(ei) + "_" + std::to_string(j);
                 }
+
                 e_polylines_index[ei][j] = label;
             }
         }

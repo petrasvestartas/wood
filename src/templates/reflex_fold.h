@@ -34,12 +34,15 @@ public:
                double chamfer_top   = 20.0,
                double chamfer_angle = 180.0)
     {
+
         if (cross_section.point_count() < 2) {
             throw std::invalid_argument("ReflexFold: cross_section must have at least 2 points");
         }
+
         if (profile.point_count() < 2) {
             throw std::invalid_argument("ReflexFold: profile must have at least 2 points");
         }
+
         if (thickness == 0.0) {
             throw std::invalid_argument("ReflexFold: thickness must not be zero");
         }
@@ -52,6 +55,7 @@ public:
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
+
             if (top_raw.empty() || bot_raw.empty()) {
                 continue;
             }
@@ -66,9 +70,11 @@ public:
             if (!bot_ch.empty()) {
                 bot_ch.push_back(bot_ch[0]);
             }
+
             if (!top_ch.empty()) {
                 top_ch.push_back(top_ch[0]);
             }
+
             elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
         }
     }
@@ -109,9 +115,11 @@ public:
 
 private:
     static std::vector<bool> chamfer_mask(const std::vector<Point>& pts, double max_angle_deg) {
+
         size_t n = pts.size();
         std::vector<bool> mask(n, false);
         constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
+
         for (size_t i = 0; i < n; ++i) {
             size_t prev = (i + n - 1) % n;
             size_t next = (i + 1) % n;
@@ -119,30 +127,37 @@ private:
             double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
             double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
             double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
+
             if (lp < 1e-12 || ln < 1e-12) {
                 continue;
             }
+
             double cosA = std::max(-1.0, std::min(1.0, (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
             mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
         }
+
         return mask;
     }
 
     static std::vector<Point> chamfer_apply(const std::vector<Point>& pts, double s,
                                              const std::vector<bool>& mask) {
+
         size_t n = pts.size();
         if (s <= 0.0) {
             return pts;
         }
+
         double min_edge = std::numeric_limits<double>::max();
         for (size_t i = 0; i < n; ++i) {
             size_t j = (i + 1) % n;
             double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
             min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
         }
+
         double sc = std::min(s, min_edge / 3.0);
         std::vector<Point> result;
         result.reserve(2 * n);
+
         for (size_t i = 0; i < n; ++i) {
             size_t prev = (i + n - 1) % n;
             size_t next = (i + 1) % n;
@@ -150,6 +165,7 @@ private:
             double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
             double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
             double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
+
             if (mask[i]) {
                 double sp = (lp > 1e-12) ? sc/lp : 0.0;
                 double sn = (ln > 1e-12) ? sc/ln : 0.0;
@@ -159,6 +175,7 @@ private:
                 result.push_back(pts[i]);
             }
         }
+
         return result;
     }
 
@@ -167,6 +184,7 @@ private:
     ///
     /// Ported from session_cpp Mesh::reflex_fold (mesh.cpp).
     static Mesh reflex_fold(const Polyline& cross_section, const Polyline& profile) {
+
         size_t nCS = cross_section.point_count();
         size_t nP  = profile.point_count();
 
@@ -196,6 +214,7 @@ private:
                     normal.normalize_self();
                 }
             }
+
             Point origin = cross_section[i];
             planes.push_back(Plane::from_point_normal(origin, normal));
         }
@@ -224,12 +243,14 @@ private:
                 double t = (std::abs(denom) > 1e-12) ? n2.dot(diff) / denom : 0.0;
                 all_pts.push_back(Point(pvrt[0]+n1[0]*t, pvrt[1]+n1[1]*t, pvrt[2]+n1[2]*t));
             }
+
             for (size_t j = 0; j + 1 < nP; ++j) {
                 size_t new_j = row_start + j;
                 size_t old_j = row_start - nP + j;
                 faces.push_back({new_j, old_j, old_j+1, new_j+1});
             }
         }
+
         return Mesh::from_vertices_and_faces(all_pts, faces);
     }
 };

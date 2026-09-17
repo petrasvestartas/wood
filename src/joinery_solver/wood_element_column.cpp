@@ -32,19 +32,23 @@ std::string Column::element_data_dumps() const {
 }
 
 std::shared_ptr<Column> Column::from_element(const Element& e) {
-    auto column = std::make_shared<Column>();
+
+    std::shared_ptr<Column> column = std::make_shared<Column>();
     static_cast<Element&>(*column) = e;
     column->guid() = e.guid();
+
     nlohmann::json payload;
     try {
         payload = nlohmann::json::parse(e.element_data_dumps());
     } catch (const std::exception&) {
         return column;
     }
+
     if (payload.contains("axis") && !payload["axis"].is_null())
         column->axis = Line::jsonload(payload["axis"]);
     if (payload.contains("section") && !payload["section"].is_null())
         column->section = Polyline::jsonload(payload["section"]);
+
     return column;
 }
 
@@ -59,8 +63,10 @@ void Column::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Column::str() const {
+
     std::ostringstream os;
     os << "Column(name=" << name << ", axis_length=" << axis.length() << ", section_pts=" << section.point_count() << ")";
+
     return os.str();
 }
 

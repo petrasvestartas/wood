@@ -11,6 +11,7 @@ static void ss_e_op_4(
     double z_ext0 = -0.5,
     double z_ext1 = 0.5
 ) {
+
     int number_of_tenons = joint.divisions;
     const std::array<double, 2> x = { x0, x1 };
     const std::array<double, 2> y = { y0, y1 };
@@ -23,6 +24,7 @@ static void ss_e_op_4(
     step = 1.0 / ((double)number_of_tenons - 1);
 
     for (int j = 0; j < 2; j++) {
+
         joint.male_outlines[j].resize(2);
         const int sign = j == 0 ? -1 : 1;
         std::vector<Point> pts;
@@ -71,6 +73,7 @@ static void ss_e_op_4(
 
     const int fmo_count = 2 * (int)female_modify_outline;
     for (int j = 0; j < 2; j++) {
+
         if (joint.divisions == 0)
             joint.female_outlines[j].resize(fmo_count);
         else
@@ -118,18 +121,22 @@ static void ss_e_op_4(
 
     joint.male_cut_types[0] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
     joint.male_cut_types[1] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+
     for (int j = 0; j < 2; j++) {
+
         std::vector<int> fct;
         if (female_modify_outline) {
             fct.push_back(wood_cut::insert_between_multiple_edges);
             fct.push_back(wood_cut::insert_between_multiple_edges);
         }
+
         if (joint.divisions > 0) {
             for (int i = 0; i < number_of_tenons; i += 2) {
                 fct.push_back(wood_cut::hole);
                 fct.push_back(wood_cut::hole);
             }
         }
+
         joint.female_cut_types[j] = fct;
     }
 }

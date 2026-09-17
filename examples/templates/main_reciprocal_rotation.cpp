@@ -3,9 +3,12 @@
 const char* OUTPUT = "data/templates/reciprocal_dome.json";
 
 int main() {
+
     std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+
     const ReciprocalRotation shell;
     shell.dome_mesh.file_json_dump(OUTPUT);
+
     return 0;
 }
 

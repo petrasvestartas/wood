@@ -12,9 +12,11 @@ double g_cross_distance_squared = 0.01;
 
 /// Polyline-plane crossing that rejects the whole polyline when any vertex lies within the threshold of the plane.
 bool polyline_plane_cross(const Polyline& polyline, const Plane& plane, std::vector<Point>& points, std::vector<int>& edge_ids) {
+
     const size_t n = polyline.point_count();
     if (n < 2)
         return false;
+
     const double distance_squared = g_cross_distance_squared;
     const Vector normal = plane.z_axis();
     const double normal_sq = normal.magnitude_squared();
@@ -23,7 +25,9 @@ bool polyline_plane_cross(const Polyline& polyline, const Plane& plane, std::vec
         const double num = (p - o).dot(normal);
         return (normal_sq > 0.0) ? (num * num / normal_sq) : 0.0;
     };
+
     for (size_t i = 0; i < n - 1; i++) {
+
         const Point a = polyline.get_point(i);
         const Point b = polyline.get_point(i + 1);
         if (sq_dist_to_plane(a) < distance_squared) {
@@ -36,6 +40,7 @@ bool polyline_plane_cross(const Polyline& polyline, const Plane& plane, std::vec
             edge_ids.clear();
             return false;
         }
+
         const Line seg = Line::from_points(a, b);
         Point hit;
         if (Intersection::line_plane(seg, plane, hit, true)) {
@@ -43,11 +48,13 @@ bool polyline_plane_cross(const Polyline& polyline, const Plane& plane, std::vec
             edge_ids.push_back(static_cast<int>(i));
         }
     }
+
     return points.size() == 2;
 }
 
 /// Boundary-inclusive point-in-polygon in the plane's local 2D; fills the indices of the points inside.
 int are_points_inside(const Polyline& polygon, const Plane& plane, const std::vector<Point>& test_points, std::vector<int>& inside) {
+
     const Point& o = plane.origin();
     const Vector xa = plane.base1();
     const Vector ya = plane.base2();
@@ -68,6 +75,7 @@ int are_points_inside(const Polyline& polygon, const Plane& plane, const std::ve
         px.push_back(d.dot(xa));
         py.push_back(d.dot(ya));
     }
+
     const size_t np = px.size();
     if (np < 3)
         return 0;
@@ -168,11 +176,13 @@ int are_points_inside(const Polyline& polygon, const Plane& plane, const std::ve
             count++;
         }
     }
+
     return count;
 }
 
 /// Cross-joint chord between two polylines via reciprocal polyline-plane intersections; (edge in c0, edge in c1) pair out.
 bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Plane& p0, const Plane& p1, Line& contact, std::pair<int, int>& edges) {
+
     std::vector<Point> pts0;
     std::vector<int> edge_ids_0;
     if (!polyline_plane_cross(c0, p1, pts0, edge_ids_0))
@@ -226,7 +236,7 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
         double xmax = xmin;
         double ymax = ymin;
         double zmax = zmin;
-        for (const auto& q : pts) {
+        for (const Point& q : pts) {
             xmin = std::min(xmin, q[0]);
             ymin = std::min(ymin, q[1]);
             zmin = std::min(zmin, q[2]);
@@ -234,6 +244,7 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
             ymax = std::max(ymax, q[1]);
             zmax = std::max(zmax, q[2]);
         }
+
         const Point lo(xmin, ymin, zmin);
         const Point hi(xmax, ymax, zmax);
         contact = Line::from_points(lo, hi);
@@ -263,15 +274,18 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
 }
 
 double approximate_angle_deg(const Vector& a, const Vector& b) {
+
     const double la = a.magnitude();
     const double lb = b.magnitude();
     if (la < Tolerance::ZERO_TOLERANCE || lb < Tolerance::ZERO_TOLERANCE)
         return 0.0;
+
     double c = a.dot(b) / (la * lb);
     if (c > 1.0)
         c = 1.0;
     if (c < -1.0)
         c = -1.0;
+
     return std::acos(c) * 180.0 / 3.14159265358979323846;
 }
 
@@ -336,6 +350,7 @@ bool plane_to_face(
     Line::get_middle_line(cx0_py1__cy1_px0, cx1_py0__cy0_px1, c);
     if (c.length() < Tolerance::ZERO_TOLERANCE)
         return false;
+
     c.scale(10.0);
 
     const Point c_start = c.start();
@@ -374,6 +389,7 @@ bool plane_to_face(
     const Vector lMin_dir = lMin.to_vector();
     if (lMin_dir.magnitude() < Tolerance::ZERO_TOLERANCE)
         return false;
+
     Vector lMin_z = lMin_dir;
     lMin_z.normalize_self();
     const Vector helper = (std::fabs(lMin_z[0]) < 0.9) ? Vector(1, 0, 0) : Vector(0, 1, 0);
@@ -386,6 +402,7 @@ bool plane_to_face(
     Point midPlane_lMax;
     if (!Intersection::line_plane(lMax, midPlane, midPlane_lMax, false))
         return false;
+
     const Point lMax_a = lMax.start();
     const Point lMax_b = lMax.end();
     const int maxID = ((lMax_b - midPlane_lMax).magnitude_squared() > (lMax_a - midPlane_lMax).magnitude_squared()) ? 1 : 0;

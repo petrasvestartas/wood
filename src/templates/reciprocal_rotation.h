@@ -44,9 +44,11 @@ public:
                        double extend_factor     = 5.0,
                        double cut_offset_factor = 1.0)
     {
+
         if (nx < 1 || ny < 1) {
             throw std::invalid_argument("ReciprocalRotation: nx and ny must be >= 1");
         }
+
         dome_mesh = make_dome(nx, ny, W, D, h);
         _build(dome_mesh, nx, angle, scale, beam_w, beam_h, extend_factor, cut_offset_factor);
     }
@@ -70,6 +72,7 @@ private:
                 double angle, double scale, double beam_w, double beam_h,
                 double extend_factor, double cut_offset_factor)
     {
+
         if (beam_w <= 0.0) {
             throw std::invalid_argument("ReciprocalRotation: beam_w must be positive");
         }
@@ -121,6 +124,7 @@ private:
     };
 
     static Mesh make_dome(int nx, int ny, double W, double D, double h) {
+
         std::vector<Point> pts;
         pts.reserve((nx + 1) * (ny + 1));
         for (int j = 0; j <= ny; j++) {
@@ -132,6 +136,7 @@ private:
                 pts.push_back(Point(x, y, z));
             }
         }
+
         std::vector<std::vector<size_t>> faces;
         faces.reserve(nx * ny);
         for (int j = 0; j < ny; j++) {
@@ -144,6 +149,7 @@ private:
                 });
             }
         }
+
         return Mesh::from_vertices_and_faces(pts, faces);
     }
 
@@ -155,6 +161,7 @@ private:
         double        beam_w,
         double        cut_offset = 0.0)
     {
+
         Vector right_nb = endplane.z_axis().normalized();
         if (right_nb.is_zero()) {
             right_nb = endplane.x_axis().cross(Vector(0, 0, 1)).normalized();
@@ -179,6 +186,7 @@ private:
                                 endpoint[2] + right_nb[2]*half);
             face_normal = right_nb;
         }
+
         return Plane::from_point_normal(face_pt, face_normal);
     }
 
@@ -186,6 +194,7 @@ private:
                                double w, double h, double extend,
                                const Plane& cut_s, const Plane& cut_e)
     {
+
         Vector dir   = line.to_direction();
         Vector right = dir.cross(up);
         if (right.is_zero()) {
@@ -209,12 +218,15 @@ private:
                              p[2] + sr*r[2] + sn*nn[2]);
             };
         std::function<Point(const Point&, const Plane&)> cut = [&](const Point& p, const Plane& pl) -> Point {
+
             Point pt;
             Line ray = Line::from_points(
                 p, Point(p[0]+dir[0], p[1]+dir[1], p[2]+dir[2]));
+
             if (Intersection::line_plane(ray, pl, pt, false)) {
                 return pt;
             }
+
             return p;
         };
 
@@ -250,6 +262,7 @@ private:
         bg.side1       = {sc[0], sc[3], ec[3], ec[0]};  // left  face (-right)
         bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
         bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
+
         return bg;
     }
 };

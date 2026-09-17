@@ -7,6 +7,7 @@ const int SESSION = 0;   // globals::SESSION_NAMES
 const std::string DATASET = globals::Dataset::hex_block_rossiniere;  // globals::Dataset::<name> autocompletes
 
 int main() {
+
     WoodSession wood_session = WoodSession::pb_load(globals::session_pb(SESSION));
     std::cout << wood_session << std::endl;
     wood_session.pb_dump(pb_path(globals::SESSION_NAMES[SESSION]).string());

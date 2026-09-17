@@ -7,6 +7,7 @@ static void ss_e_r_impl(
     const double f0[][3], int f0n,
     const double f1[][3], int f1n
 ) {
+
     const int divisions = std::max(1, joint.divisions);
     const double edge_length = joint.length * joint.scale[2];
     const double jv_len = (joint.unit_scale_distance > 0) ? joint.unit_scale_distance : 40.0;
@@ -20,6 +21,7 @@ static void ss_e_r_impl(
     joint.female_outlines[1].reserve(2 * divisions);
 
     for (int i = 0; i < divisions; i++) {
+
         const double z_off = z0 - step * i;
         auto make_poly = [&](const double pts[][3], int n) {
             std::vector<Point> v;
@@ -28,19 +30,23 @@ static void ss_e_r_impl(
                 v.emplace_back(pts[k][0], pts[k][1], pts[k][2] + z_off);
             return Polyline(v);
         };
+
         const Polyline pm0 = make_poly(m0, m0n);
         const Polyline pm1 = make_poly(m1, m1n);
         const Polyline pf0 = make_poly(f0, f0n);
         const Polyline pf1 = make_poly(f1, f1n);
+
         joint.male_outlines[0].push_back(pm0);
         joint.male_outlines[0].push_back(pm0);
         joint.male_outlines[1].push_back(pm1);
         joint.male_outlines[1].push_back(pm1);
+
         joint.female_outlines[0].push_back(pf0);
         joint.female_outlines[0].push_back(pf0);
         joint.female_outlines[1].push_back(pf1);
         joint.female_outlines[1].push_back(pf1);
     }
+
     const int n = 2 * divisions;
     joint.male_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
     joint.male_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
@@ -51,24 +57,29 @@ static void ss_e_r_impl(
     const double size = 120.0 * joint.shift;
     joint.unit_scale_distance = size;
     for (int vi = 0; vi < 4; vi++) {
-        auto& opt = joint.joint_volumes_pair_a_pair_b[vi];
+
+        std::optional<Polyline>& opt = joint.joint_volumes_pair_a_pair_b[vi];
         if (!opt || opt->point_count() != 5)
             continue;
+
         Polyline& vol = *opt;
         const Point p0 = vol.get_point(0);
         const Point p1 = vol.get_point(1);
         const Point p2 = vol.get_point(2);
         const Point c = Point::mid_point(p0, p1);
+
         Vector xd = p1 - p0;
         const double xl = std::sqrt(xd.magnitude_squared());
         if (xl < 1e-12)
             continue;
         xd = xd * (size * 0.5 / xl);
+
         Vector yd = p2 - p1;
         const double yl = std::sqrt(yd.magnitude_squared());
         if (yl < 1e-12)
             continue;
         yd = yd * (size * 0.5 / yl);
+
         vol = Polyline({
             c + xd + 2 * yd,
             c - xd + 2 * yd,

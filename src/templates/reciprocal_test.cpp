@@ -26,7 +26,7 @@ namespace session_cpp {
             {4, 5, 8, 7},
         };
         Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);
-        auto r = Reciprocal::from_mesh(mesh, 0.7, 1.4, true, 1.0);
+        Reciprocal::Result r = Reciprocal::from_mesh(mesh, 0.7, 1.4, true, 1.0);
         int ne = (int)mesh.number_of_edges();
         MINI_CHECK((int)r.center.size() == ne);
         MINI_CHECK((int)r.top.size() == ne);

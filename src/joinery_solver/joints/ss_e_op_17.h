@@ -1,6 +1,8 @@
 /// ss_e_op_17: ss_e_op_0 with N = div/2 fingers and flat miter caps (full cross on m0 and f1, near-duplicate on m1 and f0).
 static void ss_e_op_17(WoodJoint& joint) {
+
     joint.name = "ss_e_op_17";
+
     auto P = [](double x, double y, double z) { return Point(x, y, z); };
 
     int div = std::max(2, std::min(20, joint.divisions));
@@ -26,6 +28,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P( 0.5,  0.5,  0.5));
         pts.push_back(P( 0.5,  0.5,  0.5));
+
         const Polyline f0_endpoints({ P( 0.5, 0.5, -0.5), P( 0.5, 0.5, 0.5) });
         joint.female_outlines[0] = { Polyline(pts), f0_endpoints };
     }
@@ -47,6 +50,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5,  0.5,  0.5));
         pts.push_back(P(-0.5, -0.5,  0.5));
+
         const Polyline f1_endpoints({ P(-0.5, -0.5, -0.5), P(-0.5, -0.5, 0.5) });
         joint.female_outlines[1] = { Polyline(pts), f1_endpoints };
     }
@@ -68,6 +72,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5,  0.5, -0.5));
         pts.push_back(P( 0.5,  0.5, -0.5));
+
         const Polyline m0_endpoints({ P( 0.5, 0.5, 0.5), P( 0.5, 0.5, -0.5) });
         joint.male_outlines[0] = { Polyline(pts), m0_endpoints };
     }
@@ -89,6 +94,7 @@ static void ss_e_op_17(WoodJoint& joint) {
         }
         pts.push_back(P(-0.5, -0.5, -0.5));
         pts.push_back(P(-0.5, -0.5, -0.5));
+
         const Polyline m1_endpoints({ P(-0.5, -0.5, 0.5), P(-0.5, -0.5, -0.5) });
         joint.male_outlines[1] = { Polyline(pts), m1_endpoints };
     }

@@ -20,9 +20,11 @@ Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Elem
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::shared_ptr<Block> Block::from_element(const Element& e) {
-    auto block = std::make_shared<Block>();
+
+    std::shared_ptr<Block> block = std::make_shared<Block>();
     static_cast<Element&>(*block) = e;
     block->guid() = e.guid();
+
     return block;
 }
 
@@ -39,8 +41,10 @@ void Block::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Block::str() const {
+
     std::ostringstream os;
     os << "Block(name=" << name << ", faces=" << (std::holds_alternative<Mesh>(geometry()) ? std::get<Mesh>(geometry()).number_of_faces() : 0) << ")";
+
     return os.str();
 }
 

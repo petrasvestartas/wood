@@ -25,6 +25,7 @@ namespace wood_chevron {
 /// Format per entry: degree_u/v, n_u/v, u_mults/v_mults (multiplicities),
 /// u_nurbsknots/v_nurbsknots (unique values), points[n_u][n_v][xyz].
 inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& json_path) {
+
     std::ifstream f(json_path);
     if (!f) {
         return {};
@@ -52,19 +53,20 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
     std::vector<session_cpp::NurbsSurface> surfaces;
     surfaces.reserve(arr.size());
 
-    for (auto& s : arr) {
+    for (nlohmann::json& s : arr) {
+
         int deg_u = s["degree_u"];
         int deg_v = s["degree_v"];
         int n_u   = s["n_u"];
         int n_v   = s["n_v"];
 
-        auto u_mults = s["u_mults"].get<std::vector<int>>();
-        auto v_mults = s["v_mults"].get<std::vector<int>>();
-        auto u_vals  = s["u_nurbsknots"].get<std::vector<double>>();
-        auto v_vals  = s["v_nurbsknots"].get<std::vector<double>>();
+        std::vector<int> u_mults = s["u_mults"].get<std::vector<int>>();
+        std::vector<int> v_mults = s["v_mults"].get<std::vector<int>>();
+        std::vector<double> u_vals  = s["u_nurbsknots"].get<std::vector<double>>();
+        std::vector<double> v_vals  = s["v_nurbsknots"].get<std::vector<double>>();
 
-        auto knots_u = expand_knots(u_mults, u_vals);
-        auto knots_v = expand_knots(v_mults, v_vals);
+        std::vector<double> knots_u = expand_knots(u_mults, u_vals);
+        std::vector<double> knots_v = expand_knots(v_mults, v_vals);
 
         session_cpp::NurbsSurface srf;
         srf.create_raw(3, false, deg_u + 1, deg_v + 1, n_u, n_v);
@@ -76,7 +78,7 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
             srf.set_nurbsknot(1, j, knots_v[j]);
         }
 
-        const auto& pts = s["points"];
+        const nlohmann::json& pts = s["points"];
         for (int i = 0; i < n_u; i++) {
             for (int j = 0; j < n_v; j++) {
                 srf.set_cv(i, j, session_cpp::Point(
@@ -104,6 +106,7 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
                                       double v_division_dist = 900.0,
                                       double shift           = 0.5,
                                       double scale           = 0.05799) {
+
     session_cpp::NurbsSurface srf = surface;
 
     // Always transpose so u becomes the march direction and v the row direction.
@@ -112,8 +115,8 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
     // the v domain spans the desired row-height direction.
     srf.transpose();
 
-    auto du = srf.domain(0);
-    auto dv = srf.domain(1);
+    std::pair<double,double> du = srf.domain(0);
+    std::pair<double,double> dv = srf.domain(1);
 
     double half_v    = (dv.first + dv.second) * 0.5;  // domain midpoint
     double StepU     = (du.second - du.first) / u_divisions;
@@ -281,6 +284,7 @@ inline ChevronResult chevron_plates(
     double plate_thickness = 40.0,
     std::array<int,4> ortho_edges = {1,1,1,1})
 {
+
     // ── parameter clamping ────────────────────────────────────────────────
     edge_rotation   = std::clamp(edge_rotation,  -30.0, 30.0);
     edge_offset     = std::clamp(edge_offset,     -2.0,  2.0);
@@ -472,7 +476,7 @@ inline ChevronResult chevron_plates(
         std::vector<V3> pts;
         pts.reserve(ns + 1);
         for (int i = 0; i < ns; i++) {
-            auto pt = ppp(base, sides[i], sides[(i+1)%ns]);
+            std::optional<V3> pt = ppp(base, sides[i], sides[(i+1)%ns]);
             pts.push_back(pt ? *pt : base.o);
         }
         pts.push_back(pts.front());
@@ -484,12 +488,13 @@ inline ChevronResult chevron_plates(
     for (auto& [fk, _] : mesh.face) {
         fkeys.push_back(fk);
     }
+
     int n = (int)fkeys.size();
     if (n == 0) return {};
 
     // Vertex position lookup
     auto vpos = [&](size_t vk) -> V3 {
-        const auto& vd = mesh.vertex.at(vk);
+        const session_cpp::VertexData& vd = mesh.vertex.at(vk);
         return {vd.x, vd.y, vd.z};
     };
 
@@ -498,7 +503,7 @@ inline ChevronResult chevron_plates(
     // flips all normals before any processing.
     std::vector<std::vector<size_t>> fv(n);
     for (int i = 0; i < n; i++) {
-        auto opt = mesh.face_vertices(fkeys[i]);
+        std::optional<std::vector<size_t>> opt = mesh.face_vertices(fkeys[i]);
         if (opt) {
             fv[i] = *opt;
             std::reverse(fv[i].begin(), fv[i].end());
@@ -522,6 +527,7 @@ inline ChevronResult chevron_plates(
             edge_adj[{std::min(u,v), std::max(u,v)}].push_back(i);
         }
     }
+
     auto adj_faces = [&](size_t vi0, size_t vi1) -> std::vector<int>& {
         return edge_adj[{std::min(vi0,vi1), std::max(vi0,vi1)}];
     };
@@ -537,9 +543,11 @@ inline ChevronResult chevron_plates(
     f_order.reserve(n);
 
     auto share_strip_edge = [&](int fi, int fj) -> bool {
+
         if ((int)fv[fi].size() < 4 || (int)fv[fj].size() < 4) {
             return false;
         }
+
         size_t a=fv[fi][0],b=fv[fi][1],c=fv[fi][2],d=fv[fi][3];
         size_t a1=fv[fj][0],b1=fv[fj][1],c1=fv[fj][2],d1=fv[fj][3];
         // Check odd local edges (1–2 and 3–0): groups faces adjacent in V
@@ -552,8 +560,10 @@ inline ChevronResult chevron_plates(
 
     int strip_idx = 0;
     while (true) {
+
         int seed = -1;
         for (int i = 0; i < n; i++) if (!flagged[i]) { seed = i; break; }
+
         if (seed < 0) {
             break;
         }
@@ -572,14 +582,18 @@ inline ChevronResult chevron_plates(
         while (changed) {
             changed = false;
             for (int qi = 0; qi < (int)strip.size(); qi++) {
+
                 if (done[qi]) {
                     continue;
                 }
+
                 int fi = strip[qi];
                 for (int fj = 0; fj < n; fj++) {
+
                     if (flagged[fj]) {
                         continue;
                     }
+
                     if (share_strip_edge(fi, fj)) {
                         f_e[fj] = ce; f_rf[fj] = flag;
                         flagged[fj] = true;
@@ -588,6 +602,7 @@ inline ChevronResult chevron_plates(
                         changed = true;
                     }
                 }
+
                 done[qi] = true;
             }
         }
@@ -611,6 +626,7 @@ inline ChevronResult chevron_plates(
     std::vector<Pl>              fp(n);                       // face planes
 
     for (int fi = 0; fi < n; fi++) {
+
         if ((int)fv[fi].size() < 4) {
             continue;
         }
@@ -639,7 +655,7 @@ inline ChevronResult chevron_plates(
             V3 ex  = sub3(p0, p1);
 
             // Average flipped normals of adjacent faces
-            const auto& adj = adj_faces(vi0, vi1);
+            const std::vector<int>& adj = adj_faces(vi0, vi1);
             V3 avg_n = {0,0,0};
             for (int fi2 : adj) {
                 avg_n = add3(avg_n, face_norm(fi2));
@@ -660,12 +676,14 @@ inline ChevronResult chevron_plates(
     double angle_rad = edge_rotation * (3.14159265358979323846 / 180.0);
 
     for (int fi = 0; fi < n; fi++) {
+
         if ((int)fv[fi].size() < 4) {
             continue;
         }
+
         for (int j = 0; j < 4; j++) {
             size_t vi0 = fv[fi][j], vi1 = fv[fi][(j+1)%4];
-            const auto& adj = adj_faces(vi0, vi1);
+            const std::vector<int>& adj = adj_faces(vi0, vi1);
             bool is_chevron = (j == f_e[fi][0] || j == f_e[fi][1]);
 
             if ((int)adj.size() == 2) {
@@ -722,12 +740,15 @@ inline ChevronResult chevron_plates(
     out.plines.reserve(n * 8);
 
     auto add_poly = [&](const Pl& base, const std::vector<Pl>& sides) {
-        auto pts = poly_from_planes(base, sides);
+
+        std::vector<V3> pts = poly_from_planes(base, sides);
         std::vector<session_cpp::Point> spts;
         spts.reserve(pts.size());
-        for (auto& p : pts) {
+
+        for (V3& p : pts) {
             spts.emplace_back(p[0], p[1], p[2]);
         }
+
         out.plines.emplace_back(spts);
     };
 
@@ -804,15 +825,18 @@ inline ChevronResult chevron_plates(
 
     // Centroid of a plate polyline (used for box_insertion_line origin)
     auto poly_centroid = [&](const session_cpp::Polyline& pl) -> V3 {
+
         V3 c = {0,0,0};
         int np = (int)pl.point_count();
         if (np == 0) {
             return c;
         }
+
         for (int k = 0; k < np; k++) {
-            auto p = pl.get_point(k);
+            session_cpp::Point p = pl.get_point(k);
             c[0] += p[0]; c[1] += p[1]; c[2] += p[2];
         }
+
         return sc3(c, 1.0 / np);
     };
 
@@ -834,9 +858,11 @@ inline ChevronResult chevron_plates(
         // bisector_dir0: at corner e_s[0] (start of chevron edge 0)
         // bisector_dir1: at corner (e_s[1]+1)%4 (end of chevron edge 1)
         auto bisector_dir = [&](int corner) -> V3 {
+
             if (!bi[fi][corner]) {
                 return {0,0,0};
             }
+
             auto [a, d] = ppl(fp[fi], *bi[fi][corner]);
             return d ? norm3(*d) : V3{0,0,0};
         };
@@ -891,10 +917,11 @@ inline ChevronResult chevron_plates(
         for (int ei = 0; ei < 2; ei++) {
             int cedge = e_s[ei];
             size_t vi0 = fv[fi][cedge], vi1 = fv[fi][(cedge+1)%4];
-            const auto& adf = adj_faces(vi0, vi1);
+            const std::vector<int>& adf = adj_faces(vi0, vi1);
             if ((int)adf.size() != 2) {
                 continue;
             }
+
             int nb_fi = (adf[0] != fi) ? adf[0] : adf[1];
             int nei = face_to_counter[nb_fi];
             if (nei < 0) {
@@ -961,9 +988,11 @@ public:
             double edge_offset         = 0.5,
             std::array<int,4> ortho_edges = {1,1,1,1})
     {
+
         if (u_divisions < 1) {
             throw std::invalid_argument("Chevron: u_divisions must be >= 1");
         }
+
         if (plate_thickness == 0.0) {
             throw std::invalid_argument("Chevron: plate_thickness must not be zero");
         }
@@ -989,6 +1018,7 @@ public:
     /// Degree-3 bicubic flat surface: 3000×5000 mm centred at world origin.
     /// u ∈ [−1500, 1500], v ∈ [−2500, 2500].  chevron_mesh uses V as the long axis.
     static NurbsSurface default_surface() {
+
         // order=4 (degree 3), 4×4 control points, centred so the mesh appears at origin.
         // Knots use physical mm half-extents so chevron_mesh can use v_division_dist
         // directly as a parametric step.

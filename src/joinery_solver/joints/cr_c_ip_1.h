@@ -1,6 +1,8 @@
 /// cr_c_ip_1: parametric cross joint - nine base rings, offset along their normals for face 1, rotated for the male.
 static void cr_c_ip_1(WoodJoint& joint) {
+
     joint.name = "cr_c_ip_1";
+
     double s_param = std::max(std::min(joint.shift, 1.0), 0.0);
     s_param = 0.05 + (s_param - 0.0) * (0.4 - 0.05) / (1.0 - 0.0);
 
@@ -74,6 +76,7 @@ static void cr_c_ip_1(WoodJoint& joint) {
         ct[i] = wood_cut::mill_project;
     for (int i = 6; i < 18; i++)
         ct[i] = wood_cut::slice;
+
     for (int face = 0; face < 2; face++) {
         joint.female_cut_types[face] = ct;
         joint.male_cut_types[face] = ct;

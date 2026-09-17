@@ -14,6 +14,7 @@ thread_local std::vector<std::vector<int>> tl_three_valence_override;
 
 /// One row of ints per non-empty line of the file.
 std::vector<std::vector<int>> read_integer_rows(const std::string& path) {
+
     std::vector<std::vector<int>> rows;
     std::ifstream file(path);
     std::string line;
@@ -23,16 +24,20 @@ std::vector<std::vector<int>> read_integer_rows(const std::string& path) {
         int value;
         while (stream >> value)
             row.push_back(value);
+
         if (!row.empty())
             rows.push_back(row);
     }
     return rows;
+
 }
 
 /// Clip a joint's volume pairs between the planes through `a` and `b` that are normal to the first volume.
 void clip_joint_volumes(WoodJoint& joint, const Point& a, const Point& b) {
+
     if (!joint.joint_volumes_pair_a_pair_b[0].has_value())
         return;
+
     const Polyline& volume = *joint.joint_volumes_pair_a_pair_b[0];
     Vector normal(0, 0, 1);
     if (volume.point_count() >= 3) {
@@ -41,18 +46,23 @@ void clip_joint_volumes(WoodJoint& joint, const Point& a, const Point& b) {
         const Point p2 = volume.get_point(2);
         normal = (p2 - p1).cross(p0 - p1);
     }
+
     normal.normalize_self();
     const Plane plane_a = Plane::from_point_normal(a, normal);
     const Plane plane_b = Plane::from_point_normal(b, normal);
+
     for (int pair_index = 0; pair_index < 4; pair_index += 2) {
+
         if (!joint.joint_volumes_pair_a_pair_b[pair_index].has_value() || !joint.joint_volumes_pair_a_pair_b[pair_index + 1].has_value())
             continue;
+
         Polyline& volume0 = *joint.joint_volumes_pair_a_pair_b[pair_index];
         Polyline& volume1 = *joint.joint_volumes_pair_a_pair_b[pair_index + 1];
         const Line edge0 = Line::from_points(volume0.get_point(0), volume1.get_point(0));
         const Line edge1 = Line::from_points(volume0.get_point(1), volume1.get_point(1));
         const Line edge2 = Line::from_points(volume0.get_point(2), volume1.get_point(2));
         const Line edge3 = Line::from_points(volume0.get_point(3), volume1.get_point(3));
+
         Intersection::plane_4lines(plane_a, edge0, edge1, edge2, edge3, volume0);
         Intersection::plane_4lines(plane_b, edge0, edge1, edge2, edge3, volume1);
     }
@@ -66,8 +76,10 @@ void clip_joint_volumes(WoodJoint& joint, const Point& a, const Point& b) {
 
 /// Order-independent key for an element pair.
 uint64_t pair_key(int a, int b) {
+
     if (a > b)
         std::swap(a, b);
+
     return ((uint64_t)a << 32) | (uint64_t)b;
 }
 
@@ -75,12 +87,15 @@ uint64_t pair_key(int a, int b) {
 std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<WoodJoint>& joints) {
+
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
         const int element0 = index_of(elements, joints[joint_index].element_a);
         const int element1 = index_of(elements, joints[joint_index].element_b);
+
         joints_map[pair_key(element0, element1)] = (int)joint_index;
     }
+
     return joints_map;
 }
 
@@ -94,6 +109,7 @@ void add_vidy_shadow_joints(
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& joints,
     std::unordered_map<uint64_t, int>& joints_map) {
+
     if (three_valence_groups.size() < 2)
         return;
 
@@ -103,15 +119,19 @@ void add_vidy_shadow_joints(
         const std::vector<int>& group = three_valence_groups[group_index];
         if (group.size() != 4)
             continue;
+
         int side0 = group[0];
         int side1 = group[1];
         int glued0 = group[2];
         int glued1 = group[3];
         const int element_count = (int)elements.size();
+
         if (side0 < 0 || side1 < 0 || glued0 < 0 || glued1 < 0)
             continue;
+
         if (side0 >= element_count || side1 >= element_count)
             continue;
+
         if (glued0 >= element_count || glued1 >= element_count)
             return;
 
@@ -126,6 +146,7 @@ void add_vidy_shadow_joints(
             const Vector normal_glued1 = elements[glued1]->planes[0].z_axis();
             const Vector normal_side1 = elements[side1]->planes[0].z_axis();
             const Vector normal_glued0 = elements[glued0]->planes[0].z_axis();
+
             if (!is_parallel_wood(normal_side0, normal_glued1) || !is_parallel_wood(normal_side1, normal_glued0))
                 continue;
         }
@@ -133,6 +154,7 @@ void add_vidy_shadow_joints(
         const auto found = joints_map.find(pair_key(side0, side1));
         if (found == joints_map.end())
             continue;
+
         const int joint_index = found->second;
         if (!joints[joint_index].joint_volumes_pair_a_pair_b[0].has_value())
             continue;
@@ -167,16 +189,20 @@ void add_vidy_shadow_joints(
         Point near_point0;
         Point far_point1;
         Point near_point1;
+
         if (!Intersection::line_plane(ordered_lines[0], far_plane0, far_point0, false))
             continue;
+
         if (!Intersection::line_plane(ordered_lines[0], near_plane0, near_point0, false))
             continue;
+
         if (glued0 == glued1) {
             far_point1 = far_point0;
             near_point1 = near_point0;
         } else {
             if (!Intersection::line_plane(ordered_lines[1], far_plane1, far_point1, false))
                 continue;
+
             if (!Intersection::line_plane(ordered_lines[1], near_plane1, near_point1, false))
                 continue;
         }
@@ -206,6 +232,7 @@ void add_vidy_shadow_joints(
                 break;
             }
         }
+
         for (size_t k = 0; k < 4; k++)
             if (volumes1[k].point_count() == 5)
                 volumes1[k].shift(shift_amount);
@@ -274,6 +301,7 @@ void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     const std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& joints) {
+
     const std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, joints);
 
     for (size_t group_index = 1; group_index < three_valence_groups.size(); group_index++) {
@@ -287,6 +315,7 @@ void align_annen_joints(
 
         const auto found0 = joints_map.find(pair_key(side0, side1));
         const auto found1 = joints_map.find(pair_key(glued0, glued1));
+
         if (found0 == joints_map.end() || found1 == joints_map.end())
             continue;
 
@@ -313,6 +342,7 @@ void align_annen_joints(
                 thickness = Point::distance(p0, projected);
             }
         }
+
         // Line::extend has no clamp: shrinking by more than half the length inverts the segment.
         thickness = std::min(thickness, overlap.length() * 0.5 - 1e-9);
         if (thickness < 0.0)
@@ -324,6 +354,7 @@ void align_annen_joints(
 
         const Point overlap_start = overlap.start();
         const Point overlap_end = overlap.end();
+
         clip_joint_volumes(joint0, overlap_start, overlap_end);
         clip_joint_volumes(joint1, overlap_end, overlap_start);
     }
@@ -346,10 +377,12 @@ void link_three_valence_joints(
     const std::string& three_valence_name,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& all_joints) {
+
     const std::vector<std::vector<int>> three_valence_groups = !three_valence_name.empty() ? read_integer_rows(three_valence_name) : tl_three_valence_override;
     if (three_valence_groups.size() > 1) {
         std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, all_joints);
         const int instruction = three_valence_groups[0].empty() ? 0 : three_valence_groups[0][0];
+
         if (instruction == 1) {
             const size_t before_vidy = all_joints.size();
             add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map);
@@ -359,6 +392,7 @@ void link_three_valence_joints(
             align_annen_joints(three_valence_groups, elements, all_joints);
         }
     }
+
     if (TRACE && !three_valence_name.empty())
         fmt::print("three_valence: {} groups applied\n", three_valence_groups.size());
 }

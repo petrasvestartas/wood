@@ -1,8 +1,11 @@
 /// ss_e_r_0: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
 static void ss_e_r_0(WoodJoint& joint) {
+
     joint.name = "ss_e_r_0";
+
     if (!joint.joint_volumes_pair_a_pair_b[0] || !joint.joint_volumes_pair_a_pair_b[1])
         return;
+
     const Polyline& vol0 = *joint.joint_volumes_pair_a_pair_b[0];
     const Polyline& vol1 = *joint.joint_volumes_pair_a_pair_b[1];
     if (vol0.point_count() < 4 || vol1.point_count() < 4)
@@ -55,17 +58,21 @@ static void ss_e_r_0(WoodJoint& joint) {
         joint.female_outlines[fi].clear();
         joint.female_outlines[fi].reserve(4);
     }
+
     for (const int oi : {0, 0, 2, 2})
         joint.male_outlines[0].push_back(rh0.translated(offsets[oi]));
     for (const int oi : {1, 1, 3, 3})
         joint.male_outlines[1].push_back(rh0.translated(offsets[oi]));
+
     for (const int oi : {0, 0, 2, 2})
         joint.female_outlines[0].push_back(rh1.translated(offsets[oi]));
     for (const int oi : {1, 1, 3, 3})
         joint.female_outlines[1].push_back(rh1.translated(offsets[oi]));
+
     joint.male_cut_types[0] = std::vector<int>(4, wood_cut::slice);
     joint.male_cut_types[1] = std::vector<int>(4, wood_cut::slice);
     joint.female_cut_types[0] = std::vector<int>(4, wood_cut::slice);
     joint.female_cut_types[1] = std::vector<int>(4, wood_cut::slice);
+
     joint.no_orient = true;
 }

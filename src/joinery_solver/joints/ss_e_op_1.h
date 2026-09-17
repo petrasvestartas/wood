@@ -1,5 +1,6 @@
 /// ss_e_op_1: parametric out-of-plane finger joint in the unit cube; m[1] comes from edges 0/1 and m[0] from 2/3.
 static void ss_e_op_1(WoodJoint& joint) {
+
     joint.name = "ss_e_op_1";
 
     int div = std::max(2, std::min(20, joint.divisions));
@@ -14,7 +15,7 @@ static void ss_e_op_1(WoodJoint& joint) {
     const double vz = (joint.shift == 0) ? 0.0 : (joint.shift * 1.0 - 0.5) / (div + 1);
     const Vector v(0, 0, vz);
     for (int i = 0; i < 4; i++) {
-        auto& a = *arrays[i];
+        std::vector<Point>& a = *arrays[i];
         for (int j = 0; j < (int)a.size(); j++) {
             bool flip = (j % 2 == 0);
             if (i >= 2)
@@ -27,8 +28,8 @@ static void ss_e_op_1(WoodJoint& joint) {
     for (int i = 0; i < 4; i += 2) {
         std::vector<Point> pts;
         pts.reserve(arr0.size() * 2);
-        const auto& aA = *arrays[i];
-        const auto& aB = *arrays[i + 1];
+        const std::vector<Point>& aA = *arrays[i];
+        const std::vector<Point>& aB = *arrays[i + 1];
         for (int j = 0; j < (int)aA.size(); j++) {
             bool flip = (j % 2 == 0);
             if (i >= 2)
@@ -36,6 +37,7 @@ static void ss_e_op_1(WoodJoint& joint) {
             pts.push_back(flip ? aA[j] : aB[j]);
             pts.push_back(flip ? aB[j] : aA[j]);
         }
+
         const Polyline outline(pts);
         const Polyline endpoints({pts.front(), pts.back()});
         const int idx = (i < 2) ? 1 : 0;
@@ -45,8 +47,8 @@ static void ss_e_op_1(WoodJoint& joint) {
     for (int i = 1; i < 4; i += 2) {
         std::vector<Point> pts;
         pts.reserve(arr0.size() * 2);
-        const auto& aA = *arrays[i];
-        const auto& aB = *arrays[(i + 1) % 4];
+        const std::vector<Point>& aA = *arrays[i];
+        const std::vector<Point>& aB = *arrays[(i + 1) % 4];
         for (int j = 0; j < (int)aA.size(); j++) {
             bool flip = (j % 2 == 0);
             if (i >= 2)
@@ -54,11 +56,13 @@ static void ss_e_op_1(WoodJoint& joint) {
             pts.push_back(flip ? aA[j] : aB[j]);
             pts.push_back(flip ? aB[j] : aA[j]);
         }
+
         const Polyline outline(pts);
         const Polyline endpoints({pts.front(), pts.back()});
         const int idx = (i < 2) ? 0 : 1;
         joint.female_outlines[idx] = {outline, endpoints};
     }
+
     joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };

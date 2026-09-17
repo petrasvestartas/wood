@@ -17,6 +17,7 @@ static Polyline compute_tooth(const double y, const double depth, const double h
 }
 
 int main() {
+
     globals::globals_yaml("hello");
 
     const std::vector<Polyline> polylines = {
@@ -93,6 +94,7 @@ int main() {
     scene.compute_joints(face_to_face);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());
+
     return 0;
 }
 

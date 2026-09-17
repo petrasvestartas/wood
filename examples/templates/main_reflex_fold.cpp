@@ -3,9 +3,12 @@
 const char* OUTPUT = "data/templates/reflex_fold_mesh.json";
 
 int main() {
+
     std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
+
     const ReflexFold shell;
     shell.mesh.file_json_dump(OUTPUT);
+
     return 0;
 }
 

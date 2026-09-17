@@ -1,10 +1,11 @@
 /// ss_e_ip_custom: each user pair (face0, face1) from CUSTOM_JOINTS_SS_E_IP_MALE / FEMALE is one tooth,
 /// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
 static void ss_e_ip_custom(WoodJoint& joint) {
+
     joint.name = "ss_e_ip_custom";
 
-    const auto& cm = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_MALE;
-    const auto& cf = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_FEMALE;
+    const std::vector<Polyline>& cm = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_MALE;
+    const std::vector<Polyline>& cf = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_FEMALE;
     if (cm.size() < 2 || cf.size() < 2)
         return;
 
@@ -14,6 +15,7 @@ static void ss_e_ip_custom(WoodJoint& joint) {
         if (d > 1e-9)
             edge_length = d;
     }
+
     const int divisions = std::max(1, std::min(100, joint.divisions));
     const double joint_volume_edge_length =
         (joint.unit_scale_distance > 0.0) ? joint.unit_scale_distance : 40.0;
@@ -44,16 +46,20 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     tile_face(cm, false, m1);
     tile_face(cf, true,  f0);
     tile_face(cf, false, f1);
+
     if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
         return;
 
     joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
     joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
+
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
+
     joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+
     joint.unit_scale = true;
 }

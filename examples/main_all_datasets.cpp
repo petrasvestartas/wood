@@ -1,6 +1,7 @@
 #include "wood_session.h"
 
 int main() {
+
     int failures = 0;
     failures += !type_plates_name_hexbox_and_corner();
     failures += !type_plates_name_joint_linking_vidychapel_corner();
@@ -46,6 +47,7 @@ int main() {
     failures += !type_plates_name_cross_ibois_pavilion();
     failures += !type_plates_name_cross_brussels_sports_tower();
     failures += !type_beams_name_phanomema_node();
+
     return failures ? 1 : 0;
 }
 

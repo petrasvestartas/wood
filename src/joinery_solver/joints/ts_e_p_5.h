@@ -1,6 +1,7 @@
 /// ts_e_p_5: repeating tenon-mortise - `divisions` copies along z, the male concatenated into one outline per face,
 /// the female one rectangle per copy plus a bounding rectangle; unit_scale.
 static void ts_e_p_5(WoodJoint& joint) {
+
     joint.name = "ts_e_p_5";
 
     const int divisions = std::max(1, joint.divisions);
@@ -13,6 +14,7 @@ static void ts_e_p_5(WoodJoint& joint) {
             jv_len = std::sqrt(d.magnitude_squared());
         }
     }
+
     const double step = edge_length / (divisions * jv_len);
     const double total = edge_length / jv_len;
     const double z0 = total * 0.5 - step * 0.5;
@@ -91,6 +93,7 @@ static void ts_e_p_5(WoodJoint& joint) {
             m1_pts.emplace_back(m1[k][0], m1[k][1], m1[k][2] + z_off);
         }
     }
+
     joint.male_outlines[0] = {
         Polyline(m0_pts),
         Polyline({m0_pts.front(), m0_pts.back()}),
@@ -115,6 +118,7 @@ static void ts_e_p_5(WoodJoint& joint) {
         joint.female_outlines[0].push_back(Polyline(fp0));
         joint.female_outlines[1].push_back(Polyline(fp1));
     }
+
     for (int f = 0; f < 2; f++) {
         joint.female_outlines[f].push_back(Polyline({
             joint.female_outlines[f].front().get_point(0),
@@ -129,5 +133,6 @@ static void ts_e_p_5(WoodJoint& joint) {
     joint.female_cut_types[1] = std::vector<int>(joint.female_outlines[1].size(), wood_cut::hole);
     joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
     joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+
     joint.unit_scale = true;
 }

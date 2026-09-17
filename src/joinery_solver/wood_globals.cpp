@@ -119,22 +119,27 @@ bool parse_bool(const std::string& s) {
 }
 
 std::vector<double> parse_doubles(const std::vector<std::string>& xs) {
+
     std::vector<double> out;
     out.reserve(xs.size());
     for (const std::string& x : xs)
         out.push_back(std::stod(x));
+
     return out;
 }
 
 } // namespace
 
 std::string session_pb(size_t index) {
+
     if (index >= SESSION_NAMES.size())
         throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
+
     return internal::dataset_path(SESSION_NAMES[index], ".pb").string();
 }
 
 void reset_defaults() {
+
     JOINTS_PARAMETERS_AND_TYPES = {
         300, 0.5,  3,
         450, 0.64, 15,
@@ -183,6 +188,7 @@ void reset_defaults() {
 }
 
 void globals_yaml(const std::string& dataset_name) {
+
     reset_defaults();
 
     const std::filesystem::path path = internal::dataset_path(dataset_name, ".yml");
@@ -214,6 +220,7 @@ void globals_yaml(const std::string& dataset_name) {
             JOINTS_PARAMETERS_AND_TYPES = std::move(parsed);
         }
     }
+
     if (y.has("joint_volume_extension")) {
         std::vector<double> parsed = parse_doubles(list("joint_volume_extension"));
         if (parsed.size() < 3 || parsed.size() % 3 != 0)
@@ -222,12 +229,14 @@ void globals_yaml(const std::string& dataset_name) {
                 " values; expected 3 (every joint type) or a multiple of 3 (one triple per type)");
         JOINT_VOLUME_EXTENSION = std::move(parsed);
     }
+
     if (y.has("joint_scale")) {
         const std::vector<double> s = parse_doubles(list("joint_scale"));
         if (s.size() != 3)
             throw std::runtime_error("globals_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
         JOINT_SCALE = {s[0], s[1], s[2]};
     }
+
     if (y.has("search_type")) {
         const std::string search = str("search_type");
         if (search == "face_to_face")
@@ -239,11 +248,13 @@ void globals_yaml(const std::string& dataset_name) {
         else
             throw std::runtime_error("globals_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
     }
+
     if (y.has("beams")) {
         BEAMS = parse_doubles(list("beams"));
         if (BEAMS.size() != 6)
             throw std::runtime_error("globals_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
     }
+
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
         FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(str("face_to_face_side_to_side_joints_dihedral_angle"));
     if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))
@@ -279,6 +290,7 @@ void globals_yaml(const std::string& dataset_name) {
     file("three_valence", DATA_SET_THREE_VALENCE);
     file("insertion_vectors", DATA_SET_INSERTION_VECTORS);
     file("joints_types", DATA_SET_JOINTS_TYPES);
+
     DATA_SET_INPUT_NAME = path.stem().string();
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
 }

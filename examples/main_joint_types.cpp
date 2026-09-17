@@ -3,9 +3,12 @@ using namespace session_cpp;
 using namespace wood_session;
 
 static void run(const std::string& name, const double division) {
+
     globals::reset_defaults();
+
     if (!internal::plates_exist(name))
         return;
+
     if (division > 0)
         globals::JOINTS_PARAMETERS_AND_TYPES[1*3+0] = division;
     globals::JOINTS_PARAMETERS_AND_TYPES[1*3+2] = 10;
@@ -20,11 +23,13 @@ static void run(const std::string& name, const double division) {
 }
 
 int main() {
+
     run("annen_box", 200);
     run("annen_box_pair", 200);
     run("annen_grid_small", 200);
     run("annen_grid_full_arch", 0);
     run("annen_corner", 0);
+
     return 0;
 }
 
