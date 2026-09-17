@@ -21,7 +21,7 @@ constexpr double scale_1 = 1000.0;
 /// Joint point runs keyed by plate edge; a multimap, so joints sharing a key on one edge all survive.
 using SortedRuns = std::multimap<size_t, std::pair<std::pair<double, double>, std::vector<Point>>>;
 using JointOutlines = std::array<std::vector<Polyline>, 2>;
-using ElementJmf = std::vector<std::vector<std::pair<int, bool>>>;
+using ElementMembership = std::vector<std::vector<std::pair<int, bool>>>;
 
 /// Locals shared by the merge passes of one element.
 struct MergeState {
@@ -89,20 +89,20 @@ void merge_log_points(std::ofstream& log, const Polyline& pl) {
 }
 
 /// Writes the element header (planes and both plate outlines) to the log.
-void merge_log_element(const MergeState& st, const Plate& el) {
+void merge_log_element(const MergeState& st, const Plate& element) {
     if (!st.log || st.element_id < 0)
         return;
     std::ofstream& log = *st.log;
     log << "ELEMENT " << st.element_id
-        << " planes0_o=(" << el.planes[0].origin()[0] << "," << el.planes[0].origin()[1] << "," << el.planes[0].origin()[2]
-        << ") planes0_n=(" << el.planes[0].z_axis()[0] << "," << el.planes[0].z_axis()[1] << "," << el.planes[0].z_axis()[2]
-        << ") planes1_o=(" << el.planes[1].origin()[0] << "," << el.planes[1].origin()[1] << "," << el.planes[1].origin()[2]
-        << ") planes1_n=(" << el.planes[1].z_axis()[0] << "," << el.planes[1].z_axis()[1] << "," << el.planes[1].z_axis()[2]
+        << " planes0_o=(" << element.planes[0].origin()[0] << "," << element.planes[0].origin()[1] << "," << element.planes[0].origin()[2]
+        << ") planes0_n=(" << element.planes[0].z_axis()[0] << "," << element.planes[0].z_axis()[1] << "," << element.planes[0].z_axis()[2]
+        << ") planes1_o=(" << element.planes[1].origin()[0] << "," << element.planes[1].origin()[1] << "," << element.planes[1].origin()[2]
+        << ") planes1_n=(" << element.planes[1].z_axis()[0] << "," << element.planes[1].z_axis()[1] << "," << element.planes[1].z_axis()[2]
         << ")\n";
-    log << "  pline0 pts=" << el.polylines[0].point_count();
-    merge_log_points(log, el.polylines[0]);
-    log << "\n  pline1 pts=" << el.polylines[1].point_count();
-    merge_log_points(log, el.polylines[1]);
+    log << "  pline0 pts=" << element.polylines[0].point_count();
+    merge_log_points(log, element.polylines[0]);
+    log << "\n  pline1 pts=" << element.polylines[1].point_count();
+    merge_log_points(log, element.polylines[1]);
     log << "\n";
 }
 
@@ -111,7 +111,7 @@ void merge_log_result(const MergeState& st, const Polyline& merged_top, const Po
     if (!st.log)
         return;
     std::ofstream& log = *st.log;
-    log << "  MERGED el=" << st.element_id
+    log << "  MERGED element=" << st.element_id
         << " top.n=" << merged_top.point_count()
         << " bot.n=" << merged_bot.point_count()
         << (merged_top.point_count() != merged_bot.point_count() ? " COUNT_MISMATCH" : "")
@@ -130,7 +130,7 @@ void merge_log_result(const MergeState& st, const Polyline& merged_top, const Po
 /// Selects the joint's male/female outlines, checks the endpoint markers and swaps top/bottom when reversed; null means skip.
 JointOutlines* merge_joint_outlines(
     const MergeState& st,
-    const Plate& el,
+    const Plate& element,
     WoodJoint& jt,
     size_t i,
     int joint_id,
@@ -143,11 +143,11 @@ JointOutlines* merge_joint_outlines(
         return nullptr;
     const Point ep_top0 = jm[0][1].get_point(0);
     const Point ep_bot0 = jm[1][1].get_point(0);
-    const double d_top = Point::distance(ep_top0, el.planes[0].project(ep_top0));
-    const double d_bot = Point::distance(ep_bot0, el.planes[0].project(ep_bot0));
+    const double d_top = Point::distance(ep_top0, element.planes[0].project(ep_top0));
+    const double d_bot = Point::distance(ep_bot0, element.planes[0].project(ep_bot0));
     const bool is_geo_reversed = (d_top * d_top) > (d_bot * d_bot);
     if (st.log) {
-        *st.log << "  J el=" << st.element_id << " i=" << i
+        *st.log << "  J element=" << st.element_id << " i=" << i
                 << " jid=" << joint_id << " mf=" << (male_or_female ? 'M' : 'F')
                 << " jt=" << jt.joint_type
                 << " ep_top0=(" << ep_top0[0] << "," << ep_top0[1] << "," << ep_top0[2]
@@ -161,14 +161,14 @@ JointOutlines* merge_joint_outlines(
 }
 
 /// Clips the rectangle joint against both plates and inserts the clipped runs.
-void merge_case5_rectangle(MergeState& st, const Plate& el, const JointOutlines& jm) {
+void merge_case5_rectangle(MergeState& st, const Plate& element, const JointOutlines& jm) {
     Polyline joint_pline_0;
     std::pair<double, double> cp_pair_0;
-    if (!Intersection::closed_and_open_paths_2d(el.polylines[0], jm[0][0], el.planes[0], joint_pline_0, cp_pair_0))
+    if (!Intersection::closed_and_open_paths_2d(element.polylines[0], jm[0][0], element.planes[0], joint_pline_0, cp_pair_0))
         return;
     Polyline joint_pline_1;
     std::pair<double, double> cp_pair_1;
-    if (!Intersection::closed_and_open_paths_2d(el.polylines[1], jm[1][0], el.planes[1], joint_pline_1, cp_pair_1))
+    if (!Intersection::closed_and_open_paths_2d(element.polylines[1], jm[1][0], element.planes[1], joint_pline_1, cp_pair_1))
         return;
     const size_t key0 = (size_t)(scale_0 * std::floor(cp_pair_0.first)) + (size_t)(scale_1 * std::fmod(cp_pair_0.first, 1.0));
     const size_t key1 = (size_t)(scale_0 * std::floor(cp_pair_1.first)) + (size_t)(scale_1 * std::fmod(cp_pair_1.first, 1.0));
@@ -190,7 +190,7 @@ Case2Corners merge_case2_intersections(const MergeState& st, size_t i, int prev,
 /// Snaps the start corners to the previous joint's plane when that joint line is offset from the plate edge.
 void merge_case2_back_relocate(
     const MergeState& st,
-    const Plate& el,
+    const Plate& element,
     size_t i,
     const Point& j0_s,
     const Point& j1_s,
@@ -198,10 +198,10 @@ void merge_case2_back_relocate(
 ) {
     if (st.last_id != (int)i - 1)
         return;
-    const Point e0a = el.polylines[0].get_point(i - 2);
-    const Point e0b = el.polylines[0].get_point(i - 1);
-    const Point e1a = el.polylines[1].get_point(i - 2);
-    const Point e1b = el.polylines[1].get_point(i - 1);
+    const Point e0a = element.polylines[0].get_point(i - 2);
+    const Point e0b = element.polylines[0].get_point(i - 1);
+    const Point e1a = element.polylines[1].get_point(i - 2);
+    const Point e1b = element.polylines[1].get_point(i - 1);
     const bool gd0 = perp_dist_sq(j0_s, e0a, e0b) > st.distance_squared;
     const bool gd1 = perp_dist_sq(j1_s, e1a, e1b) > st.distance_squared;
     if (!gd0 && !gd1)
@@ -218,7 +218,7 @@ void merge_case2_back_relocate(
 }
 
 /// Updates the joint plane, relocates the plate vertices at both joint ends and tracks the segment; false means skip.
-bool merge_case2_relocate(MergeState& st, const Plate& el, JointOutlines& jm, size_t i) {
+bool merge_case2_relocate(MergeState& st, const Plate& element, JointOutlines& jm, size_t i) {
     const Point j0_s = jm[0][1].get_point(0);
     const Point j0_e = jm[0][1].get_point(1);
     const Point j1_s = jm[1][1].get_point(0);
@@ -236,7 +236,7 @@ bool merge_case2_relocate(MergeState& st, const Plate& el, JointOutlines& jm, si
     const int prev = ((int)n + id - 1) % (int)n;
     const int next = (id + 1) % (int)n;
     Case2Corners c = merge_case2_intersections(st, i, prev, next, z_axis_valid);
-    merge_case2_back_relocate(st, el, i, j0_s, j1_s, c);
+    merge_case2_back_relocate(st, element, i, j0_s, j1_s, c);
     if (c.is_intersected_0)
         st.pline0[id] = c.p0_int;
     if (c.is_intersected_1)
@@ -293,7 +293,7 @@ void merge_case2_flip_and_insert(
     const std::pair<double, double> cp_pair(id + 0.1, id + 0.9);
     const size_t key = (size_t)(scale_0 * std::floor(cp_pair.first)) + (size_t)(scale_1 * std::fmod(cp_pair.first, 1.0));
     if (st.log) {
-        *st.log << "  INSERT el=" << st.element_id << " i=" << i
+        *st.log << "  INSERT element=" << st.element_id << " i=" << i
                 << " jid=" << joint_id << " jt=" << jt.joint_type
                 << " mf=" << (male_or_female ? 'M' : 'F')
                 << " jm0[0].n=" << jm[0][0].point_count()
@@ -306,23 +306,23 @@ void merge_case2_flip_and_insert(
 }
 
 /// Runs the side-joint passes for every joint on faces i = 2..N: 2-point markers are line joints, 5-point markers rectangles.
-void merge_side_joints(MergeState& st, const Plate& el, const ElementJmf& el_jmf, std::vector<WoodJoint>& joints) {
-    for (size_t i = 2; i < el_jmf.size() && i < el.planes.size(); i++) {
-        for (size_t j = 0; j < el_jmf[i].size(); j++) {
-            const int joint_id = el_jmf[i][j].first;
-            const bool male_or_female = el_jmf[i][j].second;
+void merge_side_joints(MergeState& st, const Plate& element, const ElementMembership& membership, std::vector<WoodJoint>& joints) {
+    for (size_t i = 2; i < membership.size() && i < element.planes.size(); i++) {
+        for (size_t j = 0; j < membership[i].size(); j++) {
+            const int joint_id = membership[i][j].first;
+            const bool male_or_female = membership[i][j].second;
             WoodJoint& jt = joints[joint_id];
-            JointOutlines* jm = merge_joint_outlines(st, el, jt, i, joint_id, male_or_female);
+            JointOutlines* jm = merge_joint_outlines(st, element, jt, i, joint_id, male_or_female);
             if (!jm)
                 continue;
             const size_t marker = (*jm)[0][1].point_count();
             if (marker == 5) {
-                merge_case5_rectangle(st, el, *jm);
+                merge_case5_rectangle(st, element, *jm);
                 continue;
             }
             if (marker != 2)
                 continue;
-            if (!merge_case2_relocate(st, el, *jm, i))
+            if (!merge_case2_relocate(st, element, *jm, i))
                 continue;
             merge_case2_flip_and_insert(st, jt, *jm, i, joint_id, male_or_female);
         }
@@ -403,15 +403,15 @@ void merge_close_corner(const MergeState& st, Polyline& merged_top, Polyline& me
 
 /// Appends the hole outlines of the top/bottom face joints (i = 0, 1) to result: every outline but the last, the bounding rectangle.
 void merge_holes_top_bottom(
-    const Plate& el,
-    const ElementJmf& el_jmf,
+    const Plate& element,
+    const ElementMembership& membership,
     std::vector<WoodJoint>& joints,
     std::vector<Polyline>& result
 ) {
-    for (size_t i = 0; i < 2 && i < el_jmf.size(); i++) {
-        for (size_t k = 0; k < el_jmf[i].size(); k++) {
-            const int joint_id = el_jmf[i][k].first;
-            const bool male_or_female = el_jmf[i][k].second;
+    for (size_t i = 0; i < 2 && i < membership.size(); i++) {
+        for (size_t k = 0; k < membership[i].size(); k++) {
+            const int joint_id = membership[i][k].first;
+            const bool male_or_female = membership[i][k].second;
             WoodJoint& jt = joints[joint_id];
             JointOutlines& jm = male_or_female ? jt.m_outlines : jt.f_outlines;
             auto& jct = male_or_female ? jt.m_cut_types : jt.f_cut_types;
@@ -419,8 +419,8 @@ void merge_holes_top_bottom(
                 continue;
             const Point t_back0 = jm[0].back().get_point(0);
             const Point f_back0 = jm[1].back().get_point(0);
-            const double dt = Point::distance(t_back0, el.planes[0].project(t_back0));
-            const double df = Point::distance(f_back0, el.planes[0].project(f_back0));
+            const double dt = Point::distance(t_back0, element.planes[0].project(t_back0));
+            const double df = Point::distance(f_back0, element.planes[0].project(f_back0));
             if ((dt * dt) > (df * df)) {
                 std::swap(jm[0], jm[1]);
                 std::swap(jct[0], jct[1]);
@@ -429,7 +429,7 @@ void merge_holes_top_bottom(
             for (size_t kk = 0; kk < lim && kk < jm[1].size(); kk++) {
                 Polyline top = jm[0][kk];
                 Polyline bot = jm[1][kk];
-                if (!top.is_clockwise(el.planes[0])) {
+                if (!top.is_clockwise(element.planes[0])) {
                     top.reverse();
                     bot.reverse();
                 }
@@ -442,15 +442,15 @@ void merge_holes_top_bottom(
 
 /// Appends the hole outlines of the side joints (i = 2..N) to result: the outlines tagged wood_cut::hole, shadow joints included.
 void merge_holes_side(
-    const Plate& el,
-    const ElementJmf& el_jmf,
+    const Plate& element,
+    const ElementMembership& membership,
     std::vector<WoodJoint>& joints,
     std::vector<Polyline>& result
 ) {
-    for (size_t i = 2; i < el_jmf.size(); i++) {
-        for (size_t k = 0; k < el_jmf[i].size(); k++) {
-            const int joint_id = el_jmf[i][k].first;
-            const bool male_or_female = el_jmf[i][k].second;
+    for (size_t i = 2; i < membership.size(); i++) {
+        for (size_t k = 0; k < membership[i].size(); k++) {
+            const int joint_id = membership[i][k].first;
+            const bool male_or_female = membership[i][k].second;
             WoodJoint& jt = joints[joint_id];
             JointOutlines& jm = male_or_female ? jt.m_outlines : jt.f_outlines;
             auto& jct = male_or_female ? jt.m_cut_types : jt.f_cut_types;
@@ -466,8 +466,8 @@ void merge_holes_side(
                 continue;
             const Point t_back = jm[0].back().get_point(0);
             const Point f_back = jm[1].back().get_point(0);
-            const double dt = Point::distance(t_back, el.planes[0].project(t_back));
-            const double df = Point::distance(f_back, el.planes[0].project(f_back));
+            const double dt = Point::distance(t_back, element.planes[0].project(t_back));
+            const double df = Point::distance(f_back, element.planes[0].project(f_back));
             if ((dt * dt) > (df * df)) {
                 std::swap(jm[0], jm[1]);
                 std::swap(jct[0], jct[1]);
@@ -477,7 +477,7 @@ void merge_holes_side(
                     continue;
                 Polyline top = jm[0][ki];
                 Polyline bot = jm[1][ki];
-                if (!top.is_clockwise(el.planes[0])) {
+                if (!top.is_clockwise(element.planes[0])) {
                     top.reverse();
                     bot.reverse();
                 }
@@ -495,8 +495,8 @@ void merge_holes_side(
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::vector<session_cpp::Polyline> merge_joints_for_element(
-    const Plate& el,
-    const std::vector<std::vector<std::pair<int, bool>>>& el_jmf,
+    const Plate& element,
+    const std::vector<std::vector<std::pair<int, bool>>>& membership,
     std::vector<WoodJoint>& joints,
     int element_id = -1
 ) {
@@ -504,24 +504,24 @@ std::vector<session_cpp::Polyline> merge_joints_for_element(
     MergeState st;
     st.log = merge_open_log(owned);
     st.element_id = element_id;
-    merge_log_element(st, el);
+    merge_log_element(st, element);
 
-    st.pline0 = el.polylines[0].get_points();
-    st.pline1 = el.polylines[1].get_points();
-    st.joint_planes = el.planes;
+    st.pline0 = element.polylines[0].get_points();
+    st.pline1 = element.polylines[1].get_points();
+    st.joint_planes = element.planes;
     st.pline0_orig_front = st.pline0.empty() ? Point(0, 0, 0) : st.pline0.front();
     st.pline1_orig_front = st.pline1.empty() ? Point(0, 0, 0) : st.pline1.front();
     st.distance_squared = wood_session::globals::DISTANCE_SQUARED;
 
-    merge_side_joints(st, el, el_jmf, joints);
+    merge_side_joints(st, element, membership, joints);
 
     Polyline merged_top = merge_build_outline(st.pline0, st.sorted0, st.pline0_orig_front);
     Polyline merged_bot = merge_build_outline(st.pline1, st.sorted1, st.pline1_orig_front);
     merge_close_corner(st, merged_top, merged_bot);
 
     std::vector<Polyline> result;
-    merge_holes_top_bottom(el, el_jmf, joints, result);
-    merge_holes_side(el, el_jmf, joints, result);
+    merge_holes_top_bottom(element, membership, joints, result);
+    merge_holes_side(element, membership, joints, result);
     result.push_back(merged_top);
     result.push_back(merged_bot);
 
