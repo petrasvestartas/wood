@@ -23,20 +23,36 @@ public:
     session_cpp::Line axis; // Centreline, base to head, in world space.
     session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
 
-    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return ELEMENT_TYPE; }
-
-    /// The axis and section as JSON: axis, section, type.
-    std::string element_data_dumps() const override;
-
-    /// A copy with a fresh guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Column>(*this); }
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Static constructors
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis and section default.
     static std::shared_ptr<Column> from_element(const session_cpp::Element& element);
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The axis and section as JSON: axis, section, type.
+    std::string element_data_dumps() const override;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Protobuf
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
+    std::string element_type_name() const override { return ELEMENT_TYPE; }
+
+    /// A copy with a fresh guid, the polymorphic copy a Session makes.
+    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Column>(*this); }
+
     /// Registers the "Column" factory with the kernel, so Session::pb_load rebuilds columns.
     static void register_type();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// "Column(name, axis_length, section_pts)".
     std::string str() const override;

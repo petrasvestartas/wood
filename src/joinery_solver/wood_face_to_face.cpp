@@ -345,10 +345,15 @@ struct F2F {
     WoodJoint& out_joint;
     bool& out_swap_planes_1;
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// el_ids is swapped mid-pass to put the male first; el0/el1 never move, so resolve by the original id.
     const std::string& guid_at(int id) const {
         return id == el_ids_in.first ? el0.guid() : el1.guid();
     }
+
     /// The [width, height, length] extension this joint type reads.
     std::array<double, 3> ext(int joint_type) const { return wood_session::joint_volume_extension(extension, joint_type); }
 };

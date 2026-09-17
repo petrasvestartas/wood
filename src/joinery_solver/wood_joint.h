@@ -39,6 +39,10 @@ struct FaceContact {
     ContactType type = ContactType::unknown; // Topology class of the pair.
     session_cpp::Polyline area; // The overlap region, closed, in face_a's plane.
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// The contact as JSON: area, face_a, face_b, type.
     nlohmann::ordered_json jsondump() const;
 
@@ -87,6 +91,17 @@ struct WoodJoint {
     std::array<session_cpp::ElementFeature, 2> element_features; // The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
     mutable std::array<std::string, 2> feature_guids; // Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Operators
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// str() onto a stream.
+    friend std::ostream& operator<<(std::ostream& os, const WoodJoint& j);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// The guid of one side, minted on first read.
     const std::string& feature_guid(int side) const;
 
@@ -95,6 +110,10 @@ struct WoodJoint {
 
     /// sync_features() applied to copies: identity preserved, the joint itself untouched.
     std::array<session_cpp::ElementFeature, 2> to_features() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The whole joint, solver fields included; the two features travel as their guids alone.
     nlohmann::ordered_json jsondump() const;
@@ -114,11 +133,12 @@ struct WoodJoint {
     /// jsonload() from a file.
     static WoodJoint file_json_load(const std::string& filename);
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// "WoodJoint(type, elements, faces, name)".
     std::string str() const;
-
-    /// str() onto a stream.
-    friend std::ostream& operator<<(std::ostream& os, const WoodJoint& j);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

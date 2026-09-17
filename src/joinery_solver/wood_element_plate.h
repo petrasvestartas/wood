@@ -22,14 +22,25 @@ public:
     /// A plate from its bottom and top outline; `name` is the type flag face_contacts() filters on.
     Plate(const session_cpp::Polyline& bottom, const session_cpp::Polyline& top, const std::string& name = "plate");
 
-    /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
-    static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, const session_cpp::Vector& thickness, const std::string& name = "plate");
-
     std::vector<session_cpp::Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
     std::vector<session_cpp::Plane> planes; // One plane per outline, normals pointing out of the plate.
     double thickness = 0.0; // Distance between the bottom and the top plane.
     bool reversed = false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
     Features features; // Merged cut outlines after compute_joints; empty before. Call invalidate_geometry() after assigning.
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Static constructors
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
+    static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, const session_cpp::Vector& thickness, const std::string& name = "plate");
+
+    /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
+    static std::shared_ptr<Plate> from_element(const session_cpp::Element& element);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The parametric shape alone, the loft of the two outlines, never cut; cached until invalidate_geometry().
     const session_cpp::Mesh& element_geometry_mesh() const;
@@ -70,20 +81,37 @@ public:
     /// One ElementFeature per face with a joint type ("joint_type_<code>") or cut outlines ("cut"); [0] bottom, [1] top, [2..] sides.
     std::vector<session_cpp::ElementFeature> face_features() const;
 
-    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return ELEMENT_TYPE; }
+protected:
+    /// The plate's own outlines, so Element::polylines() agrees with the solver's view.
+    std::vector<session_cpp::Polyline> compute_polylines() const override { return polylines; }
+
+    /// The plate's own planes, so Element::planes() agrees with the solver's view.
+    std::vector<session_cpp::Plane> compute_planes() const override { return planes; }
+
+public:
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The outline payload as JSON: bottom, reversed, top, type.
     std::string element_data_dumps() const override;
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Protobuf
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
+    std::string element_type_name() const override { return ELEMENT_TYPE; }
+
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Plate>(*this); }
 
-    /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
-    static std::shared_ptr<Plate> from_element(const session_cpp::Element& element);
-
     /// Registers the "Plate" factory (and the legacy "WoodElement" tag) with the kernel, so Session::pb_load rebuilds plates.
     static void register_type();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// "Plate(name, polylines, thickness)".
     std::string str() const override;
@@ -109,13 +137,6 @@ private:
     mutable std::optional<session_cpp::BRep> _element_geometry_brep; // Cache of compute_element_geometry_brep().
     mutable std::optional<session_cpp::BRep> _model_geometry_brep; // Cache of compute_model_geometry_brep().
     bool _geometry_synced = false; // True while the Element slot holds the current model geometry.
-
-protected:
-    /// The plate's own outlines, so Element::polylines() agrees with the solver's view.
-    std::vector<session_cpp::Polyline> compute_polylines() const override { return polylines; }
-
-    /// The plate's own planes, so Element::planes() agrees with the solver's view.
-    std::vector<session_cpp::Plane> compute_planes() const override { return planes; }
 };
 
 } // namespace wood_session

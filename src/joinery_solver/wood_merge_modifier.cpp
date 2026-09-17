@@ -9,7 +9,28 @@ constexpr bool TRACE = false;
 namespace wood_session {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Entry point
+// Constructors
+// ═══════════════════════════════════════════════════════════════════════════
+
+MergeModifier::MergeModifier(const Plate& plate, int plate_index)
+    : plate(plate), plate_index(plate_index) {
+
+    if (TRACE) {
+        log_file.open((internal::output_dir() / "merge.txt").string(), std::ios::app);
+        if (log_file.is_open())
+            log = &log_file;
+    }
+
+    top_points = plate.polylines[0].get_points();
+    bottom_points = plate.polylines[1].get_points();
+    joint_planes = plate.planes;
+    top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
+    bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
+    distance_squared = wood_session::globals::DISTANCE_SQUARED;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::vector<Polyline> MergeModifier::apply(
@@ -38,23 +59,6 @@ std::vector<Polyline> MergeModifier::apply(
     return result;
 }
 
-MergeModifier::MergeModifier(const Plate& plate, int plate_index)
-    : plate(plate), plate_index(plate_index) {
-
-    if (TRACE) {
-        log_file.open((internal::output_dir() / "merge.txt").string(), std::ios::app);
-        if (log_file.is_open())
-            log = &log_file;
-    }
-
-    top_points = plate.polylines[0].get_points();
-    bottom_points = plate.polylines[1].get_points();
-    joint_planes = plate.planes;
-    top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
-    bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
-    distance_squared = wood_session::globals::DISTANCE_SQUARED;
-}
-
 double MergeModifier::perpendicular_distance_squared(const Point& point, const Point& line_a, const Point& line_b) {
 
     const Vector direction = line_b - line_a;
@@ -68,10 +72,6 @@ double MergeModifier::perpendicular_distance_squared(const Point& point, const P
 
     return (point - projected).magnitude_squared();
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Diagnostic log
-// ═══════════════════════════════════════════════════════════════════════════
 
 void MergeModifier::log_points(std::ofstream& log, const Polyline& polyline) {
     for (size_t k = 0; k < polyline.point_count(); k++) {
@@ -116,10 +116,6 @@ void MergeModifier::log_result(const Polyline& merged_top, const Polyline& merge
     log_points(stream, merged_bottom);
     stream << "\n";
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Side joints
-// ═══════════════════════════════════════════════════════════════════════════
 
 MergeModifier::JointOutlines* MergeModifier::joint_outlines(WoodJoint& joint, size_t face, int joint_id, bool male_or_female) const {
 
@@ -328,10 +324,6 @@ void MergeModifier::insert_side_joints(const PlateMembership& membership, std::v
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Merged outline
-// ═══════════════════════════════════════════════════════════════════════════
-
 Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, SortedRuns& runs, const Point& original_front) {
 
     std::vector<bool> point_flags(points.size(), true);
@@ -408,10 +400,6 @@ void MergeModifier::close_corner(Polyline& merged_top, Polyline& merged_bottom) 
     merged_top = Polyline(closed_top);
     merged_bottom = Polyline(closed_bottom);
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Holes
-// ═══════════════════════════════════════════════════════════════════════════
 
 void MergeModifier::cut_holes_top_bottom(const PlateMembership& membership, std::vector<WoodJoint>& joints, std::vector<Polyline>& result) const {
     for (size_t face = 0; face < 2 && face < membership.size(); face++) {

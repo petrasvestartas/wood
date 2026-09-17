@@ -78,7 +78,7 @@ Line line_from_coords(const nlohmann::json& data) {
 }  // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FaceContact
+// FaceContact - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
 nlohmann::ordered_json FaceContact::jsondump() const {
@@ -125,6 +125,16 @@ WoodJoint::WoodJoint()
     , dbg_boolean{0}
 {}
 
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint - Operators
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint - Geometry
+// ═══════════════════════════════════════════════════════════════════════════
+
 const std::string& WoodJoint::feature_guid(int side) const {
 
     std::string& id = feature_guids[side];
@@ -159,6 +169,10 @@ std::array<ElementFeature, 2> WoodJoint::to_features() const {
 
     return std::move(scratch.element_features);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint - JSON
+// ═══════════════════════════════════════════════════════════════════════════
 
 nlohmann::ordered_json WoodJoint::jsondump() const {
 
@@ -299,6 +313,10 @@ WoodJoint WoodJoint::file_json_load(const std::string& filename) {
     return jsonload(nlohmann::json::parse(file));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodJoint - String
+// ═══════════════════════════════════════════════════════════════════════════
+
 std::string WoodJoint::str() const {
 
     std::ostringstream os;
@@ -309,7 +327,10 @@ std::string WoodJoint::str() const {
 
     return os.str();
 }
-std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Joint construction
+// ═══════════════════════════════════════════════════════════════════════════
 
 std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, int joint_type) {
 
@@ -330,10 +351,6 @@ int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::str
 
     return -1;
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Joint construction
-// ═══════════════════════════════════════════════════════════════════════════
 
 namespace {
 

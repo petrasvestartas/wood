@@ -83,14 +83,84 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Static constructors
+// ═══════════════════════════════════════════════════════════════════════════
+
 std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, const Vector& thickness, const std::string& name) {
     const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
     return std::make_shared<Plate>(bottom, bottom.translated(thickness), name);
 }
 
+std::shared_ptr<Plate> Plate::from_element(const Element& e) {
+
+    nlohmann::json payload;
+    try {
+        payload = nlohmann::json::parse(e.element_data_dumps());
+    } catch (const std::exception&) {
+        payload = nlohmann::json::object();
+    }
+
+    const bool outlined = payload.contains("bottom") && !payload["bottom"].is_null() && payload.contains("top") && !payload["top"].is_null();
+    std::shared_ptr<Plate> plate = outlined
+        ? std::make_shared<Plate>(Polyline::jsonload(payload["bottom"]), Polyline::jsonload(payload["top"]))
+        : std::make_shared<Plate>();
+    static_cast<Element&>(*plate) = e;
+    plate->guid() = e.guid();
+    plate->reversed = payload.value("reversed", false);
+    plate->_geometry_synced = true;
+
+    Plate& out = *plate;
+    static const std::string prefix = "joint_type_";
+    for (const ElementFeature& f : e.features()) {
+
+        if (f.face_index < 0)
+            continue;
+
+        const size_t face = static_cast<size_t>(f.face_index);
+        if (f.feature_type.compare(0, prefix.size(), prefix) == 0) {
+            try {
+                const int code = std::stoi(f.feature_type.substr(prefix.size()));
+                if (out.joint_types.size() <= face)
+                    out.joint_types.resize(face + 1, -1);
+                out.joint_types[face] = code;
+            } catch (const std::exception&) {
+            }
+        } else if (f.feature_type != "cut") {
+            continue;
+        }
+
+        if (face == 0)
+            out.features.bottom.insert(out.features.bottom.end(), f.outlines.begin(), f.outlines.end());
+        if (face == 1)
+            out.features.top.insert(out.features.top.end(), f.outlines.begin(), f.outlines.end());
+    }
+
+    return plate;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-// Computation
+// Geometry
 // ═══════════════════════════════════════════════════════════════════════════
+
+const Mesh& Plate::element_geometry_mesh() const {
+
+    if (!_element_geometry_mesh)
+        _element_geometry_mesh = compute_element_geometry_mesh();
+
+    return *_element_geometry_mesh;
+}
+
+const Mesh& Plate::model_geometry_mesh() const {
+
+    if (_geometry_synced && std::holds_alternative<Mesh>(geometry()))
+        return std::get<Mesh>(geometry());
+
+    if (!_model_geometry_mesh)
+        _model_geometry_mesh = compute_model_geometry_mesh();
+
+    return *_model_geometry_mesh;
+}
 
 Mesh Plate::compute_element_geometry_mesh() const {
 
@@ -108,6 +178,22 @@ Mesh Plate::compute_model_geometry_mesh() const {
         return element_geometry_mesh();
 
     return Mesh::loft(features.bottom, features.top);
+}
+
+const BRep& Plate::element_geometry_brep() const {
+
+    if (!_element_geometry_brep)
+        _element_geometry_brep = compute_element_geometry_brep();
+
+    return *_element_geometry_brep;
+}
+
+const BRep& Plate::model_geometry_brep() const {
+
+    if (!_model_geometry_brep)
+        _model_geometry_brep = compute_model_geometry_brep();
+
+    return *_model_geometry_brep;
 }
 
 /// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
@@ -146,38 +232,6 @@ BRep Plate::compute_model_geometry_brep() const {
     return brep_between_loops(features.bottom, features.top);
 }
 
-const BRep& Plate::element_geometry_brep() const {
-
-    if (!_element_geometry_brep)
-        _element_geometry_brep = compute_element_geometry_brep();
-
-    return *_element_geometry_brep;
-}
-
-const BRep& Plate::model_geometry_brep() const {
-
-    if (!_model_geometry_brep)
-        _model_geometry_brep = compute_model_geometry_brep();
-
-    return *_model_geometry_brep;
-}
-
-const Mesh& Plate::element_geometry_mesh() const {
-
-    if (!_element_geometry_mesh)
-        _element_geometry_mesh = compute_element_geometry_mesh();
-
-    return *_element_geometry_mesh;
-}
-
-const Mesh& Plate::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh)
-        _model_geometry_mesh = compute_model_geometry_mesh();
-
-    return *_model_geometry_mesh;
-}
-
 void Plate::invalidate_geometry() {
     _element_geometry_mesh.reset();
     _model_geometry_mesh.reset();
@@ -188,8 +242,10 @@ void Plate::invalidate_geometry() {
 
 void Plate::compute_geometry() {
 
-    if (polylines.size() > 1)
+    if (polylines.size() > 1) {
         set_geometry(model_geometry_mesh());
+        _model_geometry_mesh.reset();
+    }
     set_dimensions(nominal_dimensions());
 
     std::vector<ElementFeature> next = face_features();
@@ -268,7 +324,7 @@ std::vector<ElementFeature> Plate::face_features() const {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Serialization
+// JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Plate::element_data_dumps() const {
@@ -281,52 +337,9 @@ std::string Plate::element_data_dumps() const {
     return data.dump();
 }
 
-std::shared_ptr<Plate> Plate::from_element(const Element& e) {
-
-    nlohmann::json payload;
-    try {
-        payload = nlohmann::json::parse(e.element_data_dumps());
-    } catch (const std::exception&) {
-        payload = nlohmann::json::object();
-    }
-
-    const bool outlined = payload.contains("bottom") && !payload["bottom"].is_null() && payload.contains("top") && !payload["top"].is_null();
-    std::shared_ptr<Plate> plate = outlined
-        ? std::make_shared<Plate>(Polyline::jsonload(payload["bottom"]), Polyline::jsonload(payload["top"]))
-        : std::make_shared<Plate>();
-    static_cast<Element&>(*plate) = e;
-    plate->guid() = e.guid();
-    plate->reversed = payload.value("reversed", false);
-    plate->_geometry_synced = true;
-
-    Plate& out = *plate;
-    static const std::string prefix = "joint_type_";
-    for (const ElementFeature& f : e.features()) {
-
-        if (f.face_index < 0)
-            continue;
-
-        const size_t face = static_cast<size_t>(f.face_index);
-        if (f.feature_type.compare(0, prefix.size(), prefix) == 0) {
-            try {
-                const int code = std::stoi(f.feature_type.substr(prefix.size()));
-                if (out.joint_types.size() <= face)
-                    out.joint_types.resize(face + 1, -1);
-                out.joint_types[face] = code;
-            } catch (const std::exception&) {
-            }
-        } else if (f.feature_type != "cut") {
-            continue;
-        }
-
-        if (face == 0)
-            out.features.bottom.insert(out.features.bottom.end(), f.outlines.begin(), f.outlines.end());
-        if (face == 1)
-            out.features.top.insert(out.features.top.end(), f.outlines.begin(), f.outlines.end());
-    }
-
-    return plate;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Protobuf
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// The element factory of a serialized plate: the protobuf bytes decoded as an Element and promoted to a Plate.
 static std::shared_ptr<Element> plate_from_protobuf(const std::string& data) {
@@ -339,7 +352,7 @@ void Plate::register_type() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Text
+// String
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Plate::str() const {

@@ -19,17 +19,8 @@ Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, con
     : Element(solid, name), axis(axis), section(section) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Serialization
+// Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::string Column::element_data_dumps() const {
-    nlohmann::ordered_json data{
-        {"axis", axis.jsondump()},
-        {"section", section.point_count() > 0 ? section.jsondump() : nlohmann::ordered_json(nullptr)},
-        {"type", ELEMENT_TYPE},
-    };
-    return data.dump();
-}
 
 std::shared_ptr<Column> Column::from_element(const Element& e) {
 
@@ -52,6 +43,23 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
     return column;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// JSON
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::string Column::element_data_dumps() const {
+    nlohmann::ordered_json data{
+        {"axis", axis.jsondump()},
+        {"section", section.point_count() > 0 ? section.jsondump() : nlohmann::ordered_json(nullptr)},
+        {"type", ELEMENT_TYPE},
+    };
+    return data.dump();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Protobuf
+// ═══════════════════════════════════════════════════════════════════════════
+
 /// The element factory of a serialized column: the protobuf bytes decoded as an Element and promoted to a Column.
 static std::shared_ptr<Element> column_from_protobuf(const std::string& data) {
     return Column::from_element(Element::pb_loads(data));
@@ -62,7 +70,7 @@ void Column::register_type() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Text
+// String
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Column::str() const {

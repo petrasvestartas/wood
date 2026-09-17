@@ -76,17 +76,26 @@ struct WoodInteraction {
     std::vector<WoodJoint> joints; // What get_connection_zones made of them; a joint names its own two elements.
     static constexpr const char* TYPE = "WoodInteraction"; // Value of "type" the attribute is written under, and the grammar's whole guard.
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Operators
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// str() onto a stream.
+    friend std::ostream& operator<<(std::ostream& os, const WoodInteraction& interaction);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// True when there is neither a contact nor a joint.
     bool empty() const { return contacts.empty() && joints.empty(); }
 
     /// face_a and face_b swapped in every contact: the edge read from the other end.
     WoodInteraction flipped() const;
 
-    /// jsondump() as the string a graph edge stores.
-    std::string to_attribute() const;
-
-    /// Total: an attribute this grammar does not describe ("bvh_collision", "default", "") comes back empty.
-    static WoodInteraction from_attribute(const std::string& attribute);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The interaction as JSON: contacts, joints, type.
     nlohmann::ordered_json jsondump() const;
@@ -94,11 +103,18 @@ struct WoodInteraction {
     /// An interaction from its JSON.
     static WoodInteraction jsonload(const nlohmann::json& data);
 
+    /// jsondump() as the string a graph edge stores.
+    std::string to_attribute() const;
+
+    /// Total: an attribute this grammar does not describe ("bvh_collision", "default", "") comes back empty.
+    static WoodInteraction from_attribute(const std::string& attribute);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// "WoodInteraction(contacts, joints)".
     std::string str() const;
-
-    /// str() onto a stream.
-    friend std::ostream& operator<<(std::ostream& os, const WoodInteraction& interaction);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -114,49 +130,26 @@ public:
     /// An empty scene with a name.
     explicit WoodSession(const std::string& name);
 
-    /// Session::add for tree nodes.
-    using session_cpp::Session::add;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Static constructors
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Session::add_element: the object itself, never a copy, so its guid is the guid on the wire.
-    std::shared_ptr<session_cpp::TreeNode> add(
-        std::shared_ptr<session_cpp::Element> element,
-        std::shared_ptr<session_cpp::TreeNode> parent = nullptr
-    );
+    /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
+    static WoodSession pb_load(const std::filesystem::path& path);
 
-    /// The element with this guid as T, or null when the scene does not hold it as that type.
-    template <class T>
-    std::shared_ptr<T> get_element(const std::string& guid) const {
+    /// A dataset name (data/<name>.yml) or a .yml path: its globals apply, and the obj it names becomes the scene's plates.
+    static WoodSession yaml_load(const std::filesystem::path& path);
 
-        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
-            if (element && element->guid() == guid)
-                return std::dynamic_pointer_cast<T>(element);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Operators
+    // ═══════════════════════════════════════════════════════════════════════════
 
-        return nullptr;
-    }
+    /// str() onto a stream.
+    friend std::ostream& operator<<(std::ostream& os, const WoodSession& scene);
 
-    /// Every element of type T, in objects.elements order.
-    template <class T>
-    std::vector<std::shared_ptr<T>> get_elements() const {
-
-        std::vector<std::shared_ptr<T>> out;
-        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
-            if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
-                out.push_back(object);
-
-        return out;
-    }
-
-    /// Every Plate, in objects.elements order.
-    std::vector<std::shared_ptr<Plate>> plates() const { return get_elements<Plate>(); }
-
-    /// Every Column, in objects.elements order.
-    std::vector<std::shared_ptr<Column>> columns() const { return get_elements<Column>(); }
-
-    /// Every Block, in objects.elements order.
-    std::vector<std::shared_ptr<Block>> blocks() const { return get_elements<Block>(); }
-
-    /// Every element's guid in objects.elements order: the index space every ContactPair uses.
-    std::vector<std::string> element_guids() const;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Drops every contact, so a recompute replaces rather than accumulates; the joints stay.
     void clear_contacts();
@@ -209,30 +202,78 @@ public:
     /// Lofts every plate whose Element slot is stale, so the file carries the model geometry; the plates stay unlofted until this runs.
     void sync_geometry() const;
 
-    /// sync_geometry(), then the kernel's writer.
-    void pb_dump(const std::string& filename) const;
-
-    /// sync_geometry(), then the kernel's serializer.
-    std::string pb_dumps() const;
-
-    /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
-    static WoodSession pb_load(const std::filesystem::path& path);
-
-    /// A dataset name (data/<name>.yml) or a .yml path: its globals apply, and the obj it names becomes the scene's plates.
-    static WoodSession yaml_load(const std::filesystem::path& path);
-
-    /// "WoodSession(name, elements, plates, columns, blocks, edges)".
-    std::string str() const;
-
-    /// str() onto a stream.
-    friend std::ostream& operator<<(std::ostream& os, const WoodSession& scene);
-
 private:
     /// Every contact as a coloured ring under the `contacts` group of its first element.
     void add_contacts_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
 
     /// Every joint's area, volumes, lines and male cuts under the `joints` group of its male element, the female cuts under the female's.
     void add_joints_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
+
+public:
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Protobuf
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// sync_geometry(), then the kernel's writer.
+    void pb_dump(const std::string& filename) const;
+
+    /// sync_geometry(), then the kernel's serializer.
+    std::string pb_dumps() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// "WoodSession(name, elements, plates, columns, blocks, edges)".
+    std::string str() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Elements
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Session::add for tree nodes.
+    using session_cpp::Session::add;
+
+    /// Session::add_element: the object itself, never a copy, so its guid is the guid on the wire.
+    std::shared_ptr<session_cpp::TreeNode> add(
+        std::shared_ptr<session_cpp::Element> element,
+        std::shared_ptr<session_cpp::TreeNode> parent = nullptr
+    );
+
+    /// The element with this guid as T, or null when the scene does not hold it as that type.
+    template <class T>
+    std::shared_ptr<T> get_element(const std::string& guid) const {
+
+        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
+            if (element && element->guid() == guid)
+                return std::dynamic_pointer_cast<T>(element);
+
+        return nullptr;
+    }
+
+    /// Every element of type T, in objects.elements order.
+    template <class T>
+    std::vector<std::shared_ptr<T>> get_elements() const {
+
+        std::vector<std::shared_ptr<T>> out;
+        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
+            if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
+                out.push_back(object);
+
+        return out;
+    }
+
+    /// Every Plate, in objects.elements order.
+    std::vector<std::shared_ptr<Plate>> plates() const { return get_elements<Plate>(); }
+
+    /// Every Column, in objects.elements order.
+    std::vector<std::shared_ptr<Column>> columns() const { return get_elements<Column>(); }
+
+    /// Every Block, in objects.elements order.
+    std::vector<std::shared_ptr<Block>> blocks() const { return get_elements<Block>(); }
+
+    /// Every element's guid in objects.elements order: the index space every ContactPair uses.
+    std::vector<std::string> element_guids() const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

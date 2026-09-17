@@ -16,7 +16,7 @@ Block::Block() : Element("block") {}
 Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(Mesh::from_polylines(loops), name) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Serialization
+// Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::shared_ptr<Block> Block::from_element(const Element& e) {
@@ -27,6 +27,10 @@ std::shared_ptr<Block> Block::from_element(const Element& e) {
 
     return block;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Protobuf
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// The element factory of a serialized block: the protobuf bytes decoded as an Element and promoted to a Block.
 static std::shared_ptr<Element> block_from_protobuf(const std::string& data) {
@@ -39,7 +43,7 @@ void Block::register_type() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Text
+// String
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string Block::str() const {
