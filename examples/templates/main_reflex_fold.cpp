@@ -1,20 +1,51 @@
+#include "wood_session.h"
 #include "src/templates/reflex_fold.h"
 
-const char* OUTPUT = "data/templates/reflex_fold_mesh.json";
+using namespace session_cpp;
+using namespace wood_session;
 
+/// Builds the reflex fold with its default cross section and profile and writes the mesh and its plates to live.
 int main() {
 
-    std::filesystem::create_directories(std::filesystem::path(OUTPUT).parent_path());
-
     const ReflexFold shell;
-    shell.mesh.file_json_dump(OUTPUT);
+
+    WoodSession wood_session("reflex_fold");
+    wood_session.add_mesh(std::make_shared<Mesh>(shell.mesh));
+    for (const std::shared_ptr<Plate>& plate : shell.elements)
+        wood_session.add(plate);
+
+    std::cout << fmt::format("reflex fold: {} plates\n", shell.elements.size());
+
+    wood_session.add_to_tree(true, true, false, false);
+    wood_session.pb_dump(pb_path("live").string());
 
     return 0;
 }
 
 /*
-description: build the reflex_fold template -> write its mesh to data/templates/reflex_fold_mesh.json.
+|||||||| DESCRIPTION ||||||||
+The reflex fold template: a folded cross section along a profile, one plate per fold, written to live for the viewer.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_reflex_fold -j8 && ./build/main_reflex_fold
+|||||||| DIRECTORY ||||||||
+cd wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --config Release --parallel && ./build/main_reflex_fold && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_reflex_fold
+
+|||||||| WORKFLOW ||||||||
+examples/templates/main_reflex_fold.cpp
+ |
+ |-- ReflexFold(cross_section, profile, thickness, chamfer_bot, chamfer_top, chamfer_angle)                       src/templates/reflex_fold.h
+ |    |-- reflex_fold(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per fold in `elements`
+ |
+ |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
+ |-- add_to_tree(true, true, false, false)        one group per plate: the plate and its "outlines"
+ '-- pb_dump(pb_path("live"))                    sync_geometry (Mesh::loft once per plate), Session::pb_dump
+                                                 -> data/output/pb/live.pb, the file the viewer watches
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

@@ -81,6 +81,6 @@ datasets a `beams` block. `globals::Dataset::<name>` names every shipped dataset
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `main_joint_types`, `main_cross_corners` | joint type and cross corner probes |
-| `main_translation_shell`, `main_reflex_fold`, `main_chevron`, `main_reciprocal_*` | `examples/templates/` generators over `src/templates/` |
+| `main_translation_shell`, `main_reflex_fold`, `main_chevron`, `main_reciprocal_move`, `main_reciprocal_rotation` | `examples/templates/`: each template built with its defaults and written to `live.pb` as a mesh plus its plates |
 
 Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.
