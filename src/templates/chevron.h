@@ -486,7 +486,7 @@ inline std::vector<int>& adjacent_faces(std::map<std::pair<size_t,size_t>, std::
     return edge_adjacency[{std::min(vi0,vi1), std::max(vi0,vi1)}];
 }
 
-/// Whether quad faces fi and fj share an even local edge (0-1 or 2-3), which groups the faces of one row into a strip; matches _faces_share_strip_edge().
+/// Whether quad faces fi and fj share an odd local edge (1-2 or 3-0), which groups faces adjacent in V (same U-column, consecutive V-rows) into V-direction stripes.
 inline bool faces_share_strip_edge(const std::vector<std::vector<size_t>>& face_vertices, int fi, int fj) {
 
     if ((int)face_vertices[fi].size() < 4 || (int)face_vertices[fj].size() < 4) {
@@ -495,10 +495,10 @@ inline bool faces_share_strip_edge(const std::vector<std::vector<size_t>>& face_
 
     size_t a=face_vertices[fi][0],b=face_vertices[fi][1],c=face_vertices[fi][2],d=face_vertices[fi][3];
     size_t a1=face_vertices[fj][0],b1=face_vertices[fj][1],c1=face_vertices[fj][2],d1=face_vertices[fj][3];
-    return ((a==b1 && b==a1) ||   // fi edge 0-1 == fj edge 0-1 reversed
-            (c==d1 && d==c1) ||   // fi edge 2-3 == fj edge 2-3 reversed
-            (c==b1 && d==a1) ||   // fi edge 2-3 == fj edge 0-1 reversed
-            (b==c1 && a==d1));    // fi edge 0-1 == fj edge 2-3 reversed
+    return ((b==c1 && c==b1) ||   // fi edge 1-2 == fj edge 1-2 reversed
+            (d==a1 && a==d1) ||   // fi edge 3-0 == fj edge 3-0 reversed
+            (b==a1 && c==d1) ||   // fi edge 1-2 == fj edge 3-0 reversed
+            (d==c1 && a==b1));    // fi edge 3-0 == fj edge 1-2 reversed
 }
 
 /// Append the closed polygon cut from base by sides to plines as a polyline.
@@ -625,7 +625,7 @@ inline ChevronResult chevron_plates(
         }
 
         bool flag = (strip_idx % 2 == 0);
-        std::array<int,2> ce = flag ? std::array<int,2>{0, 1} : std::array<int,2>{1, 2}; // _get_mesh_face_edges()
+        std::array<int,2> ce = flag ? std::array<int,2>{3, 0} : std::array<int,2>{0, 1}; // 3, 0
 
         std::vector<int>  strip;
         std::vector<bool> done;
@@ -663,10 +663,8 @@ inline ChevronResult chevron_plates(
             }
         }
 
-        // even strips are emitted in reverse visit order, as the reference does
-        if (strip_idx % 2 == 0)
-            std::reverse(strip.begin(), strip.end());
-
+        // if (strip_idx % 2 == 0)
+        //     std::reverse(strip.begin(), strip.end());
         for (int fi : strip) {
             f_order.push_back(fi);
         }
@@ -746,7 +744,7 @@ inline ChevronResult chevron_plates(
 
             if ((int)adj.size() == 2) {
                 if (is_chevron) {
-                    if (j % 2 == 0) {
+                    if (j % 2 == 1) {
                         // even chevron: translate
                         ep[fi][j] = plane_translate(ep[fi][j], plate_thickness * edge_offset);
                     } else {
