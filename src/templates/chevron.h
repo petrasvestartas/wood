@@ -474,11 +474,19 @@ inline Vector3 vertex_position(const session_cpp::Mesh& mesh, size_t vk) {
     return {vd.x, vd.y, vd.z};
 }
 
-/// Normal of face fi from its (already-reversed) vertex list, equivalent to the flipped face normals after mesh.Flip(); world z when degenerate.
+/// Normal of face fi from its (already-reversed) vertex list, the flipped face normal of mesh.Flip(): for a quad the cross product of its diagonals as OpenNURBS computes it, the best-fit normal of a twisted quad; a plane through three vertices would tilt by the twist; world z when degenerate.
 inline Vector3 face_normal(const session_cpp::Mesh& mesh, const std::vector<std::vector<size_t>>& face_vertices, int fi) {
-    if ((int)face_vertices[fi].size() < 3) return {0.0, 0.0, 1.0};
-    Vector3 a = vertex_position(mesh, face_vertices[fi][0]), b = vertex_position(mesh, face_vertices[fi][1]), c = vertex_position(mesh, face_vertices[fi][2]);
-    return normalize(cross(subtract(b, a), subtract(c, a)));
+
+    const std::vector<size_t>& vertices = face_vertices[fi];
+    if ((int)vertices.size() < 3)
+        return {0.0, 0.0, 1.0};
+
+    Vector3 a = vertex_position(mesh, vertices[0]), b = vertex_position(mesh, vertices[1]), c = vertex_position(mesh, vertices[2]);
+    if ((int)vertices.size() < 4)
+        return normalize(cross(subtract(b, a), subtract(c, a)));
+
+    Vector3 d = vertex_position(mesh, vertices[3]);
+    return normalize(cross(subtract(c, a), subtract(d, b)));
 }
 
 /// Faces adjacent to the edge vi0-vi1, looked up by the sorted vertex pair.
