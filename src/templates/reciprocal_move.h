@@ -149,7 +149,7 @@ private:
         std::vector<Point> side0;
         std::vector<Point> side1;
         std::vector<Point> beam_bottom;  // bottom face corners (-up): sc[0],sc[1],ec[1],ec[0]
-        std::vector<Point> beam_top;     // top face corners    (+up): sc[2],sc[3],ec[3],ec[2]
+        std::vector<Point> beam_top;     // top face corners    (+up): sc[3],sc[2],ec[2],ec[3], each above beam_bottom[i]
     };
 
     struct CutPlane { Point org; Vector n; };
@@ -223,7 +223,7 @@ private:
         bg.side0       = {sc[1], sc[2], ec[2], ec[1]};
         bg.side1       = {sc[0], sc[3], ec[3], ec[0]};
         bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
-        bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
+        bg.beam_top    = {sc[3], sc[2], ec[2], ec[3]};  // top face (+up), corner i above beam_bottom[i] so the loft pairs them
 
         return bg;
     }
@@ -274,7 +274,7 @@ private:
         bg.side0       = {sc[1], sc[2], ec[2], ec[1]};  // right face
         bg.side1       = {sc[0], sc[3], ec[3], ec[0]};  // left  face
         bg.beam_bottom = {sc[0], sc[1], ec[1], ec[0]};  // bottom face (-up, for joinery)
-        bg.beam_top    = {sc[2], sc[3], ec[3], ec[2]};  // top face    (+up, for joinery)
+        bg.beam_top    = {sc[3], sc[2], ec[2], ec[3]};  // top face (+up), corner i above beam_bottom[i] so the loft pairs them
 
         return bg;
     }
