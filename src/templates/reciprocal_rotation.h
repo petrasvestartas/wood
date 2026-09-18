@@ -6,6 +6,9 @@
 #include "tolerance.h"
 
 #include <cmath>
+#include <iostream>
+#include <map>
+#include <optional>
 #include <stdexcept>
 
 using namespace session_cpp;
@@ -29,6 +32,11 @@ public:
     std::vector<Polyline> beam_top;     // top-face outlines    (+up direction, for joinery)
     std::vector<std::array<double,3>> beam_dirs;  // unit axis direction per beam
     std::vector<std::array<double,3>> beam_ups;   // unit up (thickness) direction per beam
+    std::vector<Mesh>     boundary_beams;        // straight beams on the naked edges, in boundary-loop order, mitred at the shared vertices
+    std::vector<Polyline> boundary_side0;        // right-face outlines of the boundary beams
+    std::vector<Polyline> boundary_side1;        // left-face outlines of the boundary beams
+    std::vector<Polyline> boundary_beam_bottom;  // bottom-face outlines of the boundary beams
+    std::vector<Polyline> boundary_beam_top;     // top-face outlines of the boundary beams, corner i above boundary_beam_bottom[i]
 
     /// Parametric sinusoidal dome constructor.
     ReciprocalRotation(int    nx                = 12,
@@ -82,8 +90,57 @@ private:
 
         Reciprocal::Result r = Reciprocal::from_mesh(m, angle, scale, true, beam_h);
 
-        // (m.edges() was computed here and never used - a full directed-edge
-        // set build per construction.)
+        // ── topology by vertex key, the same keys r.center is indexed by through m.edges() ──
+        std::vector<size_t> fkeys = m.faces();
+        std::vector<std::vector<size_t>> faces(fkeys.size());  // vertex keys per face, in winding order
+        std::map<size_t, Point> vertex_points;
+        for (size_t fi = 0; fi < fkeys.size(); fi++) {
+            faces[fi] = m.face_vertices(fkeys[fi]).value();
+            for (size_t vk : faces[fi])
+                vertex_points.emplace(vk, m.vertex_point(vk).value());
+        }
+
+        EdgeOwners owners = edge_owners(faces);
+        std::vector<std::pair<size_t,size_t>> ekeys = m.edges();
+
+        // ── boundary beams: a straight beam on every naked edge, none of the reciprocal treatment ──
+        // Axis = the mesh edge, up = one direction per boundary loop (the average of the owning faces'
+        // normals, so consecutive prisms share their mitred end face), section centred on the axis like
+        // the interior beams; consecutive beams are mitred with the bisector plane at their shared vertex.
+        std::vector<std::pair<int,int>> naked = naked_half_edges(faces, owners);
+        std::vector<Vector> owner_normals;  // the owning face's normal per naked half-edge
+        for (const auto& [fi, fj] : naked)
+            owner_normals.push_back(m.face_normal(fkeys[fi]).value_or(Vector(0, 0, 0)));
+
+        std::vector<Vector> loop_ups = loop_up_directions(naked, faces, owner_normals);
+        std::map<size_t, Vector> arriving, leaving;  // boundary vertex → unit direction of the naked edge ending / starting there
+        for (const auto& [fi, fj] : naked) {
+            size_t u = faces[fi][fj], v = faces[fi][(fj + 1) % faces[fi].size()];
+            if ((vertex_points[v] - vertex_points[u]).is_zero()) continue;
+
+            Vector dir = (vertex_points[v] - vertex_points[u]).normalized();
+            arriving[v] = dir;
+            leaving[u]  = dir;
+        }
+
+        std::map<EdgeKey, Plane> boundary_inner;  // naked edge → its boundary beam's face plane that looks into the shell
+        for (size_t k = 0; k < naked.size(); k++) {
+            const auto& [fi, fj] = naked[k];
+            size_t u = faces[fi][fj], v = faces[fi][(fj + 1) % faces[fi].size()];
+            const Point& pu = vertex_points[u];
+            const Point& pv = vertex_points[v];
+            const Vector& up = loop_ups[k];
+            if ((pv - pu).is_zero() || owner_normals[k].is_zero()) continue;
+
+            Vector dir = (pv - pu).normalized();
+            Plane cut_from = arriving.count(u) ? mitre_plane(pu, arriving[u], dir) : Plane::from_point_normal(pu, dir);
+            Plane cut_to   = leaving.count(v)  ? mitre_plane(pv, dir, leaving[v])  : Plane::from_point_normal(pv, dir);
+            BeamGeom bg = make_beam(Line::from_points(pu, pv), up, beam_w, beam_h, 0.0, cut_from, cut_to);
+            store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
+            boundary_inner[{std::min(u, v), std::max(u, v)}] = boundary_inner_plane(pu, pv, dir, up, beam_w);
+        }
+
+        // ── one beam per mesh edge, in m.edges() order; an interior beam's end that reaches a naked edge stops at the boundary beam's inner face ──
         for (int ei = 0; ei < (int)r.center.size(); ei++) {
             Line          ln  = r.center[ei];
             const Vector& up  = r.lineplanes[ei].y_axis();
@@ -94,26 +151,22 @@ private:
             Plane pe = side_cut_plane(
                 r.endplanes[ei][1], ln.end(),   dir, false, beam_w, cut_offset);
 
+            EdgeKey key{std::min(ekeys[ei].first, ekeys[ei].second), std::max(ekeys[ei].first, ekeys[ei].second)};
+            EdgeOwners::const_iterator own = owners.find(key);
+            if (own != owners.end() && own->second.size() > 1) {
+                size_t start_vertex = ln.start().distance(vertex_points[key.first]) <= ln.start().distance(vertex_points[key.second]) ? key.first : key.second;
+                size_t end_vertex   = start_vertex == key.first ? key.second : key.first;
+                ps = boundary_trimmed_cut(ps, faces, own->second, boundary_inner, vertex_points, start_vertex, ln);
+                pe = boundary_trimmed_cut(pe, faces, own->second, boundary_inner, vertex_points, end_vertex,   ln);
+            }
+
             BeamGeom bg = make_beam(ln, up, beam_w, beam_h, extend, ps, pe);
-
-            beams.push_back(std::move(bg.mesh));
-
-            std::vector<Point> s0 = bg.side0; s0.push_back(s0[0]);
-            side0.emplace_back(s0);
-
-            std::vector<Point> s1 = bg.side1; s1.push_back(s1[0]);
-            side1.emplace_back(s1);
-
-            std::vector<Point> bb = bg.beam_bottom; bb.push_back(bb[0]);
-            beam_bottom.emplace_back(bb);
-
-            std::vector<Point> bt = bg.beam_top; bt.push_back(bt[0]);
-            beam_top.emplace_back(bt);
-
+            store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
             beam_dirs.push_back({dir[0], dir[1], dir[2]});
             beam_ups.push_back({up[0],   up[1],   up[2]});
         }
     }
+
     struct BeamGeom {
         Mesh               mesh;
         std::vector<Point> side0;
@@ -121,6 +174,164 @@ private:
         std::vector<Point> beam_bottom;  // bottom face corners (-up): sc[0],sc[1],ec[1],ec[0]
         std::vector<Point> beam_top;     // top face corners    (+up): sc[3],sc[2],ec[2],ec[3], each above beam_bottom[i]
     };
+
+    using EdgeKey = std::pair<size_t, size_t>;  // sorted vertex-key pair of a mesh edge
+    using EdgeOwners = std::map<EdgeKey, std::vector<std::pair<int,int>>>;  // edge → [(face index, local edge index), …]
+
+    /// The corners as a closed outline: the first corner repeated at the end.
+    static Polyline closed_outline(const std::vector<Point>& corners)
+    {
+
+        std::vector<Point> closed = corners;
+        closed.push_back(corners[0]);
+        return Polyline(closed);
+    }
+
+    /// Appends one beam's mesh and its four closed outlines to the given lists.
+    static void store_beam(BeamGeom& bg, std::vector<Mesh>& meshes,
+                           std::vector<Polyline>& right_faces, std::vector<Polyline>& left_faces,
+                           std::vector<Polyline>& bottom_faces, std::vector<Polyline>& top_faces)
+    {
+
+        meshes.push_back(std::move(bg.mesh));
+        right_faces.push_back(closed_outline(bg.side0));
+        left_faces.push_back(closed_outline(bg.side1));
+        bottom_faces.push_back(closed_outline(bg.beam_bottom));
+        top_faces.push_back(closed_outline(bg.beam_top));
+    }
+
+    /// Every mesh edge mapped to the faces that own it, as (face index, local edge index) pairs.
+    static EdgeOwners edge_owners(const std::vector<std::vector<size_t>>& faces)
+    {
+
+        EdgeOwners owners;
+        for (int fi = 0; fi < (int)faces.size(); fi++) {
+            int n = (int)faces[fi].size();
+            for (int j = 0; j < n; j++) {
+                size_t u = faces[fi][j], v = faces[fi][(j + 1) % n];
+                owners[{std::min(u, v), std::max(u, v)}].emplace_back(fi, j);
+            }
+        }
+
+        return owners;
+    }
+
+    /// The naked half-edges as (face, local edge) in boundary-loop order, each walked in its owning face's winding.
+    static std::vector<std::pair<int,int>> naked_half_edges(const std::vector<std::vector<size_t>>& faces,
+                                                            const EdgeOwners& owners)
+    {
+
+        std::vector<std::pair<int,int>> naked;
+        std::map<size_t, size_t> leaving_vertex;  // boundary vertex → the naked half-edge starting there
+        for (const auto& [key, edge_owners] : owners) {
+            if (edge_owners.size() != 1) continue;
+
+            const auto& [fi, fj] = edge_owners[0];
+            if (!leaving_vertex.emplace(faces[fi][fj], naked.size()).second)
+                std::cerr << fmt::format("  WARNING: ReciprocalRotation: two naked edges leave vertex {} - the boundary is not a simple loop there.\n", faces[fi][fj]);
+            naked.push_back(edge_owners[0]);
+        }
+
+        std::vector<std::pair<int,int>> ordered;
+        std::vector<bool> visited(naked.size(), false);
+        for (size_t seed = 0; seed < naked.size(); seed++) {
+            size_t current = seed;
+            while (!visited[current]) {
+                visited[current] = true;
+                ordered.push_back(naked[current]);
+
+                const auto& [fi, fj] = naked[current];
+                std::map<size_t, size_t>::const_iterator next = leaving_vertex.find(faces[fi][(fj + 1) % faces[fi].size()]);
+                if (next == leaving_vertex.end()) break;
+
+                current = next->second;
+            }
+        }
+
+        return ordered;
+    }
+
+    /// One up per boundary loop: the average of the owning faces' normals around the loop, sign-matched, returned per naked half-edge and flipped to agree with that edge's own face.
+    static std::vector<Vector> loop_up_directions(const std::vector<std::pair<int,int>>& naked,
+                                                  const std::vector<std::vector<size_t>>& faces,
+                                                  const std::vector<Vector>& owner_normals)
+    {
+
+        std::vector<Vector> ups(naked.size());
+        size_t loop_start = 0;
+        while (loop_start < naked.size()) {
+            size_t loop_end = loop_start + 1;  // one past the last half-edge of this loop: the walk keeps a loop's half-edges consecutive
+            while (loop_end < naked.size() && faces[naked[loop_end].first][naked[loop_end].second]
+                                              == faces[naked[loop_end - 1].first][(naked[loop_end - 1].second + 1) % faces[naked[loop_end - 1].first].size()])
+                loop_end++;
+
+            Vector sum(0, 0, 0);
+            for (size_t k = loop_start; k < loop_end; k++)
+                sum += owner_normals[k].dot(sum) < 0.0 ? -owner_normals[k] : owner_normals[k];
+
+            Vector average = sum.is_zero() ? Vector(0, 0, 1) : sum.normalized();
+            for (size_t k = loop_start; k < loop_end; k++)
+                ups[k] = owner_normals[k].dot(average) < 0.0 ? -average : average;
+
+            loop_start = loop_end;
+        }
+
+        return ups;
+    }
+
+    /// The mitre at a boundary vertex: the bisector plane whose normal is the sum of the arriving and leaving unit edge directions, the arriving one alone when they fold back.
+    static Plane mitre_plane(const Point& vertex, const Vector& arriving, const Vector& leaving)
+    {
+
+        Vector normal = arriving + leaving;
+        if (normal.is_zero()) return Plane::from_point_normal(vertex, arriving);
+
+        return Plane::from_point_normal(vertex, normal);
+    }
+
+    /// The boundary beam's side plane that looks into the shell: half the beam width from the edge axis towards the owning face, which lies to the left of its own half-edge.
+    static Plane boundary_inner_plane(const Point& from, const Point& to, const Vector& dir,
+                                      const Vector& up, double beam_w)
+    {
+
+        Vector inner = up.cross(dir).normalized();
+        return Plane::from_point_normal(Point::mid_point(from, to) + inner * (beam_w * 0.5), inner);
+    }
+
+    /// The cut for one end of an interior beam: the inner face of the boundary beam on the naked edge next to vertex_key on the side the beam axis swings to, or fallback when no naked edge meets that end or the beam is nearly parallel to it.
+    static Plane boundary_trimmed_cut(const Plane& fallback,
+                                      const std::vector<std::vector<size_t>>& faces,
+                                      const std::vector<std::pair<int,int>>& edge_owners,
+                                      const std::map<EdgeKey, Plane>& inner_planes,
+                                      const std::map<size_t, Point>& vertex_points,
+                                      size_t vertex_key, const Line& axis)
+    {
+
+        const Point& vertex = vertex_points.at(vertex_key);
+        Point foot = axis.closest_point(vertex, false).second;
+        std::optional<Plane> best;
+        double best_side = 0.0;
+
+        for (const auto& [fi, fj] : edge_owners) {
+            const std::vector<size_t>& fv = faces[fi];
+            int n = (int)fv.size();
+            int adj = fv[fj] == vertex_key ? (fj - 1 + n) % n : (fj + 1) % n;  // the face's other edge at the vertex
+            size_t a = fv[adj], b = fv[(adj + 1) % n];
+            std::map<EdgeKey, Plane>::const_iterator it = inner_planes.find({std::min(a, b), std::max(a, b)});
+            if (it == inner_planes.end()) continue;
+
+            size_t far = a == vertex_key ? b : a;
+            double side = (foot - vertex).dot((vertex_points.at(far) - vertex).normalized());
+            if (best && side <= best_side) continue;
+
+            best = it->second;
+            best_side = side;
+        }
+
+        if (!best || std::abs(best->z_axis().dot(axis.to_direction())) < 0.15) return fallback;  // see FLAT_CAP in ReciprocalMove::cut_plane
+
+        return *best;
+    }
 
     static Mesh make_dome(int nx, int ny, double W, double D, double h) {
 

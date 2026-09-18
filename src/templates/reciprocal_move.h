@@ -37,6 +37,11 @@ public:
     std::vector<Polyline> beam_top;     // top-face outlines    (+up direction, for joinery)
     std::vector<std::array<double,3>> beam_dirs;  // unit axis direction per beam
     std::vector<std::array<double,3>> beam_ups;   // unit up (face normal) per beam
+    std::vector<Mesh>     boundary_beams;        // straight beams on the naked edges, in boundary-loop order, mitred at the shared vertices
+    std::vector<Polyline> boundary_side0;        // right-face outlines of the boundary beams
+    std::vector<Polyline> boundary_side1;        // left-face outlines of the boundary beams
+    std::vector<Polyline> boundary_beam_bottom;  // bottom-face outlines of the boundary beams
+    std::vector<Polyline> boundary_beam_top;     // top-face outlines of the boundary beams, corner i above boundary_beam_bottom[i]
 
     /// Parametric sinusoidal dome constructor.
     ReciprocalMove(int    nx                = 12,
@@ -156,6 +161,28 @@ private:
     struct FELine { Point from, to; Vector dir; };  // one face-edge centerline
     using EdgeKey = std::pair<size_t, size_t>;  // sorted vertex pair of a mesh edge
     using EdgeToFaceEdges = std::map<EdgeKey, std::vector<std::pair<int,int>>>;  // edge → [(face_idx, local_edge_idx), …]
+
+    /// The corners as a closed outline: the first corner repeated at the end.
+    static Polyline closed_outline(const std::vector<Point>& corners)
+    {
+
+        std::vector<Point> closed = corners;
+        closed.push_back(corners[0]);
+        return Polyline(closed);
+    }
+
+    /// Appends one beam's mesh and its four closed outlines to the given lists.
+    static void store_beam(BeamGeom& bg, std::vector<Mesh>& meshes,
+                           std::vector<Polyline>& right_faces, std::vector<Polyline>& left_faces,
+                           std::vector<Polyline>& bottom_faces, std::vector<Polyline>& top_faces)
+    {
+
+        meshes.push_back(std::move(bg.mesh));
+        right_faces.push_back(closed_outline(bg.side0));
+        left_faces.push_back(closed_outline(bg.side1));
+        bottom_faces.push_back(closed_outline(bg.beam_bottom));
+        top_faces.push_back(closed_outline(bg.beam_top));
+    }
 
     /// One box corner: p offset by sr times r and by sn times nn.
     static Point corner_point(const Point& p, const Vector& r, int sr,
@@ -344,22 +371,103 @@ private:
         return {face_org, raw};
     }
 
-    /// Boundary cut: plane at the beam endpoint, normal = cross(boundary_edge_dir, face_normal).
-    /// Same degenerate fallback as cut_plane.
-    static CutPlane boundary_cut_plane(const std::vector<std::vector<FELine>>& EF,
-                                       const std::vector<Vector>& face_norms,
-                                       int i, const Vector& bdir,
-                                       int adj_j, const Point& endpoint)
+    /// The naked half-edges as (face, local edge) in boundary-loop order, each walked in its owning face's winding.
+    static std::vector<std::pair<int,int>> naked_half_edges(const std::vector<std::vector<size_t>>& faces,
+                                                            const EdgeToFaceEdges& edge_to_fe)
     {
 
-        const Vector& edge_dir = EF[i][adj_j].dir;
-        Vector raw = edge_dir.cross(face_norms[i]);
-        double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
-        if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
-        double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
+        std::vector<std::pair<int,int>> naked;
+        std::map<size_t, size_t> leaving_vertex;  // boundary vertex → the naked half-edge starting there
+        for (const auto& [key, owners] : edge_to_fe) {
+            if (owners.size() != 1) continue;
+
+            const auto& [fi, fj] = owners[0];
+            if (!leaving_vertex.emplace(faces[fi][fj], naked.size()).second)
+                std::cerr << fmt::format("  WARNING: ReciprocalMove: two naked edges leave vertex {} - the boundary is not a simple loop there.\n", faces[fi][fj]);
+            naked.push_back(owners[0]);
+        }
+
+        std::vector<std::pair<int,int>> ordered;
+        std::vector<bool> visited(naked.size(), false);
+        for (size_t seed = 0; seed < naked.size(); seed++) {
+            size_t current = seed;
+            while (!visited[current]) {
+                visited[current] = true;
+                ordered.push_back(naked[current]);
+
+                const auto& [fi, fj] = naked[current];
+                std::map<size_t, size_t>::const_iterator next = leaving_vertex.find(faces[fi][(fj + 1) % faces[fi].size()]);
+                if (next == leaving_vertex.end()) break;
+
+                current = next->second;
+            }
+        }
+
+        return ordered;
+    }
+
+    /// One up per boundary loop: the average of the owning faces' normals around the loop, sign-matched, returned per naked half-edge and flipped to agree with that edge's own face.
+    static std::vector<Vector> loop_up_directions(const std::vector<std::pair<int,int>>& naked,
+                                                  const std::vector<std::vector<size_t>>& faces,
+                                                  const std::vector<Vector>& owner_normals)
+    {
+
+        std::vector<Vector> ups(naked.size());
+        size_t loop_start = 0;
+        while (loop_start < naked.size()) {
+            size_t loop_end = loop_start + 1;  // one past the last half-edge of this loop: the walk keeps a loop's half-edges consecutive
+            while (loop_end < naked.size() && faces[naked[loop_end].first][naked[loop_end].second]
+                                              == faces[naked[loop_end - 1].first][(naked[loop_end - 1].second + 1) % faces[naked[loop_end - 1].first].size()])
+                loop_end++;
+
+            Vector sum(0, 0, 0);
+            for (size_t k = loop_start; k < loop_end; k++)
+                sum += owner_normals[k].dot(sum) < 0.0 ? -owner_normals[k] : owner_normals[k];
+
+            Vector average = sum.is_zero() ? Vector(0, 0, 1) : sum.normalized();
+            for (size_t k = loop_start; k < loop_end; k++)
+                ups[k] = owner_normals[k].dot(average) < 0.0 ? -average : average;
+
+            loop_start = loop_end;
+        }
+
+        return ups;
+    }
+
+    /// The mitre at a boundary vertex: the bisector plane whose normal is the sum of the arriving and leaving unit edge directions, the arriving one alone when they fold back.
+    static CutPlane mitre_plane(const Point& vertex, const Vector& arriving, const Vector& leaving)
+    {
+
+        Vector normal = arriving + leaving;
+        if (normal.is_zero()) return {vertex, arriving};
+
+        return {vertex, normal.normalized()};
+    }
+
+    /// The boundary beam's side plane that looks into the shell: half the beam width from the edge axis towards the owning face, which lies to the left of its own half-edge.
+    static CutPlane boundary_inner_plane(const Point& from, const Point& to, const Vector& dir,
+                                         const Vector& up, double beam_w)
+    {
+
+        Vector inner = up.cross(dir).normalized();
+        return {Point::mid_point(from, to) + inner * (beam_w * 0.5), inner};
+    }
+
+    /// Boundary cut: the inner face plane of the boundary beam on the naked edge (i, adj_j), so the interior beam stops flush against it. Same degenerate fallback as cut_plane.
+    static CutPlane boundary_cut_plane(const std::map<EdgeKey, CutPlane>& inner_planes,
+                                       const std::vector<std::vector<size_t>>& faces,
+                                       int i, const Vector& bdir, int adj_j, const Point& endpoint)
+    {
+
+        const std::vector<size_t>& fv = faces[i];
+        size_t u = fv[adj_j], v = fv[(adj_j + 1) % fv.size()];
+        std::map<EdgeKey, CutPlane>::const_iterator it = inner_planes.find({std::min(u, v), std::max(u, v)});
+        if (it == inner_planes.end()) return {endpoint, bdir};
+
+        double alignment = std::abs(it->second.n.dot(bdir));
         if (alignment < 0.15) return {endpoint, bdir};  // see FLAT_CAP note in cut_plane
 
-        return {endpoint, raw};
+        return it->second;
     }
 
     // ── main build ───────────────────────────────────────────────────────────
@@ -525,6 +633,42 @@ private:
         for (int i = 0; i < nf; i++)
             face_norms[i] = _face_normal(pts, faces[i]);
 
+        // ── boundary beams: a straight beam on every naked edge, none of the reciprocal treatment ──
+        // Axis = the mesh edge, up = one direction per boundary loop (the average of the owning faces'
+        // normals, so consecutive prisms share their mitred end face), section centred on the axis like
+        // the interior beams; consecutive beams are mitred with the bisector plane at their shared vertex.
+        std::vector<std::pair<int,int>> naked = naked_half_edges(faces, edge_to_fe);
+        std::vector<Vector> owner_normals;  // the owning face's normal per naked half-edge, flipped to +z like the interior beams' up
+        for (const auto& [fi, fj] : naked)
+            owner_normals.push_back(face_norms[fi][2] < 0 ? -face_norms[fi] : face_norms[fi]);
+
+        std::vector<Vector> loop_ups = loop_up_directions(naked, faces, owner_normals);
+        std::map<size_t, Vector> arriving, leaving;  // boundary vertex → unit direction of the naked edge ending / starting there
+        for (const auto& [fi, fj] : naked) {
+            size_t u = faces[fi][fj], v = faces[fi][(fj + 1) % faces[fi].size()];
+            if ((pts[v] - pts[u]).is_zero()) continue;
+
+            Vector dir = (pts[v] - pts[u]).normalized();
+            arriving[v] = dir;
+            leaving[u]  = dir;
+        }
+
+        std::map<EdgeKey, CutPlane> boundary_inner;  // naked edge → its boundary beam's face plane that looks into the shell
+        for (size_t k = 0; k < naked.size(); k++) {
+            const auto& [fi, fj] = naked[k];
+            size_t u = faces[fi][fj], v = faces[fi][(fj + 1) % faces[fi].size()];
+            if ((pts[v] - pts[u]).is_zero()) continue;
+
+            Vector dir = (pts[v] - pts[u]).normalized();
+            const Vector& up = loop_ups[k];
+
+            CutPlane cp_from = arriving.count(u) ? mitre_plane(pts[u], arriving[u], dir) : CutPlane{pts[u], dir};
+            CutPlane cp_to   = leaving.count(v)  ? mitre_plane(pts[v], dir, leaving[v])  : CutPlane{pts[v], dir};
+            BeamGeom bg = _make_beam_cut(pts[u], dir, up, beam_w, beam_h, cp_from, cp_to);
+            store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
+            boundary_inner[{std::min(u, v), std::max(u, v)}] = boundary_inner_plane(pts[u], pts[v], dir, up, beam_w);
+        }
+
         // ── build box beams: interior color-0 edges, ends cut by crossing beam planes ──
         // Matches C# Beams2:
         //   op = _OppositeFE(i, j, -1) → side beam crossing our beam at "To"  end
@@ -557,29 +701,16 @@ private:
                 CutPlane cp_to   = op_to
                     ? cut_plane(EF, face_norms, i, bdir, our_center, beam_w, cut_offset_factor,
                                 op_to->first, op_to->second, EF[i][j].to)
-                    : boundary_cut_plane(EF, face_norms, i, bdir, (j + 1) % n, EF[i][j].to);
+                    : boundary_cut_plane(boundary_inner, faces, i, bdir, (j + 1) % n, EF[i][j].to);
                 CutPlane cp_from = op_from
                     ? cut_plane(EF, face_norms, i, bdir, our_center, beam_w, cut_offset_factor,
                                 op_from->first, op_from->second, EF[i][j].from)
-                    : boundary_cut_plane(EF, face_norms, i, bdir, (j - 1 + n) % n, EF[i][j].from);
+                    : boundary_cut_plane(boundary_inner, faces, i, bdir, (j - 1 + n) % n, EF[i][j].from);
                 BeamGeom bg = _make_beam_cut(EF[i][j].from, bdir, up,
                                              beam_w, beam_h, cp_from, cp_to);
                 if (bg.mesh.number_of_vertices() == 0) continue;
 
-                beams.push_back(std::move(bg.mesh));
-
-                std::vector<Point> s0 = bg.side0; s0.push_back(s0[0]);
-                side0.emplace_back(s0);
-
-                std::vector<Point> s1 = bg.side1; s1.push_back(s1[0]);
-                side1.emplace_back(s1);
-
-                std::vector<Point> bb = bg.beam_bottom; bb.push_back(bb[0]);
-                beam_bottom.emplace_back(bb);
-
-                std::vector<Point> bt = bg.beam_top; bt.push_back(bt[0]);
-                beam_top.emplace_back(bt);
-
+                store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
                 beam_dirs.push_back({bdir[0], bdir[1], bdir[2]});
                 beam_ups.push_back({up[0], up[1], up[2]});
             }
