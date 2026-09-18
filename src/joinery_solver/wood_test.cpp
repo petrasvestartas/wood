@@ -1,17 +1,17 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_session.h"
 
 using namespace session_cpp;
-using wood_session::WoodSession;
+using namespace wood_session;
 
 /// One dataset: its yml globals, its plates, the joints, and data/output/<DATA_SET_OUTPUT_FILE> with the outline dumps beside it.
-static bool run_dataset(const char* name) {
+static bool run_dataset(std::string_view name) {
     try {
         WoodSession scene = WoodSession::yaml_load(name);
         scene.compute_joints();
         scene.add_to_tree();
 
-        const std::filesystem::path pb = internal::output_dir() / wood_session::globals::DATA_SET_OUTPUT_FILE;
+        const std::filesystem::path pb = config::output_dir() / wood_session::config::DATA_SET_OUTPUT_FILE;
         wood_session::write_parity_dumps(scene, pb);
         scene.pb_dump(pb.string());
 
@@ -68,23 +68,20 @@ bool type_plates_name_cross_brussels_sports_tower() { return run_dataset("cross_
 
 bool type_beams_name_phanomema_node() {
     try {
-        using namespace wood_session::globals;
-        if (!internal::plates_exist("phanomema_node"))
+        using namespace wood_session::config;
+        if (!config::plates_exist("phanomema_node"))
             return false;
 
-        globals_yaml("phanomema_node");
+        load_yaml("phanomema_node");
         if (BEAMS.size() != 6)
             throw std::runtime_error("phanomema_node.yml has no beams block");
 
-        const std::vector<Polyline> axes = internal::load_polylines("phanomema_node");
-        std::vector<std::vector<double>> segment_radii;
-        segment_radii.reserve(axes.size());
-        for (const Polyline& ax : axes)
-            segment_radii.emplace_back(ax.segment_count(), BEAMS[0]);
+        std::vector<std::shared_ptr<Beam>> beams;
+        for (const Polyline& axis : config::load_obj("phanomema_node"))
+            beams.push_back(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), BEAMS[0]), std::vector<Vector>{}, static_cast<int>(BEAMS[1])));
 
-        const std::vector<std::vector<Vector>> segment_direction;
-        const std::vector<int> allowed_types{static_cast<int>(BEAMS[1])};
-        beam_volumes_pipeline(axes, segment_radii, segment_direction, allowed_types, BEAMS[2], BEAMS[3], BEAMS[4], static_cast<int>(BEAMS[5]));
+        WoodSession volumes = Beam::joint_volumes(beams, BEAMS[2], BEAMS[3], BEAMS[4], static_cast<int>(BEAMS[5]));
+        volumes.pb_dump((config::output_dir() / DATA_SET_OUTPUT_FILE).string());
 
         return true;
     } catch (const std::exception& e) {

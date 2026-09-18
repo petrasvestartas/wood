@@ -72,6 +72,6 @@ static void b_0(WoodJoint& joint) {
     joint.male_outlines[0] = { rect0, rect0, rect2, rect2 };
     joint.male_outlines[1] = { rect1, rect1, rect3, rect3 };
 
-    joint.male_cut_types[0] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
-    joint.male_cut_types[1] = { wood_cut::slice, wood_cut::slice, wood_cut::slice, wood_cut::slice };
+    joint.male_cut_types[0] = { CutType::slice, CutType::slice, CutType::slice, CutType::slice };
+    joint.male_cut_types[1] = { CutType::slice, CutType::slice, CutType::slice, CutType::slice };
 }

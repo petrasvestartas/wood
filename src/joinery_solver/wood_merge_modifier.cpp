@@ -1,7 +1,6 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_merge_modifier.h"
 #include "wood_session.h"
-#include "wood_cut.h"
 using namespace session_cpp;
 
 constexpr bool TRACE = false;
@@ -16,7 +15,7 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index)
     : plate(plate), plate_index(plate_index) {
 
     if (TRACE) {
-        log_file.open((internal::output_dir() / "merge.txt").string(), std::ios::app);
+        log_file.open((config::output_dir() / "merge.txt").string(), std::ios::app);
         if (log_file.is_open())
             log = &log_file;
     }
@@ -26,7 +25,7 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index)
     joint_planes = plate.planes;
     top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
     bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
-    distance_squared = wood_session::globals::DISTANCE_SQUARED;
+    distance_squared = wood_session::config::DISTANCE_SQUARED;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -117,9 +116,9 @@ void MergeModifier::log_result(const Polyline& merged_top, const Polyline& merge
     stream << "\n";
 }
 
-MergeModifier::JointOutlines* MergeModifier::joint_outlines(WoodJoint& joint, size_t face, int joint_id, bool male_or_female) const {
+std::array<std::vector<Polyline>, 2>* MergeModifier::joint_outlines(WoodJoint& joint, size_t face, int joint_id, bool male_or_female) const {
 
-    JointOutlines& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
+    std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
     if (outlines[0].size() < 2 || outlines[1].size() < 2)
         return nullptr;
 
@@ -148,7 +147,7 @@ MergeModifier::JointOutlines* MergeModifier::joint_outlines(WoodJoint& joint, si
     return &outlines;
 }
 
-void MergeModifier::insert_rectangle_cut(const JointOutlines& outlines) {
+void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>, 2>& outlines) {
 
     Polyline clipped_top;
     std::pair<double, double> parameters_top;
@@ -206,7 +205,7 @@ void MergeModifier::relocate_previous_corners(size_t face, const Point& top_star
     }
 }
 
-bool MergeModifier::relocate_edge_vertices(JointOutlines& outlines, size_t face) {
+bool MergeModifier::relocate_edge_vertices(std::array<std::vector<Polyline>, 2>& outlines, size_t face) {
 
     const Point top_start = outlines[0][1].get_point(0);
     const Point top_end = outlines[0][1].get_point(1);
@@ -249,7 +248,7 @@ bool MergeModifier::relocate_edge_vertices(JointOutlines& outlines, size_t face)
     return true;
 }
 
-void MergeModifier::flip_and_insert_cut(const WoodJoint& joint, JointOutlines& outlines, size_t face, int joint_id, bool male_or_female) {
+void MergeModifier::flip_and_insert_cut(const WoodJoint& joint, std::array<std::vector<Polyline>, 2>& outlines, size_t face, int joint_id, bool male_or_female) {
 
     const int edge_index = static_cast<int>(face) - 2;
     const Polyline& reference = outlines[0][0];
@@ -297,13 +296,13 @@ void MergeModifier::flip_and_insert_cut(const WoodJoint& joint, JointOutlines& o
     bottom_runs.insert({sort_key, {parameters, outlines[1][0].get_points()}});
 }
 
-void MergeModifier::insert_side_joints(const PlateMembership& membership, std::vector<WoodJoint>& joints) {
+void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints) {
     for (size_t face = 2; face < membership.size() && face < plate.planes.size(); face++) {
         for (size_t j = 0; j < membership[face].size(); j++) {
             const int joint_id = membership[face][j].first;
             const bool male_or_female = membership[face][j].second;
             WoodJoint& joint = joints[joint_id];
-            JointOutlines* outlines = joint_outlines(joint, face, joint_id, male_or_female);
+            std::array<std::vector<Polyline>, 2>* outlines = joint_outlines(joint, face, joint_id, male_or_female);
             if (!outlines)
                 continue;
 
@@ -324,10 +323,10 @@ void MergeModifier::insert_side_joints(const PlateMembership& membership, std::v
     }
 }
 
-Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, SortedRuns& runs, const Point& original_front) {
+Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, std::multimap<size_t, std::pair<std::pair<double, double>, std::vector<Point>>>& runs, const Point& original_front) {
 
     std::vector<bool> point_flags(points.size(), true);
-    for (const SortedRuns::value_type& entry : runs) {
+    for (const std::multimap<size_t, std::pair<std::pair<double, double>, std::vector<Point>>>::value_type& entry : runs) {
         const std::pair<double, double>& parameters = entry.second.first;
         for (size_t k = (size_t)std::ceil(parameters.first); k <= (size_t)std::floor(parameters.second) && k < point_flags.size(); k++)
             point_flags[k] = false;
@@ -355,7 +354,7 @@ Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, S
     }
 
     std::vector<Point> merged;
-    for (const SortedRuns::value_type& entry : runs) {
+    for (const std::multimap<size_t, std::pair<std::pair<double, double>, std::vector<Point>>>::value_type& entry : runs) {
         const std::vector<Point>& points_run = entry.second.second;
         merged.insert(merged.end(), points_run.begin(), points_run.end());
     }
@@ -401,13 +400,13 @@ void MergeModifier::close_corner(Polyline& merged_top, Polyline& merged_bottom) 
     merged_bottom = Polyline(closed_bottom);
 }
 
-void MergeModifier::cut_holes_top_bottom(const PlateMembership& membership, std::vector<WoodJoint>& joints, std::vector<Polyline>& result) const {
+void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints, std::vector<Polyline>& result) const {
     for (size_t face = 0; face < 2 && face < membership.size(); face++) {
         for (size_t k = 0; k < membership[face].size(); k++) {
             const int joint_id = membership[face][k].first;
             const bool male_or_female = membership[face][k].second;
             WoodJoint& joint = joints[joint_id];
-            JointOutlines& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
+            std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
             std::array<std::vector<int>, 2>& cut_types = male_or_female ? joint.male_cut_types : joint.female_cut_types;
 
             if (outlines[0].empty() || outlines[1].empty())
@@ -438,13 +437,13 @@ void MergeModifier::cut_holes_top_bottom(const PlateMembership& membership, std:
     }
 }
 
-void MergeModifier::cut_holes_side(const PlateMembership& membership, std::vector<WoodJoint>& joints, std::vector<Polyline>& result) const {
+void MergeModifier::cut_holes_side(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints, std::vector<Polyline>& result) const {
     for (size_t face = 2; face < membership.size(); face++) {
         for (size_t k = 0; k < membership[face].size(); k++) {
             const int joint_id = membership[face][k].first;
             const bool male_or_female = membership[face][k].second;
             WoodJoint& joint = joints[joint_id];
-            JointOutlines& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
+            std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
             std::array<std::vector<int>, 2>& cut_types = male_or_female ? joint.male_cut_types : joint.female_cut_types;
 
             if (outlines[0].empty() || outlines[1].empty())
@@ -455,7 +454,7 @@ void MergeModifier::cut_holes_side(const PlateMembership& membership, std::vecto
 
             std::vector<int> hole_indices;
             for (int cut_index = 0; cut_index < (int)cut_types[0].size(); cut_index += 2)
-                if (cut_types[0][cut_index] == wood_cut::hole)
+                if (cut_types[0][cut_index] == CutType::hole)
                     hole_indices.push_back(cut_index);
 
             if (hole_indices.empty())

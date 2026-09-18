@@ -1,14 +1,14 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
 namespace wood_session {
 
 /// A solid for contact detection only: one face per closed loop, no plate convention.
 class Block : public session_cpp::Element {
 public:
-    static constexpr const char* ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
-    static constexpr const char* LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
+    static constexpr std::string_view ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
+    static constexpr std::string_view LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
 
     /// An empty block: no solid.
     Block();
@@ -28,7 +28,13 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return ELEMENT_TYPE; }
+    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+
+    /// The kernel's cached box of the solid.
+    using session_cpp::Element::aabb;
+
+    /// The box of the solid, inflated on each side; empty when the block has no mesh.
+    session_cpp::AABB aabb(double inflate) const;
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Block>(*this); }

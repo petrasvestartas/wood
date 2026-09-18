@@ -2,7 +2,7 @@
 
 using namespace wood_session;
 
-const std::string DATASET = globals::Dataset::inplane_hexshell;   // globals::Dataset::<name>
+const std::string DATASET{config::Dataset::inplane_hexshell};   // config::Dataset::<name>
 
 /// Loads the plates, detects the joints, and writes the scene; no plate is lofted before the file is written.
 int main() {
@@ -41,23 +41,21 @@ examples/3_joint_detection.cpp
  |
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp   (see 1_io: yml, obj, Plate, add)
  |
- |-- compute_joints(search_type)                 wood_session.cpp
+ |-- compute_joints(search_type)                 wood_joint_solver.cpp, in pipeline order:
  |    |-- clear_joints()
- |    |-- get_connection_zones(plates, search)   src/joinery_solver/wood_main.cpp, in pipeline order:
- |    |    |-- adjacent_pairs                     adjacency_search               wood_face_to_face.cpp
- |    |    |-- load_insertion_vectors, load_joint_types      the txt sidecars   wood_internal.cpp
- |    |    |-- detect_joints                      face_to_face_wood              wood_face_to_face.cpp
- |    |    |    |   prepare_candidate -> side_side (in_plane | out_of_plane | rotated) | top_side | top_top
- |    |    |    '-- cross_fallback -> plane_to_face, CrossJoint               wood_joint_detection.cpp
- |    |    |-- link_three_valence_joints          vidy shadow joints, annen alignment   wood_three_valence.cpp
- |    |    |-- joint_membership_per_face          which joints touch which face of which plate
- |    |    |-- build_joints_geometry -> reuse_or_create_geometry -> create_<family>_joint
- |    |    |    |-- joints/<family>_<id>.h        unit-box male/female outlines      wood_joint_lib.h
- |    |    |    '-- joint_get_divisions, apply_unit_scale, joint_orient_to_connection_area, merge_linked_joints
- |    |    |                                                                          wood_joint.cpp
- |    |    '-- merge_joints_into_plates -> MergeModifier::apply(plate, membership, joints)
- |    |                                                                    wood_merge_modifier.cpp
- |    |         '-- plate.features = merged bottom/top outlines (+holes), plate.invalidate_geometry()
+ |    |-- config::load_joint_data                   the four txt sidecars as JointData   wood_config.cpp
+ |    |-- adjacent_pairs                          adjacency sidecar | adjacency_search   wood_face_to_face.cpp
+ |    |-- detect_joints                           face_to_face_wood              wood_face_to_face.cpp
+ |    |    |   prepare_candidate -> side_side (in_plane | out_of_plane | rotated) | top_side | top_top
+ |    |    '-- cross_fallback -> plane_to_face, CrossJoint               wood_joint_detection.cpp
+ |    |-- link_three_valence_joints               vidy shadow joints, annen alignment   wood_three_valence.cpp
+ |    |-- build_joint_geometry -> reuse_or_create_geometry -> create_<family>_joint
+ |    |    |-- joints/<family>_<id>.h             unit-box male/female outlines      wood_joint_lib.h
+ |    |    '-- joint_get_divisions, apply_unit_scale, joint_orient_to_connection_area, merge_linked_joints
+ |    |                                                                               wood_joint.cpp
+ |    '-- merge_joints -> joint_membership_per_face -> MergeModifier::apply(plate, membership, joints)
+ |                                                                         wood_merge_modifier.cpp
+ |         '-- plate.features = merged bottom/top outlines (+holes), plate.invalidate_geometry()
  |    |-- set_interaction(a, b, joint)            every joint onto its graph edge
  |    '-- sync_joint_features()                   the joint as an ElementFeature on both host elements
  |

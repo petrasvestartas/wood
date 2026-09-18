@@ -72,10 +72,10 @@ static void ss_e_ip_5(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
 
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 
     joint.unit_scale = true;
 }

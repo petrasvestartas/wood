@@ -1,0 +1,288 @@
+#pragma once
+
+#include "pch.h"
+
+#include "wood_joint_data.h"
+
+/// Which detection pass compute_joints runs.
+enum SearchType : int {
+    face_to_face = 0, // Coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p.
+    cross_joint = 1, // Elements passing through each other: plane_to_face, type 30.
+    face_to_face_then_cross = 2, // Face-to-face first, cross as the fallback.
+};
+
+namespace wood_session {
+namespace config {
+    /// The detection pass the dataset asks for (yml `search_type`).
+    extern SearchType SEARCH_TYPE;
+
+    /// Joint-family triples [division_length (mm), shift, joint_type_id]; families 0=ss_e_ip 1=ss_e_op 2=ts_e_p 3=cr_c_ip 4=tt_e_p 5=ss_e_r 6=b.
+    extern std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
+
+    /// Additive [width, height, length] extension (mm) of joint volumes: one triple for every joint type, or one per type
+    /// (side-side, top-side, top-top, cross); width and height grow the volume, length the joint line; unit-scale joints
+    /// (ss_e_ip_2, ss_e_r_*, ts_e_p_5) keep their axial size at the plate thickness.
+    extern std::vector<double> JOINT_VOLUME_EXTENSION;
+
+    /// Multiplicative [sx, sy, sz] scale of joint geometry before insertion (ss_e_ip_2, ss_e_r_*, ts_e_p_5); 1 = no change.
+    extern std::array<double, 3> JOINT_SCALE;
+
+    /// Degrees; rotated-joint threshold.
+    extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
+
+    /// Force rotated geometry path.
+    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;
+
+    /// Averaged plane for rotated joints.
+    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;
+
+    /// Inflate AABBs / point-merge tolerance (mm).
+    extern double DISTANCE;
+
+    /// Squared coplanarity tolerance (mm²).
+    extern double DISTANCE_SQUARED;
+
+    /// Angular tolerance, RADIANS (cos-tolerance).
+    extern double ANGLE;
+
+    /// Consecutive-duplicate-points removal in load_obj.
+    extern double DUPLICATE_PTS_TOL;
+
+    /// Filters out joints whose centerline is shorter.
+    extern double LIMIT_MIN_JOINT_LENGTH;
+
+    /// Mm -> int64 scale for the 2D boolean (1e6 = nanometre grid).
+    extern int64_t CLIPPER_SCALE;
+
+    /// Overlap areas at or below this (mm²) are not a contact.
+    extern double  CLIPPER_AREA;
+
+    /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
+    extern std::string DATA_SET_INPUT_FOLDER;
+
+    /// Every dataset shipped in data/ as <name>.yml, in sweep order.
+    extern const std::vector<std::string> DATASET_NAMES;
+
+    /// Every session shipped in data/ as <name>.pb.
+    extern const std::vector<std::string> SESSION_NAMES;
+
+    /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
+    struct Dataset {
+        static constexpr std::string_view hexbox_and_corner = "hexbox_and_corner";
+        static constexpr std::string_view vidy_corner = "vidy_corner";
+        static constexpr std::string_view vidy_one_layer = "vidy_one_layer";
+        static constexpr std::string_view vidy_one_axis_two_layers = "vidy_one_axis_two_layers";
+        static constexpr std::string_view vidy_full = "vidy_full";
+        static constexpr std::string_view inplane_butterflies = "inplane_butterflies";
+        static constexpr std::string_view inplane_hexshell = "inplane_hexshell";
+        static constexpr std::string_view inplane_differentdirections = "inplane_differentdirections";
+        static constexpr std::string_view vidy_folding = "vidy_folding";
+        static constexpr std::string_view outofplane_box = "outofplane_box";
+        static constexpr std::string_view outofplane_box_miter = "outofplane_box_miter";
+        static constexpr std::string_view outofplane_tetra = "outofplane_tetra";
+        static constexpr std::string_view outofplane_dodecahedron = "outofplane_dodecahedron";
+        static constexpr std::string_view outofplane_icosahedron = "outofplane_icosahedron";
+        static constexpr std::string_view outofplane_octahedron = "outofplane_octahedron";
+        static constexpr std::string_view simple_corners = "simple_corners";
+        static constexpr std::string_view simple_corners_combined = "simple_corners_combined";
+        static constexpr std::string_view simple_corners_diff_lengths = "simple_corners_diff_lengths";
+        static constexpr std::string_view inplane_hilti = "inplane_hilti";
+        static constexpr std::string_view top_to_top_pairs = "top_to_top_pairs";
+        static constexpr std::string_view hexboxes = "hexboxes";
+        static constexpr std::string_view hex_block_rossiniere = "hex_block_rossiniere";
+        static constexpr std::string_view top_to_side_snap_fit = "top_to_side_snap_fit";
+        static constexpr std::string_view top_to_side_box = "top_to_side_box";
+        static constexpr std::string_view top_to_side_corners = "top_to_side_corners";
+        static constexpr std::string_view annen_corner = "annen_corner";
+        static constexpr std::string_view annen_box = "annen_box";
+        static constexpr std::string_view annen_box_pair = "annen_box_pair";
+        static constexpr std::string_view annen_grid_small = "annen_grid_small";
+        static constexpr std::string_view annen_grid_full_arch = "annen_grid_full_arch";
+        static constexpr std::string_view vda_floor_0 = "vda_floor_0";
+        static constexpr std::string_view vda_floor_2 = "vda_floor_2";
+        static constexpr std::string_view cross_and_sides_corner = "cross_and_sides_corner";
+        static constexpr std::string_view cross_corners = "cross_corners";
+        static constexpr std::string_view cross_vda_corner = "cross_vda_corner";
+        static constexpr std::string_view cross_vda_hexshell = "cross_vda_hexshell";
+        static constexpr std::string_view cross_vda_hexshell_reciprocal = "cross_vda_hexshell_reciprocal";
+        static constexpr std::string_view cross_vda_single_arch = "cross_vda_single_arch";
+        static constexpr std::string_view cross_vda_shell = "cross_vda_shell";
+        static constexpr std::string_view cross_square_reciprocal_two_sides = "cross_square_reciprocal_two_sides";
+        static constexpr std::string_view cross_square_reciprocal_iseya = "cross_square_reciprocal_iseya";
+        static constexpr std::string_view cross_ibois_pavilion = "cross_ibois_pavilion";
+        static constexpr std::string_view cross_brussels_sports_tower = "cross_brussels_sports_tower";
+        static constexpr std::string_view phanomema_node = "phanomema_node";
+        static constexpr std::string_view hello = "hello";
+        static constexpr std::string_view top_to_side_test = "top_to_side_test";
+        static constexpr std::string_view vda_floor_1 = "vda_floor_1";
+        static constexpr std::string_view cross_brg_slab_0 = "cross_brg_slab_0";
+
+        /// Ordinary plate outlines: compute_face_contacts / compute_joints(face_to_face).
+        struct Face {
+            static constexpr std::string_view hexbox_and_corner = Dataset::hexbox_and_corner;
+            static constexpr std::string_view vidy_corner = Dataset::vidy_corner;
+            static constexpr std::string_view vidy_one_layer = Dataset::vidy_one_layer;
+            static constexpr std::string_view vidy_one_axis_two_layers = Dataset::vidy_one_axis_two_layers;
+            static constexpr std::string_view vidy_full = Dataset::vidy_full;
+            static constexpr std::string_view inplane_butterflies = Dataset::inplane_butterflies;
+            static constexpr std::string_view inplane_hexshell = Dataset::inplane_hexshell;
+            static constexpr std::string_view inplane_differentdirections = Dataset::inplane_differentdirections;
+            static constexpr std::string_view vidy_folding = Dataset::vidy_folding;
+            static constexpr std::string_view outofplane_box = Dataset::outofplane_box;
+            static constexpr std::string_view outofplane_box_miter = Dataset::outofplane_box_miter;
+            static constexpr std::string_view outofplane_tetra = Dataset::outofplane_tetra;
+            static constexpr std::string_view outofplane_dodecahedron = Dataset::outofplane_dodecahedron;
+            static constexpr std::string_view outofplane_icosahedron = Dataset::outofplane_icosahedron;
+            static constexpr std::string_view outofplane_octahedron = Dataset::outofplane_octahedron;
+            static constexpr std::string_view simple_corners = Dataset::simple_corners;
+            static constexpr std::string_view simple_corners_combined = Dataset::simple_corners_combined;
+            static constexpr std::string_view simple_corners_diff_lengths = Dataset::simple_corners_diff_lengths;
+            static constexpr std::string_view inplane_hilti = Dataset::inplane_hilti;
+            static constexpr std::string_view top_to_top_pairs = Dataset::top_to_top_pairs;
+            static constexpr std::string_view hexboxes = Dataset::hexboxes;
+            static constexpr std::string_view hex_block_rossiniere = Dataset::hex_block_rossiniere;
+            static constexpr std::string_view top_to_side_snap_fit = Dataset::top_to_side_snap_fit;
+            static constexpr std::string_view top_to_side_box = Dataset::top_to_side_box;
+            static constexpr std::string_view top_to_side_corners = Dataset::top_to_side_corners;
+            static constexpr std::string_view annen_corner = Dataset::annen_corner;
+            static constexpr std::string_view annen_box = Dataset::annen_box;
+            static constexpr std::string_view annen_box_pair = Dataset::annen_box_pair;
+            static constexpr std::string_view annen_grid_small = Dataset::annen_grid_small;
+            static constexpr std::string_view annen_grid_full_arch = Dataset::annen_grid_full_arch;
+            static constexpr std::string_view vda_floor_0 = Dataset::vda_floor_0;
+            static constexpr std::string_view vda_floor_2 = Dataset::vda_floor_2;
+            static constexpr std::string_view hello = Dataset::hello;
+            static constexpr std::string_view top_to_side_test = Dataset::top_to_side_test;
+            static constexpr std::string_view vda_floor_1 = Dataset::vda_floor_1;
+        };
+
+        /// Plate outlines whose solved joints include type-30 crossings: compute_cross_contacts / compute_joints(cross_joint).
+        struct Cross {
+            static constexpr std::string_view cross_and_sides_corner = Dataset::cross_and_sides_corner;
+            static constexpr std::string_view cross_corners = Dataset::cross_corners;
+            static constexpr std::string_view cross_vda_corner = Dataset::cross_vda_corner;
+            static constexpr std::string_view cross_vda_hexshell = Dataset::cross_vda_hexshell;
+            static constexpr std::string_view cross_vda_hexshell_reciprocal = Dataset::cross_vda_hexshell_reciprocal;
+            static constexpr std::string_view cross_vda_single_arch = Dataset::cross_vda_single_arch;
+            static constexpr std::string_view cross_vda_shell = Dataset::cross_vda_shell;
+            static constexpr std::string_view cross_square_reciprocal_two_sides = Dataset::cross_square_reciprocal_two_sides;
+            static constexpr std::string_view cross_square_reciprocal_iseya = Dataset::cross_square_reciprocal_iseya;
+            static constexpr std::string_view cross_ibois_pavilion = Dataset::cross_ibois_pavilion;
+            static constexpr std::string_view cross_brussels_sports_tower = Dataset::cross_brussels_sports_tower;
+            static constexpr std::string_view cross_brg_slab_0 = Dataset::cross_brg_slab_0;
+        };
+
+        /// Beam axes, not plate outlines (type_beams_name_*): compute_line_contacts / Beam::joint_volumes, never obj_load.
+        struct Curves {
+            static constexpr std::string_view phanomema_node = Dataset::phanomema_node;
+        };
+    };
+
+    /// DATASET_NAMES.at(index): a stray index throws std::out_of_range instead of reading past the end.
+    const std::string& dataset_name(size_t index);
+
+    /// data/<SESSION_NAMES[index]>.pb for Session::pb_load; out of range throws.
+    std::string session_pb(size_t index);
+
+    /// Dataset name: the yml stem.
+    extern std::string DATA_SET_INPUT_NAME;
+
+    /// Obj path named by the dataset yaml.
+    extern std::string DATA_SET_OBJ;
+
+    /// Adjacency txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_ADJACENCY;
+
+    /// Three-valence txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_THREE_VALENCE;
+
+    /// Insertion-vectors txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_INSERTION_VECTORS;
+
+    /// Joint-types txt path from the yaml, empty when absent.
+    extern std::string DATA_SET_JOINTS_TYPES;
+
+    /// WoodF2F_<yml stem>.pb, written into data/output/.
+    extern std::string DATA_SET_OUTPUT_FILE;
+
+    /// Beam datasets (yml `beams`): [radius, allowed joint type, min_distance, volume_length, cross_or_side_to_end, flip_male].
+    extern std::vector<double> BEAMS;
+
+    /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_MALE;
+
+    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
+    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
+
+    /// Reset every global above to the wood baseline values.
+    void reset_defaults();
+
+    /// Load `data/<name>.yml` (or the given .yml path) and apply every key to the globals above.
+    void load_yaml(const std::string& dataset_name);
+
+    /// The dataset folder, DATA_SET_INPUT_FOLDER; absolute, so the working directory does not matter.
+    std::filesystem::path session_data_dir();
+
+    /// Absolute path to data/output/, created on first call.
+    std::filesystem::path output_dir();
+
+    /// A bare name resolves to <session_data_dir>/<name><ext>; a path already ending in ext is returned as is.
+    std::filesystem::path dataset_path(const std::string& name, const std::string& ext);
+
+    /// True iff data/<name>.obj exists.
+    bool plates_exist(const std::string& name);
+
+    /// Adjacent pairs from the adjacency sidecar, `a b` per line; empty when there is no sidecar.
+    std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_name);
+
+    /// Insertion vectors from the sidecar, one element per line as `x y z ...`; `count` rows, empty ones for elements the sidecar does not name.
+    std::vector<std::vector<session_cpp::Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count);
+
+    /// Per-face joint type ids from the sidecar, one element per line; `count` rows, empty ones for elements the sidecar does not name.
+    std::vector<std::vector<int>> load_joint_types(const std::string& joint_types_name, size_t count);
+
+    /// Three-valence groups from the sidecar: the first row [instruction], then [s0, s1, e20, e31] rows; empty when there is no sidecar.
+    std::vector<std::vector<int>> load_three_valence(const std::string& three_valence_name);
+
+    /// The four sidecars the dataset yml names, DATA_SET_ADJACENCY, DATA_SET_INSERTION_VECTORS, DATA_SET_JOINTS_TYPES and DATA_SET_THREE_VALENCE, as one JointData for `count` elements.
+    JointData load_joint_data(size_t count);
+
+    /// The polylines of data/<name>.obj or an .obj path: plate outline pairs, or one beam axis each; duplicate_pts_tol > 0 removes consecutive duplicate points and becomes DUPLICATE_PTS_TOL.
+    std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol = 0.0);
+}} // namespace wood_session::config

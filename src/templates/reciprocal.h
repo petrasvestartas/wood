@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include "intersection.h"
+#include "reciprocal_closest_parameter_less.h"
 #include "xform.h"
 #include <algorithm>
 #include <map>
@@ -45,17 +46,6 @@ private:
 // produce duplicate symbols, and no `static` keyword - that belongs on the
 // in-class declaration only.
 // ---------------------------------------------------------------------------
-
-/// Orders point indices by their closest-point parameter along line.
-struct ClosestParameterLess {
-    const Line&               line;    // the line the parameters are measured on
-    const std::vector<Point>& points;  // the points the indices refer to
-
-    bool operator()(int a, int b) const {
-        return line.closest_point(points[a], false).first <
-               line.closest_point(points[b], false).first;
-    }
-};
 
 inline std::vector<Line> Reciprocal::get_lines(
     const std::vector<Line>&             lines,

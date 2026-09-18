@@ -1,10 +1,10 @@
-#include "wood_pch.h"
+#include "pch.h"
+#include "wood_element_beam.h"
 #include "wood_session.h"
-#include "wood_element_plate.h"
 #include "wood_face_to_face.h"
 using namespace session_cpp;
-using wood_session::WoodJoint;
-using wood_session::Plate;
+
+namespace wood_session {
 
 constexpr bool TRACE = false;
 
@@ -32,54 +32,6 @@ bool type_allowed(const int sum, const int allowed) {
         case -1: return true;
         default: return false;
     }
-}
-
-bool has_direction(const std::vector<std::vector<Vector>>& directions, const int pid, const int sid) {
-    return !directions.empty() && pid >= 0 && pid < (int)directions.size() && sid >= 0 && sid < (int)directions[pid].size();
-}
-
-double radius_of(const std::vector<std::vector<double>>& radii, const int pid, const int sid) {
-
-    if (pid < 0 || pid >= (int)radii.size())
-        return 0.0;
-    if (sid < 0 || sid >= (int)radii[pid].size())
-        return 0.0;
-
-    return radii[pid][sid];
-}
-
-/// Cuts both rectangles of one beam volume at the plane; false when a corner misses it.
-bool compute_trimmed_rectangles(Polyline& first, Polyline& second, const Plane& plane) {
-
-    if (first.point_count() != 5 || second.point_count() != 5)
-        return false;
-
-    std::array<Point, 4> points;
-    if (!Intersection::line_plane(Line::from_points(first[0], first[1]), plane, points[0], false) ||
-        !Intersection::line_plane(Line::from_points(first[3], first[2]), plane, points[1], false) ||
-        !Intersection::line_plane(Line::from_points(second[0], second[1]), plane, points[2], false) ||
-        !Intersection::line_plane(Line::from_points(second[3], second[2]), plane, points[3], false))
-        return false;
-    for (const Point& point : points)
-        for (size_t i = 0; i < 3; ++i)
-            if (!std::isfinite(point[i]))
-                return false;
-
-    if (plane.has_on_negative_side(first[0])) {
-        first.set_point(0, points[0]);
-        first.set_point(3, points[1]);
-        first.set_point(4, points[0]);
-        second.set_point(0, points[2]);
-        second.set_point(3, points[3]);
-        second.set_point(4, points[2]);
-    } else {
-        first.set_point(1, points[0]);
-        first.set_point(2, points[1]);
-        second.set_point(1, points[2]);
-        second.set_point(2, points[3]);
-    }
-
-    return true;
 }
 
 /// The closest segment pair of every two axes within min_distance, keyed by axis pair.
@@ -128,35 +80,67 @@ std::map<uint64_t, Contact> compute_contacts(const std::vector<std::vector<Line>
 
 }  // namespace
 
-void beam_volumes_pipeline(
-    const std::vector<Polyline>& axes,
-    const std::vector<std::vector<double>>& segment_radii,
-    const std::vector<std::vector<Vector>>& segment_direction,
-    const std::vector<int>& allowed_types_per_polyline,
+Beam::Beam() : Element("beam") {}
+
+Beam::Beam(const Polyline& axis, double radius, const std::string& name)
+    : Element(name), axis(axis), radii(axis.segment_count(), radius) {}
+
+Beam::Beam(const Polyline& axis, const std::vector<double>& radii, const std::vector<Vector>& directions, int allowed_type, const std::string& name)
+    : Element(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Static constructors
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::shared_ptr<Beam> Beam::from_element(const Element& e) {
+
+    std::shared_ptr<Beam> beam = std::make_shared<Beam>();
+    static_cast<Element&>(*beam) = e;
+    beam->guid() = e.guid();
+
+    nlohmann::json payload;
+    try {
+        payload = nlohmann::json::parse(e.element_data_dumps());
+    } catch (const std::exception&) {
+        return beam;
+    }
+
+    if (payload.contains("axis") && !payload["axis"].is_null())
+        beam->axis = Polyline::jsonload(payload["axis"]);
+    if (payload.contains("radii"))
+        beam->radii = payload["radii"].get<std::vector<double>>();
+    if (payload.contains("directions"))
+        for (const nlohmann::json& direction : payload["directions"])
+            beam->directions.push_back(Vector::jsonload(direction));
+    beam->allowed_type = payload.value("allowed_type", -1);
+
+    return beam;
+}
+
+WoodSession Beam::joint_volumes(
+    const std::vector<std::shared_ptr<Beam>>& beams,
     double min_distance,
     double volume_length,
     double cross_or_side_to_end,
     int flip_male
 ) {
 
-    using namespace wood_session::globals;
+    using namespace wood_session::config;
 
-    const std::string pb_name = DATA_SET_OUTPUT_FILE;
-    const std::filesystem::path base = internal::output_dir();
-
-    Session session("WoodF2F");
+    WoodSession session("WoodF2F");
     const std::shared_ptr<TreeNode> g_axes = session.add_group("BeamAxes");
     const std::shared_ptr<TreeNode> g_vols = session.add_group("JointVolumes");
     g_axes->color = Color(0.70f, 0.70f, 0.70f, 1.0f, "grey");
     g_vols->color = Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta");
 
+    const double zero_length_squared = 1e-6; // A joint line no longer than 1 mm is degenerate.
     std::vector<std::vector<Line>> lines;
-    lines.reserve(axes.size());
-    for (size_t i = 0; i < axes.size(); i++) {
-        std::shared_ptr<Polyline> pl = std::make_shared<Polyline>(axes[i]);
+    lines.reserve(beams.size());
+    for (size_t i = 0; i < beams.size(); i++) {
+        std::shared_ptr<Polyline> pl = std::make_shared<Polyline>(beams[i]->axis);
         pl->name = fmt::format("axis_{}", i);
         session.add_polyline(pl, g_axes);
-        lines.push_back(axes[i].get_lines());
+        lines.push_back(beams[i]->axis.get_lines());
     }
 
     const std::map<uint64_t, Contact> contacts = compute_contacts(lines, min_distance);
@@ -169,8 +153,10 @@ void beam_volumes_pipeline(
     for (const std::pair<const uint64_t, Contact>& entry : contacts) {
         const Contact& c = entry.second;
         n_pairs++;
-        const Polyline& pa_pts = axes[c.pid0];
-        const Polyline& pb_pts = axes[c.pid1];
+        const Beam& beam0 = *beams[c.pid0];
+        const Beam& beam1 = *beams[c.pid1];
+        const Polyline& pa_pts = beam0.axis;
+        const Polyline& pb_pts = beam1.axis;
         const Line s0 = lines[c.pid0][c.sid0];
         const Line s1 = lines[c.pid1][c.sid1];
 
@@ -196,18 +182,13 @@ void beam_volumes_pipeline(
         }
 
         const int sum = (int)type0 + (int)type1;
-        if (allowed_types_per_polyline.size() == 1) {
-            if (!type_allowed(sum, allowed_types_per_polyline[0]))
-                continue;
-        } else if (!allowed_types_per_polyline.empty() && allowed_types_per_polyline.size() == axes.size()) {
-            if (!type_allowed(sum, allowed_types_per_polyline[c.pid0]) || !type_allowed(sum, allowed_types_per_polyline[c.pid1]))
-                continue;
-        }
+        if (!type_allowed(sum, beam0.allowed_type) || !type_allowed(sum, beam1.allowed_type))
+            continue;
 
-        const Vector sn0 = has_direction(segment_direction, c.pid0, c.sid0) ? segment_direction[c.pid0][c.sid0] : normal;
-        const Vector sn1 = has_direction(segment_direction, c.pid1, c.sid1) ? segment_direction[c.pid1][c.sid1] : normal;
-        const double r0 = radius_of(segment_radii, c.pid0, c.sid0);
-        const double r1 = radius_of(segment_radii, c.pid1, c.sid1);
+        const Vector sn0 = beam0.has_direction(c.sid0) ? beam0.directions[c.sid0] : normal;
+        const Vector sn1 = beam1.has_direction(c.sid1) ? beam1.directions[c.sid1] : normal;
+        const double r0 = beam0.radius(c.sid0);
+        const double r1 = beam1.radius(c.sid1);
         if (!(r0 > 0.0) || !(r1 > 0.0) || !std::isfinite(r0) || !std::isfinite(r1) ||
             !(volume_length > 0.0) || !std::isfinite(volume_length) ||
             !has_valid_frame(v0, sn0) || !has_valid_frame(v1, sn1)) {
@@ -231,7 +212,7 @@ void beam_volumes_pipeline(
             for (int lid = 0; lid < 2; lid++) {
                 const int shift = lid == 0 ? 0 : 2;
                 const Plane& cutpl = lid == 0 ? cut_plane0 : cut_plane1;
-                if (!compute_trimmed_rectangles(beam_vol[shift], beam_vol[shift + 1], cutpl)) {
+                if (!Polyline::trim_rectangles_by_plane(beam_vol[shift], beam_vol[shift + 1], cutpl)) {
                     ok = false;
                     break;
                 }
@@ -258,7 +239,7 @@ void beam_volumes_pipeline(
             if (!cutpl.has_on_negative_side(beam_vol[farrer_rect][0]))
                 cutpl = Plane::from_point_normal(qc[0], -rnrm);
             const int shift = type0 == 0 ? 0 : 2;
-            ok = compute_trimmed_rectangles(beam_vol[shift], beam_vol[shift + 1], cutpl);
+            ok = Polyline::trim_rectangles_by_plane(beam_vol[shift], beam_vol[shift + 1], cutpl);
         }
 
         if (!ok) {
@@ -283,7 +264,7 @@ void beam_volumes_pipeline(
             {c.pid0, c.pid1},
             JOINT_VOLUME_EXTENSION,
             0.0,
-            1e-6,
+            zero_length_squared,
             DISTANCE_SQUARED,
             FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE,
             FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED,
@@ -309,11 +290,77 @@ void beam_volumes_pipeline(
         }
     }
 
-    session.pb_dump((base / pb_name).string());
-
     if (TRACE) {
-        std::cout << fmt::format("\n=== beam_volumes_pipeline ===\n");
-        std::cout << fmt::format("{} axes -> {} contacts -> {} volumes ({} failed)\n", axes.size(), n_pairs, n_success, n_failed);
+        std::cout << fmt::format("\n=== Beam::joint_volumes ===\n");
+        std::cout << fmt::format("{} axes -> {} contacts -> {} volumes ({} failed)\n", beams.size(), n_pairs, n_success, n_failed);
         std::cout << fmt::format("  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n", counts[0], counts[1], counts[2], counts[3], counts[4], counts[5]);
     }
+
+    return session;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Geometry
+// ═══════════════════════════════════════════════════════════════════════════
+
+double Beam::radius(int segment) const {
+    return segment >= 0 && segment < (int)radii.size() ? radii[segment] : 0.0;
+}
+
+bool Beam::has_direction(int segment) const {
+    return segment >= 0 && segment < (int)directions.size();
+}
+
+AABB Beam::aabb(double inflate) const {
+
+    const double reach = radii.empty() ? 0.0 : *std::max_element(radii.begin(), radii.end());
+
+    return AABB::from_polyline(axis, inflate + reach);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// JSON
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::string Beam::element_data_dumps() const {
+
+    nlohmann::ordered_json ups = nlohmann::ordered_json::array();
+    for (const Vector& direction : directions)
+        ups.push_back(direction.jsondump());
+
+    nlohmann::ordered_json data{
+        {"allowed_type", allowed_type},
+        {"axis", axis.jsondump()},
+        {"directions", ups},
+        {"radii", radii},
+        {"type", std::string(ELEMENT_TYPE)},
+    };
+    return data.dump();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Protobuf
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The element factory of a serialized beam: the protobuf bytes decoded as an Element and promoted to a Beam.
+static std::shared_ptr<Element> beam_from_protobuf(const std::string& data) {
+    return Beam::from_element(Element::pb_loads(data));
+}
+
+void Beam::register_type() {
+    Element::register_type(std::string(ELEMENT_TYPE), beam_from_protobuf);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// String
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::string Beam::str() const {
+
+    std::ostringstream os;
+    os << "Beam(name=" << name << ", segments=" << axis.segment_count() << ", radii=" << radii.size() << ")";
+
+    return os.str();
+}
+
+} // namespace wood_session

@@ -73,9 +73,9 @@ static void cr_c_ip_1(WoodJoint& joint) {
 
     std::vector<int> ct(18);
     for (int i = 0; i < 6; i++)
-        ct[i] = wood_cut::mill_project;
+        ct[i] = CutType::mill_project;
     for (int i = 6; i < 18; i++)
-        ct[i] = wood_cut::slice;
+        ct[i] = CutType::slice;
 
     for (int face = 0; face < 2; face++) {
         joint.female_cut_types[face] = ct;

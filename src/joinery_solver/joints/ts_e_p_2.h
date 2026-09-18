@@ -78,11 +78,11 @@ static void ts_e_p_2(WoodJoint& joint) {
         std::vector<int> cuts;
         cuts.reserve(joint.female_outlines[f].size());
         for (size_t k = 0; k + 1 < joint.female_outlines[f].size(); k++)
-            cuts.push_back(wood_cut::hole);
-        cuts.push_back(wood_cut::insert_between_multiple_edges);
+            cuts.push_back(CutType::hole);
+        cuts.push_back(CutType::insert_between_multiple_edges);
         joint.female_cut_types[f] = std::move(cuts);
     }
 
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 }

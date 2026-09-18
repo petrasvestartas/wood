@@ -69,10 +69,10 @@ static void ss_e_r_1(WoodJoint& joint) {
     joint.male_outlines[0] = { yz_profile_at_x(0.0, yz, 39), yz_profile_at_x(0.0, yz_marker, 5) };
     joint.male_outlines[1] = { yz_profile_at_x(0.5, yz, 39), yz_profile_at_x(0.5, yz_marker, 5) };
 
-    joint.female_cut_types[0] = { wood_cut::conic, wood_cut::conic };
-    joint.female_cut_types[1] = { wood_cut::conic, wood_cut::conic };
-    joint.male_cut_types[0] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
-    joint.male_cut_types[1] = { wood_cut::conic_reverse, wood_cut::conic_reverse };
+    joint.female_cut_types[0] = { CutType::conic, CutType::conic };
+    joint.female_cut_types[1] = { CutType::conic, CutType::conic };
+    joint.male_cut_types[0] = { CutType::conic_reverse, CutType::conic_reverse };
+    joint.male_cut_types[1] = { CutType::conic_reverse, CutType::conic_reverse };
 
     joint.unit_scale = true;
 }

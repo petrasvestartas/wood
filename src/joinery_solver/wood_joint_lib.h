@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wood_cut.h"
+using namespace wood_session;
 
 // Not wood_session.h: this aggregator lands in the including TU's anonymous namespace, so the
 // consumer includes wood_session.h itself, before this file. Every joints/*.h is included once, here.

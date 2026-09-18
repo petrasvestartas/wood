@@ -1,4 +1,4 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_session.h"
 
 using namespace session_cpp;
@@ -7,187 +7,35 @@ namespace wood_session {
 
 namespace {
 
-/// Near-coplanar rejection threshold, synced from globals::DISTANCE_SQUARED by the caller.
+/// Near-coplanar rejection threshold, synced from config::DISTANCE_SQUARED by the caller.
 double g_cross_distance_squared = 0.01;
 
-/// Squared distance of a point to a plane given by its origin, its normal and the normal's squared length.
-double squared_distance_to_plane(const Point& point, const Point& origin, const Vector& normal, double normal_sq) {
+/// Polyline-plane crossings, none when any vertex lies within the cross-joint distance of the plane; exactly two are a chord.
+bool polyline_plane_chord(const Polyline& polyline, const Plane& plane, std::vector<Point>& points, std::vector<int>& edge_ids) {
 
-    const double num = (point - origin).dot(normal);
-
-    return (normal_sq > 0.0) ? (num * num / normal_sq) : 0.0;
-}
-
-/// Polyline-plane crossing that rejects the whole polyline when any vertex lies within the threshold of the plane.
-bool polyline_plane_cross(const Polyline& polyline, const Plane& plane, std::vector<Point>& points, std::vector<int>& edge_ids) {
-
-    const size_t n = polyline.point_count();
-    if (n < 2)
-        return false;
-
-    const double distance_squared = g_cross_distance_squared;
-    const Vector normal = plane.z_axis();
-    const double normal_sq = normal.magnitude_squared();
-    const Point o = plane.origin();
-
-    for (size_t i = 0; i < n - 1; i++) {
-
-        const Point a = polyline.get_point(i);
-        const Point b = polyline.get_point(i + 1);
-        if (squared_distance_to_plane(a, o, normal, normal_sq) < distance_squared) {
-            points.clear();
-            edge_ids.clear();
+    for (size_t i = 0; i < polyline.point_count(); i++)
+        if (plane.squared_distance(polyline.get_point(i)) < g_cross_distance_squared)
             return false;
-        }
-        if (squared_distance_to_plane(b, o, normal, normal_sq) < distance_squared) {
-            points.clear();
-            edge_ids.clear();
-            return false;
-        }
 
-        const Line seg = Line::from_points(a, b);
-        Point hit;
-        if (Intersection::line_plane(seg, plane, hit, true)) {
-            points.push_back(hit);
-            edge_ids.push_back(static_cast<int>(i));
-        }
-    }
-
-    return points.size() == 2;
+    return Intersection::polyline_plane(polyline, plane, points, edge_ids) && points.size() == 2;
 }
 
-/// Sign of the 2D cross product (b - a) x (c - a): 1 left, -1 right, 0 collinear.
-int cross_sign(double ax, double ay, double bx, double by, double cx, double cy) {
+/// Positions of the test points inside or on the polygon in its plane; their count out.
+int points_inside(const Polyline& polygon, const Plane& plane, const std::vector<Point>& test_points, std::vector<int>& inside) {
 
-    const double v = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-    if (v > 0.0)
-        return 1;
-    if (v < 0.0)
-        return -1;
-
-    return 0;
-}
-
-/// Winding-number point-in-polygon over 2D coordinates: 0 outside, 1 inside, 2 on the boundary.
-int point_in_polygon_winding(const std::vector<double>& px, const std::vector<double>& py, double tx, double ty) {
-
-    const size_t np = px.size();
-    size_t first = 0;
-    while (first < np && py[first] == ty)
-        first++;
-    if (first == np) {
-        for (size_t i = 0; i < np; i++) {
-            const size_t j = (i + 1) % np;
-            if ((std::min(px[i], px[j]) <= tx) && (tx <= std::max(px[i], px[j])))
-                return 2;
-        }
-        return 0;
-    }
-
-    bool is_above = py[first] < ty;
-    const bool starting_above = is_above;
-    int val = 0;
-    size_t curr = first + 1;
-    size_t cend = np;
-    while (true) {
-        if (curr == cend) {
-            if (cend == first || first == 0)
-                break;
-            cend = first;
-            curr = 0;
-        }
-
-        if (is_above) {
-            while (curr != cend && py[curr] < ty)
-                curr++;
-            if (curr == cend)
-                continue;
-        } else {
-            while (curr != cend && py[curr] > ty)
-                curr++;
-            if (curr == cend)
-                continue;
-        }
-
-        const size_t prev = (curr == 0) ? (np - 1) : (curr - 1);
-
-        if (py[curr] == ty) {
-            if (px[curr] == tx || (py[curr] == py[prev] && ((tx < px[prev]) != (tx < px[curr]))))
-                return 2;
-            curr++;
-            if (curr == first)
-                break;
-            continue;
-        }
-
-        if (tx < px[curr] && tx < px[prev]) {
-        } else if (tx > px[prev] && tx > px[curr]) {
-            val = 1 - val;
-        } else {
-            const int d = cross_sign(px[prev], py[prev], px[curr], py[curr], tx, ty);
-            if (d == 0)
-                return 2;
-            if ((d < 0) == is_above)
-                val = 1 - val;
-        }
-        is_above = !is_above;
-        curr++;
-    }
-
-    if (is_above != starting_above) {
-        if (curr == np)
-            curr = 0;
-        const size_t prev = (curr == 0) ? (np - 1) : (curr - 1);
-        const int d = cross_sign(px[prev], py[prev], px[curr], py[curr], tx, ty);
-        if (d == 0)
-            return 2;
-        if ((d < 0) == is_above)
-            val = 1 - val;
-    }
-
-    return val;
-}
-
-/// Boundary-inclusive point-in-polygon in the plane's local 2D; fills the indices of the points inside.
-int are_points_inside(const Polyline& polygon, const Plane& plane, const std::vector<Point>& test_points, std::vector<int>& inside) {
-
-    const Point& o = plane.origin();
-    const Vector xa = plane.base1();
-    const Vector ya = plane.base2();
-
-    size_t np_raw = polygon.point_count();
-    if (np_raw > 1) {
-        const Vector d = polygon.get_point(0) - polygon.get_point(np_raw - 1);
-        if (std::fabs(d[0]) < 1e-12 && std::fabs(d[1]) < 1e-12 && std::fabs(d[2]) < 1e-12)
-            np_raw--;
-    }
-
-    std::vector<double> px;
-    std::vector<double> py;
-    px.reserve(np_raw);
-    py.reserve(np_raw);
-    for (size_t i = 0; i < np_raw; i++) {
-        const Vector d = polygon.get_point(i) - o;
-        px.push_back(d.dot(xa));
-        py.push_back(d.dot(ya));
-    }
-
-    const size_t np = px.size();
-    if (np < 3)
-        return 0;
-
-    int count = 0;
+    const Xform to_xy = Xform::world_to_frame(plane.origin(), plane.base1(), plane.base2(), plane.z_axis());
+    const Polyline flat = polygon.transformed(to_xy);
     for (size_t i = 0; i < test_points.size(); i++) {
-        const Vector d = test_points[i] - o;
-        const double tx = d.dot(xa);
-        const double ty = d.dot(ya);
-        if (point_in_polygon_winding(px, py, tx, ty) != 0) {
+
+        const Point moved = test_points[i].transformed(to_xy);
+        const Point q(moved[0], moved[1], 0.0);
+        size_t edge = 0;
+        Point closest;
+        if (flat.point_in_polygon_2d(q) || flat.closest_distance_and_point(q, edge, closest) < Tolerance::ZERO_TOLERANCE)
             inside.push_back(static_cast<int>(i));
-            count++;
-        }
     }
 
-    return count;
+    return static_cast<int>(inside.size());
 }
 
 /// Cross-joint chord between two polylines via reciprocal polyline-plane intersections; (edge in c0, edge in c1) pair out.
@@ -195,22 +43,19 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
 
     std::vector<Point> pts0;
     std::vector<int> edge_ids_0;
-    if (!polyline_plane_cross(c0, p1, pts0, edge_ids_0))
+    if (!polyline_plane_chord(c0, p1, pts0, edge_ids_0))
         return false;
 
     std::vector<Point> pts1;
     std::vector<int> edge_ids_1;
-    if (!polyline_plane_cross(c1, p0, pts1, edge_ids_1))
-        return false;
-
-    if (pts0.size() < 2 || pts1.size() < 2)
+    if (!polyline_plane_chord(c1, p0, pts1, edge_ids_1))
         return false;
 
     std::vector<int> ID1;
-    const int count0 = are_points_inside(c0, p0, pts1, ID1);
+    const int count0 = points_inside(c0, p0, pts1, ID1);
 
     std::vector<int> ID0;
-    const int count1 = are_points_inside(c1, p1, pts0, ID0);
+    const int count1 = points_inside(c1, p1, pts0, ID0);
 
     if (count0 == 0 && count1 == 0)
         return false;
@@ -283,35 +128,10 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
     return false;
 }
 
-double approximate_angle_deg(const Vector& a, const Vector& b) {
-
-    const double la = a.magnitude();
-    const double lb = b.magnitude();
-    if (la < Tolerance::ZERO_TOLERANCE || lb < Tolerance::ZERO_TOLERANCE)
-        return 0.0;
-
-    double c = a.dot(b) / (la * lb);
-    if (c > 1.0)
-        c = 1.0;
-    if (c < -1.0)
-        c = -1.0;
-
-    return std::acos(c) * 180.0 / 3.14159265358979323846;
-}
-
 } // anonymous namespace
 
 void set_cross_joint_distance_squared(double dist_sq) {
     g_cross_distance_squared = dist_sq;
-}
-
-/// Parameter of the closest point to a point on the line from start to end.
-static double closest_point_parameter(const Point& point, const Point& start, const Point& end) {
-
-    double t;
-    Polyline::closest_point_to_line(point, start, end, t);
-
-    return t;
 }
 
 bool plane_to_face(
@@ -327,7 +147,7 @@ bool plane_to_face(
     result.face_ids_b = {-1, -1};
     result.type = 30;
 
-    const double raw_angle = approximate_angle_deg(px0.z_axis(), py0.z_axis());
+    const double raw_angle = px0.z_axis().angle(py0.z_axis(), false);
     const double angle = 90.0 - std::fabs(raw_angle - 90.0);
     if (angle < angle_tol)
         return false;
@@ -374,20 +194,25 @@ bool plane_to_face(
 
     const Point c_start = c.start();
     const Point c_end = c.end();
+    const auto parameter_of = [&](const Point& point) {
+        double t = 0.0;
+        Polyline::closest_point_to_line(point, c_start, c_end, t);
+        return t;
+    };
 
     double cpt0[4] = {
-        closest_point_parameter(cx0_py0__cy0_px0.start(), c_start, c_end),
-        closest_point_parameter(cx0_py1__cy1_px0.start(), c_start, c_end),
-        closest_point_parameter(cx1_py0__cy0_px1.start(), c_start, c_end),
-        closest_point_parameter(cx1_py1__cy1_px1.start(), c_start, c_end)
+        parameter_of(cx0_py0__cy0_px0.start()),
+        parameter_of(cx0_py1__cy1_px0.start()),
+        parameter_of(cx1_py0__cy0_px1.start()),
+        parameter_of(cx1_py1__cy1_px1.start())
     };
     std::sort(cpt0, cpt0 + 4);
 
     double cpt1[4] = {
-        closest_point_parameter(cx0_py0__cy0_px0.end(), c_start, c_end),
-        closest_point_parameter(cx0_py1__cy1_px0.end(), c_start, c_end),
-        closest_point_parameter(cx1_py0__cy0_px1.end(), c_start, c_end),
-        closest_point_parameter(cx1_py1__cy1_px1.end(), c_start, c_end)
+        parameter_of(cx0_py0__cy0_px0.end()),
+        parameter_of(cx0_py1__cy1_px0.end()),
+        parameter_of(cx1_py0__cy0_px1.end()),
+        parameter_of(cx1_py1__cy1_px1.end())
     };
     std::sort(cpt1, cpt1 + 4);
 

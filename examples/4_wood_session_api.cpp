@@ -6,7 +6,7 @@ using namespace wood_session;
 /// The WoodSession API in the order compas_model presents a model: elements, model, interactions, geometry, file.
 int main() {
 
-    globals::reset_defaults();
+    config::reset_defaults();
 
     // Elements: a Plate is a session_cpp::Element; the constructor keeps the outlines, nothing is lofted yet.
     const std::shared_ptr<Plate> plate_a = Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 400, 300, Vector(0, 0, 40));
@@ -45,9 +45,9 @@ int main() {
     std::cout << model.str() << std::endl;
 
     // Datasets: the same session from data/<name>.yml, which also sets the solver's parameters.
-    WoodSession dataset = WoodSession::yaml_load(globals::Dataset::inplane_hexshell);
+    WoodSession dataset = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
     dataset.compute_joints();
-    std::cout << fmt::format("{}: {} plates, {} joints\n", globals::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
+    std::cout << fmt::format("{}: {} plates, {} joints\n", config::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
 
     return 0;
 }

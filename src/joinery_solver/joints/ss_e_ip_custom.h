@@ -19,8 +19,8 @@ static void ss_e_ip_custom(WoodJoint& joint) {
 
     joint.name = "ss_e_ip_custom";
 
-    const std::vector<Polyline>& cm = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_MALE;
-    const std::vector<Polyline>& cf = wood_session::globals::CUSTOM_JOINTS_SS_E_IP_FEMALE;
+    const std::vector<Polyline>& cm = wood_session::config::CUSTOM_JOINTS_SS_E_IP_MALE;
+    const std::vector<Polyline>& cf = wood_session::config::CUSTOM_JOINTS_SS_E_IP_FEMALE;
     if (cm.size() < 2 || cf.size() < 2)
         return;
 
@@ -58,10 +58,10 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
 
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 
     joint.unit_scale = true;
 }

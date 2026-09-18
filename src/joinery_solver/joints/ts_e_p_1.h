@@ -52,8 +52,8 @@
         Polyline({Point(-0.5,-0.5, 0.5), Point(-0.5,-0.5,-0.5)}),
     };
 
-    joint.female_cut_types[0] = { wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
-    joint.female_cut_types[1] = { wood_cut::hole, wood_cut::hole, wood_cut::insert_between_multiple_edges };
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = { CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
+    joint.female_cut_types[1] = { CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 }

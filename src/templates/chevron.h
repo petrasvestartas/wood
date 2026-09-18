@@ -1,6 +1,7 @@
 #pragma once
 #include "session.h"
 #include "wood_session.h"
+#include "chevron_result.h"
 #include "nurbssurface.h"
 #include "mesh.h"
 #include "polyline.h"
@@ -223,270 +224,117 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
     return session_cpp::Mesh::from_polylines(polygons, 0.01);
 }
 
-/// Output of chevron_plates() — plate geometry + full joinery solver data.
-/// Matches the Grasshopper get_joinery_solver_output() from code.py.
-///
-/// Plate ordering: 8 polylines per mesh face (in f_order), grouped as 4
-/// plate-pairs (index k = counter*4 + role):
-///   role 0 = top face plate  (plines counter*8+0/1)
-///   role 1 = bottom face plate (plines counter*8+2/3)
-///   role 2 = side plate at chevron edge 0 (plines counter*8+4/5)
-///   role 3 = side plate at chevron edge 1 (plines counter*8+6/7)
-struct ChevronResult {
-    /// 8 polylines per face (all faces in f_order, consecutively).
-    std::vector<session_cpp::Polyline> plines;
-
-    /// Insertion vector per plate-pair.  One line = one plate-pair = 6 Vec3
-    /// packed as 18 doubles (x0 y0 z0  x1 y1 z1  ...  x5 y5 z5).
-    /// Positions 0-1 are zero (top/bottom faces of the plate).
-    /// Positions 2-5 are the bisector directions for the T-joint tenons.
-    std::vector<std::array<double,18>> insertion_vectors;
-
-    /// Joint type per plate-pair.  One entry = 6 ints (one per plate face).
-    ///   0  = no joint
-    ///  10  = tenon (male)
-    ///  20  = mortise (female)
-    std::vector<std::array<int,6>> joints_per_face;
-
-    /// Three-valence alignment groups (Annen method, type 0).
-    /// Each row [s0, s1, e20, e31]: plate-pair s0 connects to s1,
-    /// and plate-pair e20 also connects to s1 — the joint on s1 must be
-    /// trimmed so both tenons fit without colliding.
-    /// Written to <dataset>_three_valence.txt for get_connection_zones().
-    std::vector<std::array<int,4>> three_valence;
-
-    /// Adjacency pairs (plate-pair index pairs that share a joint).
-    /// Written to <dataset>_adjacency.txt for get_connection_zones().
-    std::vector<std::pair<int,int>> adjacency;
-
-    /// One 2-point polyline per mesh face (box bisector visualization line).
-    std::vector<session_cpp::Polyline> box_insertion_lines;
-};
-
-/// A 3D vector as a plain array: x, y, z.
-using Vector3 = std::array<double, 3>;
-
-/// Sum of two vectors.
-inline Vector3 add(const Vector3& a, const Vector3& b) {
-    return {a[0]+b[0], a[1]+b[1], a[2]+b[2]};
+/// A plane from an origin and two directions, each normalized on its own, z = x × y; not the kernel constructor, which would re-orthogonalize y.
+inline session_cpp::Plane frame_plane(const session_cpp::Point& origin, const session_cpp::Vector& x_in, const session_cpp::Vector& y_in) {
+    const session_cpp::Vector x = x_in.normalized();
+    const session_cpp::Vector y = y_in.normalized();
+    return session_cpp::Plane::from_frame(origin, x, y, x.cross(y).normalized());
 }
 
-/// Difference a - b of two vectors.
-inline Vector3 subtract(const Vector3& a, const Vector3& b) {
-    return {a[0]-b[0], a[1]-b[1], a[2]-b[2]};
+/// The plane with x and z flipped, y kept: the same plane seen from the other side.
+inline session_cpp::Plane flipped_x(const session_cpp::Plane& p) {
+    return session_cpp::Plane::from_frame(p.origin(), -p.x_axis(), p.y_axis(), -p.z_axis());
 }
 
-/// Vector scaled by a factor.
-inline Vector3 scale(const Vector3& a, double s) {
-    return {a[0]*s, a[1]*s, a[2]*s};
+/// The plane rotated about its own y axis by angle in radians.
+inline session_cpp::Plane rotated_y(const session_cpp::Plane& p, double angle) {
+    const double c = std::cos(angle);
+    const double s = std::sin(angle);
+    const session_cpp::Vector new_x = (p.x_axis() * c + p.z_axis() * -s).normalized();
+    const session_cpp::Vector new_z = (p.x_axis() * s + p.z_axis() * c).normalized();
+    return session_cpp::Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
 }
 
-/// Dot product of two vectors.
-inline double dot(const Vector3& a, const Vector3& b) {
-    return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-}
-
-/// Cross product a x b of two vectors.
-inline Vector3 cross(const Vector3& a, const Vector3& b) {
-    return { a[1]*b[2] - a[2]*b[1],
-             a[2]*b[0] - a[0]*b[2],
-             a[0]*b[1] - a[1]*b[0] };
-}
-
-/// Euclidean length of a vector.
-inline double length(const Vector3& a) {
-    return std::sqrt(dot(a, a));
-}
-
-/// Unit vector along a, or world z when a is shorter than 1e-12.
-inline Vector3 normalize(const Vector3& a) {
-    double n = std::sqrt(dot(a, a));
-    return n > 1e-12 ? scale(a, 1.0/n) : Vector3{0, 0, 1};
-}
-
-/// Gauss-Jordan solve of the 3x3 system A x = b, A[row] being the normal rows and b the right-hand side; false when singular.
-inline bool solve_3x3(const std::array<Vector3,3>& A, const Vector3& b_in, Vector3& x) {
-    double M[3][4];
-    for (int i = 0; i < 3; i++) {
-        M[i][0] = A[i][0]; M[i][1] = A[i][1]; M[i][2] = A[i][2]; M[i][3] = b_in[i];
-    }
-    for (int col = 0; col < 3; col++) {
-        int pivot = col;
-        double best = std::abs(M[col][col]);
-        for (int row = col+1; row < 3; row++) {
-            if (std::abs(M[row][col]) > best) { best = std::abs(M[row][col]); pivot = row; }
-        }
-        if (best < 1e-12) {
-            return false;
-        }
-        if (pivot != col) {
-            for (int k = 0; k < 4; k++) {
-                std::swap(M[col][k], M[pivot][k]);
-            }
-        }
-        double inv = 1.0 / M[col][col];
-        for (int row = 0; row < 3; row++) {
-            if (row == col) {
-                continue;
-            }
-            double f = M[row][col] * inv;
-            for (int k = col; k < 4; k++) {
-                M[row][k] -= f * M[col][k];
-            }
-        }
-    }
-    x = { M[0][3]/M[0][0], M[1][3]/M[1][1], M[2][3]/M[2][2] };
-    return true;
-}
-
-/// A plane as origin o and unit axes x, y, z, where z = cross(x, y) is the normal.
-struct Plane { Vector3 o, x, y, z; };
-
-/// Plane from an origin and two axis directions, both normalized; z = cross(x, y).
-inline Plane make_plane(const Vector3& o, const Vector3& x_in, const Vector3& y_in) {
-    Vector3 x = normalize(x_in);
-    Vector3 y = normalize(y_in);
-    Vector3 z = normalize(cross(x, y));
-    return {o, x, y, z};
-}
-
-/// Plane with its origin translated along z by d (translate_by_normal / move_along_axis axis=2).
-inline Plane plane_translate(const Plane& p, double d) {
-    return {add(p.o, scale(p.z, d)), p.x, p.y, p.z};
-}
-
-/// Plane with x flipped (and z, since z = cross(x,y)); y stays.  Matches Plane.flip_x().
-inline Plane plane_flip_x(const Plane& p) {
-    return { p.o,
-             {-p.x[0], -p.x[1], -p.x[2]},
-             p.y,
-             {-p.z[0], -p.z[1], -p.z[2]} };
-}
-
-/// Plane rotated around its own y axis by angle in radians.  Matches Rhino Plane.Rotate(angle, YAxis).
-inline Plane plane_rotate_y(const Plane& p, double angle) {
-    double c = std::cos(angle), s = std::sin(angle);
-    Vector3 new_x = normalize(add(scale(p.x, c), scale(p.z, -s)));
-    Vector3 new_z = normalize(add(scale(p.x, s), scale(p.z,  c)));
-    Vector3 new_y = cross(new_z, new_x);
-    return {p.o, new_x, new_y, new_z};
-}
-
-/// Plane with z snapped to a world axis and x, y rebuilt; axis: 1=auto (dominant), 2=X, 3=Y, 4=Z.
-inline Plane plane_orthogonal(const Plane& p, int axis) {
-    int idx; double sign;
+/// The plane with z snapped to a world axis and x, y rebuilt; axis: 1 = the dominant one, 2 = X, 3 = Y, 4 = Z.
+inline session_cpp::Plane snapped_to_axis(const session_cpp::Plane& p, int axis) {
+    const session_cpp::Vector z = p.z_axis();
+    int idx = 0;
     if (axis >= 2 && axis <= 4) {
         idx = axis - 2;
-        sign = (p.z[idx] >= 0) ? 1.0 : -1.0;
     } else {
-        idx = 0; double best = 0;
-        for (int i = 0; i < 3; i++) if (std::abs(p.z[i]) > best) { best = std::abs(p.z[i]); idx = i; }
-        sign = (p.z[idx] >= 0) ? 1.0 : -1.0;
+        double best = 0.0;
+        for (int i = 0; i < 3; i++)
+            if (std::abs(z[i]) > best) { best = std::abs(z[i]); idx = i; }
     }
-    Vector3 new_z = {0,0,0}; new_z[idx] = sign;
-    Vector3 ref = (idx != 0) ? Vector3{1,0,0} : Vector3{0,1,0};
-    Vector3 new_x = normalize(cross(ref, new_z));
-    Vector3 new_y = cross(new_z, new_x);
-    return {p.o, new_x, new_y, new_z};
+    session_cpp::Vector new_z(0.0, 0.0, 0.0);
+    new_z[idx] = z[idx] >= 0.0 ? 1.0 : -1.0;
+    const session_cpp::Vector ref = idx != 0 ? session_cpp::Vector(1.0, 0.0, 0.0) : session_cpp::Vector(0.0, 1.0, 0.0);
+    const session_cpp::Vector new_x = ref.cross(new_z).normalized();
+    return session_cpp::Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
 }
 
-/// Intersection point of three planes, or nullopt when they do not meet in one point.
-inline std::optional<Vector3> plane_plane_plane_intersection(const Plane& p0, const Plane& p1, const Plane& p2) {
-    std::array<Vector3,3> A = {p0.z, p1.z, p2.z};
-    Vector3 b = { dot(p0.z, p0.o), dot(p1.z, p1.o), dot(p2.z, p2.o) };
-    Vector3 x;
-    if (!solve_3x3(A, b, x)) {
+/// The line two planes meet on, directed along p0.z × p1.z; none when they are parallel.
+inline std::optional<session_cpp::Line> plane_pair_line(const session_cpp::Plane& p0, const session_cpp::Plane& p1) {
+    session_cpp::Line line;
+    if (!session_cpp::Intersection::plane_plane(p1, p0, line))
         return std::nullopt;
-    }
-    return x;
+    return line;
 }
 
-/// Intersection line of two planes as (anchor, direction), both nullopt when parallel.  Matches plane_plane_line().
-inline std::pair<std::optional<Vector3>, std::optional<Vector3>> plane_plane_intersection(const Plane& p0, const Plane& p1) {
-    Vector3 d = cross(p0.z, p1.z);
-    double dn = length(d);
-    if (dn < 1e-10) return {std::nullopt, std::nullopt};
-    d = scale(d, 1.0/dn);
-    std::array<Vector3,3> A = {p0.z, p1.z, d};
-    Vector3 b = { dot(p0.z, p0.o), dot(p1.z, p1.o), 0.0 };
-    Vector3 anchor;
-    if (!solve_3x3(A, b, anchor)) {
-        return {std::nullopt, std::nullopt};
-    }
-    return {anchor, d};
-}
-
-/// Closest approach of two infinite lines: parameters t0, t1 and the closest point on line 0.  Matches line_line_closest().
-inline std::tuple<double, double, Vector3> line_line_closest(const Vector3& o0, const Vector3& d0, const Vector3& o1, const Vector3& d1) {
-    Vector3 w = subtract(o0, o1);
-    double a = dot(d0, d0), b = dot(d0, d1), c = dot(d1, d1);
-    double dv = dot(d0, w), e = dot(d1, w);
-    double denom = a*c - b*b;
-    if (std::abs(denom) < 1e-12) return {0, 0, o0};
-    double t0 = (b*e - c*dv) / denom;
-    double t1 = (a*e - b*dv) / denom;
-    return {t0, t1, add(o0, scale(d0, t0))};
-}
-
-/// Dihedral bisector plane of two planes, or nullopt when they are parallel or share an origin.  Matches dihedral_plane().
-inline std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1) {
-    auto [anch_opt, dir_opt] = plane_plane_intersection(p0, p1);
-    if (!anch_opt) {
+/// Dihedral bisector plane of two planes, or nullopt when they are parallel or share an origin.
+inline std::optional<session_cpp::Plane> dihedral_plane(const session_cpp::Plane& p0, const session_cpp::Plane& p1) {
+    const std::optional<session_cpp::Line> seam = plane_pair_line(p0, p1);
+    if (!seam)
         return std::nullopt;
-    }
-    if (dot(p0.z, p1.z) > 1.0 - 0.01) {
+    if (p0.z_axis().dot(p1.z_axis()) > 1.0 - 0.01)
         return std::nullopt;
-    }
-    if (length(subtract(p0.o, p1.o)) < 0.001) {
+    if ((p0.origin() - p1.origin()).magnitude() < 0.001)
         return std::nullopt;
-    }
 
-    auto [t0, t1, center] = line_line_closest(p0.o, p0.z, p1.o, p1.z);
-    Vector3 v0 = normalize(subtract(p0.o, center));
-    Vector3 v1 = normalize(subtract(p1.o, center));
-    Vector3 bis = add(v0, v1);
-    double bn = length(bis);
-    if (bn < 1e-12) {
-        return std::nullopt;
-    }
-    bis = scale(bis, 1.0/bn);
+    double t0 = 0.0;
+    double t1 = 0.0;
+    const session_cpp::Line axis0 = session_cpp::Line::from_points(p0.origin(), p0.origin() + p0.z_axis());
+    const session_cpp::Line axis1 = session_cpp::Line::from_points(p1.origin(), p1.origin() + p1.z_axis());
+    session_cpp::Point center = p0.origin();
+    if (session_cpp::Intersection::line_line_parameters(axis0, axis1, t0, t1, 0.0, false, false))
+        center = axis0.point_at(t0);
 
-    Vector3 ldir = *dir_opt;
-    return Plane{ *anch_opt, ldir, bis, normalize(cross(ldir, bis)) };
+    const session_cpp::Vector v0 = (p0.origin() - center).normalized();
+    const session_cpp::Vector v1 = (p1.origin() - center).normalized();
+    session_cpp::Vector bis = v0 + v1;
+    const double bn = bis.magnitude();
+    if (bn < 1e-12)
+        return std::nullopt;
+    bis = bis * (1.0 / bn);
+
+    const session_cpp::Vector ldir = seam->to_vector().normalized();
+    return session_cpp::Plane::from_frame(seam->start(), ldir, bis, ldir.cross(bis).normalized());
 }
 
 /// Closed polygon from intersecting a base plane with n side planes in a loop; a missed corner falls back to the base origin.
-inline std::vector<Vector3> polygon_from_planes(const Plane& base, const std::vector<Plane>& sides) {
-    int ns = (int)sides.size();
-    std::vector<Vector3> pts;
+inline session_cpp::Polyline polygon_from_planes(const session_cpp::Plane& base, const std::vector<session_cpp::Plane>& sides) {
+    const int ns = (int)sides.size();
+    std::vector<session_cpp::Point> pts;
     pts.reserve(ns + 1);
     for (int i = 0; i < ns; i++) {
-        std::optional<Vector3> pt = plane_plane_plane_intersection(base, sides[i], sides[(i+1)%ns]);
-        pts.push_back(pt ? *pt : base.o);
+        session_cpp::Point pt;
+        pts.push_back(session_cpp::Intersection::plane_plane_plane(base, sides[i], sides[(i + 1) % ns], pt) ? pt : base.origin());
     }
     pts.push_back(pts.front());
-    return pts;
+    return session_cpp::Polyline(pts);
 }
 
 /// Position of the mesh vertex with key vk.
-inline Vector3 vertex_position(const session_cpp::Mesh& mesh, size_t vk) {
+inline session_cpp::Point vertex_position(const session_cpp::Mesh& mesh, size_t vk) {
     const session_cpp::VertexData& vd = mesh.vertex.at(vk);
-    return {vd.x, vd.y, vd.z};
+    return session_cpp::Point(vd.x, vd.y, vd.z);
 }
 
 /// Normal of face fi from its (already-reversed) vertex list, the flipped face normal of mesh.Flip(): for a quad the cross product of its diagonals as OpenNURBS computes it, the best-fit normal of a twisted quad; a plane through three vertices would tilt by the twist; world z when degenerate.
-inline Vector3 face_normal(const session_cpp::Mesh& mesh, const std::vector<std::vector<size_t>>& face_vertices, int fi) {
+inline session_cpp::Vector face_normal(const session_cpp::Mesh& mesh, const std::vector<std::vector<size_t>>& face_vertices, int fi) {
 
     const std::vector<size_t>& vertices = face_vertices[fi];
     if ((int)vertices.size() < 3)
-        return {0.0, 0.0, 1.0};
+        return session_cpp::Vector(0.0, 0.0, 1.0);
 
-    Vector3 a = vertex_position(mesh, vertices[0]), b = vertex_position(mesh, vertices[1]), c = vertex_position(mesh, vertices[2]);
+    const session_cpp::Point a = vertex_position(mesh, vertices[0]);
+    const session_cpp::Point b = vertex_position(mesh, vertices[1]);
+    const session_cpp::Point c = vertex_position(mesh, vertices[2]);
     if ((int)vertices.size() < 4)
-        return normalize(cross(subtract(b, a), subtract(c, a)));
+        return (b - a).cross(c - a).normalized();
 
-    Vector3 d = vertex_position(mesh, vertices[3]);
-    return normalize(cross(subtract(c, a), subtract(d, b)));
+    const session_cpp::Point d = vertex_position(mesh, vertices[3]);
+    return (c - a).cross(d - b).normalized();
 }
 
 /// Faces adjacent to the edge vi0-vi1, looked up by the sorted vertex pair.
@@ -509,46 +357,14 @@ inline bool faces_share_strip_edge(const std::vector<std::vector<size_t>>& face_
             (d==c1 && a==b1));    // fi edge 3-0 == fj edge 1-2 reversed
 }
 
-/// Append the closed polygon cut from base by sides to plines as a polyline.
-inline void add_polygon(std::vector<session_cpp::Polyline>& plines, const Plane& base, const std::vector<Plane>& sides) {
-
-    std::vector<Vector3> pts = polygon_from_planes(base, sides);
-    std::vector<session_cpp::Point> spts;
-    spts.reserve(pts.size());
-
-    for (Vector3& p : pts) {
-        spts.emplace_back(p[0], p[1], p[2]);
-    }
-
-    plines.emplace_back(spts);
-}
-
-/// Centroid of a plate polyline (used for the box_insertion_line origin); zero for an empty polyline.
-inline Vector3 polygon_centroid(const session_cpp::Polyline& pl) {
-
-    Vector3 c = {0,0,0};
-    int np = (int)pl.point_count();
-    if (np == 0) {
-        return c;
-    }
-
-    for (int k = 0; k < np; k++) {
-        session_cpp::Point p = pl.get_point(k);
-        c[0] += p[0]; c[1] += p[1]; c[2] += p[2];
-    }
-
-    return scale(c, 1.0 / np);
-}
-
 /// Unit direction of the intersection line of a face plane with a corner's bisector plane; zero when the bisector is absent or the planes are parallel.
-inline Vector3 bisector_direction(const Plane& face_plane, const std::optional<Plane>& bisector_plane) {
+inline session_cpp::Vector bisector_direction(const session_cpp::Plane& face_plane, const std::optional<session_cpp::Plane>& bisector_plane) {
 
-    if (!bisector_plane) {
-        return {0,0,0};
-    }
+    if (!bisector_plane)
+        return session_cpp::Vector(0.0, 0.0, 0.0);
 
-    auto [a, d] = plane_plane_intersection(face_plane, *bisector_plane);
-    return d ? normalize(*d) : Vector3{0,0,0};
+    const std::optional<session_cpp::Line> seam = plane_pair_line(face_plane, *bisector_plane);
+    return seam ? seam->to_vector().normalized() : session_cpp::Vector(0.0, 0.0, 0.0);
 }
 
 /// Generate top/bottom/side plate polylines for each chevron mesh face.
@@ -686,8 +502,8 @@ inline ChevronResult chevron_plates(
     //   y      = average face normal of edge's adjacent faces
     //   z      = cross(x, y) — the plane normal
 
-    std::vector<std::vector<Plane>> ep(n, std::vector<Plane>(4));  // edge planes
-    std::vector<Plane>              fp(n);                       // face planes
+    std::vector<std::vector<session_cpp::Plane>> ep(n, std::vector<session_cpp::Plane>(4));  // edge planes
+    std::vector<session_cpp::Plane>              fp(n);                                    // face planes
 
     for (int fi = 0; fi < n; fi++) {
 
@@ -696,37 +512,36 @@ inline ChevronResult chevron_plates(
         }
 
         // Face normal from the flipped vertex list
-        Vector3 fn = face_normal(mesh, fv, fi);
+        const session_cpp::Vector fn = face_normal(mesh, fv, fi);
 
         // Face centroid
-        Vector3 fc = {0,0,0};
+        std::vector<session_cpp::Point> corners;
         for (size_t vk : fv[fi]) {
-            fc = add(fc, vertex_position(mesh, vk));
+            corners.push_back(vertex_position(mesh, vk));
         }
-        fc = scale(fc, 1.0 / fv[fi].size());
+        const session_cpp::Point fc = session_cpp::Point::centroid(corners);
 
         // Face plane: z = fn, x = cross(ref, fn), y = cross(fn, x)
-        Vector3 ref = (std::abs(fn[0]) < 0.9) ? Vector3{1,0,0} : Vector3{0,1,0};
-        Vector3 fx  = normalize(cross(ref, fn));
-        Vector3 fy  = cross(fn, fx);
-        fp[fi] = {fc, fx, fy, fn};
+        const session_cpp::Vector ref = std::abs(fn[0]) < 0.9 ? session_cpp::Vector(1.0, 0.0, 0.0) : session_cpp::Vector(0.0, 1.0, 0.0);
+        const session_cpp::Vector fx  = ref.cross(fn).normalized();
+        fp[fi] = session_cpp::Plane::from_frame(fc, fx, fn.cross(fx), fn);
 
         // Edge planes
         for (int j = 0; j < 4; j++) {
             size_t vi0 = fv[fi][j], vi1 = fv[fi][(j+1)%4];
-            Vector3 p0 = vertex_position(mesh, vi0), p1 = vertex_position(mesh, vi1);
-            Vector3 mid = scale(add(p0, p1), 0.5);
-            Vector3 ex  = subtract(p0, p1);
+            const session_cpp::Point p0 = vertex_position(mesh, vi0);
+            const session_cpp::Point p1 = vertex_position(mesh, vi1);
+            const session_cpp::Point mid = session_cpp::Point::mid_point(p0, p1);
+            const session_cpp::Vector ex = p0 - p1;
 
             // Average flipped normals of adjacent faces
             const std::vector<int>& adj = adjacent_faces(edge_adj, vi0, vi1);
-            Vector3 avg_n = {0,0,0};
+            session_cpp::Vector avg_n(0.0, 0.0, 0.0);
             for (int fi2 : adj) {
-                avg_n = add(avg_n, face_normal(mesh, fv, fi2));
+                avg_n = avg_n + face_normal(mesh, fv, fi2);
             }
-            avg_n = normalize(avg_n);
 
-            ep[fi][j] = make_plane(mid, ex, avg_n);
+            ep[fi][j] = frame_plane(mid, ex, avg_n);
         }
     }
 
@@ -754,12 +569,12 @@ inline ChevronResult chevron_plates(
                 if (is_chevron) {
                     if (j % 2 == 1) {
                         // even chevron: translate
-                        ep[fi][j] = plane_translate(ep[fi][j], plate_thickness * edge_offset);
+                        ep[fi][j] = ep[fi][j].translate_by_normal(plate_thickness * edge_offset);
                     } else {
                         // odd chevron: rotate
                         // Python: sign = -1 if flip else 1, sign *= -1 → flip? +1 : -1
                         double sign = f_rf[fi] ? 1.0 : -1.0;
-                        ep[fi][j] = plane_rotate_y(ep[fi][j], angle_rad * sign);
+                        ep[fi][j] = rotated_y(ep[fi][j], angle_rad * sign);
                     }
                     // propagate to neighbor (flip x/z so it faces the other way)
                     int nb = (adj[0] != fi) ? adj[0] : adj[1];
@@ -768,7 +583,7 @@ inline ChevronResult chevron_plates(
                         if (std::min(u,v) == std::min(vi0,vi1) &&
                             std::max(u,v) == std::max(vi0,vi1))
                         {
-                            ep[nb][k] = plane_flip_x(ep[fi][j]);
+                            ep[nb][k] = flipped_x(ep[fi][j]);
                             break;
                         }
                     }
@@ -776,7 +591,7 @@ inline ChevronResult chevron_plates(
                 // non-chevron interior edge: leave as-is
             } else if (ortho_edges[j] != 0) {
                 // boundary edge: snap normal to world axis
-                ep[fi][j] = plane_orthogonal(ep[fi][j], ortho_edges[j]);
+                ep[fi][j] = snapped_to_axis(ep[fi][j], ortho_edges[j]);
             }
         }
     }
@@ -786,7 +601,7 @@ inline ChevronResult chevron_plates(
     // edge j and edge (j+1)%4.  Matches get_bisector_planes() where
     // bi[j] = dihedral(e_planes[(j+1)%4], e_planes[j]).
 
-    std::vector<std::vector<std::optional<Plane>>> bi(n, std::vector<std::optional<Plane>>(4));
+    std::vector<std::vector<std::optional<session_cpp::Plane>>> bi(n, std::vector<std::optional<session_cpp::Plane>>(4));
     for (int fi = 0; fi < n; fi++) {
         for (int j = 0; j < 4; j++) {
             bi[fi][j] = dihedral_plane(ep[fi][(j+1)%4], ep[fi][j]);
@@ -805,21 +620,21 @@ inline ChevronResult chevron_plates(
 
     for (int fi : f_order) {
         // Edge planes with additional +t offset on chevron edges (for face plates)
-        std::vector<Plane> ep_local(4);
+        std::vector<session_cpp::Plane> ep_local(4);
         for (int j = 0; j < 4; j++) {
             ep_local[j] = ep[fi][j];
             if (j == f_e[fi][0] || j == f_e[fi][1]) {
-                ep_local[j] = plane_translate(ep_local[j], t);
+                ep_local[j] = ep_local[j].translate_by_normal(t);
             }
         }
 
-        const Plane& fplane = fp[fi];
+        const session_cpp::Plane& fplane = fp[fi];
 
         // 4 horizontal face plates: top pair then bottom pair
-        add_polygon(out.plines, plane_translate(fplane,  H*0.5 - inp - t*0.5), ep_local);
-        add_polygon(out.plines, plane_translate(fplane,  H*0.5 - inp + t*0.5), ep_local);
-        add_polygon(out.plines, plane_translate(fplane, -H*0.5 + inp - t*0.5), ep_local);
-        add_polygon(out.plines, plane_translate(fplane, -H*0.5 + inp + t*0.5), ep_local);
+        out.plines.push_back(polygon_from_planes(fplane.translate_by_normal( H*0.5 - inp - t*0.5), ep_local));
+        out.plines.push_back(polygon_from_planes(fplane.translate_by_normal( H*0.5 - inp + t*0.5), ep_local));
+        out.plines.push_back(polygon_from_planes(fplane.translate_by_normal(-H*0.5 + inp - t*0.5), ep_local));
+        out.plines.push_back(polygon_from_planes(fplane.translate_by_normal(-H*0.5 + inp + t*0.5), ep_local));
 
         // Sort chevron edge indices; special-case [0,3] → reverse to [3,0]
         std::array<int,2> e_sorted = f_e[fi];
@@ -836,10 +651,11 @@ inline ChevronResult chevron_plates(
             int prev = (curr - 1 + 4) % 4;
             int nxt  = (curr + 1) % 4;
 
-            Plane s0 = plane_translate(fplane,  H * 0.5);   // top
-            Plane s2 = plane_translate(fplane, -H * 0.5);   // bottom
+            const session_cpp::Plane s0 = fplane.translate_by_normal( H * 0.5);   // top
+            const session_cpp::Plane s2 = fplane.translate_by_normal(-H * 0.5);   // bottom
 
-            Plane s1, s3;
+            session_cpp::Plane s1;
+            session_cpp::Plane s3;
             if (idx == 0) {
                 s1 = ep[fi][prev];
                 s3 = bi[fi][curr] ? *bi[fi][curr] : ep[fi][nxt];
@@ -848,12 +664,12 @@ inline ChevronResult chevron_plates(
                 s3 = ep[fi][nxt];
             }
 
-            std::vector<Plane> sides = {s0, s1, s2, s3};
-            Plane base0 = ep[fi][curr];
-            Plane base1 = plane_translate(base0, t);
+            const std::vector<session_cpp::Plane> sides = {s0, s1, s2, s3};
+            const session_cpp::Plane base0 = ep[fi][curr];
+            const session_cpp::Plane base1 = base0.translate_by_normal(t);
 
-            add_polygon(out.plines, base0, sides);
-            add_polygon(out.plines, base1, sides);
+            out.plines.push_back(polygon_from_planes(base0, sides));
+            out.plines.push_back(polygon_from_planes(base1, sides));
 
         }
     }
@@ -891,8 +707,8 @@ inline ChevronResult chevron_plates(
         //   → bisector at corner j, between edge j and edge (j+1)%4.
         // bisector_dir0: at corner e_s[0] (start of chevron edge 0)
         // bisector_dir1: at corner (e_s[1]+1)%4 (end of chevron edge 1)
-        Vector3 bdir0 = bisector_direction(fp[fi], bi[fi][e_s[0]]);
-        Vector3 bdir1 = bisector_direction(fp[fi], bi[fi][(e_s[1] + 1) % 4]);
+        const session_cpp::Vector bdir0 = bisector_direction(fp[fi], bi[fi][e_s[0]]);
+        const session_cpp::Vector bdir1 = bisector_direction(fp[fi], bi[fi][(e_s[1] + 1) % 4]);
 
         // ── Insertion vectors ─────────────────────────────────────────────
         // Top and bottom face plates: positions 0,1 = zero; 2-5 = bdir1,
@@ -964,12 +780,8 @@ inline ChevronResult chevron_plates(
 
         // ── Box insertion line (visualization) ────────────────────────────
         // From centroid of pline[counter*8+1] in bdir1 direction × 300.
-        Vector3 ctr = polygon_centroid(out.plines[counter * 8 + 1]);
-        Vector3 tip = add(ctr, scale(bdir1, 300.0));
-        out.box_insertion_lines.emplace_back(std::vector<session_cpp::Point>{
-            session_cpp::Point(ctr[0], ctr[1], ctr[2]),
-            session_cpp::Point(tip[0], tip[1], tip[2])
-        });
+        const session_cpp::Point ctr = out.plines[counter * 8 + 1].center();
+        out.box_insertion_lines.emplace_back(std::vector<session_cpp::Point>{ctr, ctr + bdir1 * 300.0});
     }
 
     return out;

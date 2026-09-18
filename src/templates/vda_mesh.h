@@ -35,6 +35,24 @@ public:
     /// [edge_i][div_j]  — label "f0-f1_j" per edge subdivision
     std::vector<std::vector<std::string>>   e_polylines_index;
 
+private:
+    // ── topology ─────────────────────────────────────────────────────────────
+    int f_count = 0;
+    int e_count = 0;
+    std::vector<size_t>                          face_keys;   // Mesh::faces(), sorted
+    std::vector<std::pair<size_t,size_t>>        edge_keys;   // Mesh::edges(), low vertex first, sorted
+    std::vector<std::vector<int>>                e_f_idx;     // seq edge → seq face indices, from Mesh::edge_face_map()
+
+    // ── geometry ─────────────────────────────────────────────────────────────
+    std::vector<Plane>                    f_planes;
+    std::vector<std::vector<Plane>>       fe_planes;   // [face][edge_j]
+    std::vector<std::vector<Plane>>       bi_planes;   // [face][corner_j]
+    std::vector<Line>                     e_lines;
+    std::vector<Plane>                    e90_planes;
+    std::vector<std::vector<Plane>>       e90_multi;   // per subdivision
+    std::vector<Vector>                   insertion_vectors;
+
+public:
     // ── constructor ──────────────────────────────────────────────────────────
     VdaMesh(
         const Mesh&          input_mesh         = default_mesh(),
@@ -95,71 +113,30 @@ public:
     }
 
 private:
-    // ── topology ─────────────────────────────────────────────────────────────
-    int f_count = 0;
-    int e_count = 0;
-    std::vector<size_t>                          face_keys;
-    std::vector<std::pair<size_t,size_t>>        edge_keys;   // sequential
-    std::map<std::pair<size_t,size_t>, int>      edge_to_idx; // canonical → seq idx
-    std::vector<std::vector<int>>                e_f_idx;     // seq edge → seq face indices
-
-    // ── geometry ─────────────────────────────────────────────────────────────
-    std::vector<Plane>                    f_planes;
-    std::vector<std::vector<Plane>>       fe_planes;   // [face][edge_j]
-    std::vector<std::vector<Plane>>       bi_planes;   // [face][corner_j]
-    std::vector<Line>                     e_lines;
-    std::vector<Plane>                    e90_planes;
-    std::vector<std::vector<Plane>>       e90_multi;   // per subdivision
-    std::vector<Vector>                   insertion_vectors;
-
-    // ── canonical edge key (always low→high) ─────────────────────────────────
-    static std::pair<size_t,size_t> canon(size_t u, size_t v)
-    {
-        return u < v ? std::make_pair(u, v) : std::make_pair(v, u);
-    }
-
-    // ── build face/edge sequential indices ───────────────────────────────────
+    // ── face and edge sequential indices from the kernel's adjacency ─────────
     void build_topology(const Mesh& m)
     {
-
-        face_keys = m.faces(); // sorted
+        face_keys = m.faces();
+        edge_keys = m.edges();
         f_count   = (int)face_keys.size();
+        e_count   = (int)edge_keys.size();
 
+        std::map<size_t, int> face_to_idx;
         for (int fi = 0; fi < f_count; ++fi) {
-            std::optional<std::vector<std::pair<size_t,size_t>>> edges_opt = m.face_edges(face_keys[fi]);
-            if (!edges_opt) {
-                continue;
-            }
-
-            for (const std::pair<size_t,size_t>& edge_uv : *edges_opt) {
-                size_t u = edge_uv.first;
-                size_t v = edge_uv.second;
-                std::pair<size_t,size_t> key = canon(u, v);
-                if (edge_to_idx.find(key) == edge_to_idx.end()) {
-                    edge_to_idx[key] = e_count++;
-                    edge_keys.push_back(key);
-                }
-            }
+            face_to_idx[face_keys[fi]] = fi;
         }
 
-        // Build e_f_idx: for each sequential edge, which sequential faces touch it
+        const std::map<std::pair<size_t, size_t>, size_t> halfedge_face = m.edge_face_map();
         e_f_idx.resize(e_count);
-        for (int fi = 0; fi < f_count; ++fi) {
-            std::optional<std::vector<std::pair<size_t,size_t>>> edges_opt = m.face_edges(face_keys[fi]);
-            if (!edges_opt) {
-                continue;
-            }
-
-            for (const std::pair<size_t,size_t>& edge_uv : *edges_opt) {
-                size_t u = edge_uv.first;
-                size_t v = edge_uv.second;
-                int ei = edge_to_idx[canon(u, v)];
-                // Avoid duplicates
-                std::vector<int>& efs = e_f_idx[ei];
-                if (std::find(efs.begin(), efs.end(), fi) == efs.end()) {
-                    efs.push_back(fi);
+        for (int ei = 0; ei < e_count; ++ei) {
+            const auto [u, v] = edge_keys[ei];
+            for (const std::pair<size_t, size_t> halfedge : {std::make_pair(u, v), std::make_pair(v, u)}) {
+                const auto it = halfedge_face.find(halfedge);
+                if (it != halfedge_face.end()) {
+                    e_f_idx[ei].push_back(face_to_idx.at(it->second));
                 }
             }
+            std::sort(e_f_idx[ei].begin(), e_f_idx[ei].end());
         }
     }
 
@@ -189,15 +166,9 @@ private:
 
         fe_planes.resize(f_count);
 
-        // One pass over the faces: undirected edge -> adjacent face indices.
-        std::map<std::pair<size_t,size_t>, std::vector<int>> edge_to_faces;
-        for (int fi2 = 0; fi2 < f_count; ++fi2) {
-            std::optional<std::vector<std::pair<size_t,size_t>>> fe_opt2 = m.face_edges(face_keys[fi2]);
-            if (!fe_opt2) continue;
-
-            for (auto& [eu, ev] : *fe_opt2) {
-                edge_to_faces[{std::min(eu, ev), std::max(eu, ev)}].push_back(fi2);
-            }
+        std::map<std::pair<size_t,size_t>, int> edge_to_idx;
+        for (int ei = 0; ei < e_count; ++ei) {
+            edge_to_idx[edge_keys[ei]] = ei;
         }
 
         for (int fi = 0; fi < f_count; ++fi) {
@@ -224,21 +195,11 @@ private:
                     xaxis = Vector::x_axis();
                 }
 
-                // y_axis: average normal of all adjacent faces.
-                // (Adjacency comes from the map built once below the face
-                // loop's entry - edge_faces() scans every face per call, and
-                // this ran per edge of every face: O(E^2). face_normal is
-                // likewise served from the cached f_planes.)
+                // y_axis: average normal of all adjacent faces, served from the cached f_planes.
                 Vector yaxis(0, 0, 0);
-                {
-                    std::pair<size_t,size_t> key = std::make_pair(std::min(u, v), std::max(u, v));
-                    auto it = edge_to_faces.find(key);
-                    if (it != edge_to_faces.end()) {
-                        for (int adj_fi : it->second) {
-                            if (!f_planes[adj_fi].is_valid()) continue;
-                            yaxis += f_planes[adj_fi].z_axis();
-                        }
-                    }
+                for (int adj_fi : e_f_idx[edge_to_idx.at(std::minmax(u, v))]) {
+                    if (!f_planes[adj_fi].is_valid()) continue;
+                    yaxis += f_planes[adj_fi].z_axis();
                 }
                 if (!yaxis.normalize_self()) {
                     yaxis = Vector::z_axis();
@@ -539,25 +500,6 @@ private:
         }
     }
 
-    // ── build rectangle polyline in a plane ──────────────────────────────────
-    static Polyline make_rect(const Plane& pl, double w, double h)
-    {
-
-        Point  o = pl.origin();
-        Vector x = pl.x_axis();
-        Vector y = pl.y_axis();
-        double hw = w * 0.5, hh = h * 0.5;
-
-        std::vector<Point> pts = {
-            o - x*hw - y*hh,
-            o + x*hw - y*hh,
-            o + x*hw + y*hh,
-            o - x*hw + y*hh,
-            o - x*hw - y*hh, // close
-        };
-        return Polyline(pts);
-    }
-
     // ── edge connector rectangles ─────────────────────────────────────────────
     void get_connectors(double rect_width, double rect_height, double rect_thickness)
     {
@@ -590,8 +532,9 @@ private:
                 Plane pl_top(pl.origin() + pl.z_axis() * ( rect_thickness * 0.5),
                              pl.x_axis(), pl.y_axis());
 
-                e_polylines[ei][j * 2 + 0] = make_rect(pl_bot, rect_width, rect_height);
-                e_polylines[ei][j * 2 + 1] = make_rect(pl_top, rect_width, rect_height);
+                const Vector to_corner = pl.x_axis() * (-rect_width * 0.5) + pl.y_axis() * (-rect_height * 0.5);
+                e_polylines[ei][j * 2 + 0] = Polyline::rectangle(pl_bot.origin() + to_corner, pl_bot.x_axis(), pl_bot.y_axis(), rect_width, rect_height, true);
+                e_polylines[ei][j * 2 + 1] = Polyline::rectangle(pl_top.origin() + to_corner, pl_top.x_axis(), pl_top.y_axis(), rect_width, rect_height, true);
                 e_polylines_planes[ei][j]   = pl_top;
 
                 std::string label;

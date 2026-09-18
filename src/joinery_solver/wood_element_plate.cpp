@@ -1,16 +1,9 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_element_plate.h"
 
 namespace wood_session {
 
-using session_cpp::BRep;
-using session_cpp::Element;
-using session_cpp::ElementFeature;
-using session_cpp::Mesh;
-using session_cpp::Plane;
-using session_cpp::Point;
-using session_cpp::Polyline;
-using session_cpp::Vector;
+using namespace session_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -327,12 +320,23 @@ std::vector<ElementFeature> Plate::face_features() const {
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+AABB Plate::aabb(double inflate) const {
+
+    std::vector<Point> points;
+    for (const Polyline& outline : polylines) {
+        const std::vector<Point> vertices = outline.get_points();
+        points.insert(points.end(), vertices.begin(), vertices.end());
+    }
+
+    return AABB::from_points(points, inflate);
+}
+
 std::string Plate::element_data_dumps() const {
     nlohmann::ordered_json data{
         {"bottom", polylines.size() > 0 ? polylines[0].jsondump() : nlohmann::ordered_json(nullptr)},
         {"reversed", reversed},
         {"top", polylines.size() > 1 ? polylines[1].jsondump() : nlohmann::ordered_json(nullptr)},
-        {"type", ELEMENT_TYPE},
+        {"type", std::string(ELEMENT_TYPE)},
     };
     return data.dump();
 }
@@ -347,8 +351,8 @@ static std::shared_ptr<Element> plate_from_protobuf(const std::string& data) {
 }
 
 void Plate::register_type() {
-    Element::register_type(ELEMENT_TYPE, plate_from_protobuf);
-    Element::register_type(LEGACY_ELEMENT_TYPE, plate_from_protobuf);
+    Element::register_type(std::string(ELEMENT_TYPE), plate_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), plate_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

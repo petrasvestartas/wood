@@ -23,7 +23,7 @@ static void cr_c_ip_0(WoodJoint& joint) {
     };
 
     for (int face = 0; face < 2; face++) {
-        joint.female_cut_types[face] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
-        joint.male_cut_types[face] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+        joint.female_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
+        joint.male_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
     }
 }

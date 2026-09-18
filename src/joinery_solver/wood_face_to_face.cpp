@@ -1,12 +1,9 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_face_to_face.h"
 #include "wood_joint_detection.h"
 #include "../src/clipper2/clipper.h"
 using namespace session_cpp;
-using wood_session::WoodJoint;
-using wood_session::Plate;
-using wood_session::ContactElement;
-using wood_session::ContactType;
+using namespace wood_session;
 
 constexpr bool TRACE = false;
 
@@ -18,21 +15,8 @@ namespace wood_session {
 
 namespace {
 
-/// Vertex count of an outline once a closing vertex repeating the first one (to 1e-6) is dropped.
-size_t open_count(const Polyline& pl) {
-
-    size_t n = pl.point_count();
-    if (n > 3) {
-        const Vector d = pl.get_point(0) - pl.get_point(n - 1);
-        if (std::abs(d[0]) < 1e-6 && std::abs(d[1]) < 1e-6 && std::abs(d[2]) < 1e-6)
-            --n;
-    }
-
-    return n;
-}
-
 void add_outline(const Polyline& pl, std::vector<Point>& corners) {
-    const size_t n = open_count(pl);
+    const size_t n = pl.is_closed() ? pl.point_count() - 1 : pl.point_count();
     for (size_t k = 0; k < n; k++)
         corners.push_back(pl.get_point(k));
 }
@@ -64,26 +48,6 @@ ContactType contact_type(const ContactElement& a, size_t i, const ContactElement
 }
 
 }  // namespace
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ContactElement
-// ═══════════════════════════════════════════════════════════════════════════
-
-ContactElement::ContactElement(const Plate& plate)
-    : polylines(plate.polylines), planes(plate.planes), name(plate.name), plate_convention(true) {}
-
-ContactElement::ContactElement(Element& element) : name(element.name) {
-
-    if (const Plate* plate = dynamic_cast<const Plate*>(&element)) {
-        polylines = plate->polylines;
-        planes = plate->planes;
-        plate_convention = true;
-        return;
-    }
-
-    polylines = element.polylines();
-    planes = element.planes();
-}
 
 /// Whether element i takes part in the search: every element when no names were given, else only the named ones.
 static bool element_included(const std::vector<ContactElement>& elements, const std::unordered_set<std::string>& wanted, size_t i) {
@@ -146,44 +110,34 @@ std::vector<std::pair<int, int>> adjacency_search(
     return pairs;
 }
 
-std::vector<FacePlane> face_planes(const ContactElement& element) {
-
-    const size_t n = element.planes.size();
-    std::vector<FacePlane> out(n);
-    for (size_t j = 0; j < n; ++j) {
-        const Point& o = element.planes[j].origin();
-        const Vector& v = element.planes[j].z_axis();
-        out[j] = { o[0], o[1], o[2], v[0], v[1], v[2], v.magnitude_squared() };
-    }
-
-    return out;
-}
-
 bool faces_coplanar(
-    const FacePlane& face0,
-    const FacePlane& face1,
+    const Plane& face0,
+    const Plane& face1,
     double cos_angle,
     double coplanar_tolerance) {
 
-    const double n0n1 = face0.nx*face1.nx + face0.ny*face1.ny + face0.nz*face1.nz;
-    const double ll = std::sqrt(face0.mag_sq * face1.mag_sq);
-
-    if (ll <= 0.0 || n0n1/ll > -cos_angle)
+    const Vector& n0 = face0.z_axis();
+    const Vector& n1 = face1.z_axis();
+    const double mag0 = n0.magnitude_squared();
+    const double mag1 = n1.magnitude_squared();
+    const double ll = std::sqrt(mag0 * mag1);
+    if (ll <= 0.0 || n0.dot(n1) / ll > -cos_angle)
         return false;
 
-    const double dot0 = face0.nx*(face1.ox-face0.ox) + face0.ny*(face1.oy-face0.oy) + face0.nz*(face1.oz-face0.oz);
-    const double dot1 = face1.nx*(face0.ox-face1.ox) + face1.ny*(face0.oy-face1.oy) + face1.nz*(face0.oz-face1.oz);
-    const double sq_dist0 = (face0.mag_sq > 1e-20) ? (dot0*dot0/face0.mag_sq) : 1e30;
-    const double sq_dist1 = (face1.mag_sq > 1e-20) ? (dot1*dot1/face1.mag_sq) : 1e30;
+    const Vector offset = face1.origin() - face0.origin();
+    const double dot0 = n0.dot(offset);
+    const double dot1 = n1.dot(offset);
+    const double sq_dist0 = mag0 > 1e-20 ? dot0 * dot0 / mag0 : 1e30;
+    const double sq_dist1 = mag1 > 1e-20 ? dot1 * dot1 / mag1 : 1e30;
 
-    return (sq_dist0 < coplanar_tolerance) && (sq_dist1 < coplanar_tolerance);
+    return sq_dist0 < coplanar_tolerance && sq_dist1 < coplanar_tolerance;
 }
 
 /// An outline as a Clipper path in the plane's 2D frame, scaled to integers and without its closing vertex.
 static Clipper2Lib::Path64 outline_to_clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, double scale) {
 
     Clipper2Lib::Path64 path;
-    const size_t n = open_count(outline);
+    const size_t n = outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
     path.reserve(n);
     for (size_t k = 0; k < n; ++k) {
         const Vector d = outline.get_point(k) - origin;
@@ -211,7 +165,7 @@ bool face_overlap_area(
     const Point origin = outline0.get_point(0);
     const Vector xax = plane0.base1();
     const Vector yax = plane0.base2();
-    const double scale = static_cast<double>(globals::CLIPPER_SCALE);
+    const double scale = static_cast<double>(config::CLIPPER_SCALE);
 
     const Clipper2Lib::Paths64 subject{outline_to_clipper_path(outline0, origin, xax, yax, scale)};
     const Clipper2Lib::Paths64 clip{outline_to_clipper_path(outline1, origin, xax, yax, scale)};
@@ -239,7 +193,7 @@ bool face_overlap_area(
     if (nc == 3 && !include_triangles)
         return false;
 
-    if (std::abs(Clipper2Lib::Area(cleaned)) / (scale * scale) <= globals::CLIPPER_AREA)
+    if (std::abs(Clipper2Lib::Area(cleaned)) / (scale * scale) <= config::CLIPPER_AREA)
         return false;
 
     std::vector<Point> pts;
@@ -263,13 +217,10 @@ std::vector<FaceContact> face_contacts_for_pair(
     PairScanStats* stats) {
 
     std::vector<FaceContact> contacts;
-    const std::vector<FacePlane> fa = face_planes(ea);
-    const std::vector<FacePlane> fb = face_planes(eb);
+    for (size_t i = 0; i < ea.planes.size(); ++i) {
+        for (size_t j = 0; j < eb.planes.size(); ++j) {
 
-    for (size_t i = 0; i < fa.size(); ++i) {
-        for (size_t j = 0; j < fb.size(); ++j) {
-
-            if (!faces_coplanar(fa[i], fb[j], cos_angle, coplanar_tolerance))
+            if (!faces_coplanar(ea.planes[i], eb.planes[j], cos_angle, coplanar_tolerance))
                 continue;
 
             if (stats)
@@ -333,7 +284,7 @@ struct F2F {
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
     const std::vector<double>& extension;
     const double limit_min_joint_length;
-    const double distance_squared;
+    const double zero_length_squared;
     const double coplanar_tolerance;
     const double dihedral_angle_threshold;
     const bool all_treated_as_rotated;
@@ -419,7 +370,7 @@ bool alignment_line(
         return false;
     }
 
-    if (joint_line.squared_length() <= s.distance_squared) {
+    if (joint_line.squared_length() <= s.zero_length_squared) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("jl{}_short f({},{})", side, i, j);
         return false;
@@ -661,8 +612,8 @@ void rotated_dump(
     const std::pair<int, int>& el_ids = s.el_ids;
     const size_t i = c.i;
     const size_t j = c.j;
-    static const char* const fp = std::getenv("WOOD_F2F_DUMP");
-    if (fp) {
+    static const std::string fp = [] { const char* env = std::getenv("WOOD_F2F_DUMP"); return env ? std::string(env) : std::string(); }();
+    if (!fp.empty()) {
         std::ofstream flog(fp, std::ios::app);
         flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j << "\n";
         flog << "  vol0: ";
@@ -707,7 +658,7 @@ bool side_side_rotated(F2F& s, FaceCandidate& c) {
 bool overlap_average(F2F& s, FaceCandidate& c, Line& lj) {
 
     const bool ok = c.joint_line0.overlap_average(c.joint_line1, lj);
-    if (!ok || lj.squared_length() <= s.distance_squared) {
+    if (!ok || lj.squared_length() <= s.zero_length_squared) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("lj_overlap f({},{})", c.i, c.j);
         return false;
@@ -835,23 +786,6 @@ bool side_side_out_of_plane(F2F& s, FaceCandidate& c, const Line& lj, const Plan
     return emit_joint(s, c);
 }
 
-/// CGAL's Plane_3::point(): the plane point whose coordinates other than the largest-coefficient axis are zero.
-Point cgal_point_on_plane(const Plane& pl) {
-
-    const Vector n = pl.z_axis();
-    const Point o = pl.origin();
-    const double d = -n.dot(Vector(o[0], o[1], o[2]));
-    const double fa = std::abs(n[0]);
-    const double fb = std::abs(n[1]);
-    const double fc = std::abs(n[2]);
-
-    if (fa > fb && fa > fc)
-        return Point(-d/n[0], 0.0, 0.0);
-    if (fb > fc)
-        return Point(0.0, -d/n[1], 0.0);
-    return Point(0.0, 0.0, -d/n[2]);
-}
-
 /// Type 12: two planes offset ±half-thickness from the matched face, two 4-plane loops, four volumes.
 bool side_side_in_plane(F2F& s, FaceCandidate& c, const Plane& pl_end0, const Plane& pl_end1) {
 
@@ -862,7 +796,7 @@ bool side_side_in_plane(F2F& s, FaceCandidate& c, const Plane& pl_end0, const Pl
     const Plane offset_plane_0 = s.el0.planes[i].translate_by_normal(-d0);
     const Plane offset_plane_1 = s.el0.planes[i].translate_by_normal(d0);
 
-    const Point pt00 = cgal_point_on_plane(s.el0.planes[0]);
+    const Point pt00 = s.el0.planes[0].axis_point();
     const Point proj00 = s.el1.planes[0].project(pt00);
     const Point proj01 = s.el1.planes[1].project(pt00);
     const double w0 = (pt00 - proj00).magnitude_squared();
@@ -1119,7 +1053,7 @@ bool face_to_face_wood(
     std::pair<int, int> el_ids_in,
     const std::vector<double>& joint_volume_extension,
     double limit_min_joint_length,
-    double distance_squared,
+    double zero_length_squared,
     double coplanar_tolerance,
     double dihedral_angle_threshold,
     bool all_treated_as_rotated,
@@ -1133,7 +1067,7 @@ bool face_to_face_wood(
     F2F s = {
         el0, el1, el_ids_in, el_ids_in, { {{0,0}}, {{0,0}} },
         joint_volume_extension,
-        limit_min_joint_length, distance_squared, coplanar_tolerance, dihedral_angle_threshold,
+        limit_min_joint_length, zero_length_squared, coplanar_tolerance, dihedral_angle_threshold,
         all_treated_as_rotated, rotated_joint_as_average,
         0.0, Plane::xy_plane(), Plane::xy_plane(), std::string(),
         out_joint, out_swap_planes_1,
@@ -1142,7 +1076,7 @@ bool face_to_face_wood(
     int dbg_boolean = 0;
 
     if (search_type != 1) {
-        s.cos_angle = std::cos(wood_session::globals::ANGLE);
+        s.cos_angle = std::cos(wood_session::config::ANGLE);
         s.avg_plane_0 = average_plane(el0);
         s.avg_plane_1 = average_plane(el1);
 

@@ -1,13 +1,15 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
 namespace wood_session {
 
 /// A column: a solid that knows its own axis and the section it is cut from.
 class Column : public session_cpp::Element {
 public:
-    static constexpr const char* ELEMENT_TYPE = "Column"; // The element_type this column is written under.
+    static constexpr std::string_view ELEMENT_TYPE = "Column"; // The element_type this column is written under.
+    session_cpp::Line axis; // Centreline, base to head, in world space.
+    session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
 
     /// An empty column: no solid, a zero-length axis, no section.
     Column();
@@ -19,9 +21,6 @@ public:
         const session_cpp::Polyline& section,
         const std::string& name = "column"
     );
-
-    session_cpp::Line axis; // Centreline, base to head, in world space.
-    session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
@@ -42,7 +41,13 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return ELEMENT_TYPE; }
+    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+
+    /// The kernel's cached box of the solid.
+    using session_cpp::Element::aabb;
+
+    /// The box of the solid when there is one, else of the axis and the section, inflated on each side.
+    session_cpp::AABB aabb(double inflate) const;
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Column>(*this); }

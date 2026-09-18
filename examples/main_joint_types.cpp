@@ -4,19 +4,17 @@ using namespace wood_session;
 
 static void run(const std::string& name, const double division) {
 
-    globals::reset_defaults();
+    config::reset_defaults();
 
-    if (!internal::plates_exist(name))
+    if (!config::plates_exist(name))
         return;
 
     if (division > 0)
-        globals::JOINTS_PARAMETERS_AND_TYPES[1*3+0] = division;
-    globals::JOINTS_PARAMETERS_AND_TYPES[1*3+2] = 10;
-    globals::JOINTS_PARAMETERS_AND_TYPES[2*3+2] = 20;
+        config::JOINTS_PARAMETERS_AND_TYPES[1*3+0] = division;
+    config::JOINTS_PARAMETERS_AND_TYPES[1*3+2] = 10;
+    config::JOINTS_PARAMETERS_AND_TYPES[2*3+2] = 20;
 
-    WoodSession scene(name);
-    for (const std::shared_ptr<Plate>& plate : internal::load_plates(name))
-        scene.add(plate);
+    WoodSession scene = WoodSession::obj_load(name);
     scene.compute_joints(face_to_face);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());

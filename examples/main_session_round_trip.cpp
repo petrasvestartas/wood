@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int SESSION = 0;   // globals::SESSION_NAMES
+const int SESSION = 0;   // config::SESSION_NAMES
 
 static int failures = 0;
 static void check(const bool ok, const std::string& what) {
@@ -31,8 +31,8 @@ static bool hosts_male_side(const std::vector<ElementFeature>& features, const W
 
 int main() {
 
-    globals::reset_defaults();
-    WoodSession a = WoodSession::pb_load(globals::SESSION_NAMES[SESSION]);
+    config::reset_defaults();
+    WoodSession a = WoodSession::pb_load(config::SESSION_NAMES[SESSION]);
     const int vertices_before = a.graph.number_of_vertices();
     a.compute_contacts();
     a.compute_joints();
@@ -85,6 +85,18 @@ int main() {
     }
 
     check(rings, "every contact: its element pair, and every ring's faces, class and point count");
+
+    bool by_guid = true;
+    size_t contact_count = 0;
+    for (const ContactPair& pair : contacts_a)
+        for (const FaceContact& contact : pair.faces) {
+            ++contact_count;
+            by_guid = by_guid && !contact.guid.empty() && b.get_contact(contact.guid).face_a == contact.face_a
+                      && b.get_contact(contact.guid).element_a == a.element_guids()[pair.element_a];
+        }
+
+    check(by_guid, fmt::format("every contact keeps its guid and its elements through the pb ({})", contact_count));
+    check(a.get_contacts(ContactType::side_side).size() == b.get_contacts(ContactType::side_side).size(), "side_side contacts by class");
 
     const std::vector<WoodJoint> joints_a = a.joints();
     const std::vector<WoodJoint> joints_b = b.joints();

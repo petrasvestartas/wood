@@ -9,7 +9,7 @@ const int SURFACE = 0;   // one of the 23 Annen surfaces in data/annen_surfaces.
 /// Builds the chevron shell on one of the serialized Annen NURBS surfaces and writes the surface, the mesh and the plates to live.
 int main() {
 
-    const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces((internal::session_data_dir() / "annen_surfaces.json").string());
+    const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces((config::session_data_dir() / "annen_surfaces.json").string());
     const Chevron shell(surfaces[SURFACE]);
 
     WoodSession wood_session("chevron");

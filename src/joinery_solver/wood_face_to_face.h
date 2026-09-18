@@ -1,32 +1,13 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
-#include "wood_globals.h"
+#include "wood_config.h"
+#include "wood_face_to_face_element.h"
 #include "wood_joint.h"
+#include "wood_face_to_face_stats.h"
 
 namespace wood_session {
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Contact detection - what detection reads off an element
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// One element as detection sees it: face outlines, their planes, the name to filter on, and whether the plate face convention ([0] bottom, [1] top, [2..] sides) applies.
-struct ContactElement {
-    /// An empty view.
-    ContactElement() = default;
-
-    /// A plate's own outlines and planes, with the plate convention.
-    explicit ContactElement(const Plate& plate);
-
-    /// A plate through its own fields, any other element through the face outlines of its mesh.
-    explicit ContactElement(session_cpp::Element& element);
-
-    std::vector<session_cpp::Polyline> polylines; // The face outlines.
-    std::vector<session_cpp::Plane> planes; // One plane per outline.
-    std::string name; // The element name, what `names` filters on.
-    bool plate_convention = false; // True when polylines follow the plate convention: [0] bottom, [1] top, [2..] sides.
-};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Contact detection - broad phase
@@ -42,24 +23,10 @@ std::vector<std::pair<int, int>> adjacency_search(
 // Contact detection - narrow phase
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One face plane unpacked to plain doubles so the O(faces²) scan never calls Point/Vector::operator[]; the normal need not be unit length, `mag_sq` carries its scale.
-struct FacePlane {
-    double ox; // Origin x.
-    double oy; // Origin y.
-    double oz; // Origin z.
-    double nx; // Normal x.
-    double ny; // Normal y.
-    double nz; // Normal z.
-    double mag_sq; // Squared length of the normal.
-};
-
-/// Every face plane of an element unpacked, once per element pair rather than once per face pair.
-std::vector<FacePlane> face_planes(const ContactElement& element);
-
-/// True when two faces touch back-to-back: normals antiparallel within `cos_angle` (cos of globals::ANGLE, radians) and each origin within `coplanar_tolerance` (a squared distance) of the other's plane.
+/// True when two faces touch back-to-back: z axes antiparallel within `cos_angle` (cos of config::ANGLE, radians) and each origin within `coplanar_tolerance` (a squared distance) of the other's plane; the z axes need not be unit length.
 bool faces_coplanar(
-    const FacePlane& face0,
-    const FacePlane& face1,
+    const session_cpp::Plane& face0,
+    const session_cpp::Plane& face1,
     double cos_angle,
     double coplanar_tolerance);
 
@@ -75,14 +42,6 @@ bool face_overlap_area(
 // Contact detection - both phases
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Tallies from one element-pair scan; face_to_face_wood reports them as dbg_coplanar / dbg_boolean.
-struct PairScanStats {
-    int coplanar = 0; // Face pairs that passed the coplanarity test.
-    int overlapping = 0; // Of those, the ones with a real overlap area.
-    int empty_i = -1; // Face of the first element in the last pair whose boolean came back empty, -1 when none.
-    int empty_j = -1; // Face of the second element in that pair, -1 when none.
-};
-
 /// Every contacting face pair between ONE element pair, ordered by face index; call it inside the caller's loop over element pairs, since get_connection_zones swaps faces 0 and 1 mid-run.
 std::vector<FaceContact> face_contacts_for_pair(
     const ContactElement& ea,
@@ -95,9 +54,9 @@ std::vector<FaceContact> face_contacts_for_pair(
 std::vector<ContactPair> face_contacts(
     const std::vector<ContactElement>& elements,
     const std::vector<std::string>& names = {},
-    double inflate            = globals::DISTANCE,
-    double angle              = globals::ANGLE,
-    double coplanar_tolerance = globals::DISTANCE_SQUARED);
+    double inflate            = config::DISTANCE,
+    double angle              = config::ANGLE,
+    double coplanar_tolerance = config::DISTANCE_SQUARED);
 
 }  // namespace wood_session
 
@@ -105,14 +64,14 @@ std::vector<ContactPair> face_contacts(
 // Joint classification
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Classifies one element pair as a wood joint with every tunable explicit; true fills out_joint, and out_swap_planes_1 asks the caller to swap el1's faces 0 and 1.
+/// Classifies one element pair as a wood joint with every tunable explicit; true fills out_joint, and out_swap_planes_1 asks the caller to swap el1's faces 0 and 1. A joint line no longer than sqrt(zero_length_squared) is degenerate; coplanar_tolerance is the squared distance within which two faces are coplanar.
 bool face_to_face_wood(
     const wood_session::Plate& el0,
     const wood_session::Plate& el1,
     std::pair<int, int> el_ids_in,
     const std::vector<double>& joint_volume_extension,
     double limit_min_joint_length,
-    double distance_squared,
+    double zero_length_squared,
     double coplanar_tolerance,
     double dihedral_angle_threshold,
     bool all_treated_as_rotated,

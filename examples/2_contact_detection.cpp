@@ -3,11 +3,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int DATASET = 19;                 // globals::DATASET_NAMES
+const int DATASET = 19;                 // config::DATASET_NAMES
 
 int main() {
 
-    WoodSession wood_session = WoodSession::yaml_load(globals::DATASET_NAMES[DATASET]);
+    WoodSession wood_session = WoodSession::yaml_load(config::DATASET_NAMES[DATASET]);
     wood_session.compute_contacts();
     wood_session.add_to_tree(true, true, true, false);
     wood_session.pb_dump(pb_path("live").string());
@@ -38,7 +38,7 @@ examples/2_contact_detection.cpp
  |         |-- contact_view(scene)               one ContactElement per element: outlines, planes, name
  |         |-- face_contacts(elements)            src/joinery_solver/wood_face_to_face.cpp
  |         |    |-- adjacency_search              inflated OBB per element, BVH, OBB/OBB test -> candidate pairs
- |         |    '-- face_contacts_for_pair        face_planes -> faces_coplanar -> face_overlap_area (Clipper2)
+ |         |    '-- face_contacts_for_pair        faces_coplanar -> face_overlap_area (Clipper2)
  |         |                                      -> FaceContact {face_a, face_b, type, area}
  |         '-- set_interaction(a, b, ...)         the contacts onto the graph edge a-b (WoodInteraction)
  |

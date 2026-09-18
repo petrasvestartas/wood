@@ -69,8 +69,8 @@ static void ss_e_op_2(WoodJoint& joint) {
         joint.female_outlines[idx] = {outline, endpoints};
     }
 
-    joint.female_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.female_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 }

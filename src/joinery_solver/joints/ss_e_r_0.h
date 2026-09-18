@@ -69,10 +69,10 @@ static void ss_e_r_0(WoodJoint& joint) {
     for (const int oi : {1, 1, 3, 3})
         joint.female_outlines[1].push_back(rh1.translated(offsets[oi]));
 
-    joint.male_cut_types[0] = std::vector<int>(4, wood_cut::slice);
-    joint.male_cut_types[1] = std::vector<int>(4, wood_cut::slice);
-    joint.female_cut_types[0] = std::vector<int>(4, wood_cut::slice);
-    joint.female_cut_types[1] = std::vector<int>(4, wood_cut::slice);
+    joint.male_cut_types[0] = std::vector<int>(4, CutType::slice);
+    joint.male_cut_types[1] = std::vector<int>(4, CutType::slice);
+    joint.female_cut_types[0] = std::vector<int>(4, CutType::slice);
+    joint.female_cut_types[1] = std::vector<int>(4, CutType::slice);
 
     joint.no_orient = true;
 }

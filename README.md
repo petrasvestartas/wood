@@ -23,7 +23,7 @@ tools/run_guarded.sh -t 10 -m 4 -- build/3_joint_detection
 #include "wood_session.h"
 using namespace wood_session;
 
-WoodSession scene = WoodSession::yaml_load(globals::Dataset::inplane_hexshell);
+WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
 scene.compute_joints();      // search type and every tunable come from the yml
 scene.add_to_tree();         // one group per plate: the plate, its outlines, its contacts, its joints
 scene.pb_dump(pb_path("live").string());   // the file session_viewer watches
@@ -67,7 +67,7 @@ Every dataset is `data/<name>.yml` plus the obj it names, with optional `adjacen
 tunable the solver reads: `search_type`, `joints_parameters_and_types` (7 families x
 division length, shift, joint id), `joint_volume_extension` (width, height, length in mm, one
 triple for all families or one per family), `joint_scale`, the tolerances, and for beam
-datasets a `beams` block. `globals::Dataset::<name>` names every shipped dataset.
+datasets a `beams` block. `config::Dataset::<name>` names every shipped dataset.
 
 `main_all_datasets` runs all of them and writes `data/output/WoodF2F_<name>.pb` with
 `_meta.txt` and `_coords.txt` beside each: the record a refactor is diffed against.

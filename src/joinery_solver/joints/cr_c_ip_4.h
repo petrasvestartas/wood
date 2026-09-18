@@ -7,10 +7,10 @@ static void cr_c_ip_4(WoodJoint& joint) {
         Polyline({Point(0.0, 0.0, -1.0), Point(0.0, 0.0, 1.0)}),
     };
     const std::vector<int> ct = {
-        wood_cut::mill_project, wood_cut::mill_project,
-        wood_cut::slice_projectsheer, wood_cut::slice_projectsheer, wood_cut::slice_projectsheer, wood_cut::slice_projectsheer,
-        wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project, wood_cut::mill_project,
-        wood_cut::drill, wood_cut::drill,
+        CutType::mill_project, CutType::mill_project,
+        CutType::slice_projectsheer, CutType::slice_projectsheer, CutType::slice_projectsheer, CutType::slice_projectsheer,
+        CutType::mill_project, CutType::mill_project, CutType::mill_project, CutType::mill_project,
+        CutType::drill, CutType::drill,
     };
 
     cr_c_ip_shared(joint, drills, 0.15, 0.6, 1.0, 1.0, 1, ct);

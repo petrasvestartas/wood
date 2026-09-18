@@ -9,17 +9,17 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_element_{plate,column,block}.h/.cpp` | `Plate`, `Column`, `Block` : `session_cpp::Element` |
-| `src/joinery_solver/wood_joint.h/.cpp` | `ContactType`, `FaceContact`, `ContactPair`, `WoodJoint`; `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `tt_e_p_0..5`, `side_removal` |
-| `src/joinery_solver/wood_cut.h` | `wood_cut::cut_type` |
-| `src/joinery_solver/wood_globals.h/.cpp` | `wood_session::globals`, `Dataset::` names, `globals_yaml`, `reset_defaults` |
+| `src/joinery_solver/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Beam::joint_volumes` is the beam-axis pipeline |
+| `src/joinery_solver/wood_joint.h/.cpp`, `wood_face_to_face_contact*.h` | `WoodJoint`; `ContactType`, `FaceContact`, `ContactPair`; `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `tt_e_p_0..5`, `side_removal` |
+| `src/joinery_solver/wood_joint_cut_type.h` | `wood_session::CutType` |
+| `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`, `Dataset::` names, `load_yaml`, `reset_defaults`, dataset paths, `load_obj`, the sidecar loaders |
 | `src/joinery_solver/wood_face_to_face.h/.cpp` | `ContactElement`, `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts`, `face_to_face_wood` |
 | `src/joinery_solver/wood_joint_detection.h/.cpp` | `CrossJoint`, `plane_to_face` (type 30) |
-| `src/joinery_solver/wood_main.cpp` | `get_connection_zones` pipeline, `joint_create_geometry` dispatcher, three-valence |
-| `src/joinery_solver/wood_merge.h/.cpp` | `merge_joints_for_element` |
+| `src/joinery_solver/wood_joint_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
+| `src/joinery_solver/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
 | `src/joinery_solver/wood_joint_lib.h`, `joints/*.h` | aggregator + one static constructor per joint variant |
-| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession`, `WoodInteraction`, `SearchType`, `internal::load_plates`, `beam_volumes_pipeline`, `type_plates_name_*` decls |
-| `src/joinery_solver/wood_assign.*`, `wood_beams.cpp`, `wood_internal.cpp`, `wood_test.cpp` | point/line → face-slot assignment; beam-axis pipeline; dataset paths and OBJ loading; dataset runners |
+| `src/joinery_solver/wood_session.h/.cpp`, `wood_session_interaction.*`, `wood_joint_data.h` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`), `WoodInteraction`, `JointData`, `SearchType`, `type_plates_name_*` decls |
+| `src/joinery_solver/wood_test.cpp` | dataset runners; `WoodSession::assign_joint_types` and `assign_insertion_vectors` are the point and line to face-slot assignment |
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
 | `examples/` | `1_io`, `2_contact_detection`, `3_joint_detection`, `main_dataset_runner`, `main_all_datasets`, `main_joint_types`, `templates/` mains |
 | `data/` | `<name>.yml` + `<name>.obj` + optional `<name>_{adjacency,three_valence,insertion_vectors,joints_types}.txt`; `output/` |
@@ -90,14 +90,14 @@ is what `face_to_face_wood` decided with geometry. They are different number spa
 `joint_type_name()` in `wood_session.cpp` maps these to `ss_op_11`, `ss_ip_12`, `ss_rot_13`,
 `ts_20`, `cross_30`, `tt_40`.
 
-### `wood_cut::cut_type` (`wood_cut.h`)
+### `wood_session::CutType` (`wood_joint_cut_type.h`)
 
 `nothing=0, hole=1, edge_insertion=2, insert_between_multiple_edges=3, slice=4,
 slice_projectsheer=5, mill=6, mill_project=7, mill_projectsheer=8, cut=9, cut_project=10,
 cut_projectsheer=11, cut_reverse=12, conic=13, conic_reverse=14, drill=15`. An empty
 `*_cut_types` array means every outline is `edge_insertion`.
 
-### Globals (`wood_globals.h`, set by `globals_yaml("<name>")` from `data/<name>.yml`)
+### Globals (`wood_config.h`, set by `load_yaml("<name>")` from `data/<name>.yml`)
 
 | yml key | global | Meaning |
 |---|---|---|
@@ -112,11 +112,11 @@ cut_projectsheer=11, cut_reverse=12, conic=13, conic_reverse=14, drill=15`. An e
 | `search_type` | `SEARCH_TYPE` | `face_to_face`, `cross_joint` or `face_to_face_then_cross`; the default of `compute_joints()` |
 | `beams` | `BEAMS` | beam datasets only: radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male |
 
-`globals::Dataset::<name>` (and `Dataset::Face::` / `::Cross::` / `::Curves::`) give every
+`config::Dataset::<name>` (and `Dataset::Face::` / `::Cross::` / `::Curves::`) give every
 dataset name as a constant; `DATASET_NAMES` is the sweep order. `reset_defaults()` restores the
-baseline; `globals_yaml` calls it first. `CUSTOM_JOINTS_*` are runtime-only (not in yml).
+baseline; `load_yaml` calls it first. `CUSTOM_JOINTS_*` are runtime-only (not in yml).
 
-## 3. Detection pipeline (`get_connection_zones`, `wood_main.cpp`)
+## 3. Detection pipeline (`WoodSession::compute_joints`, `wood_joint_solver.cpp`)
 
 ```cpp
 std::vector<WoodJoint> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
@@ -166,7 +166,7 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
    its `[hole_top, hole_bot, …, outer_top, outer_bot]` result into `Plate::features`
    (outer first, then holes). Finally `sync_features()` on every joint.
 
-A second overload takes `ChevronJoineryData` (adjacency, insertion vectors, joint types and
+A second overload takes a `JointData` (adjacency, insertion vectors, joint types and
 three-valence in memory) and injects it through thread-local overrides instead of files.
 
 Diagnostics: `WOOD_F2F_DUMP=<path>` (environment) appends every type-13 volume to that file;
@@ -176,7 +176,7 @@ every other trace is a `constexpr bool TRACE = false;` at the top of its own fil
 
 Each `joints/<name>.h` is a plain header (no include guard, no includes) holding one
 `static void <name>(WoodJoint&)`; `wood_joint_lib.h` includes them in order and is itself
-included inside `wood_main.cpp` (which must include `wood_session.h` first). The `tt_e_p_*`
+included inside `wood_joint_solver.cpp` (which must include `wood_session.h` first). The `tt_e_p_*`
 and `side_removal*` constructors need the plate vector and live in `wood_joint.cpp` instead.
 
 | joint_type | group | id range | prefix | ids wired in `joint_create_geometry` |
@@ -208,21 +208,21 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 1. Pick the family from the table and a free id in its range.
 2. Create `joints/<prefix>_N.h` with `static void <prefix>_N(WoodJoint& joint)`.
 3. Fill `m_outlines[0..1]`, `f_outlines[0..1]` in unit-box space, end each list with the
-   endpoint marker, fill `m_cut_types` / `f_cut_types` with one `wood_cut::` value per outline,
+   endpoint marker, fill `m_cut_types` / `f_cut_types` with one `CutType::` value per outline,
    and set `joint.name = "<prefix>_N"`.
 4. Set `joint.unit_scale = true` if the tooth size must follow plate thickness (see
    `ss_e_ip_2`, `ss_e_r_impl`, `ts_e_p_5`).
 5. `#include "joints/<prefix>_N.h"` in `wood_joint_lib.h`, after any constructor it calls.
 6. Add `case <id>: <prefix>_N(joint); break;` to that group in `joint_create_geometry`
-   (`wood_main.cpp`).
+   (`wood_joint_solver.cpp`).
 7. Exercise it: set the id in a dataset's `joints_parameters_and_types` row (col 2) or a
    `<name>_joints_types.txt` sidecar, run `main_dataset_runner` through the guard, and add a
    check to `tests/wood_solver_test.cpp` when the geometry can be asserted.
 
 ### Custom joints at runtime
 
-The `*_custom` constructors read `globals::CUSTOM_JOINTS_<FAMILY>_MALE` / `_FEMALE`
-(`wood_globals.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) of one base tooth,
+The `*_custom` constructors read `config::CUSTOM_JOINTS_<FAMILY>_MALE` / `_FEMALE`
+(`wood_config.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) of one base tooth,
 tiled `divisions` times along z (`ss_e_ip_custom.h` documents the tiling). Fill the vectors in
 C++ (the yml loader skips them), then select the family's custom id (9, 19, 29, 39, 59, 69).
 `reset_defaults()` clears them.
@@ -246,7 +246,7 @@ What the kernel (`../session/session_cpp/src`) provides and wood uses:
 
 How wood uses it (`wood_session.h/.cpp`):
 
-- `WoodSession::yaml_load(name)` → `globals_yaml`, `internal::load_plates(DATA_SET_OBJ)`
+- `WoodSession::yaml_load(name)` → `load_yaml`, `internal::load_plates(DATA_SET_OBJ)`
   (pairs consecutive OBJ loops bottom/top), one `Plate` per pair added by guid.
 - `compute_contacts()` / `compute_face_contacts()` → `face_contacts` over every element type;
   `compute_cross_contacts()` → `plane_to_face`; `compute_line_contacts()`.

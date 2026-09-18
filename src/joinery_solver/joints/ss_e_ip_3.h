@@ -38,7 +38,7 @@ static void ss_e_ip_3(WoodJoint& joint) {
     };
 
     for (int face = 0; face < 2; face++) {
-        joint.female_cut_types[face] = { wood_cut::mill_project, wood_cut::mill_project, wood_cut::drill, wood_cut::drill, wood_cut::drill, wood_cut::drill };
-        joint.male_cut_types[face] = { wood_cut::mill_project, wood_cut::mill_project, wood_cut::drill, wood_cut::drill, wood_cut::drill, wood_cut::drill };
+        joint.female_cut_types[face] = { CutType::mill_project, CutType::mill_project, CutType::drill, CutType::drill, CutType::drill, CutType::drill };
+        joint.male_cut_types[face] = { CutType::mill_project, CutType::mill_project, CutType::drill, CutType::drill, CutType::drill, CutType::drill };
     }
 }

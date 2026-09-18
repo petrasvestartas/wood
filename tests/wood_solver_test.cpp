@@ -1,6 +1,5 @@
 #include "wood_joint.h"
 #include "wood_session.h"
-#include "wood_cut.h"
 
 #include <cstdio>
 using namespace session_cpp;
@@ -13,7 +12,7 @@ namespace {
 
 static int failures = 0;
 
-static void check(bool condition, const char* name) {
+static void check(bool condition, std::string_view name) {
 
     if (condition)
         return;
@@ -135,7 +134,7 @@ static void missing_datasets(const std::filesystem::path& folder) {
     for (const std::filesystem::path& path : {empty, folder / "missing.obj"}) {
         bool rejected = false;
         try {
-            internal::load_polylines(path.string());
+            config::load_obj(path.string());
         } catch (const std::runtime_error&) {
             rejected = true;
         }
@@ -151,15 +150,15 @@ static void dataset_tolerance(const std::filesystem::path& folder) {
         file << "v 0 0 0\nv 0.01 0 0\nv 1 0 0\ncurv 0 1 1 2 3\nend\n";
     }
 
-    globals::DUPLICATE_PTS_TOL = 0.1;
-    std::vector<Polyline> axes = internal::load_polylines(path.string());
+    config::DUPLICATE_PTS_TOL = 0.1;
+    std::vector<Polyline> axes = config::load_obj(path.string());
     check(axes.size() == 1 && axes[0].point_count() == 2, "Configured Beam Deduplication");
-    axes = internal::load_polylines(path.string(), 0.001);
+    axes = config::load_obj(path.string(), 0.001);
     check(axes.size() == 1 && axes[0].point_count() == 3, "Explicit Beam Deduplication");
 
     bool rejected = false;
     try {
-        internal::load_plates(path.string());
+        WoodSession::obj_load(path.string());
     } catch (const std::runtime_error&) {
         rejected = true;
     }
@@ -168,44 +167,41 @@ static void dataset_tolerance(const std::filesystem::path& folder) {
 
 static void beam_geometry(const std::filesystem::path& folder) {
 
-    globals::DATA_SET_INPUT_FOLDER = folder.string();
-    globals::DATA_SET_OUTPUT_FILE = "beams.pb";
-    std::vector<Polyline> axes{
-        Polyline({Point(-5, 0, 0), Point(5, 0, 0)}),
-        Polyline({Point(0, -5, 0), Point(0, 5, 0)})
-    };
+    config::DATA_SET_INPUT_FOLDER = folder.string();
+    const Polyline axis_x({Point(-5, 0, 0), Point(5, 0, 0)});
+    const Polyline axis_y({Point(0, -5, 0), Point(0, 5, 0)});
 
-    beam_volumes_pipeline(axes, {{1}, {1}}, {}, {-1}, 1, 10, 0.9, 1);
-    const Session valid = Session::pb_load((folder / "output/beams.pb").string());
+    const WoodSession valid = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, 1.0)}, 1, 10, 0.9, 1);
     check(valid.objects.polylines->size() == 6, "Crossing Beam Rectangles");
 
-    beam_volumes_pipeline(axes, {{1}}, {}, {-1}, 1, 10, 0.9, 1);
-    const Session missing = Session::pb_load((folder / "output/beams.pb").string());
+    const WoodSession missing = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, std::vector<double>{}, std::vector<Vector>{})}, 1, 10, 0.9, 1);
     check(missing.objects.polylines->size() == 2, "Missing Beam Radius Skips Volumes");
 
-    beam_volumes_pipeline(axes, {{1}, {1}}, {{Vector(1, 0, 0)}, {Vector(0, 1, 0)}}, {-1}, 1, 10, 0.9, 1);
-    const Session parallel = Session::pb_load((folder / "output/beams.pb").string());
+    const WoodSession parallel = Beam::joint_volumes({std::make_shared<Beam>(axis_x, std::vector<double>{1.0}, std::vector<Vector>{Vector(1, 0, 0)}), std::make_shared<Beam>(axis_y, std::vector<double>{1.0}, std::vector<Vector>{Vector(0, 1, 0)})}, 1, 10, 0.9, 1);
     check(parallel.objects.polylines->size() == 2, "Degenerate Beam Frames Skip Volumes");
 
-    axes[1] = Polyline({Point(0, 0, 0), Point(0, 5, 0)});
-    beam_volumes_pipeline(axes, {{1}, {1}}, {}, {-1}, 1, 10, 0.9, 1);
-    const Session side = Session::pb_load((folder / "output/beams.pb").string());
+    const Polyline axis_half_y({Point(0, 0, 0), Point(0, 5, 0)});
+    const WoodSession side = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
     check(side.objects.polylines->size() == 6, "Side To End Beam Trimming");
 
-    axes[0] = Polyline({Point(-5, 0, 0), Point(0, 0, 0)});
-    beam_volumes_pipeline(axes, {{1}, {1}}, {}, {-1}, 1, 10, 0.9, 1);
-    const Session end = Session::pb_load((folder / "output/beams.pb").string());
+    const Polyline axis_half_x({Point(-5, 0, 0), Point(0, 0, 0)});
+    const WoodSession end = Beam::joint_volumes({std::make_shared<Beam>(axis_half_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
     check(end.objects.polylines->size() == 6, "End To End Beam Trimming");
 
-    axes[0] = Polyline({Point(0, 0, 0), Point(0, 0, 0)});
-    beam_volumes_pipeline(axes, {{1}, {1}}, {}, {-1}, 1, 10, 0.9, 1);
-    const Session degenerate = Session::pb_load((folder / "output/beams.pb").string());
+    const Polyline axis_zero({Point(0, 0, 0), Point(0, 0, 0)});
+    const WoodSession degenerate = Beam::joint_volumes({std::make_shared<Beam>(axis_zero, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
     check(degenerate.objects.polylines->size() == 2, "Zero Length Beam Skips Volumes");
+
+    WoodSession scene("beams");
+    scene.add(std::make_shared<Beam>(axis_x, 1.0));
+    scene.pb_dump((config::output_dir() / "beams.pb").string());
+    const WoodSession loaded = WoodSession::pb_load((config::output_dir() / "beams.pb").string());
+    check(loaded.beams().size() == 1 && loaded.beams()[0]->radii.size() == 1, "Beam Round Trip");
 }
 
 int main() {
 
-    globals::reset_defaults();
+    config::reset_defaults();
     const std::filesystem::path folder = std::filesystem::temp_directory_path() / ("wood-solver-" + ::guid());
     std::filesystem::create_directories(folder);
 
@@ -222,7 +218,7 @@ int main() {
     }
 
     std::filesystem::remove_all(folder);
-    globals::reset_defaults();
+    config::reset_defaults();
 
     return failures ? 1 : 0;
 }

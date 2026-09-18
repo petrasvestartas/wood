@@ -1,4 +1,4 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_three_valence.h"
 #include "wood_session.h"
 using namespace session_cpp;
@@ -8,29 +8,6 @@ constexpr bool TRACE = false;
 namespace wood_session {
 
 namespace {
-
-/// In-memory three-valence groups for the ChevronJoineryData overload, read when the sidecar name is empty.
-thread_local std::vector<std::vector<int>> tl_three_valence_override;
-
-/// One row of ints per non-empty line of the file.
-std::vector<std::vector<int>> read_integer_rows(const std::string& path) {
-
-    std::vector<std::vector<int>> rows;
-    std::ifstream file(path);
-    std::string line;
-    while (std::getline(file, line)) {
-        std::istringstream stream(line);
-        std::vector<int> row;
-        int value;
-        while (stream >> value)
-            row.push_back(value);
-
-        if (!row.empty())
-            rows.push_back(row);
-    }
-    return rows;
-
-}
 
 /// Clip a joint's volume pairs between the planes through `a` and `b` that are normal to the first volume.
 void clip_joint_volumes(WoodJoint& joint, const Point& a, const Point& b) {
@@ -103,14 +80,14 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
 // Vidy shadow joints
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Whether two plate normals are parallel within globals::ANGLE, either way round.
+/// Whether two plate normals are parallel within config::ANGLE, either way round.
 static bool normals_parallel(const Vector& a, const Vector& b) {
 
     const double length_product = a.magnitude() * b.magnitude();
     if (length_product <= 0.0)
         return false;
 
-    return std::abs(a.dot(b) / length_product) >= std::cos(wood_session::globals::ANGLE);
+    return std::abs(a.dot(b) / length_product) >= std::cos(wood_session::config::ANGLE);
 }
 
 /// The four joint volumes of a joint copied out, an empty polyline where one is missing.
@@ -372,21 +349,11 @@ void align_annen_joints(
 // Stage
 // ═══════════════════════════════════════════════════════════════════════════
 
-void set_three_valence_override(std::vector<std::vector<int>> groups) {
-    tl_three_valence_override = std::move(groups);
-}
-
-void clear_three_valence_override() {
-    std::vector<std::vector<int>>().swap(tl_three_valence_override);
-}
-
-/// Three-valence groups from the sidecar or the thread-local override; first row's first value 0 = annen alignment, 1 = vidy addition.
 void link_three_valence_joints(
-    const std::string& three_valence_name,
+    const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& all_joints) {
 
-    const std::vector<std::vector<int>> three_valence_groups = !three_valence_name.empty() ? read_integer_rows(three_valence_name) : tl_three_valence_override;
     if (three_valence_groups.size() > 1) {
         std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, all_joints);
         const int instruction = three_valence_groups[0].empty() ? 0 : three_valence_groups[0][0];
@@ -400,9 +367,6 @@ void link_three_valence_joints(
             align_annen_joints(three_valence_groups, elements, all_joints);
         }
     }
-
-    if (TRACE && !three_valence_name.empty())
-        std::cout << fmt::format("three_valence: {} groups applied\n", three_valence_groups.size());
 }
 
 } // namespace wood_session

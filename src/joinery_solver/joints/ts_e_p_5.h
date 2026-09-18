@@ -129,10 +129,10 @@ static void ts_e_p_5(WoodJoint& joint) {
         }));
     }
 
-    joint.female_cut_types[0] = std::vector<int>(joint.female_outlines[0].size(), wood_cut::hole);
-    joint.female_cut_types[1] = std::vector<int>(joint.female_outlines[1].size(), wood_cut::hole);
-    joint.male_cut_types[0] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
-    joint.male_cut_types[1] = { wood_cut::edge_insertion, wood_cut::edge_insertion };
+    joint.female_cut_types[0] = std::vector<int>(joint.female_outlines[0].size(), CutType::hole);
+    joint.female_cut_types[1] = std::vector<int>(joint.female_outlines[1].size(), CutType::hole);
+    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
 
     joint.unit_scale = true;
 }

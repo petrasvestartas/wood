@@ -1,29 +1,13 @@
-#include "wood_pch.h"
-#include "wood_element_plate.h"
-#include "wood_face_to_face.h"
-#include "wood_joint.h"
-#include "wood_merge_modifier.h"
+#include "pch.h"
 #include "wood_session.h"
+#include "wood_face_to_face.h"
+#include "wood_merge_modifier.h"
 #include "wood_three_valence.h"
 using namespace session_cpp;
 
-constexpr bool TRACE = false;
-
 namespace {
 
-using wood_session::WoodJoint;
-using wood_session::Plate;
-using wood_session::joint_orient_to_connection_area;
-using wood_session::merge_linked_joints;
-using wood_session::joint_get_divisions;
-using wood_session::side_removal_ss_e_r_1_port;
-using wood_session::side_removal;
-using wood_session::tt_e_p_0;
-using wood_session::tt_e_p_1;
-using wood_session::tt_e_p_2;
-using wood_session::tt_e_p_3;
-using wood_session::tt_e_p_4;
-using wood_session::tt_e_p_5;
+using namespace wood_session;
 
 /// The joint library is header-only and static; it lands in this TU's anonymous namespace.
 #include "wood_joint_lib.h"
@@ -81,7 +65,7 @@ int joint_family(const int id, const int joint_type) {
 }
 
 /// Warns once per id, per thread, when an id has no constructor and the family default is used instead.
-void warn_unimplemented(const int id, const char* family) {
+void warn_unimplemented(const int id, std::string_view family) {
     static thread_local std::set<int> warned_ids;
     if (warned_ids.insert(id).second)
         std::cerr << fmt::format("joint_create_geometry: id={} ({}) not ported, using family default\n", id, family);
@@ -278,240 +262,6 @@ void joint_create_geometry(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Sidecar files
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Adjacent pairs from the adjacency sidecar, `a b` per line; empty when there is no sidecar.
-std::vector<std::pair<int, int>> read_adjacency_sidecar(const std::string& adjacency_name) {
-
-    std::vector<std::pair<int, int>> adjacency_pairs;
-    if (adjacency_name.empty())
-        return adjacency_pairs;
-
-    std::ifstream adjacency_file(adjacency_name);
-    int a;
-    int b;
-    while (adjacency_file >> a >> b)
-        adjacency_pairs.emplace_back(a, b);
-
-    if (TRACE)
-        std::cout << fmt::format("adjacency: {} pairs from {}\n", adjacency_pairs.size(), adjacency_name);
-
-    return adjacency_pairs;
-}
-
-/// Per-element insertion vectors from the sidecar (one element per line, `x y z ...`) into each Plate, reversed plates flipped.
-void load_insertion_vectors(
-    const std::string& insertion_vectors_name,
-    std::vector<std::shared_ptr<Plate>>& elements) {
-
-    std::vector<std::vector<Vector>> per_element(elements.size(), std::vector<Vector>{});
-    if (!insertion_vectors_name.empty()) {
-
-        std::ifstream insertion_vectors_file(insertion_vectors_name);
-        std::string line;
-        size_t element_index = 0;
-        size_t total_loaded = 0;
-        while (std::getline(insertion_vectors_file, line) && element_index < per_element.size()) {
-            std::istringstream stream(line);
-            std::vector<Vector>& vectors = per_element[element_index];
-            double x;
-            double y;
-            double z;
-            while (stream >> x >> y >> z) {
-                vectors.emplace_back(x, y, z);
-                total_loaded++;
-            }
-            element_index++;
-        }
-
-        if (TRACE)
-            std::cout << fmt::format("insertion_vectors: {} vectors across {} elements from {}\n", total_loaded, element_index, insertion_vectors_name);
-    }
-
-    for (size_t element_index = 0; element_index < elements.size(); element_index++) {
-
-        if (elements[element_index]->insertion_vectors().empty())
-            elements[element_index]->insertion_vectors() = per_element[element_index];
-
-        if (elements[element_index]->reversed) {
-            std::vector<Vector>& vectors = elements[element_index]->insertion_vectors();
-            if (vectors.size() > 2)
-                std::reverse(vectors.begin() + 2, vectors.end());
-        }
-    }
-}
-
-/// Per-element per-face joint type ids (the wood JOINTS_TYPES filter) from the sidecar or the plates; 0 = no joint, tens digit = family.
-std::vector<std::vector<int>> load_joint_types(
-    const std::string& joint_types_name,
-    const std::vector<std::shared_ptr<Plate>>& elements) {
-
-    std::vector<std::vector<int>> per_element(elements.size());
-    if (!joint_types_name.empty()) {
-
-        std::ifstream joint_types_file(joint_types_name);
-        std::string line;
-        size_t element_index = 0;
-        size_t total_loaded = 0;
-        while (std::getline(joint_types_file, line) && element_index < per_element.size()) {
-            std::istringstream stream(line);
-            int value;
-            while (stream >> value) {
-                per_element[element_index].push_back(value);
-                total_loaded++;
-            }
-            element_index++;
-        }
-
-        if (TRACE)
-            std::cout << fmt::format("joints_types: {} ids across {} elements from {}\n", total_loaded, element_index, joint_types_name);
-    }
-
-    for (size_t element_index = 0; element_index < elements.size(); ++element_index)
-        if (per_element[element_index].empty() && !elements[element_index]->joint_types.empty())
-            per_element[element_index] = elements[element_index]->joint_types;
-
-    return per_element;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Detection
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// In-memory adjacency for the ChevronJoineryData overload, used when the sidecar gives no pairs.
-thread_local std::vector<std::pair<int, int>> tl_adjacency_override;
-
-/// Detection parameters handed to face_to_face_wood for every adjacent pair.
-struct DetectionParameters {
-    std::vector<double> joint_volume_extension; // Additive joint volume extension: width, height, length per family.
-    double limit_min_joint_length; // Joints shorter than this are dropped.
-    double distance_squared; // Squared distance below which two points coincide.
-    double coplanar_tolerance; // Tolerance for two faces to count as coplanar.
-    double dihedral_angle_threshold; // Dihedral angle threshold of the side-to-side joints.
-    bool all_treated_as_rotated; // Whether every side-to-side joint is treated as rotated.
-    bool rotated_joint_as_average; // Whether a rotated joint takes the average of the two faces.
-};
-
-/// Detection counters: successes, failures and successes per joint type.
-struct DetectionStatistics {
-    /// Successes per joint type, in the order 11, 12, 13, 20, 30, 40.
-    int counts[6] = {0, 0, 0, 0, 0, 0};
-
-    int failed = 0; // Pairs face_to_face_wood found no joint for.
-    int succeeded = 0; // Pairs that produced a joint.
-};
-
-/// Candidate pairs from the adjacency sidecar, the thread-local override or the OBB+BVH search.
-std::vector<std::pair<int, int>> adjacent_pairs(
-    const std::string& adjacency_name,
-    const std::vector<std::shared_ptr<Plate>>& elements) {
-
-    std::vector<std::pair<int, int>> adjacency_pairs = read_adjacency_sidecar(adjacency_name);
-    if (adjacency_pairs.empty() && !tl_adjacency_override.empty())
-        adjacency_pairs = tl_adjacency_override;
-
-    if (adjacency_pairs.empty()) {
-
-        const double distance = wood_session::globals::DISTANCE;
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ] adjacency_search start  DISTANCE={}\n", distance);
-
-        std::vector<wood_session::ContactElement> view;
-        view.reserve(elements.size());
-        for (const std::shared_ptr<Plate>& plate : elements)
-            view.emplace_back(*plate);
-
-        adjacency_pairs = wood_session::adjacency_search(view, distance);
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ] adjacency pairs={}\n", adjacency_pairs.size());
-        if (TRACE)
-            std::cout << fmt::format("adjacency: {} pairs from OBB+BVH\n", adjacency_pairs.size());
-    }
-    return adjacency_pairs;
-}
-
-/// Counts one detected joint, by type.
-void record_detected_joint(DetectionStatistics& statistics, const WoodJoint& joint) {
-
-    ++statistics.succeeded;
-
-    switch (joint.joint_type) {
-        case 11: ++statistics.counts[0]; break;
-        case 12: ++statistics.counts[1]; break;
-        case 13: ++statistics.counts[2]; break;
-        case 20: ++statistics.counts[3]; break;
-        case 30: ++statistics.counts[4]; break;
-        case 40: ++statistics.counts[5]; break;
-        default: break;
-    }
-}
-
-/// face_to_face_wood on every adjacent pair; joints stay in adjacency-pair order.
-std::vector<WoodJoint> detect_joints(
-    std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<std::pair<int, int>>& adjacency_pairs,
-    const DetectionParameters& parameters,
-    const SearchType search_type,
-    DetectionStatistics& statistics) {
-
-    std::vector<WoodJoint> all_joints;
-    all_joints.reserve(adjacency_pairs.size());
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ] joint detection loop  pairs={}\n", adjacency_pairs.size());
-
-    const int element_count = static_cast<int>(elements.size());
-    for (size_t k = 0; k < adjacency_pairs.size(); ++k) {
-
-        const int index_a = adjacency_pairs[k].first;
-        const int index_b = adjacency_pairs[k].second;
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ]   pair k={}  index_a={} index_b={}\n", k, index_a, index_b);
-
-        if (index_a < 0 || index_b < 0 || index_a >= element_count || index_b >= element_count) {
-            std::cerr << fmt::format("  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, index_a, index_b, element_count);
-            continue;
-        }
-
-        WoodJoint joint;
-        bool swap_planes_b = false;
-        const bool ok = face_to_face_wood(
-            *elements[index_a],
-            *elements[index_b],
-            {index_a, index_b},
-            parameters.joint_volume_extension,
-            parameters.limit_min_joint_length,
-            parameters.distance_squared,
-            parameters.coplanar_tolerance,
-            parameters.dihedral_angle_threshold,
-            parameters.all_treated_as_rotated,
-            parameters.rotated_joint_as_average,
-            search_type,
-            joint,
-            swap_planes_b);
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ]   face_to_face_wood done  ok={}  type={}\n", (int)ok, ok ? joint.joint_type : -1);
-
-        if (swap_planes_b) {
-            std::swap(elements[index_b]->planes[0], elements[index_b]->planes[1]);
-            std::swap(elements[index_b]->polylines[0], elements[index_b]->polylines[1]);
-        }
-
-        if (!ok) {
-            if (TRACE && !joint.dbg_fail_reason.empty())
-                std::cout << fmt::format("  FAIL pair ({},{}) coplanar={} boolean={} reason={}\n", index_a, index_b, joint.dbg_coplanar, joint.dbg_boolean, joint.dbg_fail_reason);
-            ++statistics.failed;
-            continue;
-        }
-
-        record_detected_joint(statistics, joint);
-        all_joints.push_back(std::move(joint));
-    }
-
-    return all_joints;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Joint types and parameters
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -601,7 +351,7 @@ double joint_parameter(const std::vector<double>& parameters_global, bool parame
 /// Per-family row of JOINTS_PARAMETERS_AND_TYPES: division length, shift and the default id when none was given.
 FamilyParameters family_parameters(const int joint_type, const int id_representing_joint_name) {
 
-    const std::vector<double>& parameters_global = wood_session::globals::JOINTS_PARAMETERS_AND_TYPES;
+    const std::vector<double>& parameters_global = wood_session::config::JOINTS_PARAMETERS_AND_TYPES;
     const bool parameters_ok = parameters_global.size() >= 21;
 
     static thread_local bool parameters_warned = false;
@@ -638,7 +388,6 @@ struct CachedJointGeometry {
 };
 
 /// Unit geometry by cache key.
-using JointGeometryCache = std::map<std::string, CachedJointGeometry>;
 
 /// Wood's get_key number format: std::to_string truncated at two decimals.
 std::string cache_key_number(double v) {
@@ -663,7 +412,7 @@ void reuse_or_create_geometry(
     const FamilyParameters& family,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& all_joints,
-    JointGeometryCache& unique_joints_cache) {
+    std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
     const std::string cache_key = joint_cache_key(family.id, joint);
     const bool use_cache = (joint.joint_type == 12) && joint.linked_joints.empty();
@@ -701,12 +450,12 @@ void build_joint_geometry(
     const FamilyParameters& family,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& all_joints,
-    JointGeometryCache& unique_joints_cache) {
+    std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
     joint.scale = {
-        wood_session::globals::JOINT_SCALE[0],
-        wood_session::globals::JOINT_SCALE[1],
-        wood_session::globals::JOINT_SCALE[2]};
+        wood_session::config::JOINT_SCALE[0],
+        wood_session::config::JOINT_SCALE[1],
+        wood_session::config::JOINT_SCALE[2]};
 
     // ss_e_r_2/3 and ss_e_ip_2 divide by the element thickness, not the 40 mm default.
     if (joint.joint_type == 13 || joint.joint_type == 12) {
@@ -718,15 +467,9 @@ void build_joint_geometry(
     joint_get_divisions(joint, family.division_distance);
     joint.shift = family.shift;
     reuse_or_create_geometry(joint, family, elements, all_joints, unique_joints_cache);
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ]   after joint_create_geometry  no_orient={}\n", (int)joint.no_orient);
 
     if (!joint.no_orient) {
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ]   calling joint_orient_to_connection_area\n");
         joint_orient_to_connection_area(joint);
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ]   joint_orient done\n");
     }
 
     if (!joint.linked_joints.empty() && (family.id == 15 || family.id == 16)) {
@@ -744,14 +487,9 @@ void build_joints_geometry(
     std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<std::vector<int>>& per_element_joints_types) {
 
-    JointGeometryCache unique_joints_cache;
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ] geometry loop start  all_joints={}\n", all_joints.size());
+    std::map<std::string, CachedJointGeometry> unique_joints_cache;
 
     for (WoodJoint& joint : all_joints) {
-
-        if (TRACE)
-            std::cerr << fmt::format("[GCZ]   geom joint type={}  element0={} element1={}\n", joint.joint_type, joint.element_a, joint.element_b);
 
         const int id_representing_joint_name = joint_id_for(joint, per_element_joints_types, elements);
         const FamilyParameters family = family_parameters(joint.joint_type, id_representing_joint_name);
@@ -762,17 +500,13 @@ void build_joints_geometry(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Merge
-// ═══════════════════════════════════════════════════════════════════════════
-
 /// membership[element][face] = [(joint index, is_male)]; shadow joints go to the extra last slot.
-JointMembership joint_membership_per_face(
+std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per_face(
     const std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<WoodJoint>& all_joints) {
 
     const size_t element_count = elements.size();
-    JointMembership membership(element_count);
+    std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership(element_count);
     for (size_t element_index = 0; element_index < element_count; element_index++)
         membership[element_index].resize(elements[element_index]->planes.size() + 1);
 
@@ -799,16 +533,88 @@ JointMembership joint_membership_per_face(
     return membership;
 }
 
-/// Merges the joint cuts into each plate's polylines and de-interleaves [holes..., outer_top, outer_bot] into `features`.
-void merge_joints_into_plates(
-    std::vector<std::shared_ptr<Plate>>& elements,
-    const JointMembership& membership,
-    std::vector<WoodJoint>& all_joints) {
+} // anonymous namespace
 
+namespace wood_session {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WoodSession - Joints
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::vector<std::pair<int, int>> WoodSession::adjacent_pairs(const std::vector<std::pair<int, int>>& adjacency) const {
+
+    if (!adjacency.empty())
+        return adjacency;
+
+    std::vector<ContactElement> view;
+    for (const std::shared_ptr<Plate>& plate : plates())
+        view.emplace_back(*plate);
+
+    return adjacency_search(view, config::DISTANCE);
+}
+
+std::vector<WoodJoint> WoodSession::detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type) {
+
+    using namespace config;
+
+    const std::vector<std::shared_ptr<Plate>> elements = plates();
+    const int element_count = static_cast<int>(elements.size());
+    const double zero_length_squared = 1e-6; // A joint line no longer than 1 mm is degenerate.
+    set_cross_joint_distance_squared(DISTANCE_SQUARED);
+
+    std::vector<WoodJoint> joints;
+    joints.reserve(pairs.size());
+    for (size_t k = 0; k < pairs.size(); ++k) {
+
+        const int index_a = pairs[k].first;
+        const int index_b = pairs[k].second;
+        if (index_a < 0 || index_b < 0 || index_a >= element_count || index_b >= element_count) {
+            std::cerr << fmt::format("  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, index_a, index_b, element_count);
+            continue;
+        }
+
+        WoodJoint joint;
+        bool swap_planes_b = false;
+        const bool ok = face_to_face_wood(
+            *elements[index_a],
+            *elements[index_b],
+            {index_a, index_b},
+            JOINT_VOLUME_EXTENSION,
+            LIMIT_MIN_JOINT_LENGTH,
+            zero_length_squared,
+            DISTANCE_SQUARED,
+            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE,
+            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED,
+            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE,
+            search_type,
+            joint,
+            swap_planes_b);
+
+        if (swap_planes_b) {
+            std::swap(elements[index_b]->planes[0], elements[index_b]->planes[1]);
+            std::swap(elements[index_b]->polylines[0], elements[index_b]->polylines[1]);
+        }
+
+        if (ok)
+            joints.push_back(std::move(joint));
+    }
+
+    return joints;
+}
+
+void WoodSession::build_joint_geometry(std::vector<WoodJoint>& joints, const std::vector<std::vector<int>>& joint_types) {
+    std::vector<std::shared_ptr<Plate>> elements = plates();
+    build_joints_geometry(joints, elements, joint_types);
+}
+
+void WoodSession::merge_joints(std::vector<WoodJoint>& joints) {
+
+    std::vector<std::shared_ptr<Plate>> elements = plates();
+    const std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership = joint_membership_per_face(elements, joints);
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
 
-        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], all_joints, (int)element_index);
+        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], joints, (int)element_index);
         wood_session::Features& features = elements[element_index]->features;
         features.top.clear();
         features.bottom.clear();
@@ -829,166 +635,66 @@ void merge_joints_into_plates(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// get_connection_zones
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// The clock of the trace timing report.
-using Clock = std::chrono::high_resolution_clock;
-
-/// Stage boundaries for the trace timing report.
-struct StageTimes {
-    Clock::time_point start; // Entry.
-    Clock::time_point before_adjacency; // Sidecar names read, before the adjacency search.
-    Clock::time_point after_adjacency; // Adjacent pairs known.
-    Clock::time_point after_detection; // Joints detected.
-    Clock::time_point after_three_valence; // Three-valence groups applied and joint types loaded.
-    Clock::time_point after_geometry; // Joint geometry built and oriented.
-    Clock::time_point after_membership; // Membership per face built.
-    Clock::time_point end; // Merge done.
-};
-
-/// Milliseconds elapsed from a to b.
-double milliseconds_between(Clock::time_point a, Clock::time_point b) {
-    return std::chrono::duration<double, std::milli>(b - a).count();
+std::vector<WoodJoint> WoodSession::compute_joints(SearchType search_type) {
+    return compute_joints(search_type, config::load_joint_data(plates().size()));
 }
 
-/// Trace summary: counts per type and per-stage timings.
-void report_timings(
-    const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<std::pair<int, int>>& adjacency_pairs,
-    const DetectionStatistics& statistics,
-    const StageTimes& times) {
+/// A plate keeps the insertion vectors and joint types it already carries; `data` fills the ones it does not.
+std::vector<WoodJoint> WoodSession::compute_joints(SearchType search_type, const JointData& data) {
 
-    std::cout << fmt::format("{} elements -> {} adjacency pairs\n", elements.size(), adjacency_pairs.size());
-    std::cout << fmt::format("  joints: {} success / {} failed\n", statistics.succeeded, statistics.failed);
-    std::cout << fmt::format(
-        "  by type: 11={} 12={} 13={} 20={} 30={} 40={}\n",
-        statistics.counts[0], statistics.counts[1], statistics.counts[2], statistics.counts[3], statistics.counts[4], statistics.counts[5]);
-    std::cout << fmt::format("  time: {:.0f}ms\n", milliseconds_between(times.start, times.end));
-    std::cout << fmt::format(
-        "  stages(ms): setup={:.1f} adjacency={:.1f} detect={:.1f} tv={:.1f} geom={:.1f} jmf={:.1f} merge={:.1f}\n",
-        milliseconds_between(times.start, times.after_adjacency) - milliseconds_between(times.before_adjacency, times.after_adjacency),
-        milliseconds_between(times.before_adjacency, times.after_adjacency),
-        milliseconds_between(times.after_adjacency, times.after_detection),
-        milliseconds_between(times.after_detection, times.after_three_valence),
-        milliseconds_between(times.after_three_valence, times.after_geometry),
-        milliseconds_between(times.after_geometry, times.after_membership),
-        milliseconds_between(times.after_membership, times.end));
-}
+    std::vector<std::shared_ptr<Plate>> elements = plates();
+    if (elements.empty())
+        return {};
 
-} // anonymous namespace
+    clear_joints();
 
-std::vector<WoodJoint> get_connection_zones(
-    std::vector<std::shared_ptr<Plate>>& elements,
-    SearchType search_type) {
+    std::vector<std::vector<int>> joint_types(elements.size());
+    for (size_t i = 0; i < elements.size(); ++i) {
 
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ] enter  element_count={}  search_type={}\n", elements.size(), (int)search_type);
+        std::vector<Vector>& vectors = elements[i]->insertion_vectors();
+        if (vectors.empty() && i < data.insertion_vectors.size())
+            vectors = data.insertion_vectors[i];
+        if (elements[i]->reversed && vectors.size() > 2)
+            std::reverse(vectors.begin() + 2, vectors.end());
 
-    using namespace wood_session::globals;
-    const std::string dataset_name = DATA_SET_INPUT_NAME;
-    const double dihedral_threshold = FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
+        joint_types[i] = i < data.joint_types.size() && !data.joint_types[i].empty() ? data.joint_types[i] : elements[i]->joint_types;
+    }
 
-    StageTimes times;
-    times.start = Clock::now();
+    std::vector<WoodJoint> joints = detect_joints(adjacent_pairs(data.adjacency), search_type);
+    link_three_valence_joints(data.three_valence, elements, joints);
+    build_joint_geometry(joints, joint_types);
+    merge_joints(joints);
 
-    const std::string adjacency_name = DATA_SET_ADJACENCY;
-    const std::string three_valence_name = DATA_SET_THREE_VALENCE;
-    const std::string insertion_vectors_name = DATA_SET_INSERTION_VECTORS;
-    const std::string joint_types_name = DATA_SET_JOINTS_TYPES;
-    const std::vector<double> volume_extension = JOINT_VOLUME_EXTENSION;
+    for (WoodJoint& joint : joints) {
 
-    if (TRACE)
-        std::cout << fmt::format("\n=== {}.obj ===\n", dataset_name);
-
-    times.before_adjacency = Clock::now();
-
-    const std::vector<std::pair<int, int>> adjacency_pairs = adjacent_pairs(adjacency_name, elements);
-    times.after_adjacency = Clock::now();
-
-    const DetectionParameters parameters{
-        volume_extension,
-        LIMIT_MIN_JOINT_LENGTH,
-        1e-6,
-        DISTANCE_SQUARED,
-        dihedral_threshold,
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED,
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE};
-
-    wood_session::set_cross_joint_distance_squared(DISTANCE_SQUARED);
-
-    load_insertion_vectors(insertion_vectors_name, elements);
-
-    DetectionStatistics statistics;
-    std::vector<WoodJoint> all_joints = detect_joints(elements, adjacency_pairs, parameters, search_type, statistics);
-    times.after_detection = Clock::now();
-
-    wood_session::link_three_valence_joints(three_valence_name, elements, all_joints);
-
-    const std::vector<std::vector<int>> per_element_joints_types = load_joint_types(joint_types_name, elements);
-
-    times.after_three_valence = Clock::now();
-    build_joints_geometry(all_joints, elements, per_element_joints_types);
-    times.after_geometry = Clock::now();
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ] geometry dispatch done  all_joints={}\n", all_joints.size());
-
-    const JointMembership membership = joint_membership_per_face(elements, all_joints);
-    times.after_membership = Clock::now();
-    if (TRACE)
-        std::cerr << fmt::format("[GCZ] membership built  starting merge\n");
-
-    merge_joints_into_plates(elements, membership, all_joints);
-    times.end = Clock::now();
-
-    if (TRACE)
-        report_timings(elements, adjacency_pairs, statistics, times);
-
-    for (WoodJoint& joint : all_joints)
         joint.sync_features();
+        if (!get_element<Element>(joint.element_a) || !get_element<Element>(joint.element_b))
+            continue;
 
-    return all_joints;
+        WoodInteraction interaction = get_interaction(joint.element_a, joint.element_b);
+        interaction.joints.push_back(joint);
+        set_interaction(joint.element_a, joint.element_b, interaction);
+    }
+
+    sync_joint_features();
+
+    return joints;
 }
 
-/// In-memory overload: insertion vectors and joint types land on the plates, adjacency and three-valence in thread-locals.
+} // namespace wood_session
+
+std::vector<wood_session::WoodJoint> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, SearchType search_type) {
+    return get_connection_zones(elements, search_type, wood_session::config::load_joint_data(elements.size()));
+}
+
 std::vector<wood_session::WoodJoint> get_connection_zones(
     std::vector<std::shared_ptr<wood_session::Plate>>& elements,
     SearchType search_type,
-    const wood_session::ChevronJoineryData& joinery_data) {
+    const wood_session::JointData& data) {
 
-    for (size_t element_index = 0; element_index < elements.size(); ++element_index) {
-        if (elements[element_index]->insertion_vectors().empty() && element_index < joinery_data.insertion_vectors.size()) {
-            const std::array<double, 18>& flat_vectors = joinery_data.insertion_vectors[element_index];
-            std::vector<Vector>& vectors = elements[element_index]->insertion_vectors();
-            for (int side = 0; side < 6; ++side)
-                vectors.emplace_back(flat_vectors[side * 3 + 0], flat_vectors[side * 3 + 1], flat_vectors[side * 3 + 2]);
-        }
-    }
+    wood_session::WoodSession scene(wood_session::config::DATA_SET_INPUT_NAME);
+    for (const std::shared_ptr<wood_session::Plate>& plate : elements)
+        scene.add(plate);
 
-    for (size_t element_index = 0; element_index < elements.size(); ++element_index) {
-        if (elements[element_index]->joint_types.empty() && element_index < joinery_data.joints_per_face.size()) {
-            const std::array<int, 6>& face_types = joinery_data.joints_per_face[element_index];
-            elements[element_index]->joint_types.assign(face_types.begin(), face_types.end());
-        }
-    }
-
-    // RAII clear: a throw inside the pipeline must not leave this model's adjacency for the next solve on this thread.
-    struct OverrideGuard {
-        ~OverrideGuard() {
-            std::vector<std::pair<int, int>>().swap(tl_adjacency_override);
-            wood_session::clear_three_valence_override();
-        }
-    } tl_guard;
-
-    tl_adjacency_override = joinery_data.adjacency;
-
-    std::vector<std::vector<int>> three_valence_groups;
-    three_valence_groups.push_back({0});
-    for (const std::array<int, 4>& group : joinery_data.three_valence)
-        three_valence_groups.push_back({group[0], group[1], group[2], group[3]});
-
-    wood_session::set_three_valence_override(std::move(three_valence_groups));
-
-    return get_connection_zones(elements, search_type);
+    return scene.compute_joints(search_type, data);
 }

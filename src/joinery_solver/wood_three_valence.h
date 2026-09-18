@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
 #include "wood_joint.h"
 
@@ -30,15 +30,9 @@ void align_annen_joints(
     std::vector<WoodJoint>& joints
 );
 
-/// In-memory three-valence groups for the next link_three_valence_joints on this thread: first row [instruction], then [s0, s1, e20, e31] rows.
-void set_three_valence_override(std::vector<std::vector<int>> groups);
-
-/// Drops the in-memory groups; the next link_three_valence_joints reads the sidecar again.
-void clear_three_valence_override();
-
-/// Three-valence groups from the sidecar or the thread-local override; first row's first value 0 = annen alignment, 1 = vidy addition.
+/// Applies the three-valence groups, the first row [instruction], 0 = annen alignment, 1 = vidy addition, then [s0, s1, e20, e31] rows; nothing when there are none.
 void link_three_valence_joints(
-    const std::string& three_valence_name,
+    const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<WoodJoint>& all_joints
 );

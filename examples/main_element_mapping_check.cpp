@@ -1,9 +1,7 @@
 #include "../src/joinery_solver/wood_session.h"
 
 using namespace session_cpp;
-using wood_session::Block;
-using wood_session::Plate;
-using wood_session::WoodSession;
+using namespace wood_session;
 
 static int failures = 0;
 static void check(const bool ok, const std::string& what) {

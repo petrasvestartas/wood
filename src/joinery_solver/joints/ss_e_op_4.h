@@ -119,21 +119,21 @@ static void ss_e_op_4(
         }
     }
 
-    joint.male_cut_types[0] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
-    joint.male_cut_types[1] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+    joint.male_cut_types[0] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
+    joint.male_cut_types[1] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
 
     for (int j = 0; j < 2; j++) {
 
         std::vector<int> fct;
         if (female_modify_outline) {
-            fct.push_back(wood_cut::insert_between_multiple_edges);
-            fct.push_back(wood_cut::insert_between_multiple_edges);
+            fct.push_back(CutType::insert_between_multiple_edges);
+            fct.push_back(CutType::insert_between_multiple_edges);
         }
 
         if (joint.divisions > 0) {
             for (int i = 0; i < number_of_tenons; i += 2) {
-                fct.push_back(wood_cut::hole);
-                fct.push_back(wood_cut::hole);
+                fct.push_back(CutType::hole);
+                fct.push_back(CutType::hole);
             }
         }
 

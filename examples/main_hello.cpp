@@ -18,7 +18,7 @@ static Polyline compute_tooth(const double y, const double depth, const double h
 
 int main() {
 
-    globals::globals_yaml("hello");
+    config::load_yaml("hello");
 
     const std::vector<Polyline> polylines = {
         Polyline({
@@ -79,16 +79,16 @@ int main() {
         }),
     };
 
-    globals::CUSTOM_JOINTS_SS_E_IP_MALE = {
+    config::CUSTOM_JOINTS_SS_E_IP_MALE = {
         compute_tooth(-0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
         compute_tooth(0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
     };
-    globals::CUSTOM_JOINTS_SS_E_IP_FEMALE = {
+    config::CUSTOM_JOINTS_SS_E_IP_FEMALE = {
         compute_tooth(-0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
         compute_tooth(0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
     };
 
-    WoodSession scene(globals::DATA_SET_INPUT_NAME);
+    WoodSession scene(config::DATA_SET_INPUT_NAME);
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);

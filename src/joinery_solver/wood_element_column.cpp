@@ -1,13 +1,9 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_element_column.h"
 
 namespace wood_session {
 
-using session_cpp::Element;
-using session_cpp::Line;
-using session_cpp::Mesh;
-using session_cpp::Point;
-using session_cpp::Polyline;
+using namespace session_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -47,11 +43,24 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+AABB Column::aabb(double inflate) const {
+
+    if (const Mesh* solid = std::get_if<Mesh>(&geometry()))
+        if (solid->number_of_vertices() > 0)
+            return AABB::from_mesh(*solid, inflate);
+
+    std::vector<Point> points = section.get_points();
+    points.push_back(axis.start());
+    points.push_back(axis.end());
+
+    return AABB::from_points(points, inflate);
+}
+
 std::string Column::element_data_dumps() const {
     nlohmann::ordered_json data{
         {"axis", axis.jsondump()},
         {"section", section.point_count() > 0 ? section.jsondump() : nlohmann::ordered_json(nullptr)},
-        {"type", ELEMENT_TYPE},
+        {"type", std::string(ELEMENT_TYPE)},
     };
     return data.dump();
 }
@@ -66,7 +75,7 @@ static std::shared_ptr<Element> column_from_protobuf(const std::string& data) {
 }
 
 void Column::register_type() {
-    Element::register_type(ELEMENT_TYPE, column_from_protobuf);
+    Element::register_type(std::string(ELEMENT_TYPE), column_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

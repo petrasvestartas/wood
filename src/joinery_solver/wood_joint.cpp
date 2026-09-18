@@ -1,106 +1,17 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_joint.h"
 #include "wood_session.h"
-#include "wood_cut.h"
 using namespace session_cpp;
-using wood_session::WoodJoint;
-using wood_session::Plate;
+using namespace wood_session;
 
 /// The joint library is header-only and static; it lands in this TU's anonymous namespace.
 namespace {
-#include "wood_cut.h"
 #include "joints/ss_e_r_0.h"
 }
 
 namespace wood_session {
 
 constexpr bool TRACE = false;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Contacts and joints
-// ═══════════════════════════════════════════════════════════════════════════
-
-namespace {
-
-/// A ring as bare coordinates: a joint's rings are geometry, not objects, so no guid, colour or name.
-nlohmann::ordered_json to_coords(const Polyline& ring) {
-
-    nlohmann::ordered_json coords = nlohmann::ordered_json::array();
-    for (size_t i = 0; i < ring.point_count(); i++) {
-        const Point point = ring.get_point(i);
-        coords.push_back(point[0]);
-        coords.push_back(point[1]);
-        coords.push_back(point[2]);
-    }
-
-    return coords;
-}
-
-Polyline from_coords(const nlohmann::json& data) {
-
-    std::vector<Point> points;
-    points.reserve(data.size() / 3);
-    for (size_t i = 0; i + 2 < data.size(); i += 3)
-        points.emplace_back(data[i].get<double>(), data[i + 1].get<double>(), data[i + 2].get<double>());
-
-    return Polyline(points);
-}
-
-/// Rings as bare coordinate arrays, one per ring.
-nlohmann::ordered_json rings_to_coords(const std::vector<Polyline>& rings) {
-
-    nlohmann::ordered_json array = nlohmann::ordered_json::array();
-    for (const Polyline& ring : rings)
-        array.push_back(to_coords(ring));
-
-    return array;
-}
-
-/// Rings read back from coordinate arrays.
-std::vector<Polyline> rings_from_coords(const nlohmann::json& data) {
-
-    std::vector<Polyline> rings;
-    for (const nlohmann::json& ring : data)
-        rings.push_back(from_coords(ring));
-
-    return rings;
-}
-
-/// A line read back from a two-point coordinate array; a degenerate line at the origin when fewer than two points came.
-Line line_from_coords(const nlohmann::json& data) {
-
-    const Polyline ring = from_coords(data);
-
-    return ring.point_count() >= 2 ? Line::from_points(ring.get_point(0), ring.get_point(1))
-                                   : Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
-}
-
-}  // namespace
-
-// ═══════════════════════════════════════════════════════════════════════════
-// FaceContact - JSON
-// ═══════════════════════════════════════════════════════════════════════════
-
-nlohmann::ordered_json FaceContact::jsondump() const {
-    return nlohmann::ordered_json{
-        {"face_a", face_a},
-        {"face_b", face_b},
-        {"type", static_cast<int>(type)},
-        {"area", to_coords(area)},
-    };
-}
-
-FaceContact FaceContact::jsonload(const nlohmann::json& data) {
-
-    FaceContact contact;
-    contact.face_a = data.value("face_a", 0);
-    contact.face_b = data.value("face_b", 0);
-    contact.type   = static_cast<ContactType>(data.value("type", -1));
-    if (data.contains("area"))
-        contact.area = from_coords(data["area"]);
-
-    return contact;
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodJoint
@@ -174,13 +85,33 @@ std::array<ElementFeature, 2> WoodJoint::to_features() const {
 // WoodJoint - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Rings as an array of kernel polylines.
+static nlohmann::ordered_json rings_json(const std::vector<Polyline>& rings) {
+
+    nlohmann::ordered_json array = nlohmann::ordered_json::array();
+    for (const Polyline& ring : rings)
+        array.push_back(ring.jsondump());
+
+    return array;
+}
+
+/// Rings read back from an array of kernel polylines.
+static std::vector<Polyline> rings_from_json(const nlohmann::json& data) {
+
+    std::vector<Polyline> rings;
+    for (const nlohmann::json& ring : data)
+        rings.push_back(Polyline::jsonload(ring));
+
+    return rings;
+}
+
 nlohmann::ordered_json WoodJoint::jsondump() const {
 
     using nlohmann::ordered_json;
 
     ordered_json volumes = ordered_json::array();
     for (const std::optional<Polyline>& v : joint_volumes_pair_a_pair_b)
-        volumes.push_back(v.has_value() ? to_coords(*v) : ordered_json(nullptr));
+        volumes.push_back(v.has_value() ? v->jsondump() : ordered_json(nullptr));
 
     ordered_json seq = ordered_json::array();
     for (const std::vector<std::array<int, 4>>& group : linked_joints_seq) {
@@ -197,12 +128,11 @@ nlohmann::ordered_json WoodJoint::jsondump() const {
         {"contact_type", static_cast<int>(contact.type)},
         {"joint_type", joint_type},
         {"name", name},
-        {"joint_area", to_coords(contact.area)},
-        {"joint_lines", {to_coords(Polyline({joint_lines[0].start(), joint_lines[0].end()})),
-                         to_coords(Polyline({joint_lines[1].start(), joint_lines[1].end()}))}},
+        {"joint_area", contact.area.jsondump()},
+        {"joint_lines", {joint_lines[0].jsondump(), joint_lines[1].jsondump()}},
         {"joint_volumes", volumes},
-        {"male_outlines", {rings_to_coords(male_outlines[0]), rings_to_coords(male_outlines[1])}},
-        {"female_outlines", {rings_to_coords(female_outlines[0]), rings_to_coords(female_outlines[1])}},
+        {"male_outlines", {rings_json(male_outlines[0]), rings_json(male_outlines[1])}},
+        {"female_outlines", {rings_json(female_outlines[0]), rings_json(female_outlines[1])}},
         {"male_cut_types", {male_cut_types[0], male_cut_types[1]}},
         {"female_cut_types", {female_cut_types[0], female_cut_types[1]}},
         {"divisions", divisions},
@@ -239,11 +169,11 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
     j.joint_type = data.value("joint_type", 0);
     j.name       = data.value("name", std::string());
     if (data.contains("joint_area"))
-        j.contact.area = from_coords(data["joint_area"]);
+        j.contact.area = Polyline::jsonload(data["joint_area"]);
 
     if (data.contains("joint_lines")) {
-        j.joint_lines[0] = line_from_coords(data["joint_lines"][0]);
-        j.joint_lines[1] = line_from_coords(data["joint_lines"][1]);
+        j.joint_lines[0] = Line::jsonload(data["joint_lines"][0]);
+        j.joint_lines[1] = Line::jsonload(data["joint_lines"][1]);
     }
 
     if (data.contains("joint_volumes")) {
@@ -252,16 +182,16 @@ WoodJoint WoodJoint::jsonload(const nlohmann::json& data) {
             if (k >= 4)
                 break;
             if (!v.is_null())
-                j.joint_volumes_pair_a_pair_b[k] = from_coords(v);
+                j.joint_volumes_pair_a_pair_b[k] = Polyline::jsonload(v);
             ++k;
         }
     }
 
     for (int face = 0; face < 2; ++face) {
         if (data.contains("male_outlines"))
-            j.male_outlines[face] = rings_from_coords(data["male_outlines"][face]);
+            j.male_outlines[face] = rings_from_json(data["male_outlines"][face]);
         if (data.contains("female_outlines"))
-            j.female_outlines[face] = rings_from_coords(data["female_outlines"][face]);
+            j.female_outlines[face] = rings_from_json(data["female_outlines"][face]);
         if (data.contains("male_cut_types"))
             j.male_cut_types[face] = data["male_cut_types"][face].get<std::vector<int>>();
         if (data.contains("female_cut_types"))
@@ -548,58 +478,6 @@ void joint_get_divisions(WoodJoint& joint, double division_distance) {
 
 namespace {
 
-/// Convexity of every corner of a closed polygon, tested against its normal.
-std::vector<bool> convex_corners(const Polyline& pl, const Vector& normal) {
-
-    size_t n = pl.point_count();
-    if (n > 1 && (pl.get_point(0) - pl.get_point(n - 1)).magnitude_squared() < 1e-10)
-        --n;
-
-    std::vector<bool> conv;
-    conv.reserve(n);
-    for (size_t i = 0; i < n; ++i) {
-        const size_t prev = i == 0 ? n - 1 : i - 1;
-        const size_t next = i + 1 == n ? 0 : i + 1;
-        const Point pi = pl.get_point(i);
-        Vector d0 = pi - pl.get_point(prev);
-        d0.normalize_self();
-        Vector d1 = pl.get_point(next) - pi;
-        d1.normalize_self();
-        conv.push_back(d0.cross(d1).dot(normal) >= 0.0);
-    }
-
-    return conv;
-}
-
-/// Slide edge `edge_id` of a closed polyline: its start back by s0, its end forward by s1, closing vertex kept in sync.
-void extend_edge(Polyline& pl, size_t edge_id, double s0, double s1) {
-
-    if (s0 == 0.0 && s1 == 0.0)
-        return;
-
-    const size_t n = pl.point_count();
-    if (edge_id + 1 >= n)
-        return;
-
-    const Point a = pl.get_point(edge_id);
-    const Point b = pl.get_point(edge_id + 1);
-    const Vector d = b - a;
-    const double len = std::sqrt(d.magnitude_squared());
-    if (len < 1e-12)
-        return;
-
-    const Vector u = d / len;
-    std::vector<Point> pts = pl.get_points();
-    pts[edge_id] = a - u * s0;
-    pts[edge_id + 1] = b + u * s1;
-    if (edge_id == 0)
-        pts.back() = pts.front();
-    else if (edge_id + 1 == n - 1)
-        pts.front() = pts.back();
-
-    pl = Polyline(pts);
-}
-
 }  // namespace
 
 /// Four side-face rectangles, widened at convex corners and pushed along the face normals; no orient.
@@ -644,12 +522,10 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
     Polyline pline1 = elements[v1]->polylines[f1_0];
 
     if (pline0.point_count() == 5 && pline1.point_count() == 5) {
-        Vector norm0 = elements[v0]->planes[0].z_axis();
-        norm0.normalize_self();
-        Vector norm1 = elements[v1]->planes[0].z_axis();
-        norm1.normalize_self();
-        const std::vector<bool> cc0 = convex_corners(elements[v0]->polylines[0], norm0);
-        const std::vector<bool> cc1 = convex_corners(elements[v1]->polylines[0], norm1);
+        std::vector<bool> cc0;
+        std::vector<bool> cc1;
+        elements[v0]->polylines[0].get_convex_corners(cc0);
+        elements[v1]->polylines[0].get_convex_corners(cc1);
         const double sc0 = joint.scale[0];
 
         if (!cc0.empty()) {
@@ -657,8 +533,8 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
             const int b_idx = (a_idx + 1) % (int)cc0.size();
             const double sc0_0 = (a_idx >= 0 && a_idx < (int)cc0.size() && cc0[a_idx]) ? sc0 : 0.0;
             const double sc0_1 = (b_idx >= 0 && b_idx < (int)cc0.size() && cc0[b_idx]) ? sc0 : 0.0;
-            extend_edge(pline0, 0, sc0_0, sc0_1);
-            extend_edge(pline0, 2, sc0_1, sc0_0);
+            pline0.extend_segment(0, sc0_0, sc0_1);
+            pline0.extend_segment(2, sc0_1, sc0_0);
         }
 
         if (!cc1.empty()) {
@@ -666,15 +542,15 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
             const int b_idx = (a_idx + 1) % (int)cc1.size();
             const double sc1_0 = (a_idx >= 0 && a_idx < (int)cc1.size() && cc1[a_idx]) ? sc0 : 0.0;
             const double sc1_1 = (b_idx >= 0 && b_idx < (int)cc1.size() && cc1[b_idx]) ? sc0 : 0.0;
-            extend_edge(pline1, 0, sc1_0, sc1_1);
-            extend_edge(pline1, 2, sc1_1, sc1_0);
+            pline1.extend_segment(0, sc1_0, sc1_1);
+            pline1.extend_segment(2, sc1_1, sc1_0);
         }
 
         const double sv = joint.scale[1];
-        extend_edge(pline0, 1, sv, sv);
-        extend_edge(pline0, 3, sv, sv);
-        extend_edge(pline1, 1, sv, sv);
-        extend_edge(pline1, 3, sv, sv);
+        pline0.extend_segment(1, sv, sv);
+        pline0.extend_segment(3, sv, sv);
+        pline1.extend_segment(1, sv, sv);
+        pline1.extend_segment(3, sv, sv);
     }
 
     const Polyline pline0_moved0 = pline0.translated(f0_0_normal);
@@ -686,10 +562,10 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
         joint.male_outlines[1] = { pline0_moved0, pline0_moved0 };
         joint.female_outlines[0] = { pline1,        pline1 };
         joint.female_outlines[1] = { pline1_moved,  pline1_moved };
-        joint.male_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.male_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.female_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-        joint.female_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
+        joint.male_cut_types[0] = { CutType::mill_project, CutType::mill_project };
+        joint.male_cut_types[1] = { CutType::mill_project, CutType::mill_project };
+        joint.female_cut_types[0] = { CutType::mill_project, CutType::mill_project };
+        joint.female_cut_types[1] = { CutType::mill_project, CutType::mill_project };
         return;
     }
 
@@ -697,12 +573,12 @@ void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_
     joint.male_outlines[1] = { pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0 };
     joint.female_outlines[0] = { pline1,        pline1 };
     joint.female_outlines[1] = { pline1_moved,  pline1_moved };
-    joint.male_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project,
-                             wood_cut::mill_project, wood_cut::mill_project };
-    joint.male_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project,
-                             wood_cut::mill_project, wood_cut::mill_project };
-    joint.female_cut_types[0] = { wood_cut::mill_project, wood_cut::mill_project };
-    joint.female_cut_types[1] = { wood_cut::mill_project, wood_cut::mill_project };
+    joint.male_cut_types[0] = { CutType::mill_project, CutType::mill_project,
+                             CutType::mill_project, CutType::mill_project };
+    joint.male_cut_types[1] = { CutType::mill_project, CutType::mill_project,
+                             CutType::mill_project, CutType::mill_project };
+    joint.female_cut_types[0] = { CutType::mill_project, CutType::mill_project };
+    joint.female_cut_types[1] = { CutType::mill_project, CutType::mill_project };
 }
 
 /// side_removal_ss_e_r_1_port with the merge branch forced off unless merge_with_joint.
@@ -747,23 +623,6 @@ bool drill_ready(
     return joint.contact.area.point_count() >= min_area;
 }
 
-/// Centroid over every vertex, the closing duplicate included (Polyline::center() drops it).
-Point area_centroid(const Polyline& area) {
-
-    double sx = 0;
-    double sy = 0;
-    double sz = 0;
-    for (size_t k = 0; k < area.point_count(); k++) {
-        const Point p = area[k];
-        sx += p[0];
-        sy += p[1];
-        sz += p[2];
-    }
-
-    const double n = static_cast<double>(area.point_count());
-    return Point(sx / n, sy / n, sz / n);
-}
-
 /// dir0: the first volume's [1]->[2] edge, unit, times plate v0's thickness; dir1: the reverse times v1's.
 void drill_axes(const WoodJoint& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
     const Polyline& jv0 = *joint.joint_volumes_pair_a_pair_b[0];
@@ -796,10 +655,10 @@ void emit_drills(WoodJoint& joint, const std::vector<Point>& points, const Vecto
             joint.female_outlines[f].push_back(line0);
             joint.male_outlines[f].push_back(line1);
             joint.male_outlines[f].push_back(line1);
-            joint.male_cut_types[f].push_back(wood_cut::drill);
-            joint.male_cut_types[f].push_back(wood_cut::drill);
-            joint.female_cut_types[f].push_back(wood_cut::drill);
-            joint.female_cut_types[f].push_back(wood_cut::drill);
+            joint.male_cut_types[f].push_back(CutType::drill);
+            joint.male_cut_types[f].push_back(CutType::drill);
+            joint.female_cut_types[f].push_back(CutType::drill);
+            joint.female_cut_types[f].push_back(CutType::drill);
         }
     }
 }
@@ -847,7 +706,7 @@ void centroid_drill(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>&
     Vector dir0;
     Vector dir1;
     drill_axes(joint, elements[v0]->thickness, elements[v1]->thickness, dir0, dir1);
-    emit_drills(joint, {area_centroid(joint.contact.area)}, dir0, dir1);
+    emit_drills(joint, {joint.contact.area.center()}, dir0, dir1);
 }
 
 /// Drills along the offset area boundary.
@@ -905,7 +764,7 @@ void tt_e_p_2(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
 
     const double radius = joint.shift;
     const int n_pts = std::max(1, std::min(100, (int)joint.division_length));
-    const Point center = area_centroid(joint.contact.area);
+    const Point center = joint.contact.area.center();
     Point origin;
     Plane plane;
     joint.contact.area.get_fast_plane(origin, plane);
@@ -940,7 +799,7 @@ void tt_e_p_3(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& eleme
     joint.name = "tt_e_p_3";
     joint.no_orient = true;
 
-    boundary_drill(joint, elements, joint.division_length, wood_session::globals::DISTANCE_SQUARED);
+    boundary_drill(joint, elements, joint.division_length, wood_session::config::DISTANCE_SQUARED);
 }
 
 /// Boundary drills, open rings by a fixed 0.01.

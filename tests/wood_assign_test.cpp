@@ -1,13 +1,10 @@
-#include "wood_assign.h"
 #include "wood_session.h"
-
-#include <cstdio>
 using namespace session_cpp;
 using namespace wood_session;
 
 static int failures = 0;
 
-static void check(bool condition, const char* name) {
+static void check(bool condition, std::string_view name) {
 
     if (condition)
         return;
@@ -16,75 +13,82 @@ static void check(bool condition, const char* name) {
     ++failures;
 }
 
-static std::vector<std::shared_ptr<Plate>> plates() {
+/// One 10 x 10 x 2 plate in a scene.
+static WoodSession scene() {
 
-    std::shared_ptr<Plate> element = std::make_shared<Plate>();
-    element->polylines = {
+    WoodSession session("assign");
+    std::shared_ptr<Plate> plate = std::make_shared<Plate>();
+    plate->polylines = {
         Polyline({Point(0, 0, 0), Point(10, 0, 0), Point(10, 10, 0), Point(0, 10, 0), Point(0, 0, 0)}),
         Polyline({Point(0, 0, 2), Point(10, 0, 2), Point(10, 10, 2), Point(0, 10, 2), Point(0, 0, 2)})
     };
+    session.add(plate);
 
-    return {element};
+    return session;
 }
 
 static void insertion_tolerance() {
 
-    globals::reset_defaults();
-    const std::vector<std::shared_ptr<Plate>> elements = plates();
-    std::vector<std::vector<Vector>> vectors;
+    config::reset_defaults();
+    WoodSession session = scene();
     const double distances[] = {0.0, 0.19, 0.5, 0.99, 1.0, 1.5};
 
     for (const double distance : distances) {
-        assign_insertion(elements, {Line::from_points(Point(5, -distance, 0), Point(5, -distance, 3))}, vectors);
-        check(vectors.size() == 1 && vectors[0].size() == 6, "Insertion Slot Count");
-        check(vectors[0][2][2] == (distance < 1.0 ? 3.0 : 0.0), "Insertion Tolerance");
-        for (size_t i = 0; i < vectors[0].size(); ++i)
+        session.assign_insertion_vectors({Line::from_points(Point(5, -distance, 0), Point(5, -distance, 3))});
+        const std::vector<Vector>& vectors = session.plates()[0]->insertion_vectors();
+        check(vectors.size() == 6, "Insertion Slot Count");
+        check(vectors[2][2] == (distance < 1.0 ? 3.0 : 0.0), "Insertion Tolerance");
+        for (size_t i = 0; i < vectors.size(); ++i)
             if (i != 2)
-                check(vectors[0][i].magnitude() == 0.0, "Unassigned Insertion Slots");
+                check(vectors[i].magnitude() == 0.0, "Unassigned Insertion Slots");
     }
 
-    globals::DISTANCE = 0.01;
-    globals::DISTANCE_SQUARED = 0.04;
-    assign_insertion(elements, {Line::from_points(Point(5, -1.5, 0), Point(5, -1.5, 3))}, vectors);
-    check(vectors[0][2][2] == 3.0, "Retuned Insertion Tolerance");
+    config::DISTANCE = 0.01;
+    config::DISTANCE_SQUARED = 0.04;
+    session.assign_insertion_vectors({Line::from_points(Point(5, -1.5, 0), Point(5, -1.5, 3))});
+    check(session.plates()[0]->insertion_vectors()[2][2] == 3.0, "Retuned Insertion Tolerance");
 }
 
 static void joint_slots() {
 
-    globals::reset_defaults();
-    const std::vector<std::shared_ptr<Plate>> elements = plates();
-    std::vector<std::vector<int>> types;
+    config::reset_defaults();
+    WoodSession session = scene();
+    const std::shared_ptr<Plate> plate = session.plates()[0];
 
-    assign_joint(elements, {Point(5, -0.5, 0), Point(5, -0.5, 2), Point(10.5, 5, 0)}, {-12, -20, 30}, types);
-    check(types.size() == 1 && types[0].size() == 6, "Joint Slot Count");
-    check(types[0] == std::vector<int>({12, 20, -1, 30, -1, -1}), "Joint Face And Side Slots");
+    session.assign_joint_types({Point(5, -0.5, 0), Point(5, -0.5, 2), Point(10.5, 5, 0)}, {-12, -20, 30});
+    check(plate->joint_types.size() == 6, "Joint Slot Count");
+    check(plate->joint_types == std::vector<int>({12, 20, -1, 30, -1, -1}), "Joint Face And Side Slots");
 
-    assign_joint(elements, {Point(5, -1.0, 0)}, {12}, types);
-    check(types[0] == std::vector<int>(6, -1), "Joint Tolerance Boundary");
+    session.assign_joint_types({Point(5, -1.0, 0)}, {12});
+    check(plate->joint_types == std::vector<int>(6, -1), "Joint Tolerance Boundary");
 
-    assign_joint(elements, {Point(5, 0, 0)}, {}, types);
-    check(types[0] == std::vector<int>(6, -1), "Missing Joint Types");
+    session.assign_joint_types({Point(5, 0, 0)}, {});
+    check(plate->joint_types == std::vector<int>(6, -1), "Missing Joint Types");
 }
 
 static void empty_inputs() {
 
-    std::vector<std::vector<Vector>> vectors(1, std::vector<Vector>(1, Vector(1, 2, 3)));
-    std::vector<std::vector<int>> types{{42}};
+    config::reset_defaults();
+    WoodSession empty("empty");
+    empty.assign_insertion_vectors({});
+    empty.assign_joint_types({}, {});
+    check(empty.plates().empty(), "Empty Scene");
 
-    assign_insertion({}, {}, vectors);
-    assign_joint({}, {}, {}, types);
-    check(vectors.empty() && types.empty(), "Empty Elements Clear Outputs");
-
-    const std::vector<std::shared_ptr<Plate>> elements = plates();
-    assign_insertion(elements, {}, vectors);
-    assign_joint(elements, {}, {}, types);
-    check(types[0] == std::vector<int>(6, -1), "Empty Points Reset Types");
-    for (const Vector& vector : vectors[0])
+    WoodSession session = scene();
+    const std::shared_ptr<Plate> plate = session.plates()[0];
+    plate->joint_types = {42};
+    plate->insertion_vectors() = {Vector(1, 2, 3)};
+    session.assign_insertion_vectors({});
+    session.assign_joint_types({}, {});
+    check(plate->joint_types == std::vector<int>(6, -1), "Empty Points Reset Types");
+    for (const Vector& vector : plate->insertion_vectors())
         check(vector.magnitude() == 0.0, "Empty Lines Reset Vectors");
 
-    assign_joint({std::make_shared<Plate>()}, {Point(0, 0, 0)}, {12}, types);
-    assign_insertion({std::make_shared<Plate>()}, {Line::from_points(Point(0, 0, 0), Point(0, 0, 1))}, vectors);
-    check(types[0] == std::vector<int>(2, -1) && vectors[0].size() == 2, "Empty Element Outlines");
+    WoodSession bare("bare");
+    bare.add(std::make_shared<Plate>());
+    bare.assign_joint_types({Point(0, 0, 0)}, {12});
+    bare.assign_insertion_vectors({Line::from_points(Point(0, 0, 0), Point(0, 0, 1))});
+    check(bare.plates()[0]->joint_types == std::vector<int>(2, -1) && bare.plates()[0]->insertion_vectors().size() == 2, "Empty Element Outlines");
 }
 
 int main() {
@@ -92,7 +96,7 @@ int main() {
     insertion_tolerance();
     joint_slots();
     empty_inputs();
-    globals::reset_defaults();
+    config::reset_defaults();
 
     return failures ? 1 : 0;
 }

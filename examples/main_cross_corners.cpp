@@ -4,10 +4,10 @@ using namespace wood_session;
 
 int main() {
 
-    globals::reset_defaults();
-    globals::JOINT_VOLUME_EXTENSION[1] = 2;
-    globals::DATA_SET_INPUT_NAME = "cross_corners_custom";
-    globals::DATA_SET_OUTPUT_FILE = "WoodF2F_cross_corners_custom.pb";
+    config::reset_defaults();
+    config::JOINT_VOLUME_EXTENSION[1] = 2;
+    config::DATA_SET_INPUT_NAME = "cross_corners_custom";
+    config::DATA_SET_OUTPUT_FILE = "WoodF2F_cross_corners_custom.pb";
 
     const std::vector<Polyline> polylines = {
         Polyline({ {-487.707780261317,-262.545668944569,-45.2995080427285}, {-487.707780261317,-131.041055779523,-45.2995080427285}, {-664.561369343444,-131.041055779523,-45.2995080427285}, {-664.561369343444,-262.545668944569,-45.2995080427285}, {-487.707780261317,-262.545668944569,-45.2995080427285} }),
@@ -52,7 +52,7 @@ int main() {
         Polyline({ {600.101952383697,109.718869550992,-38.6720517701402}, {601.649075095825,289.340502610428,124.815687950251}, {592.531643591835,297.821548773065,111.535210145529}, {591.012273988904,121.422064000418,-49.0197996387254}, {600.101952383697,109.718869550992,-38.6720517701402} }),
     };
 
-    WoodSession scene(globals::DATA_SET_INPUT_NAME);
+    WoodSession scene(config::DATA_SET_INPUT_NAME);
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(cross_joint);

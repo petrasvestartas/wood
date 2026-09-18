@@ -1,11 +1,9 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_element_block.h"
 
 namespace wood_session {
 
-using session_cpp::Element;
-using session_cpp::Mesh;
-using session_cpp::Polyline;
+using namespace session_cpp;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
@@ -37,9 +35,17 @@ static std::shared_ptr<Element> block_from_protobuf(const std::string& data) {
     return Block::from_element(Element::pb_loads(data));
 }
 
+AABB Block::aabb(double inflate) const {
+
+    if (const Mesh* solid = std::get_if<Mesh>(&geometry()))
+        return AABB::from_mesh(*solid, inflate);
+
+    return AABB::from_points({}, inflate);
+}
+
 void Block::register_type() {
-    Element::register_type(ELEMENT_TYPE, block_from_protobuf);
-    Element::register_type(LEGACY_ELEMENT_TYPE, block_from_protobuf);
+    Element::register_type(std::string(ELEMENT_TYPE), block_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), block_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

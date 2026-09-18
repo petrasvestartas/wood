@@ -1,67 +1,15 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
 #include "wood_element_plate.h"
+#include "wood_face_to_face_contact_pair.h"
+#include "wood_joint_cut_type.h"
 
 namespace wood_session {
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Contacts
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Topology class of a face contact from the two face indices alone (index < 2 outer, >= 2 side).
-/// Not WoodJoint::joint_type: that is the solver's refined code (11/12/13/20/30/40) and needs geometry.
-enum class ContactType : int {
-    /// No plate face convention: every Block contact.
-    unknown = -1,
-
-    /// Both faces are sides; refines to 11, 12 or 13.
-    side_side = 0,
-
-    /// One side face and one outer face; refines to 20.
-    side_top = 1,
-
-    /// Both outer faces; refines to 40.
-    top_top = 2,
-
-    /// The elements pass through each other: plane_to_face, CrossJoint.
-    cross = 3,
-
-    /// The two boundary polylines cross within tolerance.
-    line = 4,
-};
-
-/// One face pair in contact: the two faces, the class, the overlap region (closed, in the first face's plane).
-struct FaceContact {
-    int face_a = 0; // Face index on the first element.
-    int face_b = 0; // Face index on the second element.
-    ContactType type = ContactType::unknown; // Topology class of the pair.
-    session_cpp::Polyline area; // The overlap region, closed, in face_a's plane.
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // JSON
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// The contact as JSON: area, face_a, face_b, type.
-    nlohmann::ordered_json jsondump() const;
-
-    /// A contact from its JSON.
-    static FaceContact jsonload(const nlohmann::json& data);
-};
-
-/// face_contacts() output: one element pair as positions in the vector it was given, and every overlap between them.
-struct ContactPair {
-    int element_a = -1; // Position of the first element.
-    int element_b = -1; // Position of the second element.
-    std::vector<FaceContact> faces; // Every face pair in contact between the two.
-};
-
 /// One connection between two plates: what was detected, how it was classified, and the cut outlines the joint library made of it.
 struct WoodJoint {
-    /// An empty joint: type 0, one division, shift 0.5, unit scale off.
-    WoodJoint();
-
     std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
     std::string element_b; // The female element, by guid.
     FaceContact contact; // Which faces touched, and where.
@@ -72,8 +20,8 @@ struct WoodJoint {
     std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes_pair_a_pair_b; // The volume rectangles: [0] and [1] bound the male side, [2] and [3] the female side when it differs.
     std::array<std::vector<session_cpp::Polyline>, 2> male_outlines; // Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
     std::array<std::vector<session_cpp::Polyline>, 2> female_outlines; // Female cut outlines per face, laid out like male_outlines.
-    std::array<std::vector<int>, 2> male_cut_types; // One cut_type per male outline.
-    std::array<std::vector<int>, 2> female_cut_types; // One cut_type per female outline.
+    std::array<std::vector<int>, 2> male_cut_types; // One CutType per male outline.
+    std::array<std::vector<int>, 2> female_cut_types; // One CutType per female outline.
     int divisions; // Number of teeth or notches along the joint line.
     double shift; // Lateral offset of the pattern along the joint line, 0..1.
     double length; // Length of the joint line.
@@ -90,6 +38,9 @@ struct WoodJoint {
     std::string dbg_fail_reason; // Why detection rejected the pair, filled only under TRACE.
     std::array<session_cpp::ElementFeature, 2> element_features; // The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
     mutable std::array<std::string, 2> feature_guids; // Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
+
+    /// An empty joint: type 0, one division, shift 0.5, unit scale off.
+    WoodJoint();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

@@ -1,130 +1,46 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
+#include "wood_element_beam.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
 #include "wood_element_plate.h"
-#include "wood_globals.h"
+#include "wood_config.h"
 #include "wood_joint.h"
+#include "wood_joint_data.h"
+#include "wood_session_interaction.h"
 #include "wood_joint_detection.h"
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Datasets
-// ═══════════════════════════════════════════════════════════════════════════
-
-namespace internal {
-
-/// The dataset folder, globals::DATA_SET_INPUT_FOLDER; absolute, so the working directory does not matter.
-std::filesystem::path session_data_dir();
-
-/// Absolute path to data/output/, created on first call.
-std::filesystem::path output_dir();
-
-/// A bare name resolves to <session_data_dir>/<name><ext>; a path already ending in ext is returned as is.
-std::filesystem::path dataset_path(const std::string& name, const std::string& ext);
-
-/// True iff data/<name>.obj exists.
-bool plates_exist(const std::string& name);
-
-/// One Plate per consecutive outline pair (even = bottom, odd = top) of data/<name>.obj or an .obj path; duplicate_pts_tol > 0 removes consecutive duplicate points.
-std::vector<std::shared_ptr<wood_session::Plate>> load_plates(
-        const std::string& dataset_name,
-        double duplicate_pts_tol = 0.0);
-
-/// The raw polylines of data/<name>.obj or an .obj path, unpaired: beam datasets, one axis per polyline.
-std::vector<session_cpp::Polyline> load_polylines(
-        const std::string& dataset_name,
-        double duplicate_pts_tol = 0.0);
-
-} // namespace internal
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The 9-stage detection pipeline over the plates, in place: every plate's `features` and `insertion_vectors` are filled, and every detected joint is returned.
+/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place and every detected joint returned.
 std::vector<wood_session::WoodJoint> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type = face_to_face);
 
-namespace wood_session {
-/// Pre-computed joinery metadata for chevron assemblies, used instead of the DATA_SET_INPUT_NAME txt files.
-struct ChevronJoineryData {
-    std::vector<std::pair<int, int>> adjacency; // Adjacent plate pairs, by position.
-    std::vector<std::array<double, 18>> insertion_vectors; // Six vectors per element, flat: 18 doubles.
-    std::vector<std::array<int, 6>> joints_per_face; // Joint type code per face per element.
-    std::vector<std::array<int, 4>> three_valence; // Annen three-valence groups [s0, s1, e20, e31].
-};
-} // namespace wood_session
-
-/// Overload: uses in-memory chevron joinery data instead of DATA_SET_INPUT_NAME txt files.
+/// The same with the joint data given instead of read from the sidecar files.
 std::vector<wood_session::WoodJoint> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type,
-        const wood_session::ChevronJoineryData& joinery_data);
+        const wood_session::JointData& data);
 
 namespace wood_session {
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodInteraction - what one graph edge carries
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Everything the relation between two elements is made of: where they touch, and what the solver made of it.
-struct WoodInteraction {
-    std::vector<FaceContact> contacts; // Every overlap region between the pair, face_a on the element the edge was read from.
-    std::vector<WoodJoint> joints; // What get_connection_zones made of them; a joint names its own two elements.
-    static constexpr const char* TYPE = "WoodInteraction"; // Value of "type" the attribute is written under, and the grammar's whole guard.
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Operators
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// str() onto a stream.
-    friend std::ostream& operator<<(std::ostream& os, const WoodInteraction& interaction);
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Geometry
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// True when there is neither a contact nor a joint.
-    bool empty() const { return contacts.empty() && joints.empty(); }
-
-    /// face_a and face_b swapped in every contact: the edge read from the other end.
-    WoodInteraction flipped() const;
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // JSON
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// The interaction as JSON: contacts, joints, type.
-    nlohmann::ordered_json jsondump() const;
-
-    /// An interaction from its JSON.
-    static WoodInteraction jsonload(const nlohmann::json& data);
-
-    /// jsondump() as the string a graph edge stores.
-    std::string to_attribute() const;
-
-    /// Total: an attribute this grammar does not describe ("bvh_collision", "default", "") comes back empty.
-    static WoodInteraction from_attribute(const std::string& attribute);
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // String
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// "WoodInteraction(contacts, joints)".
-    std::string str() const;
-};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session with typed element access and a WoodInteraction on each graph edge; Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh(), the plate with its joints cut in, the one to inspect. compute_joints() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
+/// A Session with typed element access and a WoodInteraction per element pair, held as objects and never parsed on read: pb_dump writes them onto the graph edges, pb_load reads them back once; Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh(), the plate with its joints cut in, the one to inspect. compute_joints() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
 class WoodSession : public session_cpp::Session {
+private:
+    std::map<std::pair<std::string, std::string>, WoodInteraction> interactions; // The store: one interaction per pair, oriented to the low guid.
+    std::unordered_map<std::string, std::pair<std::string, std::string>> contact_pairs; // Contact guid -> the pair holding it.
+
 public:
-    /// An empty scene; registers the three element factories with the kernel.
+    /// An empty scene; registers the four element factories with the kernel.
     WoodSession();
 
     /// An empty scene with a name.
@@ -136,6 +52,9 @@ public:
 
     /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block.
     static WoodSession pb_load(const std::filesystem::path& path);
+
+    /// A dataset name (data/<name>.obj) or an .obj path: one Plate per consecutive outline pair, even bottom, odd top; duplicate_pts_tol > 0 removes consecutive duplicate points.
+    static WoodSession obj_load(const std::filesystem::path& path, double duplicate_pts_tol = 0.0);
 
     /// A dataset name (data/<name>.yml) or a .yml path: its globals apply, and the obj it names becomes the scene's plates.
     static WoodSession yaml_load(const std::filesystem::path& path);
@@ -166,23 +85,41 @@ public:
     /// Elements that pass through each other: plane_to_face over every pair of plates, stored as ContactType::cross.
     void compute_cross_contacts(double angle_tol = 30.0);
 
-    /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads globals::DISTANCE), stored as ContactType::line.
+    /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads config::DISTANCE), stored as ContactType::line.
     void compute_line_contacts(double tolerance = -1.0);
 
-    /// get_connection_zones over the plates, in place; every joint onto its pair's edge and onto both host elements as features, and the merged outlines onto each plate; no plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
-    void compute_joints(SearchType search_type = globals::SEARCH_TYPE);
+    /// The joinery pipeline over the plates, in place: config::load_joint_data, adjacent_pairs, detect_joints, the three-valence links, build_joint_geometry, merge_joints; every joint onto its pair and onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
+    std::vector<WoodJoint> compute_joints(SearchType search_type = config::SEARCH_TYPE);
 
-    /// The interaction on the edge joining two elements, read from `a`; empty when there is none.
+    /// The same with the joint data given instead of read from the sidecar files: its adjacency and three-valence groups, and its insertion vectors and joint types for plates that carry none.
+    std::vector<WoodJoint> compute_joints(SearchType search_type, const JointData& data);
+
+    /// Candidate plate pairs by position: `adjacency` when given, else the OBB and BVH search within config::DISTANCE.
+    std::vector<std::pair<int, int>> adjacent_pairs(const std::vector<std::pair<int, int>>& adjacency = {}) const;
+
+    /// face_to_face_wood on every pair, joints in pair order; a plate whose faces detection swapped is swapped in place.
+    std::vector<WoodJoint> detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
+
+    /// Unit joinery geometry and its orientation for every joint, in order; joint_types is the per-plate per-face id table, empty rows let the solver decide.
+    void build_joint_geometry(std::vector<WoodJoint>& joints, const std::vector<std::vector<int>>& joint_types);
+
+    /// Merges every joint's cut outlines into its two plates' features.
+    void merge_joints(std::vector<WoodJoint>& joints);
+
+    /// The interaction between two elements, read from `a`; empty when there is none.
     WoodInteraction get_interaction(const std::string& a, const std::string& b) const;
 
-    /// Stores one on that pair's edge, adding the edge when the pair has none.
+    /// Stores the pair's interaction, adding the graph edge when the pair has none; a contact without a guid gets one.
     void set_interaction(const std::string& a, const std::string& b, const WoodInteraction& interaction);
 
     /// Every pair with an interaction, each once as (a, b) with a < b.
     std::vector<std::tuple<std::string, std::string, WoodInteraction>> get_interactions() const;
 
-    /// Session::get_collisions with the interactions kept.
-    std::vector<std::pair<std::string, std::string>> get_collisions();
+    /// The contact with this guid, face_a on its element_a; throws std::out_of_range when the scene holds none.
+    const FaceContact& get_contact(const std::string& guid) const;
+
+    /// Every contact of one class, in pair order: side_side, side_top, top_top and unknown come from compute_face_contacts, cross from compute_cross_contacts, line from compute_line_contacts.
+    std::vector<FaceContact> get_contacts(ContactType type) const;
 
     /// Every contact as detection produced it: element positions in element_guids(), face_a on element_a.
     std::vector<ContactPair> contacts() const;
@@ -214,11 +151,11 @@ public:
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// sync_geometry(), then the kernel's writer.
-    void pb_dump(const std::string& filename) const;
+    /// sync_geometry() and sync_interactions(), then the kernel's writer.
+    void pb_dump(const std::string& filename);
 
-    /// sync_geometry(), then the kernel's serializer.
-    std::string pb_dumps() const;
+    /// sync_geometry() and sync_interactions(), then the kernel's serializer.
+    std::string pb_dumps();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String
@@ -272,8 +209,37 @@ public:
     /// Every Block, in objects.elements order.
     std::vector<std::shared_ptr<Block>> blocks() const { return get_elements<Block>(); }
 
+    /// Every Beam, in objects.elements order.
+    std::vector<std::shared_ptr<Beam>> beams() const { return get_elements<Beam>(); }
+
     /// Every element's guid in objects.elements order: the index space every ContactPair uses.
     std::vector<std::string> element_guids() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Assignment - the sidecar tables filled from points and lines placed on the plates
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Every plate's joint_types reset to -1 per slot (bottom, top, one per side), then each point's type written into the slot of every plate whose nearest outline segment lies within 10 x config::DISTANCE: a negative type names the bottom or top face, a positive one the side; the absolute value is stored.
+    void assign_joint_types(const std::vector<session_cpp::Point>& points, const std::vector<int>& types);
+
+    /// Every plate's insertion vectors reset to zero per slot, then each line's vector written into the side slot of every plate whose outline segment nearest the line start lies within 10 x config::DISTANCE.
+    void assign_insertion_vectors(const std::vector<session_cpp::Line>& lines);
+
+private:
+    /// The slot of a plate nearest to a point, bottom 0, top 1, sides from 2, or -1 when it lies farther than sqrt(threshold); `faces` picks the face slot instead of the side slot.
+    static int nearest_slot(const Plate& plate, const session_cpp::Point& point, double threshold, bool faces);
+
+    /// An r-tree over the plates' boxes inflated by radius, keyed by position; plates without outlines are left out.
+    session_cpp::SpatialRTree<int, double, 3> plate_rtree(const std::vector<std::shared_ptr<Plate>>& plates, double radius) const;
+
+    /// Drops every contact of one class from every pair, so a recompute of that class replaces rather than accumulates.
+    void erase_contacts(ContactType type);
+
+    /// Every interaction's JSON onto its graph edge: the saved form pb_dump writes.
+    void sync_interactions();
+
+    /// Every graph edge's JSON into the store: what pb_load reads.
+    void load_interactions();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -291,7 +257,7 @@ void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& p
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// "side_side" / "side_top" / "top_top" / "unknown" / "cross" / "line" - the group name a contact of that class is filed under.
-const char* contact_type_name(ContactType type);
+std::string_view contact_type_name(ContactType type);
 
 /// "ss_ip_12" / "ss_op_11" / "ss_rot_13" / "ts_20" / "cross_30" / "tt_40", or "type_<n>" for a code the table does not name.
 std::string joint_type_name(int joint_type);
@@ -303,21 +269,6 @@ session_cpp::Color contact_color(ContactType type);
 session_cpp::Color joint_color(int joint_type);
 
 } // namespace wood_session
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Beams
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Beam (axis + radius) entry point for the type_beams_name_* datasets: joint volumes per axis contact, written to data/output/<DATA_SET_OUTPUT_FILE>.
-void beam_volumes_pipeline(
-        const std::vector<session_cpp::Polyline>& axes,
-        const std::vector<std::vector<double>>& segment_radii,
-        const std::vector<std::vector<session_cpp::Vector>>& segment_direction,
-        const std::vector<int>& allowed_types_per_polyline,
-        double min_distance,
-        double volume_length,
-        double cross_or_side_to_end,
-        int    flip_male);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Datasets as tests
@@ -452,5 +403,5 @@ bool type_plates_name_cross_ibois_pavilion();
 /// data/cross_brussels_sports_tower.yml through run_dataset; false on failure.
 bool type_plates_name_cross_brussels_sports_tower();
 
-/// data/phanomema_node.yml through beam_volumes_pipeline; false on failure.
+/// data/phanomema_node.yml through Beam::joint_volumes; false on failure.
 bool type_beams_name_phanomema_node();

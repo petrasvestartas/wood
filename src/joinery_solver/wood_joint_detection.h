@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wood_pch.h"
+#include "pch.h"
 
 namespace wood_session {
 
@@ -34,7 +34,7 @@ bool plane_to_face(
     double angle_tol = 5.0,
     const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
 
-/// Near-coplanar rejection threshold used by plane_to_face; the caller syncs it from globals::DISTANCE_SQUARED.
+/// Near-coplanar rejection threshold used by plane_to_face; the caller syncs it from config::DISTANCE_SQUARED.
 void set_cross_joint_distance_squared(double dist_sq);
 
 } // namespace wood_session

@@ -3,14 +3,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int SESSION = 0;   // globals::SESSION_NAMES
-const std::string DATASET = globals::Dataset::hex_block_rossiniere;  // globals::Dataset::<name> autocompletes
+const int SESSION = 0;   // config::SESSION_NAMES
+const std::string DATASET{config::Dataset::hex_block_rossiniere};  // config::Dataset::<name> autocompletes
 
 int main() {
 
-    WoodSession wood_session = WoodSession::pb_load(globals::session_pb(SESSION));
+    WoodSession wood_session = WoodSession::pb_load(config::session_pb(SESSION));
     std::cout << wood_session << std::endl;
-    wood_session.pb_dump(pb_path(globals::SESSION_NAMES[SESSION]).string());
+    wood_session.pb_dump(pb_path(config::SESSION_NAMES[SESSION]).string());
 
     WoodSession session_plates = WoodSession::yaml_load(DATASET);
     std::cout << session_plates << std::endl;
@@ -38,15 +38,15 @@ examples/1_io.cpp
  |
  |-- WoodSession::pb_load(name)                 src/joinery_solver/wood_session.cpp
  |    |-- register_element_types()               Plate/Column/Block::register_type      wood_element_*.cpp
- |    |-- internal::dataset_path(name, ".pb")     wood_internal.cpp  ->  data/<name>.pb
+ |    |-- config::dataset_path(name, ".pb")     wood_config.cpp    ->  data/<name>.pb
  |    '-- Session::pb_load(file)                  ../session/session_cpp/src/session.cpp
  |         '-- Element registry -> Plate::from_element (outline payload back to a Plate)
  |
  |-- operator<< / str()                          wood_session.cpp
  |
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp
- |    |-- globals::globals_yaml(path)             wood_globals.cpp   ->  data/<dataset>.yml (all tunables)
- |    |-- internal::load_plates(obj)              wood_internal.cpp  ->  data/<obj>.obj
+ |    |-- config::load_yaml(path)             wood_config.cpp   ->  data/<dataset>.yml (all tunables)
+ |    |-- WoodSession::obj_load(obj)            config::load_obj -> data/<obj>.obj
  |    |    |-- file_obj::read_file_obj_polylines  ../session/session_cpp/src/file_obj.cpp
  |    |    '-- Plate(bottom, top)                 wood_element_plate.cpp (outlines and planes only, no loft)
  |    '-- WoodSession::add(plate)                 Session::add_element  (tree node + graph node)

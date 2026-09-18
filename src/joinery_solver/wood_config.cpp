@@ -1,9 +1,10 @@
-#include "wood_pch.h"
+#include "pch.h"
 #include "wood_session.h"
 #include "yaml.hpp"
+using namespace session_cpp;
 
 namespace wood_session {
-namespace globals {
+namespace config {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Definitions
@@ -129,32 +130,32 @@ std::vector<double> parse_doubles(const std::vector<std::string>& xs) {
 }
 
 /// The string value of a yaml key; TinyYaml null-derefs on a bare `key:`, so a present key without a value is an error.
-std::string yaml_string(TINY_YAML::Yaml& y, const char* key) {
+std::string yaml_string(TINY_YAML::Yaml& y, const std::string& key) {
 
     if (!y[key].hasData())
-        throw std::runtime_error(std::string("globals_yaml: key '") + key + "' is present but has no value");
+        throw std::runtime_error("load_yaml: key '" + key + "' is present but has no value");
 
     return y[key].getData<std::string>();
 }
 
 /// The list-of-strings value of a yaml key; a present key without a value is an error.
-std::vector<std::string> yaml_string_list(TINY_YAML::Yaml& y, const char* key) {
+std::vector<std::string> yaml_string_list(TINY_YAML::Yaml& y, const std::string& key) {
 
     if (!y[key].hasData())
-        throw std::runtime_error(std::string("globals_yaml: key '") + key + "' is present but has no value");
+        throw std::runtime_error("load_yaml: key '" + key + "' is present but has no value");
 
     return y[key].getData<std::vector<std::string>>();
 }
 
 /// A file key resolved relative to the yaml into out; naming a file that is not there is an error.
-void yaml_file(TINY_YAML::Yaml& y, const std::filesystem::path& path, const char* key, std::string& out) {
+void yaml_file(TINY_YAML::Yaml& y, const std::filesystem::path& path, const std::string& key, std::string& out) {
 
     if (!y.has(key))
         return;
 
     const std::filesystem::path p = path.parent_path() / yaml_string(y, key);
     if (!std::filesystem::exists(p))
-        throw std::runtime_error(std::string("globals_yaml: ") + key + " names a missing file " + p.string());
+        throw std::runtime_error("load_yaml: " + key + " names a missing file " + p.string());
 
     out = p.string();
 }
@@ -166,7 +167,7 @@ std::string session_pb(size_t index) {
     if (index >= SESSION_NAMES.size())
         throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
 
-    return internal::dataset_path(SESSION_NAMES[index], ".pb").string();
+    return dataset_path(SESSION_NAMES[index], ".pb").string();
 }
 
 void reset_defaults() {
@@ -218,13 +219,13 @@ void reset_defaults() {
     CUSTOM_JOINTS_B_FEMALE.clear();
 }
 
-void globals_yaml(const std::string& dataset_name) {
+void load_yaml(const std::string& dataset_name) {
 
     reset_defaults();
 
-    const std::filesystem::path path = internal::dataset_path(dataset_name, ".yml");
+    const std::filesystem::path path = dataset_path(dataset_name, ".yml");
     if (!std::filesystem::exists(path))
-        throw std::runtime_error("globals_yaml: missing config " + path.string());
+        throw std::runtime_error("load_yaml: missing config " + path.string());
 
     TINY_YAML::Yaml y(path.string());
 
@@ -235,7 +236,7 @@ void globals_yaml(const std::string& dataset_name) {
             std::vector<double> parsed = parse_doubles(jpt);
             if (parsed.size() < 21 || parsed.size() % 3 != 0)
                 throw std::runtime_error(
-                    "globals_yaml: joints_parameters_and_types has " + std::to_string(parsed.size()) +
+                    "load_yaml: joints_parameters_and_types has " + std::to_string(parsed.size()) +
                     " values; expected at least 21 (7 families x 3) in multiples of 3");
             JOINTS_PARAMETERS_AND_TYPES = std::move(parsed);
         }
@@ -245,7 +246,7 @@ void globals_yaml(const std::string& dataset_name) {
         std::vector<double> parsed = parse_doubles(yaml_string_list(y, "joint_volume_extension"));
         if (parsed.size() < 3 || parsed.size() % 3 != 0)
             throw std::runtime_error(
-                "globals_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
+                "load_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
                 " values; expected 3 (every joint type) or a multiple of 3 (one triple per type)");
         JOINT_VOLUME_EXTENSION = std::move(parsed);
     }
@@ -253,7 +254,7 @@ void globals_yaml(const std::string& dataset_name) {
     if (y.has("joint_scale")) {
         const std::vector<double> s = parse_doubles(yaml_string_list(y, "joint_scale"));
         if (s.size() != 3)
-            throw std::runtime_error("globals_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
+            throw std::runtime_error("load_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
         JOINT_SCALE = {s[0], s[1], s[2]};
     }
 
@@ -266,13 +267,13 @@ void globals_yaml(const std::string& dataset_name) {
         else if (search == "face_to_face_then_cross")
             SEARCH_TYPE = face_to_face_then_cross;
         else
-            throw std::runtime_error("globals_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
+            throw std::runtime_error("load_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
     }
 
     if (y.has("beams")) {
         BEAMS = parse_doubles(yaml_string_list(y, "beams"));
         if (BEAMS.size() != 6)
-            throw std::runtime_error("globals_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
+            throw std::runtime_error("load_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
     }
 
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
@@ -307,5 +308,133 @@ void globals_yaml(const std::string& dataset_name) {
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
 }
 
-} // namespace globals
+std::filesystem::path session_data_dir() {
+    return std::filesystem::path(DATA_SET_INPUT_FOLDER);
+}
+
+std::filesystem::path output_dir() {
+
+    const std::filesystem::path path = session_data_dir() / "output";
+    std::filesystem::create_directories(path);
+
+    return path;
+}
+
+std::filesystem::path dataset_path(const std::string& name, const std::string& ext) {
+    return name.ends_with(ext) ? std::filesystem::path(name) : session_data_dir() / (name + ext);
+}
+
+bool plates_exist(const std::string& name) {
+    return std::filesystem::exists(dataset_path(name, ".obj"));
+}
+
+std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_name) {
+
+    std::vector<std::pair<int, int>> pairs;
+    if (adjacency_name.empty())
+        return pairs;
+
+    std::ifstream file(adjacency_name);
+    int a;
+    int b;
+    while (file >> a >> b)
+        pairs.emplace_back(a, b);
+
+    return pairs;
+}
+
+std::vector<std::vector<Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count) {
+
+    std::vector<std::vector<Vector>> per_element(count);
+    if (insertion_vectors_name.empty())
+        return per_element;
+
+    std::ifstream file(insertion_vectors_name);
+    std::string line;
+    size_t element_index = 0;
+    while (std::getline(file, line) && element_index < count) {
+        std::istringstream stream(line);
+        double x;
+        double y;
+        double z;
+        while (stream >> x >> y >> z)
+            per_element[element_index].emplace_back(x, y, z);
+        element_index++;
+    }
+
+    return per_element;
+}
+
+std::vector<std::vector<int>> load_joint_types(const std::string& joint_types_name, size_t count) {
+
+    std::vector<std::vector<int>> per_element(count);
+    if (joint_types_name.empty())
+        return per_element;
+
+    std::ifstream file(joint_types_name);
+    std::string line;
+    size_t element_index = 0;
+    while (std::getline(file, line) && element_index < count) {
+        std::istringstream stream(line);
+        int value;
+        while (stream >> value)
+            per_element[element_index].push_back(value);
+        element_index++;
+    }
+
+    return per_element;
+}
+
+std::vector<std::vector<int>> load_three_valence(const std::string& three_valence_name) {
+
+    std::vector<std::vector<int>> rows;
+    if (three_valence_name.empty())
+        return rows;
+
+    std::ifstream file(three_valence_name);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream stream(line);
+        std::vector<int> row;
+        int value;
+        while (stream >> value)
+            row.push_back(value);
+        if (!row.empty())
+            rows.push_back(row);
+    }
+
+    return rows;
+}
+
+JointData load_joint_data(size_t count) {
+
+    JointData data;
+    data.adjacency = load_adjacency(DATA_SET_ADJACENCY);
+    data.insertion_vectors = load_insertion_vectors(DATA_SET_INSERTION_VECTORS, count);
+    data.joint_types = load_joint_types(DATA_SET_JOINTS_TYPES, count);
+    data.three_valence = load_three_valence(DATA_SET_THREE_VALENCE);
+
+    return data;
+}
+
+std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol) {
+
+    const double tolerance = duplicate_pts_tol > 0.0 ? duplicate_pts_tol : DUPLICATE_PTS_TOL;
+    const std::filesystem::path path = dataset_path(dataset_name, ".obj");
+    if (!std::filesystem::exists(path))
+        throw std::runtime_error("load_obj: dataset OBJ not found: " + path.string());
+
+    std::vector<Polyline> polylines = file_obj::read_file_obj_polylines(path.string());
+    if (polylines.empty())
+        throw std::runtime_error("load_obj: no polylines in " + path.string());
+
+    if (tolerance > 0.0)
+        for (Polyline& polyline : polylines)
+            polyline.remove_consecutive_duplicates(tolerance);
+
+    DUPLICATE_PTS_TOL = tolerance;
+    return polylines;
+}
+
+} // namespace config
 } // namespace wood_session

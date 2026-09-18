@@ -77,19 +77,20 @@ endif()
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
-    src/joinery_solver/wood_assign.cpp
-    src/joinery_solver/wood_beams.cpp
+    src/joinery_solver/wood_config.cpp
     src/joinery_solver/wood_element_plate.cpp
     src/joinery_solver/wood_element_column.cpp
+    src/joinery_solver/wood_element_beam.cpp
     src/joinery_solver/wood_element_block.cpp
     src/joinery_solver/wood_face_to_face.cpp
-    src/joinery_solver/wood_globals.cpp
-    src/joinery_solver/wood_internal.cpp
+    src/joinery_solver/wood_face_to_face_contact.cpp
+    src/joinery_solver/wood_face_to_face_element.cpp
     src/joinery_solver/wood_joint.cpp
     src/joinery_solver/wood_joint_detection.cpp
-    src/joinery_solver/wood_main.cpp
+    src/joinery_solver/wood_joint_solver.cpp
     src/joinery_solver/wood_merge_modifier.cpp
     src/joinery_solver/wood_session.cpp
+    src/joinery_solver/wood_session_interaction.cpp
     src/joinery_solver/wood_three_valence.cpp
 )
 
@@ -115,7 +116,7 @@ set(WOOD_CLIPPER2_SOURCES
 
 add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES})
 # The std and kernel headers every wood file needs, compiled once and reused by every target.
-target_precompile_headers(wood_core PRIVATE src/joinery_solver/wood_pch.h)
+target_precompile_headers(wood_core PRIVATE src/joinery_solver/pch.h)
 # One warning set for the library and every target, so the precompiled header matches everywhere.
 if(NOT MSVC)
     target_compile_options(wood_core PRIVATE -Wall -Wextra -Wpedantic)

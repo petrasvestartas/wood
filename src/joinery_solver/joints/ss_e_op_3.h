@@ -26,7 +26,7 @@ static void ss_e_op_3(WoodJoint& joint) {
     };
 
     for (int face = 0; face < 2; face++) {
-        joint.female_cut_types[face] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges, wood_cut::hole, wood_cut::hole };
-        joint.male_cut_types[face] = { wood_cut::insert_between_multiple_edges, wood_cut::insert_between_multiple_edges };
+        joint.female_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges, CutType::hole, CutType::hole };
+        joint.male_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
     }
 }

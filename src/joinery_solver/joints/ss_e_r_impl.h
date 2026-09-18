@@ -51,10 +51,10 @@ static void ss_e_r_impl(
     }
 
     const int n = 2 * divisions;
-    joint.male_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
-    joint.male_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
-    joint.female_cut_types[0] = std::vector<int>(n, wood_cut::mill_project);
-    joint.female_cut_types[1] = std::vector<int>(n, wood_cut::mill_project);
+    joint.male_cut_types[0] = std::vector<int>(n, CutType::mill_project);
+    joint.male_cut_types[1] = std::vector<int>(n, CutType::mill_project);
+    joint.female_cut_types[0] = std::vector<int>(n, CutType::mill_project);
+    joint.female_cut_types[1] = std::vector<int>(n, CutType::mill_project);
     joint.unit_scale = true;
 
     const double size = 120.0 * joint.shift;
