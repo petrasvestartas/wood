@@ -1,6 +1,6 @@
 /// cr_c_ip_2..5 core: the same 16-point layout, extension, offset, rotation, duplication and side-face rebuild;
 /// the variants differ in drills, extension factors, the offset threshold and cut types.
-static void cr_c_ip_shared(
+static void cr_c_ip_core(
     FeaturePlate& joint,
     const std::vector<Polyline>& extra_drills,
     double ext_side,

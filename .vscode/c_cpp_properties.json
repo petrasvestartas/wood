@@ -13,6 +13,8 @@
                 "${workspaceFolder}/src/joinery_solver",
                 "${workspaceFolder}/src/joinery_solver/wood_elements",
                 "${workspaceFolder}/src/joinery_solver/wood_interaction",
+                "${workspaceFolder}/src/joinery_solver/wood_interaction/wood_interaction_contact",
+                "${workspaceFolder}/src/joinery_solver/wood_interaction/wood_interaction_feature",
                 "${workspaceFolder}/src/joinery_solver/wood_algorithms",
                 "${workspaceFolder}/generated",
                 "${workspaceFolder}/src/templates",

@@ -83,13 +83,13 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_interaction/wood_interaction.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_contact.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_contact_face.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_contact_axis.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_contact_cross.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_feature.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_feature_plate.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_feature_beam.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_beam.cpp
     src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_construction.cpp
@@ -141,6 +141,8 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_elements
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_contact
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_feature
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
     # The template headers (reciprocal.h, chevron.h, ...) are included unqualified by

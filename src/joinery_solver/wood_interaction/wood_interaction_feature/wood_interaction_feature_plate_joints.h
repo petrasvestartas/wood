@@ -10,7 +10,7 @@ using namespace wood_session;
 #pragma warning(disable: 4505)
 #endif
 
-#include "wood_interaction_feature_plate_joints/helpers.h"
+#include "wood_interaction_feature_plate_joints/custom_outlines.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ss_e_ip: side-side in-plane, type 12
@@ -53,7 +53,7 @@ using namespace wood_session;
 // tt_e_p: top-top drills, type 40
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/tt_e_p_shared.h"
+#include "wood_interaction_feature_plate_joints/tt_e_p_drills.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_0.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_1.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_2.h"
@@ -67,7 +67,7 @@ using namespace wood_session;
 
 #include "wood_interaction_feature_plate_joints/cr_c_ip_0.h"
 #include "wood_interaction_feature_plate_joints/cr_c_ip_1.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_shared.h"
+#include "wood_interaction_feature_plate_joints/cr_c_ip_core.h"
 #include "wood_interaction_feature_plate_joints/cr_c_ip_2.h"
 #include "wood_interaction_feature_plate_joints/cr_c_ip_3.h"
 #include "wood_interaction_feature_plate_joints/cr_c_ip_4.h"
@@ -79,7 +79,7 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "wood_interaction_feature_plate_joints/ss_e_r_0.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_impl.h"
+#include "wood_interaction_feature_plate_joints/ss_e_r_core.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_2.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_3.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_custom.h"

@@ -1,4 +1,4 @@
-/// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_impl; the caller sets unit_scale_distance to the thickness.
+/// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_core; the caller sets unit_scale_distance to the thickness.
 static void ss_e_r_2(FeaturePlate& joint) {
 
     joint.name = "ss_e_r_2";
@@ -32,5 +32,5 @@ static void ss_e_r_2(FeaturePlate& joint) {
         {-0.2, -0.7, 0.166667},
     };
 
-    ss_e_r_impl(joint, m0, 9, m1, 9, f0, 9, f1, 9);
+    ss_e_r_core(joint, m0, 9, m1, 9, f0, 9, f1, 9);
 }

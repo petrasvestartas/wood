@@ -1,4 +1,4 @@
-/// ss_e_r_3: diamond-profile tenon, tiled along z by ss_e_r_impl; the caller sets unit_scale_distance to the thickness.
+/// ss_e_r_3: diamond-profile tenon, tiled along z by ss_e_r_core; the caller sets unit_scale_distance to the thickness.
 static void ss_e_r_3(FeaturePlate& joint) {
 
     joint.name = "ss_e_r_3";
@@ -24,5 +24,5 @@ static void ss_e_r_3(FeaturePlate& joint) {
         {0.502961, -0.6, 0.375}, {-0.40237, -0.6, 0},
     };
 
-    ss_e_r_impl(joint, m0, 6, m1, 6, f0, 6, f1, 6);
+    ss_e_r_core(joint, m0, 6, m1, 6, f0, 6, f1, 6);
 }
