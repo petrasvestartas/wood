@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "wood_joint.h"
+#include "wood_feature_construction.h"
 
 namespace wood_session {
 
@@ -61,7 +61,7 @@ public:
     static std::vector<session_cpp::Polyline> apply(
         const Plate& plate,
         const std::vector<std::vector<std::pair<int, bool>>>& membership,
-        std::vector<WoodJoint>& joints,
+        std::vector<FeaturePlate>& joints,
         int plate_index
     );
 
@@ -79,7 +79,7 @@ private:
     void log_result(const session_cpp::Polyline& merged_top, const session_cpp::Polyline& merged_bottom) const;
 
     /// Selects the joint's male/female outlines, checks the endpoint markers and swaps top/bottom when reversed; null means skip.
-    std::array<std::vector<session_cpp::Polyline>, 2>* joint_outlines(WoodJoint& joint, size_t face, int joint_id, bool male_or_female) const;
+    std::array<std::vector<session_cpp::Polyline>, 2>* joint_outlines(FeaturePlate& joint, size_t face, int joint_id, bool male_or_female) const;
 
     /// Clips the rectangle joint against both outlines and inserts the clipped runs.
     void insert_rectangle_cut(const std::array<std::vector<session_cpp::Polyline>, 2>& outlines);
@@ -94,10 +94,10 @@ private:
     bool relocate_edge_vertices(std::array<std::vector<session_cpp::Polyline>, 2>& outlines, size_t face);
 
     /// Reverses the joint outlines when they run against the plate walk, then inserts them keyed by (id + 0.1, id + 0.9).
-    void flip_and_insert_cut(const WoodJoint& joint, std::array<std::vector<session_cpp::Polyline>, 2>& outlines, size_t face, int joint_id, bool male_or_female);
+    void flip_and_insert_cut(const FeaturePlate& joint, std::array<std::vector<session_cpp::Polyline>, 2>& outlines, size_t face, int joint_id, bool male_or_female);
 
     /// Runs the side-joint passes for every joint on faces 2..N: 2-point markers are line joints, 5-point markers rectangles.
-    void insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints);
+    void insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints);
 
     /// Builds one merged outline from the relocated vertices and the sorted joint runs.
     static session_cpp::Polyline build_merged_outline(const std::vector<session_cpp::Point>& points, std::multimap<size_t, std::pair<std::pair<double, double>, std::vector<session_cpp::Point>>>& runs, const session_cpp::Point& original_front);
@@ -106,10 +106,10 @@ private:
     void close_corner(session_cpp::Polyline& merged_top, session_cpp::Polyline& merged_bottom) const;
 
     /// Appends the hole outlines of the top/bottom face joints (faces 0, 1) to result: every outline but the last, the bounding rectangle.
-    void cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints, std::vector<session_cpp::Polyline>& result) const;
+    void cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints, std::vector<session_cpp::Polyline>& result) const;
 
-    /// Appends the hole outlines of the side joints (faces 2..N) to result: the outlines tagged CutType::hole, shadow joints included.
-    void cut_holes_side(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<WoodJoint>& joints, std::vector<session_cpp::Polyline>& result) const;
+    /// Appends the hole outlines of the side joints (faces 2..N) to result: the outlines tagged FabricationType::hole, shadow joints included.
+    void cut_holes_side(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints, std::vector<session_cpp::Polyline>& result) const;
 };
 
 } // namespace wood_session

@@ -1,5 +1,5 @@
 /// ts_e_p_1: hardcoded two-mortise tenon joint; not routed by the dispatcher, kept complete.
-[[maybe_unused]] static void ts_e_p_1(WoodJoint& joint) {
+[[maybe_unused]] static void ts_e_p_1(FeaturePlate& joint) {
 
     const double z_top   = 0.166666666666667;
     const double z_top2  = 0.0555555555555556;
@@ -52,8 +52,8 @@
         Polyline({Point(-0.5,-0.5, 0.5), Point(-0.5,-0.5,-0.5)}),
     };
 
-    joint.female_cut_types[0] = { CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
-    joint.female_cut_types[1] = { CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::hole, FabricationType::hole, FabricationType::insert_between_multiple_edges };
+    joint.female_fabrication_types[1] = { FabricationType::hole, FabricationType::hole, FabricationType::insert_between_multiple_edges };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

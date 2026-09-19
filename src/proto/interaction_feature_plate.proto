@@ -2,8 +2,10 @@ syntax = "proto3";
 
 package wood_proto;
 
+import "element.proto";
 import "line.proto";
 import "polyline.proto";
+import "interaction_contact_face.proto";
 
 // One face's outlines, so a per-face list can repeat.
 message PolylineList {
@@ -15,8 +17,12 @@ message IntList {
   repeated int32 values = 1;
 }
 
-// A plate-to-plate joint as the joint library built it: the variant, its parameters and the cut outlines per element per face.
+// A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry.
 message FeaturePlate {
+  string element_a = 21;                             // The male element, by guid
+  string element_b = 22;                             // The female element, by guid
+  ContactFace contact = 23;                          // The face contact the joint was solved from
+  repeated session_proto.ElementFeature element_features = 24;  // 2 entries: what the male host and the female host carry
   int32 joint_type = 1;                              // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top
   string name = 2;                                   // Joint library variant, e.g. "ss_e_ip_2"
   repeated int32 cross_faces = 3;                    // Cross joints: the second side face of each element, 2 entries
@@ -24,8 +30,8 @@ message FeaturePlate {
   repeated session_proto.Polyline joint_volumes = 5; // 4 volume rectangles, an empty polyline where the solver set none
   repeated PolylineList male_outlines = 6;           // Male cut outlines: [0] bottom face, [1] top face
   repeated PolylineList female_outlines = 7;         // Female cut outlines, laid out the same
-  repeated IntList male_cut_types = 8;               // One CutType per male outline, per face
-  repeated IntList female_cut_types = 9;             // One CutType per female outline, per face
+  repeated IntList male_fabrication_types = 8;               // One FabricationType per male outline, per face
+  repeated IntList female_fabrication_types = 9;             // One FabricationType per female outline, per face
   int32 divisions = 10;                              // Teeth or notches along the joint line
   double shift = 11;                                 // Lateral offset of the pattern, 0..1
   double length = 12;                                // Length of the joint line

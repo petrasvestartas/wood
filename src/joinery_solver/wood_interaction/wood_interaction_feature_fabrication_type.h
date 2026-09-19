@@ -2,8 +2,8 @@
 
 namespace wood_session {
 
-/// What each outline a joint emits does to the plate body; one per entry of male_outlines / female_outlines.
-enum CutType : int {
+/// What each outline a feature emits does to the element body when it is fabricated; one per entry of male_outlines / female_outlines.
+enum FabricationType : int {
     nothing = 0, // No cut.
     hole = 1, // Plate: a hole through the face.
     edge_insertion = 2, // Plate: an insertion along one edge.

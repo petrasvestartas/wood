@@ -35,8 +35,7 @@ examples/2_contact_detection.cpp
  |
  |-- compute_contacts()                          wood_session.cpp
  |    '-- compute_face_contacts()
- |         |-- contact_view(scene)               one ContactElement per element: outlines, planes, name
- |         |-- face_contacts(elements)            src/joinery_solver/wood_face_to_face.cpp
+ |         |-- face_contacts(elements)            src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
  |         |    |-- adjacency_search              inflated OBB per element, BVH, OBB/OBB test -> candidate pairs
  |         |    '-- face_contacts_for_pair        faces_coplanar -> face_overlap_area (Clipper2)
  |         |                                      -> ContactFace {face_a, face_b, type, polygon}

@@ -1,6 +1,6 @@
 /// ss_e_op_4: parametric finger joint with `divisions` tenons; the defaults are what ss_e_op_5 passes.
 static void ss_e_op_4(
-    WoodJoint& joint,
+    FeaturePlate& joint,
     double t = 0.0,
     bool chamfer = false,
     bool female_modify_outline = true,
@@ -119,24 +119,24 @@ static void ss_e_op_4(
         }
     }
 
-    joint.male_cut_types[0] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
-    joint.male_cut_types[1] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
+    joint.male_fabrication_types[0] = { FabricationType::insert_between_multiple_edges, FabricationType::insert_between_multiple_edges };
+    joint.male_fabrication_types[1] = { FabricationType::insert_between_multiple_edges, FabricationType::insert_between_multiple_edges };
 
     for (int j = 0; j < 2; j++) {
 
         std::vector<int> fct;
         if (female_modify_outline) {
-            fct.push_back(CutType::insert_between_multiple_edges);
-            fct.push_back(CutType::insert_between_multiple_edges);
+            fct.push_back(FabricationType::insert_between_multiple_edges);
+            fct.push_back(FabricationType::insert_between_multiple_edges);
         }
 
         if (joint.divisions > 0) {
             for (int i = 0; i < number_of_tenons; i += 2) {
-                fct.push_back(CutType::hole);
-                fct.push_back(CutType::hole);
+                fct.push_back(FabricationType::hole);
+                fct.push_back(FabricationType::hole);
             }
         }
 
-        joint.female_cut_types[j] = fct;
+        joint.female_fabrication_types[j] = fct;
     }
 }

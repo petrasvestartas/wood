@@ -12,7 +12,7 @@ static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_o
 /// ss_e_r_2/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
 /// every joint volume rebuilt as a 120*shift square. unit_scale_distance must already hold the element thickness.
 static void ss_e_r_impl(
-    WoodJoint& joint,
+    FeaturePlate& joint,
     const double m0[][3], int m0n,
     const double m1[][3], int m1n,
     const double f0[][3], int f0n,
@@ -51,10 +51,10 @@ static void ss_e_r_impl(
     }
 
     const int n = 2 * divisions;
-    joint.male_cut_types[0] = std::vector<int>(n, CutType::mill_project);
-    joint.male_cut_types[1] = std::vector<int>(n, CutType::mill_project);
-    joint.female_cut_types[0] = std::vector<int>(n, CutType::mill_project);
-    joint.female_cut_types[1] = std::vector<int>(n, CutType::mill_project);
+    joint.male_fabrication_types[0] = std::vector<int>(n, FabricationType::mill_project);
+    joint.male_fabrication_types[1] = std::vector<int>(n, FabricationType::mill_project);
+    joint.female_fabrication_types[0] = std::vector<int>(n, FabricationType::mill_project);
+    joint.female_fabrication_types[1] = std::vector<int>(n, FabricationType::mill_project);
     joint.unit_scale = true;
 
     const double size = 120.0 * joint.shift;

@@ -1,5 +1,5 @@
 /// ss_e_op_3: miter tenon-mortise - four female outlines (two insert_between, two hole), two male.
-static void ss_e_op_3(WoodJoint& joint) {
+static void ss_e_op_3(FeaturePlate& joint) {
 
     joint.name = "ss_e_op_3";
 
@@ -26,7 +26,7 @@ static void ss_e_op_3(WoodJoint& joint) {
     };
 
     for (int face = 0; face < 2; face++) {
-        joint.female_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges, CutType::hole, CutType::hole };
-        joint.male_cut_types[face] = { CutType::insert_between_multiple_edges, CutType::insert_between_multiple_edges };
+        joint.female_fabrication_types[face] = { FabricationType::insert_between_multiple_edges, FabricationType::insert_between_multiple_edges, FabricationType::hole, FabricationType::hole };
+        joint.male_fabrication_types[face] = { FabricationType::insert_between_multiple_edges, FabricationType::insert_between_multiple_edges };
     }
 }

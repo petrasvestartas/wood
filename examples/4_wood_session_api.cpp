@@ -39,7 +39,7 @@ int main() {
 
     // // Joints: the modifiers the solver puts on the same edges, one per contact it accepts.
     // wood_session.compute_joints();
-    // for (const WoodJoint& joint : wood_session.joints())
+    // for (const FeaturePlate& joint : wood_session.joints())
     //     std::cout << fmt::format("joint: type {} ({})\n", joint.joint_type, joint.name);
 
     // // Geometry: element_geometry is the plate alone, wood_session_geometry the plate with its joints cut in, each as a mesh or a brep; every one is built on first call and cached until the plate changes.
@@ -90,7 +90,7 @@ examples/4_wood_session_api.cpp
  |-- interactions                                one Interaction per edge: contacts, features, structure
  |
  |-- compute_joints()                            see 3_joint_detection: get_connection_zones -> graph edges
- |-- get_joints()                                every plate feature as a working WoodJoint
+ |-- get_joints()                                every plate feature as a working FeaturePlate
  |
  |-- element_geometry_mesh()  wood_session_geometry_mesh()      wood_element_plate.cpp: Mesh::loft, cached
  |-- element_geometry_brep()  wood_session_geometry_brep()      brep_between_loops -> BRep::from_polylines(faces, holes)

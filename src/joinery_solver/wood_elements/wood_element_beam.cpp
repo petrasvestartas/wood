@@ -2,7 +2,7 @@
 #include "wood_element_beam.h"
 #include "element_beam.pb.h"
 #include "wood_session.h"
-#include "wood_face_to_face.h"
+#include "wood_feature_detection.h"
 using namespace session_cpp;
 
 namespace wood_session {
@@ -274,10 +274,10 @@ WoodSession Beam::joint_volumes(
         feature.contact = interaction.add_contact(InteractionContact(ContactAxis(Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1)), c.t0, c.t1, 0, c.sid0, 0, c.sid1)));
         interaction.add_feature(std::move(feature));
 
-        const Plate el0(beam_vol[0], beam_vol[1]);
-        const Plate el1(beam_vol[2], beam_vol[3]);
+        Plate el0(beam_vol[0], beam_vol[1]);
+        Plate el1(beam_vol[2], beam_vol[3]);
 
-        WoodJoint jt;
+        FeaturePlate jt;
         bool swap_planes_1 = false;
         const bool jok = face_to_face_wood(
             el0,

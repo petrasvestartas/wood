@@ -1,5 +1,5 @@
 /// Four side-face rectangles, widened at convex corners and pushed along the face normals; no orient.
-static void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+static void side_removal_ss_e_r_1_port(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "side_removal";
     joint.no_orient = true;
@@ -80,10 +80,10 @@ static void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::
         joint.male_outlines[1] = { pline0_moved0, pline0_moved0 };
         joint.female_outlines[0] = { pline1,        pline1 };
         joint.female_outlines[1] = { pline1_moved,  pline1_moved };
-        joint.male_cut_types[0] = { CutType::mill_project, CutType::mill_project };
-        joint.male_cut_types[1] = { CutType::mill_project, CutType::mill_project };
-        joint.female_cut_types[0] = { CutType::mill_project, CutType::mill_project };
-        joint.female_cut_types[1] = { CutType::mill_project, CutType::mill_project };
+        joint.male_fabrication_types[0] = { FabricationType::mill_project, FabricationType::mill_project };
+        joint.male_fabrication_types[1] = { FabricationType::mill_project, FabricationType::mill_project };
+        joint.female_fabrication_types[0] = { FabricationType::mill_project, FabricationType::mill_project };
+        joint.female_fabrication_types[1] = { FabricationType::mill_project, FabricationType::mill_project };
         return;
     }
 
@@ -91,16 +91,16 @@ static void side_removal_ss_e_r_1_port(WoodJoint& joint, const std::vector<std::
     joint.male_outlines[1] = { pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0 };
     joint.female_outlines[0] = { pline1,        pline1 };
     joint.female_outlines[1] = { pline1_moved,  pline1_moved };
-    joint.male_cut_types[0] = { CutType::mill_project, CutType::mill_project,
-                             CutType::mill_project, CutType::mill_project };
-    joint.male_cut_types[1] = { CutType::mill_project, CutType::mill_project,
-                             CutType::mill_project, CutType::mill_project };
-    joint.female_cut_types[0] = { CutType::mill_project, CutType::mill_project };
-    joint.female_cut_types[1] = { CutType::mill_project, CutType::mill_project };
+    joint.male_fabrication_types[0] = { FabricationType::mill_project, FabricationType::mill_project,
+                             FabricationType::mill_project, FabricationType::mill_project };
+    joint.male_fabrication_types[1] = { FabricationType::mill_project, FabricationType::mill_project,
+                             FabricationType::mill_project, FabricationType::mill_project };
+    joint.female_fabrication_types[0] = { FabricationType::mill_project, FabricationType::mill_project };
+    joint.female_fabrication_types[1] = { FabricationType::mill_project, FabricationType::mill_project };
 }
 
 /// side_removal_ss_e_r_1_port with the merge branch forced off unless merge_with_joint.
-static void side_removal(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint = false) {
+static void side_removal(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint = false) {
 
     const double saved_shift = joint.shift;
     if (!merge_with_joint)

@@ -1,5 +1,5 @@
 /// ss_e_r_3: diamond-profile tenon, tiled along z by ss_e_r_impl; the caller sets unit_scale_distance to the thickness.
-static void ss_e_r_3(WoodJoint& joint) {
+static void ss_e_r_3(FeaturePlate& joint) {
 
     joint.name = "ss_e_r_3";
 

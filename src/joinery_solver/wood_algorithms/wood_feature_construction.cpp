@@ -1,67 +1,10 @@
 #include "pch.h"
-#include "wood_joint.h"
+#include "wood_feature_construction.h"
 using namespace session_cpp;
 
 namespace wood_session {
 
 constexpr bool TRACE = false;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodJoint - Operators
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::ostream& operator<<(std::ostream& os, const WoodJoint& j) { return os << j.str(); }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodJoint - Geometry
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodJoint - Geometry
-// ═══════════════════════════════════════════════════════════════════════════
-
-const std::string& WoodJoint::feature_guid(int side) const {
-
-    std::string& id = feature_guids[side];
-    if (id.empty())
-        id = ::guid();
-
-    return id;
-}
-
-void WoodJoint::sync_features() {
-    for (int side = 0; side < 2; ++side) {
-        ElementFeature& f = element_features[side];
-        f.guid() = feature_guid(side);
-        f.feature_type = "joint";
-        f.name = name.empty() ? "joint_" + std::to_string(joint_type) : name;
-        f.face_index = side == 0 ? contact.face_a : contact.face_b;
-
-        const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? male_outlines : female_outlines;
-        f.outlines.clear();
-        f.outlines.reserve(outlines[0].size() + outlines[1].size());
-        for (int face = 0; face < 2; ++face)
-            f.outlines.insert(f.outlines.end(), outlines[face].begin(), outlines[face].end());
-    }
-}
-
-/// Syncs a scratch copy that carries this joint's feature guids, so a const joint reads fresh and keeps its identity.
-std::array<ElementFeature, 2> WoodJoint::to_features() const {
-
-    WoodJoint scratch = *this;
-    scratch.feature_guids = {feature_guid(0), feature_guid(1)};
-    scratch.sync_features();
-
-    return std::move(scratch.element_features);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// WoodJoint - String
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::string WoodJoint::str() const {
-    return fmt::format("WoodJoint(type={}, elements=({},{}), faces=({},{}), name={})", joint_type, element_a, element_b, contact.face_a, contact.face_b, name.empty() ? "-" : name);
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint construction
@@ -90,7 +33,7 @@ int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::str
 namespace {
 
 /// Slide a volume pair to its midpoint, then apart by unit_scale_distance along the joint line.
-void move_pair(WoodJoint& joint, Polyline& a, Polyline& b) {
+void move_pair(FeaturePlate& joint, Polyline& a, Polyline& b) {
 
     if (joint.unit_scale_distance == 0.0) {
         const Vector edge = a.get_point(2) - a.get_point(1);
@@ -115,7 +58,7 @@ void move_pair(WoodJoint& joint, Polyline& a, Polyline& b) {
 
 }  // namespace
 
-void apply_unit_scale(WoodJoint& joint) {
+void apply_unit_scale(FeaturePlate& joint) {
 
     std::array<std::optional<Polyline>, 4>& vols = joint.joint_volumes;
     if (TRACE) {
@@ -148,7 +91,7 @@ void apply_unit_scale(WoodJoint& joint) {
 }
 
 /// Rescale the volumes along the joint line, then map the unit-cube outlines onto them by change of basis.
-void joint_orient_to_connection_area(WoodJoint& joint) {
+void joint_orient_to_connection_area(FeaturePlate& joint) {
 
     std::array<std::optional<Polyline>, 4>& vols = joint.joint_volumes;
     if (!vols[0].has_value() || !vols[1].has_value())
@@ -221,7 +164,7 @@ bool compute_linked_outline(
 
 }  // namespace
 
-void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
+void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joints) {
 
     if (joint.linked_joints_seq.size() != joint.linked_joints.size())
         return;
@@ -232,7 +175,7 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
         if (index < 0 || static_cast<size_t>(index) >= all_joints.size())
             continue;
 
-        WoodJoint& linked = all_joints[index];
+        FeaturePlate& linked = all_joints[index];
         if (&linked == &joint)
             continue;
 
@@ -264,7 +207,7 @@ void merge_linked_joints(WoodJoint& joint, std::vector<WoodJoint>& all_joints) {
     }
 }
 
-void joint_get_divisions(WoodJoint& joint, double division_distance) {
+void joint_get_divisions(FeaturePlate& joint, double division_distance) {
 
     joint.division_length = division_distance;
     const double length = joint.joint_lines[0].squared_length();

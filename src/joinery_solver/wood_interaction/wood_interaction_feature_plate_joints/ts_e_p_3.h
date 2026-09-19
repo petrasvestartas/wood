@@ -1,5 +1,5 @@
 /// ts_e_p_3: parametric tenon-mortise skipping every other point pair; female holes from every four male points plus a bounding rectangle.
-static void ts_e_p_3(WoodJoint& joint) {
+static void ts_e_p_3(FeaturePlate& joint) {
 
     joint.name = "ts_e_p_3";
 
@@ -86,12 +86,12 @@ static void ts_e_p_3(WoodJoint& joint) {
         std::vector<int> cuts;
         cuts.reserve(joint.female_outlines[f].size());
         for (size_t k = 0; k + 1 < joint.female_outlines[f].size(); k++)
-            cuts.push_back(CutType::hole);
+            cuts.push_back(FabricationType::hole);
         if (!joint.female_outlines[f].empty())
-            cuts.push_back(CutType::insert_between_multiple_edges);
-        joint.female_cut_types[f] = std::move(cuts);
+            cuts.push_back(FabricationType::insert_between_multiple_edges);
+        joint.female_fabrication_types[f] = std::move(cuts);
 
     }
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

@@ -41,16 +41,16 @@ examples/3_joint_detection.cpp
  |
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp   (see 1_io: yml, obj, Plate, add)
  |
- |-- compute_joints(search_type)                 wood_joint_solver.cpp, in pipeline order:
+ |-- compute_joints(search_type)                 wood_feature_solver.cpp, in pipeline order:
  |    |-- clear_features()
- |    |-- config::load_joint_data                   the four txt sidecars as JointData   wood_config.cpp
- |    |-- adjacent_pairs                          adjacency sidecar | adjacency_search   wood_face_to_face.cpp
- |    |-- detect_joints                           face_to_face_wood              wood_face_to_face.cpp
+ |    |-- load_sidecars()                          the four txt sidecars onto the plates and the scene
+ |    |-- adjacent_pairs                          adjacency sidecar | adjacency_search   wood_feature_detection.cpp
+ |    |-- detect_joints                           face_to_face_wood              wood_feature_detection.cpp
  |    |    |   prepare_candidate -> side_side (in_plane | out_of_plane | rotated) | top_side | top_top
- |    |    '-- cross_fallback -> plane_to_face, CrossJoint               wood_joint_detection.cpp
+ |    |    '-- cross_fallback -> plane_to_face, ContactCross               wood_contact_detection.cpp
  |    |-- link_three_valence_joints               vidy shadow joints, annen alignment   wood_three_valence.cpp
  |    |-- build_joint_geometry -> reuse_or_create_geometry -> create_<family>_joint
- |    |    |-- joints/<family>_<id>.h             unit-box male/female outlines      wood_joint_lib.h
+ |    |    |-- wood_interaction_feature_plate_joints/<family>_<id>.h             unit-box male/female outlines      wood_joint_lib.h
  |    |    '-- joint_get_divisions, apply_unit_scale, joint_orient_to_connection_area, merge_linked_joints
  |    |                                                                               wood_joint.cpp
  |    '-- merge_joints -> joint_membership_per_face -> MergeModifier::apply(plate, membership, joints)

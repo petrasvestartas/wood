@@ -1,5 +1,5 @@
 /// ss_e_ip_1: parametric in-plane zigzag along z at y=-0.5, the other face offset by (0,1,0); symmetric male/female.
-static void ss_e_ip_1(WoodJoint& joint) {
+static void ss_e_ip_1(FeaturePlate& joint) {
 
     joint.name = "ss_e_ip_1";
 
@@ -45,8 +45,8 @@ static void ss_e_ip_1(WoodJoint& joint) {
     joint.male_outlines[0] = { outline0, endpoints0 };
     joint.male_outlines[1] = { outline1, endpoints1 };
 
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

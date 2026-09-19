@@ -1,6 +1,6 @@
 /// User-supplied joint geometry: pairs (face0, face1) from the male and female lists, every pair
 /// concatenated into one outline per face plus a two-point endpoint marker, all edge_insertion.
-static void custom_outlines(WoodJoint& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
+static void custom_outlines(FeaturePlate& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
 
     if (cm.size() < 2 || cf.size() < 2)
         return;
@@ -33,8 +33,8 @@ static void custom_outlines(WoodJoint& joint, const std::vector<Polyline>& cm, c
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
 
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

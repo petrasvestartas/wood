@@ -1,5 +1,5 @@
 /// ss_e_op_17: ss_e_op_0 with N = div/2 fingers and flat miter caps (full cross on m0 and f1, near-duplicate on m1 and f0).
-static void ss_e_op_17(WoodJoint& joint) {
+static void ss_e_op_17(FeaturePlate& joint) {
 
     joint.name = "ss_e_op_17";
 
@@ -98,8 +98,8 @@ static void ss_e_op_17(WoodJoint& joint) {
         joint.male_outlines[1] = { Polyline(pts), m1_endpoints };
     }
 
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

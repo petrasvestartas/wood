@@ -48,10 +48,11 @@ columns and blocks as the classes below, through the kernel's element registry.
 
 | Type | File | What it is |
 |---|---|---|
-| `Plate` | `src/joinery_solver/wood_element_plate.h` | bottom + top outline (`Plate::from_rectangle` for the simple case), one side face per edge, thickness, joint types, merged cut outlines; element and model geometry as mesh or brep, lazy |
-| `Column` | `src/joinery_solver/wood_element_column.h` | a solid with an axis and a section |
-| `Block` | `src/joinery_solver/wood_element_block.h` | a solid, one face per closed loop, contact detection only |
-| `WoodJoint` | `src/joinery_solver/wood_joint.h` | one connection: type, area, lines, volumes, male and female cut outlines |
+| `Plate` | `src/joinery_solver/wood_elements/wood_element_plate.h` | bottom + top outline (`Plate::from_rectangle` for the simple case), one side face per edge, thickness, joint types, merged cut outlines; element and model geometry as mesh or brep, lazy |
+| `Column` | `src/joinery_solver/wood_elements/wood_element_column.h` | a solid with an axis and a section |
+| `Block` | `src/joinery_solver/wood_elements/wood_element_block.h` | a solid, one face per closed loop, contact detection only |
+| `Interaction` | `src/joinery_solver/wood_interaction/wood_interaction.h` | everything between two elements, keyed by their graph edge: contacts (`ContactFace`, `ContactAxis`, `ContactCross`), features (`FeaturePlate`, `FeatureBeam`), structure; see `src/docs.md` |
+| `FeaturePlate` | `src/joinery_solver/wood_interaction/wood_interaction_feature_plate.h` | one plate joint: the pair, its contact, type, lines, volumes, male and female cut outlines |
 | `WoodSession` | `src/joinery_solver/wood_session.h` | the scene |
 
 All three element classes derive from `session_cpp::Element` and register a factory, so any

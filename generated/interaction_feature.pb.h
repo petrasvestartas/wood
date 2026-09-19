@@ -29,7 +29,6 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
-#include "element.pb.h"
 #include "interaction_feature_plate.pb.h"
 #include "interaction_feature_beam.pb.h"
 #include "interaction_feature_plate_beam.pb.h"
@@ -222,31 +221,12 @@ class InteractionFeature final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
-    kElementFeaturesFieldNumber = 4,
     kGuidFieldNumber = 1,
     kContactFieldNumber = 2,
-    kReversedFieldNumber = 3,
     kPlateFieldNumber = 10,
     kBeamFieldNumber = 11,
     kPlateBeamFieldNumber = 12,
   };
-  // repeated .session_proto.ElementFeature element_features = 4;
-  int element_features_size() const;
-  private:
-  int _internal_element_features_size() const;
-
-  public:
-  void clear_element_features() ;
-  ::session_proto::ElementFeature* PROTOBUF_NONNULL mutable_element_features(int index);
-  ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL mutable_element_features();
-
-  private:
-  const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& _internal_element_features() const;
-  ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL _internal_mutable_element_features();
-  public:
-  const ::session_proto::ElementFeature& element_features(int index) const;
-  ::session_proto::ElementFeature* PROTOBUF_NONNULL add_element_features();
-  const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& element_features() const;
   // string guid = 1;
   void clear_guid() ;
   const ::std::string& guid() const;
@@ -270,16 +250,6 @@ class InteractionFeature final : public ::google::protobuf::Message
   private:
   ::int32_t _internal_contact() const;
   void _internal_set_contact(::int32_t value);
-
-  public:
-  // bool reversed = 3;
-  void clear_reversed() ;
-  bool reversed() const;
-  void set_reversed(bool value);
-
-  private:
-  bool _internal_reversed() const;
-  void _internal_set_reversed(bool value);
 
   public:
   // .wood_proto.FeaturePlate plate = 10;
@@ -350,8 +320,8 @@ class InteractionFeature final : public ::google::protobuf::Message
   inline bool has_data() const;
   inline void clear_has_data();
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<2, 7,
-                                   4, 42,
+  static const ::google::protobuf::internal::TcParseTable<1, 5,
+                                   3, 42,
                                    2>
       _table_;
 
@@ -372,10 +342,8 @@ class InteractionFeature final : public ::google::protobuf::Message
         const InteractionFeature& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
-    ::google::protobuf::RepeatedPtrField< ::session_proto::ElementFeature > element_features_;
     ::google::protobuf::internal::ArenaStringPtr guid_;
     ::int32_t contact_;
-    bool reversed_;
     union DataUnion {
       constexpr DataUnion() : _constinit_{} {}
       ::google::protobuf::internal::ConstantInitialized _constinit_;
@@ -413,7 +381,7 @@ inline void InteractionFeature::clear_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.guid_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000002U);
+                  0x00000001U);
 }
 inline const ::std::string& InteractionFeature::guid() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -423,13 +391,13 @@ inline const ::std::string& InteractionFeature::guid() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void InteractionFeature::set_guid(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   _impl_.guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeature.guid)
 }
 inline ::std::string* PROTOBUF_NONNULL InteractionFeature::mutable_guid()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   ::std::string* _s = _internal_mutable_guid();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeature.guid)
   return _s;
@@ -449,10 +417,10 @@ inline ::std::string* PROTOBUF_NONNULL InteractionFeature::_internal_mutable_gui
 inline ::std::string* PROTOBUF_NULLABLE InteractionFeature::release_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeature.guid)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   auto* released = _impl_.guid_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.guid_.Set("", GetArena());
@@ -462,9 +430,9 @@ inline ::std::string* PROTOBUF_NULLABLE InteractionFeature::release_guid() {
 inline void InteractionFeature::set_allocated_guid(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
   _impl_.guid_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.guid_.IsDefault()) {
@@ -478,7 +446,7 @@ inline void InteractionFeature::clear_contact() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.contact_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000002U);
 }
 inline ::int32_t InteractionFeature::contact() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeature.contact)
@@ -486,7 +454,7 @@ inline ::int32_t InteractionFeature::contact() const {
 }
 inline void InteractionFeature::set_contact(::int32_t value) {
   _internal_set_contact(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeature.contact)
 }
 inline ::int32_t InteractionFeature::_internal_contact() const {
@@ -496,81 +464,6 @@ inline ::int32_t InteractionFeature::_internal_contact() const {
 inline void InteractionFeature::_internal_set_contact(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.contact_ = value;
-}
-
-// bool reversed = 3;
-inline void InteractionFeature::clear_reversed() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.reversed_ = false;
-  ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
-}
-inline bool InteractionFeature::reversed() const {
-  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeature.reversed)
-  return _internal_reversed();
-}
-inline void InteractionFeature::set_reversed(bool value) {
-  _internal_set_reversed(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeature.reversed)
-}
-inline bool InteractionFeature::_internal_reversed() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.reversed_;
-}
-inline void InteractionFeature::_internal_set_reversed(bool value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.reversed_ = value;
-}
-
-// repeated .session_proto.ElementFeature element_features = 4;
-inline int InteractionFeature::_internal_element_features_size() const {
-  return _internal_element_features().size();
-}
-inline int InteractionFeature::element_features_size() const {
-  return _internal_element_features_size();
-}
-inline ::session_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeature::mutable_element_features(int index)
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeature.element_features)
-  return _internal_mutable_element_features()->Mutable(index);
-}
-inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL InteractionFeature::mutable_element_features()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeature.element_features)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_element_features();
-}
-inline const ::session_proto::ElementFeature& InteractionFeature::element_features(int index) const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeature.element_features)
-  return _internal_element_features().Get(index);
-}
-inline ::session_proto::ElementFeature* PROTOBUF_NONNULL InteractionFeature::add_element_features()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::session_proto::ElementFeature* _add =
-      _internal_mutable_element_features()->InternalAddWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_add:wood_proto.InteractionFeature.element_features)
-  return _add;
-}
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& InteractionFeature::element_features() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.InteractionFeature.element_features)
-  return _internal_element_features();
-}
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>&
-InteractionFeature::_internal_element_features() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.element_features_;
-}
-inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL
-InteractionFeature::_internal_mutable_element_features() {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.element_features_;
 }
 
 // .wood_proto.FeaturePlate plate = 10;

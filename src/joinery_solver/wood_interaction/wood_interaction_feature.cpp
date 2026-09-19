@@ -35,30 +35,6 @@ std::string_view InteractionFeature::kind() const {
     return "plate_beam";
 }
 
-void InteractionFeature::set_element_features(const std::array<ElementFeature, 2>& features) {
-    for (int k = 0; k < 2; ++k) {
-        element_features[k] = features[k];
-        feature_guids[k] = features[k].guid();
-    }
-}
-
-std::array<ElementFeature, 2> InteractionFeature::to_element_features() const {
-
-    std::array<ElementFeature, 2> out{element_features[0], element_features[1]};
-    for (int k = 0; k < 2; ++k)
-        if (!feature_guids[k].empty())
-            out[k].guid() = feature_guids[k];
-
-    return out;
-}
-
-/// Moved out of the stamped pair: a copy would mint a fresh guid.
-ElementFeature InteractionFeature::element_feature_at(int end) const {
-
-    std::array<ElementFeature, 2> both = to_element_features();
-    return std::move(both[(end == 1) != reversed ? 1 : 0]);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeature - JSON
 // ═══════════════════════════════════════════════════════════════════════════
@@ -68,8 +44,6 @@ nlohmann::ordered_json InteractionFeature::jsondump() const {
         {"type", "InteractionFeature"},
         {"guid", guid},
         {"contact", contact},
-        {"reversed", reversed},
-        {"element_features", {to_element_features()[0].jsondump(), to_element_features()[1].jsondump()}},
         {"kind", std::string(kind())},
         {"data", std::visit([](const auto& kind) { return kind.jsondump(); }, data)},
     };
@@ -80,12 +54,6 @@ InteractionFeature InteractionFeature::jsonload(const nlohmann::json& data) {
     InteractionFeature feature;
     feature.guid = data.value("guid", std::string());
     feature.contact = data.value("contact", -1);
-    feature.reversed = data.value("reversed", false);
-    if (data.contains("element_features"))
-        for (size_t k = 0; k < 2 && k < data["element_features"].size(); ++k) {
-            feature.element_features[k] = ElementFeature::jsonload(data["element_features"][k]);
-            feature.feature_guids[k] = data["element_features"][k].value("guid", std::string());
-        }
 
     const std::string kind = data.value("kind", std::string("plate"));
     const nlohmann::json& body = data.contains("data") ? data["data"] : nlohmann::json::object();
@@ -108,9 +76,6 @@ std::string InteractionFeature::pb_dumps() const {
     wood_proto::InteractionFeature proto;
     proto.set_guid(guid);
     proto.set_contact(contact);
-    proto.set_reversed(reversed);
-    for (const ElementFeature& element_feature : to_element_features())
-        proto.add_element_features()->ParseFromString(element_feature.pb_dumps());
     if (const FeaturePlate* kind = plate())
         proto.mutable_plate()->ParseFromString(kind->pb_dumps());
     if (const FeatureBeam* kind = beam())
@@ -129,11 +94,6 @@ InteractionFeature InteractionFeature::pb_loads(const std::string& data) {
     InteractionFeature feature;
     feature.guid = proto.guid();
     feature.contact = proto.contact();
-    feature.reversed = proto.reversed();
-    for (int k = 0; k < 2 && k < proto.element_features_size(); ++k) {
-        feature.element_features[k] = ElementFeature::pb_loads(proto.element_features(k).SerializeAsString());
-        feature.feature_guids[k] = proto.element_features(k).guid();
-    }
     if (proto.has_beam())
         feature.data = FeatureBeam::pb_loads(proto.beam().SerializeAsString());
     else if (proto.has_plate_beam())

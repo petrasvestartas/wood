@@ -12,9 +12,6 @@ namespace wood_session {
 struct InteractionFeature {
     std::string guid; // Key of this feature; minted when the interaction stores it.
     int contact = -1; // Index in Interaction::contacts of the contact this was solved from.
-    bool reversed = false; // True when the male element, the host of element_features[0], is the edge's second element.
-    std::array<session_cpp::ElementFeature, 2> element_features; // [0] what the male host carries, [1] what the female host carries; an ElementFeature copy drops its guid, so their identities live in feature_guids.
-    std::array<std::string, 2> feature_guids; // The guids of the two element features, stamped back onto them by to_element_features().
     std::variant<FeaturePlate, FeatureBeam, FeaturePlateBeam> data; // The kind, one at a time.
 
     InteractionFeature() = default;
@@ -54,20 +51,11 @@ struct InteractionFeature {
     /// "plate", "beam" or "plate_beam".
     std::string_view kind() const;
 
-    /// Stores the two element features and records their guids.
-    void set_element_features(const std::array<session_cpp::ElementFeature, 2>& features);
-
-    /// The two element features with their guids stamped, [0] male, [1] female.
-    std::array<session_cpp::ElementFeature, 2> to_element_features() const;
-
-    /// The element feature of one end of the edge with its guid stamped: 0 the first element, 1 the second; reversed picks the other side.
-    session_cpp::ElementFeature element_feature_at(int end) const;
-
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The feature as JSON: guid, contact, reversed, element_features, kind, data.
+    /// The feature as JSON: guid, contact, kind, data.
     nlohmann::ordered_json jsondump() const;
 
     /// A feature from its JSON.

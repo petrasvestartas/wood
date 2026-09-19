@@ -20,7 +20,7 @@ static size_t tree_nodes(const Session& session) {
 }
 
 /// Whether one of features is the male side of joint.
-static bool hosts_male_side(const std::vector<ElementFeature>& features, const WoodJoint& joint) {
+static bool hosts_male_side(const std::vector<ElementFeature>& features, const FeaturePlate& joint) {
 
     for (const ElementFeature& feature : features)
         if (feature.guid() == joint.feature_guid(0))
@@ -120,9 +120,10 @@ int main() {
         for (size_t k = 0; records && k < ia.features.size(); ++k) {
             const InteractionFeature& fa = ia.features[k];
             const InteractionFeature& fb = ib.features[k];
-            records = fa.guid == fb.guid && fa.contact == fb.contact && fa.reversed == fb.reversed && fa.kind() == fb.kind()
-                      && fa.feature_guids == fb.feature_guids && fa.contact >= 0 && fa.contact < (int)ia.contacts.size()
-                      && fa.plate()->name == fb.plate()->name && fa.plate()->joint_type == fb.plate()->joint_type;
+            records = fa.guid == fb.guid && fa.contact == fb.contact && fa.kind() == fb.kind()
+                      && fa.plate()->feature_guids == fb.plate()->feature_guids && fa.contact >= 0 && fa.contact < (int)ia.contacts.size()
+                      && fa.plate()->name == fb.plate()->name && fa.plate()->joint_type == fb.plate()->joint_type
+                      && fa.plate()->element_a == fb.plate()->element_a && fa.plate()->contact.face_a == fb.plate()->contact.face_a;
             feature_count++;
         }
     }
@@ -140,14 +141,14 @@ int main() {
 
     check(encoded, "Interaction round-trips through its own JSON and protobuf");
 
-    const std::vector<WoodJoint> joints_a = a.get_joints();
-    const std::vector<WoodJoint> joints_b = b.get_joints();
+    const std::vector<FeaturePlate> joints_a = a.get_joints();
+    const std::vector<FeaturePlate> joints_b = b.get_joints();
     check(joints_a.size() == joints_b.size(), fmt::format("joint count ({})", joints_a.size()));
     bool joints_ok = joints_a.size() == joints_b.size();
 
     for (size_t i = 0; joints_ok && i < joints_a.size(); ++i) {
-        const WoodJoint& ja = joints_a[i];
-        const WoodJoint& jb = joints_b[i];
+        const FeaturePlate& ja = joints_a[i];
+        const FeaturePlate& jb = joints_b[i];
         joints_ok = ja.element_a == jb.element_a && ja.element_b == jb.element_b
                     && ja.joint_type == jb.joint_type
                     && ja.contact.face_a == jb.contact.face_a && ja.contact.face_b == jb.contact.face_b
@@ -157,7 +158,7 @@ int main() {
                     && ja.female_outlines[0].size() == jb.female_outlines[0].size()
                     && ja.divisions == jb.divisions && ja.shift == jb.shift
                     && ja.linked_joints == jb.linked_joints
-                    && ja.male_cut_types == jb.male_cut_types && ja.female_cut_types == jb.female_cut_types
+                    && ja.male_fabrication_types == jb.male_fabrication_types && ja.female_fabrication_types == jb.female_fabrication_types
                     && ja.joint_lines[0].start() == jb.joint_lines[0].start()
                     && ja.joint_lines[1].end() == jb.joint_lines[1].end()
                     && ja.joint_volumes[0].has_value() == jb.joint_volumes[0].has_value()
@@ -168,7 +169,7 @@ int main() {
     check(joints_ok, "every joint: elements, type, faces, polygon, both outline splits, lines, volumes, cut types, links, feature guids");
 
     bool hosted = true;
-    for (const WoodJoint& joint : joints_a)
+    for (const FeaturePlate& joint : joints_a)
         hosted = hosted && a.get_element<Element>(joint.element_a) && a.get_element<Element>(joint.element_b);
 
     check(hosted, "every joint's edge resolves to two elements the scene owns");
@@ -182,7 +183,7 @@ int main() {
           fmt::format("one joint feature per host element ({} of {})", attached, 2 * joints_a.size()));
 
     bool sides = true;
-    for (const WoodJoint& joint : joints_a) {
+    for (const FeaturePlate& joint : joints_a) {
         const std::vector<ElementFeature> male = a.get_element_features(joint.element_a);
         sides = sides && hosts_male_side(male, joint);
     }

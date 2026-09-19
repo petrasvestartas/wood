@@ -2,7 +2,6 @@
 
 #include "pch.h"
 
-#include "wood_joint_data.h"
 
 /// Which detection pass compute_joints runs.
 enum SearchType : int {
@@ -279,9 +278,6 @@ namespace config {
 
     /// Three-valence groups from the sidecar: the first row [instruction], then [s0, s1, e20, e31] rows; empty when there is no sidecar.
     std::vector<std::vector<int>> load_three_valence(const std::string& three_valence_name);
-
-    /// The four sidecars the dataset yml names, DATA_SET_ADJACENCY, DATA_SET_INSERTION_VECTORS, DATA_SET_JOINTS_TYPES and DATA_SET_THREE_VALENCE, as one JointData for `count` elements.
-    JointData load_joint_data(size_t count);
 
     /// The polylines of data/<name>.obj or an .obj path: plate outline pairs, or one beam axis each; duplicate_pts_tol > 0 removes consecutive duplicate points and becomes DUPLICATE_PTS_TOL.
     std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol = 0.0);

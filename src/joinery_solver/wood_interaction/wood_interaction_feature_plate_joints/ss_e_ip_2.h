@@ -13,7 +13,7 @@ static std::vector<Point> tile_tooth_along_z(const std::vector<Point>& base, int
 }
 
 /// ss_e_ip_2: butterfly (X-fix) joint - `divisions` copies of a four-point tooth tiled along z; unit_scale.
-static void ss_e_ip_2(WoodJoint& joint) {
+static void ss_e_ip_2(FeaturePlate& joint) {
 
     joint.name = "ss_e_ip_2";
 
@@ -69,10 +69,10 @@ static void ss_e_ip_2(WoodJoint& joint) {
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
 
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 
     joint.unit_scale = true;
 }

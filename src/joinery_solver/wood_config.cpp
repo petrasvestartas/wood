@@ -406,17 +406,6 @@ std::vector<std::vector<int>> load_three_valence(const std::string& three_valenc
     return rows;
 }
 
-JointData load_joint_data(size_t count) {
-
-    JointData data;
-    data.adjacency = load_adjacency(DATA_SET_ADJACENCY);
-    data.insertion_vectors = load_insertion_vectors(DATA_SET_INSERTION_VECTORS, count);
-    data.joint_types = load_joint_types(DATA_SET_JOINTS_TYPES, count);
-    data.three_valence = load_three_valence(DATA_SET_THREE_VALENCE);
-
-    return data;
-}
-
 std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol) {
 
     const double tolerance = duplicate_pts_tol > 0.0 ? duplicate_pts_tol : DUPLICATE_PTS_TOL;

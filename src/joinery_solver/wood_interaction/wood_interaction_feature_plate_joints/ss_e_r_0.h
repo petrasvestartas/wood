@@ -1,5 +1,5 @@
 /// ss_e_r_0: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
-static void ss_e_r_0(WoodJoint& joint) {
+static void ss_e_r_0(FeaturePlate& joint) {
 
     joint.name = "ss_e_r_0";
 
@@ -69,10 +69,10 @@ static void ss_e_r_0(WoodJoint& joint) {
     for (const int oi : {1, 1, 3, 3})
         joint.female_outlines[1].push_back(rh1.translated(offsets[oi]));
 
-    joint.male_cut_types[0] = std::vector<int>(4, CutType::slice);
-    joint.male_cut_types[1] = std::vector<int>(4, CutType::slice);
-    joint.female_cut_types[0] = std::vector<int>(4, CutType::slice);
-    joint.female_cut_types[1] = std::vector<int>(4, CutType::slice);
+    joint.male_fabrication_types[0] = std::vector<int>(4, FabricationType::slice);
+    joint.male_fabrication_types[1] = std::vector<int>(4, FabricationType::slice);
+    joint.female_fabrication_types[0] = std::vector<int>(4, FabricationType::slice);
+    joint.female_fabrication_types[1] = std::vector<int>(4, FabricationType::slice);
 
     joint.no_orient = true;
 }

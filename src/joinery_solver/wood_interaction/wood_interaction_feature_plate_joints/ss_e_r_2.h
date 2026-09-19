@@ -1,5 +1,5 @@
 /// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_impl; the caller sets unit_scale_distance to the thickness.
-static void ss_e_r_2(WoodJoint& joint) {
+static void ss_e_r_2(FeaturePlate& joint) {
 
     joint.name = "ss_e_r_2";
 

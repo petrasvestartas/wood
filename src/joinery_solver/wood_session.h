@@ -7,25 +7,17 @@
 #include "wood_element_column.h"
 #include "wood_element_plate.h"
 #include "wood_config.h"
-#include "wood_joint.h"
-#include "wood_joint_data.h"
+#include "wood_feature_construction.h"
 #include "wood_interaction.h"
-#include "wood_joint_detection.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place and every detected joint returned.
-std::vector<wood_session::WoodJoint> get_connection_zones(
+/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place, the sidecars the config names apply, and every detected joint is returned.
+std::vector<wood_session::FeaturePlate> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         SearchType search_type = face_to_face);
-
-/// The same with the joint data given instead of read from the sidecar files.
-std::vector<wood_session::WoodJoint> get_connection_zones(
-        std::vector<std::shared_ptr<wood_session::Plate>>& elements,
-        SearchType search_type,
-        const wood_session::JointData& data);
 
 namespace wood_session {
 
@@ -37,6 +29,8 @@ namespace wood_session {
 class WoodSession : public session_cpp::Session {
 public:
     std::map<std::string, Interaction> interactions; // The store: one record per graph edge, by the edge's guid.
+    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_joints classifies; empty lets adjacent_pairs() search. The adjacency sidecar fills it.
+    std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. The three_valence sidecar fills it.
 
 private:
     std::unordered_map<std::string, std::pair<std::string, std::string>> _edges; // Interaction guid -> the edge's (v0, v1), the pair every record refers to.
@@ -93,23 +87,23 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads config::DISTANCE), a ContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
 
-    /// The joinery pipeline over the plates, in place: config::load_joint_data, adjacent_pairs, detect_joints, the three-valence links, build_joint_geometry, merge_joints; every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
-    std::vector<WoodJoint> compute_joints(SearchType search_type = config::SEARCH_TYPE);
+    /// The joinery pipeline over the plates, in place: load_sidecars, adjacent_pairs, detect_joints, the three-valence links, build_joint_geometry, merge_joints; every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
+    std::vector<FeaturePlate> compute_joints(SearchType search_type = config::SEARCH_TYPE);
 
-    /// The same with the joint data given instead of read from the sidecar files: its adjacency and three-valence groups, and its insertion vectors and joint types for plates that carry none.
-    std::vector<WoodJoint> compute_joints(SearchType search_type, const JointData& data);
+    /// The four sidecars the dataset yml names onto the scene: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate that carries none.
+    void load_sidecars();
 
-    /// Candidate plate pairs by position: `adjacency` when given, else the OBB and BVH search within config::DISTANCE.
-    std::vector<std::pair<int, int>> adjacent_pairs(const std::vector<std::pair<int, int>>& adjacency = {}) const;
+    /// Candidate plate pairs by position: `adjacency` when the scene has one, else the OBB and BVH search within config::DISTANCE.
+    std::vector<std::pair<int, int>> adjacent_pairs() const;
 
     /// face_to_face_wood on every pair, joints in pair order; a plate whose faces detection swapped is swapped in place.
-    std::vector<WoodJoint> detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
+    std::vector<FeaturePlate> detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
 
     /// Unit joinery geometry and its orientation for every joint, in order; joint_types is the per-plate per-face id table, empty rows let the solver decide.
-    void build_joint_geometry(std::vector<WoodJoint>& joints, const std::vector<std::vector<int>>& joint_types);
+    void build_joint_geometry(std::vector<FeaturePlate>& joints, const std::vector<std::vector<int>>& joint_types);
 
     /// Merges every joint's cut outlines into its two plates' features.
-    void merge_joints(std::vector<WoodJoint>& joints);
+    void merge_joints(std::vector<FeaturePlate>& joints);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Interactions
@@ -134,7 +128,7 @@ public:
     std::string add_contact(const std::string& a, const std::string& b, InteractionContact contact);
 
     /// Stores a solved joint on its pair's interaction: the contact it was solved from (a ContactCross for a cross joint), then the FeaturePlate with its two element features, both oriented to the edge; returns the feature's guid.
-    std::string add_joint(const WoodJoint& joint);
+    std::string add_joint(const FeaturePlate& joint);
 
     /// Every contact in the scene, in interaction order.
     std::vector<InteractionContact> get_contacts() const;
@@ -143,7 +137,7 @@ public:
     std::vector<InteractionFeature> get_features() const;
 
     /// Every plate feature as a working joint: the pair from its edge, the contact from its interaction, the features and their guids.
-    std::vector<WoodJoint> get_joints() const;
+    std::vector<FeaturePlate> get_joints() const;
 
     /// The joint features the interactions hold for one element: the side of each feature whose host it is.
     std::vector<session_cpp::ElementFeature> get_element_features(const std::string& guid) const;

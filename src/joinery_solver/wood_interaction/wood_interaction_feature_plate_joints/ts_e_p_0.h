@@ -1,5 +1,5 @@
 /// ts_e_p_0: hardcoded three-finger tenon-mortise - three mortise holes plus a bounding rectangle per female face, a zigzag per male face.
-static void ts_e_p_0(WoodJoint& joint) {
+static void ts_e_p_0(FeaturePlate& joint) {
 
     joint.name = "ts_e_p_0";
 
@@ -49,8 +49,8 @@ static void ts_e_p_0(WoodJoint& joint) {
     const Polyline m1_endpoints({ Point(-0.5,-0.5,-a), Point(-0.5,-0.5, a) });
     joint.male_outlines[1] = { m1_outline, m1_endpoints };
 
-    joint.female_cut_types[0] = { CutType::hole, CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
-    joint.female_cut_types[1] = { CutType::hole, CutType::hole, CutType::hole, CutType::insert_between_multiple_edges };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::hole, FabricationType::hole, FabricationType::hole, FabricationType::insert_between_multiple_edges };
+    joint.female_fabrication_types[1] = { FabricationType::hole, FabricationType::hole, FabricationType::hole, FabricationType::insert_between_multiple_edges };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

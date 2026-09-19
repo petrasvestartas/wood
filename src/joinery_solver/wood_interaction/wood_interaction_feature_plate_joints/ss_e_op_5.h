@@ -1,5 +1,5 @@
 /// ss_e_op_5: ss_e_op_4 on this joint and on its one or two linked joints, with the merge sequences that stitch them.
-static void ss_e_op_5(WoodJoint& jo, std::vector<WoodJoint>& all_joints, bool disable_joint_divisions) {
+static void ss_e_op_5(FeaturePlate& jo, std::vector<FeaturePlate>& all_joints, bool disable_joint_divisions) {
 
     jo.name = "ss_e_op_5";
 

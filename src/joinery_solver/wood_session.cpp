@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "wood_session.h"
-#include "wood_face_to_face.h"
+#include "wood_contact_detection.h"
 #include "wood_session.pb.h"
 
 namespace wood_session {
@@ -24,18 +24,6 @@ bool register_element_factories() {
 void register_element_types() {
     static const bool done = register_element_factories();
     (void)done;
-}
-
-/// One detection view per element, in objects.elements order - the index space element_guids() and face_contacts() share.
-std::vector<ContactElement> contact_view(const WoodSession& scene) {
-
-    std::vector<ContactElement> view;
-    view.reserve(scene.objects.elements->size());
-    for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-        if (element)
-            view.emplace_back(*element);
-
-    return view;
 }
 
 /// First block of a guid - enough to tell two elements apart in an object name.
@@ -164,7 +152,7 @@ void WoodSession::compute_face_contacts() {
     erase_contacts("face");
 
     const std::vector<std::string> guids = element_guids();
-    for (const auto& [ia, ib, contact] : face_contacts(contact_view(*this)))
+    for (const auto& [ia, ib, contact] : face_contacts(*objects.elements))
         add_contact(guids[ia], guids[ib], InteractionContact(contact));
 }
 
@@ -206,15 +194,15 @@ void WoodSession::compute_line_contacts(double tolerance) {
     const double tol = tolerance >= 0.0 ? tolerance : config::DISTANCE;
     const double tol_squared = tol * tol;
     const std::vector<std::string> guids = element_guids();
-    const std::vector<ContactElement> view = contact_view(*this);
+    const std::vector<std::shared_ptr<Element>>& elements = *objects.elements;
 
-    std::vector<std::vector<std::vector<Line>>> lines(view.size());
-    for (size_t a = 0; a < view.size(); ++a)
-        for (const Polyline& loop : view[a].polylines)
+    std::vector<std::vector<std::vector<Line>>> lines(elements.size());
+    for (size_t a = 0; a < elements.size(); ++a)
+        for (const Polyline& loop : elements[a]->polylines())
             lines[a].push_back(loop.get_lines());
 
-    for (size_t a = 0; a < view.size(); ++a)
-        for (size_t b = a + 1; b < view.size(); ++b)
+    for (size_t a = 0; a < elements.size(); ++a)
+        for (size_t b = a + 1; b < elements.size(); ++b)
             for (size_t la = 0; la < lines[a].size(); ++la)
                 for (size_t sa = 0; sa < lines[a][la].size(); ++sa)
                     for (size_t lb = 0; lb < lines[b].size(); ++lb)
@@ -293,7 +281,7 @@ std::string WoodSession::add_contact(const std::string& a, const std::string& b,
 namespace {
 
 /// A cross joint's contact is the crossing itself: both side faces per element, the mid-plane polygon, its two lines and its two volumes; any other joint's is the face contact.
-InteractionContact contact_of(const WoodJoint& joint) {
+InteractionContact contact_of(const FeaturePlate& joint) {
 
     if (joint.joint_type != 30)
         return InteractionContact(joint.contact);
@@ -311,29 +299,17 @@ InteractionContact contact_of(const WoodJoint& joint) {
     return InteractionContact(crossing);
 }
 
-/// The face contact a working joint reads from a stored contact: a face contact as is, a crossing through its first faces, anything else empty.
-ContactFace face_of(const InteractionContact& contact) {
-
-    if (const ContactFace* face = contact.face())
-        return *face;
-    if (const ContactCross* cross = contact.cross())
-        return ContactFace(cross->faces_a[0], cross->faces_b[0], ContactType::unknown, cross->polygon);
-
-    return ContactFace();
-}
-
 }  // namespace
 
-std::string WoodSession::add_joint(const WoodJoint& joint) {
+std::string WoodSession::add_joint(const FeaturePlate& joint) {
 
     Interaction& interaction = add_interaction(joint.element_a, joint.element_b);
     const bool reversed = _edges[interaction.guid].first != joint.element_a;
 
     const InteractionContact contact = contact_of(joint);
-    InteractionFeature feature(static_cast<const FeaturePlate&>(joint));
+    InteractionFeature feature(joint);
     feature.contact = interaction.add_contact(reversed ? contact.flipped() : contact);
-    feature.reversed = reversed;
-    feature.set_element_features(joint.to_features());
+    feature.plate()->sync_features();
 
     return interaction.features[interaction.add_feature(std::move(feature))].guid;
 }
@@ -356,49 +332,35 @@ std::vector<InteractionFeature> WoodSession::get_features() const {
     return out;
 }
 
-std::vector<WoodJoint> WoodSession::get_joints() const {
+std::vector<FeaturePlate> WoodSession::get_joints() const {
 
-    std::vector<WoodJoint> out;
-    for (const auto& [guid, interaction] : interactions) {
+    std::vector<FeaturePlate> out;
+    for (const auto& [guid, interaction] : interactions)
+        for (const InteractionFeature& feature : interaction.features)
+            if (const FeaturePlate* plate = feature.plate())
+                out.push_back(*plate);
 
-        const std::pair<std::string, std::string> ends = edge_of(interaction);
+    return out;
+}
+
+/// Side [0] of a plate feature belongs to its element_a, side [1] to its element_b.
+std::vector<ElementFeature> WoodSession::get_element_features(const std::string& guid) const {
+
+    std::vector<ElementFeature> features;
+    for (const auto& [id, interaction] : interactions)
         for (const InteractionFeature& feature : interaction.features) {
 
             const FeaturePlate* plate = feature.plate();
             if (!plate)
                 continue;
 
-            WoodJoint joint;
-            static_cast<FeaturePlate&>(joint) = *plate;
-            joint.element_a = feature.reversed ? ends.second : ends.first;
-            joint.element_b = feature.reversed ? ends.first : ends.second;
-            if (feature.contact >= 0 && feature.contact < (int)interaction.contacts.size()) {
-                const InteractionContact& contact = interaction.contacts[feature.contact];
-                joint.contact = face_of(feature.reversed ? contact.flipped() : contact);
-            }
-            joint.element_features = feature.to_element_features();
-            joint.feature_guids = feature.feature_guids;
-            out.push_back(std::move(joint));
+            const int side = plate->element_a == guid ? 0 : (plate->element_b == guid ? 1 : -1);
+            if (side < 0)
+                continue;
+
+            std::array<ElementFeature, 2> sides = plate->to_features();
+            features.push_back(std::move(sides[side]));
         }
-    }
-
-    return out;
-}
-
-/// The side comes from the edge end the element is, and from the feature's reversed flag.
-std::vector<ElementFeature> WoodSession::get_element_features(const std::string& guid) const {
-
-    std::vector<ElementFeature> features;
-    for (const auto& [id, interaction] : interactions) {
-
-        const std::pair<std::string, std::string> ends = edge_of(interaction);
-        const int end = ends.first == guid ? 0 : (ends.second == guid ? 1 : -1);
-        if (end < 0)
-            continue;
-
-        for (const InteractionFeature& feature : interaction.features)
-            features.push_back(feature.element_feature_at(end));
-    }
 
     return features;
 }
@@ -583,7 +545,7 @@ void WoodSession::add_contacts_to(const std::map<std::string, std::shared_ptr<Tr
 }
 
 void WoodSession::add_joints_to(const std::map<std::string, std::shared_ptr<TreeNode>>& groups, std::map<std::string, std::shared_ptr<TreeNode>>& children) {
-    for (const WoodJoint& joint : get_joints()) {
+    for (const FeaturePlate& joint : get_joints()) {
 
         const auto male = groups.find(joint.element_a);
         const auto female = groups.find(joint.element_b);

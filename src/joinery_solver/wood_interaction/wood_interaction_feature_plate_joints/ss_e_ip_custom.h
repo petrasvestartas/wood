@@ -15,7 +15,7 @@ static void tile_custom_face(const std::vector<Polyline>& source, bool pick_face
 
 /// ss_e_ip_custom: each user pair (face0, face1) from CUSTOM_JOINTS_SS_E_IP_MALE / FEMALE is one tooth,
 /// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
-static void ss_e_ip_custom(WoodJoint& joint) {
+static void ss_e_ip_custom(FeaturePlate& joint) {
 
     joint.name = "ss_e_ip_custom";
 
@@ -58,10 +58,10 @@ static void ss_e_ip_custom(WoodJoint& joint) {
     joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
     joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
 
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 
     joint.unit_scale = true;
 }

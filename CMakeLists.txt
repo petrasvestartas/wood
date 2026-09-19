@@ -90,11 +90,10 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_interaction/wood_interaction_feature.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature_plate.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature_beam.cpp
-    src/joinery_solver/wood_algorithms/wood_face_to_face.cpp
-    src/joinery_solver/wood_algorithms/wood_face_to_face_element.cpp
-    src/joinery_solver/wood_algorithms/wood_joint.cpp
-    src/joinery_solver/wood_algorithms/wood_joint_detection.cpp
-    src/joinery_solver/wood_algorithms/wood_joint_solver.cpp
+    src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
+    src/joinery_solver/wood_algorithms/wood_feature_detection.cpp
+    src/joinery_solver/wood_algorithms/wood_feature_construction.cpp
+    src/joinery_solver/wood_algorithms/wood_feature_solver.cpp
     src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp
     src/joinery_solver/wood_session.cpp
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp

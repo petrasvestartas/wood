@@ -10,7 +10,7 @@ namespace wood_session {
 namespace {
 
 /// Clip a joint's volume pairs between the planes through `a` and `b` that are normal to the first volume.
-void clip_joint_volumes(WoodJoint& joint, const Point& a, const Point& b) {
+void clip_joint_volumes(FeaturePlate& joint, const Point& a, const Point& b) {
 
     if (!joint.joint_volumes[0].has_value())
         return;
@@ -63,7 +63,7 @@ uint64_t pair_key(int a, int b) {
 /// Element pair -> joint index (last joint wins); rebuilt wherever the joint list may have changed.
 std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<WoodJoint>& joints) {
+    const std::vector<FeaturePlate>& joints) {
 
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
@@ -91,7 +91,7 @@ static bool normals_parallel(const Vector& a, const Vector& b) {
 }
 
 /// The four joint volumes of a joint copied out, an empty polyline where one is missing.
-static std::array<Polyline, 4> copy_joint_volumes(const WoodJoint& joint) {
+static std::array<Polyline, 4> copy_joint_volumes(const FeaturePlate& joint) {
 
     std::array<Polyline, 4> volumes;
     for (int k = 0; k < 4; k++)
@@ -105,7 +105,7 @@ static std::array<Polyline, 4> copy_joint_volumes(const WoodJoint& joint) {
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<WoodJoint>& joints,
+    std::vector<FeaturePlate>& joints,
     std::unordered_map<uint64_t, int>& joints_map) {
 
     if (three_valence_groups.size() < 2)
@@ -237,7 +237,7 @@ void add_vidy_shadow_joints(
             std::swap(side0, side1);
         }
 
-        WoodJoint shadow0;
+        FeaturePlate shadow0;
         shadow0.element_a = elements[side0]->guid();
         shadow0.element_b = elements[glued0]->guid();
         shadow0.contact.face_a = -1;
@@ -254,7 +254,7 @@ void add_vidy_shadow_joints(
 
         int shadow1_index = -1;
         if (glued0 != glued1) {
-            WoodJoint shadow1;
+            FeaturePlate shadow1;
             shadow1.element_a = elements[side1]->guid();
             shadow1.element_b = elements[glued1]->guid();
             shadow1.contact.face_a = -1;
@@ -285,7 +285,7 @@ void add_vidy_shadow_joints(
 void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     const std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<WoodJoint>& joints) {
+    std::vector<FeaturePlate>& joints) {
 
     const std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, joints);
 
@@ -304,8 +304,8 @@ void align_annen_joints(
         if (found0 == joints_map.end() || found1 == joints_map.end())
             continue;
 
-        WoodJoint& joint0 = joints[found0->second];
-        WoodJoint& joint1 = joints[found1->second];
+        FeaturePlate& joint0 = joints[found0->second];
+        FeaturePlate& joint1 = joints[found1->second];
 
         const Line line0 = joint0.joint_lines[0];
         const double distance_to_start = Point::distance(line0.start(), joint1.joint_lines[0].start());
@@ -352,7 +352,7 @@ void align_annen_joints(
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<WoodJoint>& all_joints) {
+    std::vector<FeaturePlate>& all_joints) {
 
     if (three_valence_groups.size() > 1) {
         std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, all_joints);

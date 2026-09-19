@@ -29,8 +29,10 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
+#include "element.pb.h"
 #include "line.pb.h"
 #include "polyline.pb.h"
+#include "interaction_contact_face.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -623,12 +625,16 @@ class FeaturePlate final : public ::google::protobuf::Message
     kJointVolumesFieldNumber = 5,
     kMaleOutlinesFieldNumber = 6,
     kFemaleOutlinesFieldNumber = 7,
-    kMaleCutTypesFieldNumber = 8,
-    kFemaleCutTypesFieldNumber = 9,
+    kMaleFabricationTypesFieldNumber = 8,
+    kFemaleFabricationTypesFieldNumber = 9,
     kScaleFieldNumber = 14,
     kLinkedJointsFieldNumber = 17,
     kLinkedJointsSeqFieldNumber = 18,
+    kElementFeaturesFieldNumber = 24,
     kNameFieldNumber = 2,
+    kElementAFieldNumber = 21,
+    kElementBFieldNumber = 22,
+    kContactFieldNumber = 23,
     kJointTypeFieldNumber = 1,
     kDivisionsFieldNumber = 10,
     kShiftFieldNumber = 11,
@@ -725,40 +731,40 @@ class FeaturePlate final : public ::google::protobuf::Message
   const ::wood_proto::PolylineList& female_outlines(int index) const;
   ::wood_proto::PolylineList* PROTOBUF_NONNULL add_female_outlines();
   const ::google::protobuf::RepeatedPtrField<::wood_proto::PolylineList>& female_outlines() const;
-  // repeated .wood_proto.IntList male_cut_types = 8;
-  int male_cut_types_size() const;
+  // repeated .wood_proto.IntList male_fabrication_types = 8;
+  int male_fabrication_types_size() const;
   private:
-  int _internal_male_cut_types_size() const;
+  int _internal_male_fabrication_types_size() const;
 
   public:
-  void clear_male_cut_types() ;
-  ::wood_proto::IntList* PROTOBUF_NONNULL mutable_male_cut_types(int index);
-  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL mutable_male_cut_types();
+  void clear_male_fabrication_types() ;
+  ::wood_proto::IntList* PROTOBUF_NONNULL mutable_male_fabrication_types(int index);
+  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL mutable_male_fabrication_types();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& _internal_male_cut_types() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL _internal_mutable_male_cut_types();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& _internal_male_fabrication_types() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL _internal_mutable_male_fabrication_types();
   public:
-  const ::wood_proto::IntList& male_cut_types(int index) const;
-  ::wood_proto::IntList* PROTOBUF_NONNULL add_male_cut_types();
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& male_cut_types() const;
-  // repeated .wood_proto.IntList female_cut_types = 9;
-  int female_cut_types_size() const;
+  const ::wood_proto::IntList& male_fabrication_types(int index) const;
+  ::wood_proto::IntList* PROTOBUF_NONNULL add_male_fabrication_types();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& male_fabrication_types() const;
+  // repeated .wood_proto.IntList female_fabrication_types = 9;
+  int female_fabrication_types_size() const;
   private:
-  int _internal_female_cut_types_size() const;
+  int _internal_female_fabrication_types_size() const;
 
   public:
-  void clear_female_cut_types() ;
-  ::wood_proto::IntList* PROTOBUF_NONNULL mutable_female_cut_types(int index);
-  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL mutable_female_cut_types();
+  void clear_female_fabrication_types() ;
+  ::wood_proto::IntList* PROTOBUF_NONNULL mutable_female_fabrication_types(int index);
+  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL mutable_female_fabrication_types();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& _internal_female_cut_types() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL _internal_mutable_female_cut_types();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& _internal_female_fabrication_types() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL _internal_mutable_female_fabrication_types();
   public:
-  const ::wood_proto::IntList& female_cut_types(int index) const;
-  ::wood_proto::IntList* PROTOBUF_NONNULL add_female_cut_types();
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& female_cut_types() const;
+  const ::wood_proto::IntList& female_fabrication_types(int index) const;
+  ::wood_proto::IntList* PROTOBUF_NONNULL add_female_fabrication_types();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& female_fabrication_types() const;
   // repeated double scale = 14;
   int scale_size() const;
   private:
@@ -812,6 +818,23 @@ class FeaturePlate final : public ::google::protobuf::Message
   const ::wood_proto::IntList& linked_joints_seq(int index) const;
   ::wood_proto::IntList* PROTOBUF_NONNULL add_linked_joints_seq();
   const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& linked_joints_seq() const;
+  // repeated .session_proto.ElementFeature element_features = 24;
+  int element_features_size() const;
+  private:
+  int _internal_element_features_size() const;
+
+  public:
+  void clear_element_features() ;
+  ::session_proto::ElementFeature* PROTOBUF_NONNULL mutable_element_features(int index);
+  ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL mutable_element_features();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& _internal_element_features() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL _internal_mutable_element_features();
+  public:
+  const ::session_proto::ElementFeature& element_features(int index) const;
+  ::session_proto::ElementFeature* PROTOBUF_NONNULL add_element_features();
+  const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& element_features() const;
   // string name = 2;
   void clear_name() ;
   const ::std::string& name() const;
@@ -825,6 +848,51 @@ class FeaturePlate final : public ::google::protobuf::Message
   const ::std::string& _internal_name() const;
   PROTOBUF_ALWAYS_INLINE void _internal_set_name(const ::std::string& value);
   ::std::string* PROTOBUF_NONNULL _internal_mutable_name();
+
+  public:
+  // string element_a = 21;
+  void clear_element_a() ;
+  const ::std::string& element_a() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_element_a(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_element_a();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_element_a();
+  void set_allocated_element_a(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_element_a() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_element_a(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_element_a();
+
+  public:
+  // string element_b = 22;
+  void clear_element_b() ;
+  const ::std::string& element_b() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_element_b(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_element_b();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_element_b();
+  void set_allocated_element_b(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_element_b() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_element_b(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_element_b();
+
+  public:
+  // .wood_proto.ContactFace contact = 23;
+  bool has_contact() const;
+  void clear_contact() ;
+  const ::wood_proto::ContactFace& contact() const;
+  [[nodiscard]] ::wood_proto::ContactFace* PROTOBUF_NULLABLE release_contact();
+  ::wood_proto::ContactFace* PROTOBUF_NONNULL mutable_contact();
+  void set_allocated_contact(::wood_proto::ContactFace* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_contact(::wood_proto::ContactFace* PROTOBUF_NULLABLE value);
+  ::wood_proto::ContactFace* PROTOBUF_NULLABLE unsafe_arena_release_contact();
+
+  private:
+  const ::wood_proto::ContactFace& _internal_contact() const;
+  ::wood_proto::ContactFace* PROTOBUF_NONNULL _internal_mutable_contact();
 
   public:
   // int32 joint_type = 1;
@@ -921,8 +989,8 @@ class FeaturePlate final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<5, 20,
-                                   7, 52,
+  static const ::google::protobuf::internal::TcParseTable<5, 24,
+                                   9, 78,
                                    2>
       _table_;
 
@@ -949,13 +1017,17 @@ class FeaturePlate final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > joint_volumes_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PolylineList > male_outlines_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::PolylineList > female_outlines_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > male_cut_types_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > female_cut_types_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > male_fabrication_types_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > female_fabrication_types_;
     ::google::protobuf::RepeatedField<double> scale_;
     ::google::protobuf::RepeatedField<::int32_t> linked_joints_;
     ::google::protobuf::internal::CachedSize _linked_joints_cached_byte_size_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::IntList > linked_joints_seq_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::ElementFeature > element_features_;
     ::google::protobuf::internal::ArenaStringPtr name_;
+    ::google::protobuf::internal::ArenaStringPtr element_a_;
+    ::google::protobuf::internal::ArenaStringPtr element_b_;
+    ::wood_proto::ContactFace* PROTOBUF_NULLABLE contact_;
     ::int32_t joint_type_;
     ::int32_t divisions_;
     double shift_;
@@ -1097,12 +1169,285 @@ IntList::_internal_mutable_values() {
 
 // FeaturePlate
 
+// string element_a = 21;
+inline void FeaturePlate::clear_element_a() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.element_a_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00001000U);
+}
+inline const ::std::string& FeaturePlate::element_a() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.element_a)
+  return _internal_element_a();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void FeaturePlate::set_element_a(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  _impl_.element_a_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.element_a)
+}
+inline ::std::string* PROTOBUF_NONNULL FeaturePlate::mutable_element_a()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ::std::string* _s = _internal_mutable_element_a();
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.element_a)
+  return _s;
+}
+inline const ::std::string& FeaturePlate::_internal_element_a() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.element_a_.Get();
+}
+inline void FeaturePlate::_internal_set_element_a(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.element_a_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL FeaturePlate::_internal_mutable_element_a() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.element_a_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE FeaturePlate::release_element_a() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:wood_proto.FeaturePlate.element_a)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00001000U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  auto* released = _impl_.element_a_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.element_a_.Set("", GetArena());
+  }
+  return released;
+}
+inline void FeaturePlate::set_allocated_element_a(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  }
+  _impl_.element_a_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.element_a_.IsDefault()) {
+    _impl_.element_a_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.FeaturePlate.element_a)
+}
+
+// string element_b = 22;
+inline void FeaturePlate::clear_element_b() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.element_b_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00002000U);
+}
+inline const ::std::string& FeaturePlate::element_b() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.element_b)
+  return _internal_element_b();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void FeaturePlate::set_element_b(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  _impl_.element_b_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.element_b)
+}
+inline ::std::string* PROTOBUF_NONNULL FeaturePlate::mutable_element_b()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  ::std::string* _s = _internal_mutable_element_b();
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.element_b)
+  return _s;
+}
+inline const ::std::string& FeaturePlate::_internal_element_b() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.element_b_.Get();
+}
+inline void FeaturePlate::_internal_set_element_b(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.element_b_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL FeaturePlate::_internal_mutable_element_b() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.element_b_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE FeaturePlate::release_element_b() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:wood_proto.FeaturePlate.element_b)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00002000U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  auto* released = _impl_.element_b_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.element_b_.Set("", GetArena());
+  }
+  return released;
+}
+inline void FeaturePlate::set_allocated_element_b(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  }
+  _impl_.element_b_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.element_b_.IsDefault()) {
+    _impl_.element_b_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.FeaturePlate.element_b)
+}
+
+// .wood_proto.ContactFace contact = 23;
+inline bool FeaturePlate::has_contact() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00004000U);
+  PROTOBUF_ASSUME(!value || _impl_.contact_ != nullptr);
+  return value;
+}
+inline const ::wood_proto::ContactFace& FeaturePlate::_internal_contact() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::wood_proto::ContactFace* p = _impl_.contact_;
+  return p != nullptr ? *p : reinterpret_cast<const ::wood_proto::ContactFace&>(::wood_proto::_ContactFace_default_instance_);
+}
+inline const ::wood_proto::ContactFace& FeaturePlate::contact() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.contact)
+  return _internal_contact();
+}
+inline void FeaturePlate::unsafe_arena_set_allocated_contact(
+    ::wood_proto::ContactFace* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.contact_);
+  }
+  _impl_.contact_ = reinterpret_cast<::wood_proto::ContactFace*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.FeaturePlate.contact)
+}
+inline ::wood_proto::ContactFace* PROTOBUF_NULLABLE FeaturePlate::release_contact() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ::wood_proto::ContactFace* released = _impl_.contact_;
+  _impl_.contact_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::wood_proto::ContactFace* PROTOBUF_NULLABLE FeaturePlate::unsafe_arena_release_contact() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:wood_proto.FeaturePlate.contact)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ::wood_proto::ContactFace* temp = _impl_.contact_;
+  _impl_.contact_ = nullptr;
+  return temp;
+}
+inline ::wood_proto::ContactFace* PROTOBUF_NONNULL FeaturePlate::_internal_mutable_contact() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.contact_ == nullptr) {
+    auto* p = ::google::protobuf::Message::DefaultConstruct<::wood_proto::ContactFace>(GetArena());
+    _impl_.contact_ = reinterpret_cast<::wood_proto::ContactFace*>(p);
+  }
+  return _impl_.contact_;
+}
+inline ::wood_proto::ContactFace* PROTOBUF_NONNULL FeaturePlate::mutable_contact()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ::wood_proto::ContactFace* _msg = _internal_mutable_contact();
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.contact)
+  return _msg;
+}
+inline void FeaturePlate::set_allocated_contact(::wood_proto::ContactFace* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.contact_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  }
+
+  _impl_.contact_ = reinterpret_cast<::wood_proto::ContactFace*>(value);
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.FeaturePlate.contact)
+}
+
+// repeated .session_proto.ElementFeature element_features = 24;
+inline int FeaturePlate::_internal_element_features_size() const {
+  return _internal_element_features().size();
+}
+inline int FeaturePlate::element_features_size() const {
+  return _internal_element_features_size();
+}
+inline ::session_proto::ElementFeature* PROTOBUF_NONNULL FeaturePlate::mutable_element_features(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.element_features)
+  return _internal_mutable_element_features()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL FeaturePlate::mutable_element_features()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.FeaturePlate.element_features)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_element_features();
+}
+inline const ::session_proto::ElementFeature& FeaturePlate::element_features(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.element_features)
+  return _internal_element_features().Get(index);
+}
+inline ::session_proto::ElementFeature* PROTOBUF_NONNULL FeaturePlate::add_element_features()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::ElementFeature* _add =
+      _internal_mutable_element_features()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_add:wood_proto.FeaturePlate.element_features)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>& FeaturePlate::element_features() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.FeaturePlate.element_features)
+  return _internal_element_features();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>&
+FeaturePlate::_internal_element_features() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.element_features_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::ElementFeature>* PROTOBUF_NONNULL
+FeaturePlate::_internal_mutable_element_features() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.element_features_;
+}
+
 // int32 joint_type = 1;
 inline void FeaturePlate::clear_joint_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.joint_type_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000800U);
+                  0x00008000U);
 }
 inline ::int32_t FeaturePlate::joint_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.joint_type)
@@ -1110,7 +1455,7 @@ inline ::int32_t FeaturePlate::joint_type() const {
 }
 inline void FeaturePlate::set_joint_type(::int32_t value) {
   _internal_set_joint_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.joint_type)
 }
 inline ::int32_t FeaturePlate::_internal_joint_type() const {
@@ -1127,7 +1472,7 @@ inline void FeaturePlate::clear_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000400U);
+                  0x00000800U);
 }
 inline const ::std::string& FeaturePlate::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1137,13 +1482,13 @@ inline const ::std::string& FeaturePlate::name() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void FeaturePlate::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.name)
 }
 inline ::std::string* PROTOBUF_NONNULL FeaturePlate::mutable_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::std::string* _s = _internal_mutable_name();
   // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.name)
   return _s;
@@ -1163,10 +1508,10 @@ inline ::std::string* PROTOBUF_NONNULL FeaturePlate::_internal_mutable_name() {
 inline ::std::string* PROTOBUF_NULLABLE FeaturePlate::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.FeaturePlate.name)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000800U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.name_.Set("", GetArena());
@@ -1176,9 +1521,9 @@ inline ::std::string* PROTOBUF_NULLABLE FeaturePlate::release_name() {
 inline void FeaturePlate::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   }
   _impl_.name_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
@@ -1449,116 +1794,116 @@ FeaturePlate::_internal_mutable_female_outlines() {
   return &_impl_.female_outlines_;
 }
 
-// repeated .wood_proto.IntList male_cut_types = 8;
-inline int FeaturePlate::_internal_male_cut_types_size() const {
-  return _internal_male_cut_types().size();
+// repeated .wood_proto.IntList male_fabrication_types = 8;
+inline int FeaturePlate::_internal_male_fabrication_types_size() const {
+  return _internal_male_fabrication_types().size();
 }
-inline int FeaturePlate::male_cut_types_size() const {
-  return _internal_male_cut_types_size();
+inline int FeaturePlate::male_fabrication_types_size() const {
+  return _internal_male_fabrication_types_size();
 }
-inline void FeaturePlate::clear_male_cut_types() {
+inline void FeaturePlate::clear_male_fabrication_types() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.male_cut_types_.Clear();
+  _impl_.male_fabrication_types_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000020U);
 }
-inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::mutable_male_cut_types(int index)
+inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::mutable_male_fabrication_types(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.male_cut_types)
-  return _internal_mutable_male_cut_types()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.male_fabrication_types)
+  return _internal_mutable_male_fabrication_types()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL FeaturePlate::mutable_male_cut_types()
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL FeaturePlate::mutable_male_fabrication_types()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000020U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.FeaturePlate.male_cut_types)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.FeaturePlate.male_fabrication_types)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_male_cut_types();
+  return _internal_mutable_male_fabrication_types();
 }
-inline const ::wood_proto::IntList& FeaturePlate::male_cut_types(int index) const
+inline const ::wood_proto::IntList& FeaturePlate::male_fabrication_types(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.male_cut_types)
-  return _internal_male_cut_types().Get(index);
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.male_fabrication_types)
+  return _internal_male_fabrication_types().Get(index);
 }
-inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::add_male_cut_types()
+inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::add_male_fabrication_types()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::wood_proto::IntList* _add =
-      _internal_mutable_male_cut_types()->InternalAddWithArena(
+      _internal_mutable_male_fabrication_types()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000020U);
-  // @@protoc_insertion_point(field_add:wood_proto.FeaturePlate.male_cut_types)
+  // @@protoc_insertion_point(field_add:wood_proto.FeaturePlate.male_fabrication_types)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& FeaturePlate::male_cut_types() const
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& FeaturePlate::male_fabrication_types() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.FeaturePlate.male_cut_types)
-  return _internal_male_cut_types();
+  // @@protoc_insertion_point(field_list:wood_proto.FeaturePlate.male_fabrication_types)
+  return _internal_male_fabrication_types();
 }
 inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>&
-FeaturePlate::_internal_male_cut_types() const {
+FeaturePlate::_internal_male_fabrication_types() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.male_cut_types_;
+  return _impl_.male_fabrication_types_;
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL
-FeaturePlate::_internal_mutable_male_cut_types() {
+FeaturePlate::_internal_mutable_male_fabrication_types() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.male_cut_types_;
+  return &_impl_.male_fabrication_types_;
 }
 
-// repeated .wood_proto.IntList female_cut_types = 9;
-inline int FeaturePlate::_internal_female_cut_types_size() const {
-  return _internal_female_cut_types().size();
+// repeated .wood_proto.IntList female_fabrication_types = 9;
+inline int FeaturePlate::_internal_female_fabrication_types_size() const {
+  return _internal_female_fabrication_types().size();
 }
-inline int FeaturePlate::female_cut_types_size() const {
-  return _internal_female_cut_types_size();
+inline int FeaturePlate::female_fabrication_types_size() const {
+  return _internal_female_fabrication_types_size();
 }
-inline void FeaturePlate::clear_female_cut_types() {
+inline void FeaturePlate::clear_female_fabrication_types() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.female_cut_types_.Clear();
+  _impl_.female_fabrication_types_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000040U);
 }
-inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::mutable_female_cut_types(int index)
+inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::mutable_female_fabrication_types(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.female_cut_types)
-  return _internal_mutable_female_cut_types()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:wood_proto.FeaturePlate.female_fabrication_types)
+  return _internal_mutable_female_fabrication_types()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL FeaturePlate::mutable_female_cut_types()
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL FeaturePlate::mutable_female_fabrication_types()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000040U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.FeaturePlate.female_cut_types)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.FeaturePlate.female_fabrication_types)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_female_cut_types();
+  return _internal_mutable_female_fabrication_types();
 }
-inline const ::wood_proto::IntList& FeaturePlate::female_cut_types(int index) const
+inline const ::wood_proto::IntList& FeaturePlate::female_fabrication_types(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.female_cut_types)
-  return _internal_female_cut_types().Get(index);
+  // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.female_fabrication_types)
+  return _internal_female_fabrication_types().Get(index);
 }
-inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::add_female_cut_types()
+inline ::wood_proto::IntList* PROTOBUF_NONNULL FeaturePlate::add_female_fabrication_types()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::wood_proto::IntList* _add =
-      _internal_mutable_female_cut_types()->InternalAddWithArena(
+      _internal_mutable_female_fabrication_types()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000040U);
-  // @@protoc_insertion_point(field_add:wood_proto.FeaturePlate.female_cut_types)
+  // @@protoc_insertion_point(field_add:wood_proto.FeaturePlate.female_fabrication_types)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& FeaturePlate::female_cut_types() const
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>& FeaturePlate::female_fabrication_types() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.FeaturePlate.female_cut_types)
-  return _internal_female_cut_types();
+  // @@protoc_insertion_point(field_list:wood_proto.FeaturePlate.female_fabrication_types)
+  return _internal_female_fabrication_types();
 }
 inline const ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>&
-FeaturePlate::_internal_female_cut_types() const {
+FeaturePlate::_internal_female_fabrication_types() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.female_cut_types_;
+  return _impl_.female_fabrication_types_;
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::IntList>* PROTOBUF_NONNULL
-FeaturePlate::_internal_mutable_female_cut_types() {
+FeaturePlate::_internal_mutable_female_fabrication_types() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.female_cut_types_;
+  return &_impl_.female_fabrication_types_;
 }
 
 // int32 divisions = 10;
@@ -1566,7 +1911,7 @@ inline void FeaturePlate::clear_divisions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.divisions_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00001000U);
+                  0x00010000U);
 }
 inline ::int32_t FeaturePlate::divisions() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.divisions)
@@ -1574,7 +1919,7 @@ inline ::int32_t FeaturePlate::divisions() const {
 }
 inline void FeaturePlate::set_divisions(::int32_t value) {
   _internal_set_divisions(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.divisions)
 }
 inline ::int32_t FeaturePlate::_internal_divisions() const {
@@ -1591,7 +1936,7 @@ inline void FeaturePlate::clear_shift() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.shift_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00002000U);
+                  0x00020000U);
 }
 inline double FeaturePlate::shift() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.shift)
@@ -1599,7 +1944,7 @@ inline double FeaturePlate::shift() const {
 }
 inline void FeaturePlate::set_shift(double value) {
   _internal_set_shift(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.shift)
 }
 inline double FeaturePlate::_internal_shift() const {
@@ -1616,7 +1961,7 @@ inline void FeaturePlate::clear_length() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.length_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00004000U);
+                  0x00040000U);
 }
 inline double FeaturePlate::length() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.length)
@@ -1624,7 +1969,7 @@ inline double FeaturePlate::length() const {
 }
 inline void FeaturePlate::set_length(double value) {
   _internal_set_length(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.length)
 }
 inline double FeaturePlate::_internal_length() const {
@@ -1641,7 +1986,7 @@ inline void FeaturePlate::clear_division_length() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.division_length_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00008000U);
+                  0x00080000U);
 }
 inline double FeaturePlate::division_length() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.division_length)
@@ -1649,7 +1994,7 @@ inline double FeaturePlate::division_length() const {
 }
 inline void FeaturePlate::set_division_length(double value) {
   _internal_set_division_length(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.division_length)
 }
 inline double FeaturePlate::_internal_division_length() const {
@@ -1716,7 +2061,7 @@ inline void FeaturePlate::clear_unit_scale() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.unit_scale_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00020000U);
+                  0x00200000U);
 }
 inline bool FeaturePlate::unit_scale() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.unit_scale)
@@ -1724,7 +2069,7 @@ inline bool FeaturePlate::unit_scale() const {
 }
 inline void FeaturePlate::set_unit_scale(bool value) {
   _internal_set_unit_scale(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.unit_scale)
 }
 inline bool FeaturePlate::_internal_unit_scale() const {
@@ -1741,7 +2086,7 @@ inline void FeaturePlate::clear_unit_scale_distance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.unit_scale_distance_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00010000U);
+                  0x00100000U);
 }
 inline double FeaturePlate::unit_scale_distance() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.unit_scale_distance)
@@ -1749,7 +2094,7 @@ inline double FeaturePlate::unit_scale_distance() const {
 }
 inline void FeaturePlate::set_unit_scale_distance(double value) {
   _internal_set_unit_scale_distance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.unit_scale_distance)
 }
 inline double FeaturePlate::_internal_unit_scale_distance() const {
@@ -1872,7 +2217,7 @@ inline void FeaturePlate::clear_link() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.link_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00040000U);
+                  0x00400000U);
 }
 inline bool FeaturePlate::link() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.link)
@@ -1880,7 +2225,7 @@ inline bool FeaturePlate::link() const {
 }
 inline void FeaturePlate::set_link(bool value) {
   _internal_set_link(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.link)
 }
 inline bool FeaturePlate::_internal_link() const {
@@ -1897,7 +2242,7 @@ inline void FeaturePlate::clear_no_orient() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.no_orient_ = false;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00080000U);
+                  0x00800000U);
 }
 inline bool FeaturePlate::no_orient() const {
   // @@protoc_insertion_point(field_get:wood_proto.FeaturePlate.no_orient)
@@ -1905,7 +2250,7 @@ inline bool FeaturePlate::no_orient() const {
 }
 inline void FeaturePlate::set_no_orient(bool value) {
   _internal_set_no_orient(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00800000U);
   // @@protoc_insertion_point(field_set:wood_proto.FeaturePlate.no_orient)
 }
 inline bool FeaturePlate::_internal_no_orient() const {

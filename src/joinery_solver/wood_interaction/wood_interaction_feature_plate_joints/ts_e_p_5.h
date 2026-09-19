@@ -1,6 +1,6 @@
 /// ts_e_p_5: repeating tenon-mortise - `divisions` copies along z, the male concatenated into one outline per face,
 /// the female one rectangle per copy plus a bounding rectangle; unit_scale.
-static void ts_e_p_5(WoodJoint& joint) {
+static void ts_e_p_5(FeaturePlate& joint) {
 
     joint.name = "ts_e_p_5";
 
@@ -129,10 +129,10 @@ static void ts_e_p_5(WoodJoint& joint) {
         }));
     }
 
-    joint.female_cut_types[0] = std::vector<int>(joint.female_outlines[0].size(), CutType::hole);
-    joint.female_cut_types[1] = std::vector<int>(joint.female_outlines[1].size(), CutType::hole);
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = std::vector<int>(joint.female_outlines[0].size(), FabricationType::hole);
+    joint.female_fabrication_types[1] = std::vector<int>(joint.female_outlines[1].size(), FabricationType::hole);
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 
     joint.unit_scale = true;
 }

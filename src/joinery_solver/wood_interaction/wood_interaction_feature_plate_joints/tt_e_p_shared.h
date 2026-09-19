@@ -1,6 +1,6 @@
 /// Both plates found, a first joint volume with 3+ points, an area with min_area+ points.
 static bool drill_ready(
-    const WoodJoint& joint,
+    const FeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
     int& v0,
     int& v1,
@@ -20,7 +20,7 @@ static bool drill_ready(
 }
 
 /// dir0: the first volume's [1]->[2] edge, unit, times plate v0's thickness; dir1: the reverse times v1's.
-static void drill_axes(const WoodJoint& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
+static void drill_axes(const FeaturePlate& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
     const Polyline& jv0 = *joint.joint_volumes[0];
     dir0 = jv0.get_point(1) - jv0.get_point(2);
     dir0.normalize_self();
@@ -30,17 +30,17 @@ static void drill_axes(const WoodJoint& joint, double t0, double t1, Vector& dir
 }
 
 /// One two-point drill line per point on every face, twice per face as the merge expects.
-static void emit_drills(WoodJoint& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
+static void emit_drills(FeaturePlate& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
 
     for (int f = 0; f < 2; f++) {
         joint.male_outlines[f].clear();
         joint.female_outlines[f].clear();
-        joint.male_cut_types[f].clear();
-        joint.female_cut_types[f].clear();
+        joint.male_fabrication_types[f].clear();
+        joint.female_fabrication_types[f].clear();
         joint.male_outlines[f].reserve(points.size() * 2);
         joint.female_outlines[f].reserve(points.size() * 2);
-        joint.male_cut_types[f].reserve(points.size() * 2);
-        joint.female_cut_types[f].reserve(points.size() * 2);
+        joint.male_fabrication_types[f].reserve(points.size() * 2);
+        joint.female_fabrication_types[f].reserve(points.size() * 2);
     }
 
     for (const Point& pt : points) {
@@ -51,10 +51,10 @@ static void emit_drills(WoodJoint& joint, const std::vector<Point>& points, cons
             joint.female_outlines[f].push_back(line0);
             joint.male_outlines[f].push_back(line1);
             joint.male_outlines[f].push_back(line1);
-            joint.male_cut_types[f].push_back(CutType::drill);
-            joint.male_cut_types[f].push_back(CutType::drill);
-            joint.female_cut_types[f].push_back(CutType::drill);
-            joint.female_cut_types[f].push_back(CutType::drill);
+            joint.male_fabrication_types[f].push_back(FabricationType::drill);
+            joint.male_fabrication_types[f].push_back(FabricationType::drill);
+            joint.female_fabrication_types[f].push_back(FabricationType::drill);
+            joint.female_fabrication_types[f].push_back(FabricationType::drill);
         }
     }
 }
@@ -92,7 +92,7 @@ static std::vector<Point> offset_boundary_points(
 }
 
 /// One drill through the area centroid.
-static void centroid_drill(WoodJoint& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+static void centroid_drill(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     int v0;
     int v1;
@@ -107,7 +107,7 @@ static void centroid_drill(WoodJoint& joint, const std::vector<std::shared_ptr<P
 
 /// Drills along the offset area boundary.
 static void boundary_drill(
-    WoodJoint& joint,
+    FeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
     double division_distance,
     double open_tolerance

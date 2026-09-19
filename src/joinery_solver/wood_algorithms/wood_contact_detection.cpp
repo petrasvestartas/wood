@@ -1,9 +1,296 @@
 #include "pch.h"
-#include "wood_session.h"
-
+#include "wood_contact_detection.h"
+#include "../src/clipper2/clipper.h"
 using namespace session_cpp;
+using namespace wood_session;
+
+constexpr bool TRACE = false;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Face contacts
+// ═══════════════════════════════════════════════════════════════════════════
 
 namespace wood_session {
+
+namespace {
+
+void add_outline(const Polyline& pl, std::vector<Point>& corners) {
+    const size_t n = pl.is_closed() ? pl.point_count() - 1 : pl.point_count();
+    for (size_t k = 0; k < n; k++)
+        corners.push_back(pl.get_point(k));
+}
+
+/// Whether the element follows the plate face convention: [0] bottom, [1] top, [2..] sides.
+bool is_plate(const Element& e) { return dynamic_cast<const Plate*>(&e) != nullptr; }
+
+/// A plate's outlines as it holds them now (the solver swaps faces mid-run, past the kernel cache), any other element's cached face outlines.
+std::vector<Polyline> outlines_of(Element& e) {
+
+    if (const Plate* plate = dynamic_cast<const Plate*>(&e))
+        return plate->polylines;
+
+    return e.polylines();
+}
+
+/// A plate's planes as it holds them now, any other element's cached face planes.
+std::vector<Plane> planes_of(Element& e) {
+
+    if (const Plate* plate = dynamic_cast<const Plate*>(&e))
+        return plate->planes;
+
+    return e.planes();
+}
+
+/// The points that bound an element: a plate by its two outlines, anything else by every loop.
+void bounding_points(Element& e, std::vector<Point>& out) {
+
+    const std::vector<Polyline> loops = outlines_of(e);
+    if (is_plate(e) && loops.size() > 1) {
+        out.reserve(loops[0].point_count() + loops[1].point_count());
+        add_outline(loops[1], out);
+        add_outline(loops[0], out);
+        return;
+    }
+
+    for (const Polyline& loop : loops)
+        add_outline(loop, out);
+}
+
+/// Whether face i is an outer (top/bottom) face, where a triangular overlap is accepted.
+bool outer_face(const Element& e, size_t i) { return is_plate(e) && i < 2; }
+
+/// Topology class of a face pair; unknown unless both sides follow the plate convention.
+ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j) {
+
+    if (!is_plate(a) || !is_plate(b))
+        return ContactType::unknown;
+
+    return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
+}
+
+}  // namespace
+
+/// Whether element i takes part in the search: every element when no names were given, else only the named ones.
+static bool element_included(const std::vector<std::shared_ptr<Element>>& elements, const std::unordered_set<std::string>& wanted, size_t i) {
+    return wanted.empty() || wanted.count(elements[i]->name) != 0;
+}
+
+std::vector<std::pair<int, int>> adjacency_search(
+    const std::vector<std::shared_ptr<Element>>& elements,
+    double inflate,
+    const std::vector<std::string>& names) {
+
+    std::vector<std::pair<int, int>> pairs;
+    const size_t n_el = elements.size();
+
+    if (n_el == 0)
+        return pairs;
+
+    const std::unordered_set<std::string> wanted(names.begin(), names.end());
+
+    std::vector<OBB> obbs(n_el);
+    std::vector<AABB> aabbs(n_el);
+    std::vector<Point> corners;
+    for (size_t i = 0; i < n_el; i++) {
+
+        if (!element_included(elements, wanted, i))
+            continue;
+
+        corners.clear();
+        bounding_points(*elements[i], corners);
+        const std::vector<Plane> planes = planes_of(*elements[i]);
+        if (!planes.empty())
+            obbs[i] = OBB::from_points(corners, planes[0], inflate);
+        else
+            obbs[i] = OBB::from_points(corners, inflate);
+        aabbs[i] = obbs[i].aabb();
+    }
+
+    double ws = 0;
+    for (const AABB& a : aabbs) {
+        ws = std::max(ws, std::abs(a.cx + a.hx));
+        ws = std::max(ws, std::abs(a.cy + a.hy));
+        ws = std::max(ws, std::abs(a.cz + a.hz));
+        ws = std::max(ws, std::abs(a.cx - a.hx));
+        ws = std::max(ws, std::abs(a.cy - a.hy));
+        ws = std::max(ws, std::abs(a.cz - a.hz));
+    }
+
+    SpatialBVH bvh;
+    bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
+
+    for (size_t i = 0; i < n_el; i++) {
+
+        if (!element_included(elements, wanted, i))
+            continue;
+
+        for (int j : bvh.query_aabb(aabbs[i]))
+            if ((int)i < j && element_included(elements, wanted, (size_t)j) && obbs[i].collides_with(obbs[j]))
+                pairs.emplace_back((int)i, j);
+    }
+
+    return pairs;
+}
+
+bool faces_coplanar(
+    const Plane& face0,
+    const Plane& face1,
+    double cos_angle,
+    double coplanar_tolerance) {
+
+    const Vector& n0 = face0.z_axis();
+    const Vector& n1 = face1.z_axis();
+    const double mag0 = n0.magnitude_squared();
+    const double mag1 = n1.magnitude_squared();
+    const double ll = std::sqrt(mag0 * mag1);
+    if (ll <= 0.0 || n0.dot(n1) / ll > -cos_angle)
+        return false;
+
+    const Vector offset = face1.origin() - face0.origin();
+    const double dot0 = n0.dot(offset);
+    const double dot1 = n1.dot(offset);
+    const double sq_dist0 = mag0 > 1e-20 ? dot0 * dot0 / mag0 : 1e30;
+    const double sq_dist1 = mag1 > 1e-20 ? dot1 * dot1 / mag1 : 1e30;
+
+    return sq_dist0 < coplanar_tolerance && sq_dist1 < coplanar_tolerance;
+}
+
+/// An outline as a Clipper path in the plane's 2D frame, scaled to integers and without its closing vertex.
+static Clipper2Lib::Path64 outline_to_clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, double scale) {
+
+    Clipper2Lib::Path64 path;
+    const size_t n = outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
+    path.reserve(n);
+    for (size_t k = 0; k < n; ++k) {
+        const Vector d = outline.get_point(k) - origin;
+        const double u = d.dot(x_axis);
+        const double v = d.dot(y_axis);
+        path.emplace_back(
+            static_cast<int64_t>(std::llround(u * scale)),
+            static_cast<int64_t>(std::llround(v * scale))
+        );
+    }
+
+    return path;
+}
+
+bool face_overlap_area(
+    const Polyline& outline0,
+    const Polyline& outline1,
+    const Plane& plane0,
+    bool include_triangles,
+    Polyline& out_area) {
+
+    if (outline0.point_count() < 3 || outline1.point_count() < 3)
+        return false;
+
+    const Point origin = outline0.get_point(0);
+    const Vector xax = plane0.base1();
+    const Vector yax = plane0.base2();
+    const double scale = static_cast<double>(config::CLIPPER_SCALE);
+
+    const Clipper2Lib::Paths64 subject{outline_to_clipper_path(outline0, origin, xax, yax, scale)};
+    const Clipper2Lib::Paths64 clip{outline_to_clipper_path(outline1, origin, xax, yax, scale)};
+    const Clipper2Lib::Paths64 solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero);
+
+    if (solution.empty())
+        return false;
+
+    const Clipper2Lib::Path64* best = nullptr;
+    double best_area = -1.0;
+    for (const Clipper2Lib::Path64& path : solution) {
+        const double a = std::abs(Clipper2Lib::Area(path));
+        if (a > best_area) {
+            best_area = a;
+            best = &path;
+        }
+    }
+
+    const Clipper2Lib::Path64 cleaned = Clipper2Lib::SimplifyPath(*best, scale / 1024.0, true);
+    const size_t nc = cleaned.size();
+
+    if (nc < 3)
+        return false;
+
+    if (nc == 3 && !include_triangles)
+        return false;
+
+    if (std::abs(Clipper2Lib::Area(cleaned)) / (scale * scale) <= config::CLIPPER_AREA)
+        return false;
+
+    std::vector<Point> pts;
+    pts.reserve(nc + 1);
+    for (const Clipper2Lib::Point64& q : cleaned) {
+        const double u = static_cast<double>(q.x) / scale;
+        const double v = static_cast<double>(q.y) / scale;
+        pts.push_back(origin + xax * u + yax * v);
+    }
+    pts.push_back(pts.front());
+
+    out_area = Polyline(pts);
+    return true;
+}
+
+std::vector<ContactFace> face_contacts_for_pair(
+    Element& ea,
+    Element& eb,
+    double cos_angle,
+    double coplanar_tolerance,
+    FeaturePlate* trace) {
+
+    const std::vector<Plane> planes_a = planes_of(ea);
+    const std::vector<Plane> planes_b = planes_of(eb);
+    const std::vector<Polyline> outlines_a = outlines_of(ea);
+    const std::vector<Polyline> outlines_b = outlines_of(eb);
+
+    std::vector<ContactFace> contacts;
+    for (size_t i = 0; i < planes_a.size(); ++i) {
+        for (size_t j = 0; j < planes_b.size(); ++j) {
+
+            if (!faces_coplanar(planes_a[i], planes_b[j], cos_angle, coplanar_tolerance))
+                continue;
+
+            if (trace)
+                trace->dbg_coplanar++;
+
+            Polyline polygon;
+            const bool triangles = outer_face(ea, i) && outer_face(eb, j);
+            if (!face_overlap_area(outlines_a[i], outlines_b[j], planes_a[i], triangles, polygon)) {
+                if (TRACE && trace)
+                    trace->dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j);
+                continue;
+            }
+
+            if (trace)
+                trace->dbg_boolean++;
+
+            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), contact_type(ea, i, eb, j), std::move(polygon));
+        }
+    }
+
+    return contacts;
+}
+
+std::vector<std::tuple<int, int, ContactFace>> face_contacts(
+    const std::vector<std::shared_ptr<Element>>& elements,
+    const std::vector<std::string>& names,
+    double inflate,
+    double angle,
+    double coplanar_tolerance) {
+
+    std::vector<std::tuple<int, int, ContactFace>> contacts;
+    const double cos_angle = std::cos(angle);
+
+    for (const auto& [ia, ib] : adjacency_search(elements, inflate, names))
+        for (ContactFace& face : face_contacts_for_pair(*elements[ia], *elements[ib], cos_angle, coplanar_tolerance))
+            contacts.emplace_back(ia, ib, std::move(face));
+
+    return contacts;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Cross contacts
+// ═══════════════════════════════════════════════════════════════════════════
 
 namespace {
 

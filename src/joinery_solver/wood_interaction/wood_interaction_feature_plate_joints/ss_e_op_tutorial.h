@@ -1,5 +1,5 @@
 /// ss_e_op_tutorial: one rectangular notch - the worked example of main_wood_03_new_joint.cpp.
-static void ss_e_op_tutorial(WoodJoint& joint) {
+static void ss_e_op_tutorial(FeaturePlate& joint) {
 
     joint.name = "ss_e_op_tutorial";
 
@@ -34,8 +34,8 @@ static void ss_e_op_tutorial(WoodJoint& joint) {
         Polyline({ Point(-0.5, -0.5, 0.5), Point(-0.5, -0.5, -0.5) })
     };
 
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

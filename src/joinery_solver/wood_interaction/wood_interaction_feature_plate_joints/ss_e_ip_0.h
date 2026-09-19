@@ -1,5 +1,5 @@
 /// ss_e_ip_0: hardcoded three-finger in-plane joint; male and female share the outline on each face.
-static void ss_e_ip_0(WoodJoint& joint) {
+static void ss_e_ip_0(FeaturePlate& joint) {
 
     joint.name = "ss_e_ip_0";
 
@@ -34,8 +34,8 @@ static void ss_e_ip_0(WoodJoint& joint) {
     joint.male_outlines[0] = minus;
     joint.male_outlines[1] = plus;
 
-    joint.female_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.female_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[0] = { CutType::edge_insertion, CutType::edge_insertion };
-    joint.male_cut_types[1] = { CutType::edge_insertion, CutType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

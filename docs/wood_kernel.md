@@ -11,15 +11,15 @@ named here exists in the current tree.
 |---|---|
 | `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Beam::joint_volumes` is the beam-axis pipeline; `element_data` is `wood_proto.{Plate,Beam,Column}` |
 | `src/joinery_solver/wood_interaction/wood_interaction*.h/.cpp` | the connectivity records, one class per file (see `src/docs.md`): `Interaction`, `InteractionContact` + `ContactFace` / `ContactAxis` / `ContactCross`, `InteractionFeature` + `FeaturePlate` / `FeatureBeam` / `FeaturePlateBeam`, `InteractionStructure`; each with `jsondump`/`jsonload` and `pb_dumps`/`pb_loads` |
-| `src/joinery_solver/wood_algorithms/wood_joint.h/.cpp` | `WoodJoint`, the solver's scratch joint (`FeaturePlate` + pair + `ContactFace`); `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `index_of` |
-| `src/joinery_solver/wood_joint_cut_type.h` | `wood_session::CutType` |
+| `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `FeaturePlate` |
+| `src/joinery_solver/wood_interaction/wood_interaction_feature_fabrication_type.h` | `wood_session::FabricationType`, one per cut outline |
 | `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`, `Dataset::` names, `load_yaml`, `reset_defaults`, dataset paths, `load_obj`, the sidecar loaders |
-| `src/joinery_solver/wood_algorithms/wood_face_to_face.h/.cpp` | `ContactElement`, `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts`, `face_to_face_wood` |
-| `src/joinery_solver/wood_algorithms/wood_joint_detection.h/.cpp` | `plane_to_face` (type 30), fills a `ContactCross` |
-| `src/joinery_solver/wood_algorithms/wood_joint_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
+| `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `ContactCross`) over kernel elements |
+| `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate` |
+| `src/joinery_solver/wood_algorithms/wood_feature_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
 | `src/joinery_solver/wood_algorithms/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature_plate_joints.h`, `wood_interaction_feature_plate_joints/*.h` | aggregator + one static constructor per joint variant, `tt_e_p_*` and `side_removal` included |
-| `src/joinery_solver/wood_session.h/.cpp`, `wood_joint_data.h` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, the `interactions` store keyed by edge guid, `add_contact`, `add_joint`, `get_joints`), `JointData`, `SearchType`, `type_plates_name_*` decls |
+| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_joint`, `get_joints`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.cpp` | dataset runners; `WoodSession::assign_joint_types` and `assign_insertion_vectors` are the point and line to face-slot assignment |
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
@@ -61,15 +61,15 @@ stage also exists as a boundary representation, `element_geometry_brep()` and
 opt-in: the file keeps the mesh. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
-### `WoodJoint` (`wood_algorithms/wood_joint.h`)
+### `FeaturePlate` (`wood_interaction/wood_interaction_feature_plate.h`)
 
 Fields that matter downstream:
 
 - `element_a` / `element_b` — guids; a is male, b female (the solver may swap). `index_of(elements, guid)` maps to a position.
-- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. Everything below `element_b` and `contact` is the `FeaturePlate` base, what `WoodSession::add_joint` stores.
+- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `WoodSession::add_joint` stores the whole record on the pair's interaction.
 - `joint_type` — 11/12/13/20/30/40 (solver vocabulary, see below).
 - `joint_lines[2]`, `joint_volumes[4]` (optional quads; [0],[1] male, [2],[3] female).
-- `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `m_cut_types` / `f_cut_types` — one `cut_type` per outline.
+- `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `male_fabrication_types` / `female_fabrication_types` — one `FabricationType` per outline.
 - `divisions`, `shift`, `length`, `division_length`, `scale[3]`, `unit_scale`, `unit_scale_distance`.
 - `linked_joints`, `linked_joints_seq`, `link` (shadow joints from three-valence), `no_orient`.
 - `element_features[2]` / `feature_guids[2]` — the kernel view (`sync_features()`, `to_features()`), refreshed at the end of `get_connection_zones`.
@@ -92,12 +92,12 @@ is what `face_to_face_wood` decided with geometry. They are different number spa
 `joint_type_name()` in `wood_session.cpp` maps these to `ss_op_11`, `ss_ip_12`, `ss_rot_13`,
 `ts_20`, `cross_30`, `tt_40`.
 
-### `wood_session::CutType` (`wood_joint_cut_type.h`)
+### `wood_session::FabricationType` (`wood_interaction/wood_interaction_feature_fabrication_type.h`)
 
 `nothing=0, hole=1, edge_insertion=2, insert_between_multiple_edges=3, slice=4,
 slice_projectsheer=5, mill=6, mill_project=7, mill_projectsheer=8, cut=9, cut_project=10,
 cut_projectsheer=11, cut_reverse=12, conic=13, conic_reverse=14, drill=15`. An empty
-`*_cut_types` array means every outline is `edge_insertion`.
+`*_fabrication_types` array means every outline is `edge_insertion`.
 
 ### Globals (`wood_config.h`, set by `load_yaml("<name>")` from `data/<name>.yml`)
 
@@ -121,7 +121,7 @@ baseline; `load_yaml` calls it first. `CUSTOM_JOINTS_*` are runtime-only (not in
 ## 3. Detection pipeline (`WoodSession::compute_joints`, `wood_joint_solver.cpp`)
 
 ```cpp
-std::vector<WoodJoint> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
+std::vector<FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
 enum SearchType { face_to_face = 0, cross_joint = 1, face_to_face_then_cross = 2 };
 ```
 
@@ -158,7 +158,7 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
    constructor. `joint_get_divisions` runs first so the cache key `"id;shift;divisions"`
    matches; the cache is applied only to type 12 with no linked joints. Types 12/13 pre-set
    `unit_scale_distance = plate thickness`.
-8. **Orient.** `joint_orient_to_connection_area` (`wood_algorithms/wood_joint.cpp`): `apply_unit_scale` (moves
+8. **Orient.** `joint_orient_to_connection_area` (`wood_algorithms/wood_feature_construction.cpp`): `apply_unit_scale` (moves
    the two volume quads to `unit_scale_distance` apart when `unit_scale`), then
    `Xform::from_change_of_basis(vols[0], vols[1])` for male and `(vols[2], vols[3])` for
    female outlines. Ids 15/16 (ss_e_op_5) orient their shadow joints and call
@@ -168,8 +168,9 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
    its `[hole_top, hole_bot, …, outer_top, outer_bot]` result into `Plate::features`
    (outer first, then holes). Finally `sync_features()` on every joint.
 
-A second overload takes a `JointData` (adjacency, insertion vectors, joint types and
-three-valence in memory) and injects it through thread-local overrides instead of files.
+`WoodSession::load_sidecars` reads the adjacency and three-valence sidecars onto the scene and
+the insertion vectors and joint types onto every plate that carries none; set those fields
+yourself to solve without files.
 
 Diagnostics: `WOOD_F2F_DUMP=<path>` (environment) appends every type-13 volume to that file;
 every other trace is a `constexpr bool TRACE = false;` at the top of its own file.
@@ -177,7 +178,7 @@ every other trace is a `constexpr bool TRACE = false;` at the top of its own fil
 ## 4. Joint library (`wood_interaction_feature_plate_joints.h` + `wood_interaction_feature_plate_joints/*.h`)
 
 Each `<name>.h` is a plain header (no include guard, no includes) holding one
-`static void <name>(WoodJoint&)`; the aggregator includes them in order and is itself
+`static void <name>(FeaturePlate&)`; the aggregator includes them in order and is itself
 included inside `wood_joint_solver.cpp` (which must include `wood_session.h` first). The `tt_e_p_*`
 and `side_removal*` constructors take the plate vector too and have their own headers there.
 
@@ -208,9 +209,9 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 ### Adding a joint variant
 
 1. Pick the family from the table and a free id in its range.
-2. Create `joints/<prefix>_N.h` with `static void <prefix>_N(WoodJoint& joint)`.
+2. Create `wood_interaction_feature_plate_joints/<prefix>_N.h` with `static void <prefix>_N(FeaturePlate& joint)`.
 3. Fill `m_outlines[0..1]`, `f_outlines[0..1]` in unit-box space, end each list with the
-   endpoint marker, fill `m_cut_types` / `f_cut_types` with one `CutType::` value per outline,
+   endpoint marker, fill `male_fabrication_types` / `female_fabrication_types` with one `FabricationType::` value per outline,
    and set `joint.name = "<prefix>_N"`.
 4. Set `joint.unit_scale = true` if the tooth size must follow plate thickness (see
    `ss_e_ip_2`, `ss_e_r_impl`, `ts_e_p_5`).
@@ -283,5 +284,5 @@ How wood uses it (`wood_session.h/.cpp`):
 | 8 | `get_connection_zones` on a copied plate vector | The result lives on the plates (`features`, `insertion_vectors`, `reversed`); pass the scene's own `shared_ptr` vector |
 | 9 | `JOINTS_PARAMETERS_AND_TYPES` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
 | 10 | `Session` has no virtual destructor | Do not own a `WoodSession` through a `Session*` |
-| 11 | Copying an `ElementFeature` or `Element` mints a new guid | Joint identity lives in `WoodJoint::feature_guids`; read features through `to_features()` |
+| 11 | Copying an `ElementFeature` or `Element` mints a new guid | Joint identity lives in `FeaturePlate::feature_guids`; read features through `to_features()` |
 | 12 | Unbounded runs | Every solver/example goes through `tools/run_guarded.sh`; one run at a time; `--parallel 4` |

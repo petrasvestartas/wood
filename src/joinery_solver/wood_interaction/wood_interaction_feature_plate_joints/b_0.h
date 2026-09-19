@@ -1,5 +1,5 @@
 /// b_0: beam slice - the tween rectangle of the two volumes, widened by scale[0] / scale[1], as four slice planes.
-static void b_0(WoodJoint& joint) {
+static void b_0(FeaturePlate& joint) {
 
     joint.name = "b_0";
     joint.no_orient = true;
@@ -72,6 +72,6 @@ static void b_0(WoodJoint& joint) {
     joint.male_outlines[0] = { rect0, rect0, rect2, rect2 };
     joint.male_outlines[1] = { rect1, rect1, rect3, rect3 };
 
-    joint.male_cut_types[0] = { CutType::slice, CutType::slice, CutType::slice, CutType::slice };
-    joint.male_cut_types[1] = { CutType::slice, CutType::slice, CutType::slice, CutType::slice };
+    joint.male_fabrication_types[0] = { FabricationType::slice, FabricationType::slice, FabricationType::slice, FabricationType::slice };
+    joint.male_fabrication_types[1] = { FabricationType::slice, FabricationType::slice, FabricationType::slice, FabricationType::slice };
 }

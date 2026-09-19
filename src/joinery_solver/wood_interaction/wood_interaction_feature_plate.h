@@ -2,10 +2,15 @@
 
 #include "pch.h"
 
+#include "wood_interaction_contact_face.h"
+
 namespace wood_session {
 
-/// A plate-to-plate joint as the joint library built it: the variant, its parameters and the cut outlines per element per face; the pair and the contact it was solved from live on the interaction.
+/// A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry. The solver builds it in place; the interaction stores it whole.
 struct FeaturePlate {
+    std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
+    std::string element_b; // The female element, by guid.
+    ContactFace contact; // Which faces touched, and where.
     int joint_type = 0; // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top.
     std::string name; // The joint library variant that built the outlines ("ss_e_ip_2", "side_removal"), empty before construction.
     std::array<int, 2> cross_faces{-1, -1}; // Cross joints only: the second side face of each element in the crossing; {-1, -1} otherwise.
@@ -13,8 +18,8 @@ struct FeaturePlate {
     std::array<std::optional<session_cpp::Polyline>, 4> joint_volumes; // The volume rectangles: [0] and [1] bound the male side, [2] and [3] the female side when it differs.
     std::array<std::vector<session_cpp::Polyline>, 2> male_outlines; // Male cut outlines per face, [0] bottom and [1] top; the last entry of each face is a 2-point endpoint marker.
     std::array<std::vector<session_cpp::Polyline>, 2> female_outlines; // Female cut outlines per face, laid out like male_outlines.
-    std::array<std::vector<int>, 2> male_cut_types; // One CutType per male outline.
-    std::array<std::vector<int>, 2> female_cut_types; // One CutType per female outline.
+    std::array<std::vector<int>, 2> male_fabrication_types; // One FabricationType per male outline.
+    std::array<std::vector<int>, 2> female_fabrication_types; // One FabricationType per female outline.
     int divisions = 1; // Number of teeth or notches along the joint line.
     double shift = 0.5; // Lateral offset of the pattern along the joint line, 0..1.
     double length = 0.0; // Length of the joint line.
@@ -26,6 +31,11 @@ struct FeaturePlate {
     std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // Per linked joint, the vertex ranges merge_linked_joints interleaves.
     bool link = false; // True when this joint is the link of a three-valence group.
     bool no_orient = false; // True when the outlines are already in world space and must not be oriented.
+    std::array<session_cpp::ElementFeature, 2> element_features; // The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
+    mutable std::array<std::string, 2> feature_guids; // Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
+    int dbg_coplanar = 0; // Face pairs that passed the coplanarity test in detection; not written.
+    int dbg_boolean = 0; // Face pairs with a real overlap area in detection; not written.
+    std::string dbg_fail_reason; // Why detection rejected the pair, filled only under TRACE; not written.
 
     /// An empty joint: type 0, one division, shift 0.5, unit scale off, zero-length lines.
     FeaturePlate();
@@ -38,10 +48,23 @@ struct FeaturePlate {
     friend std::ostream& operator<<(std::ostream& os, const FeaturePlate& feature);
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The guid of one side, minted on first read.
+    const std::string& feature_guid(int side) const;
+
+    /// Rebuilds element_features from the solver fields.
+    void sync_features();
+
+    /// sync_features() applied to copies: identity preserved, the joint itself untouched.
+    std::array<session_cpp::ElementFeature, 2> to_features() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The joint as JSON, every solver field.
+    /// The joint as JSON: the pair, the contact, every solver field, the two element features.
     nlohmann::ordered_json jsondump() const;
 
     /// A joint from its JSON.
@@ -61,7 +84,7 @@ struct FeaturePlate {
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "FeaturePlate(type, name, divisions)".
+    /// "FeaturePlate(type, elements, faces, name)".
     std::string str() const;
 };
 
