@@ -143,6 +143,7 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_contact
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_feature
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_structure
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
     # The template headers (reciprocal.h, chevron.h, ...) are included unqualified by

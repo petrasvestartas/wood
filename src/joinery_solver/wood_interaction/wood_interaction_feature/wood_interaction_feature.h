@@ -4,27 +4,9 @@
 
 #include "wood_interaction_feature_plate.h"
 #include "wood_interaction_feature_beam.h"
+#include "wood_interaction_feature_plate_beam.h"
 
 namespace wood_session {
-
-/// A plate-to-beam joint; nothing computed yet, the record and its message are reserved.
-struct FeaturePlateBeam {
-
-    /// The joint as JSON: type only.
-    nlohmann::ordered_json jsondump() const { return nlohmann::ordered_json{{"type", "FeaturePlateBeam"}}; }
-
-    /// A joint from its JSON.
-    static FeaturePlateBeam jsonload(const nlohmann::json&) { return FeaturePlateBeam{}; }
-
-    /// The joint as wood_proto.FeaturePlateBeam bytes: empty.
-    std::string pb_dumps() const { return std::string(); }
-
-    /// A joint from wood_proto.FeaturePlateBeam bytes.
-    static FeaturePlateBeam pb_loads(const std::string&) { return FeaturePlateBeam{}; }
-
-    /// "FeaturePlateBeam()".
-    std::string str() const { return "FeaturePlateBeam()"; }
-};
 
 /// What the solver cut at one contact, exactly one kind: a plate joint, a beam joint or a plate-to-beam joint.
 struct InteractionFeature {
