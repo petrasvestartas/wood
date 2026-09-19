@@ -3,58 +3,70 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The WoodSession API in the order compas_model presents a model: elements, model, interactions, geometry, file.
+/// The WoodSession API in the order compas_wood_session presents a wood_session: elements, wood_session, interactions, geometry, file.
 int main() {
 
     config::reset_defaults();
 
-    // Elements: a Plate is a session_cpp::Element; the constructor keeps the outlines, nothing is lofted yet.
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Create a wood_session with two plates
+    // The plates are added to the session's tree and graph, but not yet lofted.
+    // ═══════════════════════════════════════════════════════════════════════════
+
+
+    WoodSession wood_session("two_plates");
     const std::shared_ptr<Plate> plate_a = Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 400, 300, Vector(0, 0, 40));
     const std::shared_ptr<Plate> plate_b = Plate::from_rectangle(Point(400, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), 300, 300, Vector(40, 0, 0));
-    std::cout << fmt::format("plate_a: {} outlines, thickness {}\n", plate_a->polylines.size(), plate_a->thickness);
+    wood_session.add(plate_a);
+    wood_session.add(plate_b);
 
-    // Model: a WoodSession is a session_cpp::Session; add() puts an element in the tree and in the interaction graph.
-    WoodSession model("api");
-    model.add(plate_a);
-    model.add(plate_b);
-    std::cout << fmt::format("model: {} plates, {} elements\n", model.plates().size(), model.element_guids().size());
+    std::cout << wood_session.str() << std::endl;
 
-    // Interactions: contacts are the face overlaps stored on the graph edges.
-    model.compute_contacts();
-    for (const ContactPair& pair : model.contacts())
-        for (const FaceContact& contact : pair.faces)
-            std::cout << fmt::format("contact: element {} face {} with element {} face {}\n", pair.element_a, contact.face_a, pair.element_b, contact.face_b);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Compute the contacts and joints between the plates, and print them.
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    // Joints: the modifiers the solver puts on the same edges, one per contact it accepts.
-    model.compute_joints();
-    for (const WoodJoint& joint : model.joints())
-        std::cout << fmt::format("joint: type {} ({})\n", joint.joint_type, joint.name);
 
-    // Geometry: element_geometry is the plate alone, model_geometry the plate with its joints cut in, each as a mesh or a brep; every one is built on first call and cached until the plate changes.
-    for (const std::shared_ptr<Plate>& plate : model.plates()) {
-        const Mesh& element_mesh = plate->element_geometry_mesh();
-        const BRep& element_brep = plate->element_geometry_brep();
-        const Mesh& model_mesh = plate->model_geometry_mesh();
-        const BRep& model_brep = plate->model_geometry_brep();
-        std::cout << fmt::format("{}: element {} faces (brep {}), model {} faces (brep {}), volume {:.0f} mm3\n", plate->name, element_mesh.number_of_faces(), element_brep.face_count(), model_mesh.number_of_faces(), model_brep.face_count(), model_mesh.volume());
+    // Interactions: one record per graph edge, the contacts inside it, the pair on the edge.
+    wood_session.compute_contacts();
+    for (const auto& [guid, interaction] : wood_session.interactions) {
+        const std::pair<std::string, std::string> ends = wood_session.edge_of(interaction);
+        for (const InteractionContact& contact : interaction.contacts)
+            if (const ContactFace* face = contact.face())
+                std::cout << fmt::format("contact: element {} face {} with element {} face {}\n", ends.first, face->face_a, ends.second, face->face_b);
     }
 
-    // File: one group per plate with its outlines, contacts and joints; pb_dump lofts every plate not yet lofted and writes the model geometry.
-    model.add_to_tree(true, true, true, true);
-    model.pb_dump(pb_path("live").string());
-    std::cout << model.str() << std::endl;
+    // // Joints: the modifiers the solver puts on the same edges, one per contact it accepts.
+    // wood_session.compute_joints();
+    // for (const WoodJoint& joint : wood_session.joints())
+    //     std::cout << fmt::format("joint: type {} ({})\n", joint.joint_type, joint.name);
 
-    // Datasets: the same session from data/<name>.yml, which also sets the solver's parameters.
-    WoodSession dataset = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
-    dataset.compute_joints();
-    std::cout << fmt::format("{}: {} plates, {} joints\n", config::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
+    // // Geometry: element_geometry is the plate alone, wood_session_geometry the plate with its joints cut in, each as a mesh or a brep; every one is built on first call and cached until the plate changes.
+    // for (const std::shared_ptr<Plate>& plate : wood_session.plates()) {
+    //     const Mesh& element_mesh = plate->element_geometry_mesh();
+    //     const BRep& element_brep = plate->element_geometry_brep();
+    //     const Mesh& wood_session_mesh = plate->model_geometry_mesh();
+    //     const BRep& wood_session_brep = plate->model_geometry_brep();
+    //     std::cout << fmt::format("{}: element {} faces (brep {}), wood_session {} faces (brep {}), volume {:.0f} mm3\n", plate->name, element_mesh.number_of_faces(), element_brep.face_count(), wood_session_mesh.number_of_faces(), wood_session_brep.face_count(), wood_session_mesh.volume());
+    // }
+
+    // // File: one group per plate with its outlines, contacts and joints; pb_dump lofts every plate not yet lofted and writes the wood_session geometry.
+    // wood_session.add_to_tree(true, true, true, true);
+    // wood_session.pb_dump(pb_path("live").string());
+    // std::cout << wood_session.str() << std::endl;
+
+    // // Datasets: the same session from data/<name>.yml, which also sets the solver's parameters.
+    // WoodSession dataset = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
+    // dataset.compute_joints();
+    // std::cout << fmt::format("{}: {} plates, {} joints\n", config::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-The WoodSession API end to end: elements, model, contacts and joints, the two geometries of a plate, the file.
+The WoodSession API end to end: elements, wood_session, contacts and joints, the two geometries of a plate, the file.
 
 |||||||| DIRECTORY ||||||||
 cd wood
@@ -75,13 +87,13 @@ examples/4_wood_session_api.cpp
  |-- WoodSession("api"), add(plate)              wood_session.cpp -> Session::add_element (tree + graph)
  |
  |-- compute_contacts()                          see 2_contact_detection: face_contacts -> graph edges
- |-- contacts()                                  the FaceContacts of every edge, grouped per element pair
+ |-- interactions                                one Interaction per edge: contacts, features, structure
  |
  |-- compute_joints()                            see 3_joint_detection: get_connection_zones -> graph edges
- |-- joints()                                    every WoodJoint of every edge
+ |-- get_joints()                                every plate feature as a working WoodJoint
  |
- |-- element_geometry_mesh()  model_geometry_mesh()      wood_element_plate.cpp: Mesh::loft, cached
- |-- element_geometry_brep()  model_geometry_brep()      brep_between_loops -> BRep::from_polylines(faces, holes)
+ |-- element_geometry_mesh()  wood_session_geometry_mesh()      wood_element_plate.cpp: Mesh::loft, cached
+ |-- element_geometry_brep()  wood_session_geometry_brep()      brep_between_loops -> BRep::from_polylines(faces, holes)
  |                                               ../session/session_cpp/src/brep.cpp (planar fast path), cached
  |
  |-- add_to_tree(true, true, true, true)         the plate, "outlines", "contacts" (add_contacts_to),

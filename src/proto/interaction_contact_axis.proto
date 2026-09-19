@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "line.proto";
+
+// Where two polylines come closest: the segment between the closest points and where they sit.
+message ContactAxis {
+  session_proto.Line segment = 1;  // From the closest point on the first element to the closest point on the second
+  double t_a = 2;                  // Parameter of the closest point along segment_a, 0..1
+  double t_b = 3;                  // Parameter of the closest point along segment_b, 0..1
+  int32 polyline_a = 4;            // Which polyline of the first element: a beam has one axis, a plate one outline per face
+  int32 segment_a = 5;             // Segment of that polyline
+  int32 polyline_b = 6;            // Which polyline of the second element
+  int32 segment_b = 7;             // Segment of that polyline
+}

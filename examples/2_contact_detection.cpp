@@ -39,12 +39,12 @@ examples/2_contact_detection.cpp
  |         |-- face_contacts(elements)            src/joinery_solver/wood_face_to_face.cpp
  |         |    |-- adjacency_search              inflated OBB per element, BVH, OBB/OBB test -> candidate pairs
  |         |    '-- face_contacts_for_pair        faces_coplanar -> face_overlap_area (Clipper2)
- |         |                                      -> FaceContact {face_a, face_b, type, area}
- |         '-- set_interaction(a, b, ...)         the contacts onto the graph edge a-b (WoodInteraction)
+ |         |                                      -> ContactFace {face_a, face_b, type, polygon}
+ |         '-- add_contact(a, b, ...)             onto the pair's Interaction, keyed by the edge a-b guid
  |
  |-- add_to_tree(true, true, true, false)        wood_session.cpp
  |    |-- one group per plate: the plate, "outlines"
- |    '-- add_contacts_to -> ring()               "contacts" child group: one coloured ring per FaceContact
+ |    '-- add_contacts_to                         "contacts" child group: one coloured region per contact
  |
  '-- pb_dump(pb_path("live"))                    sync_geometry (Mesh::loft once per plate), Session::pb_dump
 

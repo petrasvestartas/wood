@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "line.proto";
+import "polyline.proto";
+
+// One face's outlines, so a per-face list can repeat.
+message PolylineList {
+  repeated session_proto.Polyline items = 1;
+}
+
+// One list of ints, so a per-face list can repeat.
+message IntList {
+  repeated int32 values = 1;
+}
+
+// A plate-to-plate joint as the joint library built it: the variant, its parameters and the cut outlines per element per face.
+message FeaturePlate {
+  int32 joint_type = 1;                              // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top
+  string name = 2;                                   // Joint library variant, e.g. "ss_e_ip_2"
+  repeated int32 cross_faces = 3;                    // Cross joints: the second side face of each element, 2 entries
+  repeated session_proto.Line joint_lines = 4;       // The two alignment lines, one per element
+  repeated session_proto.Polyline joint_volumes = 5; // 4 volume rectangles, an empty polyline where the solver set none
+  repeated PolylineList male_outlines = 6;           // Male cut outlines: [0] bottom face, [1] top face
+  repeated PolylineList female_outlines = 7;         // Female cut outlines, laid out the same
+  repeated IntList male_cut_types = 8;               // One CutType per male outline, per face
+  repeated IntList female_cut_types = 9;             // One CutType per female outline, per face
+  int32 divisions = 10;                              // Teeth or notches along the joint line
+  double shift = 11;                                 // Lateral offset of the pattern, 0..1
+  double length = 12;                                // Length of the joint line
+  double division_length = 13;                       // Spacing between divisions
+  repeated double scale = 14;                        // Scale of the unit-box geometry, 3 entries
+  bool unit_scale = 15;                              // True when the axial size is pinned to unit_scale_distance
+  double unit_scale_distance = 16;                   // The axial size a unit-scale variant is pinned to
+  repeated int32 linked_joints = 17;                 // Solver-run indices of the joints this one is linked with
+  repeated IntList linked_joints_seq = 18;           // Per linked joint, the vertex ranges as flat quads
+  bool link = 19;                                    // True when this joint is the link of a three-valence group
+  bool no_orient = 20;                               // True when the outlines are already in world space
+}

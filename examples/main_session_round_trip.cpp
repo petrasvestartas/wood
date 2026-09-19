@@ -29,6 +29,32 @@ static bool hosts_male_side(const std::vector<ElementFeature>& features, const W
     return false;
 }
 
+/// Bytes as hex text, the way Element::jsondump writes element_data.
+static std::string to_hex(const std::string& bytes) {
+
+    static const char* digits = "0123456789abcdef";
+    std::string out;
+    for (const unsigned char c : bytes) {
+        out.push_back(digits[c >> 4]);
+        out.push_back(digits[c & 15]);
+    }
+
+    return out;
+}
+
+/// Same kind, same faces or segments, same polygon size.
+static bool same_contact(const InteractionContact& x, const InteractionContact& y) {
+
+    if (x.guid != y.guid || x.kind() != y.kind() || !x.coincides(y))
+        return false;
+    if (x.face())
+        return x.face()->polygon.point_count() == y.face()->polygon.point_count();
+    if (x.cross())
+        return x.cross()->polygon.point_count() == y.cross()->polygon.point_count();
+
+    return x.axis()->segment.length() == y.axis()->segment.length();
+}
+
 int main() {
 
     config::reset_defaults();
@@ -41,6 +67,7 @@ int main() {
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
     a.pb_dump(path.string());
     const WoodSession b = WoodSession::pb_load(path);
+    const Session kernel = Session::pb_load(path.string());
     std::filesystem::remove(path);
 
     check(a.name == b.name, "session name");
@@ -64,42 +91,57 @@ int main() {
     check(a.objects.polylines->size() == b.objects.polylines->size(), "loose polyline count");
     check(a.objects.meshes->size() == b.objects.meshes->size(), "loose mesh count");
     check(a.graph.number_of_vertices() == b.graph.number_of_vertices(), "graph vertex count");
-    check(a.graph.number_of_vertices() == vertices_before, "contacts and joints are edge payload, not graph nodes");
+    check(a.graph.number_of_vertices() == vertices_before, "contacts and joints are interaction records, not graph nodes");
     check(a.graph.number_of_edges() == b.graph.number_of_edges(), fmt::format("edge count ({})", a.graph.number_of_edges()));
 
-    const std::vector<ContactPair> contacts_a = a.contacts();
-    const std::vector<ContactPair> contacts_b = b.contacts();
-    bool rings = contacts_a.size() == contacts_b.size();
-    check(rings, fmt::format("contact pair count ({})", contacts_a.size()));
+    check(kernel.objects.elements->size() == a.objects.elements->size() && kernel.graph.number_of_edges() == a.graph.number_of_edges() && tree_nodes(kernel) == tree_nodes(a),
+          "the kernel's Session reader opens the wood file: same elements, edges and tree");
 
-    for (size_t i = 0; rings && i < contacts_a.size(); ++i) {
-        rings = contacts_a[i].element_a == contacts_b[i].element_a &&
-                contacts_a[i].element_b == contacts_b[i].element_b &&
-                contacts_a[i].faces.size() == contacts_b[i].faces.size();
-        for (size_t k = 0; rings && k < contacts_a[i].faces.size(); ++k) {
-            const FaceContact& fa = contacts_a[i].faces[k];
-            const FaceContact& fb = contacts_b[i].faces[k];
-            rings = fa.face_a == fb.face_a && fa.face_b == fb.face_b && fa.type == fb.type &&
-                    fa.area.point_count() == fb.area.point_count();
+    check(a.interactions.size() == b.interactions.size(), fmt::format("interaction count ({})", a.interactions.size()));
+    bool records = true;
+    size_t contact_count = 0;
+    size_t feature_count = 0;
+    for (const auto& [guid, ia] : a.interactions) {
+
+        const auto found = b.interactions.find(guid);
+        if (found == b.interactions.end()) {
+            records = false;
+            break;
+        }
+
+        const Interaction& ib = found->second;
+        records = records && a.edge_of(ia) == b.edge_of(ib) && !a.edge_of(ia).first.empty()
+                  && a.graph.edges.at(a.edge_of(ia).first).at(a.edge_of(ia).second).guid() == guid
+                  && ia.contacts.size() == ib.contacts.size() && ia.features.size() == ib.features.size();
+        for (size_t k = 0; records && k < ia.contacts.size(); ++k) {
+            records = same_contact(ia.contacts[k], ib.contacts[k]);
+            contact_count++;
+        }
+        for (size_t k = 0; records && k < ia.features.size(); ++k) {
+            const InteractionFeature& fa = ia.features[k];
+            const InteractionFeature& fb = ib.features[k];
+            records = fa.guid == fb.guid && fa.contact == fb.contact && fa.reversed == fb.reversed && fa.kind() == fb.kind()
+                      && fa.feature_guids == fb.feature_guids && fa.contact >= 0 && fa.contact < (int)ia.contacts.size()
+                      && fa.plate()->name == fb.plate()->name && fa.plate()->joint_type == fb.plate()->joint_type;
+            feature_count++;
         }
     }
 
-    check(rings, "every contact: its element pair, and every ring's faces, class and point count");
+    check(records, fmt::format("every interaction by its edge guid, its edge, its contacts ({}) and its features ({}) survive the pb", contact_count, feature_count));
 
-    bool by_guid = true;
-    size_t contact_count = 0;
-    for (const ContactPair& pair : contacts_a)
-        for (const FaceContact& contact : pair.faces) {
-            ++contact_count;
-            by_guid = by_guid && !contact.guid.empty() && b.get_contact(contact.guid).face_a == contact.face_a
-                      && b.get_contact(contact.guid).element_a == a.element_guids()[pair.element_a];
-        }
+    bool encoded = true;
+    for (const auto& [guid, interaction] : a.interactions) {
+        const Interaction json = Interaction::jsonload(interaction.jsondump());
+        const Interaction pb = Interaction::pb_loads(interaction.pb_dumps());
+        encoded = encoded && json.guid == guid && pb.guid == guid && json.contacts.size() == interaction.contacts.size()
+                  && pb.contacts.size() == interaction.contacts.size() && json.features.size() == interaction.features.size()
+                  && pb.features.size() == interaction.features.size();
+    }
 
-    check(by_guid, fmt::format("every contact keeps its guid and its elements through the pb ({})", contact_count));
-    check(a.get_contacts(ContactType::side_side).size() == b.get_contacts(ContactType::side_side).size(), "side_side contacts by class");
+    check(encoded, "Interaction round-trips through its own JSON and protobuf");
 
-    const std::vector<WoodJoint> joints_a = a.joints();
-    const std::vector<WoodJoint> joints_b = b.joints();
+    const std::vector<WoodJoint> joints_a = a.get_joints();
+    const std::vector<WoodJoint> joints_b = b.get_joints();
     check(joints_a.size() == joints_b.size(), fmt::format("joint count ({})", joints_a.size()));
     bool joints_ok = joints_a.size() == joints_b.size();
 
@@ -109,7 +151,7 @@ int main() {
         joints_ok = ja.element_a == jb.element_a && ja.element_b == jb.element_b
                     && ja.joint_type == jb.joint_type
                     && ja.contact.face_a == jb.contact.face_a && ja.contact.face_b == jb.contact.face_b
-                    && ja.contact.area.point_count() == jb.contact.area.point_count()
+                    && ja.contact.polygon.point_count() == jb.contact.polygon.point_count()
                     && ja.male_outlines[0].size() == jb.male_outlines[0].size()
                     && ja.male_outlines[1].size() == jb.male_outlines[1].size()
                     && ja.female_outlines[0].size() == jb.female_outlines[0].size()
@@ -118,18 +160,18 @@ int main() {
                     && ja.male_cut_types == jb.male_cut_types && ja.female_cut_types == jb.female_cut_types
                     && ja.joint_lines[0].start() == jb.joint_lines[0].start()
                     && ja.joint_lines[1].end() == jb.joint_lines[1].end()
-                    && ja.joint_volumes_pair_a_pair_b[0].has_value() == jb.joint_volumes_pair_a_pair_b[0].has_value()
+                    && ja.joint_volumes[0].has_value() == jb.joint_volumes[0].has_value()
                     && ja.feature_guid(0) == jb.feature_guid(0)
                     && ja.feature_guid(1) == jb.feature_guid(1);
     }
 
-    check(joints_ok, "every joint: elements, type, faces, area, both outline splits, lines, volumes, cut types, links, feature guids");
+    check(joints_ok, "every joint: elements, type, faces, polygon, both outline splits, lines, volumes, cut types, links, feature guids");
 
     bool hosted = true;
     for (const WoodJoint& joint : joints_a)
         hosted = hosted && a.get_element<Element>(joint.element_a) && a.get_element<Element>(joint.element_b);
 
-    check(hosted, "every joint edge resolves to two elements the scene owns");
+    check(hosted, "every joint's edge resolves to two elements the scene owns");
 
     size_t attached = 0;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)
@@ -145,7 +187,7 @@ int main() {
         sides = sides && hosts_male_side(male, joint);
     }
 
-    check(sides, "the graph hands each element the joint side it hosts");
+    check(sides, "the interactions hand each element the joint side it hosts");
 
     size_t top_empty = 0, mismatch = 0, ins_mismatch = 0;
     for (size_t i = 0; i < plates_a.size() && i < plates_b.size(); ++i) {
@@ -160,21 +202,27 @@ int main() {
     check(top_empty < plates_a.size() && mismatch == 0 && ins_mismatch == 0,
           "solver results landed on the scene's own plates, and survive the pb");
 
-    const size_t interactions_before = a.get_interactions().size();
+    const size_t interactions_before = a.interactions.size();
     a.get_collisions();
-    check(a.get_interactions().size() == interactions_before,
+    check(a.interactions.size() == interactions_before,
           fmt::format("get_collisions() keeps the interactions on their edges ({})", interactions_before));
-
-    check(WoodInteraction::from_attribute("bvh_collision").empty(), "WoodInteraction rejects bvh_collision");
-    check(WoodInteraction::from_attribute("default").empty(), "WoodInteraction rejects default");
-    check(WoodInteraction::from_attribute("").empty(), "WoodInteraction rejects an empty attribute");
-    check(WoodInteraction::from_attribute("{\"type\":\"something_else\"}").empty(), "WoodInteraction rejects another grammar");
 
     if (plates_a.empty())
         return failures;
 
-    const size_t before = a.objects.elements->size();
     const std::shared_ptr<Plate> plate = plates_a[0];
+    const std::shared_ptr<Plate> proto = std::dynamic_pointer_cast<Plate>(Element::pb_loads_polymorphic(plate->pb_dumps()));
+    check(proto && proto->polylines.size() == plate->polylines.size() && proto->polylines[0].point_count() == plate->polylines[0].point_count()
+          && plate->element_data_dumps().front() != '{',
+          "a Plate's element_data is protobuf and rebuilds the outlines");
+
+    nlohmann::ordered_json legacy = plate->jsondump();
+    legacy["element_data"] = to_hex(plate->element_data_jsondump().dump());
+    const std::shared_ptr<Plate> json = Plate::from_element(Element::jsonload(legacy));
+    check(json && json->polylines.size() == plate->polylines.size() && json->polylines[1].point_count() == plate->polylines[1].point_count(),
+          "a Plate written with the JSON payload still loads");
+
+    const size_t before = a.objects.elements->size();
     const std::shared_ptr<Plate> probe = std::make_shared<Plate>(plate->polylines[0], plate->polylines[1], "probe");
     const std::string probe_guid = probe->guid();
 
@@ -191,8 +239,8 @@ int main() {
 }
 
 /*
-description: load a session .pb -> contacts and joints onto its graph edges -> pb round trip -> back into a WoodSession; prints only what differs, exit code = failures.
+description: load a session .pb -> contacts and joints into the interaction store -> pb round trip -> back into a WoodSession; prints only what differs, exit code = failures.
 
 directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_session_round_trip -j8 && ./build/main_session_round_trip
+run: cmake --build build --target main_session_round_trip -j4 && ./build/main_session_round_trip
 */

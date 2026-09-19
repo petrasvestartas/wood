@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "element.proto";
+import "interaction_feature_plate.proto";
+import "interaction_feature_beam.proto";
+import "interaction_feature_plate_beam.proto";
+
+// What the solver cut at one contact, exactly one kind.
+message InteractionFeature {
+  string guid = 1;                                              // Unique identifier
+  int32 contact = 2;                                            // Index into Interaction.contacts
+  bool reversed = 3;                                            // True when the feature's first (male) element is the edge's v1
+  repeated session_proto.ElementFeature element_features = 4;  // 2 entries: what the male host and the female host carry
+  oneof data {
+    FeaturePlate plate = 10;
+    FeatureBeam beam = 11;
+    FeaturePlateBeam plate_beam = 12;
+  }
+}

@@ -78,21 +78,35 @@ add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 
 set(WOOD_SOURCES
     src/joinery_solver/wood_config.cpp
-    src/joinery_solver/wood_element_plate.cpp
-    src/joinery_solver/wood_element_column.cpp
-    src/joinery_solver/wood_element_beam.cpp
-    src/joinery_solver/wood_element_block.cpp
-    src/joinery_solver/wood_face_to_face.cpp
-    src/joinery_solver/wood_face_to_face_contact.cpp
-    src/joinery_solver/wood_face_to_face_element.cpp
-    src/joinery_solver/wood_joint.cpp
-    src/joinery_solver/wood_joint_detection.cpp
-    src/joinery_solver/wood_joint_solver.cpp
-    src/joinery_solver/wood_merge_modifier.cpp
+    src/joinery_solver/wood_elements/wood_element_plate.cpp
+    src/joinery_solver/wood_elements/wood_element_column.cpp
+    src/joinery_solver/wood_elements/wood_element_beam.cpp
+    src/joinery_solver/wood_elements/wood_element_block.cpp
+    src/joinery_solver/wood_interaction/wood_interaction.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact_face.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact_axis.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_contact_cross.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature_plate.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature_beam.cpp
+    src/joinery_solver/wood_algorithms/wood_face_to_face.cpp
+    src/joinery_solver/wood_algorithms/wood_face_to_face_element.cpp
+    src/joinery_solver/wood_algorithms/wood_joint.cpp
+    src/joinery_solver/wood_algorithms/wood_joint_detection.cpp
+    src/joinery_solver/wood_algorithms/wood_joint_solver.cpp
+    src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp
     src/joinery_solver/wood_session.cpp
-    src/joinery_solver/wood_session_interaction.cpp
-    src/joinery_solver/wood_three_valence.cpp
+    src/joinery_solver/wood_algorithms/wood_three_valence.cpp
 )
+
+# The wood protobuf messages (src/proto/*.proto), generated into generated/ by tools/regen_proto.sh
+# and committed, as session_cpp does with its own; the wood_regen_proto target below runs the same
+# command when the kernel's pinned protoc is present.
+file(GLOB WOOD_PROTO_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/generated/*.pb.cc)
+if(NOT MSVC)
+    set_source_files_properties(${WOOD_PROTO_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
+endif()
 
 # wood_core: the joinery solver, compiled ONCE and shared by every target.
 #
@@ -114,7 +128,7 @@ set(WOOD_CLIPPER2_SOURCES
     ${SESSION_CPP_DIR}/src/clipper2/clipper.rectclip.cpp
 )
 
-add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES})
+add_library(wood_core OBJECT ${WOOD_SOURCES} ${WOOD_CLIPPER2_SOURCES} ${WOOD_PROTO_SOURCES})
 # The std and kernel headers every wood file needs, compiled once and reused by every target.
 target_precompile_headers(wood_core PRIVATE src/joinery_solver/pch.h)
 # One warning set for the library and every target, so the precompiled header matches everywhere.
@@ -126,6 +140,10 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_elements
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
+    ${CMAKE_CURRENT_SOURCE_DIR}/generated
     # The template headers (reciprocal.h, chevron.h, ...) are included unqualified by
     # the mains under examples/templates/.
     ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
@@ -137,6 +155,20 @@ target_include_directories(wood_core PUBLIC
     # mirror of them (see the note above add_subdirectory).
     ${SESSION_CPP_DIR}/generated
 )
+
+find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/33.6/bin NO_DEFAULT_PATH)
+if(WOOD_PROTOC)
+    file(GLOB WOOD_PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.proto)
+    add_custom_target(wood_regen_proto
+        COMMAND ${WOOD_PROTOC} --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/generated
+                --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src/proto
+                --proto_path=${SESSION_CPP_DIR}/../session_proto
+                ${WOOD_PROTO_FILES}
+        DEPENDS ${WOOD_PROTO_FILES}
+        COMMENT "Regenerating wood/generated from src/proto"
+        VERBATIM
+    )
+endif()
 
 # Every executable in this project: wood solver + session kernel + protobuf.
 # Extra sources (e.g. wood_test.cpp) go in ${ARGN} and are compiled per target.

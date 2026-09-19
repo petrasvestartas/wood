@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "line.proto";
+import "polyline.proto";
+
+// The state of a Column beyond the kernel Element: its axis and section.
+message Column {
+  session_proto.Line axis = 1;         // Centreline, base to head
+  session_proto.Polyline section = 2;  // Closed cross-section about the axis base
+}

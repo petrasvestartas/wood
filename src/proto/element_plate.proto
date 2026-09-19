@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "polyline.proto";
+
+// The state of a Plate beyond the kernel Element: its two outlines.
+message Plate {
+  session_proto.Polyline bottom = 1;  // Bottom outline
+  session_proto.Polyline top = 2;     // Top outline
+  bool reversed = 3;                  // True when the constructor reversed both outlines
+}

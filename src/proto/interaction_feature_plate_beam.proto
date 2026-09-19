@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package wood_proto;
+
+// A plate-to-beam joint; nothing computed yet.
+message FeaturePlateBeam {
+}

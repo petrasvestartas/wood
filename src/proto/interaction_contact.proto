@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "interaction_contact_face.proto";
+import "interaction_contact_axis.proto";
+import "interaction_contact_cross.proto";
+
+// One place where the edge's two elements touch, exactly one kind.
+message InteractionContact {
+  string guid = 1;  // Unique identifier
+  oneof data {
+    ContactFace face = 10;
+    ContactAxis axis = 11;
+    ContactCross cross = 12;
+  }
+}

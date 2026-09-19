@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "interaction_contact.proto";
+import "interaction_feature.proto";
+import "interaction_structure.proto";
+
+// Everything between the two elements of one graph edge: where they touch, what was cut, how forces pass.
+message Interaction {
+  string guid = 1;                              // The graph edge's guid
+  repeated InteractionContact contacts = 2;     // Every place the pair touches
+  repeated InteractionFeature features = 3;     // Every joint cut between the pair
+  InteractionStructure structure = 4;           // Absent until the structural pass exists
+}

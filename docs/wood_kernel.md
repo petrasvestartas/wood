@@ -9,16 +9,18 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Beam::joint_volumes` is the beam-axis pipeline |
-| `src/joinery_solver/wood_joint.h/.cpp`, `wood_face_to_face_contact*.h` | `WoodJoint`; `ContactType`, `FaceContact`, `ContactPair`; `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `tt_e_p_0..5`, `side_removal` |
+| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Beam::joint_volumes` is the beam-axis pipeline; `element_data` is `wood_proto.{Plate,Beam,Column}` |
+| `src/joinery_solver/wood_interaction/wood_interaction*.h/.cpp` | the connectivity records, one class per file (see `src/docs.md`): `Interaction`, `InteractionContact` + `ContactFace` / `ContactAxis` / `ContactCross`, `InteractionFeature` + `FeaturePlate` / `FeatureBeam` / `FeaturePlateBeam`, `InteractionStructure`; each with `jsondump`/`jsonload` and `pb_dumps`/`pb_loads` |
+| `src/joinery_solver/wood_algorithms/wood_joint.h/.cpp` | `WoodJoint`, the solver's scratch joint (`FeaturePlate` + pair + `ContactFace`); `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `index_of` |
 | `src/joinery_solver/wood_joint_cut_type.h` | `wood_session::CutType` |
 | `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`, `Dataset::` names, `load_yaml`, `reset_defaults`, dataset paths, `load_obj`, the sidecar loaders |
-| `src/joinery_solver/wood_face_to_face.h/.cpp` | `ContactElement`, `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts`, `face_to_face_wood` |
-| `src/joinery_solver/wood_joint_detection.h/.cpp` | `CrossJoint`, `plane_to_face` (type 30) |
-| `src/joinery_solver/wood_joint_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
-| `src/joinery_solver/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
-| `src/joinery_solver/wood_joint_lib.h`, `joints/*.h` | aggregator + one static constructor per joint variant |
-| `src/joinery_solver/wood_session.h/.cpp`, `wood_session_interaction.*`, `wood_joint_data.h` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`), `WoodInteraction`, `JointData`, `SearchType`, `type_plates_name_*` decls |
+| `src/joinery_solver/wood_algorithms/wood_face_to_face.h/.cpp` | `ContactElement`, `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts`, `face_to_face_wood` |
+| `src/joinery_solver/wood_algorithms/wood_joint_detection.h/.cpp` | `plane_to_face` (type 30), fills a `ContactCross` |
+| `src/joinery_solver/wood_algorithms/wood_joint_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
+| `src/joinery_solver/wood_algorithms/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
+| `src/joinery_solver/wood_interaction/wood_interaction_feature_plate_joints.h`, `wood_interaction_feature_plate_joints/*.h` | aggregator + one static constructor per joint variant, `tt_e_p_*` and `side_removal` included |
+| `src/joinery_solver/wood_session.h/.cpp`, `wood_joint_data.h` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, the `interactions` store keyed by edge guid, `add_contact`, `add_joint`, `get_joints`), `JointData`, `SearchType`, `type_plates_name_*` decls |
+| `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.cpp` | dataset runners; `WoodSession::assign_joint_types` and `assign_insertion_vectors` are the point and line to face-slot assignment |
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
 | `examples/` | `1_io`, `2_contact_detection`, `3_joint_detection`, `main_dataset_runner`, `main_all_datasets`, `main_joint_types`, `templates/` mains |
@@ -59,14 +61,14 @@ stage also exists as a boundary representation, `element_geometry_brep()` and
 opt-in: the file keeps the mesh. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
-### `WoodJoint` (`wood_joint.h`)
+### `WoodJoint` (`wood_algorithms/wood_joint.h`)
 
 Fields that matter downstream:
 
 - `element_a` / `element_b` — guids; a is male, b female (the solver may swap). `index_of(elements, guid)` maps to a position.
-- `contact` — `FaceContact{face_a, face_b, type, area}`; `cross_faces` — second side face per element, type 30 only.
+- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. Everything below `element_b` and `contact` is the `FeaturePlate` base, what `WoodSession::add_joint` stores.
 - `joint_type` — 11/12/13/20/30/40 (solver vocabulary, see below).
-- `joint_lines[2]`, `joint_volumes_pair_a_pair_b[4]` (optional quads; [0],[1] male, [2],[3] female).
+- `joint_lines[2]`, `joint_volumes[4]` (optional quads; [0],[1] male, [2],[3] female).
 - `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `m_cut_types` / `f_cut_types` — one `cut_type` per outline.
 - `divisions`, `shift`, `length`, `division_length`, `scale[3]`, `unit_scale`, `unit_scale_distance`.
 - `linked_joints`, `linked_joints_seq`, `link` (shadow joints from three-valence), `no_orient`.
@@ -152,11 +154,11 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
    dropped (`std::abs`).
 7. **`joint_create_geometry(joint, div_dist, shift, id, &all_joints, &elements)`** picks the
    group from the id range (1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69), checks it agrees
-   with `joint_type` (mismatch → no outlines), then dispatches by exact id to a `joints/*.h`
+   with `joint_type` (mismatch → no outlines), then dispatches by exact id to a `wood_interaction_feature_plate_joints/*.h`
    constructor. `joint_get_divisions` runs first so the cache key `"id;shift;divisions"`
    matches; the cache is applied only to type 12 with no linked joints. Types 12/13 pre-set
    `unit_scale_distance = plate thickness`.
-8. **Orient.** `joint_orient_to_connection_area` (`wood_joint.cpp`): `apply_unit_scale` (moves
+8. **Orient.** `joint_orient_to_connection_area` (`wood_algorithms/wood_joint.cpp`): `apply_unit_scale` (moves
    the two volume quads to `unit_scale_distance` apart when `unit_scale`), then
    `Xform::from_change_of_basis(vols[0], vols[1])` for male and `(vols[2], vols[3])` for
    female outlines. Ids 15/16 (ss_e_op_5) orient their shadow joints and call
@@ -172,12 +174,12 @@ three-valence in memory) and injects it through thread-local overrides instead o
 Diagnostics: `WOOD_F2F_DUMP=<path>` (environment) appends every type-13 volume to that file;
 every other trace is a `constexpr bool TRACE = false;` at the top of its own file.
 
-## 4. Joint library (`wood_joint_lib.h` + `joints/*.h`)
+## 4. Joint library (`wood_interaction_feature_plate_joints.h` + `wood_interaction_feature_plate_joints/*.h`)
 
-Each `joints/<name>.h` is a plain header (no include guard, no includes) holding one
-`static void <name>(WoodJoint&)`; `wood_joint_lib.h` includes them in order and is itself
+Each `<name>.h` is a plain header (no include guard, no includes) holding one
+`static void <name>(WoodJoint&)`; the aggregator includes them in order and is itself
 included inside `wood_joint_solver.cpp` (which must include `wood_session.h` first). The `tt_e_p_*`
-and `side_removal*` constructors need the plate vector and live in `wood_joint.cpp` instead.
+and `side_removal*` constructors take the plate vector too and have their own headers there.
 
 | joint_type | group | id range | prefix | ids wired in `joint_create_geometry` |
 |---|---|---|---|---|

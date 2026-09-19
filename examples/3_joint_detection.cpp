@@ -42,7 +42,7 @@ examples/3_joint_detection.cpp
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp   (see 1_io: yml, obj, Plate, add)
  |
  |-- compute_joints(search_type)                 wood_joint_solver.cpp, in pipeline order:
- |    |-- clear_joints()
+ |    |-- clear_features()
  |    |-- config::load_joint_data                   the four txt sidecars as JointData   wood_config.cpp
  |    |-- adjacent_pairs                          adjacency sidecar | adjacency_search   wood_face_to_face.cpp
  |    |-- detect_joints                           face_to_face_wood              wood_face_to_face.cpp
@@ -56,7 +56,7 @@ examples/3_joint_detection.cpp
  |    '-- merge_joints -> joint_membership_per_face -> MergeModifier::apply(plate, membership, joints)
  |                                                                         wood_merge_modifier.cpp
  |         '-- plate.features = merged bottom/top outlines (+holes), plate.invalidate_geometry()
- |    |-- set_interaction(a, b, joint)            every joint onto its graph edge
+ |    |-- add_joint(joint)                        every joint onto its pair's Interaction as a FeaturePlate
  |    '-- sync_joint_features()                   the joint as an ElementFeature on both host elements
  |
  |-- plate->element_geometry_mesh()              wood_element_plate.cpp: Mesh::loft(bottom, top), cached

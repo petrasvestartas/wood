@@ -6,8 +6,8 @@ using namespace session_cpp;
 using namespace wood_session;
 
 namespace {
-#include "joints/ss_e_op_4.h"
-#include "joints/ss_e_op_5.h"
+#include "wood_interaction_feature_plate_joints/ss_e_op_4.h"
+#include "wood_interaction_feature_plate_joints/ss_e_op_5.h"
 }
 
 static int failures = 0;
