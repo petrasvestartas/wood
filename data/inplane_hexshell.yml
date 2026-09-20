@@ -28,7 +28,7 @@ joints_parameters_and_types:
   - 60       # row 6 b       [2]: joint_type_id  (default 60)
 # additive joint volume extension (mm): one width, height, length triple for every family, or one triple per family
 joint_volume_extension:
-  - -20      # width
+  - -5      # width
   - 0.0      # height
   - -10      # length
 # multiplicative joint scale (x, y, z); 1.0 = unchanged; read by the unit-scale joint constructors

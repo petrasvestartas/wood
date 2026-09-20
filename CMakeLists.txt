@@ -210,11 +210,11 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # it)". There is no replacement to port it to - Element::add_feature is a mesh
 # transform, not a pairwise relation - and it was the only caller left.
 ADD_EXE(main_session_round_trip  examples/main_session_round_trip.cpp)
-ADD_EXE(main_translation_shell   examples/templates/main_translation_shell.cpp)
-ADD_EXE(main_reflex_fold         examples/templates/main_reflex_fold.cpp)
-ADD_EXE(main_chevron             examples/templates/main_chevron.cpp)
-ADD_EXE(main_reciprocal_rotation examples/templates/main_reciprocal_rotation.cpp)
-ADD_EXE(main_reciprocal_move     examples/templates/main_reciprocal_move.cpp)
+ADD_EXE(templates_translation_shell   examples/templates_translation_shell.cpp)
+ADD_EXE(templates_reflex_fold         examples/templates_reflex_fold.cpp)
+ADD_EXE(templates_chevron             examples/templates_chevron.cpp)
+ADD_EXE(templates_reciprocal_rotation examples/templates_reciprocal_rotation.cpp)
+ADD_EXE(templates_reciprocal_move     examples/templates_reciprocal_move.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

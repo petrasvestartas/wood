@@ -90,6 +90,6 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | `1_elements` … `12_cross_joints` | `examples/`: one behaviour each, in reading order; the list is in `docs/examples.md` and on the docs site |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
-| `main_translation_shell`, `main_reflex_fold`, `main_chevron`, `main_reciprocal_move`, `main_reciprocal_rotation` | `examples/templates/`: each template built with its defaults and written to `live.pb` as a mesh plus its plates |
+| `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each template built with its defaults and written to `live.pb` as a mesh plus its plates |
 
 Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.

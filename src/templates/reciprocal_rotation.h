@@ -1,6 +1,5 @@
 #pragma once
 #include "session.h"
-#include "reciprocal.h"
 #include "reciprocal_boundary.h"
 #include "intersection.h"
 #include "polyline.h"
@@ -14,11 +13,12 @@
 
 using namespace session_cpp;
 
-/// A reciprocal beam frame from a sinusoidal dome mesh (rotation-based nexorade).
+/// A reciprocal beam frame from a mesh (rotation-based nexorade).
 ///
-/// Generates a rectangular box beam at each mesh edge, cutting each end
-/// against the side face of its topological neighbor beam. Produces the
-/// dome mesh, all beam box meshes, and the side-face outlines.
+/// Every mesh edge is scaled about its midpoint and turned about the edge normal by angle, so the
+/// beams around each vertex form a pinwheel; each end then stops at the first side face it would
+/// enter among the other beams at that vertex, or at the frame on the boundary. Quads and even-gons
+/// alike. Produces the mesh, all beam box meshes, and the side-face outlines.
 ///
 /// Usage:
 ///   ReciprocalRotation rb;                          // default 12×10 dome
@@ -102,12 +102,10 @@ private:
         }
 
         if (beam_h <= 0.0) beam_h = beam_w * 2.0;
-        const double extend     = beam_w * extend_factor;
-        const double cut_offset = beam_w * cut_offset_factor;
+        const double extend = beam_w * extend_factor;         // how far beyond its rotated ends a beam may run to reach the beam it bears on
+        const double face_offset = beam_w * 0.5 * cut_offset_factor;  // where an end stops, from the crossing beam's axis: 1.0 is flush with its side face
 
-        Reciprocal::Result r = Reciprocal::from_mesh(m, angle, scale, true, beam_h);
-
-        // ── topology by vertex key, the same keys r.center is indexed by through m.edges() ──
+        // ── topology by vertex key ──
         std::vector<size_t> fkeys = m.faces();
         std::vector<std::vector<size_t>> faces(fkeys.size());  // vertex keys per face, in winding order
         std::vector<Vector> face_normals(fkeys.size());
@@ -123,9 +121,6 @@ private:
         std::vector<std::pair<size_t,size_t>> ekeys = m.edges();
 
         // ── boundary beams: a straight beam on every naked edge, none of the reciprocal treatment ──
-        // Axis = the mesh edge, section centred on the axis like the interior beams, up transported around
-        // the loop by reflection in the mitres so consecutive prisms share their mitred end face; a warped loop's
-        // closure twist goes where boundary_twist says. Consecutive beams are mitred with the bisector plane at their shared vertex.
         wood_reciprocal::BoundaryFrame frame = wood_reciprocal::boundary_frame(faces, owners, vertex_points, face_normals, beam_w, beam_h, boundary_twist, boundary_ups, corner_joint, through_priority);
         for (size_t k = 0; k < frame.naked.size(); k++) {
             const Vector& dir = frame.directions[k];
@@ -138,33 +133,115 @@ private:
             wood_reciprocal::store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
         }
 
-        // ── one beam per mesh edge, in m.edges() order; an interior beam's end that reaches a boundary vertex stops at the inner faces of the frame beams meeting there ──
-        for (int ei = 0; ei < (int)r.center.size(); ei++) {
-            Line          ln  = r.center[ei];
-            const Vector& up  = r.lineplanes[ei].y_axis();
-            const Vector dir = ln.to_direction();
-
-            Plane ps = side_cut_plane(
-                r.endplanes[ei][0], ln.start(), dir, true,  beam_w, cut_offset);
-            Plane pe = side_cut_plane(
-                r.endplanes[ei][1], ln.end(),   dir, false, beam_w, cut_offset);
-            std::vector<wood_reciprocal::CutFace> cuts_start = wood_reciprocal::unbounded(ps);
-            std::vector<wood_reciprocal::CutFace> cuts_end   = wood_reciprocal::unbounded(pe);
-
+        // ── one rotated axis per mesh edge: the edge scaled about its midpoint and turned about the edge normal, the average of its faces' normals ──
+        size_t ne = ekeys.size();
+        std::vector<Line> axes(ne);
+        std::vector<Vector> ups(ne, Vector(0, 0, 1));
+        std::vector<bool> interior(ne, false);
+        std::map<size_t, std::vector<size_t>> edges_at;  // vertex key → the edges meeting there
+        for (size_t ei = 0; ei < ne; ei++) {
             EdgeKey key = wood_reciprocal::edge_key(ekeys[ei].first, ekeys[ei].second);
             EdgeOwners::const_iterator own = owners.find(key);
-            if (own != owners.end() && own->second.size() > 1) {
-                size_t start_vertex = ln.start().distance(vertex_points[key.first]) <= ln.start().distance(vertex_points[key.second]) ? key.first : key.second;
-                size_t end_vertex   = start_vertex == key.first ? key.second : key.first;
-                cuts_start = wood_reciprocal::boundary_cuts_or(frame, start_vertex, dir, ps);
-                cuts_end   = wood_reciprocal::boundary_cuts_or(frame, end_vertex,   dir, pe);
+            interior[ei] = own != owners.end() && own->second.size() > 1;
+            Vector normal(0, 0, 0);
+            if (own != owners.end())
+                for (const auto& [fi, fj] : own->second)
+                    normal += face_normals[fi];
+
+            if (!normal.is_zero())
+                ups[ei] = normal.normalized();
+
+            const Point& pu = vertex_points.at(ekeys[ei].first);
+            const Point& pv = vertex_points.at(ekeys[ei].second);
+            Point mid = Point::mid_point(pu, pv);
+            Vector edge = pv - pu;
+            if (edge.is_zero()) {
+                axes[ei] = Line::from_points(pu, pv);
+                continue;
             }
 
-            BeamGeom bg = wood_reciprocal::cut_beam(ln.start() - dir * extend, ln.end() + dir * extend, dir, up, beam_w, beam_h, cuts_start, cuts_end);
+            Vector dir = wood_reciprocal::rotated_about(edge.normalized(), ups[ei], angle);
+            double half = edge.magnitude() * 0.5 * scale;
+            axes[ei] = Line::from_points(mid - dir * half, mid + dir * half);
+            edges_at[ekeys[ei].first].push_back(ei);
+            edges_at[ekeys[ei].second].push_back(ei);
+        }
+
+        // ── one beam per mesh edge, in m.edges() order: each end stops at the first side face it would enter, among the other beams at that vertex and the frame beams there ──
+        for (size_t ei = 0; ei < ne; ei++) {
+            const Line& axis = axes[ei];
+            const Vector& up = ups[ei];
+            Vector dir = axis.to_direction();
+            if (dir.is_zero()) {
+                BeamGeom bg = wood_reciprocal::cut_beam(axis.start(), axis.end(), Vector(1, 0, 0), up, beam_w, beam_h, {}, {});
+                wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
+                beam_dirs.push_back({0.0, 0.0, 0.0});
+                beam_ups.push_back({up[0], up[1], up[2]});
+                continue;
+            }
+
+            std::vector<wood_reciprocal::CutFace> cuts_start = wood_reciprocal::unbounded(Plane::from_point_normal(axis.start(), dir));
+            std::vector<wood_reciprocal::CutFace> cuts_end   = wood_reciprocal::unbounded(Plane::from_point_normal(axis.end(), dir));
+            if (interior[ei]) {
+                cuts_start = end_cuts(ei, ekeys[ei].first,  vertex_points.at(ekeys[ei].first),  axes, ups, interior, edges_at, frame, beam_w, face_offset, axis.start(), dir);
+                cuts_end   = end_cuts(ei, ekeys[ei].second, vertex_points.at(ekeys[ei].second), axes, ups, interior, edges_at, frame, beam_w, face_offset, axis.end(),   dir);
+            }
+
+            BeamGeom bg = wood_reciprocal::cut_beam(axis.start() - dir * extend, axis.end() + dir * extend, dir, up, beam_w, beam_h, cuts_start, cuts_end);
             wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
             beam_dirs.push_back({dir[0], dir[1], dir[2]});
             beam_ups.push_back({up[0],   up[1],   up[2]});
         }
+    }
+
+    /// The faces one end of the beam on edge ei can stop at, at the vertex the end swings past: the near side face of every other interior beam meeting there, bounded to that beam's length and to the far side of the vertex, since a neighbour whose axis crosses ours before the vertex is a beam resting on us, not one we run into; and the frame beams' inner faces at a boundary vertex; a flat cap at the axis end when there is none.
+    static std::vector<wood_reciprocal::CutFace> end_cuts(size_t ei, size_t vertex, const Point& vertex_point,
+                                                          const std::vector<Line>& axes, const std::vector<Vector>& ups, const std::vector<bool>& interior,
+                                                          const std::map<size_t, std::vector<size_t>>& edges_at,
+                                                          const wood_reciprocal::BoundaryFrame& frame,
+                                                          double beam_w, double face_offset, const Point& axis_end, const Vector& dir)
+    {
+
+        std::vector<wood_reciprocal::CutFace> cuts;
+        Point our_mid = axes[ei].center();
+        Vector outward = axis_end - our_mid;
+        outward = outward.is_zero() ? dir : outward.normalized();
+        Plane beyond_vertex = Plane::from_point_normal(vertex_point, outward);
+        std::map<size_t, std::vector<size_t>>::const_iterator around = edges_at.find(vertex);
+        if (around != edges_at.end())
+            for (size_t ej : around->second) {
+                if (ej == ei || !interior[ej])
+                    continue;
+
+                Vector dir_j = axes[ej].to_direction();
+                if (dir_j.is_zero())
+                    continue;
+
+                Vector side = dir_j.cross(ups[ej]);
+                if (side.is_zero())
+                    continue;
+
+                side = side.normalized();
+                Point mid_j = axes[ej].center();
+                if ((our_mid - mid_j).dot(side) < 0.0)
+                    side = -side;  // the face of beam j that looks at our beam
+
+                std::vector<Plane> bounds = {Plane::from_point_normal(axes[ej].start() - dir_j * beam_w, dir_j),
+                                             Plane::from_point_normal(axes[ej].end() + dir_j * beam_w, -dir_j),
+                                             beyond_vertex};
+                cuts.push_back(wood_reciprocal::CutFace{Plane::from_point_normal(mid_j + side * face_offset, side), bounds});
+            }
+
+        std::map<size_t, std::vector<wood_reciprocal::CutFace>>::const_iterator at_frame = frame.inner_faces_at_vertex.find(vertex);
+        if (at_frame != frame.inner_faces_at_vertex.end())
+            for (const wood_reciprocal::CutFace& face : at_frame->second)
+                if (std::abs(face.plane.z_axis().dot(dir)) >= 0.15)
+                    cuts.push_back(face);
+
+        if (cuts.empty())
+            return wood_reciprocal::unbounded(Plane::from_point_normal(axis_end, dir));
+
+        return cuts;
     }
 
     static Mesh make_dome(int nx, int ny, double W, double D, double h) {
@@ -195,42 +272,5 @@ private:
         }
 
         return Mesh::from_vertices_and_faces(pts, faces);
-    }
-
-    static Plane side_cut_plane(
-        const Plane&  endplane,
-        const Point&  endpoint,
-        const Vector& dir_i,
-        bool          is_start,
-        double        beam_w,
-        double        cut_offset = 0.0)
-    {
-
-        Vector right_nb = endplane.z_axis().normalized();
-        if (right_nb.is_zero()) {
-            right_nb = endplane.x_axis().cross(Vector(0, 0, 1)).normalized();
-        }
-
-        double s    = is_start ? 1.0 : -1.0;
-        double side = s * (dir_i[0]*right_nb[0]
-                         + dir_i[1]*right_nb[1]
-                         + dir_i[2]*right_nb[2]);
-        double half = beam_w * 0.5 + cut_offset;
-
-        Point  face_pt;
-        Vector face_normal;
-        if (side > 0.0) {
-            face_pt     = Point(endpoint[0] - right_nb[0]*half,
-                                endpoint[1] - right_nb[1]*half,
-                                endpoint[2] - right_nb[2]*half);
-            face_normal = Vector(-right_nb[0], -right_nb[1], -right_nb[2]);
-        } else {
-            face_pt     = Point(endpoint[0] + right_nb[0]*half,
-                                endpoint[1] + right_nb[1]*half,
-                                endpoint[2] + right_nb[2]*half);
-            face_normal = right_nb;
-        }
-
-        return Plane::from_point_normal(face_pt, face_normal);
     }
 };
