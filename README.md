@@ -87,11 +87,9 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 
 | Target | Source |
 |---|---|
-| `1_io`, `2_contact_detection`, `3_joint_detection`, `4_wood_session_api` | `examples/` walk-throughs of load, contacts, joints, and the whole API in compas_model order |
-| `main_hello` | plates and a custom butterfly joint built in code |
+| `1_elements` … `12_cross_joints` | `examples/`: one behaviour each, in reading order; the list is in `docs/examples.md` and on the docs site |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
-| `main_joint_types`, `main_cross_corners` | joint type and cross corner probes |
 | `main_translation_shell`, `main_reflex_fold`, `main_chevron`, `main_reciprocal_move`, `main_reciprocal_rotation` | `examples/templates/`: each template built with its defaults and written to `live.pb` as a mesh plus its plates |
 
 Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.

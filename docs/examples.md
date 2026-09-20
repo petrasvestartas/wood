@@ -1,61 +1,68 @@
 # Examples {#examples}
 
-Every program under `examples/` is one target of the CMake project; build it with `cmake --build build --target <name> --parallel 4` and run it from the `wood` directory. Each one ends with a comment block that says what it does and how to run it. The sources are below, in the order to read them.
+Twelve short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `cmake --build build --target <name> --parallel 4 && ./build/<name>` from the `wood` directory. Each ends with a comment that says what it does and how to run it; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
 
-| Example | What it does |
+| Example | Behaviour |
 |---|---|
-| `1_io` | Loads a session `.pb`, prints it, writes it back through `pb_dump` |
-| `2_contact_detection` | A dataset through `compute_contacts`; contacts drawn per element for the viewer |
-| `3_joint_detection` | A dataset through `compute_features`; joints drawn per element for the viewer |
-| `4_wood_session_api` | The WoodSession API end to end: elements, interactions, contacts and joints, the two geometries of a plate, the file |
-| `main_hello` | Plates built in code, custom joint outlines in the settings, one solve |
-| `main_joint_types` | The same dataset solved with different joint ids from `settings.joint_parameters` |
-| `main_cross_corners` | Cross joints on plates built in code, with a joint volume extension |
-| `main_dataset_runner` | One dataset from `data/`, chosen in `main` |
-| `main_all_datasets` | Every dataset in `data/`, the regression sweep; each writes `data/output/WoodF2F_<name>.pb` with its outline dumps |
-| `main_session_round_trip` | Load, solve, write, read back; checks every record survives the file, exit code is the failure count |
-| `main_element_mapping_check` | One plate through the kernel's element registry and back; checks the fields the registry rebuilds |
+| `1_elements` | The four element kinds built in code and added to a scene; `get_element` and the typed lists |
+| `2_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
+| `3_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
+| `4_features` | The joinery pipeline: every plate joint, a plate's geometry alone and cut, the joint features on the hosts |
+| `5_traversal` | Every stored record answers `session()`: from a joint back to the scene, its plates, its interaction, its edge |
+| `6_settings` | The solver settings as a value on the scene, set in code and read back from the file |
+| `7_custom_joint` | A joint variant supplied as outlines through the settings |
+| `8_assignment` | Feature types and insertion vectors filled from points and lines placed on the plates |
+| `9_beams` | Beams, axis contacts and one beam feature per pair with its four volume rectangles |
+| `10_serialization` | Bytes and back, the kernel reading the same bytes, one record as JSON and as protobuf |
+| `11_viewer` | The scene arranged for the viewer, the colour tables, the files `pb_dump` writes |
+| `12_cross_joints` | Cross joints and the search type chosen per solve |
 
-## 1_io
+The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
 
-\include{lineno} 1_io.cpp
+## 1_elements
 
-## 2_contact_detection
+\include{lineno} 1_elements.cpp
 
-\include{lineno} 2_contact_detection.cpp
+## 2_datasets
 
-## 3_joint_detection
+\include{lineno} 2_datasets.cpp
 
-\include{lineno} 3_joint_detection.cpp
+## 3_contacts
 
-## 4_wood_session_api
+\include{lineno} 3_contacts.cpp
 
-\include{lineno} 4_wood_session_api.cpp
+## 4_features
 
-## main_hello
+\include{lineno} 4_features.cpp
 
-\include{lineno} main_hello.cpp
+## 5_traversal
 
-## main_joint_types
+\include{lineno} 5_traversal.cpp
 
-\include{lineno} main_joint_types.cpp
+## 6_settings
 
-## main_cross_corners
+\include{lineno} 6_settings.cpp
 
-\include{lineno} main_cross_corners.cpp
+## 7_custom_joint
 
-## main_dataset_runner
+\include{lineno} 7_custom_joint.cpp
 
-\include{lineno} main_dataset_runner.cpp
+## 8_assignment
 
-## main_all_datasets
+\include{lineno} 8_assignment.cpp
 
-\include{lineno} main_all_datasets.cpp
+## 9_beams
 
-## main_session_round_trip
+\include{lineno} 9_beams.cpp
 
-\include{lineno} main_session_round_trip.cpp
+## 10_serialization
 
-## main_element_mapping_check
+\include{lineno} 10_serialization.cpp
 
-\include{lineno} main_element_mapping_check.cpp
+## 11_viewer
+
+\include{lineno} 11_viewer.cpp
+
+## 12_cross_joints
+
+\include{lineno} 12_cross_joints.cpp

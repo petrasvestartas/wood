@@ -7,8 +7,8 @@ using namespace wood_session;
 
 // ── what to build ────────────────────────────────────────────────────────────
 enum class Grid { Quads, Hexagons, DualHexagons };
-const int SURFACE = 0;           // 0 sinusoidal dome, 1 hypar, 2 pillow dome, 3 disc dome, 4 Annen arch, 5 Scherk saddle
-const Grid GRID = Grid::Quads;   // the rotation template is at home on quads; on hexagons its beams can cross each other
+const int SURFACE = 2;           // 0 sinusoidal dome, 1 hypar, 2 pillow dome, 3 disc dome, 4 Annen arch, 5 Scherk saddle
+const Grid GRID = Grid::Hexagons;
 const double CELL = 2000.0;      // cell size, mm
 const double ANGLE = 0.35;       // rotation of every beam about its midpoint, radians
 const double STRETCH = 1.4;      // lengthening of every beam before the cuts

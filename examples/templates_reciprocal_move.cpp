@@ -8,7 +8,7 @@ using namespace wood_session;
 // ── what to build ────────────────────────────────────────────────────────────
 enum class Grid { Quads, Hexagons, DualHexagons };
 const int SURFACE = 0;           // 0 sinusoidal dome (straight rectangular boundary), 1 hypar, 2 pillow dome, 3 disc dome, 4 Annen arch, 5 Scherk saddle
-const Grid GRID = Grid::Hexagons;
+const Grid GRID = Grid::DualHexagons;
 const double CELL = 2000.0;      // cell size, mm
 const double SHIFT = 100.0;      // sideways move of every beam, mm; at least half the beam width, the end cuts follow from it
 const double WIDTH = 100.0;      // beam section, mm
@@ -108,10 +108,10 @@ cd wood
 cmake -S . -B build
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel 4 && ./build/main_reciprocal_move && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_reciprocal_move
+cmake --build build --config Release --parallel 4 && ./build/templates_reciprocal_move && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target templates_reciprocal_move
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_reciprocal_move.cpp
+examples/templates/templates_reciprocal_move.cpp
  |
  |-- case_surface -> one of the test surfaces, flatten_surface_sides            src/templates/reciprocal_surface.h
  |-- case_mesh -> quad_mesh_from_surface, hex_mesh_from_surface or dual_hex_mesh
