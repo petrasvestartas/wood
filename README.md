@@ -81,6 +81,8 @@ datasets a `beams` block. `config::Dataset::<name>` names every shipped dataset.
 cmake --build build --target docs && xdg-open build/docs/html/index.html
 ```
 
+Every push builds the same site in CI and publishes it at https://petrasvestartas.github.io/wood/.
+
 ## Targets
 
 | Target | Source |
