@@ -139,7 +139,7 @@ static void missing_datasets(const std::filesystem::path& folder) {
     for (const std::filesystem::path& path : {empty, folder / "missing.obj"}) {
         bool rejected = false;
         try {
-            config::load_obj(path.string());
+            io::load_obj(path.string());
         } catch (const std::runtime_error&) {
             rejected = true;
         }
@@ -155,9 +155,9 @@ static void dataset_tolerance(const std::filesystem::path& folder) {
         file << "v 0 0 0\nv 0.01 0 0\nv 1 0 0\ncurv 0 1 1 2 3\nend\n";
     }
 
-    std::vector<Polyline> axes = config::load_obj(path.string(), 0.1);
+    std::vector<Polyline> axes = io::load_obj(path.string(), 0.1);
     check(axes.size() == 1 && axes[0].point_count() == 2, "Configured Beam Deduplication");
-    axes = config::load_obj(path.string(), 0.001);
+    axes = io::load_obj(path.string(), 0.001);
     check(axes.size() == 1 && axes[0].point_count() == 3, "Explicit Beam Deduplication");
 
     bool rejected = false;

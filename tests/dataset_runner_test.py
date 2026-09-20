@@ -29,7 +29,7 @@ class DatasetRunnerTest(unittest.TestCase):
         )
         for name in names:
             header += f"inline bool {name}() {{ return dataset(); }}\n"
-        (cls.root / "wood_session.h").write_text(header)
+        (cls.root / "wood_test.h").write_text(header)
         for name in ("main_all_datasets", "main_dataset_runner"):
             subprocess.run(
                 [str(ROOT / "tools/run_guarded.sh"), "-n", "wood-build", "--", os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Wpedantic", "-I", str(cls.root), str(ROOT / "examples" / (name + ".cpp")), "-o", str(cls.root / name)],

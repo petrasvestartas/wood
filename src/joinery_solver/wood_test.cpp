@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "wood_session.h"
+#include "wood_test.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -8,11 +9,11 @@ using namespace wood_session;
 static bool run_dataset(std::string_view name) {
     try {
         WoodSession scene = WoodSession::yaml_load(name);
-        scene.compute_joints();
+        scene.compute_features();
         scene.add_to_tree();
 
         const std::filesystem::path pb = config::output_dir() / wood_session::config::DATA_SET_OUTPUT_FILE;
-        wood_session::write_parity_dumps(scene, pb);
+        io::write_parity_dumps(scene, pb);
         scene.pb_dump(pb.string());
 
         return true;
@@ -79,7 +80,7 @@ bool type_beams_name_phanomema_node() {
 
         WoodSession scene("WoodF2F");
         scene.settings = settings;
-        for (const Polyline& axis : config::load_obj("phanomema_node"))
+        for (const Polyline& axis : io::load_obj("phanomema_node"))
             scene.add(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), beams[0]), std::vector<Vector>{}, static_cast<int>(beams[1])));
 
         scene.compute_axis_contacts(beams[2]);

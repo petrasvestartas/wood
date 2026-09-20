@@ -55,7 +55,7 @@ int main() {
     scene.settings.joint_volume_extension[1] = 2;
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
-    scene.compute_joints(cross_joint);
+    scene.compute_features(cross_joint);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());
 

@@ -46,7 +46,7 @@ examples/1_io.cpp
  |
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp
  |    |-- config::load_yaml(path)             wood_config.cpp   ->  data/<dataset>.yml (all tunables)
- |    |-- WoodSession::obj_load(obj)            config::load_obj -> data/<obj>.obj
+ |    |-- WoodSession::obj_load(obj)            io::load_obj -> data/<obj>.obj
  |    |    |-- file_obj::read_file_obj_polylines  ../session/session_cpp/src/file_obj.cpp
  |    |    '-- Plate(bottom, top)                 wood_element_plate.cpp (outlines and planes only, no loft)
  |    '-- WoodSession::add(plate)                 Session::add_element  (tree node + graph node)

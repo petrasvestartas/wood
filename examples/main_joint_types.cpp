@@ -14,7 +14,7 @@ static void run(const std::string& name, const double division) {
         scene.settings.joint_parameters[1*3+0] = division;
     scene.settings.joint_parameters[1*3+2] = 10;
     scene.settings.joint_parameters[2*3+2] = 20;
-    scene.compute_joints(face_to_face);
+    scene.compute_features(face_to_face);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());
 }

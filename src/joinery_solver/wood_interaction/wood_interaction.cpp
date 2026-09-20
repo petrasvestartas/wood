@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction.h"
 #include "interaction.pb.h"
 using namespace session_cpp;
@@ -41,39 +42,22 @@ int Interaction::add_feature(InteractionFeature feature) {
 // Interaction - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json Interaction::jsondump() const {
 
-    nlohmann::ordered_json touches = nlohmann::ordered_json::array();
-    for (const InteractionContact& contact : contacts)
-        touches.push_back(contact.jsondump());
+    wood_proto::Interaction proto;
+    proto.ParseFromString(pb_dumps());
 
-    nlohmann::ordered_json cuts = nlohmann::ordered_json::array();
-    for (const InteractionFeature& feature : features)
-        cuts.push_back(feature.jsondump());
-
-    return nlohmann::ordered_json{
-        {"type", "Interaction"},
-        {"guid", guid},
-        {"contacts", touches},
-        {"features", cuts},
-        {"structure", structure.has_value() ? structure->jsondump() : nlohmann::ordered_json(nullptr)},
-    };
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 Interaction Interaction::jsonload(const nlohmann::json& data) {
 
-    Interaction interaction;
-    interaction.guid = data.value("guid", std::string());
-    if (data.contains("contacts"))
-        for (const nlohmann::json& contact : data["contacts"])
-            interaction.contacts.push_back(InteractionContact::jsonload(contact));
-    if (data.contains("features"))
-        for (const nlohmann::json& feature : data["features"])
-            interaction.features.push_back(InteractionFeature::jsonload(feature));
-    if (data.contains("structure") && !data["structure"].is_null())
-        interaction.structure = InteractionStructure::jsonload(data["structure"]);
+    wood_proto::Interaction proto;
+    message_from_json(data, proto);
 
-    return interaction;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

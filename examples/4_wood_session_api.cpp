@@ -38,7 +38,7 @@ int main() {
     }
 
     // // Joints: the modifiers the solver puts on the same edges, one per contact it accepts.
-    // wood_session.compute_joints();
+    // wood_session.compute_features();
     // for (const FeaturePlate& joint : wood_session.joints())
     //     std::cout << fmt::format("joint: type {} ({})\n", joint.joint_type, joint.name);
 
@@ -58,7 +58,7 @@ int main() {
 
     // // Datasets: the same session from data/<name>.yml, which also sets the solver's parameters.
     // WoodSession dataset = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
-    // dataset.compute_joints();
+    // dataset.compute_features();
     // std::cout << fmt::format("{}: {} plates, {} joints\n", config::Dataset::inplane_hexshell, dataset.plates().size(), dataset.joints().size());
 
     return 0;
@@ -89,8 +89,8 @@ examples/4_wood_session_api.cpp
  |-- compute_contacts()                          see 2_contact_detection: face_contacts -> graph edges
  |-- interactions                                one Interaction per edge: contacts, features, structure
  |
- |-- compute_joints()                            see 3_joint_detection: get_connection_zones -> graph edges
- |-- get_joints()                                every plate feature as a working FeaturePlate
+ |-- compute_features()                            see 3_joint_detection: get_connection_zones -> graph edges
+ |-- get_plate_features()                                every plate feature as a working FeaturePlate
  |
  |-- element_geometry_mesh()  wood_session_geometry_mesh()      wood_element_plate.cpp: Mesh::loft, cached
  |-- element_geometry_brep()  wood_session_geometry_brep()      brep_between_loops -> BRep::from_polylines(faces, holes)
@@ -100,7 +100,7 @@ examples/4_wood_session_api.cpp
  |                                               "joints" (add_joints_to: areas, volumes, lines, cuts)
  |-- pb_dump(pb_path("live"))                    sync_geometry, Session::pb_dump
  |
- '-- WoodSession::yaml_load(dataset), compute_joints(), joints()      the same over data/<dataset>.yml
+ '-- WoodSession::yaml_load(dataset), compute_features(), joints()      the same over data/<dataset>.yml
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

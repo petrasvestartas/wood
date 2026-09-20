@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_contact.h"
 #include "interaction_contact.pb.h"
 using namespace session_cpp;
@@ -56,29 +57,22 @@ bool InteractionContact::coincides(const InteractionContact& other) const {
 // InteractionContact - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json InteractionContact::jsondump() const {
-    return nlohmann::ordered_json{
-        {"type", "InteractionContact"},
-        {"guid", guid},
-        {"kind", std::string(kind())},
-        {"data", std::visit([](const auto& kind) { return kind.jsondump(); }, data)},
-    };
+
+    wood_proto::InteractionContact proto;
+    proto.ParseFromString(pb_dumps());
+
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 InteractionContact InteractionContact::jsonload(const nlohmann::json& data) {
 
-    InteractionContact contact;
-    contact.guid = data.value("guid", std::string());
-    const std::string kind = data.value("kind", std::string("face"));
-    const nlohmann::json& body = data.contains("data") ? data["data"] : nlohmann::json::object();
-    if (kind == "axis")
-        contact.data = ContactAxis::jsonload(body);
-    else if (kind == "cross")
-        contact.data = ContactCross::jsonload(body);
-    else
-        contact.data = ContactFace::jsonload(body);
+    wood_proto::InteractionContact proto;
+    message_from_json(data, proto);
 
-    return contact;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

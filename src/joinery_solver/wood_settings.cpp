@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_settings.h"
 #include "settings.pb.h"
 using namespace session_cpp;
@@ -21,80 +22,22 @@ const std::array<std::vector<Polyline>, 2>& Settings::custom(const std::string& 
 // Settings - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Outlines as an array of kernel polylines.
-static nlohmann::ordered_json outlines_json(const std::vector<Polyline>& outlines) {
-
-    nlohmann::ordered_json array = nlohmann::ordered_json::array();
-    for (const Polyline& outline : outlines)
-        array.push_back(outline.jsondump());
-
-    return array;
-}
-
-/// Outlines read back from an array of kernel polylines.
-static std::vector<Polyline> outlines_from_json(const nlohmann::json& data) {
-
-    std::vector<Polyline> outlines;
-    for (const nlohmann::json& outline : data)
-        outlines.push_back(Polyline::jsonload(outline));
-
-    return outlines;
-}
-
+/// The protobuf message, printed.
 nlohmann::ordered_json Settings::jsondump() const {
 
-    nlohmann::ordered_json custom = nlohmann::ordered_json::array();
-    for (const auto& [family, outlines] : custom_joints)
-        custom.push_back({{"family", family}, {"male", outlines_json(outlines[0])}, {"female", outlines_json(outlines[1])}});
+    wood_proto::Settings proto;
+    proto.ParseFromString(pb_dumps());
 
-    return nlohmann::ordered_json{
-        {"type", "Settings"},
-        {"search_type", static_cast<int>(search_type)},
-        {"joint_parameters", joint_parameters},
-        {"joint_volume_extension", joint_volume_extension},
-        {"joint_scale", {joint_scale[0], joint_scale[1], joint_scale[2]}},
-        {"dihedral_angle", dihedral_angle},
-        {"all_treated_as_rotated", all_treated_as_rotated},
-        {"rotated_joint_as_average", rotated_joint_as_average},
-        {"distance", distance},
-        {"distance_squared", distance_squared},
-        {"angle", angle},
-        {"duplicate_points_tolerance", duplicate_points_tolerance},
-        {"limit_min_joint_length", limit_min_joint_length},
-        {"clipper_scale", clipper_scale},
-        {"clipper_area", clipper_area},
-        {"beams", beams},
-        {"custom_joints", custom},
-    };
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 Settings Settings::jsonload(const nlohmann::json& data) {
 
-    Settings s;
-    s.search_type = static_cast<SearchType>(data.value("search_type", 0));
-    if (data.contains("joint_parameters"))
-        s.joint_parameters = data["joint_parameters"].get<std::vector<double>>();
-    if (data.contains("joint_volume_extension"))
-        s.joint_volume_extension = data["joint_volume_extension"].get<std::vector<double>>();
-    if (data.contains("joint_scale"))
-        s.joint_scale = {data["joint_scale"][0], data["joint_scale"][1], data["joint_scale"][2]};
-    s.dihedral_angle = data.value("dihedral_angle", s.dihedral_angle);
-    s.all_treated_as_rotated = data.value("all_treated_as_rotated", false);
-    s.rotated_joint_as_average = data.value("rotated_joint_as_average", false);
-    s.distance = data.value("distance", s.distance);
-    s.distance_squared = data.value("distance_squared", s.distance_squared);
-    s.angle = data.value("angle", s.angle);
-    s.duplicate_points_tolerance = data.value("duplicate_points_tolerance", 0.0);
-    s.limit_min_joint_length = data.value("limit_min_joint_length", 0.0);
-    s.clipper_scale = data.value("clipper_scale", s.clipper_scale);
-    s.clipper_area = data.value("clipper_area", s.clipper_area);
-    if (data.contains("beams"))
-        s.beams = data["beams"].get<std::vector<double>>();
-    if (data.contains("custom_joints"))
-        for (const nlohmann::json& entry : data["custom_joints"])
-            s.custom_joints[entry.value("family", std::string())] = {outlines_from_json(entry["male"]), outlines_from_json(entry["female"])};
+    wood_proto::Settings proto;
+    message_from_json(data, proto);
 
-    return s;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

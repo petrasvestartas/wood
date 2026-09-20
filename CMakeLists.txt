@@ -79,6 +79,9 @@ add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
 set(WOOD_SOURCES
     src/joinery_solver/wood_config.cpp
     src/joinery_solver/wood_settings.cpp
+    src/joinery_solver/wood_serialization.cpp
+    src/joinery_solver/wood_io.cpp
+    src/joinery_solver/wood_view.cpp
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
@@ -96,6 +99,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp
     src/joinery_solver/wood_algorithms/wood_feature_construction.cpp
     src/joinery_solver/wood_algorithms/wood_feature_solver.cpp
+    src/joinery_solver/wood_algorithms/wood_assignment.cpp
     src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp
     src/joinery_solver/wood_session.cpp
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp

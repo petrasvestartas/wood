@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_contact_cross.h"
 #include "interaction_contact_cross.pb.h"
 using namespace session_cpp;
@@ -32,32 +33,22 @@ bool ContactCross::coincides(const ContactCross& other) const {
 // ContactCross - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json ContactCross::jsondump() const {
-    return nlohmann::ordered_json{
-        {"type", "ContactCross"},
-        {"faces_a", {faces_a[0], faces_a[1]}},
-        {"faces_b", {faces_b[0], faces_b[1]}},
-        {"polygon", polygon.jsondump()},
-        {"lines", {lines[0].jsondump(), lines[1].jsondump()}},
-        {"volumes", {volumes[0].jsondump(), volumes[1].jsondump()}},
-    };
+
+    wood_proto::ContactCross proto;
+    proto.ParseFromString(pb_dumps());
+
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 ContactCross ContactCross::jsonload(const nlohmann::json& data) {
 
-    ContactCross contact;
-    if (data.contains("faces_a"))
-        contact.faces_a = {data["faces_a"][0], data["faces_a"][1]};
-    if (data.contains("faces_b"))
-        contact.faces_b = {data["faces_b"][0], data["faces_b"][1]};
-    if (data.contains("polygon"))
-        contact.polygon = Polyline::jsonload(data["polygon"]);
-    if (data.contains("lines"))
-        contact.lines = {Polyline::jsonload(data["lines"][0]), Polyline::jsonload(data["lines"][1])};
-    if (data.contains("volumes"))
-        contact.volumes = {Polyline::jsonload(data["volumes"][0]), Polyline::jsonload(data["volumes"][1])};
+    wood_proto::ContactCross proto;
+    message_from_json(data, proto);
 
-    return contact;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

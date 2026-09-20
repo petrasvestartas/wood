@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_element_beam.h"
 #include "element_beam.pb.h"
 using namespace session_cpp;
@@ -79,17 +80,10 @@ AABB Beam::aabb(double inflate) const {
 
 nlohmann::ordered_json Beam::element_data_jsondump() const {
 
-    nlohmann::ordered_json ups = nlohmann::ordered_json::array();
-    for (const Vector& direction : directions)
-        ups.push_back(direction.jsondump());
+    wood_proto::Beam proto;
+    proto.ParseFromString(element_data_dumps());
 
-    return nlohmann::ordered_json{
-        {"allowed_type", allowed_type},
-        {"axis", axis.jsondump()},
-        {"directions", ups},
-        {"radii", radii},
-        {"type", std::string(ELEMENT_TYPE)},
-    };
+    return json_of(proto);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

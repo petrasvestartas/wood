@@ -8,7 +8,7 @@ const std::string DATASET{config::Dataset::inplane_hexshell};   // config::Datas
 int main() {
 
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
-    wood_session.compute_joints();
+    wood_session.compute_features();
 
     /// element_geometry_mesh(): the plate alone, the loft of its two outlines, never cut; compas_model's elementgeometry.
     /// model_geometry_mesh(): the plate with its joints cut in, the loft of the merged outlines; compas_model's modelgeometry, the one to inspect.
@@ -41,22 +41,22 @@ examples/3_joint_detection.cpp
  |
  |-- WoodSession::yaml_load(dataset)             wood_session.cpp   (see 1_io: yml, obj, Plate, add)
  |
- |-- compute_joints(search_type)                 wood_feature_solver.cpp, in pipeline order:
+ |-- compute_features(search_type)                 wood_feature_solver.cpp, in pipeline order:
  |    |-- clear_features()
  |    |-- load_sidecars()                          the four txt sidecars onto the plates and the scene
  |    |-- adjacent_pairs                          adjacency sidecar | adjacency_search   wood_feature_detection.cpp
- |    |-- detect_joints                           face_to_face_wood              wood_feature_detection.cpp
+ |    |-- detect_features                           face_to_face_wood              wood_feature_detection.cpp
  |    |    |   prepare_candidate -> side_side (in_plane | out_of_plane | rotated) | top_side | top_top
  |    |    '-- cross_fallback -> plane_to_face, ContactCross               wood_contact_detection.cpp
  |    |-- link_three_valence_joints               vidy shadow joints, annen alignment   wood_three_valence.cpp
- |    |-- build_joint_geometry -> reuse_or_create_geometry -> create_<family>_joint
+ |    |-- build_feature_geometry -> reuse_or_create_geometry -> create_<family>_joint
  |    |    |-- wood_interaction_feature_plate_joints/<family>_<id>.h             unit-box male/female outlines      wood_joint_lib.h
  |    |    '-- joint_get_divisions, apply_unit_scale, joint_orient_to_connection_area, merge_linked_joints
  |    |                                                                               wood_joint.cpp
- |    '-- merge_joints -> joint_membership_per_face -> MergeModifier::apply(plate, membership, joints)
+ |    '-- merge_features -> joint_membership_per_face -> MergeModifier::apply(plate, membership, joints)
  |                                                                         wood_merge_modifier.cpp
  |         '-- plate.features = merged bottom/top outlines (+holes), plate.invalidate_geometry()
- |    |-- add_joint(joint)                        every joint onto its pair's Interaction as a FeaturePlate
+ |    |-- add_feature(joint)                        every joint onto its pair's Interaction as a FeaturePlate
  |    '-- sync_joint_features()                   the joint as an ElementFeature on both host elements
  |
  |-- plate->element_geometry_mesh()              wood_element_plate.cpp: Mesh::loft(bottom, top), cached

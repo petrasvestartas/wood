@@ -1,4 +1,4 @@
-#include "wood_session.h"
+#include "wood_test.h"
 
 int main() {
     return type_plates_name_hexbox_and_corner() ? 0 : 1;

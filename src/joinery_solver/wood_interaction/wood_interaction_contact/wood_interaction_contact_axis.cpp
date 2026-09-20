@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_contact_axis.h"
 #include "interaction_contact_axis.pb.h"
 using namespace session_cpp;
@@ -34,32 +35,22 @@ bool ContactAxis::coincides(const ContactAxis& other) const {
 // ContactAxis - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json ContactAxis::jsondump() const {
-    return nlohmann::ordered_json{
-        {"type", "ContactAxis"},
-        {"segment", segment.jsondump()},
-        {"t_a", t_a},
-        {"t_b", t_b},
-        {"polyline_a", polyline_a},
-        {"segment_a", segment_a},
-        {"polyline_b", polyline_b},
-        {"segment_b", segment_b},
-    };
+
+    wood_proto::ContactAxis proto;
+    proto.ParseFromString(pb_dumps());
+
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 ContactAxis ContactAxis::jsonload(const nlohmann::json& data) {
 
-    ContactAxis contact;
-    if (data.contains("segment"))
-        contact.segment = Line::jsonload(data["segment"]);
-    contact.t_a = data.value("t_a", 0.0);
-    contact.t_b = data.value("t_b", 0.0);
-    contact.polyline_a = data.value("polyline_a", 0);
-    contact.segment_a = data.value("segment_a", 0);
-    contact.polyline_b = data.value("polyline_b", 0);
-    contact.segment_b = data.value("segment_b", 0);
+    wood_proto::ContactAxis proto;
+    message_from_json(data, proto);
 
-    return contact;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

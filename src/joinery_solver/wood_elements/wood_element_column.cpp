@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_element_column.h"
 #include "element_column.pb.h"
 
@@ -68,11 +69,11 @@ AABB Column::aabb(double inflate) const {
 }
 
 nlohmann::ordered_json Column::element_data_jsondump() const {
-    return nlohmann::ordered_json{
-        {"axis", axis.jsondump()},
-        {"section", section.point_count() > 0 ? section.jsondump() : nlohmann::ordered_json(nullptr)},
-        {"type", std::string(ELEMENT_TYPE)},
-    };
+
+    wood_proto::Column proto;
+    proto.ParseFromString(element_data_dumps());
+
+    return json_of(proto);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

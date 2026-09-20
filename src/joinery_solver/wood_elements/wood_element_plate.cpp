@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_element_plate.h"
 #include "element_plate.pb.h"
 
@@ -128,9 +129,9 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
         if (f.feature_type.compare(0, prefix.size(), prefix) == 0) {
             try {
                 const int code = std::stoi(f.feature_type.substr(prefix.size()));
-                if (out.joint_types.size() <= face)
-                    out.joint_types.resize(face + 1, -1);
-                out.joint_types[face] = code;
+                if (out.feature_types.size() <= face)
+                    out.feature_types.resize(face + 1, -1);
+                out.feature_types[face] = code;
             } catch (const std::exception&) {
             }
         } else if (f.feature_type != "cut") {
@@ -325,10 +326,10 @@ std::vector<ElementFeature> Plate::face_features() const {
 
     static const std::vector<Polyline> none;
     std::vector<ElementFeature> out;
-    const size_t face_count = std::max(joint_types.size(), size_t{2});
+    const size_t face_count = std::max(feature_types.size(), size_t{2});
     for (size_t face = 0; face < face_count; face++) {
 
-        const int type = face < joint_types.size() ? joint_types[face] : -1;
+        const int type = face < feature_types.size() ? feature_types[face] : -1;
         const std::vector<Polyline>& outlines = face == 0 ? features.bottom : (face == 1 ? features.top : none);
         if (type < 0 && outlines.empty())
             continue;
@@ -356,12 +357,11 @@ AABB Plate::aabb(double inflate) const {
 }
 
 nlohmann::ordered_json Plate::element_data_jsondump() const {
-    return nlohmann::ordered_json{
-        {"bottom", polylines.size() > 0 ? polylines[0].jsondump() : nlohmann::ordered_json(nullptr)},
-        {"reversed", reversed},
-        {"top", polylines.size() > 1 ? polylines[1].jsondump() : nlohmann::ordered_json(nullptr)},
-        {"type", std::string(ELEMENT_TYPE)},
-    };
+
+    wood_proto::Plate proto;
+    proto.ParseFromString(element_data_dumps());
+
+    return json_of(proto);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

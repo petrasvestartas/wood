@@ -67,7 +67,7 @@ namespace config {
         static constexpr std::string_view vda_floor_1 = "vda_floor_1";
         static constexpr std::string_view cross_brg_slab_0 = "cross_brg_slab_0";
 
-        /// Ordinary plate outlines: compute_face_contacts / compute_joints(face_to_face).
+        /// Ordinary plate outlines: compute_face_contacts / compute_features(face_to_face).
         struct Face {
             static constexpr std::string_view hexbox_and_corner = Dataset::hexbox_and_corner;
             static constexpr std::string_view vidy_corner = Dataset::vidy_corner;
@@ -106,7 +106,7 @@ namespace config {
             static constexpr std::string_view vda_floor_1 = Dataset::vda_floor_1;
         };
 
-        /// Plate outlines whose solved joints include type-30 crossings: compute_cross_contacts / compute_joints(cross_joint).
+        /// Plate outlines whose solved joints include type-30 crossings: compute_cross_contacts / compute_features(cross_joint).
         struct Cross {
             static constexpr std::string_view cross_and_sides_corner = Dataset::cross_and_sides_corner;
             static constexpr std::string_view cross_corners = Dataset::cross_corners;
@@ -173,18 +173,4 @@ namespace config {
     /// True iff data/<name>.obj exists.
     bool plates_exist(const std::string& name);
 
-    /// Adjacent pairs from the adjacency sidecar, `a b` per line; empty when there is no sidecar.
-    std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_name);
-
-    /// Insertion vectors from the sidecar, one element per line as `x y z ...`; `count` rows, empty ones for elements the sidecar does not name.
-    std::vector<std::vector<session_cpp::Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count);
-
-    /// Per-face joint type ids from the sidecar, one element per line; `count` rows, empty ones for elements the sidecar does not name.
-    std::vector<std::vector<int>> load_joint_types(const std::string& joint_types_name, size_t count);
-
-    /// Three-valence groups from the sidecar: the first row [instruction], then [s0, s1, e20, e31] rows; empty when there is no sidecar.
-    std::vector<std::vector<int>> load_three_valence(const std::string& three_valence_name);
-
-    /// The polylines of data/<name>.obj or an .obj path: plate outline pairs, or one beam axis each; duplicate_points_tolerance > 0 removes consecutive duplicate points.
-    std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_points_tolerance = 0.0);
 }} // namespace wood_session::config

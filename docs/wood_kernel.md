@@ -16,10 +16,10 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`, `Dataset::` names, `load_yaml`, `reset_defaults`, dataset paths, `load_obj`, the sidecar loaders |
 | `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `ContactCross`) over kernel elements |
 | `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate` |
-| `src/joinery_solver/wood_algorithms/wood_feature_solver.cpp` | `WoodSession::compute_joints` pipeline: `adjacent_pairs`, `detect_joints`, `build_joint_geometry`, `merge_joints`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
+| `src/joinery_solver/wood_algorithms/wood_feature_solver.cpp` | `WoodSession::compute_features` pipeline: `adjacent_pairs`, `detect_features`, `build_feature_geometry`, `merge_features`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
 | `src/joinery_solver/wood_algorithms/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints.h`, `wood_interaction_feature_plate_joints/*.h` | aggregator + one static constructor per joint variant, `tt_e_p_*` and `side_removal` included |
-| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_joint`, `get_joints`), `SearchType`, `type_plates_name_*` decls |
+| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_feature`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.cpp` | dataset runners; `WoodSession::assign_joint_types` and `assign_insertion_vectors` are the point and line to face-slot assignment |
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
@@ -42,7 +42,7 @@ constructor runs it).
 
 | Class | File | Tag | Holds |
 |---|---|---|---|
-| `Plate` | `wood_element_plate.h` | `"Plate"` (legacy `"WoodElement"`) | `polylines` ([0] bottom, [1] top, [2..] sides), `planes` (one per outline), `joint_types` (per face; empty = auto), `reversed`, `thickness`, `features` (`Features{top, bottom}`: merged cut outlines, [0] outer, [1..] holes), `insertion_vectors()` |
+| `Plate` | `wood_element_plate.h` | `"Plate"` (legacy `"WoodElement"`) | `polylines` ([0] bottom, [1] top, [2..] sides), `planes` (one per outline), `feature_types` (per face; empty = auto), `reversed`, `thickness`, `features` (`Features{top, bottom}`: merged cut outlines, [0] outer, [1..] holes), `insertion_vectors()` |
 | `Column` | `wood_element_column.h` | `"Column"` | `axis` (Line), `section` (Polyline), mesh solid |
 | `Block` | `wood_element_block.h` | `"Solid"` (legacy `"BlockElement"`) | one n-gon face per loop; contact detection only |
 
@@ -66,7 +66,7 @@ opt-in: the file keeps the mesh. `Plate::face_features()` emits one `ElementFeat
 Fields that matter downstream:
 
 - `element_a` / `element_b` — guids; a is male, b female (the solver may swap). `index_of(elements, guid)` maps to a position.
-- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `WoodSession::add_joint` stores the whole record on the pair's interaction.
+- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `WoodSession::add_feature` stores the whole record on the pair's interaction.
 - `joint_type` — 11/12/13/20/30/40 (solver vocabulary, see below).
 - `joint_lines[2]`, `joint_volumes[4]` (optional quads; [0],[1] male, [2],[3] female).
 - `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `male_fabrication_types` / `female_fabrication_types` — one `FabricationType` per outline.
@@ -111,14 +111,14 @@ cut_projectsheer=11, cut_reverse=12, conic=13, conic_reverse=14, drill=15`. An e
 | `face_to_face_side_to_side_joints_dihedral_angle` / `_all_treated_as_rotated` / `_rotated_joint_as_average` | `FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_*` | 11-vs-13 split (degrees) and the rotated branch switches |
 | `clipper_scale`, `clipper_area` | `CLIPPER_SCALE`, `CLIPPER_AREA` | int64 grid (1e6) and minimum overlap area for `face_overlap_area` |
 | `obj`, `adjacency`, `three_valence`, `insertion_vectors`, `joints_types` | `DATA_SET_OBJ`, `DATA_SET_ADJACENCY`, … | sidecar files, resolved relative to the yml; empty = derive |
-| `search_type` | `SEARCH_TYPE` | `face_to_face`, `cross_joint` or `face_to_face_then_cross`; the default of `compute_joints()` |
+| `search_type` | `SEARCH_TYPE` | `face_to_face`, `cross_joint` or `face_to_face_then_cross`; the default of `compute_features()` |
 | `beams` | `BEAMS` | beam datasets only: radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male |
 
 `config::Dataset::<name>` (and `Dataset::Face::` / `::Cross::` / `::Curves::`) give every
 dataset name as a constant; `DATASET_NAMES` is the sweep order. `reset_defaults()` restores the
 baseline; `load_yaml` calls it first. `CUSTOM_JOINTS_*` are runtime-only (not in yml).
 
-## 3. Detection pipeline (`WoodSession::compute_joints`, `wood_joint_solver.cpp`)
+## 3. Detection pipeline (`WoodSession::compute_features`, `wood_joint_solver.cpp`)
 
 ```cpp
 std::vector<FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
@@ -253,10 +253,10 @@ How wood uses it (`wood_session.h/.cpp`):
   (pairs consecutive OBJ loops bottom/top), one `Plate` per pair added by guid.
 - `compute_contacts()` / `compute_face_contacts()` → `face_contacts` over every element type;
   `compute_cross_contacts()` → `plane_to_face`; `compute_line_contacts()`.
-- `compute_joints(search_type)` → `get_connection_zones` on `plates()` in place, then
+- `compute_features(search_type)` → `get_connection_zones` on `plates()` in place, then
   `compute_geometry()` on each plate, then each joint onto its pair's graph edge as a
   `WoodInteraction{contacts, joints}` attribute (`get_interaction` / `set_interaction`).
-- `compute_joints` ends with `sync_joint_features()`: every joint's two `ElementFeature`s go back
+- `compute_features` ends with `sync_joint_features()`: every joint's two `ElementFeature`s go back
   onto their host elements, so `pb_dump` right after it writes them.
 - `add_to_tree(geometry, outlines, contacts, joints)` arranges the viewer tree: one group per
   element (`<name>_<index>`) holding the element's node, an `outlines` child group (a plate's

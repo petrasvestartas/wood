@@ -24,7 +24,7 @@ tools/run_guarded.sh -t 10 -m 4 -- build/3_joint_detection
 using namespace wood_session;
 
 WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
-scene.compute_joints();      // search type and every tunable come from the yml
+scene.compute_features();      // search type and every tunable come from the yml
 scene.add_to_tree();         // one group per plate: the plate, its outlines, its contacts, its joints
 scene.pb_dump(pb_path("live").string());   // the file session_viewer watches
 ```
@@ -40,7 +40,7 @@ columns and blocks as the classes below, through the kernel's element registry.
 | `pb_load(name)` | data/`name`.pb, elements rebuilt as `Plate` / `Column` / `Block` |
 | `compute_contacts()` | coplanar face overlaps between every pair, onto the graph edges |
 | `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
-| `compute_joints(search)` | the solver over the plates, in place; the plates stay outlines, nothing is lofted |
+| `compute_features(search)` | the solver over the plates, in place; the plates stay outlines, nothing is lofted |
 | `add_to_tree(geometry, outlines, contacts, joints)` | one group per element with those child groups; each flag adds or leaves out that part |
 | `pb_dump(pb_path(name))` | lofts every plate not yet lofted, then the kernel's writer; `write_parity_dumps(scene, pb)` adds the outline dumps the sweep is diffed against |
 

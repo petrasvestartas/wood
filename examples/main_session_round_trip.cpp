@@ -61,7 +61,7 @@ int main() {
     WoodSession a = WoodSession::pb_load(config::SESSION_NAMES[SESSION]);
     const int vertices_before = a.graph.number_of_vertices();
     a.compute_contacts();
-    a.compute_joints();
+    a.compute_features();
 
     a.sync_joint_features();
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
@@ -142,8 +142,8 @@ int main() {
 
     check(encoded, "Interaction round-trips through its own JSON and protobuf");
 
-    const std::vector<FeaturePlate> joints_a = a.get_joints();
-    const std::vector<FeaturePlate> joints_b = b.get_joints();
+    const std::vector<FeaturePlate> joints_a = a.get_plate_features();
+    const std::vector<FeaturePlate> joints_b = b.get_plate_features();
     check(joints_a.size() == joints_b.size(), fmt::format("joint count ({})", joints_a.size()));
     bool joints_ok = joints_a.size() == joints_b.size();
 

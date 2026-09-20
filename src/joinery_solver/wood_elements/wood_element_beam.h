@@ -56,7 +56,7 @@ public:
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The axis, radii, directions and allowed type as JSON, with type; what element_data carried before it became protobuf, still read.
+    /// The axis, radii, directions and allowed type as JSON, with type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════

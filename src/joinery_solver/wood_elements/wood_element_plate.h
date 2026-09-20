@@ -20,8 +20,8 @@ public:
     std::vector<session_cpp::Plane> planes; // One plane per outline, normals pointing out of the plate.
     double thickness = 0.0; // Distance between the bottom and the top plane.
     bool reversed = false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
-    Features features; // Merged cut outlines after compute_joints; empty before. Call invalidate_geometry() after assigning.
-    std::vector<int> joint_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide. The annen and vidy datasets only.
+    Features features; // Merged cut outlines after compute_features; empty before. Call invalidate_geometry() after assigning.
+    std::vector<int> feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide. The annen and vidy datasets only.
 
 private:
     mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of compute_element_geometry_mesh().
@@ -105,7 +105,7 @@ public:
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The outline payload as JSON: bottom, reversed, top, type; what element_data carried before it became protobuf, still read.
+    /// The outline payload as JSON: bottom, reversed, top, type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_feature.h"
 #include "interaction_feature.pb.h"
 using namespace session_cpp;
@@ -39,32 +40,22 @@ std::string_view InteractionFeature::kind() const {
 // InteractionFeature - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json InteractionFeature::jsondump() const {
-    return nlohmann::ordered_json{
-        {"type", "InteractionFeature"},
-        {"guid", guid},
-        {"contact", contact},
-        {"kind", std::string(kind())},
-        {"data", std::visit([](const auto& kind) { return kind.jsondump(); }, data)},
-    };
+
+    wood_proto::InteractionFeature proto;
+    proto.ParseFromString(pb_dumps());
+
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 InteractionFeature InteractionFeature::jsonload(const nlohmann::json& data) {
 
-    InteractionFeature feature;
-    feature.guid = data.value("guid", std::string());
-    feature.contact = data.value("contact", -1);
+    wood_proto::InteractionFeature proto;
+    message_from_json(data, proto);
 
-    const std::string kind = data.value("kind", std::string("plate"));
-    const nlohmann::json& body = data.contains("data") ? data["data"] : nlohmann::json::object();
-    if (kind == "beam")
-        feature.data = FeatureBeam::jsonload(body);
-    else if (kind == "plate_beam")
-        feature.data = FeaturePlateBeam::jsonload(body);
-    else
-        feature.data = FeaturePlate::jsonload(body);
-
-    return feature;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

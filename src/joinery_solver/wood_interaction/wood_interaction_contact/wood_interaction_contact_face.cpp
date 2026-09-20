@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_contact_face.h"
 #include "interaction_contact_face.pb.h"
 using namespace session_cpp;
@@ -34,26 +35,22 @@ bool ContactFace::coincides(const ContactFace& other) const {
 // ContactFace - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The protobuf message, printed.
 nlohmann::ordered_json ContactFace::jsondump() const {
-    return nlohmann::ordered_json{
-        {"type", "ContactFace"},
-        {"face_a", face_a},
-        {"face_b", face_b},
-        {"contact_type", static_cast<int>(type)},
-        {"polygon", polygon.jsondump()},
-    };
+
+    wood_proto::ContactFace proto;
+    proto.ParseFromString(pb_dumps());
+
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 ContactFace ContactFace::jsonload(const nlohmann::json& data) {
 
-    ContactFace contact;
-    contact.face_a = data.value("face_a", -1);
-    contact.face_b = data.value("face_b", -1);
-    contact.type = static_cast<ContactType>(data.value("contact_type", -1));
-    if (data.contains("polygon"))
-        contact.polygon = Polyline::jsonload(data["polygon"]);
+    wood_proto::ContactFace proto;
+    message_from_json(data, proto);
 
-    return contact;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

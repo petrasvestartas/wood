@@ -9,12 +9,14 @@
 #include "wood_config.h"
 #include "wood_feature_construction.h"
 #include "wood_interaction.h"
+#include "wood_io.h"
+#include "wood_view.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place with `settings`, the sidecars the config names apply, and every detected joint is returned.
+/// WoodSession::compute_features over loose plates, for callers without a scene: the plates are solved in place with `settings`, the sidecars the config names apply, and every detected joint is returned.
 std::vector<wood_session::FeaturePlate> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         const wood_session::Settings& settings = wood_session::Settings(),
@@ -22,16 +24,18 @@ std::vector<wood_session::FeaturePlate> get_connection_zones(
 
 namespace wood_session {
 
+using io::pb_path;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each key an Interaction: every contact and joint between two elements is a record in `interactions`, found by the edge's guid, and the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh(), the plate with its joints cut in, the one to inspect. compute_joints() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
+/// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each key an Interaction: every contact and joint between two elements is a record in `interactions`, found by the edge's guid, and the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh(), the plate with its joints cut in, the one to inspect. compute_features() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
 class WoodSession : public session_cpp::Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
     std::map<std::string, Interaction> interactions; // The store: one record per graph edge, by the edge's guid.
-    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_joints classifies; empty lets adjacent_pairs() search. The adjacency sidecar fills it.
+    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. The adjacency sidecar fills it.
     std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. The three_valence sidecar fills it.
 
 private:
@@ -95,11 +99,11 @@ public:
     /// A FeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over the plates, in place: load_sidecars, adjacent_pairs, detect_joints, the three-valence links, build_joint_geometry, merge_joints; every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
-    std::vector<FeaturePlate> compute_joints();
+    /// The joinery pipeline over the plates, in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
+    std::vector<FeaturePlate> compute_features();
 
-    /// compute_joints with the detection pass given instead of read from the settings.
-    std::vector<FeaturePlate> compute_joints(SearchType search_type);
+    /// compute_features with the detection pass given instead of read from the settings.
+    std::vector<FeaturePlate> compute_features(SearchType search_type);
 
     /// The four sidecars the dataset yml names onto the scene: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate that carries none.
     void load_sidecars();
@@ -108,13 +112,13 @@ public:
     std::vector<std::pair<int, int>> adjacent_pairs() const;
 
     /// face_to_face_wood on every pair, joints in pair order; a plate whose faces detection swapped is swapped in place.
-    std::vector<FeaturePlate> detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
+    std::vector<FeaturePlate> detect_features(const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
 
-    /// Unit joinery geometry and its orientation for every joint, in order; joint_types is the per-plate per-face id table, empty rows let the solver decide.
-    void build_joint_geometry(std::vector<FeaturePlate>& joints, const std::vector<std::vector<int>>& joint_types);
+    /// Unit joinery geometry and its orientation for every joint, in order; feature_types is the per-plate per-face id table, empty rows let the solver decide.
+    void build_feature_geometry(std::vector<FeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types);
 
     /// Merges every joint's cut outlines into its two plates' features.
-    void merge_joints(std::vector<FeaturePlate>& joints);
+    void merge_features(std::vector<FeaturePlate>& joints);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Interactions
@@ -139,7 +143,7 @@ public:
     std::string add_contact(const std::string& a, const std::string& b, InteractionContact contact);
 
     /// Stores a solved joint on its pair's interaction: the contact it was solved from (a ContactCross for a cross joint), then the FeaturePlate with its two element features, both oriented to the edge; returns the feature's guid.
-    std::string add_joint(const FeaturePlate& joint);
+    std::string add_feature(const FeaturePlate& joint);
 
     /// True when every feature has a guid and a contact index, and every plate feature's own copy of its pair and contact agrees with the edge and the stored contact.
     bool consistent() const;
@@ -151,7 +155,7 @@ public:
     std::vector<InteractionFeature> get_features() const;
 
     /// Every plate feature as a working joint: the pair from its edge, the contact from its interaction, the features and their guids.
-    std::vector<FeaturePlate> get_joints() const;
+    std::vector<FeaturePlate> get_plate_features() const;
 
     /// The joint features the interactions hold for one element: the side of each feature whose host it is.
     std::vector<session_cpp::ElementFeature> get_element_features(const std::string& guid) const;
@@ -159,20 +163,12 @@ public:
     /// Puts every joint feature the interactions hold back on its host element, replacing the previous ones.
     void sync_joint_features();
 
-    /// Arranges the scene for the viewer, one group per element: the element itself, then `outlines`, `contacts` and `joints` child groups, each flag adding or leaving out that part; pb_dump writes it.
+    /// wood_view's add_to_tree on this scene.
     void add_to_tree(bool with_geometry = true, bool with_outlines = true, bool with_contacts = true, bool with_joints = true);
 
     /// Lofts every plate whose Element slot is stale, so the file carries the model geometry; the plates stay unlofted until this runs.
     void sync_geometry() const;
 
-private:
-    /// Every contact as a coloured ring or region under the `contacts` group of its first element.
-    void add_contacts_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
-
-    /// Every joint's area, volumes, lines and male cuts under the `joints` group of its male element, the female cuts under the female's.
-    void add_joints_to(const std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& groups, std::map<std::string, std::shared_ptr<session_cpp::TreeNode>>& children);
-
-public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
@@ -241,23 +237,6 @@ public:
     /// Every element's guid in objects.elements order: the index space detection works in.
     std::vector<std::string> element_guids() const;
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Assignment - the sidecar tables filled from points and lines placed on the plates
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// Every plate's joint_types reset to -1 per slot (bottom, top, one per side), then each point's type written into the slot of every plate whose nearest outline segment lies within 10 x config::DISTANCE: a negative type names the bottom or top face, a positive one the side; the absolute value is stored.
-    void assign_joint_types(const std::vector<session_cpp::Point>& points, const std::vector<int>& types);
-
-    /// Every plate's insertion vectors reset to zero per slot, then each line's vector written into the side slot of every plate whose outline segment nearest the line start lies within 10 x config::DISTANCE.
-    void assign_insertion_vectors(const std::vector<session_cpp::Line>& lines);
-
-private:
-    /// The slot of a plate nearest to a point, bottom 0, top 1, sides from 2, or -1 when it lies farther than sqrt(threshold); `faces` picks the face slot instead of the side slot.
-    static int nearest_slot(const Plate& plate, const session_cpp::Point& point, double threshold, bool faces);
-
-    /// An r-tree over the plates' boxes inflated by radius, keyed by position; plates without outlines are left out.
-    session_cpp::SpatialRTree<int, double, 3> plate_rtree(const std::vector<std::shared_ptr<Plate>>& plates, double radius) const;
-
     /// Drops every contact of one kind ("face", "axis", "cross") from every interaction, so a recompute of that kind replaces rather than accumulates; the features' contact indices follow.
     void erase_contacts(std::string_view kind);
 
@@ -265,166 +244,4 @@ private:
     void index_edges();
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Writing a scene
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// data/output/pb/<name>.pb, with the directory created; "live" is the file session_viewer watches.
-std::filesystem::path pb_path(const std::string& name);
-
-/// <pb>_meta.txt and <pb>_coords.txt beside a dataset's .pb: every plate's merged outlines, the parity record a refactor is diffed against.
-void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Colours
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// "side_side" / "side_top" / "top_top" / "unknown" - the group name a face contact of that class is filed under.
-std::string_view contact_type_name(ContactType type);
-
-/// "ss_ip_12" / "ss_op_11" / "ss_rot_13" / "ts_20" / "cross_30" / "tt_40", or "type_<n>" for a code the table does not name.
-std::string joint_type_name(int joint_type);
-
-/// The colour of a face contact class: the colour of the joint type it refines to, grey when unknown.
-session_cpp::Color contact_color(ContactType type);
-
-/// The colour of a joint type: 12 navy, 11 orange, 13 deep pink, 20 pink, 40 green, 30 yellow, grey otherwise.
-session_cpp::Color joint_color(int joint_type);
-
 } // namespace wood_session
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Datasets as tests
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// data/hexbox_and_corner.yml through run_dataset; false on failure.
-bool type_plates_name_hexbox_and_corner();
-
-/// data/vidy_corner.yml through run_dataset; false on failure.
-bool type_plates_name_joint_linking_vidychapel_corner();
-
-/// data/vidy_one_layer.yml through run_dataset; false on failure.
-bool type_plates_name_joint_linking_vidychapel_one_layer();
-
-/// data/vidy_one_axis_two_layers.yml through run_dataset; false on failure.
-bool type_plates_name_joint_linking_vidychapel_one_axis_two_layers();
-
-/// data/vidy_full.yml through run_dataset; false on failure.
-bool type_plates_name_joint_linking_vidychapel_full();
-
-/// data/inplane_butterflies.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_2_butterflies();
-
-/// data/inplane_hexshell.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_hexshell();
-
-/// data/inplane_differentdirections.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_differentdirections();
-
-/// data/vidy_folding.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_folding();
-
-/// data/outofplane_box.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_box();
-
-/// data/outofplane_box_miter.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_box_miter();
-
-/// data/outofplane_tetra.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_tetra();
-
-/// data/outofplane_dodecahedron.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_dodecahedron();
-
-/// data/outofplane_icosahedron.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_icosahedron();
-
-/// data/outofplane_octahedron.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_octahedron();
-
-/// data/simple_corners.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners();
-
-/// data/simple_corners_combined.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined();
-
-/// data/simple_corners_diff_lengths.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
-
-/// data/inplane_hilti.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_inplane_hilti();
-
-/// data/top_to_top_pairs.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_top_pairs();
-
-/// data/hexboxes.yml through run_dataset; false on failure.
-bool type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes();
-
-/// data/hex_block_rossiniere.yml through run_dataset; false on failure.
-bool type_plates_name_hex_block_rossiniere();
-
-/// data/top_to_side_snap_fit.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_snap_fit();
-
-/// data/top_to_side_box.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_box();
-
-/// data/top_to_side_corners.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_corners();
-
-/// data/annen_corner.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_corner();
-
-/// data/annen_box.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box();
-
-/// data/annen_box_pair.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_box_pair();
-
-/// data/annen_grid_small.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_small();
-
-/// data/annen_grid_full_arch.yml through run_dataset; false on failure.
-bool type_plates_name_top_to_side_and_side_to_side_outofplane_annen_grid_full_arch();
-
-/// data/vda_floor_0.yml through run_dataset; false on failure.
-bool type_plates_name_vda_floor_0();
-
-/// data/vda_floor_2.yml through run_dataset; false on failure.
-bool type_plates_name_vda_floor_2();
-
-/// data/cross_and_sides_corner.yml through run_dataset; false on failure.
-bool type_plates_name_cross_and_sides_corner();
-
-/// data/cross_corners.yml through run_dataset; false on failure.
-bool type_plates_name_cross_corners();
-
-/// data/cross_vda_corner.yml through run_dataset; false on failure.
-bool type_plates_name_cross_vda_corner();
-
-/// data/cross_vda_hexshell.yml through run_dataset; false on failure.
-bool type_plates_name_cross_vda_hexshell();
-
-/// data/cross_vda_hexshell_reciprocal.yml through run_dataset; false on failure.
-bool type_plates_name_cross_vda_hexshell_reciprocal();
-
-/// data/cross_vda_single_arch.yml through run_dataset; false on failure.
-bool type_plates_name_cross_vda_single_arch();
-
-/// data/cross_vda_shell.yml through run_dataset; false on failure.
-bool type_plates_name_cross_vda_shell();
-
-/// data/cross_square_reciprocal_two_sides.yml through run_dataset; false on failure.
-bool type_plates_name_cross_square_reciprocal_two_sides();
-
-/// data/cross_square_reciprocal_iseya.yml through run_dataset; false on failure.
-bool type_plates_name_cross_square_reciprocal_iseya();
-
-/// data/cross_ibois_pavilion.yml through run_dataset; false on failure.
-bool type_plates_name_cross_ibois_pavilion();
-
-/// data/cross_brussels_sports_tower.yml through run_dataset; false on failure.
-bool type_plates_name_cross_brussels_sports_tower();
-
-/// data/phanomema_node.yml through Beam::joint_volumes; false on failure.
-bool type_beams_name_phanomema_node();

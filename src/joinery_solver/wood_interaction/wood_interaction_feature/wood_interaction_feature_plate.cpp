@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_serialization.h"
 #include "wood_interaction_feature_plate.h"
 #include "interaction_feature_plate.pb.h"
 using namespace session_cpp;
@@ -65,142 +66,22 @@ std::array<ElementFeature, 2> FeaturePlate::to_features() const {
 // FeaturePlate - JSON
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Rings as an array of kernel polylines.
-static nlohmann::ordered_json rings_json(const std::vector<Polyline>& rings) {
-
-    nlohmann::ordered_json array = nlohmann::ordered_json::array();
-    for (const Polyline& ring : rings)
-        array.push_back(ring.jsondump());
-
-    return array;
-}
-
-/// Rings read back from an array of kernel polylines.
-static std::vector<Polyline> rings_from_json(const nlohmann::json& data) {
-
-    std::vector<Polyline> rings;
-    for (const nlohmann::json& ring : data)
-        rings.push_back(Polyline::jsonload(ring));
-
-    return rings;
-}
-
+/// The protobuf message, printed.
 nlohmann::ordered_json FeaturePlate::jsondump() const {
 
-    using nlohmann::ordered_json;
+    wood_proto::FeaturePlate proto;
+    proto.ParseFromString(pb_dumps());
 
-    ordered_json volumes = ordered_json::array();
-    for (const std::optional<Polyline>& v : joint_volumes)
-        volumes.push_back(v.has_value() ? v->jsondump() : ordered_json(nullptr));
-
-    ordered_json seq = ordered_json::array();
-    for (const std::vector<std::array<int, 4>>& group : linked_joints_seq) {
-        ordered_json g = ordered_json::array();
-        for (const std::array<int, 4>& q : group)
-            g.push_back({q[0], q[1], q[2], q[3]});
-        seq.push_back(g);
-    }
-
-    return ordered_json{
-        {"type", "FeaturePlate"},
-        {"guid", guid},
-        {"element_a", element_a},
-        {"element_b", element_b},
-        {"contact", contact.jsondump()},
-        {"joint_type", joint_type},
-        {"name", name},
-        {"cross_faces", {cross_faces[0], cross_faces[1]}},
-        {"joint_lines", {joint_lines[0].jsondump(), joint_lines[1].jsondump()}},
-        {"joint_volumes", volumes},
-        {"male_outlines", {rings_json(male_outlines[0]), rings_json(male_outlines[1])}},
-        {"female_outlines", {rings_json(female_outlines[0]), rings_json(female_outlines[1])}},
-        {"male_fabrication_types", {male_fabrication_types[0], male_fabrication_types[1]}},
-        {"female_fabrication_types", {female_fabrication_types[0], female_fabrication_types[1]}},
-        {"divisions", divisions},
-        {"shift", shift},
-        {"length", length},
-        {"division_length", division_length},
-        {"scale", {scale[0], scale[1], scale[2]}},
-        {"unit_scale", unit_scale},
-        {"unit_scale_distance", unit_scale_distance},
-        {"linked_joints", linked_joints},
-        {"linked_joints_seq", seq},
-        {"link", link},
-        {"no_orient", no_orient},
-        {"element_features", {to_features()[0].jsondump(), to_features()[1].jsondump()}},
-    };
+    return json_of(proto);
 }
 
+/// The protobuf message, parsed.
 FeaturePlate FeaturePlate::jsonload(const nlohmann::json& data) {
 
-    FeaturePlate j;
-    j.guid = data.value("guid", std::string());
-    j.element_a = data.value("element_a", std::string());
-    j.element_b = data.value("element_b", std::string());
-    if (data.contains("contact"))
-        j.contact = ContactFace::jsonload(data["contact"]);
-    j.joint_type = data.value("joint_type", 0);
-    j.name = data.value("name", std::string());
-    if (data.contains("cross_faces"))
-        j.cross_faces = {data["cross_faces"][0], data["cross_faces"][1]};
+    wood_proto::FeaturePlate proto;
+    message_from_json(data, proto);
 
-    if (data.contains("joint_lines")) {
-        j.joint_lines[0] = Line::jsonload(data["joint_lines"][0]);
-        j.joint_lines[1] = Line::jsonload(data["joint_lines"][1]);
-    }
-
-    if (data.contains("joint_volumes")) {
-        size_t k = 0;
-        for (const nlohmann::json& v : data["joint_volumes"]) {
-            if (k >= 4)
-                break;
-            if (!v.is_null())
-                j.joint_volumes[k] = Polyline::jsonload(v);
-            ++k;
-        }
-    }
-
-    for (int face = 0; face < 2; ++face) {
-        if (data.contains("male_outlines"))
-            j.male_outlines[face] = rings_from_json(data["male_outlines"][face]);
-        if (data.contains("female_outlines"))
-            j.female_outlines[face] = rings_from_json(data["female_outlines"][face]);
-        if (data.contains("male_fabrication_types"))
-            j.male_fabrication_types[face] = data["male_fabrication_types"][face].get<std::vector<int>>();
-        if (data.contains("female_fabrication_types"))
-            j.female_fabrication_types[face] = data["female_fabrication_types"][face].get<std::vector<int>>();
-    }
-
-    j.divisions = data.value("divisions", 1);
-    j.shift = data.value("shift", 0.5);
-    j.length = data.value("length", 0.0);
-    j.division_length = data.value("division_length", 0.0);
-    if (data.contains("scale"))
-        j.scale = {data["scale"][0], data["scale"][1], data["scale"][2]};
-    j.unit_scale = data.value("unit_scale", false);
-    j.unit_scale_distance = data.value("unit_scale_distance", 0.0);
-
-    if (data.contains("linked_joints"))
-        j.linked_joints = data["linked_joints"].get<std::vector<std::string>>();
-
-    if (data.contains("linked_joints_seq")) {
-        for (const nlohmann::json& group : data["linked_joints_seq"]) {
-            std::vector<std::array<int, 4>> g;
-            for (const nlohmann::json& q : group)
-                g.push_back({q[0], q[1], q[2], q[3]});
-            j.linked_joints_seq.push_back(std::move(g));
-        }
-    }
-
-    j.link = data.value("link", false);
-    j.no_orient = data.value("no_orient", false);
-    if (data.contains("element_features"))
-        for (size_t k = 0; k < 2 && k < data["element_features"].size(); ++k) {
-            j.element_features[k] = ElementFeature::jsonload(data["element_features"][k]);
-            j.feature_guids[k] = data["element_features"][k].value("guid", std::string());
-        }
-
-    return j;
+    return pb_loads(proto.SerializeAsString());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
