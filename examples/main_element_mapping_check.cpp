@@ -20,7 +20,7 @@ int main() {
 
     const std::shared_ptr<Plate> we = std::make_shared<Plate>(bottom, top, "square");
     we->insertion_vectors() = {Vector(0,0,1), Vector(1,0,0)};
-    we->joint_types = {-1, 30, 11};
+    we->feature_types = {-1, 30, 11};
     we->features.bottom = {Polyline({Point(0.2,0.2,0.0), Point(0.4,0.2,0.0),
                                      Point(0.4,0.4,0.0), Point(0.2,0.4,0.0), Point(0.2,0.2,0.0)})};
     we->features.top    = {Polyline({Point(0.2,0.2,0.2), Point(0.4,0.2,0.2),
@@ -76,7 +76,7 @@ int main() {
           std::to_string(back->polylines.size()) + " outlines and planes");
     check(std::abs(back->thickness - we->thickness) < 1e-9, "thickness");
     check(back->reversed == we->reversed, "reversed flag");
-    check(back->joint_types == we->joint_types, "joint_types");
+    check(back->feature_types == we->feature_types, "feature_types");
     check(back->insertion_vectors().size() == 2, "insertion vectors");
     check(back->features.bottom.size() == 1 && back->features.top.size() == 1, "merged outlines per face");
 
@@ -96,9 +96,9 @@ int main() {
 
     const std::shared_ptr<Plate> pb = std::dynamic_pointer_cast<Plate>(Element::pb_loads_polymorphic(we->pb_dumps()));
     const std::shared_ptr<Plate> js = std::dynamic_pointer_cast<Plate>(Element::file_json_loads_polymorphic(we->file_json_dumps()));
-    check(pb && pb->guid() == guid && pb->polylines.size() == we->polylines.size() && pb->joint_types == we->joint_types,
+    check(pb && pb->guid() == guid && pb->polylines.size() == we->polylines.size() && pb->feature_types == we->feature_types,
           "Plate pb_dumps / pb_loads_polymorphic");
-    check(js && js->guid() == guid && js->polylines.size() == we->polylines.size() && js->joint_types == we->joint_types,
+    check(js && js->guid() == guid && js->polylines.size() == we->polylines.size() && js->feature_types == we->feature_types,
           "Plate file_json_dumps / file_json_loads_polymorphic");
 
     Block block(std::vector<Polyline>{bottom, top}, "two_loops");

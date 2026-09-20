@@ -1,20 +1,23 @@
-# Serialization
+# Serialization {#serialization}
 
 Every class has `pb_dumps` / `pb_loads`, and `jsondump` / `jsonload` derived from the same proto message through `wood_serialization`: the proto is the one schema.
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart LR
-    R[record in memory] -- pb_dumps --> M[wood_proto message bytes]
-    M -- pb_loads --> R
-    M -- json_of --> J[ordered JSON, proto field names, a type key]
-    J -- message_from_json --> M
-```
+    R[record in memory] -- pb_dumps --&gt; M[wood_proto message bytes]
+    M -- pb_loads --&gt; R
+    M -- json_of --&gt; J[ordered JSON, proto field names, a type key]
+    J -- message_from_json --&gt; M
+</pre>
+\endhtmlonly
 
 ## The file
 
 A scene file is a `wood_proto.WoodSession`. Fields 1 to 7 are `session_proto.Session` field for field, then `interactions` at field 100 and `settings` at 101. A reader that knows only the kernel Session opens the file and drops the two extra fields as unknown; `WoodSession::pb_load` reads all of it.
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart TB
     subgraph wood_proto.WoodSession
         direction TB
@@ -28,9 +31,10 @@ flowchart TB
         F100[100 interactions, in guid order]
         F101[101 settings]
     end
-    V[session_viewer, session_py, session_rust] -. read 1..7 .-> F1
-    W[WoodSession::pb_load] -. read all .-> F101
-```
+    V[session_viewer, session_py, session_rust] -. read 1..7 .-&gt; F1
+    W[WoodSession::pb_load] -. read all .-&gt; F101
+</pre>
+\endhtmlonly
 
 - Interactions are written as a repeated field in guid order, never a protobuf map, so the bytes are identical across languages.
 - The element payload the kernel carries opaquely in `element_data` is the class's own message (`wood_proto.Plate`, `Beam`, `Column`); a payload written in the kernel's JSON by older files is still read, the one hand-written JSON reader left.

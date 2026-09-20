@@ -48,7 +48,6 @@
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `FeatureBeam` each.
 - `pb_dump` lofts every stale plate and writes the `wood_proto.WoodSession`; `add_to_tree` (in `wood_view`) arranges elements, outlines, contacts and features into viewer groups.
 
-<!-- --8<-- [start:review] -->
 ## Architecture review
 
 ### What is right
@@ -79,4 +78,3 @@
 ### The layering, as it stands
 
 - `wood_elements` knows the kernel. `wood_interaction` knows elements. `wood_algorithms` knows both and takes every input by argument. `wood_session` orchestrates and stores; `wood_view` and `wood_io` sit beside it. Examples and templates sit on top. A grep of the includes shows no arrow pointing up.
-<!-- --8<-- [end:review] -->

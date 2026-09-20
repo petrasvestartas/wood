@@ -1,8 +1,9 @@
-# Connectivity
+# Connectivity {#connectivity}
 
 The graph says which elements are connected. A graph edge (a, b) carries no payload: its guid keys the interaction collection, `WoodSession::interactions`, a map from guid to `Interaction`. The edge is the only place the two element guids live; every record below refers to "the first element" (edge v0) and "the second element" (edge v1).
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 classDiagram
     direction LR
     class WoodSession {
@@ -45,14 +46,16 @@ classDiagram
     Interaction "1" o-- "*" InteractionContact
     Interaction "1" o-- "*" InteractionFeature
     Interaction "1" o-- "0..1" InteractionStructure
-    InteractionFeature ..> InteractionContact : contact index
-```
+    InteractionFeature ..&gt; InteractionContact : contact index
+</pre>
+\endhtmlonly
 
 `Interaction` is composition, not a base class: three attributes, each a list or an optional. The envelopes `InteractionContact` and `InteractionFeature` hold exactly one kind at a time, a `std::variant` in C++ and a `oneof` on the wire.
 
 ## Contacts
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 classDiagram
     direction LR
     class InteractionContact {
@@ -82,17 +85,18 @@ classDiagram
         array~Polyline,2~ volumes
     }
     class ContactType {
-        <<enumeration>>
+        &lt;&lt;enumeration&gt;&gt;
         unknown
         side_side
         side_top
         top_top
     }
-    InteractionContact --> ContactFace : one of
-    InteractionContact --> ContactAxis : one of
-    InteractionContact --> ContactCross : one of
-    ContactFace --> ContactType
-```
+    InteractionContact --&gt; ContactFace : one of
+    InteractionContact --&gt; ContactAxis : one of
+    InteractionContact --&gt; ContactCross : one of
+    ContactFace --&gt; ContactType
+</pre>
+\endhtmlonly
 
 - `ContactFace`: two face indices, the class, and `polygon`, the Clipper boolean intersection of the two face outlines, closed, in the first face's plane.
 - `ContactAxis`: the closest segment between two polylines (beam axes or plate outlines) and where its ends sit: the parameter and the polyline and segment index on each side.
@@ -100,7 +104,8 @@ classDiagram
 
 ## Features
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 classDiagram
     direction LR
     class InteractionFeature {
@@ -133,7 +138,7 @@ classDiagram
     }
     class FeaturePlateBeam
     class FabricationType {
-        <<enumeration>>
+        &lt;&lt;enumeration&gt;&gt;
         hole
         edge_insertion
         mill
@@ -141,11 +146,12 @@ classDiagram
         conic
         ...
     }
-    InteractionFeature --> FeaturePlate : one of
-    InteractionFeature --> FeatureBeam : one of
-    InteractionFeature --> FeaturePlateBeam : one of
-    FeaturePlate --> FabricationType : one per outline
-```
+    InteractionFeature --&gt; FeaturePlate : one of
+    InteractionFeature --&gt; FeatureBeam : one of
+    InteractionFeature --&gt; FeaturePlateBeam : one of
+    FeaturePlate --&gt; FabricationType : one per outline
+</pre>
+\endhtmlonly
 
 `FeaturePlate` is the joint: the pair (male `element_a`, female `element_b`), the `ContactFace` it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face with a `FabricationType` each, and the two `session_cpp::ElementFeature` handed to the host elements. The solver builds it in place and the interaction stores it whole. The joint library stays one function per variant, one header each; the variants differ by algorithm, not by data, so there is no subclass per joint.
 
@@ -153,4 +159,4 @@ classDiagram
 
 Only where the kernel forces it: `Plate`, `Beam`, `Column` and `Block` derive from `session_cpp::Element`, because `Session::pb_load` rebuilds them through the kernel's `element_type` registry. Everything on the edge side is data: no virtual method, no base class.
 
-See the [Interaction API](api/interaction.md) and the [Session API](api/session.md).
+See the `Interaction`, `InteractionContact`, `InteractionFeature` and `WoodSession` classes in the API.

@@ -10,10 +10,10 @@ namespace config {
     /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
     extern std::string DATA_SET_INPUT_FOLDER;
 
-    /// Every dataset shipped in data/ as <name>.yml, in sweep order.
+    /// Every dataset shipped in data/ as `<name>.yml`, in sweep order.
     extern const std::vector<std::string> DATASET_NAMES;
 
-    /// Every session shipped in data/ as <name>.pb.
+    /// Every session shipped in data/ as `<name>.pb`.
     extern const std::vector<std::string> SESSION_NAMES;
 
     /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
@@ -158,7 +158,7 @@ namespace config {
     /// Clears every dataset path above.
     void reset_defaults();
 
-    /// Load `data/<name>.yml` (or the given .yml path): its solver keys as Settings, its file keys into the dataset paths above.
+    /// Load ``data/<name>.yml`` (or the given .yml path): its solver keys as Settings, its file keys into the dataset paths above.
     Settings load_yaml(const std::string& dataset_name);
 
     /// The dataset folder, DATA_SET_INPUT_FOLDER; absolute, so the working directory does not matter.
@@ -167,10 +167,10 @@ namespace config {
     /// Absolute path to data/output/, created on first call.
     std::filesystem::path output_dir();
 
-    /// A bare name resolves to <session_data_dir>/<name><ext>; a path already ending in ext is returned as is.
+    /// A bare name resolves to `<session_data_dir>/<name><ext>`; a path already ending in ext is returned as is.
     std::filesystem::path dataset_path(const std::string& name, const std::string& ext);
 
-    /// True iff data/<name>.obj exists.
+    /// True iff `data/<name>.obj` exists.
     bool plates_exist(const std::string& name);
 
 }} // namespace wood_session::config

@@ -1,22 +1,24 @@
-# Pipeline
+# Pipeline {#pipeline}
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart TB
-    Y[yaml_load: settings, plates, sidecars] --> CC[compute_contacts]
-    Y --> CF[compute_features]
-    CC --> CD[wood_contact_detection: face, cross, axis contacts]
-    CD --> ST[(interactions: contacts)]
-    CF --> AP[adjacent_pairs: sidecar or OBB/BVH search]
-    AP --> FD[wood_feature_detection: one FeaturePlate per pair, Plate::flip when asked]
-    FD --> TV[wood_three_valence: shadow joints, annen alignment]
-    TV --> FC[wood_feature_construction + joint registry: unit outlines onto the volumes]
-    FC --> MM[wood_merge_modifier: cut outlines into each plate's features]
-    MM --> AF[add_feature: joint onto its interaction, ElementFeatures onto both hosts]
-    AF --> ST2[(interactions: features)]
-    ST2 --> PB[pb_dump: loft stale plates, write wood_proto.WoodSession]
-    ST --> PB
-    PB --> VW[add_to_tree: viewer groups]
-```
+    Y[yaml_load: settings, plates, sidecars] --&gt; CC[compute_contacts]
+    Y --&gt; CF[compute_features]
+    CC --&gt; CD[wood_contact_detection: face, cross, axis contacts]
+    CD --&gt; ST[(interactions: contacts)]
+    CF --&gt; AP[adjacent_pairs: sidecar or OBB/BVH search]
+    AP --&gt; FD[wood_feature_detection: one FeaturePlate per pair, Plate::flip when asked]
+    FD --&gt; TV[wood_three_valence: shadow joints, annen alignment]
+    TV --&gt; FC[wood_feature_construction + joint registry: unit outlines onto the volumes]
+    FC --&gt; MM[wood_merge_modifier: cut outlines into each plate's features]
+    MM --&gt; AF[add_feature: joint onto its interaction, ElementFeatures onto both hosts]
+    AF --&gt; ST2[(interactions: features)]
+    ST2 --&gt; PB[pb_dump: loft stale plates, write wood_proto.WoodSession]
+    ST --&gt; PB
+    PB --&gt; VW[add_to_tree: viewer groups]
+</pre>
+\endhtmlonly
 
 - `WoodSession::yaml_load` reads the dataset yml into the scene's `settings` and the dataset paths, the obj into plates, and the four sidecars onto the scene (`adjacency`, `three_valence`) and the plates (insertion vectors, feature types).
 - `compute_contacts` stores one `ContactFace` per overlapping face pair on the pair's interaction; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `ContactCross` and `ContactAxis` the same way.
@@ -25,13 +27,15 @@ flowchart TB
 
 ## The joint registry
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart LR
-    T[per-face id from the joints_types sidecar or the family default] --> L{library table: id to family and builder}
-    L -- found --> B[builder fills the FeaturePlate: outlines, fabrication types, unit scale]
-    L -- missing --> D[family default builder, warned once]
-    B --> O[orient onto the joint volumes]
-```
+    T[per-face id from the joints_types sidecar or the family default] --&gt; L{library table: id to family and builder}
+    L -- found --&gt; B[builder fills the FeaturePlate: outlines, fabrication types, unit scale]
+    L -- missing --&gt; D[family default builder, warned once]
+    B --&gt; O[orient onto the joint volumes]
+</pre>
+\endhtmlonly
 
 Families are id ranges of ten: 1-9 `ss_e_ip`, 10-19 `ss_e_op`, 20-29 `ts_e_p`, 30-39 `cr_c_ip`, 40-49 `tt_e_p`, 50-59 `ss_e_r`, 60-69 `b`. The table in `wood_feature_solver.cpp` is the only place ids are defined.
 

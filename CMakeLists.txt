@@ -212,6 +212,46 @@ ADD_EXE(main_chevron             examples/templates/main_chevron.cpp)
 ADD_EXE(main_reciprocal_rotation examples/templates/main_reciprocal_rotation.cpp)
 ADD_EXE(main_reciprocal_move     examples/templates/main_reciprocal_move.cpp)
 
+# Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
+# docstrings, src/docs.md as the main page and the pages under docs/; Doxygen only, no Python.
+find_package(Doxygen QUIET)
+if(DOXYGEN_FOUND)
+    set(DOXYGEN_PROJECT_NAME "Wood")
+    set(DOXYGEN_PROJECT_BRIEF "Timber joinery on the session kernel")
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md)
+    set(DOXYGEN_FILE_PATTERNS *.h *.md)
+    set(DOXYGEN_EXCLUDE_PATTERNS */docs/doxygen/*)
+    set(DOXYGEN_EXTRACT_ALL YES)
+    set(DOXYGEN_EXTRACT_STATIC YES)
+    set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+    set(DOXYGEN_MARKDOWN_SUPPORT YES)
+    set(DOXYGEN_TOC_INCLUDE_HEADINGS 3)
+    set(DOXYGEN_GENERATE_TREEVIEW YES)
+    set(DOXYGEN_DISABLE_INDEX NO)
+    set(DOXYGEN_FULL_SIDEBAR NO)
+    set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
+    set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
+    # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/.
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-sidebar-only.css)
+    set(DOXYGEN_HTML_EXTRA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js)
+    set(DOXYGEN_HTML_COLORSTYLE LIGHT)
+    set(DOXYGEN_HTML_DYNAMIC_SECTIONS NO)
+    set(DOXYGEN_SHOW_FILES YES)
+    set(DOXYGEN_SOURCE_BROWSER NO)
+    set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
+    set(DOXYGEN_QUIET YES)
+    set(DOXYGEN_HAVE_DOT NO)
+    doxygen_add_docs(docs
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
+        COMMENT "Doxygen: build/docs/html"
+    )
+endif()
+
 include(CTest)
 if(BUILD_TESTING)
     ADD_EXE(wood_assign_test tests/wood_assign_test.cpp)

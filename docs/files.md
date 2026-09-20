@@ -1,8 +1,9 @@
-# Files
+# Files {#files}
 
 The folders nest as the data does, one class per file, the file name spelling the path down the tree. Algorithms live apart from the data they produce and are named by what they produce.
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart TB
     subgraph src/joinery_solver
         direction TB
@@ -60,8 +61,9 @@ flowchart TB
     subgraph generated
         GN[committed protoc output]
     end
-    PR --> GN
-```
+    PR --&gt; GN
+</pre>
+\endhtmlonly
 
 | Folder or file | Holds |
 |---|---|
@@ -77,14 +79,16 @@ flowchart TB
 
 ## Include direction
 
-```mermaid
+\htmlonly
+<pre class="mermaid">
 flowchart LR
-    K[session kernel] --> E[wood_elements]
-    E --> I[wood_interaction]
-    I --> A[wood_algorithms]
-    A --> S[wood_session]
-    S --> V[wood_view / wood_io]
-    V --> X[examples and templates]
-```
+    K[session kernel] --&gt; E[wood_elements]
+    E --&gt; I[wood_interaction]
+    I --&gt; A[wood_algorithms]
+    A --&gt; S[wood_session]
+    S --&gt; V[wood_view / wood_io]
+    V --&gt; X[examples and templates]
+</pre>
+\endhtmlonly
 
 Every arrow points one way. A grep of the includes shows none pointing up.

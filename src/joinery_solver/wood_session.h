@@ -52,16 +52,16 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A session name (data/<name>.pb) or a .pb path; the elements come back as Plate / Column / Block / Beam and the interactions from field 100.
+    /// A session name (`data/<name>.pb`) or a .pb path; the elements come back as Plate / Column / Block / Beam and the interactions from field 100.
     static WoodSession pb_load(const std::filesystem::path& path);
 
     /// A scene from wood_proto.WoodSession bytes, which any Session reader also opens.
     static WoodSession pb_loads(const std::string& data);
 
-    /// A dataset name (data/<name>.obj) or an .obj path: one Plate per consecutive outline pair, even bottom, odd top; duplicate_pts_tol > 0 removes consecutive duplicate points.
+    /// A dataset name (`data/<name>.obj`) or an .obj path: one Plate per consecutive outline pair, even bottom, odd top; duplicate_pts_tol > 0 removes consecutive duplicate points.
     static WoodSession obj_load(const std::filesystem::path& path, double duplicate_pts_tol = 0.0);
 
-    /// A dataset name (data/<name>.yml) or a .yml path: its solver keys become the scene's settings, the obj it names its plates, its sidecars the adjacency, three-valence groups, insertion vectors and joint types.
+    /// A dataset name (`data/<name>.yml`) or a .yml path: its solver keys become the scene's settings, the obj it names its plates, its sidecars the adjacency, three-valence groups, insertion vectors and joint types.
     static WoodSession yaml_load(const std::filesystem::path& path);
 
     // ═══════════════════════════════════════════════════════════════════════════
