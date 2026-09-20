@@ -48,6 +48,18 @@ public:
     /// An empty scene with a name.
     explicit WoodSession(const std::string& name);
 
+    /// A copy whose records point at the copy.
+    WoodSession(const WoodSession& other);
+
+    /// A move whose records point at the moved-to scene.
+    WoodSession(WoodSession&& other) noexcept;
+
+    /// Copy-assign; the records point at this scene afterwards.
+    WoodSession& operator=(const WoodSession& other);
+
+    /// Move-assign; the records point at this scene afterwards.
+    WoodSession& operator=(WoodSession&& other) noexcept;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
@@ -242,6 +254,9 @@ public:
 
     /// The guid -> edge index over the graph, after a load or a merge.
     void index_edges();
+
+    /// Every stored record pointed at this scene, after a copy or a move.
+    void claim_records();
 };
 
 } // namespace wood_session

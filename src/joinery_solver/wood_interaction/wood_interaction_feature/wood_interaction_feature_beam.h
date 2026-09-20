@@ -4,10 +4,20 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// A beam-to-beam joint: the four volume rectangles cut where two axes meet, as Beam::joint_volumes builds them.
 struct FeatureBeam {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     int end_type = 0; // 0 crossing, 1 side to end, 2 end to end.
     std::array<session_cpp::Polyline, 4> volumes; // [0] and [1] on the first beam, [2] and [3] on the second.
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

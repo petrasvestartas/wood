@@ -99,6 +99,21 @@ int main() {
 
     check(a.interactions.size() == b.interactions.size(), fmt::format("interaction count ({})", a.interactions.size()));
     check(a.consistent() && b.consistent(), "every feature's own pair and contact agree with the edge and the stored contact, before and after the pb");
+
+    bool owned = true;
+    for (const WoodSession* scene : std::vector<const WoodSession*>{&a, &b})
+        for (const auto& [guid, interaction] : scene->interactions) {
+            owned = owned && &interaction.session() == scene;
+            for (const InteractionContact& contact : interaction.contacts)
+                owned = owned && &contact.session() == scene && (!contact.face() || &contact.face()->session() == scene);
+            for (const InteractionFeature& feature : interaction.features)
+                owned = owned && &feature.session() == scene && (!feature.plate() || &feature.plate()->session() == scene);
+        }
+
+    const WoodSession copy = a;
+    WoodSession moved = WoodSession(copy);
+    owned = owned && &copy.interactions.begin()->second.session() == &copy && &moved.interactions.begin()->second.features.front().session() == &moved;
+    check(owned, "every record answers session() with the scene it sits in: after the solve, after the file, after a copy and a move");
     bool records = true;
     size_t contact_count = 0;
     size_t feature_count = 0;

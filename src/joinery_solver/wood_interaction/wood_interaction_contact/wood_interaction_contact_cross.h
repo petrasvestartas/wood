@@ -4,13 +4,23 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// One crossing of two plates: where their side faces pass through each other, as plane_to_face computes it.
 struct ContactCross {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     std::array<int, 2> faces_a{-1, -1}; // The two side faces of the first element the crossing involves.
     std::array<int, 2> faces_b{-1, -1}; // The two side faces of the second element the crossing involves.
     session_cpp::Polyline polygon; // Closed quad on the mid-plane, 5 points.
     std::array<session_cpp::Polyline, 2> lines; // The two perpendicular centrelines of polygon, 2 points each.
     std::array<session_cpp::Polyline, 2> volumes; // The two parallel quads bounding the joint volume.
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

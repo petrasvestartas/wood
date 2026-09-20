@@ -4,8 +4,11 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// Where two polylines come closest, beam axes or plate outlines: the segment between the closest points and where its ends sit on each side.
 struct ContactAxis {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     session_cpp::Line segment; // From the closest point on the first element to the closest point on the second.
     double t_a = 0.0; // Parameter of the closest point along segment_a, 0..1.
     double t_b = 0.0; // Parameter of the closest point along segment_b, 0..1.
@@ -18,6 +21,13 @@ struct ContactAxis {
 
     /// A contact from its closest segment and where the ends sit.
     ContactAxis(session_cpp::Line segment, double t_a, double t_b, int polyline_a, int segment_a, int polyline_b, int segment_b);
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

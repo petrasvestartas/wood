@@ -135,6 +135,7 @@ classDiagram
     - `FeatureBeam` is a beam-to-beam joint: the end type (crossing, side to end, end to end) and the four volume rectangles.
     - `FeaturePlateBeam` is reserved, empty.
 - `InteractionStructure` is reserved, empty.
+- Every record knows its scene: `Interaction`, `InteractionContact`, `InteractionFeature` and each contact and feature kind answer `session()` with the `WoodSession` that stores them, and `has_session()` says whether they are stored yet. The scene stamps the pointer when a record is added and after a load, a copy or a move; it is never written to the file. Elements have the same through the kernel's `Element`.
 - Inheritance is used only where the kernel forces it: `Plate`, `Beam`, `Column` and `Block` derive from `session_cpp::Element`, because `Session::pb_load` rebuilds them through the kernel's `element_type` registry. Everything on the edge side is data: no virtual method, no base class.
 - The dataset sidecars are not a class of their own: `WoodSession::load_sidecars` puts the adjacency and the three-valence groups on the scene (`adjacency`, `three_valence`) and the insertion vectors and joint types on each plate. Detection reads the elements themselves; there is no detection view class.
 

@@ -37,6 +37,51 @@ WoodSession::WoodSession() { register_element_types(); }
 
 WoodSession::WoodSession(const std::string& name) : Session(name) { register_element_types(); }
 
+WoodSession::WoodSession(const WoodSession& other) : Session(other), settings(other.settings), interactions(other.interactions), adjacency(other.adjacency), three_valence(other.three_valence), _edges(other._edges) {
+    claim_records();
+}
+
+WoodSession::WoodSession(WoodSession&& other) noexcept : Session(std::move(other)), settings(std::move(other.settings)), interactions(std::move(other.interactions)), adjacency(std::move(other.adjacency)), three_valence(std::move(other.three_valence)), _edges(std::move(other._edges)) {
+    claim_records();
+}
+
+WoodSession& WoodSession::operator=(const WoodSession& other) {
+
+    if (this == &other)
+        return *this;
+
+    Session::operator=(other);
+    settings = other.settings;
+    interactions = other.interactions;
+    adjacency = other.adjacency;
+    three_valence = other.three_valence;
+    _edges = other._edges;
+    claim_records();
+
+    return *this;
+}
+
+WoodSession& WoodSession::operator=(WoodSession&& other) noexcept {
+
+    if (this == &other)
+        return *this;
+
+    Session::operator=(std::move(other));
+    settings = std::move(other.settings);
+    interactions = std::move(other.interactions);
+    adjacency = std::move(other.adjacency);
+    three_valence = std::move(other.three_valence);
+    _edges = std::move(other._edges);
+    claim_records();
+
+    return *this;
+}
+
+void WoodSession::claim_records() {
+    for (auto& [guid, interaction] : interactions)
+        interaction.set_session(this);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
@@ -70,8 +115,10 @@ WoodSession WoodSession::pb_loads(const std::string& data) {
     proto.ParseFromString(data);
     for (const wood_proto::Interaction& entry : proto.interactions()) {
         Interaction interaction = Interaction::pb_loads(entry.SerializeAsString());
-        if (scene._edges.count(interaction.guid))
+        if (scene._edges.count(interaction.guid)) {
+            interaction.set_session(&scene);
             scene.interactions[interaction.guid] = std::move(interaction);
+        }
     }
     if (proto.has_settings())
         scene.settings = Settings::pb_loads(proto.settings().SerializeAsString());
@@ -278,6 +325,7 @@ Interaction& WoodSession::add_interaction(const std::string& a, const std::strin
 
     Interaction& interaction = interactions[id];
     interaction.guid = id;
+    interaction.set_session(this);
 
     return interaction;
 }

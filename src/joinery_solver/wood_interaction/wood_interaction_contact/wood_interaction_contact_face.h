@@ -6,8 +6,11 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// Two coplanar faces in contact and the region they share; the elements are the edge the interaction sits on.
 struct ContactFace {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     int face_a = -1; // Face index on the edge's first element; -1 for a three-valence link that has no face.
     int face_b = -1; // Face index on the edge's second element.
     ContactType type = ContactType::unknown; // Topology class of the pair.
@@ -17,6 +20,13 @@ struct ContactFace {
 
     /// A contact from its faces, class and overlap.
     ContactFace(int face_a, int face_b, ContactType type, session_cpp::Polyline polygon);
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

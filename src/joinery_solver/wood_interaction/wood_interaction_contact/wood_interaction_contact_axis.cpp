@@ -6,6 +6,14 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+WoodSession& ContactAxis::session() const {
+
+    if (!_session)
+        throw std::logic_error("ContactAxis::session: the record is not in a scene");
+
+    return *_session;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ContactAxis - Constructors
 // ═══════════════════════════════════════════════════════════════════════════

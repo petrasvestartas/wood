@@ -6,8 +6,11 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry. The solver builds it in place; the interaction stores it whole.
 struct FeaturePlate {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     std::string guid; // Identity of the joint; minted by detection, the key its InteractionFeature is stored under.
     std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
     std::string element_b; // The female element, by guid.
@@ -37,6 +40,13 @@ struct FeaturePlate {
 
     /// An empty joint: type 0, one division, shift 0.5, unit scale off, zero-length lines.
     FeaturePlate();
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

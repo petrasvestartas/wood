@@ -8,12 +8,25 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// Everything between the two elements of one graph edge: where they touch, what was cut, how forces pass. The pair itself lives on the edge, whose guid is this record's key in WoodSession::interactions.
 struct Interaction {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     std::string guid; // The graph edge's guid.
     std::vector<InteractionContact> contacts; // Every place the pair touches.
     std::vector<InteractionFeature> features; // Every joint cut between the pair.
     std::optional<InteractionStructure> structure; // Empty until the structural pass exists.
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
+
+    /// Stores the scene on this record and on every contact and feature it holds; add_contact and add_feature pass it on.
+    void set_session(WoodSession* scene);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

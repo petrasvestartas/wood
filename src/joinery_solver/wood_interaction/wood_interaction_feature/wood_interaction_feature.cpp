@@ -6,6 +6,19 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+WoodSession& InteractionFeature::session() const {
+
+    if (!_session)
+        throw std::logic_error("InteractionFeature::session: the record is not in a scene");
+
+    return *_session;
+}
+
+void InteractionFeature::set_session(WoodSession* scene) {
+    _session = scene;
+    std::visit([scene](auto& kind) { if constexpr (requires { kind._session; }) kind._session = scene; }, data);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeature - Constructors
 // ═══════════════════════════════════════════════════════════════════════════

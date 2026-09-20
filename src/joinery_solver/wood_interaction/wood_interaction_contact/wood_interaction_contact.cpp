@@ -6,6 +6,19 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+WoodSession& InteractionContact::session() const {
+
+    if (!_session)
+        throw std::logic_error("InteractionContact::session: the record is not in a scene");
+
+    return *_session;
+}
+
+void InteractionContact::set_session(WoodSession* scene) {
+    _session = scene;
+    std::visit([scene](auto& kind) { kind._session = scene; }, data);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContact - Constructors
 // ═══════════════════════════════════════════════════════════════════════════

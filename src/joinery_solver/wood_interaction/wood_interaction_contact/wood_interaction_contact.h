@@ -8,8 +8,11 @@
 
 namespace wood_session {
 
+class WoodSession;
+
 /// One place where the edge's two elements touch, exactly one kind: a face overlap, a closest segment or a crossing.
 struct InteractionContact {
+    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     std::string guid; // Key of this contact; minted when the interaction stores it.
     std::variant<ContactFace, ContactAxis, ContactCross> data; // The kind, one at a time.
 
@@ -23,6 +26,16 @@ struct InteractionContact {
 
     /// A cross contact.
     explicit InteractionContact(ContactCross cross);
+
+
+    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
+    WoodSession& session() const;
+
+    /// True once the record has been stored in a scene.
+    bool has_session() const { return _session != nullptr; }
+
+    /// Stores the scene on this record and on the kind it holds.
+    void set_session(WoodSession* scene);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

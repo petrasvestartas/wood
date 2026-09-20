@@ -6,6 +6,14 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+WoodSession& ContactFace::session() const {
+
+    if (!_session)
+        throw std::logic_error("ContactFace::session: the record is not in a scene");
+
+    return *_session;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ContactFace - Constructors
 // ═══════════════════════════════════════════════════════════════════════════

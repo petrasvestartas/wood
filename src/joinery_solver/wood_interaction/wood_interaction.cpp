@@ -6,6 +6,22 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+WoodSession& Interaction::session() const {
+
+    if (!_session)
+        throw std::logic_error("Interaction::session: the record is not in a scene");
+
+    return *_session;
+}
+
+void Interaction::set_session(WoodSession* scene) {
+    _session = scene;
+    for (InteractionContact& contact : contacts)
+        contact.set_session(scene);
+    for (InteractionFeature& feature : features)
+        feature.set_session(scene);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Interaction - Operators
 // ═══════════════════════════════════════════════════════════════════════════
@@ -24,6 +40,7 @@ int Interaction::add_contact(InteractionContact contact) {
 
     if (contact.guid.empty())
         contact.guid = ::guid();
+    contact.set_session(_session);
     contacts.push_back(std::move(contact));
 
     return static_cast<int>(contacts.size()) - 1;
@@ -33,6 +50,7 @@ int Interaction::add_feature(InteractionFeature feature) {
 
     if (feature.guid.empty())
         feature.guid = ::guid();
+    feature.set_session(_session);
     features.push_back(std::move(feature));
 
     return static_cast<int>(features.size()) - 1;
