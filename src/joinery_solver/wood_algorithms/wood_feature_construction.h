@@ -30,4 +30,7 @@ std::array<double, 3> joint_volume_extension(const std::vector<double>& extensio
 /// Position of the plate with this guid, or -1.
 int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid);
 
+/// Position of the joint with this guid in a solver run's joint list, or -1.
+int index_of(const std::vector<FeaturePlate>& joints, const std::string& guid);
+
 } // namespace wood_session

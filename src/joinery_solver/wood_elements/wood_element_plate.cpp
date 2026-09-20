@@ -239,6 +239,16 @@ BRep Plate::compute_model_geometry_brep() const {
     return brep_between_loops(features.bottom, features.top);
 }
 
+void Plate::flip() {
+
+    if (polylines.size() > 1)
+        std::swap(polylines[0], polylines[1]);
+    if (planes.size() > 1)
+        std::swap(planes[0], planes[1]);
+    reset();
+    invalidate_geometry();
+}
+
 void Plate::invalidate_geometry() {
     _element_geometry_mesh.reset();
     _model_geometry_mesh.reset();

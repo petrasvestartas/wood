@@ -75,6 +75,9 @@ public:
     /// The boundary representation of the merged outlines when the plate is solved, else the element geometry brep.
     session_cpp::BRep compute_model_geometry_brep() const;
 
+    /// Swaps bottom and top, outlines and planes, and drops every cache the kernel and the plate hold; detection asks for it when a joint wants the other face first.
+    void flip();
+
     /// Drops both cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
     void invalidate_geometry();
 

@@ -24,28 +24,10 @@ void add_outline(const Polyline& pl, std::vector<Point>& corners) {
 /// Whether the element follows the plate face convention: [0] bottom, [1] top, [2..] sides.
 bool is_plate(const Element& e) { return dynamic_cast<const Plate*>(&e) != nullptr; }
 
-/// A plate's outlines as it holds them now (the solver swaps faces mid-run, past the kernel cache), any other element's cached face outlines.
-std::vector<Polyline> outlines_of(Element& e) {
-
-    if (const Plate* plate = dynamic_cast<const Plate*>(&e))
-        return plate->polylines;
-
-    return e.polylines();
-}
-
-/// A plate's planes as it holds them now, any other element's cached face planes.
-std::vector<Plane> planes_of(Element& e) {
-
-    if (const Plate* plate = dynamic_cast<const Plate*>(&e))
-        return plate->planes;
-
-    return e.planes();
-}
-
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
 
-    const std::vector<Polyline> loops = outlines_of(e);
+    const std::vector<Polyline> loops = e.polylines();
     if (is_plate(e) && loops.size() > 1) {
         out.reserve(loops[0].point_count() + loops[1].point_count());
         add_outline(loops[1], out);
@@ -99,7 +81,7 @@ std::vector<std::pair<int, int>> adjacency_search(
 
         corners.clear();
         bounding_points(*elements[i], corners);
-        const std::vector<Plane> planes = planes_of(*elements[i]);
+        const std::vector<Plane> planes = elements[i]->planes();
         if (!planes.empty())
             obbs[i] = OBB::from_points(corners, planes[0], inflate);
         else
@@ -238,14 +220,14 @@ std::vector<ContactFace> face_contacts_for_pair(
     Element& ea,
     Element& eb,
     const Settings& settings,
-    FeaturePlate* trace) {
+    DetectionTrace* trace) {
 
     const double cos_angle = std::cos(settings.angle);
 
-    const std::vector<Plane> planes_a = planes_of(ea);
-    const std::vector<Plane> planes_b = planes_of(eb);
-    const std::vector<Polyline> outlines_a = outlines_of(ea);
-    const std::vector<Polyline> outlines_b = outlines_of(eb);
+    const std::vector<Plane> planes_a = ea.planes();
+    const std::vector<Plane> planes_b = eb.planes();
+    const std::vector<Polyline> outlines_a = ea.polylines();
+    const std::vector<Polyline> outlines_b = eb.polylines();
 
     std::vector<ContactFace> contacts;
     for (size_t i = 0; i < planes_a.size(); ++i) {
@@ -255,18 +237,18 @@ std::vector<ContactFace> face_contacts_for_pair(
                 continue;
 
             if (trace)
-                trace->dbg_coplanar++;
+                trace->coplanar++;
 
             Polyline polygon;
             const bool triangles = outer_face(ea, i) && outer_face(eb, j);
             if (!face_overlap_area(outlines_a[i], outlines_b[j], planes_a[i], triangles, settings.clipper_scale, settings.clipper_area, polygon)) {
                 if (TRACE && trace)
-                    trace->dbg_fail_reason = fmt::format("bool_empty f({},{})", i, j);
+                    trace->fail_reason = fmt::format("bool_empty f({},{})", i, j);
                 continue;
             }
 
             if (trace)
-                trace->dbg_boolean++;
+                trace->overlapping++;
 
             contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), contact_type(ea, i, eb, j), std::move(polygon));
         }

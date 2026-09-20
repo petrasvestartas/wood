@@ -8,9 +8,15 @@
 #include "wood_interaction_contact_face.h"
 #include "wood_interaction_contact_axis.h"
 #include "wood_interaction_contact_cross.h"
-#include "wood_interaction_feature_plate.h"
 
 namespace wood_session {
+
+/// What detection counted and why it gave up on a pair; filled only when a caller asks for it.
+struct DetectionTrace {
+    int coplanar = 0; // Face pairs that passed the coplanarity test.
+    int overlapping = 0; // Face pairs with a real overlap area.
+    std::string fail_reason; // Why the pair was rejected, under TRACE.
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Face contacts - broad phase
@@ -47,12 +53,12 @@ bool face_overlap_area(
 // Face contacts - both phases
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Every contacting face pair between ONE element pair, ordered by face index; call it inside the caller's loop over element pairs, since compute_joints swaps faces 0 and 1 mid-run. `trace`, when given, counts the coplanar and overlapping pairs into its dbg fields.
+/// Every contacting face pair between ONE element pair, ordered by face index; `trace`, when given, counts the coplanar and overlapping pairs.
 std::vector<ContactFace> face_contacts_for_pair(
     session_cpp::Element& ea,
     session_cpp::Element& eb,
     const Settings& settings,
-    FeaturePlate* trace = nullptr);
+    DetectionTrace* trace = nullptr);
 
 /// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
 std::vector<std::tuple<int, int, ContactFace>> face_contacts(

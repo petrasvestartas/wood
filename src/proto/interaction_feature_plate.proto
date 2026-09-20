@@ -19,6 +19,7 @@ message IntList {
 
 // A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry.
 message FeaturePlate {
+  string guid = 25;                                  // Identity of the joint, the key of its InteractionFeature
   string element_a = 21;                             // The male element, by guid
   string element_b = 22;                             // The female element, by guid
   ContactFace contact = 23;                          // The face contact the joint was solved from
@@ -39,7 +40,8 @@ message FeaturePlate {
   repeated double scale = 14;                        // Scale of the unit-box geometry, 3 entries
   bool unit_scale = 15;                              // True when the axial size is pinned to unit_scale_distance
   double unit_scale_distance = 16;                   // The axial size a unit-scale variant is pinned to
-  repeated int32 linked_joints = 17;                 // Solver-run indices of the joints this one is linked with
+  reserved 17;                                       // was: repeated int32 linked_joints, solver-run indices
+  repeated string linked_joints = 26;                // Guids of the joints this one is linked with (three-valence shadows)
   repeated IntList linked_joints_seq = 18;           // Per linked joint, the vertex ranges as flat quads
   bool link = 19;                                    // True when this joint is the link of a three-valence group
   bool no_orient = 20;                               // True when the outlines are already in world space

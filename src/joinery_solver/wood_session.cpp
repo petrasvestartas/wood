@@ -352,10 +352,44 @@ std::string WoodSession::add_joint(const FeaturePlate& joint) {
 
     const InteractionContact contact = contact_of(joint);
     InteractionFeature feature(joint);
+    feature.guid = joint.guid;
     feature.contact = interaction.add_contact(reversed ? contact.flipped() : contact);
     feature.plate()->sync_features();
 
-    return interaction.features[interaction.add_feature(std::move(feature))].guid;
+    const int index = interaction.add_feature(std::move(feature));
+    interaction.features[index].plate()->guid = interaction.features[index].guid;
+
+    return interaction.features[index].guid;
+}
+
+/// A plate feature keeps a copy of its contact; the copy must be the stored contact read from the feature's own side.
+bool WoodSession::consistent() const {
+    for (const auto& [guid, interaction] : interactions) {
+
+        const std::pair<std::string, std::string> ends = edge_of(interaction);
+        if (ends.first.empty())
+            return false;
+
+        for (const InteractionFeature& feature : interaction.features) {
+
+            if (feature.guid.empty() || feature.contact < 0 || feature.contact >= (int)interaction.contacts.size())
+                return false;
+
+            const FeaturePlate* plate = feature.plate();
+            if (!plate)
+                continue;
+
+            const bool reversed = plate->element_a == ends.second;
+            if (plate->guid != feature.guid || (!reversed && plate->element_a != ends.first) || (reversed && plate->element_b != ends.first))
+                return false;
+
+            const InteractionContact stored = reversed ? interaction.contacts[feature.contact].flipped() : interaction.contacts[feature.contact];
+            if (!contact_of(*plate).coincides(stored))
+                return false;
+        }
+    }
+
+    return true;
 }
 
 std::vector<InteractionContact> WoodSession::get_contacts() const {

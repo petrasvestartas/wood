@@ -381,9 +381,11 @@ void build_joint_geometry(
     }
 
     if (!joint.linked_joints.empty() && (family.id == 15 || family.id == 16)) {
-        for (int shadow_index : joint.linked_joints)
-            if (!all_joints[shadow_index].no_orient)
+        for (const std::string& shadow : joint.linked_joints) {
+            const int shadow_index = index_of(all_joints, shadow);
+            if (shadow_index >= 0 && !all_joints[shadow_index].no_orient)
                 joint_orient_to_connection_area(all_joints[shadow_index]);
+        }
 
         merge_linked_joints(joint, all_joints);
     }
@@ -483,13 +485,14 @@ std::vector<FeaturePlate> WoodSession::detect_joints(const std::vector<std::pair
         bool swap_planes_b = false;
         const bool ok = face_to_face_wood(*elements[index_a], *elements[index_b], {index_a, index_b}, settings, search_type, joint, swap_planes_b);
 
-        if (swap_planes_b) {
-            std::swap(elements[index_b]->planes[0], elements[index_b]->planes[1]);
-            std::swap(elements[index_b]->polylines[0], elements[index_b]->polylines[1]);
-        }
+        if (swap_planes_b)
+            elements[index_b]->flip();
 
-        if (ok)
-            joints.push_back(std::move(joint));
+        if (!ok)
+            continue;
+
+        joint.guid = ::guid();
+        joints.push_back(std::move(joint));
     }
 
     return joints;

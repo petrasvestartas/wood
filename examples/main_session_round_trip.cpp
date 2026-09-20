@@ -98,6 +98,7 @@ int main() {
           "the kernel's Session reader opens the wood file: same elements, edges and tree");
 
     check(a.interactions.size() == b.interactions.size(), fmt::format("interaction count ({})", a.interactions.size()));
+    check(a.consistent() && b.consistent(), "every feature's own pair and contact agree with the edge and the stored contact, before and after the pb");
     bool records = true;
     size_t contact_count = 0;
     size_t feature_count = 0;

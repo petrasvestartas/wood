@@ -103,6 +103,7 @@ nlohmann::ordered_json FeaturePlate::jsondump() const {
 
     return ordered_json{
         {"type", "FeaturePlate"},
+        {"guid", guid},
         {"element_a", element_a},
         {"element_b", element_b},
         {"contact", contact.jsondump()},
@@ -133,6 +134,7 @@ nlohmann::ordered_json FeaturePlate::jsondump() const {
 FeaturePlate FeaturePlate::jsonload(const nlohmann::json& data) {
 
     FeaturePlate j;
+    j.guid = data.value("guid", std::string());
     j.element_a = data.value("element_a", std::string());
     j.element_b = data.value("element_b", std::string());
     if (data.contains("contact"))
@@ -179,7 +181,7 @@ FeaturePlate FeaturePlate::jsonload(const nlohmann::json& data) {
     j.unit_scale_distance = data.value("unit_scale_distance", 0.0);
 
     if (data.contains("linked_joints"))
-        j.linked_joints = data["linked_joints"].get<std::vector<int>>();
+        j.linked_joints = data["linked_joints"].get<std::vector<std::string>>();
 
     if (data.contains("linked_joints_seq")) {
         for (const nlohmann::json& group : data["linked_joints_seq"]) {
@@ -224,6 +226,7 @@ static std::vector<Polyline> rings_from_pb(const wood_proto::PolylineList& list)
 std::string FeaturePlate::pb_dumps() const {
 
     wood_proto::FeaturePlate proto;
+    proto.set_guid(guid);
     proto.set_element_a(element_a);
     proto.set_element_b(element_b);
     proto.mutable_contact()->ParseFromString(contact.pb_dumps());
@@ -251,7 +254,8 @@ std::string FeaturePlate::pb_dumps() const {
     proto.mutable_scale()->Add(scale.begin(), scale.end());
     proto.set_unit_scale(unit_scale);
     proto.set_unit_scale_distance(unit_scale_distance);
-    proto.mutable_linked_joints()->Add(linked_joints.begin(), linked_joints.end());
+    for (const std::string& linked : linked_joints)
+        proto.add_linked_joints(linked);
     for (const std::vector<std::array<int, 4>>& group : linked_joints_seq) {
         wood_proto::IntList* list = proto.add_linked_joints_seq();
         for (const std::array<int, 4>& q : group)
@@ -271,6 +275,7 @@ FeaturePlate FeaturePlate::pb_loads(const std::string& data) {
     proto.ParseFromString(data);
 
     FeaturePlate j;
+    j.guid = proto.guid();
     j.element_a = proto.element_a();
     j.element_b = proto.element_b();
     if (proto.has_contact())

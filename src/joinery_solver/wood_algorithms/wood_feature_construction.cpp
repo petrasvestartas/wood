@@ -30,6 +30,15 @@ int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::str
     return -1;
 }
 
+int index_of(const std::vector<FeaturePlate>& joints, const std::string& guid) {
+
+    for (size_t i = 0; i < joints.size(); ++i)
+        if (joints[i].guid == guid)
+            return static_cast<int>(i);
+
+    return -1;
+}
+
 namespace {
 
 /// Slide a volume pair to its midpoint, then apart by unit_scale_distance along the joint line.
@@ -171,8 +180,8 @@ void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joi
 
     for (size_t i = 0; i < joint.linked_joints.size(); ++i) {
 
-        const int index = joint.linked_joints[i];
-        if (index < 0 || static_cast<size_t>(index) >= all_joints.size())
+        const int index = index_of(all_joints, joint.linked_joints[i]);
+        if (index < 0)
             continue;
 
         FeaturePlate& linked = all_joints[index];

@@ -8,6 +8,7 @@ namespace wood_session {
 
 /// A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry. The solver builds it in place; the interaction stores it whole.
 struct FeaturePlate {
+    std::string guid; // Identity of the joint; minted by detection, the key its InteractionFeature is stored under.
     std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
     std::string element_b; // The female element, by guid.
     ContactFace contact; // Which faces touched, and where.
@@ -27,15 +28,12 @@ struct FeaturePlate {
     std::array<double, 3> scale{1.0, 1.0, 1.0}; // Multiplicative scale of the unit-box geometry, x, y, z.
     bool unit_scale = false; // True when the variant pins its axial size to unit_scale_distance.
     double unit_scale_distance = 0.0; // The axial size a unit-scale variant is pinned to; 0 reads it off the volume rectangle.
-    std::vector<int> linked_joints; // Solver-run indices of the joints this one is linked with (three-valence).
+    std::vector<std::string> linked_joints; // Guids of the joints this one is linked with (three-valence shadows).
     std::vector<std::vector<std::array<int, 4>>> linked_joints_seq; // Per linked joint, the vertex ranges merge_linked_joints interleaves.
     bool link = false; // True when this joint is the link of a three-valence group.
     bool no_orient = false; // True when the outlines are already in world space and must not be oriented.
     std::array<session_cpp::ElementFeature, 2> element_features; // The joint as each host element carries it: [0] male (element_a, face_a), [1] female; bodies current only after sync_features().
     mutable std::array<std::string, 2> feature_guids; // Identity of the two sides, minted on first read; kept here because an ElementFeature copy drops its guid.
-    int dbg_coplanar = 0; // Face pairs that passed the coplanarity test in detection; not written.
-    int dbg_boolean = 0; // Face pairs with a real overlap area in detection; not written.
-    std::string dbg_fail_reason; // Why detection rejected the pair, filled only under TRACE; not written.
 
     /// An empty joint: type 0, one division, shift 0.5, unit scale off, zero-length lines.
     FeaturePlate();

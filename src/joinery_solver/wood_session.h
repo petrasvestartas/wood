@@ -141,6 +141,9 @@ public:
     /// Stores a solved joint on its pair's interaction: the contact it was solved from (a ContactCross for a cross joint), then the FeaturePlate with its two element features, both oriented to the edge; returns the feature's guid.
     std::string add_joint(const FeaturePlate& joint);
 
+    /// True when every feature has a guid and a contact index, and every plate feature's own copy of its pair and contact agrees with the edge and the stored contact.
+    bool consistent() const;
+
     /// Every contact in the scene, in interaction order.
     std::vector<InteractionContact> get_contacts() const;
 

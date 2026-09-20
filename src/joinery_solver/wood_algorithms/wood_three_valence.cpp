@@ -239,6 +239,7 @@ void add_vidy_shadow_joints(
         }
 
         FeaturePlate shadow0;
+        shadow0.guid = ::guid();
         shadow0.element_a = elements[side0]->guid();
         shadow0.element_b = elements[glued0]->guid();
         shadow0.contact.face_a = -1;
@@ -256,6 +257,7 @@ void add_vidy_shadow_joints(
         int shadow1_index = -1;
         if (glued0 != glued1) {
             FeaturePlate shadow1;
+            shadow1.guid = ::guid();
             shadow1.element_a = elements[side1]->guid();
             shadow1.element_b = elements[glued1]->guid();
             shadow1.contact.face_a = -1;
@@ -272,9 +274,9 @@ void add_vidy_shadow_joints(
         }
 
         if (glued0 != glued1)
-            joints[joint_index].linked_joints = {shadow0_index, shadow1_index};
+            joints[joint_index].linked_joints = {joints[shadow0_index].guid, joints[shadow1_index].guid};
         else
-            joints[joint_index].linked_joints = {shadow0_index};
+            joints[joint_index].linked_joints = {joints[shadow0_index].guid};
     }
 }
 

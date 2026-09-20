@@ -89,10 +89,9 @@ inline constexpr FeaturePlate::Impl_::Impl_(
         male_fabrication_types_{},
         female_fabrication_types_{},
         scale_{},
-        linked_joints_{},
-        _linked_joints_cached_byte_size_{0},
         linked_joints_seq_{},
         element_features_{},
+        linked_joints_{},
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -100,6 +99,9 @@ inline constexpr FeaturePlate::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         element_b_(
+            &::google::protobuf::internal::fixed_address_empty_string,
+            ::_pbi::ConstantInitialized()),
+        guid_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         contact_{nullptr},
@@ -152,7 +154,8 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_._has_bits_),
-        27, // hasbit index offset
+        28, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.guid_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.element_a_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.element_b_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.contact_),
@@ -177,11 +180,12 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.linked_joints_seq_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.link_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::FeaturePlate, _impl_.no_orient_),
+        14,
         12,
         13,
-        14,
-        10,
         15,
+        9,
+        16,
         11,
         0,
         1,
@@ -190,17 +194,17 @@ const ::uint32_t
         4,
         5,
         6,
-        16,
         17,
         18,
         19,
-        7,
-        21,
         20,
-        8,
-        9,
+        7,
         22,
+        21,
+        10,
+        8,
         23,
+        24,
 };
 
 static const ::_pbi::MigrationSchema
@@ -221,26 +225,26 @@ const char descriptor_table_protodef_interaction_5ffeature_5fplate_2eproto[] ABS
     "ne.proto\032\036interaction_contact_face.proto"
     "\"6\n\014PolylineList\022&\n\005items\030\001 \003(\0132\027.sessio"
     "n_proto.Polyline\"\031\n\007IntList\022\016\n\006values\030\001 "
-    "\003(\005\"\353\005\n\014FeaturePlate\022\021\n\telement_a\030\025 \001(\t\022"
-    "\021\n\telement_b\030\026 \001(\t\022(\n\007contact\030\027 \001(\0132\027.wo"
-    "od_proto.ContactFace\0227\n\020element_features"
-    "\030\030 \003(\0132\035.session_proto.ElementFeature\022\022\n"
-    "\njoint_type\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\023\n\013cross"
-    "_faces\030\003 \003(\005\022(\n\013joint_lines\030\004 \003(\0132\023.sess"
-    "ion_proto.Line\022.\n\rjoint_volumes\030\005 \003(\0132\027."
-    "session_proto.Polyline\022/\n\rmale_outlines\030"
-    "\006 \003(\0132\030.wood_proto.PolylineList\0221\n\017femal"
-    "e_outlines\030\007 \003(\0132\030.wood_proto.PolylineLi"
-    "st\0223\n\026male_fabrication_types\030\010 \003(\0132\023.woo"
-    "d_proto.IntList\0225\n\030female_fabrication_ty"
-    "pes\030\t \003(\0132\023.wood_proto.IntList\022\021\n\tdivisi"
-    "ons\030\n \001(\005\022\r\n\005shift\030\013 \001(\001\022\016\n\006length\030\014 \001(\001"
-    "\022\027\n\017division_length\030\r \001(\001\022\r\n\005scale\030\016 \003(\001"
-    "\022\022\n\nunit_scale\030\017 \001(\010\022\033\n\023unit_scale_dista"
-    "nce\030\020 \001(\001\022\025\n\rlinked_joints\030\021 \003(\005\022.\n\021link"
-    "ed_joints_seq\030\022 \003(\0132\023.wood_proto.IntList"
-    "\022\014\n\004link\030\023 \001(\010\022\021\n\tno_orient\030\024 \001(\010b\006proto"
-    "3"
+    "\003(\005\"\377\005\n\014FeaturePlate\022\014\n\004guid\030\031 \001(\t\022\021\n\tel"
+    "ement_a\030\025 \001(\t\022\021\n\telement_b\030\026 \001(\t\022(\n\007cont"
+    "act\030\027 \001(\0132\027.wood_proto.ContactFace\0227\n\020el"
+    "ement_features\030\030 \003(\0132\035.session_proto.Ele"
+    "mentFeature\022\022\n\njoint_type\030\001 \001(\005\022\014\n\004name\030"
+    "\002 \001(\t\022\023\n\013cross_faces\030\003 \003(\005\022(\n\013joint_line"
+    "s\030\004 \003(\0132\023.session_proto.Line\022.\n\rjoint_vo"
+    "lumes\030\005 \003(\0132\027.session_proto.Polyline\022/\n\r"
+    "male_outlines\030\006 \003(\0132\030.wood_proto.Polylin"
+    "eList\0221\n\017female_outlines\030\007 \003(\0132\030.wood_pr"
+    "oto.PolylineList\0223\n\026male_fabrication_typ"
+    "es\030\010 \003(\0132\023.wood_proto.IntList\0225\n\030female_"
+    "fabrication_types\030\t \003(\0132\023.wood_proto.Int"
+    "List\022\021\n\tdivisions\030\n \001(\005\022\r\n\005shift\030\013 \001(\001\022\016"
+    "\n\006length\030\014 \001(\001\022\027\n\017division_length\030\r \001(\001\022"
+    "\r\n\005scale\030\016 \003(\001\022\022\n\nunit_scale\030\017 \001(\010\022\033\n\023un"
+    "it_scale_distance\030\020 \001(\001\022\025\n\rlinked_joints"
+    "\030\032 \003(\t\022.\n\021linked_joints_seq\030\022 \003(\0132\023.wood"
+    "_proto.IntList\022\014\n\004link\030\023 \001(\010\022\021\n\tno_orien"
+    "t\030\024 \001(\010J\004\010\021\020\022b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fplate_2eproto_deps[4] = {
@@ -253,7 +257,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fplate_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fplate_2eproto = {
     false,
     false,
-    961,
+    981,
     descriptor_table_protodef_interaction_5ffeature_5fplate_2eproto,
     "interaction_feature_plate.proto",
     &descriptor_table_interaction_5ffeature_5fplate_2eproto_once,
@@ -850,13 +854,13 @@ void FeaturePlate::clear_contact() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.contact_ != nullptr) _impl_.contact_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00004000U);
+                  0x00008000U);
 }
 void FeaturePlate::clear_element_features() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.element_features_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00000400U);
+                  0x00000200U);
 }
 void FeaturePlate::clear_joint_lines() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
@@ -894,13 +898,13 @@ PROTOBUF_NDEBUG_INLINE FeaturePlate::Impl_::Impl_(
         male_fabrication_types_{visibility, arena, from.male_fabrication_types_},
         female_fabrication_types_{visibility, arena, from.female_fabrication_types_},
         scale_{visibility, arena, from.scale_},
-        linked_joints_{visibility, arena, from.linked_joints_},
-        _linked_joints_cached_byte_size_{0},
         linked_joints_seq_{visibility, arena, from.linked_joints_seq_},
         element_features_{visibility, arena, from.element_features_},
+        linked_joints_{visibility, arena, from.linked_joints_},
         name_(arena, from.name_),
         element_a_(arena, from.element_a_),
-        element_b_(arena, from.element_b_) {}
+        element_b_(arena, from.element_b_),
+        guid_(arena, from.guid_) {}
 
 FeaturePlate::FeaturePlate(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -916,7 +920,7 @@ FeaturePlate::FeaturePlate(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.contact_ = (CheckHasBit(cached_has_bits, 0x00004000U))
+  _impl_.contact_ = (CheckHasBit(cached_has_bits, 0x00008000U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.contact_)
                 : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -942,13 +946,13 @@ PROTOBUF_NDEBUG_INLINE FeaturePlate::Impl_::Impl_(
         male_fabrication_types_{visibility, arena},
         female_fabrication_types_{visibility, arena},
         scale_{visibility, arena},
-        linked_joints_{visibility, arena},
-        _linked_joints_cached_byte_size_{0},
         linked_joints_seq_{visibility, arena},
         element_features_{visibility, arena},
+        linked_joints_{visibility, arena},
         name_(arena),
         element_a_(arena),
-        element_b_(arena) {}
+        element_b_(arena),
+        guid_(arena) {}
 
 inline void FeaturePlate::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -973,6 +977,7 @@ inline void FeaturePlate::SharedDtor(MessageLite& self) {
   this_._impl_.name_.Destroy();
   this_._impl_.element_a_.Destroy();
   this_._impl_.element_b_.Destroy();
+  this_._impl_.guid_.Destroy();
   delete this_._impl_.contact_;
   this_._impl_.~Impl_();
 }
@@ -1072,16 +1077,16 @@ FeaturePlate::GetClassData() const {
   return FeaturePlate_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<5, 24, 9, 78, 2>
+const ::_pbi::TcParseTable<5, 25, 9, 95, 2>
 FeaturePlate::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_._has_bits_),
     0, // no _extensions_
-    24, 248,  // max_field_number, fast_idx_mask
+    26, 248,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4278190080,  // skipmap
+    4227923968,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    24,  // num_field_entries
+    25,  // num_field_entries
     9,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     FeaturePlate_class_data_.base(),
@@ -1093,8 +1098,8 @@ FeaturePlate::_table_ = {
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // int32 joint_type = 1;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FeaturePlate, _impl_.joint_type_), 15>(),
-     {8, 15, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FeaturePlate, _impl_.joint_type_), 16>(),
+     {8, 16, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.joint_type_)}},
     // string name = 2;
     {::_pbi::TcParser::FastUS1,
@@ -1129,48 +1134,45 @@ FeaturePlate::_table_ = {
      {74, 6, 5,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.female_fabrication_types_)}},
     // int32 divisions = 10;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FeaturePlate, _impl_.divisions_), 16>(),
-     {80, 16, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(FeaturePlate, _impl_.divisions_), 17>(),
+     {80, 17, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.divisions_)}},
     // double shift = 11;
     {::_pbi::TcParser::FastF64S1,
-     {89, 17, 0,
+     {89, 18, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.shift_)}},
     // double length = 12;
     {::_pbi::TcParser::FastF64S1,
-     {97, 18, 0,
+     {97, 19, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.length_)}},
     // double division_length = 13;
     {::_pbi::TcParser::FastF64S1,
-     {105, 19, 0,
+     {105, 20, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.division_length_)}},
     // repeated double scale = 14;
     {::_pbi::TcParser::FastF64P1,
      {114, 7, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.scale_)}},
     // bool unit_scale = 15;
-    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FeaturePlate, _impl_.unit_scale_), 21>(),
-     {120, 21, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(FeaturePlate, _impl_.unit_scale_), 22>(),
+     {120, 22, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_)}},
     // double unit_scale_distance = 16;
     {::_pbi::TcParser::FastF64S2,
-     {385, 20, 0,
+     {385, 21, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_distance_)}},
-    // repeated int32 linked_joints = 17;
-    {::_pbi::TcParser::FastV32P2,
-     {394, 8, 0,
-      PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // repeated .wood_proto.IntList linked_joints_seq = 18;
     {::_pbi::TcParser::FastMtR2,
-     {402, 9, 6,
+     {402, 8, 6,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_seq_)}},
     // bool link = 19;
     {::_pbi::TcParser::FastV8S2,
-     {408, 22, 0,
+     {408, 23, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.link_)}},
     // bool no_orient = 20;
     {::_pbi::TcParser::FastV8S2,
-     {416, 23, 0,
+     {416, 24, 0,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.no_orient_)}},
     // string element_a = 21;
     {::_pbi::TcParser::FastUS2,
@@ -1182,14 +1184,20 @@ FeaturePlate::_table_ = {
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_b_)}},
     // .wood_proto.ContactFace contact = 23;
     {::_pbi::TcParser::FastMtS2,
-     {442, 14, 7,
+     {442, 15, 7,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.contact_)}},
     // repeated .session_proto.ElementFeature element_features = 24;
     {::_pbi::TcParser::FastMtR2,
-     {450, 10, 8,
+     {450, 9, 8,
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_features_)}},
-    {::_pbi::TcParser::MiniParse, {}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // string guid = 25;
+    {::_pbi::TcParser::FastUS2,
+     {458, 14, 0,
+      PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.guid_)}},
+    // repeated string linked_joints = 26;
+    {::_pbi::TcParser::FastUR2,
+     {466, 10, 0,
+      PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
@@ -1199,7 +1207,7 @@ FeaturePlate::_table_ = {
     65535, 65535
   }}, {{
     // int32 joint_type = 1;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.joint_type_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.joint_type_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // string name = 2;
     {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.name_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // repeated int32 cross_faces = 3;
@@ -1217,35 +1225,37 @@ FeaturePlate::_table_ = {
     // repeated .wood_proto.IntList female_fabrication_types = 9;
     {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.female_fabrication_types_), _Internal::kHasBitsOffset + 6, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // int32 divisions = 10;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.divisions_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.divisions_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // double shift = 11;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.shift_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.shift_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // double length = 12;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.length_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.length_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // double division_length = 13;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.division_length_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.division_length_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // repeated double scale = 14;
     {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.scale_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
     // bool unit_scale = 15;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_), _Internal::kHasBitsOffset + 22, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // double unit_scale_distance = 16;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_distance_), _Internal::kHasBitsOffset + 20, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-    // repeated int32 linked_joints = 17;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.unit_scale_distance_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // repeated .wood_proto.IntList linked_joints_seq = 18;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_seq_), _Internal::kHasBitsOffset + 9, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_seq_), _Internal::kHasBitsOffset + 8, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // bool link = 19;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.link_), _Internal::kHasBitsOffset + 22, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.link_), _Internal::kHasBitsOffset + 23, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // bool no_orient = 20;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.no_orient_), _Internal::kHasBitsOffset + 23, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.no_orient_), _Internal::kHasBitsOffset + 24, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     // string element_a = 21;
     {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_a_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string element_b = 22;
     {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_b_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .wood_proto.ContactFace contact = 23;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.contact_), _Internal::kHasBitsOffset + 14, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.contact_), _Internal::kHasBitsOffset + 15, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .session_proto.ElementFeature element_features = 24;
-    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_features_), _Internal::kHasBitsOffset + 10, 8, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.element_features_), _Internal::kHasBitsOffset + 9, 8, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // string guid = 25;
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.guid_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    // repeated string linked_joints = 26;
+    {PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.linked_joints_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcRepeated | ::_fl::kUtf8String | ::_fl::kRepSString)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Line>()},
@@ -1259,11 +1269,13 @@ FeaturePlate::_table_ = {
       {::_pbi::TcParser::GetTable<::session_proto::ElementFeature>()},
   }},
   {{
-    "\27\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\11\11\0\0\0\0\0\0\0\0\0"
+    "\27\0\4\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\11\11\0\0\4\15\0\0\0\0\0\0"
     "wood_proto.FeaturePlate"
     "name"
     "element_a"
     "element_b"
+    "guid"
+    "linked_joints"
   }},
 };
 PROTOBUF_NOINLINE void FeaturePlate::Clear() {
@@ -1300,15 +1312,15 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
       _impl_.scale_.Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
-      _impl_.linked_joints_.Clear();
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
       _impl_.linked_joints_seq_.Clear();
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
       _impl_.element_features_.Clear();
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+      _impl_.linked_joints_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       _impl_.name_.ClearNonDefaultToEmpty();
@@ -1320,16 +1332,19 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
       _impl_.element_b_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+      _impl_.guid_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       ABSL_DCHECK(_impl_.contact_ != nullptr);
       _impl_.contact_->Clear();
     }
   }
-  _impl_.joint_type_ = 0;
   if (BatchCheckHasBit(cached_has_bits, 0x00ff0000U)) {
-    ::memset(&_impl_.divisions_, 0, static_cast<::size_t>(
-        reinterpret_cast<char*>(&_impl_.no_orient_) -
-        reinterpret_cast<char*>(&_impl_.divisions_)) + sizeof(_impl_.no_orient_));
+    ::memset(&_impl_.joint_type_, 0, static_cast<::size_t>(
+        reinterpret_cast<char*>(&_impl_.link_) -
+        reinterpret_cast<char*>(&_impl_.joint_type_)) + sizeof(_impl_.link_));
   }
+  _impl_.no_orient_ = false;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -1354,7 +1369,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 joint_type = 1;
-  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
     if (this_._internal_joint_type() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -1462,7 +1477,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // int32 divisions = 10;
-  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
     if (this_._internal_divisions() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<10>(
@@ -1471,7 +1486,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // double shift = 11;
-  if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_shift()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -1480,7 +1495,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // double length = 12;
-  if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_length()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -1489,7 +1504,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // double division_length = 13;
-  if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00100000U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_division_length()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -1505,7 +1520,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // bool unit_scale = 15;
-  if (CheckHasBit(cached_has_bits, 0x00200000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00400000U)) {
     if (this_._internal_unit_scale() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1514,7 +1529,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // double unit_scale_distance = 16;
-  if (CheckHasBit(cached_has_bits, 0x00100000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00200000U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_unit_scale_distance()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -1522,19 +1537,8 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
     }
   }
 
-  // repeated int32 linked_joints = 17;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
-    {
-      int byte_size = this_._impl_._linked_joints_cached_byte_size_.Get();
-      if (byte_size > 0) {
-        target = stream->WriteInt32Packed(
-            17, this_._internal_linked_joints(), byte_size, target);
-      }
-    }
-  }
-
   // repeated .wood_proto.IntList linked_joints_seq = 18;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_linked_joints_seq_size());
          i < n; i++) {
@@ -1547,7 +1551,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // bool link = 19;
-  if (CheckHasBit(cached_has_bits, 0x00400000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00800000U)) {
     if (this_._internal_link() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1556,7 +1560,7 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // bool no_orient = 20;
-  if (CheckHasBit(cached_has_bits, 0x00800000U)) {
+  if (CheckHasBit(cached_has_bits, 0x01000000U)) {
     if (this_._internal_no_orient() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -1585,14 +1589,14 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
   }
 
   // .wood_proto.ContactFace contact = 23;
-  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00008000U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         23, *this_._impl_.contact_, this_._impl_.contact_->GetCachedSize(), target,
         stream);
   }
 
   // repeated .session_proto.ElementFeature element_features = 24;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_element_features_size());
          i < n; i++) {
@@ -1601,6 +1605,26 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
           ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
               24, repfield, repfield.GetCachedSize(),
               target, stream);
+    }
+  }
+
+  // string guid = 25;
+  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+    if (!this_._internal_guid().empty()) {
+      const ::std::string& _s = this_._internal_guid();
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "wood_proto.FeaturePlate.guid");
+      target = stream->WriteStringMaybeAliased(25, _s, target);
+    }
+  }
+
+  // repeated string linked_joints = 26;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+    for (int i = 0, n = this_._internal_linked_joints_size(); i < n; ++i) {
+      const auto& s = this_._internal_linked_joints().Get(i);
+      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          s.data(), static_cast<int>(s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "wood_proto.FeaturePlate.linked_joints");
+      target = stream->WriteString(26, s, target);
     }
   }
 
@@ -1691,25 +1715,27 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
-    // repeated int32 linked_joints = 17;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
-      total_size +=
-          ::_pbi::WireFormatLite::Int32SizeWithPackedTagSize(
-              this_._internal_linked_joints(), 2,
-              this_._impl_._linked_joints_cached_byte_size_);
-    }
     // repeated .wood_proto.IntList linked_joints_seq = 18;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
       total_size += 2UL * this_._internal_linked_joints_seq_size();
       for (const auto& msg : this_._internal_linked_joints_seq()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
     // repeated .session_proto.ElementFeature element_features = 24;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
       total_size += 2UL * this_._internal_element_features_size();
       for (const auto& msg : this_._internal_element_features()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated string linked_joints = 26;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+      total_size +=
+          2 * ::google::protobuf::internal::FromIntSize(this_._internal_linked_joints().size());
+      for (int i = 0, n = this_._internal_linked_joints().size(); i < n; ++i) {
+        total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+            this_._internal_linked_joints().Get(i));
       }
     }
     // string name = 2;
@@ -1733,65 +1759,74 @@ PROTOBUF_NOINLINE void FeaturePlate::Clear() {
                                         this_._internal_element_b());
       }
     }
-    // .wood_proto.ContactFace contact = 23;
+    // string guid = 25;
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+      if (!this_._internal_guid().empty()) {
+        total_size += 2 + ::google::protobuf::internal::WireFormatLite::StringSize(
+                                        this_._internal_guid());
+      }
+    }
+    // .wood_proto.ContactFace contact = 23;
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.contact_);
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00ff0000U)) {
     // int32 joint_type = 1;
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (this_._internal_joint_type() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_joint_type());
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00ff0000U)) {
     // int32 divisions = 10;
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (this_._internal_divisions() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_divisions());
       }
     }
     // double shift = 11;
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_shift()) != 0) {
         total_size += 9;
       }
     }
     // double length = 12;
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_length()) != 0) {
         total_size += 9;
       }
     }
     // double division_length = 13;
-    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_division_length()) != 0) {
         total_size += 9;
       }
     }
     // double unit_scale_distance = 16;
-    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00200000U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_unit_scale_distance()) != 0) {
         total_size += 10;
       }
     }
     // bool unit_scale = 15;
-    if (CheckHasBit(cached_has_bits, 0x00200000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00400000U)) {
       if (this_._internal_unit_scale() != 0) {
         total_size += 2;
       }
     }
     // bool link = 19;
-    if (CheckHasBit(cached_has_bits, 0x00400000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00800000U)) {
       if (this_._internal_link() != 0) {
         total_size += 3;
       }
     }
+  }
+   {
     // bool no_orient = 20;
-    if (CheckHasBit(cached_has_bits, 0x00800000U)) {
+    if (CheckHasBit(cached_has_bits, 0x01000000U)) {
       if (this_._internal_no_orient() != 0) {
         total_size += 3;
       }
@@ -1856,17 +1891,19 @@ void FeaturePlate::MergeImpl(::google::protobuf::MessageLite& to_msg,
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000100U)) {
-      _this->_internal_mutable_linked_joints()->MergeFrom(from._internal_linked_joints());
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
       _this->_internal_mutable_linked_joints_seq()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_linked_joints_seq());
     }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
       _this->_internal_mutable_element_features()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_element_features());
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000400U)) {
+      _this->_internal_mutable_linked_joints()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_linked_joints());
     }
     if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       if (!from._internal_name().empty()) {
@@ -1896,6 +1933,15 @@ void FeaturePlate::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+      if (!from._internal_guid().empty()) {
+        _this->_internal_set_guid(from._internal_guid());
+      } else {
+        if (_this->_impl_.guid_.IsDefault()) {
+          _this->_internal_set_guid("");
+        }
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
       ABSL_DCHECK(from._impl_.contact_ != nullptr);
       if (_this->_impl_.contact_ == nullptr) {
         _this->_impl_.contact_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.contact_);
@@ -1903,52 +1949,52 @@ void FeaturePlate::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.contact_->MergeFrom(*from._impl_.contact_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00008000U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00ff0000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
       if (from._internal_joint_type() != 0) {
         _this->_impl_.joint_type_ = from._impl_.joint_type_;
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00ff0000U)) {
-    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
       if (from._internal_divisions() != 0) {
         _this->_impl_.divisions_ = from._impl_.divisions_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00020000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_shift()) != 0) {
         _this->_impl_.shift_ = from._impl_.shift_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00040000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_length()) != 0) {
         _this->_impl_.length_ = from._impl_.length_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00080000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_division_length()) != 0) {
         _this->_impl_.division_length_ = from._impl_.division_length_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00100000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00200000U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_unit_scale_distance()) != 0) {
         _this->_impl_.unit_scale_distance_ = from._impl_.unit_scale_distance_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00200000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00400000U)) {
       if (from._internal_unit_scale() != 0) {
         _this->_impl_.unit_scale_ = from._impl_.unit_scale_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00400000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00800000U)) {
       if (from._internal_link() != 0) {
         _this->_impl_.link_ = from._impl_.link_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00800000U)) {
-      if (from._internal_no_orient() != 0) {
-        _this->_impl_.no_orient_ = from._impl_.no_orient_;
-      }
+  }
+  if (CheckHasBit(cached_has_bits, 0x01000000U)) {
+    if (from._internal_no_orient() != 0) {
+      _this->_impl_.no_orient_ = from._impl_.no_orient_;
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -1978,12 +2024,13 @@ void FeaturePlate::InternalSwap(FeaturePlate* PROTOBUF_RESTRICT PROTOBUF_NONNULL
   _impl_.male_fabrication_types_.InternalSwap(&other->_impl_.male_fabrication_types_);
   _impl_.female_fabrication_types_.InternalSwap(&other->_impl_.female_fabrication_types_);
   _impl_.scale_.InternalSwap(&other->_impl_.scale_);
-  _impl_.linked_joints_.InternalSwap(&other->_impl_.linked_joints_);
   _impl_.linked_joints_seq_.InternalSwap(&other->_impl_.linked_joints_seq_);
   _impl_.element_features_.InternalSwap(&other->_impl_.element_features_);
+  _impl_.linked_joints_.InternalSwap(&other->_impl_.linked_joints_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.element_a_, &other->_impl_.element_a_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.element_b_, &other->_impl_.element_b_, arena);
+  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.guid_, &other->_impl_.guid_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(FeaturePlate, _impl_.no_orient_)
       + sizeof(FeaturePlate::_impl_.no_orient_)

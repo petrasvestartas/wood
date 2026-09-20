@@ -33,9 +33,11 @@ static Polyline outline(double offset) {
 static std::vector<FeaturePlate> linked_joints(const std::array<int, 4>& sequence) {
 
     std::vector<FeaturePlate> joints(2);
+    joints[0].guid = "first";
+    joints[1].guid = "second";
     joints[0].element_a = "plate";
     joints[1].element_a = "plate";
-    joints[0].linked_joints = {1};
+    joints[0].linked_joints = {"second"};
     joints[0].linked_joints_seq = {{sequence}};
 
     for (size_t i = 0; i < 2; ++i) {
@@ -77,7 +79,7 @@ static void linked_geometry() {
     check(joints[1].male_outlines[0].size() == 1, "Missing Shadow Face Preserves Geometry");
 
     joints = linked_joints({1, 1, 0, 1});
-    joints[0].linked_joints = {0};
+    joints[0].linked_joints = {"first"};
     merge_linked_joints(joints[0], joints);
     check(joints[0].male_outlines[0].size() == 2, "Self Link Preserves Geometry");
 
@@ -106,10 +108,13 @@ static void division_limits() {
 static void linked_construction() {
 
     std::vector<FeaturePlate> joints(3);
+    joints[0].guid = "primary_joint";
+    joints[1].guid = "shadow_0";
+    joints[2].guid = "shadow_1";
     joints[0].element_a = "primary";
     joints[1].element_a = "primary";
     joints[2].element_a = "other";
-    joints[0].linked_joints = {1, 2};
+    joints[0].linked_joints = {"shadow_0", "shadow_1"};
     joints[0].divisions = 3;
 
     ss_e_op_5(joints[0], joints, false);
@@ -121,7 +126,7 @@ static void linked_construction() {
     check(joints[0].female_outlines[0][0].point_count() == 22, "Linked Female Outline");
     check(joints[1].male_outlines[0].empty() && joints[2].male_outlines[0].empty(), "Both Shadows Merged");
 
-    joints[0].linked_joints = {1, 100};
+    joints[0].linked_joints = {"shadow_0", "nowhere"};
     ss_e_op_5(joints[0], joints, false);
     check(joints[0].male_outlines[0][0].point_count() == 28, "Invalid Second Link Preserves Geometry");
 }

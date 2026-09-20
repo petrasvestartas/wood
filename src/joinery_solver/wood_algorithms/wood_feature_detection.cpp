@@ -787,7 +787,8 @@ bool face_to_face_wood(
     const Settings& settings,
     int search_type,
     FeaturePlate& out_joint,
-    bool& out_swap_planes_1
+    bool& out_swap_planes_1,
+    DetectionTrace* trace
 ) {
 
     out_swap_planes_1 = false;
@@ -802,7 +803,7 @@ bool face_to_face_wood(
         s.avg_plane_0 = average_plane(el0);
         s.avg_plane_1 = average_plane(el1);
 
-        const std::vector<wood_session::ContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, settings, &out_joint);
+        const std::vector<wood_session::ContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, settings, trace);
 
         for (const wood_session::ContactFace& contact : pair_contacts) {
             FaceCandidate c;
@@ -829,7 +830,7 @@ bool face_to_face_wood(
             return true;
     }
 
-    if (!s.dbg_fail_reason.empty())
-        out_joint.dbg_fail_reason = s.dbg_fail_reason;
+    if (trace && !s.dbg_fail_reason.empty())
+        trace->fail_reason = s.dbg_fail_reason;
     return false;
 }
