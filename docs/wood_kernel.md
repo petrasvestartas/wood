@@ -9,19 +9,25 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Beam::joint_volumes` is the beam-axis pipeline; `element_data` is `wood_proto.{Plate,Beam,Column}` |
+| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `element_data` is `wood_proto.{Plate,Beam,Column}` |
 | `src/joinery_solver/wood_interaction/**` | the connectivity records, one class per file (see `src/docs.md`): `Interaction`, `InteractionContact` + `ContactFace` / `ContactAxis` / `ContactCross`, `InteractionFeature` + `FeaturePlate` / `FeatureBeam` / `FeaturePlateBeam`, `InteractionStructure`; each with `jsondump`/`jsonload` and `pb_dumps`/`pb_loads` |
 | `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `FeaturePlate` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h` | `wood_session::FabricationType`, one per cut outline |
-| `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`, `Dataset::` names, `load_yaml`, `reset_defaults`, dataset paths, `load_obj`, the sidecar loaders |
+| `src/joinery_solver/wood_settings.h/.cpp` | `Settings`: every solver tunable, from the yml, held by the scene, passed by reference, written with the file |
+| `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`: `Dataset::` names, `load_yaml` (returns a `Settings`, sets the dataset paths), `reset_defaults`, the paths |
+| `src/joinery_solver/wood_io.h/.cpp` | `io::load_obj`, the four sidecar readers, `io::pb_path`, `io::write_parity_dumps` |
+| `src/joinery_solver/wood_view.h/.cpp` | `add_to_tree` and the colour tables |
+| `src/joinery_solver/wood_serialization.h/.cpp` | `json_of` / `message_from_json`: JSON derived from any proto message |
 | `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `ContactCross`) over kernel elements |
-| `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate` |
+| `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate`; `DetectionTrace` for the counts |
+| `src/joinery_solver/wood_algorithms/wood_feature_detection_beam.h/.cpp` | `beam_to_beam`: one beam pair and its axis contact to one `FeatureBeam` |
+| `src/joinery_solver/wood_algorithms/wood_assignment.h/.cpp` | `assign_feature_types`, `assign_insertion_vectors`: points and lines placed on plates into their slots |
 | `src/joinery_solver/wood_algorithms/wood_feature_solver.cpp` | `WoodSession::compute_features` pipeline: `adjacent_pairs`, `detect_features`, `build_feature_geometry`, `merge_features`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
 | `src/joinery_solver/wood_algorithms/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints.h`, `wood_interaction_feature_plate_joints/*.h` | aggregator + one static constructor per joint variant, `tt_e_p_*` and `side_removal` included |
 | `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_feature`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
-| `src/joinery_solver/wood_test.cpp` | dataset runners; `WoodSession::assign_joint_types` and `assign_insertion_vectors` are the point and line to face-slot assignment |
+| `src/joinery_solver/wood_test.h/.cpp` | dataset runners, one per `data/*.yml` |
 | `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
 | `examples/` | `1_io`, `2_contact_detection`, `3_joint_detection`, `main_dataset_runner`, `main_all_datasets`, `main_joint_types`, `templates/` mains |
 | `data/` | `<name>.yml` + `<name>.obj` + optional `<name>_{adjacency,three_valence,insertion_vectors,joints_types}.txt`; `output/` |
@@ -99,17 +105,17 @@ slice_projectsheer=5, mill=6, mill_project=7, mill_projectsheer=8, cut=9, cut_pr
 cut_projectsheer=11, cut_reverse=12, conic=13, conic_reverse=14, drill=15`. An empty
 `*_fabrication_types` array means every outline is `edge_insertion`.
 
-### Globals (`wood_config.h`, set by `load_yaml("<name>")` from `data/<name>.yml`)
+### Settings (`wood_settings.h`, filled by `config::load_yaml("<name>")` from `data/<name>.yml`)
 
-| yml key | global | Meaning |
+| yml key | Settings field | Meaning |
 |---|---|---|
-| `joints_parameters_and_types` | `JOINTS_PARAMETERS_AND_TYPES` | 7 rows x (division_length, shift, joint_type_id); rows 0..6 = ss_e_ip, ss_e_op, ts_e_p, cr_c_ip, tt_e_p, ss_e_r, b |
-| `joint_volume_extension` | `JOINT_VOLUME_EXTENSION` | (width, height, length) mm added to each joint volume |
-| `joint_scale` | `JOINT_SCALE` | multiplicative (sx, sy, sz); used by ss_e_ip_2, ss_e_r_*, ts_e_p_5 |
-| `distance`, `distance_squared`, `angle` | `DISTANCE`, `DISTANCE_SQUARED`, `ANGLE` | AABB inflate (mm), coplanarity (mm^2), angular tolerance in **radians** (0.11 ~ 6.3 deg) |
-| `limit_min_joint_length`, `duplicate_pts_tol` | same names | joint length filter; consecutive-duplicate removal in `load_plates` |
-| `face_to_face_side_to_side_joints_dihedral_angle` / `_all_treated_as_rotated` / `_rotated_joint_as_average` | `FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_*` | 11-vs-13 split (degrees) and the rotated branch switches |
-| `clipper_scale`, `clipper_area` | `CLIPPER_SCALE`, `CLIPPER_AREA` | int64 grid (1e6) and minimum overlap area for `face_overlap_area` |
+| `joints_parameters_and_types` | `joint_parameters` | 7 rows x (division_length, shift, joint_type_id); rows 0..6 = ss_e_ip, ss_e_op, ts_e_p, cr_c_ip, tt_e_p, ss_e_r, b |
+| `joint_volume_extension` | `joint_volume_extension` | (width, height, length) mm added to each joint volume |
+| `joint_scale` | `joint_scale` | multiplicative (sx, sy, sz); used by ss_e_ip_2, ss_e_r_*, ts_e_p_5 |
+| `distance`, `distance_squared`, `angle` | `distance`, `distance_squared`, `angle` | AABB inflate (mm), coplanarity (mm^2), angular tolerance in **radians** (0.11 ~ 6.3 deg) |
+| `limit_min_joint_length`, `duplicate_pts_tol` | `limit_min_joint_length`, `duplicate_points_tolerance` | joint length filter; consecutive-duplicate removal in `load_plates` |
+| `face_to_face_side_to_side_joints_dihedral_angle` / `_all_treated_as_rotated` / `_rotated_joint_as_average` | `dihedral_angle`, `all_treated_as_rotated`, `rotated_joint_as_average` | 11-vs-13 split (degrees) and the rotated branch switches |
+| `clipper_scale`, `clipper_area` | `clipper_scale`, `clipper_area` | int64 grid (1e6) and minimum overlap area for `face_overlap_area` |
 | `obj`, `adjacency`, `three_valence`, `insertion_vectors`, `joints_types` | `DATA_SET_OBJ`, `DATA_SET_ADJACENCY`, … | sidecar files, resolved relative to the yml; empty = derive |
 | `search_type` | `SEARCH_TYPE` | `face_to_face`, `cross_joint` or `face_to_face_then_cross`; the default of `compute_features()` |
 | `beams` | `BEAMS` | beam datasets only: radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male |
@@ -143,17 +149,17 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
    or forced by `all_treated_as_rotated`); top-side = 20; top-top = 40. With `cross_joint` /
    `face_to_face_then_cross` it calls `plane_to_face` (`wood_joint_detection.cpp`) for type 30.
    If it reports `swap_planes_b`, element b's faces 0 and 1 are swapped in place immediately.
-   Output per joint: `contact.area`, `joint_lines`, `joint_volumes_pair_a_pair_b`.
+   Output per joint: `contact.polygon`, `joint_lines`, `joint_volumes`.
 5. **Three-valence.** Flag 1 → `three_valence_joint_addition_vidy` (creates shadow joints,
    `link = true`); flag 0 → `three_valence_joint_alignment_annen` (shortens overlapping joint
    lines). Joints are never sorted: the first joint with a given cache key fixes the geometry
    for the rest.
 6. **Joint type id.** `id_representing_joint_name = max(|jt[a][face_a]|, |jt[b][face_b]|)`,
    read through the pre-reversal face index; 0 or no file → the row default from
-   `JOINTS_PARAMETERS_AND_TYPES[row*3+2]` (3, 15, 20, 30, 40, 58, 60). The sign of the id is
+   `settings.joint_parameters[row*3+2]` (3, 15, 20, 30, 40, 58, 60). The sign of the id is
    dropped (`std::abs`).
-7. **`joint_create_geometry(joint, div_dist, shift, id, &all_joints, &elements)`** picks the
-   group from the id range (1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69), checks it agrees
+7. **`joint_create_geometry(joint, div_dist, shift, id, context)`** looks the id up in the
+   library table (family by tens: 1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69), checks it agrees
    with `joint_type` (mismatch → no outlines), then dispatches by exact id to a `wood_interaction_feature_plate_joints/*.h`
    constructor. `joint_get_divisions` runs first so the cache key `"id;shift;divisions"`
    matches; the cache is applied only to type 12 with no linked joints. Types 12/13 pre-set
@@ -280,9 +286,9 @@ How wood uses it (`wood_session.h/.cpp`):
 | 4 | Endpoint marker missing or 1-point in `*_outlines[k][1]` | Merge skips the joint (or, before the guard, relocated vertices to the origin); always end each outline list with `{front, back}` |
 | 5 | `unit_scale` false on a thickness-dependent tooth | Geometry is stretched by the change of basis; set `unit_scale = true` and let `apply_unit_scale` size the volumes |
 | 6 | Cache key is `"id;shift;divisions"`, not edge length; first joint wins | Do not sort joints before the geometry loop; `divisions` must differ for a different tooth count |
-| 7 | `face_to_face_wood` swaps element b's faces 0/1 mid-run | Never precompute face indices for every pair; call `face_contacts_for_pair` inside the pair loop |
+| 7 | `face_to_face_wood` asks for element b's faces 0/1 to be flipped mid-run | `detect_features` calls `Plate::flip`, which resets every cache; never keep face indices of a plate across pairs |
 | 8 | `get_connection_zones` on a copied plate vector | The result lives on the plates (`features`, `insertion_vectors`, `reversed`); pass the scene's own `shared_ptr` vector |
-| 9 | `JOINTS_PARAMETERS_AND_TYPES` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
+| 9 | `settings.joint_parameters` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
 | 10 | `Session` has no virtual destructor | Do not own a `WoodSession` through a `Session*` |
 | 11 | Copying an `ElementFeature` or `Element` mints a new guid | Joint identity lives in `FeaturePlate::feature_guids`; read features through `to_features()` |
 | 12 | Unbounded runs | Every solver/example goes through `tools/run_guarded.sh`; one run at a time; `--parallel 4` |
