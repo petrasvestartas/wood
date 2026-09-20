@@ -73,6 +73,15 @@ datasets a `beams` block. `config::Dataset::<name>` names every shipped dataset.
 `main_all_datasets` runs all of them and writes `data/output/WoodF2F_<name>.pb` with
 `_meta.txt` and `_coords.txt` beside each: the record a refactor is diffed against.
 
+## Docs
+
+`src/docs.md` is the one-page description of the structure. The site around it, one page per section with diagrams and the API generated from the headers, builds with:
+
+```bash
+pip install -r requirements-docs.txt
+python3 tools/api_docs.py && mkdocs serve
+```
+
 ## Targets
 
 | Target | Source |

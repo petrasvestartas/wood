@@ -1,0 +1,78 @@
+site_name: Wood
+site_description: Timber joinery solver on the session kernel - the data model, the pipeline, the file format and the API.
+repo_name: petrasvestartas/wood
+repo_url: https://github.com/petrasvestartas/wood/
+copyright: Copyright &copy; Petras Vestartas
+docs_dir: docs
+site_dir: site
+dev_addr: 127.0.0.1:8002
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - content.code.copy
+    - navigation.footer
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Overview: index.md
+  - Connectivity: connectivity.md
+  - Files: files.md
+  - Serialization: serialization.md
+  - Pipeline: pipeline.md
+  - Architecture: architecture.md
+  - API:
+    - Session: api/session.md
+    - Settings and config: api/settings.md
+    - Elements: api/elements.md
+    - Interaction: api/interaction.md
+    - Algorithms: api/algorithms.md
+  - Kernel reference: wood_kernel.md
+  - Notes:
+    - Session review 2026-09-13: session-review-2026-09-13.md
+    - Wood cleanup 2026-09-17: wood-cleanup-2026-09-17.md
