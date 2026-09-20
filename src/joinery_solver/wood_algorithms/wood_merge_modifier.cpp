@@ -11,7 +11,7 @@ namespace wood_session {
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-MergeModifier::MergeModifier(const Plate& plate, int plate_index)
+MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distance_squared)
     : plate(plate), plate_index(plate_index) {
 
     if (TRACE) {
@@ -25,7 +25,7 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index)
     joint_planes = plate.planes;
     top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
     bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
-    distance_squared = wood_session::config::DISTANCE_SQUARED;
+    this->distance_squared = distance_squared;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -36,10 +36,11 @@ std::vector<Polyline> MergeModifier::apply(
     const Plate& plate,
     const std::vector<std::vector<std::pair<int, bool>>>& membership,
     std::vector<FeaturePlate>& joints,
-    int plate_index
+    int plate_index,
+    double distance_squared
 ) {
 
-    MergeModifier state(plate, plate_index);
+    MergeModifier state(plate, plate_index, distance_squared);
     state.log_plate();
 
     state.insert_side_joints(membership, joints);

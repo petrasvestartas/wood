@@ -9,12 +9,11 @@ static void run(const std::string& name, const double division) {
     if (!config::plates_exist(name))
         return;
 
-    if (division > 0)
-        config::JOINTS_PARAMETERS_AND_TYPES[1*3+0] = division;
-    config::JOINTS_PARAMETERS_AND_TYPES[1*3+2] = 10;
-    config::JOINTS_PARAMETERS_AND_TYPES[2*3+2] = 20;
-
     WoodSession scene = WoodSession::obj_load(name);
+    if (division > 0)
+        scene.settings.joint_parameters[1*3+0] = division;
+    scene.settings.joint_parameters[1*3+2] = 10;
+    scene.settings.joint_parameters[2*3+2] = 20;
     scene.compute_joints(face_to_face);
     scene.add_to_tree();
     scene.pb_dump(pb_path("live").string());

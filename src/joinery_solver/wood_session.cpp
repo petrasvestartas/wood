@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_session.h"
 #include "wood_contact_detection.h"
+#include "wood_feature_detection_beam.h"
 #include "wood_session.pb.h"
 
 namespace wood_session {
@@ -77,6 +78,8 @@ WoodSession WoodSession::pb_loads(const std::string& data) {
         if (scene._edges.count(interaction.guid))
             scene.interactions[interaction.guid] = std::move(interaction);
     }
+    if (proto.has_settings())
+        scene.settings = Settings::pb_loads(proto.settings().SerializeAsString());
 
     return scene;
 }
@@ -84,6 +87,7 @@ WoodSession WoodSession::pb_loads(const std::string& data) {
 WoodSession WoodSession::obj_load(const std::filesystem::path& path, double duplicate_pts_tol) {
 
     const std::vector<Polyline> polylines = config::load_obj(path.string(), duplicate_pts_tol);
+
     if (polylines.size() % 2 != 0)
         throw std::runtime_error("obj_load: unpaired outline in " + path.string());
 
@@ -96,10 +100,12 @@ WoodSession WoodSession::obj_load(const std::filesystem::path& path, double dupl
 
 WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
 
-    config::load_yaml(path.string());
+    const Settings settings = config::load_yaml(path.string());
 
-    WoodSession scene = obj_load(config::DATA_SET_OBJ);
+    WoodSession scene = obj_load(config::DATA_SET_OBJ, settings.duplicate_points_tolerance);
+    scene.settings = settings;
     scene.name = config::DATA_SET_INPUT_NAME;
+    scene.load_sidecars();
 
     return scene;
 }
@@ -152,8 +158,46 @@ void WoodSession::compute_face_contacts() {
     erase_contacts("face");
 
     const std::vector<std::string> guids = element_guids();
-    for (const auto& [ia, ib, contact] : face_contacts(*objects.elements))
+    for (const auto& [ia, ib, contact] : face_contacts(*objects.elements, settings))
         add_contact(guids[ia], guids[ib], InteractionContact(contact));
+}
+
+void WoodSession::compute_axis_contacts(double min_distance) {
+
+    erase_contacts("axis");
+
+    const std::vector<std::shared_ptr<Beam>> beams = this->beams();
+    for (const auto& [ia, ib, contact] : axis_contacts(beams, min_distance))
+        add_contact(beams[ia]->guid(), beams[ib]->guid(), InteractionContact(contact));
+}
+
+void WoodSession::compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male) {
+    for (auto& [guid, interaction] : interactions) {
+
+        const std::pair<std::string, std::string> ends = edge_of(interaction);
+        const std::shared_ptr<Beam> beam_a = get_element<Beam>(ends.first);
+        const std::shared_ptr<Beam> beam_b = get_element<Beam>(ends.second);
+        if (!beam_a || !beam_b)
+            continue;
+
+        std::vector<InteractionFeature> kept;
+        for (InteractionFeature& feature : interaction.features)
+            if (!feature.beam())
+                kept.push_back(std::move(feature));
+        interaction.features = std::move(kept);
+
+        for (size_t k = 0; k < interaction.contacts.size(); ++k) {
+
+            const ContactAxis* axis = interaction.contacts[k].axis();
+            FeatureBeam feature;
+            if (!axis || !beam_to_beam(*beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male, feature))
+                continue;
+
+            InteractionFeature entry(feature);
+            entry.contact = static_cast<int>(k);
+            interaction.add_feature(std::move(entry));
+        }
+    }
 }
 
 void WoodSession::compute_contacts() { compute_face_contacts(); }
@@ -179,7 +223,7 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
                 plates[j]->polylines[0], plates[j]->polylines[1],
                 plates[i]->planes[0], plates[i]->planes[1],
                 plates[j]->planes[0], plates[j]->planes[1],
-                crossing, angle_tol
+                settings.distance_squared, crossing, angle_tol
             );
             if (crossed)
                 add_contact(plates[i]->guid(), plates[j]->guid(), InteractionContact(crossing));
@@ -191,7 +235,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
 
     erase_contacts("axis");
 
-    const double tol = tolerance >= 0.0 ? tolerance : config::DISTANCE;
+    const double tol = tolerance >= 0.0 ? tolerance : settings.distance;
     const double tol_squared = tol * tol;
     const std::vector<std::string> guids = element_guids();
     const std::vector<std::shared_ptr<Element>>& elements = *objects.elements;
@@ -426,6 +470,9 @@ std::unordered_map<std::string, std::shared_ptr<TreeNode>> nodes_by_guid(const s
 /// What an element draws as outlines: a solved plate its merged bottom and top with their holes, an unsolved plate its two outlines, anything else the faces of its mesh.
 std::vector<Polyline> element_outlines(session_cpp::Element& element) {
 
+    if (const Beam* beam = dynamic_cast<const Beam*>(&element))
+        return {beam->axis};
+
     const Plate* plate = dynamic_cast<const Plate*>(&element);
     if (!plate)
         return element.polylines();
@@ -545,6 +592,27 @@ void WoodSession::add_contacts_to(const std::map<std::string, std::shared_ptr<Tr
 }
 
 void WoodSession::add_joints_to(const std::map<std::string, std::shared_ptr<TreeNode>>& groups, std::map<std::string, std::shared_ptr<TreeNode>>& children) {
+
+    for (const auto& [guid, interaction] : interactions) {
+
+        const std::pair<std::string, std::string> ends = edge_of(interaction);
+        const auto owner = groups.find(ends.first);
+        if (owner == groups.end())
+            continue;
+
+        for (const InteractionFeature& feature : interaction.features) {
+
+            const FeatureBeam* beam = feature.beam();
+            if (!beam)
+                continue;
+
+            const std::shared_ptr<TreeNode> group = child_group(*this, children, owner->second, "joints");
+            const std::string name = fmt::format("beam_{}_{}_{}", short_guid(ends.first), short_guid(ends.second), beam->end_type);
+            for (const Polyline& volume : beam->volumes)
+                add_polyline(ring(volume, Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta"), name + "_volume"), group);
+        }
+    }
+
     for (const FeaturePlate& joint : get_joints()) {
 
         const auto male = groups.find(joint.element_a);
@@ -605,6 +673,7 @@ std::string WoodSession::pb_dumps() {
     proto.ParseFromString(Session::pb_dumps());
     for (const auto& [guid, interaction] : interactions)
         proto.add_interactions()->ParseFromString(interaction.pb_dumps());
+    proto.mutable_settings()->ParseFromString(settings.pb_dumps());
 
     return proto.SerializeAsString();
 }
@@ -674,8 +743,8 @@ static size_t slot_count(const Plate& plate) {
 
 void WoodSession::assign_joint_types(const std::vector<Point>& points, const std::vector<int>& types) {
 
-    const double threshold = config::DISTANCE_SQUARED * 100.0;
-    const double radius = std::max(config::DISTANCE, std::sqrt(threshold));
+    const double threshold = settings.distance_squared * 100.0;
+    const double radius = std::max(settings.distance, std::sqrt(threshold));
     const std::vector<std::shared_ptr<Plate>> plates = this->plates();
     for (const std::shared_ptr<Plate>& plate : plates)
         plate->joint_types.assign(slot_count(*plate), -1);
@@ -701,8 +770,8 @@ void WoodSession::assign_joint_types(const std::vector<Point>& points, const std
 
 void WoodSession::assign_insertion_vectors(const std::vector<Line>& lines) {
 
-    const double threshold = config::DISTANCE_SQUARED * 100.0;
-    const double radius = std::max(config::DISTANCE, std::sqrt(threshold));
+    const double threshold = settings.distance_squared * 100.0;
+    const double radius = std::max(settings.distance, std::sqrt(threshold));
     const std::vector<std::shared_ptr<Plate>> plates = this->plates();
     for (const std::shared_ptr<Plate>& plate : plates)
         plate->insertion_vectors().assign(slot_count(*plate), Vector(0.0, 0.0, 0.0));

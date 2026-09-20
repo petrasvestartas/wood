@@ -14,9 +14,10 @@
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place, the sidecars the config names apply, and every detected joint is returned.
+/// WoodSession::compute_joints over loose plates, for callers without a scene: the plates are solved in place with `settings`, the sidecars the config names apply, and every detected joint is returned.
 std::vector<wood_session::FeaturePlate> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
+        const wood_session::Settings& settings = wood_session::Settings(),
         SearchType search_type = face_to_face);
 
 namespace wood_session {
@@ -28,6 +29,7 @@ namespace wood_session {
 /// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each key an Interaction: every contact and joint between two elements is a record in `interactions`, found by the edge's guid, and the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh(), the plate with its joints cut in, the one to inspect. compute_joints() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
 class WoodSession : public session_cpp::Session {
 public:
+    Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
     std::map<std::string, Interaction> interactions; // The store: one record per graph edge, by the edge's guid.
     std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_joints classifies; empty lets adjacent_pairs() search. The adjacency sidecar fills it.
     std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. The three_valence sidecar fills it.
@@ -55,7 +57,7 @@ public:
     /// A dataset name (data/<name>.obj) or an .obj path: one Plate per consecutive outline pair, even bottom, odd top; duplicate_pts_tol > 0 removes consecutive duplicate points.
     static WoodSession obj_load(const std::filesystem::path& path, double duplicate_pts_tol = 0.0);
 
-    /// A dataset name (data/<name>.yml) or a .yml path: its globals apply, and the obj it names becomes the scene's plates.
+    /// A dataset name (data/<name>.yml) or a .yml path: its solver keys become the scene's settings, the obj it names its plates, its sidecars the adjacency, three-valence groups, insertion vectors and joint types.
     static WoodSession yaml_load(const std::filesystem::path& path);
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -84,11 +86,20 @@ public:
     /// Elements that pass through each other: plane_to_face over every pair of plates, a ContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
 
-    /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads config::DISTANCE), a ContactAxis per crossing.
+    /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), a ContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
 
+    /// The closest axis segments of every two beams within `min_distance`, a ContactAxis per beam pair.
+    void compute_axis_contacts(double min_distance);
+
+    /// A FeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
+    void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
+
     /// The joinery pipeline over the plates, in place: load_sidecars, adjacent_pairs, detect_joints, the three-valence links, build_joint_geometry, merge_joints; every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() or pb_dump() does that on demand.
-    std::vector<FeaturePlate> compute_joints(SearchType search_type = config::SEARCH_TYPE);
+    std::vector<FeaturePlate> compute_joints();
+
+    /// compute_joints with the detection pass given instead of read from the settings.
+    std::vector<FeaturePlate> compute_joints(SearchType search_type);
 
     /// The four sidecars the dataset yml names onto the scene: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate that carries none.
     void load_sidecars();

@@ -1,5 +1,5 @@
-/// ss_e_r_custom: user-supplied relief joint from CUSTOM_JOINTS_SS_E_R_MALE / FEMALE.
-static void ss_e_r_custom(FeaturePlate& joint) {
+/// ss_e_r_custom: user-supplied relief joint from settings.custom("ss_e_r").
+static void ss_e_r_custom(FeaturePlate& joint, const Settings& settings) {
     joint.name = "ss_e_r_custom";
-    custom_outlines(joint, wood_session::config::CUSTOM_JOINTS_SS_E_R_MALE, wood_session::config::CUSTOM_JOINTS_SS_E_R_FEMALE);
+    custom_outlines(joint, settings.custom("ss_e_r")[0], settings.custom("ss_e_r")[1]);
 }

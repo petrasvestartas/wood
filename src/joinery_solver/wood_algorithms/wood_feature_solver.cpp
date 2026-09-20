@@ -14,46 +14,38 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Joint geometry dispatch
+// Joint library
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Whether a per-face joint id falls in the id range of the detected joint type; -1 always matches.
-bool id_matches(const int type, const int id) {
+/// What a builder may read while it fills a FeaturePlate.
+struct BuildContext {
+    const Settings& settings;
+    std::vector<std::shared_ptr<Plate>>& elements;
+    std::vector<FeaturePlate>& all_joints;
+};
 
-    if (id == -1)
-        return true;
+using Builder = void (*)(FeaturePlate&, BuildContext&);
 
-    switch (type) {
-        case 11: return id >= 10 && id <= 19;
-        case 12: return id >= 1 && id <= 9;
-        case 13: return id >= 50 && id <= 59;
-        case 20: return id >= 20 && id <= 29;
-        case 30: return id >= 30 && id <= 39;
-        case 40: return id >= 40 && id <= 49;
-        case 60: return id >= 60 && id <= 69;
-    }
+/// One library entry: the builder the JOINTS_TYPES table names by id, and the family it belongs to.
+struct Entry {
+    int family;
+    Builder build;
+};
 
-    return false;
+/// Family names by family index: the id ranges 1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69.
+constexpr std::array<std::string_view, 7> FAMILY_NAMES = {"ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r", "b"};
+
+/// Family of an id by tens; -1 outside 1..69.
+int family_of(const int id) {
+
+    if (id < 1 || id > 69)
+        return -1;
+
+    return id < 10 ? 0 : id / 10;
 }
 
-/// Family of a joint id by tens (1-9 -> 0, 10-19 -> 1, ... 60-69 -> 6); outside those, the detected type's family, -1 when it has none.
-int joint_family(const int id, const int joint_type) {
-
-    if (id >= 1 && id <= 9)
-        return 0;
-    if (id >= 10 && id <= 19)
-        return 1;
-    if (id >= 20 && id <= 29)
-        return 2;
-    if (id >= 30 && id <= 39)
-        return 3;
-    if (id >= 40 && id <= 49)
-        return 4;
-    if (id >= 50 && id <= 59)
-        return 5;
-    if (id >= 60 && id <= 69)
-        return 6;
-
+/// The family a detected joint type falls in: 11 -> 1, 12 -> 0, 13 -> 5, 20 -> 2, 30 -> 3, 40 -> 4, 60 -> 6; -1 otherwise.
+int family_of_type(const int joint_type) {
     switch (joint_type) {
         case 11: return 1;
         case 12: return 0;
@@ -61,205 +53,123 @@ int joint_family(const int id, const int joint_type) {
         case 20: return 2;
         case 30: return 3;
         case 40: return 4;
+        case 60: return 6;
         default: return -1;
     }
 }
 
-/// Warns once per id, per thread, when an id has no constructor and the family default is used instead.
+/// Whether a per-face joint id falls in the id range of the detected joint type; -1 always matches.
+bool id_matches(const int joint_type, const int id) {
+    return id == -1 || family_of(id) == family_of_type(joint_type);
+}
+
+/// The library: every id with a builder. An id missing here takes its family's default below.
+const std::map<int, Entry>& library() {
+    static const std::map<int, Entry> table = {
+        {1, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_1(j); }}},
+        {2, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_0(j); }}},
+        {3, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_2(j); }}},
+        {4, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_3(j); }}},
+        {5, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_4(j); }}},
+        {6, {0, [](FeaturePlate& j, BuildContext& c) { ss_e_ip_5(j, c.elements); }}},
+        {8, {0, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
+        {9, {0, [](FeaturePlate& j, BuildContext& c) { ss_e_ip_custom(j, c.settings); }}},
+        {10, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_1(j); }}},
+        {11, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_2(j); }}},
+        {12, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_0(j); }}},
+        {13, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_3(j); }}},
+        {14, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_4(j, 0.0, true); }}},
+        {15, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_5(j, c.all_joints, false); }}},
+        {16, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_5(j, c.all_joints, true); }}},
+        {17, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_17(j); }}},
+        {18, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_tutorial(j); }}},
+        {19, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_custom(j, c.settings); }}},
+        {20, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); }}},
+        {21, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_2(j); }}},
+        {22, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); }}},
+        {23, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_0(j); }}},
+        {25, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_5(j); }}},
+        {28, {2, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
+        {29, {2, [](FeaturePlate& j, BuildContext& c) { ts_e_p_custom(j, c.settings); }}},
+        {30, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_0(j); }}},
+        {31, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_1(j); }}},
+        {32, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_2(j); }}},
+        {33, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_3(j); }}},
+        {34, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_4(j); }}},
+        {35, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_5(j); }}},
+        {38, {3, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
+        {39, {3, [](FeaturePlate& j, BuildContext& c) { cr_c_ip_custom(j, c.settings); }}},
+        {40, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_0(j, c.elements); }}},
+        {41, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_1(j, c.elements); }}},
+        {42, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_2(j, c.elements); }}},
+        {43, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_3(j, c.elements, c.settings.distance_squared); }}},
+        {44, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_4(j, c.elements); }}},
+        {45, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_5(j, c.elements); }}},
+        {54, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_3(j); }}},
+        {55, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_2(j); }}},
+        {56, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_0(j); }}},
+        {57, {5, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
+        {58, {5, [](FeaturePlate& j, BuildContext& c) { side_removal_ss_e_r_1_port(j, c.elements); }}},
+        {59, {5, [](FeaturePlate& j, BuildContext& c) { ss_e_r_custom(j, c.settings); }}},
+        {60, {6, [](FeaturePlate& j, BuildContext&) { b_0(j); }}},
+        {69, {6, [](FeaturePlate& j, BuildContext& c) { b_custom(j, c.settings); }}},
+    };
+
+    return table;
+}
+
+/// The builder a family falls back to for an id it has no entry for; tt_e_p has none.
+constexpr std::array<Builder, 7> FAMILY_DEFAULTS = {
+    [](FeaturePlate& j, BuildContext&) { ss_e_ip_1(j); },
+    [](FeaturePlate& j, BuildContext&) { ss_e_op_1(j); },
+    [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); },
+    [](FeaturePlate& j, BuildContext&) { cr_c_ip_0(j); },
+    nullptr,
+    [](FeaturePlate& j, BuildContext&) { ss_e_r_0(j); },
+    [](FeaturePlate& j, BuildContext&) { b_0(j); },
+};
+
+/// Warns once per id, per thread, when an id has no builder and the family default is used instead.
 void warn_unimplemented(const int id, std::string_view family) {
     static thread_local std::set<int> warned_ids;
     if (warned_ids.insert(id).second)
         std::cerr << fmt::format("joint_create_geometry: id={} ({}) not ported, using family default\n", id, family);
 }
 
-/// Family 0, side-to-side in-plane: ss_e_ip_* by id.
-void create_side_in_plane_joint(FeaturePlate& joint, const int id, const std::vector<std::shared_ptr<Plate>>* elements) {
-    switch (id) {
-        case 1: ss_e_ip_1(joint); break;
-        case 2: ss_e_ip_0(joint); break;
-        case 3: ss_e_ip_2(joint); break;
-        case 4: ss_e_ip_3(joint); break;
-        case 5: ss_e_ip_4(joint); break;
-        case 6:
-            if (elements)
-                ss_e_ip_5(joint, *elements);
-            break;
-        case 8:
-            if (elements)
-                side_removal(joint, *elements);
-            break;
-        case 9: ss_e_ip_custom(joint); break;
-        default: warn_unimplemented(id, "ss_e_ip"); ss_e_ip_1(joint); break;
-    }
-}
-
-/// Family 1, side-to-side out-of-plane: ss_e_op_* by id; 15, 16 and negative ids need the joint list for the linked shadows.
-void create_side_out_of_plane_joint(FeaturePlate& joint, const int id, std::vector<FeaturePlate>* all_joints) {
-    switch (id) {
-        case 10: ss_e_op_1(joint); break;
-        case 11: ss_e_op_2(joint); break;
-        case 12: ss_e_op_0(joint); break;
-        case 13: ss_e_op_3(joint); break;
-        case 14: ss_e_op_4(joint, 0.0, true); break;
-        case 15:
-            if (all_joints)
-                ss_e_op_5(joint, *all_joints, false);
-            else
-                ss_e_op_4(joint);
-            break;
-        case 16:
-            if (all_joints)
-                ss_e_op_5(joint, *all_joints, true);
-            else
-                ss_e_op_4(joint);
-            break;
-        case 17: ss_e_op_17(joint); break;
-        case 18: ss_e_op_tutorial(joint); break;
-        case 19: ss_e_op_custom(joint); break;
-        default:
-            if (id < 0) {
-                if (all_joints)
-                    ss_e_op_5(joint, *all_joints, false);
-                else
-                    ss_e_op_4(joint);
-            } else {
-                warn_unimplemented(id, "ss_e_op");
-                ss_e_op_1(joint);
-            }
-            break;
-    }
-}
-
-/// Family 2, top-to-side: ts_e_p_* by id.
-void create_top_side_joint(FeaturePlate& joint, const int id, const std::vector<std::shared_ptr<Plate>>* elements) {
-    switch (id) {
-        case 20: ts_e_p_3(joint); break;
-        case 21: ts_e_p_2(joint); break;
-        case 22: ts_e_p_3(joint); break;
-        case 23: ts_e_p_0(joint); break;
-        case 25: ts_e_p_5(joint); break;
-        case 28:
-            if (elements)
-                side_removal(joint, *elements);
-            break;
-        case 29: ts_e_p_custom(joint); break;
-        default: warn_unimplemented(id, "ts_e_p"); ts_e_p_3(joint); break;
-    }
-}
-
-/// Family 3, cross in-plane: cr_c_ip_* by id.
-void create_cross_joint(FeaturePlate& joint, const int id, const std::vector<std::shared_ptr<Plate>>* elements) {
-    switch (id) {
-        case 30: cr_c_ip_0(joint); break;
-        case 31: cr_c_ip_1(joint); break;
-        case 32: cr_c_ip_2(joint); break;
-        case 33: cr_c_ip_3(joint); break;
-        case 34: cr_c_ip_4(joint); break;
-        case 35: cr_c_ip_5(joint); break;
-        case 38:
-            if (elements)
-                side_removal(joint, *elements);
-            break;
-        case 39: cr_c_ip_custom(joint); break;
-        default: warn_unimplemented(id, "cr_c_ip"); cr_c_ip_0(joint); break;
-    }
-}
-
-/// Family 4, top-to-top: tt_e_p_* by id; every constructor needs the elements.
-void create_top_top_joint(FeaturePlate& joint, const int id, const std::vector<std::shared_ptr<Plate>>* elements) {
-    switch (id) {
-        case 40:
-            if (elements)
-                tt_e_p_0(joint, *elements);
-            break;
-        case 41:
-            if (elements)
-                tt_e_p_1(joint, *elements);
-            break;
-        case 42:
-            if (elements)
-                tt_e_p_2(joint, *elements);
-            break;
-        case 43:
-            if (elements)
-                tt_e_p_3(joint, *elements);
-            break;
-        case 44:
-            if (elements)
-                tt_e_p_4(joint, *elements);
-            break;
-        case 45:
-            if (elements)
-                tt_e_p_5(joint, *elements);
-            break;
-        default: warn_unimplemented(id, "tt_e_p"); break;
-    }
-}
-
-/// Family 5, side-to-side rotated: ss_e_r_* by id.
-void create_rotated_side_joint(FeaturePlate& joint, const int id, const std::vector<std::shared_ptr<Plate>>* elements) {
-    switch (id) {
-        case 54: ss_e_r_3(joint); break;
-        case 55: ss_e_r_2(joint); break;
-        case 56: ss_e_r_0(joint); break;
-        case 57:
-            if (elements)
-                side_removal(joint, *elements);
-            break;
-        case 58:
-            if (elements)
-                side_removal_ss_e_r_1_port(joint, *elements);
-            else
-                ss_e_r_0(joint);
-            break;
-        case 59: ss_e_r_custom(joint); break;
-        default: warn_unimplemented(id, "ss_e_r"); ss_e_r_0(joint); break;
-    }
-}
-
-/// Family 6, boundary: b_* by id.
-void create_boundary_joint(FeaturePlate& joint, const int id) {
-    switch (id) {
-        case 60: b_0(joint); break;
-        case 69: b_custom(joint); break;
-        default: warn_unimplemented(id, "b"); b_0(joint); break;
-    }
-}
-
-/// Unit joinery geometry for `id` (family by tens, variant by id); id -1 falls back to the type's default variant.
-void joint_create_geometry(
-    FeaturePlate& joint,
-    const double division_distance,
-    const double shift_param,
-    const int id,
-    std::vector<FeaturePlate>* all_joints,
-    const std::vector<std::shared_ptr<Plate>>* elements) {
+/// Unit joinery geometry for `id`: the library entry, else the family default; a negative id in the out-of-plane family is the linked variant. Nothing for id 0 or an id outside the detected type's family.
+void joint_create_geometry(FeaturePlate& joint, const double division_distance, const double shift_param, const int id, BuildContext& context) {
 
     joint_get_divisions(joint, division_distance);
     joint.shift = shift_param;
 
-    if (id == 0)
-        return;
-    if (!id_matches(joint.joint_type, id))
+    if (id == 0 || !id_matches(joint.joint_type, id))
         return;
 
-    switch (joint_family(id, joint.joint_type)) {
-        case 0: create_side_in_plane_joint(joint, id, elements); break;
-        case 1: create_side_out_of_plane_joint(joint, id, all_joints); break;
-        case 2: create_top_side_joint(joint, id, elements); break;
-        case 3: create_cross_joint(joint, id, elements); break;
-        case 4: create_top_top_joint(joint, id, elements); break;
-        case 5: create_rotated_side_joint(joint, id, elements); break;
-        case 6: create_boundary_joint(joint, id); break;
-        default:
-            warn_unimplemented(id, "unwired-group");
-            switch (joint.joint_type) {
-                case 11: case 12: ss_e_op_1(joint); break;
-                case 20: ts_e_p_3(joint); break;
-                default: break;
-            }
-            break;
+    const std::map<int, Entry>& table = library();
+    const auto entry = table.find(id);
+    if (entry != table.end()) {
+        entry->second.build(joint, context);
+        return;
     }
+
+    const int family = family_of(id) >= 0 ? family_of(id) : family_of_type(joint.joint_type);
+    if (family == 1 && id < 0) {
+        ss_e_op_5(joint, context.all_joints, false);
+        return;
+    }
+
+    if (family < 0) {
+        warn_unimplemented(id, "unwired-group");
+        if (joint.joint_type == 11 || joint.joint_type == 12)
+            ss_e_op_1(joint);
+        else if (joint.joint_type == 20)
+            ts_e_p_3(joint);
+        return;
+    }
+
+    warn_unimplemented(id, FAMILY_NAMES[family]);
+    if (FAMILY_DEFAULTS[family])
+        FAMILY_DEFAULTS[family](joint, context);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -319,7 +229,7 @@ int joint_id_for(
     return id_representing_joint_name;
 }
 
-/// Row of JOINTS_PARAMETERS_AND_TYPES for a joint type: 11->1 12->0 13->5 20->2 30->3 40->4 60->6.
+/// Row of joint_parameters for a joint type: 11->1 12->0 13->5 20->2 30->3 40->4 60->6.
 int parameter_row(const int joint_type) {
     switch (joint_type) {
         case 11: return 1;
@@ -333,7 +243,7 @@ int parameter_row(const int joint_type) {
     }
 }
 
-/// Built-in JOINTS_PARAMETERS_AND_TYPES: division length, shift and joint id per family row.
+/// Built-in joint parameters: division length, shift and joint id per family row.
 constexpr double PARAMETER_DEFAULTS[21] = {
     300, 0.5,  3,
     450, 0.64, 15,
@@ -344,20 +254,20 @@ constexpr double PARAMETER_DEFAULTS[21] = {
     300, 1.0,  60,
 };
 
-/// One JOINTS_PARAMETERS_AND_TYPES entry, from the globals when they are complete and from the built-in defaults otherwise.
+/// One joint_parameters entry, from the settings when they are complete and from the built-in defaults otherwise.
 double joint_parameter(const std::vector<double>& parameters_global, bool parameters_ok, size_t index) {
     return parameters_ok ? parameters_global[index] : PARAMETER_DEFAULTS[index];
 }
 
-/// Per-family row of JOINTS_PARAMETERS_AND_TYPES: division length, shift and the default id when none was given.
-FamilyParameters family_parameters(const int joint_type, const int id_representing_joint_name) {
+/// Per-family row of settings.joint_parameters: division length, shift and the default id when none was given.
+FamilyParameters family_parameters(const Settings& settings, const int joint_type, const int id_representing_joint_name) {
 
-    const std::vector<double>& parameters_global = wood_session::config::JOINTS_PARAMETERS_AND_TYPES;
+    const std::vector<double>& parameters_global = settings.joint_parameters;
     const bool parameters_ok = parameters_global.size() >= 21;
 
     static thread_local bool parameters_warned = false;
     if (!parameters_ok && !parameters_warned) {
-        std::cerr << fmt::format("  WARNING: JOINTS_PARAMETERS_AND_TYPES has {} entries, expected 21 - using built-in defaults.\n", parameters_global.size());
+        std::cerr << fmt::format("  WARNING: joint_parameters has {} entries, expected 21 - using built-in defaults.\n", parameters_global.size());
         parameters_warned = true;
     }
 
@@ -411,8 +321,7 @@ std::string joint_cache_key(const int id_representing_joint_name, const FeatureP
 void reuse_or_create_geometry(
     FeaturePlate& joint,
     const FamilyParameters& family,
-    std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& all_joints,
+    BuildContext& context,
     std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
     const std::string cache_key = joint_cache_key(family.id, joint);
@@ -420,7 +329,7 @@ void reuse_or_create_geometry(
 
     const auto cache_entry = use_cache ? unique_joints_cache.find(cache_key) : unique_joints_cache.end();
     if (!use_cache) {
-        joint_create_geometry(joint, family.division_distance, family.shift, family.id, &all_joints, &elements);
+        joint_create_geometry(joint, family.division_distance, family.shift, family.id, context);
     } else if (cache_entry != unique_joints_cache.end()) {
         const CachedJointGeometry& cached = cache_entry->second;
         joint.name = cached.name;
@@ -431,7 +340,7 @@ void reuse_or_create_geometry(
         joint.unit_scale = cached.unit_scale;
         joint.unit_scale_distance = cached.unit_scale_distance;
     } else {
-        joint_create_geometry(joint, family.division_distance, family.shift, family.id, &all_joints, &elements);
+        joint_create_geometry(joint, family.division_distance, family.shift, family.id, context);
 
         CachedJointGeometry cached;
         cached.name = joint.name;
@@ -449,14 +358,12 @@ void reuse_or_create_geometry(
 void build_joint_geometry(
     FeaturePlate& joint,
     const FamilyParameters& family,
-    std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& all_joints,
+    BuildContext& context,
     std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
-    joint.scale = {
-        wood_session::config::JOINT_SCALE[0],
-        wood_session::config::JOINT_SCALE[1],
-        wood_session::config::JOINT_SCALE[2]};
+    std::vector<std::shared_ptr<Plate>>& elements = context.elements;
+    std::vector<FeaturePlate>& all_joints = context.all_joints;
+    joint.scale = context.settings.joint_scale;
 
     // ss_e_r_2/3 and ss_e_ip_2 divide by the element thickness, not the 40 mm default.
     if (joint.joint_type == 13 || joint.joint_type == 12) {
@@ -467,7 +374,7 @@ void build_joint_geometry(
 
     joint_get_divisions(joint, family.division_distance);
     joint.shift = family.shift;
-    reuse_or_create_geometry(joint, family, elements, all_joints, unique_joints_cache);
+    reuse_or_create_geometry(joint, family, context, unique_joints_cache);
 
     if (!joint.no_orient) {
         joint_orient_to_connection_area(joint);
@@ -486,18 +393,20 @@ void build_joint_geometry(
 void build_joints_geometry(
     std::vector<FeaturePlate>& all_joints,
     std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<std::vector<int>>& per_element_joints_types) {
+    const std::vector<std::vector<int>>& per_element_joints_types,
+    const Settings& settings) {
 
     std::map<std::string, CachedJointGeometry> unique_joints_cache;
+    BuildContext context{settings, elements, all_joints};
 
     for (FeaturePlate& joint : all_joints) {
 
         const int id_representing_joint_name = joint_id_for(joint, per_element_joints_types, elements);
-        const FamilyParameters family = family_parameters(joint.joint_type, id_representing_joint_name);
+        const FamilyParameters family = family_parameters(settings, joint.joint_type, id_representing_joint_name);
         if (joint.link)
             continue;
 
-        build_joint_geometry(joint, family, elements, all_joints, unique_joints_cache);
+        build_joint_geometry(joint, family, context, unique_joints_cache);
     }
 }
 
@@ -551,17 +460,13 @@ std::vector<std::pair<int, int>> WoodSession::adjacent_pairs() const {
     for (const std::shared_ptr<Plate>& plate : plates())
         elements.push_back(plate);
 
-    return adjacency_search(elements, config::DISTANCE);
+    return adjacency_search(elements, settings.distance);
 }
 
 std::vector<FeaturePlate> WoodSession::detect_joints(const std::vector<std::pair<int, int>>& pairs, SearchType search_type) {
 
-    using namespace config;
-
     const std::vector<std::shared_ptr<Plate>> elements = plates();
     const int element_count = static_cast<int>(elements.size());
-    const double zero_length_squared = 1e-6; // A joint line no longer than 1 mm is degenerate.
-    set_cross_joint_distance_squared(DISTANCE_SQUARED);
 
     std::vector<FeaturePlate> joints;
     joints.reserve(pairs.size());
@@ -576,20 +481,7 @@ std::vector<FeaturePlate> WoodSession::detect_joints(const std::vector<std::pair
 
         FeaturePlate joint;
         bool swap_planes_b = false;
-        const bool ok = face_to_face_wood(
-            *elements[index_a],
-            *elements[index_b],
-            {index_a, index_b},
-            JOINT_VOLUME_EXTENSION,
-            LIMIT_MIN_JOINT_LENGTH,
-            zero_length_squared,
-            DISTANCE_SQUARED,
-            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE,
-            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED,
-            FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE,
-            search_type,
-            joint,
-            swap_planes_b);
+        const bool ok = face_to_face_wood(*elements[index_a], *elements[index_b], {index_a, index_b}, settings, search_type, joint, swap_planes_b);
 
         if (swap_planes_b) {
             std::swap(elements[index_b]->planes[0], elements[index_b]->planes[1]);
@@ -605,7 +497,7 @@ std::vector<FeaturePlate> WoodSession::detect_joints(const std::vector<std::pair
 
 void WoodSession::build_joint_geometry(std::vector<FeaturePlate>& joints, const std::vector<std::vector<int>>& joint_types) {
     std::vector<std::shared_ptr<Plate>> elements = plates();
-    build_joints_geometry(joints, elements, joint_types);
+    build_joints_geometry(joints, elements, joint_types, settings);
 }
 
 void WoodSession::merge_joints(std::vector<FeaturePlate>& joints) {
@@ -615,7 +507,7 @@ void WoodSession::merge_joints(std::vector<FeaturePlate>& joints) {
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
 
-        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], joints, (int)element_index);
+        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], joints, (int)element_index, settings.distance_squared);
         wood_session::Features& features = elements[element_index]->features;
         features.top.clear();
         features.bottom.clear();
@@ -655,6 +547,8 @@ void WoodSession::load_sidecars() {
 }
 
 /// A reversed plate lists its side slots backwards, so its insertion vectors are read in the same order.
+std::vector<FeaturePlate> WoodSession::compute_joints() { return compute_joints(settings.search_type); }
+
 std::vector<FeaturePlate> WoodSession::compute_joints(SearchType search_type) {
 
     std::vector<std::shared_ptr<Plate>> elements = plates();
@@ -675,7 +569,7 @@ std::vector<FeaturePlate> WoodSession::compute_joints(SearchType search_type) {
     }
 
     std::vector<FeaturePlate> joints = detect_joints(adjacent_pairs(), search_type);
-    link_three_valence_joints(three_valence, elements, joints);
+    link_three_valence_joints(three_valence, elements, joints, settings.angle);
     build_joint_geometry(joints, joint_types);
     merge_joints(joints);
 
@@ -693,9 +587,10 @@ std::vector<FeaturePlate> WoodSession::compute_joints(SearchType search_type) {
 
 } // namespace wood_session
 
-std::vector<wood_session::FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, SearchType search_type) {
+std::vector<wood_session::FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, const wood_session::Settings& settings, SearchType search_type) {
 
     wood_session::WoodSession scene(wood_session::config::DATA_SET_INPUT_NAME);
+    scene.settings = settings;
     for (const std::shared_ptr<wood_session::Plate>& plate : elements)
         scene.add(plate);
 

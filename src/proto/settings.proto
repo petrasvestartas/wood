@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "polyline.proto";
+
+// User joint outlines for one family: male and female (face0, face1) pairs.
+message CustomJoint {
+  string family = 1;                          // "ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r" or "b"
+  repeated session_proto.Polyline male = 2;   // Male outline pairs
+  repeated session_proto.Polyline female = 3; // Female outline pairs
+}
+
+// Every tunable of the solver, as the dataset yml sets it; written with the scene so a file records what produced it.
+message Settings {
+  int32 search_type = 1;                      // 0 face_to_face, 1 cross_joint, 2 face_to_face_then_cross
+  repeated double joint_parameters = 2;       // Joint-family triples [division_length, shift, joint id], 7 families
+  repeated double joint_volume_extension = 3; // [width, height, length] per joint type, or one triple for all
+  repeated double joint_scale = 4;            // [sx, sy, sz], 3 entries
+  double dihedral_angle = 5;                  // Degrees, rotated-joint threshold
+  bool all_treated_as_rotated = 6;            // Force the rotated geometry path
+  bool rotated_joint_as_average = 7;          // Averaged plane for rotated joints
+  double distance = 8;                        // AABB inflation and point-merge tolerance, mm
+  double distance_squared = 9;                // Squared coplanarity tolerance, mm²
+  double angle = 10;                          // Angular tolerance, radians
+  double duplicate_points_tolerance = 11;     // Consecutive duplicate removal when reading an obj
+  double limit_min_joint_length = 12;         // Joints with a shorter centreline are dropped
+  int64 clipper_scale = 13;                   // mm to int64 for the 2D boolean
+  double clipper_area = 14;                   // Overlaps at or below this area are not a contact
+  repeated double beams = 15;                 // [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male]
+  repeated CustomJoint custom_joints = 16;    // User joint outlines, in family order
+}

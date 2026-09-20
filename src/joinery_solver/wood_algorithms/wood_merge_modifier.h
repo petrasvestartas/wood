@@ -49,8 +49,8 @@ private:
     /// Last joint line on the bottom outline.
     std::array<session_cpp::Point, 2> last_bottom_segment{{session_cpp::Point(0, 0, 0), session_cpp::Point(0, 0, 0)}};
 
-    /// Copies the plate outlines and planes and opens the log.
-    MergeModifier(const Plate& plate, int plate_index);
+    /// Copies the plate outlines and planes and opens the log; `distance_squared` is the offset tolerance.
+    MergeModifier(const Plate& plate, int plate_index, double distance_squared);
 
 public:
     // ═══════════════════════════════════════════════════════════════════════════
@@ -62,7 +62,8 @@ public:
         const Plate& plate,
         const std::vector<std::vector<std::pair<int, bool>>>& membership,
         std::vector<FeaturePlate>& joints,
-        int plate_index
+        int plate_index,
+        double distance_squared
     );
 
 private:

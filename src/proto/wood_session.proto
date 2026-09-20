@@ -8,6 +8,7 @@ import "graph.proto";
 import "boundingbox.proto";
 import "session.proto";
 import "interaction.proto";
+import "settings.proto";
 
 // A wood scene on the wire: fields 1..7 are session_proto.Session field for field, so any
 // Session reader opens the file and drops the interactions as an unknown field.
@@ -20,4 +21,5 @@ message WoodSession {
   repeated session_proto.BoundingBox bvh_boxes = 6;  // Simplified BVH representation
   repeated session_proto.XformEntry xforms = 7;    // Local transforms in Session::order() sequence
   repeated Interaction interactions = 100;         // One per graph edge, by the edge's guid
+  Settings settings = 101;                         // The solver settings the scene was solved with
 }

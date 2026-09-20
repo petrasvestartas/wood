@@ -72,16 +72,20 @@ bool type_beams_name_phanomema_node() {
         if (!config::plates_exist("phanomema_node"))
             return false;
 
-        load_yaml("phanomema_node");
-        if (BEAMS.size() != 6)
+        const Settings settings = load_yaml("phanomema_node");
+        const std::vector<double>& beams = settings.beams;
+        if (beams.size() != 6)
             throw std::runtime_error("phanomema_node.yml has no beams block");
 
-        std::vector<std::shared_ptr<Beam>> beams;
+        WoodSession scene("WoodF2F");
+        scene.settings = settings;
         for (const Polyline& axis : config::load_obj("phanomema_node"))
-            beams.push_back(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), BEAMS[0]), std::vector<Vector>{}, static_cast<int>(BEAMS[1])));
+            scene.add(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), beams[0]), std::vector<Vector>{}, static_cast<int>(beams[1])));
 
-        WoodSession volumes = Beam::joint_volumes(beams, BEAMS[2], BEAMS[3], BEAMS[4], static_cast<int>(BEAMS[5]));
-        volumes.pb_dump((config::output_dir() / DATA_SET_OUTPUT_FILE).string());
+        scene.compute_axis_contacts(beams[2]);
+        scene.compute_beam_features(beams[3], beams[4], static_cast<int>(beams[5]));
+        scene.add_to_tree();
+        scene.pb_dump((config::output_dir() / DATA_SET_OUTPUT_FILE).string());
 
         return true;
     } catch (const std::exception& e) {

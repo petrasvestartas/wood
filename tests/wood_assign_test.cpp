@@ -43,8 +43,8 @@ static void insertion_tolerance() {
                 check(vectors[i].magnitude() == 0.0, "Unassigned Insertion Slots");
     }
 
-    config::DISTANCE = 0.01;
-    config::DISTANCE_SQUARED = 0.04;
+    session.settings.distance = 0.01;
+    session.settings.distance_squared = 0.04;
     session.assign_insertion_vectors({Line::from_points(Point(5, -1.5, 0), Point(5, -1.5, 3))});
     check(session.plates()[0]->insertion_vectors()[2][2] == 3.0, "Retuned Insertion Tolerance");
 }

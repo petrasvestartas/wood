@@ -4,9 +4,8 @@
 
 namespace wood_session {
 
-class WoodSession;
 
-/// A timber beam: a polyline axis with a square section of one radius per segment, joined to other beams where their axes come within reach. Its joint volumes are the four rectangles Beam::joint_volumes cuts at every contact.
+/// A timber beam: a polyline axis with a square section of one radius per segment, joined to other beams where their axes come within reach; WoodSession::compute_axis_contacts and compute_beam_features find the pairs and cut four volume rectangles at each.
 class Beam : public session_cpp::Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Beam"; // The element_type this beam is written under.
@@ -36,15 +35,6 @@ public:
 
     /// The beam an Element tagged "Beam" describes, same guid; a missing payload leaves the axis empty.
     static std::shared_ptr<Beam> from_element(const session_cpp::Element& element);
-
-    /// Every axis contact among the beams within `min_distance` as four joint volume rectangles of `volume_length`, in a WoodSession that holds the beams as elements, one interaction per touching pair with its ContactAxis and FeatureBeam, the axes under "BeamAxes" and the rectangles under "JointVolumes"; `cross_or_side_to_end` is the parameter that separates a crossing from an end contact, `flip_male` rotates the male rectangle corners.
-    static WoodSession joint_volumes(
-        const std::vector<std::shared_ptr<Beam>>& beams,
-        double min_distance,
-        double volume_length,
-        double cross_or_side_to_end,
-        int flip_male
-    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

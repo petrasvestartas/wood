@@ -5,7 +5,6 @@ using namespace wood_session;
 int main() {
 
     config::reset_defaults();
-    config::JOINT_VOLUME_EXTENSION[1] = 2;
     config::DATA_SET_INPUT_NAME = "cross_corners_custom";
     config::DATA_SET_OUTPUT_FILE = "WoodF2F_cross_corners_custom.pb";
 
@@ -53,6 +52,7 @@ int main() {
     };
 
     WoodSession scene(config::DATA_SET_INPUT_NAME);
+    scene.settings.joint_volume_extension[1] = 2;
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(cross_joint);

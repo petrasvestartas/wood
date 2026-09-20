@@ -3,59 +3,10 @@
 #include "pch.h"
 
 
-/// Which detection pass compute_joints runs.
-enum SearchType : int {
-    face_to_face = 0, // Coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p.
-    cross_joint = 1, // Elements passing through each other: plane_to_face, type 30.
-    face_to_face_then_cross = 2, // Face-to-face first, cross as the fallback.
-};
+#include "wood_settings.h"
 
 namespace wood_session {
 namespace config {
-    /// The detection pass the dataset asks for (yml `search_type`).
-    extern SearchType SEARCH_TYPE;
-
-    /// Joint-family triples [division_length (mm), shift, joint_type_id]; families 0=ss_e_ip 1=ss_e_op 2=ts_e_p 3=cr_c_ip 4=tt_e_p 5=ss_e_r 6=b.
-    extern std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
-
-    /// Additive [width, height, length] extension (mm) of joint volumes: one triple for every joint type, or one per type
-    /// (side-side, top-side, top-top, cross); width and height grow the volume, length the joint line; unit-scale joints
-    /// (ss_e_ip_2, ss_e_r_*, ts_e_p_5) keep their axial size at the plate thickness.
-    extern std::vector<double> JOINT_VOLUME_EXTENSION;
-
-    /// Multiplicative [sx, sy, sz] scale of joint geometry before insertion (ss_e_ip_2, ss_e_r_*, ts_e_p_5); 1 = no change.
-    extern std::array<double, 3> JOINT_SCALE;
-
-    /// Degrees; rotated-joint threshold.
-    extern double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE;
-
-    /// Force rotated geometry path.
-    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED;
-
-    /// Averaged plane for rotated joints.
-    extern bool   FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE;
-
-    /// Inflate AABBs / point-merge tolerance (mm).
-    extern double DISTANCE;
-
-    /// Squared coplanarity tolerance (mm²).
-    extern double DISTANCE_SQUARED;
-
-    /// Angular tolerance, RADIANS (cos-tolerance).
-    extern double ANGLE;
-
-    /// Consecutive-duplicate-points removal in load_obj.
-    extern double DUPLICATE_PTS_TOL;
-
-    /// Filters out joints whose centerline is shorter.
-    extern double LIMIT_MIN_JOINT_LENGTH;
-
-    /// Mm -> int64 scale for the 2D boolean (1e6 = nanometre grid).
-    extern int64_t CLIPPER_SCALE;
-
-    /// Overlap areas at or below this (mm²) are not a contact.
-    extern double  CLIPPER_AREA;
-
     /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
     extern std::string DATA_SET_INPUT_FOLDER;
 
@@ -204,56 +155,11 @@ namespace config {
     /// WoodF2F_<yml stem>.pb, written into data/output/.
     extern std::string DATA_SET_OUTPUT_FILE;
 
-    /// Beam datasets (yml `beams`): [radius, allowed joint type, min_distance, volume_length, cross_or_side_to_end, flip_male].
-    extern std::vector<double> BEAMS;
-
-    /// Custom joint polylines set at runtime, pairs (i, i+1) = (male, female) per variant; the yaml loader skips them.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_MALE;
-
-    /// Custom joint polylines, see CUSTOM_JOINTS_SS_E_IP_MALE.
-    extern std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
-
-    /// Reset every global above to the wood baseline values.
+    /// Clears every dataset path above.
     void reset_defaults();
 
-    /// Load `data/<name>.yml` (or the given .yml path) and apply every key to the globals above.
-    void load_yaml(const std::string& dataset_name);
+    /// Load `data/<name>.yml` (or the given .yml path): its solver keys as Settings, its file keys into the dataset paths above.
+    Settings load_yaml(const std::string& dataset_name);
 
     /// The dataset folder, DATA_SET_INPUT_FOLDER; absolute, so the working directory does not matter.
     std::filesystem::path session_data_dir();
@@ -279,6 +185,6 @@ namespace config {
     /// Three-valence groups from the sidecar: the first row [instruction], then [s0, s1, e20, e31] rows; empty when there is no sidecar.
     std::vector<std::vector<int>> load_three_valence(const std::string& three_valence_name);
 
-    /// The polylines of data/<name>.obj or an .obj path: plate outline pairs, or one beam axis each; duplicate_pts_tol > 0 removes consecutive duplicate points and becomes DUPLICATE_PTS_TOL.
-    std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol = 0.0);
+    /// The polylines of data/<name>.obj or an .obj path: plate outline pairs, or one beam axis each; duplicate_points_tolerance > 0 removes consecutive duplicate points.
+    std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_points_tolerance = 0.0);
 }} // namespace wood_session::config

@@ -79,16 +79,11 @@ int main() {
         }),
     };
 
-    config::CUSTOM_JOINTS_SS_E_IP_MALE = {
-        compute_tooth(-0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
-        compute_tooth(0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
-    };
-    config::CUSTOM_JOINTS_SS_E_IP_FEMALE = {
-        compute_tooth(-0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
-        compute_tooth(0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO),
-    };
-
     WoodSession scene(config::DATA_SET_INPUT_NAME);
+    scene.settings.custom_joints["ss_e_ip"] = {
+        std::vector<Polyline>{compute_tooth(-0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO), compute_tooth(0.5, -SEAM_DEPTH, TOOTH_HALF, NECK_RATIO)},
+        std::vector<Polyline>{compute_tooth(-0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO), compute_tooth(0.5, SEAM_DEPTH, TOOTH_HALF, NECK_RATIO)},
+    };
     for (size_t i = 0; i + 1 < polylines.size(); i += 2)
         scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
     scene.compute_joints(face_to_face);

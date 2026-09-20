@@ -80,14 +80,14 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
 // Vidy shadow joints
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Whether two plate normals are parallel within config::ANGLE, either way round.
-static bool normals_parallel(const Vector& a, const Vector& b) {
+/// Whether two plate normals are parallel within `angle` radians, either way round.
+static bool normals_parallel(const Vector& a, const Vector& b, double angle) {
 
     const double length_product = a.magnitude() * b.magnitude();
     if (length_product <= 0.0)
         return false;
 
-    return std::abs(a.dot(b) / length_product) >= std::cos(wood_session::config::ANGLE);
+    return std::abs(a.dot(b) / length_product) >= std::cos(angle);
 }
 
 /// The four joint volumes of a joint copied out, an empty polyline where one is missing.
@@ -106,7 +106,8 @@ void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<FeaturePlate>& joints,
-    std::unordered_map<uint64_t, int>& joints_map) {
+    std::unordered_map<uint64_t, int>& joints_map,
+    double angle) {
 
     if (three_valence_groups.size() < 2)
         return;
@@ -139,7 +140,7 @@ void add_vidy_shadow_joints(
             const Vector normal_side1 = elements[side1]->planes[0].z_axis();
             const Vector normal_glued0 = elements[glued0]->planes[0].z_axis();
 
-            if (!normals_parallel(normal_side0, normal_glued1) || !normals_parallel(normal_side1, normal_glued0))
+            if (!normals_parallel(normal_side0, normal_glued1, angle) || !normals_parallel(normal_side1, normal_glued0, angle))
                 continue;
         }
 
@@ -352,7 +353,8 @@ void align_annen_joints(
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& all_joints) {
+    std::vector<FeaturePlate>& all_joints,
+    double angle) {
 
     if (three_valence_groups.size() > 1) {
         std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, all_joints);
@@ -360,7 +362,7 @@ void link_three_valence_joints(
 
         if (instruction == 1) {
             const size_t before_vidy = all_joints.size();
-            add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map);
+            add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map, angle);
             if (TRACE)
                 std::cout << fmt::format("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
         } else {

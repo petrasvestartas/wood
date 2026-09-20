@@ -2,9 +2,11 @@
 
 #include "pch.h"
 
-#include "wood_config.h"
+#include "wood_settings.h"
+#include "wood_element_beam.h"
 #include "wood_element_plate.h"
 #include "wood_interaction_contact_face.h"
+#include "wood_interaction_contact_axis.h"
 #include "wood_interaction_contact_cross.h"
 #include "wood_interaction_feature_plate.h"
 
@@ -31,12 +33,14 @@ bool faces_coplanar(
     double cos_angle,
     double coplanar_tolerance);
 
-/// Largest overlap of two coplanar outlines as a closed polygon in `plane0`, via Clipper2 on the CLIPPER_SCALE grid; coplanarity is a precondition, triangles count only when `include_triangles`.
+/// Largest overlap of two coplanar outlines as a closed polygon in `plane0`, via Clipper2 on the `clipper_scale` grid; areas at or below `clipper_area` are none; coplanarity is a precondition, triangles count only when `include_triangles`.
 bool face_overlap_area(
     const session_cpp::Polyline& outline0,
     const session_cpp::Polyline& outline1,
     const session_cpp::Plane& plane0,
     bool include_triangles,
+    int64_t clipper_scale,
+    double clipper_area,
     session_cpp::Polyline& out_area);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -47,43 +51,35 @@ bool face_overlap_area(
 std::vector<ContactFace> face_contacts_for_pair(
     session_cpp::Element& ea,
     session_cpp::Element& eb,
-    double cos_angle,
-    double coplanar_tolerance,
+    const Settings& settings,
     FeaturePlate* trace = nullptr);
 
-/// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search, then faces_coplanar + face_overlap_area over each candidate; `angle` in radians, `coplanar_tolerance` a squared distance.
+/// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
 std::vector<std::tuple<int, int, ContactFace>> face_contacts(
     const std::vector<std::shared_ptr<session_cpp::Element>>& elements,
-    const std::vector<std::string>& names = {},
-    double inflate            = config::DISTANCE,
-    double angle              = config::ANGLE,
-    double coplanar_tolerance = config::DISTANCE_SQUARED);
+    const Settings& settings,
+    const std::vector<std::string>& names = {});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Cross contacts
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Cross/lap contact detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing.
+/// Cross/lap contact detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing. A vertex within sqrt(distance_squared) of the other plate's plane is near-coplanar and rejects the crossing.
 bool plane_to_face(
     const session_cpp::Polyline& a_bottom, const session_cpp::Polyline& a_top,
     const session_cpp::Polyline& b_bottom, const session_cpp::Polyline& b_top,
     const session_cpp::Plane& a_plane_bottom, const session_cpp::Plane& a_plane_top,
     const session_cpp::Plane& b_plane_bottom, const session_cpp::Plane& b_plane_top,
+    double distance_squared,
     ContactCross& result,
     double angle_tol = 5.0,
     const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
 
-/// The same, with each plate's bottom/top outlines and planes as arrays.
-bool plane_to_face(
-    const std::array<session_cpp::Polyline, 2>& polylines_a,
-    const std::array<session_cpp::Polyline, 2>& polylines_b,
-    const std::array<session_cpp::Plane, 2>& planes_a,
-    const std::array<session_cpp::Plane, 2>& planes_b,
-    ContactCross& result,
-    double angle_tol = 5.0,
-    const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
+// ═══════════════════════════════════════════════════════════════════════════
+// Axis contacts
+// ═══════════════════════════════════════════════════════════════════════════
 
-/// Near-coplanar rejection threshold used by plane_to_face; the caller syncs it from config::DISTANCE_SQUARED.
-void set_cross_joint_distance_squared(double dist_sq);
+/// The closest segment pair of every two beam axes within `min_distance`, one per beam pair, as (position of the first beam, position of the second, the contact).
+std::vector<std::tuple<int, int, ContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
 
 }  // namespace wood_session

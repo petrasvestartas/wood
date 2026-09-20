@@ -6,6 +6,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 constexpr bool TRACE = false;
+constexpr double ZERO_LENGTH_SQUARED = 1e-6; // A joint line no longer than 1 mm is degenerate.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Feature detection
@@ -20,13 +21,7 @@ struct F2F {
     const std::pair<int, int> el_ids_in;
     std::pair<int, int> el_ids;
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
-    const std::vector<double>& extension;
-    const double limit_min_joint_length;
-    const double zero_length_squared;
-    const double coplanar_tolerance;
-    const double dihedral_angle_threshold;
-    const bool all_treated_as_rotated;
-    const bool rotated_joint_as_average;
+    const Settings& settings;
     double cos_angle;
     Plane avg_plane_0;
     Plane avg_plane_1;
@@ -44,7 +39,7 @@ struct F2F {
     }
 
     /// The [width, height, length] extension this joint type reads.
-    std::array<double, 3> ext(int joint_type) const { return wood_session::joint_volume_extension(extension, joint_type); }
+    std::array<double, 3> ext(int joint_type) const { return wood_session::joint_volume_extension(settings.joint_volume_extension, joint_type); }
 };
 
 /// What the alignment stage produces for one face contact and the joint branches consume.
@@ -108,7 +103,7 @@ bool alignment_line(
         return false;
     }
 
-    if (joint_line.squared_length() <= s.zero_length_squared) {
+    if (joint_line.squared_length() <= ZERO_LENGTH_SQUARED) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("jl{}_short f({},{})", side, i, j);
         return false;
@@ -150,7 +145,7 @@ bool prepare_candidate(F2F& s, const wood_session::ContactFace& contact, FaceCan
     if (c.joint_type < 2) {
         const double ext_l = s.ext(c.joint_type == 1 ? 20 : 12)[2];
         const double ext_sq = (ext_l * 2.0) * (ext_l * 2.0);
-        const double min_sq = s.limit_min_joint_length * s.limit_min_joint_length;
+        const double min_sq = s.settings.limit_min_joint_length * s.settings.limit_min_joint_length;
 
         if (ext_l < 0.0 && i > 1 && ext_sq > c.joint_line0.squared_length() - min_sq) {
             if (TRACE)
@@ -233,7 +228,7 @@ void rotated_frame(const F2F& s, const FaceCandidate& c, Point& o, Vector& x, Ve
     y = x.cross(z);
     y.normalize_self();
 
-    if (!s.rotated_joint_as_average) {
+    if (!s.settings.rotated_joint_as_average) {
         y = s.el0.planes[0].z_axis();
         z = x.cross(y);
     }
@@ -396,7 +391,7 @@ bool side_side_rotated(F2F& s, FaceCandidate& c) {
 bool overlap_average(F2F& s, FaceCandidate& c, Line& lj) {
 
     const bool ok = c.joint_line0.overlap_average(c.joint_line1, lj);
-    if (!ok || lj.squared_length() <= s.zero_length_squared) {
+    if (!ok || lj.squared_length() <= ZERO_LENGTH_SQUARED) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("lj_overlap f({},{})", c.i, c.j);
         return false;
@@ -598,7 +593,7 @@ bool side_side(F2F& s, FaceCandidate& c) {
     c.joint_lines[1] = c.joint_line1;
 
     const int parallel = alignment_lines_parallel(s, c.joint_line0, c.joint_line1);
-    if (parallel == 0 || s.all_treated_as_rotated)
+    if (parallel == 0 || s.settings.all_treated_as_rotated)
         return side_side_rotated(s, c);
 
     Line lj;
@@ -613,7 +608,7 @@ bool side_side(F2F& s, FaceCandidate& c) {
     if (!dihedral_angle(s, c, lj, dihedral))
         return false;
 
-    if (dihedral <= s.dihedral_angle_threshold)
+    if (dihedral <= s.settings.dihedral_angle)
         return side_side_out_of_plane(s, c, lj, pl_end0, pl_end1);
     return side_side_in_plane(s, c, pl_end0, pl_end1);
 }
@@ -761,7 +756,7 @@ bool cross_fallback(F2F& s) {
         s.el1.polylines[0], s.el1.polylines[1],
         s.el0.planes[0], s.el0.planes[1],
         s.el1.planes[0], s.el1.planes[1],
-        cj, CROSS_JOINT_PARALLEL_ANGLE_DEG, cj_ext
+        s.settings.distance_squared, cj, CROSS_JOINT_PARALLEL_ANGLE_DEG, cj_ext
     );
     if (!found)
         return false;
@@ -789,14 +784,8 @@ bool face_to_face_wood(
     Plate& el0,
     Plate& el1,
     std::pair<int, int> el_ids_in,
-    const std::vector<double>& joint_volume_extension,
-    double limit_min_joint_length,
-    double zero_length_squared,
-    double coplanar_tolerance,
-    double dihedral_angle_threshold,
-    bool all_treated_as_rotated,
-    bool rotated_joint_as_average,
-    int  search_type,
+    const Settings& settings,
+    int search_type,
     FeaturePlate& out_joint,
     bool& out_swap_planes_1
 ) {
@@ -804,18 +793,16 @@ bool face_to_face_wood(
     out_swap_planes_1 = false;
     F2F s = {
         el0, el1, el_ids_in, el_ids_in, { {{0,0}}, {{0,0}} },
-        joint_volume_extension,
-        limit_min_joint_length, zero_length_squared, coplanar_tolerance, dihedral_angle_threshold,
-        all_treated_as_rotated, rotated_joint_as_average,
+        settings,
         0.0, Plane::xy_plane(), Plane::xy_plane(), std::string(),
         out_joint, out_swap_planes_1,
     };
     if (search_type != 1) {
-        s.cos_angle = std::cos(wood_session::config::ANGLE);
+        s.cos_angle = std::cos(settings.angle);
         s.avg_plane_0 = average_plane(el0);
         s.avg_plane_1 = average_plane(el1);
 
-        const std::vector<wood_session::ContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, s.cos_angle, coplanar_tolerance, &out_joint);
+        const std::vector<wood_session::ContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, settings, &out_joint);
 
         for (const wood_session::ContactFace& contact : pair_contacts) {
             FaceCandidate c;

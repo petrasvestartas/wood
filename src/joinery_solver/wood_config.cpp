@@ -10,24 +10,6 @@ namespace config {
 // Definitions
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<double> JOINTS_PARAMETERS_AND_TYPES;
-std::vector<double> JOINT_VOLUME_EXTENSION;
-SearchType SEARCH_TYPE = face_to_face;
-std::vector<double> BEAMS;
-std::array<double, 3> JOINT_SCALE = {1.0, 1.0, 1.0};
-double FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = 150.0;
-bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = false;
-bool FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = false;
-
-double DISTANCE = 0.1;
-double DISTANCE_SQUARED = 0.01;
-double ANGLE = 0.11;
-double DUPLICATE_PTS_TOL = 0.0;
-double LIMIT_MIN_JOINT_LENGTH = 0.0;
-
-int64_t CLIPPER_SCALE = 1000000;
-double CLIPPER_AREA = 0.01;
-
 std::string DATA_SET_INPUT_FOLDER = (std::filesystem::path(__FILE__).parent_path().parent_path().parent_path() / "data").string();
 const std::vector<std::string> DATASET_NAMES = {
     "hexbox_and_corner",
@@ -94,20 +76,6 @@ std::string DATA_SET_INSERTION_VECTORS;
 std::string DATA_SET_JOINTS_TYPES;
 std::string DATA_SET_OUTPUT_FILE;
 
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_IP_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_OP_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TS_E_P_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_CR_C_IP_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_TT_E_P_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_SS_E_R_FEMALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_MALE;
-std::vector<session_cpp::Polyline> CUSTOM_JOINTS_B_FEMALE;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Loader
@@ -171,28 +139,6 @@ std::string session_pb(size_t index) {
 }
 
 void reset_defaults() {
-
-    JOINTS_PARAMETERS_AND_TYPES = {
-        300, 0.5,  3,
-        450, 0.64, 15,
-        450, 0.5,  20,
-        300, 0.5,  30,
-          6, 0.95, 40,
-        300, 0.5,  58,
-        300, 1.0,  60,
-    };
-    JOINT_VOLUME_EXTENSION = {0.0, 0.0, 0.0};
-    JOINT_SCALE = {1.0, 1.0, 1.0};
-    FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = 150.0;
-    FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = false;
-    FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = false;
-    DISTANCE = 0.1;
-    DISTANCE_SQUARED = 0.01;
-    ANGLE = 0.11;
-    DUPLICATE_PTS_TOL = 0.0;
-    LIMIT_MIN_JOINT_LENGTH = 0.0;
-    CLIPPER_SCALE = 1000000;
-    CLIPPER_AREA = 0.01;
     DATA_SET_INPUT_NAME.clear();
     DATA_SET_OBJ.clear();
     DATA_SET_ADJACENCY.clear();
@@ -200,26 +146,9 @@ void reset_defaults() {
     DATA_SET_INSERTION_VECTORS.clear();
     DATA_SET_JOINTS_TYPES.clear();
     DATA_SET_OUTPUT_FILE.clear();
-    SEARCH_TYPE = face_to_face;
-    BEAMS.clear();
-
-    CUSTOM_JOINTS_SS_E_IP_MALE.clear();
-    CUSTOM_JOINTS_SS_E_IP_FEMALE.clear();
-    CUSTOM_JOINTS_SS_E_OP_MALE.clear();
-    CUSTOM_JOINTS_SS_E_OP_FEMALE.clear();
-    CUSTOM_JOINTS_TS_E_P_MALE.clear();
-    CUSTOM_JOINTS_TS_E_P_FEMALE.clear();
-    CUSTOM_JOINTS_CR_C_IP_MALE.clear();
-    CUSTOM_JOINTS_CR_C_IP_FEMALE.clear();
-    CUSTOM_JOINTS_TT_E_P_MALE.clear();
-    CUSTOM_JOINTS_TT_E_P_FEMALE.clear();
-    CUSTOM_JOINTS_SS_E_R_MALE.clear();
-    CUSTOM_JOINTS_SS_E_R_FEMALE.clear();
-    CUSTOM_JOINTS_B_MALE.clear();
-    CUSTOM_JOINTS_B_FEMALE.clear();
 }
 
-void load_yaml(const std::string& dataset_name) {
+Settings load_yaml(const std::string& dataset_name) {
 
     reset_defaults();
 
@@ -228,6 +157,7 @@ void load_yaml(const std::string& dataset_name) {
         throw std::runtime_error("load_yaml: missing config " + path.string());
 
     TINY_YAML::Yaml y(path.string());
+    Settings settings;
 
     // Every read is gated by y.has(k) and hasData(): TinyYaml null-derefs on an absent key or a bare `key:`.
     if (y.has("joints_parameters_and_types")) {
@@ -238,7 +168,7 @@ void load_yaml(const std::string& dataset_name) {
                 throw std::runtime_error(
                     "load_yaml: joints_parameters_and_types has " + std::to_string(parsed.size()) +
                     " values; expected at least 21 (7 families x 3) in multiples of 3");
-            JOINTS_PARAMETERS_AND_TYPES = std::move(parsed);
+            settings.joint_parameters = std::move(parsed);
         }
     }
 
@@ -248,54 +178,54 @@ void load_yaml(const std::string& dataset_name) {
             throw std::runtime_error(
                 "load_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
                 " values; expected 3 (every joint type) or a multiple of 3 (one triple per type)");
-        JOINT_VOLUME_EXTENSION = std::move(parsed);
+        settings.joint_volume_extension = std::move(parsed);
     }
 
     if (y.has("joint_scale")) {
         const std::vector<double> s = parse_doubles(yaml_string_list(y, "joint_scale"));
         if (s.size() != 3)
             throw std::runtime_error("load_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
-        JOINT_SCALE = {s[0], s[1], s[2]};
+        settings.joint_scale = {s[0], s[1], s[2]};
     }
 
     if (y.has("search_type")) {
         const std::string search = yaml_string(y, "search_type");
         if (search == "face_to_face")
-            SEARCH_TYPE = face_to_face;
+            settings.search_type = face_to_face;
         else if (search == "cross_joint")
-            SEARCH_TYPE = cross_joint;
+            settings.search_type = cross_joint;
         else if (search == "face_to_face_then_cross")
-            SEARCH_TYPE = face_to_face_then_cross;
+            settings.search_type = face_to_face_then_cross;
         else
             throw std::runtime_error("load_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
     }
 
     if (y.has("beams")) {
-        BEAMS = parse_doubles(yaml_string_list(y, "beams"));
-        if (BEAMS.size() != 6)
-            throw std::runtime_error("load_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(BEAMS.size()));
+        settings.beams = parse_doubles(yaml_string_list(y, "beams"));
+        if (settings.beams.size() != 6)
+            throw std::runtime_error("load_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(settings.beams.size()));
     }
 
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_DIHEDRAL_ANGLE = std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
+        settings.dihedral_angle = std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
     if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ALL_TREATED_AS_ROTATED = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_all_treated_as_rotated"));
+        settings.all_treated_as_rotated = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_all_treated_as_rotated"));
     if (y.has("face_to_face_side_to_side_joints_rotated_joint_as_average"))
-        FACE_TO_FACE_SIDE_TO_SIDE_JOINTS_ROTATED_JOINT_AS_AVERAGE = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_rotated_joint_as_average"));
+        settings.rotated_joint_as_average = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_rotated_joint_as_average"));
     if (y.has("distance"))
-        DISTANCE = std::stod(yaml_string(y, "distance"));
+        settings.distance = std::stod(yaml_string(y, "distance"));
     if (y.has("distance_squared"))
-        DISTANCE_SQUARED = std::stod(yaml_string(y, "distance_squared"));
+        settings.distance_squared = std::stod(yaml_string(y, "distance_squared"));
     if (y.has("angle"))
-        ANGLE = std::stod(yaml_string(y, "angle"));
+        settings.angle = std::stod(yaml_string(y, "angle"));
     if (y.has("duplicate_pts_tol"))
-        DUPLICATE_PTS_TOL = std::stod(yaml_string(y, "duplicate_pts_tol"));
+        settings.duplicate_points_tolerance = std::stod(yaml_string(y, "duplicate_pts_tol"));
     if (y.has("limit_min_joint_length"))
-        LIMIT_MIN_JOINT_LENGTH = std::stod(yaml_string(y, "limit_min_joint_length"));
+        settings.limit_min_joint_length = std::stod(yaml_string(y, "limit_min_joint_length"));
     if (y.has("clipper_scale"))
-        CLIPPER_SCALE = std::stoll(yaml_string(y, "clipper_scale"));
+        settings.clipper_scale = std::stoll(yaml_string(y, "clipper_scale"));
     if (y.has("clipper_area"))
-        CLIPPER_AREA = std::stod(yaml_string(y, "clipper_area"));
+        settings.clipper_area = std::stod(yaml_string(y, "clipper_area"));
 
     // File keys resolve relative to the yaml; naming a file that is not there is an error.
     yaml_file(y, path, "obj", DATA_SET_OBJ);
@@ -306,6 +236,8 @@ void load_yaml(const std::string& dataset_name) {
 
     DATA_SET_INPUT_NAME = path.stem().string();
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
+
+    return settings;
 }
 
 std::filesystem::path session_data_dir() {
@@ -406,9 +338,9 @@ std::vector<std::vector<int>> load_three_valence(const std::string& three_valenc
     return rows;
 }
 
-std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate_pts_tol) {
+std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate_points_tolerance) {
 
-    const double tolerance = duplicate_pts_tol > 0.0 ? duplicate_pts_tol : DUPLICATE_PTS_TOL;
+    const double tolerance = duplicate_points_tolerance;
     const std::filesystem::path path = dataset_path(dataset_name, ".obj");
     if (!std::filesystem::exists(path))
         throw std::runtime_error("load_obj: dataset OBJ not found: " + path.string());
@@ -421,7 +353,6 @@ std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate
         for (Polyline& polyline : polylines)
             polyline.remove_consecutive_duplicates(tolerance);
 
-    DUPLICATE_PTS_TOL = tolerance;
     return polylines;
 }
 

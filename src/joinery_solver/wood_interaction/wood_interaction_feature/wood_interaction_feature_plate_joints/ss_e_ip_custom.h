@@ -13,14 +13,14 @@ static void tile_custom_face(const std::vector<Polyline>& source, bool pick_face
     }
 }
 
-/// ss_e_ip_custom: each user pair (face0, face1) from CUSTOM_JOINTS_SS_E_IP_MALE / FEMALE is one tooth,
+/// ss_e_ip_custom: each user pair (face0, face1) from settings.custom("ss_e_ip") is one tooth,
 /// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
-static void ss_e_ip_custom(FeaturePlate& joint) {
+static void ss_e_ip_custom(FeaturePlate& joint, const Settings& settings) {
 
     joint.name = "ss_e_ip_custom";
 
-    const std::vector<Polyline>& cm = wood_session::config::CUSTOM_JOINTS_SS_E_IP_MALE;
-    const std::vector<Polyline>& cf = wood_session::config::CUSTOM_JOINTS_SS_E_IP_FEMALE;
+    const std::vector<Polyline>& cm = settings.custom("ss_e_ip")[0];
+    const std::vector<Polyline>& cf = settings.custom("ss_e_ip")[1];
     if (cm.size() < 2 || cf.size() < 2)
         return;
 

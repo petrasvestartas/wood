@@ -150,8 +150,7 @@ static void dataset_tolerance(const std::filesystem::path& folder) {
         file << "v 0 0 0\nv 0.01 0 0\nv 1 0 0\ncurv 0 1 1 2 3\nend\n";
     }
 
-    config::DUPLICATE_PTS_TOL = 0.1;
-    std::vector<Polyline> axes = config::load_obj(path.string());
+    std::vector<Polyline> axes = config::load_obj(path.string(), 0.1);
     check(axes.size() == 1 && axes[0].point_count() == 2, "Configured Beam Deduplication");
     axes = config::load_obj(path.string(), 0.001);
     check(axes.size() == 1 && axes[0].point_count() == 3, "Explicit Beam Deduplication");
@@ -171,26 +170,27 @@ static void beam_geometry(const std::filesystem::path& folder) {
     const Polyline axis_x({Point(-5, 0, 0), Point(5, 0, 0)});
     const Polyline axis_y({Point(0, -5, 0), Point(0, 5, 0)});
 
-    const WoodSession valid = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, 1.0)}, 1, 10, 0.9, 1);
-    check(valid.objects.polylines->size() == 6, "Crossing Beam Rectangles");
+    const auto features = [](std::vector<std::shared_ptr<Beam>> beams) {
+        WoodSession scene("beams");
+        for (const std::shared_ptr<Beam>& beam : beams)
+            scene.add(beam);
+        scene.compute_axis_contacts(1);
+        scene.compute_beam_features(10, 0.9, 1);
+        return scene.get_features().size();
+    };
 
-    const WoodSession missing = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, std::vector<double>{}, std::vector<Vector>{})}, 1, 10, 0.9, 1);
-    check(missing.objects.polylines->size() == 2, "Missing Beam Radius Skips Volumes");
-
-    const WoodSession parallel = Beam::joint_volumes({std::make_shared<Beam>(axis_x, std::vector<double>{1.0}, std::vector<Vector>{Vector(1, 0, 0)}), std::make_shared<Beam>(axis_y, std::vector<double>{1.0}, std::vector<Vector>{Vector(0, 1, 0)})}, 1, 10, 0.9, 1);
-    check(parallel.objects.polylines->size() == 2, "Degenerate Beam Frames Skip Volumes");
+    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, 1.0)}) == 1, "Crossing Beam Rectangles");
+    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, std::vector<double>{}, std::vector<Vector>{})}) == 0, "Missing Beam Radius Skips Volumes");
+    check(features({std::make_shared<Beam>(axis_x, std::vector<double>{1.0}, std::vector<Vector>{Vector(1, 0, 0)}), std::make_shared<Beam>(axis_y, std::vector<double>{1.0}, std::vector<Vector>{Vector(0, 1, 0)})}) == 0, "Degenerate Beam Frames Skip Volumes");
 
     const Polyline axis_half_y({Point(0, 0, 0), Point(0, 5, 0)});
-    const WoodSession side = Beam::joint_volumes({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
-    check(side.objects.polylines->size() == 6, "Side To End Beam Trimming");
+    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "Side To End Beam Trimming");
 
     const Polyline axis_half_x({Point(-5, 0, 0), Point(0, 0, 0)});
-    const WoodSession end = Beam::joint_volumes({std::make_shared<Beam>(axis_half_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
-    check(end.objects.polylines->size() == 6, "End To End Beam Trimming");
+    check(features({std::make_shared<Beam>(axis_half_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "End To End Beam Trimming");
 
     const Polyline axis_zero({Point(0, 0, 0), Point(0, 0, 0)});
-    const WoodSession degenerate = Beam::joint_volumes({std::make_shared<Beam>(axis_zero, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}, 1, 10, 0.9, 1);
-    check(degenerate.objects.polylines->size() == 2, "Zero Length Beam Skips Volumes");
+    check(features({std::make_shared<Beam>(axis_zero, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 0, "Zero Length Beam Skips Volumes");
 
     WoodSession scene("beams");
     scene.add(std::make_shared<Beam>(axis_x, 1.0));
