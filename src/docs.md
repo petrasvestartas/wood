@@ -3,6 +3,124 @@
 
 ## Connectivity
 
+
+```mermaid
+classDiagram
+    direction LR
+    class WoodSession {
+        settings
+        interactions map by edge guid
+        adjacency
+        three_valence
+        add_interaction(a, b)
+        add_contact(a, b, contact)
+        add_feature(joint)
+        edge_of(interaction)
+        consistent()
+    }
+    class Interaction {
+        guid of the edge
+        contacts list
+        features list
+        structure optional
+        add_contact(contact)
+        add_feature(feature)
+    }
+    class InteractionContact {
+        guid
+        data one of face axis cross
+        face()
+        axis()
+        cross()
+        flipped()
+        coincides(other)
+    }
+    class InteractionFeature {
+        guid
+        contact index
+        data one of plate beam plate_beam
+        plate()
+        beam()
+    }
+    class InteractionStructure {
+        empty for now
+    }
+    WoodSession "1" o-- "many" Interaction : by edge guid
+    Interaction "1" o-- "many" InteractionContact
+    Interaction "1" o-- "many" InteractionFeature
+    Interaction "1" o-- "0..1" InteractionStructure
+    InteractionFeature ..> InteractionContact : contact index
+```
+
+```mermaid
+classDiagram
+    direction LR
+    class InteractionContact {
+        guid
+        data one of
+    }
+    class ContactFace {
+        face_a
+        face_b
+        type unknown side_side side_top top_top
+        polygon boolean of the two outlines
+    }
+    class ContactAxis {
+        segment closest points
+        t_a
+        t_b
+        polyline_a segment_a
+        polyline_b segment_b
+    }
+    class ContactCross {
+        faces_a two side faces
+        faces_b two side faces
+        polygon mid plane quad
+        lines two centrelines
+        volumes two quads
+    }
+    InteractionContact --> ContactFace : one of
+    InteractionContact --> ContactAxis : one of
+    InteractionContact --> ContactCross : one of
+```
+
+```mermaid
+classDiagram
+    direction LR
+    class InteractionFeature {
+        guid
+        contact index
+        data one of
+    }
+    class FeaturePlate {
+        guid
+        element_a male
+        element_b female
+        contact ContactFace
+        joint_type 11 12 13 20 30 40
+        name library variant
+        joint_lines two
+        joint_volumes four
+        male_outlines per face
+        female_outlines per face
+        male_fabrication_types per outline
+        female_fabrication_types per outline
+        divisions shift scale
+        linked_joints guids
+        element_features two
+    }
+    class FeatureBeam {
+        end_type cross side_end end_end
+        volumes four rectangles
+    }
+    class FeaturePlateBeam {
+        empty for now
+    }
+    InteractionFeature --> FeaturePlate : one of
+    InteractionFeature --> FeatureBeam : one of
+    InteractionFeature --> FeaturePlateBeam : one of
+```
+
 - The session stores a graph that says which elements are connected. A graph edge (a, b) carries no payload: its guid is the key into the interaction collection, `WoodSession::interactions`, a map from guid to `Interaction`. The edge is the only place the two element guids are stored; every record below refers to "the first element" (edge v0) and "the second element" (edge v1) and never repeats them.
 - `Interaction` is a plain struct, not a base class; it is composition. It has one guid (the edge's) and three attributes:
     - `contacts`, a list of `InteractionContact`: every place the two elements touch.
@@ -22,6 +140,77 @@
 
 ## Files
 
+
+```mermaid
+flowchart TB
+    subgraph JS ["src/joinery_solver"]
+        direction TB
+        S["wood_session"]
+        ST["wood_settings"]
+        CF["wood_config"]
+        IO["wood_io"]
+        VW["wood_view"]
+        SR["wood_serialization"]
+        subgraph EL ["wood_elements"]
+            direction LR
+            P["plate"]
+            B["beam"]
+            C["column"]
+            K["block"]
+        end
+        subgraph IN ["wood_interaction"]
+            direction TB
+            I["wood_interaction"]
+            subgraph IC ["wood_interaction_contact"]
+                direction LR
+                ICE["contact envelope"]
+                CFa["face"]
+                CAx["axis"]
+                CCr["cross"]
+            end
+            subgraph IF ["wood_interaction_feature"]
+                direction LR
+                IFE["feature envelope"]
+                FP["plate"]
+                FB["beam"]
+                FPB["plate_beam"]
+                J["plate_joints one header per joint"]
+            end
+            subgraph IS ["wood_interaction_structure"]
+                ISE["structure"]
+            end
+        end
+        subgraph AL ["wood_algorithms"]
+            direction LR
+            CD["contact_detection"]
+            FD["feature_detection"]
+            FDB["feature_detection_beam"]
+            FC["feature_construction"]
+            FS["feature_solver"]
+            TV["three_valence"]
+            MM["merge_modifier"]
+            AS["assignment"]
+        end
+    end
+    subgraph PR ["src/proto"]
+        PRO["one .proto per class"]
+    end
+    subgraph GN ["generated"]
+        GEN["committed protoc output"]
+    end
+    PRO --> GEN
+```
+
+```mermaid
+flowchart LR
+    K["session kernel"] --> E["wood_elements"]
+    E --> I["wood_interaction"]
+    I --> A["wood_algorithms"]
+    A --> S["wood_session"]
+    S --> V["wood_view and wood_io"]
+    V --> X["examples and templates"]
+```
+
 - `wood_settings`: `Settings`, every tunable the solver reads, filled from the dataset yml by `config::load_yaml`, held by the scene, passed by reference into every algorithm and joint builder, written with the scene. `wood_config` keeps only the dataset catalogue and the paths.
 - `wood_elements/`: one element class per file, `wood_element_plate`, `wood_element_beam`, `wood_element_column`, `wood_element_block`.
 - `wood_interaction/`: the folders nest as the data does, one class per file, the file name spelling the path down the tree:
@@ -35,12 +224,67 @@
 
 ## Serialization
 
+
+```mermaid
+flowchart LR
+    R["record in memory"] -- "pb_dumps" --> M["wood_proto message bytes"]
+    M -- "pb_loads" --> R
+    M -- "json_of" --> J["ordered JSON with proto field names and a type key"]
+    J -- "message_from_json" --> M
+```
+
+```mermaid
+flowchart TB
+    subgraph WS ["wood_proto.WoodSession"]
+        direction TB
+        F1["1 name"]
+        F2["2 guid"]
+        F3["3 objects"]
+        F4["4 tree"]
+        F5["5 graph"]
+        F6["6 bvh_boxes"]
+        F7["7 xforms"]
+        F100["100 interactions in guid order"]
+        F101["101 settings"]
+    end
+    V["session_viewer, session_py, session_rust read 1 to 7"] -.-> F1
+    W["WoodSession pb_load reads all"] -.-> F101
+```
+
 - Every class above has `pb_dumps` / `pb_loads`, and `jsondump` / `jsonload` derived from the same proto message through `wood_serialization` (`json_of`, `message_from_json`): the proto is the one schema, the JSON carries the proto field names and a `type` key. Kernel geometry inside a message (polylines, lines, element features) is nested as the kernel's own message.
 - The element payload the kernel carries opaquely in `element_data` is the class's protobuf message (`wood_proto.Plate`, `Beam`, `Column`); a payload written in the kernel's JSON by older files is still read, the one hand-written JSON reader left.
 - A scene file is a `wood_proto.WoodSession`: fields 1..7 are `session_proto.Session` field for field, then `interactions` at field 100 and `settings` at 101. The viewer and the py/rust kernels open it as a plain Session and drop the two as unknown fields; `WoodSession::pb_load` reads all of it.
 - Interactions are written in guid order as a repeated field, not a protobuf map, so the bytes are identical across languages.
 
 ## Pipeline
+
+
+```mermaid
+flowchart TB
+    Y["yaml_load: settings, plates, sidecars"] --> CC["compute_contacts"]
+    Y --> CF["compute_features"]
+    CC --> CD["contact detection: face, cross, axis"]
+    CD --> ST[("interactions: contacts")]
+    CF --> AP["adjacent_pairs: sidecar or OBB BVH search"]
+    AP --> FD["feature detection: one FeaturePlate per pair, Plate flip when asked"]
+    FD --> TV["three valence: shadow joints, annen alignment"]
+    TV --> FC["construction and joint registry: unit outlines onto the volumes"]
+    FC --> MM["merge: cut outlines into each plate"]
+    MM --> AF["add_feature: joint onto its interaction, ElementFeatures onto both hosts"]
+    AF --> ST2[("interactions: features")]
+    ST --> PB["pb_dump: loft stale plates, write the file"]
+    ST2 --> PB
+    PB --> VW["add_to_tree: viewer groups"]
+```
+
+```mermaid
+flowchart LR
+    T["per face id from the joints_types sidecar or the family default"] --> L{"library table id to family and builder"}
+    L -- "found" --> B["builder fills the FeaturePlate"]
+    L -- "missing" --> D["family default builder, warned once"]
+    B --> O["orient onto the joint volumes"]
+    D --> O
+```
 
 - `WoodSession::yaml_load` reads the dataset yml into the scene's `settings` and the dataset paths, the obj into plates, and the four sidecars onto the scene (`adjacency`, `three_valence`) and the plates (insertion vectors, feature types).
 - `compute_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `ContactFace` per overlapping face pair on the pair's interaction; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `ContactCross` and `ContactAxis` the same way.
@@ -76,5 +320,21 @@
 - **Templates sit in `src/`.** `src/templates/` is 5000 lines of header-only generators compiled by every main that includes them; they belong next to `examples/`, each a source file built once. Left in place because they are being edited in a parallel branch.
 
 ### The layering, as it stands
+
+
+```mermaid
+flowchart TB
+    EX["examples, templates, tests"] --> S["wood_session: store and pipeline entry"]
+    EX --> V["wood_view, wood_io"]
+    V --> S
+    S --> AL["wood_algorithms: functions, every input by argument"]
+    S --> DA["wood_interaction: records, no virtuals"]
+    AL --> DA
+    AL --> EL["wood_elements: Element subclasses"]
+    DA --> EL
+    EL --> K["session kernel"]
+    SE["Settings"] -.-> AL
+    SE -.-> S
+```
 
 - `wood_elements` knows the kernel. `wood_interaction` knows elements. `wood_algorithms` knows both and takes every input by argument. `wood_session` orchestrates and stores; `wood_view` and `wood_io` sit beside it. Examples and templates sit on top. A grep of the includes shows no arrow pointing up.

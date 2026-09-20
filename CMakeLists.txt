@@ -213,7 +213,8 @@ ADD_EXE(main_reciprocal_rotation examples/templates/main_reciprocal_rotation.cpp
 ADD_EXE(main_reciprocal_move     examples/templates/main_reciprocal_move.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
-# docstrings, src/docs.md as the main page and the pages under docs/; Doxygen only, no Python.
+# docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
+# docs/examples.md; Doxygen only, no Python.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
     set(DOXYGEN_PROJECT_NAME "Wood")
@@ -221,7 +222,8 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/docs)
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md)
     set(DOXYGEN_FILE_PATTERNS *.h *.md)
-    set(DOXYGEN_EXCLUDE_PATTERNS */docs/doxygen/*)
+    set(DOXYGEN_FILTER_PATTERNS "*.md=${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/mermaid_filter.sh")
+    set(DOXYGEN_EXAMPLE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/examples)
     set(DOXYGEN_EXTRACT_ALL YES)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
@@ -246,7 +248,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HAVE_DOT NO)
     doxygen_add_docs(docs
         ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
         COMMENT "Doxygen: build/docs/html"
     )

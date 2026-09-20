@@ -75,7 +75,7 @@ datasets a `beams` block. `config::Dataset::<name>` names every shipped dataset.
 
 ## Docs
 
-`src/docs.md` is the one-page description of the structure and the main page of the docs. Doxygen builds the site from it, the pages under `docs/` (one per section, with diagrams) and the headers' docstrings, nothing else needed:
+`src/docs.md` is the description of the structure with its diagrams, and the main page of the docs. Doxygen builds the site from it, `docs/examples.md` and the headers' docstrings, nothing else needed:
 
 ```bash
 cmake --build build --target docs && xdg-open build/docs/html/index.html
