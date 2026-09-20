@@ -112,7 +112,10 @@ int main() {
 
     const WoodSession copy = a;
     WoodSession moved = WoodSession(copy);
-    owned = owned && &copy.interactions.begin()->second.session() == &copy && &moved.interactions.begin()->second.features.front().session() == &moved;
+    owned = owned && &copy.interactions.begin()->second.session() == &copy;
+    for (const auto& [guid, interaction] : moved.interactions)
+        for (const InteractionFeature& feature : interaction.features)
+            owned = owned && &feature.session() == &moved;
     check(owned, "every record answers session() with the scene it sits in: after the solve, after the file, after a copy and a move");
     bool records = true;
     size_t contact_count = 0;
