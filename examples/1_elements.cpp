@@ -10,13 +10,12 @@ int main() {
     const std::shared_ptr<Plate> plate = Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 400, 300, Vector(0, 0, 40));
     const std::shared_ptr<Beam> beam = std::make_shared<Beam>(Polyline({Point(0, 0, 100), Point(800, 0, 100)}), 60.0);
     const std::shared_ptr<Column> column = std::make_shared<Column>(Line::from_points(Point(950, 50, 0), Point(950, 50, 600)), Polyline::rectangle(Point(900, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 100, 100));
-    const std::vector<std::shared_ptr<Block>> voussoirs = Block::arch(1000, 3000, 250, 400, 7);
+    const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle(Point(1200, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 200, 400), Polyline::rectangle(Point(1170, 0, 250), Vector(1, 0, 0), Vector(0, 1, 0), 260, 400)});
 
     scene.add(plate);
     scene.add(beam);
     scene.add(column);
-    for (const std::shared_ptr<Block>& voussoir : voussoirs)
-        scene.add(voussoir);
+    scene.add(block);
 
     std::cout << scene << "\n";
     std::cout << *plate << " thickness " << plate->thickness << " faces " << plate->polylines.size() << "\n";
@@ -39,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the four element kinds built in code and added to a scene: a plate from a rectangle, a beam from an axis, a column from an axis and a section, the voussoirs of an arch as blocks; every one a closed solid, its outlines, axis, sections and centroid the `attributes` group show_attributes(bool) adds or removes.
+the four element kinds built in code and added to a scene: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid, its outlines, axis, sections and centroid the `attributes` group show_attributes(bool) adds or removes.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

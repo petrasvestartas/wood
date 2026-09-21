@@ -28,9 +28,6 @@ public:
     /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops back.
     static std::shared_ptr<Block> from_element(const session_cpp::Element& element);
 
-    /// The `n` voussoirs of a semicircular arch in the xz plane, springing at z = 0 between x = ±span/2, `rise` to the intrados crown, `thickness` outward, `depth` along y; compas_dem's ArchTemplate.
-    static std::vector<std::shared_ptr<Block>> arch(double rise, double span, double thickness, double depth, int n);
-
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════

@@ -36,36 +36,6 @@ std::shared_ptr<Block> Block::from_element(const Element& e) {
     return block;
 }
 
-std::vector<std::shared_ptr<Block>> Block::arch(double rise, double span, double thickness, double depth, int n) {
-
-    if (rise > span / 2.0)
-        throw std::invalid_argument("Block::arch: rise above span/2 is not a semicircular arch");
-
-    const double radius = rise / 2.0 + span * span / (8.0 * rise);
-    const Point top(0.0, 0.0, rise);
-    const Point left(-span / 2.0, 0.0, 0.0);
-    const Point center(0.0, 0.0, rise - radius);
-    const double springing = (left - center).angle(Vector(-1.0, 0.0, 0.0), false, false);
-    const double sector = Tolerance::PI - 2.0 * springing;
-    const Line hinge = Line::from_points(center, center + Vector::y_axis());
-
-    const Vector across = Vector::y_axis() * depth;
-    const Vector out = Vector::z_axis() * thickness;
-    const Polyline crown({top, top + across, top + across + out, top + out, top});
-    Polyline bottom = crown.transformed(Xform::rotation_around_line(hinge, 0.5 * sector));
-
-    std::vector<std::shared_ptr<Block>> blocks;
-    const Xform step = Xform::rotation_around_line(hinge, -sector / n);
-    for (int i = 0; i < n; i++) {
-
-        const Polyline next = bottom.transformed(step);
-        blocks.push_back(std::make_shared<Block>(std::vector<Polyline>{bottom, next}, fmt::format("voussoir_{}", i)));
-        bottom = next;
-    }
-
-    return blocks;
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
