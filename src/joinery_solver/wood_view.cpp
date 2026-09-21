@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_view.h"
 #include "wood_session.h"
+#include "wood_element_geometry.h"
 using namespace session_cpp;
 
 namespace wood_session {
@@ -34,25 +35,6 @@ std::unordered_map<std::string, std::shared_ptr<TreeNode>> nodes_by_guid(const s
         nodes.emplace(node->name, node->shared_from_this());
 
     return nodes;
-}
-
-/// What an element draws as outlines: a solved plate its merged bottom and top with their holes, an unsolved plate its two outlines, anything else the faces of its mesh.
-std::vector<Polyline> element_outlines(session_cpp::Element& element) {
-
-    if (const Beam* beam = dynamic_cast<const Beam*>(&element))
-        return {beam->axis};
-
-    const Plate* plate = dynamic_cast<const Plate*>(&element);
-    if (!plate)
-        return element.polylines();
-
-    if (!plate->features.top.empty()) {
-        std::vector<Polyline> outlines = plate->features.bottom;
-        outlines.insert(outlines.end(), plate->features.top.begin(), plate->features.top.end());
-        return outlines;
-    }
-
-    return std::vector<Polyline>(plate->polylines.begin(), plate->polylines.begin() + std::min<size_t>(2, plate->polylines.size()));
 }
 
 /// The child group of `parent` called `name`, made on first use.
@@ -174,7 +156,89 @@ static void add_joints_to(WoodSession& scene, const std::map<std::string, std::s
     }
 }
 
-void add_to_tree(WoodSession& scene, bool with_geometry, bool with_outlines, bool with_contacts, bool with_joints) {
+/// The group of every element that has one: the parent of the element's guid node when that parent is not the root.
+static std::map<std::string, std::shared_ptr<TreeNode>> element_groups(WoodSession& scene) {
+
+    std::map<std::string, std::shared_ptr<TreeNode>> groups;
+    const std::unordered_map<std::string, std::shared_ptr<TreeNode>> nodes = nodes_by_guid(scene.tree);
+    for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
+
+        if (!element)
+            continue;
+
+        const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
+        if (found == nodes.end())
+            continue;
+
+        const std::shared_ptr<TreeNode> parent = found->second->parent();
+        if (parent && !parent->is_root())
+            groups[element->guid()] = parent;
+    }
+
+    return groups;
+}
+
+/// The `attributes` child of a group, or null.
+static std::shared_ptr<TreeNode> attributes_of(const std::shared_ptr<TreeNode>& group) {
+
+    for (TreeNode* child : group->children())
+        if (child->name == "attributes")
+            return child->shared_from_this();
+
+    return nullptr;
+}
+
+void show_attributes(WoodSession& scene, bool on) {
+
+    const std::map<std::string, std::shared_ptr<TreeNode>> groups = element_groups(scene);
+
+    if (!on) {
+        for (const auto& [guid, group] : groups) {
+
+            const std::shared_ptr<TreeNode> attributes = attributes_of(group);
+            if (!attributes)
+                continue;
+
+            for (TreeNode* child : attributes->children())
+                scene.remove_object(child->name);
+            group->remove(attributes);
+        }
+        return;
+    }
+
+    scene.sync_geometry();
+    for (const auto& [guid, group] : groups) {
+
+        if (attributes_of(group))
+            continue;
+
+        const std::shared_ptr<Element> element = scene.get_element<Element>(guid);
+        const std::shared_ptr<TreeNode> attributes = std::make_shared<TreeNode>("attributes");
+        scene.add(attributes, group);
+        for (const ElementFeature& feature : element->features()) {
+
+            if (!is_geometry_feature(feature.feature_type))
+                continue;
+
+            const std::string name = fmt::format("{}_{}", element->name, feature.feature_type);
+            for (const Polyline& outline : feature.outlines) {
+
+                if (outline.point_count() == 1) {
+                    std::shared_ptr<Point> point = std::make_shared<Point>(outline[0]);
+                    point->name = name;
+                    scene.add_point(point, attributes);
+                    continue;
+                }
+
+                std::shared_ptr<Polyline> copy = std::make_shared<Polyline>(outline);
+                copy->name = name;
+                scene.add_polyline(copy, attributes);
+            }
+        }
+    }
+}
+
+void add_to_tree(WoodSession& scene, bool with_geometry, bool with_attributes, bool with_contacts, bool with_joints) {
 
     std::map<std::string, std::shared_ptr<TreeNode>> groups;
     std::map<std::string, std::shared_ptr<TreeNode>> children;
@@ -190,26 +254,20 @@ void add_to_tree(WoodSession& scene, bool with_geometry, bool with_outlines, boo
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("{}_{}", element->name, index++));
         groups[element->guid()] = group;
 
-        if (with_geometry) {
-            const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
-            if (found == nodes.end())
-                scene.add(std::make_shared<TreeNode>(element->guid()), group);
-            else if (const std::shared_ptr<TreeNode> parent = found->second->parent()) {
-                parent->remove(found->second);
-                group->add(found->second);
-            }
-        }
-
-        if (!with_outlines)
+        if (!with_geometry)
             continue;
 
-        const std::shared_ptr<TreeNode> child = child_group(scene, children, group, "outlines");
-        for (const Polyline& outline : element_outlines(*element)) {
-            std::shared_ptr<Polyline> copy = std::make_shared<Polyline>(outline);
-            copy->name = fmt::format("{}_outline", element->name);
-            scene.add_polyline(copy, child);
+        const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
+        if (found == nodes.end())
+            scene.add(std::make_shared<TreeNode>(element->guid()), group);
+        else if (const std::shared_ptr<TreeNode> parent = found->second->parent()) {
+            parent->remove(found->second);
+            group->add(found->second);
         }
     }
+
+    if (with_attributes)
+        show_attributes(scene, true);
 
     if (with_contacts)
         add_contacts_to(scene, groups, children);

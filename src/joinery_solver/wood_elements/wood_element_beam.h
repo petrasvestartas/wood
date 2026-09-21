@@ -14,6 +14,10 @@ public:
     std::vector<session_cpp::Vector> directions; // Section up direction per segment; a segment without one takes the contact normal.
     int allowed_type = -1; // Which contacts this beam accepts: 0 crossing only, 1 side-to-end and end-to-end, -1 any.
 
+private:
+    bool _geometry_synced = false; // True while the Element slot holds the solid of the current axis and radii.
+
+public:
     /// An empty beam: no axis, no radius.
     Beam();
 
@@ -45,6 +49,18 @@ public:
 
     /// True when the beam carries an up direction for that segment.
     bool has_direction(int segment) const;
+
+    /// One closed square per axis vertex, half-width the segment's radius, along the bisector at an interior vertex; empty when the beam has no radius.
+    std::vector<session_cpp::Polyline> sections() const;
+
+    /// Marks the Element slot stale; call after assigning the axis, radii or directions by hand.
+    void invalidate_geometry();
+
+    /// True once compute_geometry() wrote the solid of the current axis onto the Element; false after any invalidation.
+    bool geometry_synced() const { return _geometry_synced; }
+
+    /// Writes the solid swept through sections() onto the Element with the axis, section and centroid features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale beam.
+    void compute_geometry();
 
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;

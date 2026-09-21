@@ -8,8 +8,11 @@ namespace wood_session {
 
 class WoodSession;
 
-/// Arranges a scene for the viewer, one group per element: the element itself, then `outlines`, `contacts` and `joints` child groups, each flag adding or leaving out that part; pb_dump writes it.
-void add_to_tree(WoodSession& scene, bool with_geometry = true, bool with_outlines = true, bool with_contacts = true, bool with_joints = true);
+/// Arranges a scene for the viewer, one group per element: the element itself, then `attributes`, `contacts` and `joints` child groups, each flag adding or leaving out that part; pb_dump writes it.
+void add_to_tree(WoodSession& scene, bool with_geometry = true, bool with_attributes = true, bool with_contacts = true, bool with_joints = true);
+
+/// The geometry features of every grouped element (plate outlines, beam and column axis and sections, the centroid of each) drawn under an `attributes` child group, or every such group and its objects removed; the toggle for what is a lookup aid, not the element. Runs sync_geometry first, since the features come from compute_geometry().
+void show_attributes(WoodSession& scene, bool on);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Colours

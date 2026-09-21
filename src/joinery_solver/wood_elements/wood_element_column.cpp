@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_serialization.h"
 #include "wood_element_column.h"
+#include "wood_element_geometry.h"
 #include "element_column.pb.h"
 
 namespace wood_session {
@@ -12,6 +13,9 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 
 Column::Column() : Element("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {}
+
+Column::Column(const Line& axis, const Polyline& section, const std::string& name)
+    : Element(name), axis(axis), section(section) {}
 
 Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name)
     : Element(solid, name), axis(axis), section(section) {}
@@ -52,8 +56,30 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// JSON
+// Geometry
 // ═══════════════════════════════════════════════════════════════════════════
+
+void Column::invalidate_geometry() {
+    _geometry_synced = false;
+}
+
+void Column::compute_geometry() {
+
+    if (section.point_count() >= 3 && axis.length() > 0.0)
+        set_geometry(Mesh::loft({section}, {section.translated(axis.to_vector())}, true));
+
+    std::vector<ElementFeature> next;
+    next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
+    if (section.point_count() > 0)
+        next.push_back(polyline_feature("section", section));
+    if (has_geometry())
+        next.push_back(centroid_feature(*this));
+    for (ElementFeature& joint : joint_features(*this))
+        next.push_back(std::move(joint));
+
+    set_features(std::move(next));
+    _geometry_synced = true;
+}
 
 AABB Column::aabb(double inflate) const {
 
@@ -67,6 +93,10 @@ AABB Column::aabb(double inflate) const {
 
     return AABB::from_points(points, inflate);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// JSON
+// ═══════════════════════════════════════════════════════════════════════════
 
 nlohmann::ordered_json Column::element_data_jsondump() const {
 

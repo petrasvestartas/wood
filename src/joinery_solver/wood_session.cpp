@@ -518,14 +518,31 @@ void WoodSession::index_edges() {
     }
 }
 
-void WoodSession::add_to_tree(bool with_geometry, bool with_outlines, bool with_contacts, bool with_joints) {
-    wood_session::add_to_tree(*this, with_geometry, with_outlines, with_contacts, with_joints);
+void WoodSession::add_to_tree(bool with_geometry, bool with_attributes, bool with_contacts, bool with_joints) {
+    wood_session::add_to_tree(*this, with_geometry, with_attributes, with_contacts, with_joints);
+}
+
+void WoodSession::show_attributes(bool on) {
+    wood_session::show_attributes(*this, on);
 }
 
 void WoodSession::sync_geometry() const {
+
     for (const std::shared_ptr<Plate>& plate : plates())
         if (!plate->geometry_synced())
             plate->compute_geometry();
+
+    for (const std::shared_ptr<Beam>& beam : beams())
+        if (!beam->geometry_synced())
+            beam->compute_geometry();
+
+    for (const std::shared_ptr<Column>& column : columns())
+        if (!column->geometry_synced())
+            column->compute_geometry();
+
+    for (const std::shared_ptr<Block>& block : blocks())
+        if (!block->geometry_synced())
+            block->compute_geometry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

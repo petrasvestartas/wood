@@ -86,6 +86,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
+    src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_interaction/wood_interaction.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp

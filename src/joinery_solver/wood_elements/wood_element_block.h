@@ -4,37 +4,68 @@
 
 namespace wood_session {
 
-/// A solid for contact detection only: one face per closed loop, no plate convention.
+/// A block: a closed solid lofted between a bottom loop and a top loop, for contact detection; no plate convention.
 class Block : public session_cpp::Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
+    std::vector<session_cpp::Polyline> loops; // Bottom loop, top loop, then their holes paired in order; empty when the solid came as a mesh.
 
+private:
+    bool _geometry_synced = false; // True while the Element slot holds the loft of the current loops.
+
+public:
     /// An empty block: no solid.
     Block();
 
-    /// A block from closed loops, one n-gon face per loop (Mesh::from_polylines); `name` is the type flag face_contacts() filters on.
+    /// A block lofted between closed loops: [0] bottom, [1] top, [2..] holes of the bottom paired with holes of the top; `name` is the type flag face_contacts() filters on.
     explicit Block(const std::vector<session_cpp::Polyline>& loops, const std::string& name = "block");
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The block an Element describes, same guid: any element whose geometry is a mesh.
+    /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops back.
     static std::shared_ptr<Block> from_element(const session_cpp::Element& element);
 
+    /// The `n` voussoirs of a semicircular arch in the xz plane, springing at z = 0 between x = ±span/2, `rise` to the intrados crown, `thickness` outward, `depth` along y; compas_dem's ArchTemplate.
+    static std::vector<std::shared_ptr<Block>> arch(double rise, double span, double thickness, double depth, int n);
+
     // ═══════════════════════════════════════════════════════════════════════════
-    // Protobuf
+    // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+    /// Marks the Element slot stale; call after assigning the loops by hand.
+    void invalidate_geometry();
+
+    /// True once compute_geometry() wrote the loft of the current loops onto the Element; false after any invalidation.
+    bool geometry_synced() const { return _geometry_synced; }
+
+    /// Writes the capped loft of the loops onto the Element (a solid given as a mesh stays) with the centroid feature, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale block.
+    void compute_geometry();
 
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;
 
     /// The box of the solid, inflated on each side; empty when the block has no mesh.
     session_cpp::AABB aabb(double inflate) const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSON
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The loops as JSON: the protobuf message printed.
+    nlohmann::ordered_json element_data_jsondump() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Protobuf
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The loops as wood_proto.Block bytes: what the kernel carries in element_data.
+    std::string element_data_dumps() const override;
+
+    /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
+    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Block>(*this); }
@@ -46,7 +77,7 @@ public:
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "Block(name, faces)".
+    /// "Block(name, loops, faces)".
     std::string str() const override;
 };
 

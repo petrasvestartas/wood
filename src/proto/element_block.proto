@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "polyline.proto";
+
+// The state of a Block beyond the kernel Element: the closed loops its solid is lofted between.
+message Block {
+  repeated session_proto.Polyline loops = 1;  // Bottom loop, top loop, then their holes paired in order
+}

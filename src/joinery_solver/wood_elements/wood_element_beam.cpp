@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_serialization.h"
 #include "wood_element_beam.h"
+#include "wood_element_geometry.h"
 #include "element_beam.pb.h"
 using namespace session_cpp;
 
@@ -65,6 +66,51 @@ double Beam::radius(int segment) const {
 
 bool Beam::has_direction(int segment) const {
     return segment >= 0 && segment < (int)directions.size();
+}
+
+std::vector<Polyline> Beam::sections() const {
+
+    std::vector<Polyline> sections;
+    const int segments = static_cast<int>(axis.segment_count());
+    if (segments < 1 || radii.empty())
+        return sections;
+
+    const std::vector<Point> points = axis.get_points();
+    for (int i = 0; i <= segments; i++) {
+
+        const int segment = std::min(i, segments - 1);
+        Vector along = points[segment + 1] - points[segment];
+        if (i > 0 && i < segments)
+            along = along.normalized() + (points[i] - points[i - 1]).normalized();
+
+        const Vector up = has_direction(segment) ? directions[segment] : Vector::z_axis();
+        sections.push_back(square_section(points[i], along, up, radius(segment)));
+    }
+
+    return sections;
+}
+
+void Beam::invalidate_geometry() {
+    _geometry_synced = false;
+}
+
+void Beam::compute_geometry() {
+
+    const std::vector<Polyline> rings = sections();
+    if (!rings.empty())
+        set_geometry(sweep_sections(rings));
+
+    std::vector<ElementFeature> next;
+    next.push_back(polyline_feature("axis", axis));
+    for (const Polyline& ring : rings)
+        next.push_back(polyline_feature("section", ring));
+    if (has_geometry())
+        next.push_back(centroid_feature(*this));
+    for (ElementFeature& joint : joint_features(*this))
+        next.push_back(std::move(joint));
+
+    set_features(std::move(next));
+    _geometry_synced = true;
 }
 
 AABB Beam::aabb(double inflate) const {

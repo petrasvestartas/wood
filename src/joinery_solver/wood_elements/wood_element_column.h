@@ -11,10 +11,17 @@ public:
     session_cpp::Line axis; // Centreline, base to head, in world space.
     session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
 
+private:
+    bool _geometry_synced = false; // True while the Element slot holds the solid of the current axis and section.
+
+public:
     /// An empty column: no solid, a zero-length axis, no section.
     Column();
 
-    /// A column from its solid, its axis and its section; `name` is the type flag face_contacts() filters on.
+    /// A column from its axis and its section: the solid is the section swept along the axis; `name` is the type flag face_contacts() filters on.
+    Column(const session_cpp::Line& axis, const session_cpp::Polyline& section, const std::string& name = "column");
+
+    /// A column from its solid, its axis and its section; the solid stays as given while the section is empty, else it is rebuilt from the section. `name` is the type flag face_contacts() filters on.
     Column(
         const session_cpp::Mesh& solid,
         const session_cpp::Line& axis,
@@ -28,6 +35,19 @@ public:
 
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis and section default.
     static std::shared_ptr<Column> from_element(const session_cpp::Element& element);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Marks the Element slot stale; call after assigning the axis or the section by hand.
+    void invalidate_geometry();
+
+    /// True once compute_geometry() wrote the solid of the current section onto the Element; false after any invalidation.
+    bool geometry_synced() const { return _geometry_synced; }
+
+    /// Writes the section lofted along the axis onto the Element (the given solid stays when the section is empty) with the axis, section and centroid features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale column.
+    void compute_geometry();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON

@@ -137,6 +137,7 @@ classDiagram
 - `InteractionStructure` is reserved, empty.
 - Every record knows its scene: `Interaction`, `InteractionContact`, `InteractionFeature` and each contact and feature kind answer `session()` with the `WoodSession` that stores them, and `has_session()` says whether they are stored yet. The scene stamps the pointer when a record is added and after a load, a copy or a move; it is never written to the file. Elements have the same through the kernel's `Element`.
 - Inheritance is used only where the kernel forces it: `Plate`, `Beam`, `Column` and `Block` derive from `session_cpp::Element`, because `Session::pb_load` rebuilds them through the kernel's `element_type` registry. Everything on the edge side is data: no virtual method, no base class.
+- Every element is a closed solid in the kernel's geometry slot, written by its `compute_geometry()` when `WoodSession::sync_geometry` finds it stale: a plate the loft of its two outlines (with the joints cut in once solved), a beam the sweep of a square section per axis vertex, a column its section lofted along its axis, a block the capped loft between its bottom and top loops. What describes an element without being it sits beside the solid as `session_cpp::ElementFeature`s, told apart by `feature_type`: the geometry features `outline` (plate faces 0 and 1), `axis`, `section` and `centroid` (a one-point outline), against the joinery features `joint`, `cut` and `joint_type_<n>`. `is_geometry_feature` in `wood_element_geometry` is the one place that split is written; `WoodSession::show_attributes(bool)` draws the geometry features under an `attributes` group per element or takes them out again, so the viewer shows them only when asked.
 - The dataset sidecars are not a class of their own: `WoodSession::load_sidecars` puts the adjacency and the three-valence groups on the scene (`adjacency`, `three_valence`) and the insertion vectors and joint types on each plate. Detection reads the elements themselves; there is no detection view class.
 
 ## Files
@@ -213,7 +214,7 @@ flowchart LR
 ```
 
 - `wood_settings`: `Settings`, every tunable the solver reads, filled from the dataset yml by `config::load_yaml`, held by the scene, passed by reference into every algorithm and joint builder, written with the scene. `wood_config` keeps only the dataset catalogue and the paths.
-- `wood_elements/`: one element class per file, `wood_element_plate`, `wood_element_beam`, `wood_element_column`, `wood_element_block`.
+- `wood_elements/`: one element class per file, `wood_element_plate`, `wood_element_beam`, `wood_element_column`, `wood_element_block`; `wood_element_geometry` holds what they share: the geometry feature vocabulary, the centroid and polyline features, the square section and the sweep through sections.
 - `wood_interaction/`: the folders nest as the data does, one class per file, the file name spelling the path down the tree:
     - `wood_interaction.h/.cpp` (`Interaction`)
     - `wood_interaction_contact/`: `wood_interaction_contact` (the envelope), `wood_interaction_contact_face` (+ `_type`), `wood_interaction_contact_axis`, `wood_interaction_contact_cross`
@@ -253,7 +254,7 @@ flowchart TB
 ```
 
 - Every class above has `pb_dumps` / `pb_loads`, and `jsondump` / `jsonload` derived from the same proto message through `wood_serialization` (`json_of`, `message_from_json`): the proto is the one schema, the JSON carries the proto field names and a `type` key. Kernel geometry inside a message (polylines, lines, element features) is nested as the kernel's own message.
-- The element payload the kernel carries opaquely in `element_data` is the class's protobuf message (`wood_proto.Plate`, `Beam`, `Column`); a payload written in the kernel's JSON by older files is still read, the one hand-written JSON reader left.
+- The element payload the kernel carries opaquely in `element_data` is the class's protobuf message (`wood_proto.Plate`, `Beam`, `Column`, `Block`); a payload written in the kernel's JSON by older files is still read, the one hand-written JSON reader left.
 - A scene file is a `wood_proto.WoodSession`: fields 1..7 are `session_proto.Session` field for field, then `interactions` at field 100 and `settings` at 101. The viewer and the py/rust kernels open it as a plain Session and drop the two as unknown fields; `WoodSession::pb_load` reads all of it.
 - Interactions are written in guid order as a repeated field, not a protobuf map, so the bytes are identical across languages.
 
@@ -291,7 +292,7 @@ flowchart LR
 - `compute_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `ContactFace` per overlapping face pair on the pair's interaction; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `ContactCross` and `ContactAxis` the same way.
 - `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `FeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then every joint onto its interaction with `add_feature` and onto both hosts as `ElementFeature`s.
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `FeatureBeam` each.
-- `pb_dump` lofts every stale plate and writes the `wood_proto.WoodSession`; `add_to_tree` (in `wood_view`) arranges elements, outlines, contacts and features into viewer groups.
+- `pb_dump` writes the solid of every stale element (`sync_geometry`) and then the `wood_proto.WoodSession`; `add_to_tree` (in `wood_view`) arranges elements, attributes, contacts and features into viewer groups, `show_attributes` adds or removes the attributes alone.
 
 ## Architecture review
 

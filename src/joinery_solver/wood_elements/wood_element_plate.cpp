@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_serialization.h"
 #include "wood_element_plate.h"
+#include "wood_element_geometry.h"
 #include "element_plate.pb.h"
 
 namespace wood_session {
@@ -267,15 +268,12 @@ void Plate::compute_geometry() {
     set_dimensions(nominal_dimensions());
 
     std::vector<ElementFeature> next = face_features();
-    for (const ElementFeature& feature : Element::features()) {
-
-        if (feature.feature_type != "joint")
-            continue;
-
-        next.push_back(feature);
-        if (feature.has_guid())
-            next.back().guid() = feature.guid();
-    }
+    for (size_t face = 0; face < std::min<size_t>(2, polylines.size()); face++)
+        next.push_back(polyline_feature("outline", polylines[face], static_cast<int>(face)));
+    if (has_geometry())
+        next.push_back(centroid_feature(*this));
+    for (ElementFeature& joint : joint_features(*this))
+        next.push_back(std::move(joint));
 
     set_features(std::move(next));
     _geometry_synced = true;
