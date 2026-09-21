@@ -32,8 +32,18 @@ int main() {
 }
 
 /*
-description: the per-face tables the sidecars would give, filled from geometry placed on the plates: points with a type into feature_types, lines into the insertion vectors, then a solve that reads them.
+|||||||| DESCRIPTION ||||||||
+the per-face tables the sidecars would give, filled from geometry placed on the plates: points with a type into feature_types, lines into the insertion vectors, then a solve that reads them.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 8_assignment --parallel 4 && ./build/8_assignment
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 8_assignment --parallel 4 && ./build/8_assignment && ../bash/publish-scene.sh --target 8_assignment
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

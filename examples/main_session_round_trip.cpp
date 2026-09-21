@@ -259,8 +259,18 @@ int main() {
 }
 
 /*
-description: load a session .pb -> contacts and joints into the interaction store -> pb round trip -> back into a WoodSession; prints only what differs, exit code = failures.
+|||||||| DESCRIPTION ||||||||
+load a session .pb -> contacts and joints into the interaction store -> pb round trip -> back into a WoodSession; prints only what differs, exit code = failures.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_session_round_trip -j4 && ./build/main_session_round_trip
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target main_session_round_trip --parallel 4 && ./build/main_session_round_trip && ../bash/publish-scene.sh --target main_session_round_trip
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

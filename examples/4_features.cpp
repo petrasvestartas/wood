@@ -23,10 +23,18 @@ int main() {
 }
 
 /*
-description: the joinery pipeline on one dataset: every plate joint with its type, faces and cut outlines; a plate's geometry alone and with its joints cut in; the joint features the hosts carry.
+|||||||| DESCRIPTION ||||||||
+the joinery pipeline on one dataset: every plate joint with its type, faces and cut outlines; a plate's geometry alone and with its joints cut in; the joint features the hosts carry.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 4_features --parallel 4 && ./build/4_features
-cloudflare: ../bash/publish-scene.sh --target 4_features
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 4_features --parallel 4 && ./build/4_features && ../bash/publish-scene.sh --target 4_features
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

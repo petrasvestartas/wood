@@ -23,10 +23,18 @@ int main() {
 }
 
 /*
-description: the three ways a scene is loaded: a dataset yml (settings, obj and sidecars), an obj alone (plates, default settings), a session .pb (everything, including the interactions).
+|||||||| DESCRIPTION ||||||||
+the three ways a scene is loaded: a dataset yml (settings, obj and sidecars), an obj alone (plates, default settings), a session .pb (everything, including the interactions).
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 2_datasets --parallel 4 && ./build/2_datasets
-cloudflare: ../bash/publish-scene.sh --target 2_datasets
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 2_datasets --parallel 4 && ./build/2_datasets && ../bash/publish-scene.sh --target 2_datasets
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

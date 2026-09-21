@@ -52,10 +52,18 @@ int main() {
 }
 
 /*
-description: run every wood dataset -> each writes data/output/WoodF2F_<name>.pb.
+|||||||| DESCRIPTION ||||||||
+run every wood dataset -> each writes data/output/WoodF2F_<name>.pb.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_all_datasets --parallel 4 && tools/run_guarded.sh -- build/main_all_datasets
-cloudflare: ../bash/publish-scene.sh data/output/WoodF2F_annen_corner.pb
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target main_all_datasets --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/main_all_datasets && ../bash/publish-scene.sh --target main_all_datasets
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

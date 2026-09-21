@@ -24,10 +24,18 @@ int main() {
 }
 
 /*
-description: plates passing through each other solved as cross joints (type 30), the search type chosen per solve: cross only, or face-to-face with cross as the fallback.
+|||||||| DESCRIPTION ||||||||
+plates passing through each other solved as cross joints (type 30), the search type chosen per solve: cross only, or face-to-face with cross as the fallback.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 12_cross_joints --parallel 4 && ./build/12_cross_joints
-cloudflare: ../bash/publish-scene.sh --target 12_cross_joints
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 12_cross_joints --parallel 4 && ./build/12_cross_joints && ../bash/publish-scene.sh --target 12_cross_joints
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

@@ -111,16 +111,16 @@ int main() {
 The reciprocal rotation template: the edges of a mesh on a surface become beams rotated about their midpoints and cut against their neighbours, framed by straight boundary beams with one tilt per boundary curve and butt corners; one plate per beam, written to live for the viewer.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel 4 && ./build/main_reciprocal_rotation && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_reciprocal_rotation
+cmake --build build --target templates_reciprocal_rotation --parallel 4 && ./build/templates_reciprocal_rotation && ../bash/publish-scene.sh --target templates_reciprocal_rotation
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_reciprocal_rotation.cpp
+examples/templates_reciprocal_rotation.cpp
  |
  |-- case_surface -> one of the test surfaces, flatten_surface_sides            src/templates/reciprocal_surface.h
  |-- case_mesh -> quad_mesh_from_surface, hex_mesh_from_surface or dual_hex_mesh

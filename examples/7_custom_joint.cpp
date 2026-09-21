@@ -35,10 +35,18 @@ int main() {
 }
 
 /*
-description: a joint variant supplied as outlines: two male and two female tooth faces in unit-cube space in the settings, chosen through the family's joint id, tiled along the seam by the solver.
+|||||||| DESCRIPTION ||||||||
+a joint variant supplied as outlines: two male and two female tooth faces in unit-cube space in the settings, chosen through the family's joint id, tiled along the seam by the solver.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 7_custom_joint --parallel 4 && ./build/7_custom_joint
-cloudflare: ../bash/publish-scene.sh --target 7_custom_joint
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 7_custom_joint --parallel 4 && ./build/7_custom_joint && ../bash/publish-scene.sh --target 7_custom_joint
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

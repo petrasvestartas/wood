@@ -30,8 +30,18 @@ int main() {
 }
 
 /*
-description: the scene as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as JSON derived from its proto message and back, one record as protobuf bytes.
+|||||||| DESCRIPTION ||||||||
+the scene as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as JSON derived from its proto message and back, one record as protobuf bytes.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 10_serialization --parallel 4 && ./build/10_serialization
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 10_serialization --parallel 4 && ./build/10_serialization && ../bash/publish-scene.sh --target 10_serialization
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

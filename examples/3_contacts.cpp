@@ -33,10 +33,18 @@ int main() {
 }
 
 /*
-description: the three contact kinds on one dataset: face overlaps, boundary crossings as axis contacts, plates passing through each other as cross contacts; each read through the interaction of its edge.
+|||||||| DESCRIPTION ||||||||
+the three contact kinds on one dataset: face overlaps, boundary crossings as axis contacts, plates passing through each other as cross contacts; each read through the interaction of its edge.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 3_contacts --parallel 4 && ./build/3_contacts
-cloudflare: ../bash/publish-scene.sh --target 3_contacts
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 3_contacts --parallel 4 && ./build/3_contacts && ../bash/publish-scene.sh --target 3_contacts
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

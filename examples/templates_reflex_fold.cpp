@@ -27,16 +27,16 @@ int main() {
 The reflex fold template: a folded cross section along a profile, one plate per fold, written to live for the viewer.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel && ./build/main_reflex_fold && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_reflex_fold
+cmake --build build --target templates_reflex_fold --parallel 4 && ./build/templates_reflex_fold && ../bash/publish-scene.sh --target templates_reflex_fold
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_reflex_fold.cpp
+examples/templates_reflex_fold.cpp
  |
  |-- ReflexFold(cross_section, profile, thickness, chamfer_bot, chamfer_top, chamfer_angle)                       src/templates/reflex_fold.h
  |    |-- reflex_fold(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per fold in `elements`

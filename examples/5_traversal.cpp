@@ -33,8 +33,18 @@ int main() {
 }
 
 /*
-description: every stored record answers session() with its scene: from a joint back to the scene, to its two plates, to the interaction and the contacts on the same edge, to the edge's elements; a record built by hand has no scene.
+|||||||| DESCRIPTION ||||||||
+every stored record answers session() with its scene: from a joint back to the scene, to its two plates, to the interaction and the contacts on the same edge, to the edge's elements; a record built by hand has no scene.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 5_traversal --parallel 4 && ./build/5_traversal
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 5_traversal --parallel 4 && ./build/5_traversal && ../bash/publish-scene.sh --target 5_traversal
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

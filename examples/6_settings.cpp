@@ -32,10 +32,18 @@ int main() {
 }
 
 /*
-description: the solver settings as a value on the scene: joint ids and division lengths per family, volume extension, scale and tolerances set in code, the solve, and the settings read back from the file.
+|||||||| DESCRIPTION ||||||||
+the solver settings as a value on the scene: joint ids and division lengths per family, volume extension, scale and tolerances set in code, the solve, and the settings read back from the file.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 6_settings --parallel 4 && ./build/6_settings
-cloudflare: ../bash/publish-scene.sh --target 6_settings
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 6_settings --parallel 4 && ./build/6_settings && ../bash/publish-scene.sh --target 6_settings
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

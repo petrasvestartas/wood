@@ -102,16 +102,16 @@ int main() {
 The reciprocal move template: the edges of a quad or hexagonal mesh on a surface become beams shifted past each other by SHIFT, each end cut flush against the beam it bears on, framed by straight boundary beams with one tilt per boundary curve and butt corners; one plate per beam, written to live for the viewer.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel 4 && ./build/main_reciprocal_move && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_reciprocal_move
+cmake --build build --target templates_reciprocal_move --parallel 4 && ./build/templates_reciprocal_move && ../bash/publish-scene.sh --target templates_reciprocal_move
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_reciprocal_move.cpp
+examples/templates_reciprocal_move.cpp
  |
  |-- case_surface -> one of the test surfaces, flatten_surface_sides            src/templates/reciprocal_surface.h
  |-- case_mesh -> quad_mesh_from_surface, hex_mesh_from_surface or dual_hex_mesh

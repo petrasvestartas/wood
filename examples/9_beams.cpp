@@ -27,10 +27,18 @@ int main() {
 }
 
 /*
-description: beams built in code, the closest axis segments as axis contacts, and one beam feature per pair: four volume rectangles trimmed for a crossing, a side-to-end or an end-to-end meeting.
+|||||||| DESCRIPTION ||||||||
+beams built in code, the closest axis segments as axis contacts, and one beam feature per pair: four volume rectangles trimmed for a crossing, a side-to-end or an end-to-end meeting.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target 9_beams --parallel 4 && ./build/9_beams
-cloudflare: ../bash/publish-scene.sh --target 9_beams
-view: https://petrasvestartas.github.io/session/
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 9_beams --parallel 4 && ./build/9_beams && ../bash/publish-scene.sh --target 9_beams
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

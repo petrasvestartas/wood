@@ -31,16 +31,16 @@ int main() {
 The chevron template on an Annen NURBS surface: the surface folded into chevron strips, four plates per face, written to live for the viewer.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel && ./build/main_chevron && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_chevron
+cmake --build build --target templates_chevron --parallel 4 && ./build/templates_chevron && ../bash/publish-scene.sh --target templates_chevron
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_chevron.cpp
+examples/templates_chevron.cpp
  |
  |-- wood_chevron::annen_surfaces(data/annen_surfaces.json)   the 23 serialized Annen surfaces
  |-- Chevron(surface, u_divisions, v_division_dist, shift, scale, box_height, top_plate_inlet, plate_thickness, edge_rotation, edge_offset)                       src/templates/chevron.h

@@ -117,8 +117,18 @@ int main() {
 }
 
 /*
-description: one plate -> WoodSession -> pb round trip -> Element fields and the Plate the registry rebuilds checked; prints only what differs, exit code = failures.
+|||||||| DESCRIPTION ||||||||
+one plate -> WoodSession -> pb round trip -> Element fields and the Plate the registry rebuilds checked; prints only what differs, exit code = failures.
 
-directory: cd ~/code/code_cpp/wood_research/wood
-run: cmake --build build --target main_element_mapping_check --parallel 4 && ./build/main_element_mapping_check
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target main_element_mapping_check --parallel 4 && ./build/main_element_mapping_check && ../bash/publish-scene.sh --target main_element_mapping_check
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

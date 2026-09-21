@@ -27,16 +27,16 @@ int main() {
 The translation shell template: a cross section swept along a profile, one chamfered plate per strip, written to live for the viewer.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
-cmake -S . -B build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --config Release --parallel && ./build/main_translation_shell && bash "$(git rev-parse --show-toplevel)/../bash/publish-scene.sh" --target main_translation_shell
+cmake --build build --target templates_translation_shell --parallel 4 && ./build/templates_translation_shell && ../bash/publish-scene.sh --target templates_translation_shell
 
 |||||||| WORKFLOW ||||||||
-examples/templates/main_translation_shell.cpp
+examples/templates_translation_shell.cpp
  |
  |-- TranslationShell(cross_section, profile, thickness, chamfer, chamfer_angle)                       src/templates/translation_shell.h
  |    |-- sweep(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per strip in `elements`
