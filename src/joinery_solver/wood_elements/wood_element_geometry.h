@@ -4,11 +4,8 @@
 
 namespace wood_session {
 
-/// The feature_type names an element writes for its own geometry: "outline", "axis", "section", "centroid"; every other type is joinery.
+/// The feature_type names an element writes for its own geometry: "outline", "axis", "section"; every other type is joinery. The centroid is not one: `Element::point()` computes and caches it.
 bool is_geometry_feature(std::string_view feature_type);
-
-/// A "centroid" feature: the element's point as a one-point outline, whole element.
-session_cpp::ElementFeature centroid_feature(session_cpp::Element& element);
 
 /// A feature of one polyline, whole element unless a face is given.
 session_cpp::ElementFeature polyline_feature(std::string_view feature_type, const session_cpp::Polyline& polyline, int face_index = -1);

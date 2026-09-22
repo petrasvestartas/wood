@@ -6,11 +6,7 @@ namespace wood_session {
 using namespace session_cpp;
 
 bool is_geometry_feature(std::string_view feature_type) {
-    return feature_type == "outline" || feature_type == "axis" || feature_type == "section" || feature_type == "centroid";
-}
-
-ElementFeature centroid_feature(Element& element) {
-    return ElementFeature("centroid", -1, {Polyline({element.point()})}, "centroid");
+    return feature_type == "outline" || feature_type == "axis" || feature_type == "section";
 }
 
 ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index) {

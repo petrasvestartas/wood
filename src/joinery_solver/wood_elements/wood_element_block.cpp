@@ -59,8 +59,6 @@ void Block::compute_geometry() {
     }
 
     std::vector<ElementFeature> next;
-    if (has_geometry())
-        next.push_back(centroid_feature(*this));
     for (ElementFeature& joint : joint_features(*this))
         next.push_back(std::move(joint));
 

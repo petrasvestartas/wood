@@ -72,8 +72,6 @@ void Column::compute_geometry() {
     next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
     if (section.point_count() > 0)
         next.push_back(polyline_feature("section", section));
-    if (has_geometry())
-        next.push_back(centroid_feature(*this));
     for (ElementFeature& joint : joint_features(*this))
         next.push_back(std::move(joint));
 

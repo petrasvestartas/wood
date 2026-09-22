@@ -59,7 +59,7 @@ public:
     /// True once compute_geometry() wrote the solid of the current axis onto the Element; false after any invalidation.
     bool geometry_synced() const { return _geometry_synced; }
 
-    /// Writes the solid swept through sections() onto the Element with the axis, section and centroid features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale beam.
+    /// Writes the solid swept through sections() onto the Element with the axis and section features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale beam.
     void compute_geometry();
 
     /// The kernel's cached box of the solid.

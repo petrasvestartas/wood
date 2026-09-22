@@ -38,7 +38,7 @@ public:
     /// True once compute_geometry() wrote the loft of the current loops onto the Element; false after any invalidation.
     bool geometry_synced() const { return _geometry_synced; }
 
-    /// Writes the capped loft of the loops onto the Element (a solid given as a mesh stays) with the centroid feature, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale block.
+    /// Writes the capped loft of the loops onto the Element (a solid given as a mesh stays), keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale block.
     void compute_geometry();
 
     /// The kernel's cached box of the solid.

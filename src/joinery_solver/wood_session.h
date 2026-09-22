@@ -178,7 +178,7 @@ public:
     /// wood_view's add_to_tree on this scene.
     void add_to_tree(bool with_geometry = true, bool with_attributes = true, bool with_contacts = true, bool with_joints = true);
 
-    /// wood_view's show_attributes on this scene: the geometry features of every element (outlines, axis, sections, centroid) added under an `attributes` group per element, or every such group removed.
+    /// wood_view's show_attributes on this scene: the geometry features of every element (outlines, axis, sections) added under an `attributes` group per element, or every such group removed.
     void show_attributes(bool on);
 
     /// Writes the solid of every element whose Element slot is stale (plates lofted, beams swept, columns and blocks lofted) so the file carries the model geometry; nothing lofts until this runs.

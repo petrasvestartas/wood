@@ -104,8 +104,6 @@ void Beam::compute_geometry() {
     next.push_back(polyline_feature("axis", axis));
     for (const Polyline& ring : rings)
         next.push_back(polyline_feature("section", ring));
-    if (has_geometry())
-        next.push_back(centroid_feature(*this));
     for (ElementFeature& joint : joint_features(*this))
         next.push_back(std::move(joint));
 

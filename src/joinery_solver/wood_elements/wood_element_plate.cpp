@@ -270,8 +270,6 @@ void Plate::compute_geometry() {
     std::vector<ElementFeature> next = face_features();
     for (size_t face = 0; face < std::min<size_t>(2, polylines.size()); face++)
         next.push_back(polyline_feature("outline", polylines[face], static_cast<int>(face)));
-    if (has_geometry())
-        next.push_back(centroid_feature(*this));
     for (ElementFeature& joint : joint_features(*this))
         next.push_back(std::move(joint));
 

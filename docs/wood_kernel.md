@@ -267,7 +267,7 @@ How wood uses it (`wood_session.h/.cpp`):
 - `add_to_tree(geometry, attributes, contacts, joints)` arranges the viewer tree: one group per
   element (`<name>_<index>`) holding the element's node, an `attributes` child group (the
   element's geometry features: a plate's bottom and top outlines, a beam's or column's axis and
-  sections, every element's centroid), a `contacts` child group on the pair's first element, and
+  sections), a `contacts` child group on the pair's first element, and
   a `joints` child group (area, volumes, lines and male cuts on the male element, female cuts on
   the female one). Each flag adds or leaves out that part; `show_attributes(bool)` adds or removes
   the `attributes` groups alone, after the tree is built.

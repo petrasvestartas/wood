@@ -46,7 +46,7 @@ public:
     /// True once compute_geometry() wrote the solid of the current section onto the Element; false after any invalidation.
     bool geometry_synced() const { return _geometry_synced; }
 
-    /// Writes the section lofted along the axis onto the Element (the given solid stays when the section is empty) with the axis, section and centroid features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale column.
+    /// Writes the section lofted along the axis onto the Element (the given solid stays when the section is empty) with the axis and section features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale column.
     void compute_geometry();
 
     // ═══════════════════════════════════════════════════════════════════════════
