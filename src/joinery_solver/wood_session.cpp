@@ -3,6 +3,7 @@
 #include "wood_contact_detection.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_session.pb.h"
+#include "wood_element_geometry.h"
 
 namespace wood_session {
 
@@ -37,11 +38,11 @@ WoodSession::WoodSession() { register_element_types(); }
 
 WoodSession::WoodSession(const std::string& name) : Session(name) { register_element_types(); }
 
-WoodSession::WoodSession(const WoodSession& other) : Session(other), settings(other.settings), interactions(other.interactions), adjacency(other.adjacency), three_valence(other.three_valence), _edges(other._edges) {
+WoodSession::WoodSession(const WoodSession& other) : Session(other), settings(other.settings), interactions(other.interactions), adjacency(other.adjacency), three_valence(other.three_valence), definition_keys(other.definition_keys), _edges(other._edges) {
     claim_records();
 }
 
-WoodSession::WoodSession(WoodSession&& other) noexcept : Session(std::move(other)), settings(std::move(other.settings)), interactions(std::move(other.interactions)), adjacency(std::move(other.adjacency)), three_valence(std::move(other.three_valence)), _edges(std::move(other._edges)) {
+WoodSession::WoodSession(WoodSession&& other) noexcept : Session(std::move(other)), settings(std::move(other.settings)), interactions(std::move(other.interactions)), adjacency(std::move(other.adjacency)), three_valence(std::move(other.three_valence)), definition_keys(std::move(other.definition_keys)), _edges(std::move(other._edges)) {
     claim_records();
 }
 
@@ -55,6 +56,7 @@ WoodSession& WoodSession::operator=(const WoodSession& other) {
     interactions = other.interactions;
     adjacency = other.adjacency;
     three_valence = other.three_valence;
+    definition_keys = other.definition_keys;
     _edges = other._edges;
     claim_records();
 
@@ -71,6 +73,7 @@ WoodSession& WoodSession::operator=(WoodSession&& other) noexcept {
     interactions = std::move(other.interactions);
     adjacency = std::move(other.adjacency);
     three_valence = std::move(other.three_valence);
+    definition_keys = std::move(other.definition_keys);
     _edges = std::move(other._edges);
     claim_records();
 
@@ -147,7 +150,7 @@ WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
     WoodSession scene = obj_load(config::DATA_SET_OBJ, settings.duplicate_points_tolerance);
     scene.settings = settings;
     scene.name = config::DATA_SET_INPUT_NAME;
-    scene.load_sidecars();
+    scene.load_sidecars(scene.world_elements<Plate>());
 
     return scene;
 }
@@ -162,28 +165,114 @@ std::ostream& operator<<(std::ostream& os, const WoodSession& scene) { return os
 // WoodSession - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace {
+
+/// A contact as the feature its edge's first element carries: the face or cross polygon, or the axis segment, in the colour of its class.
+ElementFeature contact_feature(const InteractionContact& contact) {
+
+    Polyline outline;
+    int face = -1;
+    std::string name = "axis";
+    if (const ContactFace* touch = contact.face()) {
+        outline = touch->polygon;
+        outline.linecolor = contact_color(touch->type);
+        face = touch->face_a;
+        name = std::string(contact_type_name(touch->type));
+    } else if (const ContactCross* cross = contact.cross()) {
+        outline = cross->polygon;
+        outline.linecolor = joint_color(30);
+        name = "cross";
+    } else if (const ContactAxis* axis = contact.axis()) {
+        outline = Polyline({axis->segment.start(), axis->segment.end()});
+        outline.linecolor = Color(0.086f, 0.635f, 0.667f, 1.0f, "axis_teal");
+    }
+
+    ElementFeature feature("contact", face, {outline}, name);
+    feature.guid() = contact.guid;
+
+    return feature;
+}
+
+/// Every outline of a feature in one colour.
+void paint(ElementFeature& feature, const Color& color) {
+    for (Polyline& outline : feature.outlines)
+        outline.linecolor = color;
+}
+
+/// Every feature of every element but the ones `drop` picks, guids and visibility kept; an element without features is not read, so it does not loft.
+void drop_features(const std::vector<std::shared_ptr<Element>>& elements, const std::function<bool(const ElementFeature&)>& drop) {
+    for (const std::shared_ptr<Element>& element : elements) {
+
+        if (!element || element->features_count() == 0)
+            continue;
+
+        std::vector<ElementFeature> features;
+        for (const ElementFeature& feature : element->features()) {
+
+            if (drop(feature))
+                continue;
+
+            features.push_back(feature);
+            features.back().guid() = feature.guid();
+        }
+
+        element->set_features(std::move(features));
+    }
+}
+
+/// The same over the instances' own features.
+void drop_features(const std::vector<std::shared_ptr<InstanceRef>>& instances, const std::function<bool(const ElementFeature&)>& drop) {
+    for (const std::shared_ptr<InstanceRef>& instance : instances)
+        std::erase_if(instance->features, drop);
+}
+
+/// drop_features on the one element or instance guid names.
+void drop_host_features(WoodSession& session, const std::string& guid, const std::function<bool(const ElementFeature&)>& drop) {
+
+    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = session.instance_lookup.find(guid);
+
+    if (instance != session.instance_lookup.end())
+        drop_features({instance->second}, drop);
+    else
+        drop_features({session.get_element<Element>(guid)}, drop);
+}
+
+}  // namespace
+
 void WoodSession::clear_contacts() {
     for (auto& [guid, interaction] : interactions) {
         interaction.contacts.clear();
         for (InteractionFeature& feature : interaction.features)
             feature.contact = -1;
     }
+
+    const std::function<bool(const ElementFeature&)> drop = [](const ElementFeature& feature) { return feature.feature_type == "contact"; };
+    drop_features(*objects.elements, drop);
+    drop_features(*objects.instances, drop);
 }
 
 void WoodSession::clear_features() {
     for (auto& [guid, interaction] : interactions)
         interaction.features.clear();
+
+    const std::function<bool(const ElementFeature&)> drop = [](const ElementFeature& feature) { return feature.feature_type == "joint"; };
+    drop_features(*objects.elements, drop);
+    drop_features(*objects.instances, drop);
 }
 
 /// The features' contact indices follow the erased entries; a feature whose contact went forgets it.
 void WoodSession::erase_contacts(std::string_view kind) {
+
+    std::unordered_set<std::string> erased;
     for (auto& [guid, interaction] : interactions) {
 
         std::vector<int> remap(interaction.contacts.size(), -1);
         std::vector<InteractionContact> kept;
         for (size_t i = 0; i < interaction.contacts.size(); ++i) {
-            if (interaction.contacts[i].kind() == kind)
+            if (interaction.contacts[i].kind() == kind) {
+                erased.insert(interaction.contacts[i].guid);
                 continue;
+            }
             remap[i] = static_cast<int>(kept.size());
             kept.push_back(std::move(interaction.contacts[i]));
         }
@@ -193,40 +282,75 @@ void WoodSession::erase_contacts(std::string_view kind) {
 
         interaction.contacts = std::move(kept);
     }
+
+    const std::function<bool(const ElementFeature&)> drop = [&erased](const ElementFeature& feature) { return feature.feature_type == "contact" && erased.count(feature.guid()); };
+    drop_features(*objects.elements, drop);
+    drop_features(*objects.instances, drop);
 }
 
-void WoodSession::compute_face_contacts() {
+/// Stored elements are lofted first, since a mesh gives their outlines; a view comes with its outlines seeded.
+void WoodSession::compute_face_contacts(int level) {
 
     erase_contacts("face");
 
-    const std::vector<std::string> guids = element_guids();
-    for (const auto& [ia, ib, contact] : face_contacts(*objects.elements, settings))
-        add_contact(guids[ia], guids[ib], InteractionContact(contact));
+    std::unordered_map<std::string, std::shared_ptr<TreeNode>> nodes;
+    for (const std::shared_ptr<TreeNode>& node : tree.nodes())
+        nodes[node->name] = node;
+
+    for (const std::shared_ptr<Element>& element : *objects.elements)
+        element->geometry();
+
+    std::map<const TreeNode*, std::vector<std::shared_ptr<Element>>> branches;
+    for (const std::shared_ptr<Element>& element : world_elements()) {
+
+        const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
+        const TreeNode* branch = nullptr;
+        if (found != nodes.end()) {
+            const std::vector<TreeNode*> ancestors = found->second->ancestors();
+            branch = level < static_cast<int>(ancestors.size()) ? ancestors[ancestors.size() - 1 - level] : found->second.get();
+        }
+
+        branches[branch].push_back(element);
+    }
+
+    for (const auto& [branch, elements] : branches)
+        for (const auto& [ia, ib, contact] : face_contacts(elements, settings))
+            add_contact(elements[ia]->guid(), elements[ib]->guid(), InteractionContact(contact));
 }
 
 void WoodSession::compute_axis_contacts(double min_distance) {
 
     erase_contacts("axis");
 
-    const std::vector<std::shared_ptr<Beam>> beams = this->beams();
+    const std::vector<std::shared_ptr<Beam>> beams = world_elements<Beam>();
     for (const auto& [ia, ib, contact] : axis_contacts(beams, min_distance))
         add_contact(beams[ia]->guid(), beams[ib]->guid(), InteractionContact(contact));
 }
 
 void WoodSession::compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male) {
+
+    std::unordered_map<std::string, std::shared_ptr<Beam>> beams;
+    for (const std::shared_ptr<Beam>& beam : world_elements<Beam>())
+        beams[beam->guid()] = beam;
+
     for (auto& [guid, interaction] : interactions) {
 
         const std::pair<std::string, std::string> ends = edge_of(interaction);
-        const std::shared_ptr<Beam> beam_a = get_element<Beam>(ends.first);
-        const std::shared_ptr<Beam> beam_b = get_element<Beam>(ends.second);
-        if (!beam_a || !beam_b)
+        if (!beams.count(ends.first) || !beams.count(ends.second))
             continue;
 
+        const std::shared_ptr<Beam> beam_a = beams.at(ends.first);
+        const std::shared_ptr<Beam> beam_b = beams.at(ends.second);
+
+        std::unordered_set<std::string> erased;
         std::vector<InteractionFeature> kept;
         for (InteractionFeature& feature : interaction.features)
-            if (!feature.beam())
+            if (feature.beam())
+                erased.insert(feature.guid);
+            else
                 kept.push_back(std::move(feature));
         interaction.features = std::move(kept);
+        drop_host_features(*this, ends.first, [&erased](const ElementFeature& feature) { return erased.count(feature.guid()) > 0; });
 
         for (size_t k = 0; k < interaction.contacts.size(); ++k) {
 
@@ -237,18 +361,23 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
 
             InteractionFeature entry(feature);
             entry.contact = static_cast<int>(k);
-            interaction.add_feature(std::move(entry));
+            const int index = interaction.add_feature(std::move(entry));
+
+            ElementFeature side("joint", -1, std::vector<Polyline>(feature.volumes.begin(), feature.volumes.end()), fmt::format("beam_{}", feature.end_type));
+            side.guid() = interaction.features[index].guid;
+            paint(side, Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta"));
+            host_feature(ends.first, std::move(side));
         }
     }
 }
 
-void WoodSession::compute_contacts() { compute_face_contacts(); }
+void WoodSession::compute_contacts(int level) { compute_face_contacts(level); }
 
 void WoodSession::compute_cross_contacts(double angle_tol) {
 
     erase_contacts("cross");
 
-    const std::vector<std::shared_ptr<Plate>> plates = this->plates();
+    const std::vector<std::shared_ptr<Plate>> plates = world_elements<Plate>();
     for (size_t i = 0; i < plates.size(); ++i) {
 
         if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2)
@@ -279,8 +408,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
 
     const double tol = tolerance >= 0.0 ? tolerance : settings.distance;
     const double tol_squared = tol * tol;
-    const std::vector<std::string> guids = element_guids();
-    const std::vector<std::shared_ptr<Element>>& elements = *objects.elements;
+    const std::vector<std::shared_ptr<Element>> elements = world_elements();
 
     std::vector<std::vector<std::vector<Line>>> lines(elements.size());
     for (size_t a = 0; a < elements.size(); ++a)
@@ -304,7 +432,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
                             if ((q0 - q1).magnitude_squared() > tol_squared)
                                 continue;
 
-                            add_contact(guids[a], guids[b], InteractionContact(ContactAxis(Line::from_points(q0, q1), t0, t1, (int)la, (int)sa, (int)lb, (int)sb)));
+                            add_contact(elements[a]->guid(), elements[b]->guid(), InteractionContact(ContactAxis(Line::from_points(q0, q1), t0, t1, (int)la, (int)sa, (int)lb, (int)sb)));
                         }
 }
 
@@ -362,7 +490,17 @@ std::string WoodSession::add_contact(const std::string& a, const std::string& b,
     if (_edges[interaction.guid].first != a)
         contact = contact.flipped();
 
-    return interaction.contacts[interaction.add_contact(std::move(contact))].guid;
+    return interaction.contacts[place_contact(interaction, std::move(contact))].guid;
+}
+
+int WoodSession::place_contact(Interaction& interaction, InteractionContact contact) {
+
+    const size_t count = interaction.contacts.size();
+    const int index = interaction.add_contact(std::move(contact));
+    if (interaction.contacts.size() > count)
+        host_feature(_edges[interaction.guid].first, contact_feature(interaction.contacts[index]));
+
+    return index;
 }
 
 namespace {
@@ -396,13 +534,21 @@ std::string WoodSession::add_feature(const FeaturePlate& joint) {
     const InteractionContact contact = contact_of(joint);
     InteractionFeature feature(joint);
     feature.guid = joint.guid;
-    feature.contact = interaction.add_contact(reversed ? contact.flipped() : contact);
+    feature.contact = place_contact(interaction, reversed ? contact.flipped() : contact);
     feature.plate()->sync_features();
 
     const int index = interaction.add_feature(std::move(feature));
-    interaction.features[index].plate()->guid = interaction.features[index].guid;
+    FeaturePlate& plate = *interaction.features[index].plate();
+    plate.guid = interaction.features[index].guid;
 
-    return interaction.features[index].guid;
+    std::array<ElementFeature, 2> sides = plate.to_features();
+    const std::array<std::string, 2> hosts = {plate.element_a, plate.element_b};
+    for (int k = 0; k < 2; ++k) {
+        paint(sides[k], joint_color(plate.joint_type));
+        host_feature(hosts[k], std::move(sides[k]));
+    }
+
+    return plate.guid;
 }
 
 /// A plate feature keeps a copy of its contact; the copy must be the stored contact read from the feature's own side.
@@ -486,25 +632,25 @@ std::vector<ElementFeature> WoodSession::get_element_features(const std::string&
     return features;
 }
 
-void WoodSession::sync_joint_features() {
+void WoodSession::set_features_visible(std::string_view feature_type, bool visible) {
     for (const std::shared_ptr<Element>& element : *objects.elements) {
 
         std::vector<ElementFeature> features;
         for (const ElementFeature& feature : element->features()) {
 
-            if (feature.feature_type == "joint")
-                continue;
-
             features.push_back(feature);
-            if (feature.has_guid())
-                features.back().guid() = feature.guid();
+            features.back().guid() = feature.guid();
+            if (feature.feature_type == feature_type)
+                features.back().visible = visible;
         }
-
-        for (ElementFeature& feature : get_element_features(element->guid()))
-            features.push_back(std::move(feature));
 
         element->set_features(std::move(features));
     }
+
+    for (const std::shared_ptr<InstanceRef>& instance : *objects.instances)
+        for (ElementFeature& feature : instance->features)
+            if (feature.feature_type == feature_type)
+                feature.visible = visible;
 }
 
 /// Every edge once, its guid on both copies; edges without an interaction (bvh_collision) are indexed too, so a later add_interaction finds them.
@@ -516,33 +662,6 @@ void WoodSession::index_edges() {
         graph.edges[v][u].guid() = id;
         _edges[id] = {graph.edges[u][v].v0, graph.edges[u][v].v1};
     }
-}
-
-void WoodSession::add_to_tree(bool with_geometry, bool with_attributes, bool with_contacts, bool with_joints) {
-    wood_session::add_to_tree(*this, with_geometry, with_attributes, with_contacts, with_joints);
-}
-
-void WoodSession::show_attributes(bool on) {
-    wood_session::show_attributes(*this, on);
-}
-
-void WoodSession::sync_geometry() const {
-
-    for (const std::shared_ptr<Plate>& plate : plates())
-        if (!plate->geometry_synced())
-            plate->compute_geometry();
-
-    for (const std::shared_ptr<Beam>& beam : beams())
-        if (!beam->geometry_synced())
-            beam->compute_geometry();
-
-    for (const std::shared_ptr<Column>& column : columns())
-        if (!column->geometry_synced())
-            column->compute_geometry();
-
-    for (const std::shared_ptr<Block>& block : blocks())
-        if (!block->geometry_synced())
-            block->compute_geometry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -558,8 +677,6 @@ void WoodSession::pb_dump(const std::string& filename) {
 /// The kernel's bytes parse into the superset message field for field; the interactions follow in guid order.
 std::string WoodSession::pb_dumps() {
 
-    sync_geometry();
-
     wood_proto::WoodSession proto;
     proto.ParseFromString(Session::pb_dumps());
     for (const auto& [guid, interaction] : interactions)
@@ -573,12 +690,57 @@ std::string WoodSession::pb_dumps() {
 // WoodSession - String
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace {
+
+/// The name of the element or instance guid names, the guid itself when the scene holds neither.
+std::string name_of(const WoodSession& scene, const std::string& guid) {
+
+    if (const std::shared_ptr<Element> element = scene.get_element<Element>(guid))
+        return element->name;
+
+    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = scene.instance_lookup.find(guid);
+
+    return instance == scene.instance_lookup.end() ? guid : instance->second->name;
+}
+
+}  // namespace
+
 std::string WoodSession::str() const {
+
+    const std::string bar(80, '=');
+    std::ostringstream os;
+    os << Session::str() << "Joints\n" << bar << "\n";
+
+    for (const auto& [guid, interaction] : interactions) {
+
+        const auto [a, b] = edge_of(interaction);
+        os << name_of(*this, a) << " -- " << name_of(*this, b)
+           << " : " << interaction.contacts.size() << " contacts, " << interaction.features.size() << " features";
+
+        std::set<std::string_view> kinds;
+        for (const InteractionFeature& feature : interaction.features)
+            kinds.insert(feature.kind());
+
+        for (const std::string_view kind : kinds)
+            os << (kind == *kinds.begin() ? " (" : ", ") << kind;
+
+        if (!kinds.empty())
+            os << ")";
+
+        os << "\n";
+    }
+
+    os << bar << "\n";
+
+    return os.str();
+}
+
+std::string WoodSession::repr() const {
     std::ostringstream os;
     os << "WoodSession(name=" << name << ", elements=" << objects.elements->size()
        << ", plates=" << plates().size() << ", columns=" << columns().size()
-       << ", blocks=" << blocks().size()
-       << ", interactions=" << interactions.size() << ")";
+       << ", blocks=" << blocks().size() << ", definitions=" << definition_lookup.size()
+       << ", instances=" << objects.instances->size() << ", interactions=" << interactions.size() << ")";
     return os.str();
 }
 
@@ -593,10 +755,8 @@ std::shared_ptr<TreeNode> WoodSession::add(std::shared_ptr<Element> element, std
 std::vector<std::string> WoodSession::element_guids() const {
 
     std::vector<std::string> guids;
-    guids.reserve(objects.elements->size());
-    for (const std::shared_ptr<Element>& element : *objects.elements)
-        if (element)
-            guids.push_back(element->guid());
+    for (const std::shared_ptr<Element>& element : world_elements())
+        guids.push_back(element->guid());
 
     return guids;
 }

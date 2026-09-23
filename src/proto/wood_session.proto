@@ -10,7 +10,7 @@ import "session.proto";
 import "interaction.proto";
 import "settings.proto";
 
-// A wood scene on the wire: fields 1..7 are session_proto.Session field for field, so any
+// A wood scene on the wire: fields 1..8 are session_proto.Session field for field, so any
 // Session reader opens the file and drops the interactions as an unknown field.
 message WoodSession {
   string name = 1;                                 // Session name
@@ -20,6 +20,7 @@ message WoodSession {
   session_proto.Graph graph = 5;                   // Graph relationships
   repeated session_proto.BoundingBox bvh_boxes = 6;  // Simplified BVH representation
   repeated session_proto.XformEntry xforms = 7;    // Local transforms in Session::order() sequence
+  session_proto.Objects definitions = 8;           // Shared element definitions the instances place, each in its own frame
   repeated Interaction interactions = 100;         // One per graph edge, by the edge's guid
   Settings settings = 101;                         // The solver settings the scene was solved with
 }

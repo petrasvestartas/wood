@@ -103,6 +103,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_assignment.cpp
     src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp
     src/joinery_solver/wood_session.cpp
+    src/joinery_solver/wood_instance.cpp
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp
 )
 
@@ -192,6 +193,8 @@ function(ADD_EXE NAME SRC)
 endfunction()
 
 ADD_EXE(1_elements               examples/1_elements.cpp)
+ADD_EXE(1_elements_flat          examples/1_elements_flat.cpp)
+ADD_EXE(1_elements_tree          examples/1_elements_tree.cpp)
 ADD_EXE(2_datasets               examples/2_datasets.cpp)
 ADD_EXE(3_contacts               examples/3_contacts.cpp)
 ADD_EXE(4_features               examples/4_features.cpp)
@@ -216,6 +219,9 @@ ADD_EXE(templates_reflex_fold         examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron             examples/templates_chevron.cpp)
 ADD_EXE(templates_reciprocal_rotation examples/templates_reciprocal_rotation.cpp)
 ADD_EXE(templates_reciprocal_move     examples/templates_reciprocal_move.cpp)
+ADD_EXE(templates_grid                examples/templates_grid.cpp)
+ADD_EXE(templates_grid_radial         examples/templates_grid_radial.cpp)
+ADD_EXE(templates_grid_hex            examples/templates_grid_hex.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
@@ -263,11 +269,14 @@ include(CTest)
 if(BUILD_TESTING)
     ADD_EXE(wood_assign_test tests/wood_assign_test.cpp)
     ADD_EXE(wood_solver_test tests/wood_solver_test.cpp)
+    ADD_EXE(wood_instance_test tests/wood_instance_test.cpp)
     if(UNIX)
         add_test(NAME wood_assign COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_assign_test>)
         set_tests_properties(wood_assign PROPERTIES RUN_SERIAL TRUE)
         add_test(NAME wood_solver COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_solver_test>)
         set_tests_properties(wood_solver PROPERTIES RUN_SERIAL TRUE)
+        add_test(NAME wood_instance COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_instance_test>)
+        set_tests_properties(wood_instance PROPERTIES RUN_SERIAL TRUE)
         find_package(Python3 QUIET COMPONENTS Interpreter)
         if(Python3_Interpreter_FOUND)
             add_test(NAME wood_dataset_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/dataset_runner_test.py)

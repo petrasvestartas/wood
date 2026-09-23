@@ -2,9 +2,11 @@ syntax = "proto3";
 
 package wood_proto;
 
+import "plane.proto";
 import "polyline.proto";
 
-// The state of a Block beyond the kernel Element: the closed loops its solid is lofted between.
+// The state of a Block beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
 message Block {
   repeated session_proto.Polyline loops = 1;  // Bottom loop, top loop, then their holes paired in order
+  repeated session_proto.Plane cuts = 2;      // Planes the solid is cut by, each keeping the side its normal points to
 }

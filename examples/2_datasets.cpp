@@ -16,7 +16,6 @@ int main() {
     WoodSession from_pb = WoodSession::pb_load(config::session_pb(0));
     std::cout << from_pb << " from a session file\n";
 
-    from_yaml.add_to_tree(true, true, false, false);
     from_yaml.pb_dump(pb_path("live").string());
 
     return 0;
@@ -24,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the three ways a scene is loaded: a dataset yml (settings, obj and sidecars), an obj alone (plates, default settings), a session .pb (everything, including the interactions).
+the three ways a wood session is loaded: a dataset yml (settings, obj and sidecars), an obj alone (plates, default settings), a session .pb (everything, including the interactions).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

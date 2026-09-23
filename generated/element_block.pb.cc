@@ -29,7 +29,8 @@ namespace wood_proto {
 inline constexpr Block::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
-        loops_{} {}
+        loops_{},
+        cuts_{} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR Block::Block(::_pbi::ConstantInitialized)
@@ -60,9 +61,11 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_._has_bits_),
-        4, // hasbit index offset
+        5, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.loops_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.cuts_),
         0,
+        1,
 };
 
 static const ::_pbi::MigrationSchema
@@ -74,24 +77,26 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
 };
 const char descriptor_table_protodef_element_5fblock_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\023element_block.proto\022\nwood_proto\032\016polyl"
-    "ine.proto\"/\n\005Block\022&\n\005loops\030\001 \003(\0132\027.sess"
-    "ion_proto.Polylineb\006proto3"
+    "\n\023element_block.proto\022\nwood_proto\032\013plane"
+    ".proto\032\016polyline.proto\"S\n\005Block\022&\n\005loops"
+    "\030\001 \003(\0132\027.session_proto.Polyline\022\"\n\004cuts\030"
+    "\002 \003(\0132\024.session_proto.Planeb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
-    descriptor_table_element_5fblock_2eproto_deps[1] = {
+    descriptor_table_element_5fblock_2eproto_deps[2] = {
+        &::descriptor_table_plane_2eproto,
         &::descriptor_table_polyline_2eproto,
 };
 static ::absl::once_flag descriptor_table_element_5fblock_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fblock_2eproto = {
     false,
     false,
-    106,
+    155,
     descriptor_table_protodef_element_5fblock_2eproto,
     "element_block.proto",
     &descriptor_table_element_5fblock_2eproto_once,
     descriptor_table_element_5fblock_2eproto_deps,
-    1,
+    2,
     1,
     schemas,
     file_default_instances,
@@ -116,6 +121,12 @@ void Block::clear_loops() {
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000001U);
 }
+void Block::clear_cuts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.cuts_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000002U);
+}
 Block::Block(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
     : ::google::protobuf::Message(arena, Block_class_data_.base()) {
@@ -131,7 +142,8 @@ PROTOBUF_NDEBUG_INLINE Block::Impl_::Impl_(
     [[maybe_unused]] const ::wood_proto::Block& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
-        loops_{visibility, arena, from.loops_} {}
+        loops_{visibility, arena, from.loops_},
+        cuts_{visibility, arena, from.cuts_} {}
 
 Block::Block(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -153,7 +165,8 @@ PROTOBUF_NDEBUG_INLINE Block::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
-        loops_{visibility, arena} {}
+        loops_{visibility, arena},
+        cuts_{visibility, arena} {}
 
 inline void Block::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -181,6 +194,10 @@ constexpr auto Block::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
       PROTOBUF_FIELD_OFFSET(Block, _impl_.loops_) +
           decltype(Block::_impl_.loops_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(Block, _impl_.cuts_) +
+          decltype(Block::_impl_.cuts_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -227,17 +244,17 @@ Block::GetClassData() const {
   return Block_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<0, 1, 1, 0, 2>
+const ::_pbi::TcParseTable<1, 2, 2, 0, 2>
 Block::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Block, _impl_._has_bits_),
     0, // no _extensions_
-    1, 0,  // max_field_number, fast_idx_mask
+    2, 8,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967294,  // skipmap
+    4294967292,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    1,  // num_field_entries
-    1,  // num_aux_entries
+    2,  // num_field_entries
+    2,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Block_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -246,6 +263,10 @@ Block::_table_ = {
     ::_pbi::TcParser::GetTable<::wood_proto::Block>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
+    // repeated .session_proto.Plane cuts = 2;
+    {::_pbi::TcParser::FastMtR1,
+     {18, 1, 1,
+      PROTOBUF_FIELD_OFFSET(Block, _impl_.cuts_)}},
     // repeated .session_proto.Polyline loops = 1;
     {::_pbi::TcParser::FastMtR1,
      {10, 0, 0,
@@ -255,9 +276,12 @@ Block::_table_ = {
   }}, {{
     // repeated .session_proto.Polyline loops = 1;
     {PROTOBUF_FIELD_OFFSET(Block, _impl_.loops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .session_proto.Plane cuts = 2;
+    {PROTOBUF_FIELD_OFFSET(Block, _impl_.cuts_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+      {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
   }},
   {{
   }},
@@ -270,8 +294,13 @@ PROTOBUF_NOINLINE void Block::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-    _impl_.loops_.Clear();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _impl_.loops_.Clear();
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _impl_.cuts_.Clear();
+    }
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -309,6 +338,19 @@ PROTOBUF_NOINLINE void Block::Clear() {
     }
   }
 
+  // repeated .session_proto.Plane cuts = 2;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_cuts_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_cuts().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              2, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -333,12 +375,19 @@ PROTOBUF_NOINLINE void Block::Clear() {
   (void)cached_has_bits;
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
-   {
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
     // repeated .session_proto.Polyline loops = 1;
-    cached_has_bits = this_._impl_._has_bits_[0];
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_loops_size();
       for (const auto& msg : this_._internal_loops()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .session_proto.Plane cuts = 2;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      total_size += 1UL * this_._internal_cuts_size();
+      for (const auto& msg : this_._internal_cuts()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -362,10 +411,17 @@ void Block::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
-    _this->_internal_mutable_loops()->InternalMergeFromWithArena(
-        ::google::protobuf::MessageLite::internal_visibility(), arena,
-        from._internal_loops());
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_loops()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_loops());
+    }
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
+      _this->_internal_mutable_cuts()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_cuts());
+    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -385,6 +441,7 @@ void Block::InternalSwap(Block* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.loops_.InternalSwap(&other->_impl_.loops_);
+  _impl_.cuts_.InternalSwap(&other->_impl_.cuts_);
 }
 
 ::google::protobuf::Metadata Block::GetMetadata() const {

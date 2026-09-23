@@ -20,7 +20,6 @@ int main() {
 
     std::cout << fmt::format("chevron: {} faces, {} plates\n", shell.mesh.number_of_faces(), shell.elements.size());
 
-    wood_session.add_to_tree(true, true, false, false);
     wood_session.pb_dump(pb_path("live").string());
 
     return 0;
@@ -48,8 +47,7 @@ examples/templates_chevron.cpp
  |    plus insertion_vectors, joints_per_face, three_valence, adjacency for the solver
  |
  |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
- |-- add_to_tree(true, true, false, false)        one group per plate: the plate and its "outlines"
- '-- pb_dump(pb_path("live"))                    sync_geometry (Mesh::loft once per plate), Session::pb_dump
+ '-- pb_dump(pb_path("live"))                    Mesh::loft once per stale plate, Session::pb_dump
                                                  -> data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||

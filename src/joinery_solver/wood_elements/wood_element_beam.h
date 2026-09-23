@@ -13,9 +13,13 @@ public:
     std::vector<double> radii; // Section half-width per segment; a segment without one takes part in no joint.
     std::vector<session_cpp::Vector> directions; // Section up direction per segment; a segment without one takes the contact normal.
     int allowed_type = -1; // Which contacts this beam accepts: 0 crossing only, 1 side-to-end and end-to-end, -1 any.
+    std::vector<session_cpp::Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
 
 private:
-    bool _geometry_synced = false; // True while the Element slot holds the solid of the current axis and radii.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_brep; // Cache of the brep form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_mesh; // Cache of the cut mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_brep; // Cache of the cut brep form.
 
 public:
     /// An empty beam: no axis, no radius.
@@ -53,14 +57,32 @@ public:
     /// One closed square per axis vertex, half-width the segment's radius, along the bisector at an interior vertex; empty when the beam has no radius.
     std::vector<session_cpp::Polyline> sections() const;
 
-    /// Marks the Element slot stale; call after assigning the axis, radii or directions by hand.
-    void invalidate_geometry();
+    /// The parametric shape alone, the solid swept through sections(), never cut; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& element_geometry(bool mesh_or_brep = true) const;
 
-    /// True once compute_geometry() wrote the solid of the current axis onto the Element; false after any invalidation.
-    bool geometry_synced() const { return _geometry_synced; }
+    /// The shape cut by every plane in cuts, the element geometry while there are none; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& model_geometry(bool mesh_or_brep = true) const;
 
-    /// Writes the solid swept through sections() onto the Element with the axis and section features, keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale beam.
-    void compute_geometry();
+    /// The sweep through sections() as a mesh or as faces, empty when the beam has no radius.
+    session_cpp::ElementGeometry compute_element_geometry(bool mesh_or_brep) const;
+
+    /// The element geometry cut by every plane in cuts, as a mesh or as faces.
+    session_cpp::ElementGeometry compute_model_geometry(bool mesh_or_brep) const;
+
+    /// Drops the cached solids and marks the Element slot stale; call after assigning the axis, radii, directions or cuts by hand.
+    void invalidate_geometry() override;
+
+    /// A copy moved by xform from the parameters alone, guid and name kept: axis, directions, cuts, features and insertion vectors moved, a segment without a direction given xform·z when xform tilts z; no solid until one is asked for; nullptr for a mirror.
+    std::shared_ptr<Beam> transformed(const session_cpp::Xform& xform) const;
+
+    /// Moves the solid, the features and the insertion vectors, then the axis, the directions (filled as transformed() does) and the cuts, and drops the cached solids.
+    void place(const session_cpp::Xform& xform) override;
+
+protected:
+    /// Writes the model geometry, the sweep through sections() cut by every plane in cuts, onto the Element in the requested form with the axis and section features, keeping the joint and contact features the session put there; WoodSession::pb_dump calls it for every stale beam.
+    void compute_geometry_impl(bool mesh_or_brep) override;
+
+public:
 
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;
@@ -72,14 +94,14 @@ public:
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The axis, radii, directions and allowed type as JSON, with type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
+    /// The axis, radii, directions, allowed type and cuts as JSON, with type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The axis, radii, directions and allowed type as wood_proto.Beam bytes: what the kernel carries in element_data.
+    /// The axis, radii, directions, allowed type and cuts as wood_proto.Beam bytes: what the kernel carries in element_data.
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.

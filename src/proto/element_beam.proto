@@ -2,13 +2,15 @@ syntax = "proto3";
 
 package wood_proto;
 
+import "plane.proto";
 import "polyline.proto";
 import "vector.proto";
 
-// The state of a Beam beyond the kernel Element: its axis and section.
+// The state of a Beam beyond the kernel Element: its axis, section and cuts.
 message Beam {
   session_proto.Polyline axis = 1;              // Centreline, one segment per span
   repeated double radii = 2;                    // Section half-width per segment
   repeated session_proto.Vector directions = 3; // Section up direction per segment
   int32 allowed_type = 4;                       // 0 crossing only, 1 side-to-end and end-to-end, -1 any
+  repeated session_proto.Plane cuts = 5;        // Planes the solid is cut by, each keeping the side its normal points to
 }

@@ -7,12 +7,12 @@ const std::string DATASET{config::Dataset::inplane_hexshell};
 
 int main() {
 
-    WoodSession scene = WoodSession::yaml_load(DATASET);
-    scene.compute_contacts();
-    scene.compute_features();
+    WoodSession wood_session = WoodSession::yaml_load(DATASET);
+    wood_session.compute_contacts();
+    wood_session.compute_features();
 
-    const FeaturePlate joint = scene.get_plate_features().front();
-    std::cout << "stored: " << joint.has_session() << ", scene " << joint.session().name << "\n";
+    const FeaturePlate joint = wood_session.get_plate_features().front();
+    std::cout << "stored: " << joint.has_session() << ", wood session " << joint.session().name << "\n";
 
     WoodSession& owner = joint.session();
     const std::shared_ptr<Plate> male = owner.get_element<Plate>(joint.element_a);
@@ -21,7 +21,7 @@ int main() {
 
     const Interaction& interaction = *owner.get_interaction(joint.element_a, joint.element_b);
     const InteractionContact& contact = interaction.contacts.front();
-    std::cout << "its interaction has " << interaction.contacts.size() << " contacts, the first is a " << contact.kind() << " in scene " << contact.session().name << "\n";
+    std::cout << "its interaction has " << interaction.contacts.size() << " contacts, the first is a " << contact.kind() << " in wood session " << contact.session().name << "\n";
 
     const auto [a, b] = owner.edge_of(interaction);
     std::cout << "the edge joins " << owner.get_element<Element>(a)->name << " and " << owner.get_element<Element>(b)->name << "\n";
@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-every stored record answers session() with its scene: from a joint back to the scene, to its two plates, to the interaction and the contacts on the same edge, to the edge's elements; a record built by hand has no scene.
+every stored record answers session() with its wood session: from a joint back to the wood session, to its two plates, to the interaction and the contacts on the same edge, to the edge's elements; a record built by hand has no wood session.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

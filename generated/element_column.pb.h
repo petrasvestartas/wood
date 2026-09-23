@@ -30,6 +30,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
 #include "line.pb.h"
+#include "plane.pb.h"
 #include "polyline.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -214,9 +215,27 @@ class Column final : public ::google::protobuf::Message
 
   // accessors -------------------------------------------------------
   enum : int {
+    kCutsFieldNumber = 3,
     kAxisFieldNumber = 1,
     kSectionFieldNumber = 2,
   };
+  // repeated .session_proto.Plane cuts = 3;
+  int cuts_size() const;
+  private:
+  int _internal_cuts_size() const;
+
+  public:
+  void clear_cuts() ;
+  ::session_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
+  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL mutable_cuts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& _internal_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
+  public:
+  const ::session_proto::Plane& cuts(int index) const;
+  ::session_proto::Plane* PROTOBUF_NONNULL add_cuts();
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& cuts() const;
   // .session_proto.Line axis = 1;
   bool has_axis() const;
   void clear_axis() ;
@@ -251,8 +270,8 @@ class Column final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<1, 2,
-                                   2, 0,
+  static const ::google::protobuf::internal::TcParseTable<2, 3,
+                                   3, 0,
                                    2>
       _table_;
 
@@ -273,6 +292,7 @@ class Column final : public ::google::protobuf::Message
         const Column& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
     ::session_proto::Line* PROTOBUF_NULLABLE axis_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE section_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -301,7 +321,7 @@ extern const ::google::protobuf::internal::ClassDataFull Column_class_data_;
 
 // .session_proto.Line axis = 1;
 inline bool Column::has_axis() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
   PROTOBUF_ASSUME(!value || _impl_.axis_ != nullptr);
   return value;
 }
@@ -322,16 +342,16 @@ inline void Column::unsafe_arena_set_allocated_axis(
   }
   _impl_.axis_ = reinterpret_cast<::session_proto::Line*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Column.axis)
 }
 inline ::session_proto::Line* PROTOBUF_NULLABLE Column::release_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Line* released = _impl_.axis_;
   _impl_.axis_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -351,7 +371,7 @@ inline ::session_proto::Line* PROTOBUF_NULLABLE Column::unsafe_arena_release_axi
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Column.axis)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Line* temp = _impl_.axis_;
   _impl_.axis_ = nullptr;
   return temp;
@@ -366,7 +386,7 @@ inline ::session_proto::Line* PROTOBUF_NONNULL Column::_internal_mutable_axis() 
 }
 inline ::session_proto::Line* PROTOBUF_NONNULL Column::mutable_axis()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Line* _msg = _internal_mutable_axis();
   // @@protoc_insertion_point(field_mutable:wood_proto.Column.axis)
   return _msg;
@@ -383,9 +403,9 @@ inline void Column::set_allocated_axis(::session_proto::Line* PROTOBUF_NULLABLE 
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
 
   _impl_.axis_ = reinterpret_cast<::session_proto::Line*>(value);
@@ -394,7 +414,7 @@ inline void Column::set_allocated_axis(::session_proto::Line* PROTOBUF_NULLABLE 
 
 // .session_proto.Polyline section = 2;
 inline bool Column::has_section() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.section_ != nullptr);
   return value;
 }
@@ -415,16 +435,16 @@ inline void Column::unsafe_arena_set_allocated_section(
   }
   _impl_.section_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Column.section)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE Column::release_section() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* released = _impl_.section_;
   _impl_.section_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -444,7 +464,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE Column::unsafe_arena_release
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Column.section)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* temp = _impl_.section_;
   _impl_.section_ = nullptr;
   return temp;
@@ -459,7 +479,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL Column::_internal_mutable_sec
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL Column::mutable_section()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* _msg = _internal_mutable_section();
   // @@protoc_insertion_point(field_mutable:wood_proto.Column.section)
   return _msg;
@@ -476,13 +496,63 @@ inline void Column::set_allocated_section(::session_proto::Polyline* PROTOBUF_NU
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
   _impl_.section_ = reinterpret_cast<::session_proto::Polyline*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.Column.section)
+}
+
+// repeated .session_proto.Plane cuts = 3;
+inline int Column::_internal_cuts_size() const {
+  return _internal_cuts().size();
+}
+inline int Column::cuts_size() const {
+  return _internal_cuts_size();
+}
+inline ::session_proto::Plane* PROTOBUF_NONNULL Column::mutable_cuts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Column.cuts)
+  return _internal_mutable_cuts()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL Column::mutable_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.cuts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_cuts();
+}
+inline const ::session_proto::Plane& Column::cuts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Column.cuts)
+  return _internal_cuts().Get(index);
+}
+inline ::session_proto::Plane* PROTOBUF_NONNULL Column::add_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Plane* _add =
+      _internal_mutable_cuts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:wood_proto.Column.cuts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& Column::cuts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Column.cuts)
+  return _internal_cuts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+Column::_internal_cuts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.cuts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+Column::_internal_mutable_cuts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.cuts_;
 }
 
 #ifdef __GNUC__

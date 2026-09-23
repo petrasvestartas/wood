@@ -63,7 +63,6 @@ int main() {
     a.compute_contacts();
     a.compute_features();
 
-    a.sync_joint_features();
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
     a.pb_dump(path.string());
     const WoodSession b = WoodSession::pb_load(path);
@@ -101,13 +100,13 @@ int main() {
     check(a.consistent() && b.consistent(), "every feature's own pair and contact agree with the edge and the stored contact, before and after the pb");
 
     bool owned = true;
-    for (const WoodSession* scene : std::vector<const WoodSession*>{&a, &b})
-        for (const auto& [guid, interaction] : scene->interactions) {
-            owned = owned && &interaction.session() == scene;
+    for (const WoodSession* wood_session : std::vector<const WoodSession*>{&a, &b})
+        for (const auto& [guid, interaction] : wood_session->interactions) {
+            owned = owned && &interaction.session() == wood_session;
             for (const InteractionContact& contact : interaction.contacts)
-                owned = owned && &contact.session() == scene && (!contact.face() || &contact.face()->session() == scene);
+                owned = owned && &contact.session() == wood_session && (!contact.face() || &contact.face()->session() == wood_session);
             for (const InteractionFeature& feature : interaction.features)
-                owned = owned && &feature.session() == scene && (!feature.plate() || &feature.plate()->session() == scene);
+                owned = owned && &feature.session() == wood_session && (!feature.plate() || &feature.plate()->session() == wood_session);
         }
 
     const WoodSession copy = a;
@@ -116,7 +115,7 @@ int main() {
     for (const auto& [guid, interaction] : moved.interactions)
         for (const InteractionFeature& feature : interaction.features)
             owned = owned && &feature.session() == &moved;
-    check(owned, "every record answers session() with the scene it sits in: after the solve, after the file, after a copy and a move");
+    check(owned, "every record answers session() with the wood session it sits in: after the solve, after the file, after a copy and a move");
     bool records = true;
     size_t contact_count = 0;
     size_t feature_count = 0;
@@ -191,7 +190,7 @@ int main() {
     for (const FeaturePlate& joint : joints_a)
         hosted = hosted && a.get_element<Element>(joint.element_a) && a.get_element<Element>(joint.element_b);
 
-    check(hosted, "every joint's edge resolves to two elements the scene owns");
+    check(hosted, "every joint's edge resolves to two elements the wood session owns");
 
     size_t attached = 0;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)
@@ -220,7 +219,7 @@ int main() {
     }
 
     check(top_empty < plates_a.size() && mismatch == 0 && ins_mismatch == 0,
-          "solver results landed on the scene's own plates, and survive the pb");
+          "solver results landed on the wood session's own plates, and survive the pb");
 
     const size_t interactions_before = a.interactions.size();
     a.get_collisions();

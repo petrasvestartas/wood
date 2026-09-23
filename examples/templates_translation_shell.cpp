@@ -16,7 +16,6 @@ int main() {
 
     std::cout << fmt::format("translation shell: {} plates\n", shell.elements.size());
 
-    wood_session.add_to_tree(true, true, false, false);
     wood_session.pb_dump(pb_path("live").string());
 
     return 0;
@@ -42,8 +41,7 @@ examples/templates_translation_shell.cpp
  |    |-- sweep(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per strip in `elements`
  |
  |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
- |-- add_to_tree(true, true, false, false)        one group per plate: the plate and its "outlines"
- '-- pb_dump(pb_path("live"))                    sync_geometry (Mesh::loft once per plate), Session::pb_dump
+ '-- pb_dump(pb_path("live"))                    Mesh::loft once per stale plate, Session::pb_dump
                                                  -> data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||

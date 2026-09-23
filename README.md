@@ -25,7 +25,6 @@ using namespace wood_session;
 
 WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
 scene.compute_features();      // search type and every tunable come from the yml
-scene.add_to_tree();         // one group per plate: the plate, its outlines, its contacts, its joints
 scene.pb_dump(pb_path("live").string());   // the file session_viewer watches
 ```
 
@@ -38,11 +37,11 @@ columns and blocks as the classes below, through the kernel's element registry.
 |---|---|
 | `yaml_load(name)` | data/`name`.yml globals, then the obj it names as plates |
 | `pb_load(name)` | data/`name`.pb, elements rebuilt as `Plate` / `Column` / `Block` |
-| `compute_contacts()` | coplanar face overlaps between every pair, onto the graph edges |
+| `compute_contacts(level)` | coplanar face overlaps between elements under the same tree node at that depth (0 = all), onto the graph edges |
 | `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
 | `compute_features(search)` | the solver over the plates, in place; the plates stay outlines, nothing is lofted |
-| `add_to_tree(geometry, outlines, contacts, joints)` | one group per element with those child groups; each flag adds or leaves out that part |
-| `pb_dump(pb_path(name))` | lofts every plate not yet lofted, then the kernel's writer; `write_parity_dumps(scene, pb)` adds the outline dumps the sweep is diffed against |
+| `set_features_visible(type, on)` | shows or hides one feature kind (`contact`, `joint`, `outline`, ...); the viewer draws every visible feature |
+| `pb_dump(pb_path(name))` | lofts every plate not yet lofted, syncs contacts and joints onto the elements as features, then the kernel's writer; `write_parity_dumps(scene, pb)` adds the outline dumps the sweep is diffed against |
 
 ## Types
 
@@ -91,5 +90,6 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each template built with its defaults and written to `live.pb` as a mesh plus its plates |
+| `templates_grid`, `templates_grid_radial`, `templates_grid_hex` | `src/templates/grid.h` on an orthogonal, a radial and a hexagonal plan: columns, heads, girders, beams, purlins, decks and walls from rules on the grid graph, written to `live.pb` |
 
 Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.

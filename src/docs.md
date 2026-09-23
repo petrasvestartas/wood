@@ -137,7 +137,7 @@ classDiagram
 - `InteractionStructure` is reserved, empty.
 - Every record knows its scene: `Interaction`, `InteractionContact`, `InteractionFeature` and each contact and feature kind answer `session()` with the `WoodSession` that stores them, and `has_session()` says whether they are stored yet. The scene stamps the pointer when a record is added and after a load, a copy or a move; it is never written to the file. Elements have the same through the kernel's `Element`.
 - Inheritance is used only where the kernel forces it: `Plate`, `Beam`, `Column` and `Block` derive from `session_cpp::Element`, because `Session::pb_load` rebuilds them through the kernel's `element_type` registry. Everything on the edge side is data: no virtual method, no base class.
-- Every element is a closed solid in the kernel's geometry slot, written by its `compute_geometry()` when `WoodSession::sync_geometry` finds it stale: a plate the loft of its two outlines (with the joints cut in once solved), a beam the sweep of a square section per axis vertex, a column its section lofted along its axis, a block the capped loft between its bottom and top loops. What describes an element without being it sits beside the solid as `session_cpp::ElementFeature`s, told apart by `feature_type`: the geometry features `outline` (plate faces 0 and 1), `axis` and `section`, against the joinery features `joint`, `cut` and `joint_type_<n>`. `is_geometry_feature` in `wood_element_geometry` is the one place that split is written; `WoodSession::show_attributes(bool)` draws the geometry features under an `attributes` group per element or takes them out again, so the viewer shows them only when asked.
+- Every element is a closed solid in the kernel's geometry slot, written by its `compute_geometry()` the first time anything reads the slot, the features or the dimensions: a plate the loft of its two outlines (with the joints cut in once solved), a beam the sweep of a square section per axis vertex, a column its section lofted along its axis, a block the capped loft between its bottom and top loops. What describes an element without being it sits beside the solid as `session_cpp::ElementFeature`s, told apart by `feature_type`: the geometry features `outline` (plate faces 0 and 1), `axis` and `section`, against the joinery features `joint`, `cut` and `joint_type_<n>`. `is_geometry_feature` in `wood_element_geometry` is the one place that split is written. Every feature carries the kernel's `visible` flag, on by default: the viewer draws every visible feature of an element in its outlines' own colour, and `WoodSession::set_features_visible(type, bool)` switches one kind off.
 - The dataset sidecars are not a class of their own: `WoodSession::load_sidecars` puts the adjacency and the three-valence groups on the scene (`adjacency`, `three_valence`) and the insertion vectors and joint types on each plate. Detection reads the elements themselves; there is no detection view class.
 
 ## Files
@@ -276,7 +276,6 @@ flowchart TB
     AF --> ST2[("interactions: features")]
     ST --> PB["pb_dump: loft stale plates, write the file"]
     ST2 --> PB
-    PB --> VW["add_to_tree: viewer groups"]
 ```
 
 ```mermaid
@@ -292,7 +291,7 @@ flowchart LR
 - `compute_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `ContactFace` per overlapping face pair on the pair's interaction; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `ContactCross` and `ContactAxis` the same way.
 - `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `FeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then every joint onto its interaction with `add_feature` and onto both hosts as `ElementFeature`s.
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `FeatureBeam` each.
-- `pb_dump` writes the solid of every stale element (`sync_geometry`) and then the `wood_proto.WoodSession`; `add_to_tree` (in `wood_view`) arranges elements, attributes, contacts and features into viewer groups, `show_attributes` adds or removes the attributes alone.
+- `pb_dump` writes the `wood_proto.WoodSession`, every stale element lofting itself as it is serialized. Contacts and joints are already on their elements as features, put there when they were computed: a contact on its edge's first element, a joint on both hosts, coloured by type; the viewer draws the elements' geometry and every visible feature, and the tree stays exactly as the caller built it.
 
 ## Architecture review
 

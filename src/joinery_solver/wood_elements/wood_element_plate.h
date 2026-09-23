@@ -11,7 +11,7 @@ struct Features {
     std::vector<session_cpp::Polyline> bottom; // Bottom face: the outer outline first, then one outline per hole.
 };
 
-/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry_mesh() is the plate alone, the loft of its two outlines, never cut; model_geometry_mesh() is the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
+/// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry() is the plate alone, the loft of its two outlines, never cut; model_geometry() is the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
 class Plate : public session_cpp::Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
@@ -24,11 +24,10 @@ public:
     std::vector<int> feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide. The annen and vidy datasets only.
 
 private:
-    mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of compute_element_geometry_mesh().
-    mutable std::optional<session_cpp::Mesh> _model_geometry_mesh; // Cache of compute_model_geometry_mesh().
-    mutable std::optional<session_cpp::BRep> _element_geometry_brep; // Cache of compute_element_geometry_brep().
-    mutable std::optional<session_cpp::BRep> _model_geometry_brep; // Cache of compute_model_geometry_brep().
-    bool _geometry_synced = false; // True while the Element slot holds the current model geometry.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_brep; // Cache of the brep form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_brep; // Cache of the brep form.
 
 public:
     /// An empty plate: no outlines, no planes, nothing to loft.
@@ -51,41 +50,35 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The parametric shape alone, the loft of the two outlines, never cut; cached until invalidate_geometry().
-    const session_cpp::Mesh& element_geometry_mesh() const;
+    /// The parametric shape alone, the loft of the two outlines, never cut; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& element_geometry(bool mesh_or_brep = true) const;
 
-    /// The shape with its joints applied, the loft of the merged outlines, the element geometry while unsolved; cached until invalidate_geometry().
-    const session_cpp::Mesh& model_geometry_mesh() const;
+    /// The shape with its joints applied, the loft of the merged outlines, the element geometry while unsolved; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& model_geometry(bool mesh_or_brep = true) const;
 
-    /// The loft of the two outlines, empty when the plate has fewer than two.
-    session_cpp::Mesh compute_element_geometry_mesh() const;
+    /// The loft of the two outlines as a mesh or as faces, empty when the plate has fewer than two.
+    session_cpp::ElementGeometry compute_element_geometry(bool mesh_or_brep) const;
 
-    /// The loft of the merged outlines when the plate is solved, else the element geometry.
-    session_cpp::Mesh compute_model_geometry_mesh() const;
-
-    /// The element geometry as a boundary representation: the two outlines as planar faces and one quad per edge; cached until invalidate_geometry().
-    const session_cpp::BRep& element_geometry_brep() const;
-
-    /// The model geometry as a boundary representation: one planar face per merged outline with its holes, one quad per outer and hole edge; cached until invalidate_geometry(); opt-in, the file keeps the mesh.
-    const session_cpp::BRep& model_geometry_brep() const;
-
-    /// The boundary representation of the two outlines; empty for a plate without outlines.
-    session_cpp::BRep compute_element_geometry_brep() const;
-
-    /// The boundary representation of the merged outlines when the plate is solved, else the element geometry brep.
-    session_cpp::BRep compute_model_geometry_brep() const;
+    /// The loft of the merged outlines when the plate is solved, else the element geometry, as a mesh or as faces.
+    session_cpp::ElementGeometry compute_model_geometry(bool mesh_or_brep) const;
 
     /// Swaps bottom and top, outlines and planes, and drops every cache the kernel and the plate hold; detection asks for it when a joint wants the other face first.
     void flip();
 
     /// Drops both cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
-    void invalidate_geometry();
+    void invalidate_geometry() override;
 
-    /// True once compute_geometry() wrote the current model geometry onto the Element; false after any invalidation.
-    bool geometry_synced() const { return _geometry_synced; }
+    /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.
+    std::shared_ptr<Plate> transformed(const session_cpp::Xform& xform) const;
 
-    /// Writes the model geometry (cached, lofted here at the latest), the dimensions and the face features onto the Element, keeping the joint features the session put there, the slot the session file and the viewer read; WoodSession::pb_dump calls it for every stale plate, so nothing lofts until a file is written or a geometry is asked for.
-    void compute_geometry();
+    /// Moves the solid, the element features and the insertion vectors, then the outlines, planes and merged features, and drops both cached lofts.
+    void place(const session_cpp::Xform& xform) override;
+
+protected:
+    /// Writes the model geometry (cached, lofted here at the latest), the dimensions and the face features onto the Element, keeping the joint and contact features the session put there, the slot the session file and the viewer read; WoodSession::pb_dump calls it for every stale plate, so nothing lofts until a file is written or a geometry is asked for.
+    void compute_geometry_impl(bool mesh_or_brep) override;
+
+public:
 
     /// Outline extent in the plate's own frame, thickness in z.
     session_cpp::Vector nominal_dimensions() const;

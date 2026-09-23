@@ -14,22 +14,21 @@ static Polyline tooth(const double y, const double depth) {
 
 int main() {
 
-    WoodSession scene("custom_joint");
-    scene.add(Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
-    scene.add(Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
+    WoodSession wood_session("custom_joint");
+    wood_session.add(Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
+    wood_session.add(Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
 
-    scene.settings.joint_parameters[0 * 3 + 2] = 9;   // ss_e_ip id 9: the custom variant
-    scene.settings.custom_joints["ss_e_ip"] = {
+    wood_session.settings.joint_parameters[0 * 3 + 2] = 9;   // ss_e_ip id 9: the custom variant
+    wood_session.settings.custom_joints["ss_e_ip"] = {
         std::vector<Polyline>{tooth(-0.5, -SEAM_DEPTH), tooth(0.5, -SEAM_DEPTH)},
         std::vector<Polyline>{tooth(-0.5, SEAM_DEPTH), tooth(0.5, SEAM_DEPTH)},
     };
 
-    scene.compute_features(face_to_face);
-    for (const FeaturePlate& joint : scene.get_plate_features())
+    wood_session.compute_features(face_to_face);
+    for (const FeaturePlate& joint : wood_session.get_plate_features())
         std::cout << joint.name << " with " << joint.male_outlines[0].front().point_count() << " points per male outline\n";
 
-    scene.add_to_tree();
-    scene.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live").string());
 
     return 0;
 }

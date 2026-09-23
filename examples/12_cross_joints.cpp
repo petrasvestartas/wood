@@ -7,18 +7,17 @@ const std::string DATASET{config::Dataset::cross_corners};
 
 int main() {
 
-    WoodSession scene = WoodSession::yaml_load(DATASET);
-    scene.settings.joint_volume_extension = {0, 2, 0};
+    WoodSession wood_session = WoodSession::yaml_load(DATASET);
+    wood_session.settings.joint_volume_extension = {0, 2, 0};
 
-    scene.compute_features(cross_joint);
-    for (const FeaturePlate& joint : scene.get_plate_features())
+    wood_session.compute_features(cross_joint);
+    for (const FeaturePlate& joint : wood_session.get_plate_features())
         std::cout << fmt::format("{} type {}: side faces ({},{}) and ({},{}), volumes {}\n", joint.name, joint.joint_type, joint.contact.face_a, joint.cross_faces[0], joint.contact.face_b, joint.cross_faces[1], joint.joint_volumes[0].has_value() + joint.joint_volumes[1].has_value());
 
-    scene.compute_features(face_to_face_then_cross);
-    std::cout << scene.get_plate_features().size() << " joints with face-to-face first and cross as the fallback\n";
+    wood_session.compute_features(face_to_face_then_cross);
+    std::cout << wood_session.get_plate_features().size() << " joints with face-to-face first and cross as the fallback\n";
 
-    scene.add_to_tree();
-    scene.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live").string());
 
     return 0;
 }

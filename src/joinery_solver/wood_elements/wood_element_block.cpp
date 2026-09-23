@@ -32,6 +32,8 @@ std::shared_ptr<Block> Block::from_element(const Element& e) {
 
     for (const session_proto::Polyline& loop : proto.loops())
         block->loops.push_back(Polyline::pb_loads(loop.SerializeAsString()));
+    for (const session_proto::Plane& cut : proto.cuts())
+        block->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
     return block;
 }
@@ -40,30 +42,105 @@ std::shared_ptr<Block> Block::from_element(const Element& e) {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The loops split into the bottom list and the top list, holes paired in order; empty when the count is odd or below two.
+static std::pair<std::vector<Polyline>, std::vector<Polyline>> split_loops(const std::vector<Polyline>& loops) {
+
+    if (loops.size() < 2 || loops.size() % 2 != 0)
+        return {};
+
+    std::vector<Polyline> bottom{loops[0]};
+    std::vector<Polyline> top{loops[1]};
+    for (size_t i = 2; i + 1 < loops.size(); i += 2) {
+        bottom.push_back(loops[i]);
+        top.push_back(loops[i + 1]);
+    }
+
+    return {bottom, top};
+}
+
+const ElementGeometry& Block::element_geometry(bool mesh_or_brep) const {
+
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
+    if (!cache)
+        cache = compute_element_geometry(mesh_or_brep);
+
+    return *cache;
+}
+
+ElementGeometry Block::compute_element_geometry(bool mesh_or_brep) const {
+
+    const auto [bottom, top] = split_loops(loops);
+    if (bottom.empty())
+        return mesh_or_brep ? ElementGeometry(Mesh()) : ElementGeometry(BRep());
+
+    if (mesh_or_brep)
+        return Mesh::loft(bottom, top, true);
+
+    return brep_between_loops(bottom, top);
+}
+
+const ElementGeometry& Block::model_geometry(bool mesh_or_brep) const {
+
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
+    if (!cache)
+        cache = compute_model_geometry(mesh_or_brep);
+
+    return *cache;
+}
+
+ElementGeometry Block::compute_model_geometry(bool mesh_or_brep) const {
+    return cut_geometry(element_geometry(mesh_or_brep), cuts);
+}
+
 void Block::invalidate_geometry() {
+    _element_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_mesh.reset();
+    _model_geometry_brep.reset();
     _geometry_synced = false;
 }
 
-void Block::compute_geometry() {
+std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
+
+    if (is_mirror(xform))
+        return nullptr;
+
+    std::shared_ptr<Block> block = std::make_shared<Block>(transformed_list(loops, xform), name);
+    block->guid() = guid();
+    block->cuts = transformed_list(cuts, xform);
+    block->set_features(transformed_features(_features, xform));
+    block->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
+
+    return block;
+}
+
+void Block::place(const Xform& xform) {
+
+    Element::place(xform);
+    loops = transformed_list(loops, xform);
+    cuts = transformed_list(cuts, xform);
+
+    _element_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_mesh.reset();
+    _model_geometry_brep.reset();
+}
+
+void Block::compute_geometry_impl(bool mesh_or_brep) {
 
     if (loops.size() >= 2 && loops.size() % 2 == 0) {
-
-        std::vector<Polyline> bottom{loops[0]};
-        std::vector<Polyline> top{loops[1]};
-        for (size_t i = 2; i + 1 < loops.size(); i += 2) {
-            bottom.push_back(loops[i]);
-            top.push_back(loops[i + 1]);
-        }
-
-        set_geometry(Mesh::loft(bottom, top, true));
+        set_geometry(model_geometry(mesh_or_brep));
+        _element_geometry_mesh.reset();
+        _element_geometry_brep.reset();
+        _model_geometry_mesh.reset();
+        _model_geometry_brep.reset();
     }
 
     std::vector<ElementFeature> next;
-    for (ElementFeature& joint : joint_features(*this))
-        next.push_back(std::move(joint));
+    for (ElementFeature& feature : session_features(*this))
+        next.push_back(std::move(feature));
 
     set_features(std::move(next));
-    _geometry_synced = true;
 }
 
 AABB Block::aabb(double inflate) const {
@@ -101,6 +178,8 @@ std::string Block::element_data_dumps() const {
     wood_proto::Block proto;
     for (const Polyline& loop : loops)
         proto.add_loops()->ParseFromString(loop.pb_dumps());
+    for (const Plane& cut : cuts)
+        proto.add_cuts()->ParseFromString(cut.pb_dumps());
 
     return proto.SerializeAsString();
 }

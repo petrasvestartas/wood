@@ -5,40 +5,36 @@ using namespace wood_session;
 
 int main() {
 
-    WoodSession scene("elements");
+    // Create session and elements
+    WoodSession wood_session("elements");
 
     const std::shared_ptr<Plate> plate = Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 400, 300, Vector(0, 0, 40));
     const std::shared_ptr<Beam> beam = std::make_shared<Beam>(Polyline({Point(0, 0, 100), Point(800, 0, 100)}), 60.0);
     const std::shared_ptr<Column> column = std::make_shared<Column>(Line::from_points(Point(950, 50, 0), Point(950, 50, 600)), Polyline::rectangle(Point(900, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 100, 100));
     const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle(Point(1200, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 200, 400), Polyline::rectangle(Point(1170, 0, 250), Vector(1, 0, 0), Vector(0, 1, 0), 260, 400)});
 
-    scene.add(plate);
-    scene.add(beam);
-    scene.add(column);
-    scene.add(block);
+    wood_session.add(plate);
+    wood_session.add(beam);
+    wood_session.add(column);
+    wood_session.add(block);
 
-    std::cout << scene << "\n";
-    std::cout << *plate << " thickness " << plate->thickness << " faces " << plate->polylines.size() << "\n";
-    std::cout << *beam << " radius " << beam->radius(0) << "\n";
-    std::cout << *scene.get_element<Column>(column->guid()) << "\n";
-    std::cout << scene.plates().size() << " plates, " << scene.beams().size() << " beams, " << scene.blocks().size() << " blocks\n";
+    // Every element lofts itself on the first read; nothing has to be synced by hand
+    for (const std::shared_ptr<Element>& element : wood_session.elements())
+        std::cout << element->str() << "\n";
 
-    /// Every element is a closed solid once its geometry is synced; the attributes (outlines, axis, sections, centroid) are features beside it.
-    scene.sync_geometry();
-    size_t closed = 0;
-    for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-        closed += std::get<Mesh>(element->geometry()).is_closed();
-    std::cout << "closed: " << closed << "/" << scene.objects.elements->size() << "\n";
+    // // The same solid as a boundary representation, per element, cached beside the mesh
+    // std::cout << std::get<BRep>(plate->element_geometry(false)).face_count() << " faces on the plate brep\n";
 
-    scene.add_to_tree();
-    scene.pb_dump(pb_path("live").string());
+    // Serialize and push for the viewer: https://petrasvestartas.github.io/session/
+    std::cout << wood_session;
+    wood_session.pb_dump(pb_path("live").string());
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-the four element kinds built in code and added to a scene: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid, its outlines, axis, sections and centroid the `attributes` group show_attributes(bool) adds or removes.
+the four element kinds built in code and added to a wood session: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid lofted on the first read of its geometry, element_geometry(false) the same solid as faces, its outlines, axis and sections features the viewer draws while they are visible.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

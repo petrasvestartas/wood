@@ -152,92 +152,43 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-const Mesh& Plate::element_geometry_mesh() const {
+const ElementGeometry& Plate::element_geometry(bool mesh_or_brep) const {
 
-    if (!_element_geometry_mesh)
-        _element_geometry_mesh = compute_element_geometry_mesh();
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
+    if (!cache)
+        cache = compute_element_geometry(mesh_or_brep);
 
-    return *_element_geometry_mesh;
+    return *cache;
 }
 
-const Mesh& Plate::model_geometry_mesh() const {
+const ElementGeometry& Plate::model_geometry(bool mesh_or_brep) const {
 
-    if (_geometry_synced && std::holds_alternative<Mesh>(geometry()))
-        return std::get<Mesh>(geometry());
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
+    if (!cache)
+        cache = compute_model_geometry(mesh_or_brep);
 
-    if (!_model_geometry_mesh)
-        _model_geometry_mesh = compute_model_geometry_mesh();
-
-    return *_model_geometry_mesh;
+    return *cache;
 }
 
-Mesh Plate::compute_element_geometry_mesh() const {
+ElementGeometry Plate::compute_element_geometry(bool mesh_or_brep) const {
 
     if (polylines.size() < 2)
-        return Mesh();
+        return mesh_or_brep ? ElementGeometry(Mesh()) : ElementGeometry(BRep());
 
-    const std::vector<Polyline> bottom_outlines{polylines[0]};
-    const std::vector<Polyline> top_outlines{polylines[1]};
-    return Mesh::loft(bottom_outlines, top_outlines);
-}
+    if (mesh_or_brep)
+        return Mesh::loft({polylines[0]}, {polylines[1]});
 
-Mesh Plate::compute_model_geometry_mesh() const {
-
-    if (features.top.empty())
-        return element_geometry_mesh();
-
-    return Mesh::loft(features.bottom, features.top);
-}
-
-const BRep& Plate::element_geometry_brep() const {
-
-    if (!_element_geometry_brep)
-        _element_geometry_brep = compute_element_geometry_brep();
-
-    return *_element_geometry_brep;
-}
-
-const BRep& Plate::model_geometry_brep() const {
-
-    if (!_model_geometry_brep)
-        _model_geometry_brep = compute_model_geometry_brep();
-
-    return *_model_geometry_brep;
-}
-
-/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
-static BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top) {
-
-    std::vector<Polyline> faces{bottom[0], top[0]};
-    std::vector<std::vector<Polyline>> holes(2);
-
-    for (size_t loop = 1; loop < bottom.size(); loop++) {
-        holes[0].push_back(bottom[loop]);
-        holes[1].push_back(top[loop]);
-    }
-
-    for (size_t loop = 0; loop < bottom.size(); loop++) {
-        const Polyline& lower = bottom[loop];
-        const Polyline& upper = top[loop];
-        const size_t segment_count = lower.point_count() - 1;
-        for (size_t segment = 0; segment < segment_count; segment++) {
-            faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
-            holes.push_back({});
-        }
-    }
-
-    return BRep::from_polylines(faces, holes);
-}
-
-BRep Plate::compute_element_geometry_brep() const {
-    if (polylines.size() < 2)
-        return BRep();
     return brep_between_loops({polylines[0]}, {polylines[1]});
 }
 
-BRep Plate::compute_model_geometry_brep() const {
+ElementGeometry Plate::compute_model_geometry(bool mesh_or_brep) const {
+
     if (features.top.empty())
-        return element_geometry_brep();
+        return element_geometry(mesh_or_brep);
+
+    if (mesh_or_brep)
+        return Mesh::loft(features.bottom, features.top);
+
     return brep_between_loops(features.bottom, features.top);
 }
 
@@ -259,22 +210,55 @@ void Plate::invalidate_geometry() {
     _geometry_synced = false;
 }
 
-void Plate::compute_geometry() {
+std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
+
+    if (is_mirror(xform))
+        return nullptr;
+
+    std::shared_ptr<Plate> plate = std::make_shared<Plate>();
+    plate->name = name;
+    plate->guid() = guid();
+    plate->polylines = transformed_list(polylines, xform);
+    plate->planes = transformed_list(planes, xform);
+    plate->thickness = thickness;
+    plate->reversed = reversed;
+    plate->features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
+    plate->feature_types = feature_types;
+    plate->set_features(transformed_features(_features, xform));
+    plate->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
+
+    return plate;
+}
+
+void Plate::place(const Xform& xform) {
+
+    Element::place(xform);
+    polylines = transformed_list(polylines, xform);
+    planes = transformed_list(planes, xform);
+    features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
+
+    _element_geometry_mesh.reset();
+    _model_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_brep.reset();
+}
+
+void Plate::compute_geometry_impl(bool mesh_or_brep) {
 
     if (polylines.size() > 1) {
-        set_geometry(model_geometry_mesh());
+        set_geometry(model_geometry(mesh_or_brep));
         _model_geometry_mesh.reset();
+        _model_geometry_brep.reset();
     }
     set_dimensions(nominal_dimensions());
 
     std::vector<ElementFeature> next = face_features();
     for (size_t face = 0; face < std::min<size_t>(2, polylines.size()); face++)
         next.push_back(polyline_feature("outline", polylines[face], static_cast<int>(face)));
-    for (ElementFeature& joint : joint_features(*this))
-        next.push_back(std::move(joint));
+    for (ElementFeature& feature : session_features(*this))
+        next.push_back(std::move(feature));
 
     set_features(std::move(next));
-    _geometry_synced = true;
 }
 
 Vector Plate::nominal_dimensions() const {

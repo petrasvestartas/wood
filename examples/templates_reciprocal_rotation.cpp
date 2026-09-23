@@ -100,7 +100,6 @@ int main() {
 
     std::cout << fmt::format("reciprocal rotation, surface {}: {} faces, {} beams, {} boundary beams\n", SURFACE, shell.dome_mesh.number_of_faces(), interior, shell.boundary_beam_bottom.size());
 
-    wood_session.add_to_tree(true, true, false, false);
     wood_session.pb_dump(pb_path("live").string());
 
     return 0;
@@ -129,7 +128,7 @@ examples/templates_reciprocal_rotation.cpp
  |-- ReciprocalRotation(mesh, angle, scale, width, height, ..., boundary_ups, Butt, through)   src/templates/reciprocal_rotation.h
  |    |-- Reciprocal::from_mesh -> rotated centre lines; frame: wood_reciprocal::boundary_frame, cut_beam   src/templates/reciprocal_boundary.h
  |
- |-- WoodSession add_nurbssurface, add_mesh, add(plate), add_to_tree, pb_dump   src/joinery_solver/wood_session.cpp -> data/output/pb/live.pb
+ |-- WoodSession add_nurbssurface, add_mesh, add(plate), pb_dump   src/joinery_solver/wood_session.cpp -> data/output/pb/live.pb
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

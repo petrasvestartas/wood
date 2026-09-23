@@ -7,28 +7,26 @@ const std::string DATASET{config::Dataset::annen_corner};
 
 int main() {
 
-    WoodSession scene = WoodSession::yaml_load(DATASET);
-    scene.compute_contacts();
-    scene.compute_features();
+    WoodSession wood_session = WoodSession::yaml_load(DATASET);
+    wood_session.compute_contacts();
+    wood_session.compute_features();
 
-    // One group per element: the element, then `attributes`, `contacts` and `joints` child groups, each flag adding that part.
-    scene.add_to_tree(true, true, true, true);
+    // Contacts and joints went onto their elements as features when computed, coloured by type; the viewer draws every visible one
+    const std::shared_ptr<Plate> plate = wood_session.plates().front();
+    for (const ElementFeature& feature : plate->Element::features())
+        std::cout << fmt::format("{} {} on face {}: {} outlines\n", feature.feature_type, feature.name, feature.face_index, feature.outlines.size());
 
-    std::cout << scene.tree.root()->descendants().size() << " tree nodes, " << scene.objects.polylines->size() << " polylines, " << scene.objects.meshes->size() << " meshes for the viewer\n";
-    std::cout << "a joint of type 12 draws in " << joint_color(12).name << ", a side_side contact in " << contact_color(ContactType::side_side).name << "\n";
-
-    // "live" is the file session_viewer watches; a named file lands beside it, here without the attributes.
-    scene.pb_dump(pb_path("live").string());
-    scene.show_attributes(false);
-    std::cout << scene.tree.root()->descendants().size() << " tree nodes without the attributes\n";
-    scene.pb_dump(pb_path(scene.name).string());
+    // "live" is the file session_viewer watches; the named file beside it has the contacts switched off
+    wood_session.pb_dump(pb_path("live").string());
+    wood_session.set_features_visible("contact", false);
+    wood_session.pb_dump(pb_path(wood_session.name).string());
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-the scene arranged for the viewer: a group per element with its attributes, contacts and joints as children, the colour tables, show_attributes(false) taking the attributes out again, and the two files pb_dump writes.
+what the viewer sees of a wood session: every contact and joint on its elements as a feature in the colour of its type, put there as it was computed, beside the outline, axis and section features; set_features_visible("contact", false) switches one kind off without deleting it.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

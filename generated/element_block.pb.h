@@ -29,6 +29,7 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
+#include "plane.pb.h"
 #include "polyline.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -214,6 +215,7 @@ class Block final : public ::google::protobuf::Message
   // accessors -------------------------------------------------------
   enum : int {
     kLoopsFieldNumber = 1,
+    kCutsFieldNumber = 2,
   };
   // repeated .session_proto.Polyline loops = 1;
   int loops_size() const;
@@ -232,12 +234,29 @@ class Block final : public ::google::protobuf::Message
   const ::session_proto::Polyline& loops(int index) const;
   ::session_proto::Polyline* PROTOBUF_NONNULL add_loops();
   const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& loops() const;
+  // repeated .session_proto.Plane cuts = 2;
+  int cuts_size() const;
+  private:
+  int _internal_cuts_size() const;
+
+  public:
+  void clear_cuts() ;
+  ::session_proto::Plane* PROTOBUF_NONNULL mutable_cuts(int index);
+  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL mutable_cuts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& _internal_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL _internal_mutable_cuts();
+  public:
+  const ::session_proto::Plane& cuts(int index) const;
+  ::session_proto::Plane* PROTOBUF_NONNULL add_cuts();
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& cuts() const;
   // @@protoc_insertion_point(class_scope:wood_proto.Block)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 1,
-                                   1, 0,
+  static const ::google::protobuf::internal::TcParseTable<1, 2,
+                                   2, 0,
                                    2>
       _table_;
 
@@ -259,6 +278,7 @@ class Block final : public ::google::protobuf::Message
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > loops_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -331,6 +351,56 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 Block::_internal_mutable_loops() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.loops_;
+}
+
+// repeated .session_proto.Plane cuts = 2;
+inline int Block::_internal_cuts_size() const {
+  return _internal_cuts().size();
+}
+inline int Block::cuts_size() const {
+  return _internal_cuts_size();
+}
+inline ::session_proto::Plane* PROTOBUF_NONNULL Block::mutable_cuts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Block.cuts)
+  return _internal_mutable_cuts()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL Block::mutable_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Block.cuts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_cuts();
+}
+inline const ::session_proto::Plane& Block::cuts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Block.cuts)
+  return _internal_cuts().Get(index);
+}
+inline ::session_proto::Plane* PROTOBUF_NONNULL Block::add_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Plane* _add =
+      _internal_mutable_cuts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:wood_proto.Block.cuts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& Block::cuts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Block.cuts)
+  return _internal_cuts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>&
+Block::_internal_cuts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.cuts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NONNULL
+Block::_internal_mutable_cuts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.cuts_;
 }
 
 #ifdef __GNUC__

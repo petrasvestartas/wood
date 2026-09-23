@@ -52,6 +52,8 @@ std::shared_ptr<Beam> Beam::from_element(const Element& e) {
     for (const session_proto::Vector& direction : proto.directions())
         beam->directions.push_back(Vector::pb_loads(direction.SerializeAsString()));
     beam->allowed_type = proto.allowed_type();
+    for (const session_proto::Plane& cut : proto.cuts())
+        beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
     return beam;
 }
@@ -90,25 +92,102 @@ std::vector<Polyline> Beam::sections() const {
     return sections;
 }
 
+const ElementGeometry& Beam::element_geometry(bool mesh_or_brep) const {
+
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
+    if (!cache)
+        cache = compute_element_geometry(mesh_or_brep);
+
+    return *cache;
+}
+
+ElementGeometry Beam::compute_element_geometry(bool mesh_or_brep) const {
+
+    if (mesh_or_brep)
+        return sweep_sections(sections());
+
+    return brep_sections(sections());
+}
+
+const ElementGeometry& Beam::model_geometry(bool mesh_or_brep) const {
+
+    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
+    if (!cache)
+        cache = compute_model_geometry(mesh_or_brep);
+
+    return *cache;
+}
+
+ElementGeometry Beam::compute_model_geometry(bool mesh_or_brep) const {
+    return cut_geometry(element_geometry(mesh_or_brep), cuts);
+}
+
 void Beam::invalidate_geometry() {
+    _element_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_mesh.reset();
+    _model_geometry_brep.reset();
     _geometry_synced = false;
 }
 
-void Beam::compute_geometry() {
+/// The up directions moved by xform; while xform tilts z every segment without one takes xform·z, the world z sections() used before the move.
+static std::vector<Vector> transformed_directions(const std::vector<Vector>& directions, size_t segments, const Xform& xform) {
+
+    std::vector<Vector> moved = transformed_list(directions, xform);
+    const Vector up = Vector::z_axis().transformed(xform);
+
+    if (up != Vector::z_axis() && moved.size() < segments)
+        moved.resize(segments, up);
+
+    return moved;
+}
+
+std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
+
+    if (is_mirror(xform))
+        return nullptr;
+
+    std::shared_ptr<Beam> beam = std::make_shared<Beam>(axis.transformed(xform), radii, transformed_directions(directions, axis.segment_count(), xform), allowed_type, name);
+    beam->guid() = guid();
+    beam->cuts = transformed_list(cuts, xform);
+    beam->set_features(transformed_features(_features, xform));
+    beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
+
+    return beam;
+}
+
+void Beam::place(const Xform& xform) {
+
+    Element::place(xform);
+    directions = transformed_directions(directions, axis.segment_count(), xform);
+    axis.transform(xform);
+    cuts = transformed_list(cuts, xform);
+
+    _element_geometry_mesh.reset();
+    _element_geometry_brep.reset();
+    _model_geometry_mesh.reset();
+    _model_geometry_brep.reset();
+}
+
+void Beam::compute_geometry_impl(bool mesh_or_brep) {
 
     const std::vector<Polyline> rings = sections();
-    if (!rings.empty())
-        set_geometry(sweep_sections(rings));
+    if (!rings.empty()) {
+        set_geometry(model_geometry(mesh_or_brep));
+        _element_geometry_mesh.reset();
+        _element_geometry_brep.reset();
+        _model_geometry_mesh.reset();
+        _model_geometry_brep.reset();
+    }
 
     std::vector<ElementFeature> next;
     next.push_back(polyline_feature("axis", axis));
     for (const Polyline& ring : rings)
         next.push_back(polyline_feature("section", ring));
-    for (ElementFeature& joint : joint_features(*this))
-        next.push_back(std::move(joint));
+    for (ElementFeature& feature : session_features(*this))
+        next.push_back(std::move(feature));
 
     set_features(std::move(next));
-    _geometry_synced = true;
 }
 
 AABB Beam::aabb(double inflate) const {
@@ -142,6 +221,8 @@ std::string Beam::element_data_dumps() const {
     for (const Vector& direction : directions)
         proto.add_directions()->ParseFromString(direction.pb_dumps());
     proto.set_allowed_type(allowed_type);
+    for (const Plane& cut : cuts)
+        proto.add_cuts()->ParseFromString(cut.pb_dumps());
 
     return proto.SerializeAsString();
 }

@@ -16,7 +16,7 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_settings.h/.cpp` | `Settings`: every solver tunable, from the yml, held by the scene, passed by reference, written with the file |
 | `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`: `Dataset::` names, `load_yaml` (returns a `Settings`, sets the dataset paths), `reset_defaults`, the paths |
 | `src/joinery_solver/wood_io.h/.cpp` | `io::load_obj`, the four sidecar readers, `io::pb_path`, `io::write_parity_dumps` |
-| `src/joinery_solver/wood_view.h/.cpp` | `add_to_tree` and the colour tables |
+| `src/joinery_solver/wood_view.h/.cpp` | contact and joint names and colours |
 | `src/joinery_solver/wood_serialization.h/.cpp` | `json_of` / `message_from_json`: JSON derived from any proto message |
 | `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `ContactCross`) over kernel elements |
 | `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate`; `DetectionTrace` for the counts |
@@ -262,15 +262,14 @@ How wood uses it (`wood_session.h/.cpp`):
 - `compute_features(search_type)` → `get_connection_zones` on `plates()` in place, then
   `compute_geometry()` on each plate, then each joint onto its pair's graph edge as a
   `WoodInteraction{contacts, joints}` attribute (`get_interaction` / `set_interaction`).
-- `compute_features` ends with `sync_joint_features()`: every joint's two `ElementFeature`s go back
-  onto their host elements, so `pb_dump` right after it writes them.
-- `add_to_tree(geometry, attributes, contacts, joints)` arranges the viewer tree: one group per
-  element (`<name>_<index>`) holding the element's node, an `attributes` child group (the
-  element's geometry features: a plate's bottom and top outlines, a beam's or column's axis and
-  sections), a `contacts` child group on the pair's first element, and
-  a `joints` child group (area, volumes, lines and male cuts on the male element, female cuts on
-  the female one). Each flag adds or leaves out that part; `show_attributes(bool)` adds or removes
-  the `attributes` groups alone, after the tree is built.
+- Features land on the elements as they are stored, never in a later pass: `add_contact` puts a new
+  contact on its edge's first element as a `contact` feature (guid = the contact's guid),
+  `add_feature` a plate joint's two sides on its hosts, `compute_beam_features` a beam joint on the
+  first beam, outlines coloured by type; the clears and `erase_contacts` take them off again. An
+  element's `compute_geometry()` keeps them, so the model geometry and its features travel together.
+  The viewer draws every visible feature; nothing is copied into the tree, which stays as the caller
+  built it (`add` without a parent = under the root). `set_features_visible(type, bool)` switches one
+  kind off.
 - Writing is the kernel's own `pb_dump(path)`; `pb_path(name)` gives `data/output/pb/<name>.pb`
   (`"live"` is what session_viewer watches). `write_parity_dumps(scene, pb)` writes
   `<pb>_meta.txt` / `_coords.txt`, every plate's merged outlines, the files to diff to prove a

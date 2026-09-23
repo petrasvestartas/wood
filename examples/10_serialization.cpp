@@ -7,31 +7,31 @@ const std::string DATASET{config::Dataset::inplane_hexshell};
 
 int main() {
 
-    WoodSession scene = WoodSession::yaml_load(DATASET);
-    scene.compute_contacts();
-    scene.compute_features();
+    WoodSession wood_session = WoodSession::yaml_load(DATASET);
+    wood_session.compute_contacts();
+    wood_session.compute_features();
 
-    const std::string bytes = scene.pb_dumps();
+    const std::string bytes = wood_session.pb_dumps();
     const WoodSession back = WoodSession::pb_loads(bytes);
     std::cout << back.interactions.size() << " interactions and " << back.get_features().size() << " features read back, consistent " << back.consistent() << "\n";
 
     const Session kernel = Session::pb_loads(bytes);
     std::cout << "the kernel opens the same bytes: " << kernel.objects.elements->size() << " elements, " << kernel.graph.number_of_edges() << " edges\n";
 
-    const FeaturePlate joint = scene.get_plate_features().front();
+    const FeaturePlate joint = wood_session.get_plate_features().front();
     const nlohmann::ordered_json json = joint.jsondump();
     std::cout << "one joint as JSON: type " << json["type"] << ", name " << json["name"] << ", " << json.size() << " keys\n";
     std::cout << "and back: " << FeaturePlate::jsonload(json).name << "\n";
 
-    std::cout << "one contact as protobuf: " << scene.get_contacts().front().pb_dumps().size() << " bytes\n";
-    std::cout << "the settings as JSON: distance " << scene.settings.jsondump()["distance"] << "\n";
+    std::cout << "one contact as protobuf: " << wood_session.get_contacts().front().pb_dumps().size() << " bytes\n";
+    std::cout << "the settings as JSON: distance " << wood_session.settings.jsondump()["distance"] << "\n";
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-the scene as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as JSON derived from its proto message and back, one record as protobuf bytes.
+the wood session as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as JSON derived from its proto message and back, one record as protobuf bytes.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

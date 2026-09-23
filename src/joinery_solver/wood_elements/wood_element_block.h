@@ -10,9 +10,13 @@ public:
     static constexpr std::string_view ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
     std::vector<session_cpp::Polyline> loops; // Bottom loop, top loop, then their holes paired in order; empty when the solid came as a mesh.
+    std::vector<session_cpp::Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
 
 private:
-    bool _geometry_synced = false; // True while the Element slot holds the loft of the current loops.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_brep; // Cache of the brep form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_mesh; // Cache of the cut mesh form.
+    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_brep; // Cache of the cut brep form.
 
 public:
     /// An empty block: no solid.
@@ -25,21 +29,39 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops back.
+    /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops and cuts back.
     static std::shared_ptr<Block> from_element(const session_cpp::Element& element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Marks the Element slot stale; call after assigning the loops by hand.
-    void invalidate_geometry();
+    /// The parametric shape alone, the capped loft of the loops, never cut; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& element_geometry(bool mesh_or_brep = true) const;
 
-    /// True once compute_geometry() wrote the loft of the current loops onto the Element; false after any invalidation.
-    bool geometry_synced() const { return _geometry_synced; }
+    /// The shape cut by every plane in cuts, the element geometry while there are none; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
+    const session_cpp::ElementGeometry& model_geometry(bool mesh_or_brep = true) const;
 
-    /// Writes the capped loft of the loops onto the Element (a solid given as a mesh stays), keeping the joint features the session put there; WoodSession::pb_dump calls it for every stale block.
-    void compute_geometry();
+    /// The capped loft of the loops as a mesh or as faces, empty without an even count of at least two.
+    session_cpp::ElementGeometry compute_element_geometry(bool mesh_or_brep) const;
+
+    /// The element geometry cut by every plane in cuts, as a mesh or as faces.
+    session_cpp::ElementGeometry compute_model_geometry(bool mesh_or_brep) const;
+
+    /// Drops the cached solids and marks the Element slot stale; call after assigning the loops or the cuts by hand.
+    void invalidate_geometry() override;
+
+    /// A copy moved by xform from the parameters alone, guid and name kept: loops, cuts, features and insertion vectors moved, no solid until one is asked for, none for a block given as a mesh; nullptr for a mirror.
+    std::shared_ptr<Block> transformed(const session_cpp::Xform& xform) const;
+
+    /// Moves the solid, the features and the insertion vectors, then the loops and the cuts, and drops the cached solids.
+    void place(const session_cpp::Xform& xform) override;
+
+protected:
+    /// Writes the model geometry, the capped loft of the loops cut by every plane in cuts, onto the Element in the requested form (a solid given as a mesh stays), keeping the joint and contact features the session put there; WoodSession::pb_dump calls it for every stale block.
+    void compute_geometry_impl(bool mesh_or_brep) override;
+
+public:
 
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;
@@ -51,14 +73,14 @@ public:
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The loops as JSON: the protobuf message printed.
+    /// The loops and cuts as JSON: the protobuf message printed.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The loops as wood_proto.Block bytes: what the kernel carries in element_data.
+    /// The loops and cuts as wood_proto.Block bytes: what the kernel carries in element_data.
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.

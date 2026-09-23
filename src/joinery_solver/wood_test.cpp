@@ -10,7 +10,6 @@ static bool run_dataset(std::string_view name) {
     try {
         WoodSession scene = WoodSession::yaml_load(name);
         scene.compute_features();
-        scene.add_to_tree();
 
         const std::filesystem::path pb = config::output_dir() / wood_session::config::DATA_SET_OUTPUT_FILE;
         io::write_parity_dumps(scene, pb);
@@ -85,7 +84,6 @@ bool type_beams_name_phanomema_node() {
 
         scene.compute_axis_contacts(beams[2]);
         scene.compute_beam_features(beams[3], beams[4], static_cast<int>(beams[5]));
-        scene.add_to_tree();
         scene.pb_dump((config::output_dir() / DATA_SET_OUTPUT_FILE).string());
 
         return true;
