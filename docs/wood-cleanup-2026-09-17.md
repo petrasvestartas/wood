@@ -29,7 +29,7 @@ ran : sweep identical after each of the three commits.
 
 ## Loft and session
 
-parity : `Plate::compute_geometry()` is the only loft, once per plate per run (was three); the
+parity : `Plate::compute_geometry_mesh()` is the only loft, once per plate per run (was three); the
 Element geometry is the plate with its cuts, so the viewer adds nothing beside it.
 `add_outlines`, `add_contacts`, `add_joints`, `write(name)` are `WoodSession` members;
 `write` carries the parity dumps and re-attaches every joint feature to its host element.

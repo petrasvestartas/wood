@@ -137,15 +137,20 @@ Mesh sweep_sections(const std::vector<Polyline>& sections) {
     return Mesh::from_vertices_and_faces(vertices, faces);
 }
 
-ElementGeometry cut_geometry(const ElementGeometry& geometry, const std::vector<Plane>& planes) {
+Mesh cut_geometry(const Mesh& geometry, const std::vector<Plane>& planes) {
 
-    ElementGeometry cut = geometry;
-    for (const Plane& plane : planes) {
-        if (const Mesh* mesh = std::get_if<Mesh>(&cut))
-            cut = mesh->cut_by_plane(plane);
-        else if (const BRep* brep = std::get_if<BRep>(&cut))
-            cut = brep->cut_by_plane(plane);
-    }
+    Mesh cut = geometry;
+    for (const Plane& plane : planes)
+        cut = cut.cut_by_plane(plane);
+
+    return cut;
+}
+
+BRep cut_geometry(const BRep& geometry, const std::vector<Plane>& planes) {
+
+    BRep cut = geometry;
+    for (const Plane& plane : planes)
+        cut = cut.cut_by_plane(plane);
 
     return cut;
 }

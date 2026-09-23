@@ -13,7 +13,7 @@ session_cpp::ElementFeature polyline_feature(std::string_view feature_type, cons
 /// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact".
 bool is_session_feature(std::string_view feature_type);
 
-/// The features the session put on the element, guids and visibility kept; what every compute_geometry() carries over.
+/// The features the session put on the element, guids and visibility kept; what every compute_geometry_mesh() carries over.
 std::vector<session_cpp::ElementFeature> session_features(const session_cpp::Element& element);
 
 /// A closed square of half-width `radius` centred at `at`, in the plane normal to `direction`, one side along `up` projected into that plane, wound counter-clockwise about `direction` so sweep_sections faces outward.
@@ -30,7 +30,8 @@ session_cpp::BRep brep_sections(const std::vector<session_cpp::Polyline>& sectio
 session_cpp::BRep brep_between_loops(const std::vector<session_cpp::Polyline>& bottom, const std::vector<session_cpp::Polyline>& top);
 
 /// The solid cut by every plane in turn, each keeping the side its normal points to; a mesh stays a mesh, a BRep a BRep.
-session_cpp::ElementGeometry cut_geometry(const session_cpp::ElementGeometry& geometry, const std::vector<session_cpp::Plane>& planes);
+session_cpp::Mesh cut_geometry(const session_cpp::Mesh& geometry, const std::vector<session_cpp::Plane>& planes);
+session_cpp::BRep cut_geometry(const session_cpp::BRep& geometry, const std::vector<session_cpp::Plane>& planes);
 
 /// True when xform flips handedness, a mirror that turns a wood solid inside out.
 bool is_mirror(const session_cpp::Xform& xform);

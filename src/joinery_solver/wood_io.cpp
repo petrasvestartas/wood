@@ -134,10 +134,10 @@ std::vector<Polyline> merged_outlines(const Features& f) {
 
 }  // namespace
 
-std::filesystem::path pb_path(const std::string& name) {
+std::string pb_path(const std::string& name) {
     const std::filesystem::path dir = config::output_dir() / "pb";
     std::filesystem::create_directories(dir);
-    return dir / (name + ".pb");
+    return (dir / (name + ".pb")).string();
 }
 
 void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb) {

@@ -57,15 +57,43 @@ parametric shape alone, the loft of the two raw outlines, never cut. `model_geom
 shape with its joints applied, `Mesh::loft(features.bottom, features.top)` once the merge has
 filled `features`, else the element geometry. Both are lazy: nothing lofts until one is
 asked for, and the result is cached on the plate until `invalidate_geometry()`, which the merge
-calls after filling `features`. `Plate::compute_geometry()` writes the model geometry onto the
+calls after filling `features`. `Plate::compute_geometry_mesh()` writes the model geometry onto the
 Element slot the session file and the viewer read, then `set_dimensions` and
 `set_features(face_features())`; `WoodSession::pb_dump` runs it for every plate whose slot is
 stale, so a solve of N plates lofts exactly N times, at write time. `model_geometry_mesh()` is the
 full featured one, compas_model's `modelgeometry`; `element_geometry_mesh()` is the plate alone. Each
 stage also exists as a boundary representation, `element_geometry_brep()` and
 `model_geometry_brep()`, built through `BRep::from_polylines` with holes, cached the same way,
-opt-in: the file keeps the mesh. `Plate::face_features()` emits one `ElementFeature` per face:
+opt-in: the file keeps the mesh by default. Plates, beams, columns and blocks all expose these
+four methods, returning `const Mesh&` or `const BRep&` directly. They are virtual methods
+on the base `Element` too, so calls through `Element*` or `Element&` dispatch to the
+same derived caches. For a plain `Element`, element geometry is the supplied shape,
+and model mesh geometry includes its in-memory geometry operations. Each result has its own typed
+cache: requesting a mesh never builds a BRep, and requesting a BRep never builds a mesh.
+Model geometry may reuse the corresponding element geometry. Serialization retains these
+caches; `invalidate_geometry()` and `place()` clear all four. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
+
+### Manual interactions
+
+`Session::add_interaction(a, b)`, `has_interaction(a, b)` and `remove_interaction(a, b)`
+manage a graph edge by element references or object GUIDs. Both endpoints must already be
+registered; adding the same pair preserves the edge identity and attributes. Either order
+finds or removes the pair.
+
+`WoodSession` accepts element references, shared pointers or GUIDs and returns an `Interaction&`.
+Its `add_interaction(a, b, payload)` overloads store an `InteractionContact`,
+`InteractionFeature`, `InteractionStructure`, or a complete `Interaction` beside the edge.
+Contacts are deduplicated and oriented to the stored edge. A standalone feature's `contact`
+is `-1` or an index in the pair's existing contacts. In a complete incoming `Interaction`,
+feature indices refer to that incoming record's contacts and are remapped during merging.
+A supplied structure replaces the pair's previous structural record; the current structure
+and plate-to-beam feature types are placeholders with no solver parameters yet.
+
+Contact and joint display features are placed on their hosts, including instances. Removing
+an interaction removes its edge, payload and hosted features while preserving unrelated pairs.
+These manual operations store authored data; they do not run detection, solve joints or undo
+cuts already merged into an element's geometry. See `examples/1_elements.cpp`.
 
 ### `FeaturePlate` (`wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h`)
 
@@ -260,13 +288,13 @@ How wood uses it (`wood_session.h/.cpp`):
 - `compute_contacts()` / `compute_face_contacts()` → `face_contacts` over every element type;
   `compute_cross_contacts()` → `plane_to_face`; `compute_line_contacts()`.
 - `compute_features(search_type)` → `get_connection_zones` on `plates()` in place, then
-  `compute_geometry()` on each plate, then each joint onto its pair's graph edge as a
+  `compute_geometry_mesh()` on each plate, then each joint onto its pair's graph edge as a
   `WoodInteraction{contacts, joints}` attribute (`get_interaction` / `set_interaction`).
 - Features land on the elements as they are stored, never in a later pass: `add_contact` puts a new
   contact on its edge's first element as a `contact` feature (guid = the contact's guid),
   `add_feature` a plate joint's two sides on its hosts, `compute_beam_features` a beam joint on the
   first beam, outlines coloured by type; the clears and `erase_contacts` take them off again. An
-  element's `compute_geometry()` keeps them, so the model geometry and its features travel together.
+  element's `compute_geometry_mesh()` keeps them, so the model geometry and its features travel together.
   The viewer draws every visible feature; nothing is copied into the tree, which stays as the caller
   built it (`add` without a parent = under the root). `set_features_visible(type, bool)` switches one
   kind off.

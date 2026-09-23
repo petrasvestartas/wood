@@ -87,6 +87,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
+    src/joinery_solver/wood_elements/wood_profile.cpp
     src/joinery_solver/wood_interaction/wood_interaction.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
@@ -270,6 +271,8 @@ if(BUILD_TESTING)
     ADD_EXE(wood_assign_test tests/wood_assign_test.cpp)
     ADD_EXE(wood_solver_test tests/wood_solver_test.cpp)
     ADD_EXE(wood_instance_test tests/wood_instance_test.cpp)
+    ADD_EXE(wood_geometry_test tests/wood_geometry_test.cpp)
+    ADD_EXE(wood_interaction_test tests/wood_interaction_test.cpp)
     if(UNIX)
         add_test(NAME wood_assign COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_assign_test>)
         set_tests_properties(wood_assign PROPERTIES RUN_SERIAL TRUE)
@@ -277,6 +280,10 @@ if(BUILD_TESTING)
         set_tests_properties(wood_solver PROPERTIES RUN_SERIAL TRUE)
         add_test(NAME wood_instance COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_instance_test>)
         set_tests_properties(wood_instance PROPERTIES RUN_SERIAL TRUE)
+        add_test(NAME wood_geometry COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_geometry_test>)
+        set_tests_properties(wood_geometry PROPERTIES RUN_SERIAL TRUE)
+        add_test(NAME wood_interaction COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_interaction_test>)
+        set_tests_properties(wood_interaction PROPERTIES RUN_SERIAL TRUE)
         find_package(Python3 QUIET COMPONENTS Interpreter)
         if(Python3_Interpreter_FOUND)
             add_test(NAME wood_dataset_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/dataset_runner_test.py)

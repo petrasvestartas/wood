@@ -25,7 +25,7 @@ int main() {
                                      Point(0.4,0.4,0.0), Point(0.2,0.4,0.0), Point(0.2,0.2,0.0)})};
     we->features.top    = {Polyline({Point(0.2,0.2,0.2), Point(0.4,0.2,0.2),
                                      Point(0.4,0.4,0.2), Point(0.2,0.4,0.2), Point(0.2,0.2,0.2)})};
-    we->compute_geometry();
+    we->compute_geometry_mesh();
     const std::string guid = we->guid();
 
     WoodSession session("mapping_check");

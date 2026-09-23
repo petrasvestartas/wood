@@ -32,6 +32,7 @@ inline constexpr Beam::Impl_::Impl_(
         radii_{},
         directions_{},
         cuts_{},
+        profile_{},
         axis_{nullptr},
         allowed_type_{0} {}
 
@@ -64,17 +65,19 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_._has_bits_),
-        8, // hasbit index offset
+        9, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.axis_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.radii_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.directions_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.allowed_type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.cuts_),
-        3,
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Beam, _impl_.profile_),
+        4,
         0,
         1,
-        4,
+        5,
         2,
+        3,
 };
 
 static const ::_pbi::MigrationSchema
@@ -87,12 +90,13 @@ static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
 const char descriptor_table_protodef_element_5fbeam_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\022element_beam.proto\022\nwood_proto\032\013plane."
-    "proto\032\016polyline.proto\032\014vector.proto\"\241\001\n\004"
+    "proto\032\016polyline.proto\032\014vector.proto\"\313\001\n\004"
     "Beam\022%\n\004axis\030\001 \001(\0132\027.session_proto.Polyl"
     "ine\022\r\n\005radii\030\002 \003(\001\022)\n\ndirections\030\003 \003(\0132\025"
     ".session_proto.Vector\022\024\n\014allowed_type\030\004 "
-    "\001(\005\022\"\n\004cuts\030\005 \003(\0132\024.session_proto.Planeb"
-    "\006proto3"
+    "\001(\005\022\"\n\004cuts\030\005 \003(\0132\024.session_proto.Plane\022"
+    "(\n\007profile\030\006 \003(\0132\027.session_proto.Polylin"
+    "eb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fbeam_2eproto_deps[3] = {
@@ -104,7 +108,7 @@ static ::absl::once_flag descriptor_table_element_5fbeam_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fbeam_2eproto = {
     false,
     false,
-    247,
+    289,
     descriptor_table_protodef_element_5fbeam_2eproto,
     "element_beam.proto",
     &descriptor_table_element_5fbeam_2eproto_once,
@@ -132,7 +136,7 @@ void Beam::clear_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.axis_ != nullptr) _impl_.axis_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 void Beam::clear_directions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
@@ -145,6 +149,12 @@ void Beam::clear_cuts() {
   _impl_.cuts_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000004U);
+}
+void Beam::clear_profile() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.profile_.Clear();
+  ClearHasBitForRepeated(_impl_._has_bits_[0],
+                  0x00000008U);
 }
 Beam::Beam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -163,7 +173,8 @@ PROTOBUF_NDEBUG_INLINE Beam::Impl_::Impl_(
         _cached_size_{0},
         radii_{visibility, arena, from.radii_},
         directions_{visibility, arena, from.directions_},
-        cuts_{visibility, arena, from.cuts_} {}
+        cuts_{visibility, arena, from.cuts_},
+        profile_{visibility, arena, from.profile_} {}
 
 Beam::Beam(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -179,7 +190,7 @@ Beam::Beam(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.axis_ = (CheckHasBit(cached_has_bits, 0x00000008U))
+  _impl_.axis_ = (CheckHasBit(cached_has_bits, 0x00000010U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.axis_)
                 : nullptr;
   _impl_.allowed_type_ = from._impl_.allowed_type_;
@@ -192,7 +203,8 @@ PROTOBUF_NDEBUG_INLINE Beam::Impl_::Impl_(
       : _cached_size_{0},
         radii_{visibility, arena},
         directions_{visibility, arena},
-        cuts_{visibility, arena} {}
+        cuts_{visibility, arena},
+        profile_{visibility, arena} {}
 
 inline void Beam::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -235,6 +247,10 @@ constexpr auto Beam::InternalNewImpl_() {
                   ::google::protobuf::Message::internal_visibility()),
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.cuts_) +
           decltype(Beam::_impl_.cuts_)::
+              InternalGetArenaOffset(
+                  ::google::protobuf::Message::internal_visibility()),
+      PROTOBUF_FIELD_OFFSET(Beam, _impl_.profile_) +
+          decltype(Beam::_impl_.profile_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
@@ -281,17 +297,17 @@ Beam::GetClassData() const {
   return Beam_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 5, 3, 0, 2>
+const ::_pbi::TcParseTable<3, 6, 4, 0, 2>
 Beam::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(Beam, _impl_._has_bits_),
     0, // no _extensions_
-    5, 56,  // max_field_number, fast_idx_mask
+    6, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967264,  // skipmap
+    4294967232,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    5,  // num_field_entries
-    3,  // num_aux_entries
+    6,  // num_field_entries
+    4,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     Beam_class_data_.base(),
     nullptr,  // post_loop_handler
@@ -303,7 +319,7 @@ Beam::_table_ = {
     {::_pbi::TcParser::MiniParse, {}},
     // .session_proto.Polyline axis = 1;
     {::_pbi::TcParser::FastMtS1,
-     {10, 3, 0,
+     {10, 4, 0,
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.axis_)}},
     // repeated double radii = 2;
     {::_pbi::TcParser::FastF64P1,
@@ -314,33 +330,39 @@ Beam::_table_ = {
      {26, 1, 1,
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.directions_)}},
     // int32 allowed_type = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Beam, _impl_.allowed_type_), 4>(),
-     {32, 4, 0,
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Beam, _impl_.allowed_type_), 5>(),
+     {32, 5, 0,
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.allowed_type_)}},
     // repeated .session_proto.Plane cuts = 5;
     {::_pbi::TcParser::FastMtR1,
      {42, 2, 2,
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.cuts_)}},
-    {::_pbi::TcParser::MiniParse, {}},
+    // repeated .session_proto.Polyline profile = 6;
+    {::_pbi::TcParser::FastMtR1,
+     {50, 3, 3,
+      PROTOBUF_FIELD_OFFSET(Beam, _impl_.profile_)}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // .session_proto.Polyline axis = 1;
-    {PROTOBUF_FIELD_OFFSET(Beam, _impl_.axis_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(Beam, _impl_.axis_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated double radii = 2;
     {PROTOBUF_FIELD_OFFSET(Beam, _impl_.radii_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
     // repeated .session_proto.Vector directions = 3;
     {PROTOBUF_FIELD_OFFSET(Beam, _impl_.directions_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // int32 allowed_type = 4;
-    {PROTOBUF_FIELD_OFFSET(Beam, _impl_.allowed_type_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(Beam, _impl_.allowed_type_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // repeated .session_proto.Plane cuts = 5;
     {PROTOBUF_FIELD_OFFSET(Beam, _impl_.cuts_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .session_proto.Polyline profile = 6;
+    {PROTOBUF_FIELD_OFFSET(Beam, _impl_.profile_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
       {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
       {::_pbi::TcParser::GetTable<::session_proto::Plane>()},
+      {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
   }},
   {{
   }},
@@ -353,7 +375,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
   (void) cached_has_bits;
 
   cached_has_bits = _impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _impl_.radii_.Clear();
     }
@@ -363,7 +385,10 @@ PROTOBUF_NOINLINE void Beam::Clear() {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
       _impl_.cuts_.Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      _impl_.profile_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(_impl_.axis_ != nullptr);
       _impl_.axis_->Clear();
     }
@@ -393,7 +418,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // .session_proto.Polyline axis = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         1, *this_._impl_.axis_, this_._impl_.axis_->GetCachedSize(), target,
         stream);
@@ -420,7 +445,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
   }
 
   // int32 allowed_type = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     if (this_._internal_allowed_type() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
@@ -437,6 +462,19 @@ PROTOBUF_NOINLINE void Beam::Clear() {
       target =
           ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
               5, repfield, repfield.GetCachedSize(),
+              target, stream);
+    }
+  }
+
+  // repeated .session_proto.Polyline profile = 6;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_profile_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_profile().Get(i);
+      target =
+          ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+              6, repfield, repfield.GetCachedSize(),
               target, stream);
     }
   }
@@ -466,7 +504,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     // repeated double radii = 2;
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       ::size_t data_size = ::size_t{8} *
@@ -491,13 +529,20 @@ PROTOBUF_NOINLINE void Beam::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
+    // repeated .session_proto.Polyline profile = 6;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      total_size += 1UL * this_._internal_profile_size();
+      for (const auto& msg : this_._internal_profile()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
     // .session_proto.Polyline axis = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.axis_);
     }
     // int32 allowed_type = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (this_._internal_allowed_type() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_allowed_type());
@@ -523,7 +568,7 @@ void Beam::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_radii()->MergeFrom(from._internal_radii());
     }
@@ -537,7 +582,12 @@ void Beam::MergeImpl(::google::protobuf::MessageLite& to_msg,
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_cuts());
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000008U)) {
+      _this->_internal_mutable_profile()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_profile());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(from._impl_.axis_ != nullptr);
       if (_this->_impl_.axis_ == nullptr) {
         _this->_impl_.axis_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.axis_);
@@ -545,7 +595,7 @@ void Beam::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.axis_->MergeFrom(*from._impl_.axis_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (from._internal_allowed_type() != 0) {
         _this->_impl_.allowed_type_ = from._impl_.allowed_type_;
       }
@@ -571,6 +621,7 @@ void Beam::InternalSwap(Beam* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _impl_.radii_.InternalSwap(&other->_impl_.radii_);
   _impl_.directions_.InternalSwap(&other->_impl_.directions_);
   _impl_.cuts_.InternalSwap(&other->_impl_.cuts_);
+  _impl_.profile_.InternalSwap(&other->_impl_.profile_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Beam, _impl_.allowed_type_)
       + sizeof(Beam::_impl_.allowed_type_)

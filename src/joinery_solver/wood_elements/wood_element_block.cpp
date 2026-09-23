@@ -58,38 +58,42 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> split_loops(const
     return {bottom, top};
 }
 
-const ElementGeometry& Block::element_geometry(bool mesh_or_brep) const {
+const Mesh& Block::element_geometry_mesh() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
-    if (!cache)
-        cache = compute_element_geometry(mesh_or_brep);
+    if (!_element_geometry_mesh) {
+        const auto [bottom, top] = split_loops(loops);
+        _element_geometry_mesh = bottom.empty() ? Mesh() : Mesh::loft(bottom, top, true);
+    }
 
-    return *cache;
+    return *_element_geometry_mesh;
 }
 
-ElementGeometry Block::compute_element_geometry(bool mesh_or_brep) const {
+const BRep& Block::element_geometry_brep() const {
 
-    const auto [bottom, top] = split_loops(loops);
-    if (bottom.empty())
-        return mesh_or_brep ? ElementGeometry(Mesh()) : ElementGeometry(BRep());
+    if (!_element_geometry_brep) {
+        const auto [bottom, top] = split_loops(loops);
+        _element_geometry_brep = bottom.empty() ? BRep() : brep_between_loops(bottom, top);
+    }
 
-    if (mesh_or_brep)
-        return Mesh::loft(bottom, top, true);
-
-    return brep_between_loops(bottom, top);
+    return *_element_geometry_brep;
 }
 
-const ElementGeometry& Block::model_geometry(bool mesh_or_brep) const {
+const Mesh& Block::model_geometry_mesh() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
-    if (!cache)
-        cache = compute_model_geometry(mesh_or_brep);
+    if (!_model_geometry_mesh) {
+        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+    }
 
-    return *cache;
+    return *_model_geometry_mesh;
 }
 
-ElementGeometry Block::compute_model_geometry(bool mesh_or_brep) const {
-    return cut_geometry(element_geometry(mesh_or_brep), cuts);
+const BRep& Block::model_geometry_brep() const {
+
+    if (!_model_geometry_brep) {
+        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+    }
+
+    return *_model_geometry_brep;
 }
 
 void Block::invalidate_geometry() {
@@ -126,15 +130,23 @@ void Block::place(const Xform& xform) {
     _model_geometry_brep.reset();
 }
 
-void Block::compute_geometry_impl(bool mesh_or_brep) {
+void Block::compute_geometry_mesh_impl() {
 
     if (loops.size() >= 2 && loops.size() % 2 == 0) {
-        set_geometry(model_geometry(mesh_or_brep));
-        _element_geometry_mesh.reset();
-        _element_geometry_brep.reset();
-        _model_geometry_mesh.reset();
-        _model_geometry_brep.reset();
+        set_geometry(model_geometry_mesh());
     }
+    compute_geometry_features();
+}
+
+void Block::compute_geometry_brep_impl() {
+
+    if (loops.size() >= 2 && loops.size() % 2 == 0) {
+        set_geometry(model_geometry_brep());
+    }
+    compute_geometry_features();
+}
+
+void Block::compute_geometry_features() {
 
     std::vector<ElementFeature> next;
     for (ElementFeature& feature : session_features(*this))
@@ -145,8 +157,9 @@ void Block::compute_geometry_impl(bool mesh_or_brep) {
 
 AABB Block::aabb(double inflate) const {
 
-    if (const Mesh* solid = std::get_if<Mesh>(&geometry()))
-        return AABB::from_mesh(*solid, inflate);
+    const Mesh& solid = geometry_mesh();
+    if (solid.number_of_vertices() > 0)
+        return AABB::from_mesh(solid, inflate);
 
     std::vector<Point> points;
     for (const Polyline& loop : loops) {
@@ -201,7 +214,7 @@ void Block::register_type() {
 std::string Block::str() const {
 
     std::ostringstream os;
-    os << "Block(name=" << name << ", loops=" << loops.size() << ", faces=" << (std::holds_alternative<Mesh>(geometry()) ? std::get<Mesh>(geometry()).number_of_faces() : 0) << ")";
+    os << "Block(name=" << name << ", loops=" << loops.size() << ", faces=" << geometry_mesh().number_of_faces() << ")";
 
     return os.str();
 }

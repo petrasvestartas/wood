@@ -92,6 +92,7 @@ std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
     write(key, column.section, local);
     write(key, column.axis.end(), local);
     write(key, column.cuts, local);
+    write(key, column.profile, Xform::identity());
 
     return std::make_pair(key, *frame);
 }
@@ -122,6 +123,7 @@ std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
     }
 
     write(key, beam.cuts, local);
+    write(key, beam.profile, Xform::identity());
 
     return std::make_pair(key, *frame);
 }
@@ -308,7 +310,7 @@ std::shared_ptr<Element> WoodSession::world_view(const std::string& guid, const 
         return nullptr;
 
     if (!std::dynamic_pointer_cast<Plate>(view)) {
-        source->geometry();
+        source->geometry_mesh();
         view->set_polylines(transformed_list(source->polylines(), world));
         view->set_planes(transformed_list(source->planes(), world));
     }

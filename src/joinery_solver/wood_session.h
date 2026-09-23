@@ -31,7 +31,7 @@ using io::pb_path;
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each key an Interaction: every contact and joint between two elements is a record in `interactions`, found by the edge's guid, and the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry(), the plate alone, the loft of its two outlines, never cut; and model_geometry(), the plate with its joints cut in, the one to inspect. compute_features() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
+/// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each key an Interaction: every contact and joint between two elements is a record in `interactions`, found by the edge's guid, and the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh() / element_geometry_brep(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh() / model_geometry_brep(), the plate with its joints cut in, the one to inspect. compute_features() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
 class WoodSession : public session_cpp::Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
@@ -113,7 +113,7 @@ public:
     /// A FeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over world_elements<Plate>(), in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry() or pb_dump() does that on demand.
+    /// The joinery pipeline over world_elements<Plate>(), in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, every joint onto its pair's interaction as a FeaturePlate with its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
     std::vector<FeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
@@ -141,11 +141,97 @@ public:
     /// The interaction of two elements, made with its graph edge when the pair has none; the edge's guid is the record's key and is written on both stored copies of the edge.
     Interaction& add_interaction(const std::string& a, const std::string& b);
 
+    /// Merge a record into the pair: contacts are relative to (a, b), feature.contact indexes this incoming record's contacts, and a supplied structure replaces the existing one. Returns the stored record with the edge's identity. Invalid contact indices or plate endpoints throw before mutation.
+    Interaction& add_interaction(const std::string& a, const std::string& b, Interaction interaction);
+
+    /// Add a contact to the pair, oriented from (a, b); coincident contacts are reused.
+    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionContact contact);
+
+    /// Add a feature to the pair; contact is -1 or an index in its existing contacts. Plate endpoints may be omitted; beam volumes follow (a, b). Stores host features without running the solver or applying cuts.
+    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionFeature feature);
+
+    /// Store or replace the pair's structural record.
+    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionStructure structure);
+
+    /// True when the pair has a graph edge in either order, including a bare edge awaiting payload.
+    bool has_interaction(const std::string& a, const std::string& b) const;
+
+    /// Remove the edge, its stored record and its hosted contact/joint features; no-op when absent. Already merged geometry is not recomputed.
+    void remove_interaction(const std::string& a, const std::string& b);
+
+    /// Add an interaction using element identities.
+    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return add_interaction(a.guid(), b.guid()); }
+
+    /// Add an interaction using element handles; null handles throw std::invalid_argument.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) {
+        if (!a || !b)
+            throw std::invalid_argument("WoodSession::add_interaction: null element");
+        return add_interaction(*a, *b);
+    }
+
+    /// Add an interaction using element identities.
+    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, Interaction data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
+
+    /// Add an interaction using element handles; null handles throw std::invalid_argument.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, Interaction data) {
+        if (!a || !b)
+            throw std::invalid_argument("WoodSession::add_interaction: null element");
+        return add_interaction(*a, *b, std::move(data));
+    }
+
+    /// Add an interaction using element identities.
+    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionContact data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
+
+    /// Add an interaction using element handles; null handles throw std::invalid_argument.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionContact data) {
+        if (!a || !b)
+            throw std::invalid_argument("WoodSession::add_interaction: null element");
+        return add_interaction(*a, *b, std::move(data));
+    }
+
+    /// Add an interaction using element identities.
+    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionFeature data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
+
+    /// Add an interaction using element handles; null handles throw std::invalid_argument.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionFeature data) {
+        if (!a || !b)
+            throw std::invalid_argument("WoodSession::add_interaction: null element");
+        return add_interaction(*a, *b, std::move(data));
+    }
+
+    /// Add an interaction using element identities.
+    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionStructure data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
+
+    /// Add an interaction using element handles; null handles throw std::invalid_argument.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionStructure data) {
+        if (!a || !b)
+            throw std::invalid_argument("WoodSession::add_interaction: null element");
+        return add_interaction(*a, *b, std::move(data));
+    }
+
+    /// has_interaction using element identities.
+    bool has_interaction(const session_cpp::Element& a, const session_cpp::Element& b) const { return has_interaction(a.guid(), b.guid()); }
+
+    /// has_interaction using element handles; null handles act as an absent pair.
+    bool has_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) const { return a && b && has_interaction(*a, *b); }
+
+    /// remove_interaction using element identities.
+    void remove_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return remove_interaction(a.guid(), b.guid()); }
+
+    /// remove_interaction using element handles; null handles act as an absent pair.
+    void remove_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) { if (a && b) remove_interaction(*a, *b); }
+
     /// The interaction of two elements, or null when the pair has none.
     Interaction* get_interaction(const std::string& a, const std::string& b);
 
     /// The interaction of two elements, or null when the pair has none.
     const Interaction* get_interaction(const std::string& a, const std::string& b) const;
+
+    /// The interaction of two elements, or null when absent.
+    Interaction* get_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return get_interaction(a.guid(), b.guid()); }
+
+    /// The interaction of two elements, or null when absent.
+    const Interaction* get_interaction(const session_cpp::Element& a, const session_cpp::Element& b) const { return get_interaction(a.guid(), b.guid()); }
 
     /// The interaction with this guid; throws std::out_of_range when the scene holds none.
     const Interaction& get_interaction(const std::string& guid) const;
@@ -159,7 +245,7 @@ public:
     /// Stores a solved joint on its pair's interaction: the contact it was solved from (a ContactCross for a cross joint), then the FeaturePlate, and puts its two sides onto the host elements as "joint" features in the colour of its type; returns the feature's guid.
     std::string add_feature(const FeaturePlate& joint);
 
-    /// True when every feature has a guid and a contact index, and every plate feature's own copy of its pair and contact agrees with the edge and the stored contact.
+    /// True when every feature has a guid and a valid optional contact index, and every plate feature's own copy of its pair and contact agrees with the edge and the stored contact.
     bool consistent() const;
 
     /// Every contact in the scene, in interaction order.

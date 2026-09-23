@@ -11,4 +11,6 @@ message Column {
   session_proto.Line axis = 1;           // Centreline, base to head
   session_proto.Polyline section = 2;    // Closed cross-section about the axis base
   repeated session_proto.Plane cuts = 3; // Planes the solid is cut by, each keeping the side its normal points to
+  repeated session_proto.Polyline profile = 4; // Section loops in the profile frame the section was placed from; empty when the section was given
+  double rotation = 5;                   // Degrees the profile x axis turns from world x about the axis
 }

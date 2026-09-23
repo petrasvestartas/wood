@@ -2,6 +2,7 @@
 #include "wood_serialization.h"
 #include "wood_element_beam.h"
 #include "wood_element_geometry.h"
+#include "wood_profile.h"
 #include "element_beam.pb.h"
 using namespace session_cpp;
 
@@ -14,6 +15,9 @@ Beam::Beam(const Polyline& axis, double radius, const std::string& name)
 
 Beam::Beam(const Polyline& axis, const std::vector<double>& radii, const std::vector<Vector>& directions, int allowed_type, const std::string& name)
     : Element(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
+
+Beam::Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vector<Vector>& directions, const std::string& name)
+    : Element(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0), directions(directions), profile(profile) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -54,6 +58,8 @@ std::shared_ptr<Beam> Beam::from_element(const Element& e) {
     beam->allowed_type = proto.allowed_type();
     for (const session_proto::Plane& cut : proto.cuts())
         beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
+    for (const session_proto::Polyline& ring : proto.profile())
+        beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
     return beam;
 }
@@ -86,40 +92,69 @@ std::vector<Polyline> Beam::sections() const {
             along = along.normalized() + (points[i] - points[i - 1]).normalized();
 
         const Vector up = has_direction(segment) ? directions[segment] : Vector::z_axis();
-        sections.push_back(square_section(points[i], along, up, radius(segment)));
+        sections.push_back(profile.empty() ? square_section(points[i], along, up, radius(segment)) : profile_section(points[i], along, up, profile[0]));
     }
 
     return sections;
 }
 
-const ElementGeometry& Beam::element_geometry(bool mesh_or_brep) const {
+/// Every profile loop placed at both ends of a one-segment axis: what a hollow beam lofts between.
+static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(const Beam& beam) {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
-    if (!cache)
-        cache = compute_element_geometry(mesh_or_brep);
+    const Vector along = beam.axis.get_point(1) - beam.axis.get_point(0);
+    const Vector up = beam.has_direction(0) ? beam.directions[0] : Vector::z_axis();
 
-    return *cache;
+    std::pair<std::vector<Polyline>, std::vector<Polyline>> ends;
+    for (const Polyline& ring : beam.profile) {
+        ends.first.push_back(profile_section(beam.axis.get_point(0), along, up, ring));
+        ends.second.push_back(profile_section(beam.axis.get_point(1), along, up, ring));
+    }
+
+    return ends;
 }
 
-ElementGeometry Beam::compute_element_geometry(bool mesh_or_brep) const {
+const Mesh& Beam::element_geometry_mesh() const {
 
-    if (mesh_or_brep)
-        return sweep_sections(sections());
+    if (!_element_geometry_mesh) {
+        if (profile.size() > 1 && axis.segment_count() == 1) {
+            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends = profile_ends(*this);
+            _element_geometry_mesh = Mesh::loft(ends.first, ends.second, true);
+        } else
+            _element_geometry_mesh = sweep_sections(sections());
+    }
 
-    return brep_sections(sections());
+    return *_element_geometry_mesh;
 }
 
-const ElementGeometry& Beam::model_geometry(bool mesh_or_brep) const {
+const BRep& Beam::element_geometry_brep() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
-    if (!cache)
-        cache = compute_model_geometry(mesh_or_brep);
+    if (!_element_geometry_brep) {
+        if (profile.size() > 1 && axis.segment_count() == 1) {
+            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends = profile_ends(*this);
+            _element_geometry_brep = brep_between_loops(ends.first, ends.second);
+        } else
+            _element_geometry_brep = brep_sections(sections());
+    }
 
-    return *cache;
+    return *_element_geometry_brep;
 }
 
-ElementGeometry Beam::compute_model_geometry(bool mesh_or_brep) const {
-    return cut_geometry(element_geometry(mesh_or_brep), cuts);
+const Mesh& Beam::model_geometry_mesh() const {
+
+    if (!_model_geometry_mesh) {
+        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+    }
+
+    return *_model_geometry_mesh;
+}
+
+const BRep& Beam::model_geometry_brep() const {
+
+    if (!_model_geometry_brep) {
+        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+    }
+
+    return *_model_geometry_brep;
 }
 
 void Beam::invalidate_geometry() {
@@ -150,6 +185,7 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     std::shared_ptr<Beam> beam = std::make_shared<Beam>(axis.transformed(xform), radii, transformed_directions(directions, axis.segment_count(), xform), allowed_type, name);
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
+    beam->profile = profile;
     beam->set_features(transformed_features(_features, xform));
     beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -169,16 +205,27 @@ void Beam::place(const Xform& xform) {
     _model_geometry_brep.reset();
 }
 
-void Beam::compute_geometry_impl(bool mesh_or_brep) {
+void Beam::compute_geometry_mesh_impl() {
 
     const std::vector<Polyline> rings = sections();
     if (!rings.empty()) {
-        set_geometry(model_geometry(mesh_or_brep));
-        _element_geometry_mesh.reset();
-        _element_geometry_brep.reset();
-        _model_geometry_mesh.reset();
-        _model_geometry_brep.reset();
+        set_geometry(model_geometry_mesh());
     }
+    compute_geometry_features();
+}
+
+void Beam::compute_geometry_brep_impl() {
+
+    const std::vector<Polyline> rings = sections();
+    if (!rings.empty()) {
+        set_geometry(model_geometry_brep());
+    }
+    compute_geometry_features();
+}
+
+void Beam::compute_geometry_features() {
+
+    const std::vector<Polyline> rings = sections();
 
     std::vector<ElementFeature> next;
     next.push_back(polyline_feature("axis", axis));
@@ -223,6 +270,8 @@ std::string Beam::element_data_dumps() const {
     proto.set_allowed_type(allowed_type);
     for (const Plane& cut : cuts)
         proto.add_cuts()->ParseFromString(cut.pb_dumps());
+    for (const Polyline& ring : profile)
+        proto.add_profile()->ParseFromString(ring.pb_dumps());
 
     return proto.SerializeAsString();
 }

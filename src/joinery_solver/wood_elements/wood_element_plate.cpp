@@ -152,44 +152,42 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-const ElementGeometry& Plate::element_geometry(bool mesh_or_brep) const {
+const Mesh& Plate::element_geometry_mesh() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
-    if (!cache)
-        cache = compute_element_geometry(mesh_or_brep);
+    if (!_element_geometry_mesh) {
+        _element_geometry_mesh = polylines.size() < 2 ? Mesh() : Mesh::loft({polylines[0]}, {polylines[1]});
+    }
 
-    return *cache;
+    return *_element_geometry_mesh;
 }
 
-const ElementGeometry& Plate::model_geometry(bool mesh_or_brep) const {
+const BRep& Plate::element_geometry_brep() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
-    if (!cache)
-        cache = compute_model_geometry(mesh_or_brep);
+    if (!_element_geometry_brep) {
+        _element_geometry_brep = polylines.size() < 2 ? BRep() : brep_between_loops({polylines[0]}, {polylines[1]});
+    }
 
-    return *cache;
+    return *_element_geometry_brep;
 }
 
-ElementGeometry Plate::compute_element_geometry(bool mesh_or_brep) const {
+const Mesh& Plate::model_geometry_mesh() const {
 
-    if (polylines.size() < 2)
-        return mesh_or_brep ? ElementGeometry(Mesh()) : ElementGeometry(BRep());
+    if (!_model_geometry_mesh) {
+        _model_geometry_mesh = features.top.empty()
+            ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top);
+    }
 
-    if (mesh_or_brep)
-        return Mesh::loft({polylines[0]}, {polylines[1]});
-
-    return brep_between_loops({polylines[0]}, {polylines[1]});
+    return *_model_geometry_mesh;
 }
 
-ElementGeometry Plate::compute_model_geometry(bool mesh_or_brep) const {
+const BRep& Plate::model_geometry_brep() const {
 
-    if (features.top.empty())
-        return element_geometry(mesh_or_brep);
+    if (!_model_geometry_brep) {
+        _model_geometry_brep = features.top.empty()
+            ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
+    }
 
-    if (mesh_or_brep)
-        return Mesh::loft(features.bottom, features.top);
-
-    return brep_between_loops(features.bottom, features.top);
+    return *_model_geometry_brep;
 }
 
 void Plate::flip() {
@@ -243,13 +241,23 @@ void Plate::place(const Xform& xform) {
     _model_geometry_brep.reset();
 }
 
-void Plate::compute_geometry_impl(bool mesh_or_brep) {
+void Plate::compute_geometry_mesh_impl() {
 
     if (polylines.size() > 1) {
-        set_geometry(model_geometry(mesh_or_brep));
-        _model_geometry_mesh.reset();
-        _model_geometry_brep.reset();
+        set_geometry(model_geometry_mesh());
     }
+    compute_geometry_features();
+}
+
+void Plate::compute_geometry_brep_impl() {
+
+    if (polylines.size() > 1) {
+        set_geometry(model_geometry_brep());
+    }
+    compute_geometry_features();
+}
+
+void Plate::compute_geometry_features() {
     set_dimensions(nominal_dimensions());
 
     std::vector<ElementFeature> next = face_features();

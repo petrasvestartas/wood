@@ -218,6 +218,7 @@ class Beam final : public ::google::protobuf::Message
     kRadiiFieldNumber = 2,
     kDirectionsFieldNumber = 3,
     kCutsFieldNumber = 5,
+    kProfileFieldNumber = 6,
     kAxisFieldNumber = 1,
     kAllowedTypeFieldNumber = 4,
   };
@@ -273,6 +274,23 @@ class Beam final : public ::google::protobuf::Message
   const ::session_proto::Plane& cuts(int index) const;
   ::session_proto::Plane* PROTOBUF_NONNULL add_cuts();
   const ::google::protobuf::RepeatedPtrField<::session_proto::Plane>& cuts() const;
+  // repeated .session_proto.Polyline profile = 6;
+  int profile_size() const;
+  private:
+  int _internal_profile_size() const;
+
+  public:
+  void clear_profile() ;
+  ::session_proto::Polyline* PROTOBUF_NONNULL mutable_profile(int index);
+  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL mutable_profile();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_profile() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
+  public:
+  const ::session_proto::Polyline& profile(int index) const;
+  ::session_proto::Polyline* PROTOBUF_NONNULL add_profile();
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& profile() const;
   // .session_proto.Polyline axis = 1;
   bool has_axis() const;
   void clear_axis() ;
@@ -302,8 +320,8 @@ class Beam final : public ::google::protobuf::Message
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 5,
-                                   3, 0,
+  static const ::google::protobuf::internal::TcParseTable<3, 6,
+                                   4, 0,
                                    2>
       _table_;
 
@@ -327,6 +345,7 @@ class Beam final : public ::google::protobuf::Message
     ::google::protobuf::RepeatedField<double> radii_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Vector > directions_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE axis_;
     ::int32_t allowed_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -355,7 +374,7 @@ extern const ::google::protobuf::internal::ClassDataFull Beam_class_data_;
 
 // .session_proto.Polyline axis = 1;
 inline bool Beam::has_axis() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.axis_ != nullptr);
   return value;
 }
@@ -376,16 +395,16 @@ inline void Beam::unsafe_arena_set_allocated_axis(
   }
   _impl_.axis_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Beam.axis)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE Beam::release_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Polyline* released = _impl_.axis_;
   _impl_.axis_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -405,7 +424,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE Beam::unsafe_arena_release_a
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Beam.axis)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Polyline* temp = _impl_.axis_;
   _impl_.axis_ = nullptr;
   return temp;
@@ -420,7 +439,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::_internal_mutable_axis(
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::mutable_axis()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Polyline* _msg = _internal_mutable_axis();
   // @@protoc_insertion_point(field_mutable:wood_proto.Beam.axis)
   return _msg;
@@ -437,9 +456,9 @@ inline void Beam::set_allocated_axis(::session_proto::Polyline* PROTOBUF_NULLABL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
   _impl_.axis_ = reinterpret_cast<::session_proto::Polyline*>(value);
@@ -551,7 +570,7 @@ inline void Beam::clear_allowed_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.allowed_type_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 inline ::int32_t Beam::allowed_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.Beam.allowed_type)
@@ -559,7 +578,7 @@ inline ::int32_t Beam::allowed_type() const {
 }
 inline void Beam::set_allowed_type(::int32_t value) {
   _internal_set_allowed_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:wood_proto.Beam.allowed_type)
 }
 inline ::int32_t Beam::_internal_allowed_type() const {
@@ -619,6 +638,56 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Plane>* PROTOBUF_NO
 Beam::_internal_mutable_cuts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.cuts_;
+}
+
+// repeated .session_proto.Polyline profile = 6;
+inline int Beam::_internal_profile_size() const {
+  return _internal_profile().size();
+}
+inline int Beam::profile_size() const {
+  return _internal_profile_size();
+}
+inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::mutable_profile(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Beam.profile)
+  return _internal_mutable_profile()->Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL Beam::mutable_profile()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Beam.profile)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_profile();
+}
+inline const ::session_proto::Polyline& Beam::profile(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Beam.profile)
+  return _internal_profile().Get(index);
+}
+inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::add_profile()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Polyline* _add =
+      _internal_mutable_profile()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_add:wood_proto.Beam.profile)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& Beam::profile() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Beam.profile)
+  return _internal_profile();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+Beam::_internal_profile() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.profile_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+Beam::_internal_mutable_profile() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.profile_;
 }
 
 #ifdef __GNUC__

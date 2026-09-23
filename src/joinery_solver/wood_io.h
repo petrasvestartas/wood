@@ -24,7 +24,7 @@ std::vector<std::vector<int>> load_three_valence(const std::string& three_valenc
 std::vector<session_cpp::Polyline> load_obj(const std::string& dataset_name, double duplicate_points_tolerance = 0.0);
 
 /// `data/output/pb/<name>.pb`, with the directory created; "live" is the file session_viewer watches.
-std::filesystem::path pb_path(const std::string& name);
+std::string pb_path(const std::string& name);
 
 /// `<pb>_meta.txt` and `<pb>_coords.txt` beside a dataset's .pb: every plate's merged outlines, the parity record a refactor is diffed against.
 void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb);

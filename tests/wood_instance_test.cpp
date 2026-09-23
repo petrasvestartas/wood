@@ -138,7 +138,7 @@ static void transformed_test() {
     const std::shared_ptr<Beam> light = beam.transformed(xform);
     const std::shared_ptr<Element> placed = beam.clone();
     placed->place(xform);
-    light->geometry();
+    light->geometry_mesh();
     check(light->directions.size() == 1 && light->directions[0] == Vector::z_axis().transformed(xform), "Transformed Fills Directions");
     check(same(light->polylines()[2], placed->polylines()[2]), "Transformed Equals Place");
     check(light->guid() == beam.guid() && light->name == beam.name, "Transformed Keeps Guid");
@@ -148,14 +148,14 @@ static void transformed_test() {
     const std::string guid = feature.guid();
     column->add_feature(std::move(feature));
     const std::shared_ptr<Column> column_copy = column->transformed(xform);
-    column_copy->geometry();
+    column_copy->geometry_mesh();
     column->place(xform);
     check(same(column_copy->polylines()[0], column->polylines()[0]) && column_copy->axis == column->axis, "Transformed Column Equals Place");
     check(column->features().back().guid() == guid && column->features().back().outlines[0].get_point(1) == Point(100, 0, 0).transformed(xform), "Place Moves Features");
 
     const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle(Point(0, 0, 0), Vector::x_axis(), Vector::y_axis(), 200, 200), Polyline::rectangle(Point(-100, -100, 300), Vector::x_axis(), Vector::y_axis(), 400, 400)});
     const std::shared_ptr<Block> block_copy = block->transformed(xform);
-    block_copy->geometry();
+    block_copy->geometry_mesh();
     block->place(xform);
     check(same(block_copy->polylines()[1], block->polylines()[1]) && same(block_copy->loops[1], block->loops[1]), "Transformed Block Equals Place");
 

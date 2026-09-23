@@ -2,6 +2,7 @@
 #include "wood_serialization.h"
 #include "wood_element_column.h"
 #include "wood_element_geometry.h"
+#include "wood_profile.h"
 #include "element_column.pb.h"
 
 namespace wood_session {
@@ -19,6 +20,42 @@ Column::Column(const Line& axis, const Polyline& section, const std::string& nam
 
 Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name)
     : Element(solid, name), axis(axis), section(section) {}
+
+/// The profile x axis in world space: world x projected perpendicular to the axis (world y when the axis is along x), turned by rotation degrees about the axis.
+static Vector profile_x(const Line& axis, double rotation) {
+
+    const Vector along = axis.to_vector().normalized();
+    Vector x = Vector::x_axis() - along * along.dot(Vector::x_axis());
+    if (x.magnitude() < Tolerance::RELATIVE)
+        x = Vector::y_axis() - along * along.dot(Vector::y_axis());
+
+    return x.normalized().transformed(Xform::rotation(along, rotation, true));
+}
+
+/// Every profile loop placed at the axis base, x along profile_x and y along the axis cross it.
+static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<Polyline>& profile, double rotation) {
+
+    const Vector along = axis.to_vector().normalized();
+    const Vector x = profile_x(axis, rotation);
+    const Vector y = along.cross(x);
+
+    std::vector<Polyline> placed;
+    for (const Polyline& ring : profile) {
+        std::vector<Point> points;
+        for (const Point& point : ring.get_points())
+            points.push_back(axis.start() + x * point[0] + y * point[1]);
+        placed.emplace_back(points);
+    }
+
+    return placed;
+}
+
+Column::Column(const Line& axis, const std::vector<Polyline>& profile, double rotation, const std::string& name)
+    : Element(name), axis(axis), profile(profile), rotation(rotation) {
+
+    if (!profile.empty() && axis.length() > 0.0)
+        section = placed_profile(axis, profile, rotation)[0];
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -53,6 +90,9 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
         column->section = Polyline::pb_loads(proto.section().SerializeAsString());
     for (const session_proto::Plane& cut : proto.cuts())
         column->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
+    for (const session_proto::Polyline& ring : proto.profile())
+        column->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
+    column->rotation = proto.rotation();
 
     return column;
 }
@@ -61,37 +101,59 @@ std::shared_ptr<Column> Column::from_element(const Element& e) {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-const ElementGeometry& Column::element_geometry(bool mesh_or_brep) const {
-
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _element_geometry_mesh : _element_geometry_brep;
-    if (!cache)
-        cache = compute_element_geometry(mesh_or_brep);
-
-    return *cache;
+/// The bottom loops of the solid: the placed profile when it has holes, else the section alone.
+static std::vector<Polyline> bottom_loops(const Column& column) {
+    return column.profile.size() > 1 ? placed_profile(column.axis, column.profile, column.rotation) : std::vector<Polyline>{column.section};
 }
 
-ElementGeometry Column::compute_element_geometry(bool mesh_or_brep) const {
+/// The loops moved to the axis top.
+static std::vector<Polyline> top_loops(const Column& column, const std::vector<Polyline>& bottom) {
 
-    if (section.point_count() < 3 || axis.length() <= 0.0)
-        return mesh_or_brep ? ElementGeometry(Mesh()) : ElementGeometry(BRep());
+    std::vector<Polyline> top;
+    for (const Polyline& ring : bottom)
+        top.push_back(ring.translated(column.axis.to_vector()));
 
-    if (mesh_or_brep)
-        return Mesh::loft({section}, {section.translated(axis.to_vector())}, true);
-
-    return brep_sections({section, section.translated(axis.to_vector())});
+    return top;
 }
 
-const ElementGeometry& Column::model_geometry(bool mesh_or_brep) const {
+const Mesh& Column::element_geometry_mesh() const {
 
-    std::optional<ElementGeometry>& cache = mesh_or_brep ? _model_geometry_mesh : _model_geometry_brep;
-    if (!cache)
-        cache = compute_model_geometry(mesh_or_brep);
+    if (!_element_geometry_mesh) {
+        const std::vector<Polyline> bottom = bottom_loops(*this);
+        _element_geometry_mesh = section.point_count() < 3 || axis.length() <= 0.0
+            ? Mesh() : Mesh::loft(bottom, top_loops(*this, bottom), true);
+    }
 
-    return *cache;
+    return *_element_geometry_mesh;
 }
 
-ElementGeometry Column::compute_model_geometry(bool mesh_or_brep) const {
-    return cut_geometry(element_geometry(mesh_or_brep), cuts);
+const BRep& Column::element_geometry_brep() const {
+
+    if (!_element_geometry_brep) {
+        const std::vector<Polyline> bottom = bottom_loops(*this);
+        _element_geometry_brep = section.point_count() < 3 || axis.length() <= 0.0
+            ? BRep() : brep_between_loops(bottom, top_loops(*this, bottom));
+    }
+
+    return *_element_geometry_brep;
+}
+
+const Mesh& Column::model_geometry_mesh() const {
+
+    if (!_model_geometry_mesh) {
+        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+    }
+
+    return *_model_geometry_mesh;
+}
+
+const BRep& Column::model_geometry_brep() const {
+
+    if (!_model_geometry_brep) {
+        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+    }
+
+    return *_model_geometry_brep;
 }
 
 void Column::invalidate_geometry() {
@@ -110,6 +172,8 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     std::shared_ptr<Column> column = std::make_shared<Column>(axis.transformed(xform), section.transformed(xform), name);
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
+    column->profile = profile;
+    column->rotation = rotation;
     column->set_features(transformed_features(_features, xform));
     column->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -129,15 +193,23 @@ void Column::place(const Xform& xform) {
     _model_geometry_brep.reset();
 }
 
-void Column::compute_geometry_impl(bool mesh_or_brep) {
+void Column::compute_geometry_mesh_impl() {
 
     if (section.point_count() >= 3 && axis.length() > 0.0) {
-        set_geometry(model_geometry(mesh_or_brep));
-        _element_geometry_mesh.reset();
-        _element_geometry_brep.reset();
-        _model_geometry_mesh.reset();
-        _model_geometry_brep.reset();
+        set_geometry(model_geometry_mesh());
     }
+    compute_geometry_features();
+}
+
+void Column::compute_geometry_brep_impl() {
+
+    if (section.point_count() >= 3 && axis.length() > 0.0) {
+        set_geometry(model_geometry_brep());
+    }
+    compute_geometry_features();
+}
+
+void Column::compute_geometry_features() {
 
     std::vector<ElementFeature> next;
     next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
@@ -151,9 +223,9 @@ void Column::compute_geometry_impl(bool mesh_or_brep) {
 
 AABB Column::aabb(double inflate) const {
 
-    if (const Mesh* solid = std::get_if<Mesh>(&geometry()))
-        if (solid->number_of_vertices() > 0)
-            return AABB::from_mesh(*solid, inflate);
+    const Mesh& solid = geometry_mesh();
+    if (solid.number_of_vertices() > 0)
+        return AABB::from_mesh(solid, inflate);
 
     std::vector<Point> points = section.get_points();
     points.push_back(axis.start());
@@ -186,6 +258,9 @@ std::string Column::element_data_dumps() const {
         proto.mutable_section()->ParseFromString(section.pb_dumps());
     for (const Plane& cut : cuts)
         proto.add_cuts()->ParseFromString(cut.pb_dumps());
+    for (const Polyline& ring : profile)
+        proto.add_profile()->ParseFromString(ring.pb_dumps());
+    proto.set_rotation(rotation);
 
     return proto.SerializeAsString();
 }

@@ -298,7 +298,7 @@ void WoodSession::compute_face_contacts(int level) {
         nodes[node->name] = node;
 
     for (const std::shared_ptr<Element>& element : *objects.elements)
-        element->geometry();
+        element->geometry_mesh();
 
     std::map<const TreeNode*, std::vector<std::shared_ptr<Element>>> branches;
     for (const std::shared_ptr<Element>& element : world_elements()) {
@@ -443,8 +443,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
 /// The kernel copies an Edge without its guid into both directions, so the guid minted on one copy is written onto the other.
 Interaction& WoodSession::add_interaction(const std::string& a, const std::string& b) {
 
-    if (!graph.has_edge(std::make_tuple(a, b)))
-        add_edge(a, b);
+    Session::add_interaction(a, b);
 
     const Edge& edge = graph.edges[a][b];
     const std::string id = edge.guid();
@@ -459,21 +458,51 @@ Interaction& WoodSession::add_interaction(const std::string& a, const std::strin
 }
 
 Interaction* WoodSession::get_interaction(const std::string& a, const std::string& b) {
-
-    const auto row = graph.edges.find(a);
-    if (row == graph.edges.end())
-        return nullptr;
-
-    const auto edge = row->second.find(b);
-    if (edge == row->second.end() || !edge->second.has_guid())
-        return nullptr;
-
-    const auto found = interactions.find(edge->second.guid());
-    return found == interactions.end() ? nullptr : &found->second;
+    return const_cast<Interaction*>(std::as_const(*this).get_interaction(a, b));
 }
 
 const Interaction* WoodSession::get_interaction(const std::string& a, const std::string& b) const {
-    return const_cast<WoodSession*>(this)->get_interaction(a, b);
+    for (const auto& [first, second] : {std::pair{a, b}, std::pair{b, a}}) {
+        const auto row = graph.edges.find(first);
+        if (row == graph.edges.end())
+            continue;
+        const auto edge = row->second.find(second);
+        if (edge == row->second.end() || !edge->second.has_guid())
+            continue;
+        const auto found = interactions.find(edge->second.guid());
+        if (found != interactions.end())
+            return &found->second;
+    }
+    return nullptr;
+}
+
+bool WoodSession::has_interaction(const std::string& a, const std::string& b) const {
+    return Session::has_interaction(a, b);
+}
+
+void WoodSession::remove_interaction(const std::string& a, const std::string& b) {
+    if (const Interaction* interaction = get_interaction(a, b)) {
+        const std::string id = interaction->guid;
+        std::unordered_set<std::string> erased;
+        for (const InteractionContact& contact : interaction->contacts)
+            erased.insert(contact.guid);
+        for (const InteractionFeature& feature : interaction->features) {
+            erased.insert(feature.guid);
+            if (const FeaturePlate* plate = feature.plate()) {
+                erased.insert(plate->feature_guid(0));
+                erased.insert(plate->feature_guid(1));
+            }
+        }
+        const auto drop = [&erased](const ElementFeature& feature) { return erased.count(feature.guid()) > 0; };
+        drop_host_features(*this, a, drop);
+        drop_host_features(*this, b, drop);
+        interactions.erase(id);
+    }
+    std::erase_if(_edges, [&a, &b](const auto& item) {
+        const auto& ends = item.second;
+        return (ends.first == a && ends.second == b) || (ends.first == b && ends.second == a);
+    });
+    Session::remove_interaction(a, b);
 }
 
 const Interaction& WoodSession::get_interaction(const std::string& guid) const { return interactions.at(guid); }
@@ -551,6 +580,115 @@ std::string WoodSession::add_feature(const FeaturePlate& joint) {
     return plate.guid;
 }
 
+namespace {
+
+void validate_manual_feature(const std::string& a, const std::string& b, const InteractionFeature& feature,
+                             const std::vector<InteractionContact>& contacts) {
+    if (feature.contact < -1 || feature.contact >= static_cast<int>(contacts.size()))
+        throw std::invalid_argument("WoodSession::add_interaction: feature contact index is out of range");
+    if (const FeaturePlate* plate = feature.plate()) {
+        const bool unspecified = plate->element_a.empty() && plate->element_b.empty();
+        const bool same_pair = (plate->element_a == a && plate->element_b == b) || (plate->element_a == b && plate->element_b == a);
+        if (!unspecified && !same_pair)
+            throw std::invalid_argument("WoodSession::add_interaction: plate feature belongs to a different pair");
+        if (feature.contact >= 0 && !contacts[feature.contact].face() && !contacts[feature.contact].cross())
+            throw std::invalid_argument("WoodSession::add_interaction: a plate feature requires a face or cross contact");
+        if (feature.contact >= 0 && plate->joint_type == 30 && !contacts[feature.contact].cross())
+            throw std::invalid_argument("WoodSession::add_interaction: a cross joint requires a cross contact");
+    }
+}
+
+/// Copy an explicitly linked contact into the plate's solver fields, read from its male side.
+void assign_plate_contact(FeaturePlate& plate, const InteractionContact& contact) {
+    if (const ContactFace* face = contact.face()) {
+        plate.contact = *face;
+    } else if (const ContactCross* cross = contact.cross()) {
+        plate.joint_type = 30;
+        plate.contact.face_a = cross->faces_a[0];
+        plate.contact.face_b = cross->faces_b[0];
+        plate.contact.polygon = cross->polygon;
+        plate.cross_faces = {cross->faces_a[1], cross->faces_b[1]};
+        for (int k = 0; k < 2; ++k) {
+            if (cross->lines[k].point_count() >= 2)
+                plate.joint_lines[k] = Line::from_points(cross->lines[k].get_point(0), cross->lines[k].get_point(1));
+            plate.joint_volumes[k] = cross->volumes[k];
+        }
+    }
+}
+
+} // namespace
+
+Interaction& WoodSession::add_interaction(const std::string& a, const std::string& b, Interaction incoming) {
+    // Validate the whole incoming record before creating an edge or storing any contacts.
+    for (const InteractionFeature& feature : incoming.features)
+        validate_manual_feature(a, b, feature, incoming.contacts);
+
+    Interaction& stored = add_interaction(a, b);
+    const bool reversed = edge_of(stored).first != a;
+    std::vector<int> remap;
+    remap.reserve(incoming.contacts.size());
+    for (InteractionContact& contact : incoming.contacts)
+        remap.push_back(place_contact(stored, reversed ? contact.flipped() : std::move(contact)));
+    for (InteractionFeature& feature : incoming.features) {
+        if (feature.contact >= 0)
+            feature.contact = remap[feature.contact];
+        add_interaction(a, b, std::move(feature));
+    }
+    if (incoming.structure)
+        stored.structure = std::move(incoming.structure);
+    return stored;
+}
+
+Interaction& WoodSession::add_interaction(const std::string& a, const std::string& b, InteractionContact contact) {
+    add_contact(a, b, std::move(contact));
+    return *get_interaction(a, b);
+}
+
+Interaction& WoodSession::add_interaction(const std::string& a, const std::string& b, InteractionFeature feature) {
+    const Interaction* existing = get_interaction(a, b);
+    const std::vector<InteractionContact> empty;
+    validate_manual_feature(a, b, feature, existing ? existing->contacts : empty);
+    Interaction& stored = add_interaction(a, b);
+    const auto ends = edge_of(stored);
+
+    if (FeaturePlate* plate = feature.plate()) {
+        if (plate->element_a.empty()) {
+            plate->element_a = a;
+            plate->element_b = b;
+        }
+        if (!feature.guid.empty())
+            plate->guid = feature.guid;
+        if (feature.contact >= 0) {
+            const InteractionContact& contact = stored.contacts[feature.contact];
+            assign_plate_contact(*plate, plate->element_a == ends.first ? contact : contact.flipped());
+        }
+        add_feature(*plate);
+        return stored;
+    }
+
+    if (FeatureBeam* beam = std::get_if<FeatureBeam>(&feature.data)) {
+        if (a != ends.first) {
+            std::swap(beam->volumes[0], beam->volumes[2]);
+            std::swap(beam->volumes[1], beam->volumes[3]);
+        }
+    }
+    const int index = stored.add_feature(std::move(feature));
+    const InteractionFeature& added = stored.features[index];
+    if (const FeatureBeam* beam = added.beam()) {
+        ElementFeature side("joint", -1, std::vector<Polyline>(beam->volumes.begin(), beam->volumes.end()), fmt::format("beam_{}", beam->end_type));
+        side.guid() = added.guid;
+        paint(side, Color(0.86f, 0.31f, 0.70f, 1.0f, "magenta"));
+        host_feature(ends.first, std::move(side));
+    }
+    return stored;
+}
+
+Interaction& WoodSession::add_interaction(const std::string& a, const std::string& b, InteractionStructure structure) {
+    Interaction& stored = add_interaction(a, b);
+    stored.structure = std::move(structure);
+    return stored;
+}
+
 /// A plate feature keeps a copy of its contact; the copy must be the stored contact read from the feature's own side.
 bool WoodSession::consistent() const {
     for (const auto& [guid, interaction] : interactions) {
@@ -561,7 +699,7 @@ bool WoodSession::consistent() const {
 
         for (const InteractionFeature& feature : interaction.features) {
 
-            if (feature.guid.empty() || feature.contact < 0 || feature.contact >= (int)interaction.contacts.size())
+            if (feature.guid.empty() || feature.contact < -1 || feature.contact >= (int)interaction.contacts.size())
                 return false;
 
             const FeaturePlate* plate = feature.plate();
@@ -572,6 +710,8 @@ bool WoodSession::consistent() const {
             if (plate->guid != feature.guid || (!reversed && plate->element_a != ends.first) || (reversed && plate->element_b != ends.first))
                 return false;
 
+            if (feature.contact < 0)
+                continue;
             const InteractionContact stored = reversed ? interaction.contacts[feature.contact].flipped() : interaction.contacts[feature.contact];
             if (!contact_of(*plate).coincides(stored))
                 return false;

@@ -18,23 +18,54 @@ int main() {
     wood_session.add(column);
     wood_session.add(block);
 
-    // Every element lofts itself on the first read; nothing has to be synced by hand
-    for (const std::shared_ptr<Element>& element : wood_session.elements())
-        std::cout << element->str() << "\n";
 
-    // // The same solid as a boundary representation, per element, cached beside the mesh
-    // std::cout << std::get<BRep>(plate->element_geometry(false)).face_count() << " faces on the plate brep\n";
+    std::cout << wood_session << "\n";
+
+    // Add interaction
+    // The graph edge and its stored contact, feature and structure share one interaction.
+    InteractionContact contact(ContactAxis(Line::from_points(Point(800, 0, 100), Point(950, 50, 100)), 1.0, 1.0 / 6.0, 0, 0, 0, 0));
+    Interaction& interaction = wood_session.add_interaction(beam, column, contact);
+
+    // Authored joint volumes are stored and shown as features; this does not run the solver.
+    FeatureBeam joint;
+    joint.end_type = 1;
+    joint.volumes = {beam->sections().back().translated(Vector(-60, 0, 0)), beam->sections().back(),
+                    column->section.translated(Vector(0, 0, 100)), column->section.translated(Vector(0, 0, 160))};
+    InteractionFeature feature(joint);
+    feature.contact = 0; // The contact already stored on this pair.
+    wood_session.add_interaction(beam, column, feature);
+    wood_session.add_interaction(beam, column, InteractionStructure{});
+
+    std::cout << interaction << "\n";
+    std::cout << "Beam-column interaction: " << wood_session.has_interaction(column, beam) << "\n";
+
+    // A bare relation needs no payload. Either order finds and removes the same pair.
+    wood_session.add_interaction(plate, block);
+    wood_session.remove_interaction(block, plate);
+    std::cout << "Plate-block interaction after removal: " << wood_session.has_interaction(plate, block) << "\n";
+
+    // Every element lofts itself on the first read; nothing has to be synced by hand
+    for (const std::shared_ptr<Element>& element : wood_session.elements()) {
+        std::cout << *element << "\n";
+        std::cout << element->model_geometry_mesh() << "\n";
+        std::cout << element->model_geometry_brep() << "\n\n";
+    }
+
+    // The same solid as a boundary representation, per element, cached beside the mesh
+    std::cout << plate->element_geometry_mesh() << "\n";
+    std::cout << plate->element_geometry_brep() << "\n\n";
 
     // Serialize and push for the viewer: https://petrasvestartas.github.io/session/
-    std::cout << wood_session;
-    wood_session.pb_dump(pb_path("live").string());
+    std::string path = pb_path("live");
+    wood_session.pb_dump(path);
+    std::cout << path << "\n";
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-the four element kinds built in code and added to a wood session: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid lofted on the first read of its geometry, element_geometry(false) the same solid as faces, its outlines, axis and sections features the viewer draws while they are visible.
+the four element kinds built in code and added to a wood session: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid lofted on the first read of its geometry, element_geometry_brep() the same solid as faces, its outlines, axis and sections features the viewer draws while they are visible.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

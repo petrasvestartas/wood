@@ -11,12 +11,14 @@ public:
     session_cpp::Line axis; // Centreline, base to head, in world space.
     session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.
     std::vector<session_cpp::Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    std::vector<session_cpp::Polyline> profile; // Section loops in the profile frame the section was placed from, loop 0 the outline, then holes; empty when the section was given.
+    double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
 
 private:
-    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<session_cpp::ElementGeometry> _element_geometry_brep; // Cache of the brep form.
-    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_mesh; // Cache of the cut mesh form.
-    mutable std::optional<session_cpp::ElementGeometry> _model_geometry_brep; // Cache of the cut brep form.
+    mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<session_cpp::BRep> _element_geometry_brep; // Cache of the brep form.
+    mutable std::optional<session_cpp::Mesh> _model_geometry_mesh; // Cache of the cut mesh form.
+    mutable std::optional<session_cpp::BRep> _model_geometry_brep; // Cache of the cut brep form.
 
 public:
     /// An empty column: no solid, a zero-length axis, no section.
@@ -24,6 +26,9 @@ public:
 
     /// A column from its axis and its section: the solid is the section swept along the axis; `name` is the type flag face_contacts() filters on.
     Column(const session_cpp::Line& axis, const session_cpp::Polyline& section, const std::string& name = "column");
+
+    /// A column from its axis and a profile placed at the axis base in the plane perpendicular to it, x along world x projected then turned by rotation degrees; holes make it hollow.
+    Column(const session_cpp::Line& axis, const std::vector<session_cpp::Polyline>& profile, double rotation = 0.0, const std::string& name = "column");
 
     /// A column from its solid, its axis and its section; the solid stays as given while the section is empty, else it is rebuilt from the section. `name` is the type flag face_contacts() filters on.
     Column(
@@ -44,17 +49,17 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The parametric shape alone, the section lofted along the axis, never cut; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
-    const session_cpp::ElementGeometry& element_geometry(bool mesh_or_brep = true) const;
+    /// The parametric shape alone, before joints or cuts as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().
+    const session_cpp::Mesh& element_geometry_mesh() const override;
 
-    /// The shape cut by every plane in cuts, the element geometry while there are none; a mesh when true, a BRep when false; cached per form until invalidate_geometry().
-    const session_cpp::ElementGeometry& model_geometry(bool mesh_or_brep = true) const;
+    /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
+    const session_cpp::BRep& element_geometry_brep() const override;
 
-    /// The loft of the section along the axis as a mesh or as faces, empty without a section of three points and a positive length.
-    session_cpp::ElementGeometry compute_element_geometry(bool mesh_or_brep) const;
+    /// The shape with joints or cuts applied as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().
+    const session_cpp::Mesh& model_geometry_mesh() const override;
 
-    /// The element geometry cut by every plane in cuts, as a mesh or as faces.
-    session_cpp::ElementGeometry compute_model_geometry(bool mesh_or_brep) const;
+    /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
+    const session_cpp::BRep& model_geometry_brep() const override;
 
     /// Drops the cached solids and marks the Element slot stale; call after assigning the axis, the section or the cuts by hand.
     void invalidate_geometry() override;
@@ -67,7 +72,13 @@ public:
 
 protected:
     /// Writes the model geometry, the section lofted along the axis and cut by every plane in cuts, onto the Element in the requested form (the given solid stays when the section is empty) with the axis and section features, keeping the joint and contact features the session put there; WoodSession::pb_dump calls it for every stale column.
-    void compute_geometry_impl(bool mesh_or_brep) override;
+    void compute_geometry_mesh_impl() override;
+
+    /// Write the model BRep and the element features into the session slot.
+    void compute_geometry_brep_impl() override;
+
+    /// Refresh the dimensions and geometry features while preserving session features.
+    void compute_geometry_features();
 
 public:
 

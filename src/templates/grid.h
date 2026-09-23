@@ -1,1088 +1,1273 @@
 #pragma once
 #include "wood_session.h"
+#include "wood_profile.h"
+#include "src/templates/plan.h"
 
 namespace wood_grid {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Structs
+// Pattern
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A building grid: nodes and members in a graph, floor, roof and wall loops over its nodes, levels by elevation; every meaning is a double attribute.
-struct Grid {
-    session_cpp::Graph graph; // Nodes "0", "1", ... carrying x, y, z; edges are member lines and face sides.
-    std::vector<std::vector<std::string>> faces; // Node loops of floors, roofs and walls; floors counter-clockwise seen from above.
-    std::vector<std::map<std::string, double>> facedata; // Per-face values, parallel to faces.
-    std::map<std::string, double> default_face_attributes; // Values every face falls back to.
-    std::vector<double> levels; // Distinct floor elevations, ascending; storey k spans levels[k] to levels[k + 1].
-    double tolerance = 1.0; // Weld distance and elevation gap, in model units.
+/// Plan lines a building is drawn on, at z 0, each in a parallel family: 0 and 1 the two directions a rectangular system names, 2 a third family, -1 a free line.
+struct Pattern {
+    std::vector<session_cpp::Line> lines; // Segments in plan, as long as the pattern extends; a footprint beyond them gets no members there.
+    std::vector<int> families; // One per line.
 
-    /// Grid from member lines and surface loops: ends and corners welded within tolerance, every line split at the nodes on it and flagged "line", surfaces as faces, levels computed.
-    static Grid from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<session_cpp::Polyline>& surfaces, double tolerance = 1.0);
+    /// Lines along x at the running sums of ys (family 0) and along y at the running sums of xs (family 1), the y axis leaning skew degrees towards x.
+    static Pattern orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew = 0.0);
 
-    /// Grid from a planar plan over storeys of heights: a floor per plan face and level from its "bottom" to its "top", columns under them, walls under plan edges flagged "wall".
-    static Grid from_plan(const session_cpp::Mesh& plan, const std::vector<double>& heights, double tolerance = 1.0);
+    /// Rays from the first radius to the last (family 0) and ring chords at every radius (family 1) over sweep degrees; a first radius of 0 gives a centre point.
+    static Pattern radial(const std::vector<double>& radii, int sectors, double sweep = 360.0);
 
-    /// Key of the node within tolerance of point, a new node carrying x, y, z when none is.
-    std::string add_vertex(const session_cpp::Point& point);
+    /// Three families of lines at 0, 60 and 120 degrees, side apart, over nx by ny rhombi.
+    static Pattern triangular(double side, int nx, int ny);
 
-    /// Index of a new face over loop; its missing sides become graph edges.
-    size_t add_face(const std::vector<std::string>& loop);
+    /// Edges of pointy-top hexagons of side in nx columns and ny rows, every edge a free line (family -1).
+    static Pattern hexagonal(double side, int nx, int ny);
 
-    /// Position of a node, from its x, y, z.
-    session_cpp::Point vertex_point(const std::string& key) const;
+    /// Lines as drawn with a family per line, all free when families is empty.
+    static Pattern from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<int>& families = {});
 
-    /// Line of an edge, first key to second.
-    session_cpp::Line edge_line(const std::tuple<std::string, std::string>& edge) const;
-
-    /// Loop points of a face, open.
-    std::vector<session_cpp::Point> face_points(size_t face) const;
-
-    /// Faces with the edge as a side.
-    std::vector<size_t> edge_faces(const std::tuple<std::string, std::string>& edge) const;
-
-    /// Faces through the node.
-    std::vector<size_t> vertex_faces(const std::string& key) const;
-
-    /// Merge attrs into the default face attributes.
-    void update_default_face_attributes(const std::vector<std::pair<std::string, double>>& attrs);
-
-    /// Attribute of a face, falling back to the default; nullopt when neither exists.
-    std::optional<double> face_attribute(size_t face, const std::string& name) const;
-
-    /// Store an attribute on a face.
-    void set_face_attribute(size_t face, const std::string& name, double value);
-
-    /// Faces whose attributes match every (name, value) condition.
-    std::vector<size_t> faces_where(const std::vector<std::pair<std::string, double>>& conditions) const;
-
-    /// Store an attribute on a node that has no value for it yet, stored or default.
-    void fill_vertex_attribute(const std::string& key, const std::string& name, double value);
-
-    /// Store an attribute on an edge that has no value for it yet, stored or default.
-    void fill_edge_attribute(const std::tuple<std::string, std::string>& edge, const std::string& name, double value);
-
-    /// Store an attribute on a face that has no value for it yet, stored or default.
-    void fill_face_attribute(size_t face, const std::string& name, double value);
+    /// A copy moved by xform: the pattern's origin and rotation under the building.
+    Pattern transformed(const session_cpp::Xform& xform) const;
 };
 
-/// Member sizes every element of a grid shares, in model units.
-struct Dimensions {
-    double column = 200.0; // Column width across flats, also the head bottom.
-    double head = 300.0; // Head height, column top to beam underside.
-    double reach = 200.0; // Head top half-width; open beam ends and outer deck edges run this far past the node.
-    double beam = 200.0; // Girder and beam section side.
-    double purlin = 200.0; // Purlin section side, top flush with the beams.
-    double deck = 200.0; // Deck thickness; nodes are the deck top.
-    double wall = 100.0; // Wall thickness, centred on the grid line.
+/// Bay widths over length at spacing, Branch's rule: whole bays from the start while the rest is at least remainder long, the rest as the last bay.
+inline std::vector<double> compute_bays(double length, double spacing, double remainder = 304.8) {
+
+    std::vector<double> bays(static_cast<size_t>(std::floor(length / spacing + 1e-9)), spacing);
+    const double rest = length - spacing * bays.size();
+    if (rest >= remainder)
+        bays.push_back(rest);
+    else if (rest > 1e-9 && !bays.empty())
+        bays.back() += rest;
+
+    return bays;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Framing
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Section per role, each a profile in its own frame (loop 0 outer counter-clockwise centred on the axis, x width, y depth up; loops 1.. holes); an empty role falls back as noted.
+struct Profiles {
+    std::vector<session_cpp::Polyline> column = wood_session::profile_rectangle(300.0, 300.0);
+    std::vector<session_cpp::Polyline> girder = wood_session::profile_rectangle(200.0, 600.0);
+    std::vector<session_cpp::Polyline> beam; // Members on free lines and under span -1; empty takes girder.
+    std::vector<session_cpp::Polyline> purlin; // Purlin rows and stations; empty takes beam.
+    std::vector<session_cpp::Polyline> edge_girder; // Perimeter members on girder-family lines; empty takes girder.
+    std::vector<session_cpp::Polyline> edge_beam; // Perimeter members on any other line or ring edge; empty takes purlin under system 2, else beam.
+    std::vector<session_cpp::Polyline> brace; // Workflow C braces; empty takes beam.
 };
 
-/// One row of a bay table, what a bay design tool sizes members from.
-struct Bay {
-    double area = 0.0; // Plan area.
-    double girder = 0.0; // Longest girder side, the girder span.
-    double purlin = 0.0; // Longest purlin, centre to centre, the purlin span.
-    double deck = 0.0; // Distance between the members the deck spans onto.
-    int purlins = 0; // Purlin count.
-    double length = 0.0; // Summed purlin lengths.
+/// How every level is framed and jointed: the structural method, the joint choices and the sizes; per-bay and per-member changes are attributes on the level plans.
+struct Framing {
+    int system = 1; // 0 point supported (deck on columns or heads, no members), 1 post and beam (girders on the span family, the deck spans between them), 2 purlin on girder (girders plus purlin rows at spacing).
+    int span = 0; // Pattern family the girders run on; -1 every line carries a beam (two-way, hexagonal, irregular).
+    double spacing = 3000.0; // Largest purlin spacing under system 2; ceil(cell / spacing) intervals per unclipped cell, one row on every interior cross line.
+    int edge = 1; // Perimeter members on the section rings and hole rings: 1 built, 0 none.
+    int node = 0; // Column joint: 0 head (capital under the members), 1 flush (column top at the datum, members into its faces, deck over all), 2 through (column datum to datum, deck notched, members into its faces).
+    double drop = 0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
+    double deck = 200.0; // Deck thickness above the datum.
+    double wall = 200.0; // Facade and core wall thickness, centred on the line.
+    double head = 300.0; // Head height under node 0.
+    double reach = 400.0; // Head top half-width, and how far an open member end runs past its node when nothing butts into it.
+    double panel = 0.0; // Largest deck strip width across the deck span; 0 one deck per bay.
+    double merge = 1000.0; // Column points closer than this weld to the earlier one in a plan: ring vertices, then ring crossings, then interior crossings.
+    double taper = 30.0; // Largest lean in degrees of a perimeter column following a moving section; beyond it the vertex is a transfer.
+    double angle = 10.0; // Tilt tolerance in degrees: horizontal within angle, vertical within 90 - angle.
+    double tolerance = 1.0; // Weld distance, coplanarity and clash tolerance.
+    bool facade = false; // A wall under every perimeter member.
+    Profiles profiles; // Sections per role.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Grid accessors
+// Building
 // ═══════════════════════════════════════════════════════════════════════════
 
-inline std::string Grid::add_vertex(const session_cpp::Point& point) {
+/// One level: its datum, the section rings at it, the open holes, the cores, and the plan the pattern fills into the section; faces are bays, edges member lines, vertices column points, every meaning a double attribute.
+struct Level {
+    double z = 0.0; // Datum: the framing top, the deck underside.
+    std::vector<session_cpp::Polyline> rings; // Section at z, the union of the slices just below and just above: outer rings counter-clockwise seen from above, holes clockwise, all at z 0.
+    std::vector<session_cpp::Polyline> holes; // Open holes (atria, courtyards drawn as holes): no deck, no walls, edge members round them when they are in the arrangement.
+    std::vector<session_cpp::Polyline> cores; // Core rings on the wall centre line, counter-clockwise: a void face, a wall per side, a deck hole, a support for the members that reach them.
+    session_cpp::Mesh plan; // Arrangement of the pattern and the rings inside the section; a hole or core ring that meets no line is a face hole of its bay.
+};
 
-    for (const session_cpp::Vertex& vertex : graph.get_vertices())
-        if (vertex_point(vertex.name).distance(point) <= tolerance)
-            return vertex.name;
+/// A building as its levels: the same pipeline from a massing, a footprint or drawn lines; elements per storey from a Framing.
+struct Building {
+    std::vector<Level> levels; // Ascending; storey k spans levels[k] to levels[k + 1]; levels[0] is the ground and carries the column feet.
+    std::vector<session_cpp::Line> braces; // Tilted lines from from_lines, built as beams cut by what they meet.
+    Pattern pattern; // The lines the plans were drawn on: the unclipped cells purlin stations are spaced over.
+    double tolerance = 1.0; // Weld distance the plans were built with.
 
-    const std::string key = graph.add_node(std::to_string(graph.number_of_vertices()));
-    graph.set_vertex_attribute(key, "x", point[0]);
-    graph.set_vertex_attribute(key, "y", point[1]);
-    graph.set_vertex_attribute(key, "z", point[2]);
+    /// A. A closed massing sliced at elevations: sections just below and just above each, their union filled with pattern, cores as rings through every level; columns follow the sections within taper.
+    static Building from_solid(const session_cpp::Mesh& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
 
-    return key;
-}
+    /// A. The same for a BRep through its tessellation, facet degrees per curved face.
+    static Building from_solid(const session_cpp::BRep& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0, double facet = 15.0);
 
-inline size_t Grid::add_face(const std::vector<std::string>& loop) {
+    /// B. Footprint rings (outer counter-clockwise, holes clockwise; empty means every bounded cell of the pattern) over storeys of heights, the same section on every level, cores on every level.
+    static Building from_footprint(const std::vector<session_cpp::Polyline>& footprint, const std::vector<double>& heights, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
 
-    for (size_t i = 0; i < loop.size(); i++)
-        if (!graph.has_edge({loop[i], loop[(i + 1) % loop.size()]}))
-            graph.add_edge(loop[i], loop[(i + 1) % loop.size()]);
+    /// C. Members and surfaces as drawn: horizontal lines and floors make the plan of their level, vertical lines its column points, vertical surfaces its walls (2 when named core, 1 otherwise), tilted lines braces; duplicates in either direction merged, lines split at every node and crossing.
+    static Building from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<session_cpp::Polyline>& surfaces, double tolerance = 1.0, double angle = 10.0);
 
-    faces.push_back(loop);
-    facedata.emplace_back();
+    /// Every element of storey k with its joints resolved, world space, in plan order so instance_by_key() dedups them: columns and walls standing in the storey, then the heads, members, stations and decks of the level that caps it, then its braces.
+    std::vector<std::shared_ptr<session_cpp::Element>> to_elements(const Framing& framing, size_t storey) const;
 
-    return faces.size() - 1;
-}
+    /// Every storey's elements added to session under a group per storey named storey_k.
+    void to_session(wood_session::WoodSession& session, const Framing& framing) const;
+};
 
-inline session_cpp::Point Grid::vertex_point(const std::string& key) const {
-    return session_cpp::Point(*graph.vertex_attribute(key, "x"), *graph.vertex_attribute(key, "y"), *graph.vertex_attribute(key, "z"));
-}
+} // namespace wood_grid
 
-inline session_cpp::Line Grid::edge_line(const std::tuple<std::string, std::string>& edge) const {
-    return session_cpp::Line::from_points(vertex_point(std::get<0>(edge)), vertex_point(std::get<1>(edge)));
-}
+#include "src/templates/grid_joints.h"
 
-inline std::vector<session_cpp::Point> Grid::face_points(size_t face) const {
-
-    std::vector<session_cpp::Point> points;
-    for (const std::string& key : faces[face])
-        points.push_back(vertex_point(key));
-
-    return points;
-}
-
-inline std::vector<size_t> Grid::edge_faces(const std::tuple<std::string, std::string>& edge) const {
-
-    std::vector<size_t> result;
-    for (size_t face = 0; face < faces.size(); face++)
-        for (size_t i = 0; i < faces[face].size(); i++)
-            if (std::minmax(faces[face][i], faces[face][(i + 1) % faces[face].size()]) == std::minmax(std::get<0>(edge), std::get<1>(edge)))
-                result.push_back(face);
-
-    return result;
-}
-
-inline std::vector<size_t> Grid::vertex_faces(const std::string& key) const {
-
-    std::vector<size_t> result;
-    for (size_t face = 0; face < faces.size(); face++)
-        if (std::find(faces[face].begin(), faces[face].end(), key) != faces[face].end())
-            result.push_back(face);
-
-    return result;
-}
-
-inline void Grid::update_default_face_attributes(const std::vector<std::pair<std::string, double>>& attrs) {
-    for (const std::pair<std::string, double>& attr : attrs)
-        default_face_attributes[attr.first] = attr.second;
-}
-
-inline std::optional<double> Grid::face_attribute(size_t face, const std::string& name) const {
-
-    const auto value = facedata[face].find(name);
-    if (value != facedata[face].end())
-        return value->second;
-
-    const auto fallback = default_face_attributes.find(name);
-    if (fallback != default_face_attributes.end())
-        return fallback->second;
-
-    return std::nullopt;
-}
-
-inline void Grid::set_face_attribute(size_t face, const std::string& name, double value) {
-    facedata[face][name] = value;
-}
-
-inline std::vector<size_t> Grid::faces_where(const std::vector<std::pair<std::string, double>>& conditions) const {
-
-    std::vector<size_t> result;
-    for (size_t face = 0; face < faces.size(); face++)
-        if (std::all_of(conditions.begin(), conditions.end(), [&](const std::pair<std::string, double>& condition) { return face_attribute(face, condition.first) == condition.second; }))
-            result.push_back(face);
-
-    return result;
-}
-
-inline void Grid::fill_vertex_attribute(const std::string& key, const std::string& name, double value) {
-    if (!graph.vertex_attribute(key, name))
-        graph.set_vertex_attribute(key, name, value);
-}
-
-inline void Grid::fill_edge_attribute(const std::tuple<std::string, std::string>& edge, const std::string& name, double value) {
-    if (!graph.edge_attribute(edge, name))
-        graph.set_edge_attribute(edge, name, value);
-}
-
-inline void Grid::fill_face_attribute(size_t face, const std::string& name, double value) {
-    if (!face_attribute(face, name))
-        set_face_attribute(face, name, value);
-}
+namespace wood_grid {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Normals and levels
+// Patterns
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Newell normal of a loop, unnormalised: twice the area along the side it faces.
-inline session_cpp::Vector compute_normal(const std::vector<session_cpp::Point>& points) {
+/// Running sums from 0 over steps.
+inline std::vector<double> compute_sums(const std::vector<double>& steps) {
 
-    session_cpp::Vector normal(0.0, 0.0, 0.0);
-    for (size_t i = 0; i < points.size(); i++) {
-        const session_cpp::Point& a = points[i];
-        const session_cpp::Point& b = points[(i + 1) % points.size()];
-        normal += session_cpp::Vector((a[1] - b[1]) * (a[2] + b[2]), (a[2] - b[2]) * (a[0] + b[0]), (a[0] - b[0]) * (a[1] + b[1]));
-    }
+    std::vector<double> sums = {0.0};
+    for (const double step : steps)
+        sums.push_back(sums.back() + step);
 
-    return normal;
+    return sums;
 }
 
-/// Angle in degrees between the segment from a to b and the horizontal plane.
-inline double compute_tilt(const session_cpp::Point& a, const session_cpp::Point& b) {
-    return std::atan2(std::abs(b[2] - a[2]), std::hypot(b[0] - a[0], b[1] - a[1])) * session_cpp::Tolerance::TO_DEGREES;
+inline Pattern Pattern::orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew) {
+
+    const std::vector<double> x = compute_sums(xs);
+    const std::vector<double> y = compute_sums(ys);
+    const double lean = skew * session_cpp::Tolerance::TO_RADIANS;
+    const auto point = [&](double u, double v) { return session_cpp::Point(u + v * std::sin(lean), v * std::cos(lean), 0.0); };
+
+    Pattern pattern;
+    for (const double v : y) {
+        pattern.lines.push_back(session_cpp::Line::from_points(point(x.front(), v), point(x.back(), v)));
+        pattern.families.push_back(0);
+    }
+    for (const double u : x) {
+        pattern.lines.push_back(session_cpp::Line::from_points(point(u, y.front()), point(u, y.back())));
+        pattern.families.push_back(1);
+    }
+
+    return pattern;
 }
 
-/// Unit plan direction from a to b.
-inline session_cpp::Vector compute_direction(const session_cpp::Point& a, const session_cpp::Point& b) {
-    return session_cpp::Vector(b[0] - a[0], b[1] - a[1], 0.0).normalized();
-}
+inline Pattern Pattern::radial(const std::vector<double>& radii, int sectors, double sweep) {
 
-/// Unit plan direction of the span side of a floor, the way its girders run.
-inline session_cpp::Vector compute_span(const Grid& grid, size_t face) {
-
-    const std::vector<session_cpp::Point> points = grid.face_points(face);
-    const size_t side = static_cast<size_t>(*grid.face_attribute(face, "span"));
-
-    return compute_direction(points[side], points[(side + 1) % points.size()]);
-}
-
-/// Clusters node elevations into levels, the nodes of a face within 45 degrees of horizontal at its lowest; level on nodes, storey on nodes, edges and faces: the storey an element caps or stands in.
-inline void compute_levels(Grid& grid) {
-
-    std::map<std::string, double> elevations;
-    for (const session_cpp::Vertex& vertex : grid.graph.get_vertices())
-        elevations[vertex.name] = grid.vertex_point(vertex.name)[2];
-
-    for (size_t face = 0; face < grid.faces.size(); face++) {
-        const std::vector<session_cpp::Point> points = grid.face_points(face);
-        const session_cpp::Vector normal = compute_normal(points);
-        if (std::abs(normal[2]) < normal.magnitude() * std::sqrt(0.5))
-            continue;
-
-        double low = points[0][2];
-        for (const session_cpp::Point& point : points)
-            low = std::min(low, point[2]);
-        for (const std::string& key : grid.faces[face])
-            elevations[key] = std::min(elevations[key], low);
-    }
-
-    std::vector<double> heights;
-    for (const std::pair<const std::string, double>& elevation : elevations)
-        heights.push_back(elevation.second);
-    std::sort(heights.begin(), heights.end());
-
-    grid.levels.clear();
-    for (const double z : heights)
-        if (grid.levels.empty() || z - grid.levels.back() > grid.tolerance)
-            grid.levels.push_back(z);
-
-    const auto level = [&](const std::string& key) {
-        return static_cast<double>(std::upper_bound(grid.levels.begin(), grid.levels.end(), elevations.at(key) + grid.tolerance) - grid.levels.begin() - 1);
-    };
-
-    for (const session_cpp::Vertex& vertex : grid.graph.get_vertices()) {
-        grid.graph.set_vertex_attribute(vertex.name, "level", level(vertex.name));
-        grid.graph.set_vertex_attribute(vertex.name, "storey", std::max(0.0, level(vertex.name) - 1.0));
-    }
-
-    for (const std::tuple<std::string, std::string>& edge : grid.graph.get_edges())
-        grid.graph.set_edge_attribute(edge, "storey", std::max(0.0, std::max(level(std::get<0>(edge)), level(std::get<1>(edge))) - 1.0));
-
-    for (size_t face = 0; face < grid.faces.size(); face++) {
-        double top = 0.0;
-        for (const std::string& key : grid.faces[face])
-            top = std::max(top, level(key));
-        grid.set_face_attribute(face, "storey", std::max(0.0, top - 1.0));
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Generators
-// ═══════════════════════════════════════════════════════════════════════════
-
-inline Grid Grid::from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<session_cpp::Polyline>& surfaces, double tolerance) {
-
-    Grid grid;
-    grid.tolerance = tolerance;
-
-    for (const session_cpp::Line& line : lines) {
-        grid.add_vertex(line.start());
-        grid.add_vertex(line.end());
-    }
-
-    std::vector<std::vector<std::string>> loops;
-    for (const session_cpp::Polyline& surface : surfaces) {
-        loops.emplace_back();
-        for (const session_cpp::Point& point : surface.get_points()) {
-            const std::string key = grid.add_vertex(point);
-            if (loops.back().empty() || loops.back().back() != key)
-                loops.back().push_back(key);
-        }
-    }
-
-    for (const session_cpp::Line& line : lines) {
-        std::vector<std::pair<double, std::string>> stops;
-        for (const session_cpp::Vertex& vertex : grid.graph.get_vertices()) {
-            const std::pair<double, session_cpp::Point> closest = line.closest_point(grid.vertex_point(vertex.name));
-            if (closest.second.distance(grid.vertex_point(vertex.name)) <= tolerance)
-                stops.emplace_back(closest.first, vertex.name);
-        }
-        std::sort(stops.begin(), stops.end());
-
-        for (size_t i = 0; i + 1 < stops.size(); i++) {
-            if (!grid.graph.has_edge({stops[i].second, stops[i + 1].second}))
-                grid.graph.add_edge(stops[i].second, stops[i + 1].second);
-            grid.graph.set_edge_attribute({stops[i].second, stops[i + 1].second}, "line", 1.0);
-        }
-    }
-
-    for (std::vector<std::string>& loop : loops) {
-        if (loop.size() > 1 && loop.back() == loop.front())
-            loop.pop_back();
-        if (loop.size() < 3)
-            continue;
-
-        const size_t face = grid.add_face(loop);
-        const session_cpp::Vector normal = compute_normal(grid.face_points(face));
-        if (normal[2] < -normal.magnitude() * std::sqrt(0.5))
-            std::reverse(grid.faces[face].begin(), grid.faces[face].end());
-    }
-
-    compute_levels(grid);
-
-    return grid;
-}
-
-inline Grid Grid::from_plan(const session_cpp::Mesh& plan, const std::vector<double>& heights, double tolerance) {
-
-    Grid grid;
-    grid.tolerance = tolerance;
-
-    std::vector<double> elevations = {0.0};
-    for (const double height : heights)
-        elevations.push_back(elevations.back() + height);
-
-    std::map<std::pair<size_t, size_t>, std::string> keys;
-    const auto node = [&](size_t vertex, size_t level) {
-        if (!keys.contains({vertex, level})) {
-            const session_cpp::Point point = *plan.vertex_point(vertex);
-            keys[{vertex, level}] = grid.add_vertex(session_cpp::Point(point[0], point[1], elevations[level]));
-        }
-        return keys.at({vertex, level});
-    };
-
-    for (const size_t face : plan.faces()) {
-        std::vector<size_t> loop = *plan.face_vertices(face);
-        std::map<std::string, double> data = plan.facedata.contains(face) ? plan.facedata.at(face) : std::map<std::string, double>();
-
-        std::vector<session_cpp::Point> points;
-        for (const size_t vertex : loop)
-            points.push_back(*plan.vertex_point(vertex));
-        if (compute_normal(points)[2] < 0.0) {
-            std::reverse(loop.begin(), loop.end());
-            if (data.contains("span") && data["span"] >= 0.0)
-                data["span"] = std::fmod(2.0 * loop.size() - 2.0 - data["span"], static_cast<double>(loop.size()));
-        }
-
-        const size_t bottom = static_cast<size_t>(plan.face_attribute(face, "bottom").value_or(1.0));
-        const size_t top = static_cast<size_t>(plan.face_attribute(face, "top").value_or(static_cast<double>(heights.size())));
-
-        for (size_t level = bottom; level <= top; level++) {
-            std::vector<std::string> ring;
-            for (const size_t vertex : loop)
-                ring.push_back(node(vertex, level));
-
-            const size_t index = grid.add_face(ring);
-            grid.facedata[index] = data;
-            for (size_t i = 0; i < ring.size(); i++)
-                grid.graph.set_edge_attribute({ring[i], ring[(i + 1) % ring.size()]}, "line", 1.0);
-        }
-
-        for (size_t level = 0; level < top; level++)
-            for (const size_t vertex : loop) {
-                if (plan.vertex_attribute(vertex, "column").value_or(1.0) == 0.0)
-                    continue;
-
-                const std::tuple<std::string, std::string> edge(node(vertex, level), node(vertex, level + 1));
-                if (!grid.graph.has_edge(edge))
-                    grid.graph.add_edge(std::get<0>(edge), std::get<1>(edge));
-                grid.graph.set_edge_attribute(edge, "line", 1.0);
-            }
-    }
-
-    for (const std::pair<size_t, size_t>& edge : plan.edges()) {
-        if (plan.edge_attribute(edge, "wall").value_or(0.0) != 1.0)
-            continue;
-
-        for (size_t level = 0; level < heights.size(); level++)
-            if (keys.contains({edge.first, level + 1}) && keys.contains({edge.second, level + 1}) && grid.graph.has_edge({keys.at({edge.first, level + 1}), keys.at({edge.second, level + 1})}))
-                grid.add_face({node(edge.first, level), node(edge.second, level), node(edge.second, level + 1), node(edge.first, level + 1)});
-    }
-
-    for (const std::pair<const std::string, double>& attribute : plan.default_face_attributes)
-        grid.default_face_attributes[attribute.first] = attribute.second;
-
-    compute_levels(grid);
-
-    return grid;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Plans
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Bays of widths xs along x and depths ys along y from the origin, the y axis leaning skew degrees towards x; skew 0 is orthogonal; side 0 of every bay runs along x.
-inline session_cpp::Mesh create_orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew = 0.0) {
-
-    std::vector<double> x = {0.0};
-    for (const double width : xs)
-        x.push_back(x.back() + width);
-
-    std::vector<double> y = {0.0};
-    for (const double depth : ys)
-        y.push_back(y.back() + depth);
-
-    const double angle = skew * session_cpp::Tolerance::TO_RADIANS;
-    const auto point = [&](size_t i, size_t j) { return session_cpp::Point(x[i] + y[j] * std::sin(angle), y[j] * std::cos(angle), 0.0); };
-
-    std::vector<std::vector<session_cpp::Point>> polygons;
-    for (size_t j = 0; j < ys.size(); j++)
-        for (size_t i = 0; i < xs.size(); i++)
-            polygons.push_back({point(i, j), point(i + 1, j), point(i + 1, j + 1), point(i, j + 1)});
-
-    return session_cpp::Mesh::from_polylines(polygons, 0.001);
-}
-
-/// Rings at radii cut into sectors over sweep degrees, rings as chords; side 0 of every bay is a ray; a first radius of 0 gives a centre node and triangles.
-inline session_cpp::Mesh create_radial(const std::vector<double>& radii, int sectors, double sweep = 360.0) {
-
-    const auto point = [&](size_t i, int j) {
+    const auto point = [&](double radius, int j) {
         const double angle = sweep * j / sectors * session_cpp::Tolerance::TO_RADIANS;
-        return session_cpp::Point(radii[i] * std::cos(angle), radii[i] * std::sin(angle), 0.0);
+        return session_cpp::Point(radius * std::cos(angle), radius * std::sin(angle), 0.0);
     };
+    const int chords = sweep >= 360.0 - 1e-9 ? sectors : sectors + 1;
 
-    std::vector<std::vector<session_cpp::Point>> polygons;
-    for (size_t i = 0; i + 1 < radii.size(); i++)
-        for (int j = 0; j < sectors; j++)
-            polygons.push_back({point(i, j), point(i + 1, j), point(i + 1, j + 1), point(i, j + 1)});
-
-    return session_cpp::Mesh::from_polylines(polygons, 0.001);
-}
-
-/// Equilateral triangles of side, nx by ny rhombi each split in two.
-inline session_cpp::Mesh create_triangular(double side, int nx, int ny) {
-
-    const auto point = [&](int i, int j) { return session_cpp::Point(side * (i + 0.5 * j), side * std::sqrt(3.0) / 2.0 * j, 0.0); };
-
-    std::vector<std::vector<session_cpp::Point>> polygons;
-    for (int j = 0; j < ny; j++)
-        for (int i = 0; i < nx; i++) {
-            polygons.push_back({point(i, j), point(i + 1, j), point(i, j + 1)});
-            polygons.push_back({point(i + 1, j), point(i + 1, j + 1), point(i, j + 1)});
+    Pattern pattern;
+    for (int j = 0; j < chords; j++) {
+        pattern.lines.push_back(session_cpp::Line::from_points(point(radii.front(), j), point(radii.back(), j)));
+        pattern.families.push_back(0);
+    }
+    for (const double radius : radii)
+        for (int j = 0; j < sectors && radius > 0.0; j++) {
+            pattern.lines.push_back(session_cpp::Line::from_points(point(radius, j), point(radius, j + 1)));
+            pattern.families.push_back(1);
         }
 
-    return session_cpp::Mesh::from_polylines(polygons, 0.001);
+    return pattern;
 }
 
-/// Pointy-top hexagons of side in nx columns and ny rows, odd rows shifted half a cell.
-inline session_cpp::Mesh create_hexagonal(double side, int nx, int ny) {
+inline Pattern Pattern::triangular(double side, int nx, int ny) {
 
-    std::vector<std::vector<session_cpp::Point>> polygons;
+    const auto point = [&](double i, double j) { return session_cpp::Point(side * (i + 0.5 * j), side * std::sqrt(3.0) / 2.0 * j, 0.0); };
+
+    Pattern pattern;
+    for (int j = 0; j <= ny; j++) {
+        pattern.lines.push_back(session_cpp::Line::from_points(point(0, j), point(nx, j)));
+        pattern.families.push_back(0);
+    }
+    for (int i = 0; i <= nx; i++) {
+        pattern.lines.push_back(session_cpp::Line::from_points(point(i, 0), point(i, ny)));
+        pattern.families.push_back(1);
+    }
+    for (int k = 1; k < nx + ny; k++) {
+        const int i0 = std::min(k, nx);
+        const int i1 = std::max(0, k - ny);
+        pattern.lines.push_back(session_cpp::Line::from_points(point(i0, k - i0), point(i1, k - i1)));
+        pattern.families.push_back(2);
+    }
+
+    return pattern;
+}
+
+inline Pattern Pattern::hexagonal(double side, int nx, int ny) {
+
+    std::vector<session_cpp::Line> lines;
     for (int j = 0; j < ny; j++)
         for (int i = 0; i < nx; i++) {
             const session_cpp::Point centre(std::sqrt(3.0) * side * (i + 0.5 * (j % 2)), 1.5 * side * j, 0.0);
             std::vector<session_cpp::Point> corners;
             for (int k = 0; k < 6; k++)
                 corners.push_back(centre + session_cpp::Vector(std::cos((30.0 + 60.0 * k) * session_cpp::Tolerance::TO_RADIANS), std::sin((30.0 + 60.0 * k) * session_cpp::Tolerance::TO_RADIANS), 0.0) * side);
-            polygons.push_back(corners);
+            for (int k = 0; k < 6; k++)
+                lines.push_back(session_cpp::Line::from_points(corners[k], corners[(k + 1) % 6]));
         }
 
-    return session_cpp::Mesh::from_polylines(polygons, 0.001);
+    return from_lines(lines);
+}
+
+inline Pattern Pattern::from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<int>& families) {
+
+    Pattern pattern;
+    pattern.lines = lines;
+    pattern.families = families.empty() ? std::vector<int>(lines.size(), -1) : families;
+
+    return pattern;
+}
+
+inline Pattern Pattern::transformed(const session_cpp::Xform& xform) const {
+
+    Pattern moved = *this;
+    for (session_cpp::Line& line : moved.lines)
+        line = line.transformed(xform);
+
+    return moved;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Rules
+// Plans
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Lowest and highest (p - p0) . direction over a loop.
-inline std::pair<double, double> compute_extent(const std::vector<session_cpp::Point>& points, const session_cpp::Vector& direction) {
+/// True when a ring touches or crosses any of the lines.
+inline bool compute_touching(const session_cpp::Polyline& ring, const std::vector<session_cpp::Line>& lines, double tolerance) {
 
-    std::pair<double, double> extent(0.0, 0.0);
-    for (const session_cpp::Point& point : points) {
-        extent.first = std::min(extent.first, (point - points[0]).dot(direction));
-        extent.second = std::max(extent.second, (point - points[0]).dot(direction));
-    }
-
-    return extent;
-}
-
-/// Faces into floor and wall by tilt within angle degrees; roof on a floor no column rises from; structural system 1 on floors without one.
-inline void compute_faces(Grid& grid, double angle = 10.0) {
-
-    for (size_t face = 0; face < grid.faces.size(); face++) {
-        const session_cpp::Vector normal = compute_normal(grid.face_points(face));
-        if (std::acos(std::abs(normal[2]) / normal.magnitude()) * session_cpp::Tolerance::TO_DEGREES >= 90.0 - angle) {
-            grid.fill_face_attribute(face, "wall", 1.0);
-            continue;
-        }
-
-        grid.fill_face_attribute(face, "floor", 1.0);
-        grid.fill_face_attribute(face, "structural_system", 1.0);
-
-        bool roof = true;
-        for (const std::string& key : grid.faces[face])
-            for (const std::string& other : grid.graph.neighbors(key))
-                if (grid.graph.edge_attribute({key, other}, "line") == 1.0 && grid.vertex_point(other)[2] > grid.vertex_point(key)[2] && compute_tilt(grid.vertex_point(key), grid.vertex_point(other)) >= 90.0 - angle)
-                    roof = false;
-
-        if (roof)
-            grid.fill_face_attribute(face, "roof", 1.0);
-    }
-}
-
-/// Span side per floor, the loop side its girders run parallel to: the shortest, or the longest, first within tolerance; -1 under structural system 0.
-inline void compute_spans(Grid& grid, bool longest = false) {
-
-    for (const size_t face : grid.faces_where({{"floor", 1.0}})) {
-        if (grid.face_attribute(face, "structural_system") == 0.0) {
-            grid.fill_face_attribute(face, "span", -1.0);
-            continue;
-        }
-
-        const std::vector<session_cpp::Point> points = grid.face_points(face);
-        std::vector<double> lengths;
-        for (size_t i = 0; i < points.size(); i++)
-            lengths.push_back(std::hypot(points[(i + 1) % points.size()][0] - points[i][0], points[(i + 1) % points.size()][1] - points[i][1]));
-
-        const double target = longest ? *std::max_element(lengths.begin(), lengths.end()) : *std::min_element(lengths.begin(), lengths.end());
-        size_t side = 0;
-        while (std::abs(lengths[side] - target) > grid.tolerance)
-            side++;
-
-        grid.fill_face_attribute(face, "span", static_cast<double>(side));
-    }
-}
-
-/// Line edges into column, beam and brace by tilt within angle degrees; on horizontal lines is_boundary, girder along a floor's span, purlin on cross lines of system 2, beam 0 on cross lines the deck spans over.
-inline void compute_members(Grid& grid, double angle = 10.0) {
-
-    for (const std::tuple<std::string, std::string>& edge : grid.graph.edges_where({{"line", 1.0}})) {
-        const session_cpp::Line line = grid.edge_line(edge);
-        const double tilt = compute_tilt(line.start(), line.end());
-        if (tilt >= 90.0 - angle) {
-            grid.fill_edge_attribute(edge, "column", 1.0);
-            continue;
-        }
-
-        if (tilt > angle) {
-            grid.fill_edge_attribute(edge, "brace", 1.0);
-            continue;
-        }
-
-        std::vector<size_t> floors;
-        for (const size_t face : grid.edge_faces(edge))
-            if (grid.face_attribute(face, "floor") == 1.0)
-                floors.push_back(face);
-
-        if (floors.size() <= 1) {
-            grid.fill_edge_attribute(edge, "is_boundary", 1.0);
-            grid.fill_vertex_attribute(std::get<0>(edge), "is_boundary", 1.0);
-            grid.fill_vertex_attribute(std::get<1>(edge), "is_boundary", 1.0);
-        }
-
-        bool purlin = false;
-        for (const size_t face : floors) {
-            const double system = grid.face_attribute(face, "structural_system").value_or(1.0);
-            purlin = purlin || system == 2.0;
-            if (grid.face_attribute(face, "span").value_or(-1.0) < 0.0 || system == 0.0)
-                continue;
-
-            if (std::abs(compute_direction(line.start(), line.end()).dot(compute_span(grid, face))) >= std::cos(angle * session_cpp::Tolerance::TO_RADIANS))
-                grid.fill_edge_attribute(edge, "girder", 1.0);
-        }
-
-        const bool carried = grid.graph.edge_attribute(edge, "girder") == 1.0 || grid.graph.edge_attribute(edge, "is_boundary") == 1.0;
-        if (!carried && purlin)
-            grid.fill_edge_attribute(edge, "purlin", 1.0);
-        grid.fill_edge_attribute(edge, "beam", carried || purlin ? 1.0 : 0.0);
-    }
-}
-
-/// Purlin count per floor of structural system 2, the fewest that keep every gap along its span within spacing; 0 on other floors.
-inline void compute_purlins(Grid& grid, double spacing) {
-
-    for (const size_t face : grid.faces_where({{"floor", 1.0}})) {
-        if (grid.face_attribute(face, "structural_system") != 2.0 || grid.face_attribute(face, "span").value_or(-1.0) < 0.0 || spacing <= 0.0) {
-            grid.fill_face_attribute(face, "purlins", 0.0);
-            continue;
-        }
-
-        const std::pair<double, double> extent = compute_extent(grid.face_points(face), compute_span(grid, face));
-        grid.fill_face_attribute(face, "purlins", std::max(0.0, std::ceil((extent.second - extent.first) / spacing - 1e-9) - 1.0));
-    }
-}
-
-/// Support at the foot of every column stack, head where a column arrives under a beam or a floor.
-inline void compute_supports(Grid& grid) {
-
-    for (const session_cpp::Vertex& vertex : grid.graph.get_vertices()) {
-        const double z = grid.vertex_point(vertex.name)[2];
-        bool up = false;
-        bool down = false;
-        bool carries = false;
-        for (const std::string& other : grid.graph.neighbors(vertex.name)) {
-            if (grid.graph.edge_attribute({vertex.name, other}, "column") == 1.0) {
-                up = up || grid.vertex_point(other)[2] > z;
-                down = down || grid.vertex_point(other)[2] < z;
-            }
-            carries = carries || grid.graph.edge_attribute({vertex.name, other}, "beam") == 1.0;
-        }
-
-        for (const size_t face : grid.vertex_faces(vertex.name))
-            carries = carries || grid.face_attribute(face, "floor") == 1.0;
-
-        if (up && !down)
-            grid.fill_vertex_attribute(vertex.name, "support", 1.0);
-        if (down && carries)
-            grid.fill_vertex_attribute(vertex.name, "head", 1.0);
-    }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Helpers
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Section side of the member on an edge: purlin size on a purlin line, else beam size.
-inline double compute_width(const Grid& grid, const std::tuple<std::string, std::string>& edge, const Dimensions& dimensions) {
-    return grid.graph.edge_attribute(edge, "purlin") == 1.0 ? dimensions.purlin : dimensions.beam;
-}
-
-/// Unit up of the members on faces: the floor normals among them summed, z when there is none; members drop along it under the deck.
-inline session_cpp::Vector compute_up(const Grid& grid, const std::vector<size_t>& faces) {
-
-    session_cpp::Vector up(0.0, 0.0, 0.0);
-    for (const size_t face : faces)
-        if (grid.face_attribute(face, "floor") == 1.0)
-            up += compute_normal(grid.face_points(face)).normalized();
-
-    return up.magnitude() > 0.0 ? up.normalized() : session_cpp::Vector(0.0, 0.0, 1.0);
-}
-
-/// Point moved vertically onto plane.
-inline session_cpp::Point compute_lift(const session_cpp::Plane& plane, const session_cpp::Point& point) {
-    return point - session_cpp::Vector(0.0, 0.0, (point - plane.origin()).dot(plane.z_axis()) / plane.z_axis()[2]);
-}
-
-/// Unit plan directions of the horizontal edges at a node and their opposites, counter-clockwise, closer than 1 degree merged; one line adds its perpendicular, none gives x and y.
-inline std::vector<session_cpp::Vector> compute_directions(const Grid& grid, const std::string& node) {
-
-    const session_cpp::Point origin = grid.vertex_point(node);
-    std::vector<double> angles;
-    for (const std::string& other : grid.graph.neighbors(node)) {
-        const session_cpp::Point point = grid.vertex_point(other);
-        if (grid.graph.edge_attribute({node, other}, "column") == 1.0 || grid.graph.edge_attribute({node, other}, "brace") == 1.0 || std::hypot(point[0] - origin[0], point[1] - origin[1]) <= grid.tolerance)
-            continue;
-
-        angles.push_back(std::atan2(point[1] - origin[1], point[0] - origin[0]));
-        angles.push_back(std::atan2(origin[1] - point[1], origin[0] - point[0]));
-    }
-
-    if (angles.empty())
-        angles = {-session_cpp::Tolerance::HALF_PI, 0.0, session_cpp::Tolerance::HALF_PI, session_cpp::Tolerance::PI};
-    std::sort(angles.begin(), angles.end());
-
-    std::vector<double> merged;
-    for (const double angle : angles)
-        if (merged.empty() || angle - merged.back() > session_cpp::Tolerance::TO_RADIANS)
-            merged.push_back(angle);
-    if (merged.size() > 1 && merged.front() + session_cpp::Tolerance::TWO_PI - merged.back() <= session_cpp::Tolerance::TO_RADIANS)
-        merged.pop_back();
-
-    if (merged.size() == 2) {
-        merged.push_back(merged[0] + session_cpp::Tolerance::HALF_PI);
-        merged.push_back(merged[0] - session_cpp::Tolerance::HALF_PI);
-        std::sort(merged.begin(), merged.end());
-    }
-
-    std::vector<session_cpp::Vector> directions;
-    for (const double angle : merged)
-        directions.emplace_back(std::cos(angle), std::sin(angle), 0.0);
-
-    return directions;
-}
-
-/// Closed polygon about centre whose edge j is perpendicular to directions[j] at distance.
-inline session_cpp::Polyline compute_polygon(const std::vector<session_cpp::Vector>& directions, const session_cpp::Point& centre, double distance) {
-
-    std::vector<session_cpp::Point> points;
-    for (size_t j = 0; j < directions.size(); j++) {
-        const session_cpp::Vector& a = directions[j];
-        const session_cpp::Vector& b = directions[(j + 1) % directions.size()];
-        points.push_back(centre + (a + b) * (distance / (1.0 + a.dot(b))));
-    }
-    points.push_back(points.front());
-
-    return session_cpp::Polyline(points);
-}
-
-/// Loop with side i moved out by distances[i] in the plane of normal, the loop counter-clockwise about normal.
-inline std::vector<session_cpp::Point> compute_offset(const std::vector<session_cpp::Point>& points, const session_cpp::Vector& normal, const std::vector<double>& distances) {
-
-    const size_t count = points.size();
-    std::vector<session_cpp::Vector> outward;
-    for (size_t i = 0; i < count; i++)
-        outward.push_back((points[(i + 1) % count] - points[i]).cross(normal).normalized());
-
-    std::vector<session_cpp::Point> result;
-    for (size_t i = 0; i < count; i++) {
-        const size_t before = (i + count - 1) % count;
-        const double cosine = outward[before].dot(outward[i]);
-        if (1.0 - cosine * cosine < 1e-9) {
-            result.push_back(points[i] + outward[i] * std::max(distances[before], distances[i]));
-            continue;
-        }
-
-        const double alpha = (distances[before] - cosine * distances[i]) / (1.0 - cosine * cosine);
-        const double beta = (distances[i] - cosine * distances[before]) / (1.0 - cosine * cosine);
-        result.push_back(points[i] + outward[before] * alpha + outward[i] * beta);
-    }
-
-    return result;
-}
-
-/// Other beam neighbour at node within 45 degrees of straight on from other, the straightest.
-inline std::optional<std::string> compute_continuation(const Grid& grid, const std::string& node, const std::string& other) {
-
-    const session_cpp::Point origin = grid.vertex_point(node);
-    const session_cpp::Vector ahead = compute_direction(grid.vertex_point(other), origin);
-    std::optional<std::string> straight;
-    double best = std::cos(45.0 * session_cpp::Tolerance::TO_RADIANS);
-    for (const std::string& next : grid.graph.neighbors(node)) {
-        if (next == other || grid.graph.edge_attribute({node, next}, "beam") != 1.0)
-            continue;
-
-        const double dot = compute_direction(origin, grid.vertex_point(next)).dot(ahead);
-        if (dot > best) {
-            best = dot;
-            straight = next;
+    const std::vector<session_cpp::Point> corners = to_loop(ring);
+    for (size_t i = 0; i < corners.size(); i++) {
+        const session_cpp::Line edge = session_cpp::Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
+        for (const session_cpp::Line& line : lines) {
+            double t = 0.0;
+            double s = 0.0;
+            if (session_cpp::Intersection::line_line_parameters(edge, line, t, s, tolerance, true, false) && edge.point_at(t).distance(line.point_at(s)) <= tolerance)
+                return true;
         }
     }
 
-    return straight;
+    return false;
 }
 
-/// Beam neighbour whose beam runs through node: a girder first, then one with a continuation, then the smallest angle from x.
-inline std::optional<std::string> compute_through(const Grid& grid, const std::string& node) {
+/// Pattern line i clipped to the rings: the pieces whose midpoints lie inside, the whole line when there are no rings.
+inline std::vector<session_cpp::Line> compute_clipped(const session_cpp::Line& line, const std::vector<session_cpp::Polyline>& rings, double tolerance) {
 
-    const session_cpp::Point origin = grid.vertex_point(node);
-    std::optional<std::string> through;
-    std::tuple<double, double, double> best;
-    for (const std::string& other : grid.graph.neighbors(node)) {
-        if (grid.graph.edge_attribute({node, other}, "beam") != 1.0)
-            continue;
+    if (rings.empty())
+        return {line};
 
-        const session_cpp::Vector direction = compute_direction(origin, grid.vertex_point(other));
-        const double angle = std::atan2(direction[1], direction[0]);
-        const std::tuple<double, double, double> score(
-            grid.graph.edge_attribute({node, other}, "girder") == 1.0 ? 0.0 : 1.0,
-            compute_continuation(grid, node, other) ? 0.0 : 1.0,
-            angle < 0.0 ? angle + session_cpp::Tolerance::TWO_PI : angle
-        );
-
-        if (!through || score < best) {
-            best = score;
-            through = other;
+    std::vector<double> params = {0.0, 1.0};
+    for (const session_cpp::Polyline& ring : rings) {
+        const std::vector<session_cpp::Point> corners = to_loop(ring);
+        for (size_t i = 0; i < corners.size(); i++) {
+            double t = 0.0;
+            double s = 0.0;
+            const session_cpp::Line edge = session_cpp::Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
+            if (session_cpp::Intersection::line_line_parameters(line, edge, t, s, tolerance, true, false) && line.point_at(t).distance(edge.point_at(s)) <= tolerance)
+                params.push_back(t);
         }
     }
+    std::sort(params.begin(), params.end());
 
-    return through;
+    std::vector<session_cpp::Line> pieces;
+    for (size_t k = 0; k + 1 < params.size(); k++)
+        if ((params[k + 1] - params[k]) * line.length() > tolerance && compute_inside(rings, line.point_at((params[k] + params[k + 1]) / 2.0)))
+            pieces.push_back(session_cpp::Line::from_points(line.point_at(params[k]), line.point_at(params[k + 1])));
+
+    return pieces;
 }
 
-/// Plane of the head top at node: under the deck and the deepest beam arriving there, parallel to the floors through the node.
-inline session_cpp::Plane compute_head_top(const Grid& grid, const std::string& node, const Dimensions& dimensions) {
+/// The pattern family of a plan edge: that of the pattern line its midpoint lies on, -1 when it lies on none.
+inline int compute_family(const session_cpp::Line& edge, const Pattern& pattern, double tolerance) {
 
-    double depth = 0.0;
-    for (const std::string& other : grid.graph.neighbors(node))
-        if (grid.graph.edge_attribute({node, other}, "beam") == 1.0)
-            depth = std::max(depth, compute_width(grid, {node, other}, dimensions));
-
-    const session_cpp::Vector up = compute_up(grid, grid.vertex_faces(node));
-
-    return session_cpp::Plane::from_point_normal(grid.vertex_point(node) - up * (dimensions.deck + depth), up);
-}
-
-/// End point and cut planes of the beam from node towards other at its node end, its axis dropped along its up: through and straight on ends meet on the bisector or run reach past, the others butt on the through beam's side.
-inline std::pair<session_cpp::Point, std::vector<session_cpp::Plane>> compute_cuts(const Grid& grid, const std::string& node, const std::string& other, const Dimensions& dimensions) {
-
-    const session_cpp::Point origin = grid.vertex_point(node);
-    const auto toward = [&](const std::string& key) { return (grid.vertex_point(key) - origin).normalized(); };
-    const session_cpp::Vector up = compute_up(grid, grid.edge_faces({node, other}));
-    const session_cpp::Point axis = origin - up * (dimensions.deck + compute_width(grid, {node, other}, dimensions) / 2.0);
-    const session_cpp::Vector along = toward(other);
-    const std::string through = *compute_through(grid, node);
-    const std::optional<std::string> straight = compute_continuation(grid, node, through);
-
-    if (other == through || other == straight) {
-        const std::optional<std::string> partner = other == through ? straight : std::optional<std::string>(through);
-        if (!partner)
-            return {axis - along * dimensions.reach, {}};
-
-        return {axis - along * dimensions.reach, {session_cpp::Plane::from_point_normal(axis, (along - toward(*partner)).normalized())}};
+    const session_cpp::Point middle = edge.point_at(0.5);
+    for (size_t i = 0; i < pattern.lines.size(); i++) {
+        const std::pair<double, session_cpp::Point> closest = pattern.lines[i].closest_point(compute_lift(middle, 0.0));
+        if (closest.second.distance(compute_lift(middle, 0.0)) <= tolerance && std::abs(pattern.lines[i].to_direction().dot(edge.to_direction())) > 0.999)
+            return pattern.families[i];
     }
 
-    session_cpp::Vector side = up.cross(toward(through));
-    if (side.dot(along) < 0.0)
-        side = -side;
-    std::vector<session_cpp::Plane> planes = {session_cpp::Plane::from_point_normal(axis + side * (compute_width(grid, {node, through}, dimensions) / 2.0), side)};
-
-    std::vector<std::pair<double, std::string>> beams;
-    for (const std::string& next : grid.graph.neighbors(node))
-        if (grid.graph.edge_attribute({node, next}, "beam") == 1.0) {
-            const session_cpp::Vector direction = compute_direction(origin, grid.vertex_point(next));
-            beams.emplace_back(std::atan2(direction[1], direction[0]), next);
-        }
-    std::sort(beams.begin(), beams.end());
-
-    const size_t index = std::find_if(beams.begin(), beams.end(), [&](const std::pair<double, std::string>& beam) { return beam.second == other; }) - beams.begin();
-    for (const size_t neighbour : {(index + 1) % beams.size(), (index + beams.size() - 1) % beams.size()}) {
-        const std::string& key = beams[neighbour].second;
-        if (key == other || key == through || key == straight)
-            continue;
-
-        planes.push_back(session_cpp::Plane::from_point_normal(axis, (along - toward(key)).normalized()));
-    }
-
-    return {axis, planes};
+    return -1;
 }
 
-/// Purlin centre lines of a floor at its level: stations evenly along its span side, each from side to side across it.
-inline std::vector<session_cpp::Line> compute_stations(const Grid& grid, size_t face) {
-
-    const int count = static_cast<int>(grid.face_attribute(face, "purlins").value_or(0.0));
-    if (count <= 0 || grid.face_attribute(face, "span").value_or(-1.0) < 0.0)
-        return {};
-
-    const std::vector<session_cpp::Point> points = grid.face_points(face);
-    const size_t size = points.size();
-    const session_cpp::Vector along = compute_span(grid, face);
-    const session_cpp::Vector across = session_cpp::Vector(0.0, 0.0, 1.0).cross(along);
-    const std::pair<double, double> extent = compute_extent(points, along);
+/// The plan of one level: the pattern clipped to the section rings, the rings, the cores and extra rings arranged into faces; faces outside removed, core faces flagged, rings that touch nothing held back as face holes, then family, boundary, wall, column and floor attributes.
+inline session_cpp::Mesh compute_plan(const Pattern& pattern, const std::vector<session_cpp::Polyline>& rings, const std::vector<session_cpp::Polyline>& cores, const std::vector<session_cpp::Polyline>& extras, double tolerance, double merge) {
 
     std::vector<session_cpp::Line> lines;
-    for (int j = 1; j <= count; j++) {
-        const double station = extent.first + (extent.second - extent.first) * j / (count + 1);
-        std::vector<std::pair<double, session_cpp::Point>> crossings;
-        for (size_t i = 0; i < size; i++) {
-            const double da = (points[i] - points[0]).dot(along) - station;
-            const double db = (points[(i + 1) % size] - points[0]).dot(along) - station;
-            if ((da >= 0.0) == (db >= 0.0))
-                continue;
-
-            const session_cpp::Point crossing = points[i] + (points[(i + 1) % size] - points[i]) * (da / (da - db));
-            crossings.emplace_back((crossing - points[0]).dot(across), crossing);
+    std::vector<double> ids;
+    for (size_t i = 0; i < pattern.lines.size(); i++)
+        for (const session_cpp::Line& piece : compute_clipped(pattern.lines[i], rings, tolerance)) {
+            lines.push_back(piece);
+            ids.push_back(static_cast<double>(i));
         }
 
-        std::sort(crossings.begin(), crossings.end(), [](const std::pair<double, session_cpp::Point>& a, const std::pair<double, session_cpp::Point>& b) { return a.first < b.first; });
-        for (size_t k = 0; k + 1 < crossings.size(); k += 2)
-            lines.push_back(session_cpp::Line::from_points(crossings[k].second, crossings[k + 1].second));
+    std::vector<session_cpp::Polyline> held;
+    std::vector<int> kinds;
+    std::vector<session_cpp::Polyline> all = rings;
+    all.insert(all.end(), cores.begin(), cores.end());
+    all.insert(all.end(), extras.begin(), extras.end());
+    for (size_t r = 0; r < all.size(); r++) {
+        const int kind = r < rings.size() ? (compute_area(to_loop(all[r])) > 0.0 ? 0 : 1) : r < rings.size() + cores.size() ? 2 : 3;
+        if (kind != 0 && !compute_touching(all[r], lines, tolerance)) {
+            if (kind != 3) {
+                held.push_back(all[r]);
+                kinds.push_back(kind);
+            }
+            continue;
+        }
+
+        const std::vector<session_cpp::Point> corners = to_loop(all[r]);
+        for (size_t e = 0; e < corners.size(); e++) {
+            lines.push_back(session_cpp::Line::from_points(corners[e], corners[(e + 1) % corners.size()]));
+            ids.push_back(compute_ring_id(r, e));
+        }
     }
 
-    return lines;
+    const std::pair<std::vector<session_cpp::Line>, std::vector<double>> split = compute_crossings(lines, ids, tolerance, merge);
+    session_cpp::Mesh plan = compute_arrangement(split.first, split.second, tolerance);
+    const auto ring_of = [&](double id) { return static_cast<size_t>((id - 1000000.0) / 1000.0); };
+    const auto is_core = [&](double id) { return is_ring(id) && ring_of(id) >= rings.size() && ring_of(id) < rings.size() + cores.size(); };
+
+    for (const size_t face : plan.faces()) {
+        const session_cpp::Point centre = *plan.face_centroid(face);
+        if (!rings.empty() && !compute_inside(rings, centre)) {
+            plan.remove_face(face);
+            continue;
+        }
+
+        const bool core = std::any_of(cores.begin(), cores.end(), [&](const session_cpp::Polyline& ring) { return ring.point_in_polygon_2d(centre); });
+        plan.set_face_attribute(face, "floor", core ? 0.0 : 1.0);
+        plan.set_face_attribute(face, "core", core ? 1.0 : 0.0);
+    }
+
+    for (size_t h = 0; h < held.size(); h++)
+        for (const size_t face : plan.faces()) {
+            const std::vector<session_cpp::Point> corners = to_loop(held[h]);
+            if (!plan.face_polygon(face)->point_in_polygon_2d(corners[0]))
+                continue;
+
+            std::vector<size_t> ring;
+            for (const session_cpp::Point& corner : corners) {
+                ring.push_back(plan.add_vertex(compute_lift(corner, 0.0)));
+                plan.set_vertex_attribute(ring.back(), "wall", kinds[h] == 2 ? 2.0 : 0.0);
+                plan.set_vertex_attribute(ring.back(), "column", 0.0);
+            }
+            std::vector<std::vector<size_t>> holes = plan.get_face_holes().count(face) ? plan.get_face_holes().at(face) : std::vector<std::vector<size_t>>();
+            holes.push_back(ring);
+            plan.set_face_holes(face, holes);
+            break;
+        }
+
+    for (const std::pair<size_t, size_t>& edge : plan.edges()) {
+        const double id = plan.edge_attribute(edge, "line").value_or(-1.0);
+        const session_cpp::Line line = session_cpp::Line::from_points(*plan.vertex_point(edge.first), *plan.vertex_point(edge.second));
+        const bool boundary = plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>()).size() < 2;
+        plan.set_edge_attribute(edge, "family", is_ring(id) || id < 0.0 ? compute_family(line, pattern, tolerance) : pattern.families[static_cast<size_t>(id)]);
+        plan.set_edge_attribute(edge, "boundary", boundary ? 1.0 : 0.0);
+        plan.set_edge_attribute(edge, "wall", is_core(id) ? 2.0 : 0.0);
+        if (boundary) {
+            plan.set_vertex_attribute(edge.first, "boundary", 1.0);
+            plan.set_vertex_attribute(edge.second, "boundary", 1.0);
+        }
+    }
+
+    for (const size_t vertex : plan.vertices()) {
+        if (!plan.vertex_neighbors(vertex))
+            continue;
+
+        const session_cpp::Point point = *plan.vertex_point(vertex);
+        const std::vector<size_t> around = *plan.vertex_neighbors(vertex);
+        const bool on_core = std::any_of(around.begin(), around.end(), [&](size_t other) { return plan.edge_attribute({vertex, other}, "wall").value_or(0.0) == 2.0; });
+        const bool in_core = std::any_of(cores.begin(), cores.end(), [&](const session_cpp::Polyline& ring) { return ring.point_in_polygon_2d(point); });
+        plan.set_vertex_attribute(vertex, "column", on_core || in_core ? 0.0 : 1.0);
+    }
+
+    return plan;
 }
 
-/// Bay table row of a floor: area, girder, purlin and deck spans, purlin count and length.
-inline Bay compute_bay(const Grid& grid, size_t face) {
+// ═══════════════════════════════════════════════════════════════════════════
+// Levels
+// ═══════════════════════════════════════════════════════════════════════════
 
-    const std::vector<session_cpp::Point> points = grid.face_points(face);
-    const std::vector<std::string>& loop = grid.faces[face];
+/// The clockwise rings: the holes.
+inline std::vector<session_cpp::Polyline> compute_holes(const std::vector<session_cpp::Polyline>& rings) {
 
-    Bay bay;
-    bay.area = compute_normal(points).magnitude() / 2.0;
-    bay.purlins = static_cast<int>(grid.face_attribute(face, "purlins").value_or(0.0));
+    std::vector<session_cpp::Polyline> holes;
+    for (const session_cpp::Polyline& ring : rings)
+        if (compute_area(to_loop(ring)) < 0.0)
+            holes.push_back(ring);
+
+    return holes;
+}
+
+/// The cores whose first corner lies inside the rings, every ring counter-clockwise.
+inline std::vector<session_cpp::Polyline> compute_cores(const std::vector<session_cpp::Polyline>& cores, const std::vector<session_cpp::Polyline>& rings) {
+
+    std::vector<session_cpp::Polyline> inside;
+    for (const session_cpp::Polyline& core : cores) {
+        std::vector<session_cpp::Point> corners = to_loop(core);
+        if (compute_area(corners) < 0.0)
+            std::reverse(corners.begin(), corners.end());
+        if (rings.empty() || compute_inside(rings, corners[0]))
+            inside.push_back(compute_lift(to_polyline(corners), 0.0));
+    }
+
+    return inside;
+}
+
+/// A level from its rings and cores, its plan computed; the ground has no floor unless asked.
+inline Level compute_level(double z, const std::vector<session_cpp::Polyline>& rings, const std::vector<session_cpp::Polyline>& cores, const std::vector<session_cpp::Polyline>& extras, const Pattern& pattern, double tolerance, double merge, bool floor) {
+
+    Level level;
+    level.z = z;
+    level.rings = rings;
+    level.holes = compute_holes(rings);
+    level.cores = compute_cores(cores, rings);
+    level.plan = compute_plan(pattern, rings, level.cores, extras, tolerance, merge);
+    if (!floor)
+        for (const size_t face : level.plan.faces())
+            level.plan.set_face_attribute(face, "floor", 0.0);
+
+    return level;
+}
+
+/// True when two rings have the same corners within tolerance in some rotation and direction.
+inline bool compute_same(const session_cpp::Polyline& a, const session_cpp::Polyline& b, double tolerance) {
+
+    const std::vector<session_cpp::Point> first = to_loop(a);
+    const std::vector<session_cpp::Point> second = to_loop(b);
+    if (first.size() != second.size())
+        return false;
+
+    for (const session_cpp::Point& point : first)
+        if (std::none_of(second.begin(), second.end(), [&](const session_cpp::Point& other) { return compute_distance(point, other) <= tolerance; }))
+            return false;
+
+    return true;
+}
+
+inline Building Building::from_footprint(const std::vector<session_cpp::Polyline>& footprint, const std::vector<double>& heights, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores, double tolerance, double merge) {
+
+    std::vector<session_cpp::Polyline> rings;
+    for (const session_cpp::Polyline& ring : footprint)
+        rings.push_back(compute_lift(ring, 0.0));
+
+    Building building;
+    building.pattern = pattern;
+    building.tolerance = tolerance;
+    const std::vector<double> elevations = compute_sums(heights);
+    building.levels.push_back(compute_level(elevations[0], rings, cores, {}, pattern, tolerance, merge, false));
+    for (size_t k = 1; k < elevations.size(); k++) {
+        building.levels.push_back(building.levels[0]);
+        building.levels.back().z = elevations[k];
+        for (const size_t face : building.levels.back().plan.faces())
+            building.levels.back().plan.set_face_attribute(face, "floor", building.levels.back().plan.face_attribute(face, "core").value_or(0.0) == 1.0 ? 0.0 : 1.0);
+    }
+
+    return building;
+}
+
+inline Building Building::from_solid(const session_cpp::Mesh& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores, double tolerance, double merge) {
+
+    session_cpp::Mesh solid = massing;
+    solid.orient_outward();
+    const size_t count = elevations.size();
+    std::vector<std::vector<session_cpp::Polyline>> below(count);
+    std::vector<std::vector<session_cpp::Polyline>> above(count);
+    for (size_t k = 0; k < count; k++) {
+        below[k] = k > 0 ? compute_section(solid, elevations[k] - tolerance, tolerance) : std::vector<session_cpp::Polyline>();
+        above[k] = k + 1 < count ? compute_section(solid, elevations[k] + tolerance, tolerance) : std::vector<session_cpp::Polyline>();
+    }
+
+    Building building;
+    building.pattern = pattern;
+    building.tolerance = tolerance;
+    for (size_t k = 0; k < count; k++) {
+        std::vector<session_cpp::Polyline> rings = below[k].empty() ? above[k] : above[k].empty() ? below[k] : compute_regions(below[k], above[k], 1);
+        for (session_cpp::Polyline& ring : rings)
+            ring.merge_collinear(1e-6);
+
+        std::vector<session_cpp::Polyline> extras;
+        for (size_t storey = k > 0 ? k - 1 : k; storey <= k && storey + 1 < count; storey++)
+            for (const session_cpp::Polyline& ring : compute_regions(above[storey], below[storey + 1], 0))
+                if (compute_area(to_loop(ring)) > 0.0 && std::none_of(rings.begin(), rings.end(), [&](const session_cpp::Polyline& other) { return compute_same(ring, other, tolerance); }))
+                    extras.push_back(ring);
+
+        building.levels.push_back(compute_level(elevations[k], rings, cores, extras, pattern, tolerance, merge, k > 0));
+    }
+
+    return building;
+}
+
+inline Building Building::from_solid(const session_cpp::BRep& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<session_cpp::Polyline>& cores, double tolerance, double merge, double facet) {
+
+    std::vector<std::vector<session_cpp::Point>> polygons;
+    for (const session_cpp::Mesh& part : massing.face_meshes_q(true, facet, 0.1))
+        for (const session_cpp::Polyline& polygon : part.face_outlines())
+            polygons.push_back(to_loop(polygon));
+
+    return from_solid(session_cpp::Mesh::from_polylines(polygons, tolerance * 0.01), elevations, pattern, cores, tolerance, merge);
+}
+
+/// Degrees between a segment and the horizontal plane.
+inline double compute_tilt(const session_cpp::Point& a, const session_cpp::Point& b) {
+    return std::atan2(std::abs(b[2] - a[2]), compute_distance(a, b)) * session_cpp::Tolerance::TO_DEGREES;
+}
+
+inline Building Building::from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<session_cpp::Polyline>& surfaces, double tolerance, double angle) {
+
+    const auto horizontal = [&](const session_cpp::Polyline& surface) {
+        const session_cpp::Vector normal = session_cpp::Vector::average_normal(surface).normalized();
+        return std::acos(std::min(1.0, std::abs(normal[2]))) * session_cpp::Tolerance::TO_DEGREES <= angle;
+    };
+    const auto vertical = [&](const session_cpp::Polyline& surface) {
+        const session_cpp::Vector normal = session_cpp::Vector::average_normal(surface).normalized();
+        return std::acos(std::min(1.0, std::abs(normal[2]))) * session_cpp::Tolerance::TO_DEGREES >= 90.0 - angle;
+    };
+    const auto lowest = [](const session_cpp::Polyline& surface) {
+        double z = std::numeric_limits<double>::max();
+        for (const session_cpp::Point& point : surface.get_points())
+            z = std::min(z, point[2]);
+        return z;
+    };
+    const auto highest = [](const session_cpp::Polyline& surface) {
+        double z = -std::numeric_limits<double>::max();
+        for (const session_cpp::Point& point : surface.get_points())
+            z = std::max(z, point[2]);
+        return z;
+    };
+
+    std::vector<double> heights;
+    for (const session_cpp::Line& line : lines) {
+        heights.push_back(line.start()[2]);
+        heights.push_back(line.end()[2]);
+    }
+    for (const session_cpp::Polyline& surface : surfaces) {
+        heights.push_back(lowest(surface));
+        heights.push_back(highest(surface));
+    }
+    std::sort(heights.begin(), heights.end());
+
+    std::vector<double> elevations;
+    for (const double z : heights)
+        if (elevations.empty() || z - elevations.back() > tolerance)
+            elevations.push_back(z);
+    const auto level_of = [&](double z) { return static_cast<size_t>(std::lower_bound(elevations.begin(), elevations.end(), z - tolerance) - elevations.begin()); };
+
+    Building building;
+    building.tolerance = tolerance;
+    for (size_t k = 0; k < elevations.size(); k++) {
+        std::vector<session_cpp::Line> drawn;
+        std::vector<double> ids;
+        std::vector<session_cpp::Polyline> floors;
+        std::vector<std::pair<session_cpp::Line, double>> walls;
+        for (const session_cpp::Line& line : lines)
+            if (compute_tilt(line.start(), line.end()) <= angle && level_of(line.start()[2]) == k) {
+                drawn.push_back(session_cpp::Line::from_points(compute_lift(line.start(), 0.0), compute_lift(line.end(), 0.0)));
+                ids.push_back(static_cast<double>(drawn.size() - 1));
+            }
+
+        size_t ring = 0;
+        for (const session_cpp::Polyline& surface : surfaces) {
+            if (horizontal(surface) && level_of(lowest(surface)) == k) {
+                std::vector<session_cpp::Point> corners = to_loop(compute_lift(surface, 0.0));
+                if (compute_area(corners) < 0.0)
+                    std::reverse(corners.begin(), corners.end());
+                floors.push_back(to_polyline(corners));
+                for (size_t e = 0; e < corners.size(); e++) {
+                    drawn.push_back(session_cpp::Line::from_points(corners[e], corners[(e + 1) % corners.size()]));
+                    ids.push_back(compute_ring_id(ring, e));
+                }
+                ring++;
+            }
+            if (vertical(surface) && level_of(highest(surface)) == k) {
+                std::vector<session_cpp::Point> top;
+                for (const session_cpp::Point& point : to_loop(surface))
+                    if (std::abs(point[2] - highest(surface)) <= tolerance)
+                        top.push_back(compute_lift(point, 0.0));
+                if (top.size() < 2)
+                    continue;
+                walls.emplace_back(session_cpp::Line::from_points(top.front(), top.back()), surface.name.find("core") != std::string::npos ? 2.0 : 1.0);
+                drawn.push_back(walls.back().first);
+                ids.push_back(compute_ring_id(ring++, 0));
+            }
+        }
+
+        Level level;
+        level.z = elevations[k];
+        level.rings = floors;
+        const std::pair<std::vector<session_cpp::Line>, std::vector<double>> split = compute_crossings(drawn, ids, tolerance, tolerance);
+        level.plan = compute_arrangement(split.first, split.second, tolerance);
+        for (const size_t face : level.plan.faces())
+            level.plan.set_face_attribute(face, "floor", compute_inside(floors, *level.plan.face_centroid(face)) ? 1.0 : 0.0);
+
+        for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
+            const double id = level.plan.edge_attribute(edge, "line").value_or(-1.0);
+            const session_cpp::Line line = session_cpp::Line::from_points(*level.plan.vertex_point(edge.first), *level.plan.vertex_point(edge.second));
+            const std::vector<size_t> faces = level.plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>());
+            const bool boundary = std::count_if(faces.begin(), faces.end(), [&](size_t face) { return level.plan.face_attribute(face, "floor").value_or(0.0) == 1.0; }) < 2;
+            level.plan.set_edge_attribute(edge, "family", -1.0);
+            level.plan.set_edge_attribute(edge, "boundary", boundary ? 1.0 : 0.0);
+            level.plan.set_edge_attribute(edge, "wall", 0.0);
+            if (is_ring(id))
+                level.plan.set_edge_attribute(edge, "role", 0.0);
+            for (const std::pair<session_cpp::Line, double>& wall : walls)
+                if (wall.first.closest_point(line.point_at(0.5)).second.distance(line.point_at(0.5)) <= tolerance)
+                    level.plan.set_edge_attribute(edge, "wall", wall.second);
+        }
+
+        for (const size_t vertex : level.plan.vertices())
+            level.plan.set_vertex_attribute(vertex, "column", 0.0);
+        for (const session_cpp::Line& line : lines) {
+            if (compute_tilt(line.start(), line.end()) < 90.0 - angle)
+                continue;
+            for (const session_cpp::Point& end : {line.start(), line.end()}) {
+                if (level_of(end[2]) != k)
+                    continue;
+                std::optional<size_t> found;
+                for (const size_t vertex : level.plan.vertices())
+                    if (compute_distance(*level.plan.vertex_point(vertex), end) <= tolerance)
+                        found = vertex;
+                level.plan.set_vertex_attribute(found ? *found : level.plan.add_vertex(compute_lift(end, 0.0)), "column", 1.0);
+            }
+        }
+
+        building.levels.push_back(level);
+    }
+
+    for (const session_cpp::Line& line : lines)
+        if (compute_tilt(line.start(), line.end()) > angle && compute_tilt(line.start(), line.end()) < 90.0 - angle)
+            building.braces.push_back(line);
+
+    return building;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Roles and columns
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The role of every edge without one from the framing and the pattern: perimeter edges edge girders on span-family lines and edge beams elsewhere, girders on the span family, purlins on the cross lines of system 2, beams on free lines and under span -1, nothing inside cores; wall 1 on the perimeter when the framing asks for a facade.
+inline void compute_roles(session_cpp::Mesh& plan, const Framing& framing) {
+
+    for (const std::pair<size_t, size_t>& edge : plan.edges()) {
+        const std::vector<size_t> faces = plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>());
+        const bool boundary = plan.edge_attribute(edge, "boundary").value_or(0.0) == 1.0;
+        const bool core = plan.edge_attribute(edge, "wall").value_or(0.0) == 2.0 || std::all_of(faces.begin(), faces.end(), [&](size_t face) { return plan.face_attribute(face, "core").value_or(0.0) == 1.0; });
+        if (boundary && framing.facade && plan.edge_attribute(edge, "wall").value_or(0.0) == 0.0)
+            plan.set_edge_attribute(edge, "wall", 1.0);
+        if (plan.edge_attribute(edge, "role"))
+            continue;
+
+        const int family = static_cast<int>(plan.edge_attribute(edge, "family").value_or(-1.0));
+        int system = framing.system;
+        int span = framing.span;
+        for (const size_t face : faces) {
+            system = static_cast<int>(plan.face_attribute(face, "system").value_or(system));
+            span = static_cast<int>(plan.face_attribute(face, "span").value_or(span));
+        }
+
+        int role = 0;
+        if (core)
+            role = 0;
+        else if (boundary)
+            role = framing.edge == 0 ? 0 : span >= 0 && family == span ? 4 : 5;
+        else if (system == 0)
+            role = 0;
+        else if (span < 0 || family < 0)
+            role = 2;
+        else if (family == span)
+            role = 1;
+        else if (system == 2)
+            role = 3;
+        plan.set_edge_attribute(edge, "role", role);
+    }
+}
+
+/// A column of a storey: its foot on the lower level and its head on the upper one.
+struct Stack {
+    size_t lower = 0; // Vertex in the lower plan.
+    size_t upper = 0; // Vertex in the upper plan.
+    session_cpp::Point foot; // Plan point of the foot at z 0.
+    session_cpp::Point head; // Plan point of the head at z 0.
+};
+
+/// Columns between levels k and k + 1: every upper vertex with column 1 matched to a lower one by line identity, then by position, then by the nearest vertex on the same pattern line or the section within taper; an upper vertex with no match is written column 2.
+inline std::vector<Stack> compute_columns(Building& building, size_t k, const Framing& framing) {
+
+    session_cpp::Mesh& lower = building.levels[k].plan;
+    session_cpp::Mesh& upper = building.levels[k + 1].plan;
+    const double rise = building.levels[k + 1].z - building.levels[k].z;
+    const double lean = rise * std::tan(framing.taper * session_cpp::Tolerance::TO_RADIANS);
+    const auto identity = [&](const session_cpp::Mesh& plan, size_t vertex) {
+        return std::make_pair(plan.vertex_attribute(vertex, "line_a").value_or(-1.0), plan.vertex_attribute(vertex, "line_b").value_or(-1.0));
+    };
+    const auto usable = [&](size_t vertex) { return lower.vertex_attribute(vertex, "column").value_or(0.0) == 1.0; };
+
+    std::vector<Stack> stacks;
+    for (const size_t vertex : upper.vertices()) {
+        if (upper.vertex_attribute(vertex, "column").value_or(0.0) != 1.0)
+            continue;
+
+        const session_cpp::Point head = compute_lift(*upper.vertex_point(vertex), 0.0);
+        const std::pair<double, double> key = identity(upper, vertex);
+        std::optional<size_t> match;
+        double best = std::numeric_limits<double>::max();
+        for (const size_t other : lower.vertices()) {
+            if (!usable(other))
+                continue;
+
+            const double distance = compute_distance(*lower.vertex_point(other), head);
+            const bool same_line = key.first >= 0.0 && (identity(lower, other).first == key.first || identity(lower, other).second == key.second || identity(lower, other).first == key.second || identity(lower, other).second == key.first);
+            const bool section = upper.vertex_attribute(vertex, "boundary").value_or(0.0) == 1.0 && lower.vertex_attribute(other, "boundary").value_or(0.0) == 1.0;
+            const double score = identity(lower, other) == key && distance <= lean ? distance : distance <= building.tolerance ? distance + 1.0 : (same_line || section) && distance <= lean ? distance + lean + 2.0 : std::numeric_limits<double>::max();
+            if (score < best) {
+                best = score;
+                match = other;
+            }
+        }
+
+        if (!match) {
+            upper.set_vertex_attribute(vertex, "column", 2.0);
+            continue;
+        }
+
+        stacks.push_back({*match, vertex, compute_lift(*lower.vertex_point(*match), 0.0), head});
+    }
+
+    return stacks;
+}
+
+/// The plan section of the column at a vertex, counter-clockwise: the direction polygon at the profile's support per direction, x along the through member, for a rectangle; the profile turned to the through member otherwise.
+inline std::vector<session_cpp::Point> compute_column_polygon(const session_cpp::Mesh& plan, size_t vertex, const Framing& framing) {
+
+    const std::vector<Member> members = compute_members(plan, vertex, framing);
+    const std::pair<std::optional<size_t>, std::optional<size_t>> through = compute_through(members, plan.vertex_attribute(vertex, "through"));
+    const double turn = through.first ? std::atan2(members[*through.first].direction[1], members[*through.first].direction[0]) : 0.0;
+    const session_cpp::Point centre = compute_lift(*plan.vertex_point(vertex), 0.0);
+    const std::vector<session_cpp::Polyline>& profile = framing.profiles.column;
+
+    if (to_loop(profile[0]).size() != 4) {
+        std::vector<session_cpp::Point> points;
+        for (const session_cpp::Point& point : to_loop(profile[0]))
+            points.push_back(centre + session_cpp::Vector(point[0] * std::cos(turn) - point[1] * std::sin(turn), point[0] * std::sin(turn) + point[1] * std::cos(turn), 0.0));
+        return points;
+    }
+
+    const std::vector<session_cpp::Vector> directions = compute_directions(plan, vertex);
+    std::vector<double> distances;
+    for (const session_cpp::Vector& direction : directions) {
+        const double angle = std::atan2(direction[1], direction[0]) - turn;
+        distances.push_back(wood_session::compute_support(profile, session_cpp::Vector(std::cos(angle), std::sin(angle), 0.0)));
+    }
+
+    return to_loop(compute_polygon(directions, centre, distances));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Stations
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Mean line direction of the edges of a loop in a family, none when the loop has none.
+inline std::optional<session_cpp::Vector> compute_family_direction(const session_cpp::Mesh& plan, const std::vector<size_t>& loop, int family) {
+
+    session_cpp::Vector sum(0.0, 0.0, 0.0);
     for (size_t i = 0; i < loop.size(); i++) {
-        const double length = points[i].distance(points[(i + 1) % loop.size()]);
-        bay.deck = std::max(bay.deck, length);
-        if (grid.graph.edge_attribute({loop[i], loop[(i + 1) % loop.size()]}, "girder") == 1.0)
-            bay.girder = std::max(bay.girder, length);
+        if (static_cast<int>(plan.edge_attribute({loop[i], loop[(i + 1) % loop.size()]}, "family").value_or(-1.0)) != family)
+            continue;
+
+        const session_cpp::Vector direction = compute_direction(*plan.vertex_point(loop[i]), *plan.vertex_point(loop[(i + 1) % loop.size()]));
+        const double doubled = 2.0 * std::atan2(direction[1], direction[0]);
+        sum += session_cpp::Vector(std::cos(doubled), std::sin(doubled), 0.0);
     }
 
-    for (const session_cpp::Line& line : compute_stations(grid, face)) {
-        bay.purlin = std::max(bay.purlin, line.length());
-        bay.length += line.length();
+    if (sum.magnitude() < 1e-9)
+        return std::nullopt;
+
+    const double angle = std::atan2(sum[1], sum[0]) / 2.0;
+
+    return session_cpp::Vector(std::cos(angle), std::sin(angle), 0.0);
+}
+
+/// What a purlin station ends on: a plan edge, a held-back core ring edge, or nothing.
+struct Support {
+    int kind = 0; // 0 nothing, 1 a plan edge, 2 a core ring edge.
+    std::pair<size_t, size_t> edge; // The plan edge under kind 1.
+    session_cpp::Vector along; // Unit direction of the supporting line.
+};
+
+/// A purlin station: its line at z 0 and what each end lands on.
+struct Station {
+    session_cpp::Line line; // From the first support to the second.
+    Support first; // Support at the start.
+    Support second; // Support at the end.
+};
+
+/// Purlin stations of a system 2 face: stations parallel to its cross-family edges (else perpendicular to its girders) at ceil(cell / spacing) intervals over the unclipped cell between the bounding cross lines of the pattern, clipped to the face and its holes, each end remembering what it lands on; pieces shorter than the purlin width dropped.
+inline std::vector<Station> compute_stations(const session_cpp::Mesh& plan, size_t face, const Framing& framing, const Pattern& pattern) {
+
+    const std::vector<size_t> loop = compute_loop(plan, face);
+    const int span = static_cast<int>(plan.face_attribute(face, "span").value_or(framing.span));
+    const double spacing = plan.face_attribute(face, "spacing").value_or(framing.spacing);
+    std::optional<session_cpp::Vector> girder = compute_family_direction(plan, loop, span);
+    if (!girder)
+        return {};
+
+    std::optional<session_cpp::Vector> station;
+    for (int family = 0; family < 3 && !station; family++)
+        if (family != span)
+            station = compute_family_direction(plan, loop, family);
+    const session_cpp::Vector along = station.value_or(session_cpp::Vector(0.0, 0.0, 1.0).cross(*girder));
+    const session_cpp::Vector across = along.cross(session_cpp::Vector(0.0, 0.0, 1.0));
+    const session_cpp::Point origin(0.0, 0.0, 0.0);
+    const auto offset = [&](const session_cpp::Point& point) { return (compute_lift(point, 0.0) - origin).dot(across); };
+
+    double low = std::numeric_limits<double>::max();
+    double high = -low;
+    for (const size_t key : loop) {
+        low = std::min(low, offset(*plan.vertex_point(key)));
+        high = std::max(high, offset(*plan.vertex_point(key)));
     }
 
-    if (grid.face_attribute(face, "span").value_or(-1.0) < 0.0)
-        return bay;
+    double cell_low = -std::numeric_limits<double>::max();
+    double cell_high = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < pattern.lines.size(); i++) {
+        if (pattern.families[i] == span || std::abs(pattern.lines[i].to_direction().dot(along)) < 0.999)
+            continue;
 
-    const bool purlins = grid.face_attribute(face, "structural_system") == 2.0;
-    const session_cpp::Vector along = compute_span(grid, face);
-    const std::pair<double, double> extent = compute_extent(points, purlins ? along : session_cpp::Vector(0.0, 0.0, 1.0).cross(along));
-    bay.deck = (extent.second - extent.first) / (purlins ? bay.purlins + 1 : 1);
+        const double at = offset(pattern.lines[i].start());
+        if (at <= low + framing.tolerance)
+            cell_low = std::max(cell_low, at);
+        if (at >= high - framing.tolerance)
+            cell_high = std::min(cell_high, at);
+    }
+    cell_low = cell_low == -std::numeric_limits<double>::max() ? low : cell_low;
+    cell_high = cell_high == std::numeric_limits<double>::max() ? high : cell_high;
 
-    return bay;
+    struct Crossing { double t; Support support; };
+    std::vector<std::vector<size_t>> rings = {loop};
+    if (plan.get_face_holes().count(face))
+        for (const std::vector<size_t>& hole : plan.get_face_holes().at(face))
+            rings.push_back(hole);
+    const double width = wood_session::compute_size(compute_profile(3, framing)).first;
+
+    std::vector<Station> stations;
+    const int intervals = std::max(1, static_cast<int>(std::ceil((cell_high - cell_low) / spacing - 1e-9)));
+    for (int k = 1; k < intervals; k++) {
+        const double at = cell_low + (cell_high - cell_low) * k / intervals;
+        if (at <= low + framing.tolerance || at >= high - framing.tolerance)
+            continue;
+
+        const session_cpp::Point base = origin + across * at;
+        std::vector<Crossing> crossings;
+        for (size_t r = 0; r < rings.size(); r++)
+            for (size_t i = 0; i < rings[r].size(); i++) {
+                const session_cpp::Point a = compute_lift(*plan.vertex_point(rings[r][i]), 0.0);
+                const session_cpp::Point b = compute_lift(*plan.vertex_point(rings[r][(i + 1) % rings[r].size()]), 0.0);
+                const double da = (a - origin).dot(across) - at;
+                const double db = (b - origin).dot(across) - at;
+                if ((da >= 0.0) == (db >= 0.0))
+                    continue;
+
+                const session_cpp::Point hit = a + (b - a) * (da / (da - db));
+                Support support;
+                support.kind = r == 0 ? 1 : plan.vertex_attribute(rings[r][i], "wall").value_or(0.0) == 2.0 ? 2 : 0;
+                support.edge = {rings[r][i], rings[r][(i + 1) % rings[r].size()]};
+                support.along = compute_direction(a, b);
+                crossings.push_back({(hit - base).dot(along), support});
+            }
+
+        std::sort(crossings.begin(), crossings.end(), [](const Crossing& a, const Crossing& b) { return a.t < b.t; });
+        for (size_t c = 0; c + 1 < crossings.size(); c += 2)
+            if (crossings[c + 1].t - crossings[c].t > width)
+                stations.push_back({session_cpp::Line::from_points(base + along * crossings[c].t, base + along * crossings[c + 1].t), crossings[c].support, crossings[c + 1].support});
+    }
+
+    return stations;
+}
+
+/// The cut plane of a station end on its support: the far side of the member on a plan edge when the heights overlap, the outer face of a core wall; none on an open hole or a stacked girder.
+inline std::vector<session_cpp::Plane> compute_station_cuts(const session_cpp::Mesh& plan, const Support& support, const session_cpp::Point& at, const session_cpp::Vector& inward, const Member& purlin, const Framing& framing) {
+
+    double half = 0.0;
+    if (support.kind == 2 || (support.kind == 1 && plan.edge_attribute(support.edge, "wall").value_or(0.0) == 2.0))
+        half = framing.wall / 2.0;
+    else if (support.kind == 1 && plan.edge_attribute(support.edge, "role").value_or(0.0) > 0.0) {
+        const Member member = compute_member(plan, support.edge.first, support.edge.second, framing);
+        half = compute_overlap(purlin, member, framing.tolerance) ? member.width / 2.0 : 0.0;
+    }
+
+    std::vector<session_cpp::Plane> planes;
+    if (half > 0.0)
+        if (const std::optional<session_cpp::Plane> plane = compute_exit(compute_strip(at, support.along, half), at, inward))
+            planes.push_back(*plane);
+
+    return planes;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Builders
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Column on a column edge: lower node up to the head bottom, the upper node without a head; section the upper node's direction polygon at column / 2.
-inline std::shared_ptr<wood_session::Column> to_column(const Grid& grid, const std::tuple<std::string, std::string>& edge, const Dimensions& dimensions) {
+/// The kept length of an axis under cut planes, negative when nothing is left.
+inline double compute_kept(const session_cpp::Point& start, const session_cpp::Point& end, const std::vector<session_cpp::Plane>& planes) {
 
-    const bool rising = grid.vertex_point(std::get<0>(edge))[2] < grid.vertex_point(std::get<1>(edge))[2];
-    const std::string high = rising ? std::get<1>(edge) : std::get<0>(edge);
-    const session_cpp::Point start = grid.vertex_point(rising ? std::get<0>(edge) : std::get<1>(edge));
-    const session_cpp::Point end = grid.vertex_point(high);
-    const double top = grid.graph.vertex_attribute(high, "head") == 1.0 ? compute_lift(compute_head_top(grid, high, dimensions), end)[2] - dimensions.head : end[2];
-
-    return std::make_shared<wood_session::Column>(
-        session_cpp::Line::from_points(start, start + (end - start) * ((top - start[2]) / (end[2] - start[2]))),
-        compute_polygon(compute_directions(grid, high), start, dimensions.column / 2.0),
-        "column"
-    );
-}
-
-/// Head block on a head node: the direction polygon at column / 2 on the column top, at reach lifted onto the head top.
-inline std::shared_ptr<wood_session::Block> to_head(const Grid& grid, const std::string& node, const Dimensions& dimensions) {
-
-    const session_cpp::Point end = grid.vertex_point(node);
-    session_cpp::Point start = end;
-    for (const std::string& other : grid.graph.neighbors(node))
-        if (grid.graph.edge_attribute({node, other}, "column") == 1.0 && grid.vertex_point(other)[2] < end[2])
-            start = grid.vertex_point(other);
-
-    const session_cpp::Plane plane = compute_head_top(grid, node, dimensions);
-    const double top = compute_lift(plane, end)[2];
-    const std::vector<session_cpp::Vector> directions = compute_directions(grid, node);
-    const auto at = [&](double z) { return start + (end - start) * ((z - start[2]) / (end[2] - start[2])); };
-
-    std::vector<session_cpp::Point> ring;
-    for (const session_cpp::Point& point : compute_polygon(directions, at(top), dimensions.reach).get_points())
-        ring.push_back(compute_lift(plane, point));
-
-    return std::make_shared<wood_session::Block>(std::vector<session_cpp::Polyline>{
-        compute_polygon(directions, at(top - dimensions.head), dimensions.column / 2.0),
-        session_cpp::Polyline(ring)
-    }, "head");
-}
-
-/// Beam on a beam edge, named girder, purlin or beam by its flags, its section square to its up, its ends from compute_cuts at both nodes.
-inline std::shared_ptr<wood_session::Beam> to_beam(const Grid& grid, const std::tuple<std::string, std::string>& edge, const Dimensions& dimensions) {
-
-    const std::pair<session_cpp::Point, std::vector<session_cpp::Plane>> start = compute_cuts(grid, std::get<0>(edge), std::get<1>(edge), dimensions);
-    const std::pair<session_cpp::Point, std::vector<session_cpp::Plane>> end = compute_cuts(grid, std::get<1>(edge), std::get<0>(edge), dimensions);
-    const std::string name = grid.graph.edge_attribute(edge, "girder") == 1.0 ? "girder" : grid.graph.edge_attribute(edge, "purlin") == 1.0 ? "purlin" : "beam";
-
-    std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(
-        session_cpp::Polyline({start.first, end.first}),
-        std::vector<double>{compute_width(grid, edge, dimensions) / 2.0},
-        std::vector<session_cpp::Vector>{compute_up(grid, grid.edge_faces(edge))},
-        -1,
-        name
-    );
-    beam->cuts = start.second;
-    beam->cuts.insert(beam->cuts.end(), end.second.begin(), end.second.end());
-
-    return beam;
-}
-
-/// Purlins of a floor on its stations, dropped along its normal, top flush with the beams, cut by the side planes of the members they end on.
-inline std::vector<std::shared_ptr<wood_session::Beam>> to_purlins(const Grid& grid, size_t face, const Dimensions& dimensions) {
-
-    const std::vector<session_cpp::Point> points = grid.face_points(face);
-    const std::vector<std::string>& loop = grid.faces[face];
-    const session_cpp::Vector normal = compute_normal(points).normalized();
-    const session_cpp::Vector drop = normal * (dimensions.deck + dimensions.purlin / 2.0);
-
-    std::vector<std::shared_ptr<wood_session::Beam>> purlins;
-    for (const session_cpp::Line& line : compute_stations(grid, face)) {
-        std::vector<session_cpp::Plane> cuts;
-        for (const session_cpp::Point& end : {line.start(), line.end()})
-            for (size_t i = 0; i < loop.size(); i++) {
-                const session_cpp::Line side = session_cpp::Line::from_points(points[i], points[(i + 1) % loop.size()]);
-                if (side.closest_point(end).second.distance(end) > grid.tolerance)
-                    continue;
-
-                const session_cpp::Vector inward = normal.cross(side.to_vector()).normalized();
-                cuts.push_back(session_cpp::Plane::from_point_normal(end + inward * (compute_width(grid, {loop[i], loop[(i + 1) % loop.size()]}, dimensions) / 2.0), inward));
-            }
-
-        purlins.push_back(std::make_shared<wood_session::Beam>(
-            session_cpp::Polyline({line.start() - drop, line.end() - drop}),
-            std::vector<double>{dimensions.purlin / 2.0},
-            std::vector<session_cpp::Vector>{normal},
-            -1,
-            "purlin"
-        ));
-        purlins.back()->cuts = cuts;
-    }
-
-    return purlins;
-}
-
-/// Deck plate of a floor, its top on the nodes: sides no other floor shares pushed out by reach, shared sides on the centre line, a mitre to the next deck at a reentrant corner.
-inline std::shared_ptr<wood_session::Plate> to_deck(const Grid& grid, size_t face, const Dimensions& dimensions) {
-
-    const std::vector<session_cpp::Point> points = grid.face_points(face);
-    const std::vector<std::string>& loop = grid.faces[face];
-    const size_t count = loop.size();
-    const session_cpp::Vector normal = compute_normal(points).normalized();
-
-    std::vector<std::vector<size_t>> sides;
-    std::vector<double> distances;
-    for (size_t i = 0; i < count; i++) {
-        sides.push_back(grid.edge_faces({loop[i], loop[(i + 1) % count]}));
-        const bool shared = std::any_of(sides[i].begin(), sides[i].end(), [&](size_t other) { return other != face && grid.face_attribute(other, "floor") == 1.0; });
-        distances.push_back(shared ? 0.0 : dimensions.reach);
-    }
-
-    const std::vector<session_cpp::Point> offset = compute_offset(points, normal, distances);
-    std::vector<session_cpp::Point> outline;
-    for (size_t i = 0; i < count; i++) {
-        const size_t before = (i + count - 1) % count;
-        const std::vector<size_t> around = grid.vertex_faces(loop[i]);
-        const bool reentrant = distances[before] != distances[i] && std::any_of(around.begin(), around.end(), [&](size_t other) {
-            return grid.face_attribute(other, "floor") == 1.0 && std::count(sides[before].begin(), sides[before].end(), other) + std::count(sides[i].begin(), sides[i].end(), other) == 0;
-        });
-
-        if (!reentrant) {
-            outline.push_back(offset[i]);
+    const session_cpp::Vector direction = (end - start).normalized();
+    double low = 0.0;
+    double high = start.distance(end);
+    for (const session_cpp::Plane& plane : planes) {
+        const double speed = direction.dot(plane.z_axis());
+        const double offset = (plane.origin() - start).dot(plane.z_axis());
+        if (std::abs(speed) < 1e-9) {
+            if (offset > 0.0)
+                return -1.0;
             continue;
         }
 
-        const session_cpp::Vector in = (points[i] - points[before]).cross(normal).normalized();
-        const session_cpp::Vector out = (points[(i + 1) % count] - points[i]).cross(normal).normalized();
-        const session_cpp::Vector pushed = distances[i] > 0.0 ? out : in;
-        const session_cpp::Vector held = distances[i] > 0.0 ? in : out;
-        const session_cpp::Point mitre = points[i] + (pushed - held) * (dimensions.reach / (1.0 - pushed.dot(held)));
-        outline.push_back(distances[i] > 0.0 ? points[i] : mitre);
-        outline.push_back(distances[i] > 0.0 ? mitre : points[i]);
+        if (speed > 0.0)
+            low = std::max(low, offset / speed);
+        else
+            high = std::min(high, offset / speed);
     }
 
-    const session_cpp::Polyline top = session_cpp::Polyline(outline).closed();
-
-    return std::make_shared<wood_session::Plate>(top.translated(normal * -dimensions.deck), top, "deck");
+    return high - low;
 }
 
-/// Wall plate of a quad wall face: between the column faces, chamfered along the head faces, from the lower node up to the beam underside, thickness centred on the face.
-inline std::shared_ptr<wood_session::Plate> to_wall(const Grid& grid, size_t face, const Dimensions& dimensions) {
+/// Beams of a profile along an axis at height z with cuts: one, or two side by side for a double profile; none when a stub shorter than its width is left.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_beam(const session_cpp::Point& start, const session_cpp::Point& end, double z, const std::vector<session_cpp::Polyline>& profile, const std::vector<session_cpp::Plane>& cuts, const std::string& name) {
 
-    const std::vector<std::string>& loop = grid.faces[face];
-    size_t first = 0;
-    for (size_t i = 1; i < loop.size(); i++)
-        if (grid.vertex_point(loop[i])[2] + grid.vertex_point(loop[(i + 1) % 4])[2] < grid.vertex_point(loop[first])[2] + grid.vertex_point(loop[(first + 1) % 4])[2])
-            first = i;
+    std::vector<std::shared_ptr<session_cpp::Element>> beams;
+    const double width = wood_session::compute_size(profile).first;
+    if (compute_kept(start, end, cuts) < width)
+        return beams;
 
-    const session_cpp::Point start = grid.vertex_point(loop[first]);
-    const session_cpp::Point end = grid.vertex_point(loop[(first + 1) % 4]);
-    const session_cpp::Vector along = compute_direction(start, end);
-    const session_cpp::Vector normal = session_cpp::Vector(0.0, 0.0, 1.0).cross(along);
-    const auto rise = [&](const session_cpp::Point& base, const std::string& above, double inward) {
-        const session_cpp::Plane plane = compute_head_top(grid, above, dimensions);
-        const double top = compute_lift(plane, grid.vertex_point(above))[2];
-        const auto at = [&](double offset, double z) { return session_cpp::Point(base[0] + along[0] * offset * inward, base[1] + along[1] * offset * inward, z); };
-        if (grid.graph.vertex_attribute(above, "head") != 1.0)
-            return std::vector<session_cpp::Point>{at(dimensions.column / 2.0, base[2]), compute_lift(plane, at(dimensions.column / 2.0, top))};
-        return std::vector<session_cpp::Point>{at(dimensions.column / 2.0, base[2]), at(dimensions.column / 2.0, top - dimensions.head), compute_lift(plane, at(dimensions.reach, top))};
+    std::vector<std::vector<session_cpp::Polyline>> parts = {profile};
+    if (profile.size() > 1 && compute_area(to_loop(profile[1])) > 0.0)
+        parts = {{profile[0]}, {profile[1]}};
+
+    const session_cpp::Vector side = session_cpp::Vector(0.0, 0.0, 1.0).cross((end - start).normalized());
+    for (const std::vector<session_cpp::Polyline>& part : parts) {
+        const std::vector<session_cpp::Point> corners = to_loop(part[0]);
+        const double centre = session_cpp::Point::centroid(corners)[0];
+        std::vector<session_cpp::Polyline> centred;
+        for (const session_cpp::Polyline& ring : part)
+            centred.push_back(ring.translated(session_cpp::Vector(-centre, 0.0, 0.0)));
+
+        std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(session_cpp::Polyline({compute_lift(start, z) + side * centre, compute_lift(end, z) + side * centre}), centred, std::vector<session_cpp::Vector>{session_cpp::Vector(0.0, 0.0, 1.0)}, name);
+        beam->cuts = cuts;
+        beams.push_back(beam);
+    }
+
+    return beams;
+}
+
+/// The member on a plan edge of the level at z: its role's profile, its top at the datum less its drop, its ends from compute_cuts at both vertices.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_beam(const session_cpp::Mesh& plan, std::pair<size_t, size_t> edge, const Framing& framing, double z, const std::map<size_t, std::vector<session_cpp::Point>>& columns) {
+
+    const Member member = compute_member(plan, edge.first, edge.second, framing);
+    const End first = compute_cuts(plan, edge.first, edge.second, framing, columns);
+    const End second = compute_cuts(plan, edge.second, edge.first, framing, columns);
+    const session_cpp::Point a = compute_lift(*plan.vertex_point(edge.first), 0.0);
+    const session_cpp::Point b = compute_lift(*plan.vertex_point(edge.second), 0.0);
+    std::vector<session_cpp::Plane> cuts = first.planes;
+    cuts.insert(cuts.end(), second.planes.begin(), second.planes.end());
+
+    return to_beam(a - member.direction * first.overrun, b + member.direction * second.overrun, z + (member.top + member.bottom) / 2.0, compute_profile(plan, edge, framing), cuts, compute_name(member.role));
+}
+
+/// The purlin on a station of a face at z: the purlin profile, top at the datum, each end cut on its support.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_purlin(const session_cpp::Mesh& plan, const Station& station, const Framing& framing, double z) {
+
+    const std::vector<session_cpp::Polyline> profile = compute_profile(3, framing);
+    const std::pair<double, double> size = wood_session::compute_size(profile);
+    const Member purlin{0, station.line.to_direction(), 3, compute_rank(3), size.first, 0.0, -size.second};
+    std::vector<session_cpp::Plane> cuts = compute_station_cuts(plan, station.first, station.line.start(), station.line.to_direction(), purlin, framing);
+    for (const session_cpp::Plane& plane : compute_station_cuts(plan, station.second, station.line.end(), -station.line.to_direction(), purlin, framing))
+        cuts.push_back(plane);
+
+    return to_beam(station.line.start(), station.line.end(), z - size.second / 2.0, profile, cuts, "purlin");
+}
+
+/// The column of a stack: the polygon at its head vertex swept from the foot at z_foot to z_top.
+inline std::shared_ptr<session_cpp::Element> to_column(const Stack& stack, const std::vector<session_cpp::Point>& polygon, double z_foot, double z_top) {
+
+    const session_cpp::Vector shift = compute_lift(stack.foot, 0.0) - compute_lift(stack.head, 0.0);
+    std::vector<session_cpp::Point> section;
+    for (const session_cpp::Point& point : polygon)
+        section.push_back(compute_lift(point + shift, z_foot));
+
+    return std::make_shared<wood_session::Column>(session_cpp::Line::from_points(compute_lift(stack.foot, z_foot), compute_lift(stack.head, z_top)), to_polyline(section), "column");
+}
+
+/// The head at a vertex under node 0: the direction polygon at the column supports on the head bottom, at reach on the head top.
+inline std::shared_ptr<session_cpp::Element> to_head(const session_cpp::Mesh& plan, size_t vertex, const Framing& framing, double z_bottom, double z_top) {
+
+    const session_cpp::Point centre = *plan.vertex_point(vertex);
+    const std::vector<session_cpp::Vector> directions = compute_directions(plan, vertex);
+    const std::vector<session_cpp::Point> bottom = compute_column_polygon(plan, vertex, framing);
+    const session_cpp::Polyline top = compute_polygon(directions, centre, std::vector<double>(directions.size(), framing.reach));
+
+    return std::make_shared<wood_session::Block>(std::vector<session_cpp::Polyline>{compute_lift(to_polyline(bottom), z_bottom), compute_lift(top, z_top)}, "head");
+}
+
+/// The deck plates of a face at z: loop 0 of the outline, holes and notches as features, one plate per panel strip.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_deck(const session_cpp::Mesh& plan, size_t face, const Framing& framing, double z, const std::map<size_t, std::vector<session_cpp::Point>>& columns, session_cpp::Vector span) {
+
+    const double thickness = plan.face_attribute(face, "thickness").value_or(framing.deck);
+    std::vector<std::shared_ptr<session_cpp::Element>> decks;
+    for (const std::vector<session_cpp::Polyline>& loops : compute_panels(compute_outline(plan, face, framing, columns), span, framing.panel)) {
+        if (loops.empty() || compute_area(to_loop(loops[0])) <= 0.0)
+            continue;
+
+        std::shared_ptr<wood_session::Plate> deck = std::make_shared<wood_session::Plate>(compute_lift(loops[0], z), compute_lift(loops[0], z + thickness), "deck");
+        if (loops.size() > 1) {
+            for (const session_cpp::Polyline& ring : loops) {
+                deck->features.bottom.push_back(compute_lift(ring, z));
+                deck->features.top.push_back(compute_lift(ring, z + thickness));
+            }
+            deck->invalidate_geometry();
+        }
+        decks.push_back(deck);
+    }
+
+    return decks;
+}
+
+/// The facade wall under a perimeter edge over a storey: between the column faces, chamfered along the head faces under node 0, from z_bottom to the member bottom or the deck, thickness centred on the line.
+inline std::shared_ptr<session_cpp::Element> to_wall(const session_cpp::Mesh& plan, std::pair<size_t, size_t> edge, const Framing& framing, double z_bottom, double z, const std::map<size_t, std::vector<session_cpp::Point>>& columns, const std::set<size_t>& heads) {
+
+    const session_cpp::Point a = compute_lift(*plan.vertex_point(edge.first), 0.0);
+    const session_cpp::Point b = compute_lift(*plan.vertex_point(edge.second), 0.0);
+    const session_cpp::Vector along = compute_direction(a, b);
+    const session_cpp::Vector normal = along.cross(session_cpp::Vector(0.0, 0.0, 1.0));
+    const Member member = compute_member(plan, edge.first, edge.second, framing);
+    const double z_top = z + (member.role > 0 ? member.bottom : 0.0);
+    const auto rise = [&](size_t vertex, const session_cpp::Point& base, double inward) {
+        const double support = columns.count(vertex) ? compute_reach(columns.at(vertex), base, along * inward) : 0.0;
+        const auto at = [&](double offset, double height) { return compute_lift(base + along * (offset * inward), height); };
+        if (!heads.count(vertex))
+            return std::vector<session_cpp::Point>{at(support, z_bottom), at(support, z_top)};
+
+        const double head_top = z + compute_head_top(plan, vertex, framing);
+        std::vector<session_cpp::Point> points = {at(support, z_bottom), at(support, head_top - framing.head), at(framing.reach, head_top)};
+        if (z_top > head_top + framing.tolerance)
+            points.push_back(at(framing.reach, z_top));
+        return points;
     };
 
-    std::vector<session_cpp::Point> outline = rise(end, loop[(first + 2) % 4], -1.0);
-    const std::vector<session_cpp::Point> back = rise(start, loop[(first + 3) % 4], 1.0);
+    std::vector<session_cpp::Point> outline = rise(edge.first, a, 1.0);
+    const std::vector<session_cpp::Point> back = rise(edge.second, b, -1.0);
     outline.insert(outline.end(), back.rbegin(), back.rend());
-    const session_cpp::Polyline middle = session_cpp::Polyline(outline).closed();
+    const session_cpp::Polyline middle = to_polyline(outline);
 
-    return std::make_shared<wood_session::Plate>(middle.translated(normal * (-dimensions.wall / 2.0)), middle.translated(normal * (dimensions.wall / 2.0)), "wall");
+    return std::make_shared<wood_session::Plate>(middle.translated(normal * (-framing.wall / 2.0)), middle.translated(normal * (framing.wall / 2.0)), plan.edge_attribute(edge, "wall").value_or(0.0) == 2.0 ? "core_wall" : "wall");
+}
+
+/// Plan intersection of two lines given by a point and a direction.
+inline session_cpp::Point compute_meet(const session_cpp::Point& p, const session_cpp::Vector& d, const session_cpp::Point& q, const session_cpp::Vector& e) {
+
+    const double denominator = d.cross(e)[2];
+    if (std::abs(denominator) < 1e-9)
+        return p;
+
+    return p + d * ((q - p).cross(e)[2] / denominator);
+}
+
+/// The core walls of a ring over a storey, pinwheel: each wall runs from the inner face of the wall before it to the outer face of the wall after it, from z_bottom to z_top.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_core(const session_cpp::Polyline& ring, const Framing& framing, double z_bottom, double z_top) {
+
+    const std::vector<session_cpp::Point> corners = to_loop(ring);
+    const size_t count = corners.size();
+    const double half = framing.wall / 2.0;
+    const auto direction = [&](size_t i) { return compute_direction(corners[i % count], corners[(i + 1) % count]); };
+    const auto normal = [&](size_t i) { return direction(i).cross(session_cpp::Vector(0.0, 0.0, 1.0)); };
+
+    std::vector<std::shared_ptr<session_cpp::Element>> walls;
+    for (size_t i = 0; i < count; i++) {
+        const size_t before = (i + count - 1) % count;
+        const size_t after = (i + 1) % count;
+        const session_cpp::Point start_inner = corners[i] - normal(before) * half;
+        const session_cpp::Point end_outer = corners[after] + normal(after) * half;
+        const std::vector<session_cpp::Point> quad = {
+            compute_meet(corners[i] + normal(i) * half, direction(i), start_inner, direction(before)),
+            compute_meet(corners[i] + normal(i) * half, direction(i), end_outer, direction(after)),
+            compute_meet(corners[i] - normal(i) * half, direction(i), end_outer, direction(after)),
+            compute_meet(corners[i] - normal(i) * half, direction(i), start_inner, direction(before))
+        };
+        walls.push_back(std::make_shared<wood_session::Plate>(compute_lift(to_polyline(quad), z_bottom), compute_lift(to_polyline(quad), z_top), "core_wall"));
+    }
+
+    return walls;
+}
+
+/// The plan vertex of a level within tolerance of a point, none otherwise.
+inline std::optional<size_t> compute_vertex(const session_cpp::Mesh& plan, const session_cpp::Point& point, double tolerance) {
+
+    for (const size_t vertex : plan.vertices())
+        if (compute_distance(*plan.vertex_point(vertex), point) <= tolerance)
+            return vertex;
+
+    return std::nullopt;
+}
+
+/// A brace of a storey: the brace profile along the line, cut by the column faces at both ends, the deck top at the foot and the members or the deck at the head.
+inline std::vector<std::shared_ptr<session_cpp::Element>> to_brace(const session_cpp::Line& line, const Building& building, size_t storey, const Framing& framing, const std::map<size_t, std::vector<session_cpp::Point>>& lower_columns, const std::map<size_t, std::vector<session_cpp::Point>>& upper_columns) {
+
+    const Level& lower = building.levels[storey];
+    const Level& upper = building.levels[storey + 1];
+    const session_cpp::Point foot = line.start()[2] < line.end()[2] ? line.start() : line.end();
+    const session_cpp::Point head = line.start()[2] < line.end()[2] ? line.end() : line.start();
+    const session_cpp::Vector direction = compute_direction(foot, head);
+    const std::vector<session_cpp::Polyline> profile = compute_profile(6, framing);
+    const std::optional<size_t> under = compute_vertex(lower.plan, foot, building.tolerance);
+    const double z_foot = lower.z + (under && framing.node != 2 ? compute_floor(lower.plan, *under, framing) : 0.0);
+
+    std::vector<session_cpp::Plane> cuts = {session_cpp::Plane::from_point_normal(session_cpp::Point(0.0, 0.0, z_foot), session_cpp::Vector(0.0, 0.0, 1.0))};
+    double top = upper.z;
+    if (const std::optional<size_t> vertex = compute_vertex(upper.plan, head, building.tolerance)) {
+        top = upper.z + compute_head_top(upper.plan, *vertex, framing);
+        if (upper_columns.count(*vertex))
+            if (const std::optional<session_cpp::Plane> plane = compute_exit(upper_columns.at(*vertex), compute_lift(head, 0.0), -direction))
+                cuts.push_back(*plane);
+    }
+    cuts.push_back(session_cpp::Plane::from_point_normal(session_cpp::Point(0.0, 0.0, top), session_cpp::Vector(0.0, 0.0, -1.0)));
+    if (under && lower_columns.count(*under))
+        if (const std::optional<session_cpp::Plane> plane = compute_exit(lower_columns.at(*under), compute_lift(foot, 0.0), direction))
+            cuts.push_back(*plane);
+
+    const session_cpp::Vector along = (head - foot).normalized();
+    const session_cpp::Vector up = along.cross(direction.cross(session_cpp::Vector(0.0, 0.0, 1.0))).normalized();
+    std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(session_cpp::Polyline({foot - along * framing.reach, head + along * framing.reach}), profile, std::vector<session_cpp::Vector>{up}, "brace");
+    beam->cuts = cuts;
+
+    return {beam};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Storeys
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Deck thickness at a level vertex: the thickest floor face there, 0 without a floor.
+inline double compute_floor(const session_cpp::Mesh& plan, size_t vertex, const Framing& framing) {
+
+    double thickness = 0.0;
+    for (const size_t face : plan.vertex_faces(vertex).value_or(std::vector<size_t>()))
+        if (plan.face_attribute(face, "floor").value_or(0.0) == 1.0)
+            thickness = std::max(thickness, plan.face_attribute(face, "thickness").value_or(framing.deck));
+
+    return thickness;
+}
+
+/// Direction the deck of a face spans: across the girders under system 1, along them otherwise.
+inline session_cpp::Vector compute_span(const session_cpp::Mesh& plan, size_t face, const Framing& framing) {
+
+    const int span = static_cast<int>(plan.face_attribute(face, "span").value_or(framing.span));
+    const int system = static_cast<int>(plan.face_attribute(face, "system").value_or(framing.system));
+    const session_cpp::Vector girder = compute_family_direction(plan, compute_loop(plan, face), span).value_or(session_cpp::Vector(1.0, 0.0, 0.0));
+
+    return system == 1 ? session_cpp::Vector(0.0, 0.0, 1.0).cross(girder) : girder;
+}
+
+inline std::vector<std::shared_ptr<session_cpp::Element>> Building::to_elements(const Framing& framing, size_t storey) const {
+
+    Building working = *this;
+    for (Level& level : working.levels)
+        compute_roles(level.plan, framing);
+
+    const Level& lower = working.levels[storey];
+    Level& upper = working.levels[storey + 1];
+    const std::vector<Stack> stacks = compute_columns(working, storey, framing);
+    const std::vector<Stack> next = storey + 2 < working.levels.size() ? compute_columns(working, storey + 1, framing) : std::vector<Stack>();
+
+    std::map<size_t, std::vector<session_cpp::Point>> columns;
+    std::set<size_t> heads;
+    for (const Stack& stack : stacks) {
+        columns[stack.upper] = compute_column_polygon(upper.plan, stack.upper, framing);
+        heads.insert(stack.upper);
+    }
+    for (const Stack& stack : next)
+        if (!columns.count(stack.lower))
+            for (const session_cpp::Point& point : compute_column_polygon(working.levels[storey + 2].plan, stack.upper, framing))
+                columns[stack.lower].push_back(point + (stack.foot - stack.head));
+    std::map<size_t, std::vector<session_cpp::Point>> below;
+    for (const Stack& stack : stacks)
+        for (const session_cpp::Point& point : columns.at(stack.upper))
+            below[stack.lower].push_back(point + (stack.foot - stack.head));
+    const std::map<size_t, std::vector<session_cpp::Point>> plan_columns = framing.node == 0 ? std::map<size_t, std::vector<session_cpp::Point>>() : columns;
+    const std::map<size_t, std::vector<session_cpp::Point>> plan_below = framing.node == 0 ? std::map<size_t, std::vector<session_cpp::Point>>() : below;
+
+    std::vector<std::shared_ptr<session_cpp::Element>> elements;
+    const auto foot_of = [&](size_t vertex) { return lower.z + (framing.node == 2 ? 0.0 : compute_floor(lower.plan, vertex, framing)); };
+    for (const Stack& stack : stacks) {
+        const double top = upper.z + (framing.node == 0 ? compute_head_top(upper.plan, stack.upper, framing) - framing.head : 0.0);
+        elements.push_back(to_column(stack, columns.at(stack.upper), foot_of(stack.lower), top));
+    }
+
+    for (const session_cpp::Polyline& core : upper.cores) {
+        const double bottom = lower.z + (storey == 0 ? 0.0 : lower.plan.faces().empty() ? 0.0 : framing.deck);
+        for (const std::shared_ptr<session_cpp::Element>& wall : to_core(core, framing, bottom, upper.z + framing.deck))
+            elements.push_back(wall);
+    }
+
+    for (const std::pair<size_t, size_t>& edge : upper.plan.edges())
+        if (upper.plan.edge_attribute(edge, "wall").value_or(0.0) >= 1.0)
+            elements.push_back(to_wall(upper.plan, edge, framing, lower.z + (framing.node == 2 ? 0.0 : std::max(compute_floor(lower.plan, edge.first, framing), compute_floor(lower.plan, edge.second, framing))), upper.z, columns, heads));
+
+    if (framing.node == 0)
+        for (const Stack& stack : stacks) {
+            const double top = upper.z + compute_head_top(upper.plan, stack.upper, framing);
+            elements.push_back(to_head(upper.plan, stack.upper, framing, top - framing.head, top));
+        }
+
+    for (const std::pair<size_t, size_t>& edge : upper.plan.edges())
+        if (upper.plan.edge_attribute(edge, "role").value_or(0.0) > 0.0)
+            for (const std::shared_ptr<session_cpp::Element>& beam : to_beam(upper.plan, edge, framing, upper.z, plan_columns))
+                elements.push_back(beam);
+
+    for (const size_t face : upper.plan.faces()) {
+        if (upper.plan.face_attribute(face, "floor").value_or(0.0) != 1.0 || static_cast<int>(upper.plan.face_attribute(face, "system").value_or(framing.system)) != 2)
+            continue;
+        for (const Station& station : compute_stations(upper.plan, face, framing, pattern))
+            for (const std::shared_ptr<session_cpp::Element>& purlin : to_purlin(upper.plan, station, framing, upper.z))
+                elements.push_back(purlin);
+    }
+
+    for (const size_t face : upper.plan.faces())
+        if (upper.plan.face_attribute(face, "floor").value_or(0.0) == 1.0)
+            for (const std::shared_ptr<session_cpp::Element>& deck : to_deck(upper.plan, face, framing, upper.z, plan_columns, compute_span(upper.plan, face, framing)))
+                elements.push_back(deck);
+
+    if (storey == 0)
+        for (const size_t face : lower.plan.faces())
+            if (lower.plan.face_attribute(face, "floor").value_or(0.0) == 1.0)
+                for (const std::shared_ptr<session_cpp::Element>& deck : to_deck(lower.plan, face, framing, lower.z, {}, compute_span(lower.plan, face, framing)))
+                    elements.push_back(deck);
+
+    for (const session_cpp::Line& line : braces)
+        if (std::min(line.start()[2], line.end()[2]) >= lower.z - tolerance && std::max(line.start()[2], line.end()[2]) <= upper.z + tolerance)
+            for (const std::shared_ptr<session_cpp::Element>& brace : to_brace(line, working, storey, framing, plan_below, plan_columns))
+                elements.push_back(brace);
+
+    return elements;
+}
+
+inline void Building::to_session(wood_session::WoodSession& session, const Framing& framing) const {
+
+    for (size_t storey = 0; storey + 1 < levels.size(); storey++) {
+        const std::shared_ptr<session_cpp::TreeNode> group = session.add_group(fmt::format("storey_{}", storey));
+        for (const std::shared_ptr<session_cpp::Element>& element : to_elements(framing, storey))
+            session.add(element, group);
+    }
 }
 
 } // namespace wood_grid
