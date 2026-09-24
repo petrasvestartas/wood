@@ -16,7 +16,7 @@ int main() {
     WoodSession from_pb = WoodSession::pb_load(config::session_pb(0));
     std::cout << from_pb << " from a session file\n";
 
-    from_yaml.pb_dump(pb_path("live").string());
+    from_yaml.pb_dump(pb_path("live"));
 
     return 0;
 }

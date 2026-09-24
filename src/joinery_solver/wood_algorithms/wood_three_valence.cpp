@@ -67,8 +67,8 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
 
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
-        const int element0 = index_of(elements, joints[joint_index].element_a);
-        const int element1 = index_of(elements, joints[joint_index].element_b);
+        const int element0 = index_of_plate(elements, joints[joint_index].element_a);
+        const int element1 = index_of_plate(elements, joints[joint_index].element_b);
 
         joints_map[pair_key(element0, element1)] = (int)joint_index;
     }
@@ -99,6 +99,39 @@ static std::array<Polyline, 4> copy_joint_volumes(const FeaturePlate& joint) {
             volumes[k] = *joint.joint_volumes[k];
 
     return volumes;
+}
+
+/// The face of the glued plate nearest the side plate's first face, and the side plate's face farthest from it.
+static std::pair<Plane, Plane> far_near_planes(const Plate& glued, const Plate& side) {
+
+    const double glued0 = glued.planes[0].squared_distance(side.planes[0].origin());
+    const double glued1 = glued.planes[1].squared_distance(side.planes[0].origin());
+    const Plane far = glued0 < glued1 ? glued.planes[0] : glued.planes[1];
+
+    const double side0 = side.planes[0].squared_distance(far.origin());
+    const double side1 = side.planes[1].squared_distance(far.origin());
+    const Plane near = side0 < side1 ? side.planes[1] : side.planes[0];
+
+    return {far, near};
+}
+
+/// A linked shadow of source between side and glued, its lines and first two volumes translated onto the glued plate.
+static FeaturePlate shadow_joint(const FeaturePlate& source, const Plate& side, const Plate& glued, const std::array<Line, 2>& lines, const std::array<Polyline, 4>& volumes) {
+
+    FeaturePlate shadow;
+    shadow.guid = ::guid();
+    shadow.element_a = side.guid();
+    shadow.element_b = glued.guid();
+    shadow.contact.face_a = -1;
+    shadow.contact.face_b = -1;
+    shadow.cross_faces = {-1, -1};
+    shadow.joint_type = source.joint_type;
+    shadow.contact.polygon = source.contact.polygon;
+    shadow.joint_lines = lines;
+    shadow.joint_volumes = {volumes[0], volumes[1], std::nullopt, std::nullopt};
+    shadow.link = true;
+
+    return shadow;
 }
 
 /// Vidy method: shadow joints (link = true) between each side plate and the plate it is glued to, translated to that plate's far face.
@@ -152,21 +185,12 @@ void add_vidy_shadow_joints(
         if (!joints[joint_index].joint_volumes[0].has_value())
             continue;
 
-        double side0_distance0 = elements[glued1]->planes[0].squared_distance(elements[side0]->planes[0].origin());
-        double side0_distance1 = elements[glued1]->planes[1].squared_distance(elements[side0]->planes[0].origin());
-        const Plane far_plane0 = side0_distance0 < side0_distance1 ? elements[glued1]->planes[0] : elements[glued1]->planes[1];
-
-        side0_distance0 = elements[side0]->planes[0].squared_distance(far_plane0.origin());
-        side0_distance1 = elements[side0]->planes[1].squared_distance(far_plane0.origin());
-        const Plane near_plane0 = side0_distance0 < side0_distance1 ? elements[side0]->planes[1] : elements[side0]->planes[0];
-
-        double side1_distance0 = elements[glued0]->planes[0].squared_distance(elements[side1]->planes[0].origin());
-        double side1_distance1 = elements[glued0]->planes[1].squared_distance(elements[side1]->planes[0].origin());
-        const Plane far_plane1 = side1_distance0 < side1_distance1 ? elements[glued0]->planes[0] : elements[glued0]->planes[1];
-
-        side1_distance0 = elements[side1]->planes[0].squared_distance(far_plane1.origin());
-        side1_distance1 = elements[side1]->planes[1].squared_distance(far_plane1.origin());
-        const Plane near_plane1 = side1_distance0 < side1_distance1 ? elements[side1]->planes[1] : elements[side1]->planes[0];
+        const std::pair<Plane, Plane> planes0 = far_near_planes(*elements[glued1], *elements[side0]);
+        const std::pair<Plane, Plane> planes1 = far_near_planes(*elements[glued0], *elements[side1]);
+        const Plane& far_plane0 = planes0.first;
+        const Plane& near_plane0 = planes0.second;
+        const Plane& far_plane1 = planes1.first;
+        const Plane& near_plane1 = planes1.second;
 
         const Polyline& joint_volume = *joints[joint_index].joint_volumes[0];
         const Line line0 = Line::from_points(joint_volume.get_point(0), joint_volume.get_point(1));
@@ -233,43 +257,19 @@ void add_vidy_shadow_joints(
             joint_lines1[k] += translation1;
         }
 
-        if (index_of(elements, joints[joint_index].element_a) == side1) {
+        if (index_of_plate(elements, joints[joint_index].element_a) == side1) {
             std::swap(glued0, glued1);
             std::swap(side0, side1);
         }
 
-        FeaturePlate shadow0;
-        shadow0.guid = ::guid();
-        shadow0.element_a = elements[side0]->guid();
-        shadow0.element_b = elements[glued0]->guid();
-        shadow0.contact.face_a = -1;
-        shadow0.contact.face_b = -1;
-        shadow0.cross_faces = {-1, -1};
-        shadow0.joint_type = joints[joint_index].joint_type;
-        shadow0.contact.polygon = joints[joint_index].contact.polygon;
-        shadow0.joint_lines = joint_lines0;
-        shadow0.joint_volumes = {volumes0[0], volumes0[1], std::nullopt, std::nullopt};
-        shadow0.link = true;
         const int shadow0_index = (int)joints.size();
-        joints.push_back(std::move(shadow0));
+        joints.push_back(shadow_joint(joints[joint_index], *elements[side0], *elements[glued0], joint_lines0, volumes0));
         joints_map[pair_key(side0, glued0)] = shadow0_index;
 
         int shadow1_index = -1;
         if (glued0 != glued1) {
-            FeaturePlate shadow1;
-            shadow1.guid = ::guid();
-            shadow1.element_a = elements[side1]->guid();
-            shadow1.element_b = elements[glued1]->guid();
-            shadow1.contact.face_a = -1;
-            shadow1.contact.face_b = -1;
-            shadow1.cross_faces = {-1, -1};
-            shadow1.joint_type = joints[joint_index].joint_type;
-            shadow1.contact.polygon = joints[joint_index].contact.polygon;
-            shadow1.joint_lines = joint_lines1;
-            shadow1.joint_volumes = {volumes1[0], volumes1[1], std::nullopt, std::nullopt};
-            shadow1.link = true;
             shadow1_index = (int)joints.size();
-            joints.push_back(std::move(shadow1));
+            joints.push_back(shadow_joint(joints[joint_index], *elements[side1], *elements[glued1], joint_lines1, volumes1));
             joints_map[pair_key(side1, glued1)] = shadow1_index;
         }
 
@@ -315,13 +315,12 @@ void align_annen_joints(
         const double distance_to_end = Point::distance(line0.start(), joint1.joint_lines[0].end());
         const Line line1 = (distance_to_start <= distance_to_end) ? joint1.joint_lines[0] : -joint1.joint_lines[0];
 
-        // A degenerate overlap (parallel but disjoint lines) would plant end caps at garbage positions.
         Line overlap;
         if (!line0.overlap_average(line1, overlap))
             continue;
 
         double thickness = 0;
-        const int element_index = index_of(elements, joint0.element_a);
+        const int element_index = index_of_plate(elements, joint0.element_a);
         if (element_index >= 0 && element_index < (int)elements.size()) {
             const Plate& element = *elements[element_index];
             if (element.polylines.size() >= 2 && element.polylines[0].point_count() > 0 && element.polylines[1].point_count() > 0) {
@@ -331,7 +330,6 @@ void align_annen_joints(
             }
         }
 
-        // Line::extend has no clamp: shrinking by more than half the length inverts the segment.
         thickness = std::min(thickness, overlap.length() * 0.5 - 1e-9);
         if (thickness < 0.0)
             thickness = 0.0;

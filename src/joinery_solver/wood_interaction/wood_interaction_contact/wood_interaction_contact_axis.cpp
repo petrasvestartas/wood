@@ -25,7 +25,9 @@ ContactAxis::ContactAxis(Line segment, double t_a, double t_b, int polyline_a, i
 // ContactAxis - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const ContactAxis& contact) { return os << contact.str(); }
+std::ostream& operator<<(std::ostream& os, const ContactAxis& contact) {
+    return os << contact.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ContactAxis - Geometry

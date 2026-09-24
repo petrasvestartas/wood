@@ -25,7 +25,7 @@ int main() {
     const WoodSession back = WoodSession::pb_loads(wood_session.pb_dumps());
     std::cout << "the file carries the settings: division length " << back.settings.joint_parameters[3] << "\n";
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

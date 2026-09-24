@@ -11,7 +11,7 @@ static void ss_e_op_5(FeaturePlate& jo, std::vector<FeaturePlate>& all_joints, b
 
     std::vector<int> linked;
     for (const std::string& guid : jo.linked_joints) {
-        const int index = index_of(all_joints, guid);
+        const int index = index_of_joint(all_joints, guid);
         if (index < 0 || &all_joints[index] == &jo)
             return;
         linked.push_back(index);

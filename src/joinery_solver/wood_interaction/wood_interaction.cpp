@@ -26,7 +26,9 @@ void Interaction::set_session(WoodSession* scene) {
 // Interaction - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const Interaction& interaction) { return os << interaction.str(); }
+std::ostream& operator<<(std::ostream& os, const Interaction& interaction) {
+    return os << interaction.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Interaction - Geometry

@@ -12,7 +12,7 @@ class WoodSession;
 struct FeaturePlate {
     WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
     std::string guid; // Identity of the joint; minted by detection, the key its InteractionFeature is stored under.
-    std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of() gives a position.
+    std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of_plate() gives a position.
     std::string element_b; // The female element, by guid.
     ContactFace contact; // Which faces touched, and where.
     int joint_type = 0; // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top.
@@ -46,7 +46,9 @@ struct FeaturePlate {
     WoodSession& session() const;
 
     /// True once the record has been stored in a scene.
-    bool has_session() const { return _session != nullptr; }
+    bool has_session() const {
+        return _session != nullptr;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

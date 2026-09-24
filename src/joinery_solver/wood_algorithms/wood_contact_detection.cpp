@@ -22,7 +22,9 @@ void add_outline(const Polyline& pl, std::vector<Point>& corners) {
 }
 
 /// Whether the element follows the plate face convention: [0] bottom, [1] top, [2..] sides.
-bool is_plate(const Element& e) { return dynamic_cast<const Plate*>(&e) != nullptr; }
+bool is_plate(const Element& e) {
+    return dynamic_cast<const Plate*>(&e) != nullptr;
+}
 
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
@@ -40,7 +42,9 @@ void bounding_points(Element& e, std::vector<Point>& out) {
 }
 
 /// Whether face i is an outer (top/bottom) face, where a triangular overlap is accepted.
-bool outer_face(const Element& e, size_t i) { return is_plate(e) && i < 2; }
+bool outer_face(const Element& e, size_t i) {
+    return is_plate(e) && i < 2;
+}
 
 /// Topology class of a face pair; unknown unless both sides follow the plate convention.
 ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j) {
@@ -304,6 +308,15 @@ int points_inside(const Polyline& polygon, const Plane& plane, const std::vector
     return static_cast<int>(inside.size());
 }
 
+/// Parameter of the closest point of point on the line from start to end.
+double parameter_on(const Point& point, const Point& start, const Point& end) {
+
+    double t = 0.0;
+    Polyline::closest_point_to_line(point, start, end, t);
+
+    return t;
+}
+
 /// Cross-joint chord between two polylines via reciprocal polyline-plane intersections; (edge in c0, edge in c1) pair out.
 bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Plane& p0, const Plane& p1, double distance_squared, Line& contact, std::pair<int, int>& edges) {
 
@@ -370,7 +383,6 @@ bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Pl
         const Point hi(xmax, ymax, zmax);
         contact = Line::from_points(lo, hi);
 
-        // lo/hi are bbox corners, so e0/e1 stay -1 for plates crossing in general position; type 30 does not consume them.
         int e0 = -1;
         int e1 = -1;
         for (size_t i = 0; i < ID0.size(); i++) {
@@ -456,32 +468,26 @@ bool plane_to_face(
 
     const Point c_start = c.start();
     const Point c_end = c.end();
-    const auto parameter_of = [&](const Point& point) {
-        double t = 0.0;
-        Polyline::closest_point_to_line(point, c_start, c_end, t);
-        return t;
-    };
 
     double cpt0[4] = {
-        parameter_of(cx0_py0__cy0_px0.start()),
-        parameter_of(cx0_py1__cy1_px0.start()),
-        parameter_of(cx1_py0__cy0_px1.start()),
-        parameter_of(cx1_py1__cy1_px1.start())
+        parameter_on(cx0_py0__cy0_px0.start(), c_start, c_end),
+        parameter_on(cx0_py1__cy1_px0.start(), c_start, c_end),
+        parameter_on(cx1_py0__cy0_px1.start(), c_start, c_end),
+        parameter_on(cx1_py1__cy1_px1.start(), c_start, c_end)
     };
     std::sort(cpt0, cpt0 + 4);
 
     double cpt1[4] = {
-        parameter_of(cx0_py0__cy0_px0.end()),
-        parameter_of(cx0_py1__cy1_px0.end()),
-        parameter_of(cx1_py0__cy0_px1.end()),
-        parameter_of(cx1_py1__cy1_px1.end())
+        parameter_on(cx0_py0__cy0_px0.end(), c_start, c_end),
+        parameter_on(cx0_py1__cy1_px0.end(), c_start, c_end),
+        parameter_on(cx1_py0__cy0_px1.end(), c_start, c_end),
+        parameter_on(cx1_py1__cy1_px1.end(), c_start, c_end)
     };
     std::sort(cpt1, cpt1 + 4);
 
     double cpt[8] = {cpt0[0], cpt0[1], cpt0[2], cpt0[3], cpt1[0], cpt1[1], cpt1[2], cpt1[3]};
     std::sort(cpt, cpt + 8);
 
-    // cpt0[3] > cpt1[0] is the normal X-crossing case; only lMin's center and axis are consumed.
     const Line lMin = Line::from_points(c.point_at(cpt0[3]), c.point_at(cpt1[0]));
     const Line lMax = Line::from_points(c.point_at(cpt[0]), c.point_at(cpt[7]));
 
@@ -561,21 +567,6 @@ struct Closest {
     double t0;
     double t1;
 };
-
-bool has_valid_frame(const Vector& direction, const Vector& normal) {
-    const double area = direction.cross(normal).magnitude_squared();
-    return area > 0.0 && std::isfinite(area);
-}
-
-/// Whether a pair's end-type sum (0 cross, 1 side-to-end, 2 end-to-end) passes the dataset's allowed type: 0, 1 or -1 for any.
-bool type_allowed(const int sum, const int allowed) {
-    switch (allowed) {
-        case 0: return sum == 0;
-        case 1: return sum == 1 || sum == 2;
-        case -1: return true;
-        default: return false;
-    }
-}
 
 /// The closest segment pair of every two axes within min_distance, keyed by axis pair.
 std::map<uint64_t, Closest> closest_pairs(const std::vector<std::vector<Line>>& lines, const double min_distance) {

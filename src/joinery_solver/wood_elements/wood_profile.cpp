@@ -7,7 +7,9 @@ using namespace session_cpp;
 
 /// A closed loop from plan corners.
 static Polyline loop(std::vector<Point> points) {
+
     points.push_back(points.front());
+
     return Polyline(points);
 }
 
@@ -28,7 +30,7 @@ std::vector<Polyline> profile_round(double diameter, int segments) {
 
     std::vector<Point> points;
     for (int i = 0; i < segments; i++)
-        points.emplace_back(diameter / 2.0 * std::cos(Tolerance::TWO_PI * i / segments), diameter / 2.0 * std::sin(Tolerance::TWO_PI * i / segments), 0.0);
+        points.emplace_back(diameter / 2.0 * std::cos(Tolerance::TWO_PI * (i + 0.5) / segments), diameter / 2.0 * std::sin(Tolerance::TWO_PI * (i + 0.5) / segments), 0.0);
 
     return {loop(points)};
 }
@@ -74,12 +76,13 @@ std::pair<double, double> compute_size(const std::vector<Polyline>& profile) {
     double x1 = 0.0;
     double y0 = 0.0;
     double y1 = 0.0;
-    for (const Point& point : profile[0].get_points()) {
-        x0 = std::min(x0, point[0]);
-        x1 = std::max(x1, point[0]);
-        y0 = std::min(y0, point[1]);
-        y1 = std::max(y1, point[1]);
-    }
+    for (const Polyline& ring : profile)
+        for (const Point& point : ring.get_points()) {
+            x0 = std::min(x0, point[0]);
+            x1 = std::max(x1, point[0]);
+            y0 = std::min(y0, point[1]);
+            y1 = std::max(y1, point[1]);
+        }
 
     return {x1 - x0, y1 - y0};
 }

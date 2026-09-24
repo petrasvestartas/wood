@@ -27,6 +27,35 @@ static bool same(const Polyline& a, const Polyline& b, double tolerance = 1e-6) 
     return true;
 }
 
+/// Whether two closed polylines have the same corners within tolerance in the same order from any start: a contact polygon of a rotated copy starts where the geometry puts it.
+static bool same_loop(const Polyline& a, const Polyline& b, double tolerance) {
+
+    const size_t count = a.point_count() - 1;
+    if (a.point_count() != b.point_count() || count == 0)
+        return same(a, b, tolerance);
+
+    for (size_t shift = 0; shift < count; shift++) {
+        bool equal = true;
+        for (size_t i = 0; i < count && equal; i++)
+            equal = a.get_point(i).distance(b.get_point((i + shift) % count)) <= tolerance;
+
+        if (equal)
+            return true;
+    }
+
+    return false;
+}
+
+/// The interaction on the edge of two element or instance guids, or null; instances are not Elements, so the edge is read directly.
+static const Interaction* find_interaction(const WoodSession& session, const std::string& a, const std::string& b) {
+
+    if (!session.graph.has_edge({a, b}))
+        return nullptr;
+
+    const auto found = session.interactions.find(session.graph.edges.at(a).at(b).guid());
+    return found == session.interactions.end() ? nullptr : &found->second;
+}
+
 /// A 200 x 100 column of height 3000 standing at origin.
 static std::shared_ptr<Column> column_at(const Point& origin) {
     return std::make_shared<Column>(Line::from_points(origin, origin + Vector(0, 0, 3000)), Polyline::rectangle(origin + Vector(-100, -50, 0), Vector::x_axis(), Vector::y_axis(), 200, 100));
@@ -40,31 +69,17 @@ static std::shared_ptr<Plate> plate_at(const Point& origin) {
 /// The 1_elements_tree scene: three bays of the grid template side by side, each a branch of the root.
 static WoodSession tree_scene() {
 
-    const wood_grid::Dimensions dimensions{.column = 200.0, .head = 300.0, .reach = 200.0, .beam = 200.0, .purlin = 200.0, .deck = 200.0, .wall = 100.0};
+    const wood_grid::Framing framing{.system = 1, .span = 0, .node = 0, .deck = 200.0, .head = 300.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
     WoodSession scene("tree");
 
     for (int i = 0; i < 3; i++) {
-
-        const Mesh plan = wood_grid::create_orthogonal({4000.0}, {3000.0}).transformed(Xform::translation(i * 6400.0, 0.0, 0.0));
-        wood_grid::Grid grid = wood_grid::Grid::from_plan(plan, {3700.0});
-        grid.update_default_face_attributes({{"structural_system", 1.0}});
-        wood_grid::compute_faces(grid, 10.0);
-        wood_grid::compute_spans(grid, true);
-        wood_grid::compute_members(grid, 10.0);
-        wood_grid::compute_supports(grid);
+        const Xform shift = Xform::translation(i * 6400.0, 0.0, 0.0);
+        const std::vector<Polyline> footprint = {Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector::x_axis(), Vector::y_axis(), 4000.0, 3000.0).transformed(shift)};
+        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, {0.0, 3700.0}, wood_grid::Pattern::orthogonal({4000.0}, {3000.0}).transformed(shift));
         const std::shared_ptr<TreeNode> branch = scene.add_group(fmt::format("bay_{}", i));
 
-        for (const std::tuple<std::string, std::string>& edge : grid.graph.edges_where({{"column", 1.0}}))
-            scene.add(wood_grid::to_column(grid, edge, dimensions), branch);
-
-        for (const std::string& node : grid.graph.vertices_where({{"head", 1.0}}))
-            scene.add(wood_grid::to_head(grid, node, dimensions), branch);
-
-        for (const std::tuple<std::string, std::string>& edge : grid.graph.edges_where({{"beam", 1.0}}))
-            scene.add(wood_grid::to_beam(grid, edge, dimensions), branch);
-
-        for (const size_t face : grid.faces_where({{"floor", 1.0}}))
-            scene.add(wood_grid::to_deck(grid, face, dimensions), branch);
+        for (const std::shared_ptr<Element>& element : building.to_elements(framing, 0))
+            scene.add(element, branch);
     }
 
     return scene;
@@ -79,7 +94,7 @@ static bool same_contacts(const WoodSession& a, const WoodSession& b) {
     for (const auto& [guid, interaction] : a.interactions) {
 
         const auto [first, second] = a.edge_of(interaction);
-        const Interaction* other = b.get_interaction(first, second);
+        const Interaction* other = find_interaction(b, first, second);
 
         if (!other || other->contacts.size() != interaction.contacts.size() || b.edge_of(*other).first != first)
             return false;
@@ -89,7 +104,7 @@ static bool same_contacts(const WoodSession& a, const WoodSession& b) {
             const ContactFace* face = interaction.contacts[i].face();
             const ContactFace* twin = other->contacts[i].face();
 
-            if (!face || !twin || face->face_a != twin->face_a || face->face_b != twin->face_b || !same(face->polygon, twin->polygon, 1e-3))
+            if (!face || !twin || face->face_a != twin->face_a || face->face_b != twin->face_b || !same_loop(face->polygon, twin->polygon, 1e-3))
                 return false;
         }
     }
@@ -104,7 +119,7 @@ static bool attached(const WoodSession& session) {
 
         const auto [first, second] = session.edge_of(interaction);
 
-        if (session.get_interaction(first, second) != &interaction)
+        if (find_interaction(session, first, second) != &interaction)
             return false;
     }
 

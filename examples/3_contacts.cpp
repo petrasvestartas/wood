@@ -26,7 +26,7 @@ int main() {
 
     std::cout << wood_session.get_contacts().size() << " contacts on " << wood_session.interactions.size() << " interactions\n";
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

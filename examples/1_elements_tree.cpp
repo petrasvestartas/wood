@@ -8,7 +8,7 @@ const Vector X(1.0, 0.0, 0.0);
 const Vector Y(0.0, 1.0, 0.0);
 const std::vector<double> XS = {4000.0};
 const std::vector<double> YS = {3000.0};
-const std::vector<double> HEIGHTS = {3700.0}; // column 3000 + head 300 + beam 200 + deck 200, the datum is the deck underside
+const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3000 + head 300 + beam 200 + deck 200, the datum is the deck underside
 const double GAP = 2000.0;
 const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .head = 300.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
@@ -21,7 +21,7 @@ int main() {
 
         const Xform shift = Xform::translation(i * (XS[0] + 2.0 * FRAMING.reach + GAP), 0.0, 0.0);
         const std::vector<Polyline> footprint = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, XS[0], YS[0]).transformed(shift)};
-        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, HEIGHTS, wood_grid::Pattern::orthogonal(XS, YS).transformed(shift));
+        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS).transformed(shift));
         const std::shared_ptr<TreeNode> branch = wood_session.add_group(fmt::format("bay_{}", i));
 
         for (const std::shared_ptr<Element>& element : building.to_elements(FRAMING, 0))
@@ -34,7 +34,7 @@ int main() {
     wood_session.compute_contacts(1);
 
     std::cout << wood_session;
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

@@ -16,7 +16,7 @@ int main() {
 
     std::cout << fmt::format("reflex fold: {} plates\n", shell.elements.size());
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

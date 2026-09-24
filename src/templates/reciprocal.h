@@ -40,12 +40,9 @@ private:
     );
 };
 
-// ---------------------------------------------------------------------------
-// Definitions. Header-only, like every other template in this directory:
-// `inline` so including this from more than one translation unit does not
-// produce duplicate symbols, and no `static` keyword - that belongs on the
-// in-class declaration only.
-// ---------------------------------------------------------------------------
+// ═══════════════════════════════════════════════════════════════════════════
+// Definitions
+// ═══════════════════════════════════════════════════════════════════════════
 
 inline std::vector<Line> Reciprocal::get_lines(
     const std::vector<Line>&             lines,
@@ -133,13 +130,10 @@ inline Reciprocal::Result Reciprocal::from_mesh(
 
     std::map<size_t, Plane> fplane;
     for (size_t fk : fkeys) {
-        // A single degenerate face (<3 vertices) used to abort the whole
-        // build with bad_optional_access surfacing as an opaque error in the
-        // Python binding. Skip it; edges bordering only skipped faces get a
-        // zero direction vector below and are themselves skipped.
         std::optional<Vector> n = mesh.face_normal(fk);
         std::optional<Point> c = mesh.face_centroid(fk);
-        if (!n || !c) { continue; }
+        if (!n || !c)
+            continue;
 
         fplane[fk] = Plane::from_point_normal(*c, *n);
     }
@@ -152,15 +146,11 @@ inline Reciprocal::Result Reciprocal::from_mesh(
         }
     }
 
-    // Adjacency built ONCE from the faces. edge_faces() scans every face on
-    // every call (O(E*F) over the loop) and edge_line() rebuilds the whole
-    // directed-edge set per call (O(E^2 log E)) just to validate an edge we
-    // already know exists - session_cpp's own header warns against exactly
-    // this pattern.
     std::map<std::pair<size_t,size_t>, std::vector<size_t>> edge_adj_faces;
     for (int fi = 0; fi < nf; fi++) {
         std::optional<std::vector<std::pair<size_t,size_t>>> fe_opt = mesh.face_edges(fkeys[fi]);
-        if (!fe_opt) continue;
+        if (!fe_opt)
+            continue;
 
         for (auto& [u, v] : *fe_opt) {
             std::pair<size_t,size_t> key = std::make_pair(std::min(u, v), std::max(u, v));
@@ -173,19 +163,22 @@ inline Reciprocal::Result Reciprocal::from_mesh(
         std::pair<size_t,size_t> key = std::make_pair(std::min(ekeys[ei].first, ekeys[ei].second),
                                                       std::max(ekeys[ei].first, ekeys[ei].second));
         auto it = edge_adj_faces.find(key);
-        if (it == edge_adj_faces.end() || it->second.empty()) continue;
+        if (it == edge_adj_faces.end() || it->second.empty())
+            continue;
 
         Vector sum(0, 0, 0);
         size_t used = 0;
         for (size_t fk : it->second) {
             auto pit = fplane.find(fk);
-            if (pit == fplane.end()) continue;  // degenerate face skipped above
+            if (pit == fplane.end())
+                continue;  // degenerate face skipped above
 
             sum += pit->second.z_axis();
             used++;
         }
 
-        if (used == 0) continue;
+        if (used == 0)
+            continue;
 
         Vector avg = sum / (double)used;
         if (!avg.is_zero())
@@ -196,19 +189,20 @@ inline Reciprocal::Result Reciprocal::from_mesh(
     for (int ei = 0; ei < ne; ei++) {
         std::optional<Point> pu = mesh.vertex_point(ekeys[ei].first);
         std::optional<Point> pv = mesh.vertex_point(ekeys[ei].second);
-        if (!pu || !pv) continue;  // paired with zero vecs -> edge skipped
+        if (!pu || !pv)
+            continue;  // paired with zero vecs -> edge skipped
 
         lines[ei] = Line::from_points(*pu, *pv);
     }
 
     for (int ei = 0; ei < ne; ei++) {
 
-        if (vecs[ei].is_zero()) continue;
+        if (vecs[ei].is_zero())
+            continue;
 
         Point mid = lines[ei].center();
         lines[ei].transform(Xform::scale_uniform(mid, scale));
 
-        // rotation center is the original midpoint (unchanged by uniform scale about it)
         Point axis_end(mid[0] + vecs[ei][0], mid[1] + vecs[ei][1], mid[2] + vecs[ei][2]);
         Line rot_axis = Line::from_points(mid, axis_end);
         lines[ei].transform(Xform::rotation_around_line(rot_axis, angle));

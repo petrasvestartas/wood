@@ -56,8 +56,6 @@ public:
         size_t idx = 0;
 
         for (int i = 0; i < u_div; i++) {
-            // u = u0 + i*su, not u += su: the accumulated form drifts by one
-            // rounding step per cell across the surface.
             double u = u0 + i * su;
             for (int j = 0; j < v_div; j++) {
                 double v = v0 + j * sv;
@@ -66,13 +64,6 @@ public:
                 Point p2 = surface.point_at(u,          v + sv);
                 Point p3 = surface.point_at(u + su,     v + sv);
                 Point p5 = surface.point_at(u + su*0.5, v + sv*0.5);
-                // Interior rows use p4 = next row's midpoint (in-domain for
-                // j < v_div-1). Boundary rows previously sampled half a cell
-                // OUTSIDE the domain (v - sv*0.5 / v + sv*1.5 - point_at
-                // extrapolates, it does not clamp) and averaged with p5, so
-                // border plates missed the true surface edge by
-                // O(curvature*sv^2) - tens of mm at default divisions.
-                // Evaluate the boundary parameter directly instead.
                 Point p4 = (j != v_div - 1)
                     ? surface.point_at(u + su*0.5, v + sv*1.5)
                     : Point(0, 0, 0);   // unused on the last row
@@ -97,19 +88,9 @@ public:
             }
         }
 
-        // Weld tolerance is a DISTANCE in model units. 3.14159 was pi
-        // pasted into a millimetre slot: 300x the 0.01 the sibling templates
-        // use, and enough to fuse genuinely distinct vertices once cells
-        // shrink below ~6 mm. The vertices to merge differ only by floating
-        // point rounding, so the small tolerance is the correct one.
         mesh = Mesh::from_vertices_and_faces(pts, faces).weld(0.01);
 
-        // Generate Plate plates via miter_contours.
-        // chamfer_mask/chamfer_apply are applied after to maintain equal
-        // point counts in both top and bottom contours.
-        using MiterTuple = std::tuple<std::vector<Point>, std::vector<Point>,
-                                      std::vector<Point>, std::vector<Point>, Vector>;
-        for (const MiterTuple& plate :
+        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);

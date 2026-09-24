@@ -50,6 +50,56 @@ Polyline square_section(const Point& at, const Vector& direction, const Vector& 
 }
 
 /// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
+Vector compute_newell(const std::vector<Point>& points) {
+
+    const size_t count = points.size() > 1 && points.front().distance(points.back()) < Tolerance::APPROXIMATION ? points.size() - 1 : points.size();
+    Vector normal(0.0, 0.0, 0.0);
+    for (size_t i = 0; i < count; i++)
+        normal += (points[i] - Point(0.0, 0.0, 0.0)).cross(points[(i + 1) % count] - Point(0.0, 0.0, 0.0));
+
+    return normal.normalized();
+}
+
+std::vector<Plane> face_planes(const Mesh& mesh) {
+
+    std::vector<Plane> planes;
+    for (const Polyline& outline : mesh.face_outlines()) {
+        std::vector<Point> points = outline.get_points();
+        points.pop_back();
+        planes.push_back(Plane::from_point_normal(Point::centroid(points), compute_newell(points)));
+    }
+
+    return planes;
+}
+
+/// The signed flux of one triangle of vertex keys about the origin, six times its tetrahedron volume.
+static double compute_flux(const Mesh& mesh, size_t a, size_t b, size_t c) {
+
+    const Point p0 = *mesh.vertex_point(a);
+    const Point p1 = *mesh.vertex_point(b);
+    const Point p2 = *mesh.vertex_point(c);
+
+    return p0[0] * (p1[1] * p2[2] - p1[2] * p2[1]) + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2]) + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);
+}
+
+double compute_volume(const Mesh& mesh) {
+
+    double total = 0.0;
+    for (const size_t face : mesh.faces()) {
+        if (mesh.get_triangulation().count(face)) {
+            for (const std::array<size_t, 3>& triangle : mesh.get_triangulation().at(face))
+                total += compute_flux(mesh, triangle[0], triangle[1], triangle[2]);
+            continue;
+        }
+
+        const std::vector<size_t> ring = *mesh.face_vertices(face);
+        for (size_t i = 1; i + 1 < ring.size(); i++)
+            total += compute_flux(mesh, ring[0], ring[i], ring[i + 1]);
+    }
+
+    return std::abs(total) / 6.0;
+}
+
 BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top) {
 
     std::vector<Polyline> faces{bottom[0], top[0]};
@@ -137,7 +187,7 @@ Mesh sweep_sections(const std::vector<Polyline>& sections) {
     return Mesh::from_vertices_and_faces(vertices, faces);
 }
 
-Mesh cut_geometry(const Mesh& geometry, const std::vector<Plane>& planes) {
+Mesh cut_mesh(const Mesh& geometry, const std::vector<Plane>& planes) {
 
     Mesh cut = geometry;
     for (const Plane& plane : planes)
@@ -146,7 +196,7 @@ Mesh cut_geometry(const Mesh& geometry, const std::vector<Plane>& planes) {
     return cut;
 }
 
-BRep cut_geometry(const BRep& geometry, const std::vector<Plane>& planes) {
+BRep cut_brep(const BRep& geometry, const std::vector<Plane>& planes) {
 
     BRep cut = geometry;
     for (const Plane& plane : planes)

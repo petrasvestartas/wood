@@ -33,7 +33,9 @@ struct InteractionFeature {
     WoodSession& session() const;
 
     /// True once the record has been stored in a scene.
-    bool has_session() const { return _session != nullptr; }
+    bool has_session() const {
+        return _session != nullptr;
+    }
 
     /// Stores the scene on this record and on the kind it holds.
     void set_session(WoodSession* scene);
@@ -50,16 +52,24 @@ struct InteractionFeature {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The plate joint, or null when this is another kind.
-    const FeaturePlate* plate() const { return std::get_if<FeaturePlate>(&data); }
+    const FeaturePlate* plate() const {
+        return std::get_if<FeaturePlate>(&data);
+    }
 
     /// The plate joint, mutable, or null when this is another kind.
-    FeaturePlate* plate() { return std::get_if<FeaturePlate>(&data); }
+    FeaturePlate* plate() {
+        return std::get_if<FeaturePlate>(&data);
+    }
 
     /// The beam joint, or null when this is another kind.
-    const FeatureBeam* beam() const { return std::get_if<FeatureBeam>(&data); }
+    const FeatureBeam* beam() const {
+        return std::get_if<FeatureBeam>(&data);
+    }
 
     /// The plate-to-beam joint, or null when this is another kind.
-    const FeaturePlateBeam* plate_beam() const { return std::get_if<FeaturePlateBeam>(&data); }
+    const FeaturePlateBeam* plate_beam() const {
+        return std::get_if<FeaturePlateBeam>(&data);
+    }
 
     /// "plate", "beam" or "plate_beam".
     std::string_view kind() const;

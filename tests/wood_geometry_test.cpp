@@ -13,22 +13,40 @@ static void check(bool condition, std::string_view name) {
 }
 
 template <class T>
-static auto cache_guids(const T& element) {
+static std::array<std::string, 4> cache_guids(const T& element) {
     return std::array<std::string, 4>{element.element_geometry_mesh().guid(),
                                       element.element_geometry_brep().guid(),
                                       element.model_geometry_mesh().guid(),
                                       element.model_geometry_brep().guid()};
 }
 
-template <class T, class ClearParameters>
-static void cache_test(const T& original, ClearParameters clear_parameters) {
+/// Empties the parameters a plate lofts from.
+static void clear_plate(Plate& value) {
+    value.polylines.clear();
+}
+
+/// Empties the parameters a beam lofts from.
+static void clear_beam(Beam& value) {
+    value.radii.clear();
+}
+
+/// Empties the parameters a column lofts from.
+static void clear_column(Column& value) {
+    value.section = Polyline();
+}
+
+/// Empties the parameters a block lofts from.
+static void clear_block(Block& value) {
+    value.loops.clear();
+}
+
+template <class T>
+static void cache_test(const T& original, void (*clear_parameters)(T&)) {
     static_assert(std::is_same_v<decltype(original.element_geometry_mesh()), const Mesh&>);
     static_assert(std::is_same_v<decltype(original.element_geometry_brep()), const BRep&>);
     static_assert(std::is_same_v<decltype(original.model_geometry_mesh()), const Mesh&>);
     static_assert(std::is_same_v<decltype(original.model_geometry_brep()), const BRep&>);
 
-    // Deliberately change the raw parameters without invalidating: only the form
-    // already requested should retain the old shape. The other must build now.
     for (bool model : {false, true}) {
         T mesh_first = original;
         const Mesh& mesh = model ? mesh_first.model_geometry_mesh() : mesh_first.element_geometry_mesh();
@@ -52,7 +70,7 @@ static void cache_test(const T& original, ClearParameters clear_parameters) {
     }
 
     T element = original;
-    const auto guids = cache_guids(element);
+    const std::array<std::string, 4> guids = cache_guids(element);
     const Element& base = element;
     check(cache_guids(base) == guids, "Base Element dispatches all four methods to the derived caches");
     check(!element.geometry_synced(), "Typed access does not populate the session slot");
@@ -63,7 +81,7 @@ static void cache_test(const T& original, ClearParameters clear_parameters) {
     check(cache_guids(element) == guids, "Session synchronization and serialization retain every cache");
 
     element.place(Xform::translation(10, 20, 30));
-    const auto moved_guids = cache_guids(element);
+    const std::array<std::string, 4> moved_guids = cache_guids(element);
     for (size_t i = 0; i < guids.size(); ++i)
         check(moved_guids[i] != guids[i], "Placement invalidates every cache");
 
@@ -99,10 +117,10 @@ int main() {
     const Column column(Line::from_points(Point(50, 50, 0), Point(50, 50, 100)), bottom);
     const Block block({bottom, top});
 
-    cache_test(plate, [](Plate& value) { value.polylines.clear(); });
-    cache_test(beam, [](Beam& value) { value.radii.clear(); });
-    cache_test(column, [](Column& value) { value.section = Polyline(); });
-    cache_test(block, [](Block& value) { value.loops.clear(); });
+    cache_test(plate, clear_plate);
+    cache_test(beam, clear_beam);
+    cache_test(column, clear_column);
+    cache_test(block, clear_block);
     cut_test(beam);
     cut_test(column);
     cut_test(block);

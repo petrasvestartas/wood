@@ -19,7 +19,7 @@ int main() {
     const std::shared_ptr<Plate> female = owner.get_element<Plate>(joint.element_b);
     std::cout << "joint " << joint.name << " cuts " << male->name << " and " << female->name << "\n";
 
-    const Interaction& interaction = *owner.get_interaction(joint.element_a, joint.element_b);
+    const Interaction& interaction = *owner.get_interaction(male, female);
     const InteractionContact& contact = interaction.contacts.front();
     std::cout << "its interaction has " << interaction.contacts.size() << " contacts, the first is a " << contact.kind() << " in wood session " << contact.session().name << "\n";
 

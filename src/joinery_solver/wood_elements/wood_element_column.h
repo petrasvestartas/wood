@@ -61,6 +61,9 @@ public:
     /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const session_cpp::BRep& model_geometry_brep() const override;
 
+    /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
+    std::vector<session_cpp::Plane> compute_planes() const override;
+
     /// Drops the cached solids and marks the Element slot stale; call after assigning the axis, the section or the cuts by hand.
     void invalidate_geometry() override;
 
@@ -97,7 +100,9 @@ public:
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+    std::string element_type_name() const override {
+        return std::string(ELEMENT_TYPE);
+    }
 
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;
@@ -106,7 +111,9 @@ public:
     session_cpp::AABB aabb(double inflate) const;
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Column>(*this); }
+    std::shared_ptr<session_cpp::Element> clone() const override {
+        return std::make_shared<Column>(*this);
+    }
 
     /// Registers the "Column" factory with the kernel, so Session::pb_load rebuilds columns.
     static void register_type();

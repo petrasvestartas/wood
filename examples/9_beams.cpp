@@ -20,7 +20,7 @@ int main() {
                 std::cout << fmt::format("{} with {}: end type {} ({}), {} volume rectangles\n", wood_session.get_element<Beam>(a)->name, wood_session.get_element<Beam>(b)->name, beam->end_type, beam->end_type == 0 ? "crossing" : beam->end_type == 1 ? "side to end" : "end to end", beam->volumes.size());
     }
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

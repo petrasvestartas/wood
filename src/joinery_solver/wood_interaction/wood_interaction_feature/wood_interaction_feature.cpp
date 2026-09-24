@@ -15,8 +15,13 @@ WoodSession& InteractionFeature::session() const {
 }
 
 void InteractionFeature::set_session(WoodSession* scene) {
+
     _session = scene;
-    std::visit([scene](auto& kind) { if constexpr (requires { kind._session; }) kind._session = scene; }, data);
+
+    if (FeaturePlate* kind = plate())
+        kind->_session = scene;
+    else if (FeatureBeam* kind = std::get_if<FeatureBeam>(&data))
+        kind->_session = scene;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -33,7 +38,9 @@ InteractionFeature::InteractionFeature(FeaturePlateBeam plate_beam) : data(std::
 // InteractionFeature - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const InteractionFeature& feature) { return os << feature.str(); }
+std::ostream& operator<<(std::ostream& os, const InteractionFeature& feature) {
+    return os << feature.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeature - Geometry

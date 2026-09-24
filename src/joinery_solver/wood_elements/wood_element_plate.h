@@ -94,10 +94,14 @@ public:
 
 protected:
     /// The plate's own outlines, so Element::polylines() agrees with the solver's view.
-    std::vector<session_cpp::Polyline> compute_polylines() const override { return polylines; }
+    std::vector<session_cpp::Polyline> compute_polylines() const override {
+        return polylines;
+    }
 
     /// The plate's own planes, so Element::planes() agrees with the solver's view.
-    std::vector<session_cpp::Plane> compute_planes() const override { return planes; }
+    std::vector<session_cpp::Plane> compute_planes() const override {
+        return planes;
+    }
 
 public:
     // ═══════════════════════════════════════════════════════════════════════════
@@ -115,7 +119,9 @@ public:
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+    std::string element_type_name() const override {
+        return std::string(ELEMENT_TYPE);
+    }
 
     /// The kernel's cached box of the lofted geometry.
     using session_cpp::Element::aabb;
@@ -124,7 +130,9 @@ public:
     session_cpp::AABB aabb(double inflate) const;
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Plate>(*this); }
+    std::shared_ptr<session_cpp::Element> clone() const override {
+        return std::make_shared<Plate>(*this);
+    }
 
     /// Registers the "Plate" factory (and the legacy "WoodElement" tag) with the kernel, so Session::pb_load rebuilds plates.
     static void register_type();
@@ -147,7 +155,9 @@ public:
     using session_cpp::Element::insertion_vectors;
 
     /// The insertion vectors the Element holds, one per face from the insertion_vectors sidecar, writable by the solver.
-    std::vector<session_cpp::Vector>& insertion_vectors() { return _insertion_vectors; }
+    std::vector<session_cpp::Vector>& insertion_vectors() {
+        return _insertion_vectors;
+    }
 };
 
 } // namespace wood_session

@@ -18,7 +18,9 @@ WoodSession& ContactCross::session() const {
 // ContactCross - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const ContactCross& contact) { return os << contact.str(); }
+std::ostream& operator<<(std::ostream& os, const ContactCross& contact) {
+    return os << contact.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ContactCross - Geometry

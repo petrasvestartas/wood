@@ -20,30 +20,30 @@ using namespace session_cpp;
 ///   VdaMesh vda(my_mesh, 3.0, {0.0}, {2}, {}, {}, 10.0, 10.0, 5.0);
 class VdaMesh {
 public:
-    // ── outputs ──────────────────────────────────────────────────────────────
-    /// [face_i][pos_j*2+0/1]  — bottom/top outline per face per position
-    std::vector<std::vector<Polyline>>      f_polylines;
-    /// [face_i][pos_j]  — top plane per face per position
-    std::vector<std::vector<Plane>>         f_polylines_planes;
-    /// [face_i][pos_j]  — label string per face per position
-    std::vector<std::vector<std::string>>   f_polylines_index;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Outputs
+    // ═══════════════════════════════════════════════════════════════════════════
+    std::vector<std::vector<Polyline>> f_polylines; // [face_i][pos_j*2+0/1]  — bottom/top outline per face per position
+    std::vector<std::vector<Plane>> f_polylines_planes; // [face_i][pos_j]  — top plane per face per position
+    std::vector<std::vector<std::string>> f_polylines_index; // [face_i][pos_j]  — label string per face per position
 
-    /// [edge_i][div_j*2+0/1]  — two connector rectangles per subdivision
-    std::vector<std::vector<Polyline>>      e_polylines;
-    /// [edge_i][div_j]  — connector plane per edge subdivision
-    std::vector<std::vector<Plane>>         e_polylines_planes;
-    /// [edge_i][div_j]  — label "f0-f1_j" per edge subdivision
-    std::vector<std::vector<std::string>>   e_polylines_index;
+    std::vector<std::vector<Polyline>> e_polylines; // [edge_i][div_j*2+0/1]  — two connector rectangles per subdivision
+    std::vector<std::vector<Plane>> e_polylines_planes; // [edge_i][div_j]  — connector plane per edge subdivision
+    std::vector<std::vector<std::string>> e_polylines_index; // [edge_i][div_j]  — label "f0-f1_j" per edge subdivision
 
 private:
-    // ── topology ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Topology
+    // ═══════════════════════════════════════════════════════════════════════════
     int f_count = 0;
     int e_count = 0;
     std::vector<size_t>                          face_keys;   // Mesh::faces(), sorted
     std::vector<std::pair<size_t,size_t>>        edge_keys;   // Mesh::edges(), low vertex first, sorted
     std::vector<std::vector<int>>                e_f_idx;     // seq edge → seq face indices, from Mesh::edge_face_map()
 
-    // ── geometry ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
     std::vector<Plane>                    f_planes;
     std::vector<std::vector<Plane>>       fe_planes;   // [face][edge_j]
     std::vector<std::vector<Plane>>       bi_planes;   // [face][corner_j]
@@ -53,7 +53,9 @@ private:
     std::vector<Vector>                   insertion_vectors;
 
 public:
-    // ── constructor ──────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Constructor
+    // ═══════════════════════════════════════════════════════════════════════════
     VdaMesh(
         const Mesh&          input_mesh         = default_mesh(),
         double               face_thickness     = 20.0,
@@ -66,19 +68,18 @@ public:
         double               rect_thickness     = 20.0)
     {
 
-        // Validate / normalise inputs
         Mesh m = input_mesh.weld(0.01);
-        if (face_positions.empty()) face_positions = {0.0};
+        if (face_positions.empty())
+            face_positions = {0.0};
         std::sort(face_positions.begin(), face_positions.end());
-        if (edge_divisions.empty()) edge_divisions = {2};
+        if (edge_divisions.empty())
+            edge_divisions = {2};
         if (!edge_division_len.empty() && edge_division_len[0] < 0.01) {
             edge_division_len.clear();
         }
 
-        // Build topology maps
         build_topology(m);
 
-        // Compute geometry
         get_faces_planes(m);
         get_face_edge_planes(m);
         get_bisector_planes();
@@ -88,8 +89,9 @@ public:
         get_connectors(rect_width, rect_height, rect_thickness);
     }
 
-    // ── default mesh: hex mesh (15 faces), centered at origin, scaled 10× ──────
-    // Source data centered by bbox midpoint (-33.754, -22.862, 13.445) and scaled ×10.
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Default mesh: hex mesh (15 faces), centered at origin, scaled 10×
+    // ═══════════════════════════════════════════════════════════════════════════
     static Mesh default_mesh()
     {
         std::vector<std::vector<Point>> polys = {
@@ -113,7 +115,9 @@ public:
     }
 
 private:
-    // ── face and edge sequential indices from the kernel's adjacency ─────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Face and edge sequential indices from the kernel's adjacency
+    // ═══════════════════════════════════════════════════════════════════════════
     void build_topology(const Mesh& m)
     {
         face_keys = m.faces();
@@ -130,7 +134,7 @@ private:
         e_f_idx.resize(e_count);
         for (int ei = 0; ei < e_count; ++ei) {
             const auto [u, v] = edge_keys[ei];
-            for (const std::pair<size_t, size_t> halfedge : {std::make_pair(u, v), std::make_pair(v, u)}) {
+            for (const std::pair<size_t, size_t>& halfedge : {std::make_pair(u, v), std::make_pair(v, u)}) {
                 const auto it = halfedge_face.find(halfedge);
                 if (it != halfedge_face.end()) {
                     e_f_idx[ei].push_back(face_to_idx.at(it->second));
@@ -140,27 +144,29 @@ private:
         }
     }
 
-    // ── face centroid + normal → Plane ───────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Face centroid + normal → plane
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_faces_planes(const Mesh& m)
     {
         f_planes.resize(f_count);
         for (int fi = 0; fi < f_count; ++fi) {
             std::optional<Point>  c = m.face_centroid(face_keys[fi]);
             std::optional<Vector> n = m.face_normal(face_keys[fi]);
-            if (!c || !n) { f_planes[fi] = Plane::invalid(); continue; }
+            if (!c || !n) {
+                f_planes[fi] = Plane::invalid();
+                continue;
+            }
 
             Point  origin = *c;
             Vector normal = *n;
-            // from_point_normal takes non-const refs
             f_planes[fi] = Plane::from_point_normal(origin, normal);
         }
     }
 
-    // ── face-edge cutting planes ──────────────────────────────────────────────
-    // For each edge j of face i:
-    //   x_axis = (vertex_j - vertex_{j+1})  [matches Python convention]
-    //   y_axis = average normal of all faces sharing that edge
-    //   origin = edge midpoint
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Face-edge cutting planes
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_face_edge_planes(const Mesh& m)
     {
 
@@ -186,19 +192,21 @@ private:
                 size_t v = edges[j].second;
                 std::optional<Point> lu = m.vertex_point(u);
                 std::optional<Point> lv = m.vertex_point(v);
-                if (!lu || !lv) { fe_planes[fi][j] = Plane::invalid(); continue; }
+                if (!lu || !lv) {
+                    fe_planes[fi][j] = Plane::invalid();
+                    continue;
+                }
 
                 Point midpt = Point::mid_point(*lu, *lv);
-                // x_axis: u→v direction, reversed to match Python (v1-v2)
                 Vector xaxis = Vector::from_points(*lv, *lu);
                 if (!xaxis.normalize_self()) {
                     xaxis = Vector::x_axis();
                 }
 
-                // y_axis: average normal of all adjacent faces, served from the cached f_planes.
                 Vector yaxis(0, 0, 0);
                 for (int adj_fi : e_f_idx[edge_to_idx.at(std::minmax(u, v))]) {
-                    if (!f_planes[adj_fi].is_valid()) continue;
+                    if (!f_planes[adj_fi].is_valid())
+                        continue;
                     yaxis += f_planes[adj_fi].z_axis();
                 }
                 if (!yaxis.normalize_self()) {
@@ -210,30 +218,27 @@ private:
         }
     }
 
-    // ── dihedral (bisector) plane between two face-edge planes ────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Dihedral (bisector) plane between two face-edge planes
+    // ═══════════════════════════════════════════════════════════════════════════
     static Plane dihedral_plane(const Plane& p0, const Plane& p1)
     {
 
-        // Intersection line of p0 and p1
         Line line;
         if (!Intersection::plane_plane(p0, p1, line)) {
             return Plane::invalid();
         }
 
-        // Point on that line at p0 (use infinite line)
         Point center_dihedral;
         if (!Intersection::line_plane(line, p0, center_dihedral, false)) {
             center_dihedral = line.center();
         }
 
-        // Check if normals are (anti-)parallel
-        // is_parallel_to is non-const → copy first
         Vector z0_copy = p0.z_axis();
         if (z0_copy.is_parallel_to(p1.z_axis()) != 0) {
             return Plane::invalid();
         }
 
-        // Find where the two z-axis rays converge
         Line n0 = Line::from_point_and_vector(p0.origin(), p0.z_axis());
         Line n1 = Line::from_point_and_vector(p1.origin(), p1.z_axis());
         double t0 = 0, t1 = 0;
@@ -254,7 +259,9 @@ private:
         return Plane(center_dihedral, line.to_direction(), bisector);
     }
 
-    // ── bisector planes at each face corner ───────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Bisector planes at each face corner
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_bisector_planes()
     {
         bi_planes.resize(f_count);
@@ -269,9 +276,9 @@ private:
         }
     }
 
-    // ── face outline by consecutive edge-plane intersections ─────────────────
-    // Intersects consecutive face-edge planes to get face corners, then
-    // projects onto the offset face plane.
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Face outline by consecutive edge-plane intersections
+    // ═══════════════════════════════════════════════════════════════════════════
     static Polyline outline_from_face(
         const Plane&              base_plane,
         const std::vector<Plane>& edge_planes,
@@ -289,8 +296,6 @@ private:
             Plane& ep0 = ep[j];
             Plane& ep1 = ep[(j + 1) % n];
 
-            // Skip if z-axes nearly parallel (same or anti-parallel)
-            // angle() is non-const → copy vectors first
             if (ep0.is_valid() && ep1.is_valid()) {
                 Vector z0 = ep0.z_axis(), z1 = ep1.z_axis();
                 double zz = z0.angle(z1, /*sign=*/false, /*degrees=*/true);
@@ -300,14 +305,12 @@ private:
                 }
             }
 
-            // Fallback if x-axes nearly aligned → use bisector plane origin
             if (ep0.is_valid() && ep1.is_valid() && j < (int)bise_planes.size() &&
                 bise_planes[j].is_valid())
             {
                 Vector x0 = ep0.x_axis(), x1 = ep1.x_axis();
                 double xx = x0.angle(x1, false, true);
                 if (xx < tol_xx_deg) {
-                    // Rotate ep0.x_axis by 90° around ep0.y_axis = y × x = -z
                     Vector y0 = ep0.y_axis();
                     Vector x0c = ep0.x_axis();
                     Vector vec = y0.cross(x0c);
@@ -315,7 +318,6 @@ private:
                 }
             }
 
-            // Standard: plane-plane → line, line-face-plane → corner
             Line  line;
             Point pt;
 
@@ -334,14 +336,17 @@ private:
             corners.push_back(pt);
         }
 
-        if (corners.empty()) return Polyline(std::vector<session_cpp::Point>{});
+        if (corners.empty())
+            return Polyline(std::vector<session_cpp::Point>{});
 
         corners.push_back(corners[0]); // close
 
         return Polyline(corners);
     }
 
-    // ── face plate polylines ──────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Face plate polylines
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_face_polylines(const std::vector<double>& face_positions, double face_thickness)
     {
 
@@ -372,7 +377,9 @@ private:
         }
     }
 
-    // ── match insertion lines to mesh edges ──────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Match insertion lines to mesh edges
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_edge_vectors(const Mesh& m, const std::vector<Line>& lines)
     {
 
@@ -380,9 +387,6 @@ private:
         e_lines.resize(e_count);
 
         for (int ei = 0; ei < e_count; ++ei) {
-            // edge_line() rebuilds the full directed-edge set per call only
-            // to validate an edge that came from face_edges and is known to
-            // exist: two vertex lookups suffice.
             size_t u = edge_keys[ei].first;
             size_t v = edge_keys[ei].second;
             std::optional<Point> pu = m.vertex_point(u);
@@ -414,7 +418,9 @@ private:
         }
     }
 
-    // ── edge perpendicular planes + subdivision ────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Edge perpendicular planes + subdivision
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_edge_planes(
         const std::vector<int>&   edge_divisions,
         const std::vector<double>& edge_division_len)
@@ -425,7 +431,6 @@ private:
 
         for (int ei = 0; ei < e_count; ++ei) {
 
-            // Only internal edges (2 adjacent faces)
             if ((int)e_f_idx[ei].size() < 2) {
                 e90_multi[ei] = {Plane::invalid()};
                 continue;
@@ -450,21 +455,17 @@ private:
                 xaxis = Vector::x_axis();
             }
 
-            // Orient xaxis toward face f0's centroid
             Point  c0 = f_planes[f0].origin();
             if ((origin + xaxis).squared_distance(c0) >
                 (origin - xaxis).squared_distance(c0)) {
                 xaxis = -xaxis;
             }
 
-            // Override with insertion vector projected onto the yaxis plane
             if (!insertion_vectors[ei].is_zero()) {
                 Vector iv = insertion_vectors[ei];
-                // Project onto the plane perpendicular to yaxis
                 double dot = iv.dot(yaxis);
                 iv = iv - yaxis * dot;
                 if (iv.normalize_self()) {
-                    // Align with existing xaxis direction
                     if ((origin + iv).squared_distance(c0) >
                         (origin - iv).squared_distance(c0)) {
                         iv = -iv;
@@ -475,7 +476,6 @@ private:
 
             e90_planes[ei] = Plane(origin, xaxis, yaxis);
 
-            // Compute subdivision count
             int divisions = 1;
             double elen = el.length();
             if (!edge_division_len.empty()) {
@@ -490,7 +490,6 @@ private:
                 divisions = std::max(1, divisions);
             }
 
-            // Interior subdivision points
             e90_multi[ei].clear();
             for (int k = 1; k <= divisions; ++k) {
                 double t = (double)k / (1.0 + divisions);
@@ -500,7 +499,9 @@ private:
         }
     }
 
-    // ── edge connector rectangles ─────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Edge connector rectangles
+    // ═══════════════════════════════════════════════════════════════════════════
     void get_connectors(double rect_width, double rect_height, double rect_thickness)
     {
 
@@ -525,8 +526,6 @@ private:
                     continue;
                 }
 
-                // Two rectangles offset ±rect_thickness/2 along z_axis (edge dir)
-                // Index 0 = bot (-z), index 1 = top (+z) — matches face plate convention
                 Plane pl_bot(pl.origin() + pl.z_axis() * (-rect_thickness * 0.5),
                              pl.x_axis(), pl.y_axis());
                 Plane pl_top(pl.origin() + pl.z_axis() * ( rect_thickness * 0.5),

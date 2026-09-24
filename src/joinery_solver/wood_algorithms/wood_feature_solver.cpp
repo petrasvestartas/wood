@@ -24,14 +24,6 @@ struct BuildContext {
     std::vector<FeaturePlate>& all_joints;
 };
 
-using Builder = void (*)(FeaturePlate&, BuildContext&);
-
-/// One library entry: the builder the JOINTS_TYPES table names by id, and the family it belongs to.
-struct Entry {
-    int family;
-    Builder build;
-};
-
 /// Family names by family index: the id ranges 1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69.
 constexpr std::array<std::string_view, 7> FAMILY_NAMES = {"ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r", "b"};
 
@@ -63,71 +55,72 @@ bool id_matches(const int joint_type, const int id) {
     return id == -1 || family_of(id) == family_of_type(joint_type);
 }
 
-/// The library: every id with a builder. An id missing here takes its family's default below.
-const std::map<int, Entry>& library() {
-    static const std::map<int, Entry> table = {
-        {1, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_1(j); }}},
-        {2, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_0(j); }}},
-        {3, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_2(j); }}},
-        {4, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_3(j); }}},
-        {5, {0, [](FeaturePlate& j, BuildContext&) { ss_e_ip_4(j); }}},
-        {6, {0, [](FeaturePlate& j, BuildContext& c) { ss_e_ip_5(j, c.elements); }}},
-        {8, {0, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
-        {9, {0, [](FeaturePlate& j, BuildContext& c) { ss_e_ip_custom(j, c.settings); }}},
-        {10, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_1(j); }}},
-        {11, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_2(j); }}},
-        {12, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_0(j); }}},
-        {13, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_3(j); }}},
-        {14, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_4(j, 0.0, true); }}},
-        {15, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_5(j, c.all_joints, false); }}},
-        {16, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_5(j, c.all_joints, true); }}},
-        {17, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_17(j); }}},
-        {18, {1, [](FeaturePlate& j, BuildContext&) { ss_e_op_tutorial(j); }}},
-        {19, {1, [](FeaturePlate& j, BuildContext& c) { ss_e_op_custom(j, c.settings); }}},
-        {20, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); }}},
-        {21, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_2(j); }}},
-        {22, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); }}},
-        {23, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_0(j); }}},
-        {25, {2, [](FeaturePlate& j, BuildContext&) { ts_e_p_5(j); }}},
-        {28, {2, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
-        {29, {2, [](FeaturePlate& j, BuildContext& c) { ts_e_p_custom(j, c.settings); }}},
-        {30, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_0(j); }}},
-        {31, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_1(j); }}},
-        {32, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_2(j); }}},
-        {33, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_3(j); }}},
-        {34, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_4(j); }}},
-        {35, {3, [](FeaturePlate& j, BuildContext&) { cr_c_ip_5(j); }}},
-        {38, {3, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
-        {39, {3, [](FeaturePlate& j, BuildContext& c) { cr_c_ip_custom(j, c.settings); }}},
-        {40, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_0(j, c.elements); }}},
-        {41, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_1(j, c.elements); }}},
-        {42, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_2(j, c.elements); }}},
-        {43, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_3(j, c.elements, c.settings.distance_squared); }}},
-        {44, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_4(j, c.elements); }}},
-        {45, {4, [](FeaturePlate& j, BuildContext& c) { tt_e_p_5(j, c.elements); }}},
-        {54, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_3(j); }}},
-        {55, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_2(j); }}},
-        {56, {5, [](FeaturePlate& j, BuildContext&) { ss_e_r_0(j); }}},
-        {57, {5, [](FeaturePlate& j, BuildContext& c) { side_removal(j, c.elements); }}},
-        {58, {5, [](FeaturePlate& j, BuildContext& c) { side_removal_ss_e_r_1_port(j, c.elements); }}},
-        {59, {5, [](FeaturePlate& j, BuildContext& c) { ss_e_r_custom(j, c.settings); }}},
-        {60, {6, [](FeaturePlate& j, BuildContext&) { b_0(j); }}},
-        {69, {6, [](FeaturePlate& j, BuildContext& c) { b_custom(j, c.settings); }}},
-    };
-
-    return table;
+/// The library: the builder of every id the JOINTS_TYPES table names; false for an id without one, which takes its family's default below.
+bool build_joint(const int id, FeaturePlate& joint, BuildContext& context) {
+    switch (id) {
+        case 1: ss_e_ip_1(joint); return true;
+        case 2: ss_e_ip_0(joint); return true;
+        case 3: ss_e_ip_2(joint); return true;
+        case 4: ss_e_ip_3(joint); return true;
+        case 5: ss_e_ip_4(joint); return true;
+        case 6: ss_e_ip_5(joint, context.elements); return true;
+        case 8: side_removal(joint, context.elements); return true;
+        case 9: ss_e_ip_custom(joint, context.settings); return true;
+        case 10: ss_e_op_1(joint); return true;
+        case 11: ss_e_op_2(joint); return true;
+        case 12: ss_e_op_0(joint); return true;
+        case 13: ss_e_op_3(joint); return true;
+        case 14: ss_e_op_4(joint, 0.0, true); return true;
+        case 15: ss_e_op_5(joint, context.all_joints, false); return true;
+        case 16: ss_e_op_5(joint, context.all_joints, true); return true;
+        case 17: ss_e_op_17(joint); return true;
+        case 18: ss_e_op_tutorial(joint); return true;
+        case 19: ss_e_op_custom(joint, context.settings); return true;
+        case 20: ts_e_p_3(joint); return true;
+        case 21: ts_e_p_2(joint); return true;
+        case 22: ts_e_p_3(joint); return true;
+        case 23: ts_e_p_0(joint); return true;
+        case 25: ts_e_p_5(joint); return true;
+        case 28: side_removal(joint, context.elements); return true;
+        case 29: ts_e_p_custom(joint, context.settings); return true;
+        case 30: cr_c_ip_0(joint); return true;
+        case 31: cr_c_ip_1(joint); return true;
+        case 32: cr_c_ip_2(joint); return true;
+        case 33: cr_c_ip_3(joint); return true;
+        case 34: cr_c_ip_4(joint); return true;
+        case 35: cr_c_ip_5(joint); return true;
+        case 38: side_removal(joint, context.elements); return true;
+        case 39: cr_c_ip_custom(joint, context.settings); return true;
+        case 40: tt_e_p_0(joint, context.elements); return true;
+        case 41: tt_e_p_1(joint, context.elements); return true;
+        case 42: tt_e_p_2(joint, context.elements); return true;
+        case 43: tt_e_p_3(joint, context.elements, context.settings.distance_squared); return true;
+        case 44: tt_e_p_4(joint, context.elements); return true;
+        case 45: tt_e_p_5(joint, context.elements); return true;
+        case 54: ss_e_r_3(joint); return true;
+        case 55: ss_e_r_2(joint); return true;
+        case 56: ss_e_r_0(joint); return true;
+        case 57: side_removal(joint, context.elements); return true;
+        case 58: side_removal_ss_e_r_1_port(joint, context.elements); return true;
+        case 59: ss_e_r_custom(joint, context.settings); return true;
+        case 60: b_0(joint); return true;
+        case 69: b_custom(joint, context.settings); return true;
+        default: return false;
+    }
 }
 
 /// The builder a family falls back to for an id it has no entry for; tt_e_p has none.
-constexpr std::array<Builder, 7> FAMILY_DEFAULTS = {
-    [](FeaturePlate& j, BuildContext&) { ss_e_ip_1(j); },
-    [](FeaturePlate& j, BuildContext&) { ss_e_op_1(j); },
-    [](FeaturePlate& j, BuildContext&) { ts_e_p_3(j); },
-    [](FeaturePlate& j, BuildContext&) { cr_c_ip_0(j); },
-    nullptr,
-    [](FeaturePlate& j, BuildContext&) { ss_e_r_0(j); },
-    [](FeaturePlate& j, BuildContext&) { b_0(j); },
-};
+void build_family_default(const int family, FeaturePlate& joint) {
+    switch (family) {
+        case 0: ss_e_ip_1(joint); return;
+        case 1: ss_e_op_1(joint); return;
+        case 2: ts_e_p_3(joint); return;
+        case 3: cr_c_ip_0(joint); return;
+        case 5: ss_e_r_0(joint); return;
+        case 6: b_0(joint); return;
+        default: return;
+    }
+}
 
 /// Warns once per id, per thread, when an id has no builder and the family default is used instead.
 void warn_unimplemented(const int id, std::string_view family) {
@@ -145,12 +138,8 @@ void joint_create_geometry(FeaturePlate& joint, const double division_distance, 
     if (id == 0 || !id_matches(joint.joint_type, id))
         return;
 
-    const std::map<int, Entry>& table = library();
-    const auto entry = table.find(id);
-    if (entry != table.end()) {
-        entry->second.build(joint, context);
+    if (build_joint(id, joint, context))
         return;
-    }
 
     const int family = family_of(id) >= 0 ? family_of(id) : family_of_type(joint.joint_type);
     if (family == 1 && id < 0) {
@@ -168,8 +157,7 @@ void joint_create_geometry(FeaturePlate& joint, const double division_distance, 
     }
 
     warn_unimplemented(id, FAMILY_NAMES[family]);
-    if (FAMILY_DEFAULTS[family])
-        FAMILY_DEFAULTS[family](joint, context);
+    build_family_default(family, joint);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -206,8 +194,8 @@ int joint_id_for(
     int id_representing_joint_name = -1;
     if (!per_element_joints_types.empty()) {
 
-        const int element0 = index_of(elements, joint.element_a);
-        const int element1 = index_of(elements, joint.element_b);
+        const int element0 = index_of_plate(elements, joint.element_a);
+        const int element1 = index_of_plate(elements, joint.element_b);
         const int face0 = joint.contact.face_a;
         const int face1 = joint.contact.face_b;
         const int original_face0 = original_face_index(elements, element0, face0);
@@ -365,9 +353,8 @@ void build_feature_geometry(
     std::vector<FeaturePlate>& all_joints = context.all_joints;
     joint.scale = context.settings.joint_scale;
 
-    // ss_e_r_2/3 and ss_e_ip_2 divide by the element thickness, not the 40 mm default.
     if (joint.joint_type == 13 || joint.joint_type == 12) {
-        const int element_index = index_of(elements, joint.element_a);
+        const int element_index = index_of_plate(elements, joint.element_a);
         if (element_index >= 0 && element_index < (int)elements.size())
             joint.unit_scale_distance = elements[element_index]->thickness;
     }
@@ -382,7 +369,7 @@ void build_feature_geometry(
 
     if (!joint.linked_joints.empty() && (family.id == 15 || family.id == 16)) {
         for (const std::string& shadow : joint.linked_joints) {
-            const int shadow_index = index_of(all_joints, shadow);
+            const int shadow_index = index_of_joint(all_joints, shadow);
             if (shadow_index >= 0 && !all_joints[shadow_index].no_orient)
                 joint_orient_to_connection_area(all_joints[shadow_index]);
         }
@@ -425,8 +412,8 @@ std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per
     for (size_t joint_index = 0; joint_index < all_joints.size(); joint_index++) {
 
         const FeaturePlate& joint = all_joints[joint_index];
-        const int element0 = index_of(elements, joint.element_a);
-        const int element1 = index_of(elements, joint.element_b);
+        const int element0 = index_of_plate(elements, joint.element_a);
+        const int element1 = index_of_plate(elements, joint.element_b);
 
         if (joint.link) {
             if (element0 >= 0 && element0 < (int)element_count)
@@ -542,7 +529,9 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
 }
 
 /// A reversed plate lists its side slots backwards, so its insertion vectors are read in the same order.
-std::vector<FeaturePlate> WoodSession::compute_features() { return compute_features(settings.search_type); }
+std::vector<FeaturePlate> WoodSession::compute_features() {
+    return compute_features(settings.search_type);
+}
 
 /// Instances take part as world views: one a joint lands on is promoted before the joint is stored, any other dropped unchanged; a stored plate placed off identity takes its view back.
 std::vector<FeaturePlate> WoodSession::compute_features(SearchType search_type) {

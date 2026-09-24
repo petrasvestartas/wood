@@ -14,13 +14,17 @@ struct FeaturePlateBeam {
     static FeaturePlateBeam jsonload(const nlohmann::json&) { return FeaturePlateBeam{}; }
 
     /// The joint as wood_proto.FeaturePlateBeam bytes: empty.
-    std::string pb_dumps() const { return std::string(); }
+    std::string pb_dumps() const {
+        return std::string();
+    }
 
     /// A joint from wood_proto.FeaturePlateBeam bytes.
     static FeaturePlateBeam pb_loads(const std::string&) { return FeaturePlateBeam{}; }
 
     /// "FeaturePlateBeam()".
-    std::string str() const { return "FeaturePlateBeam()"; }
+    std::string str() const {
+        return "FeaturePlateBeam()";
+    }
 };
 
 } // namespace wood_session

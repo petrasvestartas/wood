@@ -7,14 +7,11 @@
 
 namespace wood_session {
 namespace config {
-    /// The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
-    extern std::string DATA_SET_INPUT_FOLDER;
+    extern std::string DATA_SET_INPUT_FOLDER; // The data folder every yml, obj, txt and pb is named relative to; absolute, baked from __FILE__, settable from a binding.
 
-    /// Every dataset shipped in data/ as `<name>.yml`, in sweep order.
-    extern const std::vector<std::string> DATASET_NAMES;
+    extern const std::vector<std::string> DATASET_NAMES; // Every dataset shipped in data/ as `<name>.yml`, in sweep order.
 
-    /// Every session shipped in data/ as `<name>.pb`.
-    extern const std::vector<std::string> SESSION_NAMES;
+    extern const std::vector<std::string> SESSION_NAMES; // Every session shipped in data/ as `<name>.pb`.
 
     /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
     struct Dataset {
@@ -134,26 +131,19 @@ namespace config {
     /// data/<SESSION_NAMES[index]>.pb for Session::pb_load; out of range throws.
     std::string session_pb(size_t index);
 
-    /// Dataset name: the yml stem.
-    extern std::string DATA_SET_INPUT_NAME;
+    extern std::string DATA_SET_INPUT_NAME; // Dataset name: the yml stem.
 
-    /// Obj path named by the dataset yaml.
-    extern std::string DATA_SET_OBJ;
+    extern std::string DATA_SET_OBJ; // Obj path named by the dataset yaml.
 
-    /// Adjacency txt path from the yaml, empty when absent.
-    extern std::string DATA_SET_ADJACENCY;
+    extern std::string DATA_SET_ADJACENCY; // Adjacency txt path from the yaml, empty when absent.
 
-    /// Three-valence txt path from the yaml, empty when absent.
-    extern std::string DATA_SET_THREE_VALENCE;
+    extern std::string DATA_SET_THREE_VALENCE; // Three-valence txt path from the yaml, empty when absent.
 
-    /// Insertion-vectors txt path from the yaml, empty when absent.
-    extern std::string DATA_SET_INSERTION_VECTORS;
+    extern std::string DATA_SET_INSERTION_VECTORS; // Insertion-vectors txt path from the yaml, empty when absent.
 
-    /// Joint-types txt path from the yaml, empty when absent.
-    extern std::string DATA_SET_JOINTS_TYPES;
+    extern std::string DATA_SET_JOINTS_TYPES; // Joint-types txt path from the yaml, empty when absent.
 
-    /// WoodF2F_<yml stem>.pb, written into data/output/.
-    extern std::string DATA_SET_OUTPUT_FILE;
+    extern std::string DATA_SET_OUTPUT_FILE; // WoodF2F_<yml stem>.pb, written into data/output/.
 
     /// Clears every dataset path above.
     void reset_defaults();

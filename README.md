@@ -41,6 +41,7 @@ columns and blocks as the classes below, through the kernel's element registry.
 | `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
 | `compute_features(search)` | the solver over the plates, in place; the plates stay outlines, nothing is lofted |
 | `set_features_visible(type, on)` | shows or hides one feature kind (`contact`, `joint`, `outline`, ...); the viewer draws every visible feature |
+| `instance_by_key()` | every repeated column, beam, block or plate becomes an instance of one definition, guid, name, tree node, edges and features kept |
 | `pb_dump(pb_path(name))` | lofts every plate not yet lofted, syncs contacts and joints onto the elements as features, then the kernel's writer; `write_parity_dumps(scene, pb)` adds the outline dumps the sweep is diffed against |
 
 ## Types
@@ -48,14 +49,16 @@ columns and blocks as the classes below, through the kernel's element registry.
 | Type | File | What it is |
 |---|---|---|
 | `Plate` | `src/joinery_solver/wood_elements/wood_element_plate.h` | bottom + top outline (`Plate::from_rectangle` for the simple case), one side face per edge, thickness, joint types, merged cut outlines; element and model geometry as mesh or brep, lazy |
-| `Column` | `src/joinery_solver/wood_elements/wood_element_column.h` | a solid with an axis and a section |
-| `Block` | `src/joinery_solver/wood_elements/wood_element_block.h` | a solid, one face per closed loop, contact detection only |
+| `Beam` | `src/joinery_solver/wood_elements/wood_element_beam.h` | a profile swept along a polyline axis, cut by the planes in `cuts` |
+| `Column` | `src/joinery_solver/wood_elements/wood_element_column.h` | a profile lofted along a line axis, cut by the planes in `cuts` |
+| `Block` | `src/joinery_solver/wood_elements/wood_element_block.h` | the capped loft between bottom and top loops, cut by the planes in `cuts` |
 | `Interaction` | `src/joinery_solver/wood_interaction/wood_interaction.h` | everything between two elements, keyed by their graph edge: contacts (`ContactFace`, `ContactAxis`, `ContactCross`), features (`FeaturePlate`, `FeatureBeam`), structure; see `src/docs.md` |
 | `FeaturePlate` | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h` | one plate joint: the pair, its contact, type, lines, volumes, male and female cut outlines |
 | `WoodSession` | `src/joinery_solver/wood_session.h` | the scene |
 
-All three element classes derive from `session_cpp::Element` and register a factory, so any
-`Session` that holds them reads and writes them without knowing wood.
+All four element classes derive from `session_cpp::Element` and register a factory, so any
+`Session` that holds them reads and writes them without knowing wood. Profiles come from
+`wood_profile.h`: rectangle, round, W, HSS, double, slab band, T.
 
 Joint type codes: 11 side-side out of plane, 12 side-side in plane, 13 side-side rotated,
 20 top-side, 30 cross, 40 top-top.
@@ -74,7 +77,7 @@ datasets a `beams` block. `config::Dataset::<name>` names every shipped dataset.
 
 ## Docs
 
-`src/docs.md` is the description of the structure with its diagrams, and the main page of the docs. Doxygen builds the site from it, `docs/examples.md` and the headers' docstrings, nothing else needed:
+`src/docs.md` is the description of the structure with its diagrams, and the main page of the docs. Doxygen builds the site from it, `docs/examples.md`, `docs/templates.md` (every template and grid example with its screenshot from `docs/images/templates/` and its code) and the headers' docstrings, nothing else needed:
 
 ```bash
 cmake --build build --target docs && xdg-open build/docs/html/index.html
@@ -87,9 +90,13 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | Target | Source |
 |---|---|
 | `1_elements` … `12_cross_joints` | `examples/`: one behaviour each, in reading order; the list is in `docs/examples.md` and on the docs site |
+| `1_elements_flat`, `1_elements_tree` | one floor bay from the grid template under the root, and three bays under tree branches; `compute_contacts(0)` and `(1)`, `instance_by_key` |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
-| `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each template built with its defaults and written to `live.pb` as a mesh plus its plates |
-| `templates_grid`, `templates_grid_radial`, `templates_grid_hex` | `src/templates/grid.h` on an orthogonal, a radial and a hexagonal plan: columns, heads, girders, beams, purlins, decks and walls from rules on the grid graph, written to `live.pb` |
+| `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_diamond_mesh`, `templates_vda_mesh`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each shell template built with its defaults and written to `live.pb` as a mesh plus its plates |
+| `templates_grid`, `templates_grid_{skewed,radial,triangular,hex,irregular,courtyard,pentagon}` | `src/templates/grid.h` on a footprint with a pattern (workflow B): columns, heads, girders, beams, purlins, decks and walls, every joint a plane cut, written to `live.pb` |
+| `templates_grid_solid_{box,prism,taper,setback,atrium,curved}` | the same from a massing solid sliced at the elevations (workflow A) |
+| `templates_grid_braced`, `templates_grid_crea` | the same from drawn lines and surfaces (workflow C), the second on compas_grid's crea dataset |
+| `templates_grid_framings`, `templates_grid_point_supported`, `templates_grid_profiles`, `templates_grid_branch_{square,residential,office,institutional}`, `templates_grid_fastepp` | the purlin joints, the point supported plate, the profile library, and the Branch3D and FAST+EPP configurations reproduced |
 
-Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`.
+Tests: `ctest --test-dir build`. Architecture notes: `docs/wood_kernel.md`; every template with a screenshot: `docs/templates.md`.

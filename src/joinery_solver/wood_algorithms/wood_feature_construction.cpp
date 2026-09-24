@@ -21,7 +21,7 @@ std::array<double, 3> joint_volume_extension(const std::vector<double>& extensio
     return {extension[at], extension[at + 1], extension[at + 2]};
 }
 
-int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid) {
+int index_of_plate(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid) {
 
     for (size_t i = 0; i < elements.size(); ++i)
         if (elements[i]->guid() == guid)
@@ -30,7 +30,7 @@ int index_of(const std::vector<std::shared_ptr<Plate>>& elements, const std::str
     return -1;
 }
 
-int index_of(const std::vector<FeaturePlate>& joints, const std::string& guid) {
+int index_of_joint(const std::vector<FeaturePlate>& joints, const std::string& guid) {
 
     for (size_t i = 0; i < joints.size(); ++i)
         if (joints[i].guid == guid)
@@ -47,7 +47,6 @@ void move_pair(FeaturePlate& joint, Polyline& a, Polyline& b) {
     if (joint.unit_scale_distance == 0.0) {
         const Vector edge = a.get_point(2) - a.get_point(1);
         const double raw = std::sqrt(edge.magnitude_squared());
-        // +1e-6: a near-integer edge length floors to the integer it means.
         joint.unit_scale_distance = std::floor(raw + 1e-6);
     }
 
@@ -180,7 +179,7 @@ void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joi
 
     for (size_t i = 0; i < joint.linked_joints.size(); ++i) {
 
-        const int index = index_of(all_joints, joint.linked_joints[i]);
+        const int index = index_of_joint(all_joints, joint.linked_joints[i]);
         if (index < 0)
             continue;
 

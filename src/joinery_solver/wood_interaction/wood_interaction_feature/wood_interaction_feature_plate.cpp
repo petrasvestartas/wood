@@ -25,7 +25,9 @@ FeaturePlate::FeaturePlate()
 // FeaturePlate - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const FeaturePlate& feature) { return os << feature.str(); }
+std::ostream& operator<<(std::ostream& os, const FeaturePlate& feature) {
+    return os << feature.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FeaturePlate - Geometry

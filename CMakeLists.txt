@@ -88,6 +88,11 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
+    src/templates/grid_plan.cpp
+    src/templates/grid_levels.cpp
+    src/templates/grid_joints.cpp
+    src/templates/grid.cpp
+    src/templates/clash.cpp
     src/joinery_solver/wood_interaction/wood_interaction.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
@@ -220,13 +225,36 @@ ADD_EXE(templates_reflex_fold         examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron             examples/templates_chevron.cpp)
 ADD_EXE(templates_reciprocal_rotation examples/templates_reciprocal_rotation.cpp)
 ADD_EXE(templates_reciprocal_move     examples/templates_reciprocal_move.cpp)
+ADD_EXE(templates_diamond_mesh        examples/templates_diamond_mesh.cpp)
+ADD_EXE(templates_vda_mesh            examples/templates_vda_mesh.cpp)
 ADD_EXE(templates_grid                examples/templates_grid.cpp)
 ADD_EXE(templates_grid_radial         examples/templates_grid_radial.cpp)
 ADD_EXE(templates_grid_hex            examples/templates_grid_hex.cpp)
+ADD_EXE(templates_grid_braced         examples/templates_grid_braced.cpp)
+ADD_EXE(templates_grid_branch_residential examples/templates_grid_branch_residential.cpp)
+ADD_EXE(templates_grid_solid_taper    examples/templates_grid_solid_taper.cpp)
+ADD_EXE(templates_grid_skewed         examples/templates_grid_skewed.cpp)
+ADD_EXE(templates_grid_triangular     examples/templates_grid_triangular.cpp)
+ADD_EXE(templates_grid_irregular      examples/templates_grid_irregular.cpp)
+ADD_EXE(templates_grid_courtyard      examples/templates_grid_courtyard.cpp)
+ADD_EXE(templates_grid_pentagon       examples/templates_grid_pentagon.cpp)
+ADD_EXE(templates_grid_framings       examples/templates_grid_framings.cpp)
+ADD_EXE(templates_grid_fastepp        examples/templates_grid_fastepp.cpp)
+ADD_EXE(templates_grid_branch_square  examples/templates_grid_branch_square.cpp)
+ADD_EXE(templates_grid_branch_office  examples/templates_grid_branch_office.cpp)
+ADD_EXE(templates_grid_branch_institutional examples/templates_grid_branch_institutional.cpp)
+ADD_EXE(templates_grid_point_supported examples/templates_grid_point_supported.cpp)
+ADD_EXE(templates_grid_solid_box      examples/templates_grid_solid_box.cpp)
+ADD_EXE(templates_grid_solid_prism    examples/templates_grid_solid_prism.cpp)
+ADD_EXE(templates_grid_solid_setback  examples/templates_grid_solid_setback.cpp)
+ADD_EXE(templates_grid_solid_atrium   examples/templates_grid_solid_atrium.cpp)
+ADD_EXE(templates_grid_solid_curved   examples/templates_grid_solid_curved.cpp)
+ADD_EXE(templates_grid_crea           examples/templates_grid_crea.cpp)
+ADD_EXE(templates_grid_profiles       examples/templates_grid_profiles.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
-# docs/examples.md; Doxygen only, no Python.
+# docs/examples.md and docs/templates.md (its screenshots under docs/images); Doxygen only, no Python.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
     set(DOXYGEN_PROJECT_NAME "Wood")
@@ -236,6 +264,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_FILE_PATTERNS *.h *.md)
     set(DOXYGEN_FILTER_PATTERNS "*.md=${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/mermaid_filter.sh")
     set(DOXYGEN_EXAMPLE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+    set(DOXYGEN_IMAGE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/docs/images)
     set(DOXYGEN_EXTRACT_ALL YES)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
@@ -261,7 +290,9 @@ if(DOXYGEN_FOUND)
     doxygen_add_docs(docs
         ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
         COMMENT "Doxygen: build/docs/html"
     )
 endif()
@@ -273,6 +304,8 @@ if(BUILD_TESTING)
     ADD_EXE(wood_instance_test tests/wood_instance_test.cpp)
     ADD_EXE(wood_geometry_test tests/wood_geometry_test.cpp)
     ADD_EXE(wood_interaction_test tests/wood_interaction_test.cpp)
+    ADD_EXE(wood_grid_test tests/wood_grid_test.cpp)
+    ADD_EXE(wood_profile_test tests/wood_profile_test.cpp)
     if(UNIX)
         add_test(NAME wood_assign COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_assign_test>)
         set_tests_properties(wood_assign PROPERTIES RUN_SERIAL TRUE)
@@ -284,6 +317,10 @@ if(BUILD_TESTING)
         set_tests_properties(wood_geometry PROPERTIES RUN_SERIAL TRUE)
         add_test(NAME wood_interaction COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_interaction_test>)
         set_tests_properties(wood_interaction PROPERTIES RUN_SERIAL TRUE)
+        add_test(NAME wood_grid COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_grid_test>)
+        set_tests_properties(wood_grid PROPERTIES RUN_SERIAL TRUE)
+        add_test(NAME wood_profile COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_profile_test>)
+        set_tests_properties(wood_profile PROPERTIES RUN_SERIAL TRUE)
         find_package(Python3 QUIET COMPONENTS Interpreter)
         if(Python3_Interpreter_FOUND)
             add_test(NAME wood_dataset_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/dataset_runner_test.py)

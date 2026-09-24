@@ -21,20 +21,17 @@ using namespace session_cpp;
 /// The boundary frame shared by the reciprocal templates: the naked edges walked into loops, one straight beam per naked edge with a section that mirrors across every mitre, and the box beam cut by any number of planes at each end so an interior beam that reaches a boundary kink stops flush against both frame beams there.
 namespace wood_reciprocal {
 
-using EdgeKey = std::pair<size_t, size_t>;                                    // sorted vertex pair of a mesh edge
-using EdgeOwners = std::map<EdgeKey, std::vector<std::pair<int, int>>>;       // edge → [(face index, local edge index), …]
-
 /// The sorted vertex pair of the edge u-v.
-inline EdgeKey edge_key(size_t u, size_t v)
+inline std::pair<size_t, size_t> edge_key(size_t u, size_t v)
 {
     return {std::min(u, v), std::max(u, v)};
 }
 
 /// Every mesh edge mapped to the faces that own it, as (face index, local edge index) pairs.
-inline EdgeOwners edge_owners(const std::vector<std::vector<size_t>>& faces)
+inline std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>> edge_owners(const std::vector<std::vector<size_t>>& faces)
 {
 
-    EdgeOwners owners;
+    std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>> owners;
     for (int fi = 0; fi < (int)faces.size(); fi++) {
         int n = (int)faces[fi].size();
         for (int j = 0; j < n; j++)
@@ -46,7 +43,7 @@ inline EdgeOwners edge_owners(const std::vector<std::vector<size_t>>& faces)
 
 /// The naked half-edges as (face, local edge) in boundary-loop order, each walked in its owning face's winding; a loop's half-edges stay consecutive.
 inline std::vector<std::pair<int, int>> naked_half_edges(const std::vector<std::vector<size_t>>& faces,
-                                                         const EdgeOwners& owners)
+                                                         const std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>>& owners)
 {
 
     std::vector<std::pair<int, int>> naked;
@@ -140,7 +137,10 @@ inline Vector rotated_about(const Vector& v, const Vector& axis, double angle)
 }
 
 /// Where the closure twist of a non-planar boundary loop goes: at the bends keeps every straight run one exact prism and puts the whole twist at the corners; even spreads it over all joints, so the sections turn a little from beam to beam along straight runs too.
-enum class BoundaryTwist { AtBends, Even };
+enum class BoundaryTwist {
+    AtBends, // The whole closure twist at the corners; every straight run one exact prism.
+    Even, // The twist spread over every joint along the loop.
+};
 
 /// The up per naked half-edge: transported along each loop by reflection in the mitre planes, so consecutive sections mirror across their shared mitre and the mitred faces coincide; the closure twist of a non-planar loop spread over the joints as boundary_twist says, and the whole family turned about its own axes to lie closest to the loop's average face normal, which leaves a planar loop's frame exactly as one shared up.
 inline std::vector<Vector> boundary_up_directions(const std::vector<std::pair<int, int>>& naked,
@@ -187,7 +187,6 @@ inline std::vector<Vector> boundary_up_directions(const std::vector<std::pair<in
             closure = signed_angle_about(transported[0], returned, directions[0]);
         }
 
-        // the closure twist goes to the joints in proportion to their bend, so a straight run keeps one section, or evenly
         std::vector<double> bends(count, 0.0);
         double total_bend = 0.0;
         for (size_t k = 0; k < count; k++) {
@@ -275,7 +274,10 @@ inline Plane facing(const Plane& plane, const Point& inside)
 }
 
 /// How two frame beams whose sections do not mirror across their mitre, as at a corner between two sides of different tilt, are joined: mitred anyway, with a step, or butted, one beam running through to the far face of the other, which is cut against it; the beam with the higher through_priority runs through, the arriving one when they tie.
-enum class CornerJoint { Mitre, Butt };
+enum class CornerJoint {
+    Mitre, // Mitred anyway, with a step.
+    Butt, // The higher through_priority beam runs through, the other is cut against it.
+};
 
 /// The face plane of a beam on the axis through vertex along dir with the given up and section, the one of its four long faces whose normal points most along towards.
 inline Plane beam_face_towards(const Point& vertex, const Vector& dir, const Vector& up, double beam_w, double beam_h, const Vector& towards)
@@ -304,10 +306,10 @@ struct BoundaryFrame {
 };
 
 /// One up per naked edge from the owning face's normal, turned to point up: the frame that follows the surface, with a small step at every mitre where the normal changes.
-inline std::map<EdgeKey, Vector> owner_normal_ups(const EdgeOwners& owners, const std::vector<Vector>& face_normals)
+inline std::map<std::pair<size_t, size_t>, Vector> owner_normal_ups(const std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>>& owners, const std::vector<Vector>& face_normals)
 {
 
-    std::map<EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [key, edge_owners] : owners) {
         if (edge_owners.size() != 1)
             continue;
@@ -320,7 +322,7 @@ inline std::map<EdgeKey, Vector> owner_normal_ups(const EdgeOwners& owners, cons
 }
 
 /// One up per naked edge of the mesh from its owning face's normal, keyed by the sorted vertex keys of the edge.
-inline std::map<EdgeKey, Vector> owner_normal_ups(const Mesh& mesh)
+inline std::map<std::pair<size_t, size_t>, Vector> owner_normal_ups(const Mesh& mesh)
 {
 
     std::vector<size_t> fkeys = mesh.faces();
@@ -335,10 +337,10 @@ inline std::map<EdgeKey, Vector> owner_normal_ups(const Mesh& mesh)
 }
 
 /// One up per naked edge of the mesh from the average of the vertex normals at its two ends, turned to point up: the normals already average the faces around each vertex, so the frame turns gradually along a curved boundary with smaller steps at the mitres than the owning face normals give.
-inline std::map<EdgeKey, Vector> vertex_normal_boundary_ups(const Mesh& mesh)
+inline std::map<std::pair<size_t, size_t>, Vector> vertex_normal_boundary_ups(const Mesh& mesh)
 {
 
-    std::map<EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
         Vector sum = mesh.vertex_normal(u).value_or(Vector(0, 0, 0)) + mesh.vertex_normal(v).value_or(Vector(0, 0, 0));
         if (sum.is_zero())
@@ -353,15 +355,15 @@ inline std::map<EdgeKey, Vector> vertex_normal_boundary_ups(const Mesh& mesh)
 
 /// The boundary frame of the mesh given as faces of vertex keys, their points and one normal per face, for beams beam_w wide and beam_h high. A naked edge listed in boundary_ups takes that vector, made perpendicular to the edge, instead of the transported one; the others keep the transport.
 inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& faces,
-                                    const EdgeOwners& owners,
+                                    const std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>>& owners,
                                     const std::map<size_t, Point>& vertex_points,
                                     const std::vector<Vector>& face_normals,
                                     double beam_w,
                                     double beam_h,
                                     BoundaryTwist boundary_twist = BoundaryTwist::AtBends,
-                                    const std::map<EdgeKey, Vector>& boundary_ups = {},
+                                    const std::map<std::pair<size_t, size_t>, Vector>& boundary_ups = {},
                                     CornerJoint corner_joint = CornerJoint::Mitre,
-                                    const std::map<EdgeKey, int>& through_priority = {})
+                                    const std::map<std::pair<size_t, size_t>, int>& through_priority = {})
 {
 
     BoundaryFrame frame;
@@ -373,7 +375,7 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
     frame.ups = boundary_up_directions(frame.naked, faces, vertex_points, owner_normals, boundary_twist);
     for (size_t k = 0; k < frame.naked.size(); k++) {
         size_t u = half_edge_start(faces, frame.naked[k]), v = half_edge_end(faces, frame.naked[k]);
-        std::map<EdgeKey, Vector>::const_iterator given = boundary_ups.find(edge_key(u, v));
+        std::map<std::pair<size_t, size_t>, Vector>::const_iterator given = boundary_ups.find(edge_key(u, v));
         Vector edge = vertex_points.at(v) - vertex_points.at(u);
         if (given == boundary_ups.end() || given->second.is_zero() || edge.is_zero())
             continue;
@@ -407,8 +409,6 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
         frame.cut_to[k]   = leaving.count(v)  ? mitre_plane(pv, dir, leaving[v])  : Plane::from_point_normal(pv, dir);
     }
 
-    // when asked, a joint between two sides, or one whose sections do not mirror across the mitre, is butted: one beam runs
-    // through to the far face of the other, which starts at the through beam's face
     constexpr double MIRROR_TOLERANCE = 0.9994;  // cos of 2 degrees between the mirrored and the actual next up
     if (corner_joint == CornerJoint::Butt)
         for (const auto& [loop_start, loop_end] : loop_ranges(frame.naked, faces)) {
@@ -418,8 +418,8 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
                 if ((k + 1 == loop_end && !closed) || frame.directions[k].is_zero() || frame.directions[next].is_zero())
                     continue;
 
-                std::map<EdgeKey, int>::const_iterator pk = through_priority.find(edge_key(half_edge_start(faces, frame.naked[k]), half_edge_end(faces, frame.naked[k])));
-                std::map<EdgeKey, int>::const_iterator pn = through_priority.find(edge_key(half_edge_start(faces, frame.naked[next]), half_edge_end(faces, frame.naked[next])));
+                std::map<std::pair<size_t, size_t>, int>::const_iterator pk = through_priority.find(edge_key(half_edge_start(faces, frame.naked[k]), half_edge_end(faces, frame.naked[k])));
+                std::map<std::pair<size_t, size_t>, int>::const_iterator pn = through_priority.find(edge_key(half_edge_start(faces, frame.naked[next]), half_edge_end(faces, frame.naked[next])));
                 int priority_k = pk == through_priority.end() ? 0 : pk->second;
                 int priority_next = pn == through_priority.end() ? 0 : pn->second;
                 bool side_change = pk != through_priority.end() && pn != through_priority.end() && priority_k != priority_next;  // consecutive sides alternate priority, so a change marks a corner
@@ -430,7 +430,6 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
 
                 const Point& corner = vertex_points.at(half_edge_end(faces, frame.naked[k]));
                 if (priority_next > priority_k) {
-                    // the leaving beam runs through, back to the far face of the arriving one, which ends at the leaving beam's near face
                     frame.cut_from[next] = beam_face_towards(corner, frame.directions[k], frame.ups[k], beam_w, beam_h, -frame.directions[next]);
                     frame.cut_to[k] = beam_face_towards(corner, frame.directions[next], frame.ups[next], beam_w, beam_h, -frame.directions[k]);
                     continue;
@@ -460,7 +459,7 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
 
 /// The naked half-edges of the mesh in loop order with, per half-edge, its sorted edge key, unit direction, owning face normal turned up, and the side it belongs to: a new side starts after every boundary vertex where the loop bends by more than corner_angle degrees, sides numbered in loop order and the closing run of a loop merged into its first side when the loop does not bend there.
 struct MeshBoundary {
-    std::vector<EdgeKey> keys;          // per naked half-edge
+    std::vector<std::pair<size_t, size_t>> keys;          // per naked half-edge
     std::vector<Point> starts, ends;    // per naked half-edge, its two vertices
     std::vector<Vector> directions;     // per naked half-edge, unit start to end
     std::vector<Vector> normals;        // per naked half-edge, the owning face normal turned to point up
@@ -529,12 +528,12 @@ struct MeshBoundary {
 };
 
 /// One up per naked edge with one tilt per side of the mesh boundary, the sides split at bends over corner_angle degrees and numbered in loop order: in the plane fitted through each side every beam's up is the plane normal turned towards the shell by the side's mean tilt of the face normals out of that plane, or by the tilt of the side's entry in side_vectors when one is given, so consecutive sections mirror across every mitre on the side; a straight side takes the plane through its line that holds its average face normal.
-inline std::map<EdgeKey, Vector> side_tilt_boundary_ups(const Mesh& mesh, double corner_angle = 45.0,
+inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(const Mesh& mesh, double corner_angle = 45.0,
                                                         const std::vector<Vector>& side_vectors = {})
 {
 
     MeshBoundary boundary = MeshBoundary::of(mesh, corner_angle);
-    std::map<EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (int side = 0; side < (int)boundary.side_of_loop.size(); side++) {
         std::vector<Point> points;
         Vector average(0, 0, 0);
@@ -597,11 +596,11 @@ inline std::map<EdgeKey, Vector> side_tilt_boundary_ups(const Mesh& mesh, double
 }
 
 /// The through priority per naked edge for the frame's butt corners from the mesh alone: the sides of each boundary loop, split at bends over corner_angle degrees, alternate 1, 0, 1, 0 in loop order, so around a four-sided boundary opposite sides share a role.
-inline std::map<EdgeKey, int> through_side_priority(const Mesh& mesh, double corner_angle = 45.0)
+inline std::map<std::pair<size_t, size_t>, int> through_side_priority(const Mesh& mesh, double corner_angle = 45.0)
 {
 
     MeshBoundary boundary = MeshBoundary::of(mesh, corner_angle);
-    std::map<EdgeKey, int> priority;
+    std::map<std::pair<size_t, size_t>, int> priority;
     for (size_t k = 0; k < boundary.keys.size(); k++)
         priority[boundary.keys[k]] = boundary.side_rank[boundary.sides[k]] % 2 == 0 ? 1 : 0;
 
@@ -754,8 +753,6 @@ inline EndCorners end_corners(const Point& left, const Point& right, const Vecto
         return end;
     }
 
-    // the crease is real only when the two planes meet between the corners; two nearly coincident planes,
-    // as on a straight run whose sections carry a hair of closure twist, meet far away and the end stays a quad
     Vector across = hit_right.first - hit_left.first;
     double along = across.is_zero() ? -1.0 : (crease - hit_left.first).dot(across) / across.dot(across);
     double fold = (crease - hit_left.first - across * along).magnitude();
@@ -798,7 +795,6 @@ inline BeamGeom cut_beam(const Point& from_ref, const Point& to_ref, const Vecto
     Plane bottom_plane = Plane::from_point_normal(inside - rise, face_normal);
     Plane top_plane    = Plane::from_point_normal(inside + rise, face_normal);
 
-    // start end, walked left to right on the bottom and the top; end end, walked right to left
     EndCorners start_bottom = end_corners(from_ref - right - rise, from_ref + right - rise, -dir, from_planes, bottom_plane, true);
     EndCorners start_top    = end_corners(from_ref - right + rise, from_ref + right + rise, -dir, from_planes, top_plane, true);
     EndCorners end_bottom   = end_corners(to_ref - right - rise, to_ref + right - rise, dir, to_planes, bottom_plane, true);

@@ -9,8 +9,8 @@ static void side_removal_ss_e_r_1_port(FeaturePlate& joint, const std::vector<st
     std::swap(joint.cross_faces[0], joint.cross_faces[1]);
     std::swap(joint.joint_lines[0], joint.joint_lines[1]);
 
-    const int v0 = index_of(elements, joint.element_a);
-    const int v1 = index_of(elements, joint.element_b);
+    const int v0 = index_of_plate(elements, joint.element_a);
+    const int v1 = index_of_plate(elements, joint.element_b);
     const int f0_0 = joint.contact.face_a;
     const int f1_0 = joint.contact.face_b;
 

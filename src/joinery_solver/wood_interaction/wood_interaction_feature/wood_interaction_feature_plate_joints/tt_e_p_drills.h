@@ -7,8 +7,8 @@ static bool drill_ready(
     size_t min_area
 ) {
 
-    v0 = index_of(elements, joint.element_a);
-    v1 = index_of(elements, joint.element_b);
+    v0 = index_of_plate(elements, joint.element_a);
+    v1 = index_of_plate(elements, joint.element_b);
     if (v0 < 0 || v0 >= (int)elements.size() || v1 < 0 || v1 >= (int)elements.size())
         return false;
     if (!joint.joint_volumes[0])

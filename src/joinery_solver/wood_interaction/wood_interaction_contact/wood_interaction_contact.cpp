@@ -15,8 +15,15 @@ WoodSession& InteractionContact::session() const {
 }
 
 void InteractionContact::set_session(WoodSession* scene) {
+
     _session = scene;
-    std::visit([scene](auto& kind) { kind._session = scene; }, data);
+
+    if (ContactFace* kind = std::get_if<ContactFace>(&data))
+        kind->_session = scene;
+    else if (ContactAxis* kind = std::get_if<ContactAxis>(&data))
+        kind->_session = scene;
+    else if (ContactCross* kind = std::get_if<ContactCross>(&data))
+        kind->_session = scene;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -33,7 +40,9 @@ InteractionContact::InteractionContact(ContactCross cross) : data(std::move(cros
 // InteractionContact - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const InteractionContact& contact) { return os << contact.str(); }
+std::ostream& operator<<(std::ostream& os, const InteractionContact& contact) {
+    return os << contact.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContact - Geometry
@@ -53,7 +62,13 @@ InteractionContact InteractionContact::flipped() const {
 
     InteractionContact out;
     out.guid = guid;
-    std::visit([&out](const auto& kind) { out.data = kind.flipped(); }, data);
+
+    if (const ContactFace* kind = face())
+        out.data = kind->flipped();
+    else if (const ContactAxis* kind = axis())
+        out.data = kind->flipped();
+    else if (const ContactCross* kind = cross())
+        out.data = kind->flipped();
 
     return out;
 }
@@ -63,7 +78,12 @@ bool InteractionContact::coincides(const InteractionContact& other) const {
     if (data.index() != other.data.index())
         return false;
 
-    return std::visit([&other](const auto& kind) { return kind.coincides(std::get<std::decay_t<decltype(kind)>>(other.data)); }, data);
+    if (const ContactFace* kind = face())
+        return kind->coincides(*other.face());
+    if (const ContactAxis* kind = axis())
+        return kind->coincides(*other.axis());
+
+    return cross()->coincides(*other.cross());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

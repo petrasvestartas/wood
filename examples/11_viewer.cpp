@@ -11,15 +11,13 @@ int main() {
     wood_session.compute_contacts();
     wood_session.compute_features();
 
-    // Contacts and joints went onto their elements as features when computed, coloured by type; the viewer draws every visible one
     const std::shared_ptr<Plate> plate = wood_session.plates().front();
     for (const ElementFeature& feature : plate->Element::features())
         std::cout << fmt::format("{} {} on face {}: {} outlines\n", feature.feature_type, feature.name, feature.face_index, feature.outlines.size());
 
-    // "live" is the file session_viewer watches; the named file beside it has the contacts switched off
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
     wood_session.set_features_visible("contact", false);
-    wood_session.pb_dump(pb_path(wood_session.name).string());
+    wood_session.pb_dump(pb_path(wood_session.name));
 
     return 0;
 }

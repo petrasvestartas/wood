@@ -40,7 +40,7 @@ int main() {
         wood_session.instance_by_key();
 
     wood_session.compute_contacts(0);
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

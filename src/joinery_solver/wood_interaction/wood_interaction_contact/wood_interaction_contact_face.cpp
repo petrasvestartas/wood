@@ -25,7 +25,9 @@ ContactFace::ContactFace(int face_a, int face_b, ContactType type, Polyline poly
 // ContactFace - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const ContactFace& contact) { return os << contact.str(); }
+std::ostream& operator<<(std::ostream& os, const ContactFace& contact) {
+    return os << contact.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ContactFace - Geometry

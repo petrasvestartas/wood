@@ -328,11 +328,6 @@ std::shared_ptr<Element> WoodSession::world_view(const std::string& guid, const 
 std::vector<std::shared_ptr<Element>> WoodSession::world_elements(const std::function<bool(const Element&)>& keep) const {
 
     const std::unordered_map<std::string, Xform> world = world_xforms();
-    const auto placement = [&world](const std::string& guid) {
-        const std::unordered_map<std::string, Xform>::const_iterator found = world.find(guid);
-        return found == world.end() ? Xform::identity() : found->second;
-    };
-
     std::vector<std::string> guids;
 
     if (!definitions.elements->empty() && tree.root())
@@ -360,7 +355,8 @@ std::vector<std::shared_ptr<Element>> WoodSession::world_elements(const std::fun
         if (!source || (keep && !keep(*source)))
             continue;
 
-        const Xform xform = placement(guid);
+        const std::unordered_map<std::string, Xform>::const_iterator placed = world.find(guid);
+        const Xform xform = placed == world.end() ? Xform::identity() : placed->second;
 
         if (stored && xform.is_identity())
             out.push_back(stored);

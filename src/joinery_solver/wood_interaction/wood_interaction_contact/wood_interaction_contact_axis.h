@@ -27,7 +27,9 @@ struct ContactAxis {
     WoodSession& session() const;
 
     /// True once the record has been stored in a scene.
-    bool has_session() const { return _session != nullptr; }
+    bool has_session() const {
+        return _session != nullptr;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators

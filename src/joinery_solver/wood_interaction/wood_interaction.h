@@ -23,7 +23,9 @@ struct Interaction {
     WoodSession& session() const;
 
     /// True once the record has been stored in a scene.
-    bool has_session() const { return _session != nullptr; }
+    bool has_session() const {
+        return _session != nullptr;
+    }
 
     /// Stores the scene on this record and on every contact and feature it holds; add_contact and add_feature pass it on.
     void set_session(WoodSession* scene);
@@ -40,7 +42,9 @@ struct Interaction {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// True when there is neither a contact nor a feature nor a structure.
-    bool empty() const { return contacts.empty() && features.empty() && !structure.has_value(); }
+    bool empty() const {
+        return contacts.empty() && features.empty() && !structure.has_value();
+    }
 
     /// Stores a contact and returns its index; one that coincides with a stored contact is not added again. A contact without a guid gets one.
     int add_contact(InteractionContact contact);

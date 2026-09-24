@@ -20,7 +20,7 @@ int main() {
 
     std::cout << fmt::format("chevron: {} faces, {} plates\n", shell.mesh.number_of_faces(), shell.elements.size());
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

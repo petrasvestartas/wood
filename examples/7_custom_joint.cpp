@@ -28,7 +28,7 @@ int main() {
     for (const FeaturePlate& joint : wood_session.get_plate_features())
         std::cout << joint.name << " with " << joint.male_outlines[0].front().point_count() << " points per male outline\n";
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

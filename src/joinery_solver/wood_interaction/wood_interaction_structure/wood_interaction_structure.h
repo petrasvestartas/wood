@@ -14,13 +14,17 @@ struct InteractionStructure {
     static InteractionStructure jsonload(const nlohmann::json&) { return InteractionStructure{}; }
 
     /// The structure as wood_proto.InteractionStructure bytes: empty.
-    std::string pb_dumps() const { return std::string(); }
+    std::string pb_dumps() const {
+        return std::string();
+    }
 
     /// A structure from wood_proto.InteractionStructure bytes.
     static InteractionStructure pb_loads(const std::string&) { return InteractionStructure{}; }
 
     /// "InteractionStructure()".
-    std::string str() const { return "InteractionStructure()"; }
+    std::string str() const {
+        return "InteractionStructure()";
+    }
 };
 
 } // namespace wood_session

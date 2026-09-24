@@ -169,33 +169,37 @@ static void dataset_tolerance(const std::filesystem::path& folder) {
     check(rejected, "Unpaired Plate Outline");
 }
 
+/// Beam features of a scene of these beams: axis contacts within 1, volumes of 10, 0.9 crossing threshold, male flipped.
+static size_t beam_feature_count(std::vector<std::shared_ptr<Beam>> beams) {
+
+    WoodSession scene("beams");
+    for (const std::shared_ptr<Beam>& beam : beams)
+        scene.add(beam);
+
+    scene.compute_axis_contacts(1);
+    scene.compute_beam_features(10, 0.9, 1);
+
+    return scene.get_features().size();
+}
+
 static void beam_geometry(const std::filesystem::path& folder) {
 
     config::DATA_SET_INPUT_FOLDER = folder.string();
     const Polyline axis_x({Point(-5, 0, 0), Point(5, 0, 0)});
     const Polyline axis_y({Point(0, -5, 0), Point(0, 5, 0)});
 
-    const auto features = [](std::vector<std::shared_ptr<Beam>> beams) {
-        WoodSession scene("beams");
-        for (const std::shared_ptr<Beam>& beam : beams)
-            scene.add(beam);
-        scene.compute_axis_contacts(1);
-        scene.compute_beam_features(10, 0.9, 1);
-        return scene.get_features().size();
-    };
-
-    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, 1.0)}) == 1, "Crossing Beam Rectangles");
-    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, std::vector<double>{}, std::vector<Vector>{})}) == 0, "Missing Beam Radius Skips Volumes");
-    check(features({std::make_shared<Beam>(axis_x, std::vector<double>{1.0}, std::vector<Vector>{Vector(1, 0, 0)}), std::make_shared<Beam>(axis_y, std::vector<double>{1.0}, std::vector<Vector>{Vector(0, 1, 0)})}) == 0, "Degenerate Beam Frames Skip Volumes");
+    check(beam_feature_count({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, 1.0)}) == 1, "Crossing Beam Rectangles");
+    check(beam_feature_count({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_y, std::vector<double>{}, std::vector<Vector>{})}) == 0, "Missing Beam Radius Skips Volumes");
+    check(beam_feature_count({std::make_shared<Beam>(axis_x, std::vector<double>{1.0}, std::vector<Vector>{Vector(1, 0, 0)}), std::make_shared<Beam>(axis_y, std::vector<double>{1.0}, std::vector<Vector>{Vector(0, 1, 0)})}) == 0, "Degenerate Beam Frames Skip Volumes");
 
     const Polyline axis_half_y({Point(0, 0, 0), Point(0, 5, 0)});
-    check(features({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "Side To End Beam Trimming");
+    check(beam_feature_count({std::make_shared<Beam>(axis_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "Side To End Beam Trimming");
 
     const Polyline axis_half_x({Point(-5, 0, 0), Point(0, 0, 0)});
-    check(features({std::make_shared<Beam>(axis_half_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "End To End Beam Trimming");
+    check(beam_feature_count({std::make_shared<Beam>(axis_half_x, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 1, "End To End Beam Trimming");
 
     const Polyline axis_zero({Point(0, 0, 0), Point(0, 0, 0)});
-    check(features({std::make_shared<Beam>(axis_zero, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 0, "Zero Length Beam Skips Volumes");
+    check(beam_feature_count({std::make_shared<Beam>(axis_zero, 1.0), std::make_shared<Beam>(axis_half_y, 1.0)}) == 0, "Zero Length Beam Skips Volumes");
 
     WoodSession scene("beams");
     scene.add(std::make_shared<Beam>(axis_x, 1.0));

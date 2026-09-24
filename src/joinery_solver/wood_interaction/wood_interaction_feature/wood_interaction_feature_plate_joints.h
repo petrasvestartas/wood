@@ -2,14 +2,12 @@
 
 using namespace wood_session;
 
-// Not wood_session.h: this aggregator lands in the including TU's anonymous namespace, so the
-// consumer includes wood_session.h itself, before this file. Every wood_interaction_feature_plate_joints/*.h is included once, here.
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4505)
 #endif
 
+/// Every wood_interaction_feature_plate_joints/*.h once, into the including TU's anonymous namespace; the consumer includes wood_session.h itself, before this file.
 #include "wood_interaction_feature_plate_joints/custom_outlines.h"
 
 // ═══════════════════════════════════════════════════════════════════════════

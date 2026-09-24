@@ -9,7 +9,11 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `element_data` is `wood_proto.{Plate,Beam,Column}` |
+| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
+| `src/joinery_solver/wood_elements/wood_element_geometry.h/.cpp` | what the elements share: `sweep_sections`, `brep_sections`, `compute_newell`, `face_planes`, `compute_volume`, `is_geometry_feature` |
+| `src/joinery_solver/wood_elements/wood_profile.h/.cpp` | `profile_rectangle`, `profile_round`, `profile_w`, `profile_hss`, `profile_double`, `profile_slab_band`, `profile_t`, `compute_size`, `profile_section` |
+| `src/templates/grid_plan.h/.cpp` | the plan algorithms of the grid template: `compute_section` of a solid at a height, ring booleans, offsets and mitres, `compute_crossings` and `compute_arrangement` of lines into a `Mesh` arrangement, direction polygons at a node |
+| `src/joinery_solver/wood_instance.h/.cpp` | `element_key`: the class key and frame `WoodSession::instance_by_key` dedups by |
 | `src/joinery_solver/wood_interaction/**` | the connectivity records, one class per file (see `src/docs.md`): `Interaction`, `InteractionContact` + `ContactFace` / `ContactAxis` / `ContactCross`, `InteractionFeature` + `FeaturePlate` / `FeatureBeam` / `FeaturePlateBeam`, `InteractionStructure`; each with `jsondump`/`jsonload` and `pb_dumps`/`pb_loads` |
 | `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `FeaturePlate` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h` | `wood_session::FabricationType`, one per cut outline |
@@ -28,10 +32,10 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_feature`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.h/.cpp` | dataset runners, one per `data/*.yml` |
-| `src/templates/` | generators that emit Plates: `translation_shell.h`, `chevron.h`, `reciprocal*.h`, `reflex_fold.h`, `vda_mesh.h`, `temp/` mains |
-| `examples/` | `1_io`, `2_contact_detection`, `3_joint_detection`, `main_dataset_runner`, `main_all_datasets`, `main_joint_types`, `templates/` mains |
+| `src/templates/` | the generators, one page with screenshots in `docs/templates.md`: the shell templates `translation_shell.h`, `reflex_fold.h`, `chevron.h`, `diamond_mesh.h`, `vda_mesh.h`, `reciprocal_*.h` (header-only, Plates); the building template `grid.h/.cpp` (`Pattern`, `Framing`, `Building`; columns, heads, girders, beams, purlins, braces, decks and walls) and `clash.h/.cpp`, the pairwise overlap check |
+| `examples/` | `1_elements` … `12_cross_joints` (`docs/examples.md`), `main_dataset_runner`, `main_all_datasets`, `main_session_round_trip`, `main_element_mapping_check`, one `templates_*` main per template and per grid workflow and pattern |
 | `data/` | `<name>.yml` + `<name>.obj` + optional `<name>_{adjacency,three_valence,insertion_vectors,joints_types}.txt`; `output/` |
-| `tests/` | `wood_solver_test.cpp`, `wood_assign_test.cpp`, `dataset_runner_test.py` |
+| `tests/` | `wood_solver_test`, `wood_assign_test`, `wood_geometry_test`, `wood_interaction_test`, `wood_instance_test`, `wood_profile_test`, `wood_grid_test` (every grid scene: count table, closed solids, no clash, every element in contact, every member end supported), `dataset_runner_test.py` |
 | `tools/` | `run_guarded.sh` / `.ps1` (always use), `xml_to_dataset.py` (legacy XML → yml/obj/txt) |
 
 `CMakeLists.txt` builds `wood_core` (OBJECT, C++23) and one `ADD_EXE` per example and test,
@@ -49,8 +53,9 @@ constructor runs it).
 | Class | File | Tag | Holds |
 |---|---|---|---|
 | `Plate` | `wood_element_plate.h` | `"Plate"` (legacy `"WoodElement"`) | `polylines` ([0] bottom, [1] top, [2..] sides), `planes` (one per outline), `feature_types` (per face; empty = auto), `reversed`, `thickness`, `features` (`Features{top, bottom}`: merged cut outlines, [0] outer, [1..] holes), `insertion_vectors()` |
-| `Column` | `wood_element_column.h` | `"Column"` | `axis` (Line), `section` (Polyline), mesh solid |
-| `Block` | `wood_element_block.h` | `"Solid"` (legacy `"BlockElement"`) | one n-gon face per loop; contact detection only |
+| `Beam` | `wood_element_beam.h` | `"Beam"` | `axis` (Polyline), `radius`, `profile` (loops in the section frame, empty the square of the radius), `cuts` |
+| `Column` | `wood_element_column.h` | `"Column"` | `axis` (Line), `profile`, `cuts`; the solid the profile lofted along the axis, cut by every plane |
+| `Block` | `wood_element_block.h` | `"Solid"` (legacy `"BlockElement"`) | bottom and top loops, `cuts`; the capped loft between them cut by every plane |
 
 A plate has two geometries, as a compas_model element does. `element_geometry_mesh()` is the
 parametric shape alone, the loft of the two raw outlines, never cut. `model_geometry_mesh()` is the
@@ -74,6 +79,15 @@ Model geometry may reuse the corresponding element geometry. Serialization retai
 caches; `invalidate_geometry()` and `place()` clear all four. `Plate::face_features()` emits one `ElementFeature` per face:
 `"joint_type_<code>"` for a face with a joint type, `"cut"` for a face with outlines.
 
+### Cuts and instances
+
+A beam, column or block carries `cuts`, planes applied to its parametric solid by the kernel's
+`Mesh::cut_by_plane` / `BRep::cut_by_plane`, each keeping the side its normal points to; assign
+them and call `invalidate_geometry()`. The grid template (`src/templates/grid.h`) resolves every
+joint into such planes. `WoodSession::instance_by_key()` replaces every repeated element by an
+instance of one definition, keeping guid, name, tree node, edges and features; the passes read
+`world_elements()`, every element and instance as world geometry.
+
 ### Manual interactions
 
 `Session::add_interaction(a, b)`, `has_interaction(a, b)` and `remove_interaction(a, b)`
@@ -81,12 +95,11 @@ manage a graph edge by element references or object GUIDs. Both endpoints must a
 registered; adding the same pair preserves the edge identity and attributes. Either order
 finds or removes the pair.
 
-`WoodSession` accepts element references, shared pointers or GUIDs and returns an `Interaction&`.
-Its `add_interaction(a, b, payload)` overloads store an `InteractionContact`,
-`InteractionFeature`, `InteractionStructure`, or a complete `Interaction` beside the edge.
-Contacts are deduplicated and oriented to the stored edge. A standalone feature's `contact`
-is `-1` or an index in the pair's existing contacts. In a complete incoming `Interaction`,
-feature indices refer to that incoming record's contacts and are remapped during merging.
+`WoodSession` takes `std::shared_ptr<Element>` endpoints and returns an `Interaction&`.
+`add_interaction(a, b, interaction)` merges a record beside the edge: wrap a single contact,
+feature or structure in an `Interaction`. Contacts are deduplicated and oriented to the stored
+edge. A feature's `contact` is `-1` or an index in the incoming record's contacts, remapped
+during merging.
 A supplied structure replaces the pair's previous structural record; the current structure
 and plate-to-beam feature types are placeholders with no solver parameters yet.
 

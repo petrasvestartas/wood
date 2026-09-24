@@ -27,6 +27,12 @@ namespace wood_session {
 
 using io::pb_path;
 
+/// True when the stored element is a T.
+template <class T>
+bool is_type(const session_cpp::Element& element) {
+    return dynamic_cast<const T*>(&element) != nullptr;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
@@ -42,6 +48,15 @@ public:
 
 private:
     std::unordered_map<std::string, std::pair<std::string, std::string>> _edges; // Interaction guid -> the edge's (v0, v1), the pair every record refers to.
+
+    /// The interaction of two element guids, made with its graph edge when the pair has none.
+    Interaction& _interaction(const std::string& a, const std::string& b);
+
+    /// The interaction of two element guids in either order, or null when the pair has none.
+    const Interaction* _find_interaction(const std::string& a, const std::string& b) const;
+
+    /// Stores a contact between two element guids, oriented to the pair's edge, and returns its guid, a new one also onto the edge's first element as a "contact" feature; one that coincides with a stored contact returns that one's guid.
+    std::string add_contact(const std::string& a, const std::string& b, InteractionContact contact);
 
 public:
     /// An empty scene; registers the four element factories with the kernel.
@@ -139,108 +154,25 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The interaction of two elements, made with its graph edge when the pair has none; the edge's guid is the record's key and is written on both stored copies of the edge.
-    Interaction& add_interaction(const std::string& a, const std::string& b);
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
-    /// Merge a record into the pair: contacts are relative to (a, b), feature.contact indexes this incoming record's contacts, and a supplied structure replaces the existing one. Returns the stored record with the edge's identity. Invalid contact indices or plate endpoints throw before mutation.
-    Interaction& add_interaction(const std::string& a, const std::string& b, Interaction interaction);
-
-    /// Add a contact to the pair, oriented from (a, b); coincident contacts are reused.
-    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionContact contact);
-
-    /// Add a feature to the pair; contact is -1 or an index in its existing contacts. Plate endpoints may be omitted; beam volumes follow (a, b). Stores host features without running the solver or applying cuts.
-    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionFeature feature);
-
-    /// Store or replace the pair's structural record.
-    Interaction& add_interaction(const std::string& a, const std::string& b, InteractionStructure structure);
+    /// Merge a record into the pair: contacts are relative to (a, b) and coincident ones reused, feature.contact indexes this record's contacts, plate endpoints may be omitted, beam volumes follow (a, b), a supplied structure replaces the existing one; features are hosted without running the solver, and invalid contact indices or plate endpoints throw before mutation.
+    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, Interaction interaction);
 
     /// True when the pair has a graph edge in either order, including a bare edge awaiting payload.
-    bool has_interaction(const std::string& a, const std::string& b) const;
+    bool has_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) const;
 
     /// Remove the edge, its stored record and its hosted contact/joint features; no-op when absent. Already merged geometry is not recomputed.
-    void remove_interaction(const std::string& a, const std::string& b);
-
-    /// Add an interaction using element identities.
-    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return add_interaction(a.guid(), b.guid()); }
-
-    /// Add an interaction using element handles; null handles throw std::invalid_argument.
-    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) {
-        if (!a || !b)
-            throw std::invalid_argument("WoodSession::add_interaction: null element");
-        return add_interaction(*a, *b);
-    }
-
-    /// Add an interaction using element identities.
-    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, Interaction data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
-
-    /// Add an interaction using element handles; null handles throw std::invalid_argument.
-    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, Interaction data) {
-        if (!a || !b)
-            throw std::invalid_argument("WoodSession::add_interaction: null element");
-        return add_interaction(*a, *b, std::move(data));
-    }
-
-    /// Add an interaction using element identities.
-    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionContact data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
-
-    /// Add an interaction using element handles; null handles throw std::invalid_argument.
-    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionContact data) {
-        if (!a || !b)
-            throw std::invalid_argument("WoodSession::add_interaction: null element");
-        return add_interaction(*a, *b, std::move(data));
-    }
-
-    /// Add an interaction using element identities.
-    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionFeature data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
-
-    /// Add an interaction using element handles; null handles throw std::invalid_argument.
-    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionFeature data) {
-        if (!a || !b)
-            throw std::invalid_argument("WoodSession::add_interaction: null element");
-        return add_interaction(*a, *b, std::move(data));
-    }
-
-    /// Add an interaction using element identities.
-    Interaction& add_interaction(const session_cpp::Element& a, const session_cpp::Element& b, InteractionStructure data) { return add_interaction(a.guid(), b.guid(), std::move(data)); }
-
-    /// Add an interaction using element handles; null handles throw std::invalid_argument.
-    Interaction& add_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, InteractionStructure data) {
-        if (!a || !b)
-            throw std::invalid_argument("WoodSession::add_interaction: null element");
-        return add_interaction(*a, *b, std::move(data));
-    }
-
-    /// has_interaction using element identities.
-    bool has_interaction(const session_cpp::Element& a, const session_cpp::Element& b) const { return has_interaction(a.guid(), b.guid()); }
-
-    /// has_interaction using element handles; null handles act as an absent pair.
-    bool has_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) const { return a && b && has_interaction(*a, *b); }
-
-    /// remove_interaction using element identities.
-    void remove_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return remove_interaction(a.guid(), b.guid()); }
-
-    /// remove_interaction using element handles; null handles act as an absent pair.
-    void remove_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) { if (a && b) remove_interaction(*a, *b); }
+    void remove_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
     /// The interaction of two elements, or null when the pair has none.
-    Interaction* get_interaction(const std::string& a, const std::string& b);
+    Interaction* get_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
     /// The interaction of two elements, or null when the pair has none.
-    const Interaction* get_interaction(const std::string& a, const std::string& b) const;
-
-    /// The interaction of two elements, or null when absent.
-    Interaction* get_interaction(const session_cpp::Element& a, const session_cpp::Element& b) { return get_interaction(a.guid(), b.guid()); }
-
-    /// The interaction of two elements, or null when absent.
-    const Interaction* get_interaction(const session_cpp::Element& a, const session_cpp::Element& b) const { return get_interaction(a.guid(), b.guid()); }
-
-    /// The interaction with this guid; throws std::out_of_range when the scene holds none.
-    const Interaction& get_interaction(const std::string& guid) const;
+    const Interaction* get_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b) const;
 
     /// The edge an interaction sits on, (v0, v1): the first and second element every record of it refers to; empty strings when the scene does not hold it.
     std::pair<std::string, std::string> edge_of(const Interaction& interaction) const;
-
-    /// Stores a contact between two elements, oriented to the pair's edge, and returns its guid, a new one also onto the edge's first element as a "contact" feature; one that coincides with a stored contact returns that one's guid.
-    std::string add_contact(const std::string& a, const std::string& b, InteractionContact contact);
 
     /// Stores a solved joint on its pair's interaction: the contact it was solved from (a ContactCross for a cross joint), then the FeaturePlate, and puts its two sides onto the host elements as "joint" features in the colour of its type; returns the feature's guid.
     std::string add_feature(const FeaturePlate& joint);
@@ -320,19 +252,29 @@ public:
     }
 
     /// Every element, in insertion order; the list objects.elements holds, no copy.
-    const std::vector<std::shared_ptr<session_cpp::Element>>& elements() const { return *objects.elements; }
+    const std::vector<std::shared_ptr<session_cpp::Element>>& elements() const {
+        return *objects.elements;
+    }
 
     /// Every Plate, in objects.elements order.
-    std::vector<std::shared_ptr<Plate>> plates() const { return get_elements<Plate>(); }
+    std::vector<std::shared_ptr<Plate>> plates() const {
+        return get_elements<Plate>();
+    }
 
     /// Every Column, in objects.elements order.
-    std::vector<std::shared_ptr<Column>> columns() const { return get_elements<Column>(); }
+    std::vector<std::shared_ptr<Column>> columns() const {
+        return get_elements<Column>();
+    }
 
     /// Every Block, in objects.elements order.
-    std::vector<std::shared_ptr<Block>> blocks() const { return get_elements<Block>(); }
+    std::vector<std::shared_ptr<Block>> blocks() const {
+        return get_elements<Block>();
+    }
 
     /// Every Beam, in objects.elements order.
-    std::vector<std::shared_ptr<Beam>> beams() const { return get_elements<Beam>(); }
+    std::vector<std::shared_ptr<Beam>> beams() const {
+        return get_elements<Beam>();
+    }
 
     /// The guids of world_elements(), in order: the index space detection works in.
     std::vector<std::string> element_guids() const;
@@ -369,7 +311,7 @@ public:
     std::vector<std::shared_ptr<T>> world_elements() const {
 
         std::vector<std::shared_ptr<T>> out;
-        for (const std::shared_ptr<session_cpp::Element>& element : world_elements([](const session_cpp::Element& stored) { return dynamic_cast<const T*>(&stored) != nullptr; }))
+        for (const std::shared_ptr<session_cpp::Element>& element : world_elements(is_type<T>))
             out.push_back(std::static_pointer_cast<T>(element));
 
         return out;

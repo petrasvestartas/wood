@@ -17,7 +17,7 @@ int main() {
     wood_session.compute_features(face_to_face_then_cross);
     std::cout << wood_session.get_plate_features().size() << " joints with face-to-face first and cross as the fallback\n";
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

@@ -14,7 +14,7 @@ public:
     std::vector<session_cpp::Vector> directions; // Section up direction per segment; a segment without one takes the contact normal.
     int allowed_type = -1; // Which contacts this beam accepts: 0 crossing only, 1 side-to-end and end-to-end, -1 any.
     std::vector<session_cpp::Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
-    std::vector<session_cpp::Polyline> profile; // Section loops in the profile frame, loop 0 the outline, then holes; empty takes the square of the radius.
+    std::vector<session_cpp::Polyline> profile; // Section loops in the profile frame, loop 0 the outline, then holes lofted on a one-segment axis; empty takes the square of the radius.
 
 private:
     mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of the mesh form.
@@ -73,6 +73,9 @@ public:
     /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const session_cpp::BRep& model_geometry_brep() const override;
 
+    /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
+    std::vector<session_cpp::Plane> compute_planes() const override;
+
     /// Drops the cached solids and marks the Element slot stale; call after assigning the axis, radii, directions or cuts by hand.
     void invalidate_geometry() override;
 
@@ -97,7 +100,7 @@ public:
     /// The kernel's cached box of the solid.
     using session_cpp::Element::aabb;
 
-    /// The box of the axis widened by the largest radius, inflated on each side.
+    /// The box of the axis widened by the largest radius or half the profile's larger side, inflated on each side.
     session_cpp::AABB aabb(double inflate) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -115,10 +118,14 @@ public:
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
-    std::string element_type_name() const override { return std::string(ELEMENT_TYPE); }
+    std::string element_type_name() const override {
+        return std::string(ELEMENT_TYPE);
+    }
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Element> clone() const override { return std::make_shared<Beam>(*this); }
+    std::shared_ptr<session_cpp::Element> clone() const override {
+        return std::make_shared<Beam>(*this);
+    }
 
     /// Registers the "Beam" factory with the kernel, so Session::pb_load rebuilds beams.
     static void register_type();

@@ -28,14 +28,14 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
         return;
     }
 
-    Vector normal = Vector::average_normal(pp0);
+    Vector normal = compute_newell(pp0.get_points());
     const Point c0 = pp0.center();
     const Point last_p1 = pp1[pp1.point_count() - 1];
     const double last_z = (last_p1 - c0).dot(normal);
     if (last_z > 0) {
         pp0.reverse();
         pp1.reverse();
-        normal = Vector::average_normal(pp0);
+        normal = compute_newell(pp0.get_points());
         reversed = true;
     }
 

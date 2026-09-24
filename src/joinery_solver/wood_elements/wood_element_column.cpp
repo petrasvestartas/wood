@@ -32,6 +32,15 @@ static Vector profile_x(const Line& axis, double rotation) {
     return x.normalized().transformed(Xform::rotation(along, rotation, true));
 }
 
+/// The rotation that puts the profile x axis on x_world about the axis: its signed angle in degrees from the unturned profile x.
+static double compute_rotation(const Line& axis, const Vector& x_world) {
+
+    const Vector along = axis.to_vector().normalized();
+    const Vector base = profile_x(axis, 0.0);
+
+    return std::atan2(base.cross(x_world).dot(along), base.dot(x_world)) * Tolerance::TO_DEGREES;
+}
+
 /// Every profile loop placed at the axis base, x along profile_x and y along the axis cross it.
 static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<Polyline>& profile, double rotation) {
 
@@ -141,7 +150,7 @@ const BRep& Column::element_geometry_brep() const {
 const Mesh& Column::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
     }
 
     return *_model_geometry_mesh;
@@ -150,10 +159,14 @@ const Mesh& Column::model_geometry_mesh() const {
 const BRep& Column::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
     }
 
     return *_model_geometry_brep;
+}
+
+std::vector<Plane> Column::compute_planes() const {
+    return face_planes(model_geometry_mesh());
 }
 
 void Column::invalidate_geometry() {
@@ -173,7 +186,7 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
     column->profile = profile;
-    column->rotation = rotation;
+    column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
     column->set_features(transformed_features(_features, xform));
     column->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -182,10 +195,13 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
 
 void Column::place(const Xform& xform) {
 
+    const Vector x_world = profile_x(axis, rotation).transformed(xform);
     Element::place(xform);
     axis.transform(xform);
     section.transform(xform);
     cuts = transformed_list(cuts, xform);
+    if (!profile.empty())
+        rotation = compute_rotation(axis, x_world);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();

@@ -36,11 +36,11 @@ struct ChevronResult {
     /// Each row [s0, s1, e20, e31]: plate-pair s0 connects to s1,
     /// and plate-pair e20 also connects to s1 — the joint on s1 must be
     /// trimmed so both tenons fit without colliding.
-    /// Written to <dataset>_three_valence.txt for get_connection_zones().
+    /// Written to `<dataset>_three_valence.txt` for get_connection_zones().
     std::vector<std::array<int,4>> three_valence;
 
     /// Adjacency pairs (plate-pair index pairs that share a joint).
-    /// Written to <dataset>_adjacency.txt for get_connection_zones().
+    /// Written to `<dataset>_adjacency.txt` for get_connection_zones().
     std::vector<std::pair<int,int>> adjacency;
 
     /// One 2-point polyline per mesh face (box bisector visualization line).

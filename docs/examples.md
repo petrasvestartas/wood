@@ -1,10 +1,12 @@
 # Examples {#examples}
 
-Twelve short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `cmake --build build --target <name> --parallel 4 && ./build/<name>` from the `wood` directory. Each ends with a comment that says what it does and how to run it; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
+Fourteen short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `cmake --build build --target <name> --parallel 4 && ./build/<name>` from the `wood` directory. Each ends with a comment that says what it does and how to run it; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
 
 | Example | Behaviour |
 |---|---|
-| `1_elements` | The four element kinds built in code and added to a scene; `get_element` and the typed lists |
+| `1_elements` | The four element kinds built in code and added to a scene, one authored interaction record; `get_element` and the typed lists |
+| `1_elements_flat` | One floor bay from the grid template under the root: columns, heads, girders and beams cut against each other, a deck; `compute_contacts(0)` over the whole scene |
+| `1_elements_tree` | The same bay three times, each under its own tree branch, so `compute_contacts(1)` stays inside a branch; `instance_by_key` for one definition per repeated element |
 | `2_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
 | `3_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
 | `4_features` | The joinery pipeline: every plate joint, a plate's geometry alone and cut, the joint features on the hosts |
@@ -17,11 +19,21 @@ Twelve short programs under `examples/`, one behaviour each, in the order to rea
 | `11_viewer` | The scene arranged for the viewer, the colour tables, the files `pb_dump` writes |
 | `12_cross_joints` | Cross joints and the search type chosen per solve |
 
+Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example.
+
 The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
 
 ## 1_elements
 
 \include{lineno} 1_elements.cpp
+
+## 1_elements_flat
+
+\include{lineno} 1_elements_flat.cpp
+
+## 1_elements_tree
+
+\include{lineno} 1_elements_tree.cpp
 
 ## 2_datasets
 

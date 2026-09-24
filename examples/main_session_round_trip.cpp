@@ -195,7 +195,8 @@ int main() {
     size_t attached = 0;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)
         for (const ElementFeature& feature : element->features())
-            if (feature.feature_type == "joint") { attached++; }
+            if (feature.feature_type == "joint")
+                attached++;
 
     check(attached == 2 * joints_a.size(),
           fmt::format("one joint feature per host element ({} of {})", attached, 2 * joints_a.size()));

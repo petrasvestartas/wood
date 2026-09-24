@@ -48,12 +48,7 @@ public:
 
         mesh = sweep(cross_section, profile);
 
-        // Get raw miter contours (no internal chamfering: pass 0,0 for distances).
-        // Mask is computed once from bot_raw, then applied to both top and bot
-        // so both always have the same number of points.
-        using MiterTuple = std::tuple<std::vector<Point>, std::vector<Point>,
-                                      std::vector<Point>, std::vector<Point>, Vector>;
-        for (const MiterTuple& plate :
+        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
@@ -194,9 +189,6 @@ private:
 
         std::vector<std::vector<size_t>> faces;
         for (size_t i = 1; i < nP; ++i) {
-            // Closed form per row: building row i from row i-1 compounded a
-            // rounding step per row; the offset from profile[0] is exact and
-            // equally cheap.
             Vector off(profile[i][0]-profile[0][0],
                        profile[i][1]-profile[0][1],
                        profile[i][2]-profile[0][2]);

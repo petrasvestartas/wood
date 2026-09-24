@@ -18,7 +18,9 @@ WoodSession& FeatureBeam::session() const {
 // FeatureBeam - Operators
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const FeatureBeam& feature) { return os << feature.str(); }
+std::ostream& operator<<(std::ostream& os, const FeatureBeam& feature) {
+    return os << feature.str();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FeatureBeam - JSON

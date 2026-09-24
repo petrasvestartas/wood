@@ -16,7 +16,7 @@ int main() {
     const std::shared_ptr<Plate> plate = wood_session.plates().front();
     std::cout << fmt::format("{}: {} faces alone, {} faces with joints, {} joint features\n", plate->name, plate->element_geometry_mesh().number_of_faces(), plate->model_geometry_mesh().number_of_faces(), plate->Element::features().size());
 
-    wood_session.pb_dump(pb_path("live").string());
+    wood_session.pb_dump(pb_path("live"));
 
     return 0;
 }

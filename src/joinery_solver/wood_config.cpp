@@ -66,7 +66,9 @@ const std::vector<std::string> SESSION_NAMES = {
     "session",
 };
 
-const std::string& dataset_name(size_t index) { return DATASET_NAMES.at(index); }
+const std::string& dataset_name(size_t index) {
+    return DATASET_NAMES.at(index);
+}
 
 std::string DATA_SET_INPUT_NAME;
 std::string DATA_SET_OBJ;
@@ -75,7 +77,6 @@ std::string DATA_SET_THREE_VALENCE;
 std::string DATA_SET_INSERTION_VECTORS;
 std::string DATA_SET_JOINTS_TYPES;
 std::string DATA_SET_OUTPUT_FILE;
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Loader
@@ -128,38 +129,9 @@ void yaml_file(TINY_YAML::Yaml& y, const std::filesystem::path& path, const std:
     out = p.string();
 }
 
-} // namespace
+/// The joint keys of a dataset yaml onto the settings: joint parameters and their id table, volume extension, scale, the detection pass and the beam block; a malformed list is an error.
+void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
 
-std::string session_pb(size_t index) {
-
-    if (index >= SESSION_NAMES.size())
-        throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
-
-    return dataset_path(SESSION_NAMES[index], ".pb").string();
-}
-
-void reset_defaults() {
-    DATA_SET_INPUT_NAME.clear();
-    DATA_SET_OBJ.clear();
-    DATA_SET_ADJACENCY.clear();
-    DATA_SET_THREE_VALENCE.clear();
-    DATA_SET_INSERTION_VECTORS.clear();
-    DATA_SET_JOINTS_TYPES.clear();
-    DATA_SET_OUTPUT_FILE.clear();
-}
-
-Settings load_yaml(const std::string& dataset_name) {
-
-    reset_defaults();
-
-    const std::filesystem::path path = dataset_path(dataset_name, ".yml");
-    if (!std::filesystem::exists(path))
-        throw std::runtime_error("load_yaml: missing config " + path.string());
-
-    TINY_YAML::Yaml y(path.string());
-    Settings settings;
-
-    // Every read is gated by y.has(k) and hasData(): TinyYaml null-derefs on an absent key or a bare `key:`.
     if (y.has("joints_parameters_and_types")) {
         const std::vector<std::string> jpt = yaml_string_list(y, "joints_parameters_and_types");
         if (!jpt.empty()) {
@@ -205,6 +177,10 @@ Settings load_yaml(const std::string& dataset_name) {
         if (settings.beams.size() != 6)
             throw std::runtime_error("load_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(settings.beams.size()));
     }
+}
+
+/// The solver tolerances and switches of a dataset yaml onto the settings, each only when the key is there.
+void read_solver_keys(TINY_YAML::Yaml& y, Settings& settings) {
 
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
         settings.dihedral_angle = std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
@@ -226,8 +202,42 @@ Settings load_yaml(const std::string& dataset_name) {
         settings.clipper_scale = std::stoll(yaml_string(y, "clipper_scale"));
     if (y.has("clipper_area"))
         settings.clipper_area = std::stod(yaml_string(y, "clipper_area"));
+}
 
-    // File keys resolve relative to the yaml; naming a file that is not there is an error.
+} // namespace
+
+std::string session_pb(size_t index) {
+
+    if (index >= SESSION_NAMES.size())
+        throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
+
+    return dataset_path(SESSION_NAMES[index], ".pb").string();
+}
+
+void reset_defaults() {
+    DATA_SET_INPUT_NAME.clear();
+    DATA_SET_OBJ.clear();
+    DATA_SET_ADJACENCY.clear();
+    DATA_SET_THREE_VALENCE.clear();
+    DATA_SET_INSERTION_VECTORS.clear();
+    DATA_SET_JOINTS_TYPES.clear();
+    DATA_SET_OUTPUT_FILE.clear();
+}
+
+Settings load_yaml(const std::string& dataset_name) {
+
+    reset_defaults();
+
+    const std::filesystem::path path = dataset_path(dataset_name, ".yml");
+    if (!std::filesystem::exists(path))
+        throw std::runtime_error("load_yaml: missing config " + path.string());
+
+    TINY_YAML::Yaml y(path.string());
+    Settings settings;
+
+    read_joint_keys(y, settings);
+    read_solver_keys(y, settings);
+
     yaml_file(y, path, "obj", DATA_SET_OBJ);
     yaml_file(y, path, "adjacency", DATA_SET_ADJACENCY);
     yaml_file(y, path, "three_valence", DATA_SET_THREE_VALENCE);

@@ -137,7 +137,9 @@ classDiagram
 - `InteractionStructure` is reserved, empty.
 - Every record knows its scene: `Interaction`, `InteractionContact`, `InteractionFeature` and each contact and feature kind answer `session()` with the `WoodSession` that stores them, and `has_session()` says whether they are stored yet. The scene stamps the pointer when a record is added and after a load, a copy or a move; it is never written to the file. Elements have the same through the kernel's `Element`.
 - Inheritance is used only where the kernel forces it: `Plate`, `Beam`, `Column` and `Block` derive from `session_cpp::Element`, because `Session::pb_load` rebuilds them through the kernel's `element_type` registry. Everything on the edge side is data: no virtual method, no base class.
-- Every element is a closed solid in the kernel's geometry slot, written by its `compute_geometry_mesh()` the first time anything reads the slot, the features or the dimensions: a plate the loft of its two outlines (with the joints cut in once solved), a beam the sweep of a square section per axis vertex, a column its section lofted along its axis, a block the capped loft between its bottom and top loops. What describes an element without being it sits beside the solid as `session_cpp::ElementFeature`s, told apart by `feature_type`: the geometry features `outline` (plate faces 0 and 1), `axis` and `section`, against the joinery features `joint`, `cut` and `joint_type_<n>`. `is_geometry_feature` in `wood_element_geometry` is the one place that split is written. Every feature carries the kernel's `visible` flag, on by default: the viewer draws every visible feature of an element in its outlines' own colour, and `WoodSession::set_features_visible(type, bool)` switches one kind off.
+- Every element is a closed solid in the kernel's geometry slot, written by its `compute_geometry_mesh()` the first time anything reads the slot, the features or the dimensions: a plate the loft of its two outlines (with the joints cut in once solved), a beam the sweep of a square section per axis vertex, a column its section lofted along its axis, a block the capped loft between its bottom and top loops. What describes an element without being it sits beside the solid as `session_cpp::ElementFeature`s, told apart by `feature_type`: the geometry features `outline` (plate faces 0 and 1), `axis` and `section`, against the joinery features `joint`, `cut` and `joint_type_<n>`. `is_geometry_feature` in `wood_element_geometry` is the one place that split is written. Every feature carries the kernel's `visible` flag, on by default: the viewer draws every visible feature of an element, and `WoodSession::set_features_visible(type, bool)` switches one kind off.
+- A beam, a column or a block also carries `cuts`, a list of planes: the model geometry is the parametric solid cut by every plane through the kernel's `Mesh::cut_by_plane` / `BRep::cut_by_plane`, each keeping the side its normal points to. A plate's cuts stay outlines. The grid template resolves every joint into such planes, so a member ends flush on the face it butts into and no two solids overlap.
+- Repeated elements can be instances: `WoodSession::instance_by_key` replaces every element `element_key` finds a class and frame for by an instance of that class's definition, keeping its guid, name, tree node, edges and features, so every interaction stays found; `world_elements()` gives every element and instance as world geometry, which is what every pass reads, and `promote` puts a pass's result back. The examples keep `INSTANCES` off until the viewer draws instances.
 - The dataset sidecars are not a class of their own: `WoodSession::load_sidecars` puts the adjacency and the three-valence groups on the scene (`adjacency`, `three_valence`) and the insertion vectors and joint types on each plate. Detection reads the elements themselves; there is no detection view class.
 
 ## Files
@@ -153,12 +155,16 @@ flowchart TB
         IO["wood_io"]
         VW["wood_view"]
         SR["wood_serialization"]
+        IN2["wood_instance"]
         subgraph EL ["wood_elements"]
             direction LR
             P["plate"]
             B["beam"]
             C["column"]
             K["block"]
+            G["geometry"]
+            PF["profile"]
+            PG["plan_geometry"]
         end
         subgraph IN ["wood_interaction"]
             direction TB
@@ -194,6 +200,12 @@ flowchart TB
             AS["assignment"]
         end
     end
+    subgraph TP ["src/templates"]
+        direction LR
+        GR["grid"]
+        CL["clash"]
+        SH["translation_shell, reflex_fold, chevron, diamond_mesh, vda_mesh, reciprocal_*"]
+    end
     subgraph PR ["src/proto"]
         PRO["one .proto per class"]
     end
@@ -214,15 +226,17 @@ flowchart LR
 ```
 
 - `wood_settings`: `Settings`, every tunable the solver reads, filled from the dataset yml by `config::load_yaml`, held by the scene, passed by reference into every algorithm and joint builder, written with the scene. `wood_config` keeps only the dataset catalogue and the paths.
-- `wood_elements/`: one element class per file, `wood_element_plate`, `wood_element_beam`, `wood_element_column`, `wood_element_block`; `wood_element_geometry` holds what they share: the geometry feature vocabulary, the polyline feature, the square section and the sweep through sections.
+- `wood_elements/`: one element class per file, `wood_element_plate`, `wood_element_beam`, `wood_element_column`, `wood_element_block`; `wood_element_geometry` holds what they share: the geometry feature vocabulary, the polyline feature, the sweep through sections, the Newell face planes and the volume of a closed mesh. `wood_profile` is the section library (rectangle, round, W, HSS, double, slab band, T; a profile is loops in the section frame, loop 0 the outline, then holes). The plan algorithms of the grid template (sections of a solid at a height, ring booleans, offsets and mitres, `compute_crossings`, `compute_arrangement`, direction polygons at a node) live in `templates/grid_plan`.
+- `wood_instance`: `element_key`, the class key and frame of a column, beam, block or plate, what `WoodSession::instance_by_key` dedups repeated elements by.
 - `wood_interaction/`: the folders nest as the data does, one class per file, the file name spelling the path down the tree:
     - `wood_interaction.h/.cpp` (`Interaction`)
     - `wood_interaction_contact/`: `wood_interaction_contact` (the envelope), `wood_interaction_contact_face` (+ `_type`), `wood_interaction_contact_axis`, `wood_interaction_contact_cross`
     - `wood_interaction_feature/`: `wood_interaction_feature` (the envelope), `wood_interaction_feature_plate` (+ `_fabrication_type`), `wood_interaction_feature_beam`, `wood_interaction_feature_plate_beam` (empty for now), `wood_interaction_feature_plate_joints.h` and `wood_interaction_feature_plate_joints/` (one header per joint, plus `custom_outlines`, `tt_e_p_drills`, `cr_c_ip_core` and `ss_e_r_core` for code several joints share)
     - `wood_interaction_structure/`: `wood_interaction_structure` (empty for now)
 - `wood_algorithms/`: the computations, kept apart from the data classes and named by what they produce, every input by argument: `wood_contact_detection` (face, cross and axis contacts), `wood_feature_detection` (one plate pair to one FeaturePlate), `wood_feature_detection_beam` (one beam pair to one FeatureBeam), `wood_feature_construction` (unit scale, orientation, linked joints, divisions), `wood_feature_solver` (the `compute_features` pipeline and the joint registry), `wood_three_valence`, `wood_merge_modifier`, `wood_assignment` (points and lines placed on plates into their feature types and insertion vectors). Functions, not classes, wherever a function is enough.
-- `wood_session`: the scene, the store and the pipeline entry points, nothing else. `wood_view`: the viewer layout and the colours. `wood_io`: the sidecar and obj readers, `pb_path`, the parity dumps. `wood_serialization`: JSON from a proto message and back. `wood_test.h/.cpp`: the dataset runners.
+- `wood_session`: the scene, the store and the pipeline entry points, nothing else. `wood_view`: the viewer layout, the default grey on every element. `wood_io`: the sidecar and obj readers, `pb_path`, the parity dumps. `wood_serialization`: JSON from a proto message and back. `wood_test.h/.cpp`: the dataset runners.
 - `proto/`: one protobuf message per class, same names without the `wood_` prefix; `generated/` holds the C++ protoc output, committed, regenerated by `tools/regen_proto.sh` with the protoc the kernel pins.
+- `templates/`: the generators, one example each on the [Templates](@ref templates) page. `grid.h` / `grid.cpp` is the building template (`Pattern`, `Framing`, `Building`) compiled into `wood_core`; `clash.h` is the pairwise overlap check its tests run; the shell templates are header-only and included by their example alone.
 
 ## Serialization
 
@@ -291,7 +305,8 @@ flowchart LR
 - `compute_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `ContactFace` per overlapping face pair on the pair's interaction; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `ContactCross` and `ContactAxis` the same way.
 - `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `FeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then every joint onto its interaction with `add_feature` and onto both hosts as `ElementFeature`s.
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `FeatureBeam` each.
-- `pb_dump` writes the `wood_proto.WoodSession`, every stale element lofting itself as it is serialized. Contacts and joints are already on their elements as features, put there when they were computed: a contact on its edge's first element, a joint on both hosts, coloured by type; the viewer draws the elements' geometry and every visible feature, and the tree stays exactly as the caller built it.
+- `compute_contacts(level)` pairs elements under the same tree node at that depth, 0 the whole scene, 1 the root's branches: `1_elements_flat` and `1_elements_tree` show both.
+- `pb_dump` writes the `wood_proto.WoodSession`, every stale element lofting itself, and cutting itself by its `cuts`, as it is serialized. Contacts and joints are already on their elements as features, put there when they were computed: a contact on its edge's first element, a joint on both hosts; the viewer draws the elements' geometry and every visible feature in the default grey, and the tree stays exactly as the caller built it.
 
 ## Architecture review
 
@@ -318,7 +333,7 @@ flowchart LR
 - **Kernel: an edge's guid.** `Graph::add_edge` copies an Edge into both directions before it has a guid; wood mints it and stamps the second copy. The kernel fix is to mint at `add_edge`, but Python already shares one object both ways and Rust copies like C++, so all three kernels must change together for the files to stay byte-identical.
 - **The joint headers are still `static` functions included into one translation unit.** The registry makes the solver blind to that, but a proper library would make them ordinary functions with include guards in their own translation unit.
 - **`compute_features` both stores and returns.** Callers that act on the return value after a second run read a stale copy; the return should go once nothing depends on it.
-- **Templates sit in `src/`.** `src/templates/` is 5000 lines of header-only generators compiled by every main that includes them; they belong next to `examples/`, each a source file built once. Left in place because they are being edited in a parallel branch.
+- **The shell templates are header-only.** `src/templates/` still holds the shell generators as headers compiled by the one main that includes each; `grid` and `clash` are already `.h` / `.cpp` pairs in `wood_core`, the pattern the rest should follow.
 
 ### The layering, as it stands
 

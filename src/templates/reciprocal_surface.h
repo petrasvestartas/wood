@@ -230,10 +230,10 @@ inline NurbsSurface scherk_surface(double width, double depth, double height, do
 }
 
 /// One up per naked edge of the mesh from the surface normal at the point of the surface closest to the edge's midpoint, turned to point up: the frame that follows the NURBS surface rather than the mesh's faces.
-inline std::map<wood_reciprocal::EdgeKey, Vector> surface_normal_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
+inline std::map<std::pair<size_t, size_t>, Vector> surface_normal_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
 {
 
-    std::map<wood_reciprocal::EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
         Point mid = Point::mid_point(mesh.vertex_point(u).value(), mesh.vertex_point(v).value());
         std::pair<double, double> uv = surface.closest_parameters(mid);
@@ -256,7 +256,7 @@ inline int nearest_domain_side(const NurbsSurface& surface, double u, double v)
 }
 
 /// One up per naked edge, the same for every edge on the same boundary curve of the surface: the mesh edges are sorted onto the four sides of the domain by the surface parameters of their midpoints, and each side takes the average of its edges' owning face normals, turned to point up. Each side of the frame is then one constant section and only the four corners carry a mitre step.
-inline std::map<wood_reciprocal::EdgeKey, Vector> side_average_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
+inline std::map<std::pair<size_t, size_t>, Vector> side_average_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
 {
 
     std::vector<size_t> fkeys = mesh.faces();
@@ -267,9 +267,9 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_average_boundary_ups(cons
         face_normals[fi] = mesh.face_normal(fkeys[fi]).value_or(Vector(0, 0, 1));
     }
 
-    std::map<wood_reciprocal::EdgeKey, Vector> edge_normals = wood_reciprocal::owner_normal_ups(wood_reciprocal::edge_owners(faces), face_normals);
+    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(wood_reciprocal::edge_owners(faces), face_normals);
     std::array<Vector, 4> sums = {Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)};
-    std::map<wood_reciprocal::EdgeKey, int> side_of;
+    std::map<std::pair<size_t, size_t>, int> side_of;
     for (const auto& [key, normal] : edge_normals) {
         Point mid = Point::mid_point(mesh.vertex_point(key.first).value(), mesh.vertex_point(key.second).value());
         std::pair<double, double> uv = surface.closest_parameters(mid);
@@ -278,7 +278,7 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_average_boundary_ups(cons
         sums[side] += normal;
     }
 
-    std::map<wood_reciprocal::EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [key, side] : side_of)
         if (!sums[side].is_zero())
             ups[key] = sums[side].normalized();
@@ -317,7 +317,7 @@ inline std::array<Plane, 4> side_planes(const Mesh& mesh, const NurbsSurface& su
 {
 
     std::array<std::vector<size_t>, 4> sides = boundary_vertices_by_side(mesh, surface);
-    std::map<wood_reciprocal::EdgeKey, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
+    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
     std::array<Plane, 4> planes;
     for (int side = 0; side < 4; side++) {
         std::vector<Point> points;
@@ -338,7 +338,6 @@ inline std::array<Plane, 4> side_planes(const Mesh& mesh, const NurbsSurface& su
             continue;
         }
 
-        // straightness: the largest distance of a point from the chord between the two farthest points
         Point a = points.front(), b = points.front();
         for (const Point& p : points)
             for (const Point& q : points)
@@ -367,12 +366,12 @@ inline std::array<Plane, 4> side_planes(const Mesh& mesh, const NurbsSurface& su
 }
 
 /// One up per naked edge from the plane fitted through its side of the surface: either the plane's normal, a rib lying flat in the plane, or the in-plane direction perpendicular to the edge, a rib standing in the plane; both close every mitre of a planar side exactly, and each side takes the one closer to its average face normal, so the frame stands like the interior beams wherever it can.
-inline std::map<wood_reciprocal::EdgeKey, Vector> side_plane_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
+inline std::map<std::pair<size_t, size_t>, Vector> side_plane_boundary_ups(const Mesh& mesh, const NurbsSurface& surface)
 {
 
     std::array<Plane, 4> planes = side_planes(mesh, surface);
-    std::map<wood_reciprocal::EdgeKey, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
-    std::array<std::vector<std::pair<wood_reciprocal::EdgeKey, Vector>>, 4> edges_by_side;  // per side: the naked edge and its unit direction
+    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
+    std::array<std::vector<std::pair<std::pair<size_t, size_t>, Vector>>, 4> edges_by_side;  // per side: the naked edge and its unit direction
     std::array<Vector, 4> averages = {Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)};
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
         Point a = mesh.vertex_point(u).value(), b = mesh.vertex_point(v).value();
@@ -385,7 +384,7 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_plane_boundary_ups(const 
         averages[side] += edge_normals[wood_reciprocal::edge_key(u, v)];
     }
 
-    std::map<wood_reciprocal::EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (int side = 0; side < 4; side++) {
         if (edges_by_side[side].empty())
             continue;
@@ -483,10 +482,14 @@ inline NurbsSurface flatten_surface_sides(const NurbsSurface& surface)
     for (int i = 0; i < nu; i++)
         for (int j = 0; j < nv; j++) {
             std::vector<int> sides;
-            if (i == 0) sides.push_back(0);
-            if (i == nu - 1) sides.push_back(1);
-            if (j == 0) sides.push_back(2);
-            if (j == nv - 1) sides.push_back(3);
+            if (i == 0)
+                sides.push_back(0);
+            if (i == nu - 1)
+                sides.push_back(1);
+            if (j == 0)
+                sides.push_back(2);
+            if (j == nv - 1)
+                sides.push_back(3);
             std::vector<Plane> onto;
             for (int side : sides)
                 if (planes[side])
@@ -511,13 +514,13 @@ inline NurbsSurface flatten_surface_sides(const NurbsSurface& surface)
 }
 
 /// One up per naked edge with one tilt per side: in the plane fitted through the side, every beam's up is the plane normal turned towards the shell by the same angle, the mean angle between the surface normal and that plane along the side, or, when side_vectors are given, one per side in the order u start, u end, v start, v end, the angle of that vector instead. Consecutive sections are exact mirror images across each mitre, so every joint on the side closes; only the corners carry a step.
-inline std::map<wood_reciprocal::EdgeKey, Vector> side_tilt_boundary_ups(const Mesh& mesh, const NurbsSurface& surface,
+inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(const Mesh& mesh, const NurbsSurface& surface,
                                                                          const std::optional<std::array<Vector, 4>>& side_vectors = std::nullopt)
 {
 
     std::array<Plane, 4> planes = side_planes(mesh, surface);
-    std::map<wood_reciprocal::EdgeKey, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
-    struct SideEdge { wood_reciprocal::EdgeKey key; Vector dir; Vector normal; };  // a naked edge, its unit direction and the surface normal at its midpoint
+    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(mesh);
+    struct SideEdge { std::pair<size_t, size_t> key; Vector dir; Vector normal; };  // a naked edge, its unit direction and the surface normal at its midpoint
     std::array<std::vector<SideEdge>, 4> edges_by_side;
     std::array<Vector, 4> averages = {Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)};
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
@@ -537,7 +540,7 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_tilt_boundary_ups(const M
         averages[side] += face;
     }
 
-    std::map<wood_reciprocal::EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (int side = 0; side < 4; side++) {
         if (edges_by_side[side].empty())
             continue;
@@ -545,7 +548,6 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_tilt_boundary_ups(const M
         Vector average = averages[side].is_zero() ? planes[side].z_axis() : averages[side].normalized();
         Vector n = planes[side].z_axis().dot(average) < 0.0 ? -planes[side].z_axis() : planes[side].z_axis();
 
-        // the tilt of the surface normal out of the plane normal, towards the in-plane normal of each edge, averaged over the side
         double sin_sum = 0.0, cos_sum = 0.0;
         for (const SideEdge& edge : edges_by_side[side]) {
             Vector across = n.cross(edge.dir).normalized();  // in the plane, perpendicular to the edge; the winding makes it consistent along the side
@@ -564,10 +566,10 @@ inline std::map<wood_reciprocal::EdgeKey, Vector> side_tilt_boundary_ups(const M
 }
 
 /// The through priority per naked edge for the frame's butt corners: 1 on the two opposite boundary curves that run through at their ends, the u ends of the domain when u_sides_through and the v ends otherwise, 0 on the other two, which are cut against them; opposite sides always share a role, a b a b around the loop.
-inline std::map<wood_reciprocal::EdgeKey, int> through_side_priority(const Mesh& mesh, const NurbsSurface& surface, bool u_sides_through = true)
+inline std::map<std::pair<size_t, size_t>, int> through_side_priority(const Mesh& mesh, const NurbsSurface& surface, bool u_sides_through = true)
 {
 
-    std::map<wood_reciprocal::EdgeKey, int> priority;
+    std::map<std::pair<size_t, size_t>, int> priority;
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
         Point mid = Point::mid_point(mesh.vertex_point(u).value(), mesh.vertex_point(v).value());
         std::pair<double, double> uv = surface.closest_parameters(mid);
@@ -580,14 +582,20 @@ inline std::map<wood_reciprocal::EdgeKey, int> through_side_priority(const Mesh&
 }
 
 /// The same up for every naked edge of the mesh, for a frame that stays, say, vertical whatever the surface does.
-inline std::map<wood_reciprocal::EdgeKey, Vector> constant_boundary_ups(const Mesh& mesh, const Vector& up)
+inline std::map<std::pair<size_t, size_t>, Vector> constant_boundary_ups(const Mesh& mesh, const Vector& up)
 {
 
-    std::map<wood_reciprocal::EdgeKey, Vector> ups;
+    std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [u, v] : mesh.edges_on_boundary())
         ups[wood_reciprocal::edge_key(u, v)] = up;
 
     return ups;
+}
+
+/// True when the first dual vertex turns before the second about the normal.
+inline bool angle_less(const std::pair<double, std::pair<std::string, Point>>& p, const std::pair<double, std::pair<std::string, Point>>& q)
+{
+    return p.first < q.first;
 }
 
 /// The dual of the triangulated mesh: every quad split along the diagonal from its first to its third vertex, then one cell per vertex through the centroids of the triangles around it, so an interior grid vertex gives a hexagon. A boundary vertex's cell is closed through the midpoints of its two naked edges, and through the vertex itself only at a real corner, so the cells along a straight side are half hexagons with no needless vertex on the boundary. Cells are wound counter-clockwise about the vertex normal.
@@ -644,9 +652,8 @@ inline Mesh dual_hex_mesh(const Mesh& quads)
                 around.push_back({std::atan2(d.dot(y_axis), d.dot(x_axis)), {"e" + std::to_string(std::min(vk, other)) + "_" + std::to_string(std::max(vk, other)), mid}});
             }
 
-        std::sort(around.begin(), around.end(), [](const auto& p, const auto& q) { return p.first < q.first; });
+        std::sort(around.begin(), around.end(), angle_less);
         if (on_boundary) {
-            // start just after the widest angular gap, the outside of the boundary, so the cell runs from one naked midpoint round to the other
             size_t widest = 0;
             double widest_gap = -1.0;
             for (size_t k = 0; k < around.size(); k++) {
@@ -658,8 +665,6 @@ inline Mesh dual_hex_mesh(const Mesh& quads)
             }
 
             std::rotate(around.begin(), around.begin() + (widest + 1) % around.size(), around.end());
-            // the vertex itself closes the cell only at a real corner; on a straight run it would sit between its two
-            // naked midpoints with a straight angle, a vertex that means nothing, so there the cell runs midpoint to midpoint
             const std::vector<size_t>& others = naked->second;
             bool straight = false;
             if (others.size() == 2) {

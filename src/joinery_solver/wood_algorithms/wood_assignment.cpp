@@ -44,6 +44,20 @@ static SpatialRTree<int, double, 3> plate_rtree(const std::vector<std::shared_pt
     return rtree;
 }
 
+/// Indices of the plates whose box lies within radius of the point; the search callback collects them.
+static std::vector<int> plates_near(const SpatialRTree<int, double, 3>& rtree, const Point& point, double radius) {
+
+    std::vector<int> hits;
+    const double low[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
+    const double high[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
+    rtree.search(low, high, [&hits](const int index) {
+        hits.push_back(index);
+        return true;
+    });
+
+    return hits;
+}
+
 /// A slot per face: bottom, top, then one per side of the top outline.
 static size_t slot_count(const Plate& plate) {
     const size_t n = plate.polylines.size() > 1 ? plate.polylines[1].point_count() : 0;
@@ -65,14 +79,11 @@ void assign_feature_types(const std::vector<std::shared_ptr<Plate>>& plates, con
 
         const Point& point = points[i];
         const int type = types[i];
-        const double low[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
-        const double high[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-        rtree.search(low, high, [&](const int index) {
+        for (const int index : plates_near(rtree, point, radius)) {
             const int slot = nearest_slot(*plates[index], point, threshold, type < 0);
             if (slot >= 0 && slot < static_cast<int>(plates[index]->feature_types.size()))
                 plates[index]->feature_types[slot] = std::abs(type);
-            return true;
-        });
+        }
     }
 }
 
@@ -91,14 +102,11 @@ void assign_insertion_vectors(const std::vector<std::shared_ptr<Plate>>& plates,
 
         const Point point = line.start();
         const Vector direction = line.to_vector();
-        const double low[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
-        const double high[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-        rtree.search(low, high, [&](const int index) {
+        for (const int index : plates_near(rtree, point, radius)) {
             const int slot = nearest_slot(*plates[index], point, threshold, false);
             if (slot >= 0 && slot < static_cast<int>(plates[index]->insertion_vectors().size()))
                 plates[index]->insertion_vectors()[slot] = direction;
-            return true;
-        });
+        }
     }
 }
 

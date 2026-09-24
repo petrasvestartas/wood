@@ -81,7 +81,7 @@ const BRep& Block::element_geometry_brep() const {
 const Mesh& Block::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
     }
 
     return *_model_geometry_mesh;
@@ -90,10 +90,14 @@ const Mesh& Block::model_geometry_mesh() const {
 const BRep& Block::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
     }
 
     return *_model_geometry_brep;
+}
+
+std::vector<Plane> Block::compute_planes() const {
+    return face_planes(model_geometry_mesh());
 }
 
 void Block::invalidate_geometry() {

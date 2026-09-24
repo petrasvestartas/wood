@@ -3,7 +3,7 @@ static void ss_e_ip_5(FeaturePlate& joint, const std::vector<std::shared_ptr<Pla
 
     joint.name = "ss_e_ip_5";
 
-    const int v0 = index_of(elements, joint.element_a);
+    const int v0 = index_of_plate(elements, joint.element_a);
     if (v0 < 0 || v0 >= (int)elements.size())
         return;
 

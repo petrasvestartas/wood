@@ -32,7 +32,9 @@ struct InteractionContact {
     WoodSession& session() const;
 
     /// True once the record has been stored in a scene.
-    bool has_session() const { return _session != nullptr; }
+    bool has_session() const {
+        return _session != nullptr;
+    }
 
     /// Stores the scene on this record and on the kind it holds.
     void set_session(WoodSession* scene);
@@ -49,13 +51,19 @@ struct InteractionContact {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The face contact, or null when this is another kind.
-    const ContactFace* face() const { return std::get_if<ContactFace>(&data); }
+    const ContactFace* face() const {
+        return std::get_if<ContactFace>(&data);
+    }
 
     /// The axis contact, or null when this is another kind.
-    const ContactAxis* axis() const { return std::get_if<ContactAxis>(&data); }
+    const ContactAxis* axis() const {
+        return std::get_if<ContactAxis>(&data);
+    }
 
     /// The cross contact, or null when this is another kind.
-    const ContactCross* cross() const { return std::get_if<ContactCross>(&data); }
+    const ContactCross* cross() const {
+        return std::get_if<ContactCross>(&data);
+    }
 
     /// "face", "axis" or "cross".
     std::string_view kind() const;

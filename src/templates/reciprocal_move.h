@@ -35,7 +35,10 @@ using namespace session_cpp;
 class ReciprocalMove {
 public:
     /// Where a beam's up comes from: the normal of the face its half-edge was taken from, or the average of the normals of the faces sharing its edge, one orientation per edge whichever face it was taken from.
-    enum class BeamUp { OwningFace, EdgeAverage };
+    enum class BeamUp {
+        OwningFace, // The normal of the face the half-edge was taken from.
+        EdgeAverage, // The average of the normals of the faces sharing the edge.
+    };
 
     Mesh dome_mesh;
     std::vector<Mesh>     beams;
@@ -63,10 +66,10 @@ public:
                    double extend_factor     = 5.0,
                    double cut_offset_factor = 1.0,
                    wood_reciprocal::BoundaryTwist boundary_twist = wood_reciprocal::BoundaryTwist::AtBends,
-                   const std::map<wood_reciprocal::EdgeKey, Vector>& boundary_ups = {},
+                   const std::map<std::pair<size_t, size_t>, Vector>& boundary_ups = {},
                    BeamUp beam_up = BeamUp::OwningFace,
                    wood_reciprocal::CornerJoint corner_joint = wood_reciprocal::CornerJoint::Mitre,
-                       const std::map<wood_reciprocal::EdgeKey, int>& through_priority = {})
+                       const std::map<std::pair<size_t, size_t>, int>& through_priority = {})
     {
 
         if (nx < 1 || ny < 1)
@@ -84,21 +87,16 @@ public:
                             double extend_factor     = 5.0,
                             double cut_offset_factor = 1.0,
                             wood_reciprocal::BoundaryTwist boundary_twist = wood_reciprocal::BoundaryTwist::AtBends,
-                            const std::map<wood_reciprocal::EdgeKey, Vector>& boundary_ups = {},
+                            const std::map<std::pair<size_t, size_t>, Vector>& boundary_ups = {},
                             BeamUp beam_up = BeamUp::OwningFace,
                    wood_reciprocal::CornerJoint corner_joint = wood_reciprocal::CornerJoint::Mitre,
-                       const std::map<wood_reciprocal::EdgeKey, int>& through_priority = {})
+                       const std::map<std::pair<size_t, size_t>, int>& through_priority = {})
     {
         dome_mesh = std::move(ext_mesh);
         _build(dome_mesh, shift, beam_w, beam_h, extend_factor, cut_offset_factor, boundary_twist, boundary_ups, beam_up, corner_joint, through_priority);
     }
 
 private:
-    // ── helpers ──────────────────────────────────────────────────────────────
-
-    using BeamGeom = wood_reciprocal::BeamGeom;
-    using EdgeKey = wood_reciprocal::EdgeKey;
-    using EdgeOwners = wood_reciprocal::EdgeOwners;
 
     static Mesh _make_dome(int nx, int ny, double W, double D, double h)
     {
@@ -148,7 +146,8 @@ private:
         }
 
         double len = std::sqrt(nx*nx + ny*ny + nz*nz);
-        if (len < 1e-12) return Vector(0, 0, 1);
+        if (len < 1e-12)
+            return Vector(0, 0, 1);
 
         return Vector(nx / len, ny / len, nz / len);
     }
@@ -165,7 +164,8 @@ private:
         double d_ = (P[0]-Q[0])*D[0] + (P[1]-Q[1])*D[1] + (P[2]-Q[2])*D[2];
         double e_ = (P[0]-Q[0])*E[0] + (P[1]-Q[1])*E[1] + (P[2]-Q[2])*E[2];
         double denom = a * c - b * b;
-        if (std::abs(denom) < 1e-12) return P;  // parallel lines
+        if (std::abs(denom) < 1e-12)
+            return P;  // parallel lines
 
         double t = (b * e_ - c * d_) / denom;
         return Point(P[0] + t*D[0], P[1] + t*D[1], P[2] + t*D[2]);
@@ -175,18 +175,20 @@ private:
 
     /// Opposite half-edge: (fi, fj) → (fi2, fj2) in the adjacent face, nullopt on a boundary edge.
     static std::optional<std::pair<int,int>> opposite_face(const std::vector<std::vector<size_t>>& faces,
-                                                           const EdgeOwners& edge_to_fe,
+                                                           const std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>>& edge_to_fe,
                                                            int fi, int fj)
     {
 
         const std::vector<size_t>& fv = faces[fi];
         int n = (int)fv.size();
         size_t u = fv[fj], v = fv[(fj+1)%n];
-        EdgeOwners::const_iterator it = edge_to_fe.find(wood_reciprocal::edge_key(u, v));
-        if (it == edge_to_fe.end()) return std::nullopt;
+        std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>>::const_iterator it = edge_to_fe.find(wood_reciprocal::edge_key(u, v));
+        if (it == edge_to_fe.end())
+            return std::nullopt;
 
         for (auto& [fi2, fj2] : it->second)
-            if (fi2 != fi) return std::make_pair(fi2, fj2);
+            if (fi2 != fi)
+                return std::make_pair(fi2, fj2);
 
         return std::nullopt;  // boundary edge
     }
@@ -204,31 +206,22 @@ private:
         const Vector& cup = beam_ups[ci][cj];  // the crossing beam's own up, so the plane is its real side face
         Vector raw = EF[ci][cj].dir.cross(cup);
         double len = std::sqrt(raw[0]*raw[0]+raw[1]*raw[1]+raw[2]*raw[2]);
-        if (len > 1e-12) raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
-        else             raw = EF[ci][cj].dir.cross(beam_ups[i][0]);
-        // Degenerate: cut plane normal ~perpendicular to beam
-        // direction -> flat cap fallback. NOTE the breadth of
-        // this net: cos(angle) < 0.15 means any crossing beam
-        // within ~8.6 deg of perpendicular to our cut normal
-        // (i.e. up to ~81 deg from the beam axis) gets a flat
-        // cap instead of the angled interlock. Kept at the
-        // historical value for output stability; tighten
-        // deliberately if flat caps appear where interlocks are
-        // expected.
+        if (len > 1e-12)
+            raw = Vector(raw[0]/len, raw[1]/len, raw[2]/len);
+        else
+            raw = EF[ci][cj].dir.cross(beam_ups[i][0]);
         constexpr double FLAT_CAP_ALIGNMENT_THRESHOLD = 0.15;
         double alignment = std::abs(raw[0]*bdir[0]+raw[1]*bdir[1]+raw[2]*bdir[2]);
-        if (alignment < FLAT_CAP_ALIGNMENT_THRESHOLD) return Plane::from_point_normal(endpoint, bdir);
+        if (alignment < FLAT_CAP_ALIGNMENT_THRESHOLD)
+            return Plane::from_point_normal(endpoint, bdir);
 
         Point org = Point::mid_point(EF[ci][cj].from, EF[ci][cj].to);
         double dot = (our_center[0]-org[0])*raw[0]
                    + (our_center[1]-org[1])*raw[1]
                    + (our_center[2]-org[2])*raw[2];
-        if (dot < 0) raw = Vector(-raw[0], -raw[1], -raw[2]);
+        if (dot < 0)
+            raw = Vector(-raw[0], -raw[1], -raw[2]);
 
-        // cut_offset_factor was accepted by both constructors
-        // and silently dropped; ReciprocalRotation applies it to
-        // the face offset, so mirror that here. Default 1.0
-        // preserves all existing output.
         const double face_off = beam_w * 0.5 * cut_offset_factor;
         Point face_org(org[0] + face_off*raw[0],
                        org[1] + face_off*raw[1],
@@ -236,22 +229,20 @@ private:
 
         return Plane::from_point_normal(face_org, raw);
     }
-
-    // ── main build ───────────────────────────────────────────────────────────
-
     void _build(const Mesh& m, double shift, double beam_w, double beam_h,
                 double extend_factor, double cut_offset_factor,
                 wood_reciprocal::BoundaryTwist boundary_twist,
-                const std::map<wood_reciprocal::EdgeKey, Vector>& boundary_ups,
+                const std::map<std::pair<size_t, size_t>, Vector>& boundary_ups,
                 BeamUp beam_up,
                 wood_reciprocal::CornerJoint corner_joint,
-                const std::map<wood_reciprocal::EdgeKey, int>& through_priority)
+                const std::map<std::pair<size_t, size_t>, int>& through_priority)
     {
 
         if (beam_w <= 0.0)
             throw std::invalid_argument("ReciprocalMove: beam_w must be positive");
 
-        if (beam_h <= 0.0) beam_h = beam_w * 2.0;
+        if (beam_h <= 0.0)
+            beam_h = beam_w * 2.0;
         if (shift < beam_w * 0.5)
             std::cerr << fmt::format("  WARNING: ReciprocalMove: shift {} is below half the beam width {}: every beam end overhangs the neighbour it should bear on by {} and leaves a gap at the node.\n", shift, beam_w, beam_w * 0.5 - shift);
 
@@ -259,12 +250,7 @@ private:
 
         auto [pts, faces] = m.to_vertices_and_faces();
         int nf = (int)faces.size();
-
-        // ── edge → [(face_idx, local_edge_idx), …] ──
-        EdgeOwners edge_to_fe = wood_reciprocal::edge_owners(faces);
-
-        // ── FEFlatten: sequential half-edge IDs ──
-        // FEFlat[i][j] = global half-edge index (same as C# FEFlatten)
+        std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>> edge_to_fe = wood_reciprocal::edge_owners(faces);
         int total_he = 0;
         std::vector<std::vector<int>> FEFlat(nf);
 
@@ -274,45 +260,34 @@ private:
             for (int j = 0; j < n; j++)
                 FEFlat[i][j] = total_he++;
         }
-
-        // ── BFS 2-coloring of half-edges (C# _GraphColorHalfEdgesDict) ──
-        // Adjacency: same-face next/prev + opposite half-edge across shared mesh edge.
-        // This produces the checker pattern: shared edges get opposite colors in their two faces,
-        // so each physical edge is translated from exactly one face (never both).
-        // A naked half-edge carries no beam, so it takes no part in the colouring: without it a boundary cell with an odd
-        // number of sides, a half hexagon say, still colours, its interior edges forming a path instead of an odd cycle.
         std::vector<std::vector<int>> he_adj(total_he);
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
             for (int j = 0; j < n; j++) {
                 int id = FEFlat[i][j];
                 std::optional<std::pair<int,int>> opp = opposite_face(faces, edge_to_fe, i, j);
-                if (!opp) continue;
+                if (!opp)
+                    continue;
 
                 he_adj[id].push_back(FEFlat[opp->first][opp->second]);
-                if (opposite_face(faces, edge_to_fe, i, (j+1)%n)) he_adj[id].push_back(FEFlat[i][(j+1)%n]);
-                if (opposite_face(faces, edge_to_fe, i, (j-1+n)%n)) he_adj[id].push_back(FEFlat[i][(j-1+n)%n]);
+                if (opposite_face(faces, edge_to_fe, i, (j+1)%n))
+                    he_adj[id].push_back(FEFlat[i][(j+1)%n]);
+                if (opposite_face(faces, edge_to_fe, i, (j-1+n)%n))
+                    he_adj[id].push_back(FEFlat[i][(j-1+n)%n]);
             }
         }
         std::vector<int> edgeColors(total_he, -1);
         {
-            // total_he == 0 (a mesh with no faces, reachable through the
-            // any-mesh constructor) used to write edgeColors[0] into an
-            // empty vector - UB straight from the Python binding.
-            if (total_he == 0) { return; }
+            if (total_he == 0)
+                return;
 
-            // Seed a BFS in EVERY unvisited component: the old single seed
-            // at index 0 left all other components at -1, which the `!= 0`
-            // consumer below treated as color 1 - disconnected mesh parts
-            // silently produced no beams at all. Odd face cycles (triangles,
-            // pentagons) cannot be 2-colored; detect the conflict instead of
-            // breaking the one-beam-per-physical-edge invariant silently.
             std::queue<int> q;
             bool conflict = false;
 
             for (int seed = 0; seed < total_he; ++seed) {
 
-                if (edgeColors[seed] != -1) continue;
+                if (edgeColors[seed] != -1)
+                    continue;
 
                 edgeColors[seed] = 0;
                 q.push(seed);
@@ -332,8 +307,6 @@ private:
             if (conflict)
                 std::cerr << "  WARNING: ReciprocalMove half-edge 2-coloring found an odd cycle (an interior face with an odd number of sides) - beam selection may be inconsistent." << std::endl;
         }
-
-        // ── build face-edge centerlines (raw mesh vertices, no extension) ──
         std::vector<std::vector<FELine>> EF(nf);
 
         for (int i = 0; i < nf; i++) {
@@ -344,21 +317,20 @@ private:
                 const Point& b = pts[faces[i][(j+1)%n]];
                 double dx = b[0]-a[0], dy = b[1]-a[1], dz = b[2]-a[2];
                 double len = std::sqrt(dx*dx + dy*dy + dz*dz);
-                if (len < 1e-12) len = 1.0;
+                if (len < 1e-12)
+                    len = 1.0;
                 Vector unit(dx/len, dy/len, dz/len);
                 EF[i][j].dir  = unit;
                 EF[i][j].from = a;
                 EF[i][j].to   = b;
             }
         }
-
-        // ── translation phase: move color-0 face-edges in face plane by shift along the bisector ──
-        // bisector = (next_unit - prev_unit) * 0.5  (C# v = (v0+v1)*0.5, v1 = -prev.Unit)
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
             for (int j = 0; j < n; j++) {
 
-                if (edgeColors[FEFlat[i][j]] != 0) continue;
+                if (edgeColors[FEFlat[i][j]] != 0)
+                    continue;
 
                 const Vector& d_next = EF[i][(j+1)%n].dir;
                 const Vector& d_prev = EF[i][(j-1+n)%n].dir;
@@ -373,47 +345,32 @@ private:
                                       EF[i][j].to[2]+vz*shift);
             }
         }
-
-        // ── trimming phase: in-place on EF, boundary fallback to same-face neighbor ──
-        // Matches C# NexorTranslateLines exactly:
-        //   line = EFLinesCopy[i][j] (local copy); trim TO via opp-of-next; trim FROM via opp-of-prev
-        //   if opp is null (boundary), fall back to same-face next/prev edge
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
             for (int j = 0; j < n; j++) {
 
-                if (edgeColors[FEFlat[i][j]] != 0) continue;
+                if (edgeColors[FEFlat[i][j]] != 0)
+                    continue;
 
                 const FELine cur = EF[i][j];  // local copy before in-place modification
 
-                // Trim TO: opposite of next edge, fallback to same-face next
                 std::optional<std::pair<int,int>> opp_next = opposite_face(faces, edge_to_fe, i, (j+1)%n);
                 int tni = opp_next ? opp_next->first  : i;
                 int tnj = opp_next ? opp_next->second : (j+1)%n;
                 EF[i][j].to = _lcp1(cur.from, cur.dir, EF[tni][tnj].from, EF[tni][tnj].dir);
 
-                // Trim FROM: opposite of prev edge, fallback to same-face prev
                 std::optional<std::pair<int,int>> opp_prev = opposite_face(faces, edge_to_fe, i, (j-1+n)%n);
                 int tpi = opp_prev ? opp_prev->first  : i;
                 int tpj = opp_prev ? opp_prev->second : (j-1+n)%n;
                 EF[i][j].from = _lcp1(cur.from, cur.dir, EF[tpi][tpj].from, EF[tpi][tpj].dir);
             }
         }
-
-        // ── precompute per-face normals (needed for cutting beam planes) ──
         std::vector<Vector> face_norms(nf);
         for (int i = 0; i < nf; i++)
             face_norms[i] = _face_normal(pts, faces[i]);
-
-        // ── boundary beams: a straight beam on every naked edge, none of the reciprocal treatment ──
-        // Axis = the mesh edge, section centred on the axis like the interior beams, up transported around
-        // the loop by reflection in the mitres so consecutive prisms share their mitred end face; a warped loop's
-        // closure twist goes where boundary_twist says. Consecutive beams are mitred with the bisector plane at their shared vertex.
         std::vector<Vector> upward_norms(nf);  // the face normals flipped to +z like the interior beams' up
         for (int i = 0; i < nf; i++)
             upward_norms[i] = face_norms[i][2] < 0 ? -face_norms[i] : face_norms[i];
-
-        // ── one up per half-edge: its face's normal, or the average over the faces sharing the edge ──
         std::vector<std::vector<Vector>> half_edge_ups(nf);
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
@@ -443,37 +400,25 @@ private:
 
             const Point& pu = pts[wood_reciprocal::half_edge_start(faces, frame.naked[k])];
             const Point& pv = pts[wood_reciprocal::half_edge_end(faces, frame.naked[k])];
-            BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h, wood_reciprocal::unbounded(frame.cut_from[k]), wood_reciprocal::unbounded(frame.cut_to[k]));
+            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h, wood_reciprocal::unbounded(frame.cut_from[k]), wood_reciprocal::unbounded(frame.cut_to[k]));
             wood_reciprocal::store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
         }
-
-        // ── build box beams: interior color-0 edges, ends cut by crossing beam planes ──
-        // Matches C# Beams2:
-        //   op = _OppositeFE(i, j, -1) → side beam crossing our beam at "To"  end
-        //   on = _OppositeFE(i, j, +1) → side beam crossing our beam at "From" end
-        //   cut plane origin = center of that crossing beam (trimmed EF)
-        //   cut plane normal = crossing_beam_dir × crossing_face_normal  (C# ePl.ZAxis)
-        // An end whose same-face neighbour edge is naked stops at the inner faces of the frame beams meeting at that vertex instead.
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
 
             for (int j = 0; j < n; j++) {
 
-                if (edgeColors[FEFlat[i][j]] != 0) continue;
+                if (edgeColors[FEFlat[i][j]] != 0)
+                    continue;
 
                 const Vector& up = half_edge_ups[i][j];
 
-                // Skip boundary beams (C# Beams2: if (!p.M.IsNaked(fe[j])))
-                if (!opposite_face(faces, edge_to_fe, i, j)) continue;
+                if (!opposite_face(faces, edge_to_fe, i, j))
+                    continue;
 
-                // Cutting beams come from the prev/next edges of OUR face:
-                //   FROM end cut: prev edge (j-1) → its opposite face beam
-                //   TO   end cut: next edge (j+1) → its opposite face beam
                 std::optional<std::pair<int,int>> op_to   = opposite_face(faces, edge_to_fe, i, (j + 1) % n);
                 std::optional<std::pair<int,int>> op_from = opposite_face(faces, edge_to_fe, i, (j - 1 + n) % n);
 
-                // Interior cut: crossing beam's side face (normal = crossing_dir × crossing_up, signed).
-                // Use OUR beam's center (not endpoint) for sign selection — more stable.
                 Point our_center = Point::mid_point(EF[i][j].from, EF[i][j].to);
                 const Vector& bdir = EF[i][j].dir;
 
@@ -485,8 +430,9 @@ private:
                     ? wood_reciprocal::unbounded(cut_plane(EF, half_edge_ups, i, bdir, our_center, beam_w, cut_offset_factor,
                                                            op_from->first, op_from->second, EF[i][j].from))
                     : wood_reciprocal::boundary_cuts_or(frame, faces[i][j], bdir, Plane::from_point_normal(EF[i][j].from, bdir));
-                BeamGeom bg = wood_reciprocal::cut_beam(EF[i][j].from, EF[i][j].to, bdir, up, beam_w, beam_h, cuts_from, cuts_to);
-                if (bg.mesh.number_of_vertices() == 0) continue;
+                wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(EF[i][j].from, EF[i][j].to, bdir, up, beam_w, beam_h, cuts_from, cuts_to);
+                if (bg.mesh.number_of_vertices() == 0)
+                    continue;
 
                 wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
                 beam_dirs.push_back({bdir[0], bdir[1], bdir[2]});

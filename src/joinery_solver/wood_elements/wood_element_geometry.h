@@ -25,13 +25,21 @@ session_cpp::Mesh sweep_sections(const std::vector<session_cpp::Polyline>& secti
 /// The same solid as a boundary representation: one quad face per section edge pair, the first and last section as caps.
 session_cpp::BRep brep_sections(const std::vector<session_cpp::Polyline>& sections);
 
+/// Unit Newell normal of a planar loop, the closing point ignored: right for a concave loop, where the corner-cross sum of Vector::average_normal can flip.
+session_cpp::Vector compute_newell(const std::vector<session_cpp::Point>& points);
+
+/// One plane per face of a mesh, origin at the face centroid, Newell normal along the face ring; what contact detection compares.
+std::vector<session_cpp::Plane> face_planes(const session_cpp::Mesh& mesh);
+
+/// The enclosed volume of a closed mesh, a holed cap summed over its face triangulation where the loft or a plane cut left one; Mesh::volume() fans the outer ring alone and counts the hole as solid.
+double compute_volume(const session_cpp::Mesh& mesh);
 
 /// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
 session_cpp::BRep brep_between_loops(const std::vector<session_cpp::Polyline>& bottom, const std::vector<session_cpp::Polyline>& top);
 
 /// The solid cut by every plane in turn, each keeping the side its normal points to; a mesh stays a mesh, a BRep a BRep.
-session_cpp::Mesh cut_geometry(const session_cpp::Mesh& geometry, const std::vector<session_cpp::Plane>& planes);
-session_cpp::BRep cut_geometry(const session_cpp::BRep& geometry, const std::vector<session_cpp::Plane>& planes);
+session_cpp::Mesh cut_mesh(const session_cpp::Mesh& geometry, const std::vector<session_cpp::Plane>& planes);
+session_cpp::BRep cut_brep(const session_cpp::BRep& geometry, const std::vector<session_cpp::Plane>& planes);
 
 /// True when xform flips handedness, a mirror that turns a wood solid inside out.
 bool is_mirror(const session_cpp::Xform& xform);

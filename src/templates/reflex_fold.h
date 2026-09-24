@@ -48,10 +48,7 @@ public:
         }
 
         mesh = reflex_fold(cross_section, profile);
-
-        using MiterTuple = std::tuple<std::vector<Point>, std::vector<Point>,
-                                      std::vector<Point>, std::vector<Point>, Vector>;
-        for (const MiterTuple& plate :
+        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
                 Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
@@ -61,9 +58,6 @@ public:
             }
 
             std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
-            // chamfer_top was accepted by the constructor and then silently
-            // ignored - both contours used chamfer_bot, so distinct values
-            // produced wrong top-plate geometry with no error.
             std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer_top, mask);
             std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
 
@@ -188,8 +182,6 @@ private:
         size_t nCS = cross_section.point_count();
         size_t nP  = profile.point_count();
 
-        // Plane at each cross-section point: normal bisects neighbouring edges
-        // (Z-up fallback for endpoints).
         std::vector<Plane> planes;
         planes.reserve(nCS);
         for (size_t i = 0; i < nCS; ++i) {
@@ -204,12 +196,6 @@ private:
                 v2 = v2.normalized();
                 normal = Vector(v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2]);
                 if (!normal.normalize_self()) {
-                    // Collinear neighbours: v1 ~ -v2, the bisector sum is
-                    // ~zero and the old code used the zero normal anyway -
-                    // a degenerate plane whose downstream dot-product guard
-                    // forced t=0 and silently duplicated the previous
-                    // profile row into zero-area quads. Use the edge
-                    // direction as the section normal instead.
                     normal = Vector(cn[0]-cp[0], cn[1]-cp[1], cn[2]-cp[2]);
                     normal.normalize_self();
                 }
@@ -219,15 +205,12 @@ private:
             planes.push_back(Plane::from_point_normal(origin, normal));
         }
 
-        // First row = profile points as-is.
         std::vector<Point> all_pts;
         all_pts.reserve(nCS * nP);
         for (size_t j = 0; j < nP; ++j) {
             all_pts.push_back(profile[j]);
         }
 
-        // Each subsequent cross-section step slides each profile point along
-        // the edge direction until it lies on the bisector plane.
         std::vector<std::vector<size_t>> faces;
         for (size_t i = 1; i < nCS; ++i) {
             const Point& po = planes[i].origin();

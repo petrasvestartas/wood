@@ -142,7 +142,7 @@ const BRep& Beam::element_geometry_brep() const {
 const Mesh& Beam::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_geometry(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
     }
 
     return *_model_geometry_mesh;
@@ -151,10 +151,14 @@ const Mesh& Beam::model_geometry_mesh() const {
 const BRep& Beam::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_geometry(element_geometry_brep(), cuts);
+        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
     }
 
     return *_model_geometry_brep;
+}
+
+std::vector<Plane> Beam::compute_planes() const {
+    return face_planes(model_geometry_mesh());
 }
 
 void Beam::invalidate_geometry() {
@@ -239,7 +243,10 @@ void Beam::compute_geometry_features() {
 
 AABB Beam::aabb(double inflate) const {
 
-    const double reach = radii.empty() ? 0.0 : *std::max_element(radii.begin(), radii.end());
+    const std::pair<double, double> size = compute_size(profile);
+    double reach = std::max(size.first, size.second) / 2.0;
+    for (const double radius : radii)
+        reach = std::max(reach, radius);
 
     return AABB::from_polyline(axis, inflate + reach);
 }

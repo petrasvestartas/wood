@@ -39,7 +39,9 @@ struct F2F {
     }
 
     /// The [width, height, length] extension this joint type reads.
-    std::array<double, 3> ext(int joint_type) const { return wood_session::joint_volume_extension(settings.joint_volume_extension, joint_type); }
+    std::array<double, 3> ext(int joint_type) const {
+        return wood_session::joint_volume_extension(settings.joint_volume_extension, joint_type);
+    }
 };
 
 /// What the alignment stage produces for one face contact and the joint branches consume.
@@ -333,6 +335,14 @@ bool rotated_volumes(
     return true;
 }
 
+/// The WOOD_F2F_DUMP path, empty when the variable is not set.
+std::string dump_path() {
+
+    const char* env = std::getenv("WOOD_F2F_DUMP");
+
+    return env ? std::string(env) : std::string();
+}
+
 /// WOOD_F2F_DUMP trace of one type-13 joint.
 void rotated_dump(
     const F2F& s,
@@ -345,18 +355,25 @@ void rotated_dump(
     const std::pair<int, int>& el_ids = s.el_ids;
     const size_t i = c.i;
     const size_t j = c.j;
-    static const std::string fp = [] { const char* env = std::getenv("WOOD_F2F_DUMP"); return env ? std::string(env) : std::string(); }();
-    if (!fp.empty()) {
-        std::ofstream flog(fp, std::ios::app);
-        flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j << "\n";
-        flog << "  vol0: ";
-        for (size_t k=0;k<vol0.point_count();k++) { Point p=vol0.get_point(k); flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") "; }
-        flog << "\n  vol1: ";
-        for (size_t k=0;k<vol1.point_count();k++) { Point p=vol1.get_point(k); flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") "; }
-        flog << "\n  rect_local: ";
-        for (const Point& p : rect_local) { flog<<"("<<p[0]<<","<<p[1]<<","<<p[2]<<") "; }
-        flog << "\n  offset_vec: ("<<offset_vector[0]<<","<<offset_vector[1]<<","<<offset_vector[2]<<")\n";
-    }
+    static const std::string fp = dump_path();
+    if (fp.empty())
+        return;
+
+    std::ofstream flog(fp, std::ios::app);
+    flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j << "\n";
+    flog << "  vol0: ";
+    for (const Point& p : vol0.get_points())
+        flog << "(" << p[0] << "," << p[1] << "," << p[2] << ") ";
+
+    flog << "\n  vol1: ";
+    for (const Point& p : vol1.get_points())
+        flog << "(" << p[0] << "," << p[1] << "," << p[2] << ") ";
+
+    flog << "\n  rect_local: ";
+    for (const Point& p : rect_local)
+        flog << "(" << p[0] << "," << p[1] << "," << p[2] << ") ";
+
+    flog << "\n  offset_vec: (" << offset_vector[0] << "," << offset_vector[1] << "," << offset_vector[2] << ")\n";
 }
 
 /// Type 13: frame around the averaged alignment segment, projected bounding rectangle, extruded.
