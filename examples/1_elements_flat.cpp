@@ -31,7 +31,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-one floor bay built on the grid template - a one-bay footprint over one storey, post and beam with the girders on the x sides: four columns, four heads, two edge girders running through, two edge beams butting against their sides and a deck resting on the member tops; compute_contacts(0) pairs every element with every other and finds 20 contacts: column on head 4, girder and beam undersides on the flat head tops 8, beam ends on girder sides 4, girder and beam tops under the deck 4; the heads stop under the members, so no head touches the deck. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+one floor bay built on the grid template - a one-bay footprint over one storey, post and beam with the girders on the x sides: four columns, four conical heads, two girders and two beams mitred at the corners and a deck resting on the member tops; compute_contacts(0) pairs every element with every other and finds 20 contacts: column on head 4, girder and beam undersides on the head tops 8, girder and beam mitres 4, girder and beam tops under the deck 4; the heads stop under the members, so no head touches the deck. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -46,7 +46,7 @@ cmake --build build --target 1_elements_flat --parallel 4 && ./build/1_elements_
 examples/1_elements_flat.cpp
  |
  |-- Pattern::orthogonal(XS, YS) -> plan lines; Building::from_footprint(FOOTPRINT, ELEVATIONS, pattern)   src/templates/grid/grid.h
- |-- to_session(wood_session, FRAMING): roles, columns, joint cuts, elements under storey_0            src/templates/grid/grid_joints.h
+ |-- to_session(wood_session, FRAMING): roles, columns, joint cuts, elements under storey_0            src/templates/grid/grid_joints.cpp
  |-- instance_by_key() when INSTANCES
  |-- compute_contacts(0)                                                            coplanar face overlaps, cut beam ends included
  '-- pb_dump(pb_path("live"))                                                       data/output/pb/live.pb, the file the viewer watches

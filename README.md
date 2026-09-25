@@ -94,9 +94,9 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_diamond_mesh`, `templates_vda_mesh`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each shell template built with its defaults and written to `live.pb` as a mesh plus its plates |
-| `templates_grid`, `templates_grid_{skewed,radial,triangular,hex,irregular,courtyard,pentagon}` | `src/templates/grid/grid.h` on a footprint with a pattern (workflow B): columns, heads, girders, beams, purlins, decks and walls, every joint a plane cut, written to `live.pb` |
-| `templates_grid_solid_{box,prism,taper,setback,atrium,curved}` | the same from a massing solid sliced at the elevations (workflow A) |
-| `templates_grid_braced`, `templates_grid_crea` | the same from drawn lines and surfaces (workflow C), the second on compas_grid's crea dataset |
-| `templates_grid_framings`, `templates_grid_point_supported`, `templates_grid_profiles`, `templates_grid_branch_{square,residential,office,institutional}`, `templates_grid_fastepp` | the purlin joints, the point supported plate, the profile library, and the Branch3D and FAST+EPP configurations reproduced |
+| `templates_grid_footprint` | `src/templates/grid/grid.h` on footprints with patterns (workflow B), side by side: orthogonal with purlins and facade, skewed, radial, triangular, hex, irregular, courtyard, pentagon, U with two cores; every joint a plane cut, written to `live.pb` |
+| `templates_grid_solid` | the same from massing solids sliced at the elevations (workflow A): box, prism, taper, setback, atrium, curved |
+| `templates_grid_lines` | the same from drawn lines and surfaces (workflow C): the crea dataset and a braced frame |
+| `templates_grid_reference`, `templates_grid_framing` | the Branch3D and FAST+EPP configurations reproduced; heads (column section, conical, stepped), node flush/through, purlin joints, the profile library, and a clash check that exits 1 on any overlap |
 
 Architecture notes: `docs/wood_kernel.md`; every template with a screenshot: `docs/templates.md`.

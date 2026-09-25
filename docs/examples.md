@@ -5,7 +5,7 @@ Fourteen short programs under `examples/`, one behaviour each, in the order to r
 | Example | Behaviour |
 |---|---|
 | `1_elements` | The four element kinds built in code and added to a scene, one authored interaction record; `get_element` and the typed lists |
-| `1_elements_flat` | One floor bay from the grid template under the root: columns, heads, girders and beams cut against each other, a deck; `compute_contacts(0)` over the whole scene |
+| `1_elements_flat` | One floor bay from the grid template under the root: columns, conical heads, girders and beams mitred at the corners, a deck; `compute_contacts(0)` over the whole scene |
 | `1_elements_tree` | The same bay three times, each under its own tree branch, so `compute_contacts(1)` stays inside a branch; `instance_by_key` for one definition per repeated element |
 | `2_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
 | `3_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |

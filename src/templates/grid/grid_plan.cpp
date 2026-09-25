@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "src/templates/grid/grid_plan.h"
-#include "wood_element_geometry.h"
 #include "../src/clipper2/clipper.h"
 
 using namespace session_cpp;
@@ -66,14 +65,11 @@ std::vector<Point> compute_flat(const Mesh& mesh, const std::vector<size_t>& rin
     return points;
 }
 
-/// True when every vertex of a mesh face ring lies at height z within tolerance.
-bool is_level(const Mesh& mesh, const std::vector<size_t>& ring, double z, double tolerance) {
+Point compute_interior(const std::vector<Point>& points) {
 
-    for (const size_t key : ring)
-        if (std::abs((*mesh.vertex_point(key))[2] - z) > tolerance)
-            return false;
+    const Vector inward = Vector(0.0, 0.0, 1.0).cross(compute_direction(points[0], points[1])) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
 
-    return true;
+    return compute_lift(points[0] + (points[1] - points[0]) * 0.5 + inward, 0.0);
 }
 
 bool is_convex(const std::vector<Point>& points) {
@@ -87,8 +83,24 @@ bool is_convex(const std::vector<Point>& points) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Sections
+// Regions
 // ═══════════════════════════════════════════════════════════════════════════
+
+/// A mesh face ring oriented counter-clockwise (or clockwise) in plan at z 0, none when it is not flat at z or too small.
+std::optional<std::vector<Point>> compute_cap(const Mesh& mesh, const std::vector<size_t>& ring, double z, double tolerance, bool counter) {
+
+    for (const size_t key : ring)
+        if (std::abs((*mesh.vertex_point(key))[2] - z) > tolerance * 1e-3)
+            return std::nullopt;
+
+    std::vector<Point> points = compute_flat(mesh, ring);
+    if (std::abs(compute_area(points)) < tolerance * tolerance)
+        return std::nullopt;
+    if ((compute_area(points) < 0.0) == counter)
+        std::reverse(points.begin(), points.end());
+
+    return points;
+}
 
 std::vector<Polyline> compute_section(const Mesh& solid, double z, double tolerance) {
 
@@ -96,26 +108,16 @@ std::vector<Polyline> compute_section(const Mesh& solid, double z, double tolera
 
     std::vector<Polyline> rings;
     for (const size_t face : below.faces()) {
-        const std::vector<size_t> ring = *below.face_vertices(face);
-        if (!is_level(below, ring, z, tolerance * 1e-3))
+        const std::optional<std::vector<Point>> outer = compute_cap(below, *below.face_vertices(face), z, tolerance, true);
+        if (!outer)
             continue;
 
-        std::vector<Point> outer = compute_flat(below, ring);
-        if (std::abs(compute_area(outer)) < tolerance * tolerance)
-            continue;
-        if (compute_area(outer) < 0.0)
-            std::reverse(outer.begin(), outer.end());
-        rings.push_back(to_polyline(outer));
-
+        rings.push_back(to_polyline(*outer));
         if (!below.get_face_holes().count(face))
             continue;
 
-        for (const std::vector<size_t>& hole : below.get_face_holes().at(face)) {
-            std::vector<Point> inner = compute_flat(below, hole);
-            if (compute_area(inner) > 0.0)
-                std::reverse(inner.begin(), inner.end());
-            rings.push_back(to_polyline(inner));
-        }
+        for (const std::vector<size_t>& hole : below.get_face_holes().at(face))
+            rings.push_back(to_polyline(*compute_cap(below, hole, z, tolerance, false)));
     }
 
     return rings;
@@ -134,11 +136,12 @@ Clipper2Lib::Paths64 to_paths(const std::vector<Polyline>& rings) {
     return paths;
 }
 
-/// Clipper paths as rings at z 0, outer rings counter-clockwise, holes clockwise.
-std::vector<Polyline> from_paths(const Clipper2Lib::Paths64& paths) {
+std::vector<Polyline> compute_regions(const std::vector<Polyline>& a, const std::vector<Polyline>& b, int clip) {
+
+    const Clipper2Lib::ClipType type = clip == 0 ? Clipper2Lib::ClipType::Intersection : clip == 1 ? Clipper2Lib::ClipType::Union : Clipper2Lib::ClipType::Difference;
 
     std::vector<Polyline> rings;
-    for (const Clipper2Lib::Path64& path : paths) {
+    for (const Clipper2Lib::Path64& path : Clipper2Lib::BooleanOp(type, Clipper2Lib::FillRule::NonZero, to_paths(a), to_paths(b))) {
         if (path.size() < 3)
             continue;
 
@@ -151,13 +154,6 @@ std::vector<Polyline> from_paths(const Clipper2Lib::Paths64& paths) {
     return rings;
 }
 
-std::vector<Polyline> compute_regions(const std::vector<Polyline>& a, const std::vector<Polyline>& b, int clip) {
-
-    const Clipper2Lib::ClipType type = clip == 0 ? Clipper2Lib::ClipType::Intersection : clip == 1 ? Clipper2Lib::ClipType::Union : Clipper2Lib::ClipType::Difference;
-
-    return from_paths(Clipper2Lib::BooleanOp(type, Clipper2Lib::FillRule::NonZero, to_paths(a), to_paths(b)));
-}
-
 bool is_inside(const std::vector<Polyline>& rings, const Point& point) {
 
     int count = 0;
@@ -167,67 +163,21 @@ bool is_inside(const std::vector<Polyline>& rings, const Point& point) {
     return count % 2 == 1;
 }
 
-Point compute_interior(const std::vector<Point>& points) {
-
-    const size_t count = points.size();
-    size_t left = 0;
-    for (size_t i = 1; i < count; i++)
-        if (points[i][0] < points[left][0] || (points[i][0] == points[left][0] && points[i][1] < points[left][1]))
-            left = i;
-
-    const Point& a = points[(left + count - 1) % count];
-    const Point& b = points[left];
-    const Point& c = points[(left + 1) % count];
-    const Polyline ear = to_polyline({a, b, c});
-
-    std::optional<size_t> deepest;
-    double depth = 0.0;
-    for (size_t i = 0; i < count; i++) {
-        if (i == left || i == (left + count - 1) % count || i == (left + 1) % count || !ear.point_in_polygon_2d(points[i]))
-            continue;
-
-        const double away = std::abs((points[i] - a).cross(c - a)[2]);
-        if (!deepest || away > depth) {
-            deepest = i;
-            depth = away;
-        }
-    }
-
-    if (!deepest)
-        return Point((a[0] + b[0] + c[0]) / 3.0, (a[1] + b[1] + c[1]) / 3.0, 0.0);
-
-    return Point((b[0] + points[*deepest][0]) / 2.0, (b[1] + points[*deepest][1]) / 2.0, 0.0);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Corners
-// ═══════════════════════════════════════════════════════════════════════════
-
 Point compute_corner(const Point& corner, const Vector& before, double a, const Vector& after, double b) {
 
     const double cosine = before.dot(after);
     if (1.0 - cosine * cosine < 1e-9)
         return corner + before * std::max(a, b);
 
-    const double alpha = (a - cosine * b) / (1.0 - cosine * cosine);
-    const double beta = (b - cosine * a) / (1.0 - cosine * cosine);
-
-    return corner + before * alpha + after * beta;
-}
-
-std::vector<Vector> compute_normals(const std::vector<Point>& points) {
-
-    std::vector<Vector> normals;
-    for (size_t i = 0; i < points.size(); i++)
-        normals.push_back(compute_direction(points[i], points[(i + 1) % points.size()]).cross(Vector(0.0, 0.0, 1.0)));
-
-    return normals;
+    return corner + before * ((a - cosine * b) / (1.0 - cosine * cosine)) + after * ((b - cosine * a) / (1.0 - cosine * cosine));
 }
 
 std::vector<Point> compute_offset(const std::vector<Point>& points, const std::vector<double>& distances) {
 
     const size_t count = points.size();
-    const std::vector<Vector> outward = compute_normals(points);
+    std::vector<Vector> outward;
+    for (size_t i = 0; i < count; i++)
+        outward.push_back(compute_direction(points[i], points[(i + 1) % count]).cross(Vector(0.0, 0.0, 1.0)));
 
     std::vector<Point> result;
     for (size_t i = 0; i < count; i++)
@@ -236,20 +186,54 @@ std::vector<Point> compute_offset(const std::vector<Point>& points, const std::v
     return result;
 }
 
+/// A crossing of a line with a ring side: the parameter along the line, the ring and the side.
+struct Crossing {
+    double t = 0.0; // Parameter along the line.
+    int ring = -1; // Ring index.
+    int side = -1; // Side index.
+};
+
+/// True when a comes before b along the line.
+bool is_before(const Crossing& a, const Crossing& b) {
+    return a.t < b.t;
+}
+
+std::vector<Piece> compute_pieces(const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance) {
+
+    if (rings.empty())
+        return {Piece{line}};
+
+    std::vector<Crossing> crossings = {{0.0, -1, -1}, {1.0, -1, -1}};
+    for (size_t r = 0; r < rings.size(); r++) {
+        const std::vector<Point> corners = to_loop(rings[r]);
+        for (size_t i = 0; i < corners.size(); i++) {
+            double t = 0.0;
+            double s = 0.0;
+            const Line side = Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
+            if (Intersection::line_line_parameters(line, side, t, s, tolerance, true, false) && line.point_at(t).distance(side.point_at(s)) <= tolerance)
+                crossings.push_back({t, static_cast<int>(r), static_cast<int>(i)});
+        }
+    }
+    std::sort(crossings.begin(), crossings.end(), is_before);
+
+    std::vector<Piece> pieces;
+    for (size_t k = 0; k + 1 < crossings.size(); k++)
+        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance && is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) == inside)
+            pieces.push_back({Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t)), {crossings[k].ring, crossings[k + 1].ring}, {crossings[k].side, crossings[k + 1].side}});
+
+    return pieces;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Arrangement
 // ═══════════════════════════════════════════════════════════════════════════
 
-double compute_ring_id(size_t ring, size_t edge, bool core) {
-    return (core ? 2000000.0 : 1000000.0) + 1000.0 * ring + edge;
+double compute_ring_id(size_t ring, size_t edge) {
+    return 1000000.0 + 1000.0 * ring + edge;
 }
 
 bool is_ring(double id) {
     return id >= 1000000.0;
-}
-
-bool is_core_id(double id) {
-    return id >= 2000000.0;
 }
 
 /// A piece of an input line while the crossings are computed.
@@ -259,31 +243,13 @@ struct Segment {
     double id = 0.0; // Id of the source line.
     size_t rank = 0; // Position of the source line in the input, the earlier the stronger.
     bool alive = true; // False once a collinear stronger segment took it.
+    std::vector<std::pair<double, size_t>> stops; // Distance along it and index of each of its stops.
 };
 
 /// A point every piece ends on: a segment end or a crossing.
 struct Stop {
     Point point; // At z 0.
-    int order = 0; // Weld priority: 0 a ring corner, 1 a ring crossing, 2 the rest, 3 on a core ring, which welds within tolerance alone.
-};
-
-/// The stops of a set of segments and, per segment, its (distance, stop) pairs.
-struct Stops {
-    std::vector<Stop> stops; // Every segment end, then every crossing.
-    std::vector<std::vector<std::pair<double, size_t>>> params; // Per segment, the distance along it of each of its stops.
-};
-
-/// The welded stops: the points kept, their orders, and the kept index of every stop.
-struct Welds {
-    std::vector<Point> points; // One per kept stop.
-    std::vector<int> orders; // The order of each kept stop.
-    std::vector<size_t> canonical; // Kept index per input stop.
-};
-
-/// Pieces of the segments between consecutive stops as welded vertex pairs, with the id of their segment.
-struct Pieces {
-    std::vector<std::pair<size_t, size_t>> pairs; // Each once, lower index first.
-    std::vector<double> ids; // Source line id per piece.
+    int order = 0; // Weld priority: 0 a ring corner, 1 a ring crossing, 2 the rest.
 };
 
 /// True when segment a takes a collinear overlap from b: rings first, then the earlier line.
@@ -322,49 +288,24 @@ void compute_overlaps(std::vector<Segment>& segments, double tolerance) {
             const Segment loser = segments[j];
             segments[j].alive = false;
             if (low > tolerance)
-                segments.push_back({loser.a, loser.a + dj * low, loser.id, loser.rank, true});
+                segments.push_back({loser.a, loser.a + dj * low, loser.id, loser.rank, true, {}});
             if (length - high > tolerance)
-                segments.push_back({loser.a + dj * high, loser.b, loser.id, loser.rank, true});
+                segments.push_back({loser.a + dj * high, loser.b, loser.id, loser.rank, true, {}});
         }
 }
 
-/// True when a point lies on a live core ring segment within tolerance.
-bool is_on_core(const Point& point, const std::vector<Segment>& segments, double tolerance) {
-
-    for (const Segment& segment : segments) {
-        if (!segment.alive || !is_core_id(segment.id))
-            continue;
-
-        const double at = compute_parameter(segment, point);
-        if (at >= -tolerance && at <= compute_distance(segment.a, segment.b) + tolerance && std::abs((point - segment.a).cross(compute_direction(segment.a, segment.b))[2]) <= tolerance)
-            return true;
-    }
-
-    return false;
-}
-
-/// The weld order of a segment end: on a core ring 3 (its own ends, and the end of a line a core took a stretch from), another ring 0, a pattern line 2.
-int compute_order(const Segment& segment, const Point& end, const std::vector<Segment>& segments, double tolerance) {
-
-    if (is_core_id(segment.id) || is_on_core(end, segments, tolerance))
-        return 3;
-
-    return is_ring(segment.id) ? 0 : 2;
-}
-
 /// The stops of every live segment: its ends, then every crossing with a later one.
-Stops compute_stops(const std::vector<Segment>& segments, double tolerance) {
+std::vector<Stop> compute_stops(std::vector<Segment>& segments, double tolerance) {
 
-    Stops result;
-    result.params.resize(segments.size());
-    for (size_t i = 0; i < segments.size(); i++) {
-        if (!segments[i].alive)
+    std::vector<Stop> stops;
+    for (Segment& segment : segments) {
+        if (!segment.alive)
             continue;
 
-        result.params[i].emplace_back(0.0, result.stops.size());
-        result.stops.push_back({segments[i].a, compute_order(segments[i], segments[i].a, segments, tolerance)});
-        result.params[i].emplace_back(compute_distance(segments[i].a, segments[i].b), result.stops.size());
-        result.stops.push_back({segments[i].b, compute_order(segments[i], segments[i].b, segments, tolerance)});
+        segment.stops.emplace_back(0.0, stops.size());
+        stops.push_back({segment.a, is_ring(segment.id) ? 0 : 2});
+        segment.stops.emplace_back(compute_distance(segment.a, segment.b), stops.size());
+        stops.push_back({segment.b, is_ring(segment.id) ? 0 : 2});
     }
 
     for (size_t i = 0; i < segments.size(); i++)
@@ -384,104 +325,89 @@ Stops compute_stops(const std::vector<Segment>& segments, double tolerance) {
             if (t < -tolerance / u.magnitude() || t > 1.0 + tolerance / u.magnitude() || s < -tolerance / v.magnitude() || s > 1.0 + tolerance / v.magnitude())
                 continue;
 
-            const int order = is_core_id(segments[i].id) || is_core_id(segments[j].id) ? 3 : is_ring(segments[i].id) || is_ring(segments[j].id) ? 1 : 2;
-            result.params[i].emplace_back(std::clamp(t, 0.0, 1.0) * u.magnitude(), result.stops.size());
-            result.params[j].emplace_back(std::clamp(s, 0.0, 1.0) * v.magnitude(), result.stops.size());
-            result.stops.push_back({segments[i].a + u * std::clamp(t, 0.0, 1.0), order});
+            segments[i].stops.emplace_back(std::clamp(t, 0.0, 1.0) * u.magnitude(), stops.size());
+            segments[j].stops.emplace_back(std::clamp(s, 0.0, 1.0) * v.magnitude(), stops.size());
+            stops.push_back({segments[i].a + u * std::clamp(t, 0.0, 1.0), is_ring(segments[i].id) || is_ring(segments[j].id) ? 1 : 2});
         }
 
-    return result;
+    return stops;
 }
 
-/// Stops within merge of an earlier stop in priority order welded onto it; a core stop welds within tolerance alone and never takes another stop, so a core ring never pulls a column point onto itself.
-Welds compute_welds(const std::vector<Stop>& stops, double tolerance, double merge) {
+/// Stops within merge of an earlier stop in priority order welded onto it: the kept points and the kept index of every stop.
+std::pair<std::vector<Point>, std::vector<size_t>> compute_welds(const std::vector<Stop>& stops, double merge) {
 
-    Welds welds;
-    welds.canonical.resize(stops.size());
-    for (int order = 0; order < 4; order++)
+    std::pair<std::vector<Point>, std::vector<size_t>> welds;
+    welds.second.resize(stops.size());
+    for (int order = 0; order < 3; order++)
         for (size_t index = 0; index < stops.size(); index++) {
             if (stops[index].order != order)
                 continue;
 
-            size_t found = welds.points.size();
-            for (size_t k = 0; k < welds.points.size() && found == welds.points.size(); k++)
-                if (compute_distance(welds.points[k], stops[index].point) <= (order == 3 || welds.orders[k] == 3 ? tolerance : merge))
+            size_t found = welds.first.size();
+            for (size_t k = 0; k < welds.first.size() && found == welds.first.size(); k++)
+                if (compute_distance(welds.first[k], stops[index].point) <= merge)
                     found = k;
-            if (found == welds.points.size()) {
-                welds.points.push_back(stops[index].point);
-                welds.orders.push_back(order);
-            }
-            welds.canonical[index] = found;
+            if (found == welds.first.size())
+                welds.first.push_back(stops[index].point);
+            welds.second[index] = found;
         }
 
     return welds;
 }
 
-/// Pieces of every live segment between consecutive stops as welded vertex pairs, each once, with the id of its segment.
-Pieces compute_pieces(const std::vector<Segment>& segments, Stops& stops, const std::vector<size_t>& canonical) {
+/// Pieces of every live segment between consecutive stops as welded vertex pairs with the id of their segment, each pair once, then pieces with a dangling end removed until every end is shared.
+std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<double>> compute_edges(std::vector<Segment>& segments, const std::vector<size_t>& canonical, size_t vertices) {
 
     std::set<std::pair<size_t, size_t>> seen;
-    Pieces pieces;
-    for (size_t i = 0; i < segments.size(); i++) {
-        if (!segments[i].alive)
-            continue;
-
-        std::sort(stops.params[i].begin(), stops.params[i].end());
-        for (size_t k = 0; k + 1 < stops.params[i].size(); k++) {
-            const std::pair<size_t, size_t> piece = std::minmax(canonical[stops.params[i][k].second], canonical[stops.params[i][k + 1].second]);
-            if (piece.first == piece.second || seen.count(piece))
-                continue;
-
-            seen.insert(piece);
-            pieces.pairs.push_back(piece);
-            pieces.ids.push_back(segments[i].id);
+    std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<double>> pieces;
+    for (Segment& segment : segments) {
+        std::sort(segment.stops.begin(), segment.stops.end());
+        for (size_t k = 0; segment.alive && k + 1 < segment.stops.size(); k++) {
+            const std::pair<size_t, size_t> piece = std::minmax(canonical[segment.stops[k].second], canonical[segment.stops[k + 1].second]);
+            if (piece.first != piece.second && seen.insert(piece).second) {
+                pieces.first.push_back(piece);
+                pieces.second.push_back(segment.id);
+            }
         }
     }
 
-    return pieces;
-}
-
-/// Pieces with a dangling end removed until every end is shared, so every piece left bounds a face.
-void compute_pruned(Pieces& pieces, size_t vertices) {
-
-    const size_t rounds = pieces.pairs.size();
-    for (size_t round = 0; round <= rounds; round++) {
+    for (size_t round = 0; round <= pieces.first.size(); round++) {
         std::vector<int> degree(vertices, 0);
-        for (const std::pair<size_t, size_t>& piece : pieces.pairs) {
+        for (const std::pair<size_t, size_t>& piece : pieces.first) {
             degree[piece.first]++;
             degree[piece.second]++;
         }
 
-        Pieces kept;
-        for (size_t k = 0; k < pieces.pairs.size(); k++)
-            if (degree[pieces.pairs[k].first] >= 2 && degree[pieces.pairs[k].second] >= 2) {
-                kept.pairs.push_back(pieces.pairs[k]);
-                kept.ids.push_back(pieces.ids[k]);
+        std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<double>> kept;
+        for (size_t k = 0; k < pieces.first.size(); k++)
+            if (degree[pieces.first[k].first] >= 2 && degree[pieces.first[k].second] >= 2) {
+                kept.first.push_back(pieces.first[k]);
+                kept.second.push_back(pieces.second[k]);
             }
 
-        const bool pruned = kept.pairs.size() != pieces.pairs.size();
+        const bool pruned = kept.first.size() != pieces.first.size();
         pieces = kept;
         if (!pruned)
-            return;
+            break;
     }
+
+    return pieces;
 }
 
 std::pair<std::vector<Line>, std::vector<double>> compute_crossings(const std::vector<Line>& lines, const std::vector<double>& ids, double tolerance, double merge) {
 
     std::vector<Segment> segments;
     for (size_t i = 0; i < lines.size(); i++)
-        segments.push_back({compute_lift(lines[i].start(), 0.0), compute_lift(lines[i].end(), 0.0), ids[i], i, true});
+        segments.push_back({compute_lift(lines[i].start(), 0.0), compute_lift(lines[i].end(), 0.0), ids[i], i, true, {}});
     compute_overlaps(segments, tolerance);
 
-    Stops stops = compute_stops(segments, tolerance);
-    const Welds welds = compute_welds(stops.stops, tolerance, merge);
-    Pieces pieces = compute_pieces(segments, stops, welds.canonical);
-    compute_pruned(pieces, welds.points.size());
+    const std::pair<std::vector<Point>, std::vector<size_t>> welds = compute_welds(compute_stops(segments, tolerance), merge);
+    const std::pair<std::vector<std::pair<size_t, size_t>>, std::vector<double>> pieces = compute_edges(segments, welds.second, welds.first.size());
 
     std::pair<std::vector<Line>, std::vector<double>> result;
-    for (size_t k = 0; k < pieces.pairs.size(); k++) {
-        result.first.push_back(Line::from_points(welds.points[pieces.pairs[k].first], welds.points[pieces.pairs[k].second]));
-        result.second.push_back(pieces.ids[k]);
+    for (size_t k = 0; k < pieces.first.size(); k++) {
+        result.first.push_back(Line::from_points(welds.first[pieces.first[k].first], welds.first[pieces.first[k].second]));
+        result.second.push_back(pieces.second[k]);
     }
 
     return result;
@@ -524,23 +450,10 @@ Mesh compute_arrangement(const std::vector<Line>& lines, const std::vector<doubl
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Plane> compute_planes(const Mesh& solid) {
-
-    const Point centre = solid.centroid();
-    std::vector<Plane> planes;
-    for (const size_t face : solid.faces()) {
-        const std::vector<Point> points = to_loop(*solid.face_polygon(face));
-        Vector normal = wood_session::compute_newell(points);
-        const Point origin = Point::centroid(points);
-        if ((origin - centre).dot(normal) < 0.0)
-            normal = -normal;
-        planes.push_back(Plane::from_point_normal(origin, normal));
-    }
-
-    return planes;
-}
-
 std::optional<Plane> compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction) {
+
+    if (!is_convex(polygon))
+        return Plane::from_point_normal(origin + direction * compute_reach(polygon, origin, direction), direction);
 
     std::optional<Plane> exit;
     double best = std::numeric_limits<double>::max();
@@ -567,10 +480,6 @@ double compute_reach(const std::vector<Point>& polygon, const Point& point, cons
         reach = std::max(reach, (compute_lift(corner, 0.0) - compute_lift(point, 0.0)).dot(direction));
 
     return reach;
-}
-
-Plane compute_bound(const std::vector<Point>& polygon, const Point& origin, const Vector& direction) {
-    return Plane::from_point_normal(origin + direction * compute_reach(polygon, origin, direction), direction);
 }
 
 std::vector<Point> compute_strip(const Point& origin, const Vector& direction, double half) {
@@ -607,7 +516,6 @@ std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex) {
         angles.push_back(std::atan2(point[1] - origin[1], point[0] - origin[0]));
         angles.push_back(std::atan2(origin[1] - point[1], origin[0] - point[0]));
     }
-
     if (angles.empty())
         angles = {-Tolerance::HALF_PI, 0.0, Tolerance::HALF_PI, Tolerance::PI};
     std::sort(angles.begin(), angles.end());
@@ -618,7 +526,6 @@ std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex) {
             merged.push_back(angle);
     if (merged.size() > 1 && merged.front() + Tolerance::TWO_PI - merged.back() <= Tolerance::TO_RADIANS)
         merged.pop_back();
-
     if (merged.size() == 2) {
         merged.push_back(merged[0] + Tolerance::HALF_PI);
         merged.push_back(merged[0] - Tolerance::HALF_PI);

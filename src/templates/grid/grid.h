@@ -1,7 +1,6 @@
 #pragma once
 #include "wood_session.h"
 #include "wood_profile.h"
-#include "wood_element_geometry.h"
 
 namespace wood_grid {
 
@@ -46,10 +45,8 @@ std::vector<double> compute_bays(double length, double spacing, double remainder
 struct Profiles {
     std::vector<Polyline> column = wood_session::profile_rectangle(300.0, 300.0);
     std::vector<Polyline> girder = wood_session::profile_rectangle(200.0, 600.0);
-    std::vector<Polyline> beam = {}; // Members on free lines and under span -1; empty takes girder.
-    std::vector<Polyline> purlin = {}; // Purlin rows and stations; empty takes beam.
-    std::vector<Polyline> edge_girder = {}; // Perimeter members on girder-family lines; empty takes girder.
-    std::vector<Polyline> edge_beam = {}; // Perimeter members on any other line or ring edge; empty takes purlin under system 2, else beam.
+    std::vector<Polyline> beam = {}; // Members on free lines and under span -1, perimeter members off the span family under system 1; empty takes girder.
+    std::vector<Polyline> purlin = {}; // Purlin rows, stations and perimeter members off the span family under system 2; empty takes beam.
     std::vector<Polyline> brace = {}; // Workflow C braces; empty takes beam.
 };
 
@@ -57,8 +54,7 @@ struct Profiles {
 struct Framing {
     int system = 1; // 0 point supported (deck on columns or heads, no members), 1 post and beam (girders on the span family, the deck spans between them), 2 purlin on girder (girders plus purlin rows at spacing).
     int span = 0; // Pattern family the girders run on, and under system 0 the family the deck strips run along; -1 every line carries a beam (two-way, hexagonal, irregular).
-    double spacing = 3000.0; // Largest purlin spacing under system 2; ceil(cell / spacing) intervals per unclipped cell, one row on every interior cross line.
-    bool edge = true; // Perimeter members on the section rings and hole rings.
+    double spacing = 3000.0; // Largest purlin spacing under system 2: ceil(bay / spacing) intervals per bay, a row on every interior cross line.
     int node = 0; // Column joint: 0 head (under the members, or under the deck where none arrive), 1 flush (column top at the datum, members into its faces, deck over all), 2 through (column datum to datum, deck notched, members into its faces; as 1 under system 0, so the deck has a bearing).
     double drop = 0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
     double deck = 200.0; // Deck thickness above the datum.
@@ -67,7 +63,7 @@ struct Framing {
     double reach = 400.0; // Top half-width of a head that carries cut member ends or the deck; a head members only rest on is the column section extruded.
     int capital = 0; // Shape of a head that carries cut member ends or the deck: 0 conical, a frustum from the column section up to reach; 1 stepped, a capital to halfway under a drop panel at reach.
     double panel = 0.0; // Largest deck strip width across the deck span; 0 one deck per bay.
-    double taper = 30.0; // Largest lean in degrees of a perimeter column following a moving section; beyond it the vertex is a transfer.
+    double taper = 30.0; // Largest lean in degrees of a column following a moving section; beyond it the vertex is a transfer.
     bool facade = false; // A wall under every perimeter member.
     Profiles profiles = {}; // Sections per role.
 };
@@ -76,38 +72,33 @@ struct Framing {
 // Building
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One level: its datum, its section rings and cores, and the plan the pattern fills into the section, whose double attributes (docs/templates.md) a user may set before to_elements.
+/// One level: its datum, its cores, and the plan the pattern fills into the section, whose double attributes (docs/templates.md) a user may set before to_elements.
 struct Level {
     double z = 0.0; // Datum: the framing top, the deck underside.
-    std::vector<Polyline> rings; // Section at z, the union of the slices just below and just above: outer rings counter-clockwise seen from above, holes clockwise, all at z 0.
-    std::vector<Polyline> cores; // Core rings on the wall centre line, counter-clockwise: a void face, a wall per side, a deck hole, a support for the members that reach them.
-    Mesh plan; // Arrangement of the pattern and the rings inside the section; a hole or core ring that meets no line is a face hole of its bay.
+    std::vector<Polyline> cores; // Core rings on the wall centre line, counter-clockwise at z 0: walls in a pinwheel, a deck hole, no column inside, a support for the members that reach them.
+    Mesh plan; // Arrangement of the pattern and the section rings: faces are bays, edges member lines, vertices column points.
 };
 
 /// A building as its levels: the same pipeline from a massing, a footprint or drawn lines; elements per storey from a Framing.
 struct Building {
     std::vector<Level> levels; // Ascending; storey k spans levels[k] to levels[k + 1]; levels[0] is the ground and carries the column feet.
     std::vector<Line> braces; // Tilted lines from from_lines, built as beams cut by what they meet.
-    Pattern pattern; // The lines the plans were drawn on: the unclipped cells purlin stations are spaced over.
-    double tolerance = 1.0; // Weld distance, coplanarity and clash tolerance the plans were built with.
+    double tolerance = 1.0; // Weld distance and coplanarity tolerance the plans were built with.
 
-    /// A. A closed massing sliced at elevations: sections just below and just above each, their union filled with pattern, cores as rings through every level; columns follow the sections within taper; a BRep goes through to_mesh first.
+    /// A. A closed massing sliced at elevations: sections just below and just above each, their union filled with the pattern, cores on every level; columns follow the sections within taper. A BRep goes in as its mesh().
     static Building from_solid(const Mesh& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
 
-    /// B. Footprint rings (outer counter-clockwise, holes clockwise; empty means every bounded cell of the pattern that more than one family bounds) at the level elevations, the first the ground, the same section on every level, cores on every level.
+    /// B. Footprint rings (outer counter-clockwise, holes clockwise, every ring crossing a pattern line; empty means every bounded cell of the pattern that more than one family bounds) at the level elevations, the first the ground, the same plan on every level.
     static Building from_footprint(const std::vector<Polyline>& footprint, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
 
     /// C. Members and surfaces as drawn: horizontal lines and floors make the plan of their level, vertical lines its column points, vertical surfaces its walls (core walls when named core), tilted lines braces, each within angle degrees; lines split at every node and crossing.
     static Building from_lines(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, double tolerance = 1.0, double angle = 10.0);
 
-    /// Every element of storey k with its joints resolved, world space, in plan order so instance_by_key() dedups them: columns and walls standing in the storey, then the heads, members, stations and decks of the level that caps it, then its braces.
+    /// Every element of storey k with its joints resolved, world space, in plan order so instance_by_key() dedups them: the columns and walls standing in the storey, the heads, members, purlins and decks of the level that caps it, then its braces.
     std::vector<std::shared_ptr<Element>> to_elements(const Framing& framing, size_t storey) const;
 
     /// Every storey's elements added to session under a group per storey named storey_k.
     void to_session(wood_session::WoodSession& session, const Framing& framing) const;
 };
-
-/// A BRep massing as the closed mesh Building::from_solid slices, facet degrees per curved face; the sections take their corners from the pattern, so any facet serves.
-Mesh to_mesh(const BRep& massing, double facet = 15.0, double tolerance = 1.0);
 
 } // namespace wood_grid
