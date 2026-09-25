@@ -12,7 +12,8 @@ namespace wood_session {
 /// Rings into a PolylineList.
 static void rings_pb(const std::vector<Polyline>& rings, wood_proto::PolylineList* list) {
     for (const Polyline& ring : rings)
-        list->add_items()->ParseFromString(ring.pb_dumps());
+        if (!list->add_items()->ParseFromString(ring.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
 }
 
 /// Rings read back from a PolylineList.
@@ -114,12 +115,14 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
     proto.set_contact_guid(contact_guid);
     proto.set_element_a(element_a);
     proto.set_element_b(element_b);
-    proto.mutable_contact()->ParseFromString(contact.interaction_data_dumps());
+    if (!proto.mutable_contact()->ParseFromString(contact.interaction_data_dumps()))
+        throw std::runtime_error("Failed to parse InteractionContactFace protobuf data");
     proto.set_joint_type(joint_type);
 
     for (int k = 0; k < 2; ++k) {
         proto.add_cross_faces(cross_faces[k]);
-        proto.add_joint_lines()->ParseFromString(joint_lines[k].pb_dumps());
+        if (!proto.add_joint_lines()->ParseFromString(joint_lines[k].pb_dumps()))
+            throw std::runtime_error("Failed to parse Line protobuf data");
         rings_pb(male_outlines[k], proto.add_male_outlines());
         rings_pb(female_outlines[k], proto.add_female_outlines());
         proto.add_male_fabrication_types()->mutable_values()->Add(male_fabrication_types[k].begin(), male_fabrication_types[k].end());
@@ -131,7 +134,8 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
         session_proto::Polyline* slot = proto.add_joint_volumes();
 
         if (volume.has_value())
-            slot->ParseFromString(volume->pb_dumps());
+            if (!slot->ParseFromString(volume->pb_dumps()))
+                throw std::runtime_error("Failed to parse Polyline protobuf data");
     }
 
     proto.set_divisions(divisions);
@@ -157,7 +161,8 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
     proto.set_no_orient(no_orient);
 
     for (const ElementFeature& feature : to_features())
-        proto.add_element_features()->ParseFromString(feature.pb_dumps());
+        if (!proto.add_element_features()->ParseFromString(feature.pb_dumps()))
+            throw std::runtime_error("Failed to parse ElementFeature protobuf data");
 
     return proto.SerializeAsString();
 }
@@ -165,7 +170,8 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
 InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionFeaturePlate proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionFeaturePlate protobuf data");
 
     InteractionFeaturePlate j;
     j.contact_guid = proto.contact_guid();

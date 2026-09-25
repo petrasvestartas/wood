@@ -181,7 +181,8 @@ AABB Block::aabb(double inflate) const {
 nlohmann::ordered_json Block::element_data_jsondump() const {
 
     wood_proto::Block proto;
-    proto.ParseFromString(element_data_dumps());
+    if (!proto.ParseFromString(element_data_dumps()))
+        throw std::runtime_error("Failed to parse Block protobuf data");
 
     return json_of(proto);
 }
@@ -194,9 +195,11 @@ std::string Block::element_data_dumps() const {
 
     wood_proto::Block proto;
     for (const Polyline& loop : loops)
-        proto.add_loops()->ParseFromString(loop.pb_dumps());
+        if (!proto.add_loops()->ParseFromString(loop.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     for (const Plane& cut : cuts)
-        proto.add_cuts()->ParseFromString(cut.pb_dumps());
+        if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Failed to parse Plane protobuf data");
 
     return proto.SerializeAsString();
 }

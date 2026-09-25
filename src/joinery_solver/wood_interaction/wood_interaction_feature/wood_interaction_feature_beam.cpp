@@ -28,7 +28,8 @@ std::string InteractionFeatureBeam::interaction_data_dumps() const {
     proto.set_contact_guid(contact_guid);
 
     for (const Polyline& volume : volumes)
-        proto.add_volumes()->ParseFromString(volume.pb_dumps());
+        if (!proto.add_volumes()->ParseFromString(volume.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
 
     return proto.SerializeAsString();
 }
@@ -36,7 +37,8 @@ std::string InteractionFeatureBeam::interaction_data_dumps() const {
 InteractionFeatureBeam InteractionFeatureBeam::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionFeatureBeam proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionFeatureBeam protobuf data");
 
     InteractionFeatureBeam feature;
     feature.contact_guid = proto.contact_guid();

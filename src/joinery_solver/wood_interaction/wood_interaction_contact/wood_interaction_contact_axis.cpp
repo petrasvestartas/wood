@@ -52,7 +52,8 @@ std::string InteractionContactAxis::interaction_type_name() const {
 std::string InteractionContactAxis::interaction_data_dumps() const {
 
     wood_proto::InteractionContactAxis proto;
-    proto.mutable_segment()->ParseFromString(segment.pb_dumps());
+    if (!proto.mutable_segment()->ParseFromString(segment.pb_dumps()))
+        throw std::runtime_error("Failed to parse Line protobuf data");
     proto.set_t_a(t_a);
     proto.set_t_b(t_b);
     proto.set_polyline_a(polyline_a);
@@ -66,7 +67,8 @@ std::string InteractionContactAxis::interaction_data_dumps() const {
 InteractionContactAxis InteractionContactAxis::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionContactAxis proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionContactAxis protobuf data");
 
     InteractionContactAxis contact;
 

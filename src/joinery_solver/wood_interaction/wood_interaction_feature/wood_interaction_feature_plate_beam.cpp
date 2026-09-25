@@ -32,7 +32,8 @@ std::string InteractionFeaturePlateBeam::interaction_data_dumps() const {
 InteractionFeaturePlateBeam InteractionFeaturePlateBeam::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionFeaturePlateBeam proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionFeaturePlateBeam protobuf data");
 
     InteractionFeaturePlateBeam feature;
     feature.contact_guid = proto.contact_guid();

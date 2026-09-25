@@ -260,7 +260,8 @@ AABB Beam::aabb(double inflate) const {
 nlohmann::ordered_json Beam::element_data_jsondump() const {
 
     wood_proto::Beam proto;
-    proto.ParseFromString(element_data_dumps());
+    if (!proto.ParseFromString(element_data_dumps()))
+        throw std::runtime_error("Failed to parse Beam protobuf data");
 
     return json_of(proto);
 }
@@ -272,15 +273,19 @@ nlohmann::ordered_json Beam::element_data_jsondump() const {
 std::string Beam::element_data_dumps() const {
 
     wood_proto::Beam proto;
-    proto.mutable_axis()->ParseFromString(axis.pb_dumps());
+    if (!proto.mutable_axis()->ParseFromString(axis.pb_dumps()))
+        throw std::runtime_error("Failed to parse Line protobuf data");
     proto.mutable_radii()->Add(radii.begin(), radii.end());
     for (const Vector& direction : directions)
-        proto.add_directions()->ParseFromString(direction.pb_dumps());
+        if (!proto.add_directions()->ParseFromString(direction.pb_dumps()))
+            throw std::runtime_error("Failed to parse Vector protobuf data");
     proto.set_allowed_type(allowed_type);
     for (const Plane& cut : cuts)
-        proto.add_cuts()->ParseFromString(cut.pb_dumps());
+        if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Failed to parse Plane protobuf data");
     for (const Polyline& ring : profile)
-        proto.add_profile()->ParseFromString(ring.pb_dumps());
+        if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
 
     return proto.SerializeAsString();
 }

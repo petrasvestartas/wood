@@ -264,7 +264,8 @@ AABB Column::aabb(double inflate) const {
 nlohmann::ordered_json Column::element_data_jsondump() const {
 
     wood_proto::Column proto;
-    proto.ParseFromString(element_data_dumps());
+    if (!proto.ParseFromString(element_data_dumps()))
+        throw std::runtime_error("Failed to parse Column protobuf data");
 
     return json_of(proto);
 }
@@ -276,13 +277,17 @@ nlohmann::ordered_json Column::element_data_jsondump() const {
 std::string Column::element_data_dumps() const {
 
     wood_proto::Column proto;
-    proto.mutable_axis()->ParseFromString(axis.pb_dumps());
+    if (!proto.mutable_axis()->ParseFromString(axis.pb_dumps()))
+        throw std::runtime_error("Failed to parse Line protobuf data");
     if (section.point_count() > 0)
-        proto.mutable_section()->ParseFromString(section.pb_dumps());
+        if (!proto.mutable_section()->ParseFromString(section.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     for (const Plane& cut : cuts)
-        proto.add_cuts()->ParseFromString(cut.pb_dumps());
+        if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Failed to parse Plane protobuf data");
     for (const Polyline& ring : profile)
-        proto.add_profile()->ParseFromString(ring.pb_dumps());
+        if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_rotation(rotation);
 
     return proto.SerializeAsString();

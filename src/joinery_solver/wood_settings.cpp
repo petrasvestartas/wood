@@ -26,7 +26,8 @@ const std::array<std::vector<Polyline>, 2>& Settings::custom(const std::string& 
 nlohmann::ordered_json Settings::jsondump() const {
 
     wood_proto::Settings proto;
-    proto.ParseFromString(pb_dumps());
+    if (!proto.ParseFromString(pb_dumps()))
+        throw std::runtime_error("Failed to parse Settings protobuf data");
 
     return json_of(proto);
 }
@@ -66,9 +67,11 @@ std::string Settings::pb_dumps() const {
         wood_proto::CustomJoint* entry = proto.add_custom_joints();
         entry->set_family(family);
         for (const Polyline& outline : outlines[0])
-            entry->add_male()->ParseFromString(outline.pb_dumps());
+            if (!entry->add_male()->ParseFromString(outline.pb_dumps()))
+                throw std::runtime_error("Failed to parse Polyline protobuf data");
         for (const Polyline& outline : outlines[1])
-            entry->add_female()->ParseFromString(outline.pb_dumps());
+            if (!entry->add_female()->ParseFromString(outline.pb_dumps()))
+                throw std::runtime_error("Failed to parse Polyline protobuf data");
     }
 
     return proto.SerializeAsString();
@@ -77,7 +80,8 @@ std::string Settings::pb_dumps() const {
 Settings Settings::pb_loads(const std::string& data) {
 
     wood_proto::Settings proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse Settings protobuf data");
 
     Settings s;
     s.search_type = static_cast<SearchType>(proto.search_type());

@@ -77,7 +77,8 @@ WoodSession WoodSession::pb_loads(const std::string& data) {
     static_cast<Session&>(scene) = Session::pb_loads(data);
 
     wood_proto::WoodSession proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse WoodSession protobuf data");
 
     if (proto.has_settings())
         scene.settings = Settings::pb_loads(proto.settings().SerializeAsString());
@@ -632,8 +633,10 @@ void WoodSession::pb_dump(const std::string& filename) {
 std::string WoodSession::pb_dumps() {
 
     wood_proto::WoodSession proto;
-    proto.ParseFromString(Session::pb_dumps());
-    proto.mutable_settings()->ParseFromString(settings.pb_dumps());
+    if (!proto.ParseFromString(Session::pb_dumps()))
+        throw std::runtime_error("Failed to parse WoodSession protobuf data");
+    if (!proto.mutable_settings()->ParseFromString(settings.pb_dumps()))
+        throw std::runtime_error("Failed to parse Settings protobuf data");
 
     return proto.SerializeAsString();
 }

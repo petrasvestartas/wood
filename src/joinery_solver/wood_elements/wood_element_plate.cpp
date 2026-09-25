@@ -346,7 +346,8 @@ AABB Plate::aabb(double inflate) const {
 nlohmann::ordered_json Plate::element_data_jsondump() const {
 
     wood_proto::Plate proto;
-    proto.ParseFromString(element_data_dumps());
+    if (!proto.ParseFromString(element_data_dumps()))
+        throw std::runtime_error("Failed to parse Plate protobuf data");
 
     return json_of(proto);
 }
@@ -359,9 +360,11 @@ std::string Plate::element_data_dumps() const {
 
     wood_proto::Plate proto;
     if (polylines.size() > 0)
-        proto.mutable_bottom()->ParseFromString(polylines[0].pb_dumps());
+        if (!proto.mutable_bottom()->ParseFromString(polylines[0].pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     if (polylines.size() > 1)
-        proto.mutable_top()->ParseFromString(polylines[1].pb_dumps());
+        if (!proto.mutable_top()->ParseFromString(polylines[1].pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_reversed(reversed);
 
     return proto.SerializeAsString();

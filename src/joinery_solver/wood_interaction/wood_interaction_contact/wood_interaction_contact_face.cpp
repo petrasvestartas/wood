@@ -49,7 +49,8 @@ std::string InteractionContactFace::interaction_data_dumps() const {
     proto.set_face_a(face_a);
     proto.set_face_b(face_b);
     proto.set_type(static_cast<int>(type));
-    proto.mutable_polygon()->ParseFromString(polygon.pb_dumps());
+    if (!proto.mutable_polygon()->ParseFromString(polygon.pb_dumps()))
+        throw std::runtime_error("Failed to parse Polyline protobuf data");
 
     return proto.SerializeAsString();
 }
@@ -57,7 +58,8 @@ std::string InteractionContactFace::interaction_data_dumps() const {
 InteractionContactFace InteractionContactFace::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionContactFace proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionContactFace protobuf data");
 
     InteractionContactFace contact;
     contact.face_a = proto.face_a();

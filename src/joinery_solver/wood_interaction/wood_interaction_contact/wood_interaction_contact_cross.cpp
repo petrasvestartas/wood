@@ -44,11 +44,14 @@ std::string InteractionContactCross::interaction_data_dumps() const {
     for (int k = 0; k < 2; ++k) {
         proto.add_faces_a(faces_a[k]);
         proto.add_faces_b(faces_b[k]);
-        proto.add_lines()->ParseFromString(lines[k].pb_dumps());
-        proto.add_volumes()->ParseFromString(volumes[k].pb_dumps());
+        if (!proto.add_lines()->ParseFromString(lines[k].pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
+        if (!proto.add_volumes()->ParseFromString(volumes[k].pb_dumps()))
+            throw std::runtime_error("Failed to parse Polyline protobuf data");
     }
 
-    proto.mutable_polygon()->ParseFromString(polygon.pb_dumps());
+    if (!proto.mutable_polygon()->ParseFromString(polygon.pb_dumps()))
+        throw std::runtime_error("Failed to parse Polyline protobuf data");
 
     return proto.SerializeAsString();
 }
@@ -56,7 +59,8 @@ std::string InteractionContactCross::interaction_data_dumps() const {
 InteractionContactCross InteractionContactCross::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionContactCross proto;
-    proto.ParseFromString(data);
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Failed to parse InteractionContactCross protobuf data");
 
     InteractionContactCross contact;
 
