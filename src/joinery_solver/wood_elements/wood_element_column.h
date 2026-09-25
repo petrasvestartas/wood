@@ -43,7 +43,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis, section and cuts default.
-    static std::shared_ptr<Column> from_element(const session_cpp::Element& element);
+    static std::shared_ptr<Column> from_element(session_cpp::Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

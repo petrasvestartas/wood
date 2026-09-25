@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/chevron.h"
+#include "src/templates/shells/chevron.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -42,7 +42,7 @@ cmake --build build --target templates_chevron --parallel 4 && ./build/templates
 examples/templates_chevron.cpp
  |
  |-- wood_chevron::annen_surfaces(data/annen_surfaces.json)   the 23 serialized Annen surfaces
- |-- Chevron(surface, u_divisions, v_division_dist, shift, scale, box_height, top_plate_inlet, plate_thickness, edge_rotation, edge_offset)                       src/templates/chevron.h
+ |-- Chevron(surface, u_divisions, v_division_dist, shift, scale, box_height, top_plate_inlet, plate_thickness, edge_rotation, edge_offset)                       src/templates/shells/chevron.h
  |    |-- wood_chevron::chevron_mesh -> mesh; wood_chevron::chevron_plates -> 8 outlines per face -> 4 Plate(bottom, top) per face in `elements`,
  |    plus insertion_vectors, joints_per_face, three_valence, adjacency for the solver
  |

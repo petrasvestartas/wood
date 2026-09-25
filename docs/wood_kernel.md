@@ -12,7 +12,7 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
 | `src/joinery_solver/wood_elements/wood_element_geometry.h/.cpp` | what the elements share: `sweep_sections`, `brep_sections`, `compute_newell`, `face_planes`, `compute_volume`, `is_geometry_feature` |
 | `src/joinery_solver/wood_elements/wood_profile.h/.cpp` | `profile_rectangle`, `profile_round`, `profile_w`, `profile_hss`, `profile_double`, `profile_slab_band`, `profile_t`, `compute_size`, `profile_section` |
-| `src/templates/grid_plan.h/.cpp` | the plan algorithms of the grid template: `compute_section` of a solid at a height, ring booleans, offsets and mitres, `compute_crossings` and `compute_arrangement` of lines into a `Mesh` arrangement, direction polygons at a node |
+| `src/templates/grid/grid_plan.h/.cpp` | the plan algorithms of the grid template: `compute_section` of a solid at a height, ring booleans, offsets and mitres, `compute_crossings` and `compute_arrangement` of lines into a `Mesh` arrangement, direction polygons at a node |
 | `src/joinery_solver/wood_instance.h/.cpp` | `element_key`: the class key and frame `WoodSession::instance_by_key` dedups by |
 | `src/joinery_solver/wood_interaction/**` | the connectivity classes, one per file (see `src/docs.md`), all derived from the kernel's abstract `session_cpp::Interaction`: abstract `InteractionContact` ← `InteractionContactFace` / `InteractionContactAxis` / `InteractionContactCross`, abstract `InteractionFeature` ← `InteractionFeaturePlate` / `InteractionFeatureBeam` / `InteractionFeaturePlateBeam`, abstract `InteractionStructure` with no leaf yet; each leaf registers a factory with the kernel and writes its fields as `interaction_data` |
 | `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `InteractionFeaturePlate` |
@@ -32,10 +32,9 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, `add_interaction` / `remove_interaction` with the wood rules over the kernel's `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.h/.cpp` | dataset runners, one per `data/*.yml` |
-| `src/templates/` | the generators, one page with screenshots in `docs/templates.md`: the shell templates `translation_shell.h`, `reflex_fold.h`, `chevron.h`, `diamond_mesh.h`, `vda_mesh.h`, `reciprocal_*.h` (header-only, Plates); the building template `grid.h/.cpp` (`Pattern`, `Framing`, `Building`; columns, heads, girders, beams, purlins, braces, decks and walls) and `clash.h/.cpp`, the pairwise overlap check |
+| `src/templates/` | the generators, one folder per family, one page with screenshots in `docs/templates.md`: header-only Plates in `shells/` (`translation_shell.h`, `chevron.h`), `folding/` (`reflex_fold.h`, `diamond_mesh.h`), `cross/` (`vda_mesh.h`) and `reciprocal/` (`reciprocal_*.h`); the building template in `grid/` (`grid.h/.cpp`: `Pattern`, `Framing`, `Building`; columns, heads, girders, beams, purlins, braces, decks and walls) |
 | `examples/` | `1_elements` … `12_cross_joints` (`docs/examples.md`), `main_dataset_runner`, `main_all_datasets`, `main_session_round_trip`, `main_element_mapping_check`, one `templates_*` main per template and per grid workflow and pattern |
 | `data/` | `<name>.yml` + `<name>.obj` + optional `<name>_{adjacency,three_valence,insertion_vectors,joints_types}.txt`; `output/` |
-| `tests/` | `wood_solver_test`, `wood_assign_test`, `wood_geometry_test`, `wood_interaction_test`, `wood_instance_test`, `wood_profile_test`, `wood_grid_test` (every grid scene: count table, closed solids, no clash, every element in contact, every member end supported), `dataset_runner_test.py` |
 | `tools/` | `run_guarded.sh` / `.ps1` (always use), `xml_to_dataset.py` (legacy XML → yml/obj/txt) |
 
 `CMakeLists.txt` builds `wood_core` (OBJECT, C++23) and one `ADD_EXE` per example and test,
@@ -83,7 +82,7 @@ caches; `invalidate_geometry()` and `place()` clear all four. `Plate::face_featu
 
 A beam, column or block carries `cuts`, planes applied to its parametric solid by the kernel's
 `Mesh::cut_by_plane` / `BRep::cut_by_plane`, each keeping the side its normal points to; assign
-them and call `invalidate_geometry()`. The grid template (`src/templates/grid.h`) resolves every
+them and call `invalidate_geometry()`. The grid template (`src/templates/grid/grid.h`) resolves every
 joint into such planes. `WoodSession::instance_by_key()` replaces every repeated element by an
 instance of one definition, keeping guid, name, tree node, edges and features; the passes read
 `world_elements()`, every element and instance as world geometry.
@@ -274,8 +273,7 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 6. Add `case <id>: <prefix>_N(joint); break;` to that group in `joint_create_geometry`
    (`wood_joint_solver.cpp`).
 7. Exercise it: set the id in a dataset's `joints_parameters_and_types` row (col 2) or a
-   `<name>_joints_types.txt` sidecar, run `main_dataset_runner` through the guard, and add a
-   check to `tests/wood_solver_test.cpp` when the geometry can be asserted.
+   `<name>_joints_types.txt` sidecar, and run `main_dataset_runner` through the guard.
 
 ### Custom joints at runtime
 

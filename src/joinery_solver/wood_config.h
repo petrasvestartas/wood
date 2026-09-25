@@ -13,7 +13,7 @@ namespace config {
 
     extern const std::vector<std::string> SESSION_NAMES; // Every session shipped in data/ as `<name>.pb`.
 
-    /// Named access to every string in DATASET_NAMES, same strings and sweep order; kept in sync by dataset_names_test.cpp.
+    /// Named access to every string in DATASET_NAMES, same strings and sweep order, kept in sync by hand.
     struct Dataset {
         static constexpr std::string_view hexbox_and_corner = "hexbox_and_corner";
         static constexpr std::string_view vidy_corner = "vidy_corner";

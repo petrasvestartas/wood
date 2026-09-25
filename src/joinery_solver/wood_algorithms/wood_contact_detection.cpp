@@ -41,9 +41,18 @@ void bounding_points(Element& e, std::vector<Point>& out) {
         add_outline(loop, out);
 }
 
-/// Whether face i is an outer (top/bottom) face, where a triangular overlap is accepted.
+/// Whether face i is an outer (top/bottom) face of a plate.
 bool outer_face(const Element& e, size_t i) {
     return is_plate(e) && i < 2;
+}
+
+/// Whether a triangular overlap of faces i and j is a contact: always when either element is not a plate, since a cut member end bears on a triangle; between two plates only outer to outer.
+bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
+
+    if (!is_plate(a) || !is_plate(b))
+        return true;
+
+    return outer_face(a, i) && outer_face(b, j);
 }
 
 /// Topology class of a face pair; unknown unless both sides follow the plate convention.
@@ -244,7 +253,7 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
                 trace->coplanar++;
 
             Polyline polygon;
-            const bool triangles = outer_face(ea, i) && outer_face(eb, j);
+            const bool triangles = triangle_contact(ea, i, eb, j);
             if (!face_overlap_area(outlines_a[i], outlines_b[j], planes_a[i], triangles, settings.clipper_scale, settings.clipper_area, polygon)) {
                 if (TRACE && trace)
                     trace->fail_reason = fmt::format("bool_empty f({},{})", i, j);

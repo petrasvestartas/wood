@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/translation_shell.h"
+#include "src/templates/shells/translation_shell.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -37,7 +37,7 @@ cmake --build build --target templates_translation_shell --parallel 4 && ./build
 |||||||| WORKFLOW ||||||||
 examples/templates_translation_shell.cpp
  |
- |-- TranslationShell(cross_section, profile, thickness, chamfer, chamfer_angle)                       src/templates/translation_shell.h
+ |-- TranslationShell(cross_section, profile, thickness, chamfer, chamfer_angle)                       src/templates/shells/translation_shell.h
  |    |-- sweep(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per strip in `elements`
  |
  |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element

@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/grid.h"
+#include "src/templates/grid/grid.h"
 
 using namespace session_cpp;
 using namespace wood_session;

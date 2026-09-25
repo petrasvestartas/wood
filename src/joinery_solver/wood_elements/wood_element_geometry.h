@@ -41,6 +41,13 @@ session_cpp::BRep brep_between_loops(const std::vector<session_cpp::Polyline>& b
 session_cpp::Mesh cut_mesh(const session_cpp::Mesh& geometry, const std::vector<session_cpp::Plane>& planes);
 session_cpp::BRep cut_brep(const session_cpp::BRep& geometry, const std::vector<session_cpp::Plane>& planes);
 
+/// An axis and its sections (one closed ring per axis point) trimmed to what the cuts leave, each keeping the side its normal points to: the axis clipped to its one kept run, a ring whose point was cut away dropped, every other ring clipped by the cuts, and at a cut end the ring moved along the axis onto that cut and clipped by the others, the member's end face; one ring per trimmed axis point, empty where no face is left, none when the sections do not match the axis.
+std::pair<session_cpp::Polyline, std::vector<session_cpp::Polyline>> trim_to_cuts(
+    const session_cpp::Polyline& axis,
+    const std::vector<session_cpp::Polyline>& sections,
+    const std::vector<session_cpp::Plane>& cuts
+);
+
 /// True when xform flips handedness, a mirror that turns a wood solid inside out.
 bool is_mirror(const session_cpp::Xform& xform);
 

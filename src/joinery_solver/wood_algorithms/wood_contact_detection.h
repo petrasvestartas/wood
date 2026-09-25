@@ -53,7 +53,7 @@ bool face_overlap_area(
 // Face contacts - both phases
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Every contacting face pair between ONE element pair, ordered by face index; `trace`, when given, counts the coplanar and overlapping pairs.
+/// Every contacting face pair between ONE element pair, ordered by face index; a triangular overlap counts unless both elements are plates and one face is a side; `trace`, when given, counts the coplanar and overlapping pairs.
 std::vector<InteractionContactFace> face_contacts_for_pair(
     session_cpp::Element& ea,
     session_cpp::Element& eb,

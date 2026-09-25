@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/vda_mesh.h"
+#include "src/templates/cross/vda_mesh.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -49,7 +49,7 @@ cmake --build build --target templates_vda_mesh --parallel 4 && ./build/template
 |||||||| WORKFLOW ||||||||
 examples/templates_vda_mesh.cpp
  |
- |-- VdaMesh(mesh, face_thickness, face_positions, edge_divisions, edge_division_len, insertion_lines, width, height, thickness)   src/templates/vda_mesh.h
+ |-- VdaMesh(mesh, face_thickness, face_positions, edge_divisions, edge_division_len, insertion_lines, width, height, thickness)   src/templates/cross/vda_mesh.h
  |    |-- face planes, face-edge planes, bisector planes -> f_polylines, a bottom and top outline per face per position
  |    '-- edge planes per division -> e_polylines, two connector rectangles per interior edge division
  |

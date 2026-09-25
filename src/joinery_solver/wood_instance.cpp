@@ -310,7 +310,6 @@ std::shared_ptr<Element> WoodSession::world_view(const std::string& guid, const 
         return nullptr;
 
     if (!std::dynamic_pointer_cast<Plate>(view)) {
-        source->geometry_mesh();
         view->set_polylines(transformed_list(source->polylines(), world));
         view->set_planes(transformed_list(source->planes(), world));
     }

@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/diamond_mesh.h"
+#include "src/templates/folding/diamond_mesh.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -40,7 +40,7 @@ cmake --build build --target templates_diamond_mesh --parallel 4 && ./build/temp
 |||||||| WORKFLOW ||||||||
 examples/templates_diamond_mesh.cpp
  |
- |-- DiamondMesh(surface, u_div, v_div, thickness, chamfer, chamfer_angle)                       src/templates/diamond_mesh.h
+ |-- DiamondMesh(surface, u_div, v_div, thickness, chamfer, chamfer_angle)                       src/templates/folding/diamond_mesh.h
  |    |-- triangle pairs on the surface -> mesh; Mesh::miter_contours, chamfer_mask, chamfer_apply -> one Plate(bottom, top) per triangle in `elements`
  |
  |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element

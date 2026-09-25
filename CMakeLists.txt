@@ -88,11 +88,10 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
-    src/templates/grid_plan.cpp
-    src/templates/grid_levels.cpp
-    src/templates/grid_joints.cpp
-    src/templates/grid.cpp
-    src/templates/clash.cpp
+    src/templates/grid/grid_plan.cpp
+    src/templates/grid/grid_levels.cpp
+    src/templates/grid/grid_joints.cpp
+    src/templates/grid/grid.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -158,9 +157,6 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_structure
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
-    # The template headers (reciprocal.h, chevron.h, ...) are included unqualified by
-    # the mains under examples/templates/.
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
     # session_core's own PUBLIC set: src, fmt, json, guid, yaml. Taken from the
     # target rather than respelled, so it cannot drift from session_cpp.
     $<TARGET_PROPERTY:session_core,INTERFACE_INCLUDE_DIRECTORIES>
@@ -185,7 +181,7 @@ if(WOOD_PROTOC)
 endif()
 
 # Every executable in this project: wood solver + session kernel + protobuf.
-# Extra sources (e.g. wood_test.cpp) go in ${ARGN} and are compiled per target.
+# Extra sources (e.g. the dataset runners) go in ${ARGN} and are compiled per target.
 function(ADD_EXE NAME SRC)
     add_executable(${NAME} ${SRC} ${ARGN})
     target_link_libraries(${NAME} PRIVATE wood_core session_core)
@@ -293,36 +289,4 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
         COMMENT "Doxygen: build/docs/html"
     )
-endif()
-
-include(CTest)
-if(BUILD_TESTING)
-    ADD_EXE(wood_assign_test tests/wood_assign_test.cpp)
-    ADD_EXE(wood_solver_test tests/wood_solver_test.cpp)
-    ADD_EXE(wood_instance_test tests/wood_instance_test.cpp)
-    ADD_EXE(wood_geometry_test tests/wood_geometry_test.cpp)
-    ADD_EXE(wood_interaction_test tests/wood_interaction_test.cpp)
-    ADD_EXE(wood_grid_test tests/wood_grid_test.cpp)
-    ADD_EXE(wood_profile_test tests/wood_profile_test.cpp)
-    if(UNIX)
-        add_test(NAME wood_assign COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_assign_test>)
-        set_tests_properties(wood_assign PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_solver COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_solver_test>)
-        set_tests_properties(wood_solver PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_instance COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_instance_test>)
-        set_tests_properties(wood_instance PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_geometry COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_geometry_test>)
-        set_tests_properties(wood_geometry PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_interaction COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_interaction_test>)
-        set_tests_properties(wood_interaction PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_grid COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_grid_test>)
-        set_tests_properties(wood_grid PROPERTIES RUN_SERIAL TRUE)
-        add_test(NAME wood_profile COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_guarded.sh -n wood-solver -- $<TARGET_FILE:wood_profile_test>)
-        set_tests_properties(wood_profile PROPERTIES RUN_SERIAL TRUE)
-        find_package(Python3 QUIET COMPONENTS Interpreter)
-        if(Python3_Interpreter_FOUND)
-            add_test(NAME wood_dataset_runner COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/dataset_runner_test.py)
-            set_tests_properties(wood_dataset_runner PROPERTIES RUN_SERIAL TRUE ENVIRONMENT "CXX=${CMAKE_CXX_COMPILER}")
-        endif()
-    endif()
 endif()

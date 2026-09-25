@@ -20,14 +20,14 @@ Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Elem
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Block> Block::from_element(const Element& e) {
+std::shared_ptr<Block> Block::from_element(Element e) {
 
+    const std::string bytes = e.element_data_dumps();
     std::shared_ptr<Block> block = std::make_shared<Block>();
-    static_cast<Element&>(*block) = e;
-    block->guid() = e.guid();
+    static_cast<Element&>(*block) = std::move(e);
 
     wood_proto::Block proto;
-    if (!proto.ParseFromString(e.element_data_dumps()))
+    if (!proto.ParseFromString(bytes))
         return block;
 
     for (const session_proto::Polyline& loop : proto.loops())

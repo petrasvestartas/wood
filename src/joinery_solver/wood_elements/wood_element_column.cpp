@@ -70,13 +70,12 @@ Column::Column(const Line& axis, const std::vector<Polyline>& profile, double ro
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Column> Column::from_element(const Element& e) {
-
-    std::shared_ptr<Column> column = std::make_shared<Column>();
-    static_cast<Element&>(*column) = e;
-    column->guid() = e.guid();
+std::shared_ptr<Column> Column::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
+    std::shared_ptr<Column> column = std::make_shared<Column>();
+    static_cast<Element&>(*column) = std::move(e);
+
     if (!bytes.empty() && bytes.front() == '{') {
         try {
             const nlohmann::json payload = nlohmann::json::parse(bytes);
@@ -227,10 +226,18 @@ void Column::compute_geometry_brep_impl() {
 
 void Column::compute_geometry_features() {
 
-    std::vector<ElementFeature> next;
-    next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
+    std::vector<Polyline> ends;
     if (section.point_count() > 0)
-        next.push_back(polyline_feature("section", section));
+        ends = {section, section.translated(axis.to_vector())};
+
+    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(Polyline({axis.start(), axis.end()}), ends, cuts);
+
+    std::vector<ElementFeature> next;
+    next.push_back(polyline_feature("axis", trimmed.first));
+
+    if (!trimmed.second.empty() && trimmed.second.front().point_count() > 0)
+        next.push_back(polyline_feature("section", trimmed.second.front()));
+
     for (ElementFeature& feature : session_features(*this))
         next.push_back(std::move(feature));
 

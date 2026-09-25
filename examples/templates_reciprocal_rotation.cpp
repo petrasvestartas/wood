@@ -1,6 +1,6 @@
 #include "wood_session.h"
-#include "src/templates/reciprocal_rotation.h"
-#include "src/templates/reciprocal_surface.h"
+#include "src/templates/reciprocal/reciprocal_rotation.h"
+#include "src/templates/reciprocal/reciprocal_surface.h"
 
 using namespace session_cpp;
 using namespace wood_session; // ═══════════════════════════════════════════════════════════════════════════
@@ -114,12 +114,12 @@ cmake --build build --target templates_reciprocal_rotation --parallel 4 && ./bui
 |||||||| WORKFLOW ||||||||
 examples/templates_reciprocal_rotation.cpp
  |
- |-- case_surface -> one of the test surfaces, flatten_surface_sides            src/templates/reciprocal_surface.h
+ |-- case_surface -> one of the test surfaces, flatten_surface_sides            src/templates/reciprocal/reciprocal_surface.h
  |-- case_mesh -> quad_mesh_from_surface, hex_mesh_from_surface or dual_hex_mesh
  |-- frame_ups -> side_tilt_boundary_ups, from the surface or from FRAME_VECTORS
  |
- |-- ReciprocalRotation(mesh, angle, scale, width, height, ..., boundary_ups, Butt, through)   src/templates/reciprocal_rotation.h
- |    |-- Reciprocal::from_mesh -> rotated centre lines; frame: wood_reciprocal::boundary_frame, cut_beam   src/templates/reciprocal_boundary.h
+ |-- ReciprocalRotation(mesh, angle, scale, width, height, ..., boundary_ups, Butt, through)   src/templates/reciprocal/reciprocal_rotation.h
+ |    |-- Reciprocal::from_mesh -> rotated centre lines; frame: wood_reciprocal::boundary_frame, cut_beam   src/templates/reciprocal/reciprocal_boundary.h
  |
  |-- WoodSession add_nurbssurface, add_mesh, add(plate), pb_dump   src/joinery_solver/wood_session.cpp -> data/output/pb/live.pb
 

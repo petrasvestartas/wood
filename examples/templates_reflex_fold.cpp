@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/reflex_fold.h"
+#include "src/templates/folding/reflex_fold.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -37,7 +37,7 @@ cmake --build build --target templates_reflex_fold --parallel 4 && ./build/templ
 |||||||| WORKFLOW ||||||||
 examples/templates_reflex_fold.cpp
  |
- |-- ReflexFold(cross_section, profile, thickness, chamfer_bot, chamfer_top, chamfer_angle)                       src/templates/reflex_fold.h
+ |-- ReflexFold(cross_section, profile, thickness, chamfer_bot, chamfer_top, chamfer_angle)                       src/templates/folding/reflex_fold.h
  |    |-- reflex_fold(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per fold in `elements`
  |
  |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element

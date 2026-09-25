@@ -44,7 +44,7 @@ public:
     static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, const session_cpp::Vector& thickness, const std::string& name = "plate");
 
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
-    static std::shared_ptr<Plate> from_element(const session_cpp::Element& element);
+    static std::shared_ptr<Plate> from_element(session_cpp::Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

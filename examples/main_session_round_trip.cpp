@@ -109,6 +109,30 @@ int main() {
 
     check(records, fmt::format("every interaction by its edge guid, its type, guid and fields ({}) survives the pb", record_count));
 
+    std::set<std::string> interaction_guids;
+
+    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : b.interactions)
+        for (const std::shared_ptr<Interaction>& interaction : entry.second)
+            interaction_guids.insert(interaction->guid());
+
+    size_t contacts = 0;
+    size_t linked = 0;
+
+    for (const std::shared_ptr<Element>& element : *b.objects.elements) {
+
+        if (!std::dynamic_pointer_cast<Plate>(element))
+            continue;
+
+        for (const ElementFeature& feature : element->features())
+            if (feature.feature_type == "contact") {
+                contacts++;
+                linked += interaction_guids.count(feature.guid());
+            }
+    }
+
+    std::cout << fmt::format("plate contact features keeping their interaction guid after the pb: {} of {}\n", linked, contacts);
+    check(contacts > 0 && linked == contacts, "every Plate's contact feature keeps its interaction's guid through the pb");
+
     const WoodSession copy = a;
     bool copied = copy.interactions.size() == a.interactions.size();
 

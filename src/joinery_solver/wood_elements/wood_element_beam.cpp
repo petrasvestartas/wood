@@ -23,13 +23,12 @@ Beam::Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Beam> Beam::from_element(const Element& e) {
-
-    std::shared_ptr<Beam> beam = std::make_shared<Beam>();
-    static_cast<Element&>(*beam) = e;
-    beam->guid() = e.guid();
+std::shared_ptr<Beam> Beam::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
+    std::shared_ptr<Beam> beam = std::make_shared<Beam>();
+    static_cast<Element&>(*beam) = std::move(e);
+
     if (!bytes.empty() && bytes.front() == '{') {
         try {
             const nlohmann::json payload = nlohmann::json::parse(bytes);
@@ -229,12 +228,15 @@ void Beam::compute_geometry_brep_impl() {
 
 void Beam::compute_geometry_features() {
 
-    const std::vector<Polyline> rings = sections();
+    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(axis, sections(), cuts);
 
     std::vector<ElementFeature> next;
-    next.push_back(polyline_feature("axis", axis));
-    for (const Polyline& ring : rings)
-        next.push_back(polyline_feature("section", ring));
+    next.push_back(polyline_feature("axis", trimmed.first));
+
+    for (const Polyline& ring : trimmed.second)
+        if (ring.point_count() > 0)
+            next.push_back(polyline_feature("section", ring));
+
     for (ElementFeature& feature : session_features(*this))
         next.push_back(std::move(feature));
 

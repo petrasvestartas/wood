@@ -1,17 +1,17 @@
 # Templates {#templates}
 
-Generators under `src/templates/` that turn a surface, a mesh or a building outline into wood elements. Each has one example under `examples/`, a CMake target of the same name, that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer; every screenshot below is that file rendered by session_viewer with the default grey. The code of the example follows each picture.
+Generators under `src/templates/`, one folder per family (`grid/`, `reciprocal/`, `shells/`, `folding/`, `cross/`), that turn a surface, a mesh or a building outline into wood elements. Each has one example under `examples/`, a CMake target of the same name, that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer; every screenshot below is that file rendered by session_viewer with the default grey. The code of the example follows each picture.
 
 | Template | Header | Example | Elements |
 |---|---|---|---|
-| Translation shell | `translation_shell.h` | `templates_translation_shell` | one chamfered plate per swept quad |
-| Reflex fold | `reflex_fold.h` | `templates_reflex_fold` | one plate per fold |
-| Chevron | `chevron.h` | `templates_chevron` | four plates per face of an Annen surface |
-| Diamond mesh | `diamond_mesh.h` | `templates_diamond_mesh` | one plate per triangle of a rhombus pattern |
-| VDA mesh | `vda_mesh.h` | `templates_vda_mesh` | one plate per face plus connector plates across every interior edge |
-| Reciprocal move | `reciprocal_move.h` | `templates_reciprocal_move` | one beam plate per mesh edge, shifted past its neighbours |
-| Reciprocal rotation | `reciprocal_rotation.h` | `templates_reciprocal_rotation` | one beam plate per mesh edge, rotated about its midpoint |
-| Grid | `grid.h` | `1_elements_*`, `templates_grid_*` | columns, heads, girders, beams, purlins, braces, decks and walls of a multistorey building |
+| Translation shell | `shells/translation_shell.h` | `templates_translation_shell` | one chamfered plate per swept quad |
+| Reflex fold | `folding/reflex_fold.h` | `templates_reflex_fold` | one plate per fold |
+| Chevron | `shells/chevron.h` | `templates_chevron` | four plates per face of an Annen surface |
+| Diamond mesh | `folding/diamond_mesh.h` | `templates_diamond_mesh` | one plate per triangle of a rhombus pattern |
+| VDA mesh | `cross/vda_mesh.h` | `templates_vda_mesh` | one plate per face plus connector plates across every interior edge |
+| Reciprocal move | `reciprocal/reciprocal_move.h` | `templates_reciprocal_move` | one beam plate per mesh edge, shifted past its neighbours |
+| Reciprocal rotation | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_rotation` | one beam plate per mesh edge, rotated about its midpoint |
+| Grid | `grid/grid.h` | `1_elements_*`, `templates_grid_*` | columns, heads, girders, beams, purlins, braces, decks and walls of a multistorey building |
 
 ## translation_shell
 
@@ -71,7 +71,7 @@ A nexorade by rotation: every mesh edge is stretched about its midpoint and turn
 
 ## grid
 
-`src/templates/grid.h` builds a multistorey timber building from a rough shape in a few lines. The work is split in three stages, one file each: `grid_levels.cpp` turns the input into level plans, `grid_joints.cpp` holds the joint rules, `grid.cpp` builds the elements; `grid_plan.h` is the plan geometry they share and `clash.h` the overlap check. Three structs, `wood_grid::Pattern`, `wood_grid::Framing` and `wood_grid::Building`:
+`src/templates/grid/grid.h` builds a multistorey timber building from a rough shape in a few lines. The work is split in three stages, one file each: `grid_levels.cpp` turns the input into level plans, `grid_joints.cpp` holds the joint rules, `grid.cpp` builds the elements; `grid_plan.h` is the plan geometry they share. Three structs, `wood_grid::Pattern`, `wood_grid::Framing` and `wood_grid::Building`:
 
 - `Pattern`: the plan lines a building is drawn on, in parallel families. `orthogonal(xs, ys, skew)`, `radial(radii, sectors, sweep)`, `triangular(side, nx, ny)`, `hexagonal(side, nx, ny)` and `from_lines(lines, families)`; `transformed(xform)` moves it under the building. `compute_bays(length, spacing)` lays Branch3D's whole bays plus a remainder over a length.
 - `Framing`: how every level is framed and jointed. `system` 0 point supported, 1 post and beam, 2 purlin on girder; `span` the family the girders run on, -1 every line a beam; `spacing` of the purlin stations; `node` 0 head, 1 flush, 2 through; `drop` of the girder top; `deck`, `wall`, `head`, `reach`, `capital`, `panel`, `taper`, `facade`; and `Profiles`, a section per role (column, girder, beam, purlin, edge girder, edge beam, brace) from `wood_profile.h`: rectangle, round, W, HSS, double, slab band, T.
@@ -106,7 +106,7 @@ flowchart LR
 
 Joints are small rules in `grid_joints.cpp`, not per-case code: at every plan vertex the members are ranked (edge girder, edge beam, girder, beam, purlin, brace), the highest runs through and the rest butt into it, into the column face (nodes 1 and 2) or into the core wall's outer face; a member with anything straight across the node runs through it, so only a pure corner (an L of two equal members, a Y of three) is mitred; ends that overhang their supports past each other are mitred; the deck is pushed out to the outer faces of the boundary members, notched round the columns rising through it and holed over the cores; a head on the perimeter is cut back to the deck edge.
 
-Column heads (`node` 0) take their shape from what they carry. Where members only rest on the head (one member, or two running straight on) the head is the column section extruded. Where it carries cut member ends (butts, mitres) or the deck itself (point supported) it flares to `reach`, by `Framing::capital`: 0 conical, a frustum from the column section; 1 stepped, a capital to halfway under a drop panel (a second element, `drop_panel`). Every head stays inside the deck outline. In the examples: stepped in `templates_grid_point_supported`; column-section heads where a girder passes straight over in `templates_grid_radial` (the middle ring) and `templates_grid_triangular` (the interior x lines); conical everywhere else under node 0 (`1_elements_*`, `templates_grid`, hex, irregular, the solid prism, taper and curved, crea, Branch square `SYSTEM` 0). Every cut is a `Plane` in the element's `cuts`, applied by `Mesh::cut_by_plane` when the solid is built, so every element touches its neighbours face to face and none overlap. `tests/wood_grid_test.cpp` runs the check on every scene: `wood_grid::compute_clashes` (`clash.h`) finds no pairwise overlap volume, every element is in contact, every member end is supported.
+Column heads (`node` 0) take their shape from what they carry. Where members only rest on the head (one member, or two running straight on) the head is the column section extruded. Where it carries cut member ends (butts, mitres) or the deck itself (point supported) it flares to `reach`, by `Framing::capital`: 0 conical, a frustum from the column section; 1 stepped, a capital to halfway under a drop panel (a second element, `drop_panel`). Every head stays inside the deck outline. In the examples: stepped in `templates_grid_point_supported`; column-section heads where a girder passes straight over in `templates_grid_radial` (the middle ring) and `templates_grid_triangular` (the interior x lines); conical everywhere else under node 0 (`1_elements_*`, `templates_grid`, hex, irregular, the solid prism, taper and curved, crea, Branch square `SYSTEM` 0). Every cut is a `Plane` in the element's `cuts`, applied by `Mesh::cut_by_plane` when the solid is built, so every element touches its neighbours face to face and none overlap.
 
 ### 1_elements_flat
 

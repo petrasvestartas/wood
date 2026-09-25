@@ -1,5 +1,5 @@
 #include "wood_session.h"
-#include "src/templates/grid.h"
+#include "src/templates/grid/grid.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -41,8 +41,8 @@ cmake --build build --target templates_grid --parallel 4 && ./build/templates_gr
 |||||||| WORKFLOW ||||||||
 examples/templates_grid.cpp
  |
- |-- Pattern::orthogonal(XS, YS) -> plan lines; Building::from_footprint(FOOTPRINT, ELEVATIONS, pattern)   src/templates/grid.h
- |-- to_session(wood_session, FRAMING): roles, columns, stations, joint cuts, elements under storey_k    src/templates/grid_joints.h
+ |-- Pattern::orthogonal(XS, YS) -> plan lines; Building::from_footprint(FOOTPRINT, ELEVATIONS, pattern)   src/templates/grid/grid.h
+ |-- to_session(wood_session, FRAMING): roles, columns, stations, joint cuts, elements under storey_k    src/templates/grid/grid_joints.h
  |-- instance_by_key() when INSTANCES
  |-- compute_contacts(0)
  '-- pb_dump(pb_path("live"))                                                       data/output/pb/live.pb, the file the viewer watches

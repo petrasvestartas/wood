@@ -205,6 +205,164 @@ BRep cut_brep(const BRep& geometry, const std::vector<Plane>& planes) {
     return cut;
 }
 
+/// Distance of a point from the plane, positive on the side its normal points to.
+static double signed_distance(const Plane& plane, const Point& point) {
+    return (point - plane.origin()).dot(plane.z_axis());
+}
+
+/// The first axis parameter (i at point i) on the kept side of the plane; past the last point when none is.
+static double enter_parameter(const std::vector<Point>& points, const Plane& plane) {
+
+    for (size_t i = 0; i < points.size(); i++) {
+
+        const double d = signed_distance(plane, points[i]);
+        if (d < -Tolerance::APPROXIMATION)
+            continue;
+
+        if (i == 0)
+            return 0.0;
+
+        const double before = signed_distance(plane, points[i - 1]);
+
+        return static_cast<double>(i - 1) + before / (before - d);
+    }
+
+    return static_cast<double>(points.size());
+}
+
+/// The last axis parameter on the kept side of the plane; below zero when none is.
+static double exit_parameter(const std::vector<Point>& points, const Plane& plane) {
+
+    for (size_t i = points.size(); i > 0; i--) {
+
+        const double d = signed_distance(plane, points[i - 1]);
+        if (d < -Tolerance::APPROXIMATION)
+            continue;
+
+        if (i == points.size())
+            return static_cast<double>(i - 1);
+
+        const double after = signed_distance(plane, points[i]);
+
+        return static_cast<double>(i - 1) + d / (d - after);
+    }
+
+    return -1.0;
+}
+
+/// The axis point at parameter t on segment `segment`.
+static Point point_at(const std::vector<Point>& points, size_t segment, double t) {
+    return points[segment] + (points[segment + 1] - points[segment]) * (t - static_cast<double>(segment));
+}
+
+/// A closed ring cut by a plane, the part on the side its normal points to; empty when under three points are left.
+static Polyline clip_ring(const Polyline& ring, const Plane& plane) {
+
+    const size_t n = ring.is_closed() ? ring.point_count() - 1 : ring.point_count();
+    std::vector<Point> kept;
+
+    for (size_t i = 0; i < n; i++) {
+
+        const Point a = ring.get_point(i);
+        const Point b = ring.get_point((i + 1) % n);
+        const double da = signed_distance(plane, a);
+        const double db = signed_distance(plane, b);
+
+        if (da >= -Tolerance::APPROXIMATION)
+            kept.push_back(a);
+
+        if ((da < -Tolerance::APPROXIMATION) != (db < -Tolerance::APPROXIMATION))
+            kept.push_back(a + (b - a) * (da / (da - db)));
+    }
+
+    if (kept.size() < 3)
+        return Polyline();
+
+    kept.push_back(kept.front());
+
+    return Polyline(kept);
+}
+
+/// A ring clipped by every cut but `skip`: the part of it inside the member.
+static Polyline kept_ring(const Polyline& ring, const std::vector<Plane>& cuts, size_t skip) {
+
+    Polyline face = ring;
+    for (size_t k = 0; k < cuts.size() && face.point_count() > 0; k++)
+        if (k != skip)
+            face = clip_ring(face, cuts[k]);
+
+    return face;
+}
+
+/// A ring moved along `along` onto cut `index`, then clipped by every other cut: the face that cut leaves on the member.
+static Polyline end_section(const Polyline& ring, const Vector& along, const std::vector<Plane>& cuts, size_t index) {
+
+    const double speed = along.dot(cuts[index].z_axis());
+    if (std::abs(speed) < Tolerance::ZERO_TOLERANCE)
+        return Polyline();
+
+    std::vector<Point> moved;
+    for (const Point& point : ring.get_points())
+        moved.push_back(point - along * (signed_distance(cuts[index], point) / speed));
+
+    return kept_ring(Polyline(moved), cuts, index);
+}
+
+std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, const std::vector<Polyline>& sections, const std::vector<Plane>& cuts) {
+
+    const std::vector<Point> points = axis.get_points();
+    if (points.size() < 2 || cuts.empty())
+        return {axis, sections.size() == points.size() ? sections : std::vector<Polyline>()};
+
+    const size_t n = points.size() - 1;
+    double start = 0.0;
+    double end = static_cast<double>(n);
+    int start_cut = -1;
+    int end_cut = -1;
+
+    for (size_t k = 0; k < cuts.size(); k++) {
+
+        const double enter = enter_parameter(points, cuts[k]);
+        if (enter > start) {
+            start = enter;
+            start_cut = static_cast<int>(k);
+        }
+
+        const double exit = exit_parameter(points, cuts[k]);
+        if (exit < end) {
+            end = exit;
+            end_cut = static_cast<int>(k);
+        }
+    }
+
+    if (start >= end)
+        return {Polyline(), {}};
+
+    const bool ringed = sections.size() == points.size();
+    const size_t first = std::min(static_cast<size_t>(start), n - 1);
+    const size_t last = std::min(static_cast<size_t>(std::max(std::ceil(end) - 1.0, 0.0)), n - 1);
+    std::vector<Point> kept = {point_at(points, first, start)};
+    std::vector<Polyline> rings;
+
+    if (ringed)
+        rings.push_back(start_cut < 0 ? kept_ring(sections[0], cuts, cuts.size()) : end_section(sections[first], points[first + 1] - points[first], cuts, start_cut));
+
+    for (size_t i = first + 1; i <= last; i++) {
+
+        kept.push_back(points[i]);
+
+        if (ringed)
+            rings.push_back(kept_ring(sections[i], cuts, cuts.size()));
+    }
+
+    kept.push_back(point_at(points, last, end));
+
+    if (ringed)
+        rings.push_back(end_cut < 0 ? kept_ring(sections[n], cuts, cuts.size()) : end_section(sections[last + 1], points[last + 1] - points[last], cuts, end_cut));
+
+    return {Polyline(kept), rings};
+}
+
 bool is_mirror(const Xform& xform) {
 
     const Vector x = xform.transform_vector(Vector::x_axis());

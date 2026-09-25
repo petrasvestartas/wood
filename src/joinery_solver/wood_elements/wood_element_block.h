@@ -30,7 +30,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops and cuts back.
-    static std::shared_ptr<Block> from_element(const session_cpp::Element& element);
+    static std::shared_ptr<Block> from_element(session_cpp::Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

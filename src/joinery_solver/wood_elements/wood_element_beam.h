@@ -46,7 +46,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The beam an Element tagged "Beam" describes, same guid; a missing payload leaves the axis empty.
-    static std::shared_ptr<Beam> from_element(const session_cpp::Element& element);
+    static std::shared_ptr<Beam> from_element(session_cpp::Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

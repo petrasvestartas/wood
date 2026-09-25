@@ -88,7 +88,7 @@ std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& 
     return std::make_shared<Plate>(bottom, bottom.translated(thickness), name);
 }
 
-std::shared_ptr<Plate> Plate::from_element(const Element& e) {
+std::shared_ptr<Plate> Plate::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
     std::optional<Polyline> bottom;
@@ -114,14 +114,13 @@ std::shared_ptr<Plate> Plate::from_element(const Element& e) {
     }
 
     std::shared_ptr<Plate> plate = bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();
-    static_cast<Element&>(*plate) = e;
-    plate->guid() = e.guid();
+    static_cast<Element&>(*plate) = std::move(e);
     plate->reversed = reversed;
     plate->_geometry_synced = true;
 
     Plate& out = *plate;
     static const std::string prefix = "joint_type_";
-    for (const ElementFeature& f : e.features()) {
+    for (const ElementFeature& f : out.Element::features()) {
 
         if (f.face_index < 0)
             continue;
