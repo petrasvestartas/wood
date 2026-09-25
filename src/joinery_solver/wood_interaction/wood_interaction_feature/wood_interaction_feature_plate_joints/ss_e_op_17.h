@@ -1,5 +1,5 @@
 /// ss_e_op_17: ss_e_op_0 with N = div/2 fingers and flat miter caps (full cross on m0 and f1, near-duplicate on m1 and f0).
-static void ss_e_op_17(FeaturePlate& joint) {
+static void ss_e_op_17(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_17";
 

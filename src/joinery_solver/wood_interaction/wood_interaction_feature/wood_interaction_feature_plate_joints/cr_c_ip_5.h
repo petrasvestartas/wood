@@ -1,5 +1,5 @@
 /// cr_c_ip_5: five base rings, one vertical and one horizontal drill, asymmetric side extension (1.8 / -0.5).
-static void cr_c_ip_5(FeaturePlate& joint) {
+static void cr_c_ip_5(InteractionFeaturePlate& joint) {
 
     joint.name = "cr_c_ip_5";
 

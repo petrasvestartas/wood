@@ -20,7 +20,6 @@
 #include "google/protobuf/io/coded_stream.h"
 #include "google/protobuf/arena.h"
 #include "google/protobuf/arenastring.h"
-#include "google/protobuf/generated_message_bases.h"
 #include "google/protobuf/generated_message_tctable_decl.h"
 #include "google/protobuf/generated_message_util.h"
 #include "google/protobuf/metadata_lite.h"
@@ -54,10 +53,10 @@ extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_interaction_5ffeature_5fplate_5fbeam_2eproto;
 }  // extern "C"
 namespace wood_proto {
-class FeaturePlateBeam;
-struct FeaturePlateBeamDefaultTypeInternal;
-extern FeaturePlateBeamDefaultTypeInternal _FeaturePlateBeam_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull FeaturePlateBeam_class_data_;
+class InteractionFeaturePlateBeam;
+struct InteractionFeaturePlateBeamDefaultTypeInternal;
+extern InteractionFeaturePlateBeamDefaultTypeInternal _InteractionFeaturePlateBeam_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionFeaturePlateBeam_class_data_;
 }  // namespace wood_proto
 namespace google {
 namespace protobuf {
@@ -71,29 +70,30 @@ namespace wood_proto {
 
 // -------------------------------------------------------------------
 
-class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBase
-/* @@protoc_insertion_point(class_definition:wood_proto.FeaturePlateBeam) */ {
+class InteractionFeaturePlateBeam final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.InteractionFeaturePlateBeam) */ {
  public:
-  inline FeaturePlateBeam() : FeaturePlateBeam(nullptr) {}
+  inline InteractionFeaturePlateBeam() : InteractionFeaturePlateBeam(nullptr) {}
+  ~InteractionFeaturePlateBeam() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(FeaturePlateBeam* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(InteractionFeaturePlateBeam* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(FeaturePlateBeam));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(InteractionFeaturePlateBeam));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR FeaturePlateBeam(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR InteractionFeaturePlateBeam(::google::protobuf::internal::ConstantInitialized);
 
-  inline FeaturePlateBeam(const FeaturePlateBeam& from) : FeaturePlateBeam(nullptr, from) {}
-  inline FeaturePlateBeam(FeaturePlateBeam&& from) noexcept
-      : FeaturePlateBeam(nullptr, ::std::move(from)) {}
-  inline FeaturePlateBeam& operator=(const FeaturePlateBeam& from) {
+  inline InteractionFeaturePlateBeam(const InteractionFeaturePlateBeam& from) : InteractionFeaturePlateBeam(nullptr, from) {}
+  inline InteractionFeaturePlateBeam(InteractionFeaturePlateBeam&& from) noexcept
+      : InteractionFeaturePlateBeam(nullptr, ::std::move(from)) {}
+  inline InteractionFeaturePlateBeam& operator=(const InteractionFeaturePlateBeam& from) {
     CopyFrom(from);
     return *this;
   }
-  inline FeaturePlateBeam& operator=(FeaturePlateBeam&& from) noexcept {
+  inline InteractionFeaturePlateBeam& operator=(InteractionFeaturePlateBeam&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -121,13 +121,13 @@ class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBa
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const FeaturePlateBeam& default_instance() {
-    return *reinterpret_cast<const FeaturePlateBeam*>(
-        &_FeaturePlateBeam_default_instance_);
+  static const InteractionFeaturePlateBeam& default_instance() {
+    return *reinterpret_cast<const InteractionFeaturePlateBeam*>(
+        &_InteractionFeaturePlateBeam_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 0;
-  friend void swap(FeaturePlateBeam& a, FeaturePlateBeam& b) { a.Swap(&b); }
-  inline void Swap(FeaturePlateBeam* PROTOBUF_NONNULL other) {
+  friend void swap(InteractionFeaturePlateBeam& a, InteractionFeaturePlateBeam& b) { a.Swap(&b); }
+  inline void Swap(InteractionFeaturePlateBeam* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -135,7 +135,7 @@ class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBa
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(FeaturePlateBeam* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(InteractionFeaturePlateBeam* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -143,32 +143,59 @@ class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBa
 
   // implements Message ----------------------------------------------
 
-  FeaturePlateBeam* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::internal::ZeroFieldsBase::DefaultConstruct<FeaturePlateBeam>(arena);
+  InteractionFeaturePlateBeam* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<InteractionFeaturePlateBeam>(arena);
   }
-  using ::google::protobuf::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const FeaturePlateBeam& from) {
-    ::google::protobuf::internal::ZeroFieldsBase::CopyImpl(*this, from);
-  }
-  using ::google::protobuf::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const FeaturePlateBeam& from) {
-    ::google::protobuf::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const InteractionFeaturePlateBeam& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom(const InteractionFeaturePlateBeam& from) { InteractionFeaturePlateBeam::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
 
   public:
   bool IsInitialized() const {
     return true;
   }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  ::size_t ByteSizeLong() const final;
+  ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(InteractionFeaturePlateBeam* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "wood_proto.FeaturePlateBeam"; }
+  static ::absl::string_view FullMessageName() { return "wood_proto.InteractionFeaturePlateBeam"; }
 
-  explicit FeaturePlateBeam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  FeaturePlateBeam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const FeaturePlateBeam& from);
-  FeaturePlateBeam(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, FeaturePlateBeam&& from) noexcept
-      : FeaturePlateBeam(arena) {
+  explicit InteractionFeaturePlateBeam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  InteractionFeaturePlateBeam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const InteractionFeaturePlateBeam& from);
+  InteractionFeaturePlateBeam(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, InteractionFeaturePlateBeam&& from) noexcept
+      : InteractionFeaturePlateBeam(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -184,12 +211,30 @@ class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBa
   // nested types ----------------------------------------------------
 
   // accessors -------------------------------------------------------
-  // @@protoc_insertion_point(class_scope:wood_proto.FeaturePlateBeam)
+  enum : int {
+    kContactGuidFieldNumber = 1,
+  };
+  // string contact_guid = 1;
+  void clear_contact_guid() ;
+  const ::std::string& contact_guid() const;
+  template <typename Arg_ = const ::std::string&, typename... Args_>
+  void set_contact_guid(Arg_&& arg, Args_... args);
+  ::std::string* PROTOBUF_NONNULL mutable_contact_guid();
+  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_contact_guid();
+  void set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value);
+
+  private:
+  const ::std::string& _internal_contact_guid() const;
+  PROTOBUF_ALWAYS_INLINE void _internal_set_contact_guid(const ::std::string& value);
+  ::std::string* PROTOBUF_NONNULL _internal_mutable_contact_guid();
+
+  public:
+  // @@protoc_insertion_point(class_scope:wood_proto.InteractionFeaturePlateBeam)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<0, 0,
-                                   0, 0,
+  static const ::google::protobuf::internal::TcParseTable<0, 1,
+                                   0, 59,
                                    2>
       _table_;
 
@@ -199,10 +244,25 @@ class FeaturePlateBeam final : public ::google::protobuf::internal::ZeroFieldsBa
   friend class ::google::protobuf::Arena::InternalHelper;
   using InternalArenaConstructable_ = void;
   using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const InteractionFeaturePlateBeam& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr contact_guid_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
   friend struct ::TableStruct_interaction_5ffeature_5fplate_5fbeam_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull FeaturePlateBeam_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionFeaturePlateBeam_class_data_;
 
 // ===================================================================
 
@@ -218,7 +278,72 @@ extern const ::google::protobuf::internal::ClassDataFull FeaturePlateBeam_class_
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// FeaturePlateBeam
+// InteractionFeaturePlateBeam
+
+// string contact_guid = 1;
+inline void InteractionFeaturePlateBeam::clear_contact_guid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.contact_guid_.ClearToEmpty();
+  ClearHasBit(_impl_._has_bits_[0],
+                  0x00000001U);
+}
+inline const ::std::string& InteractionFeaturePlateBeam::contact_guid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlateBeam.contact_guid)
+  return _internal_contact_guid();
+}
+template <typename Arg_, typename... Args_>
+PROTOBUF_ALWAYS_INLINE void InteractionFeaturePlateBeam::set_contact_guid(Arg_&& arg, Args_... args) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  _impl_.contact_guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlateBeam.contact_guid)
+}
+inline ::std::string* PROTOBUF_NONNULL InteractionFeaturePlateBeam::mutable_contact_guid()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ::std::string* _s = _internal_mutable_contact_guid();
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlateBeam.contact_guid)
+  return _s;
+}
+inline const ::std::string& InteractionFeaturePlateBeam::_internal_contact_guid() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.contact_guid_.Get();
+}
+inline void InteractionFeaturePlateBeam::_internal_set_contact_guid(const ::std::string& value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.contact_guid_.Set(value, GetArena());
+}
+inline ::std::string* PROTOBUF_NONNULL InteractionFeaturePlateBeam::_internal_mutable_contact_guid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _impl_.contact_guid_.Mutable( GetArena());
+}
+inline ::std::string* PROTOBUF_NULLABLE InteractionFeaturePlateBeam::release_contact_guid() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:wood_proto.InteractionFeaturePlateBeam.contact_guid)
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000001U)) {
+    return nullptr;
+  }
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  auto* released = _impl_.contact_guid_.Release();
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
+    _impl_.contact_guid_.Set("", GetArena());
+  }
+  return released;
+}
+inline void InteractionFeaturePlateBeam::set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  }
+  _impl_.contact_guid_.SetAllocated(value, GetArena());
+  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.contact_guid_.IsDefault()) {
+    _impl_.contact_guid_.Set("", GetArena());
+  }
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeaturePlateBeam.contact_guid)
+}
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

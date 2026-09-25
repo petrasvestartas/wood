@@ -18,6 +18,6 @@ bool face_to_face_wood(
     std::pair<int, int> el_ids_in,
     const wood_session::Settings& settings,
     int search_type,
-    wood_session::FeaturePlate& out_joint,
+    wood_session::InteractionFeaturePlate& out_joint,
     bool& out_swap_planes_1,
     wood_session::DetectionTrace* trace = nullptr);

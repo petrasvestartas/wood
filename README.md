@@ -52,8 +52,8 @@ columns and blocks as the classes below, through the kernel's element registry.
 | `Beam` | `src/joinery_solver/wood_elements/wood_element_beam.h` | a profile swept along a polyline axis, cut by the planes in `cuts` |
 | `Column` | `src/joinery_solver/wood_elements/wood_element_column.h` | a profile lofted along a line axis, cut by the planes in `cuts` |
 | `Block` | `src/joinery_solver/wood_elements/wood_element_block.h` | the capped loft between bottom and top loops, cut by the planes in `cuts` |
-| `Interaction` | `src/joinery_solver/wood_interaction/wood_interaction.h` | everything between two elements, keyed by their graph edge: contacts (`ContactFace`, `ContactAxis`, `ContactCross`), features (`FeaturePlate`, `FeatureBeam`), structure; see `src/docs.md` |
-| `FeaturePlate` | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h` | one plate joint: the pair, its contact, type, lines, volumes, male and female cut outlines |
+| `Interaction` subclasses | `src/joinery_solver/wood_interaction/wood_interaction.h` | what joins two elements, a list per graph edge in the kernel's `Session::interactions`: contacts (`InteractionContactFace`, `InteractionContactAxis`, `InteractionContactCross`), features (`InteractionFeaturePlate`, `InteractionFeatureBeam`), structure; see `src/docs.md` |
+| `InteractionFeaturePlate` | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h` | one plate joint: the pair, its contact, type, lines, volumes, male and female cut outlines |
 | `WoodSession` | `src/joinery_solver/wood_session.h` | the scene |
 
 All four element classes derive from `session_cpp::Element` and register a factory, so any

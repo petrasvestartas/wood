@@ -30,11 +30,11 @@ static Polyline outline(double offset) {
     return Polyline(points);
 }
 
-static std::vector<FeaturePlate> linked_joints(const std::array<int, 4>& sequence) {
+static std::vector<InteractionFeaturePlate> linked_joints(const std::array<int, 4>& sequence) {
 
-    std::vector<FeaturePlate> joints(2);
-    joints[0].guid = "first";
-    joints[1].guid = "second";
+    std::vector<InteractionFeaturePlate> joints(2);
+    joints[0].guid() = "first";
+    joints[1].guid() = "second";
     joints[0].element_a = "plate";
     joints[1].element_a = "plate";
     joints[0].linked_joints = {"second"};
@@ -50,7 +50,7 @@ static std::vector<FeaturePlate> linked_joints(const std::array<int, 4>& sequenc
 
 static void linked_geometry() {
 
-    std::vector<FeaturePlate> joints = linked_joints({1, 1, 0, 1});
+    std::vector<InteractionFeaturePlate> joints = linked_joints({1, 1, 0, 1});
     merge_linked_joints(joints[0], joints);
 
     const double expected[] = {0, 10, 1, 11, 2, 12, 3, 4};
@@ -93,7 +93,7 @@ static void linked_geometry() {
 
 static void division_limits() {
 
-    FeaturePlate joint;
+    InteractionFeaturePlate joint;
     joint.joint_lines[0] = Line::from_points(Point(0, 0, 0), Point(10, 0, 0));
     const double distances[] = {2, 0, -1, 1e-300, 1000, std::numeric_limits<double>::quiet_NaN()};
     const int expected[] = {5, 1, 1, 100, 1, 1};
@@ -107,10 +107,10 @@ static void division_limits() {
 
 static void linked_construction() {
 
-    std::vector<FeaturePlate> joints(3);
-    joints[0].guid = "primary_joint";
-    joints[1].guid = "shadow_0";
-    joints[2].guid = "shadow_1";
+    std::vector<InteractionFeaturePlate> joints(3);
+    joints[0].guid() = "primary_joint";
+    joints[1].guid() = "shadow_0";
+    joints[2].guid() = "shadow_1";
     joints[0].element_a = "primary";
     joints[1].element_a = "primary";
     joints[2].element_a = "other";

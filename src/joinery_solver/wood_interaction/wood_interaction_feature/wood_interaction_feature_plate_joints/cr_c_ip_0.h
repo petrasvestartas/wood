@@ -1,5 +1,5 @@
 /// cr_c_ip_0: cross-joint stub, two identical closed rectangles per face.
-static void cr_c_ip_0(FeaturePlate& joint) {
+static void cr_c_ip_0(InteractionFeaturePlate& joint) {
 
     joint.name = "cr_c_ip_0";
     const double s = 1.0;

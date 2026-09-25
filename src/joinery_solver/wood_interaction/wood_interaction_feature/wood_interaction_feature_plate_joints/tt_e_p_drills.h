@@ -1,6 +1,6 @@
 /// Both plates found, a first joint volume with 3+ points, an area with min_area+ points.
 static bool drill_ready(
-    const FeaturePlate& joint,
+    const InteractionFeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
     int& v0,
     int& v1,
@@ -20,7 +20,7 @@ static bool drill_ready(
 }
 
 /// dir0: the first volume's [1]->[2] edge, unit, times plate v0's thickness; dir1: the reverse times v1's.
-static void drill_axes(const FeaturePlate& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
+static void drill_axes(const InteractionFeaturePlate& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
     const Polyline& jv0 = *joint.joint_volumes[0];
     dir0 = jv0.get_point(1) - jv0.get_point(2);
     dir0.normalize_self();
@@ -30,7 +30,7 @@ static void drill_axes(const FeaturePlate& joint, double t0, double t1, Vector& 
 }
 
 /// One two-point drill line per point on every face, twice per face as the merge expects.
-static void emit_drills(FeaturePlate& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
+static void emit_drills(InteractionFeaturePlate& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
 
     for (int f = 0; f < 2; f++) {
         joint.male_outlines[f].clear();
@@ -92,7 +92,7 @@ static std::vector<Point> offset_boundary_points(
 }
 
 /// One drill through the area centroid.
-static void centroid_drill(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+static void centroid_drill(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     int v0;
     int v1;
@@ -107,7 +107,7 @@ static void centroid_drill(FeaturePlate& joint, const std::vector<std::shared_pt
 
 /// Drills along the offset area boundary.
 static void boundary_drill(
-    FeaturePlate& joint,
+    InteractionFeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
     double division_distance,
     double open_tolerance

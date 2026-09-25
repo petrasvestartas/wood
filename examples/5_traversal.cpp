@@ -11,30 +11,27 @@ int main() {
     wood_session.compute_contacts();
     wood_session.compute_features();
 
-    const FeaturePlate joint = wood_session.get_plate_features().front();
-    std::cout << "stored: " << joint.has_session() << ", wood session " << joint.session().name << "\n";
-
-    WoodSession& owner = joint.session();
-    const std::shared_ptr<Plate> male = owner.get_element<Plate>(joint.element_a);
-    const std::shared_ptr<Plate> female = owner.get_element<Plate>(joint.element_b);
+    const InteractionFeaturePlate joint = wood_session.get_plate_features().front();
+    const std::shared_ptr<Plate> male = wood_session.get_element<Plate>(joint.element_a);
+    const std::shared_ptr<Plate> female = wood_session.get_element<Plate>(joint.element_b);
     std::cout << "joint " << joint.name << " cuts " << male->name << " and " << female->name << "\n";
 
-    const Interaction& interaction = *owner.get_interaction(male, female);
-    const InteractionContact& contact = interaction.contacts.front();
-    std::cout << "its interaction has " << interaction.contacts.size() << " contacts, the first is a " << contact.kind() << " in wood session " << contact.session().name << "\n";
+    const std::vector<std::shared_ptr<Interaction>> interactions = wood_session.get_interaction(female, male);
+    std::cout << "their edge holds " << interactions.size() << " interactions\n";
 
-    const auto [a, b] = owner.edge_of(interaction);
-    std::cout << "the edge joins " << owner.get_element<Element>(a)->name << " and " << owner.get_element<Element>(b)->name << "\n";
+    for (const std::shared_ptr<Interaction>& interaction : interactions)
+        if (interaction->guid() == joint.contact_guid)
+            std::cout << "the joint was solved from " << *interaction << "\n";
 
-    FeaturePlate loose;
-    std::cout << "a joint built by hand is stored: " << loose.has_session() << "\n";
+    const Edge& edge = wood_session.graph.edges.at(male->guid()).at(female->guid());
+    std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and " << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-every stored record answers session() with its wood session: from a joint back to the wood session, to its two plates, to the interaction and the contacts on the same edge, to the edge's elements; a record built by hand has no wood session.
+from a joint to its two plates by guid, to the interactions on their edge in either order, to the contact it names by guid, to the edge's elements.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

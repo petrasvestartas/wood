@@ -1,5 +1,5 @@
 /// ts_e_p_1: hardcoded two-mortise tenon joint; not routed by the dispatcher, kept complete.
-[[maybe_unused]] static void ts_e_p_1(FeaturePlate& joint) {
+[[maybe_unused]] static void ts_e_p_1(InteractionFeaturePlate& joint) {
 
     const double z_top   = 0.166666666666667;
     const double z_top2  = 0.0555555555555556;

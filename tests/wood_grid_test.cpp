@@ -40,11 +40,17 @@ static std::string to_string(const std::map<std::string, size_t>& table) {
 static std::vector<std::string> lonely(const WoodSession& session) {
 
     std::set<std::string> touched;
-    for (const std::pair<const std::string, Interaction>& entry : session.interactions)
-        if (!entry.second.contacts.empty()) {
-            touched.insert(session.edge_of(entry.second).first);
-            touched.insert(session.edge_of(entry.second).second);
-        }
+    for (const std::tuple<std::string, std::string>& pair : session.graph.get_edges()) {
+        const Edge& edge = session.graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
+        if (!session.interactions.count(edge.guid()))
+            continue;
+
+        for (const std::shared_ptr<Interaction>& interaction : session.interactions.at(edge.guid()))
+            if (dynamic_cast<const InteractionContact*>(interaction.get())) {
+                touched.insert(edge.v0);
+                touched.insert(edge.v1);
+            }
+    }
 
     std::vector<std::string> alone;
     for (const std::shared_ptr<Element>& element : session.world_elements())
@@ -117,12 +123,17 @@ static std::pair<double, double> extent(const Mesh& mesh, const Vector& directio
 static std::vector<std::string> loose(const WoodSession& session) {
 
     std::map<std::string, std::vector<Point>> touches;
-    for (const std::pair<const std::string, Interaction>& entry : session.interactions)
-        for (const InteractionContact& contact : entry.second.contacts)
-            if (const ContactFace* face = std::get_if<ContactFace>(&contact.data))
-                for (const std::string& guid : {session.edge_of(entry.second).first, session.edge_of(entry.second).second})
+    for (const std::tuple<std::string, std::string>& pair : session.graph.get_edges()) {
+        const Edge& edge = session.graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
+        if (!session.interactions.count(edge.guid()))
+            continue;
+
+        for (const std::shared_ptr<Interaction>& interaction : session.interactions.at(edge.guid()))
+            if (const InteractionContactFace* face = dynamic_cast<const InteractionContactFace*>(interaction.get()))
+                for (const std::string& guid : {edge.v0, edge.v1})
                     for (const Point& point : face->polygon.get_points())
                         touches[guid].push_back(point);
+    }
 
     std::vector<std::string> bad;
     for (const std::shared_ptr<Element>& element : session.world_elements()) {
@@ -171,14 +182,14 @@ static std::vector<std::string> overhanging(const WoodSession& session) {
         const double section = std::abs(wood_grid::plan::compute_area(wood_grid::plan::to_loop(column->section)));
         double covered = 0.0;
         bool stacked = false;
-        for (const std::pair<const std::string, Interaction>& entry : session.interactions) {
-            const std::pair<std::string, std::string> edge = session.edge_of(entry.second);
-            if (edge.first != column->guid() && edge.second != column->guid())
+        for (const std::tuple<std::string, std::string>& pair : session.graph.get_edges()) {
+            const Edge& edge = session.graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
+            if ((edge.v0 != column->guid() && edge.v1 != column->guid()) || !session.interactions.count(edge.guid()))
                 continue;
 
-            const std::shared_ptr<Element> other = session.get_element<Element>(edge.first == column->guid() ? edge.second : edge.first);
-            for (const InteractionContact& contact : entry.second.contacts) {
-                const ContactFace* face = std::get_if<ContactFace>(&contact.data);
+            const std::shared_ptr<Element> other = session.get_element<Element>(edge.v0 == column->guid() ? edge.v1 : edge.v0);
+            for (const std::shared_ptr<Interaction>& interaction : session.interactions.at(edge.guid())) {
+                const InteractionContactFace* face = dynamic_cast<const InteractionContactFace*>(interaction.get());
                 if (!face || std::abs(Point::centroid(face->polygon.get_points())[2] - foot) > 0.5)
                     continue;
 
@@ -236,15 +247,12 @@ static int rank(const std::string& name) {
 /// True when a contact face joins two elements.
 static bool touching(const WoodSession& session, const std::string& a, const std::string& b) {
 
-    for (const std::pair<const std::string, Interaction>& entry : session.interactions) {
-        const std::pair<std::string, std::string> edge = session.edge_of(entry.second);
-        if (std::minmax(edge.first, edge.second) != std::minmax(a, b))
-            continue;
+    if (!session.graph.has_edge({a, b}) || !session.interactions.count(session.graph.edges.at(a).at(b).guid()))
+        return false;
 
-        for (const InteractionContact& contact : entry.second.contacts)
-            if (std::get_if<ContactFace>(&contact.data))
-                return true;
-    }
+    for (const std::shared_ptr<Interaction>& interaction : session.interactions.at(session.graph.edges.at(a).at(b).guid()))
+        if (dynamic_cast<const InteractionContactFace*>(interaction.get()))
+            return true;
 
     return false;
 }

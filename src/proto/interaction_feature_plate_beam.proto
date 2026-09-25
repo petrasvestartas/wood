@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package wood_proto;
 
-// A plate-to-beam joint; nothing computed yet.
-message FeaturePlateBeam {
+// The state of an InteractionFeaturePlateBeam beyond the kernel Interaction; nothing computed yet.
+message InteractionFeaturePlateBeam {
+  string contact_guid = 1;  // Guid of the contact this was solved from; empty when none
 }

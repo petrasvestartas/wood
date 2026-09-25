@@ -1,72 +1,64 @@
 #include "pch.h"
-#include "wood_interaction_feature_beam.h"
-#include "interaction_feature_beam.pb.h"
+#include "wood_interaction_feature_plate_beam.h"
+#include "interaction_feature_plate_beam.pb.h"
 using namespace session_cpp;
 
 namespace wood_session {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// InteractionFeatureBeam - Geometry
+// InteractionFeaturePlateBeam - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::string_view InteractionFeatureBeam::kind() const {
-    return "beam";
+std::string_view InteractionFeaturePlateBeam::kind() const {
+    return "plate_beam";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// InteractionFeatureBeam - Protobuf
+// InteractionFeaturePlateBeam - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::string InteractionFeatureBeam::interaction_type_name() const {
+std::string InteractionFeaturePlateBeam::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
 
-std::string InteractionFeatureBeam::interaction_data_dumps() const {
+std::string InteractionFeaturePlateBeam::interaction_data_dumps() const {
 
-    wood_proto::InteractionFeatureBeam proto;
-    proto.set_end_type(end_type);
+    wood_proto::InteractionFeaturePlateBeam proto;
     proto.set_contact_guid(contact_guid);
-
-    for (const Polyline& volume : volumes)
-        proto.add_volumes()->ParseFromString(volume.pb_dumps());
 
     return proto.SerializeAsString();
 }
 
-InteractionFeatureBeam InteractionFeatureBeam::interaction_data_loads(const std::string& data) {
+InteractionFeaturePlateBeam InteractionFeaturePlateBeam::interaction_data_loads(const std::string& data) {
 
-    wood_proto::InteractionFeatureBeam proto;
+    wood_proto::InteractionFeaturePlateBeam proto;
     proto.ParseFromString(data);
 
-    InteractionFeatureBeam feature;
+    InteractionFeaturePlateBeam feature;
     feature.contact_guid = proto.contact_guid();
-    feature.end_type = proto.end_type();
-
-    for (int k = 0; k < 4 && k < proto.volumes_size(); ++k)
-        feature.volumes[k] = Polyline::pb_loads(proto.volumes(k).SerializeAsString());
 
     return feature;
 }
 
-std::shared_ptr<Interaction> InteractionFeatureBeam::clone() const {
-    return std::make_shared<InteractionFeatureBeam>(*this);
+std::shared_ptr<Interaction> InteractionFeaturePlateBeam::clone() const {
+    return std::make_shared<InteractionFeaturePlateBeam>(*this);
 }
 
-/// The registered factory: interaction_data bytes to a beam joint.
-static std::shared_ptr<Interaction> feature_beam_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionFeatureBeam>(InteractionFeatureBeam::interaction_data_loads(data));
+/// The registered factory: interaction_data bytes to a plate-to-beam joint.
+static std::shared_ptr<Interaction> feature_plate_beam_from_protobuf(const std::string& data) {
+    return std::make_shared<InteractionFeaturePlateBeam>(InteractionFeaturePlateBeam::interaction_data_loads(data));
 }
 
-void InteractionFeatureBeam::register_type() {
-    Interaction::register_type(std::string(INTERACTION_TYPE), feature_beam_from_protobuf);
+void InteractionFeaturePlateBeam::register_type() {
+    Interaction::register_type(std::string(INTERACTION_TYPE), feature_plate_beam_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// InteractionFeatureBeam - String
+// InteractionFeaturePlateBeam - String
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::string InteractionFeatureBeam::str() const {
-    return fmt::format("InteractionFeatureBeam(end_type={})", end_type);
+std::string InteractionFeaturePlateBeam::str() const {
+    return "InteractionFeaturePlateBeam()";
 }
 
 } // namespace wood_session

@@ -4,8 +4,8 @@ package wood_proto;
 
 import "line.proto";
 
-// Where two polylines come closest: the segment between the closest points and where they sit.
-message ContactAxis {
+// The state of an InteractionContactAxis beyond the kernel Interaction: where two polylines come closest.
+message InteractionContactAxis {
   session_proto.Line segment = 1;  // From the closest point on the first element to the closest point on the second
   double t_a = 2;                  // Parameter of the closest point along segment_a, 0..1
   double t_b = 3;                  // Parameter of the closest point along segment_b, 0..1

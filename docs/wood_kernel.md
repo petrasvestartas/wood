@@ -14,22 +14,22 @@ named here exists in the current tree.
 | `src/joinery_solver/wood_elements/wood_profile.h/.cpp` | `profile_rectangle`, `profile_round`, `profile_w`, `profile_hss`, `profile_double`, `profile_slab_band`, `profile_t`, `compute_size`, `profile_section` |
 | `src/templates/grid_plan.h/.cpp` | the plan algorithms of the grid template: `compute_section` of a solid at a height, ring booleans, offsets and mitres, `compute_crossings` and `compute_arrangement` of lines into a `Mesh` arrangement, direction polygons at a node |
 | `src/joinery_solver/wood_instance.h/.cpp` | `element_key`: the class key and frame `WoodSession::instance_by_key` dedups by |
-| `src/joinery_solver/wood_interaction/**` | the connectivity records, one class per file (see `src/docs.md`): `Interaction`, `InteractionContact` + `ContactFace` / `ContactAxis` / `ContactCross`, `InteractionFeature` + `FeaturePlate` / `FeatureBeam` / `FeaturePlateBeam`, `InteractionStructure`; each with `jsondump`/`jsonload` and `pb_dumps`/`pb_loads` |
-| `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `FeaturePlate` |
+| `src/joinery_solver/wood_interaction/**` | the connectivity classes, one per file (see `src/docs.md`), all derived from the kernel's abstract `session_cpp::Interaction`: abstract `InteractionContact` ← `InteractionContactFace` / `InteractionContactAxis` / `InteractionContactCross`, abstract `InteractionFeature` ← `InteractionFeaturePlate` / `InteractionFeatureBeam` / `InteractionFeaturePlateBeam`, abstract `InteractionStructure` with no leaf yet; each leaf registers a factory with the kernel and writes its fields as `interaction_data` |
+| `src/joinery_solver/wood_algorithms/wood_feature_construction.h/.cpp` | `apply_unit_scale`, `joint_orient_to_connection_area`, `merge_linked_joints`, `joint_get_divisions`, `joint_volume_extension`, `index_of` over a `InteractionFeaturePlate` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h` | `wood_session::FabricationType`, one per cut outline |
 | `src/joinery_solver/wood_settings.h/.cpp` | `Settings`: every solver tunable, from the yml, held by the scene, passed by reference, written with the file |
 | `src/joinery_solver/wood_config.h/.cpp` | `wood_session::config`: `Dataset::` names, `load_yaml` (returns a `Settings`, sets the dataset paths), `reset_defaults`, the paths |
 | `src/joinery_solver/wood_io.h/.cpp` | `io::load_obj`, the four sidecar readers, `io::pb_path`, `io::write_parity_dumps` |
 | `src/joinery_solver/wood_view.h/.cpp` | contact and joint names and colours |
 | `src/joinery_solver/wood_serialization.h/.cpp` | `json_of` / `message_from_json`: JSON derived from any proto message |
-| `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `ContactCross`) over kernel elements |
-| `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `FeaturePlate`; `DetectionTrace` for the counts |
-| `src/joinery_solver/wood_algorithms/wood_feature_detection_beam.h/.cpp` | `beam_to_beam`: one beam pair and its axis contact to one `FeatureBeam` |
+| `src/joinery_solver/wood_algorithms/wood_contact_detection.h/.cpp` | `adjacency_search`, `faces_coplanar`, `face_overlap_area`, `face_contacts_for_pair`, `face_contacts`, `plane_to_face` (a `InteractionContactCross`) over kernel elements |
+| `src/joinery_solver/wood_algorithms/wood_feature_detection.h/.cpp` | `face_to_face_wood`: one plate pair to one `InteractionFeaturePlate`; `DetectionTrace` for the counts |
+| `src/joinery_solver/wood_algorithms/wood_feature_detection_beam.h/.cpp` | `beam_to_beam`: one beam pair and its axis contact to one `InteractionFeatureBeam` |
 | `src/joinery_solver/wood_algorithms/wood_assignment.h/.cpp` | `assign_feature_types`, `assign_insertion_vectors`: points and lines placed on plates into their slots |
 | `src/joinery_solver/wood_algorithms/wood_feature_solver.cpp` | `WoodSession::compute_features` pipeline: `adjacent_pairs`, `detect_features`, `build_feature_geometry`, `merge_features`; `joint_create_geometry` dispatcher; `get_connection_zones` shims |
 | `src/joinery_solver/wood_algorithms/wood_merge_modifier.h/.cpp` | `MergeModifier::apply` |
 | `src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints.h`, `wood_interaction_feature_plate_joints/*.h` | aggregator + one static constructor per joint variant, `tt_e_p_*` and `side_removal` included |
-| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, the `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `add_contact`, `add_feature`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
+| `src/joinery_solver/wood_session.h/.cpp` | `WoodSession` (`pb_load`, `obj_load`, `yaml_load`, `load_sidecars`, `add_interaction` / `remove_interaction` with the wood rules over the kernel's `interactions` store keyed by edge guid, `adjacency`, `three_valence`, `get_plate_features`), `SearchType`, `type_plates_name_*` decls |
 | `src/proto/*.proto`, `generated/` | one `wood_proto` message per class and the committed protoc output (`tools/regen_proto.sh`); `wood_session.proto` is the file format, a superset of `session_proto.Session` |
 | `src/joinery_solver/wood_test.h/.cpp` | dataset runners, one per `data/*.yml` |
 | `src/templates/` | the generators, one page with screenshots in `docs/templates.md`: the shell templates `translation_shell.h`, `reflex_fold.h`, `chevron.h`, `diamond_mesh.h`, `vda_mesh.h`, `reciprocal_*.h` (header-only, Plates); the building template `grid.h/.cpp` (`Pattern`, `Framing`, `Building`; columns, heads, girders, beams, purlins, braces, decks and walls) and `clash.h/.cpp`, the pairwise overlap check |
@@ -90,30 +90,38 @@ instance of one definition, keeping guid, name, tree node, edges and features; t
 
 ### Manual interactions
 
-`Session::add_interaction(a, b)`, `has_interaction(a, b)` and `remove_interaction(a, b)`
-manage a graph edge by element references or object GUIDs. Both endpoints must already be
-registered; adding the same pair preserves the edge identity and attributes. Either order
-finds or removes the pair.
+The kernel's `Session` stores `interactions`: an edge guid to that edge's list of
+`std::shared_ptr<Interaction>`. Four methods reach it, each taking two
+`std::shared_ptr<Element>` in either order: `add_interaction(a, b, interaction)` makes or reuses
+the edge (both elements registered and distinct; an existing edge keeps its attributes) and
+appends; `get_interaction(a, b)` returns the list, empty when there is none;
+`has_interaction(a, b)` and `remove_interaction(a, b)` test and drop the edge with its list.
 
-`WoodSession` takes `std::shared_ptr<Element>` endpoints and returns an `Interaction&`.
-`add_interaction(a, b, interaction)` merges a record beside the edge: wrap a single contact,
-feature or structure in an `Interaction`. Contacts are deduplicated and oriented to the stored
-edge. A feature's `contact` is `-1` or an index in the incoming record's contacts, remapped
-during merging.
-A supplied structure replaces the pair's previous structural record; the current structure
-and plate-to-beam feature types are placeholders with no solver parameters yet.
+`WoodSession::add_interaction` adds the wood rules before calling the kernel's: a contact is
+oriented to the stored edge and one coinciding with a stored contact is not stored again, the
+stored one is returned; a new contact goes onto the edge's first element as a "contact" feature,
+a plate or beam feature onto its elements as "joint" features. `remove_interaction` also takes
+those features off. A feature names its contact by `contact_guid`. `Interaction` and the three mid-level classes are
+abstract, so every record is a leaf; any leaf can carry a name, e.g. a face contact named "glue".
+The plate-to-beam feature is a placeholder with no solver parameters yet, and `InteractionStructure`
+has no leaf.
 
-Contact and joint display features are placed on their hosts, including instances. Removing
-an interaction removes its edge, payload and hosted features while preserving unrelated pairs.
 These manual operations store authored data; they do not run detection, solve joints or undo
 cuts already merged into an element's geometry. See `examples/1_elements.cpp`.
 
-### `FeaturePlate` (`wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h`)
+Removing an element or instance drops its edges' interaction lists with the edges; undo puts
+them back as it puts the edges back. A `.pb` written before the kernel held interactions kept
+them in `wood_proto.WoodSession` field 100, which is now reserved: those files still load, but
+without their interactions; run `compute_contacts` / `compute_features` again to rebuild them.
+An interaction whose type has no registered factory is not dropped: it loads as the kernel's
+`InteractionUnknown`, which writes its type and data back unchanged on the next save.
+
+### `InteractionFeaturePlate` (`wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h`)
 
 Fields that matter downstream:
 
 - `element_a` / `element_b` — guids; a is male, b female (the solver may swap). `index_of(elements, guid)` maps to a position.
-- `contact` — `ContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `WoodSession::add_feature` stores the whole record on the pair's interaction.
+- `contact` — `InteractionContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `compute_features` stores the whole record on the pair's edge, beside the contact it names by `contact_guid`.
 - `joint_type` — 11/12/13/20/30/40 (solver vocabulary, see below).
 - `joint_lines[2]`, `joint_volumes[4]` (optional quads; [0],[1] male, [2],[3] female).
 - `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `male_fabrication_types` / `female_fabrication_types` — one `FabricationType` per outline.
@@ -168,7 +176,7 @@ baseline; `load_yaml` calls it first. `CUSTOM_JOINTS_*` are runtime-only (not in
 ## 3. Detection pipeline (`WoodSession::compute_features`, `wood_joint_solver.cpp`)
 
 ```cpp
-std::vector<FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
+std::vector<InteractionFeaturePlate> get_connection_zones(std::vector<std::shared_ptr<Plate>>&, SearchType);
 enum SearchType { face_to_face = 0, cross_joint = 1, face_to_face_then_cross = 2 };
 ```
 
@@ -225,7 +233,7 @@ every other trace is a `constexpr bool TRACE = false;` at the top of its own fil
 ## 4. Joint library (`wood_interaction_feature_plate_joints.h` + `wood_interaction_feature_plate_joints/*.h`)
 
 Each `<name>.h` is a plain header (no include guard, no includes) holding one
-`static void <name>(FeaturePlate&)`; the aggregator includes them in order and is itself
+`static void <name>(InteractionFeaturePlate&)`; the aggregator includes them in order and is itself
 included inside `wood_joint_solver.cpp` (which must include `wood_session.h` first). The `tt_e_p_*`
 and `side_removal*` constructors take the plate vector too and have their own headers there.
 
@@ -256,7 +264,7 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 ### Adding a joint variant
 
 1. Pick the family from the table and a free id in its range.
-2. Create `wood_interaction_feature_plate_joints/<prefix>_N.h` with `static void <prefix>_N(FeaturePlate& joint)`.
+2. Create `wood_interaction_feature_plate_joints/<prefix>_N.h` with `static void <prefix>_N(InteractionFeaturePlate& joint)`.
 3. Fill `m_outlines[0..1]`, `f_outlines[0..1]` in unit-box space, end each list with the
    endpoint marker, fill `male_fabrication_types` / `female_fabrication_types` with one `FabricationType::` value per outline,
    and set `joint.name = "<prefix>_N"`.
@@ -301,12 +309,11 @@ How wood uses it (`wood_session.h/.cpp`):
 - `compute_contacts()` / `compute_face_contacts()` → `face_contacts` over every element type;
   `compute_cross_contacts()` → `plane_to_face`; `compute_line_contacts()`.
 - `compute_features(search_type)` → `get_connection_zones` on `plates()` in place, then
-  `compute_geometry_mesh()` on each plate, then each joint onto its pair's graph edge as a
-  `WoodInteraction{contacts, joints}` attribute (`get_interaction` / `set_interaction`).
-- Features land on the elements as they are stored, never in a later pass: `add_contact` puts a new
-  contact on its edge's first element as a `contact` feature (guid = the contact's guid),
-  `add_feature` a plate joint's two sides on its hosts, `compute_beam_features` a beam joint on the
-  first beam, outlines coloured by type; the clears and `erase_contacts` take them off again. An
+  `compute_geometry_mesh()` on each plate, then each joint's contact and the joint itself onto
+  its pair's edge through `add_interaction`.
+- Features land on the elements as they are stored, never in a later pass: `add_interaction` puts
+  a new contact on its edge's first element as a `contact` feature (guid = the contact's guid),
+  a plate joint's two sides on its hosts, a beam joint on the first beam, outlines coloured by type; the clears and `erase_contacts` take them off again. An
   element's `compute_geometry_mesh()` keeps them, so the model geometry and its features travel together.
   The viewer draws every visible feature; nothing is copied into the tree, which stays as the caller
   built it (`add` without a parent = under the root). `set_features_visible(type, bool)` switches one
@@ -332,5 +339,5 @@ How wood uses it (`wood_session.h/.cpp`):
 | 8 | `get_connection_zones` on a copied plate vector | The result lives on the plates (`features`, `insertion_vectors`, `reversed`); pass the scene's own `shared_ptr` vector |
 | 9 | `settings.joint_parameters` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
 | 10 | `Session` has no virtual destructor | Do not own a `WoodSession` through a `Session*` |
-| 11 | Copying an `ElementFeature` or `Element` mints a new guid | Joint identity lives in `FeaturePlate::feature_guids`; read features through `to_features()` |
+| 11 | Copying an `ElementFeature` or `Element` mints a new guid | Joint identity lives in `InteractionFeaturePlate::feature_guids`; read features through `to_features()` |
 | 12 | Unbounded runs | Every solver/example goes through `tools/run_guarded.sh`; one run at a time; `--parallel 4` |

@@ -10,7 +10,7 @@ static Polyline yz_profile_at_x(double x, const double data[][2], size_t n) {
 }
 
 /// ss_e_r_1: miter tenon-mortise - a 39-point arc profile in the yz-plane at x=0 and x=0.5; conic cuts, unit_scale.
-static void ss_e_r_1(FeaturePlate& joint) {
+static void ss_e_r_1(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_r_1";
 

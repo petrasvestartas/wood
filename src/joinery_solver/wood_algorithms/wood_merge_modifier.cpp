@@ -35,7 +35,7 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distanc
 std::vector<Polyline> MergeModifier::apply(
     const Plate& plate,
     const std::vector<std::vector<std::pair<int, bool>>>& membership,
-    std::vector<FeaturePlate>& joints,
+    std::vector<InteractionFeaturePlate>& joints,
     int plate_index,
     double distance_squared
 ) {
@@ -117,7 +117,7 @@ void MergeModifier::log_result(const Polyline& merged_top, const Polyline& merge
     stream << "\n";
 }
 
-std::array<std::vector<Polyline>, 2>* MergeModifier::joint_outlines(FeaturePlate& joint, size_t face, int joint_id, bool male_or_female) const {
+std::array<std::vector<Polyline>, 2>* MergeModifier::joint_outlines(InteractionFeaturePlate& joint, size_t face, int joint_id, bool male_or_female) const {
 
     std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
     if (outlines[0].size() < 2 || outlines[1].size() < 2)
@@ -249,7 +249,7 @@ bool MergeModifier::relocate_edge_vertices(std::array<std::vector<Polyline>, 2>&
     return true;
 }
 
-void MergeModifier::flip_and_insert_cut(const FeaturePlate& joint, std::array<std::vector<Polyline>, 2>& outlines, size_t face, int joint_id, bool male_or_female) {
+void MergeModifier::flip_and_insert_cut(const InteractionFeaturePlate& joint, std::array<std::vector<Polyline>, 2>& outlines, size_t face, int joint_id, bool male_or_female) {
 
     const int edge_index = static_cast<int>(face) - 2;
     const Polyline& reference = outlines[0][0];
@@ -297,12 +297,12 @@ void MergeModifier::flip_and_insert_cut(const FeaturePlate& joint, std::array<st
     bottom_runs.insert({sort_key, {parameters, outlines[1][0].get_points()}});
 }
 
-void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints) {
+void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints) {
     for (size_t face = 2; face < membership.size() && face < plate.planes.size(); face++) {
         for (size_t j = 0; j < membership[face].size(); j++) {
             const int joint_id = membership[face][j].first;
             const bool male_or_female = membership[face][j].second;
-            FeaturePlate& joint = joints[joint_id];
+            InteractionFeaturePlate& joint = joints[joint_id];
             std::array<std::vector<Polyline>, 2>* outlines = joint_outlines(joint, face, joint_id, male_or_female);
             if (!outlines)
                 continue;
@@ -401,12 +401,12 @@ void MergeModifier::close_corner(Polyline& merged_top, Polyline& merged_bottom) 
     merged_bottom = Polyline(closed_bottom);
 }
 
-void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints, std::vector<Polyline>& result) const {
+void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints, std::vector<Polyline>& result) const {
     for (size_t face = 0; face < 2 && face < membership.size(); face++) {
         for (size_t k = 0; k < membership[face].size(); k++) {
             const int joint_id = membership[face][k].first;
             const bool male_or_female = membership[face][k].second;
-            FeaturePlate& joint = joints[joint_id];
+            InteractionFeaturePlate& joint = joints[joint_id];
             std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
             std::array<std::vector<int>, 2>& cut_types = male_or_female ? joint.male_fabrication_types : joint.female_fabrication_types;
 
@@ -438,12 +438,12 @@ void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair
     }
 }
 
-void MergeModifier::cut_holes_side(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<FeaturePlate>& joints, std::vector<Polyline>& result) const {
+void MergeModifier::cut_holes_side(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints, std::vector<Polyline>& result) const {
     for (size_t face = 2; face < membership.size(); face++) {
         for (size_t k = 0; k < membership[face].size(); k++) {
             const int joint_id = membership[face][k].first;
             const bool male_or_female = membership[face][k].second;
-            FeaturePlate& joint = joints[joint_id];
+            InteractionFeaturePlate& joint = joints[joint_id];
             std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
             std::array<std::vector<int>, 2>& cut_types = male_or_female ? joint.male_fabrication_types : joint.female_fabrication_types;
 

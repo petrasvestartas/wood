@@ -54,10 +54,10 @@ extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_interaction_5fcontact_5fface_2eproto;
 }  // extern "C"
 namespace wood_proto {
-class ContactFace;
-struct ContactFaceDefaultTypeInternal;
-extern ContactFaceDefaultTypeInternal _ContactFace_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull ContactFace_class_data_;
+class InteractionContactFace;
+struct InteractionContactFaceDefaultTypeInternal;
+extern InteractionContactFaceDefaultTypeInternal _InteractionContactFace_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactFace_class_data_;
 }  // namespace wood_proto
 namespace google {
 namespace protobuf {
@@ -71,30 +71,30 @@ namespace wood_proto {
 
 // -------------------------------------------------------------------
 
-class ContactFace final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:wood_proto.ContactFace) */ {
+class InteractionContactFace final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.InteractionContactFace) */ {
  public:
-  inline ContactFace() : ContactFace(nullptr) {}
-  ~ContactFace() PROTOBUF_FINAL;
+  inline InteractionContactFace() : InteractionContactFace(nullptr) {}
+  ~InteractionContactFace() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(ContactFace* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(InteractionContactFace* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(ContactFace));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(InteractionContactFace));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR ContactFace(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR InteractionContactFace(::google::protobuf::internal::ConstantInitialized);
 
-  inline ContactFace(const ContactFace& from) : ContactFace(nullptr, from) {}
-  inline ContactFace(ContactFace&& from) noexcept
-      : ContactFace(nullptr, ::std::move(from)) {}
-  inline ContactFace& operator=(const ContactFace& from) {
+  inline InteractionContactFace(const InteractionContactFace& from) : InteractionContactFace(nullptr, from) {}
+  inline InteractionContactFace(InteractionContactFace&& from) noexcept
+      : InteractionContactFace(nullptr, ::std::move(from)) {}
+  inline InteractionContactFace& operator=(const InteractionContactFace& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ContactFace& operator=(ContactFace&& from) noexcept {
+  inline InteractionContactFace& operator=(InteractionContactFace&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -122,13 +122,13 @@ class ContactFace final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ContactFace& default_instance() {
-    return *reinterpret_cast<const ContactFace*>(
-        &_ContactFace_default_instance_);
+  static const InteractionContactFace& default_instance() {
+    return *reinterpret_cast<const InteractionContactFace*>(
+        &_InteractionContactFace_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 0;
-  friend void swap(ContactFace& a, ContactFace& b) { a.Swap(&b); }
-  inline void Swap(ContactFace* PROTOBUF_NONNULL other) {
+  friend void swap(InteractionContactFace& a, InteractionContactFace& b) { a.Swap(&b); }
+  inline void Swap(InteractionContactFace* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -136,7 +136,7 @@ class ContactFace final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ContactFace* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(InteractionContactFace* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -144,13 +144,13 @@ class ContactFace final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  ContactFace* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<ContactFace>(arena);
+  InteractionContactFace* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<InteractionContactFace>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const ContactFace& from);
+  void CopyFrom(const InteractionContactFace& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const ContactFace& from) { ContactFace::MergeImpl(*this, from); }
+  void MergeFrom(const InteractionContactFace& from) { InteractionContactFace::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -186,17 +186,17 @@ class ContactFace final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(ContactFace* PROTOBUF_NONNULL other);
+  void InternalSwap(InteractionContactFace* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "wood_proto.ContactFace"; }
+  static ::absl::string_view FullMessageName() { return "wood_proto.InteractionContactFace"; }
 
-  explicit ContactFace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  ContactFace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ContactFace& from);
-  ContactFace(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ContactFace&& from) noexcept
-      : ContactFace(arena) {
+  explicit InteractionContactFace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  InteractionContactFace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const InteractionContactFace& from);
+  InteractionContactFace(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, InteractionContactFace&& from) noexcept
+      : InteractionContactFace(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -263,7 +263,7 @@ class ContactFace final : public ::google::protobuf::Message
   void _internal_set_type(::int32_t value);
 
   public:
-  // @@protoc_insertion_point(class_scope:wood_proto.ContactFace)
+  // @@protoc_insertion_point(class_scope:wood_proto.InteractionContactFace)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
@@ -286,7 +286,7 @@ class ContactFace final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const ContactFace& from_msg);
+        const InteractionContactFace& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE polygon_;
@@ -299,7 +299,7 @@ class ContactFace final : public ::google::protobuf::Message
   friend struct ::TableStruct_interaction_5fcontact_5fface_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull ContactFace_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactFace_class_data_;
 
 // ===================================================================
 
@@ -315,99 +315,99 @@ extern const ::google::protobuf::internal::ClassDataFull ContactFace_class_data_
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// ContactFace
+// InteractionContactFace
 
 // int32 face_a = 1;
-inline void ContactFace::clear_face_a() {
+inline void InteractionContactFace::clear_face_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_a_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000002U);
 }
-inline ::int32_t ContactFace::face_a() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactFace.face_a)
+inline ::int32_t InteractionContactFace::face_a() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.face_a)
   return _internal_face_a();
 }
-inline void ContactFace::set_face_a(::int32_t value) {
+inline void InteractionContactFace::set_face_a(::int32_t value) {
   _internal_set_face_a(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactFace.face_a)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.face_a)
 }
-inline ::int32_t ContactFace::_internal_face_a() const {
+inline ::int32_t InteractionContactFace::_internal_face_a() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.face_a_;
 }
-inline void ContactFace::_internal_set_face_a(::int32_t value) {
+inline void InteractionContactFace::_internal_set_face_a(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_a_ = value;
 }
 
 // int32 face_b = 2;
-inline void ContactFace::clear_face_b() {
+inline void InteractionContactFace::clear_face_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_b_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000004U);
 }
-inline ::int32_t ContactFace::face_b() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactFace.face_b)
+inline ::int32_t InteractionContactFace::face_b() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.face_b)
   return _internal_face_b();
 }
-inline void ContactFace::set_face_b(::int32_t value) {
+inline void InteractionContactFace::set_face_b(::int32_t value) {
   _internal_set_face_b(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactFace.face_b)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.face_b)
 }
-inline ::int32_t ContactFace::_internal_face_b() const {
+inline ::int32_t InteractionContactFace::_internal_face_b() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.face_b_;
 }
-inline void ContactFace::_internal_set_face_b(::int32_t value) {
+inline void InteractionContactFace::_internal_set_face_b(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_b_ = value;
 }
 
 // int32 type = 3;
-inline void ContactFace::clear_type() {
+inline void InteractionContactFace::clear_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000008U);
 }
-inline ::int32_t ContactFace::type() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactFace.type)
+inline ::int32_t InteractionContactFace::type() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.type)
   return _internal_type();
 }
-inline void ContactFace::set_type(::int32_t value) {
+inline void InteractionContactFace::set_type(::int32_t value) {
   _internal_set_type(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactFace.type)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.type)
 }
-inline ::int32_t ContactFace::_internal_type() const {
+inline ::int32_t InteractionContactFace::_internal_type() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.type_;
 }
-inline void ContactFace::_internal_set_type(::int32_t value) {
+inline void InteractionContactFace::_internal_set_type(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_ = value;
 }
 
 // .session_proto.Polyline polygon = 4;
-inline bool ContactFace::has_polygon() const {
+inline bool InteractionContactFace::has_polygon() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
   PROTOBUF_ASSUME(!value || _impl_.polygon_ != nullptr);
   return value;
 }
-inline const ::session_proto::Polyline& ContactFace::_internal_polygon() const {
+inline const ::session_proto::Polyline& InteractionContactFace::_internal_polygon() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   const ::session_proto::Polyline* p = _impl_.polygon_;
   return p != nullptr ? *p : reinterpret_cast<const ::session_proto::Polyline&>(::session_proto::_Polyline_default_instance_);
 }
-inline const ::session_proto::Polyline& ContactFace::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactFace.polygon)
+inline const ::session_proto::Polyline& InteractionContactFace::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.polygon)
   return _internal_polygon();
 }
-inline void ContactFace::unsafe_arena_set_allocated_polygon(
+inline void InteractionContactFace::unsafe_arena_set_allocated_polygon(
     ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
@@ -419,9 +419,9 @@ inline void ContactFace::unsafe_arena_set_allocated_polygon(
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.ContactFace.polygon)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactFace.polygon)
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactFace::release_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
@@ -440,16 +440,16 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactFace::release_polygon
   }
   return released;
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactFace::unsafe_arena_release_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::unsafe_arena_release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.ContactFace.polygon)
+  // @@protoc_insertion_point(field_release:wood_proto.InteractionContactFace.polygon)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   ::session_proto::Polyline* temp = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   return temp;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactFace::_internal_mutable_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::_internal_mutable_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.polygon_ == nullptr) {
     auto* p = ::google::protobuf::Message::DefaultConstruct<::session_proto::Polyline>(GetArena());
@@ -457,14 +457,14 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactFace::_internal_mutabl
   }
   return _impl_.polygon_;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactFace::mutable_polygon()
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_polygon()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   ::session_proto::Polyline* _msg = _internal_mutable_polygon();
-  // @@protoc_insertion_point(field_mutable:wood_proto.ContactFace.polygon)
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.polygon)
   return _msg;
 }
-inline void ContactFace::set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+inline void InteractionContactFace::set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -482,7 +482,7 @@ inline void ContactFace::set_allocated_polygon(::session_proto::Polyline* PROTOB
   }
 
   _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.ContactFace.polygon)
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionContactFace.polygon)
 }
 
 #ifdef __GNUC__

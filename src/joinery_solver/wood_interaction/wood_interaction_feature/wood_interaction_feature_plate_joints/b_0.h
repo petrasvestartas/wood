@@ -1,5 +1,5 @@
 /// b_0: beam slice - the tween rectangle of the two volumes, widened by scale[0] / scale[1], as four slice planes.
-static void b_0(FeaturePlate& joint) {
+static void b_0(InteractionFeaturePlate& joint) {
 
     joint.name = "b_0";
     joint.no_orient = true;

@@ -46,14 +46,19 @@ static bool same_loop(const Polyline& a, const Polyline& b, double tolerance) {
     return false;
 }
 
-/// The interaction on the edge of two element or instance guids, or null; instances are not Elements, so the edge is read directly.
-static const Interaction* find_interaction(const WoodSession& session, const std::string& a, const std::string& b) {
+/// The contacts on the edge of two element or instance guids, in order; instances are not Elements, so the edge is read directly.
+static std::vector<const InteractionContact*> contacts_between(const WoodSession& session, const std::string& a, const std::string& b) {
 
-    if (!session.graph.has_edge({a, b}))
-        return nullptr;
+    std::vector<const InteractionContact*> contacts;
 
-    const auto found = session.interactions.find(session.graph.edges.at(a).at(b).guid());
-    return found == session.interactions.end() ? nullptr : &found->second;
+    if (!session.graph.has_edge({a, b}) || !session.interactions.count(session.graph.edges.at(a).at(b).guid()))
+        return contacts;
+
+    for (const std::shared_ptr<Interaction>& interaction : session.interactions.at(session.graph.edges.at(a).at(b).guid()))
+        if (const InteractionContact* contact = dynamic_cast<const InteractionContact*>(interaction.get()))
+            contacts.push_back(contact);
+
+    return contacts;
 }
 
 /// A 200 x 100 column of height 3000 standing at origin.
@@ -85,24 +90,25 @@ static WoodSession tree_scene() {
     return scene;
 }
 
-/// Whether two scenes holding the same guids found the same contacts: pairs, counts, faces and polygons.
+/// Whether two scenes holding the same guids found the same contacts: pairs, counts, orientation, faces and polygons.
 static bool same_contacts(const WoodSession& a, const WoodSession& b) {
 
     if (a.interactions.size() != b.interactions.size())
         return false;
 
-    for (const auto& [guid, interaction] : a.interactions) {
+    for (const std::tuple<std::string, std::string>& pair : a.graph.get_edges()) {
 
-        const auto [first, second] = a.edge_of(interaction);
-        const Interaction* other = find_interaction(b, first, second);
+        const Edge& edge = a.graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
+        const std::vector<const InteractionContact*> mine = contacts_between(a, edge.v0, edge.v1);
+        const std::vector<const InteractionContact*> other = contacts_between(b, edge.v0, edge.v1);
 
-        if (!other || other->contacts.size() != interaction.contacts.size() || b.edge_of(*other).first != first)
+        if (mine.size() != other.size() || (!mine.empty() && b.graph.edges.at(edge.v0).at(edge.v1).v0 != edge.v0))
             return false;
 
-        for (size_t i = 0; i < interaction.contacts.size(); i++) {
+        for (size_t i = 0; i < mine.size(); i++) {
 
-            const ContactFace* face = interaction.contacts[i].face();
-            const ContactFace* twin = other->contacts[i].face();
+            const InteractionContactFace* face = dynamic_cast<const InteractionContactFace*>(mine[i]);
+            const InteractionContactFace* twin = dynamic_cast<const InteractionContactFace*>(other[i]);
 
             if (!face || !twin || face->face_a != twin->face_a || face->face_b != twin->face_b || !same_loop(face->polygon, twin->polygon, 1e-3))
                 return false;
@@ -112,16 +118,24 @@ static bool same_contacts(const WoodSession& a, const WoodSession& b) {
     return true;
 }
 
-/// Whether every interaction is found again from the two ends of its edge.
+/// Whether every interaction list sits on a graph edge whose two stored copies share its guid.
 static bool attached(const WoodSession& session) {
 
-    for (const auto& [guid, interaction] : session.interactions) {
+    std::unordered_set<std::string> edges;
 
-        const auto [first, second] = session.edge_of(interaction);
+    for (const std::tuple<std::string, std::string>& pair : session.graph.get_edges()) {
 
-        if (find_interaction(session, first, second) != &interaction)
+        const std::string& id = session.graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair)).guid();
+
+        if (session.graph.edges.at(std::get<1>(pair)).at(std::get<0>(pair)).guid() != id)
             return false;
+
+        edges.insert(id);
     }
+
+    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : session.interactions)
+        if (!edges.count(entry.first))
+            return false;
 
     return !session.interactions.empty();
 }
@@ -272,7 +286,7 @@ static void promote_test() {
     instanced.instance_by_key();
     check(instanced.definitions.elements->size() == 1 && instanced.objects.instances->size() == 2, "Promote Instances");
 
-    const std::vector<FeaturePlate> joints = world.compute_features();
+    const std::vector<InteractionFeaturePlate> joints = world.compute_features();
     check(!joints.empty() && instanced.compute_features().size() == joints.size(), "Promote Joints");
     check(instanced.objects.instances->empty() && instanced.get_element<Plate>(guids[0]) && instanced.get_element<Plate>(guids[1]), "Promote Keeps Guids");
 

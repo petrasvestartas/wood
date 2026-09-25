@@ -1,5 +1,5 @@
 /// cr_c_ip_1: parametric cross joint - nine base rings, offset along their normals for face 1, rotated for the male.
-static void cr_c_ip_1(FeaturePlate& joint) {
+static void cr_c_ip_1(InteractionFeaturePlate& joint) {
 
     joint.name = "cr_c_ip_1";
 

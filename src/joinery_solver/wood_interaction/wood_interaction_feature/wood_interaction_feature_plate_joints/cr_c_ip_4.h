@@ -1,5 +1,5 @@
 /// cr_c_ip_4: five base rings plus one vertical drill.
-static void cr_c_ip_4(FeaturePlate& joint) {
+static void cr_c_ip_4(InteractionFeaturePlate& joint) {
 
     joint.name = "cr_c_ip_4";
 

@@ -15,7 +15,7 @@ static void tile_custom_face(const std::vector<Polyline>& source, bool pick_face
 
 /// ss_e_ip_custom: each user pair (face0, face1) from settings.custom("ss_e_ip") is one tooth,
 /// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
-static void ss_e_ip_custom(FeaturePlate& joint, const Settings& settings) {
+static void ss_e_ip_custom(InteractionFeaturePlate& joint, const Settings& settings) {
 
     joint.name = "ss_e_ip_custom";
 

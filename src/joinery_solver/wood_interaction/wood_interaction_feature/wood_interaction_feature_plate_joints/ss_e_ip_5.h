@@ -1,5 +1,5 @@
 /// ss_e_ip_5: reversed-tooth in-plane joint - `divisions` copies of an eight-point tooth along z, each reversed; unit_scale.
-static void ss_e_ip_5(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+static void ss_e_ip_5(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "ss_e_ip_5";
 

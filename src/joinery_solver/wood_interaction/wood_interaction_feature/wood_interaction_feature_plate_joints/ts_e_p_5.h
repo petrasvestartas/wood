@@ -1,6 +1,6 @@
 /// ts_e_p_5: repeating tenon-mortise - `divisions` copies along z, the male concatenated into one outline per face,
 /// the female one rectangle per copy plus a bounding rectangle; unit_scale.
-static void ts_e_p_5(FeaturePlate& joint) {
+static void ts_e_p_5(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_5";
 

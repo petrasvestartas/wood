@@ -1,5 +1,5 @@
 /// ts_e_p_0: hardcoded three-finger tenon-mortise - three mortise holes plus a bounding rectangle per female face, a zigzag per male face.
-static void ts_e_p_0(FeaturePlate& joint) {
+static void ts_e_p_0(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_0";
 

@@ -1,75 +1,57 @@
 #include "pch.h"
-#include "wood_serialization.h"
 #include "wood_interaction_contact_axis.h"
 #include "interaction_contact_axis.pb.h"
 using namespace session_cpp;
 
 namespace wood_session {
 
-WoodSession& ContactAxis::session() const {
-
-    if (!_session)
-        throw std::logic_error("ContactAxis::session: the record is not in a scene");
-
-    return *_session;
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - Constructors
+// InteractionContactAxis - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-ContactAxis::ContactAxis(Line segment, double t_a, double t_b, int polyline_a, int segment_a, int polyline_b, int segment_b)
+InteractionContactAxis::InteractionContactAxis(Line segment, double t_a, double t_b, int polyline_a, int segment_a, int polyline_b, int segment_b)
     : segment(std::move(segment)), t_a(t_a), t_b(t_b), polyline_a(polyline_a), segment_a(segment_a), polyline_b(polyline_b), segment_b(segment_b) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - Operators
+// InteractionContactAxis - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::ostream& operator<<(std::ostream& os, const ContactAxis& contact) {
-    return os << contact.str();
+std::string_view InteractionContactAxis::kind() const {
+    return "axis";
+}
+
+std::shared_ptr<InteractionContact> InteractionContactAxis::flipped() const {
+
+    std::shared_ptr<InteractionContactAxis> out = std::make_shared<InteractionContactAxis>(*this);
+    out->segment = Line::from_points(segment.end(), segment.start());
+    out->t_a = t_b;
+    out->t_b = t_a;
+    out->polyline_a = polyline_b;
+    out->segment_a = segment_b;
+    out->polyline_b = polyline_a;
+    out->segment_b = segment_a;
+
+    return out;
+}
+
+bool InteractionContactAxis::coincides(const InteractionContact& other) const {
+
+    const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(&other);
+
+    return axis && polyline_a == axis->polyline_a && segment_a == axis->segment_a && polyline_b == axis->polyline_b && segment_b == axis->segment_b;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - Geometry
+// InteractionContactAxis - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
 
-ContactAxis ContactAxis::flipped() const {
-    return ContactAxis(Line::from_points(segment.end(), segment.start()), t_b, t_a, polyline_b, segment_b, polyline_a, segment_a);
+std::string InteractionContactAxis::interaction_type_name() const {
+    return std::string(INTERACTION_TYPE);
 }
 
-bool ContactAxis::coincides(const ContactAxis& other) const {
-    return polyline_a == other.polyline_a && segment_a == other.segment_a && polyline_b == other.polyline_b && segment_b == other.segment_b;
-}
+std::string InteractionContactAxis::interaction_data_dumps() const {
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - JSON
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// The protobuf message, printed.
-nlohmann::ordered_json ContactAxis::jsondump() const {
-
-    wood_proto::ContactAxis proto;
-    proto.ParseFromString(pb_dumps());
-
-    return json_of(proto);
-}
-
-/// The protobuf message, parsed.
-ContactAxis ContactAxis::jsonload(const nlohmann::json& data) {
-
-    wood_proto::ContactAxis proto;
-    message_from_json(data, proto);
-
-    return pb_loads(proto.SerializeAsString());
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - Protobuf
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::string ContactAxis::pb_dumps() const {
-
-    wood_proto::ContactAxis proto;
+    wood_proto::InteractionContactAxis proto;
     proto.mutable_segment()->ParseFromString(segment.pb_dumps());
     proto.set_t_a(t_a);
     proto.set_t_b(t_b);
@@ -81,14 +63,16 @@ std::string ContactAxis::pb_dumps() const {
     return proto.SerializeAsString();
 }
 
-ContactAxis ContactAxis::pb_loads(const std::string& data) {
+InteractionContactAxis InteractionContactAxis::interaction_data_loads(const std::string& data) {
 
-    wood_proto::ContactAxis proto;
+    wood_proto::InteractionContactAxis proto;
     proto.ParseFromString(data);
 
-    ContactAxis contact;
+    InteractionContactAxis contact;
+
     if (proto.has_segment())
         contact.segment = Line::pb_loads(proto.segment().SerializeAsString());
+
     contact.t_a = proto.t_a();
     contact.t_b = proto.t_b();
     contact.polyline_a = proto.polyline_a();
@@ -99,12 +83,25 @@ ContactAxis ContactAxis::pb_loads(const std::string& data) {
     return contact;
 }
 
+std::shared_ptr<Interaction> InteractionContactAxis::clone() const {
+    return std::make_shared<InteractionContactAxis>(*this);
+}
+
+/// The registered factory: interaction_data bytes to an axis contact.
+static std::shared_ptr<Interaction> contact_axis_from_protobuf(const std::string& data) {
+    return std::make_shared<InteractionContactAxis>(InteractionContactAxis::interaction_data_loads(data));
+}
+
+void InteractionContactAxis::register_type() {
+    Interaction::register_type(std::string(INTERACTION_TYPE), contact_axis_from_protobuf);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-// ContactAxis - String
+// InteractionContactAxis - String
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::string ContactAxis::str() const {
-    return fmt::format("ContactAxis(a=({}, {}, {:.3f}), b=({}, {}, {:.3f}), length={:.3f})", polyline_a, segment_a, t_a, polyline_b, segment_b, t_b, segment.length());
+std::string InteractionContactAxis::str() const {
+    return fmt::format("InteractionContactAxis(a=({}, {}, {:.3f}), b=({}, {}, {:.3f}), length={:.3f})", polyline_a, segment_a, t_a, polyline_b, segment_b, t_b, segment.length());
 }
 
 } // namespace wood_session

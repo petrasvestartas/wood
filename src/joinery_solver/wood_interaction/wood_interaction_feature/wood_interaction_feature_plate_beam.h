@@ -2,29 +2,47 @@
 
 #include "pch.h"
 
+#include "wood_interaction_feature.h"
+
 namespace wood_session {
 
-/// A plate-to-beam joint; nothing computed yet, the record and its message are reserved.
-struct FeaturePlateBeam {
+/// A plate-to-beam joint; nothing computed yet, the class and its message are reserved.
+class InteractionFeaturePlateBeam : public InteractionFeature {
+public:
+    static constexpr std::string_view INTERACTION_TYPE = "InteractionFeaturePlateBeam"; // The tag the kernel writes and the registry reads.
 
-    /// The joint as JSON: type only.
-    nlohmann::ordered_json jsondump() const { return nlohmann::ordered_json{{"type", "FeaturePlateBeam"}}; }
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A joint from its JSON.
-    static FeaturePlateBeam jsonload(const nlohmann::json&) { return FeaturePlateBeam{}; }
+    /// "plate_beam".
+    std::string_view kind() const override;
 
-    /// The joint as wood_proto.FeaturePlateBeam bytes: empty.
-    std::string pb_dumps() const {
-        return std::string();
-    }
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Protobuf
+    // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A joint from wood_proto.FeaturePlateBeam bytes.
-    static FeaturePlateBeam pb_loads(const std::string&) { return FeaturePlateBeam{}; }
+    /// INTERACTION_TYPE.
+    std::string interaction_type_name() const override;
 
-    /// "FeaturePlateBeam()".
-    std::string str() const {
-        return "FeaturePlateBeam()";
-    }
+    /// The contact guid as wood_proto.InteractionFeaturePlateBeam bytes.
+    std::string interaction_data_dumps() const override;
+
+    /// A plate-to-beam joint from wood_proto.InteractionFeaturePlateBeam bytes; the kernel sets the guid and the name.
+    static InteractionFeaturePlateBeam interaction_data_loads(const std::string& data);
+
+    /// A copy with the same guid, the polymorphic copy a Session makes.
+    std::shared_ptr<session_cpp::Interaction> clone() const override;
+
+    /// Registers the INTERACTION_TYPE factory with the kernel.
+    static void register_type();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // String
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// "InteractionFeaturePlateBeam()".
+    std::string str() const override;
 };
 
 } // namespace wood_session

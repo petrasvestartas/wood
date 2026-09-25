@@ -4,8 +4,8 @@ package wood_proto;
 
 import "polyline.proto";
 
-// One crossing of two plates: where their side faces pass through each other.
-message ContactCross {
+// The state of an InteractionContactCross beyond the kernel Interaction: where two plates' side faces pass through each other.
+message InteractionContactCross {
   repeated int32 faces_a = 1;                   // The two side faces of the first element, 2 entries
   repeated int32 faces_b = 2;                   // The two side faces of the second element, 2 entries
   session_proto.Polyline polygon = 3;           // Closed quad on the mid-plane

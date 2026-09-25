@@ -19,23 +19,23 @@ int main() {
 
     std::cout << wood_session << "\n";
 
-    FeatureBeam joint;
-    joint.end_type = 1;
-    joint.volumes = {beam->sections().back().translated(Vector(-60, 0, 0)), beam->sections().back(),
-                    column->section.translated(Vector(0, 0, 100)), column->section.translated(Vector(0, 0, 160))};
-    InteractionFeature feature(joint);
-    feature.contact = 0; // The record's first contact.
+    std::shared_ptr<InteractionFeatureBeam> joint = std::make_shared<InteractionFeatureBeam>();
+    joint->end_type = 1;
+    joint->volumes = {beam->sections().back().translated(Vector(-60, 0, 0)), beam->sections().back(),
+                      column->section.translated(Vector(0, 0, 100)), column->section.translated(Vector(0, 0, 160))};
 
-    Interaction record;
-    record.contacts.emplace_back(ContactAxis(Line::from_points(Point(800, 0, 100), Point(950, 50, 100)), 1.0, 1.0 / 6.0, 0, 0, 0, 0));
-    record.features.push_back(feature);
-    record.structure = InteractionStructure{};
-    const Interaction& interaction = wood_session.add_interaction(beam, column, record);
+    const std::shared_ptr<Interaction> contact = wood_session.add_interaction(beam, column, std::make_shared<InteractionContactAxis>(Line::from_points(Point(800, 0, 100), Point(950, 50, 100)), 1.0, 1.0 / 6.0, 0, 0, 0, 0));
+    joint->contact_guid = contact->guid();
+    wood_session.add_interaction(beam, column, joint);
 
-    std::cout << interaction << "\n";
+    for (const std::shared_ptr<Interaction>& interaction : wood_session.get_interaction(column, beam))
+        std::cout << *interaction << "\n";
+
     std::cout << "Beam-column interaction: " << wood_session.has_interaction(column, beam) << "\n";
 
-    wood_session.add_interaction(plate, block);
+    std::shared_ptr<InteractionContactFace> glue = std::make_shared<InteractionContactFace>(0, 4, ContactType::top_top, Polyline::rectangle(Point(1200, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 200, 300));
+    glue->name = "glue";
+    wood_session.add_interaction(plate, block, glue);
     wood_session.remove_interaction(block, plate);
     std::cout << "Plate-block interaction after removal: " << wood_session.has_interaction(plate, block) << "\n";
 
@@ -57,7 +57,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the four element kinds built in code and added to a wood session: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid lofted on the first read of its geometry, element_geometry_brep() the same solid as faces, its outlines, axis and sections features the viewer draws while they are visible.
+the four element kinds built in code and added to a wood session: a plate from a rectangle, a beam from an axis, a column from an axis and a section, a voussoir as a block lofted between two rectangles; every one a closed solid lofted on the first read of its geometry, element_geometry_brep() the same solid as faces, its outlines, axis and sections features the viewer draws while they are visible; a beam and a column joined by an axis contact and a beam joint that names it by guid, a plate and a block joined by a face contact named "glue" and then parted.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

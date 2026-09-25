@@ -30,10 +30,10 @@ int index_of_plate(const std::vector<std::shared_ptr<Plate>>& elements, const st
     return -1;
 }
 
-int index_of_joint(const std::vector<FeaturePlate>& joints, const std::string& guid) {
+int index_of_joint(const std::vector<InteractionFeaturePlate>& joints, const std::string& guid) {
 
     for (size_t i = 0; i < joints.size(); ++i)
-        if (joints[i].guid == guid)
+        if (joints[i].guid() == guid)
             return static_cast<int>(i);
 
     return -1;
@@ -42,7 +42,7 @@ int index_of_joint(const std::vector<FeaturePlate>& joints, const std::string& g
 namespace {
 
 /// Slide a volume pair to its midpoint, then apart by unit_scale_distance along the joint line.
-void move_pair(FeaturePlate& joint, Polyline& a, Polyline& b) {
+void move_pair(InteractionFeaturePlate& joint, Polyline& a, Polyline& b) {
 
     if (joint.unit_scale_distance == 0.0) {
         const Vector edge = a.get_point(2) - a.get_point(1);
@@ -66,7 +66,7 @@ void move_pair(FeaturePlate& joint, Polyline& a, Polyline& b) {
 
 }  // namespace
 
-void apply_unit_scale(FeaturePlate& joint) {
+void apply_unit_scale(InteractionFeaturePlate& joint) {
 
     std::array<std::optional<Polyline>, 4>& vols = joint.joint_volumes;
     if (TRACE) {
@@ -99,7 +99,7 @@ void apply_unit_scale(FeaturePlate& joint) {
 }
 
 /// Rescale the volumes along the joint line, then map the unit-cube outlines onto them by change of basis.
-void joint_orient_to_connection_area(FeaturePlate& joint) {
+void joint_orient_to_connection_area(InteractionFeaturePlate& joint) {
 
     std::array<std::optional<Polyline>, 4>& vols = joint.joint_volumes;
     if (!vols[0].has_value() || !vols[1].has_value())
@@ -172,7 +172,7 @@ bool compute_linked_outline(
 
 }  // namespace
 
-void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joints) {
+void merge_linked_joints(InteractionFeaturePlate& joint, std::vector<InteractionFeaturePlate>& all_joints) {
 
     if (joint.linked_joints_seq.size() != joint.linked_joints.size())
         return;
@@ -183,7 +183,7 @@ void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joi
         if (index < 0)
             continue;
 
-        FeaturePlate& linked = all_joints[index];
+        InteractionFeaturePlate& linked = all_joints[index];
         if (&linked == &joint)
             continue;
 
@@ -215,7 +215,7 @@ void merge_linked_joints(FeaturePlate& joint, std::vector<FeaturePlate>& all_joi
     }
 }
 
-void joint_get_divisions(FeaturePlate& joint, double division_distance) {
+void joint_get_divisions(InteractionFeaturePlate& joint, double division_distance) {
 
     joint.division_length = division_distance;
     const double length = joint.joint_lines[0].squared_length();

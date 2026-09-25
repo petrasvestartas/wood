@@ -4,8 +4,8 @@ package wood_proto;
 
 import "polyline.proto";
 
-// Two coplanar faces in contact and the region they share.
-message ContactFace {
+// The state of an InteractionContactFace beyond the kernel Interaction: two coplanar faces in contact and the region they share.
+message InteractionContactFace {
   int32 face_a = 1;                    // Face index on the edge's first element
   int32 face_b = 2;                    // Face index on the edge's second element
   int32 type = 3;                      // ContactType: -1 unknown, 0 side_side, 1 side_top, 2 top_top

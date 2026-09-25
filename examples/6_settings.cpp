@@ -19,7 +19,7 @@ int main() {
     s.angle = 0.11;
 
     wood_session.compute_features(face_to_face);
-    for (const FeaturePlate& joint : wood_session.get_plate_features())
+    for (const InteractionFeaturePlate& joint : wood_session.get_plate_features())
         std::cout << fmt::format("{} divisions {} length {:.0f}\n", joint.name, joint.divisions, joint.length);
 
     const WoodSession back = WoodSession::pb_loads(wood_session.pb_dumps());

@@ -1,5 +1,5 @@
 /// ss_e_ip_1: parametric in-plane zigzag along z at y=-0.5, the other face offset by (0,1,0); symmetric male/female.
-static void ss_e_ip_1(FeaturePlate& joint) {
+static void ss_e_ip_1(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_ip_1";
 

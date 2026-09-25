@@ -10,7 +10,7 @@ int main() {
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
     wood_session.compute_features();
 
-    for (const FeaturePlate& joint : wood_session.get_plate_features())
+    for (const InteractionFeaturePlate& joint : wood_session.get_plate_features())
         std::cout << fmt::format("{} type {} between {} f{} and {} f{}: {} male, {} female outlines, {} divisions\n", joint.name, joint.joint_type, joint.element_a.substr(0, 8), joint.contact.face_a, joint.element_b.substr(0, 8), joint.contact.face_b, joint.male_outlines[0].size(), joint.female_outlines[0].size(), joint.divisions);
 
     const std::shared_ptr<Plate> plate = wood_session.plates().front();

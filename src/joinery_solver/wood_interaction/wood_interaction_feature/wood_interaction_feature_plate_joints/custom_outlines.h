@@ -1,6 +1,6 @@
 /// User-supplied joint geometry: pairs (face0, face1) from the male and female lists, every pair
 /// concatenated into one outline per face plus a two-point endpoint marker, all edge_insertion.
-static void custom_outlines(FeaturePlate& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
+static void custom_outlines(InteractionFeaturePlate& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
 
     if (cm.size() < 2 || cf.size() < 2)
         return;

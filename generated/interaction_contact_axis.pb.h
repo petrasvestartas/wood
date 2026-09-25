@@ -54,10 +54,10 @@ extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_interaction_5fcontact_5faxis_2eproto;
 }  // extern "C"
 namespace wood_proto {
-class ContactAxis;
-struct ContactAxisDefaultTypeInternal;
-extern ContactAxisDefaultTypeInternal _ContactAxis_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull ContactAxis_class_data_;
+class InteractionContactAxis;
+struct InteractionContactAxisDefaultTypeInternal;
+extern InteractionContactAxisDefaultTypeInternal _InteractionContactAxis_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactAxis_class_data_;
 }  // namespace wood_proto
 namespace google {
 namespace protobuf {
@@ -71,30 +71,30 @@ namespace wood_proto {
 
 // -------------------------------------------------------------------
 
-class ContactAxis final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:wood_proto.ContactAxis) */ {
+class InteractionContactAxis final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.InteractionContactAxis) */ {
  public:
-  inline ContactAxis() : ContactAxis(nullptr) {}
-  ~ContactAxis() PROTOBUF_FINAL;
+  inline InteractionContactAxis() : InteractionContactAxis(nullptr) {}
+  ~InteractionContactAxis() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(ContactAxis* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(InteractionContactAxis* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(ContactAxis));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(InteractionContactAxis));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR ContactAxis(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR InteractionContactAxis(::google::protobuf::internal::ConstantInitialized);
 
-  inline ContactAxis(const ContactAxis& from) : ContactAxis(nullptr, from) {}
-  inline ContactAxis(ContactAxis&& from) noexcept
-      : ContactAxis(nullptr, ::std::move(from)) {}
-  inline ContactAxis& operator=(const ContactAxis& from) {
+  inline InteractionContactAxis(const InteractionContactAxis& from) : InteractionContactAxis(nullptr, from) {}
+  inline InteractionContactAxis(InteractionContactAxis&& from) noexcept
+      : InteractionContactAxis(nullptr, ::std::move(from)) {}
+  inline InteractionContactAxis& operator=(const InteractionContactAxis& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ContactAxis& operator=(ContactAxis&& from) noexcept {
+  inline InteractionContactAxis& operator=(InteractionContactAxis&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -122,13 +122,13 @@ class ContactAxis final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ContactAxis& default_instance() {
-    return *reinterpret_cast<const ContactAxis*>(
-        &_ContactAxis_default_instance_);
+  static const InteractionContactAxis& default_instance() {
+    return *reinterpret_cast<const InteractionContactAxis*>(
+        &_InteractionContactAxis_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 0;
-  friend void swap(ContactAxis& a, ContactAxis& b) { a.Swap(&b); }
-  inline void Swap(ContactAxis* PROTOBUF_NONNULL other) {
+  friend void swap(InteractionContactAxis& a, InteractionContactAxis& b) { a.Swap(&b); }
+  inline void Swap(InteractionContactAxis* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -136,7 +136,7 @@ class ContactAxis final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ContactAxis* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(InteractionContactAxis* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -144,13 +144,13 @@ class ContactAxis final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  ContactAxis* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<ContactAxis>(arena);
+  InteractionContactAxis* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<InteractionContactAxis>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const ContactAxis& from);
+  void CopyFrom(const InteractionContactAxis& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const ContactAxis& from) { ContactAxis::MergeImpl(*this, from); }
+  void MergeFrom(const InteractionContactAxis& from) { InteractionContactAxis::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -186,17 +186,17 @@ class ContactAxis final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(ContactAxis* PROTOBUF_NONNULL other);
+  void InternalSwap(InteractionContactAxis* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "wood_proto.ContactAxis"; }
+  static ::absl::string_view FullMessageName() { return "wood_proto.InteractionContactAxis"; }
 
-  explicit ContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  ContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ContactAxis& from);
-  ContactAxis(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ContactAxis&& from) noexcept
-      : ContactAxis(arena) {
+  explicit InteractionContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  InteractionContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const InteractionContactAxis& from);
+  InteractionContactAxis(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, InteractionContactAxis&& from) noexcept
+      : InteractionContactAxis(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -296,7 +296,7 @@ class ContactAxis final : public ::google::protobuf::Message
   void _internal_set_segment_b(::int32_t value);
 
   public:
-  // @@protoc_insertion_point(class_scope:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(class_scope:wood_proto.InteractionContactAxis)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
@@ -319,7 +319,7 @@ class ContactAxis final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const ContactAxis& from_msg);
+        const InteractionContactAxis& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::session_proto::Line* PROTOBUF_NULLABLE segment_;
@@ -335,7 +335,7 @@ class ContactAxis final : public ::google::protobuf::Message
   friend struct ::TableStruct_interaction_5fcontact_5faxis_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull ContactAxis_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactAxis_class_data_;
 
 // ===================================================================
 
@@ -351,24 +351,24 @@ extern const ::google::protobuf::internal::ClassDataFull ContactAxis_class_data_
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// ContactAxis
+// InteractionContactAxis
 
 // .session_proto.Line segment = 1;
-inline bool ContactAxis::has_segment() const {
+inline bool InteractionContactAxis::has_segment() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
   PROTOBUF_ASSUME(!value || _impl_.segment_ != nullptr);
   return value;
 }
-inline const ::session_proto::Line& ContactAxis::_internal_segment() const {
+inline const ::session_proto::Line& InteractionContactAxis::_internal_segment() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   const ::session_proto::Line* p = _impl_.segment_;
   return p != nullptr ? *p : reinterpret_cast<const ::session_proto::Line&>(::session_proto::_Line_default_instance_);
 }
-inline const ::session_proto::Line& ContactAxis::segment() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.segment)
+inline const ::session_proto::Line& InteractionContactAxis::segment() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.segment)
   return _internal_segment();
 }
-inline void ContactAxis::unsafe_arena_set_allocated_segment(
+inline void InteractionContactAxis::unsafe_arena_set_allocated_segment(
     ::session_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
@@ -380,9 +380,9 @@ inline void ContactAxis::unsafe_arena_set_allocated_segment(
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.ContactAxis.segment)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactAxis.segment)
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE ContactAxis::release_segment() {
+inline ::session_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::release_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
@@ -401,16 +401,16 @@ inline ::session_proto::Line* PROTOBUF_NULLABLE ContactAxis::release_segment() {
   }
   return released;
 }
-inline ::session_proto::Line* PROTOBUF_NULLABLE ContactAxis::unsafe_arena_release_segment() {
+inline ::session_proto::Line* PROTOBUF_NULLABLE InteractionContactAxis::unsafe_arena_release_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.ContactAxis.segment)
+  // @@protoc_insertion_point(field_release:wood_proto.InteractionContactAxis.segment)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
   ::session_proto::Line* temp = _impl_.segment_;
   _impl_.segment_ = nullptr;
   return temp;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL ContactAxis::_internal_mutable_segment() {
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::_internal_mutable_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.segment_ == nullptr) {
     auto* p = ::google::protobuf::Message::DefaultConstruct<::session_proto::Line>(GetArena());
@@ -418,14 +418,14 @@ inline ::session_proto::Line* PROTOBUF_NONNULL ContactAxis::_internal_mutable_se
   }
   return _impl_.segment_;
 }
-inline ::session_proto::Line* PROTOBUF_NONNULL ContactAxis::mutable_segment()
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactAxis::mutable_segment()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000001U);
   ::session_proto::Line* _msg = _internal_mutable_segment();
-  // @@protoc_insertion_point(field_mutable:wood_proto.ContactAxis.segment)
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactAxis.segment)
   return _msg;
 }
-inline void ContactAxis::set_allocated_segment(::session_proto::Line* PROTOBUF_NULLABLE value) {
+inline void InteractionContactAxis::set_allocated_segment(::session_proto::Line* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -443,155 +443,155 @@ inline void ContactAxis::set_allocated_segment(::session_proto::Line* PROTOBUF_N
   }
 
   _impl_.segment_ = reinterpret_cast<::session_proto::Line*>(value);
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.ContactAxis.segment)
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionContactAxis.segment)
 }
 
 // double t_a = 2;
-inline void ContactAxis::clear_t_a() {
+inline void InteractionContactAxis::clear_t_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.t_a_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000002U);
 }
-inline double ContactAxis::t_a() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.t_a)
+inline double InteractionContactAxis::t_a() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.t_a)
   return _internal_t_a();
 }
-inline void ContactAxis::set_t_a(double value) {
+inline void InteractionContactAxis::set_t_a(double value) {
   _internal_set_t_a(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.t_a)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.t_a)
 }
-inline double ContactAxis::_internal_t_a() const {
+inline double InteractionContactAxis::_internal_t_a() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.t_a_;
 }
-inline void ContactAxis::_internal_set_t_a(double value) {
+inline void InteractionContactAxis::_internal_set_t_a(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.t_a_ = value;
 }
 
 // double t_b = 3;
-inline void ContactAxis::clear_t_b() {
+inline void InteractionContactAxis::clear_t_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.t_b_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000004U);
 }
-inline double ContactAxis::t_b() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.t_b)
+inline double InteractionContactAxis::t_b() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.t_b)
   return _internal_t_b();
 }
-inline void ContactAxis::set_t_b(double value) {
+inline void InteractionContactAxis::set_t_b(double value) {
   _internal_set_t_b(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.t_b)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.t_b)
 }
-inline double ContactAxis::_internal_t_b() const {
+inline double InteractionContactAxis::_internal_t_b() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.t_b_;
 }
-inline void ContactAxis::_internal_set_t_b(double value) {
+inline void InteractionContactAxis::_internal_set_t_b(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.t_b_ = value;
 }
 
 // int32 polyline_a = 4;
-inline void ContactAxis::clear_polyline_a() {
+inline void InteractionContactAxis::clear_polyline_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.polyline_a_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000008U);
 }
-inline ::int32_t ContactAxis::polyline_a() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.polyline_a)
+inline ::int32_t InteractionContactAxis::polyline_a() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.polyline_a)
   return _internal_polyline_a();
 }
-inline void ContactAxis::set_polyline_a(::int32_t value) {
+inline void InteractionContactAxis::set_polyline_a(::int32_t value) {
   _internal_set_polyline_a(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.polyline_a)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.polyline_a)
 }
-inline ::int32_t ContactAxis::_internal_polyline_a() const {
+inline ::int32_t InteractionContactAxis::_internal_polyline_a() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.polyline_a_;
 }
-inline void ContactAxis::_internal_set_polyline_a(::int32_t value) {
+inline void InteractionContactAxis::_internal_set_polyline_a(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.polyline_a_ = value;
 }
 
 // int32 segment_a = 5;
-inline void ContactAxis::clear_segment_a() {
+inline void InteractionContactAxis::clear_segment_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.segment_a_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000010U);
 }
-inline ::int32_t ContactAxis::segment_a() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.segment_a)
+inline ::int32_t InteractionContactAxis::segment_a() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.segment_a)
   return _internal_segment_a();
 }
-inline void ContactAxis::set_segment_a(::int32_t value) {
+inline void InteractionContactAxis::set_segment_a(::int32_t value) {
   _internal_set_segment_a(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.segment_a)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.segment_a)
 }
-inline ::int32_t ContactAxis::_internal_segment_a() const {
+inline ::int32_t InteractionContactAxis::_internal_segment_a() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.segment_a_;
 }
-inline void ContactAxis::_internal_set_segment_a(::int32_t value) {
+inline void InteractionContactAxis::_internal_set_segment_a(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.segment_a_ = value;
 }
 
 // int32 polyline_b = 6;
-inline void ContactAxis::clear_polyline_b() {
+inline void InteractionContactAxis::clear_polyline_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.polyline_b_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000020U);
 }
-inline ::int32_t ContactAxis::polyline_b() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.polyline_b)
+inline ::int32_t InteractionContactAxis::polyline_b() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.polyline_b)
   return _internal_polyline_b();
 }
-inline void ContactAxis::set_polyline_b(::int32_t value) {
+inline void InteractionContactAxis::set_polyline_b(::int32_t value) {
   _internal_set_polyline_b(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.polyline_b)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.polyline_b)
 }
-inline ::int32_t ContactAxis::_internal_polyline_b() const {
+inline ::int32_t InteractionContactAxis::_internal_polyline_b() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.polyline_b_;
 }
-inline void ContactAxis::_internal_set_polyline_b(::int32_t value) {
+inline void InteractionContactAxis::_internal_set_polyline_b(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.polyline_b_ = value;
 }
 
 // int32 segment_b = 7;
-inline void ContactAxis::clear_segment_b() {
+inline void InteractionContactAxis::clear_segment_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.segment_b_ = 0;
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000040U);
 }
-inline ::int32_t ContactAxis::segment_b() const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactAxis.segment_b)
+inline ::int32_t InteractionContactAxis::segment_b() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactAxis.segment_b)
   return _internal_segment_b();
 }
-inline void ContactAxis::set_segment_b(::int32_t value) {
+inline void InteractionContactAxis::set_segment_b(::int32_t value) {
   _internal_set_segment_b(value);
   SetHasBit(_impl_._has_bits_[0], 0x00000040U);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactAxis.segment_b)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactAxis.segment_b)
 }
-inline ::int32_t ContactAxis::_internal_segment_b() const {
+inline ::int32_t InteractionContactAxis::_internal_segment_b() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.segment_b_;
 }
-inline void ContactAxis::_internal_set_segment_b(::int32_t value) {
+inline void InteractionContactAxis::_internal_set_segment_b(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.segment_b_ = value;
 }

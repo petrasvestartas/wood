@@ -1,5 +1,5 @@
 /// ts_e_p_3: parametric tenon-mortise skipping every other point pair; female holes from every four male points plus a bounding rectangle.
-static void ts_e_p_3(FeaturePlate& joint) {
+static void ts_e_p_3(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_3";
 

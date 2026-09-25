@@ -11,7 +11,7 @@ int main() {
     wood_session.settings.joint_volume_extension = {0, 2, 0};
 
     wood_session.compute_features(cross_joint);
-    for (const FeaturePlate& joint : wood_session.get_plate_features())
+    for (const InteractionFeaturePlate& joint : wood_session.get_plate_features())
         std::cout << fmt::format("{} type {}: side faces ({},{}) and ({},{}), volumes {}\n", joint.name, joint.joint_type, joint.contact.face_a, joint.cross_faces[0], joint.contact.face_b, joint.cross_faces[1], joint.joint_volumes[0].has_value() + joint.joint_volumes[1].has_value());
 
     wood_session.compute_features(face_to_face_then_cross);

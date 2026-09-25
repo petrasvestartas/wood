@@ -20,7 +20,7 @@ static size_t tree_nodes(const Session& session) {
 }
 
 /// Whether one of features is the male side of joint.
-static bool hosts_male_side(const std::vector<ElementFeature>& features, const FeaturePlate& joint) {
+static bool hosts_male_side(const std::vector<ElementFeature>& features, const InteractionFeaturePlate& joint) {
 
     for (const ElementFeature& feature : features)
         if (feature.guid() == joint.feature_guid(0))
@@ -40,19 +40,6 @@ static std::string to_hex(const std::string& bytes) {
     }
 
     return out;
-}
-
-/// Same kind, same faces or segments, same polygon size.
-static bool same_contact(const InteractionContact& x, const InteractionContact& y) {
-
-    if (x.guid != y.guid || x.kind() != y.kind() || !x.coincides(y))
-        return false;
-    if (x.face())
-        return x.face()->polygon.point_count() == y.face()->polygon.point_count();
-    if (x.cross())
-        return x.cross()->polygon.point_count() == y.cross()->polygon.point_count();
-
-    return x.axis()->segment.length() == y.axis()->segment.length();
 }
 
 int main() {
@@ -99,74 +86,58 @@ int main() {
     check(a.interactions.size() == b.interactions.size(), fmt::format("interaction count ({})", a.interactions.size()));
     check(a.consistent() && b.consistent(), "every feature's own pair and contact agree with the edge and the stored contact, before and after the pb");
 
-    bool owned = true;
-    for (const WoodSession* wood_session : std::vector<const WoodSession*>{&a, &b})
-        for (const auto& [guid, interaction] : wood_session->interactions) {
-            owned = owned && &interaction.session() == wood_session;
-            for (const InteractionContact& contact : interaction.contacts)
-                owned = owned && &contact.session() == wood_session && (!contact.face() || &contact.face()->session() == wood_session);
-            for (const InteractionFeature& feature : interaction.features)
-                owned = owned && &feature.session() == wood_session && (!feature.plate() || &feature.plate()->session() == wood_session);
-        }
-
-    const WoodSession copy = a;
-    WoodSession moved = WoodSession(copy);
-    owned = owned && &copy.interactions.begin()->second.session() == &copy;
-    for (const auto& [guid, interaction] : moved.interactions)
-        for (const InteractionFeature& feature : interaction.features)
-            owned = owned && &feature.session() == &moved;
-    check(owned, "every record answers session() with the wood session it sits in: after the solve, after the file, after a copy and a move");
     bool records = true;
-    size_t contact_count = 0;
-    size_t feature_count = 0;
-    for (const auto& [guid, ia] : a.interactions) {
+    size_t record_count = 0;
 
-        const auto found = b.interactions.find(guid);
-        if (found == b.interactions.end()) {
+    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : a.interactions) {
+
+        const std::map<std::string, std::vector<std::shared_ptr<Interaction>>>::const_iterator found = b.interactions.find(entry.first);
+
+        if (found == b.interactions.end() || found->second.size() != entry.second.size()) {
             records = false;
             break;
         }
 
-        const Interaction& ib = found->second;
-        records = records && a.edge_of(ia) == b.edge_of(ib) && !a.edge_of(ia).first.empty()
-                  && a.graph.edges.at(a.edge_of(ia).first).at(a.edge_of(ia).second).guid() == guid
-                  && ia.contacts.size() == ib.contacts.size() && ia.features.size() == ib.features.size();
-        for (size_t k = 0; records && k < ia.contacts.size(); ++k) {
-            records = same_contact(ia.contacts[k], ib.contacts[k]);
-            contact_count++;
-        }
-        for (size_t k = 0; records && k < ia.features.size(); ++k) {
-            const InteractionFeature& fa = ia.features[k];
-            const InteractionFeature& fb = ib.features[k];
-            records = fa.guid == fb.guid && fa.contact == fb.contact && fa.kind() == fb.kind()
-                      && fa.plate()->feature_guids == fb.plate()->feature_guids && fa.contact >= 0 && fa.contact < (int)ia.contacts.size()
-                      && fa.plate()->name == fb.plate()->name && fa.plate()->joint_type == fb.plate()->joint_type
-                      && fa.plate()->element_a == fb.plate()->element_a && fa.plate()->contact.face_a == fb.plate()->contact.face_a;
-            feature_count++;
+        for (size_t k = 0; records && k < entry.second.size(); ++k) {
+
+            const Interaction& x = *entry.second[k];
+            const Interaction& y = *found->second[k];
+            records = x == y && x.guid() == y.guid() && typeid(x) == typeid(y);
+            record_count++;
         }
     }
 
-    check(records, fmt::format("every interaction by its edge guid, its edge, its contacts ({}) and its features ({}) survive the pb", contact_count, feature_count));
+    check(records, fmt::format("every interaction by its edge guid, its type, guid and fields ({}) survives the pb", record_count));
+
+    const WoodSession copy = a;
+    bool copied = copy.interactions.size() == a.interactions.size();
+
+    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : a.interactions)
+        for (size_t k = 0; copied && k < entry.second.size(); ++k)
+            copied = copy.interactions.at(entry.first)[k] != entry.second[k] && *copy.interactions.at(entry.first)[k] == *entry.second[k];
+
+    check(copied, "a copy holds its own interactions, equal and of the same type");
 
     bool encoded = true;
-    for (const auto& [guid, interaction] : a.interactions) {
-        const Interaction json = Interaction::jsonload(interaction.jsondump());
-        const Interaction pb = Interaction::pb_loads(interaction.pb_dumps());
-        encoded = encoded && json.guid == guid && pb.guid == guid && json.contacts.size() == interaction.contacts.size()
-                  && pb.contacts.size() == interaction.contacts.size() && json.features.size() == interaction.features.size()
-                  && pb.features.size() == interaction.features.size();
-    }
 
-    check(encoded, "Interaction round-trips through its own JSON and protobuf");
+    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : a.interactions)
+        for (const std::shared_ptr<Interaction>& interaction : entry.second) {
 
-    const std::vector<FeaturePlate> joints_a = a.get_plate_features();
-    const std::vector<FeaturePlate> joints_b = b.get_plate_features();
+            const std::shared_ptr<Interaction> json = Interaction::file_json_loads(interaction->file_json_dumps());
+            const std::shared_ptr<Interaction> pb = Interaction::pb_loads(interaction->pb_dumps());
+            encoded = encoded && *json == *interaction && *pb == *interaction && json->guid() == interaction->guid() && pb->guid() == interaction->guid();
+        }
+
+    check(encoded, "every interaction round-trips through its own JSON and protobuf");
+
+    const std::vector<InteractionFeaturePlate> joints_a = a.get_plate_features();
+    const std::vector<InteractionFeaturePlate> joints_b = b.get_plate_features();
     check(joints_a.size() == joints_b.size(), fmt::format("joint count ({})", joints_a.size()));
     bool joints_ok = joints_a.size() == joints_b.size();
 
     for (size_t i = 0; joints_ok && i < joints_a.size(); ++i) {
-        const FeaturePlate& ja = joints_a[i];
-        const FeaturePlate& jb = joints_b[i];
+        const InteractionFeaturePlate& ja = joints_a[i];
+        const InteractionFeaturePlate& jb = joints_b[i];
         joints_ok = ja.element_a == jb.element_a && ja.element_b == jb.element_b
                     && ja.joint_type == jb.joint_type
                     && ja.contact.face_a == jb.contact.face_a && ja.contact.face_b == jb.contact.face_b
@@ -187,7 +158,7 @@ int main() {
     check(joints_ok, "every joint: elements, type, faces, polygon, both outline splits, lines, volumes, cut types, links, feature guids");
 
     bool hosted = true;
-    for (const FeaturePlate& joint : joints_a)
+    for (const InteractionFeaturePlate& joint : joints_a)
         hosted = hosted && a.get_element<Element>(joint.element_a) && a.get_element<Element>(joint.element_b);
 
     check(hosted, "every joint's edge resolves to two elements the wood session owns");
@@ -202,7 +173,7 @@ int main() {
           fmt::format("one joint feature per host element ({} of {})", attached, 2 * joints_a.size()));
 
     bool sides = true;
-    for (const FeaturePlate& joint : joints_a) {
+    for (const InteractionFeaturePlate& joint : joints_a) {
         const std::vector<ElementFeature> male = a.get_element_features(joint.element_a);
         sides = sides && hosts_male_side(male, joint);
     }

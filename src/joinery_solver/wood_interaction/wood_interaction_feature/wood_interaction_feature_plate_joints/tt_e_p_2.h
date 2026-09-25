@@ -1,5 +1,5 @@
 /// division_length drills on a circle of radius shift around the centroid, in the area plane.
-static void tt_e_p_2(FeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+static void tt_e_p_2(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "tt_e_p_2";
     joint.no_orient = true;

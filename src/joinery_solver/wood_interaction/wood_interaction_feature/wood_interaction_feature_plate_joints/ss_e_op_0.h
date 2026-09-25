@@ -1,5 +1,5 @@
 /// ss_e_op_0: hardcoded three-finger out-of-plane joint.
-static void ss_e_op_0(FeaturePlate& joint) {
+static void ss_e_op_0(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_0";
 

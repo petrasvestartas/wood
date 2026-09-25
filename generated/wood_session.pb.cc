@@ -31,6 +31,7 @@ inline constexpr WoodSession::Impl_::Impl_(
       : _cached_size_{0},
         bvh_boxes_{},
         xforms_{},
+        interactions_{},
         name_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -41,8 +42,7 @@ inline constexpr WoodSession::Impl_::Impl_(
         tree_{nullptr},
         graph_{nullptr},
         definitions_{nullptr},
-        settings_{nullptr},
-        interactions_{} {}
+        settings_{nullptr} {}
 
 template <typename>
 PROTOBUF_CONSTEXPR WoodSession::WoodSession(::_pbi::ConstantInitialized)
@@ -84,16 +84,16 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.definitions_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.interactions_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.settings_),
-        2,
         3,
         4,
         5,
         6,
+        7,
         0,
         1,
-        7,
-        9,
         8,
+        2,
+        9,
 };
 
 static const ::_pbi::MigrationSchema
@@ -107,24 +107,23 @@ const char descriptor_table_protodef_wood_5fsession_2eproto[] ABSL_ATTRIBUTE_SEC
     protodesc_cold) = {
     "\n\022wood_session.proto\022\nwood_proto\032\robject"
     "s.proto\032\ntree.proto\032\013graph.proto\032\021boundi"
-    "ngbox.proto\032\rsession.proto\032\021interaction."
-    "proto\032\016settings.proto\"\370\002\n\013WoodSession\022\014\n"
-    "\004name\030\001 \001(\t\022\014\n\004guid\030\002 \001(\t\022\'\n\007objects\030\003 \001"
-    "(\0132\026.session_proto.Objects\022!\n\004tree\030\004 \001(\013"
-    "2\023.session_proto.Tree\022#\n\005graph\030\005 \001(\0132\024.s"
-    "ession_proto.Graph\022-\n\tbvh_boxes\030\006 \003(\0132\032."
-    "session_proto.BoundingBox\022)\n\006xforms\030\007 \003("
-    "\0132\031.session_proto.XformEntry\022+\n\013definiti"
-    "ons\030\010 \001(\0132\026.session_proto.Objects\022-\n\014int"
-    "eractions\030d \003(\0132\027.wood_proto.Interaction"
-    "\022&\n\010settings\030e \001(\0132\024.wood_proto.Settings"
-    "b\006proto3"
+    "ngbox.proto\032\rsession.proto\032\016settings.pro"
+    "to\"\206\003\n\013WoodSession\022\014\n\004name\030\001 \001(\t\022\014\n\004guid"
+    "\030\002 \001(\t\022\'\n\007objects\030\003 \001(\0132\026.session_proto."
+    "Objects\022!\n\004tree\030\004 \001(\0132\023.session_proto.Tr"
+    "ee\022#\n\005graph\030\005 \001(\0132\024.session_proto.Graph\022"
+    "-\n\tbvh_boxes\030\006 \003(\0132\032.session_proto.Bound"
+    "ingBox\022)\n\006xforms\030\007 \003(\0132\031.session_proto.X"
+    "formEntry\022+\n\013definitions\030\010 \001(\0132\026.session"
+    "_proto.Objects\0225\n\014interactions\030\t \003(\0132\037.s"
+    "ession_proto.InteractionEntry\022&\n\010setting"
+    "s\030e \001(\0132\024.wood_proto.SettingsJ\004\010d\020eb\006pro"
+    "to3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
-    descriptor_table_wood_5fsession_2eproto_deps[7] = {
+    descriptor_table_wood_5fsession_2eproto_deps[6] = {
         &::descriptor_table_boundingbox_2eproto,
         &::descriptor_table_graph_2eproto,
-        &::descriptor_table_interaction_2eproto,
         &::descriptor_table_objects_2eproto,
         &::descriptor_table_session_2eproto,
         &::descriptor_table_settings_2eproto,
@@ -134,12 +133,12 @@ static ::absl::once_flag descriptor_table_wood_5fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_wood_5fsession_2eproto = {
     false,
     false,
-    528,
+    523,
     descriptor_table_protodef_wood_5fsession_2eproto,
     "wood_session.proto",
     &descriptor_table_wood_5fsession_2eproto_once,
     descriptor_table_wood_5fsession_2eproto_deps,
-    7,
+    6,
     1,
     schemas,
     file_default_instances,
@@ -162,19 +161,19 @@ void WoodSession::clear_objects() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.objects_ != nullptr) _impl_.objects_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000010U);
+                  0x00000020U);
 }
 void WoodSession::clear_tree() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.tree_ != nullptr) _impl_.tree_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000020U);
+                  0x00000040U);
 }
 void WoodSession::clear_graph() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.graph_ != nullptr) _impl_.graph_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000040U);
+                  0x00000080U);
 }
 void WoodSession::clear_bvh_boxes() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
@@ -192,19 +191,19 @@ void WoodSession::clear_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.definitions_ != nullptr) _impl_.definitions_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000080U);
+                  0x00000100U);
 }
 void WoodSession::clear_interactions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.interactions_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
-                  0x00000200U);
+                  0x00000004U);
 }
 void WoodSession::clear_settings() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.settings_ != nullptr) _impl_.settings_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000100U);
+                  0x00000200U);
 }
 WoodSession::WoodSession(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -223,9 +222,9 @@ PROTOBUF_NDEBUG_INLINE WoodSession::Impl_::Impl_(
         _cached_size_{0},
         bvh_boxes_{visibility, arena, from.bvh_boxes_},
         xforms_{visibility, arena, from.xforms_},
+        interactions_{visibility, arena, from.interactions_},
         name_(arena, from.name_),
-        guid_(arena, from.guid_),
-        interactions_{visibility, arena, from.interactions_} {}
+        guid_(arena, from.guid_) {}
 
 WoodSession::WoodSession(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -241,19 +240,19 @@ WoodSession::WoodSession(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.objects_ = (CheckHasBit(cached_has_bits, 0x00000010U))
+  _impl_.objects_ = (CheckHasBit(cached_has_bits, 0x00000020U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.objects_)
                 : nullptr;
-  _impl_.tree_ = (CheckHasBit(cached_has_bits, 0x00000020U))
+  _impl_.tree_ = (CheckHasBit(cached_has_bits, 0x00000040U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.tree_)
                 : nullptr;
-  _impl_.graph_ = (CheckHasBit(cached_has_bits, 0x00000040U))
+  _impl_.graph_ = (CheckHasBit(cached_has_bits, 0x00000080U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.graph_)
                 : nullptr;
-  _impl_.definitions_ = (CheckHasBit(cached_has_bits, 0x00000080U))
+  _impl_.definitions_ = (CheckHasBit(cached_has_bits, 0x00000100U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.definitions_)
                 : nullptr;
-  _impl_.settings_ = (CheckHasBit(cached_has_bits, 0x00000100U))
+  _impl_.settings_ = (CheckHasBit(cached_has_bits, 0x00000200U))
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.settings_)
                 : nullptr;
 
@@ -265,9 +264,9 @@ PROTOBUF_NDEBUG_INLINE WoodSession::Impl_::Impl_(
       : _cached_size_{0},
         bvh_boxes_{visibility, arena},
         xforms_{visibility, arena},
+        interactions_{visibility, arena},
         name_(arena),
-        guid_(arena),
-        interactions_{visibility, arena} {}
+        guid_(arena) {}
 
 inline void WoodSession::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -362,14 +361,14 @@ WoodSession::GetClassData() const {
   return WoodSession_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<3, 10, 8, 47, 7>
+const ::_pbi::TcParseTable<4, 10, 8, 47, 7>
 WoodSession::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(WoodSession, _impl_._has_bits_),
     0, // no _extensions_
-    101, 56,  // max_field_number, fast_idx_mask
+    101, 120,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967040,  // skipmap
+    4294966784,  // skipmap
     offsetof(decltype(_table_), field_entries),
     10,  // num_field_entries
     8,  // num_aux_entries
@@ -381,29 +380,26 @@ WoodSession::_table_ = {
     ::_pbi::TcParser::GetTable<::wood_proto::WoodSession>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
-    // .session_proto.Objects definitions = 8;
-    {::_pbi::TcParser::FastMtS1,
-     {66, 7, 5,
-      PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string name = 1;
     {::_pbi::TcParser::FastUS1,
-     {10, 2, 0,
+     {10, 3, 0,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.name_)}},
     // string guid = 2;
     {::_pbi::TcParser::FastUS1,
-     {18, 3, 0,
+     {18, 4, 0,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.guid_)}},
     // .session_proto.Objects objects = 3;
     {::_pbi::TcParser::FastMtS1,
-     {26, 4, 0,
+     {26, 5, 0,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_)}},
     // .session_proto.Tree tree = 4;
     {::_pbi::TcParser::FastMtS1,
-     {34, 5, 1,
+     {34, 6, 1,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.tree_)}},
     // .session_proto.Graph graph = 5;
     {::_pbi::TcParser::FastMtS1,
-     {42, 6, 2,
+     {42, 7, 2,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.graph_)}},
     // repeated .session_proto.BoundingBox bvh_boxes = 6;
     {::_pbi::TcParser::FastMtR1,
@@ -413,31 +409,45 @@ WoodSession::_table_ = {
     {::_pbi::TcParser::FastMtR1,
      {58, 1, 4,
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.xforms_)}},
+    // .session_proto.Objects definitions = 8;
+    {::_pbi::TcParser::FastMtS1,
+     {66, 8, 5,
+      PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_)}},
+    // repeated .session_proto.InteractionEntry interactions = 9;
+    {::_pbi::TcParser::FastMtR1,
+     {74, 2, 6,
+      PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
-    100, 0, 1,
-    65532, 8,
+    101, 0, 1,
+    65534, 9,
     65535, 65535
   }}, {{
     // string name = 1;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.name_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.name_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // string guid = 2;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.guid_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.guid_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
     // .session_proto.Objects objects = 3;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .session_proto.Tree tree = 4;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.tree_), _Internal::kHasBitsOffset + 5, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.tree_), _Internal::kHasBitsOffset + 6, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // .session_proto.Graph graph = 5;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.graph_), _Internal::kHasBitsOffset + 6, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.graph_), _Internal::kHasBitsOffset + 7, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .session_proto.BoundingBox bvh_boxes = 6;
     {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.bvh_boxes_), _Internal::kHasBitsOffset + 0, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .session_proto.XformEntry xforms = 7;
     {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.xforms_), _Internal::kHasBitsOffset + 1, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // .session_proto.Objects definitions = 8;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_), _Internal::kHasBitsOffset + 7, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
-    // repeated .wood_proto.Interaction interactions = 100;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_), _Internal::kHasBitsOffset + 9, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.definitions_), _Internal::kHasBitsOffset + 8, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    // repeated .session_proto.InteractionEntry interactions = 9;
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_), _Internal::kHasBitsOffset + 2, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // .wood_proto.Settings settings = 101;
-    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.settings_), _Internal::kHasBitsOffset + 8, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.settings_), _Internal::kHasBitsOffset + 9, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Objects>()},
@@ -446,7 +456,7 @@ WoodSession::_table_ = {
       {::_pbi::TcParser::GetTable<::session_proto::BoundingBox>()},
       {::_pbi::TcParser::GetTable<::session_proto::XformEntry>()},
       {::_pbi::TcParser::GetTable<::session_proto::Objects>()},
-      {::_pbi::TcParser::GetTable<::wood_proto::Interaction>()},
+      {::_pbi::TcParser::GetTable<::session_proto::InteractionEntry>()},
       {::_pbi::TcParser::GetTable<::wood_proto::Settings>()},
   }},
   {{
@@ -471,36 +481,36 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     if (CheckHasBitForRepeated(cached_has_bits, 0x00000002U)) {
       _impl_.xforms_.Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _impl_.name_.ClearNonDefaultToEmpty();
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      _impl_.interactions_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
-      _impl_.guid_.ClearNonDefaultToEmpty();
+      _impl_.name_.ClearNonDefaultToEmpty();
     }
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+      _impl_.guid_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(_impl_.objects_ != nullptr);
       _impl_.objects_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       ABSL_DCHECK(_impl_.tree_ != nullptr);
       _impl_.tree_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       ABSL_DCHECK(_impl_.graph_ != nullptr);
       _impl_.graph_->Clear();
-    }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
-      ABSL_DCHECK(_impl_.definitions_ != nullptr);
-      _impl_.definitions_->Clear();
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      ABSL_DCHECK(_impl_.definitions_ != nullptr);
+      _impl_.definitions_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       ABSL_DCHECK(_impl_.settings_ != nullptr);
       _impl_.settings_->Clear();
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
-      _impl_.interactions_.Clear();
     }
   }
   _impl_._has_bits_.Clear();
@@ -527,7 +537,7 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // string name = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (!this_._internal_name().empty()) {
       const ::std::string& _s = this_._internal_name();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -537,7 +547,7 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
   }
 
   // string guid = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     if (!this_._internal_guid().empty()) {
       const ::std::string& _s = this_._internal_guid();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -547,21 +557,21 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
   }
 
   // .session_proto.Objects objects = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         3, *this_._impl_.objects_, this_._impl_.objects_->GetCachedSize(), target,
         stream);
   }
 
   // .session_proto.Tree tree = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.tree_, this_._impl_.tree_->GetCachedSize(), target,
         stream);
   }
 
   // .session_proto.Graph graph = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         5, *this_._impl_.graph_, this_._impl_.graph_->GetCachedSize(), target,
         stream);
@@ -594,27 +604,27 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
   }
 
   // .session_proto.Objects definitions = 8;
-  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         8, *this_._impl_.definitions_, this_._impl_.definitions_->GetCachedSize(), target,
         stream);
   }
 
-  // repeated .wood_proto.Interaction interactions = 100;
-  if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
+  // repeated .session_proto.InteractionEntry interactions = 9;
+  if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_interactions_size());
          i < n; i++) {
       const auto& repfield = this_._internal_interactions().Get(i);
       target =
           ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-              100, repfield, repfield.GetCachedSize(),
+              9, repfield, repfield.GetCachedSize(),
               target, stream);
     }
   }
 
   // .wood_proto.Settings settings = 101;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         101, *this_._impl_.settings_, this_._impl_.settings_->GetCachedSize(), target,
         stream);
@@ -660,53 +670,53 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
+    // repeated .session_proto.InteractionEntry interactions = 9;
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      total_size += 1UL * this_._internal_interactions_size();
+      for (const auto& msg : this_._internal_interactions()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
     // string name = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (!this_._internal_name().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_name());
       }
     }
     // string guid = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (!this_._internal_guid().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_guid());
       }
     }
     // .session_proto.Objects objects = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.objects_);
     }
     // .session_proto.Tree tree = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.tree_);
     }
     // .session_proto.Graph graph = 5;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.graph_);
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
     // .session_proto.Objects definitions = 8;
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.definitions_);
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
     // .wood_proto.Settings settings = 101;
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.settings_);
-    }
-    // repeated .wood_proto.Interaction interactions = 100;
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
-      total_size += 2UL * this_._internal_interactions_size();
-      for (const auto& msg : this_._internal_interactions()) {
-        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
-      }
     }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -739,7 +749,12 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_xforms());
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBitForRepeated(cached_has_bits, 0x00000004U)) {
+      _this->_internal_mutable_interactions()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_interactions());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (!from._internal_name().empty()) {
         _this->_internal_set_name(from._internal_name());
       } else {
@@ -748,7 +763,7 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (!from._internal_guid().empty()) {
         _this->_internal_set_guid(from._internal_guid());
       } else {
@@ -757,7 +772,7 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(from._impl_.objects_ != nullptr);
       if (_this->_impl_.objects_ == nullptr) {
         _this->_impl_.objects_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.objects_);
@@ -765,7 +780,7 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.objects_->MergeFrom(*from._impl_.objects_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       ABSL_DCHECK(from._impl_.tree_ != nullptr);
       if (_this->_impl_.tree_ == nullptr) {
         _this->_impl_.tree_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.tree_);
@@ -773,7 +788,7 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.tree_->MergeFrom(*from._impl_.tree_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       ABSL_DCHECK(from._impl_.graph_ != nullptr);
       if (_this->_impl_.graph_ == nullptr) {
         _this->_impl_.graph_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.graph_);
@@ -781,7 +796,9 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.graph_->MergeFrom(*from._impl_.graph_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       ABSL_DCHECK(from._impl_.definitions_ != nullptr);
       if (_this->_impl_.definitions_ == nullptr) {
         _this->_impl_.definitions_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.definitions_);
@@ -789,20 +806,13 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.definitions_->MergeFrom(*from._impl_.definitions_);
       }
     }
-  }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       ABSL_DCHECK(from._impl_.settings_ != nullptr);
       if (_this->_impl_.settings_ == nullptr) {
         _this->_impl_.settings_ = ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.settings_);
       } else {
         _this->_impl_.settings_->MergeFrom(*from._impl_.settings_);
       }
-    }
-    if (CheckHasBitForRepeated(cached_has_bits, 0x00000200U)) {
-      _this->_internal_mutable_interactions()->InternalMergeFromWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_interactions());
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -826,6 +836,7 @@ void WoodSession::InternalSwap(WoodSession* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.bvh_boxes_.InternalSwap(&other->_impl_.bvh_boxes_);
   _impl_.xforms_.InternalSwap(&other->_impl_.xforms_);
+  _impl_.interactions_.InternalSwap(&other->_impl_.interactions_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.name_, &other->_impl_.name_, arena);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.guid_, &other->_impl_.guid_, arena);
   ::google::protobuf::internal::memswap<
@@ -834,7 +845,6 @@ void WoodSession::InternalSwap(WoodSession* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
       - PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_)>(
           reinterpret_cast<char*>(&_impl_.objects_),
           reinterpret_cast<char*>(&other->_impl_.objects_));
-  _impl_.interactions_.InternalSwap(&other->_impl_.interactions_);
 }
 
 ::google::protobuf::Metadata WoodSession::GetMetadata() const {

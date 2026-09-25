@@ -1,5 +1,5 @@
 /// ss_e_r_0: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
-static void ss_e_r_0(FeaturePlate& joint) {
+static void ss_e_r_0(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_r_0";
 

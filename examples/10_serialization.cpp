@@ -18,12 +18,12 @@ int main() {
     const Session kernel = Session::pb_loads(bytes);
     std::cout << "the kernel opens the same bytes: " << kernel.objects.elements->size() << " elements, " << kernel.graph.number_of_edges() << " edges\n";
 
-    const FeaturePlate joint = wood_session.get_plate_features().front();
+    const InteractionFeaturePlate joint = wood_session.get_plate_features().front();
     const nlohmann::ordered_json json = joint.jsondump();
-    std::cout << "one joint as JSON: type " << json["type"] << ", name " << json["name"] << ", " << json.size() << " keys\n";
-    std::cout << "and back: " << FeaturePlate::jsonload(json).name << "\n";
+    std::cout << "one joint as JSON: type " << json["interaction_type"] << ", name " << json["name"] << ", " << json.size() << " keys\n";
+    std::cout << "and back: " << *Interaction::file_json_loads(joint.file_json_dumps()) << "\n";
 
-    std::cout << "one contact as protobuf: " << wood_session.get_contacts().front().pb_dumps().size() << " bytes\n";
+    std::cout << "one contact as protobuf: " << wood_session.get_contacts().front()->pb_dumps().size() << " bytes\n";
     std::cout << "the settings as JSON: distance " << wood_session.settings.jsondump()["distance"] << "\n";
 
     return 0;
@@ -31,7 +31,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the wood session as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as JSON derived from its proto message and back, one record as protobuf bytes.
+the wood session as bytes and back with every record intact, the same bytes opened by the plain kernel Session, one record as the kernel's JSON and back through the registry as its wood type, one record as protobuf bytes.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

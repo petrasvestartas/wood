@@ -2,71 +2,59 @@
 
 #include "pch.h"
 
+#include "wood_interaction_contact.h"
+
 namespace wood_session {
 
-class WoodSession;
-
 /// One crossing of two plates: where their side faces pass through each other, as plane_to_face computes it.
-struct ContactCross {
-    WoodSession* _session = nullptr; // The scene this record was stored in; null until it is added, never written.
+class InteractionContactCross : public InteractionContact {
+public:
+    static constexpr std::string_view INTERACTION_TYPE = "InteractionContactCross"; // The tag the kernel writes and the registry reads.
+
     std::array<int, 2> faces_a{-1, -1}; // The two side faces of the first element the crossing involves.
     std::array<int, 2> faces_b{-1, -1}; // The two side faces of the second element the crossing involves.
     session_cpp::Polyline polygon; // Closed quad on the mid-plane, 5 points.
     std::array<session_cpp::Polyline, 2> lines; // The two perpendicular centrelines of polygon, 2 points each.
     std::array<session_cpp::Polyline, 2> volumes; // The two parallel quads bounding the joint volume.
 
-
-    /// The scene this record belongs to; throws std::logic_error before the record is added to one.
-    WoodSession& session() const;
-
-    /// True once the record has been stored in a scene.
-    bool has_session() const {
-        return _session != nullptr;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Operators
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// str() onto a stream.
-    friend std::ostream& operator<<(std::ostream& os, const ContactCross& contact);
-
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Sides swapped: the contact read from the other end of the edge.
-    ContactCross flipped() const;
+    /// "cross".
+    std::string_view kind() const override;
 
-    /// Same faces on both sides, the geometry aside: what detection reuses instead of appending twice.
-    bool coincides(const ContactCross& other) const;
+    /// Sides swapped: the contact read from the other end of the edge, same guid.
+    std::shared_ptr<InteractionContact> flipped() const override;
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // JSON
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /// The contact as JSON: faces_a, faces_b, polygon, lines, volumes.
-    nlohmann::ordered_json jsondump() const;
-
-    /// A contact from its JSON.
-    static ContactCross jsonload(const nlohmann::json& data);
+    /// Same faces on both sides, the geometry aside.
+    bool coincides(const InteractionContact& other) const override;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The contact as wood_proto.ContactCross bytes.
-    std::string pb_dumps() const;
+    /// INTERACTION_TYPE.
+    std::string interaction_type_name() const override;
 
-    /// A contact from wood_proto.ContactCross bytes.
-    static ContactCross pb_loads(const std::string& data);
+    /// The fields as wood_proto.InteractionContactCross bytes: what the kernel carries in interaction_data.
+    std::string interaction_data_dumps() const override;
+
+    /// A cross contact from wood_proto.InteractionContactCross bytes; the kernel sets the guid and the name.
+    static InteractionContactCross interaction_data_loads(const std::string& data);
+
+    /// A copy with the same guid, the polymorphic copy a Session makes.
+    std::shared_ptr<session_cpp::Interaction> clone() const override;
+
+    /// Registers the INTERACTION_TYPE factory with the kernel, so a Session load rebuilds cross contacts.
+    static void register_type();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "ContactCross(faces_a, faces_b, points)".
-    std::string str() const;
+    /// "InteractionContactCross(faces_a, faces_b, points)".
+    std::string str() const override;
 };
 
 } // namespace wood_session

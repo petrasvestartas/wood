@@ -17,15 +17,15 @@ message IntList {
   repeated int32 values = 1;
 }
 
-// A plate-to-plate joint: the pair, the face contact it was solved from, the variant the joint library built, its parameters, the cut outlines per element per face and the two element features the hosts carry.
-message FeaturePlate {
-  string guid = 25;                                  // Identity of the joint, the key of its InteractionFeature
+// The state of an InteractionFeaturePlate beyond the kernel Interaction, whose name is the joint library variant: the pair, the face contact it was solved from, its parameters, the cut outlines per element per face and the two element features the hosts carry.
+message InteractionFeaturePlate {
+  reserved 2, 25;                                    // was: name and guid, now the kernel Interaction's
+  string contact_guid = 27;                          // Guid of the stored contact this was solved from; empty when none
   string element_a = 21;                             // The male element, by guid
   string element_b = 22;                             // The female element, by guid
-  ContactFace contact = 23;                          // The face contact the joint was solved from
+  InteractionContactFace contact = 23;               // The face contact the joint was solved from, a solver field
   repeated session_proto.ElementFeature element_features = 24;  // 2 entries: what the male host and the female host carry
   int32 joint_type = 1;                              // Refined solver code: 11/12/13 side-side, 20 top-side, 30 cross, 40 top-top
-  string name = 2;                                   // Joint library variant, e.g. "ss_e_ip_2"
   repeated int32 cross_faces = 3;                    // Cross joints: the second side face of each element, 2 entries
   repeated session_proto.Line joint_lines = 4;       // The two alignment lines, one per element
   repeated session_proto.Polyline joint_volumes = 5; // 4 volume rectangles, an empty polyline where the solver set none

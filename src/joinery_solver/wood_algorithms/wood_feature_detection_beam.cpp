@@ -75,7 +75,7 @@ bool trim_side_to_end(std::array<Polyline, 4>& beam_vol, bool type0, const Point
 
 }  // namespace
 
-bool beam_to_beam(const Beam& beam0, const Beam& beam1, const ContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male, FeatureBeam& out) {
+bool beam_to_beam(const Beam& beam0, const Beam& beam1, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male, InteractionFeatureBeam& out) {
 
     const Polyline& pa_pts = beam0.axis;
     const Polyline& pb_pts = beam1.axis;

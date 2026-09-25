@@ -13,7 +13,7 @@ static std::vector<Point> tile_tooth_along_z(const std::vector<Point>& base, int
 }
 
 /// ss_e_ip_2: butterfly (X-fix) joint - `divisions` copies of a four-point tooth tiled along z; unit_scale.
-static void ss_e_ip_2(FeaturePlate& joint) {
+static void ss_e_ip_2(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_ip_2";
 

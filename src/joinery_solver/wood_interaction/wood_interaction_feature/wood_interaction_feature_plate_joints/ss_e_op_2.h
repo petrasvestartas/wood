@@ -1,5 +1,5 @@
 /// ss_e_op_2: like ss_e_op_1 with a non-uniform shift - the central pairs move 4v, the outer 2v, sign flipped past the middle.
-static void ss_e_op_2(FeaturePlate& joint) {
+static void ss_e_op_2(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_2";
 

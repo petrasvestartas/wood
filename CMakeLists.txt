@@ -93,14 +93,12 @@ set(WOOD_SOURCES
     src/templates/grid_joints.cpp
     src/templates/grid.cpp
     src/templates/clash.cpp
-    src/joinery_solver/wood_interaction/wood_interaction.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_beam.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_beam.cpp
     src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp

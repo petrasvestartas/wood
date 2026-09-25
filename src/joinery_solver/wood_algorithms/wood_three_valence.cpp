@@ -10,7 +10,7 @@ namespace wood_session {
 namespace {
 
 /// Clip a joint's volume pairs between the planes through `a` and `b` that are normal to the first volume.
-void clip_joint_volumes(FeaturePlate& joint, const Point& a, const Point& b) {
+void clip_joint_volumes(InteractionFeaturePlate& joint, const Point& a, const Point& b) {
 
     if (!joint.joint_volumes[0].has_value())
         return;
@@ -63,7 +63,7 @@ uint64_t pair_key(int a, int b) {
 /// Element pair -> joint index (last joint wins); rebuilt wherever the joint list may have changed.
 std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<FeaturePlate>& joints) {
+    const std::vector<InteractionFeaturePlate>& joints) {
 
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
@@ -91,7 +91,7 @@ static bool normals_parallel(const Vector& a, const Vector& b, double angle) {
 }
 
 /// The four joint volumes of a joint copied out, an empty polyline where one is missing.
-static std::array<Polyline, 4> copy_joint_volumes(const FeaturePlate& joint) {
+static std::array<Polyline, 4> copy_joint_volumes(const InteractionFeaturePlate& joint) {
 
     std::array<Polyline, 4> volumes;
     for (int k = 0; k < 4; k++)
@@ -116,10 +116,10 @@ static std::pair<Plane, Plane> far_near_planes(const Plate& glued, const Plate& 
 }
 
 /// A linked shadow of source between side and glued, its lines and first two volumes translated onto the glued plate.
-static FeaturePlate shadow_joint(const FeaturePlate& source, const Plate& side, const Plate& glued, const std::array<Line, 2>& lines, const std::array<Polyline, 4>& volumes) {
+static InteractionFeaturePlate shadow_joint(const InteractionFeaturePlate& source, const Plate& side, const Plate& glued, const std::array<Line, 2>& lines, const std::array<Polyline, 4>& volumes) {
 
-    FeaturePlate shadow;
-    shadow.guid = ::guid();
+    InteractionFeaturePlate shadow;
+    shadow.guid() = ::guid();
     shadow.element_a = side.guid();
     shadow.element_b = glued.guid();
     shadow.contact.face_a = -1;
@@ -138,7 +138,7 @@ static FeaturePlate shadow_joint(const FeaturePlate& source, const Plate& side, 
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& joints,
+    std::vector<InteractionFeaturePlate>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
     double angle) {
 
@@ -274,9 +274,9 @@ void add_vidy_shadow_joints(
         }
 
         if (glued0 != glued1)
-            joints[joint_index].linked_joints = {joints[shadow0_index].guid, joints[shadow1_index].guid};
+            joints[joint_index].linked_joints = {joints[shadow0_index].guid(), joints[shadow1_index].guid()};
         else
-            joints[joint_index].linked_joints = {joints[shadow0_index].guid};
+            joints[joint_index].linked_joints = {joints[shadow0_index].guid()};
     }
 }
 
@@ -288,7 +288,7 @@ void add_vidy_shadow_joints(
 void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     const std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& joints) {
+    std::vector<InteractionFeaturePlate>& joints) {
 
     const std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, joints);
 
@@ -307,8 +307,8 @@ void align_annen_joints(
         if (found0 == joints_map.end() || found1 == joints_map.end())
             continue;
 
-        FeaturePlate& joint0 = joints[found0->second];
-        FeaturePlate& joint1 = joints[found1->second];
+        InteractionFeaturePlate& joint0 = joints[found0->second];
+        InteractionFeaturePlate& joint1 = joints[found1->second];
 
         const Line line0 = joint0.joint_lines[0];
         const double distance_to_start = Point::distance(line0.start(), joint1.joint_lines[0].start());
@@ -353,7 +353,7 @@ void align_annen_joints(
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<FeaturePlate>& all_joints,
+    std::vector<InteractionFeaturePlate>& all_joints,
     double angle) {
 
     if (three_valence_groups.size() > 1) {

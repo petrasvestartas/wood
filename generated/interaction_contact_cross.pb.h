@@ -54,10 +54,10 @@ extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_interaction_5fcontact_5fcross_2eproto;
 }  // extern "C"
 namespace wood_proto {
-class ContactCross;
-struct ContactCrossDefaultTypeInternal;
-extern ContactCrossDefaultTypeInternal _ContactCross_default_instance_;
-extern const ::google::protobuf::internal::ClassDataFull ContactCross_class_data_;
+class InteractionContactCross;
+struct InteractionContactCrossDefaultTypeInternal;
+extern InteractionContactCrossDefaultTypeInternal _InteractionContactCross_default_instance_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactCross_class_data_;
 }  // namespace wood_proto
 namespace google {
 namespace protobuf {
@@ -71,30 +71,30 @@ namespace wood_proto {
 
 // -------------------------------------------------------------------
 
-class ContactCross final : public ::google::protobuf::Message
-/* @@protoc_insertion_point(class_definition:wood_proto.ContactCross) */ {
+class InteractionContactCross final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.InteractionContactCross) */ {
  public:
-  inline ContactCross() : ContactCross(nullptr) {}
-  ~ContactCross() PROTOBUF_FINAL;
+  inline InteractionContactCross() : InteractionContactCross(nullptr) {}
+  ~InteractionContactCross() PROTOBUF_FINAL;
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-  void operator delete(ContactCross* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+  void operator delete(InteractionContactCross* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
     SharedDtor(*msg);
-    ::google::protobuf::internal::SizedDelete(msg, sizeof(ContactCross));
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(InteractionContactCross));
   }
 #endif
 
   template <typename = void>
-  explicit PROTOBUF_CONSTEXPR ContactCross(::google::protobuf::internal::ConstantInitialized);
+  explicit PROTOBUF_CONSTEXPR InteractionContactCross(::google::protobuf::internal::ConstantInitialized);
 
-  inline ContactCross(const ContactCross& from) : ContactCross(nullptr, from) {}
-  inline ContactCross(ContactCross&& from) noexcept
-      : ContactCross(nullptr, ::std::move(from)) {}
-  inline ContactCross& operator=(const ContactCross& from) {
+  inline InteractionContactCross(const InteractionContactCross& from) : InteractionContactCross(nullptr, from) {}
+  inline InteractionContactCross(InteractionContactCross&& from) noexcept
+      : InteractionContactCross(nullptr, ::std::move(from)) {}
+  inline InteractionContactCross& operator=(const InteractionContactCross& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ContactCross& operator=(ContactCross&& from) noexcept {
+  inline InteractionContactCross& operator=(InteractionContactCross&& from) noexcept {
     if (this == &from) return *this;
     if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
       InternalSwap(&from);
@@ -122,13 +122,13 @@ class ContactCross final : public ::google::protobuf::Message
   static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ContactCross& default_instance() {
-    return *reinterpret_cast<const ContactCross*>(
-        &_ContactCross_default_instance_);
+  static const InteractionContactCross& default_instance() {
+    return *reinterpret_cast<const InteractionContactCross*>(
+        &_InteractionContactCross_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 0;
-  friend void swap(ContactCross& a, ContactCross& b) { a.Swap(&b); }
-  inline void Swap(ContactCross* PROTOBUF_NONNULL other) {
+  friend void swap(InteractionContactCross& a, InteractionContactCross& b) { a.Swap(&b); }
+  inline void Swap(InteractionContactCross* PROTOBUF_NONNULL other) {
     if (other == this) return;
     if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
       InternalSwap(other);
@@ -136,7 +136,7 @@ class ContactCross final : public ::google::protobuf::Message
       ::google::protobuf::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ContactCross* PROTOBUF_NONNULL other) {
+  void UnsafeArenaSwap(InteractionContactCross* PROTOBUF_NONNULL other) {
     if (other == this) return;
     ABSL_DCHECK(GetArena() == other->GetArena());
     InternalSwap(other);
@@ -144,13 +144,13 @@ class ContactCross final : public ::google::protobuf::Message
 
   // implements Message ----------------------------------------------
 
-  ContactCross* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
-    return ::google::protobuf::Message::DefaultConstruct<ContactCross>(arena);
+  InteractionContactCross* PROTOBUF_NONNULL New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return ::google::protobuf::Message::DefaultConstruct<InteractionContactCross>(arena);
   }
   using ::google::protobuf::Message::CopyFrom;
-  void CopyFrom(const ContactCross& from);
+  void CopyFrom(const InteractionContactCross& from);
   using ::google::protobuf::Message::MergeFrom;
-  void MergeFrom(const ContactCross& from) { ContactCross::MergeImpl(*this, from); }
+  void MergeFrom(const InteractionContactCross& from) { InteractionContactCross::MergeImpl(*this, from); }
 
   private:
   static void MergeImpl(::google::protobuf::MessageLite& to_msg,
@@ -186,17 +186,17 @@ class ContactCross final : public ::google::protobuf::Message
   private:
   void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
   static void SharedDtor(MessageLite& self);
-  void InternalSwap(ContactCross* PROTOBUF_NONNULL other);
+  void InternalSwap(InteractionContactCross* PROTOBUF_NONNULL other);
  private:
   template <typename T>
   friend ::absl::string_view(::google::protobuf::internal::GetAnyMessageName)();
-  static ::absl::string_view FullMessageName() { return "wood_proto.ContactCross"; }
+  static ::absl::string_view FullMessageName() { return "wood_proto.InteractionContactCross"; }
 
-  explicit ContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
-  ContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const ContactCross& from);
-  ContactCross(
-      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, ContactCross&& from) noexcept
-      : ContactCross(arena) {
+  explicit InteractionContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  InteractionContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const InteractionContactCross& from);
+  InteractionContactCross(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, InteractionContactCross&& from) noexcept
+      : InteractionContactCross(arena) {
     *this = ::std::move(from);
   }
   const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
@@ -304,7 +304,7 @@ class ContactCross final : public ::google::protobuf::Message
   ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_polygon();
 
   public:
-  // @@protoc_insertion_point(class_scope:wood_proto.ContactCross)
+  // @@protoc_insertion_point(class_scope:wood_proto.InteractionContactCross)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
@@ -327,7 +327,7 @@ class ContactCross final : public ::google::protobuf::Message
     inline explicit Impl_(
         ::google::protobuf::internal::InternalVisibility visibility,
         ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-        const ContactCross& from_msg);
+        const InteractionContactCross& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedField<::int32_t> faces_a_;
@@ -343,7 +343,7 @@ class ContactCross final : public ::google::protobuf::Message
   friend struct ::TableStruct_interaction_5fcontact_5fcross_2eproto;
 };
 
-extern const ::google::protobuf::internal::ClassDataFull ContactCross_class_data_;
+extern const ::google::protobuf::internal::ClassDataFull InteractionContactCross_class_data_;
 
 // ===================================================================
 
@@ -359,124 +359,124 @@ extern const ::google::protobuf::internal::ClassDataFull ContactCross_class_data
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
-// ContactCross
+// InteractionContactCross
 
 // repeated int32 faces_a = 1;
-inline int ContactCross::_internal_faces_a_size() const {
+inline int InteractionContactCross::_internal_faces_a_size() const {
   return _internal_faces_a().size();
 }
-inline int ContactCross::faces_a_size() const {
+inline int InteractionContactCross::faces_a_size() const {
   return _internal_faces_a_size();
 }
-inline void ContactCross::clear_faces_a() {
+inline void InteractionContactCross::clear_faces_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.faces_a_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000001U);
 }
-inline ::int32_t ContactCross::faces_a(int index) const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactCross.faces_a)
+inline ::int32_t InteractionContactCross::faces_a(int index) const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactCross.faces_a)
   return _internal_faces_a().Get(index);
 }
-inline void ContactCross::set_faces_a(int index, ::int32_t value) {
+inline void InteractionContactCross::set_faces_a(int index, ::int32_t value) {
   _internal_mutable_faces_a()->Set(index, value);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactCross.faces_a)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactCross.faces_a)
 }
-inline void ContactCross::add_faces_a(::int32_t value) {
+inline void InteractionContactCross::add_faces_a(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _internal_mutable_faces_a()->Add(value);
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_add:wood_proto.ContactCross.faces_a)
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactCross.faces_a)
 }
-inline const ::google::protobuf::RepeatedField<::int32_t>& ContactCross::faces_a() const
+inline const ::google::protobuf::RepeatedField<::int32_t>& InteractionContactCross::faces_a() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.ContactCross.faces_a)
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactCross.faces_a)
   return _internal_faces_a();
 }
-inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL ContactCross::mutable_faces_a()
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL InteractionContactCross::mutable_faces_a()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000001U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.ContactCross.faces_a)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactCross.faces_a)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_faces_a();
 }
 inline const ::google::protobuf::RepeatedField<::int32_t>&
-ContactCross::_internal_faces_a() const {
+InteractionContactCross::_internal_faces_a() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.faces_a_;
 }
 inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
-ContactCross::_internal_mutable_faces_a() {
+InteractionContactCross::_internal_mutable_faces_a() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.faces_a_;
 }
 
 // repeated int32 faces_b = 2;
-inline int ContactCross::_internal_faces_b_size() const {
+inline int InteractionContactCross::_internal_faces_b_size() const {
   return _internal_faces_b().size();
 }
-inline int ContactCross::faces_b_size() const {
+inline int InteractionContactCross::faces_b_size() const {
   return _internal_faces_b_size();
 }
-inline void ContactCross::clear_faces_b() {
+inline void InteractionContactCross::clear_faces_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.faces_b_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000002U);
 }
-inline ::int32_t ContactCross::faces_b(int index) const {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactCross.faces_b)
+inline ::int32_t InteractionContactCross::faces_b(int index) const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactCross.faces_b)
   return _internal_faces_b().Get(index);
 }
-inline void ContactCross::set_faces_b(int index, ::int32_t value) {
+inline void InteractionContactCross::set_faces_b(int index, ::int32_t value) {
   _internal_mutable_faces_b()->Set(index, value);
-  // @@protoc_insertion_point(field_set:wood_proto.ContactCross.faces_b)
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionContactCross.faces_b)
 }
-inline void ContactCross::add_faces_b(::int32_t value) {
+inline void InteractionContactCross::add_faces_b(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _internal_mutable_faces_b()->Add(value);
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_add:wood_proto.ContactCross.faces_b)
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactCross.faces_b)
 }
-inline const ::google::protobuf::RepeatedField<::int32_t>& ContactCross::faces_b() const
+inline const ::google::protobuf::RepeatedField<::int32_t>& InteractionContactCross::faces_b() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.ContactCross.faces_b)
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactCross.faces_b)
   return _internal_faces_b();
 }
-inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL ContactCross::mutable_faces_b()
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL InteractionContactCross::mutable_faces_b()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000002U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.ContactCross.faces_b)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactCross.faces_b)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_faces_b();
 }
 inline const ::google::protobuf::RepeatedField<::int32_t>&
-ContactCross::_internal_faces_b() const {
+InteractionContactCross::_internal_faces_b() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.faces_b_;
 }
 inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
-ContactCross::_internal_mutable_faces_b() {
+InteractionContactCross::_internal_mutable_faces_b() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.faces_b_;
 }
 
 // .session_proto.Polyline polygon = 3;
-inline bool ContactCross::has_polygon() const {
+inline bool InteractionContactCross::has_polygon() const {
   bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.polygon_ != nullptr);
   return value;
 }
-inline const ::session_proto::Polyline& ContactCross::_internal_polygon() const {
+inline const ::session_proto::Polyline& InteractionContactCross::_internal_polygon() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   const ::session_proto::Polyline* p = _impl_.polygon_;
   return p != nullptr ? *p : reinterpret_cast<const ::session_proto::Polyline&>(::session_proto::_Polyline_default_instance_);
 }
-inline const ::session_proto::Polyline& ContactCross::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactCross.polygon)
+inline const ::session_proto::Polyline& InteractionContactCross::polygon() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactCross.polygon)
   return _internal_polygon();
 }
-inline void ContactCross::unsafe_arena_set_allocated_polygon(
+inline void InteractionContactCross::unsafe_arena_set_allocated_polygon(
     ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (GetArena() == nullptr) {
@@ -488,9 +488,9 @@ inline void ContactCross::unsafe_arena_set_allocated_polygon(
   } else {
     ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.ContactCross.polygon)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactCross.polygon)
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactCross::release_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactCross::release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
@@ -509,16 +509,16 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactCross::release_polygo
   }
   return released;
 }
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE ContactCross::unsafe_arena_release_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactCross::unsafe_arena_release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.ContactCross.polygon)
+  // @@protoc_insertion_point(field_release:wood_proto.InteractionContactCross.polygon)
 
   ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Polyline* temp = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   return temp;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::_internal_mutable_polygon() {
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::_internal_mutable_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.polygon_ == nullptr) {
     auto* p = ::google::protobuf::Message::DefaultConstruct<::session_proto::Polyline>(GetArena());
@@ -526,14 +526,14 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::_internal_mutab
   }
   return _impl_.polygon_;
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::mutable_polygon()
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::mutable_polygon()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Polyline* _msg = _internal_mutable_polygon();
-  // @@protoc_insertion_point(field_mutable:wood_proto.ContactCross.polygon)
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactCross.polygon)
   return _msg;
 }
-inline void ContactCross::set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
+inline void InteractionContactCross::set_allocated_polygon(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
   ::google::protobuf::Arena* message_arena = GetArena();
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (message_arena == nullptr) {
@@ -551,105 +551,105 @@ inline void ContactCross::set_allocated_polygon(::session_proto::Polyline* PROTO
   }
 
   _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.ContactCross.polygon)
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionContactCross.polygon)
 }
 
 // repeated .session_proto.Polyline lines = 4;
-inline int ContactCross::_internal_lines_size() const {
+inline int InteractionContactCross::_internal_lines_size() const {
   return _internal_lines().size();
 }
-inline int ContactCross::lines_size() const {
+inline int InteractionContactCross::lines_size() const {
   return _internal_lines_size();
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::mutable_lines(int index)
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::mutable_lines(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.ContactCross.lines)
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactCross.lines)
   return _internal_mutable_lines()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL ContactCross::mutable_lines()
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL InteractionContactCross::mutable_lines()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.ContactCross.lines)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactCross.lines)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_lines();
 }
-inline const ::session_proto::Polyline& ContactCross::lines(int index) const
+inline const ::session_proto::Polyline& InteractionContactCross::lines(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactCross.lines)
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactCross.lines)
   return _internal_lines().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::add_lines()
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::add_lines()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::session_proto::Polyline* _add =
       _internal_mutable_lines()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_add:wood_proto.ContactCross.lines)
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactCross.lines)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& ContactCross::lines() const
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionContactCross::lines() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.ContactCross.lines)
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactCross.lines)
   return _internal_lines();
 }
 inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
-ContactCross::_internal_lines() const {
+InteractionContactCross::_internal_lines() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.lines_;
 }
 inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
-ContactCross::_internal_mutable_lines() {
+InteractionContactCross::_internal_mutable_lines() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.lines_;
 }
 
 // repeated .session_proto.Polyline volumes = 5;
-inline int ContactCross::_internal_volumes_size() const {
+inline int InteractionContactCross::_internal_volumes_size() const {
   return _internal_volumes().size();
 }
-inline int ContactCross::volumes_size() const {
+inline int InteractionContactCross::volumes_size() const {
   return _internal_volumes_size();
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::mutable_volumes(int index)
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::mutable_volumes(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.ContactCross.volumes)
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactCross.volumes)
   return _internal_mutable_volumes()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL ContactCross::mutable_volumes()
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL InteractionContactCross::mutable_volumes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.ContactCross.volumes)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactCross.volumes)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_volumes();
 }
-inline const ::session_proto::Polyline& ContactCross::volumes(int index) const
+inline const ::session_proto::Polyline& InteractionContactCross::volumes(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.ContactCross.volumes)
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactCross.volumes)
   return _internal_volumes().Get(index);
 }
-inline ::session_proto::Polyline* PROTOBUF_NONNULL ContactCross::add_volumes()
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactCross::add_volumes()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::session_proto::Polyline* _add =
       _internal_mutable_volumes()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000008U);
-  // @@protoc_insertion_point(field_add:wood_proto.ContactCross.volumes)
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactCross.volumes)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& ContactCross::volumes() const
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionContactCross::volumes() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.ContactCross.volumes)
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactCross.volumes)
   return _internal_volumes();
 }
 inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
-ContactCross::_internal_volumes() const {
+InteractionContactCross::_internal_volumes() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.volumes_;
 }
 inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
-ContactCross::_internal_mutable_volumes() {
+InteractionContactCross::_internal_mutable_volumes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.volumes_;
 }

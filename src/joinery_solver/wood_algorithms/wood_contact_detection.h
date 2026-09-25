@@ -54,14 +54,14 @@ bool face_overlap_area(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Every contacting face pair between ONE element pair, ordered by face index; `trace`, when given, counts the coplanar and overlapping pairs.
-std::vector<ContactFace> face_contacts_for_pair(
+std::vector<InteractionContactFace> face_contacts_for_pair(
     session_cpp::Element& ea,
     session_cpp::Element& eb,
     const Settings& settings,
     DetectionTrace* trace = nullptr);
 
 /// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
-std::vector<std::tuple<int, int, ContactFace>> face_contacts(
+std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
     const std::vector<std::shared_ptr<session_cpp::Element>>& elements,
     const Settings& settings,
     const std::vector<std::string>& names = {});
@@ -77,7 +77,7 @@ bool plane_to_face(
     const session_cpp::Plane& a_plane_bottom, const session_cpp::Plane& a_plane_top,
     const session_cpp::Plane& b_plane_bottom, const session_cpp::Plane& b_plane_top,
     double distance_squared,
-    ContactCross& result,
+    InteractionContactCross& result,
     double angle_tol = 5.0,
     const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
 
@@ -86,6 +86,6 @@ bool plane_to_face(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The closest segment pair of every two beam axes within `min_distance`, one per beam pair, as (position of the first beam, position of the second, the contact).
-std::vector<std::tuple<int, int, ContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
+std::vector<std::tuple<int, int, InteractionContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
 
 }  // namespace wood_session

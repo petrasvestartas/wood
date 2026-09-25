@@ -1,5 +1,5 @@
 /// ts_e_p_2: parametric tenon-mortise visiting every interpolation point; female holes from every four male points plus a bounding rectangle.
-static void ts_e_p_2(FeaturePlate& joint) {
+static void ts_e_p_2(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_2";
 

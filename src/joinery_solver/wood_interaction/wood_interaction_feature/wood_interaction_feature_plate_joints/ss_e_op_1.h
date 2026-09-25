@@ -1,5 +1,5 @@
 /// ss_e_op_1: parametric out-of-plane finger joint in the unit cube; m[1] comes from edges 0/1 and m[0] from 2/3.
-static void ss_e_op_1(FeaturePlate& joint) {
+static void ss_e_op_1(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_1";
 

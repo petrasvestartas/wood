@@ -1,5 +1,5 @@
 /// ss_e_ip_4: hardcoded mill-and-drill in-plane joint, eight outlines per face (four mill_project, four drill).
-static void ss_e_ip_4(FeaturePlate& joint) {
+static void ss_e_ip_4(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_ip_4";
 

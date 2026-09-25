@@ -1,5 +1,5 @@
 /// ss_e_ip_0: hardcoded three-finger in-plane joint; male and female share the outline on each face.
-static void ss_e_ip_0(FeaturePlate& joint) {
+static void ss_e_ip_0(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_ip_0";
 

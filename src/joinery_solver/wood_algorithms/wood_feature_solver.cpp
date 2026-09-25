@@ -17,11 +17,11 @@ using namespace wood_session;
 // Joint library
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// What a builder may read while it fills a FeaturePlate.
+/// What a builder may read while it fills a InteractionFeaturePlate.
 struct BuildContext {
     const Settings& settings;
     std::vector<std::shared_ptr<Plate>>& elements;
-    std::vector<FeaturePlate>& all_joints;
+    std::vector<InteractionFeaturePlate>& all_joints;
 };
 
 /// Family names by family index: the id ranges 1-9, 10-19, 20-29, 30-39, 40-49, 50-59, 60-69.
@@ -56,7 +56,7 @@ bool id_matches(const int joint_type, const int id) {
 }
 
 /// The library: the builder of every id the JOINTS_TYPES table names; false for an id without one, which takes its family's default below.
-bool build_joint(const int id, FeaturePlate& joint, BuildContext& context) {
+bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (id) {
         case 1: ss_e_ip_1(joint); return true;
         case 2: ss_e_ip_0(joint); return true;
@@ -110,7 +110,7 @@ bool build_joint(const int id, FeaturePlate& joint, BuildContext& context) {
 }
 
 /// The builder a family falls back to for an id it has no entry for; tt_e_p has none.
-void build_family_default(const int family, FeaturePlate& joint) {
+void build_family_default(const int family, InteractionFeaturePlate& joint) {
     switch (family) {
         case 0: ss_e_ip_1(joint); return;
         case 1: ss_e_op_1(joint); return;
@@ -130,7 +130,7 @@ void warn_unimplemented(const int id, std::string_view family) {
 }
 
 /// Unit joinery geometry for `id`: the library entry, else the family default; a negative id in the out-of-plane family is the linked variant. Nothing for id 0 or an id outside the detected type's family.
-void joint_create_geometry(FeaturePlate& joint, const double division_distance, const double shift_param, const int id, BuildContext& context) {
+void joint_create_geometry(InteractionFeaturePlate& joint, const double division_distance, const double shift_param, const int id, BuildContext& context) {
 
     joint_get_divisions(joint, division_distance);
     joint.shift = shift_param;
@@ -187,7 +187,7 @@ int original_face_index(const std::vector<std::shared_ptr<Plate>>& elements, con
 
 /// Wood's id_representing_joint_name: max of the two face ids in the JOINTS_TYPES table, -1 when the table says nothing.
 int joint_id_for(
-    const FeaturePlate& joint,
+    const InteractionFeaturePlate& joint,
     const std::vector<std::vector<int>>& per_element_joints_types,
     const std::vector<std::shared_ptr<Plate>>& elements) {
 
@@ -301,13 +301,13 @@ std::string cache_key_number(double v) {
 }
 
 /// Unit-geometry cache key: the id stands in for `name` (id->constructor is deterministic).
-std::string joint_cache_key(const int id_representing_joint_name, const FeaturePlate& joint) {
+std::string joint_cache_key(const int id_representing_joint_name, const InteractionFeaturePlate& joint) {
     return std::to_string(id_representing_joint_name) + ";" + cache_key_number(joint.shift) + ";" + cache_key_number((double)joint.divisions);
 }
 
 /// Unit geometry from the cache when the key is known, else from the constructor and cached afterwards; only type 12 (butterflies) is cached, caching the other types regressed top_to_side_box and vda_floor_0.
 void reuse_or_create_geometry(
-    FeaturePlate& joint,
+    InteractionFeaturePlate& joint,
     const FamilyParameters& family,
     BuildContext& context,
     std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
@@ -344,13 +344,13 @@ void reuse_or_create_geometry(
 
 /// One joint: scale and thickness, unit geometry, orientation to the connection area, merge of the linked shadows.
 void build_feature_geometry(
-    FeaturePlate& joint,
+    InteractionFeaturePlate& joint,
     const FamilyParameters& family,
     BuildContext& context,
     std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
     std::vector<std::shared_ptr<Plate>>& elements = context.elements;
-    std::vector<FeaturePlate>& all_joints = context.all_joints;
+    std::vector<InteractionFeaturePlate>& all_joints = context.all_joints;
     joint.scale = context.settings.joint_scale;
 
     if (joint.joint_type == 13 || joint.joint_type == 12) {
@@ -380,7 +380,7 @@ void build_feature_geometry(
 
 /// Unit joinery geometry and orientation for every detected joint, in detection order (the cache is order-dependent).
 void build_features_geometry(
-    std::vector<FeaturePlate>& all_joints,
+    std::vector<InteractionFeaturePlate>& all_joints,
     std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<std::vector<int>>& per_element_joints_types,
     const Settings& settings) {
@@ -388,7 +388,7 @@ void build_features_geometry(
     std::map<std::string, CachedJointGeometry> unique_joints_cache;
     BuildContext context{settings, elements, all_joints};
 
-    for (FeaturePlate& joint : all_joints) {
+    for (InteractionFeaturePlate& joint : all_joints) {
 
         const int id_representing_joint_name = joint_id_for(joint, per_element_joints_types, elements);
         const FamilyParameters family = family_parameters(settings, joint.joint_type, id_representing_joint_name);
@@ -402,7 +402,7 @@ void build_features_geometry(
 /// membership[element][face] = [(joint index, is_male)]; shadow joints go to the extra last slot.
 std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per_face(
     const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<FeaturePlate>& all_joints) {
+    const std::vector<InteractionFeaturePlate>& all_joints) {
 
     const size_t element_count = elements.size();
     std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership(element_count);
@@ -411,7 +411,7 @@ std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per
 
     for (size_t joint_index = 0; joint_index < all_joints.size(); joint_index++) {
 
-        const FeaturePlate& joint = all_joints[joint_index];
+        const InteractionFeaturePlate& joint = all_joints[joint_index];
         const int element0 = index_of_plate(elements, joint.element_a);
         const int element1 = index_of_plate(elements, joint.element_b);
 
@@ -448,11 +448,11 @@ std::vector<std::pair<int, int>> WoodSession::adjacent_pairs(const std::vector<s
     return adjacency_search(std::vector<std::shared_ptr<Element>>(elements.begin(), elements.end()), settings.distance);
 }
 
-std::vector<FeaturePlate> WoodSession::detect_features(const std::vector<std::shared_ptr<Plate>>& elements, const std::vector<std::pair<int, int>>& pairs, SearchType search_type) {
+std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vector<std::shared_ptr<Plate>>& elements, const std::vector<std::pair<int, int>>& pairs, SearchType search_type) {
 
     const int element_count = static_cast<int>(elements.size());
 
-    std::vector<FeaturePlate> joints;
+    std::vector<InteractionFeaturePlate> joints;
     joints.reserve(pairs.size());
     for (size_t k = 0; k < pairs.size(); ++k) {
 
@@ -463,7 +463,7 @@ std::vector<FeaturePlate> WoodSession::detect_features(const std::vector<std::sh
             continue;
         }
 
-        FeaturePlate joint;
+        InteractionFeaturePlate joint;
         bool swap_planes_b = false;
         const bool ok = face_to_face_wood(*elements[index_a], *elements[index_b], {index_a, index_b}, settings, search_type, joint, swap_planes_b);
 
@@ -473,18 +473,18 @@ std::vector<FeaturePlate> WoodSession::detect_features(const std::vector<std::sh
         if (!ok)
             continue;
 
-        joint.guid = ::guid();
+        joint.guid() = ::guid();
         joints.push_back(std::move(joint));
     }
 
     return joints;
 }
 
-void WoodSession::build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<FeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types) {
+void WoodSession::build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types) {
     build_features_geometry(joints, elements, feature_types, settings);
 }
 
-void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<FeaturePlate>& joints) {
+void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints) {
 
     const std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership = joint_membership_per_face(elements, joints);
     const size_t element_count = elements.size();
@@ -529,12 +529,12 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
 }
 
 /// A reversed plate lists its side slots backwards, so its insertion vectors are read in the same order.
-std::vector<FeaturePlate> WoodSession::compute_features() {
+std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
     return compute_features(settings.search_type);
 }
 
 /// Instances take part as world views: one a joint lands on is promoted before the joint is stored, any other dropped unchanged; a stored plate placed off identity takes its view back.
-std::vector<FeaturePlate> WoodSession::compute_features(SearchType search_type) {
+std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType search_type) {
 
     std::vector<std::shared_ptr<Plate>> elements = world_elements<Plate>();
     if (elements.empty())
@@ -553,13 +553,13 @@ std::vector<FeaturePlate> WoodSession::compute_features(SearchType search_type) 
         feature_types[i] = elements[i]->feature_types;
     }
 
-    std::vector<FeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
+    std::vector<InteractionFeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
     link_three_valence_joints(three_valence, elements, joints, settings.angle);
     build_feature_geometry(elements, joints, feature_types);
     merge_features(elements, joints);
 
     std::unordered_set<std::string> jointed;
-    for (const FeaturePlate& joint : joints) {
+    for (const InteractionFeaturePlate& joint : joints) {
         jointed.insert(joint.element_a);
         jointed.insert(joint.element_b);
     }
@@ -568,11 +568,18 @@ std::vector<FeaturePlate> WoodSession::compute_features(SearchType search_type) 
         if (jointed.count(plate->guid()) || !instance_lookup.count(plate->guid()))
             promote(plate);
 
-    for (FeaturePlate& joint : joints) {
+    for (InteractionFeaturePlate& joint : joints) {
 
         joint.sync_features();
-        if (get_element<Element>(joint.element_a) && get_element<Element>(joint.element_b))
-            add_feature(joint);
+        const std::shared_ptr<Element> male = get_element<Element>(joint.element_a);
+        const std::shared_ptr<Element> female = get_element<Element>(joint.element_b);
+
+        if (!male || !female)
+            continue;
+
+        std::shared_ptr<InteractionFeaturePlate> feature = std::make_shared<InteractionFeaturePlate>(joint);
+        feature->contact_guid = add_interaction(male, female, joint.to_contact())->guid();
+        add_interaction(male, female, feature);
     }
 
     return joints;
@@ -580,7 +587,7 @@ std::vector<FeaturePlate> WoodSession::compute_features(SearchType search_type) 
 
 } // namespace wood_session
 
-std::vector<wood_session::FeaturePlate> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, const wood_session::Settings& settings, SearchType search_type) {
+std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, const wood_session::Settings& settings, SearchType search_type) {
 
     wood_session::WoodSession scene(wood_session::config::DATA_SET_INPUT_NAME);
     scene.settings = settings;

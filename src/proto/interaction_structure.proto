@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-package wood_proto;
-
-// How forces pass between the edge's two elements; nothing computed yet.
-message InteractionStructure {
-}

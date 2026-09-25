@@ -1,5 +1,5 @@
 /// ss_e_op_tutorial: one rectangular notch - the worked example of main_wood_03_new_joint.cpp.
-static void ss_e_op_tutorial(FeaturePlate& joint) {
+static void ss_e_op_tutorial(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_tutorial";
 

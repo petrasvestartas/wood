@@ -26,7 +26,7 @@ namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace wood_proto {
 
-inline constexpr ContactCross::Impl_::Impl_(
+inline constexpr InteractionContactCross::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
         faces_a_{},
@@ -38,24 +38,24 @@ inline constexpr ContactCross::Impl_::Impl_(
         polygon_{nullptr} {}
 
 template <typename>
-PROTOBUF_CONSTEXPR ContactCross::ContactCross(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR InteractionContactCross::InteractionContactCross(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ContactCross_class_data_.base()),
+    : ::google::protobuf::Message(InteractionContactCross_class_data_.base()),
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(),
 #endif  // PROTOBUF_CUSTOM_VTABLE
       _impl_(::_pbi::ConstantInitialized()) {
 }
-struct ContactCrossDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ContactCrossDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ContactCrossDefaultTypeInternal() {}
+struct InteractionContactCrossDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR InteractionContactCrossDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~InteractionContactCrossDefaultTypeInternal() {}
   union {
-    ContactCross _instance;
+    InteractionContactCross _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ContactCrossDefaultTypeInternal _ContactCross_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 InteractionContactCrossDefaultTypeInternal _InteractionContactCross_default_instance_;
 }  // namespace wood_proto
 static constexpr const ::_pb::EnumDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_enum_descriptors_interaction_5fcontact_5fcross_2eproto = nullptr;
@@ -65,13 +65,13 @@ const ::uint32_t
     TableStruct_interaction_5fcontact_5fcross_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_._has_bits_),
         8, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_.faces_a_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_.faces_b_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_.polygon_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_.lines_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactCross, _impl_.volumes_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_.faces_a_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_.faces_b_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_.polygon_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_.lines_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactCross, _impl_.volumes_),
         0,
         1,
         4,
@@ -81,20 +81,20 @@ const ::uint32_t
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, sizeof(::wood_proto::ContactCross)},
+        {0, sizeof(::wood_proto::InteractionContactCross)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
-    &::wood_proto::_ContactCross_default_instance_._instance,
+    &::wood_proto::_InteractionContactCross_default_instance_._instance,
 };
 const char descriptor_table_protodef_interaction_5fcontact_5fcross_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\037interaction_contact_cross.proto\022\nwood_"
-    "proto\032\016polyline.proto\"\254\001\n\014ContactCross\022\017"
-    "\n\007faces_a\030\001 \003(\005\022\017\n\007faces_b\030\002 \003(\005\022(\n\007poly"
-    "gon\030\003 \001(\0132\027.session_proto.Polyline\022&\n\005li"
-    "nes\030\004 \003(\0132\027.session_proto.Polyline\022(\n\007vo"
-    "lumes\030\005 \003(\0132\027.session_proto.Polylineb\006pr"
-    "oto3"
+    "proto\032\016polyline.proto\"\267\001\n\027InteractionCon"
+    "tactCross\022\017\n\007faces_a\030\001 \003(\005\022\017\n\007faces_b\030\002 "
+    "\003(\005\022(\n\007polygon\030\003 \001(\0132\027.session_proto.Pol"
+    "yline\022&\n\005lines\030\004 \003(\0132\027.session_proto.Pol"
+    "yline\022(\n\007volumes\030\005 \003(\0132\027.session_proto.P"
+    "olylineb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5fcontact_5fcross_2eproto_deps[1] = {
@@ -104,7 +104,7 @@ static ::absl::once_flag descriptor_table_interaction_5fcontact_5fcross_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5fcontact_5fcross_2eproto = {
     false,
     false,
-    244,
+    255,
     descriptor_table_protodef_interaction_5fcontact_5fcross_2eproto,
     "interaction_contact_cross.proto",
     &descriptor_table_interaction_5fcontact_5fcross_2eproto_once,
@@ -120,45 +120,45 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5f
 namespace wood_proto {
 // ===================================================================
 
-class ContactCross::_Internal {
+class InteractionContactCross::_Internal {
  public:
   using HasBits =
-      decltype(::std::declval<ContactCross>()._impl_._has_bits_);
+      decltype(::std::declval<InteractionContactCross>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(ContactCross, _impl_._has_bits_);
+      8 * PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_._has_bits_);
 };
 
-void ContactCross::clear_polygon() {
+void InteractionContactCross::clear_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.polygon_ != nullptr) _impl_.polygon_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000010U);
 }
-void ContactCross::clear_lines() {
+void InteractionContactCross::clear_lines() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.lines_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000004U);
 }
-void ContactCross::clear_volumes() {
+void InteractionContactCross::clear_volumes() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.volumes_.Clear();
   ClearHasBitForRepeated(_impl_._has_bits_[0],
                   0x00000008U);
 }
-ContactCross::ContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+InteractionContactCross::InteractionContactCross(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ContactCross_class_data_.base()) {
+    : ::google::protobuf::Message(arena, InteractionContactCross_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:wood_proto.ContactCross)
+  // @@protoc_insertion_point(arena_constructor:wood_proto.InteractionContactCross)
 }
-PROTOBUF_NDEBUG_INLINE ContactCross::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE InteractionContactCross::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::wood_proto::ContactCross& from_msg)
+    [[maybe_unused]] const ::wood_proto::InteractionContactCross& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0},
         faces_a_{visibility, arena, from.faces_a_},
@@ -168,15 +168,15 @@ PROTOBUF_NDEBUG_INLINE ContactCross::Impl_::Impl_(
         lines_{visibility, arena, from.lines_},
         volumes_{visibility, arena, from.volumes_} {}
 
-ContactCross::ContactCross(
+InteractionContactCross::InteractionContactCross(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const ContactCross& from)
+    const InteractionContactCross& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ContactCross_class_data_.base()) {
+    : ::google::protobuf::Message(arena, InteractionContactCross_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  ContactCross* const _this = this;
+  InteractionContactCross* const _this = this;
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -186,9 +186,9 @@ ContactCross::ContactCross(
                 ? ::google::protobuf::Message::CopyConstruct(arena, *from._impl_.polygon_)
                 : nullptr;
 
-  // @@protoc_insertion_point(copy_constructor:wood_proto.ContactCross)
+  // @@protoc_insertion_point(copy_constructor:wood_proto.InteractionContactCross)
 }
-PROTOBUF_NDEBUG_INLINE ContactCross::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE InteractionContactCross::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0},
@@ -199,16 +199,16 @@ PROTOBUF_NDEBUG_INLINE ContactCross::Impl_::Impl_(
         lines_{visibility, arena},
         volumes_{visibility, arena} {}
 
-inline void ContactCross::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+inline void InteractionContactCross::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
   _impl_.polygon_ = {};
 }
-ContactCross::~ContactCross() {
-  // @@protoc_insertion_point(destructor:wood_proto.ContactCross)
+InteractionContactCross::~InteractionContactCross() {
+  // @@protoc_insertion_point(destructor:wood_proto.InteractionContactCross)
   SharedDtor(*this);
 }
-inline void ContactCross::SharedDtor(MessageLite& self) {
-  ContactCross& this_ = static_cast<ContactCross&>(self);
+inline void InteractionContactCross::SharedDtor(MessageLite& self) {
+  InteractionContactCross& this_ = static_cast<InteractionContactCross&>(self);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
@@ -218,77 +218,77 @@ inline void ContactCross::SharedDtor(MessageLite& self) {
   this_._impl_.~Impl_();
 }
 
-inline void* PROTOBUF_NONNULL ContactCross::PlacementNew_(
+inline void* PROTOBUF_NONNULL InteractionContactCross::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) ContactCross(arena);
+  return ::new (mem) InteractionContactCross(arena);
 }
-constexpr auto ContactCross::InternalNewImpl_() {
+constexpr auto InteractionContactCross::InternalNewImpl_() {
   constexpr auto arena_bits = ::google::protobuf::internal::EncodePlacementArenaOffsets({
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_a_) +
-          decltype(ContactCross::_impl_.faces_a_)::
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_a_) +
+          decltype(InteractionContactCross::_impl_.faces_a_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_b_) +
-          decltype(ContactCross::_impl_.faces_b_)::
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_b_) +
+          decltype(InteractionContactCross::_impl_.faces_b_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.lines_) +
-          decltype(ContactCross::_impl_.lines_)::
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.lines_) +
+          decltype(InteractionContactCross::_impl_.lines_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.volumes_) +
-          decltype(ContactCross::_impl_.volumes_)::
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.volumes_) +
+          decltype(InteractionContactCross::_impl_.volumes_)::
               InternalGetArenaOffset(
                   ::google::protobuf::Message::internal_visibility()),
   });
   if (arena_bits.has_value()) {
     return ::google::protobuf::internal::MessageCreator::ZeroInit(
-        sizeof(ContactCross), alignof(ContactCross), *arena_bits);
+        sizeof(InteractionContactCross), alignof(InteractionContactCross), *arena_bits);
   } else {
-    return ::google::protobuf::internal::MessageCreator(&ContactCross::PlacementNew_,
-                                 sizeof(ContactCross),
-                                 alignof(ContactCross));
+    return ::google::protobuf::internal::MessageCreator(&InteractionContactCross::PlacementNew_,
+                                 sizeof(InteractionContactCross),
+                                 alignof(InteractionContactCross));
   }
 }
-constexpr auto ContactCross::InternalGenerateClassData_() {
+constexpr auto InteractionContactCross::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_ContactCross_default_instance_._instance,
+          &_InteractionContactCross_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &ContactCross::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<ContactCross>(),
+          &InteractionContactCross::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<InteractionContactCross>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &ContactCross::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<ContactCross>(), &ContactCross::ByteSizeLong,
-              &ContactCross::_InternalSerialize,
+          &InteractionContactCross::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<InteractionContactCross>(), &InteractionContactCross::ByteSizeLong,
+              &InteractionContactCross::_InternalSerialize,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(ContactCross, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_._cached_size_),
           false,
       },
-      &ContactCross::kDescriptorMethods,
+      &InteractionContactCross::kDescriptorMethods,
       &descriptor_table_interaction_5fcontact_5fcross_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull ContactCross_class_data_ =
-        ContactCross::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull InteractionContactCross_class_data_ =
+        InteractionContactCross::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-ContactCross::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&ContactCross_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(ContactCross_class_data_.tc_table);
-  return ContactCross_class_data_.base();
+InteractionContactCross::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&InteractionContactCross_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(InteractionContactCross_class_data_.tc_table);
+  return InteractionContactCross_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<3, 5, 3, 0, 2>
-ContactCross::_table_ = {
+InteractionContactCross::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(ContactCross, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_._has_bits_),
     0, // no _extensions_
     5, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
@@ -297,49 +297,49 @@ ContactCross::_table_ = {
     5,  // num_field_entries
     3,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
-    ContactCross_class_data_.base(),
+    InteractionContactCross_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::wood_proto::ContactCross>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::wood_proto::InteractionContactCross>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // repeated int32 faces_a = 1;
     {::_pbi::TcParser::FastV32P1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_a_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_a_)}},
     // repeated int32 faces_b = 2;
     {::_pbi::TcParser::FastV32P1,
      {18, 1, 0,
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_b_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_b_)}},
     // .session_proto.Polyline polygon = 3;
     {::_pbi::TcParser::FastMtS1,
      {26, 4, 0,
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.polygon_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.polygon_)}},
     // repeated .session_proto.Polyline lines = 4;
     {::_pbi::TcParser::FastMtR1,
      {34, 2, 1,
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.lines_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.lines_)}},
     // repeated .session_proto.Polyline volumes = 5;
     {::_pbi::TcParser::FastMtR1,
      {42, 3, 2,
-      PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.volumes_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.volumes_)}},
     {::_pbi::TcParser::MiniParse, {}},
     {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
     // repeated int32 faces_a = 1;
-    {PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_a_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_a_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // repeated int32 faces_b = 2;
-    {PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.faces_b_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.faces_b_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
     // .session_proto.Polyline polygon = 3;
-    {PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.polygon_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.polygon_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .session_proto.Polyline lines = 4;
-    {PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.lines_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.lines_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     // repeated .session_proto.Polyline volumes = 5;
-    {PROTOBUF_FIELD_OFFSET(ContactCross, _impl_.volumes_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactCross, _impl_.volumes_), _Internal::kHasBitsOffset + 3, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
@@ -349,8 +349,8 @@ ContactCross::_table_ = {
   {{
   }},
 };
-PROTOBUF_NOINLINE void ContactCross::Clear() {
-// @@protoc_insertion_point(message_clear_start:wood_proto.ContactCross)
+PROTOBUF_NOINLINE void InteractionContactCross::Clear() {
+// @@protoc_insertion_point(message_clear_start:wood_proto.InteractionContactCross)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -380,20 +380,20 @@ PROTOBUF_NOINLINE void ContactCross::Clear() {
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL ContactCross::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL InteractionContactCross::_InternalSerialize(
     const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const ContactCross& this_ = static_cast<const ContactCross&>(base);
+  const InteractionContactCross& this_ = static_cast<const InteractionContactCross&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL ContactCross::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL InteractionContactCross::_InternalSerialize(
     ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const ContactCross& this_ = *this;
+  const InteractionContactCross& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.ContactCross)
+  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.InteractionContactCross)
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -458,18 +458,18 @@ PROTOBUF_NOINLINE void ContactCross::Clear() {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.ContactCross)
+  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.InteractionContactCross)
   return target;
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t ContactCross::ByteSizeLong(const MessageLite& base) {
-  const ContactCross& this_ = static_cast<const ContactCross&>(base);
+::size_t InteractionContactCross::ByteSizeLong(const MessageLite& base) {
+  const InteractionContactCross& this_ = static_cast<const InteractionContactCross&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::size_t ContactCross::ByteSizeLong() const {
-  const ContactCross& this_ = *this;
+::size_t InteractionContactCross::ByteSizeLong() const {
+  const InteractionContactCross& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:wood_proto.ContactCross)
+  // @@protoc_insertion_point(message_byte_size_start:wood_proto.InteractionContactCross)
   ::size_t total_size = 0;
 
   ::uint32_t cached_has_bits = 0;
@@ -517,16 +517,16 @@ PROTOBUF_NOINLINE void ContactCross::Clear() {
                                              &this_._impl_._cached_size_);
 }
 
-void ContactCross::MergeImpl(::google::protobuf::MessageLite& to_msg,
+void InteractionContactCross::MergeImpl(::google::protobuf::MessageLite& to_msg,
                             const ::google::protobuf::MessageLite& from_msg) {
    auto* const _this =
-      static_cast<ContactCross*>(&to_msg);
-  auto& from = static_cast<const ContactCross&>(from_msg);
+      static_cast<InteractionContactCross*>(&to_msg);
+  auto& from = static_cast<const InteractionContactCross&>(from_msg);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
   ::google::protobuf::Arena* arena = _this->GetArena();
-  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.ContactCross)
+  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.InteractionContactCross)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
@@ -563,15 +563,15 @@ void ContactCross::MergeImpl(::google::protobuf::MessageLite& to_msg,
       from._internal_metadata_);
 }
 
-void ContactCross::CopyFrom(const ContactCross& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.ContactCross)
+void InteractionContactCross::CopyFrom(const InteractionContactCross& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.InteractionContactCross)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 
-void ContactCross::InternalSwap(ContactCross* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+void InteractionContactCross::InternalSwap(InteractionContactCross* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
@@ -582,7 +582,7 @@ void ContactCross::InternalSwap(ContactCross* PROTOBUF_RESTRICT PROTOBUF_NONNULL
   swap(_impl_.polygon_, other->_impl_.polygon_);
 }
 
-::google::protobuf::Metadata ContactCross::GetMetadata() const {
+::google::protobuf::Metadata InteractionContactCross::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

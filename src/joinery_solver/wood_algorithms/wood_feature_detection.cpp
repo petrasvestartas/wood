@@ -26,7 +26,7 @@ struct F2F {
     Plane avg_plane_0;
     Plane avg_plane_1;
     std::string dbg_fail_reason;
-    FeaturePlate& out_joint;
+    InteractionFeaturePlate& out_joint;
     bool& out_swap_planes_1;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -122,7 +122,7 @@ bool alignment_line(
 }
 
 /// One face contact into a candidate: face ids, alignment lines, length checks, insertion direction.
-bool prepare_candidate(F2F& s, const wood_session::ContactFace& contact, FaceCandidate& c) {
+bool prepare_candidate(F2F& s, const wood_session::InteractionContactFace& contact, FaceCandidate& c) {
 
     c.i = static_cast<size_t>(contact.face_a);
     c.j = static_cast<size_t>(contact.face_b);
@@ -182,7 +182,7 @@ bool emit_joint(F2F& s, const FaceCandidate& c) {
 
     s.out_joint.element_a = s.guid_at(s.el_ids.first);
     s.out_joint.element_b = s.guid_at(s.el_ids.second);
-    s.out_joint.contact = wood_session::ContactFace(s.face_ids.first[0], s.face_ids.second[0], c.ctype, c.joint_area);
+    s.out_joint.contact = wood_session::InteractionContactFace(s.face_ids.first[0], s.face_ids.second[0], c.ctype, c.joint_area);
     s.out_joint.cross_faces = { s.face_ids.first[1], s.face_ids.second[1] };
     s.out_joint.joint_type = c.joint_type;
     s.out_joint.joint_lines = c.joint_lines;
@@ -764,7 +764,7 @@ bool top_top(F2F& s, FaceCandidate& c) {
 /// Type 30: plane_to_face cross joint when no face contact produced a joint.
 bool cross_fallback(F2F& s) {
 
-    wood_session::ContactCross cj;
+    wood_session::InteractionContactCross cj;
     const std::array<double, 3> cj_ext = s.ext(30);
     constexpr double CROSS_JOINT_PARALLEL_ANGLE_DEG = 30.0;
 
@@ -780,7 +780,7 @@ bool cross_fallback(F2F& s) {
 
     s.out_joint.element_a = s.guid_at(s.el_ids.first);
     s.out_joint.element_b = s.guid_at(s.el_ids.second);
-    s.out_joint.contact = wood_session::ContactFace(cj.faces_a[0], cj.faces_b[0], wood_session::ContactType::unknown, cj.polygon);
+    s.out_joint.contact = wood_session::InteractionContactFace(cj.faces_a[0], cj.faces_b[0], wood_session::ContactType::unknown, cj.polygon);
     s.out_joint.cross_faces = { cj.faces_a[1], cj.faces_b[1] };
     s.out_joint.joint_type = 30;
     s.out_joint.joint_lines = {{
@@ -803,7 +803,7 @@ bool face_to_face_wood(
     std::pair<int, int> el_ids_in,
     const Settings& settings,
     int search_type,
-    FeaturePlate& out_joint,
+    InteractionFeaturePlate& out_joint,
     bool& out_swap_planes_1,
     DetectionTrace* trace
 ) {
@@ -820,9 +820,9 @@ bool face_to_face_wood(
         s.avg_plane_0 = average_plane(el0);
         s.avg_plane_1 = average_plane(el1);
 
-        const std::vector<wood_session::ContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, settings, trace);
+        const std::vector<wood_session::InteractionContactFace> pair_contacts = wood_session::face_contacts_for_pair(el0, el1, settings, trace);
 
-        for (const wood_session::ContactFace& contact : pair_contacts) {
+        for (const wood_session::InteractionContactFace& contact : pair_contacts) {
             FaceCandidate c;
             if (!prepare_candidate(s, contact, c))
                 continue;

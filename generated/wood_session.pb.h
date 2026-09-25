@@ -34,7 +34,6 @@
 #include "graph.pb.h"
 #include "boundingbox.pb.h"
 #include "session.pb.h"
-#include "interaction.pb.h"
 #include "settings.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -221,6 +220,7 @@ class WoodSession final : public ::google::protobuf::Message
   enum : int {
     kBvhBoxesFieldNumber = 6,
     kXformsFieldNumber = 7,
+    kInteractionsFieldNumber = 9,
     kNameFieldNumber = 1,
     kGuidFieldNumber = 2,
     kObjectsFieldNumber = 3,
@@ -228,7 +228,6 @@ class WoodSession final : public ::google::protobuf::Message
     kGraphFieldNumber = 5,
     kDefinitionsFieldNumber = 8,
     kSettingsFieldNumber = 101,
-    kInteractionsFieldNumber = 100,
   };
   // repeated .session_proto.BoundingBox bvh_boxes = 6;
   int bvh_boxes_size() const;
@@ -264,6 +263,23 @@ class WoodSession final : public ::google::protobuf::Message
   const ::session_proto::XformEntry& xforms(int index) const;
   ::session_proto::XformEntry* PROTOBUF_NONNULL add_xforms();
   const ::google::protobuf::RepeatedPtrField<::session_proto::XformEntry>& xforms() const;
+  // repeated .session_proto.InteractionEntry interactions = 9;
+  int interactions_size() const;
+  private:
+  int _internal_interactions_size() const;
+
+  public:
+  void clear_interactions() ;
+  ::session_proto::InteractionEntry* PROTOBUF_NONNULL mutable_interactions(int index);
+  ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL mutable_interactions();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>& _internal_interactions() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL _internal_mutable_interactions();
+  public:
+  const ::session_proto::InteractionEntry& interactions(int index) const;
+  ::session_proto::InteractionEntry* PROTOBUF_NONNULL add_interactions();
+  const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>& interactions() const;
   // string name = 1;
   void clear_name() ;
   const ::std::string& name() const;
@@ -369,28 +385,11 @@ class WoodSession final : public ::google::protobuf::Message
   ::wood_proto::Settings* PROTOBUF_NONNULL _internal_mutable_settings();
 
   public:
-  // repeated .wood_proto.Interaction interactions = 100;
-  int interactions_size() const;
-  private:
-  int _internal_interactions_size() const;
-
-  public:
-  void clear_interactions() ;
-  ::wood_proto::Interaction* PROTOBUF_NONNULL mutable_interactions(int index);
-  ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>* PROTOBUF_NONNULL mutable_interactions();
-
-  private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>& _internal_interactions() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>* PROTOBUF_NONNULL _internal_mutable_interactions();
-  public:
-  const ::wood_proto::Interaction& interactions(int index) const;
-  ::wood_proto::Interaction* PROTOBUF_NONNULL add_interactions();
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>& interactions() const;
   // @@protoc_insertion_point(class_scope:wood_proto.WoodSession)
  private:
   class _Internal;
   friend class ::google::protobuf::internal::TcParser;
-  static const ::google::protobuf::internal::TcParseTable<3, 10,
+  static const ::google::protobuf::internal::TcParseTable<4, 10,
                                    8, 47,
                                    7>
       _table_;
@@ -414,6 +413,7 @@ class WoodSession final : public ::google::protobuf::Message
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::BoundingBox > bvh_boxes_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::XformEntry > xforms_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::InteractionEntry > interactions_;
     ::google::protobuf::internal::ArenaStringPtr name_;
     ::google::protobuf::internal::ArenaStringPtr guid_;
     ::session_proto::Objects* PROTOBUF_NULLABLE objects_;
@@ -421,7 +421,6 @@ class WoodSession final : public ::google::protobuf::Message
     ::session_proto::Graph* PROTOBUF_NULLABLE graph_;
     ::session_proto::Objects* PROTOBUF_NULLABLE definitions_;
     ::wood_proto::Settings* PROTOBUF_NULLABLE settings_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::Interaction > interactions_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -451,7 +450,7 @@ inline void WoodSession::clear_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.name_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000004U);
+                  0x00000008U);
 }
 inline const ::std::string& WoodSession::name() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -461,13 +460,13 @@ inline const ::std::string& WoodSession::name() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void WoodSession::set_name(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   _impl_.name_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.WoodSession.name)
 }
 inline ::std::string* PROTOBUF_NONNULL WoodSession::mutable_name()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::std::string* _s = _internal_mutable_name();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.name)
   return _s;
@@ -487,10 +486,10 @@ inline ::std::string* PROTOBUF_NONNULL WoodSession::_internal_mutable_name() {
 inline ::std::string* PROTOBUF_NULLABLE WoodSession::release_name() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.name)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   auto* released = _impl_.name_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.name_.Set("", GetArena());
@@ -500,9 +499,9 @@ inline ::std::string* PROTOBUF_NULLABLE WoodSession::release_name() {
 inline void WoodSession::set_allocated_name(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
   _impl_.name_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.name_.IsDefault()) {
@@ -516,7 +515,7 @@ inline void WoodSession::clear_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.guid_.ClearToEmpty();
   ClearHasBit(_impl_._has_bits_[0],
-                  0x00000008U);
+                  0x00000010U);
 }
 inline const ::std::string& WoodSession::guid() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -526,13 +525,13 @@ inline const ::std::string& WoodSession::guid() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void WoodSession::set_guid(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   _impl_.guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.WoodSession.guid)
 }
 inline ::std::string* PROTOBUF_NONNULL WoodSession::mutable_guid()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::std::string* _s = _internal_mutable_guid();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.guid)
   return _s;
@@ -552,10 +551,10 @@ inline ::std::string* PROTOBUF_NONNULL WoodSession::_internal_mutable_guid() {
 inline ::std::string* PROTOBUF_NULLABLE WoodSession::release_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.guid)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000010U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   auto* released = _impl_.guid_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.guid_.Set("", GetArena());
@@ -565,9 +564,9 @@ inline ::std::string* PROTOBUF_NULLABLE WoodSession::release_guid() {
 inline void WoodSession::set_allocated_guid(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   _impl_.guid_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.guid_.IsDefault()) {
@@ -578,7 +577,7 @@ inline void WoodSession::set_allocated_guid(::std::string* PROTOBUF_NULLABLE val
 
 // .session_proto.Objects objects = 3;
 inline bool WoodSession::has_objects() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
   PROTOBUF_ASSUME(!value || _impl_.objects_ != nullptr);
   return value;
 }
@@ -599,16 +598,16 @@ inline void WoodSession::unsafe_arena_set_allocated_objects(
   }
   _impl_.objects_ = reinterpret_cast<::session_proto::Objects*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.objects)
 }
 inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_objects() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Objects* released = _impl_.objects_;
   _impl_.objects_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -628,7 +627,7 @@ inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_rel
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.objects)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Objects* temp = _impl_.objects_;
   _impl_.objects_ = nullptr;
   return temp;
@@ -643,7 +642,7 @@ inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable
 }
 inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_objects()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Objects* _msg = _internal_mutable_objects();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.objects)
   return _msg;
@@ -660,9 +659,9 @@ inline void WoodSession::set_allocated_objects(::session_proto::Objects* PROTOBU
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
 
   _impl_.objects_ = reinterpret_cast<::session_proto::Objects*>(value);
@@ -671,7 +670,7 @@ inline void WoodSession::set_allocated_objects(::session_proto::Objects* PROTOBU
 
 // .session_proto.Tree tree = 4;
 inline bool WoodSession::has_tree() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000040U);
   PROTOBUF_ASSUME(!value || _impl_.tree_ != nullptr);
   return value;
 }
@@ -692,16 +691,16 @@ inline void WoodSession::unsafe_arena_set_allocated_tree(
   }
   _impl_.tree_ = reinterpret_cast<::session_proto::Tree*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.tree)
 }
 inline ::session_proto::Tree* PROTOBUF_NULLABLE WoodSession::release_tree() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   ::session_proto::Tree* released = _impl_.tree_;
   _impl_.tree_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -721,7 +720,7 @@ inline ::session_proto::Tree* PROTOBUF_NULLABLE WoodSession::unsafe_arena_releas
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.tree)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   ::session_proto::Tree* temp = _impl_.tree_;
   _impl_.tree_ = nullptr;
   return temp;
@@ -736,7 +735,7 @@ inline ::session_proto::Tree* PROTOBUF_NONNULL WoodSession::_internal_mutable_tr
 }
 inline ::session_proto::Tree* PROTOBUF_NONNULL WoodSession::mutable_tree()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   ::session_proto::Tree* _msg = _internal_mutable_tree();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.tree)
   return _msg;
@@ -753,9 +752,9 @@ inline void WoodSession::set_allocated_tree(::session_proto::Tree* PROTOBUF_NULL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
   }
 
   _impl_.tree_ = reinterpret_cast<::session_proto::Tree*>(value);
@@ -764,7 +763,7 @@ inline void WoodSession::set_allocated_tree(::session_proto::Tree* PROTOBUF_NULL
 
 // .session_proto.Graph graph = 5;
 inline bool WoodSession::has_graph() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000040U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000080U);
   PROTOBUF_ASSUME(!value || _impl_.graph_ != nullptr);
   return value;
 }
@@ -785,16 +784,16 @@ inline void WoodSession::unsafe_arena_set_allocated_graph(
   }
   _impl_.graph_ = reinterpret_cast<::session_proto::Graph*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.graph)
 }
 inline ::session_proto::Graph* PROTOBUF_NULLABLE WoodSession::release_graph() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   ::session_proto::Graph* released = _impl_.graph_;
   _impl_.graph_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -814,7 +813,7 @@ inline ::session_proto::Graph* PROTOBUF_NULLABLE WoodSession::unsafe_arena_relea
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.graph)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   ::session_proto::Graph* temp = _impl_.graph_;
   _impl_.graph_ = nullptr;
   return temp;
@@ -829,7 +828,7 @@ inline ::session_proto::Graph* PROTOBUF_NONNULL WoodSession::_internal_mutable_g
 }
 inline ::session_proto::Graph* PROTOBUF_NONNULL WoodSession::mutable_graph()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   ::session_proto::Graph* _msg = _internal_mutable_graph();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.graph)
   return _msg;
@@ -846,9 +845,9 @@ inline void WoodSession::set_allocated_graph(::session_proto::Graph* PROTOBUF_NU
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
   }
 
   _impl_.graph_ = reinterpret_cast<::session_proto::Graph*>(value);
@@ -957,7 +956,7 @@ WoodSession::_internal_mutable_xforms() {
 
 // .session_proto.Objects definitions = 8;
 inline bool WoodSession::has_definitions() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000080U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000100U);
   PROTOBUF_ASSUME(!value || _impl_.definitions_ != nullptr);
   return value;
 }
@@ -978,16 +977,16 @@ inline void WoodSession::unsafe_arena_set_allocated_definitions(
   }
   _impl_.definitions_ = reinterpret_cast<::session_proto::Objects*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.definitions)
 }
 inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::release_definitions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   ::session_proto::Objects* released = _impl_.definitions_;
   _impl_.definitions_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1007,7 +1006,7 @@ inline ::session_proto::Objects* PROTOBUF_NULLABLE WoodSession::unsafe_arena_rel
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.definitions)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   ::session_proto::Objects* temp = _impl_.definitions_;
   _impl_.definitions_ = nullptr;
   return temp;
@@ -1022,7 +1021,7 @@ inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::_internal_mutable
 }
 inline ::session_proto::Objects* PROTOBUF_NONNULL WoodSession::mutable_definitions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   ::session_proto::Objects* _msg = _internal_mutable_definitions();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.definitions)
   return _msg;
@@ -1039,60 +1038,60 @@ inline void WoodSession::set_allocated_definitions(::session_proto::Objects* PRO
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
   }
 
   _impl_.definitions_ = reinterpret_cast<::session_proto::Objects*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.definitions)
 }
 
-// repeated .wood_proto.Interaction interactions = 100;
+// repeated .session_proto.InteractionEntry interactions = 9;
 inline int WoodSession::_internal_interactions_size() const {
   return _internal_interactions().size();
 }
 inline int WoodSession::interactions_size() const {
   return _internal_interactions_size();
 }
-inline ::wood_proto::Interaction* PROTOBUF_NONNULL WoodSession::mutable_interactions(int index)
+inline ::session_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::mutable_interactions(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.interactions)
   return _internal_mutable_interactions()->Mutable(index);
 }
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>* PROTOBUF_NONNULL WoodSession::mutable_interactions()
+inline ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL WoodSession::mutable_interactions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.interactions)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   return _internal_mutable_interactions();
 }
-inline const ::wood_proto::Interaction& WoodSession::interactions(int index) const
+inline const ::session_proto::InteractionEntry& WoodSession::interactions(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_get:wood_proto.WoodSession.interactions)
   return _internal_interactions().Get(index);
 }
-inline ::wood_proto::Interaction* PROTOBUF_NONNULL WoodSession::add_interactions()
+inline ::session_proto::InteractionEntry* PROTOBUF_NONNULL WoodSession::add_interactions()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::wood_proto::Interaction* _add =
+  ::session_proto::InteractionEntry* _add =
       _internal_mutable_interactions()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
-  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBitForRepeated(_impl_._has_bits_[0], 0x00000004U);
   // @@protoc_insertion_point(field_add:wood_proto.WoodSession.interactions)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>& WoodSession::interactions() const
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>& WoodSession::interactions() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   // @@protoc_insertion_point(field_list:wood_proto.WoodSession.interactions)
   return _internal_interactions();
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>&
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>&
 WoodSession::_internal_interactions() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return _impl_.interactions_;
 }
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::Interaction>* PROTOBUF_NONNULL
+inline ::google::protobuf::RepeatedPtrField<::session_proto::InteractionEntry>* PROTOBUF_NONNULL
 WoodSession::_internal_mutable_interactions() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.interactions_;
@@ -1100,7 +1099,7 @@ WoodSession::_internal_mutable_interactions() {
 
 // .wood_proto.Settings settings = 101;
 inline bool WoodSession::has_settings() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000100U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000200U);
   PROTOBUF_ASSUME(!value || _impl_.settings_ != nullptr);
   return value;
 }
@@ -1121,16 +1120,16 @@ inline void WoodSession::unsafe_arena_set_allocated_settings(
   }
   _impl_.settings_ = reinterpret_cast<::wood_proto::Settings*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.WoodSession.settings)
 }
 inline ::wood_proto::Settings* PROTOBUF_NULLABLE WoodSession::release_settings() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   ::wood_proto::Settings* released = _impl_.settings_;
   _impl_.settings_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1150,7 +1149,7 @@ inline ::wood_proto::Settings* PROTOBUF_NULLABLE WoodSession::unsafe_arena_relea
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.WoodSession.settings)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   ::wood_proto::Settings* temp = _impl_.settings_;
   _impl_.settings_ = nullptr;
   return temp;
@@ -1165,7 +1164,7 @@ inline ::wood_proto::Settings* PROTOBUF_NONNULL WoodSession::_internal_mutable_s
 }
 inline ::wood_proto::Settings* PROTOBUF_NONNULL WoodSession::mutable_settings()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   ::wood_proto::Settings* _msg = _internal_mutable_settings();
   // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.settings)
   return _msg;
@@ -1182,9 +1181,9 @@ inline void WoodSession::set_allocated_settings(::wood_proto::Settings* PROTOBUF
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
   }
 
   _impl_.settings_ = reinterpret_cast<::wood_proto::Settings*>(value);

@@ -10,7 +10,7 @@ Fourteen short programs under `examples/`, one behaviour each, in the order to r
 | `2_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
 | `3_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
 | `4_features` | The joinery pipeline: every plate joint, a plate's geometry alone and cut, the joint features on the hosts |
-| `5_traversal` | Every stored record answers `session()`: from a joint back to the scene, its plates, its interaction, its edge |
+| `5_traversal` | From a joint to its plates, the interactions on their edge, the contact it names by guid, the edge |
 | `6_settings` | The solver settings as a value on the scene, set in code and read back from the file |
 | `7_custom_joint` | A joint variant supplied as outlines through the settings |
 | `8_assignment` | Feature types and insertion vectors filled from points and lines placed on the plates |

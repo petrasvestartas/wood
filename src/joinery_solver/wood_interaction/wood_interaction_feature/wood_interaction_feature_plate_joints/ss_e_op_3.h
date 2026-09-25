@@ -1,5 +1,5 @@
 /// ss_e_op_3: miter tenon-mortise - four female outlines (two insert_between, two hole), two male.
-static void ss_e_op_3(FeaturePlate& joint) {
+static void ss_e_op_3(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_3";
 

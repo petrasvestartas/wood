@@ -26,7 +26,7 @@ namespace _pbi = ::google::protobuf::internal;
 namespace _fl = ::google::protobuf::internal::field_layout;
 namespace wood_proto {
 
-inline constexpr ContactAxis::Impl_::Impl_(
+inline constexpr InteractionContactAxis::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : _cached_size_{0},
         segment_{nullptr},
@@ -38,24 +38,24 @@ inline constexpr ContactAxis::Impl_::Impl_(
         segment_b_{0} {}
 
 template <typename>
-PROTOBUF_CONSTEXPR ContactAxis::ContactAxis(::_pbi::ConstantInitialized)
+PROTOBUF_CONSTEXPR InteractionContactAxis::InteractionContactAxis(::_pbi::ConstantInitialized)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(ContactAxis_class_data_.base()),
+    : ::google::protobuf::Message(InteractionContactAxis_class_data_.base()),
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(),
 #endif  // PROTOBUF_CUSTOM_VTABLE
       _impl_(::_pbi::ConstantInitialized()) {
 }
-struct ContactAxisDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR ContactAxisDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
-  ~ContactAxisDefaultTypeInternal() {}
+struct InteractionContactAxisDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR InteractionContactAxisDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~InteractionContactAxisDefaultTypeInternal() {}
   union {
-    ContactAxis _instance;
+    InteractionContactAxis _instance;
   };
 };
 
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
-    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ContactAxisDefaultTypeInternal _ContactAxis_default_instance_;
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 InteractionContactAxisDefaultTypeInternal _InteractionContactAxis_default_instance_;
 }  // namespace wood_proto
 static constexpr const ::_pb::EnumDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULLABLE
     file_level_enum_descriptors_interaction_5fcontact_5faxis_2eproto = nullptr;
@@ -65,15 +65,15 @@ const ::uint32_t
     TableStruct_interaction_5fcontact_5faxis_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
         0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_._has_bits_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_._has_bits_),
         10, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.segment_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.t_a_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.t_b_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.polyline_a_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.segment_a_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.polyline_b_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::ContactAxis, _impl_.segment_b_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.segment_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.t_a_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.t_b_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.polyline_a_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.segment_a_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.polyline_b_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactAxis, _impl_.segment_b_),
         0,
         1,
         2,
@@ -85,19 +85,19 @@ const ::uint32_t
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-        {0, sizeof(::wood_proto::ContactAxis)},
+        {0, sizeof(::wood_proto::InteractionContactAxis)},
 };
 static const ::_pb::Message* PROTOBUF_NONNULL const file_default_instances[] = {
-    &::wood_proto::_ContactAxis_default_instance_._instance,
+    &::wood_proto::_InteractionContactAxis_default_instance_._instance,
 };
 const char descriptor_table_protodef_interaction_5fcontact_5faxis_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036interaction_contact_axis.proto\022\nwood_p"
-    "roto\032\nline.proto\"\233\001\n\013ContactAxis\022$\n\007segm"
-    "ent\030\001 \001(\0132\023.session_proto.Line\022\013\n\003t_a\030\002 "
-    "\001(\001\022\013\n\003t_b\030\003 \001(\001\022\022\n\npolyline_a\030\004 \001(\005\022\021\n\t"
-    "segment_a\030\005 \001(\005\022\022\n\npolyline_b\030\006 \001(\005\022\021\n\ts"
-    "egment_b\030\007 \001(\005b\006proto3"
+    "roto\032\nline.proto\"\246\001\n\026InteractionContactA"
+    "xis\022$\n\007segment\030\001 \001(\0132\023.session_proto.Lin"
+    "e\022\013\n\003t_a\030\002 \001(\001\022\013\n\003t_b\030\003 \001(\001\022\022\n\npolyline_"
+    "a\030\004 \001(\005\022\021\n\tsegment_a\030\005 \001(\005\022\022\n\npolyline_b"
+    "\030\006 \001(\005\022\021\n\tsegment_b\030\007 \001(\005b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5fcontact_5faxis_2eproto_deps[1] = {
@@ -107,7 +107,7 @@ static ::absl::once_flag descriptor_table_interaction_5fcontact_5faxis_2eproto_o
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5fcontact_5faxis_2eproto = {
     false,
     false,
-    222,
+    233,
     descriptor_table_protodef_interaction_5fcontact_5faxis_2eproto,
     "interaction_contact_axis.proto",
     &descriptor_table_interaction_5fcontact_5faxis_2eproto_once,
@@ -123,45 +123,45 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5f
 namespace wood_proto {
 // ===================================================================
 
-class ContactAxis::_Internal {
+class InteractionContactAxis::_Internal {
  public:
   using HasBits =
-      decltype(::std::declval<ContactAxis>()._impl_._has_bits_);
+      decltype(::std::declval<InteractionContactAxis>()._impl_._has_bits_);
   static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_._has_bits_);
+      8 * PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_._has_bits_);
 };
 
-void ContactAxis::clear_segment() {
+void InteractionContactAxis::clear_segment() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.segment_ != nullptr) _impl_.segment_->Clear();
   ClearHasBit(_impl_._has_bits_[0],
                   0x00000001U);
 }
-ContactAxis::ContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+InteractionContactAxis::InteractionContactAxis(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ContactAxis_class_data_.base()) {
+    : ::google::protobuf::Message(arena, InteractionContactAxis_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
   SharedCtor(arena);
-  // @@protoc_insertion_point(arena_constructor:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(arena_constructor:wood_proto.InteractionContactAxis)
 }
-PROTOBUF_NDEBUG_INLINE ContactAxis::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE InteractionContactAxis::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::wood_proto::ContactAxis& from_msg)
+    [[maybe_unused]] const ::wood_proto::InteractionContactAxis& from_msg)
       : _has_bits_{from._has_bits_},
         _cached_size_{0} {}
 
-ContactAxis::ContactAxis(
+InteractionContactAxis::InteractionContactAxis(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
-    const ContactAxis& from)
+    const InteractionContactAxis& from)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-    : ::google::protobuf::Message(arena, ContactAxis_class_data_.base()) {
+    : ::google::protobuf::Message(arena, InteractionContactAxis_class_data_.base()) {
 #else   // PROTOBUF_CUSTOM_VTABLE
     : ::google::protobuf::Message(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  ContactAxis* const _this = this;
+  InteractionContactAxis* const _this = this;
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -178,14 +178,14 @@ ContactAxis::ContactAxis(
                offsetof(Impl_, t_a_) +
                sizeof(Impl_::segment_b_));
 
-  // @@protoc_insertion_point(copy_constructor:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(copy_constructor:wood_proto.InteractionContactAxis)
 }
-PROTOBUF_NDEBUG_INLINE ContactAxis::Impl_::Impl_(
+PROTOBUF_NDEBUG_INLINE InteractionContactAxis::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
       : _cached_size_{0} {}
 
-inline void ContactAxis::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+inline void InteractionContactAxis::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, segment_),
@@ -194,12 +194,12 @@ inline void ContactAxis::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
                offsetof(Impl_, segment_) +
                sizeof(Impl_::segment_b_));
 }
-ContactAxis::~ContactAxis() {
-  // @@protoc_insertion_point(destructor:wood_proto.ContactAxis)
+InteractionContactAxis::~InteractionContactAxis() {
+  // @@protoc_insertion_point(destructor:wood_proto.InteractionContactAxis)
   SharedDtor(*this);
 }
-inline void ContactAxis::SharedDtor(MessageLite& self) {
-  ContactAxis& this_ = static_cast<ContactAxis&>(self);
+inline void InteractionContactAxis::SharedDtor(MessageLite& self) {
+  InteractionContactAxis& this_ = static_cast<InteractionContactAxis&>(self);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
@@ -209,53 +209,53 @@ inline void ContactAxis::SharedDtor(MessageLite& self) {
   this_._impl_.~Impl_();
 }
 
-inline void* PROTOBUF_NONNULL ContactAxis::PlacementNew_(
+inline void* PROTOBUF_NONNULL InteractionContactAxis::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
-  return ::new (mem) ContactAxis(arena);
+  return ::new (mem) InteractionContactAxis(arena);
 }
-constexpr auto ContactAxis::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(ContactAxis),
-                                            alignof(ContactAxis));
+constexpr auto InteractionContactAxis::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(InteractionContactAxis),
+                                            alignof(InteractionContactAxis));
 }
-constexpr auto ContactAxis::InternalGenerateClassData_() {
+constexpr auto InteractionContactAxis::InternalGenerateClassData_() {
   return ::google::protobuf::internal::ClassDataFull{
       ::google::protobuf::internal::ClassData{
-          &_ContactAxis_default_instance_._instance,
+          &_InteractionContactAxis_default_instance_._instance,
           &_table_.header,
           nullptr,  // OnDemandRegisterArenaDtor
           nullptr,  // IsInitialized
-          &ContactAxis::MergeImpl,
-          ::google::protobuf::Message::GetNewImpl<ContactAxis>(),
+          &InteractionContactAxis::MergeImpl,
+          ::google::protobuf::Message::GetNewImpl<InteractionContactAxis>(),
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-          &ContactAxis::SharedDtor,
-          ::google::protobuf::Message::GetClearImpl<ContactAxis>(), &ContactAxis::ByteSizeLong,
-              &ContactAxis::_InternalSerialize,
+          &InteractionContactAxis::SharedDtor,
+          ::google::protobuf::Message::GetClearImpl<InteractionContactAxis>(), &InteractionContactAxis::ByteSizeLong,
+              &InteractionContactAxis::_InternalSerialize,
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_._cached_size_),
+          PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_._cached_size_),
           false,
       },
-      &ContactAxis::kDescriptorMethods,
+      &InteractionContactAxis::kDescriptorMethods,
       &descriptor_table_interaction_5fcontact_5faxis_2eproto,
       nullptr,  // tracker
   };
 }
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
-    ::google::protobuf::internal::ClassDataFull ContactAxis_class_data_ =
-        ContactAxis::InternalGenerateClassData_();
+    ::google::protobuf::internal::ClassDataFull InteractionContactAxis_class_data_ =
+        InteractionContactAxis::InternalGenerateClassData_();
 
 PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
-ContactAxis::GetClassData() const {
-  ::google::protobuf::internal::PrefetchToLocalCache(&ContactAxis_class_data_);
-  ::google::protobuf::internal::PrefetchToLocalCache(ContactAxis_class_data_.tc_table);
-  return ContactAxis_class_data_.base();
+InteractionContactAxis::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&InteractionContactAxis_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(InteractionContactAxis_class_data_.tc_table);
+  return InteractionContactAxis_class_data_.base();
 }
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
 const ::_pbi::TcParseTable<3, 7, 1, 0, 2>
-ContactAxis::_table_ = {
+InteractionContactAxis::_table_ = {
   {
-    PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_._has_bits_),
+    PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_._has_bits_),
     0, // no _extensions_
     7, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
@@ -264,59 +264,59 @@ ContactAxis::_table_ = {
     7,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
-    ContactAxis_class_data_.base(),
+    InteractionContactAxis_class_data_.base(),
     nullptr,  // post_loop_handler
     ::_pbi::TcParser::GenericFallback,  // fallback
     #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
-    ::_pbi::TcParser::GetTable<::wood_proto::ContactAxis>(),  // to_prefetch
+    ::_pbi::TcParser::GetTable<::wood_proto::InteractionContactAxis>(),  // to_prefetch
     #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
   }, {{
     {::_pbi::TcParser::MiniParse, {}},
     // .session_proto.Line segment = 1;
     {::_pbi::TcParser::FastMtS1,
      {10, 0, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_)}},
     // double t_a = 2;
     {::_pbi::TcParser::FastF64S1,
      {17, 1, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.t_a_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.t_a_)}},
     // double t_b = 3;
     {::_pbi::TcParser::FastF64S1,
      {25, 2, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.t_b_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.t_b_)}},
     // int32 polyline_a = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ContactAxis, _impl_.polyline_a_), 3>(),
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactAxis, _impl_.polyline_a_), 3>(),
      {32, 3, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.polyline_a_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.polyline_a_)}},
     // int32 segment_a = 5;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ContactAxis, _impl_.segment_a_), 4>(),
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactAxis, _impl_.segment_a_), 4>(),
      {40, 4, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_a_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_a_)}},
     // int32 polyline_b = 6;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ContactAxis, _impl_.polyline_b_), 5>(),
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactAxis, _impl_.polyline_b_), 5>(),
      {48, 5, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.polyline_b_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.polyline_b_)}},
     // int32 segment_b = 7;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(ContactAxis, _impl_.segment_b_), 6>(),
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactAxis, _impl_.segment_b_), 6>(),
      {56, 6, 0,
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_b_)}},
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_b_)}},
   }}, {{
     65535, 65535
   }}, {{
     // .session_proto.Line segment = 1;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     // double t_a = 2;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.t_a_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.t_a_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // double t_b = 3;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.t_b_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.t_b_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     // int32 polyline_a = 4;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.polyline_a_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.polyline_a_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // int32 segment_a = 5;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_a_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_a_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // int32 polyline_b = 6;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.polyline_b_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.polyline_b_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     // int32 segment_b = 7;
-    {PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_b_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    {PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_b_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
   }},
   {{
       {::_pbi::TcParser::GetTable<::session_proto::Line>()},
@@ -324,8 +324,8 @@ ContactAxis::_table_ = {
   {{
   }},
 };
-PROTOBUF_NOINLINE void ContactAxis::Clear() {
-// @@protoc_insertion_point(message_clear_start:wood_proto.ContactAxis)
+PROTOBUF_NOINLINE void InteractionContactAxis::Clear() {
+// @@protoc_insertion_point(message_clear_start:wood_proto.InteractionContactAxis)
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
@@ -346,20 +346,20 @@ PROTOBUF_NOINLINE void ContactAxis::Clear() {
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL ContactAxis::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL InteractionContactAxis::_InternalSerialize(
     const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const ContactAxis& this_ = static_cast<const ContactAxis&>(base);
+  const InteractionContactAxis& this_ = static_cast<const InteractionContactAxis&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL ContactAxis::_InternalSerialize(
+::uint8_t* PROTOBUF_NONNULL InteractionContactAxis::_InternalSerialize(
     ::uint8_t* PROTOBUF_NONNULL target,
     ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const ContactAxis& this_ = *this;
+  const InteractionContactAxis& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     this_.CheckHasBitConsistency();
   }
-  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.InteractionContactAxis)
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
 
@@ -430,18 +430,18 @@ PROTOBUF_NOINLINE void ContactAxis::Clear() {
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
             this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.InteractionContactAxis)
   return target;
 }
 
 #if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t ContactAxis::ByteSizeLong(const MessageLite& base) {
-  const ContactAxis& this_ = static_cast<const ContactAxis&>(base);
+::size_t InteractionContactAxis::ByteSizeLong(const MessageLite& base) {
+  const InteractionContactAxis& this_ = static_cast<const InteractionContactAxis&>(base);
 #else   // PROTOBUF_CUSTOM_VTABLE
-::size_t ContactAxis::ByteSizeLong() const {
-  const ContactAxis& this_ = *this;
+::size_t InteractionContactAxis::ByteSizeLong() const {
+  const InteractionContactAxis& this_ = *this;
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(message_byte_size_start:wood_proto.InteractionContactAxis)
   ::size_t total_size = 0;
 
   ::uint32_t cached_has_bits = 0;
@@ -501,16 +501,16 @@ PROTOBUF_NOINLINE void ContactAxis::Clear() {
                                              &this_._impl_._cached_size_);
 }
 
-void ContactAxis::MergeImpl(::google::protobuf::MessageLite& to_msg,
+void InteractionContactAxis::MergeImpl(::google::protobuf::MessageLite& to_msg,
                             const ::google::protobuf::MessageLite& from_msg) {
    auto* const _this =
-      static_cast<ContactAxis*>(&to_msg);
-  auto& from = static_cast<const ContactAxis&>(from_msg);
+      static_cast<InteractionContactAxis*>(&to_msg);
+  auto& from = static_cast<const InteractionContactAxis&>(from_msg);
   if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
     from.CheckHasBitConsistency();
   }
   ::google::protobuf::Arena* arena = _this->GetArena();
-  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.ContactAxis)
+  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.InteractionContactAxis)
   ABSL_DCHECK_NE(&from, _this);
   ::uint32_t cached_has_bits = 0;
   (void)cached_has_bits;
@@ -561,27 +561,27 @@ void ContactAxis::MergeImpl(::google::protobuf::MessageLite& to_msg,
       from._internal_metadata_);
 }
 
-void ContactAxis::CopyFrom(const ContactAxis& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.ContactAxis)
+void InteractionContactAxis::CopyFrom(const InteractionContactAxis& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.InteractionContactAxis)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 
-void ContactAxis::InternalSwap(ContactAxis* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+void InteractionContactAxis::InternalSwap(InteractionContactAxis* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_b_)
-      + sizeof(ContactAxis::_impl_.segment_b_)
-      - PROTOBUF_FIELD_OFFSET(ContactAxis, _impl_.segment_)>(
+      PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_b_)
+      + sizeof(InteractionContactAxis::_impl_.segment_b_)
+      - PROTOBUF_FIELD_OFFSET(InteractionContactAxis, _impl_.segment_)>(
           reinterpret_cast<char*>(&_impl_.segment_),
           reinterpret_cast<char*>(&other->_impl_.segment_));
 }
 
-::google::protobuf::Metadata ContactAxis::GetMetadata() const {
+::google::protobuf::Metadata InteractionContactAxis::GetMetadata() const {
   return ::google::protobuf::Message::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

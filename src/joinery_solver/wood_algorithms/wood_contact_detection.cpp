@@ -220,7 +220,7 @@ bool face_overlap_area(
     return true;
 }
 
-std::vector<ContactFace> face_contacts_for_pair(
+std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea,
     Element& eb,
     const Settings& settings,
@@ -233,7 +233,7 @@ std::vector<ContactFace> face_contacts_for_pair(
     const std::vector<Polyline> outlines_a = ea.polylines();
     const std::vector<Polyline> outlines_b = eb.polylines();
 
-    std::vector<ContactFace> contacts;
+    std::vector<InteractionContactFace> contacts;
     for (size_t i = 0; i < planes_a.size(); ++i) {
         for (size_t j = 0; j < planes_b.size(); ++j) {
 
@@ -261,14 +261,14 @@ std::vector<ContactFace> face_contacts_for_pair(
     return contacts;
 }
 
-std::vector<std::tuple<int, int, ContactFace>> face_contacts(
+std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
     const std::vector<std::shared_ptr<Element>>& elements,
     const Settings& settings,
     const std::vector<std::string>& names) {
 
-    std::vector<std::tuple<int, int, ContactFace>> contacts;
+    std::vector<std::tuple<int, int, InteractionContactFace>> contacts;
     for (const auto& [ia, ib] : adjacency_search(elements, settings.distance, names))
-        for (ContactFace& face : face_contacts_for_pair(*elements[ia], *elements[ib], settings))
+        for (InteractionContactFace& face : face_contacts_for_pair(*elements[ia], *elements[ib], settings))
             contacts.emplace_back(ia, ib, std::move(face));
 
     return contacts;
@@ -414,7 +414,7 @@ bool plane_to_face(
     const Plane& px0, const Plane& px1,
     const Plane& py0, const Plane& py1,
     double distance_squared,
-    ContactCross& result,
+    InteractionContactCross& result,
     double angle_tol,
     const std::array<double, 3>& extension) {
 
@@ -613,18 +613,18 @@ std::map<uint64_t, Closest> closest_pairs(const std::vector<std::vector<Line>>& 
 }
 }  // namespace
 
-std::vector<std::tuple<int, int, ContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance) {
+std::vector<std::tuple<int, int, InteractionContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance) {
 
     std::vector<std::vector<Line>> lines;
     lines.reserve(beams.size());
     for (const std::shared_ptr<Beam>& beam : beams)
         lines.push_back(beam->axis.get_lines());
 
-    std::vector<std::tuple<int, int, ContactAxis>> contacts;
+    std::vector<std::tuple<int, int, InteractionContactAxis>> contacts;
     for (const auto& [key, c] : closest_pairs(lines, min_distance)) {
         const Line& s0 = lines[c.pid0][c.sid0];
         const Line& s1 = lines[c.pid1][c.sid1];
-        contacts.emplace_back(c.pid0, c.pid1, ContactAxis(Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1)), c.t0, c.t1, 0, c.sid0, 0, c.sid1));
+        contacts.emplace_back(c.pid0, c.pid1, InteractionContactAxis(Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1)), c.t0, c.t1, 0, c.sid0, 0, c.sid1));
     }
 
     return contacts;
