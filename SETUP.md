@@ -50,7 +50,7 @@ There is no `.python-version` here, so the version is chosen explicitly:
 ```bash
 cd wood
 uv venv --python 3.13
-uv pip install numpy rhino3dm session_py
+uv pip install compas compas_tf
 source .venv/bin/activate          # or prefix commands with `uv run`
 ```
 
@@ -58,12 +58,14 @@ That covers every third-party import in the repo's scripts:
 
 | Script | Needs |
 |---|---|
-| `src/templates/temp/pb_to_3dm.py` | `rhino3dm`, `session_py` — converts a `.pb` scene into a Rhino `.3dm` |
+| `data/face_to_face_detection/model_to_pb.py` | `compas`, `compas_tf` - writes a compas model as a session `.pb` |
+| `data/face_to_face_detection/brep_to_pb.py` | `compas`, `compas_tf` - builds plate elements and writes them as a session `.pb` |
+| `tools/xml_to_dataset.py` | standard library only - converts an XML dataset into `data/*.yml` |
 
 Run one with:
 
 ```bash
-uv run python src/templates/temp/pb_to_3dm.py
+uv run python tools/xml_to_dataset.py
 ```
 
 ## Not Python

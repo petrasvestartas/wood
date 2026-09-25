@@ -206,8 +206,8 @@ ADD_EXE(9_beams                  examples/9_beams.cpp)
 ADD_EXE(10_serialization         examples/10_serialization.cpp)
 ADD_EXE(11_viewer                examples/11_viewer.cpp)
 ADD_EXE(12_cross_joints          examples/12_cross_joints.cpp)
-ADD_EXE(main_all_datasets        examples/main_all_datasets.cpp src/joinery_solver/wood_test.cpp)
-ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_solver/wood_test.cpp)
+ADD_EXE(main_all_datasets        examples/main_all_datasets.cpp src/joinery_solver/wood_datasets.cpp)
+ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_solver/wood_datasets.cpp)
 # main_cross_polylines is gone: it was built on session_cpp's ElementFeature /
 # CrossElementFeature subsystem, deleted upstream in 57a9b3f7 as "dead
 # ElementFeature/Joint subsystem (only-self-referential, real joinery bypasses

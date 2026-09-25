@@ -57,7 +57,7 @@ Show the 7-step protocol with a minimal code template:
 4. If joint scales with thickness: `j.unit_scale = true`
 5. Register: `joint_names[N] = "<category>_N"` in `construct_joint_by_index()`
 6. Add dispatch: `case N: <category>_N(j); break;`
-7. Add XML dataset + test in `wood_test.cpp`
+7. Add an XML dataset (`tools/xml_to_dataset.py`) and its runner in `wood_datasets.cpp`
 
 **Minimal code template:**
 ```cpp
