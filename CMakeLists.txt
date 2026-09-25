@@ -166,7 +166,7 @@ target_include_directories(wood_core PUBLIC
     ${SESSION_CPP_DIR}/generated
 )
 
-find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/33.6/bin NO_DEFAULT_PATH)
+find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/36.2/bin NO_DEFAULT_PATH)
 if(WOOD_PROTOC)
     file(GLOB WOOD_PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.proto)
     add_custom_target(wood_regen_proto
