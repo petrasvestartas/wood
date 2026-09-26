@@ -611,6 +611,11 @@ struct Gridshell {
     std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats against the four boards at the node.
     std::vector<std::vector<Plane>> frames; // Stations of every lamella on the surface, x along it, z the normal; the top lamellas first.
     std::vector<std::pair<size_t, size_t>> pairs; // Top and bottom board pair of every stud, positions in top / 2 and bottom / 2.
+    double traced = -1.0; // Of a net on a mesh: largest |n . e| / |e| of the net as traced, negative on a surface.
+    double optimised = -1.0; // Of a net on a mesh: the same after guided projection.
+    double residual = -1.0; // Of a net on a mesh: sum of squares of the A-net constraints after guided projection, on the unit-diameter copy (Schling Table 2).
+    int rounds = 0; // Of a net on a mesh: rounds of guided projection taken, coarse and refined together.
+    size_t vertices = 0; // Of a net on a mesh: vertices of the refined net.
     double lean = 0.0; // Largest lean of a rectifying ruling from the normal over every station of an asymptotic gridshell, in degrees, before regularisation.
     size_t capped = 0; // Stations whose ruling leaned past lamella.ruling, where the regularisation holds it below.
 

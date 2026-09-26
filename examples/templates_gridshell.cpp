@@ -1,6 +1,6 @@
 #include "wood_session.h"
 #include "wood_element_geometry.h"
-#include "src/templates/shells/lamella_gridshell.h"
+#include "src/templates/shells/lamella_gridshell_net.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -8,7 +8,7 @@ using namespace wood_session;
 /// One gridshell of the row: its group name, carrier, path, plan side, lamellas per family and how they are seeded.
 struct Scene {
     std::string name; // Group name prefix.
-    int carrier; // 0 the cubic saddle, 1 the hyperbolic paraboloid, 2 the half catenoid.
+    int carrier; // 0 the cubic saddle, 1 the hyperbolic paraboloid, 2 the half catenoid; meshes: 3 the relaxed saddle disk, 4 the catenoid annulus, 5 the Enneper disk.
     wood_gridshell::Path path; // What the lamellas follow.
     double size; // Plan side of the carrier.
     int count; // Lamellas per family.
@@ -24,13 +24,19 @@ const std::vector<Scene> SCENES = {
     {"paraboloid", 1, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 7, -1.0},
     {"catenoid", 2, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 8, 0.02},
     {"constant", 0, wood_gridshell::Path::normal_curvature(CONSTANT), 8000.0, 7, -1.0},
+    {"saddle_mesh", 3, wood_gridshell::Path::normal_curvature(0.0), 12000.0, 14, -1.0},
+    {"catenoid_mesh", 4, wood_gridshell::Path::normal_curvature(0.0), 12000.0, 12, -1.0},
+    {"enneper_mesh", 5, wood_gridshell::Path::normal_curvature(0.0), 16000.0, 16, -1.0},
 };
+const int SWEEPS = 400; // cotangent Laplacian sweeps that relax the saddle mesh to a minimal one
+const int ROUNDS = 40; // rounds of guided projection before the final six
 const double RISE = 0.15; // corner lift and drop of a saddle over its side
 const double SKEW = 0.5; // how much faster the saddle curves across at one end than at the other, so the asymptotic curves bend in plan
 const double GAP = 4000.0; // clear distance between the shells
 const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 50.0, .sample = 50.0};
 const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
 const double FIT = 0.1; // largest gap, and largest mismatch at the node section, in mm between a stud flat and a board it holds
+const double RESIDUAL = 1e-8; // largest sum of squares of the A-net constraints on the unit net after optimisation, the weakest of Schling's Table 2 (1e-8 to 1e-22)
 const double STRAIGHT = 5e-3; // largest departure in 1/m of a lamella's normal curvature from its path's value, a bending radius of 200 m
 const int SAMPLES = 200; // curvature samples per lamella
 
@@ -143,7 +149,127 @@ NurbsSurface compute_catenoid(double size, double x) {
     return NurbsSurface::create_from_parameters(points, weights, {0.0, 1.0 / 6.0, 2.0 / 6.0, 0.5, 4.0 / 6.0, 5.0 / 6.0, 1.0}, {0.0, 0.5, 1.0}, {4, 1, 1, 1, 1, 1, 4}, {3, 2, 3}, 3, 2);
 }
 
-/// The carrier of a scene.
+/// Triangles over a grid of rows x columns vertices numbered row by row, each quad split on its diagonal, the last column joined to the first when closed; wound up the rows after along the columns.
+std::vector<std::vector<size_t>> compute_grid(int rows, int columns, bool closed) {
+
+    std::vector<std::vector<size_t>> faces;
+    for (int r = 0; r + 1 < rows; r++)
+        for (int c = 0; c + 1 < columns + (closed ? 1 : 0); c++) {
+            const size_t a = r * columns + c;
+            const size_t b = r * columns + (c + 1) % columns;
+            faces.push_back({a, b, b + columns});
+            faces.push_back({a, b + columns, a + columns});
+        }
+
+    return faces;
+}
+
+/// The points relaxed towards a minimal surface with the boundary fixed: every interior vertex moved to the cotangent-weighted mean of its neighbours, sweeps times.
+std::vector<Point> compute_minimal(std::vector<Point> points, const std::vector<std::vector<size_t>>& faces) {
+
+    std::map<std::pair<size_t, size_t>, int> uses;
+    for (const std::vector<size_t>& face : faces)
+        for (int k = 0; k < 3; k++)
+            uses[{std::min(face[k], face[(k + 1) % 3]), std::max(face[k], face[(k + 1) % 3])}]++;
+
+    std::vector<bool> fixed(points.size(), false);
+    for (const std::pair<const std::pair<size_t, size_t>, int>& edge : uses)
+        if (edge.second == 1) {
+            fixed[edge.first.first] = true;
+            fixed[edge.first.second] = true;
+        }
+
+    for (int sweep = 0; sweep < SWEEPS; sweep++) {
+        std::vector<Vector> sums(points.size(), Vector(0.0, 0.0, 0.0));
+        std::vector<double> weights(points.size(), 0.0);
+        for (const std::vector<size_t>& face : faces)
+            for (int k = 0; k < 3; k++) {
+                const size_t i = face[(k + 1) % 3];
+                const size_t j = face[(k + 2) % 3];
+                const Vector a = points[i] - points[face[k]];
+                const Vector b = points[j] - points[face[k]];
+                const double cotangent = a.dot(b) / a.cross(b).magnitude() / 2.0;
+                sums[i] = sums[i] + (points[j] - Point(0.0, 0.0, 0.0)) * cotangent;
+                sums[j] = sums[j] + (points[i] - Point(0.0, 0.0, 0.0)) * cotangent;
+                weights[i] += cotangent;
+                weights[j] += cotangent;
+            }
+
+        for (size_t i = 0; i < points.size(); i++)
+            if (!fixed[i])
+                points[i] = Point(0.0, 0.0, 0.0) + sums[i] / weights[i];
+    }
+
+    return points;
+}
+
+/// A disk: the skew saddle's boundary over a square of side size from x on a 33 x 33 grid, the inside relaxed to a minimal surface from the saddle itself.
+Mesh compute_saddle_mesh(double size, double x) {
+
+    const int n = 33;
+    std::vector<Point> points;
+    for (int r = 0; r < n; r++)
+        for (int c = 0; c < n; c++) {
+            const double across = 2.0 * c / (n - 1) - 1.0;
+            const double along = 2.0 * r / (n - 1) - 1.0;
+            points.emplace_back(x + (across + 1.0) * size / 2.0, along * size / 2.0, compute_height(size, across, along));
+        }
+
+    const std::vector<std::vector<size_t>> faces = compute_grid(n, n, false);
+
+    return Mesh::from_vertices_and_faces(compute_minimal(points, faces), faces);
+}
+
+/// An annulus: the catenoid r = c cosh(z / c) between two rings 1.3 c above and below its waist, 3.9 c tall, the rings size wide, from x.
+Mesh compute_catenoid_mesh(double size, double x) {
+
+    const int rows = 31;
+    const int columns = 72;
+    const double c = size / 2.0 / std::cosh(1.3);
+    std::vector<Point> points;
+    for (int r = 0; r < rows; r++)
+        for (int k = 0; k < columns; k++) {
+            const double w = 2.6 * r / (rows - 1) - 1.3;
+            const double angle = 2.0 * Tolerance::PI * k / columns;
+            points.emplace_back(x + size / 2.0 + c * std::cosh(w) * std::cos(angle), c * std::cosh(w) * std::sin(angle), c * w);
+        }
+
+    return Mesh::from_vertices_and_faces(points, compute_grid(rows, columns, true));
+}
+
+/// A disk: Enneper's surface over the parameter disk of radius 1.2, below its self-intersection, scaled to size wide from x on 24 rings of 72.
+Mesh compute_enneper_mesh(double size, double x) {
+
+    const int rings = 24;
+    const int columns = 72;
+    const double radius = 1.2;
+    const double scale = size / 2.0 / (radius + radius * radius * radius / 3.0);
+    std::vector<Point> points{Point(x + size / 2.0, 0.0, 0.0)};
+    for (int r = 1; r <= rings; r++)
+        for (int k = 0; k < columns; k++) {
+            const double u = radius * r / rings * std::cos(2.0 * Tolerance::PI * k / columns);
+            const double v = radius * r / rings * std::sin(2.0 * Tolerance::PI * k / columns);
+            points.emplace_back(x + size / 2.0 + scale * (u - u * u * u / 3.0 + u * v * v), scale * (v - v * v * v / 3.0 + v * u * u), scale * (u * u - v * v));
+        }
+
+    std::vector<std::vector<size_t>> faces;
+    for (int k = 0; k < columns; k++)
+        faces.push_back({0, static_cast<size_t>(1 + k), static_cast<size_t>(1 + (k + 1) % columns)});
+
+    for (const std::vector<size_t>& face : compute_grid(rings, columns, true)) {
+        const std::vector<size_t> shifted{face[0] + 1, face[2] + 1, face[1] + 1};
+        faces.push_back(shifted);
+    }
+
+    return Mesh::from_vertices_and_faces(points, faces);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Clash
+// ═══════════════════════════════════════════════════════════════════════════
+
+
+/// The carrier of a surface scene.
 NurbsSurface compute_carrier(const Scene& scene, double offset) {
 
     if (scene.carrier == 0)
@@ -155,7 +281,25 @@ NurbsSurface compute_carrier(const Scene& scene, double offset) {
     return compute_catenoid(scene.size, offset);
 }
 
-/// The gridshell of a scene: both families seeded along their seed lines through the middle of the domain, where they are told apart, or both along the parameter line u = edge, told apart at the first seed.
+/// The gridshell of a mesh scene: the catenoid as a rotational net from one traced curve about its vertical axis, the disks from both families seeded along seed lines through the mesh point nearest the middle; the carrier's largest mean curvature share is written into minimal.
+wood_gridshell::Gridshell compute_mesh_gridshell(const Scene& scene, double offset, double& minimal) {
+
+    const Mesh mesh = scene.carrier == 3 ? compute_saddle_mesh(scene.size, offset) : scene.carrier == 4 ? compute_catenoid_mesh(scene.size, offset) : compute_enneper_mesh(scene.size, offset);
+    const wood_gridshell::Carrier carrier(mesh);
+    minimal = carrier.compute_mean_curvature();
+    const Point centre(offset + scene.size / 2.0, 0.0, 0.0);
+    if (scene.carrier == 4) {
+        const Point seed = carrier.compute_point(carrier.compute_foot(Point(offset + scene.size / 2.0 + scene.size / 4.0, 0.0, 0.0)));
+        return wood_gridshell::compute_rotational_gridshell(carrier, seed, centre, Vector(0.0, 0.0, 1.0), scene.count, LAMELLA, ROUNDS);
+    }
+
+    const std::pair<Point, Point> top = wood_gridshell::compute_mesh_seed_line(carrier, centre, true);
+    const std::pair<Point, Point> bottom = wood_gridshell::compute_mesh_seed_line(carrier, centre, false);
+
+    return wood_gridshell::compute_traced_gridshell(carrier, wood_gridshell::compute_mesh_seeds(carrier, top.first, top.second, scene.count), wood_gridshell::compute_mesh_seeds(carrier, bottom.first, bottom.second, scene.count), centre, LAMELLA, ROUNDS);
+}
+
+/// The gridshell of a surface scene: both families seeded along their seed lines through the middle of the domain, where they are told apart, or both along the parameter line u = edge, told apart at the first seed.
 wood_gridshell::Gridshell compute_gridshell(const Scene& scene, double offset) {
 
     const NurbsSurface surface = compute_carrier(scene, offset);
@@ -514,8 +658,11 @@ int main() {
     std::vector<wood_gridshell::Gridshell> gridshells;
     double offset = 0.0;
 
+    std::vector<double> minimals;
     for (const Scene& scene : SCENES) {
-        gridshells.push_back(compute_gridshell(scene, offset));
+        double minimal = -1.0;
+        gridshells.push_back(scene.carrier < 3 ? compute_gridshell(scene, offset) : compute_mesh_gridshell(scene, offset, minimal));
+        minimals.push_back(minimal);
         offset += scene.size + GAP;
 
         const std::shared_ptr<TreeNode> top = wood_session.add_group(scene.name + "_top");
@@ -543,9 +690,18 @@ int main() {
         const std::array<double, 3> fit = compute_fit(gridshells[i]);
         const std::array<double, 4> curvatures = compute_curvatures(gridshells[i]);
         const bool smooth = is_smooth(gridshells[i]);
-        const bool straight = SCENES[i].path.iso || std::max(std::abs(curvatures[0] - SCENES[i].path.value * 1000.0), std::abs(curvatures[1] - SCENES[i].path.value * 1000.0)) <= STRAIGHT;
+        const bool mesh = SCENES[i].carrier >= 3;
+        const bool straight = mesh ? gridshells[i].residual <= RESIDUAL : SCENES[i].path.iso || std::max(std::abs(curvatures[0] - SCENES[i].path.value * 1000.0), std::abs(curvatures[1] - SCENES[i].path.value * 1000.0)) <= STRAIGHT;
         passed = passed && fit[0] <= FIT && fit[2] <= FIT && clash <= CLEARANCE && smooth && straight && !gridshells[i].studs.empty();
-        std::cout << fmt::format("{}: {} {} boards, {} nodes, normal curvature {:.2e} to {:.2e} 1/m, geodesic curvature {:.3f} 1/m, geodesic torsion {:.3f} 1/m, rulings lean up to {:.1f} deg from the normal ({} stations past 45 deg regularised, the normal within 50 mm of a node), twist up to {:.1f} deg/m, unrolled deviation {:.3f} mm, face tilt {:.4f} deg (rails off their corners by {:.2e} mm), {} studs fit their boards within {:.4f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", gridshells[i].nodes.size(), curvatures[0], curvatures[1], curvatures[2], curvatures[3], gridshells[i].lean, gridshells[i].capped, compute_twist(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]).first, compute_tilt(gridshells[i]).second, gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
+        if (mesh)
+            std::cout << fmt::format("{}: mean curvature share {:.4f}, net residual {:.2e} traced, {:.2e} optimised and refined to {} vertices in {} rounds (constraints {:.2e} on the unit net), ", SCENES[i].name, minimals[i], gridshells[i].traced, gridshells[i].optimised, gridshells[i].vertices, gridshells[i].rounds, gridshells[i].residual);
+        else
+            std::cout << SCENES[i].name << ": ";
+
+        if (!mesh)
+            std::cout << fmt::format("normal curvature {:.2e} to {:.2e} 1/m, geodesic curvature {:.3f} 1/m, geodesic torsion {:.3f} 1/m, ", curvatures[0], curvatures[1], curvatures[2], curvatures[3]);
+
+        std::cout << fmt::format("{} {} boards, {} nodes, rulings lean up to {:.1f} deg from the normal ({} stations past 45 deg regularised, the normal within 50 mm of a node), twist up to {:.1f} deg/m, unrolled deviation {:.3f} mm, face tilt {:.4f} deg (rails off their corners by {:.2e} mm), {} studs fit their boards within {:.4f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", gridshells[i].nodes.size(), gridshells[i].lean, gridshells[i].capped, compute_twist(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]).first, compute_tilt(gridshells[i]).second, gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());
@@ -579,7 +735,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The lamella gridshell template three times in a row on NURBS surfaces: a 10 m cubic saddle on its asymptotic curves, a 6 m saddle on its iso-curves and a 10 m patch of Enneper's minimal surface (an exact bicubic Bezier) on its asymptotic curves. Each lamella is a curve on the surface traced as in Bowerbird (Oberbichler): fourth-order Runge-Kutta steps in the parameter plane along the direction of the wanted normal curvature (0 for asymptotic) that lies closest to the last step, both ways from a seed until the domain boundary; the seeds of a family sit evenly along the line through the middle of the domain perpendicular to the family. The traced parameters become a cubic curve in the parameter plane, evaluated on the surface for the points, tangents (parameter derivative mapped by dS/du, dS/dv) and normals; the nodes are the crossings of the two families refined by Newton in the parameter plane. The first family is the top layer a layer up the normal, the second the bottom layer a layer down, each lamella two upright boards with a gap between them, continuous through every node; a hexagonal stud runs along the exact surface normal through both gaps at every crossing, its flats against the four boards. Every board is a BeamCurved swept through exact surface stations every 50 mm plus one at every node: four cubic rails, a ruled face between each two neighbouring rails, a planar cap at each end, one closed BRep. Per scene the example prints Bowerbird's curve-on-surface measures along the lamellas (largest normal curvature, geodesic curvature and geodesic torsion), the twist, the unrolled straightness, the face tilt, the stud fit at the node and the largest overlap: normal curvature is about zero on the asymptotic curves and large on the iso-curves. It fails unless every board is a valid six-face BRep solid, every asymptotic lamella has normal curvature under 1e-3 1/m, every stud fits its four boards within 0.1 mm at the node, no overlap is larger than the tolerance and every board loads back from the file as a BeamCurved.
+The lamella gridshell template eight times in a row. Five NURBS surfaces: a 10 m cubic saddle on its asymptotic curves, a 6 m saddle on its iso-curves, an 8 m hyperbolic paraboloid (straight asymptotic lines), a half catenoid fitted as a rational NURBS with both families seeded along its rim, and the saddle on curves of constant normal curvature 0.02 1/m. Each lamella is a curve on the surface traced as in Bowerbird (Oberbichler): fourth-order Runge-Kutta steps in the parameter plane along the direction of the wanted normal curvature (Euler's formula from the principal curvatures) that lies closest to the last step, both ways from a seed until the domain boundary; the traced parameters become a cubic curve in the parameter plane, evaluated on the surface, and the nodes are the crossings of the two families refined by Newton. Then three minimal meshes as discrete A-nets after Schling, Wang, Hoyer, Pottmann (CAD 2022): a 12 m disk relaxed to a minimal surface, a catenoid annulus as a rotational net from one traced curve turned and mirrored around its axis, and a 16 m Enneper disk; the crossing net of the traced families is optimised by guided projection (planar vertex stars with one unit normal per node, fairness, proximity to the mesh, damping) to a residual of 1e-8 or better, refined once by bilinear subdivision and optimised again. Everywhere a lamella is two upright boards a gap apart, continuous through every node: a BeamCurved swept through exact stations every 50 mm plus one at every node, its section carried along the ruling of the lamella's rectifying developable, tg t + kg n in the Darboux frame (Schling Sec. 2.2), regularised where the geodesic curvature vanishes and held to the straight node axis within a spacer block of every node, so the strip unrolls straight except where the node forces it (Sec. 3.4); one closed BRep with four rails interpolated at the station parameters, ruled faces and planar caps. A hexagonal stud runs along the exact surface normal, on a mesh the shared A-net normal, through both gaps at every crossing, its flats against the four boards along their rulings. Per scene the example prints Bowerbird's curve-on-surface measures (normal curvature range, geodesic curvature and torsion), the ruling lean, the twist, the unrolled straightness, the face tilt and rail error, the stud fit at the node and the twist of the strips against the straight studs, the overlap, and for a mesh the mean curvature share, the net residual traced, optimised and refined and the rounds taken. It fails unless every board is a valid six-face BRep solid, every lamella keeps its path's normal curvature within 5e-3 1/m, every net's constraint residual is at most 1e-8, every stud fits its four boards within 0.1 mm at the node, no overlap is larger than the tolerance and every board loads back from the file as a BeamCurved.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -593,21 +749,26 @@ cmake --build build --target templates_gridshell --parallel 4 && ./build/templat
 |||||||| WORKFLOW ||||||||
 examples/templates_gridshell.cpp
  |
- |-- compute_saddle / compute_enneper                 the carriers, exact bicubic Bezier patches through polynomial surfaces
- |-- compute_seed_line, compute_seeds                 seeds of each family along a line across it through the middle of the domain
+ |-- compute_saddle / compute_paraboloid / compute_catenoid          NURBS carriers: exact bicubic Bezier patches, a rational surface of revolution
+ |-- compute_saddle_mesh / compute_catenoid_mesh / compute_enneper_mesh   minimal meshes
+ |-- compute_seed_line, compute_seeds                                 seeds of each family along a line across it
  |
  |-- Gridshell::from_surface(surface, path, seeds_top, seeds_bottom, lamella)  src/templates/shells/lamella_gridshell.h
- |    |-- compute_curvature: partials, normal, principal curvatures and directions (Bowerbird PrincipalCurvature)
- |    |-- compute_directions: iso-curve or normal-curvature directions in space and in the parameter plane (FindNormalCurvature)
+ |    |-- compute_curvature, compute_directions: principal curvatures, iso or normal-curvature directions (Bowerbird PrincipalCurvature, FindNormalCurvature)
  |    |-- compute_trace: Runge-Kutta 4 through the parameter plane both ways from the seed, clipped at the boundary (Pathfinder)
- |    |-- compute_curve: the cubic through the traced parameters, a curve on the surface (CurveOnSurface)
- |    |-- compute_crossings: crossings of the traces in the parameter plane, Newton onto the curves
- |    |-- compute_frame: exact surface point, tangent and normal at a station
- |    |-- compute_board: two BeamCurved per lamella through its stations, the rectangle section, the normal as up
- |    |    '-- BeamCurved::element_geometry_brep: the section swept to four rails, ruled faces between them, two planar caps, one closed solid
+ |    |-- compute_curve, compute_crossings: the cubic through the traced parameters, Newton onto the curves at the crossings
+ |    |-- compute_darboux, compute_ruling: Darboux frame and invariants, the rectifying ruling regularised and blended to the node axis
+ |    |-- compute_board: two BeamCurved per lamella through its stations along the rulings
  |    '-- compute_stud: a Column per node on the surface normal, a hexagon of three flat pairs gap apart
  |
- |-- compute_metrics                           normal curvature, geodesic curvature, geodesic torsion of a curve on the surface (CurveOnSurface)
+ |-- compute_traced_gridshell / compute_rotational_gridshell         src/templates/shells/lamella_gridshell_net.h
+ |    |-- Carrier: vertex normals and shape operators, closest point, asymptotic directions of a mesh
+ |    |-- compute_mesh_trace, compute_rotational: curves on the mesh, a rotational net from one curve
+ |    |-- compute_net: the crossing net, one vertex and normal per crossing
+ |    |-- compute_optimised: guided projection (Schling Eq. 14) by Gauss-Newton and conjugate gradients
+ |    |-- compute_refined: bilinear subdivision, optimised again
+ |    '-- compute_net_gridshell: boards through the refined lamella lines, studs on the shared normals
+ |
  |-- WoodSession, add_group(<scene>_top, _bottom, _studs), add(element, group)
  |-- compute_contacts()                        face contacts, a stud against each of its four boards
  |-- compute_geometry_brep()                   every board and stud written as its BRep
