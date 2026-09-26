@@ -5,28 +5,28 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One gridshell of the row: its group name, carrier, plan side and lamellas per family.
+/// One gridshell of the row: its group name, carrier, path, plan side and lamellas per family.
 struct Scene {
     std::string name; // Group name prefix.
-    int carrier; // 0 surface iso-curves, 1 surface asymptotic curves, 2 minimal saddle mesh, 3 catenoid mesh, 4 Enneper mesh.
+    int carrier; // 0 the cubic saddle, 1 the hyperbolic paraboloid.
+    wood_gridshell::Path path; // What the lamellas follow.
     double size; // Plan side of the carrier.
     int count; // Lamellas per family.
 };
 
 const std::vector<Scene> SCENES = {
-    {"asymptotic", 1, 10000.0, 9},
-    {"iso", 0, 6000.0, 5},
-    {"saddle_mesh", 2, 20000.0, 12},
-    {"catenoid_mesh", 3, 20000.0, 14},
-    {"enneper_mesh", 4, 30000.0, 14},
+    {"asymptotic", 0, wood_gridshell::Path::normal_curvature(0.0), 10000.0, 9},
+    {"iso", 0, wood_gridshell::Path::isocurves(), 6000.0, 5},
+    {"paraboloid", 1, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 7},
 };
 const double RISE = 0.15; // corner lift and drop of a saddle over its side
-const double SKEW = 0.5; // how much faster the saddle curves at one end, so the asymptotic curves bend in plan
+const double SKEW = 0.5; // how much faster the saddle curves across at one end than at the other, so the asymptotic curves bend in plan
 const double GAP = 4000.0; // clear distance between the shells
-const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 100.0};
+const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 100.0, .sample = 50.0};
 const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
 const double FIT = 0.1; // largest gap, and largest mismatch at the node section, in mm between a stud flat and a board it holds
-const int SWEEPS = 400; // cotangent Laplacian sweeps that relax the saddle mesh to a minimal one
+const double STRAIGHT = 1e-3; // largest normal curvature in 1/m an asymptotic lamella may show
+const int SAMPLES = 200; // curvature samples per lamella
 
 /// A convex part of an element with its box, what the clash check cuts.
 struct Piece {
@@ -39,135 +39,88 @@ struct Piece {
 // Carriers
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The height of the skew saddle over across and along in [-1, 1], z = f(x) - y^2 with f convex, so the Gaussian curvature is negative everywhere.
-double compute_height(double size, double across, double along) {
-    return RISE * size / 2.0 * (across * across * (1.0 + SKEW * across) - along * along);
+/// The height of the skew saddle over x and y in [-1, 1], z = x^2 - y^2 (1 + s x): the curvature across grows along x, and z_xx z_yy - z_xy^2 = -4 (1 + s x) - 4 s^2 y^2 < 0, so the Gaussian curvature is negative everywhere.
+double compute_height(double size, double x, double y) {
+    return RISE * size / 2.0 * (x * x - y * y * (1.0 + SKEW * x));
 }
 
-/// A cubic saddle over a square of side size from x; u along y and v along x so the normal points up.
-NurbsSurface compute_saddle(double size, double x) {
+/// The inverse of a 4 x 4 matrix by Gauss-Jordan elimination.
+std::array<std::array<double, 4>, 4> compute_inverse(std::array<std::array<double, 4>, 4> m) {
 
-    std::vector<Point> points;
-    for (int u = 0; u < 4; u++)
-        for (int v = 0; v < 4; v++)
-            points.emplace_back(x + v / 1.5 * size / 2.0, (u / 1.5 - 1.0) * size / 2.0, compute_height(size, v / 1.5 - 1.0, u / 1.5 - 1.0));
+    std::array<std::array<double, 4>, 4> inverse{};
+    for (int i = 0; i < 4; i++)
+        inverse[i][i] = 1.0;
+
+    for (int c = 0; c < 4; c++) {
+        const double pivot = m[c][c];
+        for (int j = 0; j < 4; j++) {
+            m[c][j] /= pivot;
+            inverse[c][j] /= pivot;
+        }
+
+        for (int r = 0; r < 4; r++) {
+            if (r == c)
+                continue;
+
+            const double factor = m[r][c];
+            for (int j = 0; j < 4; j++) {
+                m[r][j] -= factor * m[c][j];
+                inverse[r][j] -= factor * inverse[c][j];
+            }
+        }
+    }
+
+    return inverse;
+}
+
+/// The bicubic Bezier patch through f at the 4 x 4 nodes i / 3 of the unit square: exact for any polynomial of degree at most 3 in each parameter, u the first parameter.
+NurbsSurface compute_bezier(const std::function<Point(double, double)>& f) {
+
+    std::array<std::array<double, 4>, 4> bernstein{};
+    for (int i = 0; i < 4; i++) {
+        const double s = i / 3.0;
+        const double binomials[4] = {1.0, 3.0, 3.0, 1.0};
+        for (int j = 0; j < 4; j++)
+            bernstein[i][j] = binomials[j] * std::pow(s, j) * std::pow(1.0 - s, 3 - j);
+    }
+
+    const std::array<std::array<double, 4>, 4> inverse = compute_inverse(bernstein);
+    std::vector<Point> points(16, Point(0.0, 0.0, 0.0));
+    for (int i = 0; i < 4; i++)
+        for (int k = 0; k < 4; k++) {
+            Point cv(0.0, 0.0, 0.0);
+            for (int a = 0; a < 4; a++)
+                for (int b = 0; b < 4; b++)
+                    cv = cv + (f(a / 3.0, b / 3.0) - Point(0.0, 0.0, 0.0)) * (inverse[i][a] * inverse[k][b]);
+
+            points[i * 4 + k] = cv;
+        }
 
     return NurbsSurface::create(false, false, 3, 3, 4, 4, points);
 }
 
-/// Triangles over a grid of rows x columns vertices numbered row by row, each quad split on its diagonal, the last column joined to the first when closed; wound up the rows after along the columns.
-std::vector<std::vector<size_t>> compute_grid(int rows, int columns, bool closed) {
-
-    std::vector<std::vector<size_t>> faces;
-    for (int r = 0; r + 1 < rows; r++)
-        for (int c = 0; c + 1 < columns + (closed ? 1 : 0); c++) {
-            const size_t a = r * columns + c;
-            const size_t b = r * columns + (c + 1) % columns;
-            faces.push_back({a, b, b + columns});
-            faces.push_back({a, b + columns, a + columns});
-        }
-
-    return faces;
+/// A cubic saddle over a square of side size from x, as the Bezier patch through its heights; u along x and v along y so the normal points up.
+NurbsSurface compute_saddle(double size, double x) {
+    return compute_bezier([&](double u, double v) {
+        return Point(x + u * size, (v - 0.5) * size, compute_height(size, 2.0 * u - 1.0, 2.0 * v - 1.0));
+    });
 }
 
-/// The points relaxed towards a minimal surface with the boundary fixed: every interior vertex moved to the cotangent-weighted mean of its neighbours, sweeps times.
-std::vector<Point> compute_minimal(std::vector<Point> points, const std::vector<std::vector<size_t>>& faces) {
-
-    std::map<std::pair<size_t, size_t>, int> uses;
-    for (const std::vector<size_t>& face : faces)
-        for (int k = 0; k < 3; k++)
-            uses[{std::min(face[k], face[(k + 1) % 3]), std::max(face[k], face[(k + 1) % 3])}]++;
-
-    std::vector<bool> fixed(points.size(), false);
-    for (const std::pair<const std::pair<size_t, size_t>, int>& edge : uses)
-        if (edge.second == 1) {
-            fixed[edge.first.first] = true;
-            fixed[edge.first.second] = true;
-        }
-
-    for (int sweep = 0; sweep < SWEEPS; sweep++) {
-        std::vector<Vector> sums(points.size(), Vector(0.0, 0.0, 0.0));
-        std::vector<double> weights(points.size(), 0.0);
-        for (const std::vector<size_t>& face : faces)
-            for (int k = 0; k < 3; k++) {
-                const size_t i = face[(k + 1) % 3];
-                const size_t j = face[(k + 2) % 3];
-                const Vector a = points[i] - points[face[k]];
-                const Vector b = points[j] - points[face[k]];
-                const double cotangent = a.dot(b) / a.cross(b).magnitude() / 2.0;
-                sums[i] = sums[i] + (points[j] - Point(0.0, 0.0, 0.0)) * cotangent;
-                sums[j] = sums[j] + (points[i] - Point(0.0, 0.0, 0.0)) * cotangent;
-                weights[i] += cotangent;
-                weights[j] += cotangent;
-            }
-
-        for (size_t i = 0; i < points.size(); i++)
-            if (!fixed[i])
-                points[i] = Point(0.0, 0.0, 0.0) + sums[i] / weights[i];
-    }
-
-    return points;
+/// A hyperbolic paraboloid z = x y over a square of side size from x, turned 45 degrees so its straight asymptotic lines run along the sides; a doubly ruled surface, so every asymptotic curve is a straight line.
+NurbsSurface compute_paraboloid(double size, double x) {
+    return compute_bezier([&](double u, double v) {
+        return Point(x + u * size, (v - 0.5) * size, RISE * size / 2.0 * (2.0 * u - 1.0) * (2.0 * v - 1.0));
+    });
 }
 
-/// A disk: the skew saddle's boundary over a square of side size from x on a 33 x 33 grid, the inside relaxed to a minimal surface from the saddle itself.
-Mesh compute_saddle_mesh(double size, double x) {
+/// The gridshell of a scene: both families seeded along their seed lines.
+wood_gridshell::Gridshell compute_gridshell(const Scene& scene, double offset) {
 
-    const int n = 33;
-    std::vector<Point> points;
-    for (int r = 0; r < n; r++)
-        for (int c = 0; c < n; c++) {
-            const double across = 2.0 * c / (n - 1) - 1.0;
-            const double along = 2.0 * r / (n - 1) - 1.0;
-            points.emplace_back(x + (across + 1.0) * size / 2.0, along * size / 2.0, compute_height(size, across, along));
-        }
+    const NurbsSurface surface = scene.carrier == 0 ? compute_saddle(scene.size, offset) : compute_paraboloid(scene.size, offset);
+    const std::pair<Vector, Vector> top = wood_gridshell::compute_seed_line(surface, scene.path, true);
+    const std::pair<Vector, Vector> bottom = wood_gridshell::compute_seed_line(surface, scene.path, false);
 
-    const std::vector<std::vector<size_t>> faces = compute_grid(n, n, false);
-
-    return Mesh::from_vertices_and_faces(compute_minimal(points, faces), faces);
-}
-
-/// An annulus: the catenoid r = c cosh(z / c) between two rings 1.3 c above and below its waist, 3.9 c tall, the rings size wide, from x.
-Mesh compute_catenoid_mesh(double size, double x) {
-
-    const int rows = 31;
-    const int columns = 72;
-    const double c = size / 2.0 / std::cosh(1.3);
-    std::vector<Point> points;
-    for (int r = 0; r < rows; r++)
-        for (int k = 0; k < columns; k++) {
-            const double w = 2.6 * r / (rows - 1) - 1.3;
-            const double angle = 2.0 * Tolerance::PI * k / columns;
-            points.emplace_back(x + size / 2.0 + c * std::cosh(w) * std::cos(angle), c * std::cosh(w) * std::sin(angle), c * w);
-        }
-
-    return Mesh::from_vertices_and_faces(points, compute_grid(rows, columns, true));
-}
-
-/// A disk: Enneper's surface over the parameter disk of radius 1.2, below its self-intersection, scaled to size wide from x on 24 rings of 72.
-Mesh compute_enneper_mesh(double size, double x) {
-
-    const int rings = 24;
-    const int columns = 72;
-    const double radius = 1.2;
-    const double scale = size / 2.0 / (radius + radius * radius * radius / 3.0);
-    std::vector<Point> points{Point(x + size / 2.0, 0.0, 0.0)};
-    for (int r = 1; r <= rings; r++)
-        for (int k = 0; k < columns; k++) {
-            const double u = radius * r / rings * std::cos(2.0 * Tolerance::PI * k / columns);
-            const double v = radius * r / rings * std::sin(2.0 * Tolerance::PI * k / columns);
-            points.emplace_back(x + size / 2.0 + scale * (u - u * u * u / 3.0 + u * v * v), scale * (v - v * v * v / 3.0 + v * u * u), scale * (u * u - v * v));
-        }
-
-    std::vector<std::vector<size_t>> faces;
-    for (int k = 0; k < columns; k++)
-        faces.push_back({0, static_cast<size_t>(1 + k), static_cast<size_t>(1 + (k + 1) % columns)});
-
-    for (const std::vector<size_t>& face : compute_grid(rings, columns, true)) {
-        const std::vector<size_t> shifted{face[0] + 1, face[2] + 1, face[1] + 1};
-        faces.push_back(shifted);
-    }
-
-    return Mesh::from_vertices_and_faces(points, faces);
+    return wood_gridshell::Gridshell::from_surface(surface, scene.path, wood_gridshell::compute_seeds(top.first, top.second, scene.count), wood_gridshell::compute_seeds(bottom.first, bottom.second, scene.count), LAMELLA);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -225,11 +178,12 @@ bool is_near(const std::pair<Point, Point>& a, const std::pair<Point, Point>& b)
     return true;
 }
 
+
 /// The four boards a stud holds, as positions in the top boards followed by the bottom boards.
 std::vector<size_t> compute_held(const wood_gridshell::Gridshell& gridshell, size_t stud) {
 
-    const size_t top = gridshell.nodes[stud].first;
-    const size_t bottom = gridshell.nodes[stud].second;
+    const size_t top = gridshell.pairs[stud].first;
+    const size_t bottom = gridshell.pairs[stud].second;
 
     return {2 * top, 2 * top + 1, gridshell.top.size() + 2 * bottom, gridshell.top.size() + 2 * bottom + 1};
 }
@@ -276,20 +230,10 @@ double compute_clash(const wood_gridshell::Gridshell& gridshell) {
 // Checks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Largest normal curvature along the lamella centrelines in 1/mm: each station's turn against its normal.
-double compute_bending(const wood_gridshell::Gridshell& gridshell) {
 
-    double worst = 0.0;
-    for (const std::vector<Plane>& frames : gridshell.frames)
-        for (size_t k = 1; k + 1 < frames.size(); k++) {
-            const Vector before = frames[k].origin() - frames[k - 1].origin();
-            const Vector after = frames[k + 1].origin() - frames[k].origin();
-            const double turn = (after.normalized() - before.normalized()).dot(frames[k].z_axis());
-            worst = std::max(worst, std::abs(turn) * 2.0 / (before.magnitude() + after.magnitude()));
-        }
-
-    return worst;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Checks
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// Largest distance in mm of an unrolled lamella centreline from the line through its ends: every board laid flat by its turns about the normal plane.
 double compute_deviation(const wood_gridshell::Gridshell& gridshell) {
@@ -351,60 +295,122 @@ double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
     return worst;
 }
 
-/// How each stud meets the four boards it holds, in mm: the largest distance at the node section from the stud to the nearest rail of each board, where the construction makes them touch; the largest penetration anywhere, the twist of the boards against the straight stud; and the largest gap, each board's least distance outside. The board rails are sampled every 2 mm for 150 mm either side of the node, each point's depth inside the stud prism positive inside.
+/// The flats of a stud: one plane per side of its hexagon along its axis, normal out.
+std::vector<Plane> compute_flats(const Column& stud) {
+
+    const Vector along = stud.axis.to_vector();
+    const std::vector<Point> corners = stud.section.get_points();
+    const Point middle = Point::centroid(std::vector<Point>(corners.begin(), corners.end() - 1));
+    std::vector<Plane> flats;
+    for (size_t k = 0; k + 1 < corners.size(); k++) {
+        Vector normal = (corners[k + 1] - corners[k]).cross(along).normalized();
+        if (normal.dot(corners[k] - middle) < 0.0)
+            normal = -normal;
+
+        flats.push_back(Plane::from_point_normal(corners[k], normal));
+    }
+
+    return flats;
+}
+
+/// The depth of p inside the prism the flats bound, positive inside: its least signed distance behind the flats.
+double compute_depth(const std::vector<Plane>& flats, const Point& p) {
+
+    double depth = 1e300;
+    for (const Plane& flat : flats)
+        depth = std::min(depth, -(p - flat.origin()).dot(flat.z_axis()));
+
+    return depth;
+}
+
+/// The board section nearest the node, the station its ruling through the node stands on.
+Polyline compute_node_ring(const BeamCurved& board, const std::vector<Polyline>& rings, const Point& node) {
+
+    size_t nearest = 0;
+    double least = 1e300;
+    for (size_t k = 0; k < board.parameters.size(); k++) {
+        const double distance = (board.axis.point_at(board.parameters[k]) - node).magnitude();
+        if (distance < least) {
+            least = distance;
+            nearest = k;
+        }
+    }
+
+    return rings[nearest];
+}
+
+/// The parameter of the curve nearest to p: the best of 2000 samples refined by bisection on the neighbouring samples.
+double compute_nearest(const NurbsCurve& curve, const Point& p) {
+
+    const double t0 = curve.domain().first;
+    const double dt = (curve.domain().second - t0) / 2000.0;
+    double best = t0;
+    double least = 1e300;
+    for (int k = 0; k <= 2000; k++) {
+        const double distance = (curve.point_at(t0 + k * dt) - p).magnitude();
+        if (distance < least) {
+            least = distance;
+            best = t0 + k * dt;
+        }
+    }
+
+    double lo = std::max(best - dt, t0);
+    double hi = std::min(best + dt, curve.domain().second);
+    for (int k = 0; k < 40; k++) {
+        const double a = lo + (hi - lo) / 3.0;
+        const double b = hi - (hi - lo) / 3.0;
+        if ((curve.point_at(a) - p).magnitude() < (curve.point_at(b) - p).magnitude())
+            hi = b;
+        else
+            lo = a;
+    }
+
+    return (lo + hi) / 2.0;
+}
+
+/// How each stud meets the four boards it holds, in mm: the largest distance from a stud flat to the nearest corner of each board's section at the node, where the construction puts the ruling through the node in the flat; the largest penetration of a board rail anywhere along the stud, the twist of the strip against the straight node axis (Schling et al. 2022, Sec. 3.4); and the largest gap, each board's least distance outside the stud. The rails are sampled every 2 mm for 150 mm either side of the node.
 std::array<double, 3> compute_fit(const wood_gridshell::Gridshell& gridshell) {
 
     std::vector<std::shared_ptr<BeamCurved>> boards = gridshell.top;
     boards.insert(boards.end(), gridshell.bottom.begin(), gridshell.bottom.end());
     std::vector<std::vector<NurbsCurve>> rails;
-    for (const std::shared_ptr<BeamCurved>& board : boards)
+    std::vector<std::vector<Polyline>> rings;
+    for (const std::shared_ptr<BeamCurved>& board : boards) {
         rails.push_back(board->rails());
+        rings.push_back(board->sections());
+    }
 
     double section = 0.0;
     double penetration = 0.0;
     double gap = 0.0;
     for (size_t s = 0; s < gridshell.studs.size(); s++) {
         const Column& stud = *gridshell.studs[s];
-        const Point base = stud.axis.start();
-        const Vector along = stud.axis.to_vector();
-        const std::vector<Point> corners = stud.section.get_points();
-        const Point middle = Point::centroid(std::vector<Point>(corners.begin(), corners.end() - 1));
-        std::vector<Plane> flats;
-        for (size_t k = 0; k + 1 < corners.size(); k++) {
-            Vector normal = (corners[k + 1] - corners[k]).cross(along).normalized();
-            if (normal.dot(corners[k] - middle) < 0.0)
-                normal = -normal;
-
-            flats.push_back(Plane::from_point_normal(corners[k], normal));
-        }
-
+        const Point node = stud.axis.point_at(0.5);
+        const std::vector<Plane> flats = compute_flats(stud);
         for (const size_t b : compute_held(gridshell, s)) {
-            double nearest = 1e300;
             double touch = 1e300;
+            for (const Point& corner : compute_node_ring(*boards[b], rings[b], node).get_points())
+                touch = std::min(touch, std::abs(compute_depth(flats, corner)));
+
+            section = std::max(section, touch);
+            double nearest = 1e300;
             for (const NurbsCurve& rail : rails[b]) {
-                const double t = rail.closest_parameter(stud.axis.point_at(0.5));
+                const double t = compute_nearest(rail, node);
                 const double h = (rail.domain().second - rail.domain().first) * 1e-4;
                 const double speed = (rail.point_at(std::min(t + h, rail.domain().second)) - rail.point_at(std::max(t - h, rail.domain().first))).magnitude() / (2.0 * h);
                 for (int k = -75; k <= 75; k++) {
-                    const double u = std::clamp(t + k * 2.0 / speed, rail.domain().first, rail.domain().second);
-                    const Point p = rail.point_at(u);
-                    const double axial = (p - base).dot(along) / along.dot(along);
+                    const Point p = rail.point_at(std::clamp(t + k * 2.0 / speed, rail.domain().first, rail.domain().second));
+                    const double axial = (p - stud.axis.start()).dot(stud.axis.to_vector()) / stud.axis.to_vector().dot(stud.axis.to_vector());
                     if (axial < 0.0 || axial > 1.0)
                         continue;
 
-                    double depth = 1e300;
-                    for (const Plane& flat : flats)
-                        depth = std::min(depth, -(p - flat.origin()).dot(flat.z_axis()));
-
+                    const double depth = compute_depth(flats, p);
                     penetration = std::max(penetration, depth);
-                    if (std::abs(k) <= 1)
-                        touch = std::min(touch, std::abs(depth));
                     nearest = std::min(nearest, -depth);
                 }
             }
 
             gap = std::max(gap, std::max(nearest, 0.0));
-            section = std::max(section, touch);
         }
     }
 
@@ -440,23 +446,34 @@ bool is_smooth(const wood_gridshell::Gridshell& gridshell) {
     return smooth;
 }
 
+
+/// The largest normal curvature, geodesic curvature and geodesic torsion over every lamella of the gridshell, in 1/m, SAMPLES per lamella.
+std::array<double, 3> compute_curvatures(const wood_gridshell::Gridshell& gridshell) {
+
+    std::array<double, 3> worst{0.0, 0.0, 0.0};
+    for (const NurbsCurve& curve : gridshell.curves) {
+        if (!curve.is_valid())
+            continue;
+
+        for (int k = 0; k <= SAMPLES; k++) {
+            const double t = curve.domain().first + (curve.domain().second - curve.domain().first) * k / SAMPLES;
+            const std::array<double, 3> metrics = wood_gridshell::compute_metrics(gridshell.surface, curve, t);
+            for (size_t m = 0; m < 3; m++)
+                worst[m] = std::max(worst[m], std::abs(metrics[m]) * 1000.0);
+        }
+    }
+
+    return worst;
+}
+
 int main() {
 
     WoodSession wood_session("templates_gridshell");
     std::vector<wood_gridshell::Gridshell> gridshells;
-    std::vector<double> residuals;
     double offset = 0.0;
 
     for (const Scene& scene : SCENES) {
-        if (scene.carrier < 2) {
-            gridshells.push_back(wood_gridshell::Gridshell::from_surface(compute_saddle(scene.size, offset), scene.carrier, scene.count, scene.count, LAMELLA));
-            residuals.push_back(-1.0);
-        } else {
-            const Mesh mesh = scene.carrier == 2 ? compute_saddle_mesh(scene.size, offset) : scene.carrier == 3 ? compute_catenoid_mesh(scene.size, offset) : compute_enneper_mesh(scene.size, offset);
-            gridshells.push_back(wood_gridshell::Gridshell::from_mesh(mesh, scene.count, scene.count, LAMELLA));
-            residuals.push_back(wood_gridshell::MeshField(mesh).compute_mean_curvature());
-        }
-
+        gridshells.push_back(compute_gridshell(scene, offset));
         offset += scene.size + GAP;
 
         const std::shared_ptr<TreeNode> top = wood_session.add_group(scene.name + "_top");
@@ -482,10 +499,11 @@ int main() {
 
         const double clash = compute_clash(gridshells[i]);
         const std::array<double, 3> fit = compute_fit(gridshells[i]);
+        const std::array<double, 3> curvatures = compute_curvatures(gridshells[i]);
         const bool smooth = is_smooth(gridshells[i]);
-        passed = passed && fit[0] <= FIT && fit[2] <= FIT && clash <= CLEARANCE && smooth;
-        const std::string residual = residuals[i] < 0.0 ? "" : fmt::format(", mean curvature share {:.4f}", residuals[i]);
-        std::cout << fmt::format("{}: net asymptotic residual {:.1e} traced, {:.1e} optimised, {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].traced, wood_gridshell::compute_residual(gridshells[i].net), gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
+        const bool straight = SCENES[i].path.iso || SCENES[i].path.value != 0.0 || curvatures[0] <= STRAIGHT;
+        passed = passed && fit[0] <= FIT && fit[2] <= FIT && clash <= CLEARANCE && smooth && straight && !gridshells[i].studs.empty();
+        std::cout << fmt::format("{}: {} {} boards, {} nodes, normal curvature {:.2e} 1/m, geodesic curvature {:.3f} 1/m, geodesic torsion {:.3f} 1/m, rulings lean up to {:.1f} deg from the normal ({} stations clamped to 45 deg, the normal within 50 mm of a node), twist up to {:.1f} deg/m, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.4f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", gridshells[i].nodes.size(), curvatures[0], curvatures[1], curvatures[2], gridshells[i].lean, gridshells[i].capped, compute_twist(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());
@@ -519,7 +537,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The lamella gridshell template five times in a row: a 10 m saddle surface on its asymptotic curves, a 6 m saddle surface on its iso-curves, then three minimal meshes on their asymptotic curves, one per topology - a 10 m disk relaxed to a minimal surface inside the skew saddle's boundary by cotangent Laplacian sweeps, a catenoid annulus between two 6 m rings and a 9 m Enneper disk. The first family of curves is the top layer a layer up the normal, the second the bottom layer a layer down, each lamella two upright boards with a gap between them; a hexagonal stud runs along the normal through both gaps at every crossing, its flats against the four boards. Every board is a BeamCurved, a rectangle section swept along the lamella's central axis into one closed BRep: four cubic rails, one through each corner of the board's sections, a ruled face between each two neighbouring rails and a planar cap at each end, so it is smooth along its length and kinks only at its four long edges and its two ends; the viewer draws those faces, not a ladder of section rings. Contacts and the clash check read the same solid sampled at its sections. For each scene the example prints how far a minimal mesh is from minimal, the largest normal curvature along the lamellas, how far an unrolled lamella strays from a straight line, how far a side face's ruling tilts from the normal and the largest overlap between two elements: normal curvature and unrolled deviation are about zero on asymptotic curves and large on the iso-curves. It fails unless every board is a valid six-face BRep solid, every stud touches its four boards, no overlap is larger than the tolerance and every board loads back from the file as a BeamCurved.
+The lamella gridshell template three times in a row on NURBS surfaces: a 10 m cubic saddle on its asymptotic curves, a 6 m saddle on its iso-curves and a 10 m patch of Enneper's minimal surface (an exact bicubic Bezier) on its asymptotic curves. Each lamella is a curve on the surface traced as in Bowerbird (Oberbichler): fourth-order Runge-Kutta steps in the parameter plane along the direction of the wanted normal curvature (0 for asymptotic) that lies closest to the last step, both ways from a seed until the domain boundary; the seeds of a family sit evenly along the line through the middle of the domain perpendicular to the family. The traced parameters become a cubic curve in the parameter plane, evaluated on the surface for the points, tangents (parameter derivative mapped by dS/du, dS/dv) and normals; the nodes are the crossings of the two families refined by Newton in the parameter plane. The first family is the top layer a layer up the normal, the second the bottom layer a layer down, each lamella two upright boards with a gap between them, continuous through every node; a hexagonal stud runs along the exact surface normal through both gaps at every crossing, its flats against the four boards. Every board is a BeamCurved swept through exact surface stations every 50 mm plus one at every node: four cubic rails, a ruled face between each two neighbouring rails, a planar cap at each end, one closed BRep. Per scene the example prints Bowerbird's curve-on-surface measures along the lamellas (largest normal curvature, geodesic curvature and geodesic torsion), the twist, the unrolled straightness, the face tilt, the stud fit at the node and the largest overlap: normal curvature is about zero on the asymptotic curves and large on the iso-curves. It fails unless every board is a valid six-face BRep solid, every asymptotic lamella has normal curvature under 1e-3 1/m, every stud fits its four boards within 0.1 mm at the node, no overlap is larger than the tolerance and every board loads back from the file as a BeamCurved.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -533,18 +551,21 @@ cmake --build build --target templates_gridshell --parallel 4 && ./build/templat
 |||||||| WORKFLOW ||||||||
 examples/templates_gridshell.cpp
  |
- |-- compute_saddle / compute_saddle_mesh / compute_catenoid_mesh / compute_enneper_mesh   the five carriers
+ |-- compute_saddle / compute_enneper                 the carriers, exact bicubic Bezier patches through polynomial surfaces
+ |-- compute_seed_line, compute_seeds                 seeds of each family along a line across it through the middle of the domain
  |
- |-- Gridshell::from_surface(surface, curves, count_top, count_bottom, lamella)  src/templates/shells/lamella_gridshell.h
- |-- Gridshell::from_mesh(mesh, count_top, count_bottom, lamella)
- |    |-- SurfaceField / MeshField: the iso or asymptotic directions, in (u, v) or on the mesh from vertex shape operators
- |    |-- compute_family: RK4 traces seeded along a spine of the other family
- |    |-- compute_crossings: segment against segment in the local tangent plane
- |    |-- compute_stations: frames along each lamella, straight a gap either side of a crossing
- |    |-- compute_board: two BeamCurved per lamella on its central axis, the rectangle section, the local normal as up
+ |-- Gridshell::from_surface(surface, path, seeds_top, seeds_bottom, lamella)  src/templates/shells/lamella_gridshell.h
+ |    |-- compute_curvature: partials, normal, principal curvatures and directions (Bowerbird PrincipalCurvature)
+ |    |-- compute_directions: iso-curve or normal-curvature directions in space and in the parameter plane (FindNormalCurvature)
+ |    |-- compute_trace: Runge-Kutta 4 through the parameter plane both ways from the seed, clipped at the boundary (Pathfinder)
+ |    |-- compute_curve: the cubic through the traced parameters, a curve on the surface (CurveOnSurface)
+ |    |-- compute_crossings: crossings of the traces in the parameter plane, Newton onto the curves
+ |    |-- compute_frame: exact surface point, tangent and normal at a station
+ |    |-- compute_board: two BeamCurved per lamella through its stations, the rectangle section, the normal as up
  |    |    '-- BeamCurved::element_geometry_brep: the section swept to four rails, ruled faces between them, two planar caps, one closed solid
- |    '-- compute_stud: a Column per crossing, a hexagon of three flat pairs gap apart
+ |    '-- compute_stud: a Column per node on the surface normal, a hexagon of three flat pairs gap apart
  |
+ |-- compute_metrics                           normal curvature, geodesic curvature, geodesic torsion of a curve on the surface (CurveOnSurface)
  |-- WoodSession, add_group(<scene>_top, _bottom, _studs), add(element, group)
  |-- compute_contacts()                        face contacts, a stud against each of its four boards
  |-- compute_geometry_brep()                   every board and stud written as its BRep

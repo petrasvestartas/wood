@@ -10,7 +10,7 @@ public:
     static constexpr std::string_view ELEMENT_TYPE = "BeamCurved"; // The element_type this beam is written under.
     session_cpp::NurbsCurve axis; // Central axis, a cubic interpolated through the stations, in world space.
     std::vector<double> parameters; // Axis parameter of every station.
-    std::vector<session_cpp::Vector> directions; // Section up direction at every station.
+    std::vector<session_cpp::Vector> directions; // The section's y direction at every station, the ruling of the strip: a component along the axis shears the section, the length scales it, so a unit normal to the axis gives the plain sweep.
     session_cpp::Polyline section; // Closed cross-section in the station frame: x across the axis, y up.
 
 private:
@@ -21,7 +21,7 @@ public:
     /// An empty beam: no axis, no section.
     BeamCurved();
 
-    /// A beam through points, the up direction at each, and the section every station carries; the axis is the chord-length cubic through the points.
+    /// A beam through points, the section's y direction at each (the surface normal for a plain sweep, the strip's ruling for a developable one), and the section every station carries; the axis is the chord-length cubic through the points, each station at its chord-length parameter.
     BeamCurved(
         const std::vector<session_cpp::Point>& points,
         const std::vector<session_cpp::Vector>& directions,
@@ -43,7 +43,7 @@ public:
     /// The station frame at axis parameter t: origin on the axis, x across it (up cross the tangent), y the up direction made normal to the tangent, z the tangent.
     session_cpp::Plane frame(double t, const session_cpp::Vector& up) const;
 
-    /// The section placed at every station, counter-clockwise about the tangent.
+    /// The section placed at every station, counter-clockwise about the tangent: x across the axis, y along the station's direction as given.
     std::vector<session_cpp::Polyline> sections() const;
 
     /// One cubic rail per section corner through that corner of every station, all four sharing the axis parameters.

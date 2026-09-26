@@ -17,8 +17,14 @@ BeamCurved::BeamCurved() : Element("beam_curved") {}
 BeamCurved::BeamCurved(const std::vector<Point>& points, const std::vector<Vector>& directions, const Polyline& section, const std::string& name)
     : Element(name), axis(NurbsCurve::create_interpolated(points)), directions(directions), section(section) {
 
-    for (const Point& point : points)
-        parameters.push_back(axis.closest_parameter(point));
+    std::vector<double> chords{0.0};
+    for (size_t k = 0; k + 1 < points.size(); k++)
+        chords.push_back(chords.back() + (points[k + 1] - points[k]).magnitude());
+
+    const double t0 = axis.domain().first;
+    const double span = axis.domain().second - t0;
+    for (const double chord : chords)
+        parameters.push_back(chords.back() > 0.0 ? t0 + span * chord / chords.back() : t0);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -78,7 +84,7 @@ std::vector<Polyline> BeamCurved::sections() const {
         const Plane station = frame(parameters[k], directions[k]);
         std::vector<Point> corners;
         for (size_t i = 0; i <= profile.size(); i++)
-            corners.push_back(station.origin() + station.x_axis() * profile[i % profile.size()][0] + station.y_axis() * profile[i % profile.size()][1]);
+            corners.push_back(station.origin() + station.x_axis() * profile[i % profile.size()][0] + directions[k] * profile[i % profile.size()][1]);
 
         placed.emplace_back(corners);
     }
