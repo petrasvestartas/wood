@@ -480,7 +480,7 @@ int main() {
         const bool smooth = is_smooth(gridshells[i]);
         passed = passed && fit.first <= FIT && fit.second <= FIT && clash <= CLEARANCE && smooth;
         const std::string residual = residuals[i] < 0.0 ? "" : fmt::format(", mean curvature share {:.4f}", residuals[i]);
-        std::cout << fmt::format("{}: {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm (gap {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit.first, fit.second, count, clash);
+        std::cout << fmt::format("{}: net asymptotic residual {:.1e} traced, {:.1e} optimised, {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm (gap {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].traced, wood_gridshell::compute_residual(gridshells[i].net), gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit.first, fit.second, count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());
