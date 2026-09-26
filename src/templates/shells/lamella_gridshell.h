@@ -14,236 +14,558 @@ struct Lamella {
     double gap = 60.0; // Clear distance between the two boards of a lamella, the stud width across every flat.
     double spacing = 180.0; // Normal distance between the top and the bottom layer centrelines; below height the layers overlap.
     double overrun = 20.0; // Stud length past the outer face of each layer.
-    double step = 100.0; // Tracing step along a lamella on the surface; a sample nearer a crossing than twice the gap is dropped.
+    double step = 100.0; // Runge-Kutta step of the tracing, in mm along the surface.
+    double sample = 50.0; // Distance between the stations a board is swept through, in mm along the lamella.
+    double ruling = 1.0; // Largest lean of a strip's ruling from the normal a board follows, as tan of the angle; the lean tg / kg is regularised to kg tg / (kg^2 + tg^2 / (4 ruling^2)), which peaks at ruling and passes through the normal at an inflection.
+    double block = 100.0; // Length of a lamella at every node over which its section stands on the straight node axis, the spacer block.
+    double blend = 300.0; // Length past half a block over which the ruling blends from the node axis to the strip's, so an outer corner never shifts faster along the lamella than the lamella runs.
 };
+
+/// What a lamella follows on the surface: the u and v iso-curves, or the two directions of one normal curvature, 0 the asymptotic curves.
+struct Path {
+    bool iso = false; // True for the iso-curves, false for the normal curvature value.
+    double value = 0.0; // The normal curvature every lamella keeps, in 1/mm.
+    double flat = 0.0; // Where the Gaussian curvature rises above -flat, in 1/mm2, the path has no direction, so a trace stops at a flat point; 0 traces on as Bowerbird does.
+
+    /// The u and v iso-curves.
+    static Path isocurves() {
+        Path path;
+        path.iso = true;
+        return path;
+    }
+
+    /// True for the asymptotic curves, where the rectifying developable of a lamella stands normal to the surface.
+    bool is_asymptotic() const {
+        return !iso && value == 0.0;
+    }
+
+    /// The two directions of normal curvature value, 0 the asymptotic curves.
+    static Path normal_curvature(double value) {
+        Path path;
+        path.value = value;
+        return path;
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Curvature
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The second-order data of a surface at (u, v): partials, unit normal, principal curvatures k1 >= k2 and their unit directions in space (d1, d2) and in the parameter plane (u1, u2), as Bowerbird's PrincipalCurvature.
+struct Curvature {
+    Point x; // The surface point.
+    Vector a1; // dS/du.
+    Vector a2; // dS/dv.
+    Vector a11; // d2S/du2.
+    Vector a12; // d2S/dudv.
+    Vector a22; // d2S/dv2.
+    Vector n; // Unit normal a1 x a2.
+    double k1 = 0.0; // Larger principal curvature.
+    double k2 = 0.0; // Smaller principal curvature.
+    Vector d1; // Unit principal direction of k1 in space.
+    Vector d2; // Unit principal direction of k2 in space.
+    Vector u1; // d1 in the parameter plane, (du, dv, 0).
+    Vector u2; // d2 in the parameter plane, (du, dv, 0).
+    bool valid = false; // False where the metric or the shape operator degenerates.
+};
+
+/// The principal directions of the shape operator (k11 k12; k21 k22) written into c; false where its eigenvalues are complex.
+inline bool compute_principal(Curvature& c, double g11, double g12, double g22, double k11, double k12, double k21, double k22) {
+
+    const double disc = 4.0 * k12 * k21 + (k11 - k22) * (k11 - k22);
+    if (disc < 0.0)
+        return false;
+
+    c.k1 = 0.5 * (k11 + k22 + std::sqrt(disc));
+    c.k2 = 0.5 * (k11 + k22 - std::sqrt(disc));
+    const bool by_row = std::abs(k12) > std::abs(k21);
+    double du1 = by_row ? k12 : c.k1 - k22;
+    double dv1 = by_row ? c.k1 - k11 : k21;
+    double du2 = by_row ? k12 : c.k2 - k22;
+    double dv2 = by_row ? c.k2 - k11 : k21;
+
+    const double l1 = std::sqrt(g11 * du1 * du1 + 2.0 * g12 * du1 * dv1 + g22 * dv1 * dv1);
+    du1 /= l1;
+    dv1 /= l1;
+    c.u1 = Vector(du1, dv1, 0.0);
+    c.d1 = c.a1 * du1 + c.a2 * dv1;
+
+    const double l2 = std::sqrt(g11 * du2 * du2 + 2.0 * g12 * du2 * dv2 + g22 * dv2 * dv2);
+    du2 /= l2;
+    dv2 /= l2;
+    c.u2 = Vector(du2, dv2, 0.0);
+    c.d2 = c.a1 * du2 + c.a2 * dv2;
+
+    return true;
+}
+
+/// The curvature data of the surface at (u, v), from its partials up to second order.
+inline Curvature compute_curvature(const NurbsSurface& surface, double u, double v) {
+
+    const std::vector<Vector> ders = surface.evaluate(u, v, 2);
+    Curvature c;
+    c.x = Point(ders[0][0], ders[0][1], ders[0][2]);
+    c.a1 = ders[3];
+    c.a2 = ders[1];
+    c.a11 = ders[5];
+    c.a12 = ders[4];
+    c.a22 = ders[2];
+    c.n = c.a1.cross(c.a2).normalized();
+
+    const double g11 = c.a1.dot(c.a1);
+    const double g12 = c.a1.dot(c.a2);
+    const double g22 = c.a2.dot(c.a2);
+    const double h11 = c.n.dot(c.a11);
+    const double h12 = c.n.dot(c.a12);
+    const double h22 = c.n.dot(c.a22);
+    const double det = g11 * g22 - g12 * g12;
+    if (det == 0.0)
+        return c;
+
+    const double k11 = (g22 * h11 - g12 * h12) / det;
+    const double k12 = (g22 * h12 - g12 * h22) / det;
+    const double k21 = (g11 * h12 - g12 * h11) / det;
+    const double k22 = (g11 * h22 - g12 * h12) / det;
+    const double eps = std::max(std::abs(k11), std::abs(k22)) * 1e-10;
+    if (std::abs(k12) < eps && std::abs(k21) < eps) {
+        c.k1 = k11;
+        c.k2 = k22;
+        c.u1 = Vector(1.0 / std::sqrt(g11), 0.0, 0.0);
+        c.u2 = Vector(0.0, 1.0 / std::sqrt(g22), 0.0);
+        c.d1 = c.a1 * c.u1[0];
+        c.d2 = c.a2 * c.u2[1];
+        c.valid = true;
+    } else {
+        c.valid = compute_principal(c, g11, g12, g22, k11, k12, k21, k22);
+    }
+
+    return c;
+}
+
+/// The unit direction cos * d1 + sin * d2 of the tangent plane at c as (du, dv, 0) and in space, as Bowerbird's FindNormalCurvature maps it.
+inline void compute_turned(const Curvature& c, double cos, double sin, Vector& uv, Vector& d) {
+
+    const double du = c.a2.dot(c.d2) * cos - c.a2.dot(c.d1) * sin;
+    const double dv = c.a1.dot(c.d1) * sin - c.a1.dot(c.d2) * cos;
+    d = c.a1 * du + c.a2 * dv;
+    const double l = d.magnitude();
+    uv = Vector(du / l, dv / l, 0.0);
+    d = d * (1.0 / l);
+}
+
+/// The two unit directions of normal curvature value at c, in the parameter plane (u1, u2) and in space (d1, d2), the first at +alpha and the second at -alpha from d1; false where value lies outside [k2, k1].
+inline bool compute_normal_curvature_directions(const Curvature& c, double value, Vector& u1, Vector& u2, Vector& d1, Vector& d2) {
+
+    const double t = (2.0 * value - c.k1 - c.k2) / (c.k1 - c.k2);
+    if (std::abs(t) > 1.0 || std::isnan(t))
+        return false;
+
+    const double alpha = 0.5 * std::acos(t);
+    compute_turned(c, std::cos(alpha), std::sin(alpha), u1, d1);
+    compute_turned(c, std::cos(alpha), -std::sin(alpha), u2, d2);
+
+    return true;
+}
+
+/// The two direction pairs of the path at uv = (u, v, 0): unit in space (d1, d2) with their images in the parameter plane (u1, u2); false where the path has no direction there.
+inline bool compute_directions(const NurbsSurface& surface, const Path& path, const Vector& uv, Vector& u1, Vector& u2, Vector& d1, Vector& d2) {
+
+    const Curvature c = compute_curvature(surface, uv[0], uv[1]);
+    if (!c.valid || (!path.iso && path.flat > 0.0 && c.k1 * c.k2 > -path.flat))
+        return false;
+
+    if (path.iso) {
+        u1 = Vector(1.0 / c.a1.magnitude(), 0.0, 0.0);
+        u2 = Vector(0.0, 1.0 / c.a2.magnitude(), 0.0);
+        d1 = c.a1.normalized();
+        d2 = c.a2.normalized();
+        return true;
+    }
+
+    return compute_normal_curvature_directions(c, path.value, u1, u2, d1, d2);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Tracing
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The surface vector of a (du, dv, 0) direction at uv.
-inline Vector compute_tangent(const NurbsSurface& surface, const Point& uv, const Vector& direction) {
+/// The rectangle of the parameter plane the tracing stays in.
+struct Boundary {
+    double u0 = 0.0; // Domain start in u.
+    double u1 = 1.0; // Domain end in u.
+    double v0 = 0.0; // Domain start in v.
+    double v1 = 1.0; // Domain end in v.
 
-    const std::vector<Vector> derivatives = surface.evaluate(uv[0], uv[1], 1);
-
-    return derivatives[2] * direction[0] + derivatives[1] * direction[1];
-}
-
-/// The two lamella directions at uv as (du, dv, 0), each one unit long on the surface: u and v for curves 0, for curves 1 the asymptotic directions where II(d, d) = 0, none where the Gaussian curvature is positive.
-inline std::vector<Vector> compute_directions(const NurbsSurface& surface, int curves, const Point& uv) {
-
-    const std::vector<Vector> derivatives = surface.evaluate(uv[0], uv[1], 2);
-    std::vector<Vector> directions;
-    if (curves == 0) {
-        directions.push_back(Vector(1.0, 0.0, 0.0) / derivatives[3].magnitude());
-        directions.push_back(Vector(0.0, 1.0, 0.0) / derivatives[1].magnitude());
-        return directions;
+    /// The domain of a surface.
+    static Boundary of(const NurbsSurface& surface) {
+        Boundary boundary;
+        boundary.u0 = surface.domain(0).first;
+        boundary.u1 = surface.domain(0).second;
+        boundary.v0 = surface.domain(1).first;
+        boundary.v1 = surface.domain(1).second;
+        return boundary;
     }
 
-    const Vector normal = surface.normal_at(uv[0], uv[1]);
-    const double suu = derivatives[5].dot(normal); // II(u, u)
-    const double suv = derivatives[4].dot(normal); // II(u, v)
-    const double svv = derivatives[2].dot(normal); // II(v, v)
-    const double mean = (suu + svv) / 2.0;
-    const double radius = std::hypot((suu - svv) / 2.0, suv);
-    if (radius < 1e-12 || std::abs(mean) > radius)
-        return directions;
+    /// Cuts the segment a-b at the rectangle, true when b lay outside: b is moved to where the segment leaves, exactly on the edge.
+    bool clip(const Vector& a, Vector& b) const {
 
-    const double phi = std::atan2(suv, (suu - svv) / 2.0);
-    const double spread = std::acos(-mean / radius);
-    for (const double sign : {-1.0, 1.0}) {
-        const Vector direction(std::cos((phi + sign * spread) / 2.0), std::sin((phi + sign * spread) / 2.0), 0.0);
-        directions.push_back(direction / compute_tangent(surface, uv, direction).magnitude());
-    }
+        double t = 1.0;
+        const double lows[2] = {u0, v0};
+        const double highs[2] = {u1, v1};
+        for (int k = 0; k < 2; k++) {
+            if (b[k] < lows[k])
+                t = std::min(t, (lows[k] - a[k]) / (b[k] - a[k]));
 
-    return directions;
-}
-
-/// The lamella direction at uv nearest previous on the surface, turned to agree with it; zero where there is none.
-inline Vector compute_slope(const NurbsSurface& surface, int curves, const Point& uv, const Vector& previous) {
-
-    Vector slope(0.0, 0.0, 0.0);
-    double best = -1.0;
-    for (const Vector& direction : compute_directions(surface, curves, uv)) {
-        const double dot = compute_tangent(surface, uv, direction).dot(previous);
-        if (std::abs(dot) > best) {
-            best = std::abs(dot);
-            slope = dot < 0.0 ? -direction : direction;
+            if (b[k] > highs[k])
+                t = std::min(t, (highs[k] - a[k]) / (b[k] - a[k]));
         }
-    }
 
-    return slope;
+        if (t >= 1.0)
+            return false;
+
+        b = a + (b - a) * t;
+        for (int k = 0; k < 2; k++)
+            b[k] = std::clamp(b[k], lows[k], highs[k]);
+
+        return true;
+    }
+};
+
+/// Bowerbird's Path.Direction: the parameter step of length step along whichever path direction at uv lies closer to the last step in space, sign matched; zero where the path has no direction.
+inline Vector compute_direction(const NurbsSurface& surface, const Path& path, const Vector& uv, const Vector& last, double step) {
+
+    Vector u1, u2, d1, d2;
+    if (!compute_directions(surface, path, uv, u1, u2, d1, d2))
+        return Vector(0.0, 0.0, 0.0);
+
+    const Vector s = last.normalized();
+    const double e1 = d1.dot(s);
+    const double e2 = d2.dot(s);
+    if (std::abs(e1) > std::abs(e2))
+        return e1 > 0.0 ? u1 * step : u1 * -step;
+
+    return e2 > 0.0 ? u2 * step : u2 * -step;
 }
 
-/// The share of delta from uv that stays inside the surface domain, 1 when all of it does.
-inline double compute_share(const NurbsSurface& surface, const Point& uv, const Vector& delta) {
+/// A lamella's trace on the surface: its points in the parameter plane, (u, v, 0), and on the surface.
+struct Trace {
+    std::vector<Vector> parameters; // (u, v, 0) of every point.
+    std::vector<Point> points; // The surface point of every parameter.
+};
 
-    double share = 1.0;
-    for (int dir = 0; dir < 2; dir++) {
-        const std::pair<double, double> domain = surface.domain(dir);
-        if (uv[dir] + delta[dir] < domain.first)
-            share = std::min(share, (domain.first - uv[dir]) / delta[dir]);
+/// Bowerbird's FindPath: fourth-order Runge-Kutta steps of step from uv along direction through the parameter plane, appended to the trace until the boundary, a standstill or count points; returns the last step in space.
+inline Vector compute_path(const NurbsSurface& surface, const Path& path, const Boundary& boundary, Vector uv, Vector direction, double step, size_t count, Trace& trace) {
 
-        if (uv[dir] + delta[dir] > domain.second)
-            share = std::min(share, (domain.second - uv[dir]) / delta[dir]);
-    }
-
-    return std::max(share, 0.0);
-}
-
-/// Points in (u, v, 0) from seed along the lamella direction nearest direction: RK4 steps of step mm, the last clipped to the domain edge; ends early where the direction field does.
-inline std::vector<Point> compute_path(const NurbsSurface& surface, int curves, const Point& seed, Vector direction, double step) {
-
-    std::vector<Point> points{seed};
-    for (int k = 0; k < 100000; k++) {
-        const Point uv = points.back();
-        const Vector k1 = compute_slope(surface, curves, uv, direction) * step;
-        const Vector k2 = compute_slope(surface, curves, uv + k1 * 0.5, direction) * step;
-        const Vector k3 = compute_slope(surface, curves, uv + k2 * 0.5, direction) * step;
-        const Vector k4 = compute_slope(surface, curves, uv + k3, direction) * step;
-        const Vector delta = (k1 + k2 * 2.0 + k3 * 2.0 + k4) / 6.0;
-        const double share = compute_share(surface, uv, delta);
-        if (k1.magnitude() == 0.0 || share == 0.0)
+    while (trace.points.size() < count) {
+        const Vector d0 = compute_direction(surface, path, uv, direction, step);
+        const Vector d1 = compute_direction(surface, path, uv + d0 * 0.5, direction, step);
+        const Vector d2 = compute_direction(surface, path, uv + d1 * 0.5, direction, step);
+        const Vector d3 = compute_direction(surface, path, uv + d2, direction, step);
+        const Vector delta = (d0 + d1 * 2.0 + d2 * 2.0 + d3) * (1.0 / 6.0);
+        if (delta[0] == 0.0 && delta[1] == 0.0)
             break;
 
-        points.push_back(uv + delta * share);
-        direction = surface.point_at(points.back()[0], points.back()[1]) - surface.point_at(uv[0], uv[1]);
-        if (share < 1.0)
+        Vector next = uv + delta;
+        const bool hit = boundary.clip(uv, next);
+        uv = next;
+        const Point x = surface.point_at(uv[0], uv[1]);
+        const Vector moved = x - trace.points.back();
+        if (moved.dot(moved) < 1e-20)
+            break;
+
+        direction = moved;
+        trace.parameters.push_back(uv);
+        trace.points.push_back(x);
+        if (hit)
             break;
     }
 
-    return points;
+    return direction;
 }
 
-/// The lamella through seed both ways along the direction nearest hint, from one end to the other.
-inline std::vector<Point> compute_curve(const NurbsSurface& surface, int curves, const Point& seed, const Vector& hint, double step) {
+/// The path direction at the seed (u, v, 0) closer in space to the reference, by |dot|: the one that continues the reference's family; zero where the path has no direction there.
+inline Vector compute_seed_direction(const NurbsSurface& surface, const Path& path, const Vector& seed, const Vector& reference) {
 
-    const Vector along = compute_tangent(surface, seed, compute_slope(surface, curves, seed, hint));
-    std::vector<Point> points = compute_path(surface, curves, seed, -along, step);
-    const std::vector<Point> ahead = compute_path(surface, curves, seed, along, step);
-    std::reverse(points.begin(), points.end());
-    points.insert(points.end(), ahead.begin() + 1, ahead.end());
+    Vector u1, u2, d1, d2;
+    if (!compute_directions(surface, path, seed, u1, u2, d1, d2))
+        return Vector(0.0, 0.0, 0.0);
 
-    return points;
+    return std::abs(d1.dot(reference)) >= std::abs(d2.dot(reference)) ? d1 : d2;
 }
 
-/// count lamellas of family 0 or 1, seeded at even arc lengths along a spine of the other family through the middle of the domain.
-inline std::vector<std::vector<Point>> compute_family(const NurbsSurface& surface, int curves, int family, int count, double step) {
+/// The middle of the domain, (u, v, 0).
+inline Vector compute_centre(const NurbsSurface& surface) {
+    const Boundary boundary = Boundary::of(surface);
+    return Vector((boundary.u0 + boundary.u1) / 2.0, (boundary.v0 + boundary.v1) / 2.0, 0.0);
+}
 
-    const Point centre((surface.domain(0).first + surface.domain(0).second) / 2.0, (surface.domain(1).first + surface.domain(1).second) / 2.0, 0.0);
-    const std::vector<Point> spine = compute_curve(surface, curves, centre, compute_tangent(surface, centre, compute_directions(surface, curves, centre)[1 - family]), step);
+/// The direction of a family at centre: the path's first or second direction there, the reference every seed of the family is matched against.
+inline Vector compute_family_direction(const NurbsSurface& surface, const Path& path, bool first, const Vector& centre) {
 
-    std::vector<double> lengths{0.0};
-    for (size_t k = 0; k + 1 < spine.size(); k++)
-        lengths.push_back(lengths.back() + (surface.point_at(spine[k + 1][0], spine[k + 1][1]) - surface.point_at(spine[k][0], spine[k][1])).magnitude());
+    Vector u1, u2, d1, d2;
+    if (!compute_directions(surface, path, centre, u1, u2, d1, d2))
+        return Vector(0.0, 0.0, 0.0);
 
-    std::vector<std::vector<Point>> lamellas;
-    size_t k = 0;
-    for (int i = 0; i < count; i++) {
-        const double at = lengths.back() * (i + 0.5) / count;
-        while (k + 2 < lengths.size() && lengths[k + 1] < at)
-            k++;
+    return first ? d1 : d2;
+}
 
-        const Point seed = spine[k] + (spine[k + 1] - spine[k]) * ((at - lengths[k]) / (lengths[k + 1] - lengths[k]));
-        const Vector chord = surface.point_at(spine[k + 1][0], spine[k + 1][1]) - surface.point_at(spine[k][0], spine[k][1]);
-        lamellas.push_back(compute_curve(surface, curves, seed, surface.normal_at(seed[0], seed[1]).cross(chord), step));
-    }
+/// Bowerbird's Pathfinder on one untrimmed surface: the path traced both ways from the seed (u, v, 0) along its direction there closer to the reference, a point every step until the domain boundary; empty where the path has no direction at the seed.
+inline Trace compute_trace(const NurbsSurface& surface, const Path& path, const Vector& seed, const Vector& reference, double step, size_t count = 100000) {
 
-    return lamellas;
+    const Vector direction = compute_seed_direction(surface, path, seed, reference);
+    if (direction.magnitude() == 0.0)
+        return Trace();
+
+    const Boundary boundary = Boundary::of(surface);
+    Trace trace;
+    trace.parameters.push_back(seed);
+    trace.points.push_back(surface.point_at(seed[0], seed[1]));
+    compute_path(surface, path, boundary, seed, direction * -1.0, step, count, trace);
+    std::reverse(trace.parameters.begin(), trace.parameters.end());
+    std::reverse(trace.points.begin(), trace.points.end());
+    compute_path(surface, path, boundary, seed, direction, step, count, trace);
+
+    return trace;
+}
+
+/// count seeds (u, v, 0) evenly spaced strictly inside the segment from a to b of the parameter plane.
+inline std::vector<Vector> compute_seeds(const Vector& a, const Vector& b, int count) {
+
+    std::vector<Vector> seeds;
+    for (int i = 0; i < count; i++)
+        seeds.push_back(a + (b - a) * ((i + 1.0) / (count + 1.0)));
+
+    return seeds;
+}
+
+/// The ends of the seed line of a family: the segment through centre perpendicular in the parameter plane to the family's direction there, cut at the boundary.
+inline std::pair<Vector, Vector> compute_seed_line(const NurbsSurface& surface, const Path& path, bool first, const Vector& centre) {
+
+    const Boundary boundary = Boundary::of(surface);
+    Vector u1, u2, d1, d2;
+    compute_directions(surface, path, centre, u1, u2, d1, d2);
+    const Vector along = first ? u1 : u2;
+    const Vector across = Vector(-along[1], along[0], 0.0).normalized() * (boundary.u1 - boundary.u0 + boundary.v1 - boundary.v0);
+    Vector a = centre - across;
+    Vector b = centre + across;
+    boundary.clip(centre, a);
+    boundary.clip(centre, b);
+
+    return {a, b};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Curve on surface
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The cubic through the trace's parameters, a curve in the parameter plane evaluated on the surface as Bowerbird's CurveOnSurface; empty for a trace of one point.
+inline NurbsCurve compute_curve(const Trace& trace) {
+
+    if (trace.parameters.size() < 2)
+        return NurbsCurve();
+
+    std::vector<Point> points;
+    for (const Vector& uv : trace.parameters)
+        points.emplace_back(uv[0], uv[1], 0.0);
+
+    return NurbsCurve::create_interpolated(points);
+}
+
+/// The surface point of the curve at t.
+inline Point compute_point(const NurbsSurface& surface, const NurbsCurve& curve, double t) {
+    const Point uv = curve.point_at(t);
+    return surface.point_at(uv[0], uv[1]);
+}
+
+/// The frame of the curve at t: origin its surface point, x its unit tangent (the parameter derivative mapped by dS/du, dS/dv), z the surface normal.
+inline Plane compute_frame(const NurbsSurface& surface, const NurbsCurve& curve, double t) {
+
+    const std::vector<Vector> c = curve.evaluate(t, 1);
+    const std::vector<Vector> s = surface.evaluate(c[0][0], c[0][1], 1);
+    const Vector tangent = (s[2] * c[1][0] + s[1] * c[1][1]).normalized();
+    const Vector normal = s[2].cross(s[1]).normalized();
+
+    return Plane(Point(s[0][0], s[0][1], s[0][2]), tangent, normal.cross(tangent));
+}
+
+/// The Darboux frame and the invariants of the curve at t with respect to the surface (Schling et al. 2022, Sec. 2.1): t the unit tangent, n the surface normal, u = n x t, and along the curve the normal curvature, geodesic curvature and geodesic torsion.
+struct Darboux {
+    Point x; // The surface point.
+    Vector t; // Unit tangent of the curve.
+    Vector u; // Side vector n x t.
+    Vector n; // Unit surface normal.
+    double kn = 0.0; // Normal curvature, 1/mm.
+    double kg = 0.0; // Geodesic curvature, 1/mm, signed towards u.
+    double tg = 0.0; // Geodesic torsion, 1/mm, n' = -tg u + kn t along the curve.
+};
+
+/// The Darboux data of the curve at t: kn and tg by Euler's formula from the principal curvatures and the angle p of t against the k1 direction (Schling Eq. 3: kn = k1 cos^2 p + k2 sin^2 p, tg = (k2 - k1) / 2 sin 2p), kg the curvature vector of the curve on u, the curve's derivatives mapped by the surface partials as Bowerbird's CurveOnSurface.
+inline Darboux compute_darboux(const NurbsSurface& surface, const NurbsCurve& curve, double t) {
+
+    const std::vector<Vector> c = curve.evaluate(t, 2);
+    const double u1 = c[1][0];
+    const double v1 = c[1][1];
+    const double u2 = c[2][0];
+    const double v2 = c[2][1];
+    const Curvature k = compute_curvature(surface, c[0][0], c[0][1]);
+
+    const Vector x1 = k.a1 * u1 + k.a2 * v1;
+    const Vector x2 = k.a1 * u2 + k.a2 * v2 + k.a11 * (u1 * u1) + k.a22 * (v1 * v1) + k.a12 * (2.0 * u1 * v1);
+    const double speed2 = x1.dot(x1);
+    const Vector bend = (x2 * speed2 - x1 * x1.dot(x2)) * (1.0 / (speed2 * speed2));
+
+    Darboux d;
+    d.x = k.x;
+    d.t = x1.normalized();
+    d.n = k.n;
+    d.u = d.n.cross(d.t);
+    const Vector d2 = k.n.cross(k.d1);
+    const double phi = std::atan2(k.d1.cross(d.t).dot(k.n), k.d1.dot(d.t));
+    d.kn = k.k1 * std::cos(phi) * std::cos(phi) + k.k2 * std::sin(phi) * std::sin(phi);
+    d.tg = (k.k2 - k.k1) / 2.0 * std::sin(2.0 * phi);
+    d.kg = bend.dot(d.u);
+
+    return d;
+}
+
+/// The normal curvature, geodesic curvature and geodesic torsion of the curve at t, in 1/mm.
+inline std::array<double, 3> compute_metrics(const NurbsSurface& surface, const NurbsCurve& curve, double t) {
+    const Darboux d = compute_darboux(surface, curve, t);
+    return {d.kn, d.kg, d.tg};
+}
+
+/// The share of the strip's ruling a station distance mm from its nearest node takes: 0 within half a block, where the section stands on the straight node axis, rising smoothly to 1 a blend further out.
+inline double compute_blend(double distance, const Lamella& lamella) {
+    const double w = std::clamp((distance - lamella.block / 2.0) / lamella.blend, 0.0, 1.0);
+    return w * w * (3.0 - 2.0 * w);
+}
+
+/// The lean tg / kg of the rectifying ruling along the tangent, regularised to kg tg / (kg^2 + tg^2 / (4 r^2)) with r = lamella.ruling: the exact lean where it is small, at most r, and 0 through an inflection of the lamella, where the developable degenerates.
+inline double compute_lean(const Darboux& d, const Lamella& lamella) {
+
+    const double floor = d.tg * d.tg / (4.0 * lamella.ruling * lamella.ruling);
+    if (d.kg * d.kg + floor == 0.0)
+        return 0.0;
+
+    return d.kg * d.tg / (d.kg * d.kg + floor);
+}
+
+/// The ruling of the lamella's board at d: for an asymptotic curve the rectifying developable's ruling tg t + kg n (Schling Eq. 4) scaled to unit height along the normal, n + tg / kg t, so the strip unrolls straight, its lean regularised by compute_lean and scaled by the blend towards the normal at the nodes, where the physical node forces the strip through the straight node axis (Schling Sec. 3.4); the normal itself on other curves.
+inline Vector compute_ruling(const Darboux& d, const Path& path, const Lamella& lamella, double blend) {
+
+    if (!path.is_asymptotic())
+        return d.n;
+
+    return d.n + d.t * (blend * compute_lean(d, lamella));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Crossings
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Where a top lamella crosses a bottom lamella, found in (u, v).
-struct Crossing {
-    size_t top; // Top lamella.
-    size_t bottom; // Bottom lamella.
-    double along_top; // Position along the top lamella, segment index plus fraction.
-    double along_bottom; // Position along the bottom lamella, segment index plus fraction.
-    Point uv; // Surface parameters, w 0.
-};
+/// The fraction along a-b where it crosses c-d in the parameter plane, negative when the segments miss.
+inline double compute_segment_crossing(const Vector& a, const Vector& b, const Vector& c, const Vector& d) {
 
-/// Every crossing of the two families, segment against segment in (u, v).
-inline std::vector<Crossing> compute_crossings(const std::vector<std::vector<Point>>& tops, const std::vector<std::vector<Point>>& bottoms) {
+    const double det = (b[0] - a[0]) * (d[1] - c[1]) - (b[1] - a[1]) * (d[0] - c[0]);
+    if (std::abs(det) < 1e-300)
+        return -1.0;
 
-    std::vector<Crossing> crossings;
-    for (size_t a = 0; a < tops.size(); a++)
-        for (size_t b = 0; b < bottoms.size(); b++)
-            for (size_t i = 0; i + 1 < tops[a].size(); i++)
-                for (size_t j = 0; j + 1 < bottoms[b].size(); j++) {
-                    const Vector ahead = tops[a][i + 1] - tops[a][i];
-                    const Vector across = bottoms[b][j + 1] - bottoms[b][j];
-                    const Vector offset = bottoms[b][j] - tops[a][i];
-                    const double denominator = ahead[0] * across[1] - ahead[1] * across[0];
-                    if (std::abs(denominator) < 1e-30)
-                        continue;
+    const double s = ((c[0] - a[0]) * (d[1] - c[1]) - (c[1] - a[1]) * (d[0] - c[0])) / det;
+    const double r = ((c[0] - a[0]) * (b[1] - a[1]) - (c[1] - a[1]) * (b[0] - a[0])) / det;
 
-                    const double top = (offset[0] * across[1] - offset[1] * across[0]) / denominator;
-                    const double bottom = (offset[0] * ahead[1] - offset[1] * ahead[0]) / denominator;
-                    if (top >= 0.0 && top < 1.0 && bottom >= 0.0 && bottom < 1.0)
-                        crossings.push_back(Crossing{a, b, i + top, j + bottom, tops[a][i] + ahead * top});
-                }
-
-    return crossings;
+    return s >= 0.0 && s <= 1.0 && r >= 0.0 && r <= 1.0 ? s : -1.0;
 }
 
-/// The frame of a lamella at uv: x its direction nearest the segment of points at along, y the normal cross x, z the normal.
-inline Plane compute_frame(const NurbsSurface& surface, int curves, const std::vector<Point>& points, double along, const Point& uv) {
+/// Newton on a(ta) = b(tb) in the parameter plane from the parameters nearest uv, (ta, tb) once the two curve points agree.
+inline std::pair<double, double> compute_crossing_parameters(const NurbsCurve& a, const NurbsCurve& b, const Vector& uv) {
 
-    const size_t i = std::min(static_cast<size_t>(along), points.size() - 2);
-    const Vector chord = surface.point_at(points[i + 1][0], points[i + 1][1]) - surface.point_at(points[i][0], points[i][1]);
-    const Vector tangent = compute_tangent(surface, uv, compute_slope(surface, curves, uv, chord));
+    const Point start(uv[0], uv[1], 0.0);
+    double ta = a.closest_parameter(start);
+    double tb = b.closest_parameter(start);
+    for (int k = 0; k < 20; k++) {
+        const std::vector<Vector> pa = a.evaluate(ta, 1);
+        const std::vector<Vector> pb = b.evaluate(tb, 1);
+        const Vector f = pa[0] - pb[0];
+        if (f.dot(f) < 1e-24)
+            break;
 
-    return Plane(surface.point_at(uv[0], uv[1]), tangent, surface.normal_at(uv[0], uv[1]).cross(tangent));
+        const double det = pa[1][0] * -pb[1][1] - pa[1][1] * -pb[1][0];
+        if (std::abs(det) < 1e-300)
+            break;
+
+        const double da = (-f[0] * -pb[1][1] - -f[1] * -pb[1][0]) / det;
+        const double db = (pa[1][0] * -f[1] - pa[1][1] * -f[0]) / det;
+        ta = std::clamp(ta + da, a.domain().first, a.domain().second);
+        tb = std::clamp(tb + db, b.domain().first, b.domain().second);
+    }
+
+    return {ta, tb};
+}
+
+/// Where two lamellas cross: every crossing of their traces in the parameter plane refined onto their curves, (t on a, t on b) per crossing, one per point when a crossing falls on a trace vertex.
+inline std::vector<std::pair<double, double>> compute_crossings(const Trace& ta, const NurbsCurve& a, const Trace& tb, const NurbsCurve& b) {
+
+    std::vector<std::pair<double, double>> crossings;
+    for (size_t i = 0; i + 1 < ta.parameters.size(); i++)
+        for (size_t j = 0; j + 1 < tb.parameters.size(); j++) {
+            const double s = compute_segment_crossing(ta.parameters[i], ta.parameters[i + 1], tb.parameters[j], tb.parameters[j + 1]);
+            if (s < 0.0)
+                continue;
+
+            const Vector uv = ta.parameters[i] + (ta.parameters[i + 1] - ta.parameters[i]) * s;
+            const std::pair<double, double> crossing = compute_crossing_parameters(a, b, uv);
+            bool fresh = true;
+            for (const std::pair<double, double>& known : crossings)
+                fresh = fresh && (std::abs(known.first - crossing.first) > 1e-9 || std::abs(known.second - crossing.second) > 1e-9);
+
+            if (fresh)
+                crossings.push_back(crossing);
+        }
+
+    return crossings;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Elements
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Frames along one lamella: every traced point not within twice the gap of a crossing, three on the tangent at each crossing, gap apart, so the boards run straight past the stud, and one a gap past each end, so the end sections stand on their own normal.
-inline std::vector<Plane> compute_stations(const NurbsSurface& surface, int curves, const std::vector<Point>& points, const std::vector<std::pair<double, Plane>>& marks, const Lamella& lamella) {
+/// The station parameters of a lamella: its nodes plus parameters every sample of the trace's length along the curve, none nearer a node than half a sample, sorted.
+inline std::vector<double> compute_parameters(const Trace& trace, const NurbsCurve& curve, std::vector<double> nodes, double sample) {
 
-    std::vector<Plane> stations;
-    for (size_t k = 0; k < points.size(); k++) {
-        const Plane frame = compute_frame(surface, curves, points, static_cast<double>(k), points[k]);
+    double length = 0.0;
+    for (size_t k = 0; k + 1 < trace.points.size(); k++)
+        length += (trace.points[k + 1] - trace.points[k]).magnitude();
+
+    const int count = std::max(2, static_cast<int>(std::ceil(length / sample)));
+    const double t0 = curve.domain().first;
+    const double t1 = curve.domain().second;
+    const double pitch = (t1 - t0) / count;
+    std::vector<double> parameters = nodes;
+    for (int k = 0; k <= count; k++) {
+        const double t = t0 + pitch * k;
         bool free = true;
-        for (const std::pair<double, Plane>& mark : marks)
-            free = free && (frame.origin() - mark.second.origin()).magnitude() > 2.0 * lamella.gap;
+        for (const double node : nodes)
+            free = free && std::abs(t - node) > pitch / 2.0;
 
         if (free)
-            stations.push_back(frame);
-
-        for (const std::pair<double, Plane>& mark : marks)
-            if (mark.first >= k && mark.first < k + 1)
-                for (int side = -1; side <= 1; side++)
-                    stations.emplace_back(mark.second.origin() + mark.second.x_axis() * (side * lamella.gap), mark.second.x_axis(), mark.second.y_axis());
+            parameters.push_back(t);
     }
 
-    const Plane first = stations.front();
-    const Plane last = stations.back();
-    stations.insert(stations.begin(), Plane(first.origin() - first.x_axis() * lamella.gap, first.x_axis(), first.y_axis()));
-    stations.emplace_back(last.origin() + last.x_axis() * lamella.gap, last.x_axis(), last.y_axis());
+    std::sort(parameters.begin(), parameters.end());
 
-    return stations;
+    return parameters;
 }
 
-/// One board on the lamella centreline: a section lift along each station's normal and shift across it, so every section is the rectangle the local normal and the normal cross the tangent span.
-inline std::shared_ptr<Beam> compute_board(const std::vector<Plane>& stations, double lift, double shift, const Lamella& lamella, const std::string& name) {
+/// One board of a lamella: the rectangle section, lifted along the ruling by lift (heights measured along the normal) and shifted across by shift, swept through the stations with the ruling as its y direction, so the board is a slab of the strip's developable between two of its parallel geodesics.
+inline std::shared_ptr<BeamCurved> compute_board(const std::vector<Plane>& stations, const std::vector<Vector>& rulings, double lift, double shift, const Lamella& lamella, const std::string& name) {
 
     std::vector<Point> points;
-    std::vector<Vector> directions;
-    for (const Plane& station : stations) {
+    for (const Plane& station : stations)
         points.push_back(station.origin());
-        directions.push_back(station.z_axis());
-    }
 
-    directions.pop_back();
     const Polyline section = profile_rectangle(lamella.thickness, lamella.height)[0].translated(Vector(shift, lift, 0.0));
 
-    return std::make_shared<Beam>(Polyline(points), std::vector<Polyline>{section}, directions, name);
+    return std::make_shared<BeamCurved>(points, rulings, section, name);
 }
 
 /// A stud along the normal through both layers: a hexagon of three flat pairs gap apart, one against each layer's boards and one across the long corners; a 60 degree crossing gives the regular hexagon.
@@ -268,47 +590,135 @@ inline std::shared_ptr<Column> compute_stud(const Plane& top, const Plane& botto
     return std::make_shared<Column>(Line::from_points(base, top.origin() + normal * reach), Polyline(points), name);
 }
 
-/// A two-directional lamella gridshell on a NURBS surface: two upright boards gap apart per lamella, the first curve family a layer up the normal, the second a layer down, a hexagonal stud in both gaps at every crossing.
+/// A node of the gridshell: where a top lamella crosses a bottom one.
+struct Node {
+    size_t top = 0; // Position of the top lamella.
+    size_t bottom = 0; // Position of the bottom lamella.
+    double top_t = 0.0; // Parameter of the crossing on the top lamella's curve.
+    double bottom_t = 0.0; // Parameter of the crossing on the bottom lamella's curve.
+};
+
+/// A two-directional lamella gridshell on two curve families of a NURBS surface: two upright boards gap apart per lamella, continuous through every node with the exact surface normal as up, the first family a layer up the normal, the second a layer down, a hexagonal stud on the surface normal in both gaps at every crossing.
 struct Gridshell {
-    std::vector<std::shared_ptr<Beam>> top; // lamella_top_i_a and _b per lamella of the first family, spacing / 2 up the normal.
-    std::vector<std::shared_ptr<Beam>> bottom; // lamella_bottom_j_a and _b per lamella of the second family, spacing / 2 down the normal.
-    std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats touching the four boards.
+    NurbsSurface surface; // The carrier.
+    Path path; // What the lamellas follow.
+    std::vector<Trace> traces; // Tracing of every lamella, the top family first.
+    std::vector<NurbsCurve> curves; // The curve in the parameter plane of every lamella, the top family first.
+    size_t tops = 0; // Number of lamellas in the top family.
+    std::vector<Node> nodes; // Every crossing of a top and a bottom lamella.
+    std::vector<std::shared_ptr<BeamCurved>> top; // lamella_top_i_a and _b per lamella of the first family, spacing / 2 up the normal.
+    std::vector<std::shared_ptr<BeamCurved>> bottom; // lamella_bottom_j_a and _b per lamella of the second family, spacing / 2 down the normal.
+    std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats against the four boards at the node.
     std::vector<std::vector<Plane>> frames; // Stations of every lamella on the surface, x along it, z the normal; the top lamellas first.
+    std::vector<std::pair<size_t, size_t>> pairs; // Top and bottom board pair of every stud, positions in top / 2 and bottom / 2.
+    double lean = 0.0; // Largest lean of a rectifying ruling from the normal over every station of an asymptotic gridshell, in degrees, before regularisation.
+    size_t capped = 0; // Stations whose ruling leaned past lamella.ruling, where the regularisation holds it below.
 
-    /// The gridshell on count_top and count_bottom lamellas: curves 0 the u and v iso-curves, 1 the asymptotic curves (Gaussian curvature at most 0), each family seeded along a spine of the other through the middle of the domain.
-    static Gridshell from_surface(const NurbsSurface& surface, int curves, int count_top, int count_bottom, const Lamella& lamella) {
+    /// The gridshell of a path on a surface: the top family traced from seeds_top along the path's first direction at centre (the middle of the domain unless given), the bottom family from seeds_bottom along its second, the boards swept through exact surface stations along the strips' rulings and a stud at every crossing.
+    static Gridshell from_surface(const NurbsSurface& surface, const Path& path, const std::vector<Vector>& seeds_top, const std::vector<Vector>& seeds_bottom, const Lamella& lamella, std::optional<Vector> centre = std::nullopt) {
 
-        const std::vector<std::vector<Point>> tops = compute_family(surface, curves, 0, count_top, lamella.step);
-        const std::vector<std::vector<Point>> bottoms = compute_family(surface, curves, 1, count_bottom, lamella.step);
-        std::vector<std::vector<std::pair<double, Plane>>> top_marks(tops.size());
-        std::vector<std::vector<std::pair<double, Plane>>> bottom_marks(bottoms.size());
         Gridshell gridshell;
+        gridshell.surface = surface;
+        gridshell.path = path;
+        const Vector middle = centre ? *centre : compute_centre(surface);
+        gridshell.compute_family(seeds_top, compute_family_direction(surface, path, true, middle), lamella);
+        gridshell.tops = gridshell.traces.size();
+        gridshell.compute_family(seeds_bottom, compute_family_direction(surface, path, false, middle), lamella);
 
-        for (const Crossing& crossing : compute_crossings(tops, bottoms)) {
-            const Plane top = compute_frame(surface, curves, tops[crossing.top], crossing.along_top, crossing.uv);
-            const Plane bottom = compute_frame(surface, curves, bottoms[crossing.bottom], crossing.along_bottom, crossing.uv);
-            top_marks[crossing.top].emplace_back(crossing.along_top, top);
-            bottom_marks[crossing.bottom].emplace_back(crossing.along_bottom, bottom);
-            gridshell.studs.push_back(compute_stud(top, bottom, lamella, fmt::format("stud_{}_{}", crossing.top, crossing.bottom)));
+        for (const Trace& trace : gridshell.traces)
+            gridshell.curves.push_back(compute_curve(trace));
+
+        gridshell.compute_nodes();
+        gridshell.compute_elements(lamella);
+
+        return gridshell;
+    }
+
+    /// One trace per seed, each along the direction closer to the family's: reference for the first seed, then the direction the previous seed took.
+    void compute_family(const std::vector<Vector>& seeds, Vector reference, const Lamella& lamella) {
+
+        for (const Vector& seed : seeds) {
+            traces.push_back(compute_trace(surface, path, seed, reference, lamella.step));
+            const Vector taken = compute_seed_direction(surface, path, seed, reference);
+            if (taken.magnitude() > 0.0)
+                reference = taken;
         }
+    }
 
-        for (size_t i = 0; i < tops.size(); i++)
-            gridshell.frames.push_back(compute_stations(surface, curves, tops[i], top_marks[i], lamella));
+    /// Every crossing of a top and a bottom lamella, in the parameter plane.
+    void compute_nodes() {
 
-        for (size_t j = 0; j < bottoms.size(); j++)
-            gridshell.frames.push_back(compute_stations(surface, curves, bottoms[j], bottom_marks[j], lamella));
+        for (size_t i = 0; i < tops; i++)
+            for (size_t j = tops; j < traces.size(); j++) {
+                if (!curves[i].is_valid() || !curves[j].is_valid())
+                    continue;
+
+                for (const std::pair<double, double>& crossing : compute_crossings(traces[i], curves[i], traces[j], curves[j]))
+                    nodes.push_back({i, j - tops, crossing.first, crossing.second});
+            }
+    }
+
+    /// The stations of lamella i and the ruling at each: frames on the surface (x the tangent, z the normal) at the nodes and every sample between, the ruling the strip's blended to the normal near the nodes; lean and capped updated on an asymptotic path.
+    void compute_stations(size_t i, const std::vector<double>& nodes, const Lamella& lamella, std::vector<Plane>& stations, std::vector<Vector>& rulings) {
+
+        std::vector<Point> joints;
+        for (const double t : nodes)
+            joints.push_back(compute_point(surface, curves[i], t));
+
+        for (const double t : compute_parameters(traces[i], curves[i], nodes, lamella.sample)) {
+            const Darboux d = compute_darboux(surface, curves[i], t);
+            double distance = 1e300;
+            for (const Point& joint : joints)
+                distance = std::min(distance, (joint - d.x).magnitude());
+
+            stations.emplace_back(d.x, d.t, d.u);
+            rulings.push_back(compute_ruling(d, path, lamella, compute_blend(distance, lamella)));
+            if (path.is_asymptotic()) {
+                lean = std::max(lean, d.kg == 0.0 ? 90.0 : std::atan(std::abs(d.tg / d.kg)) * 180.0 / Tolerance::PI);
+                capped += d.kg == 0.0 || std::abs(d.tg / d.kg) > lamella.ruling ? 1 : 0;
+            }
+        }
+    }
+
+    /// The boards through the stations of every lamella and the studs at the nodes.
+    void compute_elements(const Lamella& lamella) {
+
+        std::vector<std::vector<double>> node_parameters(traces.size());
+        for (const Node& node : nodes) {
+            node_parameters[node.top].push_back(node.top_t);
+            node_parameters[tops + node.bottom].push_back(node.bottom_t);
+        }
 
         const double lift = lamella.spacing / 2.0;
         const double shift = (lamella.gap + lamella.thickness) / 2.0;
-        for (size_t i = 0; i < gridshell.frames.size(); i++) {
-            const bool upper = i < tops.size();
-            const std::string name = upper ? fmt::format("lamella_top_{}", i) : fmt::format("lamella_bottom_{}", i - tops.size());
-            std::vector<std::shared_ptr<Beam>>& layer = upper ? gridshell.top : gridshell.bottom;
-            layer.push_back(compute_board(gridshell.frames[i], upper ? lift : -lift, shift, lamella, name + "_a"));
-            layer.push_back(compute_board(gridshell.frames[i], upper ? lift : -lift, -shift, lamella, name + "_b"));
+        std::vector<long> board(traces.size(), -1);
+        for (size_t i = 0; i < traces.size(); i++) {
+            std::vector<Plane> stations;
+            std::vector<Vector> rulings;
+            if (curves[i].is_valid())
+                compute_stations(i, node_parameters[i], lamella, stations, rulings);
+
+            frames.push_back(stations);
+            if (stations.size() < 2)
+                continue;
+
+            const bool upper = i < tops;
+            const std::string name = upper ? fmt::format("lamella_top_{}", i) : fmt::format("lamella_bottom_{}", i - tops);
+            std::vector<std::shared_ptr<BeamCurved>>& layer = upper ? top : bottom;
+            board[i] = static_cast<long>(layer.size());
+            layer.push_back(compute_board(stations, rulings, upper ? lift : -lift, shift, lamella, name + "_a"));
+            layer.push_back(compute_board(stations, rulings, upper ? lift : -lift, -shift, lamella, name + "_b"));
         }
 
-        return gridshell;
+        for (const Node& node : nodes) {
+            if (board[node.top] < 0 || board[tops + node.bottom] < 0)
+                continue;
+
+            const Plane top_frame = compute_frame(surface, curves[node.top], node.top_t);
+            const Plane bottom_frame = compute_frame(surface, curves[tops + node.bottom], node.bottom_t);
+            studs.push_back(compute_stud(top_frame, bottom_frame, lamella, fmt::format("stud_{}_{}", node.top, node.bottom)));
+            pairs.emplace_back(static_cast<size_t>(board[node.top]) / 2, static_cast<size_t>(board[tops + node.bottom]) / 2);
+        }
     }
 };
 

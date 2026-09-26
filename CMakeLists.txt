@@ -85,6 +85,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
+    src/joinery_solver/wood_elements/wood_element_beam_curved.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
