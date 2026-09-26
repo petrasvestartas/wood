@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "wood_element_beam.h"
+#include "wood_element_beam_curved.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
 #include "wood_element_plate.h"

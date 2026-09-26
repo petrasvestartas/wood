@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "nurbscurve.proto";
+import "polyline.proto";
+import "vector.proto";
+
+// The state of a BeamCurved beyond the kernel Element: its central axis, stations and cross-section.
+message BeamCurved {
+  session_proto.NurbsCurve axis = 1;            // Central axis, interpolated through the stations
+  repeated double parameters = 2;               // Axis parameter of every station
+  repeated session_proto.Vector directions = 3; // Section up direction at every station, the surface normal of a lamella
+  session_proto.Polyline section = 4;           // Closed cross-section in the station frame, x across the axis, y up
+}
