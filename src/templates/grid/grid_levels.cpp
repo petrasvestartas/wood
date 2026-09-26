@@ -67,18 +67,18 @@ Mesh compute_plan(const Pattern& pattern, const std::vector<Polyline>& rings, co
             ids.push_back(static_cast<double>(i));
         }
 
+    std::vector<Line> sides;
     std::vector<Polyline> all = rings;
     all.insert(all.end(), extras.begin(), extras.end());
     for (size_t r = 0; r < all.size(); r++) {
         const std::vector<Point> corners = to_loop(all[r]);
         for (size_t e = 0; e < corners.size(); e++) {
-            lines.push_back(Line::from_points(corners[e], corners[(e + 1) % corners.size()]));
+            sides.push_back(Line::from_points(corners[e], corners[(e + 1) % corners.size()]));
             ids.push_back(compute_ring_id(r, e));
         }
     }
 
-    const std::pair<std::vector<Line>, std::vector<double>> split = compute_crossings(lines, ids, tolerance, merge);
-    Mesh plan = compute_arrangement(split.first, split.second, tolerance);
+    Mesh plan = compute_arrangement(lines, sides, ids, tolerance, merge);
     for (const size_t face : plan.faces()) {
         const std::vector<size_t> loop = *plan.face_vertices(face);
         std::set<int> families;
@@ -102,6 +102,16 @@ Mesh compute_plan(const Pattern& pattern, const std::vector<Polyline>& rings, co
     }
 
     return plan;
+}
+
+/// The section of a solid by the horizontal plane through z, its rings at z 0.
+std::vector<Polyline> compute_section(const Mesh& solid, double z) {
+
+    std::vector<Polyline> rings;
+    for (const Polyline& ring : solid.section_by_plane(Plane::from_point_normal(Point(0.0, 0.0, z), Vector(0.0, 0.0, 1.0))))
+        rings.push_back(compute_lifted(ring, 0.0));
+
+    return rings;
 }
 
 /// A level from its section rings and the cores inside them, every ring counter-clockwise at z 0, its plan computed with column 0 inside a core.
@@ -224,8 +234,7 @@ Drawn compute_drawn(const std::vector<Line>& lines, const std::vector<Polyline>&
 Mesh compute_drawn_plan(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, const std::vector<double>& elevations, size_t k, double tolerance, double angle) {
 
     const Drawn drawn = compute_drawn(lines, surfaces, elevations, k, tolerance, angle);
-    const std::pair<std::vector<Line>, std::vector<double>> split = compute_crossings(drawn.lines, drawn.ids, tolerance, tolerance);
-    Mesh plan = compute_arrangement(split.first, split.second, tolerance);
+    Mesh plan = compute_arrangement(drawn.lines, {}, drawn.ids, tolerance, tolerance);
     for (const size_t face : plan.faces())
         plan.set_face_attribute(face, "floor", is_inside(drawn.floors, compute_interior(to_loop(*plan.face_polygon(face)))) ? 1.0 : 0.0);
 
@@ -398,20 +407,20 @@ Building Building::from_solid(const Mesh& massing, const std::vector<double>& el
     std::vector<std::vector<Polyline>> below(count);
     std::vector<std::vector<Polyline>> above(count);
     for (size_t k = 0; k < count; k++) {
-        below[k] = k > 0 ? plan::compute_section(solid, elevations[k] - tolerance, tolerance) : std::vector<Polyline>();
-        above[k] = k + 1 < count ? plan::compute_section(solid, elevations[k] + tolerance, tolerance) : std::vector<Polyline>();
+        below[k] = k > 0 ? levels::compute_section(solid, elevations[k] - tolerance) : std::vector<Polyline>();
+        above[k] = k + 1 < count ? levels::compute_section(solid, elevations[k] + tolerance) : std::vector<Polyline>();
     }
 
     Building building;
     building.tolerance = tolerance;
     for (size_t k = 0; k < count; k++) {
-        std::vector<Polyline> rings = below[k].empty() ? above[k] : above[k].empty() ? below[k] : plan::compute_regions(below[k], above[k], 1);
+        std::vector<Polyline> rings = below[k].empty() ? above[k] : above[k].empty() ? below[k] : BooleanPolyline::compute_regions(below[k], above[k], 1);
         for (Polyline& ring : rings)
             ring.merge_collinear(1e-6);
 
         std::vector<Polyline> extras;
         for (size_t storey = k > 0 ? k - 1 : k; storey <= k && storey + 1 < count; storey++)
-            for (const Polyline& ring : plan::compute_regions(above[storey], below[storey + 1], 0))
+            for (const Polyline& ring : BooleanPolyline::compute_regions(above[storey], below[storey + 1], 0))
                 if (plan::compute_area(plan::to_loop(ring)) > 0.0)
                     extras.push_back(ring);
 

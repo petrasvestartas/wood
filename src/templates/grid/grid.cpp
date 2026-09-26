@@ -511,7 +511,7 @@ std::vector<std::shared_ptr<Element>> to_floor(const Level& level, const Context
 
     std::vector<Polyline> outer;
     for (const Polyline& core : level.cores)
-        outer.push_back(to_polyline(compute_offset(to_loop(core), std::vector<double>(to_loop(core).size(), context.framing.wall / 2.0))));
+        outer.push_back(compute_wall_ring(core, context.framing.wall));
 
     std::vector<std::shared_ptr<Element>> elements;
     for (const std::pair<size_t, size_t>& edge : level.plan.edges())

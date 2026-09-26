@@ -1,5 +1,6 @@
 #pragma once
 #include "src/templates/grid/grid.h"
+#include "../src/boolean_polyline.h"
 
 namespace wood_grid::plan {
 
@@ -41,20 +42,14 @@ bool is_convex(const std::vector<Point>& points);
 // Regions
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Rings of the cap faces of solid cut at the horizontal plane through z: outer rings counter-clockwise seen from above, face holes as clockwise holes, all at z 0; empty above the solid.
-std::vector<Polyline> compute_section(const Mesh& solid, double z, double tolerance);
-
-/// Intersection (0), union (1) or difference (2) of two ring lists with holes kept, output rings oriented as compute_section; Clipper2.
-std::vector<Polyline> compute_regions(const std::vector<Polyline>& a, const std::vector<Polyline>& b, int clip);
-
 /// Even-odd inside test over all rings, so a ring inside a hole is an island.
 bool is_inside(const std::vector<Polyline>& rings, const Point& point);
 
+/// The outer face ring of a core's walls: the core ring moved out by half the wall.
+Polyline compute_wall_ring(const Polyline& core, double wall);
+
 /// Where the lines of two sides through a corner meet once each is moved out along its outward normal by its distance: the mitre; along the first normal by the larger distance when the sides are parallel.
 Point compute_corner(const Point& corner, const Vector& before, double a, const Vector& after, double b);
-
-/// Loop with side i moved out by distances[i], the loop counter-clockwise seen from above; the mitre of two sides at every corner.
-std::vector<Point> compute_offset(const std::vector<Point>& points, const std::vector<double>& distances);
 
 /// A piece of a line between its crossings with rings, and the ring and side each end stops on, -1 at the line's own ends.
 struct Piece {
@@ -76,11 +71,8 @@ double compute_ring_id(size_t ring, size_t edge);
 /// True for the id of a ring edge.
 bool is_ring(double id);
 
-/// Every line split at every crossing with another, collinear overlaps given to rings and earlier lines, split points within merge welded onto ring corners first, then ring crossings, then the rest, dangling pieces dropped; ids follow their source line.
-std::pair<std::vector<Line>, std::vector<double>> compute_crossings(const std::vector<Line>& lines, const std::vector<double>& ids, double tolerance, double merge);
-
-/// Mesh::from_lines of split lines with the outer face deleted, edge attribute line from the split's ids and vertex attributes line_a, line_b from the two lowest ids meeting there; slivers below tolerance squared dropped.
-Mesh compute_arrangement(const std::vector<Line>& lines, const std::vector<double>& ids, double tolerance);
+/// Mesh::from_arrangement of lines inside the ring edges, edge attribute line the id of the line an edge lies on (ids for lines, then for ring edges) and vertex attributes line_a, line_b the two lowest ids meeting there.
+Mesh compute_arrangement(const std::vector<Line>& lines, const std::vector<Line>& rings, const std::vector<double>& ids, double tolerance, double merge);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes

@@ -357,7 +357,7 @@ std::vector<std::vector<Point>> compute_core_quads(const Polyline& ring, double 
     return quads;
 }
 
-/// The largest counter-clockwise ring of a Clipper result with the clockwise rings inside it; empty when nothing is left.
+/// The largest counter-clockwise ring of a boolean result with the clockwise rings inside it; empty when nothing is left.
 std::vector<Polyline> compute_largest(std::vector<Polyline> rings) {
 
     std::stable_sort(rings.begin(), rings.end(), is_larger);
@@ -376,7 +376,7 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
 
     std::vector<Polyline> cutters;
     for (const Polyline& core : cores)
-        cutters.push_back(to_polyline(compute_offset(to_loop(core), std::vector<double>(to_loop(core).size(), context.framing.wall / 2.0))));
+        cutters.push_back(compute_wall_ring(core, context.framing.wall));
 
     std::map<size_t, std::vector<Polyline>> outlines;
     for (const size_t face : context.plan.faces()) {
@@ -392,7 +392,7 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
                 notches.push_back(to_polyline(context.rising.at(side.first)));
         }
 
-        const std::vector<Polyline> loops = compute_largest(compute_regions({to_polyline(compute_offset(compute_flat(context.plan, loop), distances))}, notches, 2));
+        const std::vector<Polyline> loops = compute_largest(BooleanPolyline::compute_regions({to_polyline(compute_flat(context.plan, loop)).offset_sides(distances)}, notches, 2));
         if (loops.empty())
             continue;
 
@@ -423,7 +423,7 @@ std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& l
     for (int k = 0; k < strips; k++) {
         const Point centre = origin + across * (low + (k + 0.5) * width);
         const std::vector<Point> band = {centre - span * 1e7 - across * (width / 2.0), centre + span * 1e7 - across * (width / 2.0), centre + span * 1e7 + across * (width / 2.0), centre - span * 1e7 + across * (width / 2.0)};
-        const std::vector<Polyline> strip = compute_largest(compute_regions(loops, {to_polyline(band)}, 0));
+        const std::vector<Polyline> strip = compute_largest(BooleanPolyline::compute_regions(loops, {to_polyline(band)}, 0));
         if (!strip.empty())
             panels.push_back(strip);
     }
@@ -501,7 +501,7 @@ std::vector<Station> compute_stations(const Context& context, size_t face, const
 
     std::vector<Polyline> outer;
     for (const Polyline& core : cores)
-        outer.push_back(to_polyline(compute_offset(to_loop(core), std::vector<double>(to_loop(core).size(), context.framing.wall / 2.0))));
+        outer.push_back(compute_wall_ring(core, context.framing.wall));
     const std::vector<Polyline> bay = {to_polyline(compute_flat(plan, loop))};
     const std::pair<double, double> size = wood_session::compute_size(compute_profile(3, context.framing));
     const Member purlin{0, along, 3, 4, size.first, 0.0, -size.second};
