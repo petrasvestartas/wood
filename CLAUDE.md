@@ -16,7 +16,8 @@ tools/run_guarded.ps1 -FilePath build/Release/main_all_datasets.exe `
 
 Defaults are 10 minutes and 4 GB. Exit code 124 means the timeout killed it, 137
 the memory cap, 75 that a copy was already running. Builds have their own limit:
-`cmake --build build --parallel 4`, never `-j$(nproc)`.
+`cmake --build build --parallel 6` through `buildslot`, with `~/.local/bin/cmake` (never the snap,
+which escapes the memory cap), never `-j$(nproc)`.
 
 Why this exists: on 2026-08-27 three concurrent copies of
 `main_wood_04_all_datasets.exe` reached 51 GB, 45 GB and 18 GB of committed
