@@ -549,22 +549,21 @@ inline std::vector<Crossing> compute_crossings(const std::vector<std::vector<Pla
 // Elements
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Frames along one lamella: every traced frame not within twice the gap of a crossing, three on the tangent at each crossing, gap apart, so the boards run straight past the stud, and one a gap past each end, so the end sections stand on their own normal.
+/// Frames along one lamella, continuous through its nodes as in a discrete web: every traced frame, the frame of each crossing inserted where it lies, a traced frame nearer a crossing than a quarter step dropped so no segment is short, and one a gap past each end on the end tangent.
 inline std::vector<Plane> compute_stations(const std::vector<Plane>& frames, const std::vector<std::pair<double, Plane>>& marks, const Lamella& lamella) {
 
     std::vector<Plane> stations;
     for (size_t k = 0; k < frames.size(); k++) {
         bool free = true;
         for (const std::pair<double, Plane>& mark : marks)
-            free = free && (frames[k].origin() - mark.second.origin()).magnitude() > 2.0 * lamella.gap;
+            free = free && (frames[k].origin() - mark.second.origin()).magnitude() > lamella.step / 4.0;
 
         if (free)
             stations.push_back(frames[k]);
 
         for (const std::pair<double, Plane>& mark : marks)
             if (mark.first >= k && mark.first < k + 1)
-                for (int side = -1; side <= 1; side++)
-                    stations.emplace_back(mark.second.origin() + mark.second.x_axis() * (side * lamella.gap), mark.second.x_axis(), mark.second.y_axis());
+                stations.push_back(mark.second);
     }
 
     const Plane first = stations.front();
@@ -612,12 +611,13 @@ inline std::shared_ptr<Column> compute_stud(const Plane& top, const Plane& botto
     return std::make_shared<Column>(Line::from_points(base, top.origin() + normal * reach), Polyline(points), name);
 }
 
-/// A two-directional lamella gridshell: two upright boards gap apart per lamella, the first curve family a layer up the normal, the second a layer down, a hexagonal stud in both gaps at every crossing.
+/// A two-directional lamella gridshell on two curve families, on asymptotic curves a discrete A-net: two upright boards gap apart per lamella, continuous and twisting with the normal through every node, the first curve family a layer up the normal, the second a layer down, a hexagonal stud in both gaps at every crossing.
 struct Gridshell {
     std::vector<std::shared_ptr<BeamCurved>> top; // lamella_top_i_a and _b per lamella of the first family, spacing / 2 up the normal.
     std::vector<std::shared_ptr<BeamCurved>> bottom; // lamella_bottom_j_a and _b per lamella of the second family, spacing / 2 down the normal.
-    std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats touching the four boards.
+    std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats against the four boards at the node.
     std::vector<std::vector<Plane>> frames; // Stations of every lamella on the carrier, x along it, z the normal; the top lamellas first.
+    std::vector<std::pair<size_t, size_t>> nodes; // Top and bottom lamella of every stud.
 
     /// The gridshell on count_top and count_bottom lamellas of a NURBS surface: curves 0 the u and v iso-curves, 1 the asymptotic curves (Gaussian curvature at most 0), each family seeded along a spine of the other through the middle of the domain.
     static Gridshell from_surface(const NurbsSurface& surface, int curves, int count_top, int count_bottom, const Lamella& lamella) {
@@ -653,6 +653,7 @@ struct Gridshell {
             marks[crossing.top].emplace_back(crossing.along_top, top);
             marks[tops + crossing.bottom].emplace_back(crossing.along_bottom, bottom);
             gridshell.studs.push_back(compute_stud(top, bottom, lamella, fmt::format("stud_{}_{}", crossing.top, crossing.bottom)));
+            gridshell.nodes.emplace_back(crossing.top, crossing.bottom);
         }
 
         const double lift = lamella.spacing / 2.0;

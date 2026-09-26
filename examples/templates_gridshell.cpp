@@ -16,15 +16,16 @@ struct Scene {
 const std::vector<Scene> SCENES = {
     {"asymptotic", 1, 10000.0, 9},
     {"iso", 0, 6000.0, 5},
-    {"saddle_mesh", 2, 10000.0, 9},
-    {"catenoid_mesh", 3, 6000.0, 8},
-    {"enneper_mesh", 4, 9000.0, 8},
+    {"saddle_mesh", 2, 20000.0, 12},
+    {"catenoid_mesh", 3, 20000.0, 14},
+    {"enneper_mesh", 4, 30000.0, 14},
 };
 const double RISE = 0.15; // corner lift and drop of a saddle over its side
 const double SKEW = 0.5; // how much faster the saddle curves at one end, so the asymptotic curves bend in plan
 const double GAP = 4000.0; // clear distance between the shells
 const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 100.0};
 const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
+const double FIT = 1.0; // largest gap or penetration in mm between a stud flat and the twisting board it holds
 const int SWEEPS = 400; // cotangent Laplacian sweeps that relax the saddle mesh to a minimal one
 
 /// A convex part of an element with its box, what the clash check cuts.
@@ -224,7 +225,28 @@ bool is_near(const std::pair<Point, Point>& a, const std::pair<Point, Point>& b)
     return true;
 }
 
-/// The largest overlap volume over every two convex pieces of different elements whose boxes overlap: a board cut into one loft per pair of neighbouring rings, a stud whole.
+/// The four boards a stud holds, as positions in the top boards followed by the bottom boards.
+std::vector<size_t> compute_held(const wood_gridshell::Gridshell& gridshell, size_t stud) {
+
+    const size_t top = gridshell.nodes[stud].first;
+    const size_t bottom = gridshell.nodes[stud].second;
+
+    return {2 * top, 2 * top + 1, gridshell.top.size() + 2 * bottom, gridshell.top.size() + 2 * bottom + 1};
+}
+
+/// True when one of two element positions is a stud and the other a board it holds; boards come first, then the studs.
+bool is_held(const wood_gridshell::Gridshell& gridshell, size_t a, size_t b) {
+
+    const size_t boards = gridshell.top.size() + gridshell.bottom.size();
+    if ((a < boards) == (b < boards))
+        return false;
+
+    const std::vector<size_t> held = compute_held(gridshell, std::max(a, b) - boards);
+
+    return std::find(held.begin(), held.end(), std::min(a, b)) != held.end();
+}
+
+/// The largest overlap volume over every two convex pieces of different elements whose boxes overlap, a stud and the four boards it holds left to compute_fit: a board cut into one loft per pair of neighbouring rings, a stud whole.
 double compute_clash(const wood_gridshell::Gridshell& gridshell) {
 
     std::vector<Piece> pieces;
@@ -244,7 +266,7 @@ double compute_clash(const wood_gridshell::Gridshell& gridshell) {
     double worst = 0.0;
     for (size_t i = 0; i < pieces.size(); i++)
         for (size_t j = i + 1; j < pieces.size(); j++)
-            if (pieces[i].element != pieces[j].element && is_near(pieces[i].box, pieces[j].box))
+            if (pieces[i].element != pieces[j].element && is_near(pieces[i].box, pieces[j].box) && !is_held(gridshell, pieces[i].element, pieces[j].element))
                 worst = std::max(worst, compute_overlap(pieces[i].mesh, pieces[j].mesh));
 
     return worst;
@@ -329,6 +351,77 @@ double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
     return worst;
 }
 
+/// Largest penetration and largest gap in mm between each stud and the four boards it holds: the board rails sampled every 2 mm for 150 mm either side of the node, each point's depth inside the stud prism, positive inside; the gap of a board is its least distance outside.
+std::pair<double, double> compute_fit(const wood_gridshell::Gridshell& gridshell) {
+
+    std::vector<std::shared_ptr<BeamCurved>> boards = gridshell.top;
+    boards.insert(boards.end(), gridshell.bottom.begin(), gridshell.bottom.end());
+    std::vector<std::vector<NurbsCurve>> rails;
+    for (const std::shared_ptr<BeamCurved>& board : boards)
+        rails.push_back(board->rails());
+
+    double penetration = 0.0;
+    double gap = 0.0;
+    for (size_t s = 0; s < gridshell.studs.size(); s++) {
+        const Column& stud = *gridshell.studs[s];
+        const Point base = stud.axis.start();
+        const Vector along = stud.axis.to_vector();
+        const std::vector<Point> corners = stud.section.get_points();
+        const Point middle = Point::centroid(std::vector<Point>(corners.begin(), corners.end() - 1));
+        std::vector<Plane> flats;
+        for (size_t k = 0; k + 1 < corners.size(); k++) {
+            Vector normal = (corners[k + 1] - corners[k]).cross(along).normalized();
+            if (normal.dot(corners[k] - middle) < 0.0)
+                normal = -normal;
+
+            flats.push_back(Plane::from_point_normal(corners[k], normal));
+        }
+
+        for (const size_t b : compute_held(gridshell, s)) {
+            double nearest = 1e300;
+            for (const NurbsCurve& rail : rails[b]) {
+                const double t = rail.closest_parameter(stud.axis.point_at(0.5));
+                const double h = (rail.domain().second - rail.domain().first) * 1e-4;
+                const double speed = (rail.point_at(std::min(t + h, rail.domain().second)) - rail.point_at(std::max(t - h, rail.domain().first))).magnitude() / (2.0 * h);
+                for (int k = -75; k <= 75; k++) {
+                    const double u = std::clamp(t + k * 2.0 / speed, rail.domain().first, rail.domain().second);
+                    const Point p = rail.point_at(u);
+                    const double axial = (p - base).dot(along) / along.dot(along);
+                    if (axial < 0.0 || axial > 1.0)
+                        continue;
+
+                    double depth = 1e300;
+                    for (const Plane& flat : flats)
+                        depth = std::min(depth, -(p - flat.origin()).dot(flat.z_axis()));
+
+                    penetration = std::max(penetration, depth);
+                    nearest = std::min(nearest, -depth);
+                }
+            }
+
+            gap = std::max(gap, std::max(nearest, 0.0));
+        }
+    }
+
+    return {penetration, gap};
+}
+
+/// Largest twist of the lamellas in degrees per metre: the turn of the normal about the tangent from one station to the next.
+double compute_twist(const wood_gridshell::Gridshell& gridshell) {
+
+    double worst = 0.0;
+    for (const std::vector<Plane>& frames : gridshell.frames)
+        for (size_t k = 1; k + 2 < frames.size(); k++) {
+            const Vector chord = frames[k + 1].origin() - frames[k].origin();
+            const Vector tangent = chord.normalized();
+            const Vector a = (frames[k].z_axis() - tangent * frames[k].z_axis().dot(tangent)).normalized();
+            const Vector b = (frames[k + 1].z_axis() - tangent * frames[k + 1].z_axis().dot(tangent)).normalized();
+            worst = std::max(worst, std::acos(std::clamp(a.dot(b), -1.0, 1.0)) / chord.magnitude());
+        }
+
+    return worst * 180.0 / Tolerance::PI * 1000.0;
+}
+
 /// True when every board's BRep is one valid closed solid of six faces.
 bool is_smooth(const wood_gridshell::Gridshell& gridshell) {
 
@@ -383,10 +476,11 @@ int main() {
             count += wood_session.get_neighbours(stud->guid()).size() == 4 ? 1 : 0;
 
         const double clash = compute_clash(gridshells[i]);
+        const std::pair<double, double> fit = compute_fit(gridshells[i]);
         const bool smooth = is_smooth(gridshells[i]);
-        passed = passed && count == gridshells[i].studs.size() && clash <= CLEARANCE && smooth;
+        passed = passed && fit.first <= FIT && fit.second <= FIT && clash <= CLEARANCE && smooth;
         const std::string residual = residuals[i] < 0.0 ? "" : fmt::format(", mean curvature share {:.4f}", residuals[i]);
-        std::cout << fmt::format("{}: {} {} boards{}, {} of {} studs touch four boards, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, count, gridshells[i].studs.size(), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), clash);
+        std::cout << fmt::format("{}: {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm (gap {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit.first, fit.second, count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());
