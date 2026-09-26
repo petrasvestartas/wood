@@ -1,8 +1,6 @@
 #pragma once
 #include "wood_session.h"
 #include "wood_profile.h"
-#include "wood_element_geometry.h"
-#include "primitives.h"
 
 namespace wood_gridshell {
 
@@ -577,170 +575,19 @@ inline std::vector<Plane> compute_stations(const std::vector<Plane>& frames, con
     return stations;
 }
 
-/// A straight pcurve from (u0, v0) to (u1, v1).
-inline NurbsCurve compute_uv_line(double u0, double v0, double u1, double v1) {
-    return NurbsCurve::create(false, 1, {Point(u0, v0, 0.0), Point(u1, v1, 0.0)});
-}
+/// One board on the lamella's central axis through its stations, its section a lift along each station's normal and a shift across it, so every section is the rectangle the local normal and the normal cross the tangent span.
+inline std::shared_ptr<BeamCurved> compute_board(const std::vector<Plane>& stations, double lift, double shift, const Lamella& lamella, const std::string& name) {
 
-/// A board as a Beam on its stations, the sweep the joinery reads, whose solid is four smooth corner rails closed by ruled faces and planar end caps.
-class Board : public Beam {
-public:
-    std::vector<Polyline> rings; // Station sections, closed rectangles counter-clockwise about the lamella direction.
-    std::vector<NurbsCurve> rails; // Corner rails, rail i interpolated through corner i of every ring at the ring's index, the same parameter on all four, so a ruling at a station is the section's edge.
-
-private:
-    mutable std::optional<BRep> _brep; // Cache of the solid.
-    mutable std::optional<Mesh> _mesh; // Cache of the solid sampled at its stations.
-
-public:
-    /// The beam with its rings and a cubic rail through each corner of them.
-    Board(const Beam& beam, const std::vector<Polyline>& rings) : Beam(beam), rings(rings) {
-
-        for (int i = 0; i < 4; i++) {
-            std::vector<Point> corners;
-            for (const Polyline& ring : rings)
-                corners.push_back(ring[i]);
-
-            rails.push_back(NurbsCurve::create_interpolated(corners));
-        }
-    }
-
-    /// One closed solid: a ruled face between each two neighbouring rails, straight across and smooth along, and a planar cap at each end.
-    const BRep& element_geometry_brep() const override {
-
-        if (!_brep)
-            _brep = compute_brep();
-
-        return *_brep;
-    }
-
-    /// The solid sampled at its stations, every vertex on a rail: what contacts and clash checks read.
-    const Mesh& element_geometry_mesh() const override {
-
-        if (!_mesh)
-            _mesh = sweep_sections(rings);
-
-        return *_mesh;
-    }
-
-    /// Drops the solid with the beam's caches.
-    void invalidate_geometry() override {
-
-        _brep.reset();
-        _mesh.reset();
-        Beam::invalidate_geometry();
-    }
-
-    /// Moves the rings and the rails with the beam.
-    void place(const Xform& xform) override {
-
-        for (Polyline& ring : rings)
-            ring.transform(xform);
-
-        for (NurbsCurve& rail : rails)
-            rail = rail.transformed(xform);
-
-        _brep.reset();
-        _mesh.reset();
-        Beam::place(xform);
-    }
-
-    /// A copy with a fresh guid that keeps the rings and rails.
-    std::shared_ptr<Element> clone() const override {
-        return std::make_shared<Board>(*this);
-    }
-
-private:
-    /// The BRep: rail edges shared by the ruled faces, cap edges by a ruled face and a cap, every pcurve on a domain side.
-    BRep compute_brep() const {
-
-        BRep brep;
-        brep.name = name;
-        std::vector<int> starts;
-        std::vector<int> ends;
-        std::vector<int> long_edges;
-        for (const NurbsCurve& rail : rails) {
-            starts.push_back(brep.add_vertex(rail.point_at_start()));
-            ends.push_back(brep.add_vertex(rail.point_at_end()));
-            long_edges.push_back(brep.add_edge(brep.add_curve_3d(rail), starts.back(), ends.back()));
-        }
-
-        std::vector<int> start_edges;
-        std::vector<int> end_edges;
-        for (int i = 0; i < 4; i++) {
-            const NurbsCurve start = NurbsCurve::create(false, 1, {rails[i].point_at_start(), rails[(i + 1) % 4].point_at_start()});
-            const NurbsCurve end = NurbsCurve::create(false, 1, {rails[i].point_at_end(), rails[(i + 1) % 4].point_at_end()});
-            start_edges.push_back(brep.add_edge(brep.add_curve_3d(start), starts[i], starts[(i + 1) % 4]));
-            end_edges.push_back(brep.add_edge(brep.add_curve_3d(end), ends[i], ends[(i + 1) % 4]));
-        }
-
-        std::vector<BRepRef> faces;
-        for (int i = 0; i < 4; i++) {
-            const int next = (i + 1) % 4;
-            const int surface = brep.add_surface(Primitives::create_ruled(rails[next], rails[i]));
-            const std::pair<double, double> u = brep.m_surfaces[surface].domain(0);
-            const std::pair<double, double> v = brep.m_surfaces[surface].domain(1);
-            brep.add_pcurve(long_edges[next], surface, brep.add_curve_2d(compute_uv_line(u.first, v.first, u.second, v.first)));
-            brep.add_pcurve(end_edges[i], surface, brep.add_curve_2d(compute_uv_line(u.second, v.second, u.second, v.first)));
-            brep.add_pcurve(long_edges[i], surface, brep.add_curve_2d(compute_uv_line(u.first, v.second, u.second, v.second)));
-            brep.add_pcurve(start_edges[i], surface, brep.add_curve_2d(compute_uv_line(u.first, v.second, u.first, v.first)));
-            const int wire = brep.add_wire({{long_edges[next], BRepOrientation::Forward}, {end_edges[i], BRepOrientation::Reversed}, {long_edges[i], BRepOrientation::Reversed}, {start_edges[i], BRepOrientation::Forward}});
-            faces.push_back({brep.add_face(surface, {{wire, BRepOrientation::Forward}}), BRepOrientation::Forward});
-        }
-
-        faces.push_back(compute_cap(brep, {rails[0].point_at_start(), rails[3].point_at_start(), rails[1].point_at_start(), rails[2].point_at_start()}, {start_edges[3], start_edges[2], start_edges[1], start_edges[0]}, BRepOrientation::Reversed));
-        faces.push_back(compute_cap(brep, {rails[0].point_at_end(), rails[1].point_at_end(), rails[3].point_at_end(), rails[2].point_at_end()}, end_edges, BRepOrientation::Forward));
-        brep.add_solid({{brep.add_shell(faces), BRepOrientation::Forward}});
-
-        return brep;
-    }
-
-    /// A planar bilinear cap on corners (00, 10, 01, 11) bounded by the edges from 00 round to 10, 11, 01, each running that way when forward.
-    static BRepRef compute_cap(BRep& brep, const std::vector<Point>& corners, const std::vector<int>& edges, BRepOrientation orientation) {
-
-        NurbsSurface patch(3, false, 2, 2, 2, 2);
-        patch.set_cv(0, 0, corners[0]);
-        patch.set_cv(1, 0, corners[1]);
-        patch.set_cv(0, 1, corners[2]);
-        patch.set_cv(1, 1, corners[3]);
-        const int surface = brep.add_surface(patch);
-        const std::pair<double, double> u = patch.domain(0);
-        const std::pair<double, double> v = patch.domain(1);
-        const std::vector<Point> loop{Point(u.first, v.first, 0.0), Point(u.second, v.first, 0.0), Point(u.second, v.second, 0.0), Point(u.first, v.second, 0.0)};
-        std::vector<BRepRef> refs;
-        for (int k = 0; k < 4; k++) {
-            const Point& from = orientation == BRepOrientation::Forward ? loop[k] : loop[(k + 1) % 4];
-            const Point& to = orientation == BRepOrientation::Forward ? loop[(k + 1) % 4] : loop[k];
-            brep.add_pcurve(edges[k], surface, brep.add_curve_2d(compute_uv_line(from[0], from[1], to[0], to[1])));
-            refs.push_back({edges[k], orientation});
-        }
-
-        return {brep.add_face(surface, {{brep.add_wire(refs), BRepOrientation::Forward}}), BRepOrientation::Forward};
-    }
-};
-
-/// One board on the lamella centreline, a section lift along each station's normal and shift across it, every section the rectangle the local normal and the normal cross the tangent span.
-inline std::shared_ptr<Board> compute_board(const std::vector<Plane>& stations, double lift, double shift, const Lamella& lamella, const std::string& name) {
-
-    const double across[4] = {shift - lamella.thickness / 2.0, shift + lamella.thickness / 2.0, shift + lamella.thickness / 2.0, shift - lamella.thickness / 2.0};
-    const double up[4] = {lift - lamella.height / 2.0, lift - lamella.height / 2.0, lift + lamella.height / 2.0, lift + lamella.height / 2.0};
     std::vector<Point> points;
     std::vector<Vector> directions;
-    std::vector<Polyline> rings;
     for (const Plane& station : stations) {
         points.push_back(station.origin());
         directions.push_back(station.z_axis());
-        std::vector<Point> corners;
-        for (int i = 0; i <= 4; i++)
-            corners.push_back(station.origin() + station.y_axis() * across[i % 4] + station.z_axis() * up[i % 4]);
-
-        rings.emplace_back(corners);
     }
 
-    directions.pop_back();
     const Polyline section = profile_rectangle(lamella.thickness, lamella.height)[0].translated(Vector(shift, lift, 0.0));
 
-    return std::make_shared<Board>(Beam(Polyline(points), std::vector<Polyline>{section}, directions, name), rings);
+    return std::make_shared<BeamCurved>(points, directions, section, name);
 }
 
 /// A stud along the normal through both layers: a hexagon of three flat pairs gap apart, one against each layer's boards and one across the long corners; a 60 degree crossing gives the regular hexagon.
@@ -767,8 +614,8 @@ inline std::shared_ptr<Column> compute_stud(const Plane& top, const Plane& botto
 
 /// A two-directional lamella gridshell: two upright boards gap apart per lamella, the first curve family a layer up the normal, the second a layer down, a hexagonal stud in both gaps at every crossing.
 struct Gridshell {
-    std::vector<std::shared_ptr<Board>> top; // lamella_top_i_a and _b per lamella of the first family, spacing / 2 up the normal.
-    std::vector<std::shared_ptr<Board>> bottom; // lamella_bottom_j_a and _b per lamella of the second family, spacing / 2 down the normal.
+    std::vector<std::shared_ptr<BeamCurved>> top; // lamella_top_i_a and _b per lamella of the first family, spacing / 2 up the normal.
+    std::vector<std::shared_ptr<BeamCurved>> bottom; // lamella_bottom_j_a and _b per lamella of the second family, spacing / 2 down the normal.
     std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats touching the four boards.
     std::vector<std::vector<Plane>> frames; // Stations of every lamella on the carrier, x along it, z the normal; the top lamellas first.
 
@@ -814,7 +661,7 @@ struct Gridshell {
             gridshell.frames.push_back(compute_stations(traces[i], marks[i], lamella));
             const bool upper = i < tops;
             const std::string name = upper ? fmt::format("lamella_top_{}", i) : fmt::format("lamella_bottom_{}", i - tops);
-            std::vector<std::shared_ptr<Board>>& layer = upper ? gridshell.top : gridshell.bottom;
+            std::vector<std::shared_ptr<BeamCurved>>& layer = upper ? gridshell.top : gridshell.bottom;
             layer.push_back(compute_board(gridshell.frames[i], upper ? lift : -lift, shift, lamella, name + "_a"));
             layer.push_back(compute_board(gridshell.frames[i], upper ? lift : -lift, -shift, lamella, name + "_b"));
         }

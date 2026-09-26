@@ -18,6 +18,7 @@ bool register_factories() {
     Column::register_type();
     Block::register_type();
     Beam::register_type();
+    BeamCurved::register_type();
     InteractionContactFace::register_type();
     InteractionContactAxis::register_type();
     InteractionContactCross::register_type();

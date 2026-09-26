@@ -228,13 +228,15 @@ bool is_near(const std::pair<Point, Point>& a, const std::pair<Point, Point>& b)
 double compute_clash(const wood_gridshell::Gridshell& gridshell) {
 
     std::vector<Piece> pieces;
-    std::vector<std::shared_ptr<wood_gridshell::Board>> boards = gridshell.top;
+    std::vector<std::shared_ptr<BeamCurved>> boards = gridshell.top;
     boards.insert(boards.end(), gridshell.bottom.begin(), gridshell.bottom.end());
-    for (size_t i = 0; i < boards.size(); i++)
-        for (size_t k = 0; k + 1 < boards[i]->rings.size(); k++) {
-            const Mesh mesh = Mesh::loft({boards[i]->rings[k]}, {boards[i]->rings[k + 1]}, true);
+    for (size_t i = 0; i < boards.size(); i++) {
+        const std::vector<Polyline> rings = boards[i]->sections();
+        for (size_t k = 0; k + 1 < rings.size(); k++) {
+            const Mesh mesh = Mesh::loft({rings[k]}, {rings[k + 1]}, true);
             pieces.push_back(Piece{i, mesh, compute_box(mesh)});
         }
+    }
 
     for (size_t i = 0; i < gridshell.studs.size(); i++)
         pieces.push_back(Piece{boards.size() + i, gridshell.studs[i]->model_geometry_mesh(), compute_box(gridshell.studs[i]->model_geometry_mesh())});
@@ -290,27 +292,37 @@ double compute_deviation(const wood_gridshell::Gridshell& gridshell) {
     return worst;
 }
 
-/// Largest angle in degrees between the ruling of a board's side face halfway between two stations and the normal there, the stations' normals averaged.
+/// The parameter of every section corner on its rail, chord length along the corners mapped onto the rail's domain.
+std::vector<double> compute_parameters(const std::vector<Polyline>& rings, const NurbsCurve& rail, size_t corner) {
+
+    std::vector<double> lengths{0.0};
+    for (size_t k = 0; k + 1 < rings.size(); k++)
+        lengths.push_back(lengths.back() + (rings[k + 1][corner] - rings[k][corner]).magnitude());
+
+    std::vector<double> parameters;
+    for (const double length : lengths)
+        parameters.push_back(rail.domain().first + (rail.domain().second - rail.domain().first) * length / lengths.back());
+
+    return parameters;
+}
+
+/// Largest angle in degrees between the ruling of a board face halfway between two sections and the section edge it spans there, the two sections' edges averaged: how far a face twists off its sections.
 double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
 
-    const size_t tops = gridshell.top.size() / 2;
     double worst = 0.0;
-    for (size_t i = 0; i < gridshell.frames.size(); i++)
-        for (size_t side = 0; side < 2; side++) {
-            const wood_gridshell::Board& board = i < tops ? *gridshell.top[2 * i + side] : *gridshell.bottom[2 * (i - tops) + side];
-            std::vector<double> lower{0.0};
-            std::vector<double> upper{0.0};
-            for (size_t k = 0; k + 1 < board.rings.size(); k++) {
-                lower.push_back(lower.back() + (board.rings[k + 1][0] - board.rings[k][0]).magnitude());
-                upper.push_back(upper.back() + (board.rings[k + 1][3] - board.rings[k][3]).magnitude());
-            }
-            for (size_t k = 0; k + 1 < board.rings.size(); k++) {
-                const double a = board.rails[0].domain().first + (board.rails[0].domain().second - board.rails[0].domain().first) * (lower[k] + lower[k + 1]) / 2.0 / lower.back();
-                const double b = board.rails[3].domain().first + (board.rails[3].domain().second - board.rails[3].domain().first) * (upper[k] + upper[k + 1]) / 2.0 / upper.back();
-                const Vector ruling = board.rails[3].point_at(b) - board.rails[0].point_at(a);
-                const Vector normal = gridshell.frames[i][k].z_axis() + gridshell.frames[i][k + 1].z_axis();
-                const double cosine = ruling.normalized().dot(normal.normalized());
-                worst = std::max(worst, std::acos(std::clamp(std::abs(cosine), 0.0, 1.0)) * 180.0 / Tolerance::PI);
+    for (const std::vector<std::shared_ptr<BeamCurved>>& layer : {gridshell.top, gridshell.bottom})
+        for (const std::shared_ptr<BeamCurved>& board : layer) {
+            const std::vector<Polyline> rings = board->sections();
+            const std::vector<NurbsCurve> rails = board->rails();
+            for (size_t i = 0; i < rails.size(); i++) {
+                const size_t j = (i + 1) % rails.size();
+                const std::vector<double> first = compute_parameters(rings, rails[i], i);
+                const std::vector<double> second = compute_parameters(rings, rails[j], j);
+                for (size_t k = 0; k + 1 < rings.size(); k++) {
+                    const Vector ruling = rails[j].point_at((second[k] + second[k + 1]) / 2.0) - rails[i].point_at((first[k] + first[k + 1]) / 2.0);
+                    const Vector edge = (rings[k][j] - rings[k][i]) + (rings[k + 1][j] - rings[k + 1][i]);
+                    worst = std::max(worst, std::acos(std::clamp(ruling.normalized().dot(edge.normalized()), -1.0, 1.0)) * 180.0 / Tolerance::PI);
+                }
             }
         }
 
@@ -321,8 +333,8 @@ double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
 bool is_smooth(const wood_gridshell::Gridshell& gridshell) {
 
     bool smooth = true;
-    for (const std::vector<std::shared_ptr<wood_gridshell::Board>>& layer : {gridshell.top, gridshell.bottom})
-        for (const std::shared_ptr<wood_gridshell::Board>& board : layer) {
+    for (const std::vector<std::shared_ptr<BeamCurved>>& layer : {gridshell.top, gridshell.bottom})
+        for (const std::shared_ptr<BeamCurved>& board : layer) {
             const BRep& brep = board->element_geometry_brep();
             smooth = smooth && brep.is_valid() && brep.is_solid() && brep.face_count() == 6;
         }
@@ -350,11 +362,11 @@ int main() {
         offset += scene.size + GAP;
 
         const std::shared_ptr<TreeNode> top = wood_session.add_group(scene.name + "_top");
-        for (const std::shared_ptr<wood_gridshell::Board>& board : gridshells.back().top)
+        for (const std::shared_ptr<BeamCurved>& board : gridshells.back().top)
             wood_session.add(board, top);
 
         const std::shared_ptr<TreeNode> bottom = wood_session.add_group(scene.name + "_bottom");
-        for (const std::shared_ptr<wood_gridshell::Board>& board : gridshells.back().bottom)
+        for (const std::shared_ptr<BeamCurved>& board : gridshells.back().bottom)
             wood_session.add(board, bottom);
 
         const std::shared_ptr<TreeNode> studs = wood_session.add_group(scene.name + "_studs");
@@ -380,8 +392,8 @@ int main() {
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());
 
     for (const wood_gridshell::Gridshell& gridshell : gridshells) {
-        for (const std::vector<std::shared_ptr<wood_gridshell::Board>>& layer : {gridshell.top, gridshell.bottom})
-            for (const std::shared_ptr<wood_gridshell::Board>& board : layer)
+        for (const std::vector<std::shared_ptr<BeamCurved>>& layer : {gridshell.top, gridshell.bottom})
+            for (const std::shared_ptr<BeamCurved>& board : layer)
                 board->compute_geometry_brep();
 
         for (const std::shared_ptr<Column>& stud : gridshell.studs)
@@ -392,12 +404,23 @@ int main() {
     wood_session.set_features_visible("axis", false);
     wood_session.pb_dump(pb_path("live"));
 
-    return passed ? 0 : 1;
+    const WoodSession loaded = WoodSession::pb_load(pb_path("live"));
+    size_t curved = 0;
+    size_t reloaded = 0;
+    for (const std::shared_ptr<Element>& element : loaded.elements()) {
+        const std::shared_ptr<BeamCurved> beam = std::dynamic_pointer_cast<BeamCurved>(element);
+        curved += beam ? 1 : 0;
+        reloaded += beam && beam->element_geometry_brep().is_solid() && beam->sections().size() == beam->parameters.size() ? 1 : 0;
+    }
+
+    std::cout << fmt::format("{} of {} BeamCurved reloaded from the file as BRep solids\n", reloaded, curved);
+
+    return passed && curved > 0 && reloaded == curved ? 0 : 1;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-The lamella gridshell template five times in a row: a 10 m saddle surface on its asymptotic curves, a 6 m saddle surface on its iso-curves, then three minimal meshes on their asymptotic curves, one per topology - a 10 m disk relaxed to a minimal surface inside the skew saddle's boundary by cotangent Laplacian sweeps, a catenoid annulus between two 6 m rings and a 9 m Enneper disk. The first family of curves is the top layer a layer up the normal, the second the bottom layer a layer down, each lamella two upright boards with a gap between them; a hexagonal stud runs along the normal through both gaps at every crossing, its flats against the four boards. Every board is one closed BRep: four cubic rails, one through each corner of the board's sections, a ruled face between each two neighbouring rails and a planar cap at each end, so it is smooth along its length and kinks only at its four long edges and its two ends; the viewer draws those faces, not a ladder of section rings. Contacts and the clash check read the same solid sampled at its sections. For each scene the example prints how far a minimal mesh is from minimal, the largest normal curvature along the lamellas, how far an unrolled lamella strays from a straight line, how far a side face's ruling tilts from the normal and the largest overlap between two elements: normal curvature and unrolled deviation are about zero on asymptotic curves and large on the iso-curves. It fails unless every board is a valid six-face BRep solid, every stud touches its four boards and no overlap is larger than the tolerance.
+The lamella gridshell template five times in a row: a 10 m saddle surface on its asymptotic curves, a 6 m saddle surface on its iso-curves, then three minimal meshes on their asymptotic curves, one per topology - a 10 m disk relaxed to a minimal surface inside the skew saddle's boundary by cotangent Laplacian sweeps, a catenoid annulus between two 6 m rings and a 9 m Enneper disk. The first family of curves is the top layer a layer up the normal, the second the bottom layer a layer down, each lamella two upright boards with a gap between them; a hexagonal stud runs along the normal through both gaps at every crossing, its flats against the four boards. Every board is a BeamCurved, a rectangle section swept along the lamella's central axis into one closed BRep: four cubic rails, one through each corner of the board's sections, a ruled face between each two neighbouring rails and a planar cap at each end, so it is smooth along its length and kinks only at its four long edges and its two ends; the viewer draws those faces, not a ladder of section rings. Contacts and the clash check read the same solid sampled at its sections. For each scene the example prints how far a minimal mesh is from minimal, the largest normal curvature along the lamellas, how far an unrolled lamella strays from a straight line, how far a side face's ruling tilts from the normal and the largest overlap between two elements: normal curvature and unrolled deviation are about zero on asymptotic curves and large on the iso-curves. It fails unless every board is a valid six-face BRep solid, every stud touches its four boards, no overlap is larger than the tolerance and every board loads back from the file as a BeamCurved.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -419,15 +442,16 @@ examples/templates_gridshell.cpp
  |    |-- compute_family: RK4 traces seeded along a spine of the other family
  |    |-- compute_crossings: segment against segment in the local tangent plane
  |    |-- compute_stations: frames along each lamella, straight a gap either side of a crossing
- |    |-- compute_board: two Boards per lamella, section rings on the local normal, four interpolated corner rails
- |    |    '-- Board::element_geometry_brep: four ruled faces between the rails, two planar caps, one closed solid
+ |    |-- compute_board: two BeamCurved per lamella on its central axis, the rectangle section, the local normal as up
+ |    |    '-- BeamCurved::element_geometry_brep: the section swept to four rails, ruled faces between them, two planar caps, one closed solid
  |    '-- compute_stud: a Column per crossing, a hexagon of three flat pairs gap apart
  |
  |-- WoodSession, add_group(<scene>_top, _bottom, _studs), add(element, group)
  |-- compute_contacts()                        face contacts, a stud against each of its four boards
  |-- compute_geometry_brep()                   every board and stud written as its BRep
  |-- set_features_visible("section" and "axis")   the section rings and the shared centreline of the boards off in the viewer
- '-- pb_dump(pb_path("live"))                  data/output/pb/live.pb, the file the viewer watches
+ |-- pb_dump(pb_path("live"))                  data/output/pb/live.pb, the file the viewer watches
+ '-- WoodSession::pb_load                      every board back as a BeamCurved with its BRep
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
