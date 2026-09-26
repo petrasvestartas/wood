@@ -226,6 +226,7 @@ ADD_EXE(templates_grid_solid          examples/templates_grid_solid.cpp)
 ADD_EXE(templates_grid_lines          examples/templates_grid_lines.cpp)
 ADD_EXE(templates_grid_reference      examples/templates_grid_reference.cpp)
 ADD_EXE(templates_grid_framing        examples/templates_grid_framing.cpp)
+ADD_EXE(templates_gridshell           examples/templates_gridshell.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
