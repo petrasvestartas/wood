@@ -5,27 +5,33 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One gridshell of the row: its group name, carrier, path, plan side and lamellas per family.
+/// One gridshell of the row: its group name, carrier, path, plan side, lamellas per family and how they are seeded.
 struct Scene {
     std::string name; // Group name prefix.
-    int carrier; // 0 the cubic saddle, 1 the hyperbolic paraboloid.
+    int carrier; // 0 the cubic saddle, 1 the hyperbolic paraboloid, 2 the half catenoid.
     wood_gridshell::Path path; // What the lamellas follow.
     double size; // Plan side of the carrier.
     int count; // Lamellas per family.
+    double edge; // Negative: seeds along the seed line of each family through the middle; else both families seeded along the parameter line u = edge, the catenoid's bottom rim at 0.
 };
 
+const double CONSTANT = 2e-5; // normal curvature in 1/mm the lamellas of the constant scene keep, inside [k2, k1] all over the saddle
+const double WAIST = 2000.0; // waist radius c of the catenoid r = c cosh(z / c), between rims 1.3 c above and below
+
 const std::vector<Scene> SCENES = {
-    {"asymptotic", 0, wood_gridshell::Path::normal_curvature(0.0), 10000.0, 9},
-    {"iso", 0, wood_gridshell::Path::isocurves(), 6000.0, 5},
-    {"paraboloid", 1, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 7},
+    {"asymptotic", 0, wood_gridshell::Path::normal_curvature(0.0), 10000.0, 9, -1.0},
+    {"iso", 0, wood_gridshell::Path::isocurves(), 6000.0, 5, -1.0},
+    {"paraboloid", 1, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 7, -1.0},
+    {"catenoid", 2, wood_gridshell::Path::normal_curvature(0.0), 8000.0, 8, 0.02},
+    {"constant", 0, wood_gridshell::Path::normal_curvature(CONSTANT), 8000.0, 7, -1.0},
 };
 const double RISE = 0.15; // corner lift and drop of a saddle over its side
 const double SKEW = 0.5; // how much faster the saddle curves across at one end than at the other, so the asymptotic curves bend in plan
 const double GAP = 4000.0; // clear distance between the shells
-const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 100.0, .sample = 50.0};
+const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 50.0, .sample = 50.0};
 const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
 const double FIT = 0.1; // largest gap, and largest mismatch at the node section, in mm between a stud flat and a board it holds
-const double STRAIGHT = 1e-3; // largest normal curvature in 1/m an asymptotic lamella may show
+const double STRAIGHT = 5e-3; // largest departure in 1/m of a lamella's normal curvature from its path's value, a bending radius of 200 m
 const int SAMPLES = 200; // curvature samples per lamella
 
 /// A convex part of an element with its box, what the clash check cuts.
@@ -113,14 +119,58 @@ NurbsSurface compute_paraboloid(double size, double x) {
     });
 }
 
-/// The gridshell of a scene: both families seeded along their seed lines.
+/// Half of the catenoid r = WAIST cosh(z / WAIST) between z = -1.3 and 1.3 WAIST, its axis vertical through the middle of a square of side size from x: u the cubic B-spline profile through 9 samples of cosh, v two exact rational quadratic arcs of 90 degrees, so the surface is a NURBS fit of a minimal surface.
+NurbsSurface compute_catenoid(double size, double x) {
+
+    std::vector<double> radii;
+    std::vector<double> heights;
+    for (int k = 0; k < 9; k++) {
+        heights.push_back(WAIST * (-1.3 + 2.6 * k / 8.0));
+        radii.push_back(WAIST * std::cosh(heights.back() / WAIST));
+    }
+
+    const double w = std::sqrt(0.5);
+    const double arcs[5][2] = {{1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {-1.0, 1.0}, {-1.0, 0.0}};
+    const double weights_v[5] = {1.0, w, 1.0, w, 1.0};
+    std::vector<std::vector<Point>> points(5, std::vector<Point>(9, Point(0.0, 0.0, 0.0)));
+    std::vector<std::vector<double>> weights(5, std::vector<double>(9, 1.0));
+    for (int iv = 0; iv < 5; iv++)
+        for (int iu = 0; iu < 9; iu++) {
+            points[iv][iu] = Point(x + size / 2.0 + radii[iu] * arcs[iv][0], radii[iu] * arcs[iv][1], heights[iu]);
+            weights[iv][iu] = weights_v[iv];
+        }
+
+    return NurbsSurface::create_from_parameters(points, weights, {0.0, 1.0 / 6.0, 2.0 / 6.0, 0.5, 4.0 / 6.0, 5.0 / 6.0, 1.0}, {0.0, 0.5, 1.0}, {4, 1, 1, 1, 1, 1, 4}, {3, 2, 3}, 3, 2);
+}
+
+/// The carrier of a scene.
+NurbsSurface compute_carrier(const Scene& scene, double offset) {
+
+    if (scene.carrier == 0)
+        return compute_saddle(scene.size, offset);
+
+    if (scene.carrier == 1)
+        return compute_paraboloid(scene.size, offset);
+
+    return compute_catenoid(scene.size, offset);
+}
+
+/// The gridshell of a scene: both families seeded along their seed lines through the middle of the domain, where they are told apart, or both along the parameter line u = edge, told apart at the first seed.
 wood_gridshell::Gridshell compute_gridshell(const Scene& scene, double offset) {
 
-    const NurbsSurface surface = scene.carrier == 0 ? compute_saddle(scene.size, offset) : compute_paraboloid(scene.size, offset);
-    const std::pair<Vector, Vector> top = wood_gridshell::compute_seed_line(surface, scene.path, true);
-    const std::pair<Vector, Vector> bottom = wood_gridshell::compute_seed_line(surface, scene.path, false);
+    const NurbsSurface surface = compute_carrier(scene, offset);
+    if (scene.edge < 0.0) {
+        const Vector centre = wood_gridshell::compute_centre(surface);
+        const std::pair<Vector, Vector> top = wood_gridshell::compute_seed_line(surface, scene.path, true, centre);
+        const std::pair<Vector, Vector> bottom = wood_gridshell::compute_seed_line(surface, scene.path, false, centre);
+        return wood_gridshell::Gridshell::from_surface(surface, scene.path, wood_gridshell::compute_seeds(top.first, top.second, scene.count), wood_gridshell::compute_seeds(bottom.first, bottom.second, scene.count), LAMELLA);
+    }
 
-    return wood_gridshell::Gridshell::from_surface(surface, scene.path, wood_gridshell::compute_seeds(top.first, top.second, scene.count), wood_gridshell::compute_seeds(bottom.first, bottom.second, scene.count), LAMELLA);
+    const wood_gridshell::Boundary boundary = wood_gridshell::Boundary::of(surface);
+    const double u = boundary.u0 + (boundary.u1 - boundary.u0) * scene.edge;
+    const std::vector<Vector> seeds = wood_gridshell::compute_seeds(Vector(u, boundary.v0, 0.0), Vector(u, boundary.v1, 0.0), scene.count);
+
+    return wood_gridshell::Gridshell::from_surface(surface, scene.path, seeds, seeds, LAMELLA, seeds.front());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -258,41 +308,31 @@ double compute_deviation(const wood_gridshell::Gridshell& gridshell) {
     return worst;
 }
 
-/// The parameter of every section corner on its rail, chord length along the corners mapped onto the rail's domain.
-std::vector<double> compute_parameters(const std::vector<Polyline>& rings, const NurbsCurve& rail, size_t corner) {
-
-    std::vector<double> lengths{0.0};
-    for (size_t k = 0; k + 1 < rings.size(); k++)
-        lengths.push_back(lengths.back() + (rings[k + 1][corner] - rings[k][corner]).magnitude());
-
-    std::vector<double> parameters;
-    for (const double length : lengths)
-        parameters.push_back(rail.domain().first + (rail.domain().second - rail.domain().first) * length / lengths.back());
-
-    return parameters;
-}
-
-/// Largest angle in degrees between the ruling of a board face halfway between two sections and the section edge it spans there, the two sections' edges averaged: how far a face twists off its sections.
-double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
+/// Largest angle in degrees between the ruling of a board face halfway between two stations and the station edges it spans, the two edges averaged: how far the BRep's ruled faces twist off the sections; and the largest distance in mm of a rail at a station parameter from its section corner there.
+std::pair<double, double> compute_tilt(const wood_gridshell::Gridshell& gridshell) {
 
     double worst = 0.0;
+    double error = 0.0;
     for (const std::vector<std::shared_ptr<BeamCurved>>& layer : {gridshell.top, gridshell.bottom})
         for (const std::shared_ptr<BeamCurved>& board : layer) {
             const std::vector<Polyline> rings = board->sections();
             const std::vector<NurbsCurve> rails = board->rails();
+            const std::vector<double>& parameters = board->parameters;
             for (size_t i = 0; i < rails.size(); i++) {
                 const size_t j = (i + 1) % rails.size();
-                const std::vector<double> first = compute_parameters(rings, rails[i], i);
-                const std::vector<double> second = compute_parameters(rings, rails[j], j);
+                for (size_t k = 0; k < rings.size(); k++)
+                    error = std::max(error, (rails[i].point_at(parameters[k]) - rings[k][i]).magnitude());
+
                 for (size_t k = 0; k + 1 < rings.size(); k++) {
-                    const Vector ruling = rails[j].point_at((second[k] + second[k + 1]) / 2.0) - rails[i].point_at((first[k] + first[k + 1]) / 2.0);
+                    const double middle = (parameters[k] + parameters[k + 1]) / 2.0;
+                    const Vector ruling = rails[j].point_at(middle) - rails[i].point_at(middle);
                     const Vector edge = (rings[k][j] - rings[k][i]) + (rings[k + 1][j] - rings[k + 1][i]);
                     worst = std::max(worst, std::acos(std::clamp(ruling.normalized().dot(edge.normalized()), -1.0, 1.0)) * 180.0 / Tolerance::PI);
                 }
             }
         }
 
-    return worst;
+    return {worst, error};
 }
 
 /// The flats of a stud: one plane per side of its hexagon along its axis, normal out.
@@ -447,10 +487,10 @@ bool is_smooth(const wood_gridshell::Gridshell& gridshell) {
 }
 
 
-/// The largest normal curvature, geodesic curvature and geodesic torsion over every lamella of the gridshell, in 1/m, SAMPLES per lamella.
-std::array<double, 3> compute_curvatures(const wood_gridshell::Gridshell& gridshell) {
+/// The least and largest normal curvature, then the largest geodesic curvature and geodesic torsion by magnitude, over every lamella of the gridshell, in 1/m, SAMPLES per lamella.
+std::array<double, 4> compute_curvatures(const wood_gridshell::Gridshell& gridshell) {
 
-    std::array<double, 3> worst{0.0, 0.0, 0.0};
+    std::array<double, 4> worst{1e300, -1e300, 0.0, 0.0};
     for (const NurbsCurve& curve : gridshell.curves) {
         if (!curve.is_valid())
             continue;
@@ -458,8 +498,10 @@ std::array<double, 3> compute_curvatures(const wood_gridshell::Gridshell& gridsh
         for (int k = 0; k <= SAMPLES; k++) {
             const double t = curve.domain().first + (curve.domain().second - curve.domain().first) * k / SAMPLES;
             const std::array<double, 3> metrics = wood_gridshell::compute_metrics(gridshell.surface, curve, t);
-            for (size_t m = 0; m < 3; m++)
-                worst[m] = std::max(worst[m], std::abs(metrics[m]) * 1000.0);
+            worst[0] = std::min(worst[0], metrics[0] * 1000.0);
+            worst[1] = std::max(worst[1], metrics[0] * 1000.0);
+            worst[2] = std::max(worst[2], std::abs(metrics[1]) * 1000.0);
+            worst[3] = std::max(worst[3], std::abs(metrics[2]) * 1000.0);
         }
     }
 
@@ -499,11 +541,11 @@ int main() {
 
         const double clash = compute_clash(gridshells[i]);
         const std::array<double, 3> fit = compute_fit(gridshells[i]);
-        const std::array<double, 3> curvatures = compute_curvatures(gridshells[i]);
+        const std::array<double, 4> curvatures = compute_curvatures(gridshells[i]);
         const bool smooth = is_smooth(gridshells[i]);
-        const bool straight = SCENES[i].path.iso || SCENES[i].path.value != 0.0 || curvatures[0] <= STRAIGHT;
+        const bool straight = SCENES[i].path.iso || std::max(std::abs(curvatures[0] - SCENES[i].path.value * 1000.0), std::abs(curvatures[1] - SCENES[i].path.value * 1000.0)) <= STRAIGHT;
         passed = passed && fit[0] <= FIT && fit[2] <= FIT && clash <= CLEARANCE && smooth && straight && !gridshells[i].studs.empty();
-        std::cout << fmt::format("{}: {} {} boards, {} nodes, normal curvature {:.2e} 1/m, geodesic curvature {:.3f} 1/m, geodesic torsion {:.3f} 1/m, rulings lean up to {:.1f} deg from the normal ({} stations clamped to 45 deg, the normal within 50 mm of a node), twist up to {:.1f} deg/m, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.4f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", gridshells[i].nodes.size(), curvatures[0], curvatures[1], curvatures[2], gridshells[i].lean, gridshells[i].capped, compute_twist(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
+        std::cout << fmt::format("{}: {} {} boards, {} nodes, normal curvature {:.2e} to {:.2e} 1/m, geodesic curvature {:.3f} 1/m, geodesic torsion {:.3f} 1/m, rulings lean up to {:.1f} deg from the normal ({} stations past 45 deg regularised, the normal within 50 mm of a node), twist up to {:.1f} deg/m, unrolled deviation {:.3f} mm, face tilt {:.4f} deg (rails off their corners by {:.2e} mm), {} studs fit their boards within {:.4f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", gridshells[i].nodes.size(), curvatures[0], curvatures[1], curvatures[2], curvatures[3], gridshells[i].lean, gridshells[i].capped, compute_twist(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]).first, compute_tilt(gridshells[i]).second, gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());

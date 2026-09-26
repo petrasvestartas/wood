@@ -16,14 +16,16 @@ struct Lamella {
     double overrun = 20.0; // Stud length past the outer face of each layer.
     double step = 100.0; // Runge-Kutta step of the tracing, in mm along the surface.
     double sample = 50.0; // Distance between the stations a board is swept through, in mm along the lamella.
-    double ruling = 1.0; // Largest lean of a strip's ruling from the normal a board follows, as tan of the angle; a steeper ruling is clamped to it.
-    double block = 100.0; // Length of a lamella at every node over which its section stands on the straight node axis, the spacer block; the ruling blends to the strip's over another block.
+    double ruling = 1.0; // Largest lean of a strip's ruling from the normal a board follows, as tan of the angle; the lean tg / kg is regularised to kg tg / (kg^2 + tg^2 / (4 ruling^2)), which peaks at ruling and passes through the normal at an inflection.
+    double block = 100.0; // Length of a lamella at every node over which its section stands on the straight node axis, the spacer block.
+    double blend = 300.0; // Length past half a block over which the ruling blends from the node axis to the strip's, so an outer corner never shifts faster along the lamella than the lamella runs.
 };
 
 /// What a lamella follows on the surface: the u and v iso-curves, or the two directions of one normal curvature, 0 the asymptotic curves.
 struct Path {
     bool iso = false; // True for the iso-curves, false for the normal curvature value.
     double value = 0.0; // The normal curvature every lamella keeps, in 1/mm.
+    double flat = 0.0; // Where the Gaussian curvature rises above -flat, in 1/mm2, the path has no direction, so a trace stops at a flat point; 0 traces on as Bowerbird does.
 
     /// The u and v iso-curves.
     static Path isocurves() {
@@ -169,7 +171,7 @@ inline bool compute_normal_curvature_directions(const Curvature& c, double value
 inline bool compute_directions(const NurbsSurface& surface, const Path& path, const Vector& uv, Vector& u1, Vector& u2, Vector& d1, Vector& d2) {
 
     const Curvature c = compute_curvature(surface, uv[0], uv[1]);
-    if (!c.valid)
+    if (!c.valid || (!path.iso && path.flat > 0.0 && c.k1 * c.k2 > -path.flat))
         return false;
 
     if (path.iso) {
@@ -291,11 +293,15 @@ inline Vector compute_seed_direction(const NurbsSurface& surface, const Path& pa
     return std::abs(d1.dot(reference)) >= std::abs(d2.dot(reference)) ? d1 : d2;
 }
 
-/// The direction of a family at the middle of the domain: the path's first or second direction there, the reference every seed of the family is matched against.
-inline Vector compute_family_direction(const NurbsSurface& surface, const Path& path, bool first) {
-
+/// The middle of the domain, (u, v, 0).
+inline Vector compute_centre(const NurbsSurface& surface) {
     const Boundary boundary = Boundary::of(surface);
-    const Vector centre((boundary.u0 + boundary.u1) / 2.0, (boundary.v0 + boundary.v1) / 2.0, 0.0);
+    return Vector((boundary.u0 + boundary.u1) / 2.0, (boundary.v0 + boundary.v1) / 2.0, 0.0);
+}
+
+/// The direction of a family at centre: the path's first or second direction there, the reference every seed of the family is matched against.
+inline Vector compute_family_direction(const NurbsSurface& surface, const Path& path, bool first, const Vector& centre) {
+
     Vector u1, u2, d1, d2;
     if (!compute_directions(surface, path, centre, u1, u2, d1, d2))
         return Vector(0.0, 0.0, 0.0);
@@ -332,11 +338,10 @@ inline std::vector<Vector> compute_seeds(const Vector& a, const Vector& b, int c
     return seeds;
 }
 
-/// The ends of the seed line of a family: the segment through the middle of the domain perpendicular in the parameter plane to the family's direction there, cut at the boundary.
-inline std::pair<Vector, Vector> compute_seed_line(const NurbsSurface& surface, const Path& path, bool first) {
+/// The ends of the seed line of a family: the segment through centre perpendicular in the parameter plane to the family's direction there, cut at the boundary.
+inline std::pair<Vector, Vector> compute_seed_line(const NurbsSurface& surface, const Path& path, bool first, const Vector& centre) {
 
     const Boundary boundary = Boundary::of(surface);
-    const Vector centre((boundary.u0 + boundary.u1) / 2.0, (boundary.v0 + boundary.v1) / 2.0, 0.0);
     Vector u1, u2, d1, d2;
     compute_directions(surface, path, centre, u1, u2, d1, d2);
     const Vector along = first ? u1 : u2;
@@ -429,21 +434,29 @@ inline std::array<double, 3> compute_metrics(const NurbsSurface& surface, const 
     return {d.kn, d.kg, d.tg};
 }
 
-const double STRAIGHT = 1e-9; // Geodesic curvature in 1/mm below which a lamella counts as a straight line, where no strip normal to the surface is developable and the board follows the normal.
-
-/// The share of the strip's ruling a station distance mm from its nearest node takes: 0 within half a block, where the section stands on the straight node axis, rising smoothly to 1 a block further out.
+/// The share of the strip's ruling a station distance mm from its nearest node takes: 0 within half a block, where the section stands on the straight node axis, rising smoothly to 1 a blend further out.
 inline double compute_blend(double distance, const Lamella& lamella) {
-    const double w = std::clamp((distance - lamella.block / 2.0) / lamella.block, 0.0, 1.0);
+    const double w = std::clamp((distance - lamella.block / 2.0) / lamella.blend, 0.0, 1.0);
     return w * w * (3.0 - 2.0 * w);
 }
 
-/// The ruling of the lamella's board at d: for an asymptotic curve the rectifying developable's ruling tg t + kg n (Schling Eq. 4) scaled to unit height along the normal, n + tg / kg t, so the strip unrolls straight, its lean along the tangent clamped to lamella.ruling and scaled by the blend towards the normal at the nodes, where the physical node forces the strip through the straight node axis (Schling Sec. 3.4); the normal itself on other curves and along straight lines.
+/// The lean tg / kg of the rectifying ruling along the tangent, regularised to kg tg / (kg^2 + tg^2 / (4 r^2)) with r = lamella.ruling: the exact lean where it is small, at most r, and 0 through an inflection of the lamella, where the developable degenerates.
+inline double compute_lean(const Darboux& d, const Lamella& lamella) {
+
+    const double floor = d.tg * d.tg / (4.0 * lamella.ruling * lamella.ruling);
+    if (d.kg * d.kg + floor == 0.0)
+        return 0.0;
+
+    return d.kg * d.tg / (d.kg * d.kg + floor);
+}
+
+/// The ruling of the lamella's board at d: for an asymptotic curve the rectifying developable's ruling tg t + kg n (Schling Eq. 4) scaled to unit height along the normal, n + tg / kg t, so the strip unrolls straight, its lean regularised by compute_lean and scaled by the blend towards the normal at the nodes, where the physical node forces the strip through the straight node axis (Schling Sec. 3.4); the normal itself on other curves.
 inline Vector compute_ruling(const Darboux& d, const Path& path, const Lamella& lamella, double blend) {
 
-    if (!path.is_asymptotic() || std::abs(d.kg) < STRAIGHT)
+    if (!path.is_asymptotic())
         return d.n;
 
-    return d.n + d.t * (blend * std::clamp(d.tg / d.kg, -lamella.ruling, lamella.ruling));
+    return d.n + d.t * (blend * compute_lean(d, lamella));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -598,18 +611,19 @@ struct Gridshell {
     std::vector<std::shared_ptr<Column>> studs; // stud_i_j where top lamella i crosses bottom lamella j, flats against the four boards at the node.
     std::vector<std::vector<Plane>> frames; // Stations of every lamella on the surface, x along it, z the normal; the top lamellas first.
     std::vector<std::pair<size_t, size_t>> pairs; // Top and bottom board pair of every stud, positions in top / 2 and bottom / 2.
-    double lean = 0.0; // Largest lean of a rectifying ruling from the normal over every station of an asymptotic gridshell, in degrees, before the clamp.
-    size_t capped = 0; // Stations whose ruling leaned past lamella.ruling and was clamped to it.
+    double lean = 0.0; // Largest lean of a rectifying ruling from the normal over every station of an asymptotic gridshell, in degrees, before regularisation.
+    size_t capped = 0; // Stations whose ruling leaned past lamella.ruling, where the regularisation holds it below.
 
-    /// The gridshell of a path on a surface: the top family traced from seeds_top along the path's first direction at the middle of the domain, the bottom family from seeds_bottom along its second, the boards swept through exact surface stations along the strips' rulings and a stud at every crossing.
-    static Gridshell from_surface(const NurbsSurface& surface, const Path& path, const std::vector<Vector>& seeds_top, const std::vector<Vector>& seeds_bottom, const Lamella& lamella) {
+    /// The gridshell of a path on a surface: the top family traced from seeds_top along the path's first direction at centre (the middle of the domain unless given), the bottom family from seeds_bottom along its second, the boards swept through exact surface stations along the strips' rulings and a stud at every crossing.
+    static Gridshell from_surface(const NurbsSurface& surface, const Path& path, const std::vector<Vector>& seeds_top, const std::vector<Vector>& seeds_bottom, const Lamella& lamella, std::optional<Vector> centre = std::nullopt) {
 
         Gridshell gridshell;
         gridshell.surface = surface;
         gridshell.path = path;
-        gridshell.compute_family(seeds_top, true, lamella);
+        const Vector middle = centre ? *centre : compute_centre(surface);
+        gridshell.compute_family(seeds_top, compute_family_direction(surface, path, true, middle), lamella);
         gridshell.tops = gridshell.traces.size();
-        gridshell.compute_family(seeds_bottom, false, lamella);
+        gridshell.compute_family(seeds_bottom, compute_family_direction(surface, path, false, middle), lamella);
 
         for (const Trace& trace : gridshell.traces)
             gridshell.curves.push_back(compute_curve(trace));
@@ -620,10 +634,9 @@ struct Gridshell {
         return gridshell;
     }
 
-    /// One trace per seed, each along the direction closer to the family's: the family direction at the middle of the domain for the first seed, then the direction the previous seed took.
-    void compute_family(const std::vector<Vector>& seeds, bool first, const Lamella& lamella) {
+    /// One trace per seed, each along the direction closer to the family's: reference for the first seed, then the direction the previous seed took.
+    void compute_family(const std::vector<Vector>& seeds, Vector reference, const Lamella& lamella) {
 
-        Vector reference = compute_family_direction(surface, path, first);
         for (const Vector& seed : seeds) {
             traces.push_back(compute_trace(surface, path, seed, reference, lamella.step));
             const Vector taken = compute_seed_direction(surface, path, seed, reference);
@@ -661,8 +674,8 @@ struct Gridshell {
             stations.emplace_back(d.x, d.t, d.u);
             rulings.push_back(compute_ruling(d, path, lamella, compute_blend(distance, lamella)));
             if (path.is_asymptotic()) {
-                lean = std::max(lean, std::abs(d.kg) < STRAIGHT ? 90.0 : std::atan(std::abs(d.tg / d.kg)) * 180.0 / Tolerance::PI);
-                capped += std::abs(d.kg) < STRAIGHT || std::abs(d.tg / d.kg) > lamella.ruling ? 1 : 0;
+                lean = std::max(lean, d.kg == 0.0 ? 90.0 : std::atan(std::abs(d.tg / d.kg)) * 180.0 / Tolerance::PI);
+                capped += d.kg == 0.0 || std::abs(d.tg / d.kg) > lamella.ruling ? 1 : 0;
             }
         }
     }

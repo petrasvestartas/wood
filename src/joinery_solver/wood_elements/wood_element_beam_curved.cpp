@@ -8,6 +8,107 @@ namespace wood_session {
 
 using namespace session_cpp;
 
+namespace {
+
+/// The cubic B-spline basis functions on the knot vector at t, the four of the span holding t at their indices (Piegl & Tiller A2.2), as (first index, values).
+std::pair<size_t, std::array<double, 4>> compute_basis(const std::vector<double>& knots, double t) {
+
+    const size_t n = knots.size() - 5;
+    size_t span = 3;
+    while (span < n && t >= knots[span + 1])
+        span++;
+
+    std::array<double, 4> values{1.0, 0.0, 0.0, 0.0};
+    std::array<double, 4> left{};
+    std::array<double, 4> right{};
+    for (size_t j = 1; j <= 3; j++) {
+        left[j] = t - knots[span + 1 - j];
+        right[j] = knots[span + j] - t;
+        double saved = 0.0;
+        for (size_t r = 0; r < j; r++) {
+            const double temp = values[r] / (right[r + 1] + left[j - r]);
+            values[r] = saved + right[r + 1] * temp;
+            saved = left[j - r] * temp;
+        }
+
+        values[j] = saved;
+    }
+
+    return {span - 3, values};
+}
+
+/// The clamped cubic through the points at the given increasing parameters (Piegl & Tiller 9.2.1): knots by averaging, the banded collocation system solved by elimination without pivoting, which the totally positive matrix allows.
+NurbsCurve compute_interpolated(const std::vector<Point>& points, const std::vector<double>& parameters) {
+
+    const size_t n = points.size();
+    if (n < 4)
+        return NurbsCurve::create_interpolated(points);
+
+    std::vector<double> knots(n + 4, parameters.front());
+    for (size_t j = 1; j + 3 < n; j++)
+        knots[j + 3] = (parameters[j] + parameters[j + 1] + parameters[j + 2]) / 3.0;
+
+    for (size_t k = n; k < n + 4; k++)
+        knots[k] = parameters.back();
+
+    std::vector<std::array<double, 4>> rows(n);
+    std::vector<size_t> firsts(n);
+    std::vector<Vector> rhs;
+    for (size_t k = 0; k < n; k++) {
+        const std::pair<size_t, std::array<double, 4>> basis = compute_basis(knots, parameters[k]);
+        firsts[k] = basis.first;
+        rows[k] = basis.second;
+        rhs.push_back(points[k] - Point(0.0, 0.0, 0.0));
+    }
+
+    std::vector<std::vector<double>> band(n, std::vector<double>(7, 0.0));
+    for (size_t k = 0; k < n; k++)
+        for (size_t j = 0; j < 4; j++)
+            band[k][firsts[k] + j + 3 - k] = rows[k][j];
+
+    for (size_t k = 0; k < n; k++) {
+        const double pivot = band[k][3];
+        for (size_t r = k + 1; r < std::min(n, k + 4); r++) {
+            const double factor = band[r][3 + k - r] / pivot;
+            if (factor == 0.0)
+                continue;
+
+            for (size_t c = k; c < std::min(n, k + 4); c++)
+                band[r][3 + c - r] -= factor * band[k][3 + c - k];
+
+            rhs[r] = rhs[r] - rhs[k] * factor;
+        }
+    }
+
+    std::vector<Vector> cvs(n);
+    for (size_t k = n; k-- > 0;) {
+        Vector sum = rhs[k];
+        for (size_t c = k + 1; c < std::min(n, k + 4); c++)
+            sum = sum - cvs[c] * band[k][3 + c - k];
+
+        cvs[k] = sum * (1.0 / band[k][3]);
+    }
+
+    std::vector<Point> poles;
+    for (const Vector& cv : cvs)
+        poles.emplace_back(cv[0], cv[1], cv[2]);
+
+    std::vector<double> distinct;
+    std::vector<int> mults;
+    for (const double knot : knots) {
+        if (distinct.empty() || knot > distinct.back()) {
+            distinct.push_back(knot);
+            mults.push_back(1);
+        } else {
+            mults.back()++;
+        }
+    }
+
+    return NurbsCurve::create_from_parameters(poles, std::vector<double>(n, 1.0), distinct, mults, 3);
+}
+
+} // namespace
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
@@ -101,7 +202,7 @@ std::vector<NurbsCurve> BeamCurved::rails() const {
         for (const Polyline& ring : rings)
             corners.push_back(ring[i]);
 
-        curves.push_back(NurbsCurve::create_interpolated(corners));
+        curves.push_back(compute_interpolated(corners, parameters));
     }
 
     return curves;

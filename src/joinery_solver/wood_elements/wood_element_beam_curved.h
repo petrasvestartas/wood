@@ -46,7 +46,7 @@ public:
     /// The section placed at every station, counter-clockwise about the tangent: x across the axis, y along the station's direction as given.
     std::vector<session_cpp::Polyline> sections() const;
 
-    /// One cubic rail per section corner through that corner of every station, all four sharing the axis parameters.
+    /// One cubic rail per section corner through that corner of every station, interpolated at the axis parameters, so every rail passes its corner of station k at parameters[k] and a ruling between two rails at one parameter is a station's edge.
     std::vector<session_cpp::NurbsCurve> rails() const;
 
     /// The sweep through sections() as a Mesh, every vertex on a rail: what contacts and clash checks read.
