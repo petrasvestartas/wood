@@ -25,7 +25,7 @@ const double SKEW = 0.5; // how much faster the saddle curves at one end, so the
 const double GAP = 4000.0; // clear distance between the shells
 const wood_gridshell::Lamella LAMELLA{.height = 140.0, .thickness = 20.0, .gap = 60.0, .spacing = 180.0, .overrun = 20.0, .step = 100.0};
 const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
-const double FIT = 1.0; // largest gap or penetration in mm between a stud flat and the twisting board it holds
+const double FIT = 0.1; // largest gap, and largest mismatch at the node section, in mm between a stud flat and a board it holds
 const int SWEEPS = 400; // cotangent Laplacian sweeps that relax the saddle mesh to a minimal one
 
 /// A convex part of an element with its box, what the clash check cuts.
@@ -351,8 +351,8 @@ double compute_tilt(const wood_gridshell::Gridshell& gridshell) {
     return worst;
 }
 
-/// Largest penetration and largest gap in mm between each stud and the four boards it holds: the board rails sampled every 2 mm for 150 mm either side of the node, each point's depth inside the stud prism, positive inside; the gap of a board is its least distance outside.
-std::pair<double, double> compute_fit(const wood_gridshell::Gridshell& gridshell) {
+/// How each stud meets the four boards it holds, in mm: the largest distance at the node section from the stud to the nearest rail of each board, where the construction makes them touch; the largest penetration anywhere, the twist of the boards against the straight stud; and the largest gap, each board's least distance outside. The board rails are sampled every 2 mm for 150 mm either side of the node, each point's depth inside the stud prism positive inside.
+std::array<double, 3> compute_fit(const wood_gridshell::Gridshell& gridshell) {
 
     std::vector<std::shared_ptr<BeamCurved>> boards = gridshell.top;
     boards.insert(boards.end(), gridshell.bottom.begin(), gridshell.bottom.end());
@@ -360,6 +360,7 @@ std::pair<double, double> compute_fit(const wood_gridshell::Gridshell& gridshell
     for (const std::shared_ptr<BeamCurved>& board : boards)
         rails.push_back(board->rails());
 
+    double section = 0.0;
     double penetration = 0.0;
     double gap = 0.0;
     for (size_t s = 0; s < gridshell.studs.size(); s++) {
@@ -379,6 +380,7 @@ std::pair<double, double> compute_fit(const wood_gridshell::Gridshell& gridshell
 
         for (const size_t b : compute_held(gridshell, s)) {
             double nearest = 1e300;
+            double touch = 1e300;
             for (const NurbsCurve& rail : rails[b]) {
                 const double t = rail.closest_parameter(stud.axis.point_at(0.5));
                 const double h = (rail.domain().second - rail.domain().first) * 1e-4;
@@ -395,15 +397,18 @@ std::pair<double, double> compute_fit(const wood_gridshell::Gridshell& gridshell
                         depth = std::min(depth, -(p - flat.origin()).dot(flat.z_axis()));
 
                     penetration = std::max(penetration, depth);
+                    if (std::abs(k) <= 1)
+                        touch = std::min(touch, std::abs(depth));
                     nearest = std::min(nearest, -depth);
                 }
             }
 
             gap = std::max(gap, std::max(nearest, 0.0));
+            section = std::max(section, touch);
         }
     }
 
-    return {penetration, gap};
+    return {section, penetration, gap};
 }
 
 /// Largest twist of the lamellas in degrees per metre: the turn of the normal about the tangent from one station to the next.
@@ -476,11 +481,11 @@ int main() {
             count += wood_session.get_neighbours(stud->guid()).size() == 4 ? 1 : 0;
 
         const double clash = compute_clash(gridshells[i]);
-        const std::pair<double, double> fit = compute_fit(gridshells[i]);
+        const std::array<double, 3> fit = compute_fit(gridshells[i]);
         const bool smooth = is_smooth(gridshells[i]);
-        passed = passed && fit.first <= FIT && fit.second <= FIT && clash <= CLEARANCE && smooth;
+        passed = passed && fit[0] <= FIT && fit[2] <= FIT && clash <= CLEARANCE && smooth;
         const std::string residual = residuals[i] < 0.0 ? "" : fmt::format(", mean curvature share {:.4f}", residuals[i]);
-        std::cout << fmt::format("{}: net asymptotic residual {:.1e} traced, {:.1e} optimised, {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm (gap {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].traced, wood_gridshell::compute_residual(gridshells[i].net), gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit.first, fit.second, count, clash);
+        std::cout << fmt::format("{}: net asymptotic residual {:.1e} traced, {:.1e} optimised, {} {} boards{}, twist up to {:.1f} deg/m, normal curvature {:.2e} 1/mm, unrolled deviation {:.3f} mm, face tilt {:.4f} deg, {} studs fit their boards within {:.3f} mm at the node (gap {:.3f} mm, twist mismatch at the stud ends {:.3f} mm), {} with kernel face contacts to all four, largest overlap {} mm3\n", SCENES[i].name, gridshells[i].traced, wood_gridshell::compute_residual(gridshells[i].net), gridshells[i].top.size() + gridshells[i].bottom.size(), smooth ? "BRep" : "BROKEN", residual, compute_twist(gridshells[i]), compute_bending(gridshells[i]), compute_deviation(gridshells[i]), compute_tilt(gridshells[i]), gridshells[i].studs.size(), fit[0], fit[2], fit[1], count, clash);
     }
 
     std::cout << fmt::format("{} contacts\n", wood_session.get_contacts().size());

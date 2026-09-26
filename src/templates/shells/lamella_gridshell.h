@@ -7,7 +7,7 @@ namespace wood_gridshell {
 using namespace session_cpp;
 using namespace wood_session;
 
-const int ITERATIONS = 60; // block-coordinate descent sweeps of the net optimisation
+const int ITERATIONS = 30; // block-coordinate descent sweeps of the net optimisation
 
 /// Board, gap and stud sizes of a two-layer lamella gridshell, in mm.
 struct Lamella {
@@ -180,7 +180,7 @@ struct MeshField : Field {
     std::vector<Vector> normals; // Unit vertex normals, Max's weights, exact on a sphere.
     std::vector<std::array<Vector, 3>> tensors; // Shape operator per vertex, its three rows, summed over the faces around weighted by twice their area.
     std::vector<bool> open; // True for the boundary vertices.
-    double cell = 1.0; // Side of the grid cells the triangles are bucketed in, twice the mean edge.
+    double cell = 1.0; // Side of the grid cells the triangles are bucketed in, the mean edge.
     std::unordered_map<long long, std::vector<size_t>> buckets; // Triangles per grid cell their box touches.
 
     /// The field of mesh, each face fanned from its first corner.
@@ -236,7 +236,7 @@ struct MeshField : Field {
         for (const std::array<size_t, 3>& t : triangles)
             length += (points[t[1]] - points[t[0]]).magnitude();
 
-        cell = 2.0 * length / static_cast<double>(triangles.size());
+        cell = length / static_cast<double>(triangles.size());
         for (size_t i = 0; i < triangles.size(); i++) {
             Point low = points[triangles[i][0]];
             Point high = low;
@@ -736,26 +736,35 @@ struct Row {
     double value; // Right-hand side.
 };
 
-/// The least-squares solution of rows by conjugate gradients on the normal equations, starting from x.
+/// The least-squares solution of rows by Jacobi-preconditioned conjugate gradients on the normal equations, starting from x, until the gradient falls a millionth of where it started.
 inline std::vector<double> compute_least_squares(const std::vector<Row>& rows, std::vector<double> x) {
 
     const size_t n = x.size();
     std::vector<double> gradient(n, 0.0);
+    std::vector<double> diagonal(n, 0.0);
     for (const Row& row : rows) {
         double residual = row.value;
         for (const std::pair<size_t, double>& term : row.terms)
             residual -= term.second * x[term.first];
 
-        for (const std::pair<size_t, double>& term : row.terms)
+        for (const std::pair<size_t, double>& term : row.terms) {
             gradient[term.first] += term.second * residual;
+            diagonal[term.first] += term.second * term.second;
+        }
     }
 
-    std::vector<double> direction = gradient;
+    std::vector<double> preconditioned(n);
     double norm = 0.0;
-    for (const double g : gradient)
-        norm += g * g;
+    double start = 0.0;
+    for (size_t i = 0; i < n; i++) {
+        preconditioned[i] = gradient[i] / diagonal[i];
+        norm += gradient[i] * preconditioned[i];
+        start += gradient[i] * gradient[i];
+    }
 
-    for (int k = 0; k < 150 && norm > 1e-24; k++) {
+    std::vector<double> direction = preconditioned;
+    double length = start;
+    for (int k = 0; k < 100 && length > start * 1e-12 && norm > 0.0; k++) {
         std::vector<double> product(n, 0.0);
         for (const Row& row : rows) {
             double dot = 0.0;
@@ -772,14 +781,17 @@ inline std::vector<double> compute_least_squares(const std::vector<Row>& rows, s
 
         const double step = norm / curvature;
         double next = 0.0;
+        length = 0.0;
         for (size_t i = 0; i < n; i++) {
             x[i] += step * direction[i];
             gradient[i] -= step * product[i];
-            next += gradient[i] * gradient[i];
+            preconditioned[i] = gradient[i] / diagonal[i];
+            next += gradient[i] * preconditioned[i];
+            length += gradient[i] * gradient[i];
         }
 
         for (size_t i = 0; i < n; i++)
-            direction[i] = gradient[i] + direction[i] * next / norm;
+            direction[i] = preconditioned[i] + direction[i] * next / norm;
 
         norm = next;
     }
@@ -801,7 +813,7 @@ inline void compute_positions(const Field& field, Net& net) {
     const double scale = 1.0 / (length / std::max<size_t>(count, 1));
     const double fair = 1e-3;
     const double close = 1e-1;
-    const double damping = 1e-2;
+    const double damping = 1e-3;
     std::vector<Row> rows;
     for (const std::vector<size_t>& lamella : net.lamellas)
         for (size_t k = 0; k + 1 < lamella.size(); k++) {
@@ -837,6 +849,7 @@ inline void compute_positions(const Field& field, Net& net) {
     }
 
     x = compute_least_squares(rows, x);
+
     for (size_t i = 0; i < net.points.size(); i++) {
         net.points[i] = Point(x[3 * i], x[3 * i + 1], x[3 * i + 2]);
         net.states[i] = field.compute_state(net.points[i], net.states[i]);
@@ -856,12 +869,19 @@ inline double compute_residual(const Net& net) {
     return worst;
 }
 
-/// The net optimised by block-coordinate descent on the energy of Wang, Almaskin, Pottmann (2025), Eq. 11, with carrier closeness in place of first-strip approximation: normals in closed form, then positions by least squares, iterations times.
+/// The net optimised by block-coordinate descent on the energy of Wang, Almaskin, Pottmann (2025), Eq. 11, with carrier closeness in place of first-strip approximation: normals in closed form, then positions by least squares, at most iterations times, until no node moves 10 microns.
 inline void compute_optimised(const Field& field, Net& net, int iterations) {
 
     for (int k = 0; k < iterations; k++) {
+        const std::vector<Point> before = net.points;
         compute_normals(field, net);
         compute_positions(field, net);
+        double moved = 0.0;
+        for (size_t i = 0; i < before.size(); i++)
+            moved = std::max(moved, (net.points[i] - before[i]).magnitude());
+
+        if (moved < 1e-2)
+            break;
     }
 
     compute_normals(field, net);
