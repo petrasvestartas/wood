@@ -214,8 +214,8 @@ public:
         return out;
     }
 
-    /// Every element, in insertion order; the list objects.elements holds, no copy.
-    const std::vector<std::shared_ptr<session_cpp::Element>>& elements() const {
+    /// Every live element, in insertion order; the list objects.elements holds, no copy.
+    const session_cpp::Collection<std::shared_ptr<session_cpp::Element>>& elements() const {
         return *objects.elements;
     }
 

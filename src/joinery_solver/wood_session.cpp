@@ -155,38 +155,34 @@ bool is_dropped(const ElementFeature& feature, std::string_view type, const std:
     return type.empty() ? guids.count(feature.guid()) > 0 : feature.feature_type == type;
 }
 
-/// Every feature of every element but the ones is_dropped picks, guids and visibility kept; an element without features is not read, so it does not loft.
-void drop_features(const std::vector<std::shared_ptr<Element>>& elements, std::string_view type, const std::unordered_set<std::string>& guids) {
-    for (const std::shared_ptr<Element>& element : elements) {
+/// Every feature of the element but the ones is_dropped picks, guids and visibility kept; an element without features is not read, so it does not loft.
+void drop_features(const std::shared_ptr<Element>& element, std::string_view type, const std::unordered_set<std::string>& guids) {
 
-        if (!element || element->features_count() == 0)
+    if (!element || element->features_count() == 0)
+        return;
+
+    std::vector<ElementFeature> features;
+    for (const ElementFeature& feature : element->features()) {
+
+        if (is_dropped(feature, type, guids))
             continue;
 
-        std::vector<ElementFeature> features;
-        for (const ElementFeature& feature : element->features()) {
-
-            if (is_dropped(feature, type, guids))
-                continue;
-
-            features.push_back(feature);
-            features.back().guid() = feature.guid();
-        }
-
-        element->set_features(std::move(features));
+        features.push_back(feature);
+        features.back().guid() = feature.guid();
     }
+
+    element->set_features(std::move(features));
 }
 
-/// The same over the instances' own features.
-void drop_instance_features(const std::vector<std::shared_ptr<InstanceRef>>& instances, std::string_view type, const std::unordered_set<std::string>& guids) {
-    for (const std::shared_ptr<InstanceRef>& instance : instances) {
+/// The same over an instance's own features.
+void drop_instance_features(const std::shared_ptr<InstanceRef>& instance, std::string_view type, const std::unordered_set<std::string>& guids) {
 
-        std::vector<ElementFeature> features;
-        for (const ElementFeature& feature : instance->features)
-            if (!is_dropped(feature, type, guids))
-                features.push_back(feature);
+    std::vector<ElementFeature> features;
+    for (const ElementFeature& feature : instance->features)
+        if (!is_dropped(feature, type, guids))
+            features.push_back(feature);
 
-        instance->features = std::move(features);
-    }
+    instance->features = std::move(features);
 }
 
 /// drop_features on the one element or instance guid names.
@@ -195,9 +191,9 @@ void drop_host_features(WoodSession& session, const std::string& guid, std::stri
     const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = session.instance_lookup.find(guid);
 
     if (instance != session.instance_lookup.end())
-        drop_instance_features({instance->second}, type, guids);
+        drop_instance_features(instance->second, type, guids);
     else
-        drop_features({session.get_element<Element>(guid)}, type, guids);
+        drop_features(session.get_element<Element>(guid), type, guids);
 }
 
 }  // namespace
@@ -215,8 +211,13 @@ void WoodSession::clear_features() {
         entry.second = std::move(kept);
     }
 
-    drop_features(*objects.elements, "joint", {});
-    drop_instance_features(*objects.instances, "joint", {});
+    const std::unordered_set<std::string> none;
+
+    for (const std::shared_ptr<Element>& element : *objects.elements)
+        drop_features(element, "joint", none);
+
+    for (const std::shared_ptr<InstanceRef>& instance : *objects.instances)
+        drop_instance_features(instance, "joint", none);
 }
 
 void WoodSession::erase_contacts(std::string_view kind) {
@@ -249,8 +250,11 @@ void WoodSession::erase_contacts(std::string_view kind) {
                 feature->contact_guid.clear();
         }
 
-    drop_features(*objects.elements, "", erased);
-    drop_instance_features(*objects.instances, "", erased);
+    for (const std::shared_ptr<Element>& element : *objects.elements)
+        drop_features(element, "", erased);
+
+    for (const std::shared_ptr<InstanceRef>& instance : *objects.instances)
+        drop_instance_features(instance, "", erased);
 }
 
 /// Stored elements are lofted first, since a mesh gives their outlines; a view comes with its outlines seeded.

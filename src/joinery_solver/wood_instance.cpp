@@ -386,7 +386,7 @@ size_t WoodSession::instance_by_key(const std::function<std::optional<std::pair<
 
     index_definitions(*this);
     size_t made = 0;
-    const std::vector<std::shared_ptr<Element>> elements = *objects.elements;
+    const std::vector<std::shared_ptr<Element>> elements = objects.elements->to_vector();
 
     for (const std::shared_ptr<Element>& element : elements) {
 

@@ -105,7 +105,7 @@ bool is_near(const Mesh& a, const Mesh& b) {
 double compute_clash(const WoodSession& session) {
 
     double worst = 0.0;
-    const std::vector<std::shared_ptr<Element>>& elements = session.elements();
+    const Collection<std::shared_ptr<Element>>& elements = session.elements();
     for (size_t i = 0; i < elements.size(); i++)
         for (size_t j = i + 1; j < elements.size(); j++) {
             const Mesh& a = elements[i]->model_geometry_mesh();
