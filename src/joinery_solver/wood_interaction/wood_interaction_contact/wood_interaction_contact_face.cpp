@@ -118,7 +118,15 @@ void InteractionContactFace::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::string InteractionContactFace::str() const {
-    return fmt::format("InteractionContactFace(face_a={}, face_b={}, type={}, points={})", face_a, face_b, static_cast<int>(type), polygon.point_count());
+    return fmt::format(
+        "InteractionContactFace(face_a={}, face_b={}, type={}, polygon={}, lines={}, volumes={})\n",
+        face_a,
+        face_b,
+        to_string(type),
+        polygon.point_count(),
+        lines.size(),
+        volumes.size()
+    );
 }
 
 } // namespace wood_session

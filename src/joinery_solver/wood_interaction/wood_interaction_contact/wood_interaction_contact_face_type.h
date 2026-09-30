@@ -15,4 +15,18 @@ enum class ContactType : int {
     end_side = 3 // End to side for linear elements.
 };
 
+inline std::string_view to_string(ContactType type) {
+    switch (type) {
+        case ContactType::unknown:   return "unknown";
+        case ContactType::side_side: return "side_side";
+        case ContactType::side_top:  return "side_top";
+        case ContactType::top_top:   return "top_top";
+        case ContactType::end_top:   return "end_top";
+        case ContactType::end_end:   return "end_end";
+        case ContactType::end_side:  return "end_side";
+    }
+
+    return "unknown";
+}
+
 } // namespace wood_session

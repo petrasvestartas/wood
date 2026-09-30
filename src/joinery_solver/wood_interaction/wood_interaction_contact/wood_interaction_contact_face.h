@@ -75,8 +75,8 @@ public:
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "InteractionContactFace(face_a, face_b, type, points)".
     std::string str() const override;
 };
+
 
 } // namespace wood_session
