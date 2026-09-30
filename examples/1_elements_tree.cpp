@@ -31,7 +31,7 @@ int main() {
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_contacts(1);
+    wood_session.compute_face_contacts(1);
 
     std::cout << wood_session;
     wood_session.pb_dump(pb_path("live"));
@@ -41,7 +41,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the floor bay of 1_elements_flat built on the grid template three times side by side, each bay a branch of the tree root; compute_contacts(1) pairs elements only inside the same branch, so no contact crosses from one bay to another. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
+the floor bay of 1_elements_flat built on the grid template three times side by side, each bay a branch of the tree root; compute_face_contacts(1) pairs elements only inside the same branch, so no contact crosses from one bay to another. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -37,21 +37,19 @@ PROTOBUF_CONSTINIT ::google::protobuf::internal::ReflectionData
 namespace wood_proto {
 class InteractionFeaturePlateBeam::_Internal {
  public:
-  using HasBits = decltype(::std::declval<InteractionFeaturePlateBeam>()._impl_._has_bits_);
-  static constexpr ::int32_t kHasBitsOffset =
-      8 * PROTOBUF_FIELD_OFFSET(InteractionFeaturePlateBeam, _impl_._has_bits_);
 };
 
 constexpr InteractionFeaturePlateBeam::ParseTableT_ InteractionFeaturePlateBeam::InternalGenerateParseTable_(const ::_pbi::ClassData* class_data) {
   return ParseTableT_{
     {
-      PROTOBUF_FIELD_OFFSET(InteractionFeaturePlateBeam, _impl_._has_bits_),
+      PROTOBUF_FIELD_OFFSET(InteractionFeaturePlateBeam,
+                            _impl_._cached_size_),  // no hasbits
       0, // no _extensions_
-      1, 0,  // max_field_number, fast_idx_mask
+      0, 0,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294967294,  // skipmap
-      offsetof(ParseTableT_, field_entries),
-      1,  // num_field_entries
+      4294967295,  // skipmap
+      offsetof(ParseTableT_, field_names),  // no field_entries
+      0,  // num_field_entries
       0,  // num_aux_entries
       offsetof(ParseTableT_, field_names),  // no aux_entries
       class_data,
@@ -61,32 +59,14 @@ constexpr InteractionFeaturePlateBeam::ParseTableT_ InteractionFeaturePlateBeam:
       ::_pbi::TcParser::GetTable<::wood_proto::InteractionFeaturePlateBeam>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // string contact_guid = 1;
-      {::_pbi::TcParser::FastUS1,
-       {10, 0, 0,
-        PROTOBUF_FIELD_OFFSET(InteractionFeaturePlateBeam, _impl_.contact_guid_)}},
+      {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
-    }}, {{
-      // string contact_guid = 1;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeaturePlateBeam, _impl_.contact_guid_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
-    }},
-    // no aux_entries
+    }}, // no field_entries, or aux_entries
     {{
-      "\46\14\0\0\0\0\0\0"
-      "wood_proto.InteractionFeaturePlateBeam"
-      "contact_guid"
     }},
   };
 }
-
-
-inline constexpr InteractionFeaturePlateBeam::Impl_::Impl_(
-    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
-    ::_pbi::ConstantInitialized) noexcept
-      : contact_guid_(
-            &::google::protobuf::internal::fixed_address_empty_string,
-            ::_pbi::ConstantInitialized()) {}
 
 template <typename>
 constexpr InteractionFeaturePlateBeam::InteractionFeaturePlateBeam(::_pbi::ConstantInitialized,
@@ -95,8 +75,7 @@ constexpr InteractionFeaturePlateBeam::InteractionFeaturePlateBeam(::_pbi::Const
 #if defined(PROTOBUF_CUSTOM_VTABLE)
           class_data
 #endif  // PROTOBUF_CUSTOM_VTABLE
-          ),
-      _impl_(internal_visibility(), ::_pbi::ConstantInitialized()) {
+      ) {
 }
 inline void* PROTOBUF_NONNULL InteractionFeaturePlateBeam::PlacementNew_(
     const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
@@ -104,7 +83,7 @@ inline void* PROTOBUF_NONNULL InteractionFeaturePlateBeam::PlacementNew_(
   return ::new (mem) InteractionFeaturePlateBeam(arena);
 }
 constexpr auto InteractionFeaturePlateBeam::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(InteractionFeaturePlateBeam), alignof(InteractionFeaturePlateBeam));
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(InteractionFeaturePlateBeam), alignof(InteractionFeaturePlateBeam));
 }
 constexpr auto InteractionFeaturePlateBeam::InternalGenerateClassData_(
     const MessageLite& prototype,
@@ -188,11 +167,7 @@ static constexpr const ::_pb::ServiceDescriptor* PROTOBUF_NONNULL* PROTOBUF_NULL
 const ::uint32_t
     TableStruct_interaction_5ffeature_5fplate_5fbeam_2eproto::offsets[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
         protodesc_cold) = {
-        0x081, // bitmap
-        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeaturePlateBeam, _impl_._has_bits_),
-        4, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeaturePlateBeam, _impl_.contact_guid_),
-        0,
+        0x000, // bitmap
 };
 
 static const ::_pbi::MigrationSchema
@@ -206,14 +181,14 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5ffeature_5fplate_5fbeam_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n$interaction_feature_plate_beam.proto\022\n"
-    "wood_proto\"3\n\033InteractionFeaturePlateBea"
-    "m\022\024\n\014contact_guid\030\001 \001(\tb\006proto3"
+    "wood_proto\"1\n\033InteractionFeaturePlateBea"
+    "mJ\004\010\001\020\002R\014contact_guidb\006proto3"
 };
 static ::absl::once_flag descriptor_table_interaction_5ffeature_5fplate_5fbeam_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fplate_5fbeam_2eproto = {
     false,
     false,
-    111,
+    109,
     descriptor_table_protodef_interaction_5ffeature_5fplate_5fbeam_2eproto,
     "interaction_feature_plate_beam.proto",
     &descriptor_table_interaction_5ffeature_5fplate_5fbeam_2eproto_once,
@@ -235,16 +210,8 @@ InteractionFeaturePlateBeam::InteractionFeaturePlateBeam(::google::protobuf::Are
 #else   // PROTOBUF_CUSTOM_VTABLE
     : Super_(arena) {
 #endif  // PROTOBUF_CUSTOM_VTABLE
-  SharedCtor(arena);
   // @@protoc_insertion_point(arena_constructor:wood_proto.InteractionFeaturePlateBeam)
 }
-PROTOBUF_NDEBUG_INLINE InteractionFeaturePlateBeam::Impl_::Impl_(
-    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
-    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
-    [[maybe_unused]] const ::wood_proto::InteractionFeaturePlateBeam& from_msg)
-      : _has_bits_{from._has_bits_},
-        contact_guid_(arena, from.contact_guid_) {}
-
 InteractionFeaturePlateBeam::InteractionFeaturePlateBeam(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
     const InteractionFeaturePlateBeam& from)
@@ -258,31 +225,8 @@ InteractionFeaturePlateBeam::InteractionFeaturePlateBeam(
   (void)_this;
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
-  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.InteractionFeaturePlateBeam)
-}
-PROTOBUF_NDEBUG_INLINE InteractionFeaturePlateBeam::Impl_::Impl_(
-    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
-    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-      : contact_guid_(arena) {}
-
-inline void InteractionFeaturePlateBeam::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
-  new (&_impl_) Impl_(internal_visibility(), arena);
-}
-InteractionFeaturePlateBeam::~InteractionFeaturePlateBeam() {
-  // @@protoc_insertion_point(destructor:wood_proto.InteractionFeaturePlateBeam)
-  SharedDtor(*this);
-}
-inline void InteractionFeaturePlateBeam::SharedDtor(MessageLite& self) {
-  InteractionFeaturePlateBeam& this_ = static_cast<InteractionFeaturePlateBeam&>(self);
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    this_.CheckHasBitConsistency();
-  }
-  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
-  ABSL_DCHECK(this_.GetArena() == nullptr);
-  this_._impl_.contact_guid_.Destroy();
-  this_._impl_.~Impl_();
 }
 
 #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -311,127 +255,12 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const InteractionFeaturePlateBeam::ParseTableT
     InteractionFeaturePlateBeam::_table_ =
         InteractionFeaturePlateBeam::InternalGenerateParseTable_(InteractionFeaturePlateBeam_class_data_.base());
 #endif  // !PROTOBUF_MESSAGE_GLOBALS
-PROTOBUF_NOINLINE void InteractionFeaturePlateBeam::Clear() {
-  auto& this_ [[maybe_unused]] = *this;
-  // @@protoc_insertion_point(message_clear_start:wood_proto.InteractionFeaturePlateBeam)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
-
-  cached_has_bits = this_._impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    this_._impl_.contact_guid_.ClearNonDefaultToEmpty();
-  }
-  _impl_._has_bits_.Clear();
-  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-::uint8_t* PROTOBUF_NONNULL InteractionFeaturePlateBeam::_InternalSerialize(
-    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
-    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
-  const InteractionFeaturePlateBeam& this_ = static_cast<const InteractionFeaturePlateBeam&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-::uint8_t* PROTOBUF_NONNULL InteractionFeaturePlateBeam::_InternalSerialize(
-    ::uint8_t* PROTOBUF_NONNULL target,
-    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
-  const InteractionFeaturePlateBeam& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    this_.CheckHasBitConsistency();
-  }
-  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.InteractionFeaturePlateBeam)
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  cached_has_bits = this_._impl_._has_bits_[0];
-  // string contact_guid = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!this_._internal_contact_guid().empty()) {
-      const ::std::string& _s = this_._internal_contact_guid();
-      ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          _s.data(), static_cast<int>(_s.length()), ::google::protobuf::internal::WireFormatLite::SERIALIZE, "wood_proto.InteractionFeaturePlateBeam.contact_guid");
-      target = stream->WriteStringMaybeAliased(1, _s, target);
-    }
-  }
-
-  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
-    target =
-        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
-            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.InteractionFeaturePlateBeam)
-  return target;
-}
-
-#if defined(PROTOBUF_CUSTOM_VTABLE)
-::size_t InteractionFeaturePlateBeam::ByteSizeLong(const MessageLite& base) {
-  const InteractionFeaturePlateBeam& this_ = static_cast<const InteractionFeaturePlateBeam&>(base);
-#else   // PROTOBUF_CUSTOM_VTABLE
-::size_t InteractionFeaturePlateBeam::ByteSizeLong() const {
-  const InteractionFeaturePlateBeam& this_ = *this;
-#endif  // PROTOBUF_CUSTOM_VTABLE
-  // @@protoc_insertion_point(message_byte_size_start:wood_proto.InteractionFeaturePlateBeam)
-  ::size_t total_size = 0;
-
-  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
-
-   {
-    // string contact_guid = 1;
-    cached_has_bits = this_._impl_._has_bits_[0];
-    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      if (!this_._internal_contact_guid().empty()) {
-        total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
-                                        this_._internal_contact_guid());
-      }
-    }
-  }
-  return this_.MaybeComputeUnknownFieldsSize(total_size,
-                                             &this_._impl_._cached_size_);
-}
-
-void InteractionFeaturePlateBeam::MergeImpl(::google::protobuf::MessageLite& to_msg,
-                      const ::google::protobuf::MessageLite& from_msg) {
-   auto* const _this = static_cast<InteractionFeaturePlateBeam*>(&to_msg);
-  auto& from = static_cast<const InteractionFeaturePlateBeam&>(from_msg);
-  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
-    from.CheckHasBitConsistency();
-  }
-  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.InteractionFeaturePlateBeam)
-  ABSL_DCHECK_NE(&from, _this);
-  ::uint32_t cached_has_bits = 0;
-  (void)cached_has_bits;
-
-  cached_has_bits = from._impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    if (!from._internal_contact_guid().empty()) {
-      _this->_internal_set_contact_guid(from._internal_contact_guid());
-    } else {
-      if (_this->_impl_.contact_guid_.IsDefault()) {
-        _this->_internal_set_contact_guid("");
-      }
-    }
-  }
-  _this->_impl_._has_bits_[0] |= cached_has_bits;
-  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
-      from._internal_metadata_);
-}
-
-void InteractionFeaturePlateBeam::CopyFrom(const InteractionFeaturePlateBeam& from) {
-  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.InteractionFeaturePlateBeam)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
 
 
-void InteractionFeaturePlateBeam::InternalSwap(InteractionFeaturePlateBeam* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
-  using ::std::swap;
-  auto* arena = GetArena();
-  ABSL_DCHECK_EQ(arena, other->GetArena());
-  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.contact_guid_, &other->_impl_.contact_guid_, arena);
-}
+
+
+
+
 
 ::google::protobuf::Metadata InteractionFeaturePlateBeam::GetMetadata() const {
   return Super_::GetMetadataImpl(GetClassData()->full());

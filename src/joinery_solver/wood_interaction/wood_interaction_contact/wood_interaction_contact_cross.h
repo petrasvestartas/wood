@@ -24,6 +24,9 @@ public:
     /// "cross".
     std::string_view kind() const override;
 
+    /// Reverses the element order in place.
+    void flip() override;
+
     /// Sides swapped: the contact read from the other end of the edge, same guid.
     std::shared_ptr<InteractionContact> flipped() const override;
 

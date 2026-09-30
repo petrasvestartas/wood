@@ -68,7 +68,7 @@ int main() {
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_contacts(1);
+    wood_session.compute_face_contacts(1);
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -76,7 +76,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Workflow C, line by line, two buildings side by side, one group each: the crea dataset compas_grid ships, read from data/crea/<INPUT>_input.pb, every column, beam, floor, facade and core quad as drawn, the vertical lines as column points, the horizontal lines and floor edges as the plan of their level, the vertical quads as the facade and core walls compas_grid drops, every line a beam ending on the head tops and its neighbours' sides; and a braced frame of two by two bays over two storeys drawn as lines and floor quads, every beam cut by the column faces and every brace by the column faces, the deck top at its foot and the beam bottom at its head. compute_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+Workflow C, line by line, two buildings side by side, one group each: the crea dataset compas_grid ships, read from data/crea/<INPUT>_input.pb, every column, beam, floor, facade and core quad as drawn, the vertical lines as column points, the horizontal lines and floor edges as the plan of their level, the vertical quads as the facade and core walls compas_grid drops, every line a beam ending on the head tops and its neighbours' sides; and a braced frame of two by two bays over two storeys drawn as lines and floor quads, every beam cut by the column faces and every brace by the column faces, the deck top at its foot and the beam bottom at its head. compute_face_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

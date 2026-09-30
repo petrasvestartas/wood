@@ -60,6 +60,7 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
     for (const session_proto::Polyline& ring : proto.profile())
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
+    for (const auto& cut : proto.solid_cuts()) beam->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
     return beam;
 }
 
@@ -141,7 +142,7 @@ const BRep& Beam::element_geometry_brep() const {
 const Mesh& Beam::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
     }
 
     return *_model_geometry_mesh;
@@ -150,7 +151,7 @@ const Mesh& Beam::model_geometry_mesh() const {
 const BRep& Beam::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
+        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : mesh_brep(model_geometry_mesh());
     }
 
     return *_model_geometry_brep;
@@ -165,7 +166,8 @@ void Beam::invalidate_geometry() {
     _element_geometry_brep.reset();
     _model_geometry_mesh.reset();
     _model_geometry_brep.reset();
-    _geometry_synced = false;
+    Element::invalidate_geometry();
+    reset();
 }
 
 /// The up directions moved by xform; while xform tilts z every segment without one takes xform·z, the world z sections() used before the move.
@@ -188,6 +190,7 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     std::shared_ptr<Beam> beam = std::make_shared<Beam>(axis.transformed(xform), radii, transformed_directions(directions, axis.segment_count(), xform), allowed_type, name);
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
+    for (const auto& cut : solid_cuts) beam->solid_cuts.push_back(cut.transformed(xform));
     beam->profile = profile;
     beam->set_features(transformed_features(_features, xform));
     beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
@@ -201,6 +204,7 @@ void Beam::place(const Xform& xform) {
     directions = transformed_directions(directions, axis.segment_count(), xform);
     axis.transform(xform);
     cuts = transformed_list(cuts, xform);
+    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -287,6 +291,8 @@ std::string Beam::element_data_dumps() const {
         if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
 
+    for (const auto& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

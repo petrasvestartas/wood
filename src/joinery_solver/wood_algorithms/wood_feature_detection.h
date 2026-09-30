@@ -20,4 +20,5 @@ bool face_to_face_wood(
     int search_type,
     wood_session::InteractionFeaturePlate& out_joint,
     bool& out_swap_planes_1,
-    wood_session::DetectionTrace* trace = nullptr);
+    wood_session::DetectionTrace* trace = nullptr,
+    const wood_session::InteractionContactFace* face = nullptr);

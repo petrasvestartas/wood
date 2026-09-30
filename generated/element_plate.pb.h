@@ -30,6 +30,7 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
+#include "solid_cut.pb.h"
 #include "polyline.pb.h"
 // @@protoc_insertion_point(includes)
 
@@ -215,10 +216,31 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Plate final : public ::google::prot
 
   // accessors -------------------------------------------------------
   enum : int {
+    kSolidCutsFieldNumber = 4,
     kBottomFieldNumber = 1,
     kTopFieldNumber = 2,
     kReversedFieldNumber = 3,
   };
+  // repeated .wood_proto.SolidCut solid_cuts = 4;
+  [[nodiscard]] int solid_cuts_size() const;
+  private:
+  int _internal_solid_cuts_size() const;
+
+  public:
+  void clear_solid_cuts() ;
+  [[nodiscard]] const ::wood_proto::SolidCut& solid_cuts(int index) const;
+  [[nodiscard]] ::wood_proto::SolidCut* PROTOBUF_NONNULL mutable_solid_cuts(int index);
+  ::wood_proto::SolidCut* PROTOBUF_NONNULL add_solid_cuts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+  solid_cuts() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+  mutable_solid_cuts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& _internal_solid_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL _internal_mutable_solid_cuts();
+
+  public:
   // .session_proto.Polyline bottom = 1;
   [[nodiscard]] bool has_bottom() const;
   void clear_bottom() ;
@@ -263,8 +285,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Plate final : public ::google::prot
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<2, 3,
-                          2, 0,
+      ::google::protobuf::internal::TcParseTable<2, 4,
+                          3, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -292,6 +314,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Plate final : public ::google::prot
         const Plate& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::SolidCut > solid_cuts_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE bottom_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE top_;
     bool reversed_;
@@ -317,9 +340,59 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Plate final : public ::google::prot
 
 // Plate
 
+// repeated .wood_proto.SolidCut solid_cuts = 4;
+inline int Plate::_internal_solid_cuts_size() const {
+  return _internal_solid_cuts().size();
+}
+inline int Plate::solid_cuts_size() const {
+  return _internal_solid_cuts_size();
+}
+inline const ::wood_proto::SolidCut& Plate::solid_cuts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Plate.solid_cuts)
+  return _internal_solid_cuts().Get(index);
+}
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Plate::mutable_solid_cuts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Plate.solid_cuts)
+  return _internal_mutable_solid_cuts()->Mutable(index);
+}
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Plate::add_solid_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::SolidCut* _add =
+      _internal_mutable_solid_cuts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:wood_proto.Plate.solid_cuts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& Plate::solid_cuts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Plate.solid_cuts)
+  return _internal_solid_cuts();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Plate::mutable_solid_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Plate.solid_cuts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_solid_cuts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+Plate::_internal_solid_cuts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.solid_cuts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Plate::_internal_mutable_solid_cuts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.solid_cuts_;
+}
+
 // .session_proto.Polyline bottom = 1;
 inline bool Plate::has_bottom() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
   PROTOBUF_ASSUME(!value || _impl_.bottom_ != nullptr);
   return value;
 }
@@ -340,16 +413,16 @@ inline void Plate::unsafe_arena_set_allocated_bottom(
   }
   _impl_.bottom_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Plate.bottom)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE Plate::release_bottom() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Polyline* released = _impl_.bottom_;
   _impl_.bottom_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -369,7 +442,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE Plate::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Plate.bottom)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Polyline* temp = _impl_.bottom_;
   _impl_.bottom_ = nullptr;
   return temp;
@@ -384,7 +457,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL Plate::_internal_mutable_bott
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL Plate::mutable_bottom()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   ::session_proto::Polyline* _msg = _internal_mutable_bottom();
   // @@protoc_insertion_point(field_mutable:wood_proto.Plate.bottom)
   return _msg;
@@ -401,9 +474,9 @@ inline void Plate::set_allocated_bottom(::session_proto::Polyline* PROTOBUF_NULL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
   }
 
   _impl_.bottom_ = reinterpret_cast<::session_proto::Polyline*>(value);
@@ -412,7 +485,7 @@ inline void Plate::set_allocated_bottom(::session_proto::Polyline* PROTOBUF_NULL
 
 // .session_proto.Polyline top = 2;
 inline bool Plate::has_top() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000002U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.top_ != nullptr);
   return value;
 }
@@ -433,16 +506,16 @@ inline void Plate::unsafe_arena_set_allocated_top(
   }
   _impl_.top_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Plate.top)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE Plate::release_top() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* released = _impl_.top_;
   _impl_.top_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -462,7 +535,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE Plate::unsafe_arena_release_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Plate.top)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* temp = _impl_.top_;
   _impl_.top_ = nullptr;
   return temp;
@@ -477,7 +550,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL Plate::_internal_mutable_top(
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL Plate::mutable_top()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* _msg = _internal_mutable_top();
   // @@protoc_insertion_point(field_mutable:wood_proto.Plate.top)
   return _msg;
@@ -494,9 +567,9 @@ inline void Plate::set_allocated_top(::session_proto::Polyline* PROTOBUF_NULLABL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
   _impl_.top_ = reinterpret_cast<::session_proto::Polyline*>(value);
@@ -507,7 +580,7 @@ inline void Plate::set_allocated_top(::session_proto::Polyline* PROTOBUF_NULLABL
 inline void Plate::clear_reversed() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.reversed_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
 }
 inline bool Plate::reversed() const {
   // @@protoc_insertion_point(field_get:wood_proto.Plate.reversed)
@@ -515,7 +588,7 @@ inline bool Plate::reversed() const {
 }
 inline void Plate::set_reversed(bool value) {
   _internal_set_reversed(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:wood_proto.Plate.reversed)
 }
 inline bool Plate::_internal_reversed() const {

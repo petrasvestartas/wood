@@ -14,6 +14,9 @@ std::string_view contact_type_name(ContactType type) {
         case ContactType::side_side: return "side_side";
         case ContactType::side_top: return "side_top";
         case ContactType::top_top: return "top_top";
+        case ContactType::end_side: return "end_side";
+        case ContactType::end_top: return "end_top";
+        case ContactType::end_end: return "end_end";
         case ContactType::unknown: break;
     }
 

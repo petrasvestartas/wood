@@ -1,0 +1,43 @@
+syntax = "proto3";
+package wood_proto;
+import "polyline.proto";
+import "plane.proto";
+import "line.proto";
+import "vector.proto";
+import "interaction.proto";
+message Joint {
+  repeated session_proto.Polyline loops = 1;
+  repeated session_proto.Plane cuts = 2;
+  repeated string targets = 3;
+  repeated session_proto.Interaction connections = 4;
+  session_proto.Interaction beam_feature = 5;
+  int32 variant = 6;
+  double division_distance = 7;
+  double shift = 8;
+  double line_radius = 9;
+  bool generated = 10;
+  string kind = 11;
+  double chord_tolerance = 12;
+  repeated session_proto.Polyline cutter_profile = 13;
+  session_proto.Vector cutter_extrusion = 14;
+  repeated session_proto.Line drill_lines = 15;
+  optional int32 operation = 16;
+  JointPlateParameters plate_parameters = 17;
+}
+
+message JointPlateParameters {
+  string library = 1;
+  int32 contact_type = 2;
+  int32 divisions = 3;
+  double taper = 4;
+  bool chamfer = 5;
+  optional bool modify_outline = 6;
+  repeated double x = 7;
+  repeated double y = 8;
+  repeated double z = 9;
+  bool disable_divisions = 10;
+  double distance_squared = 11;
+  bool merge_with_joint = 12;
+  repeated session_proto.Polyline male = 13;
+  repeated session_proto.Polyline female = 14;
+}

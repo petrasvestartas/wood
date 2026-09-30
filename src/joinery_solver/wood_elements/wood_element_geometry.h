@@ -1,8 +1,23 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_solid_cut.h"
 
 namespace wood_session {
+
+/// Closed polyhedral CSG; curved inputs must be meshed to their requested tolerance first.
+session_cpp::Mesh solid_boolean(const session_cpp::Mesh& source, const session_cpp::Mesh& cutter,
+                               SolidOperation operation, double tolerance = 1e-7);
+std::optional<session_cpp::Mesh> compute_profile_cut(const session_cpp::Mesh& mesh, const SolidCut& cut);
+
+/// Uses polygon booleans for matching extrusions, otherwise solid splitting.
+session_cpp::Mesh apply_solid_cuts(session_cpp::Mesh mesh, const std::vector<SolidCut>& cuts);
+session_cpp::BRep mesh_brep(const session_cpp::Mesh& mesh);
+void append_mesh(session_cpp::Mesh& target, const session_cpp::Mesh& source);
+void append_brep(session_cpp::BRep& target, session_cpp::BRep source);
+int circle_segments(double radius, double chord_tolerance);
+session_cpp::Mesh drill_mesh(const session_cpp::Line& axis, double radius, double chord_tolerance);
+session_cpp::BRep drill_brep(const session_cpp::Line& axis, double radius);
 
 /// The feature_type names an element writes for its own geometry: "outline", "axis", "section"; every other type is joinery. The centroid is not one: `Element::point()` computes and caches it.
 bool is_geometry_feature(std::string_view feature_type);

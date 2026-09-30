@@ -4,5 +4,6 @@ package wood_proto;
 
 // The state of an InteractionFeaturePlateBeam beyond the kernel Interaction; nothing computed yet.
 message InteractionFeaturePlateBeam {
-  string contact_guid = 1;  // Guid of the contact this was solved from; empty when none
+  reserved 1;
+  reserved "contact_guid";
 }

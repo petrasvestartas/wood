@@ -14,6 +14,9 @@ public:
     /// "face", "axis" or "cross".
     virtual std::string_view kind() const = 0;
 
+    /// Reverses the element order in place.
+    virtual void flip() = 0;
+
     /// The contact read from the other end of the edge, same guid.
     virtual std::shared_ptr<InteractionContact> flipped() const = 0;
 

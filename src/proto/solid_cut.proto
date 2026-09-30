@@ -1,0 +1,13 @@
+syntax = "proto3";
+package wood_proto;
+import "mesh.proto";
+import "polyline.proto";
+import "vector.proto";
+message SolidCut {
+  string joint_guid = 1;
+  session_proto.Mesh mesh = 2;
+  repeated session_proto.Polyline profile = 3;
+  session_proto.Vector extrusion = 4;
+  int32 operation = 5;
+  double tolerance = 6;
+}

@@ -13,11 +13,16 @@ std::string_view InteractionContactCross::kind() const {
     return "cross";
 }
 
+void InteractionContactCross::flip() {
+
+    std::swap(faces_a, faces_b);
+    std::swap(lines[0], lines[1]);
+}
+
 std::shared_ptr<InteractionContact> InteractionContactCross::flipped() const {
 
-    std::shared_ptr<InteractionContactCross> out = std::make_shared<InteractionContactCross>(*this);
-    std::swap(out->faces_a, out->faces_b);
-    std::swap(out->lines[0], out->lines[1]);
+    const std::shared_ptr<InteractionContactCross> out = std::make_shared<InteractionContactCross>(*this);
+    out->flip();
 
     return out;
 }

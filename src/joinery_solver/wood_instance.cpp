@@ -195,6 +195,9 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(element))
         return plate->transformed(xform);
 
+    if (const auto joint = std::dynamic_pointer_cast<Joint>(element))
+        return joint->transformed(xform);
+
     if (is_mirror(xform))
         return nullptr;
 

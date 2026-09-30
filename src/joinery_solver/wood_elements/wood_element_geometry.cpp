@@ -382,4 +382,127 @@ std::vector<ElementFeature> transformed_features(const std::vector<ElementFeatur
     return moved;
 }
 
-} // namespace wood_session
+
+static void offset_index(int& index, int amount) {
+
+    if (index >= 0)
+        index += amount;
+}
+
+void append_brep(BRep& target, BRep source) {
+
+    for (BRepEdge& edge : source.m_edges) {
+        offset_index(edge.curve_3d_index, target.m_curves_3d.size());
+        offset_index(edge.start_vertex, target.m_vertices.size());
+        offset_index(edge.end_vertex, target.m_vertices.size());
+
+        for (BRepCurveOnSurface& curve : edge.pcurves) {
+            offset_index(curve.surface_index, target.m_surfaces.size());
+            offset_index(curve.curve_2d_index, target.m_curves_2d.size());
+            offset_index(curve.curve_2d_index_2, target.m_curves_2d.size());
+        }
+    }
+
+    for (BRepWire& wire : source.m_wires)
+        for (BRepRef& reference : wire.edges)
+            offset_index(reference.index, target.m_edges.size());
+
+    for (BRepFace& face : source.m_faces) {
+        offset_index(face.surface_index, target.m_surfaces.size());
+
+        for (BRepRef& reference : face.wires)
+            offset_index(reference.index, target.m_wires.size());
+    }
+
+    for (BRepShell& shell : source.m_shells)
+        for (BRepRef& reference : shell.faces)
+            offset_index(reference.index, target.m_faces.size());
+
+    for (BRepSolid& solid : source.m_solids)
+        for (BRepRef& reference : solid.shells)
+            offset_index(reference.index, target.m_shells.size());
+
+    target.m_surfaces.insert(target.m_surfaces.end(), std::make_move_iterator(source.m_surfaces.begin()), std::make_move_iterator(source.m_surfaces.end()));
+    target.m_curves_3d.insert(target.m_curves_3d.end(), std::make_move_iterator(source.m_curves_3d.begin()), std::make_move_iterator(source.m_curves_3d.end()));
+    target.m_curves_2d.insert(target.m_curves_2d.end(), std::make_move_iterator(source.m_curves_2d.begin()), std::make_move_iterator(source.m_curves_2d.end()));
+    target.m_vertices.insert(target.m_vertices.end(), std::make_move_iterator(source.m_vertices.begin()), std::make_move_iterator(source.m_vertices.end()));
+    target.m_edges.insert(target.m_edges.end(), std::make_move_iterator(source.m_edges.begin()), std::make_move_iterator(source.m_edges.end()));
+    target.m_wires.insert(target.m_wires.end(), std::make_move_iterator(source.m_wires.begin()), std::make_move_iterator(source.m_wires.end()));
+    target.m_faces.insert(target.m_faces.end(), std::make_move_iterator(source.m_faces.begin()), std::make_move_iterator(source.m_faces.end()));
+    target.m_shells.insert(target.m_shells.end(), std::make_move_iterator(source.m_shells.begin()), std::make_move_iterator(source.m_shells.end()));
+    target.m_solids.insert(target.m_solids.end(), std::make_move_iterator(source.m_solids.begin()), std::make_move_iterator(source.m_solids.end()));
+}
+
+void append_mesh(Mesh& target, const Mesh& source) {
+
+    std::map<size_t, size_t> vertices;
+
+    for (const std::pair<const size_t, VertexData>& entry : source.vertex)
+        vertices[entry.first] = target.add_vertex(entry.second.position());
+
+    for (const std::pair<const size_t, std::vector<size_t>>& face : source.face) {
+        std::vector<size_t> indices;
+
+        for (size_t vertex : face.second)
+            indices.push_back(vertices.at(vertex));
+
+        const std::optional<size_t> key = target.add_face(indices);
+
+        if (!key)
+            throw std::runtime_error("Cannot append solid face");
+
+        const auto holes = source.face_holes.find(face.first);
+
+        if (holes != source.face_holes.end()) {
+            std::vector<std::vector<size_t>> rings = holes->second;
+
+            for (std::vector<size_t>& ring : rings)
+                for (size_t& vertex : ring)
+                    vertex = vertices.at(vertex);
+
+            target.set_face_holes(*key, std::move(rings));
+        }
+
+        const auto cached = source.get_triangulation().find(face.first);
+
+        if (cached != source.get_triangulation().end()) {
+            std::vector<std::array<size_t, 3>> triangles = cached->second;
+
+            for (std::array<size_t, 3>& triangle : triangles)
+                for (size_t& vertex : triangle)
+                    vertex = vertices.at(vertex);
+
+            target.set_face_triangulation(*key, std::move(triangles));
+        }
+    }
+}
+
+static Polyline mesh_face_ring(const Mesh& mesh, const std::vector<size_t>& indices) {
+
+    std::vector<Point> points;
+
+    for (size_t vertex : indices)
+        points.push_back(mesh.vertex.at(vertex).position());
+
+    return Polyline(points).closed();
+}
+
+BRep mesh_brep(const Mesh& mesh) {
+
+    std::vector<Polyline> faces;
+    std::vector<std::vector<Polyline>> holes;
+
+    for (const std::pair<const size_t, std::vector<size_t>>& face : mesh.face) {
+        faces.push_back(mesh_face_ring(mesh, face.second));
+        holes.emplace_back();
+        const auto found = mesh.face_holes.find(face.first);
+
+        if (found != mesh.face_holes.end())
+            for (const std::vector<size_t>& ring : found->second)
+                holes.back().push_back(mesh_face_ring(mesh, ring));
+    }
+
+    return BRep::from_polylines(faces, holes);
+}
+
+}

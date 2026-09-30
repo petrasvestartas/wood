@@ -11,13 +11,14 @@ using namespace session_cpp;
 
 namespace {
 
-/// Registers the element and interaction factories with the kernel; always returns true so a static can hold the result.
+/// Registers the element and interaction factories with the kernel; always returns true so source static can hold the result.
 bool register_factories() {
 
     Plate::register_type();
     Column::register_type();
     Block::register_type();
     Beam::register_type();
+    Joint::register_type();
     InteractionContactFace::register_type();
     InteractionContactAxis::register_type();
     InteractionContactCross::register_type();
@@ -32,6 +33,36 @@ bool register_factories() {
 void register_types() {
     static const bool done = register_factories();
     (void)done;
+}
+
+std::vector<SolidCut>* get_solid_cuts(Element& element) {
+
+    if (Plate* plate = dynamic_cast<Plate*>(&element))
+        return &plate->solid_cuts;
+
+    if (Beam* beam = dynamic_cast<Beam*>(&element))
+        return &beam->solid_cuts;
+
+    if (Column* column = dynamic_cast<Column*>(&element))
+        return &column->solid_cuts;
+
+    if (Block* block = dynamic_cast<Block*>(&element))
+        return &block->solid_cuts;
+
+    return nullptr;
+}
+
+bool erase_solid_cut(std::vector<SolidCut>& cuts, const std::string& guid) {
+
+    const size_t count = cuts.size();
+
+    for (auto cut = cuts.begin(); cut != cuts.end();)
+        if (cut->joint_guid == guid)
+            cut = cuts.erase(cut);
+        else
+            ++cut;
+
+    return count != cuts.size();
 }
 
 }  // namespace
@@ -126,7 +157,7 @@ std::ostream& operator<<(std::ostream& os, const WoodSession& scene) {
 
 namespace {
 
-/// A contact as the feature its edge's first element carries: the face or cross polygon, or the axis segment, named by its class.
+/// A contact as a feature, with face indices relative to its host element.
 ElementFeature contact_feature(const InteractionContact& contact) {
 
     Polyline outline;
@@ -150,7 +181,7 @@ ElementFeature contact_feature(const InteractionContact& contact) {
     return feature;
 }
 
-/// True when a feature goes: of the type when one is given, else one of the guids.
+/// True when source feature goes: of the type when one is given, else one of the guids.
 bool is_dropped(const ElementFeature& feature, std::string_view type, const std::unordered_set<std::string>& guids) {
     return type.empty() ? guids.count(feature.guid()) > 0 : feature.feature_type == type;
 }
@@ -179,8 +210,10 @@ void drop_instance_features(const std::shared_ptr<InstanceRef>& instance, std::s
 
     std::vector<ElementFeature> features;
     for (const ElementFeature& feature : instance->features)
-        if (!is_dropped(feature, type, guids))
+        if (!is_dropped(feature, type, guids)) {
             features.push_back(feature);
+            features.back().guid() = feature.guid();
+        }
 
     instance->features = std::move(features);
 }
@@ -199,6 +232,17 @@ void drop_host_features(WoodSession& session, const std::string& guid, std::stri
 }  // namespace
 
 void WoodSession::clear_features() {
+
+    std::vector<std::string> generated;
+    for (const auto& element : *objects.elements)
+        if (std::dynamic_pointer_cast<JointPlate>(element) || std::dynamic_pointer_cast<JointBeam>(element))
+            generated.push_back(element->guid());
+    for (const auto& id : generated) remove_object(id);
+    for (const auto& plate : plates()) {
+        plate->features.top.clear();
+        plate->features.bottom.clear();
+        plate->invalidate_geometry();
+    }
 
     for (std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : interactions) {
 
@@ -241,15 +285,6 @@ void WoodSession::erase_contacts(std::string_view kind) {
         entry.second = std::move(kept);
     }
 
-    for (std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : interactions)
-        for (const std::shared_ptr<Interaction>& interaction : entry.second) {
-
-            InteractionFeature* feature = dynamic_cast<InteractionFeature*>(interaction.get());
-
-            if (feature && erased.count(feature->contact_guid))
-                feature->contact_guid.clear();
-        }
-
     for (const std::shared_ptr<Element>& element : *objects.elements)
         drop_features(element, "", erased);
 
@@ -257,7 +292,7 @@ void WoodSession::erase_contacts(std::string_view kind) {
         drop_instance_features(instance, "", erased);
 }
 
-/// Stored elements are lofted first, since a mesh gives their outlines; a view comes with its outlines seeded.
+/// Stored elements are lofted first, since source mesh gives their outlines; source view comes with its outlines seeded.
 void WoodSession::compute_face_contacts(int level) {
 
     erase_contacts("face");
@@ -266,11 +301,9 @@ void WoodSession::compute_face_contacts(int level) {
     for (const std::shared_ptr<TreeNode>& node : tree.nodes())
         nodes[node->name] = node;
 
-    for (const std::shared_ptr<Element>& element : *objects.elements)
-        element->geometry_mesh();
-
     std::map<const TreeNode*, std::vector<std::shared_ptr<Element>>> branches;
     for (const std::shared_ptr<Element>& element : world_elements()) {
+        if (std::dynamic_pointer_cast<Joint>(element)) continue;
 
         const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
         const TreeNode* branch = nullptr;
@@ -287,6 +320,12 @@ void WoodSession::compute_face_contacts(int level) {
             add_interaction(elements[ia], elements[ib], std::make_shared<InteractionContactFace>(contact));
 }
 
+std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::shared_ptr<session_cpp::Element> source, std::shared_ptr<session_cpp::Element> target){
+    if (!source || !target || source->guid() == target->guid()) return nullptr;
+    const auto contacts = face_contacts_for_pair(*source, *target, settings);
+    return contacts.empty() ? nullptr : std::make_shared<InteractionContactFace>(contacts.front());
+}
+
 void WoodSession::compute_axis_contacts(double min_distance) {
 
     erase_contacts("axis");
@@ -298,6 +337,15 @@ void WoodSession::compute_axis_contacts(double min_distance) {
 
 /// Each beam edge's earlier beam features go first, then one per axis contact, oriented to the edge's first beam.
 void WoodSession::compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male) {
+
+    std::vector<std::shared_ptr<JointBeam>> previous;
+    for (const auto& element : *objects.elements)
+        if (auto joint = std::dynamic_pointer_cast<JointBeam>(element); joint && joint->generated) previous.push_back(joint);
+    for (const auto& joint : previous) {
+        for (const auto& id : joint->targets)
+            if (auto target = get_element<Element>(id)) remove_interaction(joint, target);
+        remove_object(joint->guid());
+    }
 
     std::unordered_map<std::string, std::shared_ptr<Beam>> beams;
 
@@ -325,23 +373,18 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
 
         found->second = kept;
         drop_host_features(*this, edge.v0, "", erased);
+        drop_host_features(*this, edge.v1, "", erased);
 
         for (const std::shared_ptr<Interaction>& interaction : kept) {
 
             const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(interaction.get());
-            std::shared_ptr<InteractionFeatureBeam> feature = std::make_shared<InteractionFeatureBeam>();
-
-            if (!axis || !beam_to_beam(*beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male, *feature))
-                continue;
-
-            feature->contact_guid = axis->guid();
-            add_interaction(beam_a, beam_b, feature);
+            if (!axis) continue;
+            auto joint = JointBeam::from_contact(*beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male);
+            if (!joint) continue;
+            joint->generated = true;
+            add_joint(joint, false);
         }
     }
-}
-
-void WoodSession::compute_contacts(int level) {
-    compute_face_contacts(level);
 }
 
 void WoodSession::compute_cross_contacts(double angle_tol) {
@@ -349,27 +392,17 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
     erase_contacts("cross");
 
     const std::vector<std::shared_ptr<Plate>> plates = world_elements<Plate>();
-    for (size_t i = 0; i < plates.size(); ++i) {
-
-        if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2)
-            continue;
-
-        for (size_t j = i + 1; j < plates.size(); ++j) {
-
-            if (plates[j]->polylines.size() < 2 || plates[j]->planes.size() < 2)
-                continue;
-
-            InteractionContactCross crossing;
-            const bool crossed = plane_to_face(
-                plates[i]->polylines[0], plates[i]->polylines[1],
-                plates[j]->polylines[0], plates[j]->polylines[1],
-                plates[i]->planes[0], plates[i]->planes[1],
-                plates[j]->planes[0], plates[j]->planes[1],
-                settings.distance_squared, crossing, angle_tol
-            );
-            if (crossed)
-                add_interaction(plates[i], plates[j], std::make_shared<InteractionContactCross>(crossing));
-        }
+    const auto pairs = adjacency_search(std::vector<std::shared_ptr<Element>>(plates.begin(), plates.end()), settings.distance);
+    for (const auto& [i, j] : pairs) {
+        if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2 ||
+            plates[j]->polylines.size() < 2 || plates[j]->planes.size() < 2) continue;
+        InteractionContactCross crossing;
+        if (plane_to_face(plates[i]->polylines[0], plates[i]->polylines[1],
+                          plates[j]->polylines[0], plates[j]->polylines[1],
+                          plates[i]->planes[0], plates[i]->planes[1],
+                          plates[j]->planes[0], plates[j]->planes[1],
+                          settings.distance_squared, crossing, angle_tol))
+            add_interaction(plates[i], plates[j], std::make_shared<InteractionContactCross>(crossing));
     }
 }
 
@@ -379,78 +412,51 @@ void WoodSession::compute_line_contacts(double tolerance) {
 
     const double tol = tolerance >= 0.0 ? tolerance : settings.distance;
     const double tol_squared = tol * tol;
-    const std::vector<std::shared_ptr<Element>> elements = world_elements();
+    std::vector<std::shared_ptr<Element>> elements = world_elements();
+    std::erase_if(elements, [](const auto& element) { return std::dynamic_pointer_cast<Joint>(element) != nullptr; });
 
     std::vector<std::vector<std::vector<Line>>> lines(elements.size());
-    for (size_t a = 0; a < elements.size(); ++a)
-        for (const Polyline& loop : elements[a]->polylines())
-            lines[a].push_back(loop.get_lines());
+    for (size_t source = 0; source < elements.size(); ++source)
+        for (const Polyline& loop : elements[source]->polylines())
+            lines[source].push_back(loop.get_lines());
 
-    for (size_t a = 0; a < elements.size(); ++a)
-        for (size_t b = a + 1; b < elements.size(); ++b)
-            for (size_t la = 0; la < lines[a].size(); ++la)
-                for (size_t sa = 0; sa < lines[a][la].size(); ++sa)
-                    for (size_t lb = 0; lb < lines[b].size(); ++lb)
-                        for (size_t sb = 0; sb < lines[b][lb].size(); ++sb) {
+    for (size_t source = 0; source < elements.size(); ++source)
+        for (size_t target = source + 1; target < elements.size(); ++target)
+            for (size_t la = 0; la < lines[source].size(); ++la)
+                for (size_t sa = 0; sa < lines[source][la].size(); ++sa)
+                    for (size_t lb = 0; lb < lines[target].size(); ++lb)
+                        for (size_t sb = 0; sb < lines[target][lb].size(); ++sb) {
 
                             double t0 = 0.0;
                             double t1 = 0.0;
-                            if (!Intersection::line_line_parameters(lines[a][la][sa], lines[b][lb][sb], t0, t1, 0.0, true, true))
+                            if (!Intersection::line_line_parameters(lines[source][la][sa], lines[target][lb][sb], t0, t1, 0.0, true, true))
                                 continue;
 
-                            const Point q0 = lines[a][la][sa].point_at(t0);
-                            const Point q1 = lines[b][lb][sb].point_at(t1);
+                            const Point q0 = lines[source][la][sa].point_at(t0);
+                            const Point q1 = lines[target][lb][sb].point_at(t1);
                             if ((q0 - q1).magnitude_squared() > tol_squared)
                                 continue;
 
-                            add_interaction(elements[a], elements[b], std::make_shared<InteractionContactAxis>(Line::from_points(q0, q1), t0, t1, (int)la, (int)sa, (int)lb, (int)sb));
+                            add_interaction(elements[source], elements[target], std::make_shared<InteractionContactAxis>(Line::from_points(q0, q1), t0, t1, (int)la, (int)sa, (int)lb, (int)sb));
                         }
 }
 
-/// A plate feature keeps a copy of its contact; the copy must be the stored contact read from the feature's own side.
 bool WoodSession::consistent() const {
-
-    for (const std::tuple<std::string, std::string>& pair : graph.get_edges()) {
-
+    for (const auto& pair : graph.get_edges()) {
         const Edge& edge = graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
-        const std::map<std::string, std::vector<std::shared_ptr<Interaction>>>::const_iterator found = interactions.find(edge.guid());
-
-        if (found == interactions.end())
-            continue;
-
-        std::unordered_map<std::string, const InteractionContact*> contacts;
-
-        for (const std::shared_ptr<Interaction>& interaction : found->second)
-            if (const InteractionContact* contact = dynamic_cast<const InteractionContact*>(interaction.get()))
-                contacts[contact->guid()] = contact;
-
-        for (const std::shared_ptr<Interaction>& interaction : found->second) {
-
-            const InteractionFeature* feature = dynamic_cast<const InteractionFeature*>(interaction.get());
-
-            if (!feature || feature->contact_guid.empty())
-                continue;
-
-            if (!contacts.count(feature->contact_guid))
-                return false;
-
-            const InteractionFeaturePlate* plate = dynamic_cast<const InteractionFeaturePlate*>(feature);
-
-            if (!plate)
-                continue;
-
-            const bool reversed = plate->element_a == edge.v1;
-
-            if ((!reversed && plate->element_a != edge.v0) || (reversed && plate->element_b != edge.v0))
-                return false;
-
-            const InteractionContact& contact = *contacts.at(feature->contact_guid);
-
-            if (!plate->to_contact()->coincides(reversed ? *contact.flipped() : contact))
-                return false;
+        const auto found = interactions.find(edge.guid());
+        if (found == interactions.end()) continue;
+        for (const auto& interaction : found->second) {
+            const auto* feature = dynamic_cast<const InteractionFeaturePlate*>(interaction.get());
+            if (!feature) continue;
+            if (feature->target_side) {
+                const std::string& target = feature->target_side == 1 ? feature->element_a : feature->element_b;
+                const std::string source = edge.v0 == target ? edge.v1 : edge.v0;
+                if ((edge.v0 != target && edge.v1 != target) || !get_element<Joint>(source)) return false;
+            } else if (!((feature->element_a == edge.v0 && feature->element_b == edge.v1) ||
+                         (feature->element_a == edge.v1 && feature->element_b == edge.v0))) return false;
         }
     }
-
     return true;
 }
 
@@ -481,16 +487,20 @@ std::vector<std::shared_ptr<InteractionFeature>> WoodSession::get_features() con
 std::vector<InteractionFeaturePlate> WoodSession::get_plate_features() const {
 
     std::vector<InteractionFeaturePlate> out;
-
-    for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : interactions)
-        for (const std::shared_ptr<Interaction>& interaction : entry.second)
-            if (const InteractionFeaturePlate* plate = dynamic_cast<const InteractionFeaturePlate*>(interaction.get()))
-                out.push_back(*plate);
+    std::unordered_set<std::string> seen;
+    for (const auto& element : *objects.elements)
+        if (const auto joint = std::dynamic_pointer_cast<JointPlate>(element))
+            for (const auto& connection : joint->connections)
+                if (seen.insert(connection.guid()).second) out.push_back(connection);
+    for (const auto& entry : interactions)
+        for (const auto& interaction : entry.second)
+            if (const auto* plate = dynamic_cast<const InteractionFeaturePlate*>(interaction.get()))
+                if (!plate->target_side && seen.insert(plate->guid()).second) out.push_back(*plate);
 
     return out;
 }
 
-/// Side [0] of a plate feature belongs to its element_a, side [1] to its element_b.
+/// Side [0] of source plate feature belongs to its element_a, side [1] to its element_b.
 std::vector<ElementFeature> WoodSession::get_element_features(const std::string& guid) const {
 
     std::vector<ElementFeature> features;
@@ -505,7 +515,7 @@ std::vector<ElementFeature> WoodSession::get_element_features(const std::string&
 
             const int side = plate->element_a == guid ? 0 : (plate->element_b == guid ? 1 : -1);
 
-            if (side < 0)
+            if (side < 0 || (plate->target_side && plate->target_side != side + 1))
                 continue;
 
             std::array<ElementFeature, 2> sides = plate->to_features();
@@ -540,32 +550,73 @@ void WoodSession::set_features_visible(std::string_view feature_type, bool visib
 // WoodSession - Interactions
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The edge's first element is v0 of the stored edge, or a when the pair has no edge yet.
+/// Graph ordering stays stable; single-owner geometry belongs to this call's source.
 std::shared_ptr<Interaction> WoodSession::add_interaction(
-    const std::shared_ptr<Element>& a,
-    const std::shared_ptr<Element>& b,
+    const std::shared_ptr<Element>& source,
+    const std::shared_ptr<Element>& target,
     std::shared_ptr<Interaction> interaction
 ) {
 
-    const bool known = graph.has_edge({a->guid(), b->guid()});
-    const std::string first = known ? graph.edges.at(a->guid()).at(b->guid()).v0 : a->guid();
-    const bool reversed = first != a->guid();
+    if (!source || !target || !interaction) throw std::invalid_argument("An interaction needs two elements and a payload");
+    if (auto joint = std::dynamic_pointer_cast<JointPlate>(source)) {
+        auto feature = std::dynamic_pointer_cast<InteractionFeaturePlate>(interaction);
+        if (!feature || feature->target_side < 1 || feature->target_side > 2)
+            throw std::invalid_argument("A plate joint interaction must select its target side");
+        const int side = feature->target_side - 1;
+        auto plate = std::dynamic_pointer_cast<Plate>(target);
+        if (!plate) throw std::invalid_argument("A plate joint requires a plate target");
+        auto found = std::find_if(joint->connections.begin(), joint->connections.end(), [&](const auto& c) {
+            return c.feature_guid(side) == feature->guid();
+        });
+        if (found == joint->connections.end()) throw std::invalid_argument("Feature does not belong to the joint");
+        (side == 0 ? found->element_a : found->element_b) = target->guid();
+        if (std::find(joint->targets.begin(), joint->targets.end(), target->guid()) == joint->targets.end())
+            joint->targets.push_back(target->guid());
+        *feature = *found;
+        feature->target_side = side + 1;
+        feature->guid() = found->feature_guid(side);
+        const std::unordered_set<std::string> replaced{feature->guid()};
+        drop_host_features(*this, target->guid(), "", replaced);
+        if (graph.has_edge({source->guid(), target->guid()})) {
+            auto& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
+            std::erase_if(records, [&](const auto& record) { return record->guid() == feature->guid(); });
+        }
+        Session::add_interaction(source, target, feature);
+        host_feature(target->guid(), found->to_features()[side]);
+        auto joints = get_plate_features();
+        merge_features({plate}, joints);
+        return feature;
+    }
+
+    const bool known = graph.has_edge({source->guid(), target->guid()});
+    const std::string first = known ? graph.edges.at(source->guid()).at(target->guid()).v0 : source->guid();
+    const bool reversed = first != source->guid();
+
+    const auto host_source = [&](ElementFeature feature) {
+        const std::unordered_set<std::string> ids{feature.guid()};
+        drop_host_features(*this, source->guid(), "", ids);
+        drop_host_features(*this, target->guid(), "", ids);
+        host_feature(source->guid(), std::move(feature));
+    };
 
     if (const InteractionContact* contact = dynamic_cast<const InteractionContact*>(interaction.get())) {
 
         const std::shared_ptr<Interaction> oriented = reversed ? contact->flipped() : interaction;
         const InteractionContact& placed = *dynamic_cast<const InteractionContact*>(oriented.get());
 
-        for (const std::shared_ptr<Interaction>& stored : get_interaction(a, b)) {
+        for (const std::shared_ptr<Interaction>& stored : get_interaction(source, target)) {
 
             const InteractionContact* other = dynamic_cast<const InteractionContact*>(stored.get());
 
-            if (other && other->coincides(placed))
+            if (other && other->coincides(placed)) {
+                host_source(contact_feature(reversed ? *other->flipped() : *other));
+                revision++;
                 return stored;
+            }
         }
 
-        Session::add_interaction(a, b, oriented);
-        host_feature(first, contact_feature(placed));
+        Session::add_interaction(source, target, oriented);
+        host_source(contact_feature(*contact));
 
         return oriented;
     }
@@ -573,12 +624,12 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
     if (InteractionFeaturePlate* plate = dynamic_cast<InteractionFeaturePlate*>(interaction.get())) {
 
         if (plate->element_a.empty()) {
-            plate->element_a = a->guid();
-            plate->element_b = b->guid();
+            plate->element_a = source->guid();
+            plate->element_b = target->guid();
         }
 
         plate->sync_features();
-        Session::add_interaction(a, b, interaction);
+        Session::add_interaction(source, target, interaction);
         std::array<ElementFeature, 2> sides = plate->to_features();
         host_feature(plate->element_a, std::move(sides[0]));
         host_feature(plate->element_b, std::move(sides[1]));
@@ -586,29 +637,44 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         return interaction;
     }
 
-    if (InteractionFeatureBeam* beam = dynamic_cast<InteractionFeatureBeam*>(interaction.get())) {
+    if (dynamic_cast<InteractionFeatureBeam*>(interaction.get())) {
 
-        if (reversed) {
-            std::swap(beam->volumes[0], beam->volumes[2]);
-            std::swap(beam->volumes[1], beam->volumes[3]);
+        // Reusing a joint moves its feature without flipping its stored volumes again.
+        std::shared_ptr<Interaction> oriented;
+        for (const std::shared_ptr<Interaction>& stored : get_interaction(source, target))
+            if (stored->guid() == interaction->guid())
+                oriented = stored;
+
+        if (!oriented) {
+            oriented = interaction->clone();
+            InteractionFeatureBeam& beam = *dynamic_cast<InteractionFeatureBeam*>(oriented.get());
+
+            if (reversed) {
+                std::swap(beam.volumes[0], beam.volumes[2]);
+                std::swap(beam.volumes[1], beam.volumes[3]);
+            }
+
+            Session::add_interaction(source, target, oriented);
+        } else {
+            revision++;
         }
 
-        Session::add_interaction(a, b, interaction);
-        ElementFeature side("joint", -1, std::vector<Polyline>(beam->volumes.begin(), beam->volumes.end()), fmt::format("beam_{}", beam->end_type));
-        side.guid() = beam->guid();
-        host_feature(first, std::move(side));
+        const InteractionFeatureBeam& beam = *dynamic_cast<const InteractionFeatureBeam*>(oriented.get());
+        ElementFeature side("joint", -1, std::vector<Polyline>(beam.volumes.begin(), beam.volumes.end()), fmt::format("beam_{}", beam.end_type));
+        side.guid() = beam.guid();
+        host_source(std::move(side));
 
-        return interaction;
+        return oriented;
     }
 
-    return Session::add_interaction(a, b, interaction);
+    return Session::add_interaction(source, target, interaction);
 }
 
-void WoodSession::remove_interaction(const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
+void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target) {
 
     std::unordered_set<std::string> erased;
 
-    for (const std::shared_ptr<Interaction>& interaction : get_interaction(a, b)) {
+    for (const std::shared_ptr<Interaction>& interaction : get_interaction(source, target)) {
 
         erased.insert(interaction->guid());
 
@@ -618,9 +684,14 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& a, const st
         }
     }
 
-    drop_host_features(*this, a->guid(), "", erased);
-    drop_host_features(*this, b->guid(), "", erased);
-    Session::remove_interaction(a, b);
+    drop_host_features(*this, source->guid(), "", erased);
+    drop_host_features(*this, target->guid(), "", erased);
+    std::vector<SolidCut>* cuts = get_solid_cuts(*target);
+
+    if (cuts && erase_solid_cut(*cuts, source->guid()))
+        target->invalidate_geometry();
+
+    Session::remove_interaction(source, target);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -736,3 +807,157 @@ std::vector<std::string> WoodSession::element_guids() const {
 }
 
 }  // namespace wood_session
+
+namespace wood_session {
+
+static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate>& joint, bool merge) {
+
+    std::vector<std::shared_ptr<Plate>> plates;
+    std::unordered_set<std::string> seen;
+
+    for (size_t i = 0; i < joint->connections.size(); ++i) {
+        const InteractionFeaturePlate& connection = joint->connections[i];
+
+        for (int side = 0; side < 2; ++side) {
+            const std::string& id = side == 0 ? connection.element_a : connection.element_b;
+            const std::shared_ptr<Plate> plate = scene.get_element<Plate>(id);
+
+            if (!plate)
+                throw std::invalid_argument("Joint target is not a stored plate: " + id);
+
+            if (seen.insert(id).second)
+                plates.push_back(plate);
+
+            const std::shared_ptr<InteractionFeaturePlate> feature = joint->interaction_feature(side, i);
+            drop_host_features(scene, id, "", {feature->guid()});
+
+            if (scene.graph.has_edge({joint->guid(), id})) {
+                std::vector<std::shared_ptr<Interaction>>& records = scene.interactions[scene.graph.edges.at(joint->guid()).at(id).guid()];
+
+                for (auto record = records.begin(); record != records.end();)
+                    if ((*record)->guid() == feature->guid())
+                        record = records.erase(record);
+                    else
+                        ++record;
+            }
+
+            scene.Session::add_interaction(joint, plate, feature);
+            scene.host_feature(id, connection.to_features()[side]);
+        }
+    }
+
+    joint->targets.assign(seen.begin(), seen.end());
+
+    if (merge) {
+        std::vector<InteractionFeaturePlate> connections = scene.get_plate_features();
+        scene.merge_features(plates, connections);
+    }
+}
+
+static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
+
+    for (size_t side = 0; side < joint->targets.size(); ++side) {
+        const std::shared_ptr<Element> target = scene.get_element<Element>(joint->targets[side]);
+
+        if (!target)
+            throw std::invalid_argument("Missing beam joint target");
+
+        if (scene.has_interaction(joint, target))
+            scene.remove_interaction(joint, target);
+
+        const std::shared_ptr<InteractionFeatureBeam> feature = std::make_shared<InteractionFeatureBeam>(joint->feature);
+        feature->guid() = ::guid();
+
+        if (side == 1) {
+            std::swap(feature->volumes[0], feature->volumes[2]);
+            std::swap(feature->volumes[1], feature->volumes[3]);
+        }
+
+        scene.Session::add_interaction(joint, target, feature);
+        ElementFeature hosted("joint", -1, {feature->volumes[0], feature->volumes[1]}, joint->name);
+        hosted.guid() = feature->guid();
+        scene.host_feature(target->guid(), std::move(hosted));
+    }
+}
+
+static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& target) {
+
+    std::vector<SolidCut>* cuts = get_solid_cuts(target);
+
+    if (!cuts)
+        throw std::invalid_argument("Solid cutters require a plate, beam, column or block");
+
+    SolidCut cut;
+    cut.joint_guid = joint.guid();
+    cut.mesh = joint.model_geometry_mesh();
+
+    if (!cut.mesh.number_of_faces() || !cut.mesh.is_closed())
+        throw std::invalid_argument("Missing closed cutter solid");
+
+    cut.profile = joint.cutter_profile;
+    cut.extrusion = joint.cutter_extrusion;
+    cut.operation = joint.operation;
+    const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
+
+    if (!local)
+        throw std::invalid_argument("Cutter target has a singular placement");
+
+    cut = cut.transformed(*local * scene.world_xform(joint.guid()));
+
+    for (SolidCut& stored : *cuts)
+        if (stored.joint_guid == joint.guid()) {
+            stored = std::move(cut);
+            return;
+        }
+
+    cuts->push_back(std::move(cut));
+}
+
+static void add_plane_cut(const Joint& joint, Element& target) {
+
+    if (Beam* beam = dynamic_cast<Beam*>(&target))
+        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    else if (Column* column = dynamic_cast<Column*>(&target))
+        column->cuts.insert(column->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    else if (Block* block = dynamic_cast<Block*>(&target))
+        block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    else
+        throw std::invalid_argument("Plane cutters require a beam, column or block");
+}
+
+static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& joint) {
+
+    for (const std::string& id : joint->targets) {
+        const std::shared_ptr<Element> target = scene.get_element<Element>(id);
+
+        if (!target)
+            throw std::invalid_argument("Missing cutter target");
+
+        if (!joint->loops.empty() || !joint->drill_axes().empty() || joint->cuts.empty())
+            add_solid_cut(scene, *joint, *target);
+        else
+            add_plane_cut(*joint, *target);
+
+        target->invalidate_geometry();
+        scene.Session::remove_interaction(joint, target);
+        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+    }
+}
+
+void WoodSession::add_joint(const std::shared_ptr<Joint>& joint, bool merge) {
+
+    if (!joint)
+        throw std::invalid_argument("Missing joint");
+
+    if (!get_element<Joint>(joint->guid()))
+        add(joint);
+
+    if (const std::shared_ptr<JointPlate> plate = std::dynamic_pointer_cast<JointPlate>(joint))
+        add_plate_joint(*this, plate, merge);
+    else if (const std::shared_ptr<JointBeam> beam = std::dynamic_pointer_cast<JointBeam>(joint))
+        add_beam_joint(*this, beam);
+    else
+        add_cutter_joint(*this, joint);
+}
+
+}

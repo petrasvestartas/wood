@@ -669,7 +669,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
     kLinkedJointsFieldNumber = 26,
     kElementAFieldNumber = 21,
     kElementBFieldNumber = 22,
-    kContactGuidFieldNumber = 27,
     kContactFieldNumber = 23,
     kJointTypeFieldNumber = 1,
     kDivisionsFieldNumber = 10,
@@ -680,6 +679,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
     kUnitScaleFieldNumber = 15,
     kLinkFieldNumber = 19,
     kNoOrientFieldNumber = 20,
+    kTargetSideFieldNumber = 28,
   };
   // repeated int32 cross_faces = 3;
   [[nodiscard]] int cross_faces_size() const;
@@ -935,21 +935,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
   ::std::string* PROTOBUF_NONNULL _internal_mutable_element_b();
 
   public:
-  // string contact_guid = 27;
-  void clear_contact_guid() ;
-  [[nodiscard]] const ::std::string& contact_guid() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_contact_guid(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_contact_guid();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_contact_guid();
-  void set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_contact_guid() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_contact_guid(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_contact_guid();
-
-  public:
   // .wood_proto.InteractionContactFace contact = 23;
   [[nodiscard]] bool has_contact() const;
   void clear_contact() ;
@@ -1055,12 +1040,22 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
   void _internal_set_no_orient(bool value);
 
   public:
+  // int32 target_side = 28;
+  void clear_target_side() ;
+  [[nodiscard]] ::int32_t target_side() const;
+  void set_target_side(::int32_t value);
+
+  private:
+  ::int32_t _internal_target_side() const;
+  void _internal_set_target_side(::int32_t value);
+
+  public:
   // @@protoc_insertion_point(class_scope:wood_proto.InteractionFeaturePlate)
  private:
   class _Internal;
   using ParseTableT_ =
       ::google::protobuf::internal::TcParseTable<5, 24,
-                          9, 110,
+                          9, 98,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -1101,7 +1096,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
     ::google::protobuf::RepeatedPtrField<::std::string> linked_joints_;
     ::google::protobuf::internal::ArenaStringPtr element_a_;
     ::google::protobuf::internal::ArenaStringPtr element_b_;
-    ::google::protobuf::internal::ArenaStringPtr contact_guid_;
     ::wood_proto::InteractionContactFace* PROTOBUF_NULLABLE contact_;
     ::int32_t joint_type_;
     ::int32_t divisions_;
@@ -1112,6 +1106,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeaturePlate final : pub
     bool unit_scale_;
     bool link_;
     bool no_orient_;
+    ::int32_t target_side_;
     ::google::protobuf::internal::CachedSize _cross_faces_cached_byte_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1244,68 +1239,28 @@ IntList::_internal_mutable_values() {
 
 // InteractionFeaturePlate
 
-// string contact_guid = 27;
-inline void InteractionFeaturePlate::clear_contact_guid() {
+// int32 target_side = 28;
+inline void InteractionFeaturePlate::clear_target_side() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.contact_guid_.ClearToEmpty();
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  _impl_.target_side_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00800000U);
 }
-inline const ::std::string& InteractionFeaturePlate::contact_guid() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.contact_guid)
-  return _internal_contact_guid();
+inline ::int32_t InteractionFeaturePlate::target_side() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.target_side)
+  return _internal_target_side();
 }
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void InteractionFeaturePlate::set_contact_guid(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
-  _impl_.contact_guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.contact_guid)
+inline void InteractionFeaturePlate::set_target_side(::int32_t value) {
+  _internal_set_target_side(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00800000U);
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.target_side)
 }
-inline ::std::string* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_contact_guid()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
-  ::std::string* _s = _internal_mutable_contact_guid();
-  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlate.contact_guid)
-  return _s;
-}
-inline const ::std::string& InteractionFeaturePlate::_internal_contact_guid() const {
+inline ::int32_t InteractionFeaturePlate::_internal_target_side() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.contact_guid_.Get();
+  return _impl_.target_side_;
 }
-inline void InteractionFeaturePlate::_internal_set_contact_guid(const ::std::string& value) {
+inline void InteractionFeaturePlate::_internal_set_target_side(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.contact_guid_.Set(value, GetArena());
-}
-inline ::std::string* PROTOBUF_NONNULL InteractionFeaturePlate::_internal_mutable_contact_guid() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.contact_guid_.Mutable( GetArena());
-}
-inline ::std::string* PROTOBUF_NULLABLE InteractionFeaturePlate::release_contact_guid() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.InteractionFeaturePlate.contact_guid)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00002000U)) {
-    return nullptr;
-  }
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
-  auto* released = _impl_.contact_guid_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.contact_guid_.Set("", GetArena());
-  }
-  return released;
-}
-inline void InteractionFeaturePlate::set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
-  } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
-  }
-  _impl_.contact_guid_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.contact_guid_.IsDefault()) {
-    _impl_.contact_guid_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeaturePlate.contact_guid)
+  _impl_.target_side_ = value;
 }
 
 // string element_a = 21;
@@ -1438,7 +1393,7 @@ inline void InteractionFeaturePlate::set_allocated_element_b(::std::string* PROT
 
 // .wood_proto.InteractionContactFace contact = 23;
 inline bool InteractionFeaturePlate::has_contact() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00004000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00002000U);
   PROTOBUF_ASSUME(!value || _impl_.contact_ != nullptr);
   return value;
 }
@@ -1459,16 +1414,16 @@ inline void InteractionFeaturePlate::unsafe_arena_set_allocated_contact(
   }
   _impl_.contact_ = reinterpret_cast<::wood_proto::InteractionContactFace*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeaturePlate.contact)
 }
 inline ::wood_proto::InteractionContactFace* PROTOBUF_NULLABLE InteractionFeaturePlate::release_contact() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::InteractionContactFace* released = _impl_.contact_;
   _impl_.contact_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1488,7 +1443,7 @@ inline ::wood_proto::InteractionContactFace* PROTOBUF_NULLABLE InteractionFeatur
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeaturePlate.contact)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::InteractionContactFace* temp = _impl_.contact_;
   _impl_.contact_ = nullptr;
   return temp;
@@ -1503,7 +1458,7 @@ inline ::wood_proto::InteractionContactFace* PROTOBUF_NONNULL InteractionFeature
 }
 inline ::wood_proto::InteractionContactFace* PROTOBUF_NONNULL InteractionFeaturePlate::mutable_contact()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::InteractionContactFace* _msg = _internal_mutable_contact();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeaturePlate.contact)
   return _msg;
@@ -1520,9 +1475,9 @@ inline void InteractionFeaturePlate::set_allocated_contact(::wood_proto::Interac
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
 
   _impl_.contact_ = reinterpret_cast<::wood_proto::InteractionContactFace*>(value);
@@ -1583,7 +1538,7 @@ InteractionFeaturePlate::_internal_mutable_element_features() {
 inline void InteractionFeaturePlate::clear_joint_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.joint_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
 }
 inline ::int32_t InteractionFeaturePlate::joint_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.joint_type)
@@ -1591,7 +1546,7 @@ inline ::int32_t InteractionFeaturePlate::joint_type() const {
 }
 inline void InteractionFeaturePlate::set_joint_type(::int32_t value) {
   _internal_set_joint_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.joint_type)
 }
 inline ::int32_t InteractionFeaturePlate::_internal_joint_type() const {
@@ -1978,7 +1933,7 @@ InteractionFeaturePlate::_internal_mutable_female_fabrication_types() {
 inline void InteractionFeaturePlate::clear_divisions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.divisions_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
 }
 inline ::int32_t InteractionFeaturePlate::divisions() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.divisions)
@@ -1986,7 +1941,7 @@ inline ::int32_t InteractionFeaturePlate::divisions() const {
 }
 inline void InteractionFeaturePlate::set_divisions(::int32_t value) {
   _internal_set_divisions(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.divisions)
 }
 inline ::int32_t InteractionFeaturePlate::_internal_divisions() const {
@@ -2002,7 +1957,7 @@ inline void InteractionFeaturePlate::_internal_set_divisions(::int32_t value) {
 inline void InteractionFeaturePlate::clear_shift() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.shift_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
 }
 inline double InteractionFeaturePlate::shift() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.shift)
@@ -2010,7 +1965,7 @@ inline double InteractionFeaturePlate::shift() const {
 }
 inline void InteractionFeaturePlate::set_shift(double value) {
   _internal_set_shift(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.shift)
 }
 inline double InteractionFeaturePlate::_internal_shift() const {
@@ -2026,7 +1981,7 @@ inline void InteractionFeaturePlate::_internal_set_shift(double value) {
 inline void InteractionFeaturePlate::clear_length() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.length_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
 }
 inline double InteractionFeaturePlate::length() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.length)
@@ -2034,7 +1989,7 @@ inline double InteractionFeaturePlate::length() const {
 }
 inline void InteractionFeaturePlate::set_length(double value) {
   _internal_set_length(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.length)
 }
 inline double InteractionFeaturePlate::_internal_length() const {
@@ -2050,7 +2005,7 @@ inline void InteractionFeaturePlate::_internal_set_length(double value) {
 inline void InteractionFeaturePlate::clear_division_length() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.division_length_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00080000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
 }
 inline double InteractionFeaturePlate::division_length() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.division_length)
@@ -2058,7 +2013,7 @@ inline double InteractionFeaturePlate::division_length() const {
 }
 inline void InteractionFeaturePlate::set_division_length(double value) {
   _internal_set_division_length(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.division_length)
 }
 inline double InteractionFeaturePlate::_internal_division_length() const {
@@ -2125,7 +2080,7 @@ InteractionFeaturePlate::_internal_mutable_scale() {
 inline void InteractionFeaturePlate::clear_unit_scale() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.unit_scale_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
 }
 inline bool InteractionFeaturePlate::unit_scale() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.unit_scale)
@@ -2133,7 +2088,7 @@ inline bool InteractionFeaturePlate::unit_scale() const {
 }
 inline void InteractionFeaturePlate::set_unit_scale(bool value) {
   _internal_set_unit_scale(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.unit_scale)
 }
 inline bool InteractionFeaturePlate::_internal_unit_scale() const {
@@ -2149,7 +2104,7 @@ inline void InteractionFeaturePlate::_internal_set_unit_scale(bool value) {
 inline void InteractionFeaturePlate::clear_unit_scale_distance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.unit_scale_distance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00080000U);
 }
 inline double InteractionFeaturePlate::unit_scale_distance() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.unit_scale_distance)
@@ -2157,7 +2112,7 @@ inline double InteractionFeaturePlate::unit_scale_distance() const {
 }
 inline void InteractionFeaturePlate::set_unit_scale_distance(double value) {
   _internal_set_unit_scale_distance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.unit_scale_distance)
 }
 inline double InteractionFeaturePlate::_internal_unit_scale_distance() const {
@@ -2300,7 +2255,7 @@ InteractionFeaturePlate::_internal_mutable_linked_joints_seq() {
 inline void InteractionFeaturePlate::clear_link() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.link_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00400000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
 }
 inline bool InteractionFeaturePlate::link() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.link)
@@ -2308,7 +2263,7 @@ inline bool InteractionFeaturePlate::link() const {
 }
 inline void InteractionFeaturePlate::set_link(bool value) {
   _internal_set_link(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.link)
 }
 inline bool InteractionFeaturePlate::_internal_link() const {
@@ -2324,7 +2279,7 @@ inline void InteractionFeaturePlate::_internal_set_link(bool value) {
 inline void InteractionFeaturePlate::clear_no_orient() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.no_orient_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00800000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00400000U);
 }
 inline bool InteractionFeaturePlate::no_orient() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeaturePlate.no_orient)
@@ -2332,7 +2287,7 @@ inline bool InteractionFeaturePlate::no_orient() const {
 }
 inline void InteractionFeaturePlate::set_no_orient(bool value) {
   _internal_set_no_orient(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00800000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeaturePlate.no_orient)
 }
 inline bool InteractionFeaturePlate::_internal_no_orient() const {

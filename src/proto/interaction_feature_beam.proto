@@ -8,5 +8,6 @@ import "polyline.proto";
 message InteractionFeatureBeam {
   int32 end_type = 1;                           // 0 crossing, 1 side to end, 2 end to end
   repeated session_proto.Polyline volumes = 2;  // 4 rectangles: 2 on the first beam, 2 on the second
-  string contact_guid = 3;                      // Guid of the contact this was solved from; empty when none
+  reserved 3;
+  reserved "contact_guid";
 }

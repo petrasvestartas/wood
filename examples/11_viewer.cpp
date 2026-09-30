@@ -8,7 +8,7 @@ const std::string DATASET{config::Dataset::annen_corner};
 int main() {
 
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
-    wood_session.compute_contacts();
+    wood_session.compute_face_contacts();
     wood_session.compute_features();
 
     const std::shared_ptr<Plate> plate = wood_session.plates().front();

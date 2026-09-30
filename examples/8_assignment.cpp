@@ -7,8 +7,8 @@ using namespace wood_session;
 int main() {
 
     WoodSession wood_session("assignment");
-    wood_session.add(Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
-    wood_session.add(Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, Vector(0, 0, 40)));
+    wood_session.add(Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40));
+    wood_session.add(Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40));
 
     assign_feature_types(wood_session.plates(), wood_session.settings, {Point(1000, 250, 0), Point(500, 250, 40)}, {3, -40});
     assign_insertion_vectors(wood_session.plates(), wood_session.settings, {Line::from_points(Point(1000, 250, 0), Point(1000, 250, 300))});

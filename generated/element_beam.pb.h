@@ -30,6 +30,7 @@
 #include "google/protobuf/repeated_field.h"  // IWYU pragma: export
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
+#include "solid_cut.pb.h"
 #include "plane.pb.h"
 #include "polyline.pb.h"
 #include "vector.pb.h"
@@ -221,6 +222,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
     kDirectionsFieldNumber = 3,
     kCutsFieldNumber = 5,
     kProfileFieldNumber = 6,
+    kSolidCutsFieldNumber = 7,
     kAxisFieldNumber = 1,
     kAllowedTypeFieldNumber = 4,
   };
@@ -303,6 +305,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
   ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
 
   public:
+  // repeated .wood_proto.SolidCut solid_cuts = 7;
+  [[nodiscard]] int solid_cuts_size() const;
+  private:
+  int _internal_solid_cuts_size() const;
+
+  public:
+  void clear_solid_cuts() ;
+  [[nodiscard]] const ::wood_proto::SolidCut& solid_cuts(int index) const;
+  [[nodiscard]] ::wood_proto::SolidCut* PROTOBUF_NONNULL mutable_solid_cuts(int index);
+  ::wood_proto::SolidCut* PROTOBUF_NONNULL add_solid_cuts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+  solid_cuts() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+  mutable_solid_cuts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& _internal_solid_cuts() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL _internal_mutable_solid_cuts();
+
+  public:
   // .session_proto.Polyline axis = 1;
   [[nodiscard]] bool has_axis() const;
   void clear_axis() ;
@@ -332,8 +354,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 6,
-                          4, 0,
+      ::google::protobuf::internal::TcParseTable<3, 7,
+                          5, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -365,6 +387,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
     ::google::protobuf::RepeatedPtrField< ::session_proto::Vector > directions_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::SolidCut > solid_cuts_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE axis_;
     ::int32_t allowed_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -389,9 +412,59 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
 
 // Beam
 
+// repeated .wood_proto.SolidCut solid_cuts = 7;
+inline int Beam::_internal_solid_cuts_size() const {
+  return _internal_solid_cuts().size();
+}
+inline int Beam::solid_cuts_size() const {
+  return _internal_solid_cuts_size();
+}
+inline const ::wood_proto::SolidCut& Beam::solid_cuts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Beam.solid_cuts)
+  return _internal_solid_cuts().Get(index);
+}
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Beam::mutable_solid_cuts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Beam.solid_cuts)
+  return _internal_mutable_solid_cuts()->Mutable(index);
+}
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Beam::add_solid_cuts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::SolidCut* _add =
+      _internal_mutable_solid_cuts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_add:wood_proto.Beam.solid_cuts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& Beam::solid_cuts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Beam.solid_cuts)
+  return _internal_solid_cuts();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Beam::mutable_solid_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Beam.solid_cuts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_solid_cuts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+Beam::_internal_solid_cuts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.solid_cuts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Beam::_internal_mutable_solid_cuts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.solid_cuts_;
+}
+
 // .session_proto.Polyline axis = 1;
 inline bool Beam::has_axis() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
   PROTOBUF_ASSUME(!value || _impl_.axis_ != nullptr);
   return value;
 }
@@ -412,16 +485,16 @@ inline void Beam::unsafe_arena_set_allocated_axis(
   }
   _impl_.axis_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Beam.axis)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE Beam::release_axis() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Polyline* released = _impl_.axis_;
   _impl_.axis_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -441,7 +514,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE Beam::unsafe_arena_release_a
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Beam.axis)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Polyline* temp = _impl_.axis_;
   _impl_.axis_ = nullptr;
   return temp;
@@ -456,7 +529,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::_internal_mutable_axis(
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL Beam::mutable_axis()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Polyline* _msg = _internal_mutable_axis();
   // @@protoc_insertion_point(field_mutable:wood_proto.Beam.axis)
   return _msg;
@@ -473,9 +546,9 @@ inline void Beam::set_allocated_axis(::session_proto::Polyline* PROTOBUF_NULLABL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
 
   _impl_.axis_ = reinterpret_cast<::session_proto::Polyline*>(value);
@@ -587,7 +660,7 @@ Beam::_internal_mutable_directions() {
 inline void Beam::clear_allowed_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.allowed_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
 }
 inline ::int32_t Beam::allowed_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.Beam.allowed_type)
@@ -595,7 +668,7 @@ inline ::int32_t Beam::allowed_type() const {
 }
 inline void Beam::set_allowed_type(::int32_t value) {
   _internal_set_allowed_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   // @@protoc_insertion_point(field_set:wood_proto.Beam.allowed_type)
 }
 inline ::int32_t Beam::_internal_allowed_type() const {

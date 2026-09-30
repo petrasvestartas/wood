@@ -204,7 +204,7 @@ int main() {
             wood_session.add(stud, studs);
     }
 
-    wood_session.compute_contacts();
+    wood_session.compute_face_contacts();
     wood_session.set_features_visible("section", false);
     wood_session.set_features_visible("axis", false);
     wood_session.pb_dump(pb_path("live"));
@@ -249,7 +249,7 @@ examples/templates_gridshell.cpp
  |    '-- compute_stud: a Column per crossing, a hexagon of three flat pairs gap apart
  |
  |-- WoodSession, add_group(<shell>_top, _bottom, _studs), add(element, group)
- |-- compute_contacts()                        face contacts, a stud against each of its four boards
+ |-- compute_face_contacts()                        face contacts, a stud against each of its four boards
  |-- set_features_visible("section" and "axis")   the section rings and the shared centreline of the boards off in the viewer
  '-- pb_dump(pb_path("live"))                  data/output/pb/live.pb, the file the viewer watches
 

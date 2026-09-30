@@ -83,9 +83,9 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, const Vector& thickness, const std::string& name) {
+std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name) {
     const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
-    return std::make_shared<Plate>(bottom, bottom.translated(thickness), name);
+    return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
 std::shared_ptr<Plate> Plate::from_element(Element e) {
@@ -94,12 +94,21 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
     std::optional<Polyline> bottom;
     std::optional<Polyline> top;
     bool reversed = false;
+    std::vector<SolidCut> saved_cuts;
     if (!bytes.empty() && bytes.front() == '{') {
         try {
             const nlohmann::json payload = nlohmann::json::parse(bytes);
             if (payload.contains("bottom") && !payload["bottom"].is_null() && payload.contains("top") && !payload["top"].is_null()) {
-                bottom = Polyline::jsonload(payload["bottom"]);
-                top = Polyline::jsonload(payload["top"]);
+                if (payload.value("type", "") == "Plate") {
+                    wood_proto::Plate proto;
+                    message_from_json(payload, proto);
+                    bottom = Polyline::pb_loads(proto.bottom().SerializeAsString());
+                    top = Polyline::pb_loads(proto.top().SerializeAsString());
+                    for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+                } else {
+                    bottom = Polyline::jsonload(payload["bottom"]);
+                    top = Polyline::jsonload(payload["top"]);
+                }
             }
             reversed = payload.value("reversed", false);
         } catch (const std::exception&) {
@@ -111,11 +120,13 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
             top = Polyline::pb_loads(proto.top().SerializeAsString());
         }
         reversed = proto.reversed();
+        for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
     }
 
     std::shared_ptr<Plate> plate = bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();
     static_cast<Element&>(*plate) = std::move(e);
     plate->reversed = reversed;
+    plate->solid_cuts = std::move(saved_cuts);
     plate->_geometry_synced = true;
 
     Plate& out = *plate;
@@ -174,6 +185,7 @@ const Mesh& Plate::model_geometry_mesh() const {
     if (!_model_geometry_mesh) {
         _model_geometry_mesh = features.top.empty()
             ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top);
+        _model_geometry_mesh = apply_solid_cuts(*_model_geometry_mesh, solid_cuts);
     }
 
     return *_model_geometry_mesh;
@@ -182,7 +194,7 @@ const Mesh& Plate::model_geometry_mesh() const {
 const BRep& Plate::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = features.top.empty()
+        _model_geometry_brep = !solid_cuts.empty() ? mesh_brep(model_geometry_mesh()) : features.top.empty()
             ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
     }
 
@@ -204,7 +216,8 @@ void Plate::invalidate_geometry() {
     _model_geometry_mesh.reset();
     _element_geometry_brep.reset();
     _model_geometry_brep.reset();
-    _geometry_synced = false;
+    Element::invalidate_geometry();
+    reset();
 }
 
 std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
@@ -216,6 +229,7 @@ std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
     plate->name = name;
     plate->guid() = guid();
     plate->polylines = transformed_list(polylines, xform);
+    for (const auto& cut : solid_cuts) plate->solid_cuts.push_back(cut.transformed(xform));
     plate->planes = transformed_list(planes, xform);
     plate->thickness = thickness;
     plate->reversed = reversed;
@@ -231,6 +245,7 @@ void Plate::place(const Xform& xform) {
 
     Element::place(xform);
     polylines = transformed_list(polylines, xform);
+    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
     planes = transformed_list(planes, xform);
     features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
 
@@ -367,6 +382,8 @@ std::string Plate::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_reversed(reversed);
 
+    for (const auto& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

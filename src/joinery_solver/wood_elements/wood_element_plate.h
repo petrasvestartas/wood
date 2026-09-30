@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_geometry.h"
 
 
 namespace wood_session {
@@ -14,6 +15,7 @@ struct Features {
 /// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry_mesh() / element_geometry_brep() give the plate alone, the loft of its two outlines, never cut; model_geometry_mesh() / model_geometry_brep() give the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
 class Plate : public session_cpp::Element {
 public:
+    std::vector<SolidCut> solid_cuts;
     static constexpr std::string_view ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "WoodElement"; // The element_type wood wrote before, still accepted on read.
     std::vector<session_cpp::Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
@@ -41,7 +43,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
-    static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, const session_cpp::Vector& thickness, const std::string& name = "plate");
+    static std::shared_ptr<Plate> from_rectangle(const session_cpp::Point& origin, const session_cpp::Vector& x_axis, const session_cpp::Vector& y_axis, double width, double height, double thickness, const std::string& name = "plate");
 
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
     static std::shared_ptr<Plate> from_element(session_cpp::Element element);

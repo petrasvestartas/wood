@@ -20,16 +20,18 @@ std::string_view InteractionContactAxis::kind() const {
     return "axis";
 }
 
+void InteractionContactAxis::flip() {
+
+    segment = Line::from_points(segment.end(), segment.start());
+    std::swap(t_a, t_b);
+    std::swap(polyline_a, polyline_b);
+    std::swap(segment_a, segment_b);
+}
+
 std::shared_ptr<InteractionContact> InteractionContactAxis::flipped() const {
 
-    std::shared_ptr<InteractionContactAxis> out = std::make_shared<InteractionContactAxis>(*this);
-    out->segment = Line::from_points(segment.end(), segment.start());
-    out->t_a = t_b;
-    out->t_b = t_a;
-    out->polyline_a = polyline_b;
-    out->segment_a = segment_b;
-    out->polyline_b = polyline_a;
-    out->segment_b = segment_a;
+    const std::shared_ptr<InteractionContactAxis> out = std::make_shared<InteractionContactAxis>(*this);
+    out->flip();
 
     return out;
 }

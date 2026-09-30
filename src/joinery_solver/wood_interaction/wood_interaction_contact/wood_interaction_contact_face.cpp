@@ -9,8 +9,20 @@ namespace wood_session {
 // InteractionContactFace - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-InteractionContactFace::InteractionContactFace(int face_a, int face_b, ContactType type, Polyline polygon)
-    : face_a(face_a), face_b(face_b), type(type), polygon(std::move(polygon)) {}
+InteractionContactFace::InteractionContactFace(
+    int face_a,
+    int face_b,
+    ContactType type,
+    session_cpp::Polyline polygon,
+    std::array<session_cpp::Line, 2> lines,
+    std::array<session_cpp::Polyline, 4> volumes)
+    : face_a(face_a),
+      face_b(face_b),
+      type(type),
+      polygon(std::move(polygon)),
+      lines(std::move(lines)),
+      volumes(std::move(volumes))
+{}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactFace - Geometry
@@ -20,10 +32,18 @@ std::string_view InteractionContactFace::kind() const {
     return "face";
 }
 
+void InteractionContactFace::flip() {
+
+    std::swap(face_a, face_b);
+    std::swap(lines[0], lines[1]);
+    std::swap(volumes[0], volumes[2]);
+    std::swap(volumes[1], volumes[3]);
+}
+
 std::shared_ptr<InteractionContact> InteractionContactFace::flipped() const {
 
-    std::shared_ptr<InteractionContactFace> out = std::make_shared<InteractionContactFace>(*this);
-    std::swap(out->face_a, out->face_b);
+    const std::shared_ptr<InteractionContactFace> out = std::make_shared<InteractionContactFace>(*this);
+    out->flip();
 
     return out;
 }
@@ -46,6 +66,10 @@ std::string InteractionContactFace::interaction_type_name() const {
 std::string InteractionContactFace::interaction_data_dumps() const {
 
     wood_proto::InteractionContactFace proto;
+    for (const auto& line : lines)
+        if (!proto.add_lines()->ParseFromString(line.pb_dumps())) throw std::runtime_error("Invalid contact line");
+    for (const auto& volume : volumes)
+        if (!proto.add_volumes()->ParseFromString(volume.pb_dumps())) throw std::runtime_error("Invalid contact volume");
     proto.set_face_a(face_a);
     proto.set_face_b(face_b);
     proto.set_type(static_cast<int>(type));
@@ -62,6 +86,10 @@ InteractionContactFace InteractionContactFace::interaction_data_loads(const std:
         throw std::runtime_error("Failed to parse InteractionContactFace protobuf data");
 
     InteractionContactFace contact;
+    if (proto.lines_size() > 2 || proto.volumes_size() > 4)
+        throw std::runtime_error("Invalid face contact dimensions");
+    for (int i = 0; i < proto.lines_size(); ++i) contact.lines[i] = Line::pb_loads(proto.lines(i).SerializeAsString());
+    for (int i = 0; i < proto.volumes_size(); ++i) contact.volumes[i] = Polyline::pb_loads(proto.volumes(i).SerializeAsString());
     contact.face_a = proto.face_a();
     contact.face_b = proto.face_b();
     contact.type = static_cast<ContactType>(proto.type());

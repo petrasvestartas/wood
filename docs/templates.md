@@ -113,7 +113,7 @@ flowchart LR
     P["Pattern: orthogonal, radial, triangular, hexagonal, from_lines"] --> L
     L --> E["to_elements(framing, storey)"]
     F["Framing: system, span, spacing, node, drop, profiles"] --> E
-    E --> S["WoodSession: storey_k groups, instance_by_key, compute_contacts"]
+    E --> S["WoodSession: storey_k groups, instance_by_key, compute_face_contacts"]
 ```
 
 Joints are small rules in `grid_joints.cpp`, not per-case code. At every plan vertex the members are ranked (perimeter, girder, beam, purlin, brace); the highest runs through and the rest butt into its side, or into the column face under nodes 1 and 2; a member with anything straight across the node runs through it, so only a pure corner (an L of two perimeter members, a Y of three equal beams) is mitred on the bisector; a through member with nothing beyond it stops at the farthest corner of what butts into it, or over the column's far face under node 0. A member's height layer says whether a cut is made at all: girders drop by `drop`, a purlin over a stacked girder is not cut but rests on it. Decks are one Clipper difference per bay: the bay pushed out to the outer faces of the perimeter members and columns, minus the columns rising through it (node 2), the core walls, and the decks built before it, so a re-entrant corner belongs to one deck alone; `panel` splits a deck into strips across its span.
@@ -122,7 +122,7 @@ Column heads (`node` 0) take their shape from what they carry. Where members onl
 
 ### 1_elements_flat
 
-One bay over one storey, post and beam with the girders on the x sides: four columns, four conical heads, two girders and two beams mitred at the corners, a deck on the member tops. `compute_contacts(0)` pairs every element with every other and finds the 20 contacts the description lists.
+One bay over one storey, post and beam with the girders on the x sides: four columns, four conical heads, two girders and two beams mitred at the corners, a deck on the member tops. `compute_face_contacts(0)` pairs every element with every other and finds the 20 contacts the description lists.
 
 ![1_elements_flat](templates/1_elements_flat.png)
 
@@ -130,7 +130,7 @@ One bay over one storey, post and beam with the girders on the x sides: four col
 
 ### 1_elements_tree
 
-The same bay three times side by side, each under its own branch of the tree, so `compute_contacts(1)` pairs elements only inside a branch. `INSTANCES` keeps one definition each of column, head, girder, beam and deck, placed by instances.
+The same bay three times side by side, each under its own branch of the tree, so `compute_face_contacts(1)` pairs elements only inside a branch. `INSTANCES` keeps one definition each of column, head, girder, beam and deck, placed by instances.
 
 ![1_elements_tree](templates/1_elements_tree.png)
 

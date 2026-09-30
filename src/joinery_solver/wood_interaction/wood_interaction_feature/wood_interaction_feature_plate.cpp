@@ -82,8 +82,13 @@ std::array<ElementFeature, 2> InteractionFeaturePlate::to_features() const {
 
 std::shared_ptr<InteractionContact> InteractionFeaturePlate::to_contact() const {
 
-    if (joint_type != 30)
-        return std::make_shared<InteractionContactFace>(contact);
+    if (joint_type != 30) {
+        auto result = std::make_shared<InteractionContactFace>(contact);
+        result->lines = joint_lines;
+        for (int k = 0; k < 4; ++k)
+            result->volumes[k] = joint_volumes[k].value_or(joint_volumes[k % 2].value_or(Polyline()));
+        return result;
+    }
 
     std::shared_ptr<InteractionContactCross> crossing = std::make_shared<InteractionContactCross>();
     crossing->faces_a = {contact.face_a, cross_faces[0]};
@@ -112,7 +117,7 @@ std::string InteractionFeaturePlate::interaction_type_name() const {
 std::string InteractionFeaturePlate::interaction_data_dumps() const {
 
     wood_proto::InteractionFeaturePlate proto;
-    proto.set_contact_guid(contact_guid);
+    proto.set_target_side(target_side);
     proto.set_element_a(element_a);
     proto.set_element_b(element_b);
     if (!proto.mutable_contact()->ParseFromString(contact.interaction_data_dumps()))
@@ -174,7 +179,7 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
         throw std::runtime_error("Failed to parse InteractionFeaturePlate protobuf data");
 
     InteractionFeaturePlate j;
-    j.contact_guid = proto.contact_guid();
+    j.target_side = proto.target_side();
     j.element_a = proto.element_a();
     j.element_b = proto.element_b();
 

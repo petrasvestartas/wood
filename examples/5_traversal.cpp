@@ -8,7 +8,7 @@ const std::string DATASET{config::Dataset::inplane_hexshell};
 int main() {
 
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
-    wood_session.compute_contacts();
+    wood_session.compute_face_contacts();
     wood_session.compute_features();
 
     const InteractionFeaturePlate joint = wood_session.get_plate_features().front();
@@ -20,7 +20,7 @@ int main() {
     std::cout << "their edge holds " << interactions.size() << " interactions\n";
 
     for (const std::shared_ptr<Interaction>& interaction : interactions)
-        if (interaction->guid() == joint.contact_guid)
+        if (dynamic_cast<InteractionContact*>(interaction.get()))
             std::cout << "the joint was solved from " << *interaction << "\n";
 
     const Edge& edge = wood_session.graph.edges.at(male->guid()).at(female->guid());

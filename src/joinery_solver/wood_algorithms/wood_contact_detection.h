@@ -58,7 +58,8 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     session_cpp::Element& ea,
     session_cpp::Element& eb,
     const Settings& settings,
-    DetectionTrace* trace = nullptr);
+    DetectionTrace* trace = nullptr,
+    bool with_volumes = true);
 
 /// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
 std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(

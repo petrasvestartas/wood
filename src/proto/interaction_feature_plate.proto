@@ -19,8 +19,10 @@ message IntList {
 
 // The state of an InteractionFeaturePlate beyond the kernel Interaction, whose name is the joint library variant: the pair, the face contact it was solved from, its parameters, the cut outlines per element per face and the two element features the hosts carry.
 message InteractionFeaturePlate {
+  int32 target_side = 28;
   reserved 2, 25;                                    // was: name and guid, now the kernel Interaction's
-  string contact_guid = 27;                          // Guid of the stored contact this was solved from; empty when none
+  reserved 27;
+  reserved "contact_guid";
   string element_a = 21;                             // The male element, by guid
   string element_b = 22;                             // The female element, by guid
   InteractionContactFace contact = 23;               // The face contact the joint was solved from, a solver field

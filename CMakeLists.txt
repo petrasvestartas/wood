@@ -86,7 +86,13 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
+    src/joinery_solver/wood_elements/wood_element_joint.cpp
+    src/joinery_solver/wood_elements/wood_element_joint_plate.cpp
+    src/joinery_solver/wood_elements/wood_element_joint_beam.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
+    src/joinery_solver/wood_algorithms/wood_solid_boolean.cpp
+    src/joinery_solver/wood_algorithms/wood_profile_boolean.cpp
+    src/joinery_solver/wood_elements/wood_element_solid_cut.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
     src/templates/grid/grid_plan.cpp
     src/templates/grid/grid_levels.cpp
@@ -206,6 +212,11 @@ ADD_EXE(9_beams                  examples/9_beams.cpp)
 ADD_EXE(10_serialization         examples/10_serialization.cpp)
 ADD_EXE(11_viewer                examples/11_viewer.cpp)
 ADD_EXE(12_cross_joints          examples/12_cross_joints.cpp)
+ADD_EXE(13_profile_cuts examples/13_profile_cuts.cpp)
+ADD_EXE(14_drill_solids examples/14_drill_solids.cpp)
+ADD_EXE(15_solid_cuts examples/15_solid_cuts.cpp)
+ADD_EXE(16_cutting_gallery examples/16_cutting_gallery.cpp)
+ADD_EXE(17_plate_joint_library examples/17_plate_joint_library.cpp)
 ADD_EXE(main_all_datasets        examples/main_all_datasets.cpp src/joinery_solver/wood_datasets.cpp)
 ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_solver/wood_datasets.cpp)
 # main_cross_polylines is gone: it was built on session_cpp's ElementFeature /
@@ -214,6 +225,8 @@ ADD_EXE(main_dataset_runner      examples/main_dataset_runner.cpp src/joinery_so
 # it)". There is no replacement to port it to - Element::add_feature is a mesh
 # transform, not a pairwise relation - and it was the only caller left.
 ADD_EXE(main_session_round_trip  examples/main_session_round_trip.cpp)
+ADD_EXE(joint_elements           tests/joint_elements.cpp)
+ADD_EXE(interaction_ownership    tests/interaction_ownership.cpp)
 ADD_EXE(templates_translation_shell   examples/templates_translation_shell.cpp)
 ADD_EXE(templates_reflex_fold         examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron             examples/templates_chevron.cpp)
@@ -272,3 +285,4 @@ if(DOXYGEN_FOUND)
         COMMENT "Doxygen: build/docs/html"
     )
 endif()
+

@@ -47,12 +47,12 @@ constexpr InteractionContactFace::ParseTableT_ InteractionContactFace::InternalG
     {
       PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_._has_bits_),
       0, // no _extensions_
-      4, 24,  // max_field_number, fast_idx_mask
+      6, 56,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294967280,  // skipmap
+      4294967232,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      4,  // num_field_entries
-      1,  // num_aux_entries
+      6,  // num_field_entries
+      3,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -61,35 +61,59 @@ constexpr InteractionContactFace::ParseTableT_ InteractionContactFace::InternalG
       ::_pbi::TcParser::GetTable<::wood_proto::InteractionContactFace>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // .session_proto.Polyline polygon = 4;
-      {::_pbi::TcParser::FastMtS1,
-       {34, 0, 0,
-        PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.polygon_)}},
+      {::_pbi::TcParser::MiniParse, {}},
       // int32 face_a = 1;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.face_a_), 1>(),
-       {8, 1, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.face_a_), 3>(),
+       {8, 3, 0,
         PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_a_)}},
       // int32 face_b = 2;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.face_b_), 2>(),
-       {16, 2, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.face_b_), 4>(),
+       {16, 4, 0,
         PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_b_)}},
       // int32 type = 3;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.type_), 3>(),
-       {24, 3, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionContactFace, _impl_.type_), 5>(),
+       {24, 5, 0,
         PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.type_)}},
+      // .session_proto.Polyline polygon = 4;
+      {::_pbi::TcParser::FastMtS1,
+       {34, 2, 0,
+        PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.polygon_)}},
+      // repeated .session_proto.Line lines = 5;
+      {::_pbi::TcParser::FastMtR1,
+       {42, 0, 1,
+        PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.lines_)}},
+      // repeated .session_proto.Polyline volumes = 6;
+      {::_pbi::TcParser::FastMtR1,
+       {50, 1, 2,
+        PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.volumes_)}},
+      {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
     }}, {{
       // int32 face_a = 1;
-      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_a_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_a_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // int32 face_b = 2;
-      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_b_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.face_b_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // int32 type = 3;
-      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.type_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.type_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // .session_proto.Polyline polygon = 4;
-      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.polygon_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.polygon_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .session_proto.Line lines = 5;
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.lines_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .session_proto.Polyline volumes = 6;
+      {PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.volumes_), _Internal::kHasBitsOffset + 1, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
+        #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
         #else
@@ -105,7 +129,17 @@ constexpr InteractionContactFace::ParseTableT_ InteractionContactFace::InternalG
 inline constexpr InteractionContactFace::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     ::_pbi::ConstantInitialized) noexcept
-      : polygon_{nullptr},
+      : lines_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionContactFace,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.lines_)>()
+         }
+        ,
+        volumes_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionContactFace,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.volumes_)>()
+         }
+        ,
+        polygon_{nullptr},
         face_a_{0},
         face_b_{0},
         type_{0} {}
@@ -126,7 +160,7 @@ inline void* PROTOBUF_NONNULL InteractionContactFace::PlacementNew_(
   return ::new (mem) InteractionContactFace(arena);
 }
 constexpr auto InteractionContactFace::InternalNewImpl_() {
-  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(InteractionContactFace), alignof(InteractionContactFace));
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(InteractionContactFace), alignof(InteractionContactFace));
 }
 constexpr auto InteractionContactFace::InternalGenerateClassData_(
     const MessageLite& prototype,
@@ -212,15 +246,19 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_._has_bits_),
-        7, // hasbit index offset
+        9, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.lines_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.volumes_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.face_a_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.face_b_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.polygon_),
-        1,
-        2,
-        3,
         0,
+        1,
+        3,
+        4,
+        5,
+        2,
 };
 
 static const ::_pbi::MigrationSchema
@@ -234,25 +272,29 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5fcontact_5fface_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036interaction_contact_face.proto\022\nwood_p"
-    "roto\032\016polyline.proto\"p\n\026InteractionConta"
-    "ctFace\022\016\n\006face_a\030\001 \001(\005\022\016\n\006face_b\030\002 \001(\005\022\014"
-    "\n\004type\030\003 \001(\005\022(\n\007polygon\030\004 \001(\0132\027.session_"
-    "proto.Polylineb\006proto3"
+    "roto\032\016polyline.proto\032\nline.proto\"\341\001\n\026Int"
+    "eractionContactFace\022\"\n\005lines\030\005 \003(\0132\023.ses"
+    "sion_proto.Line\022(\n\007volumes\030\006 \003(\0132\027.sessi"
+    "on_proto.Polyline\022\016\n\006face_a\030\001 \001(\005\022\016\n\006fac"
+    "e_b\030\002 \001(\005\022\014\n\004type\030\003 \001(\005\022(\n\007polygon\030\004 \001(\013"
+    "2\027.session_proto.PolylineJ\004\010\007\020\010J\004\010\010\020\tR\nj"
+    "oint_typeR\tmale_is_bb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
-    descriptor_table_interaction_5fcontact_5fface_2eproto_deps[1] = {
+    descriptor_table_interaction_5fcontact_5fface_2eproto_deps[2] = {
+        &::descriptor_table_line_2eproto,
         &::descriptor_table_polyline_2eproto,
 };
 static ::absl::once_flag descriptor_table_interaction_5fcontact_5fface_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5fcontact_5fface_2eproto = {
     false,
     false,
-    182,
+    308,
     descriptor_table_protodef_interaction_5fcontact_5fface_2eproto,
     "interaction_contact_face.proto",
     &descriptor_table_interaction_5fcontact_5fface_2eproto_once,
     descriptor_table_interaction_5fcontact_5fface_2eproto_deps,
-    1,
+    2,
     1,
     schemas,
     file_message_globals,
@@ -263,10 +305,20 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5f
 namespace wood_proto {
 // ===================================================================
 
+void InteractionContactFace::clear_lines() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.lines_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+}
+void InteractionContactFace::clear_volumes() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.volumes_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+}
 void InteractionContactFace::clear_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.polygon_ != nullptr) _impl_.polygon_->Clear();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
 }
 InteractionContactFace::InteractionContactFace(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -281,7 +333,21 @@ PROTOBUF_NDEBUG_INLINE InteractionContactFace::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
     [[maybe_unused]] const ::wood_proto::InteractionContactFace& from_msg)
-      : _has_bits_{from._has_bits_} {}
+      : _has_bits_{from._has_bits_},
+        lines_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::InteractionContactFace,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.lines_)>()
+          , arena, from.lines_
+        }
+        ,
+        volumes_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::InteractionContactFace,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.volumes_)>()
+          , arena, from.volumes_
+        }
+     {}
 
 InteractionContactFace::InteractionContactFace(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -298,7 +364,7 @@ InteractionContactFace::InteractionContactFace(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.polygon_ = (CheckHasBit(cached_has_bits, 0x00000001U))
+  _impl_.polygon_ = (CheckHasBit(cached_has_bits, 0x00000004U))
                  ? Super_::CopyConstruct(arena, *from._impl_.polygon_)
                  : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -314,6 +380,15 @@ InteractionContactFace::InteractionContactFace(
 PROTOBUF_NDEBUG_INLINE InteractionContactFace::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : lines_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionContactFace,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.lines_)>()
+         }
+        ,
+        volumes_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionContactFace,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionContactFace, _impl_.volumes_)>()
+         }
      {}
 
 inline void InteractionContactFace::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
@@ -373,11 +448,19 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
   ::uint32_t cached_has_bits [[maybe_unused]] = 0;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    ABSL_DCHECK(this_._impl_.polygon_ != nullptr);
-    this_._impl_.polygon_->Clear();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.lines_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _impl_.volumes_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      ABSL_DCHECK(this_._impl_.polygon_ != nullptr);
+      this_._impl_.polygon_->Clear();
+    }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000eU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000038U)) {
     ::memset(&this_._impl_.face_a_, 0,
              static_cast<::size_t>(
                  reinterpret_cast<char*>(&this_._impl_.type_) -
@@ -408,7 +491,7 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 face_a = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_face_a() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -417,7 +500,7 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
   }
 
   // int32 face_b = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     if (this_._internal_face_b() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
@@ -426,7 +509,7 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
   }
 
   // int32 type = 3;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     if (this_._internal_type() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<3>(
@@ -435,10 +518,34 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
   }
 
   // .session_proto.Polyline polygon = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.polygon_, this_._impl_.polygon_->GetCachedSize(), target,
         stream);
+  }
+
+  // repeated .session_proto.Line lines = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_lines_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_lines().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          5, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
+  }
+
+  // repeated .session_proto.Polyline volumes = 6;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_volumes_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_volumes().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          6, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
   }
 
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
@@ -464,28 +571,42 @@ PROTOBUF_NOINLINE void InteractionContactFace::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // .session_proto.Polyline polygon = 4;
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+    // repeated .session_proto.Line lines = 5;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size += 1UL * this_._internal_lines_size();
+      for (const auto& msg : this_._internal_lines()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .session_proto.Polyline volumes = 6;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1UL * this_._internal_volumes_size();
+      for (const auto& msg : this_._internal_volumes()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // .session_proto.Polyline polygon = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.polygon_);
     }
     // int32 face_a = 1;
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_face_a() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_face_a());
       }
     }
     // int32 face_b = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (this_._internal_face_b() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_face_b());
       }
     }
     // int32 type = 3;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (this_._internal_type() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_type());
@@ -510,8 +631,18 @@ void InteractionContactFace::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _this->_internal_mutable_lines()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_lines());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _this->_internal_mutable_volumes()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_volumes());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       ABSL_DCHECK(from._impl_.polygon_ != nullptr);
       if (_this->_impl_.polygon_ == nullptr) {
         _this->_impl_.polygon_ = Super_::CopyConstruct(arena, *from._impl_.polygon_);
@@ -519,17 +650,17 @@ void InteractionContactFace::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.polygon_->MergeFrom(*from._impl_.polygon_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_face_a() != 0) {
         _this->_impl_.face_a_ = from._impl_.face_a_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       if (from._internal_face_b() != 0) {
         _this->_impl_.face_b_ = from._impl_.face_b_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (from._internal_type() != 0) {
         _this->_impl_.type_ = from._impl_.type_;
       }
@@ -552,6 +683,8 @@ void InteractionContactFace::InternalSwap(InteractionContactFace* PROTOBUF_RESTR
   using ::std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.lines_.InternalSwap(&other->_impl_.lines_);
+  _impl_.volumes_.InternalSwap(&other->_impl_.volumes_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(InteractionContactFace, _impl_.type_)
       + sizeof(InteractionContactFace::_impl_.type_)

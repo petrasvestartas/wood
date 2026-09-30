@@ -3,6 +3,9 @@
 #include "pch.h"
 
 #include "wood_element_beam.h"
+#include "wood_element_joint.h"
+#include "wood_element_joint_plate.h"
+#include "wood_element_joint_beam.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
 #include "wood_element_plate.h"
@@ -84,14 +87,16 @@ public:
     /// Coplanar face-overlap detection: an InteractionContactFace per touching face pair, onto the pair's edge; only elements under the same tree node at depth `level` are paired, 0 the root and so every element, 1 each branch of the root on its own.
     void compute_face_contacts(int level = 0);
 
-    /// compute_face_contacts(level), kept for existing callers.
-    void compute_contacts(int level = 0);
+    /// First face contact in face-index order, nullptr when disjoint; plate contacts include joinery volumes.
+    std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<session_cpp::Element> source, std::shared_ptr<session_cpp::Element> target);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
 
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
+    void compute_lines_contacts(double tolerance = -1.0) { compute_line_contacts(tolerance); }
+    void add_joint(const std::shared_ptr<Joint>& joint, bool merge = true);
 
     /// The closest axis segments of every two beams within `min_distance`, an InteractionContactAxis per beam pair.
     void compute_axis_contacts(double min_distance);
@@ -99,7 +104,7 @@ public:
     /// An InteractionFeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over world_elements<Plate>(), in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, every joint onto its pair's edge as an InteractionFeaturePlate beside its contact, onto both host elements as features, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
+    /// The joinery pipeline over world_elements<Plate>(), in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
     std::vector<InteractionFeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
@@ -120,7 +125,7 @@ public:
     /// Merges every joint's cut outlines into its two plates' features.
     void merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints);
 
-    /// True when every feature's contact guid names a contact on its edge and every plate feature's pair and own copy of its contact agree with the edge and that contact.
+    /// True when each plate feature edge connects its joint element to the selected target, or a legacy pair matches its endpoints.
     bool consistent() const;
 
     /// Every contact in the scene, in edge-guid order.
@@ -129,7 +134,7 @@ public:
     /// Every feature in the scene, in edge-guid order.
     std::vector<std::shared_ptr<InteractionFeature>> get_features() const;
 
-    /// Every plate feature as a working joint, a copy with its guid.
+    /// Every connection owned by a plate joint element, plus legacy pair features, each once.
     std::vector<InteractionFeaturePlate> get_plate_features() const;
 
     /// The joint features the interactions hold for one element: the side of each plate feature whose host it is.
@@ -148,10 +153,10 @@ public:
     /// Session::has_interaction: the pair has an edge in either order.
     using session_cpp::Session::has_interaction;
 
-    /// Session::add_interaction with the wood rules: a contact is oriented to the stored edge, one coinciding with a stored contact is not stored again and that one returned, a new one hosted as a "contact" feature on the edge's first element; a plate or beam feature is hosted as "joint" features on its elements. Returns the stored interaction.
+    /// Store the interaction on the undirected edge. Contact and beam-joint geometry belongs to source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. Returns the stored interaction.
     std::shared_ptr<session_cpp::Interaction> add_interaction(
-        const std::shared_ptr<session_cpp::Element>& a,
-        const std::shared_ptr<session_cpp::Element>& b,
+        const std::shared_ptr<session_cpp::Element>& source,
+        const std::shared_ptr<session_cpp::Element>& target,
         std::shared_ptr<session_cpp::Interaction> interaction
     );
 

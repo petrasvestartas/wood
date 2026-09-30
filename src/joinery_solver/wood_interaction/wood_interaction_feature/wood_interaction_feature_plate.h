@@ -13,6 +13,7 @@ class InteractionFeaturePlate : public InteractionFeature {
 public:
     static constexpr std::string_view INTERACTION_TYPE = "InteractionFeaturePlate"; // The tag the kernel writes and the registry reads.
 
+    int target_side = 0; // 0 legacy pair, 1 male, 2 female.
     std::string element_a; // The male element, by guid; swapped with element_b by the solver, so not ordered. index_of_plate() gives a position.
     std::string element_b; // The female element, by guid.
     InteractionContactFace contact; // Which faces touched, and where: the solver's copy, oriented male to female.

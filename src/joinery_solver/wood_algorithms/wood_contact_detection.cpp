@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "wood_contact_detection.h"
 #include "wood_element_beam.h"
+#include "wood_element_column.h"
+#include "wood_feature_detection.h"
 #include "../src/clipper2/clipper.h"
 using namespace session_cpp;
 using namespace wood_session;
@@ -29,7 +31,9 @@ bool is_plate(const Element& e) {
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
 
-    const std::vector<Polyline> loops = e.polylines();
+    const auto* plate = dynamic_cast<const Plate*>(&e);
+    const std::vector<Polyline> fallback = plate ? std::vector<Polyline>{} : e.polylines();
+    const auto& loops = plate ? plate->polylines : fallback;
     if (is_plate(e) && loops.size() > 1) {
         out.reserve(loops[0].point_count() + loops[1].point_count());
         add_outline(loops[1], out);
@@ -56,8 +60,29 @@ bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
 }
 
 /// Topology class of a face pair; unknown unless both sides follow the plate convention.
-ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j) {
+ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb) {
 
+    const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a);
+    const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b);
+    auto is_end = [](const Element& element, const Plane& plane) {
+            Vector axis;
+            if (const auto* beam = dynamic_cast<const Beam*>(&element)) {
+                if (beam->axis.point_count() < 2) return false;
+                axis = beam->axis[beam->axis.point_count() - 1] - beam->axis[0];
+            } else axis = static_cast<const Column&>(element).axis.to_vector();
+            return std::abs(plane.z_axis().dot(axis.normalized())) > 1e-6;
+    };
+    if (linear_a && linear_b) {
+        const bool end_a = is_end(a, pa), end_b = is_end(b, pb);
+        if (end_a != end_b) return ContactType::end_side;
+        return end_a ? ContactType::end_end : ContactType::side_side;
+    }
+    if ((linear_a && is_plate(b)) || (linear_b && is_plate(a))) {
+        const bool end = linear_a ? is_end(a, pa) : is_end(b, pb);
+        const bool top = linear_a ? j < 2 : i < 2;
+        if (end) return top ? ContactType::end_top : ContactType::end_side;
+        return top ? ContactType::side_top : ContactType::side_side;
+    }
     if (!is_plate(a) || !is_plate(b))
         return ContactType::unknown;
 
@@ -94,7 +119,8 @@ std::vector<std::pair<int, int>> adjacency_search(
 
         corners.clear();
         bounding_points(*elements[i], corners);
-        const std::vector<Plane> planes = elements[i]->planes();
+        const auto* plate = dynamic_cast<const Plate*>(elements[i].get());
+        const std::vector<Plane> planes = plate ? plate->planes : elements[i]->planes();
         if (!planes.empty())
             obbs[i] = OBB::from_points(corners, planes[0], inflate);
         else
@@ -233,18 +259,24 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea,
     Element& eb,
     const Settings& settings,
-    DetectionTrace* trace) {
+    DetectionTrace* trace, bool with_volumes) {
 
     const double cos_angle = std::cos(settings.angle);
 
-    const std::vector<Plane> planes_a = ea.planes();
-    const std::vector<Plane> planes_b = eb.planes();
-    const std::vector<Polyline> outlines_a = ea.polylines();
-    const std::vector<Polyline> outlines_b = eb.polylines();
+    const auto* plate_a = dynamic_cast<const Plate*>(&ea);
+    const auto* plate_b = dynamic_cast<const Plate*>(&eb);
+    const auto fallback_planes_a = plate_a ? std::vector<Plane>{} : ea.planes();
+    const auto fallback_planes_b = plate_b ? std::vector<Plane>{} : eb.planes();
+    const auto fallback_outlines_a = plate_a ? std::vector<Polyline>{} : ea.polylines();
+    const auto fallback_outlines_b = plate_b ? std::vector<Polyline>{} : eb.polylines();
+    const auto& planes_a = plate_a ? plate_a->planes : fallback_planes_a;
+    const auto& planes_b = plate_b ? plate_b->planes : fallback_planes_b;
+    const auto& outlines_a = plate_a ? plate_a->polylines : fallback_outlines_a;
+    const auto& outlines_b = plate_b ? plate_b->polylines : fallback_outlines_b;
 
     std::vector<InteractionContactFace> contacts;
-    for (size_t i = 0; i < planes_a.size(); ++i) {
-        for (size_t j = 0; j < planes_b.size(); ++j) {
+    for (size_t i = 0; i < std::min(planes_a.size(), outlines_a.size()); ++i) {
+        for (size_t j = 0; j < std::min(planes_b.size(), outlines_b.size()); ++j) {
 
             if (!faces_coplanar(planes_a[i], planes_b[j], cos_angle, settings.distance_squared))
                 continue;
@@ -263,10 +295,28 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
             if (trace)
                 trace->overlapping++;
 
-            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), contact_type(ea, i, eb, j), std::move(polygon));
+            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), contact_type(ea, i, eb, j, planes_a[i], planes_b[j]), std::move(polygon));
         }
     }
 
+    if (with_volumes && is_plate(ea) && is_plate(eb)) {
+        for (auto& contact : contacts) {
+            InteractionFeaturePlate joint;
+            bool flip = false;
+            if (!face_to_face_wood(static_cast<Plate&>(ea), static_cast<Plate&>(eb), {0, 1},
+                                   settings, 0, joint, flip, nullptr, &contact))
+                continue;
+            contact.lines = joint.joint_lines;
+            for (int k = 0; k < 4; ++k)
+                contact.volumes[k] = joint.joint_volumes[k].value_or(
+                    joint.joint_volumes[k % 2].value_or(Polyline()));
+            if (joint.element_a != ea.guid()) {
+                std::swap(contact.lines[0], contact.lines[1]);
+                std::swap(contact.volumes[0], contact.volumes[2]);
+                std::swap(contact.volumes[1], contact.volumes[3]);
+            }
+        }
+    }
     return contacts;
 }
 

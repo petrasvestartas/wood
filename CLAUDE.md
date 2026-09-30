@@ -67,3 +67,18 @@ Everything else is a compile-time `constexpr bool TRACE = false;` at the top of 
 belongs to (`wood_main.cpp`, `wood_face_to_face.cpp`, `wood_merge.cpp`, `wood_joint.cpp`,
 `wood_beams.cpp`); flip it and rebuild to see that file's trace. Traces cost real time when
 on, so they are never on for timing runs.
+
+## House style
+
+Apply `../.claude/agents/session-reviewer.md`, including its `session-format` and
+`session-comments` skills, to all handwritten wood code. The user's wood scope
+overrides that reviewer's default exclusion of wood. Kernel parity and kernel CI
+steps apply only when changing the kernels; wood remains a C++ consumer.
+
+Use explicit types, one concept per file, normal multiline function bodies, short
+functions and the standard section banners. Keep one header/source pair for Joint, JointPlate and JointBeam. Plate factories,
+parameters, Annen and Vidy stay in the JointPlate pair; use sections and small
+functions instead of files per factory or family. Expose library designs by their
+actual names, such as `JointPlate::ts_e_p_3`, with their own parameters.
+Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
+completion accurately. Generated protobuf files follow the generator's format.

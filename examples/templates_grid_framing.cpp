@@ -137,7 +137,7 @@ int main() {
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_contacts(1);
+    wood_session.compute_face_contacts(1);
     wood_session.pb_dump(pb_path("live"));
 
     const double clash = compute_clash(wood_session);

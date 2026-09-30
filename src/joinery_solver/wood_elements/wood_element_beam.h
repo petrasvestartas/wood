@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_geometry.h"
 
 namespace wood_session {
 
@@ -8,6 +9,7 @@ namespace wood_session {
 /// A timber beam: a polyline axis with a square section of one radius per segment, joined to other beams where their axes come within reach; WoodSession::compute_axis_contacts and compute_beam_features find the pairs and cut four volume rectangles at each.
 class Beam : public session_cpp::Element {
 public:
+    std::vector<SolidCut> solid_cuts;
     static constexpr std::string_view ELEMENT_TYPE = "Beam"; // The element_type this beam is written under.
     session_cpp::Polyline axis; // Centreline, one segment per span, in world space.
     std::vector<double> radii; // Section half-width per segment; a segment without one takes part in no joint.

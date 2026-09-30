@@ -216,7 +216,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
   // accessors -------------------------------------------------------
   enum : int {
     kVolumesFieldNumber = 2,
-    kContactGuidFieldNumber = 3,
     kEndTypeFieldNumber = 1,
   };
   // repeated .session_proto.Polyline volumes = 2;
@@ -239,21 +238,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
   ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_volumes();
 
   public:
-  // string contact_guid = 3;
-  void clear_contact_guid() ;
-  [[nodiscard]] const ::std::string& contact_guid() const;
-  template <typename Arg_ = const ::std::string&, typename... Args_>
-  void set_contact_guid(Arg_&& arg, Args_... args);
-  ::std::string* PROTOBUF_NONNULL mutable_contact_guid();
-  [[nodiscard]] ::std::string* PROTOBUF_NULLABLE release_contact_guid();
-  void set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value);
-
-  private:
-  const ::std::string& _internal_contact_guid() const;
-  PROTOBUF_ALWAYS_INLINE void _internal_set_contact_guid(const ::std::string& value);
-  ::std::string* PROTOBUF_NONNULL _internal_mutable_contact_guid();
-
-  public:
   // int32 end_type = 1;
   void clear_end_type() ;
   [[nodiscard]] ::int32_t end_type() const;
@@ -268,8 +252,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<2, 3,
-                          1, 54,
+      ::google::protobuf::internal::TcParseTable<1, 2,
+                          1, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -298,7 +282,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > volumes_;
-    ::google::protobuf::internal::ArenaStringPtr contact_guid_;
     ::int32_t end_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -326,7 +309,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
 inline void InteractionFeatureBeam::clear_end_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.end_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
 }
 inline ::int32_t InteractionFeatureBeam::end_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureBeam.end_type)
@@ -334,7 +317,7 @@ inline ::int32_t InteractionFeatureBeam::end_type() const {
 }
 inline void InteractionFeatureBeam::set_end_type(::int32_t value) {
   _internal_set_end_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureBeam.end_type)
 }
 inline ::int32_t InteractionFeatureBeam::_internal_end_type() const {
@@ -394,70 +377,6 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 InteractionFeatureBeam::_internal_mutable_volumes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.volumes_;
-}
-
-// string contact_guid = 3;
-inline void InteractionFeatureBeam::clear_contact_guid() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.contact_guid_.ClearToEmpty();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-}
-inline const ::std::string& InteractionFeatureBeam::contact_guid() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureBeam.contact_guid)
-  return _internal_contact_guid();
-}
-template <typename Arg_, typename... Args_>
-PROTOBUF_ALWAYS_INLINE void InteractionFeatureBeam::set_contact_guid(Arg_&& arg, Args_... args) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  _impl_.contact_guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
-  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureBeam.contact_guid)
-}
-inline ::std::string* PROTOBUF_NONNULL InteractionFeatureBeam::mutable_contact_guid()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  ::std::string* _s = _internal_mutable_contact_guid();
-  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureBeam.contact_guid)
-  return _s;
-}
-inline const ::std::string& InteractionFeatureBeam::_internal_contact_guid() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.contact_guid_.Get();
-}
-inline void InteractionFeatureBeam::_internal_set_contact_guid(const ::std::string& value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.contact_guid_.Set(value, GetArena());
-}
-inline ::std::string* PROTOBUF_NONNULL InteractionFeatureBeam::_internal_mutable_contact_guid() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _impl_.contact_guid_.Mutable( GetArena());
-}
-inline ::std::string* PROTOBUF_NULLABLE InteractionFeatureBeam::release_contact_guid() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureBeam.contact_guid)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
-    return nullptr;
-  }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-  auto* released = _impl_.contact_guid_.Release();
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
-    _impl_.contact_guid_.Set("", GetArena());
-  }
-  return released;
-}
-inline void InteractionFeatureBeam::set_allocated_contact_guid(::std::string* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
-  } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-  }
-  _impl_.contact_guid_.SetAllocated(value, GetArena());
-  if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.contact_guid_.IsDefault()) {
-    _impl_.contact_guid_.Set("", GetArena());
-  }
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeatureBeam.contact_guid)
 }
 
 #ifdef __GNUC__

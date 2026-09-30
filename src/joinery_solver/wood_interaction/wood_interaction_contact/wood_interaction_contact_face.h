@@ -16,6 +16,9 @@ public:
     int face_b = -1; // Face index on the edge's second element.
     ContactType type = ContactType::unknown; // Topology class of the pair.
     session_cpp::Polyline polygon; // The boolean intersection of the two face outlines, closed, in face_a's plane; the largest region when Clipper returns several.
+    std::array<session_cpp::Line, 2> lines; // The two alignment lines, one per element, along the shared edge.
+    std::array<session_cpp::Polyline, 4> volumes; // Volume rectangles for face_a in [0,1] and face_b in [2,3]; shared volumes repeat.
+
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors
@@ -25,7 +28,13 @@ public:
     InteractionContactFace() = default;
 
     /// A contact from its faces, class and overlap.
-    InteractionContactFace(int face_a, int face_b, ContactType type, session_cpp::Polyline polygon);
+    InteractionContactFace(
+            int face_a,
+            int face_b,
+            ContactType type,
+            session_cpp::Polyline polygon,
+            std::array<session_cpp::Line, 2> lines = {},
+            std::array<session_cpp::Polyline, 4> volumes = {});
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -33,6 +42,9 @@ public:
 
     /// "face".
     std::string_view kind() const override;
+
+    /// Reverses the element order in place.
+    void flip() override;
 
     /// Faces swapped: the contact read from the other end of the edge, same guid.
     std::shared_ptr<InteractionContact> flipped() const override;

@@ -102,6 +102,7 @@ std::shared_ptr<Column> Column::from_element(Element e) {
         column->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
     column->rotation = proto.rotation();
 
+    for (const auto& cut : proto.solid_cuts()) column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
     return column;
 }
 
@@ -149,7 +150,7 @@ const BRep& Column::element_geometry_brep() const {
 const Mesh& Column::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
     }
 
     return *_model_geometry_mesh;
@@ -158,7 +159,7 @@ const Mesh& Column::model_geometry_mesh() const {
 const BRep& Column::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
+        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : mesh_brep(model_geometry_mesh());
     }
 
     return *_model_geometry_brep;
@@ -173,7 +174,8 @@ void Column::invalidate_geometry() {
     _element_geometry_brep.reset();
     _model_geometry_mesh.reset();
     _model_geometry_brep.reset();
-    _geometry_synced = false;
+    Element::invalidate_geometry();
+    reset();
 }
 
 std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
@@ -184,6 +186,7 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     std::shared_ptr<Column> column = std::make_shared<Column>(axis.transformed(xform), section.transformed(xform), name);
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
+    for (const auto& cut : solid_cuts) column->solid_cuts.push_back(cut.transformed(xform));
     column->profile = profile;
     column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
     column->set_features(transformed_features(_features, xform));
@@ -199,6 +202,7 @@ void Column::place(const Xform& xform) {
     axis.transform(xform);
     section.transform(xform);
     cuts = transformed_list(cuts, xform);
+    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
     if (!profile.empty())
         rotation = compute_rotation(axis, x_world);
 
@@ -290,6 +294,8 @@ std::string Column::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_rotation(rotation);
 
+    for (const auto& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

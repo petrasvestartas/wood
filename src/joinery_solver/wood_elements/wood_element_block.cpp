@@ -13,6 +13,7 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 
 Block::Block() : Element("block") {}
+Block::Block(const Mesh& mesh, const std::string& name) : Element(name), source_mesh(mesh) {}
 
 Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(name), loops(loops) {}
 
@@ -27,14 +28,19 @@ std::shared_ptr<Block> Block::from_element(Element e) {
     static_cast<Element&>(*block) = std::move(e);
 
     wood_proto::Block proto;
-    if (!proto.ParseFromString(bytes))
+    if (!proto.ParseFromString(bytes)) {
+        if (block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
         return block;
+    }
 
     for (const session_proto::Polyline& loop : proto.loops())
         block->loops.push_back(Polyline::pb_loads(loop.SerializeAsString()));
     for (const session_proto::Plane& cut : proto.cuts())
         block->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
+    if (proto.has_source_mesh()) block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
+    else if (block->loops.empty() && block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
+    for (const auto& cut : proto.solid_cuts()) block->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
     return block;
 }
 
@@ -62,7 +68,7 @@ const Mesh& Block::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const auto [bottom, top] = split_loops(loops);
-        _element_geometry_mesh = bottom.empty() ? Mesh() : Mesh::loft(bottom, top, true);
+        _element_geometry_mesh = bottom.empty() ? source_mesh.value_or(Mesh()) : Mesh::loft(bottom, top, true);
     }
 
     return *_element_geometry_mesh;
@@ -72,7 +78,7 @@ const BRep& Block::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const auto [bottom, top] = split_loops(loops);
-        _element_geometry_brep = bottom.empty() ? BRep() : brep_between_loops(bottom, top);
+        _element_geometry_brep = bottom.empty() ? mesh_brep(element_geometry_mesh()) : brep_between_loops(bottom, top);
     }
 
     return *_element_geometry_brep;
@@ -81,7 +87,7 @@ const BRep& Block::element_geometry_brep() const {
 const Mesh& Block::model_geometry_mesh() const {
 
     if (!_model_geometry_mesh) {
-        _model_geometry_mesh = cut_mesh(element_geometry_mesh(), cuts);
+        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
     }
 
     return *_model_geometry_mesh;
@@ -90,7 +96,7 @@ const Mesh& Block::model_geometry_mesh() const {
 const BRep& Block::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = cut_brep(element_geometry_brep(), cuts);
+        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : mesh_brep(model_geometry_mesh());
     }
 
     return *_model_geometry_brep;
@@ -105,7 +111,8 @@ void Block::invalidate_geometry() {
     _element_geometry_brep.reset();
     _model_geometry_mesh.reset();
     _model_geometry_brep.reset();
-    _geometry_synced = false;
+    Element::invalidate_geometry();
+    reset();
 }
 
 std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
@@ -115,7 +122,9 @@ std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
 
     std::shared_ptr<Block> block = std::make_shared<Block>(transformed_list(loops, xform), name);
     block->guid() = guid();
+    if (source_mesh) block->source_mesh = source_mesh->transformed(xform);
     block->cuts = transformed_list(cuts, xform);
+    for (const auto& cut : solid_cuts) block->solid_cuts.push_back(cut.transformed(xform));
     block->set_features(transformed_features(_features, xform));
     block->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -126,7 +135,9 @@ void Block::place(const Xform& xform) {
 
     Element::place(xform);
     loops = transformed_list(loops, xform);
+    if (source_mesh) source_mesh = source_mesh->transformed(xform);
     cuts = transformed_list(cuts, xform);
+    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -136,7 +147,7 @@ void Block::place(const Xform& xform) {
 
 void Block::compute_geometry_mesh_impl() {
 
-    if (loops.size() >= 2 && loops.size() % 2 == 0) {
+    if (source_mesh || (loops.size() >= 2 && loops.size() % 2 == 0)) {
         set_geometry(model_geometry_mesh());
     }
     compute_geometry_features();
@@ -144,7 +155,7 @@ void Block::compute_geometry_mesh_impl() {
 
 void Block::compute_geometry_brep_impl() {
 
-    if (loops.size() >= 2 && loops.size() % 2 == 0) {
+    if (source_mesh || (loops.size() >= 2 && loops.size() % 2 == 0)) {
         set_geometry(model_geometry_brep());
     }
     compute_geometry_features();
@@ -194,6 +205,7 @@ nlohmann::ordered_json Block::element_data_jsondump() const {
 std::string Block::element_data_dumps() const {
 
     wood_proto::Block proto;
+    if (source_mesh && !proto.mutable_source_mesh()->ParseFromString(source_mesh->pb_dumps())) throw std::runtime_error("Invalid block source mesh");
     for (const Polyline& loop : loops)
         if (!proto.add_loops()->ParseFromString(loop.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
@@ -201,6 +213,8 @@ std::string Block::element_data_dumps() const {
         if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Failed to parse Plane protobuf data");
 
+    for (const auto& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

@@ -38,7 +38,6 @@ classDiagram
     }
     class InteractionFeature {
         <<abstract>>
-        contact_guid
         kind()
     }
     class InteractionStructure {
@@ -50,7 +49,6 @@ classDiagram
     Interaction <|-- InteractionContact
     Interaction <|-- InteractionFeature
     Interaction <|-- InteractionStructure
-    InteractionFeature ..> InteractionContact : contact_guid
 ```
 
 ```mermaid
@@ -92,7 +90,6 @@ classDiagram
     direction LR
     class InteractionFeature {
         <<abstract>>
-        contact_guid
         kind()
     }
     class InteractionFeaturePlate {
@@ -129,8 +126,8 @@ classDiagram
     - `InteractionContactFace` stores the two face indices, the class (`ContactType`: unknown, side_side, side_top, top_top) and `polygon`, the Clipper boolean intersection of the two face outlines, closed, in the first face's plane.
     - `InteractionContactAxis` stores the closest segment between two polylines (beam axes, or plate outlines) and where its ends sit: the parameter and the polyline and segment index on each side.
     - `InteractionContactCross` stores what the cross detection computed: the two side faces of each element, the mid-plane polygon, its two centrelines and the two bounding quads.
-- `InteractionFeature` is a joint cut between the two elements; it adds `contact_guid`, the guid of the contact on the same edge it was solved from, and `kind()`.
-    - `InteractionFeaturePlate` is a plate-to-plate joint: the pair (male `element_a`, female `element_b`), the `InteractionContactFace` it was solved from, the variant name the joint library built (`ss_e_ip_2`, `tt_e_p_0`, ...) as its `name`, joint type, divisions, shift, scale, the two joint lines, the four volume rectangles, the cut outlines per element per face with a `FabricationType` per outline (`wood_interaction_feature_fabrication_type.h`: hole, drill, mill, conic, ...), and the two `session_cpp::ElementFeature` handed to the host elements. The solver builds it in place and the session stores it whole; there is no separate working joint class. The joint library stays one function per variant, one header each under `wood_interaction_feature_plate_joints/`; the variants differ by algorithm, not by data, so there is no subclass per joint.
+- `InteractionFeature` is a joint cut between the two elements; it provides `kind()`. Joint elements connect directly to their targets through feature edges; contacts stay on the host-pair edges.
+    - `InteractionFeaturePlate` is a plate-to-plate joint: the pair (male `element_a`, female `element_b`), the `InteractionContactFace` it was solved from, the variant name the joint library built (`ss_e_ip_2`, `tt_e_p_0`, ...) as its `name`, joint type, divisions, shift, scale, the two joint lines, the four volume rectangles, the cut outlines per element per face with a `FabricationType` per outline (`wood_interaction_feature_fabrication_type.h`: hole, drill, mill, conic, ...), and the two `session_cpp::ElementFeature` handed to the host elements. The solver builds this connection data in place. `JointPlate` owns one or more connections; `JointAnnen` and `JointVidy` own grouped connections, while each target edge carries its selected feature side. The joint library stays one function per variant, one header each under `wood_interaction_feature_plate_joints/`; the variants differ by algorithm, not by data, so there is no subclass per joint.
     - `InteractionFeatureBeam` is a beam-to-beam joint: the end type (crossing, side to end, end to end) and the four volume rectangles.
     - `InteractionFeaturePlateBeam` is reserved, empty.
 - `InteractionStructure` is abstract, with no concrete kind until the structural pass exists.
@@ -279,7 +276,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    Y["yaml_load: settings, plates, sidecars"] --> CC["compute_contacts"]
+    Y["yaml_load: settings, plates, sidecars"] --> CC["compute_face_contacts"]
     Y --> CF["compute_features"]
     CC --> CD["contact detection: face, cross, axis"]
     CD --> ST[("edge interactions: contacts")]
@@ -304,10 +301,10 @@ flowchart LR
 ```
 
 - `WoodSession::yaml_load` reads the dataset yml into the scene's `settings` and the dataset paths, the obj into plates, and the four sidecars onto the scene (`adjacency`, `three_valence`) and the plates (insertion vectors, feature types).
-- `compute_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `InteractionContactFace` per overlapping face pair on the pair's edge; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `InteractionContactCross` and `InteractionContactAxis` the same way.
-- `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `InteractionFeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then every joint's contact and the joint onto its pair's edge with `add_interaction`, and onto both hosts as `ElementFeature`s.
+- `compute_face_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `InteractionContactFace` per overlapping face pair on the pair's edge; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `InteractionContactCross` and `InteractionContactAxis` the same way.
+- `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `InteractionFeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then contacts onto plate-pair edges, joint elements into the scene, and directed feature edges from each joint to its host plates.
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `InteractionFeatureBeam` each.
-- `compute_contacts(level)` pairs elements under the same tree node at that depth, 0 the whole scene, 1 the root's branches: `1_elements_flat` and `1_elements_tree` show both.
+- `compute_face_contacts(level)` pairs elements under the same tree node at that depth, 0 the whole scene, 1 the root's branches: `1_elements_flat` and `1_elements_tree` show both.
 - `pb_dump` writes the `wood_proto.WoodSession`, every stale element lofting itself, and cutting itself by its `cuts`, as it is serialized. Contacts and joints are already on their elements as features, put there when they were computed: a contact on its edge's first element, a joint on both hosts; the viewer draws the elements' geometry and every visible feature in the default grey, and the tree stays exactly as the caller built it.
 
 ## Architecture review

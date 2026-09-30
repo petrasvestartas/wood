@@ -31,6 +31,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
 #include "polyline.pb.h"
+#include "line.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -215,11 +216,53 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
 
   // accessors -------------------------------------------------------
   enum : int {
+    kLinesFieldNumber = 5,
+    kVolumesFieldNumber = 6,
     kPolygonFieldNumber = 4,
     kFaceAFieldNumber = 1,
     kFaceBFieldNumber = 2,
     kTypeFieldNumber = 3,
   };
+  // repeated .session_proto.Line lines = 5;
+  [[nodiscard]] int lines_size() const;
+  private:
+  int _internal_lines_size() const;
+
+  public:
+  void clear_lines() ;
+  [[nodiscard]] const ::session_proto::Line& lines(int index) const;
+  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_lines(int index);
+  ::session_proto::Line* PROTOBUF_NONNULL add_lines();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  lines() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  mutable_lines();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_lines() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_lines();
+
+  public:
+  // repeated .session_proto.Polyline volumes = 6;
+  [[nodiscard]] int volumes_size() const;
+  private:
+  int _internal_volumes_size() const;
+
+  public:
+  void clear_volumes() ;
+  [[nodiscard]] const ::session_proto::Polyline& volumes(int index) const;
+  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NONNULL mutable_volumes(int index);
+  ::session_proto::Polyline* PROTOBUF_NONNULL add_volumes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+  volumes() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+  mutable_volumes();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_volumes() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_volumes();
+
+  public:
   // .session_proto.Polyline polygon = 4;
   [[nodiscard]] bool has_polygon() const;
   void clear_polygon() ;
@@ -269,8 +312,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<2, 4,
-                          1, 0,
+      ::google::protobuf::internal::TcParseTable<3, 6,
+                          3, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -298,6 +341,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
         const InteractionContactFace& from_msg);
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > lines_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > volumes_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE polygon_;
     ::int32_t face_a_;
     ::int32_t face_b_;
@@ -324,11 +369,111 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionContactFace final : publ
 
 // InteractionContactFace
 
+// repeated .session_proto.Line lines = 5;
+inline int InteractionContactFace::_internal_lines_size() const {
+  return _internal_lines().size();
+}
+inline int InteractionContactFace::lines_size() const {
+  return _internal_lines_size();
+}
+inline const ::session_proto::Line& InteractionContactFace::lines(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.lines)
+  return _internal_lines().Get(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactFace::mutable_lines(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.lines)
+  return _internal_mutable_lines()->Mutable(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionContactFace::add_lines()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Line* _add =
+      _internal_mutable_lines()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactFace.lines)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionContactFace::lines() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactFace.lines)
+  return _internal_lines();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+InteractionContactFace::mutable_lines() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactFace.lines)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_lines();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+InteractionContactFace::_internal_lines() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.lines_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+InteractionContactFace::_internal_mutable_lines() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.lines_;
+}
+
+// repeated .session_proto.Polyline volumes = 6;
+inline int InteractionContactFace::_internal_volumes_size() const {
+  return _internal_volumes().size();
+}
+inline int InteractionContactFace::volumes_size() const {
+  return _internal_volumes_size();
+}
+inline const ::session_proto::Polyline& InteractionContactFace::volumes(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.volumes)
+  return _internal_volumes().Get(index);
+}
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_volumes(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.volumes)
+  return _internal_mutable_volumes()->Mutable(index);
+}
+inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::add_volumes()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Polyline* _add =
+      _internal_mutable_volumes()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionContactFace.volumes)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& InteractionContactFace::volumes() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionContactFace.volumes)
+  return _internal_volumes();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+InteractionContactFace::mutable_volumes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionContactFace.volumes)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_volumes();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>&
+InteractionContactFace::_internal_volumes() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.volumes_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL
+InteractionContactFace::_internal_mutable_volumes() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.volumes_;
+}
+
 // int32 face_a = 1;
 inline void InteractionContactFace::clear_face_a() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_a_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
 }
 inline ::int32_t InteractionContactFace::face_a() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.face_a)
@@ -336,7 +481,7 @@ inline ::int32_t InteractionContactFace::face_a() const {
 }
 inline void InteractionContactFace::set_face_a(::int32_t value) {
   _internal_set_face_a(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.face_a)
 }
 inline ::int32_t InteractionContactFace::_internal_face_a() const {
@@ -352,7 +497,7 @@ inline void InteractionContactFace::_internal_set_face_a(::int32_t value) {
 inline void InteractionContactFace::clear_face_b() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.face_b_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
 }
 inline ::int32_t InteractionContactFace::face_b() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.face_b)
@@ -360,7 +505,7 @@ inline ::int32_t InteractionContactFace::face_b() const {
 }
 inline void InteractionContactFace::set_face_b(::int32_t value) {
   _internal_set_face_b(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.face_b)
 }
 inline ::int32_t InteractionContactFace::_internal_face_b() const {
@@ -376,7 +521,7 @@ inline void InteractionContactFace::_internal_set_face_b(::int32_t value) {
 inline void InteractionContactFace::clear_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
 }
 inline ::int32_t InteractionContactFace::type() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionContactFace.type)
@@ -384,7 +529,7 @@ inline ::int32_t InteractionContactFace::type() const {
 }
 inline void InteractionContactFace::set_type(::int32_t value) {
   _internal_set_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionContactFace.type)
 }
 inline ::int32_t InteractionContactFace::_internal_type() const {
@@ -398,7 +543,7 @@ inline void InteractionContactFace::_internal_set_type(::int32_t value) {
 
 // .session_proto.Polyline polygon = 4;
 inline bool InteractionContactFace::has_polygon() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000001U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
   PROTOBUF_ASSUME(!value || _impl_.polygon_ != nullptr);
   return value;
 }
@@ -419,16 +564,16 @@ inline void InteractionContactFace::unsafe_arena_set_allocated_polygon(
   }
   _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionContactFace.polygon)
 }
 inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::release_polygon() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* released = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -448,7 +593,7 @@ inline ::session_proto::Polyline* PROTOBUF_NULLABLE InteractionContactFace::unsa
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionContactFace.polygon)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* temp = _impl_.polygon_;
   _impl_.polygon_ = nullptr;
   return temp;
@@ -463,7 +608,7 @@ inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::_inte
 }
 inline ::session_proto::Polyline* PROTOBUF_NONNULL InteractionContactFace::mutable_polygon()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::session_proto::Polyline* _msg = _internal_mutable_polygon();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionContactFace.polygon)
   return _msg;
@@ -480,9 +625,9 @@ inline void InteractionContactFace::set_allocated_polygon(::session_proto::Polyl
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
 
   _impl_.polygon_ = reinterpret_cast<::session_proto::Polyline*>(value);

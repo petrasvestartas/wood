@@ -47,7 +47,7 @@ int main() {
     config::reset_defaults();
     WoodSession a = WoodSession::pb_load(config::SESSION_NAMES[SESSION]);
     const int vertices_before = a.graph.number_of_vertices();
-    a.compute_contacts();
+    a.compute_face_contacts();
     a.compute_features();
 
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
@@ -77,7 +77,10 @@ int main() {
     check(a.objects.polylines->size() == b.objects.polylines->size(), "loose polyline count");
     check(a.objects.meshes->size() == b.objects.meshes->size(), "loose mesh count");
     check(a.graph.number_of_vertices() == b.graph.number_of_vertices(), "graph vertex count");
-    check(a.graph.number_of_vertices() == vertices_before, "contacts and joints are interaction records, not graph nodes");
+    size_t joint_elements = 0;
+    for (const auto& element : *a.objects.elements)
+        if (std::dynamic_pointer_cast<Joint>(element)) ++joint_elements;
+    check(static_cast<size_t>(a.graph.number_of_vertices()) == static_cast<size_t>(vertices_before) + joint_elements, "joints are graph elements, contacts remain edge records");
     check(a.graph.number_of_edges() == b.graph.number_of_edges(), fmt::format("edge count ({})", a.graph.number_of_edges()));
 
     check(kernel.objects.elements->size() == a.objects.elements->size() && kernel.graph.number_of_edges() == a.graph.number_of_edges() && tree_nodes(kernel) == tree_nodes(a),

@@ -72,7 +72,7 @@ int main() {
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_contacts(1);
+    wood_session.compute_face_contacts(1);
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -80,7 +80,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The reference configurations side by side, one group each: Branch3D's 60 ft square in its three structural methods, plate on columns with stepped heads under CLT strips, post and beam with girders on the x lines, purlin on girder with the girders running y hung 8 in and purlin rows at 10 ft, the columns through the levels with the decks notched round them; Branch3D's residential L over 30 ft bays with its core as pinwheel walls, every girder and purlin reaching it cut at the wall face; the four FAST+EPP timber bay variants with the datum at the framing top, columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides and CLT strips over the outer column faces. compute_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+The reference configurations side by side, one group each: Branch3D's 60 ft square in its three structural methods, plate on columns with stepped heads under CLT strips, post and beam with girders on the x lines, purlin on girder with the girders running y hung 8 in and purlin rows at 10 ft, the columns through the levels with the decks notched round them; Branch3D's residential L over 30 ft bays with its core as pinwheel walls, every girder and purlin reaching it cut at the wall face; the four FAST+EPP timber bay variants with the datum at the framing top, columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides and CLT strips over the outer column faces. compute_face_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

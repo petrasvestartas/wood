@@ -1,12 +1,14 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_geometry.h"
 
 namespace wood_session {
 
 /// A column: a solid that knows its own axis, the section it is cut from and the planes that trim it.
 class Column : public session_cpp::Element {
 public:
+    std::vector<SolidCut> solid_cuts;
     static constexpr std::string_view ELEMENT_TYPE = "Column"; // The element_type this column is written under.
     session_cpp::Line axis; // Centreline, base to head, in world space.
     session_cpp::Polyline section; // Closed cross-section about the axis base; empty when unknown.

@@ -100,7 +100,7 @@ appends; `get_interaction(a, b)` returns the list, empty when there is none;
 oriented to the stored edge and one coinciding with a stored contact is not stored again, the
 stored one is returned; a new contact goes onto the edge's first element as a "contact" feature,
 a plate or beam feature onto its elements as "joint" features. `remove_interaction` also takes
-those features off. A feature names its contact by `contact_guid`. `Interaction` and the three mid-level classes are
+those features off. Joint elements own connection data and connect directly to their targets; features do not store contact GUIDs. `Interaction` and the three mid-level classes are
 abstract, so every record is a leaf; any leaf can carry a name, e.g. a face contact named "glue".
 The plate-to-beam feature is a placeholder with no solver parameters yet, and `InteractionStructure`
 has no leaf.
@@ -111,7 +111,7 @@ cuts already merged into an element's geometry. See `examples/1_elements.cpp`.
 Removing an element or instance drops its edges' interaction lists with the edges; undo puts
 them back as it puts the edges back. A `.pb` written before the kernel held interactions kept
 them in `wood_proto.WoodSession` field 100, which is now reserved: those files still load, but
-without their interactions; run `compute_contacts` / `compute_features` again to rebuild them.
+without their interactions; run `compute_face_contacts` / `compute_features` again to rebuild them.
 An interaction whose type has no registered factory is not dropped: it loads as the kernel's
 `InteractionUnknown`, which writes its type and data back unchanged on the next save.
 
@@ -120,7 +120,7 @@ An interaction whose type has no registered factory is not dropped: it loads as 
 Fields that matter downstream:
 
 - `element_a` / `element_b` — guids; a is male, b female (the solver may swap). `index_of(elements, guid)` maps to a position.
-- `contact` — `InteractionContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `compute_features` stores the whole record on the pair's edge, beside the contact it names by `contact_guid`.
+- `contact` — `InteractionContactFace{face_a, face_b, type, polygon}`; `cross_faces` — second side face per element, type 30 only. `compute_features` stores the connection on a joint element, its contact on the plate-pair edge, and its feature sides on joint-to-target edges.
 - `joint_type` — 11/12/13/20/30/40 (solver vocabulary, see below).
 - `joint_lines[2]`, `joint_volumes[4]` (optional quads; [0],[1] male, [2],[3] female).
 - `m_outlines[2]` / `f_outlines[2]` — cut polylines per plate face, unit-box until oriented; `male_fabrication_types` / `female_fabrication_types` — one `FabricationType` per outline.
@@ -131,7 +131,7 @@ Fields that matter downstream:
 ### `ContactType` vs `joint_type`
 
 `ContactType` (`wood_joint.h`) is what a face pair says about itself from indices alone:
-`side_side=0`, `side_top=1`, `top_top=2`, `cross=3`, `line=4`, `unknown=-1`. `joint_type`
+`side_side=0`, `side_top=1`, `top_top=2`, `end_side=3`, `end_end=4`, `end_top=5`, `unknown=-1`. Face contacts store only this enum. `joint_type`
 is what `face_to_face_wood` decided with geometry. They are different number spaces:
 
 | joint_type | Meaning | Refines from |
@@ -304,7 +304,7 @@ How wood uses it (`wood_session.h/.cpp`):
 
 - `WoodSession::yaml_load(name)` → `load_yaml`, `internal::load_plates(DATA_SET_OBJ)`
   (pairs consecutive OBJ loops bottom/top), one `Plate` per pair added by guid.
-- `compute_contacts()` / `compute_face_contacts()` → `face_contacts` over every element type;
+- `compute_face_contacts()` → `face_contacts` over every element type;
   `compute_cross_contacts()` → `plane_to_face`; `compute_line_contacts()`.
 - `compute_features(search_type)` → `get_connection_zones` on `plates()` in place, then
   `compute_geometry_mesh()` on each plate, then each joint's contact and the joint itself onto

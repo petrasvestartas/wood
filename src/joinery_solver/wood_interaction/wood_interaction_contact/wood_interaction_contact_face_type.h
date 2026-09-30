@@ -10,6 +10,9 @@ enum class ContactType : int {
     side_side = 0, // Both faces are sides; refines to 11, 12 or 13.
     side_top = 1, // One side face and one outer face; refines to 20.
     top_top = 2, // Both outer faces; refines to 40.
+    end_top = 5, // Linear end against a plate outer face.
+    end_end = 4, // Both linear end faces.
+    end_side = 3 // End to side for linear elements.
 };
 
 } // namespace wood_session

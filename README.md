@@ -37,7 +37,7 @@ columns and blocks as the classes below, through the kernel's element registry.
 |---|---|
 | `yaml_load(name)` | data/`name`.yml globals, then the obj it names as plates |
 | `pb_load(name)` | data/`name`.pb, elements rebuilt as `Plate` / `Column` / `Block` |
-| `compute_contacts(level)` | coplanar face overlaps between elements under the same tree node at that depth (0 = all), onto the graph edges |
+| `compute_face_contacts(level)` | coplanar face overlaps between elements under the same tree node at that depth (0 = all), onto the graph edges |
 | `compute_cross_contacts()`, `compute_line_contacts()` | plates passing through each other, outline crossings |
 | `compute_features(search)` | the solver over the plates, in place; the plates stay outlines, nothing is lofted |
 | `set_features_visible(type, on)` | shows or hides one feature kind (`contact`, `joint`, `outline`, ...); the viewer draws every visible feature |
@@ -59,6 +59,15 @@ columns and blocks as the classes below, through the kernel's element registry.
 All four element classes derive from `session_cpp::Element` and register a factory, so any
 `Session` that holds them reads and writes them without knowing wood. Profiles come from
 `wood_profile.h`: rectangle, round, W, HSS, double, slab band, T.
+
+Joints are elements: `JointPlate` dispatches the existing library and custom builders,
+`JointBeam` owns beam joint volumes, and `JointAnnen` / `JointVidy` group connections
+across several plates. Contacts remain on host-pair edges; feature edges run from
+the joint to each target. `Joint` supports plane, concave profile, drill and closed
+mesh cutters. Compatible extrusions use polygon booleans; other solids use polygon
+splitting. Drill meshes use `line_radius` and `chord_tolerance`; their BReps retain
+exact cylinders. Cut target BReps are faceted. See [the cutting gallery](docs/cutting_gallery.md)
+for examples, limits and Cloudflare publishing commands.
 
 Joint type codes: 11 side-side out of plane, 12 side-side in plane, 13 side-side rotated,
 20 top-side, 30 cross, 40 top-top.
@@ -90,7 +99,7 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | Target | Source |
 |---|---|
 | `1_elements` … `12_cross_joints` | `examples/`: one behaviour each, in reading order; the list is in `docs/examples.md` and on the docs site |
-| `1_elements_flat`, `1_elements_tree` | one floor bay from the grid template under the root, and three bays under tree branches; `compute_contacts(0)` and `(1)`, `instance_by_key` |
+| `1_elements_flat`, `1_elements_tree` | one floor bay from the grid template under the root, and three bays under tree branches; `compute_face_contacts(0)` and `(1)`, `instance_by_key` |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_diamond_mesh`, `templates_vda_mesh`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each shell template built with its defaults and written to `live.pb` as a mesh plus its plates |

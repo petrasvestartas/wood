@@ -1,12 +1,15 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_geometry.h"
 
 namespace wood_session {
 
 /// A block: a closed solid lofted between a bottom loop and a top loop, for contact detection; no plate convention.
 class Block : public session_cpp::Element {
 public:
+    std::vector<SolidCut> solid_cuts;
+    std::optional<session_cpp::Mesh> source_mesh;
     static constexpr std::string_view ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
     std::vector<session_cpp::Polyline> loops; // Bottom loop, top loop, then their holes paired in order; empty when the solid came as a mesh.
@@ -21,6 +24,7 @@ private:
 public:
     /// An empty block: no solid.
     Block();
+    explicit Block(const session_cpp::Mesh& mesh, const std::string& name = "block");
 
     /// A block lofted between closed loops: [0] bottom, [1] top, [2..] holes of the bottom paired with holes of the top; `name` is the type flag face_contacts() filters on.
     explicit Block(const std::vector<session_cpp::Polyline>& loops, const std::string& name = "block");
@@ -54,7 +58,7 @@ public:
     /// Drops the cached solids and marks the Element slot stale; call after assigning the loops or the cuts by hand.
     void invalidate_geometry() override;
 
-    /// A copy moved by xform from the parameters alone, guid and name kept: loops, cuts, features and insertion vectors moved, no solid until one is asked for, none for a block given as a mesh; nullptr for a mirror.
+    /// A copy moved by xform from the parameters alone, guid and name kept: loops, cuts, features and insertion vectors moved, no solid until one is asked for, the source mesh moved too; nullptr for a mirror.
     std::shared_ptr<Block> transformed(const session_cpp::Xform& xform) const;
 
     /// Moves the solid, the features and the insertion vectors, then the loops and the cuts, and drops the cached solids.
