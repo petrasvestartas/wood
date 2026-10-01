@@ -5,12 +5,15 @@
 
 namespace wood_session {
 
-/// Closed polyhedral CSG; curved inputs must be meshed to their requested tolerance first.
+/// Closed polyhedral CSG by Manifold, every piece kept, faces merged back per input face; curved inputs must be meshed to their requested tolerance first.
 session_cpp::Mesh solid_boolean(const session_cpp::Mesh& source, const session_cpp::Mesh& cutter,
                                SolidOperation operation, double tolerance = 1e-7);
+
+/// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it: the offcuts fall away.
+session_cpp::Mesh solid_difference(const session_cpp::Mesh& source, const std::vector<session_cpp::Mesh>& cutters);
 std::optional<session_cpp::Mesh> compute_profile_cut(const session_cpp::Mesh& mesh, const SolidCut& cut);
 
-/// Uses polygon booleans for matching extrusions, otherwise solid splitting.
+/// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.
 session_cpp::Mesh apply_solid_cuts(session_cpp::Mesh mesh, const std::vector<SolidCut>& cuts);
 session_cpp::BRep mesh_brep(const session_cpp::Mesh& mesh);
 void append_mesh(session_cpp::Mesh& target, const session_cpp::Mesh& source);

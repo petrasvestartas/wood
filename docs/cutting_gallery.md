@@ -62,10 +62,13 @@ versus pockets.
 
 Compatible through cuts use a planar polygon boolean and loft each resulting
 region, including holes and disconnected pieces. Other closed polyhedral solids
-use BSP polygon splitting and boundary stitching. This fallback uses a geometric
-tolerance (default `1e-7` model units), requires manifold input solids, and reports
-open output boundaries or excessive split complexity instead of accepting them.
-It is intended for joinery-sized solids, not high-resolution scanned meshes.
+go to [Manifold](https://github.com/elalish/manifold) (v3.5.4, double precision),
+which always returns a closed solid and rejects an input that is not one. The
+difference cuts of an element that follow each other are subtracted in one batch
+and only the largest resulting solid is kept, so offcuts a cut separates fall away,
+as compas_tf does; intersections and unions run one at a time and keep every piece.
+The triangles Manifold returns are merged back into one polygon per input face, so
+contact detection still sees whole faces.
 
 Drill mesh sections are chosen from the radius and maximum chord deviation
 (default `0.05` model units); there is no fixed 16-side limit. The minimum is eight

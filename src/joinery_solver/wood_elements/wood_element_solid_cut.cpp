@@ -6,12 +6,26 @@ namespace wood_session {
 using namespace session_cpp;
 
 Mesh apply_solid_cuts(Mesh mesh, const std::vector<SolidCut>& cuts) {
+
+    std::vector<Mesh> pending;
+
     for (const SolidCut& cut : cuts) {
+        if (cut.operation != SolidOperation::difference && !pending.empty()) {
+            mesh = solid_difference(mesh, pending);
+            pending.clear();
+        }
+
         if (std::optional<Mesh> result = compute_profile_cut(mesh, cut))
             mesh = std::move(*result);
+        else if (cut.operation == SolidOperation::difference)
+            pending.push_back(cut.mesh);
         else
             mesh = solid_boolean(mesh, cut.mesh, cut.operation, cut.tolerance);
     }
+
+    if (!pending.empty())
+        mesh = solid_difference(mesh, pending);
+
     return mesh;
 }
 

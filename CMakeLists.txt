@@ -176,6 +176,26 @@ target_include_directories(wood_core PUBLIC
 # library takes only the usage requirements; ADD_EXE still links session_core's objects itself.
 target_link_libraries(wood_core PUBLIC session_core)
 
+# Manifold, the mesh boolean behind solid_boolean and apply_solid_cuts: guaranteed closed results
+# where wood's BSP split had opened up on chained cuts (the floor column head). Pinned, static, no
+# tests, bindings, 2D cross sections or parallel backend, so it pulls in no further dependency.
+FetchContent_Declare(manifold
+    GIT_REPOSITORY https://github.com/elalish/manifold.git
+    GIT_TAG        v3.5.4
+    GIT_SHALLOW    TRUE
+)
+set(MANIFOLD_TEST OFF)
+set(MANIFOLD_CROSS_SECTION OFF)
+set(MANIFOLD_CBIND OFF)
+set(MANIFOLD_PYBIND OFF)
+set(MANIFOLD_JSBIND OFF)
+set(MANIFOLD_PAR OFF)
+set(MANIFOLD_EXPORT OFF)
+set(MANIFOLD_DOWNLOADS OFF)
+set(BUILD_SHARED_LIBS OFF)
+FetchContent_MakeAvailable(manifold)
+target_link_libraries(wood_core PUBLIC manifold::manifold)
+
 find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/36.2/bin NO_DEFAULT_PATH)
 if(WOOD_PROTOC)
     file(GLOB WOOD_PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.proto)
