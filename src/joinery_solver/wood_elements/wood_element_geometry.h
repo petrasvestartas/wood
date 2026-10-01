@@ -37,6 +37,9 @@ session_cpp::Polyline square_section(const session_cpp::Point& at, const session
 /// The closed solid through consecutive closed sections of the same point count: one quad strip per pair, a cap at each end.
 session_cpp::Mesh sweep_sections(const std::vector<session_cpp::Polyline>& sections);
 
+/// The closed solid through sections of one point count, wound outwards: both end caps, one face per side strip whose points share a plane, else one per quad; repeated points collapse, so a section equal to its neighbour along part of the ring gives a stepped solid.
+session_cpp::Mesh loft_stations(const std::vector<session_cpp::Polyline>& sections);
+
 /// The same solid as a boundary representation: one quad face per section edge pair, the first and last section as caps.
 session_cpp::BRep brep_sections(const std::vector<session_cpp::Polyline>& sections);
 

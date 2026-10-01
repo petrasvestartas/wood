@@ -100,6 +100,147 @@ double compute_volume(const Mesh& mesh) {
     return std::abs(total) / 6.0;
 }
 
+const double COPLANAR = 1e-6; // a side strip whose points lie within this of one plane becomes one face; closer points are one
+
+/// The points of every section without the closing point, empty unless all share one count of at least three.
+static std::vector<std::vector<Point>> compute_rings(const std::vector<Polyline>& sections) {
+
+    std::vector<std::vector<Point>> rings;
+
+    for (const Polyline& section : sections) {
+        std::vector<Point> points = section.get_points();
+
+        if (section.is_closed())
+            points.pop_back();
+
+        if (points.size() < 3 || (!rings.empty() && points.size() != rings.front().size()))
+            return {};
+
+        rings.push_back(points);
+    }
+
+    return rings;
+}
+
+/// True when every point lies within COPLANAR of the Newell plane through them.
+static bool is_coplanar(const std::vector<Point>& points) {
+
+    const Vector normal = compute_newell(points);
+    const Point origin = Point::centroid(points);
+
+    for (const Point& point : points)
+        if (std::abs((point - origin).dot(normal)) > COPLANAR)
+            return false;
+
+    return true;
+}
+
+/// Six times the signed volume enclosed by the faces, positive when they face outwards.
+static double compute_signed_volume(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces) {
+
+    double total = 0.0;
+
+    for (const std::vector<size_t>& face : faces)
+        for (size_t i = 1; i + 1 < face.size(); i++) {
+            const Vector a = vertices[face[0]] - Point(0.0, 0.0, 0.0);
+            const Vector b = vertices[face[i]] - Point(0.0, 0.0, 0.0);
+            const Vector c = vertices[face[i + 1]] - Point(0.0, 0.0, 0.0);
+            total += a.dot(b.cross(c));
+        }
+
+    return total;
+}
+
+/// The side faces of the strip under ring side j: one polygon when the strip is planar, else one quad per station pair.
+static void add_strip(const std::vector<Point>& vertices, size_t stations, size_t count, size_t j, std::vector<std::vector<size_t>>& faces) {
+
+    const size_t k = (j + 1) % count;
+    std::vector<size_t> strip = {j};
+
+    for (size_t i = 0; i < stations; i++)
+        strip.push_back(i * count + k);
+
+    for (size_t i = stations - 1; i > 0; i--)
+        strip.push_back(i * count + j);
+
+    std::vector<Point> points;
+
+    for (const size_t index : strip)
+        points.push_back(vertices[index]);
+
+    if (stations == 2 || is_coplanar(points)) {
+        faces.push_back(strip);
+        return;
+    }
+
+    for (size_t i = 0; i + 1 < stations; i++)
+        faces.push_back({i * count + j, i * count + k, (i + 1) * count + k, (i + 1) * count + j});
+}
+
+/// The face's points with repeats dropped, a stepped section collapsing a side onto its neighbour; empty when fewer than three are left.
+static std::vector<Point> compute_face_points(const std::vector<Point>& vertices, const std::vector<size_t>& face) {
+
+    std::vector<Point> points;
+
+    for (const size_t index : face)
+        if (points.empty() || points.back().distance(vertices[index]) > COPLANAR)
+            points.push_back(vertices[index]);
+
+    while (points.size() > 1 && points.back().distance(points.front()) <= COPLANAR)
+        points.pop_back();
+
+    if (points.size() < 3)
+        return {};
+
+    return points;
+}
+
+Mesh loft_stations(const std::vector<Polyline>& sections) {
+
+    const std::vector<std::vector<Point>> rings = compute_rings(sections);
+
+    if (rings.size() < 2)
+        return Mesh();
+
+    const size_t stations = rings.size();
+    const size_t count = rings.front().size();
+    std::vector<Point> vertices;
+
+    for (const std::vector<Point>& ring : rings)
+        vertices.insert(vertices.end(), ring.begin(), ring.end());
+
+    std::vector<std::vector<size_t>> faces;
+
+    for (size_t j = 0; j < count; j++)
+        add_strip(vertices, stations, count, j, faces);
+
+    std::vector<size_t> start(count);
+    std::vector<size_t> end(count);
+
+    for (size_t j = 0; j < count; j++) {
+        start[j] = count - 1 - j;
+        end[j] = (stations - 1) * count + j;
+    }
+
+    faces.push_back(start);
+    faces.push_back(end);
+
+    const bool inward = compute_signed_volume(vertices, faces) < 0.0;
+    std::vector<std::vector<Point>> polygons;
+
+    for (std::vector<size_t>& face : faces) {
+        if (inward)
+            std::reverse(face.begin(), face.end());
+
+        const std::vector<Point> polygon = compute_face_points(vertices, face);
+
+        if (!polygon.empty())
+            polygons.push_back(polygon);
+    }
+
+    return Mesh::from_polylines(polygons);
+}
+
 BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top) {
 
     std::vector<Polyline> faces{bottom[0], top[0]};

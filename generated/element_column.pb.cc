@@ -47,12 +47,12 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
     {
       PROTOBUF_FIELD_OFFSET(Column, _impl_._has_bits_),
       0, // no _extensions_
-      6, 56,  // max_field_number, fast_idx_mask
+      8, 56,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294967232,  // skipmap
+      4294967040,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      6,  // num_field_entries
-      5,  // num_aux_entries
+      8,  // num_field_entries
+      6,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -61,7 +61,10 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       ::_pbi::TcParser::GetTable<::wood_proto::Column>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      {::_pbi::TcParser::MiniParse, {}},
+      // double head_height = 8;
+      {::_pbi::TcParser::FastF64S1,
+       {65, 7, 0,
+        PROTOBUF_FIELD_OFFSET(Column, _impl_.head_height_)}},
       // .session_proto.Line axis = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 3, 0,
@@ -80,13 +83,16 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
         PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_)}},
       // double rotation = 5;
       {::_pbi::TcParser::FastF64S1,
-       {41, 5, 0,
+       {41, 6, 0,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_)}},
       // repeated .wood_proto.SolidCut solid_cuts = 6;
       {::_pbi::TcParser::FastMtR1,
        {50, 2, 4,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_)}},
-      {::_pbi::TcParser::MiniParse, {}},
+      // .session_proto.Polyline head = 7;
+      {::_pbi::TcParser::FastMtS1,
+       {58, 5, 5,
+        PROTOBUF_FIELD_OFFSET(Column, _impl_.head_)}},
     }}, {{
       65535, 65535
     }}, {{
@@ -99,9 +105,13 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       // repeated .session_proto.Polyline profile = 4;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double rotation = 5;
-      {PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      {PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // repeated .wood_proto.SolidCut solid_cuts = 6;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // .session_proto.Polyline head = 7;
+      {PROTOBUF_FIELD_OFFSET(Column, _impl_.head_), _Internal::kHasBitsOffset + 5, 5, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      // double head_height = 8;
+      {PROTOBUF_FIELD_OFFSET(Column, _impl_.head_height_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -128,6 +138,11 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
         {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
         #endif
     }},
     {{
@@ -156,7 +171,9 @@ inline constexpr Column::Impl_::Impl_(
         ,
         axis_{nullptr},
         section_{nullptr},
-        rotation_{0} {}
+        head_{nullptr},
+        rotation_{0},
+        head_height_{0} {}
 
 template <typename>
 constexpr Column::Column(::_pbi::ConstantInitialized,
@@ -260,19 +277,23 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_._has_bits_),
-        9, // hasbit index offset
+        11, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_cuts_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.axis_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.section_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.cuts_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.profile_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.rotation_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.head_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.head_height_),
         2,
         3,
         4,
         0,
         1,
+        6,
         5,
+        7,
 };
 
 static const ::_pbi::MigrationSchema
@@ -287,13 +308,14 @@ const char descriptor_table_protodef_element_5fcolumn_2eproto[] ABSL_ATTRIBUTE_S
     protodesc_cold) = {
     "\n\024element_column.proto\022\nwood_proto\032\017soli"
     "d_cut.proto\032\nline.proto\032\013plane.proto\032\016po"
-    "lyline.proto\"\337\001\n\006Column\022(\n\nsolid_cuts\030\006 "
+    "lyline.proto\"\233\002\n\006Column\022(\n\nsolid_cuts\030\006 "
     "\003(\0132\024.wood_proto.SolidCut\022!\n\004axis\030\001 \001(\0132"
     "\023.session_proto.Line\022(\n\007section\030\002 \001(\0132\027."
     "session_proto.Polyline\022\"\n\004cuts\030\003 \003(\0132\024.s"
     "ession_proto.Plane\022(\n\007profile\030\004 \003(\0132\027.se"
-    "ssion_proto.Polyline\022\020\n\010rotation\030\005 \001(\001b\006"
-    "proto3"
+    "ssion_proto.Polyline\022\020\n\010rotation\030\005 \001(\001\022%"
+    "\n\004head\030\007 \001(\0132\027.session_proto.Polyline\022\023\n"
+    "\013head_height\030\010 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fcolumn_2eproto_deps[4] = {
@@ -306,7 +328,7 @@ static ::absl::once_flag descriptor_table_element_5fcolumn_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fcolumn_2eproto = {
     false,
     false,
-    326,
+    386,
     descriptor_table_protodef_element_5fcolumn_2eproto,
     "element_column.proto",
     &descriptor_table_element_5fcolumn_2eproto_once,
@@ -346,6 +368,11 @@ void Column::clear_profile() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.profile_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+}
+void Column::clear_head() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.head_ != nullptr) _impl_.head_->Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
 }
 Column::Column(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -404,7 +431,16 @@ Column::Column(
   _impl_.section_ = (CheckHasBit(cached_has_bits, 0x00000010U))
                  ? Super_::CopyConstruct(arena, *from._impl_.section_)
                  : nullptr;
-  _impl_.rotation_ = from._impl_.rotation_;
+  _impl_.head_ = (CheckHasBit(cached_has_bits, 0x00000020U))
+                 ? Super_::CopyConstruct(arena, *from._impl_.head_)
+                 : nullptr;
+  ::memcpy(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, rotation_),
+           reinterpret_cast<const char*>(&from._impl_) +
+               offsetof(Impl_, rotation_),
+           offsetof(Impl_, head_height_) -
+               offsetof(Impl_, rotation_) +
+               sizeof(Impl_::head_height_));
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.Column)
 }
@@ -432,9 +468,9 @@ inline void Column::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, axis_),
            0,
-           offsetof(Impl_, rotation_) -
+           offsetof(Impl_, head_height_) -
                offsetof(Impl_, axis_) +
-               sizeof(Impl_::rotation_));
+               sizeof(Impl_::head_height_));
 }
 Column::~Column() {
   // @@protoc_insertion_point(destructor:wood_proto.Column)
@@ -449,6 +485,7 @@ inline void Column::SharedDtor(MessageLite& self) {
   ABSL_DCHECK(this_.GetArena() == nullptr);
   delete this_._impl_.axis_;
   delete this_._impl_.section_;
+  delete this_._impl_.head_;
   this_._impl_.~Impl_();
 }
 
@@ -485,7 +522,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
   ::uint32_t cached_has_bits [[maybe_unused]] = 0;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _impl_.cuts_.Clear();
     }
@@ -503,8 +540,18 @@ PROTOBUF_NOINLINE void Column::Clear() {
       ABSL_DCHECK(this_._impl_.section_ != nullptr);
       this_._impl_.section_->Clear();
     }
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      ABSL_DCHECK(this_._impl_.head_ != nullptr);
+      this_._impl_.head_->Clear();
+    }
   }
-  this_._impl_.rotation_ = 0;
+  if (BatchCheckHasBit(cached_has_bits, 0x000000c0U)) {
+    ::memset(&this_._impl_.rotation_, 0,
+             static_cast<::size_t>(
+                 reinterpret_cast<char*>(&this_._impl_.head_height_) -
+                 reinterpret_cast<char*>(&this_._impl_.rotation_)) +
+                 sizeof(_impl_.head_height_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -567,7 +614,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
   }
 
   // double rotation = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_rotation()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -584,6 +631,22 @@ PROTOBUF_NOINLINE void Column::Clear() {
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
           6, repfield, repfield.GetCachedSize(), target,
           stream);
+    }
+  }
+
+  // .session_proto.Polyline head = 7;
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        7, *this_._impl_.head_, this_._impl_.head_->GetCachedSize(), target,
+        stream);
+  }
+
+  // double head_height = 8;
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_head_height()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteDoubleToArray(
+          8, this_._internal_head_height(), target);
     }
   }
 
@@ -610,7 +673,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     // repeated .session_proto.Plane cuts = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_cuts_size();
@@ -642,9 +705,20 @@ PROTOBUF_NOINLINE void Column::Clear() {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.section_);
     }
-    // double rotation = 5;
+    // .session_proto.Polyline head = 7;
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.head_);
+    }
+    // double rotation = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_rotation()) != 0) {
+        total_size += 9;
+      }
+    }
+    // double head_height = 8;
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_head_height()) != 0) {
         total_size += 9;
       }
     }
@@ -667,7 +741,7 @@ void Column::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_cuts()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -700,8 +774,21 @@ void Column::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+      ABSL_DCHECK(from._impl_.head_ != nullptr);
+      if (_this->_impl_.head_ == nullptr) {
+        _this->_impl_.head_ = Super_::CopyConstruct(arena, *from._impl_.head_);
+      } else {
+        _this->_impl_.head_->MergeFrom(*from._impl_.head_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_rotation()) != 0) {
         _this->_impl_.rotation_ = from._impl_.rotation_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+      if (::absl::bit_cast<::uint64_t>(from._internal_head_height()) != 0) {
+        _this->_impl_.head_height_ = from._impl_.head_height_;
       }
     }
   }
@@ -726,8 +813,8 @@ void Column::InternalSwap(Column* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _impl_.profile_.InternalSwap(&other->_impl_.profile_);
   _impl_.solid_cuts_.InternalSwap(&other->_impl_.solid_cuts_);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_)
-      + sizeof(Column::_impl_.rotation_)
+      PROTOBUF_FIELD_OFFSET(Column, _impl_.head_height_)
+      + sizeof(Column::_impl_.head_height_)
       - PROTOBUF_FIELD_OFFSET(Column, _impl_.axis_)>(
           reinterpret_cast<char*>(&_impl_.axis_),
           reinterpret_cast<char*>(&other->_impl_.axis_));

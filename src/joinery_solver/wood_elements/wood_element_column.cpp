@@ -102,6 +102,11 @@ std::shared_ptr<Column> Column::from_element(Element e) {
         column->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
     column->rotation = proto.rotation();
 
+    if (proto.has_head())
+        column->head = Polyline::pb_loads(proto.head().SerializeAsString());
+
+    column->head_height = proto.head_height();
+
     for (const auto& cut : proto.solid_cuts()) column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
     return column;
 }
@@ -125,12 +130,31 @@ static std::vector<Polyline> top_loops(const Column& column, const std::vector<P
     return top;
 }
 
+/// True when the column carries a head of its section's point count over a positive length shorter than the axis.
+static bool has_head(const Column& column) {
+    return column.head_height > 0.0 && column.head_height < column.axis.length() && column.head.point_count() == column.section.point_count();
+}
+
+/// The four stations of a column with a head: the section at the base and under the head, the head section there and at the top.
+static std::vector<Polyline> stepped_sections(const Column& column) {
+
+    const Vector along = column.axis.to_vector();
+    const Vector under = along * ((column.axis.length() - column.head_height) / column.axis.length());
+
+    return {column.section, column.section.translated(under), column.head.translated(under), column.head.translated(along)};
+}
+
 const Mesh& Column::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const std::vector<Polyline> bottom = bottom_loops(*this);
-        _element_geometry_mesh = section.point_count() < 3 || axis.length() <= 0.0
-            ? Mesh() : Mesh::loft(bottom, top_loops(*this, bottom), true);
+
+        if (section.point_count() < 3 || axis.length() <= 0.0)
+            _element_geometry_mesh = Mesh();
+        else if (has_head(*this))
+            _element_geometry_mesh = loft_stations(stepped_sections(*this));
+        else
+            _element_geometry_mesh = Mesh::loft(bottom, top_loops(*this, bottom), true);
     }
 
     return *_element_geometry_mesh;
@@ -140,8 +164,13 @@ const BRep& Column::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const std::vector<Polyline> bottom = bottom_loops(*this);
-        _element_geometry_brep = section.point_count() < 3 || axis.length() <= 0.0
-            ? BRep() : brep_between_loops(bottom, top_loops(*this, bottom));
+
+        if (section.point_count() < 3 || axis.length() <= 0.0)
+            _element_geometry_brep = BRep();
+        else if (has_head(*this))
+            _element_geometry_brep = mesh_brep(element_geometry_mesh());
+        else
+            _element_geometry_brep = brep_between_loops(bottom, top_loops(*this, bottom));
     }
 
     return *_element_geometry_brep;
@@ -189,6 +218,8 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     for (const auto& cut : solid_cuts) column->solid_cuts.push_back(cut.transformed(xform));
     column->profile = profile;
     column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
+    column->head = head.transformed(xform);
+    column->head_height = head_height;
     column->set_features(transformed_features(_features, xform));
     column->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -201,6 +232,7 @@ void Column::place(const Xform& xform) {
     Element::place(xform);
     axis.transform(xform);
     section.transform(xform);
+    head.transform(xform);
     cuts = transformed_list(cuts, xform);
     for (auto& cut : solid_cuts) cut = cut.transformed(xform);
     if (!profile.empty())
@@ -293,6 +325,12 @@ std::string Column::element_data_dumps() const {
         if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_rotation(rotation);
+
+    if (head.point_count() > 0)
+        if (!proto.mutable_head()->ParseFromString(head.pb_dumps()))
+            throw std::runtime_error("Invalid column head");
+
+    proto.set_head_height(head_height);
 
     for (const auto& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");

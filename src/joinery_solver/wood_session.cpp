@@ -16,6 +16,7 @@ bool register_factories() {
 
     Plate::register_type();
     Column::register_type();
+    BeamVariable::register_type();
     Block::register_type();
     Beam::register_type();
     Joint::register_type();
@@ -45,6 +46,9 @@ std::vector<SolidCut>* get_solid_cuts(Element& element) {
 
     if (Column* column = dynamic_cast<Column*>(&element))
         return &column->solid_cuts;
+
+    if (BeamVariable* beam = dynamic_cast<BeamVariable*>(&element))
+        return &beam->solid_cuts;
 
     if (Block* block = dynamic_cast<Block*>(&element))
         return &block->solid_cuts;
@@ -919,6 +923,8 @@ static void add_plane_cut(const Joint& joint, Element& target) {
         beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (Column* column = dynamic_cast<Column*>(&target))
         column->cuts.insert(column->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    else if (BeamVariable* beam = dynamic_cast<BeamVariable*>(&target))
+        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (Block* block = dynamic_cast<Block*>(&target))
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else

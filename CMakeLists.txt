@@ -84,6 +84,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_view.cpp
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
+    src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_joint.cpp
@@ -98,6 +99,10 @@ set(WOOD_SOURCES
     src/templates/grid/grid_levels.cpp
     src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
+    src/templates/floor/floor_geometry.cpp
+    src/templates/floor/floor.cpp
+    src/templates/floor/floor_members.cpp
+    src/templates/floor/floor_elements.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -227,6 +232,7 @@ ADD_EXE(main_dataset_runner              examples/main_dataset_runner.cpp src/jo
 ADD_EXE(main_session_round_trip          examples/main_session_round_trip.cpp)
 ADD_EXE(joint_elements                   tests/joint_elements.cpp)
 ADD_EXE(interaction_ownership            tests/interaction_ownership.cpp)
+ADD_EXE(beam_variable                    tests/beam_variable.cpp)
 ADD_EXE(templates_translation_shell      examples/templates_translation_shell.cpp)
 ADD_EXE(templates_reflex_fold            examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron                examples/templates_chevron.cpp)
@@ -240,6 +246,8 @@ ADD_EXE(templates_grid_lines             examples/templates_grid_lines.cpp)
 ADD_EXE(templates_grid_reference         examples/templates_grid_reference.cpp)
 ADD_EXE(templates_grid_framing           examples/templates_grid_framing.cpp)
 ADD_EXE(templates_gridshell              examples/templates_gridshell.cpp)
+ADD_EXE(templates_floor_1_floorguide     examples/templates_floor_1_floorguide.cpp)
+ADD_EXE(templates_floor_2_column_model   examples/templates_floor_2_column_model.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

@@ -2,6 +2,7 @@
 #include "wood_contact_detection.h"
 #include "wood_element_beam.h"
 #include "wood_element_column.h"
+#include "wood_element_beam_variable.h"
 #include "wood_feature_detection.h"
 #include "../src/clipper2/clipper.h"
 using namespace session_cpp;
@@ -62,13 +63,15 @@ bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
 /// Topology class of a face pair; unknown unless both sides follow the plate convention.
 ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb) {
 
-    const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a);
-    const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b);
+    const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a) || dynamic_cast<const BeamVariable*>(&a);
+    const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b) || dynamic_cast<const BeamVariable*>(&b);
     auto is_end = [](const Element& element, const Plane& plane) {
             Vector axis;
             if (const auto* beam = dynamic_cast<const Beam*>(&element)) {
                 if (beam->axis.point_count() < 2) return false;
                 axis = beam->axis[beam->axis.point_count() - 1] - beam->axis[0];
+            } else if (const auto* variable = dynamic_cast<const BeamVariable*>(&element)) {
+                axis = variable->axis.to_vector();
             } else axis = static_cast<const Column&>(element).axis.to_vector();
             return std::abs(plane.z_axis().dot(axis.normalized())) > 1e-6;
     };

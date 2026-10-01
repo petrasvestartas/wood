@@ -189,6 +189,9 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
         return beam->transformed(xform);
 
+    if (const std::shared_ptr<BeamVariable> variable = std::dynamic_pointer_cast<BeamVariable>(element))
+        return variable->transformed(xform);
+
     if (const std::shared_ptr<Block> block = std::dynamic_pointer_cast<Block>(element))
         return block->transformed(xform);
 

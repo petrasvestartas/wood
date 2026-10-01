@@ -8,6 +8,7 @@
 #include "wood_element_joint_beam.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
+#include "wood_element_beam_variable.h"
 #include "wood_element_plate.h"
 #include "wood_config.h"
 #include "wood_feature_construction.h"
@@ -232,6 +233,11 @@ public:
     /// Every Column, in objects.elements order.
     std::vector<std::shared_ptr<Column>> columns() const {
         return get_elements<Column>();
+    }
+
+    /// Every BeamVariable, in objects.elements order.
+    std::vector<std::shared_ptr<BeamVariable>> beam_variables() const {
+        return get_elements<BeamVariable>();
     }
 
     /// Every Block, in objects.elements order.
