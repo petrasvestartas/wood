@@ -14,6 +14,7 @@ public:
     InteractionFeatureBeam feature;
     std::vector<std::array<session_cpp::Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target.
+    double drill_overshoot = 0.0; // How far the drill lines run past the dowels at both ends; a target keeps it only at an end where the dowel leaves it, so a blind hole stops at its dowel.
     JointBeam();
     JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact,
               double volume_length, double cross_or_side_to_end, int flip_male = 0);

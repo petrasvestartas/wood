@@ -16,7 +16,7 @@ std::optional<session_cpp::Mesh> compute_profile_cut(const session_cpp::Mesh& me
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.
 session_cpp::Mesh apply_solid_cuts(session_cpp::Mesh mesh, const std::vector<SolidCut>& cuts, bool drills = true);
 
-/// The mesh with the cuts applied as a BRep: the round holes the cuts carry made exact, cylindrical faces with circle or ellipse loops, where they are clear of every edge, else the faceted BRep of the cut mesh.
+/// The mesh with the cuts applied as a BRep: the round holes the cuts carry made exact, cylindrical faces with circle or ellipse loops, where they are clear of every edge and of each other, else the cut mesh's planar faces with their holes as inner loops.
 session_cpp::BRep solid_cuts_brep(const session_cpp::Mesh& mesh, const std::vector<SolidCut>& cuts);
 session_cpp::BRep mesh_brep(const session_cpp::Mesh& mesh);
 void append_mesh(session_cpp::Mesh& target, const session_cpp::Mesh& source);

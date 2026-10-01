@@ -4,6 +4,7 @@
 #include "wood_feature_detection_beam.h"
 #include "wood_session.pb.h"
 #include "wood_element_geometry.h"
+#include "wood_brep_drill.h"
 
 namespace wood_session {
 
@@ -715,6 +716,7 @@ std::string WoodSession::pb_dumps() {
     wood_proto::WoodSession proto;
     if (!proto.ParseFromString(Session::pb_dumps()))
         throw std::runtime_error("Failed to parse WoodSession protobuf data");
+
     if (!proto.mutable_settings()->ParseFromString(settings.pb_dumps()))
         throw std::runtime_error("Failed to parse Settings protobuf data");
 
@@ -859,7 +861,28 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, Element& target);
+static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills, Element& target);
+
+/// A connector's drills for one target: each end keeps the overshoot only where the dowel leaves the target there, tested just beyond the dowel's own end, else stops at the dowel.
+static std::vector<Line> target_drills(const JointBeam& joint, const Element& target) {
+
+    if (joint.drill_overshoot <= 0.0)
+        return joint.drill_lines;
+
+    const Mesh& solid = target.element_geometry_mesh();
+    std::vector<Line> drills;
+
+    for (const Line& drill : joint.drill_lines) {
+        const Vector d = drill.to_vector().normalized();
+        const Point start = drill.start() + d * joint.drill_overshoot;
+        const Point end = drill.end() - d * joint.drill_overshoot;
+        const bool blind_start = is_inside(solid, start - d * 1.0);
+        const bool blind_end = is_inside(solid, end + d * 1.0);
+        drills.push_back(Line::from_points(blind_start ? start : drill.start(), blind_end ? end : drill.end()));
+    }
+
+    return drills;
+}
 
 /// A connector's cuts: per target its own cutters and every drill line kept as an axis, one solid cut each, the edge marked like a cutter joint's.
 static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
@@ -876,7 +899,7 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
             for (const std::array<Polyline, 2>& cutter : joint->cutters[side])
                 append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
 
-        add_solid_cut(scene, *joint, mesh, *target);
+        add_solid_cut(scene, *joint, mesh, target_drills(*joint, *target), *target);
         target->invalidate_geometry();
         scene.Session::remove_interaction(joint, target);
         scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
@@ -961,12 +984,13 @@ static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& targe
     store_solid_cut(scene, joint, std::move(cut), target);
 }
 
-/// A difference cut of the given solid, for a joint that cuts each target with its own.
-static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, Element& target) {
+/// A difference cut of the given solid and drills, for a joint that cuts each target with its own.
+static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills, Element& target) {
 
     SolidCut cut;
     cut.mesh = mesh;
     add_drills(joint, cut);
+    cut.drills = drills;
     store_solid_cut(scene, joint, std::move(cut), target);
 }
 

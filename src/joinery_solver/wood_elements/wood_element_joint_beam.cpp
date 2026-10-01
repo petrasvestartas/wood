@@ -292,6 +292,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
 
     joint->line_radius = dowel_radius;
     joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
+    joint->drill_overshoot = overshoot;
 
     return joint;
 }
@@ -405,6 +406,8 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
             if (!proto.add_parts()->ParseFromString(loop.pb_dumps()))
                 throw std::runtime_error("Invalid connector part");
 
+    proto.set_drill_overshoot(drill_overshoot);
+
     for (const std::vector<std::array<Polyline, 2>>& target : cutters) {
         wood_proto::JointCutter* cutter = proto.add_cutters();
 
@@ -421,6 +424,8 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
 
     for (int i = 0; i + 1 < proto.parts_size(); i += 2)
         parts.push_back({Polyline::pb_loads(proto.parts(i).SerializeAsString()), Polyline::pb_loads(proto.parts(i + 1).SerializeAsString())});
+
+    drill_overshoot = proto.drill_overshoot();
 
     for (const wood_proto::JointCutter& cutter : proto.cutters()) {
         cutters.push_back({});

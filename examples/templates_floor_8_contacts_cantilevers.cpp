@@ -6,7 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const bool BREPS = true; // write every cut element as its BRep, exact dowel bores where they are clear, instead of its mesh
+const bool BREPS = true; // write every cut element as its BRep, the dowel and screw bores exact cylinders, instead of its mesh
 const bool DUMP = true; // write name, volume and box centre of the carved columns and outer ribs to data/output/pb/floor_8_contacts_cantilevers.txt, the parity record against compas_tf
 
 const wood_floor::FloorGuide GUIDE{
@@ -106,7 +106,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. BREPS writes every cut element as its BRep, the dowel and screw bores exact cylinders where they keep clear of edges and of each other. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
+Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. BREPS writes every cut element as its BRep, the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

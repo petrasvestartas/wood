@@ -49,7 +49,12 @@ BRep solid_cuts_brep(const Mesh& mesh, const std::vector<SolidCut>& cuts) {
         if (std::optional<BRep> exact = drilled_brep(apply_solid_cuts(mesh, cuts, false), drills))
             return *exact;
 
-    return mesh_brep(apply_solid_cuts(mesh, cuts));
+    const Mesh cut = apply_solid_cuts(mesh, cuts);
+
+    if (std::optional<BRep> planar = drilled_brep(cut, {}))
+        return *planar;
+
+    return mesh_brep(cut);
 }
 
 SolidCut SolidCut::transformed(const Xform& xform) const {

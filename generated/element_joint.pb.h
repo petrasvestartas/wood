@@ -874,6 +874,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     kGeneratedFieldNumber = 10,
     kLineRadiusFieldNumber = 9,
     kChordToleranceFieldNumber = 12,
+    kDrillOvershootFieldNumber = 20,
     kOperationFieldNumber = 16,
   };
   // repeated .session_proto.Polyline loops = 1;
@@ -1162,6 +1163,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   void _internal_set_chord_tolerance(double value);
 
   public:
+  // double drill_overshoot = 20;
+  void clear_drill_overshoot() ;
+  [[nodiscard]] double drill_overshoot() const;
+  void set_drill_overshoot(double value);
+
+  private:
+  double _internal_drill_overshoot() const;
+  void _internal_set_drill_overshoot(double value);
+
+  public:
   // optional int32 operation = 16;
   [[nodiscard]] bool has_operation() const;
   void clear_operation() ;
@@ -1177,7 +1188,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<5, 19,
+      ::google::protobuf::internal::TcParseTable<5, 20,
                           10, 52,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -1224,6 +1235,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     bool generated_;
     double line_radius_;
     double chord_tolerance_;
+    double drill_overshoot_;
     ::int32_t operation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1965,13 +1977,13 @@ Joint::_internal_mutable_drill_lines() {
 
 // optional int32 operation = 16;
 inline bool Joint::has_operation() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00040000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00080000U);
   return value;
 }
 inline void Joint::clear_operation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.operation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00080000U);
 }
 inline ::int32_t Joint::operation() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.operation)
@@ -1979,7 +1991,7 @@ inline ::int32_t Joint::operation() const {
 }
 inline void Joint::set_operation(::int32_t value) {
   _internal_set_operation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.operation)
 }
 inline ::int32_t Joint::_internal_operation() const {
@@ -2192,6 +2204,30 @@ inline ::google::protobuf::RepeatedPtrField<::wood_proto::JointCutter>* PROTOBUF
 Joint::_internal_mutable_cutters() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.cutters_;
+}
+
+// double drill_overshoot = 20;
+inline void Joint::clear_drill_overshoot() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_overshoot_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
+}
+inline double Joint::drill_overshoot() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Joint.drill_overshoot)
+  return _internal_drill_overshoot();
+}
+inline void Joint::set_drill_overshoot(double value) {
+  _internal_set_drill_overshoot(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  // @@protoc_insertion_point(field_set:wood_proto.Joint.drill_overshoot)
+}
+inline double Joint::_internal_drill_overshoot() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.drill_overshoot_;
+}
+inline void Joint::_internal_set_drill_overshoot(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_overshoot_ = value;
 }
 
 // -------------------------------------------------------------------
