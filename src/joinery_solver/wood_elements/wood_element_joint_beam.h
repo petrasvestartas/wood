@@ -33,6 +33,23 @@ public:
         int dowel_sides = 8
     );
 
+    /// The column-to-rib connector of compas_tf ConnectorElement on their face contact: a plate width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, with four dowels across it, two per side, margin_x and margin_z radii in from its ends and its top and bottom; it cuts its box, top raised by overshoot, and the dowel holes, dowel_length plus overshoot at both ends, out of both; aimed at the column then the rib.
+    static std::shared_ptr<JointBeam> rectangle_plate(
+        const session_cpp::Element& column,
+        const session_cpp::Element& rib,
+        const InteractionContactFace& contact,
+        double dowel_length,
+        double width = 30.0,
+        double back = 220.0,
+        double front = 265.0,
+        double height = 250.0,
+        double dowel_radius = 25.0,
+        double margin_x = 6.05,
+        double margin_z = 3.0,
+        double overshoot = 25.0,
+        int dowel_sides = 16
+    );
+
     JointBeam(InteractionFeatureBeam feature, const std::function<void(InteractionFeatureBeam&)>& builder);
     void place(const session_cpp::Xform& xform) override;
     std::string element_type_name() const override {

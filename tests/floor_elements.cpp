@@ -12,6 +12,7 @@ const wood_floor::FloorGuide GUIDE{
 };
 
 const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
+const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
 const double COMPAS_TF_HEAD_CUT = 211196000.0 - 176418621.638340; // compas_tf stock less its carved column: what the six head cutters take
 
 /// Throws with the message when the condition fails.
@@ -167,11 +168,32 @@ void check_wedges() {
     std::cout << "floor_elements: " << wedges.size() << " wedges, joints and carved beams through a round trip pass" << std::endl;
 }
 
+/// The rectangle plates between the columns and the outer ribs: eight, every carved outer rib at compas_tf's volume.
+void check_rectangle_plates() {
+
+    WoodSession scene("rectangle_plates");
+
+    for (int i = 0; i < 4; i++) {
+        wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i));
+        wood_floor::add_column_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i));
+    }
+
+    const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(scene, GUIDE, nullptr);
+    check(plates.size() == 8, "eight rectangle plates, not " + std::to_string(plates.size()));
+
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+        if (beam->name.starts_with("outer_ribs_"))
+            check(std::abs(compute_volume(beam->model_geometry_mesh()) - COMPAS_TF_OUTER_RIB) <= 1e-9 * COMPAS_TF_OUTER_RIB, "carved outer rib " + beam->name);
+
+    std::cout << "floor_elements: " << plates.size() << " rectangle plates, carved outer ribs at compas_tf's volume" << std::endl;
+}
+
 int main() {
 
     check_beams();
     check_support();
     check_wedges();
+    check_rectangle_plates();
 
     return 0;
 }

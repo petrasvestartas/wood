@@ -120,6 +120,11 @@ static Polyline closed_loop(std::vector<Point> points) {
     return Polyline(points);
 }
 
+/// The chord tolerance that makes a drill of radius a prism of sides sides.
+static double sides_tolerance(double radius, int sides) {
+    return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
+}
+
 /// The pocket under one slanted wedge face p0-p1: the face rectangle over the wedge length and the same rectangle pocket_depth into the member, compas_tf inclined_face_box_outlines.
 static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::array<Vector, 3>& axes, const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& middle, double length, double depth) {
 
@@ -196,7 +201,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
     }
 
     joint->line_radius = dowel_radius;
-    joint->chord_tolerance = 2.0 * dowel_radius * std::pow(std::sin(M_PI / (2.0 * dowel_sides)), 2) * (1.0 + 1e-9);
+    joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
 
     const std::array<double, 2> middle = {(profile[0][0] + profile[1][0] + profile[2][0]) / 3.0, (profile[0][1] + profile[1][1] + profile[2][1]) / 3.0};
     const std::array<std::array<Polyline, 2>, 2> pockets = {
@@ -209,6 +214,84 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
         const bool positive = (member->model_geometry_mesh().centroid() - centre).dot(normal) >= 0.0;
         joint->cutters.push_back({positive ? pockets[1] : pockets[0]});
     }
+
+    return joint;
+}
+
+/// The box from x0 to x1 and z0 to z1 across the width of the frame, as the loop pair at its two y faces.
+static std::array<Polyline, 2> frame_box(const Point& origin, const std::array<Vector, 3>& axes, double x0, double x1, double width, double z0, double z1) {
+
+    std::array<Polyline, 2> loops;
+
+    for (size_t side = 0; side < 2; side++) {
+        const double y = side == 0 ? -0.5 * width : 0.5 * width;
+        loops[side] = closed_loop({frame_point(origin, axes, x0, y, z0), frame_point(origin, axes, x1, y, z0), frame_point(origin, axes, x1, y, z1), frame_point(origin, axes, x0, y, z1)});
+    }
+
+    return loops;
+}
+
+std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, const Element& rib, const InteractionContactFace& contact, double dowel_length, double width, double back, double front, double height, double dowel_radius, double margin_x, double margin_z, double overshoot, int dowel_sides) {
+
+    std::vector<Point> points = contact.polygon.get_points();
+
+    if (contact.polygon.is_closed())
+        points.pop_back();
+
+    const Vector normal = compute_newell(points).normalized();
+    const Point centre = Point::centroid(points);
+    const Point toward = rib.model_geometry_mesh().centroid();
+    const Vector inward(toward[0] - centre[0], toward[1] - centre[1], 0.0);
+    Vector x(normal[0], normal[1], 0.0);
+
+    if (x.magnitude() < 1e-9)
+        x = inward;
+
+    x = x.normalized();
+
+    if (x.dot(inward) < 0.0)
+        x = -x;
+
+    const Vector z(0.0, 0.0, 1.0);
+    const std::array<Vector, 3> axes = {x, z.cross(x).normalized(), z};
+
+    double top = -1e300;
+    double bottom = 1e300;
+
+    for (const Point& point : points) {
+        top = std::max(top, point[2]);
+        bottom = std::min(bottom, point[2]);
+    }
+
+    const double tolerance = std::max(1.0, 0.02 * (top - bottom));
+    std::array<double, 3> low = {1e300, 1e300, 1e300};
+    std::array<double, 3> high = {-1e300, -1e300, -1e300};
+
+    for (const Point& point : points)
+        if (top - point[2] <= tolerance)
+            for (int i = 0; i < 3; i++) {
+                low[i] = std::min(low[i], point[i]);
+                high[i] = std::max(high[i], point[i]);
+            }
+
+    const Point origin(0.5 * (low[0] + high[0]), 0.5 * (low[1] + high[1]), 0.5 * (low[2] + high[2]));
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "rectangle_plate";
+    joint->targets = {column.guid(), rib.guid()};
+    joint->parts = {frame_box(origin, axes, -back, front, width, -height, 0.0)};
+
+    const std::array<Polyline, 2> pocket = frame_box(origin, axes, -back, front, width, -height, overshoot);
+    joint->cutters = {{pocket}, {pocket}};
+
+    const double half = 0.5 * dowel_length + overshoot;
+
+    for (const double station : {-back + margin_x * dowel_radius, front - margin_x * dowel_radius})
+        for (const double level : {-margin_z * dowel_radius, -height + margin_z * dowel_radius})
+            joint->drill_lines.push_back(Line::from_points(frame_point(origin, axes, station, -half, level), frame_point(origin, axes, station, half, level)));
+
+    joint->line_radius = dowel_radius;
+    joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
 
     return joint;
 }

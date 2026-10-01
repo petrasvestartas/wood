@@ -153,4 +153,29 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::W
     return wedges;
 }
 
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
+
+    std::vector<std::shared_ptr<wood_session::JointBeam>> plates;
+
+    for (const std::shared_ptr<wood_session::Column>& column : session.columns())
+        for (const std::shared_ptr<wood_session::BeamVariable>& rib : session.beam_variables()) {
+            if (!rib->name.starts_with("outer_ribs_"))
+                continue;
+
+            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(column, rib);
+
+            if (!contact)
+                continue;
+
+            const double thickness = outline_thickness(guide.outer_ribs()[rib->name[11] - '0']);
+            const std::shared_ptr<wood_session::JointBeam> plate = wood_session::JointBeam::rectangle_plate(*column, *rib, *contact, thickness);
+            plate->name = fmt::format("connector_{}", plates.size());
+            session.add(plate, group);
+            session.add_joint(plate);
+            plates.push_back(plate);
+        }
+
+    return plates;
+}
+
 }
