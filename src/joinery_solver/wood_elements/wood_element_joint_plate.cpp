@@ -710,7 +710,12 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactCross>& contact,
 std::shared_ptr<InteractionFeaturePlate> JointPlate::interaction_feature(int side, size_t index) const {
     if (side < 0 || side > 1)
         throw std::out_of_range("Joint side must be 0 or 1");
-    const InteractionFeaturePlate& connection = connections.at(index);
+    if (connections.empty())
+        throw std::logic_error("JointPlate has no connection: call orient(contact) before interaction_feature()");
+    if (index >= connections.size())
+        throw std::out_of_range("JointPlate connection index is out of range");
+
+    const InteractionFeaturePlate& connection = connections[index];
     const std::string id = connection.feature_guid(side);
     const std::shared_ptr<InteractionFeaturePlate> feature = std::make_shared<InteractionFeaturePlate>(connection);
     feature->target_side = side + 1;

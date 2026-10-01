@@ -8,12 +8,16 @@ namespace wood_session {
 using namespace session_cpp;
 
 Joint::Joint() : Element("Joint") {
+    is_visible = false;
 }
 Joint::Joint(const std::vector<Polyline>& loops, const std::string& name) : Element(name), loops(loops) {
+    is_visible = false;
 }
 Joint::Joint(const Plane& cutter) : Element("JointCutter"), cuts{cutter} {
+    is_visible = false;
 }
 Joint::Joint(const Mesh& cutter, SolidOperation op) : Element(cutter, "JointSolidCutter"), operation(op) {
+    is_visible = false;
     if (!cutter.is_closed() || !cutter.is_valid())
         throw std::invalid_argument("A solid cutter needs a valid closed mesh");
 }
@@ -24,6 +28,7 @@ Joint::Joint(const Polyline& profile, const Vector& direction)
 
 Joint::Joint(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation op)
     : Element("JointProfileCutter"), cutter_profile(profile), cutter_extrusion(direction), operation(op) {
+    is_visible = false;
     if (profile.empty() || direction.magnitude_squared() < 1e-12)
         throw std::invalid_argument("A profile cutter needs closed planar rings and an extrusion direction");
     const Vector normal = direction.normalized();

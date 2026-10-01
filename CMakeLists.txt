@@ -163,14 +163,13 @@ target_include_directories(wood_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_interaction/wood_interaction_structure
     ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver/wood_algorithms
     ${CMAKE_CURRENT_SOURCE_DIR}/generated
-    # session_core's own PUBLIC set: src, fmt, json, guid, yaml. Taken from the
-    # target rather than respelled, so it cannot drift from session_cpp.
-    $<TARGET_PROPERTY:session_core,INTERFACE_INCLUDE_DIRECTORIES>
-    # Protobuf gencode headers - what LINK_PROTOBUF adds to each executable. Read from
-    # session_cpp, which is the one place they exist; this used to point at a local
-    # mirror of them (see the note above add_subdirectory).
-    ${SESSION_CPP_DIR}/generated
 )
+# session_core's usage requirements: src, fmt, json, guid, yaml, and the protobuf gencode,
+# protobuf and abseil headers as SYSTEM. Linking keeps that flag; spelling the include list out
+# through $<TARGET_PROPERTY:session_core,INTERFACE_INCLUDE_DIRECTORIES> turned abseil into a plain
+# -I and flooded every wood file with its -Wpedantic warnings. An object library linking an object
+# library takes only the usage requirements; ADD_EXE still links session_core's objects itself.
+target_link_libraries(wood_core PUBLIC session_core)
 
 find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/36.2/bin NO_DEFAULT_PATH)
 if(WOOD_PROTOC)
