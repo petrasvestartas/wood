@@ -7,7 +7,10 @@ namespace wood_session {
 
 using namespace session_cpp;
 
+constexpr bool TRACE = false;
+
 const double WELD = 1e-6; // vertices closer than this are one
+const double ON_SIDE = 1e-6; // a vertex this close to a straight side of another face, strictly between its ends, splits it: a T-vertex
 const double CLEARANCE = 1e-6; // an edge must keep the drill radius plus this from the axis
 const double STEEP = 0.2; // a drill crossing a face at a cosine below this is too oblique for a clean ellipse
 const int SAMPLES = 64; // points sampled along a hole loop to find how far it reaches along the axis
@@ -172,6 +175,88 @@ static std::vector<std::vector<size_t>> region_loops(const std::vector<std::vect
     }
 
     return loops;
+}
+
+/// The distinct vertices of all the faces' loops, within WELD.
+static std::vector<Point> loop_vertices(const std::vector<PlanarFace>& faces) {
+
+    std::vector<Point> vertices;
+
+    for (const PlanarFace& face : faces) {
+        std::vector<const std::vector<Point>*> loops = {&face.points};
+
+        for (const std::vector<Point>& hole : face.holes)
+            loops.push_back(&hole);
+
+        for (const std::vector<Point>* loop : loops)
+            for (const Point& point : *loop) {
+                bool known = false;
+
+                for (const Point& vertex : vertices)
+                    if (vertex.distance(point) <= WELD) {
+                        known = true;
+                        break;
+                    }
+
+                if (!known)
+                    vertices.push_back(point);
+            }
+    }
+
+    return vertices;
+}
+
+/// The loop with every side split at the vertices lying on it strictly between its ends, in order along the side.
+static std::vector<Point> split_loop(const std::vector<Point>& loop, const std::vector<Point>& vertices) {
+
+    std::vector<Point> split;
+
+    for (size_t i = 0; i < loop.size(); i++) {
+        const Point& p = loop[i];
+        const Point& q = loop[(i + 1) % loop.size()];
+        const Vector d = q - p;
+        const double length2 = d.dot(d);
+        split.push_back(p);
+
+        if (length2 <= WELD * WELD)
+            continue;
+
+        std::vector<std::pair<double, size_t>> inside;
+
+        for (size_t v = 0; v < vertices.size(); v++) {
+            const double t = (vertices[v] - p).dot(d) / length2;
+
+            if (t <= 0.0 || t >= 1.0 || vertices[v].distance(p) <= WELD || vertices[v].distance(q) <= WELD)
+                continue;
+
+            if (vertices[v].distance(p + d * t) <= ON_SIDE)
+                inside.push_back({t, v});
+        }
+
+        std::sort(inside.begin(), inside.end());
+
+        for (const std::pair<double, size_t>& hit : inside) {
+            if constexpr (TRACE)
+                std::cout << "side " << p << " -> " << q << " split at " << vertices[hit.second] << std::endl;
+
+            split.push_back(vertices[hit.second]);
+        }
+    }
+
+    return split;
+}
+
+/// Splits every side of every loop at the vertices lying on it, so faces meeting along a line share its edges one-to-one: a T-vertex, a vertex of one face on the side of another, whether the mesh carried it or merging coplanar faces left it, would otherwise give one edge against two.
+static void split_sides(std::vector<PlanarFace>& faces) {
+
+    const std::vector<Point> vertices = loop_vertices(faces);
+
+    for (PlanarFace& face : faces) {
+        face.points = split_loop(face.points, vertices);
+
+        for (std::vector<Point>& hole : face.holes)
+            hole = split_loop(hole, vertices);
+    }
 }
 
 /// The planar faces of a mesh, every set of edge-adjacent coplanar mesh faces merged into one face with its outer loop and holes, each with its frame; empty when a face is not planar.
@@ -635,10 +720,12 @@ static double coarse_volume(const BRep& brep) {
 
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& drills) {
 
-    const std::vector<PlanarFace> faces = planar_faces(mesh);
+    std::vector<PlanarFace> faces = planar_faces(mesh);
 
     if (faces.empty())
         return std::nullopt;
+
+    split_sides(faces);
 
     const NurbsCurve circle = Primitives::circle(0.0, 0.0, 0.0, 1.0);
     std::vector<Stretch> stretches;
@@ -735,6 +822,19 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& dri
 
     if (!builder.brep.is_solid() || std::abs(coarse_volume(builder.brep) - expected) > VOLUME * expected)
         return std::nullopt;
+
+    if constexpr (TRACE) {
+        std::map<int, int> uses;
+
+        for (const BRepFace& face : builder.brep.m_faces)
+            for (const BRepRef& wire : face.wires)
+                for (const BRepRef& edge : builder.brep.m_wires[wire.index].edges)
+                    uses[edge.index]++;
+
+        for (const std::pair<const int, int>& use : uses)
+            if (use.second != 2)
+                std::cout << "edge " << use.first << " used " << use.second << " times" << std::endl;
+    }
 
     return builder.brep;
 }

@@ -10,7 +10,7 @@ struct Drill {
     double radius = 0.0; // Hole radius.
 };
 
-/// The closed solid of a mesh with exact round holes, with no drills its clean planar BRep: its planar faces, coplanar mesh faces merged and holes kept as inner loops, with an exact circle or ellipse loop where a drill crosses one, an exact cylindrical face along every stretch of a drill inside the solid, and a flat disc where a drill ends inside it; empty when a drill passes within its radius of an edge of the mesh or of another drill, or crosses a face that is not planar, where a mesh hole is the only answer.
+/// The closed solid of a mesh with exact round holes, with no drills its clean planar BRep: its planar faces, coplanar mesh faces merged and holes kept as inner loops, every side split at the vertices of neighbouring faces lying on it so each edge is shared one-to-one, with an exact circle or ellipse loop where a drill crosses one, an exact cylindrical face along every stretch of a drill inside the solid, and a flat disc where a drill ends inside it; empty when a drill passes within its radius of an edge of the mesh or of another drill, or crosses a face that is not planar, where a mesh hole is the only answer.
 std::optional<session_cpp::BRep> drilled_brep(const session_cpp::Mesh& mesh, const std::vector<Drill>& drills);
 
 /// Whether a point lies inside a closed mesh, by the parity of the faces a ray from it crosses.
