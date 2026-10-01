@@ -56,6 +56,9 @@ Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1)
 /// The polyline offset by distance in its vertical plane, square to every segment, its ends on the end normals.
 Polyline offset_polyline(const Polyline& polyline, double distance);
 
+/// The area centroid of a closed planar polyline.
+Point area_centroid(const Polyline& polyline);
+
 /// Divisions points along the quadratic Bezier curve from p0 over control p1 to p2.
 Polyline quadratic_points(const Point& p0, const Point& p1, const Point& p2, int divisions = 7);
 

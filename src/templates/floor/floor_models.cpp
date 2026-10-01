@@ -5,6 +5,8 @@ using namespace session_cpp;
 
 namespace wood_floor {
 
+using namespace wood_floor::geometry;
+
 /// Places an element, names it and adds it under the group.
 void add_placed(wood_session::WoodSession& session, const std::shared_ptr<Element>& element, const Xform& placement, const std::string& name, const std::shared_ptr<TreeNode>& group) {
 
@@ -95,6 +97,23 @@ void add_quarter_model(wood_session::WoodSession& session, const FloorGuide& gui
     }
 }
 
+/// compas_tf's computed_thickness of a member outline: the distance between the area centroids of its two loops.
+double outline_thickness(const Outline& outline) {
+    return (area_centroid(outline.top) - area_centroid(outline.bottom)).magnitude();
+}
+
+/// The thickness of a wedge ring member by its name, inner_beams_<k>_<quarter> or oculus_<i>; zero for any other member.
+double ring_thickness(const FloorGuide& guide, const std::string& name) {
+
+    if (name.starts_with("inner_beams_"))
+        return outline_thickness(guide.inner_beams()[name[12] - '0']);
+
+    if (name.starts_with("oculus_") && name.size() == 8 && name[7] < '4')
+        return outline_thickness(guide.oculus()[name[7] - '0']);
+
+    return 0.0;
+}
+
 void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
 
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
@@ -104,6 +123,34 @@ void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guid
         const std::shared_ptr<Element> member = i < 4 ? std::static_pointer_cast<Element>(to_beam(outlines[i], {1, 0}, {2, 3}, "oculus")) : std::static_pointer_cast<Element>(to_plate(outlines[i], "oculus"));
         add_placed(session, member, lift, fmt::format("oculus_{}", i), group);
     }
+}
+
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
+
+    std::vector<std::shared_ptr<wood_session::BeamVariable>> ring;
+
+    for (const std::shared_ptr<wood_session::BeamVariable>& beam : session.beam_variables())
+        if (ring_thickness(guide, beam->name) > 0.0)
+            ring.push_back(beam);
+
+    std::vector<std::shared_ptr<wood_session::JointBeam>> wedges;
+
+    for (size_t i = 0; i < ring.size(); i++)
+        for (size_t j = i + 1; j < ring.size(); j++) {
+            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(ring[i], ring[j]);
+
+            if (!contact || contact->type != wood_session::ContactType::side_side)
+                continue;
+
+            const double thickness = std::max(ring_thickness(guide, ring[i]->name), ring_thickness(guide, ring[j]->name));
+            const std::shared_ptr<wood_session::JointBeam> wedge = wood_session::JointBeam::wedge(*ring[i], *ring[j], *contact, 1.5 * thickness, 2.0 * thickness / 3.0);
+            wedge->name = fmt::format("connector_wedge_{}", wedges.size());
+            session.add(wedge, group);
+            session.add_joint(wedge);
+            wedges.push_back(wedge);
+        }
+
+    return wedges;
 }
 
 }

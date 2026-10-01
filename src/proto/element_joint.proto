@@ -23,6 +23,13 @@ message Joint {
   repeated session_proto.Line drill_lines = 15;
   optional int32 operation = 16;
   JointPlateParameters plate_parameters = 17;
+  repeated session_proto.Polyline parts = 18;   // A connector's own solids as bottom, top loop pairs
+  repeated JointCutter cutters = 19;            // A connector's cutters, one entry per target in targets order
+}
+
+// The solids a connector cuts out of one target, as bottom, top loop pairs.
+message JointCutter {
+  repeated session_proto.Polyline loops = 1;
 }
 
 message JointPlateParameters {

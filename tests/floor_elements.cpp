@@ -134,10 +134,44 @@ void check_support() {
     std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.3f}, round trip pass", compute_volume(base), removed, head) << std::endl;
 }
 
+/// The wedges between the inner beams and the oculus: eight, and the joints with their parts and cutters, and the carved beams, through a round trip.
+void check_wedges() {
+
+    WoodSession scene("wedges");
+
+    for (int i = 0; i < 4; i++)
+        wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i));
+
+    wood_floor::add_oculus_model(scene, GUIDE, nullptr);
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(scene, GUIDE, nullptr);
+    check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
+
+    std::map<std::string, double> volumes;
+
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+        volumes[beam->guid()] = compute_volume(beam->model_geometry_mesh());
+
+    const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
+    size_t loaded = 0;
+
+    for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>()) {
+        check(joint->parts.size() == 1 && joint->cutters.size() == 2 && !joint->drill_lines.empty(), "wedge round trip");
+        loaded++;
+    }
+
+    check(loaded == wedges.size(), "wedge round trip count");
+
+    for (const std::shared_ptr<BeamVariable>& beam : back.beam_variables())
+        check(std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <= 1e-9 * volumes.at(beam->guid()), "carved beam round trip " + beam->name);
+
+    std::cout << "floor_elements: " << wedges.size() << " wedges, joints and carved beams through a round trip pass" << std::endl;
+}
+
 int main() {
 
     check_beams();
     check_support();
+    check_wedges();
 
     return 0;
 }

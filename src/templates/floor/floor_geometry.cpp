@@ -138,6 +138,27 @@ Polyline offset_polyline(const Polyline& polyline, double distance) {
     return Polyline(result);
 }
 
+Point area_centroid(const Polyline& polyline) {
+
+    std::vector<Point> points = polyline.get_points();
+
+    if (polyline.is_closed())
+        points.pop_back();
+
+    const Vector normal = wood_session::compute_newell(points).normalized();
+    const Point origin = points[0];
+    Vector sum(0.0, 0.0, 0.0);
+    double area = 0.0;
+
+    for (size_t i = 1; i + 1 < points.size(); i++) {
+        const double weight = (points[i] - origin).cross(points[i + 1] - origin).dot(normal);
+        sum += ((points[i] - origin) + (points[i + 1] - origin)) * (weight / 3.0);
+        area += weight;
+    }
+
+    return origin + sum / area;
+}
+
 Polyline quadratic_points(const Point& p0, const Point& p1, const Point& p2, int divisions) {
 
     std::vector<Point> pts;

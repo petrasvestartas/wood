@@ -859,7 +859,39 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
+static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, Element& target);
+
+/// A connector's cuts: per target its own cutters and every drill line, one solid cut each, the edge marked like a cutter joint's.
+static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
+
+    for (size_t side = 0; side < joint->targets.size(); ++side) {
+        const std::shared_ptr<Element> target = scene.get_element<Element>(joint->targets[side]);
+
+        if (!target)
+            throw std::invalid_argument("Missing connector target");
+
+        Mesh mesh;
+
+        if (side < joint->cutters.size())
+            for (const std::array<Polyline, 2>& cutter : joint->cutters[side])
+                append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
+
+        for (const Line& axis : joint->drill_lines)
+            append_mesh(mesh, drill_mesh(axis, joint->line_radius, joint->chord_tolerance));
+
+        add_solid_cut(scene, *joint, mesh, *target);
+        target->invalidate_geometry();
+        scene.Session::remove_interaction(joint, target);
+        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+    }
+}
+
 static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
+
+    if (!joint->cutters.empty()) {
+        add_connector_joint(scene, joint);
+        return;
+    }
 
     for (size_t side = 0; side < joint->targets.size(); ++side) {
         const std::shared_ptr<Element> target = scene.get_element<Element>(joint->targets[side]);
@@ -885,23 +917,18 @@ static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>&
     }
 }
 
-static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& target) {
+/// Stores a joint's cut on the target in the target's frame, replacing the one the joint stored before.
+static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut, Element& target) {
 
     std::vector<SolidCut>* cuts = get_solid_cuts(target);
 
     if (!cuts)
         throw std::invalid_argument("Solid cutters require a plate, beam, column or block");
 
-    SolidCut cut;
-    cut.joint_guid = joint.guid();
-    cut.mesh = joint.model_geometry_mesh();
-
     if (!cut.mesh.number_of_faces() || !cut.mesh.is_closed())
         throw std::invalid_argument("Missing closed cutter solid");
 
-    cut.profile = joint.cutter_profile;
-    cut.extrusion = joint.cutter_extrusion;
-    cut.operation = joint.operation;
+    cut.joint_guid = joint.guid();
     const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
 
     if (!local)
@@ -916,6 +943,24 @@ static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& targe
         }
 
     cuts->push_back(std::move(cut));
+}
+
+static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& target) {
+
+    SolidCut cut;
+    cut.mesh = joint.model_geometry_mesh();
+    cut.profile = joint.cutter_profile;
+    cut.extrusion = joint.cutter_extrusion;
+    cut.operation = joint.operation;
+    store_solid_cut(scene, joint, std::move(cut), target);
+}
+
+/// A difference cut of the given solid, for a joint that cuts each target with its own.
+static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, Element& target) {
+
+    SolidCut cut;
+    cut.mesh = mesh;
+    store_solid_cut(scene, joint, std::move(cut), target);
 }
 
 static void add_plane_cut(const Joint& joint, Element& target) {

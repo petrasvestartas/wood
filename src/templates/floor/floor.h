@@ -177,4 +177,7 @@ void add_quarter_model(wood_session::WoodSession& session, const FloorGuide& gui
 /// The oculus model of compas_tf example_model_5 lifted to bay_height: the four boundary beams as variable beams, the four bottom wedges and the inner plate as plates.
 void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
 
+/// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the inner beams and the four oculus boundary beams, shortened at both ends by 1.5 and pocketed 2/3 of the thicker member, its thickness the distance between its two outline centroids as compas_tf measures it; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
+
 }
