@@ -25,25 +25,14 @@ int main() {
     WoodSession session("templates_floor_2_column_model");
     const std::shared_ptr<TreeNode> group = session.add_group("column_model");
 
-    const std::shared_ptr<Support> support = wood_floor::to_support(GUIDE);
-    const std::shared_ptr<Column> column = wood_floor::to_column(GUIDE, *support);
-    session.add(support, group);
-    session.add(column, group);
+    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, GUIDE, Xform(), group, "");
+    const std::shared_ptr<Support> support = session.supports().front();
 
     const Mesh& base = support->element_geometry_mesh();
     const Mesh& stock = column->element_geometry_mesh();
     std::cout << fmt::format("support volume {:.6f} closed {}", compute_volume(base), base.is_closed()) << std::endl;
     std::cout << fmt::format("stock   volume {:.6f} faces {} closed {}", compute_volume(stock), stock.number_of_faces(), stock.is_closed()) << std::endl;
-
-    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
-    session.add(joint, group);
-    session.add_joint(joint);
-
-    for (const std::shared_ptr<Joint>& cutter : wood_floor::to_column_cutters(GUIDE, *column)) {
-        session.add(cutter, group);
-        session.add_joint(cutter);
-    }
 
     const Mesh& carved = column->model_geometry_mesh();
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();

@@ -161,4 +161,20 @@ std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const w
 /// The column cutters lifted to the floor, one solid difference cutter each aimed at the column.
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const FloorGuide& guide, const wood_session::Column& column);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Models
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A group named name under parent, at the root when parent is empty.
+std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<TreeNode>& parent);
+
+/// The column model of compas_tf example_model_2 moved by placement: the support, the column on it, the support joint and the six head cutters, every name ending in suffix; returns the column.
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix);
+
+/// The quarter model of compas_tf example_model_4 lifted to bay_height and moved by placement: groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams, ribs and inner beams as variable beams, the rest plates, every name ending in suffix.
+void add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix);
+
+/// The oculus model of compas_tf example_model_5 lifted to bay_height: the four boundary beams as variable beams, the four bottom wedges and the inner plate as plates.
+void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
+
 }

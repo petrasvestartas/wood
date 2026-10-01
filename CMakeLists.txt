@@ -104,6 +104,7 @@ set(WOOD_SOURCES
     src/templates/floor/floor.cpp
     src/templates/floor/floor_members.cpp
     src/templates/floor/floor_elements.cpp
+    src/templates/floor/floor_models.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -269,6 +270,9 @@ ADD_EXE(templates_grid_framing           examples/templates_grid_framing.cpp)
 ADD_EXE(templates_gridshell              examples/templates_gridshell.cpp)
 ADD_EXE(templates_floor_1_floorguide     examples/templates_floor_1_floorguide.cpp)
 ADD_EXE(templates_floor_2_column_model   examples/templates_floor_2_column_model.cpp)
+ADD_EXE(templates_floor_3_columns_model  examples/templates_floor_3_columns_model.cpp)
+ADD_EXE(templates_floor_4_quarters       examples/templates_floor_4_quarters.cpp)
+ADD_EXE(templates_floor_5_oculus         examples/templates_floor_5_oculus.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
