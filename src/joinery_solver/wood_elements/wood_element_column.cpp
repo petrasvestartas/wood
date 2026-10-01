@@ -315,7 +315,7 @@ void Column::register_type() {
 std::string Column::str() const {
 
     std::ostringstream os;
-    os << "Column(name=" << name << ", axis_length=" << axis.length() << ", section_pts=" << section.point_count() << ", is_visible=" << std::boolalpha << is_visible << ")";
+    os << "Column(name=" << name << ", axis_length=" << axis.length() << ", section_pts=" << section.point_count() << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
