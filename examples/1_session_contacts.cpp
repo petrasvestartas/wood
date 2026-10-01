@@ -16,6 +16,7 @@ int main() {
     const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400), Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)});
     const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
     joint->is_visible = false; // joints start hidden, the viewer lists them with the lamp off; true draws it
+    plate0->is_locked = true; // the viewer opens it with the lock on: it cannot be selected or moved
 
     wood_session.add(plate0);
     wood_session.add(plate1);
