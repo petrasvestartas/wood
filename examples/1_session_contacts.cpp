@@ -15,6 +15,7 @@ int main() {
     const std::shared_ptr<Column> column = std::make_shared<Column>(Line::from_points({950, 50, 0}, {950, 50, 950}), Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100));
     const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400), Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)});
     const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
+    joint->is_visible = false; // joints start hidden, the viewer lists them with the lamp off; true draws it
 
     wood_session.add(plate0);
     wood_session.add(plate1);

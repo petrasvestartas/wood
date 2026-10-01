@@ -235,7 +235,7 @@ void Block::register_type() {
 std::string Block::str() const {
 
     std::ostringstream os;
-    os << "Block(name=" << name << ", loops=" << loops.size() << ", faces=" << geometry_mesh().number_of_faces() << ")";
+    os << "Block(name=" << name << ", loops=" << loops.size() << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha << is_visible << ")";
 
     return os.str();
 }

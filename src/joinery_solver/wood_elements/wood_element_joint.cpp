@@ -168,7 +168,7 @@ AABB Joint::aabb(double inflate) const {
     return AABB::from_mesh(model_geometry_mesh(), inflate);
 }
 std::string Joint::str() const {
-    return fmt::format("{}(name={}, targets={})", element_type_name(), name, targets.size());
+    return fmt::format("{}(name={}, targets={}, is_visible={})", element_type_name(), name, targets.size(), is_visible);
 }
 
 std::string Joint::element_data_dumps() const {

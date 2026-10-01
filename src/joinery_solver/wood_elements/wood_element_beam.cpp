@@ -312,7 +312,7 @@ void Beam::register_type() {
 std::string Beam::str() const {
 
     std::ostringstream os;
-    os << "Beam(name=" << name << ", segments=" << axis.segment_count() << ", radii=" << radii.size() << ")";
+    os << "Beam(name=" << name << ", segments=" << axis.segment_count() << ", radii=" << radii.size() << ", is_visible=" << std::boolalpha << is_visible << ")";
 
     return os.str();
 }

@@ -404,7 +404,7 @@ void Plate::register_type() {
 std::string Plate::str() const {
 
     std::ostringstream os;
-    os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", thickness=" << thickness << ")";
+    os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", thickness=" << thickness << ", is_visible=" << std::boolalpha << is_visible << ")";
 
     return os.str();
 }
