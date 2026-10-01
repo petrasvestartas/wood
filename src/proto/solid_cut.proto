@@ -3,6 +3,7 @@ package wood_proto;
 import "mesh.proto";
 import "polyline.proto";
 import "vector.proto";
+import "line.proto";
 message SolidCut {
   string joint_guid = 1;
   session_proto.Mesh mesh = 2;
@@ -10,4 +11,7 @@ message SolidCut {
   session_proto.Vector extrusion = 4;
   int32 operation = 5;
   double tolerance = 6;
+  repeated session_proto.Line drills = 7;  // Round holes kept as axes
+  double drill_radius = 8;
+  double drill_tolerance = 9;
 }

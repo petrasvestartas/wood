@@ -96,25 +96,40 @@ std::vector<std::array<Polyline, 2>> Joint::bodies() const {
     return {};
 }
 
-const Mesh& Joint::element_geometry_mesh() const {
-    if (!mesh_) {
-        if (loops.size() >= 2 && loops.size() % 2 == 0) {
-            std::vector<Polyline> bottom{loops[0]}, top{loops[1]};
-            for (size_t i = 2; i < loops.size(); i += 2) {
-                bottom.push_back(loops[i]);
-                top.push_back(loops[i + 1]);
-            }
-            mesh_ = Mesh::loft(bottom, top, true);
-        } else {
-            mesh_ = Mesh();
-            for (const std::array<Polyline, 2>& body : bodies())
-                append_mesh(*mesh_, Mesh::loft({body[0]}, {body[1]}, true));
-            if (mesh_->number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
-                mesh_ = *_geometry_mesh;
+Mesh Joint::body_mesh() const {
+
+    if (loops.size() >= 2 && loops.size() % 2 == 0) {
+        std::vector<Polyline> bottom{loops[0]};
+        std::vector<Polyline> top{loops[1]};
+
+        for (size_t i = 2; i < loops.size(); i += 2) {
+            bottom.push_back(loops[i]);
+            top.push_back(loops[i + 1]);
         }
+
+        return Mesh::loft(bottom, top, true);
+    }
+
+    Mesh mesh;
+
+    for (const std::array<Polyline, 2>& body : bodies())
+        append_mesh(mesh, Mesh::loft({body[0]}, {body[1]}, true));
+
+    if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
+        return *_geometry_mesh;
+
+    return mesh;
+}
+
+const Mesh& Joint::element_geometry_mesh() const {
+
+    if (!mesh_) {
+        mesh_ = body_mesh();
+
         for (const Line& axis : drill_axes())
             append_mesh(*mesh_, drill_mesh(axis, line_radius, chord_tolerance));
     }
+
     return *mesh_;
 }
 

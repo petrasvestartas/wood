@@ -49,6 +49,9 @@ public:
     static std::shared_ptr<Joint> from_element(session_cpp::Element element);
     static void register_type();
 
+    /// The joint's solid without its drills: its loops lofted in pairs, else its bodies; empty for a joint that only drills.
+    session_cpp::Mesh body_mesh() const;
+
     const session_cpp::Mesh& element_geometry_mesh() const override;
     const session_cpp::BRep& element_geometry_brep() const override;
     const session_cpp::Mesh& model_geometry_mesh() const override;

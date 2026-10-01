@@ -93,6 +93,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_joint_beam.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_algorithms/wood_solid_boolean.cpp
+    src/joinery_solver/wood_algorithms/wood_brep_drill.cpp
     src/joinery_solver/wood_algorithms/wood_profile_boolean.cpp
     src/joinery_solver/wood_elements/wood_element_solid_cut.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
@@ -255,6 +256,7 @@ ADD_EXE(main_session_round_trip          examples/main_session_round_trip.cpp)
 ADD_EXE(joint_elements                   tests/joint_elements.cpp)
 ADD_EXE(interaction_ownership            tests/interaction_ownership.cpp)
 ADD_EXE(floor_elements                   tests/floor_elements.cpp)
+ADD_EXE(brep_drill                       tests/brep_drill.cpp)
 ADD_EXE(templates_translation_shell      examples/templates_translation_shell.cpp)
 ADD_EXE(templates_reflex_fold            examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron                examples/templates_chevron.cpp)

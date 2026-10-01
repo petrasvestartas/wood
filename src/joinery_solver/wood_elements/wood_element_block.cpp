@@ -96,7 +96,7 @@ const Mesh& Block::model_geometry_mesh() const {
 const BRep& Block::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : mesh_brep(model_geometry_mesh());
+        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : solid_cuts_brep(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
     }
 
     return *_model_geometry_brep;

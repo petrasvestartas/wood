@@ -861,7 +861,7 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
 
 static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, Element& target);
 
-/// A connector's cuts: per target its own cutters and every drill line, one solid cut each, the edge marked like a cutter joint's.
+/// A connector's cuts: per target its own cutters and every drill line kept as an axis, one solid cut each, the edge marked like a cutter joint's.
 static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
 
     for (size_t side = 0; side < joint->targets.size(); ++side) {
@@ -875,9 +875,6 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
         if (side < joint->cutters.size())
             for (const std::array<Polyline, 2>& cutter : joint->cutters[side])
                 append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
-
-        for (const Line& axis : joint->drill_lines)
-            append_mesh(mesh, drill_mesh(axis, joint->line_radius, joint->chord_tolerance));
 
         add_solid_cut(scene, *joint, mesh, *target);
         target->invalidate_geometry();
@@ -925,7 +922,7 @@ static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut
     if (!cuts)
         throw std::invalid_argument("Solid cutters require a plate, beam, column or block");
 
-    if (!cut.mesh.number_of_faces() || !cut.mesh.is_closed())
+    if ((cut.drills.empty() || cut.mesh.number_of_faces()) && (!cut.mesh.number_of_faces() || !cut.mesh.is_closed()))
         throw std::invalid_argument("Missing closed cutter solid");
 
     cut.joint_guid = joint.guid();
@@ -945,10 +942,19 @@ static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut
     cuts->push_back(std::move(cut));
 }
 
+/// The drills of a joint on its cut, as axes, so the mesh path and the exact BRep path both make them.
+static void add_drills(const Joint& joint, SolidCut& cut) {
+
+    cut.drills = joint.drill_axes();
+    cut.drill_radius = joint.line_radius;
+    cut.drill_tolerance = joint.chord_tolerance;
+}
+
 static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& target) {
 
     SolidCut cut;
-    cut.mesh = joint.model_geometry_mesh();
+    cut.mesh = joint.drill_axes().empty() ? joint.model_geometry_mesh() : cut_mesh(joint.body_mesh(), joint.cuts);
+    add_drills(joint, cut);
     cut.profile = joint.cutter_profile;
     cut.extrusion = joint.cutter_extrusion;
     cut.operation = joint.operation;
@@ -960,6 +966,7 @@ static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& me
 
     SolidCut cut;
     cut.mesh = mesh;
+    add_drills(joint, cut);
     store_solid_cut(scene, joint, std::move(cut), target);
 }
 

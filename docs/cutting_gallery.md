@@ -76,10 +76,14 @@ segments and requests exceeding 65,536 segments are rejected. Drill BReps use an
 exact NURBS cylindrical surface with circular edges. Rigid transforms and uniform
 scaling preserve this representation; nonuniform scaling of a drill is rejected.
 
-General solid operations, including drilled target results, operate on meshes.
-Their output BReps have planar faces: this is **not an exact curved-surface BRep
-boolean**. Tighten the drill chord tolerance to improve the bore approximation.
-The cutter itself keeps its exact cylindrical BRep.
+General solid operations operate on meshes, so the mesh of a drilled element has
+faceted bores. Drills are kept on the element's cut as axes, though, and its BRep
+makes them exact: every planar face a drill crosses gets an exact circle or
+ellipse loop, the bore is an exact cylindrical face between them, and a drill that
+ends inside the solid gets a flat bottom. This needs each bore to stay clear of
+every edge and every other drill (the two stretches of one drill across a slot are
+fine); where it does not, the BRep is the faceted one of the mesh. The cutter
+itself keeps its exact cylindrical BRep.
 
 Applied cutters, operations, profiles, extrusion vectors and tolerance are stored
 on Plate, Beam, Column and Block in protobuf. Original element geometry, including an imported Block source mesh, remains

@@ -194,7 +194,7 @@ const Mesh& Plate::model_geometry_mesh() const {
 const BRep& Plate::model_geometry_brep() const {
 
     if (!_model_geometry_brep) {
-        _model_geometry_brep = !solid_cuts.empty() ? mesh_brep(model_geometry_mesh()) : features.top.empty()
+        _model_geometry_brep = !solid_cuts.empty() ? solid_cuts_brep(features.top.empty() ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top), solid_cuts) : features.top.empty()
             ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
     }
 

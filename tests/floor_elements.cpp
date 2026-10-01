@@ -167,7 +167,22 @@ void check_wedges() {
     for (const std::shared_ptr<BeamVariable>& beam : back.beam_variables())
         check(std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <= 1e-9 * volumes.at(beam->guid()), "carved beam round trip " + beam->name);
 
-    std::cout << "floor_elements: " << wedges.size() << " wedges, joints and carved beams through a round trip pass" << std::endl;
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables()) {
+        if (beam->solid_cuts.empty())
+            continue;
+
+        const BRep& brep = beam->model_geometry_brep();
+        size_t bores = 0;
+
+        for (const NurbsSurface& surface : brep.m_surfaces)
+            if (surface.is_rational())
+                bores++;
+
+        const double volume = compute_volume(beam->model_geometry_mesh());
+        check(bores > 0 && brep.is_solid() && std::abs(brep.volume() - volume) <= 1e-3 * volume, "exact dowel bores in " + beam->name);
+    }
+
+    std::cout << "floor_elements: " << wedges.size() << " wedges, joints and carved beams through a round trip, every dowel bore exact in the BReps, pass" << std::endl;
 }
 
 /// The rectangle plates between the columns and the outer ribs and the ties on the rib seams: eight and four, every carved outer rib and every tie at compas_tf's volume.

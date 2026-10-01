@@ -33,6 +33,7 @@
 #include "mesh.pb.h"
 #include "polyline.pb.h"
 #include "vector.pb.h"
+#include "line.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -218,10 +219,13 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
   // accessors -------------------------------------------------------
   enum : int {
     kProfileFieldNumber = 3,
+    kDrillsFieldNumber = 7,
     kJointGuidFieldNumber = 1,
     kMeshFieldNumber = 2,
     kExtrusionFieldNumber = 4,
     kToleranceFieldNumber = 6,
+    kDrillRadiusFieldNumber = 8,
+    kDrillToleranceFieldNumber = 9,
     kOperationFieldNumber = 5,
   };
   // repeated .session_proto.Polyline profile = 3;
@@ -242,6 +246,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
   private:
   const ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>& _internal_profile() const;
   ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
+
+  public:
+  // repeated .session_proto.Line drills = 7;
+  [[nodiscard]] int drills_size() const;
+  private:
+  int _internal_drills_size() const;
+
+  public:
+  void clear_drills() ;
+  [[nodiscard]] const ::session_proto::Line& drills(int index) const;
+  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_drills(int index);
+  ::session_proto::Line* PROTOBUF_NONNULL add_drills();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  drills() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  mutable_drills();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_drills() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_drills();
 
   public:
   // string joint_guid = 1;
@@ -299,6 +323,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
   void _internal_set_tolerance(double value);
 
   public:
+  // double drill_radius = 8;
+  void clear_drill_radius() ;
+  [[nodiscard]] double drill_radius() const;
+  void set_drill_radius(double value);
+
+  private:
+  double _internal_drill_radius() const;
+  void _internal_set_drill_radius(double value);
+
+  public:
+  // double drill_tolerance = 9;
+  void clear_drill_tolerance() ;
+  [[nodiscard]] double drill_tolerance() const;
+  void set_drill_tolerance(double value);
+
+  private:
+  double _internal_drill_tolerance() const;
+  void _internal_set_drill_tolerance(double value);
+
+  public:
   // int32 operation = 5;
   void clear_operation() ;
   [[nodiscard]] ::int32_t operation() const;
@@ -313,8 +357,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 6,
-                          3, 38,
+      ::google::protobuf::internal::TcParseTable<4, 9,
+                          4, 46,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -343,10 +387,13 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > drills_;
     ::google::protobuf::internal::ArenaStringPtr joint_guid_;
     ::session_proto::Mesh* PROTOBUF_NULLABLE mesh_;
     ::session_proto::Vector* PROTOBUF_NULLABLE extrusion_;
     double tolerance_;
+    double drill_radius_;
+    double drill_tolerance_;
     ::int32_t operation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -374,7 +421,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED SolidCut final : public ::google::p
 inline void SolidCut::clear_joint_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.joint_guid_.ClearToEmpty();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
 }
 inline const ::std::string& SolidCut::joint_guid() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -384,13 +431,13 @@ inline const ::std::string& SolidCut::joint_guid() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void SolidCut::set_joint_guid(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   _impl_.joint_guid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.SolidCut.joint_guid)
 }
 inline ::std::string* PROTOBUF_NONNULL SolidCut::mutable_joint_guid()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   ::std::string* _s = _internal_mutable_joint_guid();
   // @@protoc_insertion_point(field_mutable:wood_proto.SolidCut.joint_guid)
   return _s;
@@ -410,10 +457,10 @@ inline ::std::string* PROTOBUF_NONNULL SolidCut::_internal_mutable_joint_guid() 
 inline ::std::string* PROTOBUF_NULLABLE SolidCut::release_joint_guid() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.SolidCut.joint_guid)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000002U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   auto* released = _impl_.joint_guid_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.joint_guid_.Set("", GetArena());
@@ -423,9 +470,9 @@ inline ::std::string* PROTOBUF_NULLABLE SolidCut::release_joint_guid() {
 inline void SolidCut::set_allocated_joint_guid(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
   }
   _impl_.joint_guid_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.joint_guid_.IsDefault()) {
@@ -436,7 +483,7 @@ inline void SolidCut::set_allocated_joint_guid(::std::string* PROTOBUF_NULLABLE 
 
 // .session_proto.Mesh mesh = 2;
 inline bool SolidCut::has_mesh() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
   PROTOBUF_ASSUME(!value || _impl_.mesh_ != nullptr);
   return value;
 }
@@ -457,16 +504,16 @@ inline void SolidCut::unsafe_arena_set_allocated_mesh(
   }
   _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.SolidCut.mesh)
 }
 inline ::session_proto::Mesh* PROTOBUF_NULLABLE SolidCut::release_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::session_proto::Mesh* released = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -486,7 +533,7 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE SolidCut::unsafe_arena_release_m
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.SolidCut.mesh)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::session_proto::Mesh* temp = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   return temp;
@@ -501,7 +548,7 @@ inline ::session_proto::Mesh* PROTOBUF_NONNULL SolidCut::_internal_mutable_mesh(
 }
 inline ::session_proto::Mesh* PROTOBUF_NONNULL SolidCut::mutable_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::session_proto::Mesh* _msg = _internal_mutable_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.SolidCut.mesh)
   return _msg;
@@ -518,9 +565,9 @@ inline void SolidCut::set_allocated_mesh(::session_proto::Mesh* PROTOBUF_NULLABL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
 
   _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
@@ -579,7 +626,7 @@ SolidCut::_internal_mutable_profile() {
 
 // .session_proto.Vector extrusion = 4;
 inline bool SolidCut::has_extrusion() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.extrusion_ != nullptr);
   return value;
 }
@@ -600,16 +647,16 @@ inline void SolidCut::unsafe_arena_set_allocated_extrusion(
   }
   _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.SolidCut.extrusion)
 }
 inline ::session_proto::Vector* PROTOBUF_NULLABLE SolidCut::release_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Vector* released = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -629,7 +676,7 @@ inline ::session_proto::Vector* PROTOBUF_NULLABLE SolidCut::unsafe_arena_release
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.SolidCut.extrusion)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Vector* temp = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   return temp;
@@ -644,7 +691,7 @@ inline ::session_proto::Vector* PROTOBUF_NONNULL SolidCut::_internal_mutable_ext
 }
 inline ::session_proto::Vector* PROTOBUF_NONNULL SolidCut::mutable_extrusion()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Vector* _msg = _internal_mutable_extrusion();
   // @@protoc_insertion_point(field_mutable:wood_proto.SolidCut.extrusion)
   return _msg;
@@ -661,9 +708,9 @@ inline void SolidCut::set_allocated_extrusion(::session_proto::Vector* PROTOBUF_
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
   _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
@@ -674,7 +721,7 @@ inline void SolidCut::set_allocated_extrusion(::session_proto::Vector* PROTOBUF_
 inline void SolidCut::clear_operation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.operation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
 }
 inline ::int32_t SolidCut::operation() const {
   // @@protoc_insertion_point(field_get:wood_proto.SolidCut.operation)
@@ -682,7 +729,7 @@ inline ::int32_t SolidCut::operation() const {
 }
 inline void SolidCut::set_operation(::int32_t value) {
   _internal_set_operation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   // @@protoc_insertion_point(field_set:wood_proto.SolidCut.operation)
 }
 inline ::int32_t SolidCut::_internal_operation() const {
@@ -698,7 +745,7 @@ inline void SolidCut::_internal_set_operation(::int32_t value) {
 inline void SolidCut::clear_tolerance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tolerance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
 }
 inline double SolidCut::tolerance() const {
   // @@protoc_insertion_point(field_get:wood_proto.SolidCut.tolerance)
@@ -706,7 +753,7 @@ inline double SolidCut::tolerance() const {
 }
 inline void SolidCut::set_tolerance(double value) {
   _internal_set_tolerance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:wood_proto.SolidCut.tolerance)
 }
 inline double SolidCut::_internal_tolerance() const {
@@ -716,6 +763,104 @@ inline double SolidCut::_internal_tolerance() const {
 inline void SolidCut::_internal_set_tolerance(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tolerance_ = value;
+}
+
+// repeated .session_proto.Line drills = 7;
+inline int SolidCut::_internal_drills_size() const {
+  return _internal_drills().size();
+}
+inline int SolidCut::drills_size() const {
+  return _internal_drills_size();
+}
+inline const ::session_proto::Line& SolidCut::drills(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.SolidCut.drills)
+  return _internal_drills().Get(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL SolidCut::mutable_drills(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.SolidCut.drills)
+  return _internal_mutable_drills()->Mutable(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL SolidCut::add_drills()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Line* _add =
+      _internal_mutable_drills()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:wood_proto.SolidCut.drills)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& SolidCut::drills() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.SolidCut.drills)
+  return _internal_drills();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+SolidCut::mutable_drills() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.SolidCut.drills)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_drills();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+SolidCut::_internal_drills() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.drills_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+SolidCut::_internal_mutable_drills() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.drills_;
+}
+
+// double drill_radius = 8;
+inline void SolidCut::clear_drill_radius() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_radius_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+}
+inline double SolidCut::drill_radius() const {
+  // @@protoc_insertion_point(field_get:wood_proto.SolidCut.drill_radius)
+  return _internal_drill_radius();
+}
+inline void SolidCut::set_drill_radius(double value) {
+  _internal_set_drill_radius(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_set:wood_proto.SolidCut.drill_radius)
+}
+inline double SolidCut::_internal_drill_radius() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.drill_radius_;
+}
+inline void SolidCut::_internal_set_drill_radius(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_radius_ = value;
+}
+
+// double drill_tolerance = 9;
+inline void SolidCut::clear_drill_tolerance() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_tolerance_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+}
+inline double SolidCut::drill_tolerance() const {
+  // @@protoc_insertion_point(field_get:wood_proto.SolidCut.drill_tolerance)
+  return _internal_drill_tolerance();
+}
+inline void SolidCut::set_drill_tolerance(double value) {
+  _internal_set_drill_tolerance(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  // @@protoc_insertion_point(field_set:wood_proto.SolidCut.drill_tolerance)
+}
+inline double SolidCut::_internal_drill_tolerance() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.drill_tolerance_;
+}
+inline void SolidCut::_internal_set_drill_tolerance(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.drill_tolerance_ = value;
 }
 
 #ifdef __GNUC__
