@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package wood_proto;
+
+import "plane.proto";
+
+// The state of a Support beyond the kernel Element: its placement and every dimension of the column base.
+message Support {
+  session_proto.Plane plane = 1;            // Base plate underside centre, z up the column, x along a base plate side
+  double height = 2;                        // Base plate underside to head plate top
+  double head_plate_diameter = 3;
+  double head_plate_thickness = 4;
+  double head_plate_recess = 5;             // Depth the head plate is let into the column end
+  double base_plate_size = 6;
+  double base_plate_thickness = 7;
+  double base_plate_hole_diameter = 8;
+  double base_plate_hole_spacing = 9;       // Centre distance of the anchor drillings along each side
+  double adjustment_nut_across_flats = 10;
+  double adjustment_nut_top = 11;
+  double rod_diameter = 12;
+  double coupling_nut_across_flats = 13;
+  double coupling_nut_height = 14;
+  int32 screw_count = 15;
+  double screw_diameter = 16;
+  double screw_length = 17;
+  double screw_angle = 18;                  // Degrees between a pair of opposed screws
+  double screw_circle_diameter = 19;
+  double anchor_diameter = 20;
+  double anchor_embedment = 21;
+  double chord_tolerance = 22;
+}

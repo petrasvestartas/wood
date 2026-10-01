@@ -9,6 +9,9 @@ class Joint;
 
 namespace wood_session {
 
+class Support;
+class Column;
+
 class Joint : public session_cpp::Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Joint";
@@ -39,6 +42,9 @@ public:
     Joint(const std::vector<session_cpp::Polyline>& profile, const session_cpp::Vector& direction,
           SolidOperation operation = SolidOperation::intersection);
     static std::shared_ptr<Joint> drill(const session_cpp::Line& axis, double radius, double chord_tolerance = 0.05);
+
+    /// The joint of a support and the column standing on it, named "support": the head plate disc let up into the column end by the recess, and the column screws drilled from the head plate underside, so each hole opens into the pocket; aimed at the column.
+    static std::shared_ptr<Joint> support(const Support& support, const Column& column);
     virtual std::vector<session_cpp::Line> drill_axes() const;
     static std::shared_ptr<Joint> from_element(session_cpp::Element element);
     static void register_type();

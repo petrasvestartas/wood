@@ -65,16 +65,22 @@ Polyline square(const Point& corner, double x, double y, double z) {
     return section(Point(corner[0], corner[1], z), Point(corner[0] + x, corner[1], z), Point(corner[0] + x, corner[1] + y, z), Point(corner[0], corner[1] + y, z));
 }
 
-std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, double support_height) {
+std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide) {
+    const Plane plane = Plane::from_frame(guide.corner_point_column(guide.size_column_head), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0));
+
+    return std::make_shared<wood_session::Support>(plane, "support");
+}
+
+std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const wood_session::Support& support) {
 
     const Point corner = guide.quarter_polygon()[0];
-    const Point centre = guide.corner_point_column(guide.size_column_head);
+    const Point foot = support.column_foot();
     const double side = guide.size_column_head;
     const double head = side + guide.size_column_head_chamfer;
-    const Line axis = Line::from_points(Point(centre[0], centre[1], support_height), Point(centre[0], centre[1], guide.bay_height));
+    const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
 
-    std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, side, support_height), "column");
-    column->head = square(corner, head, head, support_height);
+    std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, side, foot[2]), "column");
+    column->head = square(corner, head, head, foot[2]);
     column->head_height = std::abs(guide.column_head_lowest_height);
 
     return column;

@@ -17,6 +17,7 @@ bool register_factories() {
     Plate::register_type();
     Column::register_type();
     BeamVariable::register_type();
+    Support::register_type();
     Block::register_type();
     Beam::register_type();
     Joint::register_type();

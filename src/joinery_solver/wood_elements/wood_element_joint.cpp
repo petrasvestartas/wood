@@ -58,6 +58,40 @@ std::vector<Line> Joint::drill_axes() const {
     return drill_lines;
 }
 
+/// The closed circle of the head plate at a level of the support.
+static Polyline head_circle(const Support& support, double level) {
+
+    const double radius = support.head_plate_diameter * 0.5;
+    const int corners = circle_segments(radius, support.chord_tolerance);
+    std::vector<Point> points;
+
+    for (int k = 0; k < corners; k++) {
+        const double angle = 2.0 * M_PI * k / corners;
+        points.push_back(support.at(level) + support.plane.x_axis() * (radius * std::cos(angle)) + support.plane.y_axis() * (radius * std::sin(angle)));
+    }
+
+    points.push_back(points.front());
+
+    return Polyline(points);
+}
+
+std::shared_ptr<Joint> Joint::support(const Support& support, const Column& column) {
+
+    const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
+    const std::shared_ptr<Joint> joint = std::make_shared<Joint>(std::vector<Polyline>{head_circle(support, bottom), head_circle(support, support.height)}, "support");
+
+    for (const Line& screw : support.screws()) {
+        const Vector back = screw.to_vector().normalized() * support.head_plate_thickness;
+        joint->drill_lines.push_back(Line::from_points(screw.start() - back, screw.end()));
+    }
+
+    joint->line_radius = support.screw_diameter * 0.5;
+    joint->chord_tolerance = support.chord_tolerance;
+    joint->targets = {column.guid()};
+
+    return joint;
+}
+
 std::vector<std::array<Polyline, 2>> Joint::bodies() const {
     return {};
 }

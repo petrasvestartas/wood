@@ -85,6 +85,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
+    src/joinery_solver/wood_elements/wood_element_support.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
     src/joinery_solver/wood_elements/wood_element_block.cpp
     src/joinery_solver/wood_elements/wood_element_joint.cpp
@@ -252,7 +253,7 @@ ADD_EXE(main_dataset_runner              examples/main_dataset_runner.cpp src/jo
 ADD_EXE(main_session_round_trip          examples/main_session_round_trip.cpp)
 ADD_EXE(joint_elements                   tests/joint_elements.cpp)
 ADD_EXE(interaction_ownership            tests/interaction_ownership.cpp)
-ADD_EXE(beam_variable                    tests/beam_variable.cpp)
+ADD_EXE(floor_elements                   tests/floor_elements.cpp)
 ADD_EXE(templates_translation_shell      examples/templates_translation_shell.cpp)
 ADD_EXE(templates_reflex_fold            examples/templates_reflex_fold.cpp)
 ADD_EXE(templates_chevron                examples/templates_chevron.cpp)

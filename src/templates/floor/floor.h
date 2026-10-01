@@ -152,8 +152,11 @@ std::shared_ptr<wood_session::BeamVariable> to_beam(const Outline& outline, cons
 /// A member outline as a plate, bottom then top.
 std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std::string& name);
 
-/// The column of the quarter, port of compas_tf ColumnElement in example_model_2: a size_column_head square from the support top to the floor at bay_height, its outer corner on the grid corner, and over the lowest column head level a head size_column_head_chamfer wider on the two bay sides.
-std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, double support_height);
+/// The support of the quarter's column, port of compas_tf SupportElement: on the slab at z 0 under the column axis.
+std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide);
+
+/// The column of the quarter, port of compas_tf ColumnElement in example_model_2: a size_column_head square from the support's column foot to the floor at bay_height, its outer corner on the grid corner, and over the lowest column head level a head size_column_head_chamfer wider on the two bay sides.
+std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const wood_session::Support& support);
 
 /// The column cutters lifted to the floor, one solid difference cutter each aimed at the column.
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const FloorGuide& guide, const wood_session::Column& column);

@@ -57,6 +57,86 @@ static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_
     return triangles;
 }
 
+/// The root of a vertex in the union-find forest, compressing the path on the way.
+static uint64_t find_root(std::vector<uint64_t>& parent, uint64_t vertex) {
+
+    while (parent[vertex] != vertex) {
+        parent[vertex] = parent[parent[vertex]];
+        vertex = parent[vertex];
+    }
+
+    return vertex;
+}
+
+/// The box of the vertices of one shell.
+struct Bounds {
+    std::array<double, 3> low = {1e300, 1e300, 1e300}; // Smallest coordinate per axis.
+    std::array<double, 3> high = {-1e300, -1e300, -1e300}; // Largest coordinate per axis.
+};
+
+/// True when inner lies within outer on every axis.
+static bool contains(const Bounds& outer, const Bounds& inner) {
+
+    for (size_t i = 0; i < 3; i++)
+        if (inner.low[i] < outer.low[i] || inner.high[i] > outer.high[i])
+            return false;
+
+    return true;
+}
+
+/// Turns every closed shell of the triangles outwards on its own: a shell enclosing a negative volume is reversed unless it lies inside an outward shell, where it is a cavity; so a cutter joining an outward pocket with inward drills cuts with both.
+static void orient_shells(manifold::MeshGL64& gl) {
+
+    std::vector<uint64_t> parent(gl.NumVert());
+
+    for (uint64_t v = 0; v < parent.size(); v++)
+        parent[v] = v;
+
+    for (size_t t = 0; t < gl.NumTri(); t++)
+        for (size_t c = 1; c < 3; c++)
+            parent[find_root(parent, gl.triVerts[3 * t + c])] = find_root(parent, gl.triVerts[3 * t]);
+
+    std::map<uint64_t, double> volumes;
+    std::map<uint64_t, Bounds> bounds;
+
+    for (size_t t = 0; t < gl.NumTri(); t++) {
+        const uint64_t root = find_root(parent, gl.triVerts[3 * t]);
+        std::array<Vector, 3> corners;
+
+        for (size_t c = 0; c < 3; c++) {
+            const uint64_t v = gl.triVerts[3 * t + c];
+            corners[c] = Vector(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+
+            for (size_t i = 0; i < 3; i++) {
+                bounds[root].low[i] = std::min(bounds[root].low[i], corners[c][static_cast<int>(i)]);
+                bounds[root].high[i] = std::max(bounds[root].high[i], corners[c][static_cast<int>(i)]);
+            }
+        }
+
+        volumes[root] += corners[0].dot(corners[1].cross(corners[2]));
+    }
+
+    std::set<uint64_t> inverted;
+
+    for (const std::pair<const uint64_t, double>& shell : volumes) {
+        if (shell.second >= 0.0)
+            continue;
+
+        bool cavity = false;
+
+        for (const std::pair<const uint64_t, double>& other : volumes)
+            if (other.second > 0.0 && contains(bounds[other.first], bounds[shell.first]))
+                cavity = true;
+
+        if (!cavity)
+            inverted.insert(shell.first);
+    }
+
+    for (size_t t = 0; t < gl.NumTri(); t++)
+        if (inverted.count(find_root(parent, gl.triVerts[3 * t])))
+            std::swap(gl.triVerts[3 * t + 1], gl.triVerts[3 * t + 2]);
+}
+
 /// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean; throws unless the mesh is a closed manifold.
 static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
 
@@ -75,6 +155,7 @@ static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
             gl.faceID.push_back(first_id + face);
         }
 
+    orient_shells(gl);
     const manifold::Manifold solid(gl);
 
     if (solid.Status() != manifold::Manifold::Error::NoError)
@@ -225,7 +306,7 @@ static Mesh from_manifold(const manifold::Manifold& solid) {
     return mesh;
 }
 
-/// The largest solid of a Manifold that a cut may have split, by volume.
+/// The largest solid of a Manifold that a cut may have split, by volume: the other solids are subtracted, so cavities inside the kept one, which Decompose also lists apart, stay open.
 static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
 
     const std::vector<manifold::Manifold> pieces = solid.Decompose();
@@ -239,12 +320,26 @@ static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
         if (pieces[i].Volume() > pieces[best].Volume())
             best = i;
 
-    return pieces[best];
+    std::vector<manifold::Manifold> offcuts;
+
+    for (size_t i = 0; i < pieces.size(); i++)
+        if (i != best && pieces[i].Volume() > 0.0)
+            offcuts.push_back(pieces[i]);
+
+    if (offcuts.empty())
+        return solid;
+
+    return solid - manifold::Manifold::BatchBoolean(offcuts, manifold::OpType::Add);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Booleans
 // ═══════════════════════════════════════════════════════════════════════════
+
+/// The closed bodies of a cutter as separate Manifolds, so bodies that overlap, a pocket and the drills through it, act as their union.
+static std::vector<manifold::Manifold> cutter_bodies(const Mesh& cutter, uint64_t first_id) {
+    return to_manifold(cutter, first_id).Decompose();
+}
 
 Mesh solid_boolean(const Mesh& source, const Mesh& cutter, SolidOperation operation, double tolerance) {
 
@@ -258,10 +353,14 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter, SolidOperation operat
         return operation == SolidOperation::intersection ? Mesh() : source;
 
     const manifold::Manifold a = to_manifold(source, 0);
-    const manifold::Manifold b = to_manifold(cutter, face_id_span(source));
+    std::vector<manifold::Manifold> bodies = cutter_bodies(cutter, face_id_span(source));
 
-    if (operation == SolidOperation::difference)
-        return from_manifold(a - b);
+    if (operation == SolidOperation::difference) {
+        bodies.insert(bodies.begin(), a);
+        return from_manifold(manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Subtract));
+    }
+
+    const manifold::Manifold b = manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Add);
 
     if (operation == SolidOperation::intersection)
         return from_manifold(a ^ b);
@@ -281,7 +380,8 @@ Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {
         if (!cutter.number_of_faces())
             continue;
 
-        solids.push_back(to_manifold(cutter, first_id));
+        const std::vector<manifold::Manifold> bodies = cutter_bodies(cutter, first_id);
+        solids.insert(solids.end(), bodies.begin(), bodies.end());
         first_id += face_id_span(cutter);
     }
 
