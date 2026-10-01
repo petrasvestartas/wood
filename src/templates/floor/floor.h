@@ -180,6 +180,9 @@ void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guid
 /// The column connectors of compas_tf example_model_8: a rectangle plate joint on the contact of every column with every outer rib, its dowels as long as the rib is thick by compas_tf's measure; returns the joints.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
 
+/// The seam connectors of compas_tf example_model_8: a tie joint on every end-to-end contact of two outer ribs of neighbouring quarters; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& group);
+
 /// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the inner beams and the four oculus boundary beams, shortened at both ends by 1.5 and pocketed 2/3 of the thicker member, its thickness the distance between its two outline centroids as compas_tf measures it; returns the joints.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
 

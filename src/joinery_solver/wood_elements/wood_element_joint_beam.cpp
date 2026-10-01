@@ -296,6 +296,74 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
     return joint;
 }
 
+/// The cross section of the tie at y: from the top down to bottom, width wide across the frame z.
+static Polyline tie_section(const Point& origin, const std::array<Vector, 3>& axes, double y, double top, double bottom, double width) {
+    return closed_loop({frame_point(origin, axes, top, y, -0.5 * width), frame_point(origin, axes, bottom, y, -0.5 * width), frame_point(origin, axes, bottom, y, 0.5 * width), frame_point(origin, axes, top, y, 0.5 * width)});
+}
+
+std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, const InteractionContactFace& contact, double top, double length, double head_length, double head_width, double neck_width, double depth, double end_depth, double pocket_depth, double overshoot) {
+
+    std::vector<Point> points = contact.polygon.get_points();
+
+    if (contact.polygon.is_closed())
+        points.pop_back();
+
+    const Vector normal = compute_newell(points).normalized();
+    const Vector x(0.0, 0.0, -1.0);
+    const Vector y = Vector(normal[0], normal[1], 0.0).normalized();
+    const std::array<Vector, 3> axes = {x, y, x.cross(y)};
+
+    double high = -1e300;
+    double low = 1e300;
+
+    for (const Point& point : points) {
+        high = std::max(high, point[2]);
+        low = std::min(low, point[2]);
+    }
+
+    const double tolerance = std::max(1.0, 0.02 * (high - low));
+    std::array<double, 3> lower = {1e300, 1e300, 1e300};
+    std::array<double, 3> upper = {-1e300, -1e300, -1e300};
+
+    for (const Point& point : points)
+        if (high - point[2] <= tolerance)
+            for (int i = 0; i < 3; i++) {
+                lower[i] = std::min(lower[i], point[i]);
+                upper[i] = std::max(upper[i], point[i]);
+            }
+
+    const Point origin(0.5 * (lower[0] + upper[0]), 0.5 * (lower[1] + upper[1]), 0.5 * (lower[2] + upper[2]));
+    const double half = 0.5 * length;
+    const double neck = half - head_length;
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "tie";
+    joint->targets = {a.guid(), b.guid()};
+
+    const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
+
+    for (const std::array<double, 3>& piece : pieces) {
+        const double bottom0 = top + depth + (end_depth - depth) * std::abs(piece[0]) / half;
+        const double bottom1 = top + depth + (end_depth - depth) * std::abs(piece[1]) / half;
+        joint->parts.push_back({tie_section(origin, axes, piece[0], top, bottom0, piece[2]), tie_section(origin, axes, piece[1], top, bottom1, piece[2])});
+    }
+
+    const double floor = top + pocket_depth;
+    const std::vector<std::array<Polyline, 2>> negative = {
+        {tie_section(origin, axes, -half, top, floor, head_width), tie_section(origin, axes, -neck, top, floor, head_width)},
+        {tie_section(origin, axes, -neck, top, floor, neck_width), tie_section(origin, axes, overshoot, top, floor, neck_width)},
+    };
+    const std::vector<std::array<Polyline, 2>> positive = {
+        {tie_section(origin, axes, neck, top, floor, head_width), tie_section(origin, axes, half, top, floor, head_width)},
+        {tie_section(origin, axes, -overshoot, top, floor, neck_width), tie_section(origin, axes, neck, top, floor, neck_width)},
+    };
+
+    for (const Element* member : {&a, &b})
+        joint->cutters.push_back((member->model_geometry_mesh().centroid() - origin).dot(y) < 0.0 ? negative : positive);
+
+    return joint;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════

@@ -178,4 +178,31 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_
     return plates;
 }
 
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& group) {
+
+    std::vector<std::shared_ptr<wood_session::BeamVariable>> ribs;
+
+    for (const std::shared_ptr<wood_session::BeamVariable>& beam : session.beam_variables())
+        if (beam->name.starts_with("outer_ribs_"))
+            ribs.push_back(beam);
+
+    std::vector<std::shared_ptr<wood_session::JointBeam>> ties;
+
+    for (size_t i = 0; i < ribs.size(); i++)
+        for (size_t j = i + 1; j < ribs.size(); j++) {
+            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(ribs[i], ribs[j]);
+
+            if (!contact || contact->type != wood_session::ContactType::end_end)
+                continue;
+
+            const std::shared_ptr<wood_session::JointBeam> tie = wood_session::JointBeam::tie(*ribs[i], *ribs[j], *contact);
+            tie->name = fmt::format("outer_rib_connector_{}", ties.size());
+            session.add(tie, group);
+            session.add_joint(tie);
+            ties.push_back(tie);
+        }
+
+    return ties;
+}
+
 }

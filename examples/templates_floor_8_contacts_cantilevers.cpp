@@ -49,12 +49,10 @@ int main() {
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, GUIDE, wood_floor::add_group(session, "connectors", floor));
     const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(session, GUIDE, wood_floor::add_group(session, "connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(session, wood_floor::add_group(session, "outer_rib_connectors", root));
     session.pb_dump(pb_path("live"));
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    std::cout << fmt::format("{} elements, {} wedges, {} rectangle plates: contacts, cuts and pb in {:.0f} ms", session.objects.elements->size(), wedges.size(), plates.size(), ms) << std::endl;
-
-    for (const std::shared_ptr<JointBeam>& plate : plates)
-        std::cout << fmt::format("{} {} {} origin {:.3f} {:.3f} {:.3f}", plate->name, session.get_element<Element>(plate->targets[0])->name, session.get_element<Element>(plate->targets[1])->name, plate->parts[0][0].get_point(3)[0], plate->parts[0][0].get_point(3)[1], plate->parts[0][0].get_point(3)[2]) << std::endl;
+    std::cout << fmt::format("{} elements, {} wedges, {} rectangle plates, {} ties: contacts, cuts and pb in {:.0f} ms", session.objects.elements->size(), wedges.size(), plates.size(), ties.size(), ms) << std::endl;
 
     if constexpr (DUMP) {
         std::ofstream file(std::filesystem::path(pb_path("floor_8_contacts_cantilevers")).replace_extension(".txt").string());
@@ -65,6 +63,15 @@ int main() {
         for (const std::shared_ptr<BeamVariable>& beam : session.beam_variables())
             if (beam->name.starts_with("outer_ribs_"))
                 dump(file, beam->name, beam->model_geometry_mesh());
+
+        for (const std::shared_ptr<JointBeam>& tie : ties) {
+            Mesh key;
+
+            for (const std::array<Polyline, 2>& part : tie->parts)
+                append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
+
+            dump(file, tie->name, key);
+        }
     }
 
     return 0;
@@ -72,7 +79,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both. DUMP writes the carved columns and outer ribs, compared against compas_tf.
+Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

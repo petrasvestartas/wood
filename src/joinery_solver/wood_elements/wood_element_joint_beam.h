@@ -50,6 +50,22 @@ public:
         int dowel_sides = 16
     );
 
+    /// The seam connector of compas_tf OuterRibConnectorElement, made parametric: a key across the end-to-end contact of two members, length long along the contact normal, top below the contact's top edge, its heads head_width wide over head_length at both ends and its neck neck_width wide between, depth deep at the seam deepening straight to end_depth at its ends; each member gets a flat-bottomed pocket pocket_depth deep, its head and neck boxes, the neck overshoot past the seam; aimed at a then b. The defaults are the OBJ template's.
+    static std::shared_ptr<JointBeam> tie(
+        const session_cpp::Element& a,
+        const session_cpp::Element& b,
+        const InteractionContactFace& contact,
+        double top = 138.5,
+        double length = 800.0,
+        double head_length = 200.0,
+        double head_width = 40.0,
+        double neck_width = 20.0,
+        double depth = 58.5,
+        double end_depth = 58.5 + 302.0 / 25.4,
+        double pocket_depth = 80.0,
+        double overshoot = 10.0
+    );
+
     JointBeam(InteractionFeatureBeam feature, const std::function<void(InteractionFeatureBeam&)>& builder);
     void place(const session_cpp::Xform& xform) override;
     std::string element_type_name() const override {

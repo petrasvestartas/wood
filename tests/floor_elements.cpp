@@ -13,6 +13,8 @@ const wood_floor::FloorGuide GUIDE{
 
 const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
 const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
+const double COMPAS_TF_TIED_RIB = 98812970.259836; // the same rib after the seam connector pocket too
+const double COMPAS_TF_TIE = 1570456.693007; // compas_tf OuterRibConnector.obj body, the parametric tie's defaults
 const double COMPAS_TF_HEAD_CUT = 211196000.0 - 176418621.638340; // compas_tf stock less its carved column: what the six head cutters take
 
 /// Throws with the message when the condition fails.
@@ -168,7 +170,7 @@ void check_wedges() {
     std::cout << "floor_elements: " << wedges.size() << " wedges, joints and carved beams through a round trip pass" << std::endl;
 }
 
-/// The rectangle plates between the columns and the outer ribs: eight, every carved outer rib at compas_tf's volume.
+/// The rectangle plates between the columns and the outer ribs and the ties on the rib seams: eight and four, every carved outer rib and every tie at compas_tf's volume.
 void check_rectangle_plates() {
 
     WoodSession scene("rectangle_plates");
@@ -185,7 +187,23 @@ void check_rectangle_plates() {
         if (beam->name.starts_with("outer_ribs_"))
             check(std::abs(compute_volume(beam->model_geometry_mesh()) - COMPAS_TF_OUTER_RIB) <= 1e-9 * COMPAS_TF_OUTER_RIB, "carved outer rib " + beam->name);
 
-    std::cout << "floor_elements: " << plates.size() << " rectangle plates, carved outer ribs at compas_tf's volume" << std::endl;
+    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(scene, nullptr);
+    check(ties.size() == 4, "four ties, not " + std::to_string(ties.size()));
+
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+        if (beam->name.starts_with("outer_ribs_"))
+            check(std::abs(compute_volume(beam->model_geometry_mesh()) - COMPAS_TF_TIED_RIB) <= 1e-9 * COMPAS_TF_TIED_RIB, "tied outer rib " + beam->name);
+
+    for (const std::shared_ptr<JointBeam>& tie : ties) {
+        Mesh key;
+
+        for (const std::array<Polyline, 2>& part : tie->parts)
+            append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
+
+        check(std::abs(compute_volume(key) - COMPAS_TF_TIE) <= 1e-9 * COMPAS_TF_TIE, "tie volume " + std::to_string(compute_volume(key)));
+    }
+
+    std::cout << "floor_elements: " << plates.size() << " rectangle plates and " << ties.size() << " ties, carved outer ribs and ties at compas_tf's volume" << std::endl;
 }
 
 int main() {
