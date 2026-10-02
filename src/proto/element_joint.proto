@@ -5,6 +5,7 @@ import "plane.proto";
 import "line.proto";
 import "vector.proto";
 import "interaction.proto";
+import "solid_cut.proto";
 message Joint {
   repeated session_proto.Polyline loops = 1;
   repeated session_proto.Plane cuts = 2;
@@ -25,7 +26,8 @@ message Joint {
   JointPlateParameters plate_parameters = 17;
   repeated session_proto.Polyline parts = 18;   // A connector's own solids as bottom, top loop pairs
   repeated JointCutter cutters = 19;            // A connector's cutters, one entry per target in targets order
-  double drill_overshoot = 20;                  // How far a connector's drills run past its dowels, kept only where they leave a target
+  double drill_overshoot = 20;                  // How far a connector's holes run past its dowels where they leave a target
+  repeated SolidCut solid_cuts = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
 }
 
 // The solids a connector cuts out of one target, as bottom, top loop pairs.

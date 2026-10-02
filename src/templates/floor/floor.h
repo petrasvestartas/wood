@@ -186,4 +186,13 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::Woo
 /// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the inner beams and the four oculus boundary beams, shortened at both ends by 1.5 and pocketed 2/3 of the thicker member, its thickness the distance between its two outline centroids as compas_tf measures it; returns the joints.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
 
+/// The thickness of a quarter member by its name, <group>_<k>_<quarter> for the wedge blocks, inner beams, outer ribs and inner ribs, compas_tf's computed_thickness of its outline; zero for any other member.
+double member_thickness(const FloorGuide& guide, const std::string& name);
+
+/// The assembly dowels within every quarter, the rib-to-wedge contact search of compas_tf example_model_8_contacts_quarter widened: a dowels joint on every face contact among the quarter's wedge blocks, inner beams, outer ribs and inner ribs, never across quarters, four dowels of radius and length per contact at the corners of the contact inset by offset, half into each member. Two dowels meeting end to end from the two faces of one member within align of one axis are moved onto their common axis, so their bores make one through bore. A dowel that does not fit is named in misfits when given: one less than half its length inside a member is kept as it is, one whose bore would run into an earlier set's, closer than two radii, is dropped, so every bore stays exact; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group, double radius = 5.0, double length = 60.0, double offset = 20.0, double align = 20.0, std::vector<std::string>* misfits = nullptr);
+
+/// The half laps of the column heads: a cross lap on every two rectangle plates that meet in one column, the first's slot from the top, the second's from the bottom; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_cross_laps(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates, const std::shared_ptr<TreeNode>& group);
+
 }

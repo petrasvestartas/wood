@@ -13,8 +13,9 @@ class JointBeam : public Joint {
 public:
     InteractionFeatureBeam feature;
     std::vector<std::array<session_cpp::Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
-    std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target.
-    double drill_overshoot = 0.0; // How far the drill lines run past the dowels at both ends; a target keeps it only at an end where the dowel leaves it, so a blind hole stops at its dowel.
+    std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines, a connector's dowels flush with the members they pass through, cut every target.
+    double drill_overshoot = 0.0; // How far a target's holes run past the dowels at an end where the dowel leaves the target, tested just beyond the dowel's end; a blind hole stops at its dowel.
+    std::vector<SolidCut> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's; its dowels bore the parts they pass through without one.
     JointBeam();
     JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact,
               double volume_length, double cross_or_side_to_end, int flip_male = 0);
@@ -22,7 +23,7 @@ public:
                                                    const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0);
     explicit JointBeam(const InteractionFeatureBeam& feature);
 
-    /// The wedge connector of compas_tf ConnectorWedgeElement on the face contact of two members: a triangular prism along the contact's longest top edge, shortened by length_margin at both ends, horizontal dowels every dowel_spacing as dowel_sides-sided prisms, and in each member a box pocket pocket_depth deep under the wedge face on its side; aimed at a then b.
+    /// The wedge connector of compas_tf ConnectorWedgeElement on the face contact of two members: a triangular prism along the contact's longest top edge, shortened by length_margin at both ends, horizontal dowels every dowel_spacing as dowel_sides-sided prisms, flush with the members' outer faces, their holes overshoot past them, and in each member a box pocket pocket_depth deep under the wedge face on its side; aimed at a then b.
     static std::shared_ptr<JointBeam> wedge(
         const session_cpp::Element& a,
         const session_cpp::Element& b,
@@ -31,10 +32,11 @@ public:
         double pocket_depth,
         double dowel_radius = 10.0,
         double dowel_spacing = 320.0,
-        int dowel_sides = 8
+        int dowel_sides = 8,
+        double overshoot = 20.0
     );
 
-    /// The column-to-rib connector of compas_tf ConnectorElement on their face contact: a plate width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, with four dowels across it, two per side, margin_x and margin_z radii in from its ends and its top and bottom; it cuts its box, top raised by overshoot, and the dowel holes, dowel_length plus overshoot at both ends, out of both; aimed at the column then the rib.
+    /// The column-to-rib connector of compas_tf ConnectorElement on their face contact: a plate width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, with four dowels across it, two per side, margin_x and margin_z radii in from its ends and its top and bottom, dowel_length long but flush with the member they pass through; it cuts its box, top raised by overshoot, and the dowel holes, overshoot past every face a dowel leaves, out of both; aimed at the column then the rib.
     static std::shared_ptr<JointBeam> rectangle_plate(
         const session_cpp::Element& column,
         const session_cpp::Element& rib,
@@ -66,6 +68,31 @@ public:
         double pocket_depth = 80.0,
         double overshoot = 10.0
     );
+
+    /// Assembly dowels on the face contact of two members: four round dowels of radius, length long, centred on the contact along its normal so half goes into each member, one at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; they cut their holes out of both, overshoot past every face a dowel leaves; aimed at a then b. Null when the inset leaves nothing.
+    static std::shared_ptr<JointBeam> dowels(
+        const session_cpp::Element& a,
+        const session_cpp::Element& b,
+        const InteractionContactFace& contact,
+        double radius = 5.0,
+        double length = 60.0,
+        double offset = 20.0,
+        double overshoot = 10.0,
+        int dowel_sides = 16
+    );
+
+    /// The half-lap cross joint of two connectors whose box parts cross, two rectangle plates in one column head say: a slot through each part where the other passes, margin wider than the part's thickness and longer than its height so the cut is through, a's from share of their common height up, b's from the bottom up to there, so the two slide together; stored on the connectors as their solid cuts when added. Aimed at a then b, hidden: it is a relation, not a part.
+    static std::shared_ptr<JointBeam> cross_lap(const JointBeam& a, const JointBeam& b, double share = 0.5, double margin = 1.0);
+
+    /// One part as a closed mesh, its loops lofted, before any cut.
+    session_cpp::Mesh part_mesh(size_t index) const;
+
+    /// One part as a BRep with its solid cuts applied and the bores of the dowels passing through it exact, cylinders with circle or ellipse loops.
+    session_cpp::BRep part_brep(size_t index) const;
+
+    /// A connector's parts cut and bored, then its dowels as cylinders; a beam joint's feature volumes.
+    const session_cpp::Mesh& element_geometry_mesh() const override;
+    const session_cpp::BRep& element_geometry_brep() const override;
 
     JointBeam(InteractionFeatureBeam feature, const std::function<void(InteractionFeatureBeam&)>& builder);
     void place(const session_cpp::Xform& xform) override;

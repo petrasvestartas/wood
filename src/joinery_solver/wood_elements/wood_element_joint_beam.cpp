@@ -2,10 +2,14 @@
 #include "element_joint.pb.h"
 #include "wood_session.h"
 #include "wood_feature_detection_beam.h"
+#include "wood_brep_drill.h"
+#include "../src/clipper2/clipper.h"
 
 namespace wood_session {
 
 using namespace session_cpp;
+
+constexpr bool TRACE = false;
 
 JointBeam::JointBeam() {
     name = "JointBeam";
@@ -125,6 +129,26 @@ static double sides_tolerance(double radius, int sides) {
     return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
 }
 
+/// The dowel clipped flush to the members it passes through: from where its axis first enters one of them to where it last leaves one, an end that lies inside a member kept as it is; unchanged when it meets none.
+static Line flush_dowel(const Line& dowel, const std::vector<const Element*>& members) {
+
+    const double length = dowel.length();
+    const Vector d = dowel.to_vector().normalized();
+    double low = 1e300;
+    double high = -1e300;
+
+    for (const Element* member : members)
+        for (const std::array<double, 2>& stretch : inside_stretches(member->element_geometry_mesh(), dowel)) {
+            low = std::min(low, stretch[0]);
+            high = std::max(high, stretch[1]);
+        }
+
+    if (std::min(high, length) - std::max(low, 0.0) < 1e-9)
+        return dowel;
+
+    return Line::from_points(low > 0.0 ? dowel.start() + d * low : dowel.start(), high < length ? dowel.start() + d * high : dowel.end());
+}
+
 /// The pocket under one slanted wedge face p0-p1: the face rectangle over the wedge length and the same rectangle pocket_depth into the member, compas_tf inclined_face_box_outlines.
 static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::array<Vector, 3>& axes, const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& middle, double length, double depth) {
 
@@ -162,7 +186,7 @@ static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::arra
     return {closed_loop(face), closed_loop(deep)};
 }
 
-std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, double dowel_radius, double dowel_spacing, int dowel_sides) {
+std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, double dowel_radius, double dowel_spacing, int dowel_sides, double overshoot) {
 
     const std::array<std::array<double, 2>, 3> profile = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}};
     const std::array<double, 2> dowel = {80.0, -100.0};
@@ -178,6 +202,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "wedge";
+    joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
 
     std::array<std::vector<Point>, 2> ends;
@@ -197,11 +222,12 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
         const Point end = frame_point(origin, axes, station, dowel[0], dowel[1]);
         const Vector flat = Vector(end[0] - start[0], end[1] - start[1], 0.0).normalized();
         const Point centre = start + (end - start) * 0.5;
-        joint->drill_lines.push_back(Line::from_points(centre - flat * dowel[0], centre + flat * dowel[0]));
+        joint->drill_lines.push_back(flush_dowel(Line::from_points(centre - flat * dowel[0], centre + flat * dowel[0]), {&a, &b}));
     }
 
     joint->line_radius = dowel_radius;
     joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
+    joint->drill_overshoot = overshoot;
 
     const std::array<double, 2> middle = {(profile[0][0] + profile[1][0] + profile[2][0]) / 3.0, (profile[0][1] + profile[1][1] + profile[2][1]) / 3.0};
     const std::array<std::array<Polyline, 2>, 2> pockets = {
@@ -278,17 +304,18 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "rectangle_plate";
+    joint->is_visible = true;
     joint->targets = {column.guid(), rib.guid()};
     joint->parts = {frame_box(origin, axes, -back, front, width, -height, 0.0)};
 
     const std::array<Polyline, 2> pocket = frame_box(origin, axes, -back, front, width, -height, overshoot);
     joint->cutters = {{pocket}, {pocket}};
 
-    const double half = 0.5 * dowel_length + overshoot;
+    const double half = 0.5 * dowel_length;
 
     for (const double station : {-back + margin_x * dowel_radius, front - margin_x * dowel_radius})
         for (const double level : {-margin_z * dowel_radius, -height + margin_z * dowel_radius})
-            joint->drill_lines.push_back(Line::from_points(frame_point(origin, axes, station, -half, level), frame_point(origin, axes, station, half, level)));
+            joint->drill_lines.push_back(flush_dowel(Line::from_points(frame_point(origin, axes, station, -half, level), frame_point(origin, axes, station, half, level)), {&column, &rib}));
 
     joint->line_radius = dowel_radius;
     joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
@@ -339,6 +366,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, co
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "tie";
+    joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
 
     const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
@@ -365,9 +393,241 @@ std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, co
     return joint;
 }
 
+/// The polygon inset by offset in its frame, as the largest ring Clipper2 leaves on the SCALE grid, in frame coordinates without a closing point; empty when nothing is left.
+static std::vector<std::array<double, 2>> inset_polygon(const std::vector<Point>& points, const Point& origin, const Vector& x, const Vector& y, double offset) {
+
+    const double SCALE = 1000.0;
+    Clipper2Lib::Path64 path;
+
+    for (const Point& point : points)
+        path.emplace_back(static_cast<int64_t>(std::llround((point - origin).dot(x) * SCALE)), static_cast<int64_t>(std::llround((point - origin).dot(y) * SCALE)));
+
+    const Clipper2Lib::Paths64 inset = Clipper2Lib::InflatePaths({path}, -offset * SCALE, Clipper2Lib::JoinType::Miter, Clipper2Lib::EndType::Polygon);
+    const Clipper2Lib::Path64* best = nullptr;
+
+    for (const Clipper2Lib::Path64& ring : inset)
+        if (!best || std::abs(Clipper2Lib::Area(ring)) > std::abs(Clipper2Lib::Area(*best)))
+            best = &ring;
+
+    std::vector<std::array<double, 2>> result;
+
+    if (best)
+        for (const Clipper2Lib::Point64& point : *best)
+            result.push_back({point.x / SCALE, point.y / SCALE});
+
+    return result;
+}
+
+/// The ring's corners for the dowels: all of them for a quad or less, else four distinct ones, each the corner not yet taken that reaches furthest towards one of the frame's four diagonal directions, the extreme corners of a longer polygon.
+static std::vector<std::array<double, 2>> extreme_corners(const std::vector<std::array<double, 2>>& ring) {
+
+    if (ring.size() <= 4)
+        return ring;
+
+    std::vector<bool> taken(ring.size(), false);
+    std::vector<std::array<double, 2>> corners;
+
+    for (const std::array<double, 2>& diagonal : {std::array<double, 2>{-1.0, -1.0}, std::array<double, 2>{1.0, -1.0}, std::array<double, 2>{1.0, 1.0}, std::array<double, 2>{-1.0, 1.0}}) {
+        size_t best = ring.size();
+
+        for (size_t i = 0; i < ring.size(); i++)
+            if (!taken[i] && (best == ring.size() || ring[i][0] * diagonal[0] + ring[i][1] * diagonal[1] > ring[best][0] * diagonal[0] + ring[best][1] * diagonal[1]))
+                best = i;
+
+        taken[best] = true;
+        corners.push_back(ring[best]);
+    }
+
+    return corners;
+}
+
+std::shared_ptr<JointBeam> JointBeam::dowels(const Element& a, const Element& b, const InteractionContactFace& contact, double radius, double length, double offset, double overshoot, int dowel_sides) {
+
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    const Point origin = Point::centroid(points);
+    Vector normal = compute_newell(points).normalized();
+
+    if ((b.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
+        normal = -normal;
+
+    const Vector x = top_edge(points).to_vector().normalized();
+    const Vector y = normal.cross(x).normalized();
+    const std::vector<std::array<double, 2>> ring = inset_polygon(points, origin, x, y, offset);
+
+    if (ring.size() < 3)
+        return nullptr;
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "dowels";
+    joint->is_visible = true;
+    joint->targets = {a.guid(), b.guid()};
+    joint->cutters = {{}, {}};
+
+    for (const std::array<double, 2>& corner : extreme_corners(ring)) {
+        const Point station = origin + x * corner[0] + y * corner[1];
+        joint->drill_lines.push_back(Line::from_points(station - normal * (0.5 * length), station + normal * (0.5 * length)));
+    }
+
+    joint->line_radius = radius;
+    joint->chord_tolerance = sides_tolerance(radius, dowel_sides);
+    joint->drill_overshoot = overshoot;
+
+    return joint;
+}
+
+/// The frame of a box part: origin at its centre, x along the first side of its first loop, z along the last, y from the first loop to the second; the loops frame_box makes.
+static std::pair<Point, std::array<Vector, 3>> box_frame(const std::array<Polyline, 2>& box) {
+
+    if (box[0].point_count() != 5 || box[1].point_count() != 5)
+        throw std::invalid_argument("A cross lap needs box parts of four corners");
+
+    std::vector<Point> near = box[0].get_points();
+    near.pop_back();
+    std::vector<Point> far = box[1].get_points();
+    far.pop_back();
+    std::vector<Point> corners = near;
+    corners.insert(corners.end(), far.begin(), far.end());
+
+    const Vector x = (near[1] - near[0]).normalized();
+    const Vector z = (near[3] - near[0]).normalized();
+    const Vector y = (Point::centroid(far) - Point::centroid(near)).normalized();
+
+    return {Point::centroid(corners), {x, y, z}};
+}
+
+/// The extent of the points along the frame's axis: lowest and highest coordinate.
+static std::array<double, 2> extent(const std::vector<Point>& points, const Point& origin, const Vector& axis) {
+
+    std::array<double, 2> range = {1e300, -1e300};
+
+    for (const Point& point : points) {
+        range[0] = std::min(range[0], (point - origin).dot(axis));
+        range[1] = std::max(range[1], (point - origin).dot(axis));
+    }
+
+    return range;
+}
+
+/// The eight corners of a box part.
+static std::vector<Point> box_corners(const std::array<Polyline, 2>& box) {
+
+    std::vector<Point> corners = box[0].get_points();
+    corners.pop_back();
+    const std::vector<Point> far = box[1].get_points();
+    corners.insert(corners.end(), far.begin(), far.end() - 1);
+
+    return corners;
+}
+
+std::shared_ptr<JointBeam> JointBeam::cross_lap(const JointBeam& a, const JointBeam& b, double share, double margin) {
+
+    if (a.parts.size() != 1 || b.parts.size() != 1)
+        throw std::invalid_argument("A cross lap joins two connectors of one box part each");
+
+    const std::pair<Point, std::array<Vector, 3>> frame_a = box_frame(a.parts[0]);
+    const std::pair<Point, std::array<Vector, 3>> frame_b = box_frame(b.parts[0]);
+    const std::vector<Point> corners_a = box_corners(a.parts[0]);
+    const std::vector<Point> corners_b = box_corners(b.parts[0]);
+
+    const std::array<double, 2> z_a = extent(corners_a, frame_a.first, frame_a.second[2]);
+    const std::array<double, 2> z_b = extent(corners_b, frame_a.first, frame_a.second[2]);
+    const double low = std::max(z_a[0], z_b[0]);
+    const double high = std::min(z_a[1], z_b[1]);
+
+    if (high - low <= 0.0)
+        throw std::invalid_argument("Cross lap parts do not overlap in height");
+
+    const double lap = low + share * (high - low);
+    const std::array<double, 2> across_a = extent(corners_b, frame_a.first, frame_a.second[0]);
+    const std::array<double, 2> across_b = extent(corners_a, frame_b.first, frame_b.second[0]);
+    const double width_a = extent(corners_a, frame_a.first, frame_a.second[1])[1] * 2.0 + 2.0 * margin;
+    const double width_b = extent(corners_b, frame_b.first, frame_b.second[1])[1] * 2.0 + 2.0 * margin;
+    const double lap_b = (frame_a.first - frame_b.first).dot(frame_b.second[2]) + lap;
+    const std::array<double, 2> z_b_own = extent(corners_b, frame_b.first, frame_b.second[2]);
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "cross_lap";
+    joint->targets = {a.guid(), b.guid()};
+    joint->cutters = {
+        {frame_box(frame_a.first, frame_a.second, across_a[0], across_a[1], width_a, lap, z_a[1] + margin)},
+        {frame_box(frame_b.first, frame_b.second, across_b[0], across_b[1], width_b, z_b_own[0] - margin, lap_b)},
+    };
+
+    return joint;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
+
+Mesh JointBeam::part_mesh(size_t index) const {
+    return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
+}
+
+/// The cuts into one part: the connector's stored cuts and, as one more, its own dowels where they pass through the part, so the part carries their bores.
+static std::vector<SolidCut> part_cuts(const JointBeam& joint, const Mesh& part) {
+
+    std::vector<SolidCut> cuts = joint.solid_cuts;
+    SolidCut bores;
+
+    for (const Line& dowel : joint.drill_lines)
+        if (!inside_stretches(part, dowel).empty())
+            bores.drills.push_back(dowel);
+
+    if (!bores.drills.empty()) {
+        bores.drill_radius = joint.line_radius;
+        bores.drill_tolerance = joint.chord_tolerance;
+        cuts.push_back(bores);
+    }
+
+    return cuts;
+}
+
+BRep JointBeam::part_brep(size_t index) const {
+
+    const Mesh part = part_mesh(index);
+    const std::vector<SolidCut> cuts = part_cuts(*this, part);
+
+    return cuts.empty() ? brep_between_loops({parts[index][0]}, {parts[index][1]}) : solid_cuts_brep(part, cuts);
+}
+
+const Mesh& JointBeam::element_geometry_mesh() const {
+
+    if (parts.empty())
+        return Joint::element_geometry_mesh();
+
+    if (!mesh_) {
+        mesh_ = Mesh();
+
+        for (size_t i = 0; i < parts.size(); i++) {
+            const Mesh part = part_mesh(i);
+            append_mesh(*mesh_, apply_solid_cuts(part, part_cuts(*this, part)));
+        }
+
+        for (const Line& axis : drill_axes())
+            append_mesh(*mesh_, drill_mesh(axis, line_radius, chord_tolerance));
+    }
+
+    return *mesh_;
+}
+
+const BRep& JointBeam::element_geometry_brep() const {
+
+    if (parts.empty())
+        return Joint::element_geometry_brep();
+
+    if (!brep_) {
+        brep_ = BRep();
+
+        for (size_t i = 0; i < parts.size(); i++)
+            append_brep(*brep_, part_brep(i));
+
+        for (const Line& axis : drill_axes())
+            append_brep(*brep_, drill_brep(axis, line_radius));
+    }
+
+    return *brep_;
+}
 
 std::vector<std::array<Polyline, 2>> JointBeam::bodies() const {
 
@@ -393,6 +653,9 @@ void JointBeam::place(const Xform& xform) {
     for (std::vector<std::array<Polyline, 2>>& target : cutters)
         for (std::array<Polyline, 2>& cutter : target)
             cutter = {cutter[0].transformed(xform), cutter[1].transformed(xform)};
+
+    for (SolidCut& cut : solid_cuts)
+        cut = cut.transformed(xform);
 }
 
 void JointBeam::write_proto(wood_proto::Joint& proto) const {
@@ -407,6 +670,10 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
                 throw std::runtime_error("Invalid connector part");
 
     proto.set_drill_overshoot(drill_overshoot);
+
+    for (const SolidCut& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Invalid connector cut");
 
     for (const std::vector<std::array<Polyline, 2>>& target : cutters) {
         wood_proto::JointCutter* cutter = proto.add_cutters();
@@ -426,6 +693,9 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
         parts.push_back({Polyline::pb_loads(proto.parts(i).SerializeAsString()), Polyline::pb_loads(proto.parts(i + 1).SerializeAsString())});
 
     drill_overshoot = proto.drill_overshoot();
+
+    for (const wood_proto::SolidCut& cut : proto.solid_cuts())
+        solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
 
     for (const wood_proto::JointCutter& cutter : proto.cutters()) {
         cutters.push_back({});

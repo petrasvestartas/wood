@@ -100,7 +100,18 @@ int main() {
     check_drilled(split_block(), {}, 6, 0, 0.0, "split_planar");
     check_drilled(split_block(), {{Line::from_points(Point(25, 50, -10), Point(25, 50, 60)), r}}, 7, 1, area * 50.0, "split_drilled");
 
-    std::cout << "brep_drill: through, tilted, blind and two holes exact and solid; edge and touching drills fall back; T-vertices of merged neighbours split so every edge is shared" << std::endl;
+    check_drilled(block(), {{Line::from_points(Point(50, 50, 60), Point(50, 50, 25)), r}, {Line::from_points(Point(50, 50, -10), Point(50, 50, 25)), r}}, 7, 1, area * 50.0, "drill_meeting");
+    check(merged_drills({{Line::from_points(Point(0, 0, 0), Point(0, 0, 10)), r}, {Line::from_points(Point(0, 0, 10), Point(0, 0, 30)), r}, {Line::from_points(Point(3, 0, 10), Point(3, 0, 30)), r}}).size() == 2, "two drills meeting on one axis merge, an offset one stays");
+
+    const std::vector<std::array<double, 2>> through = inside_stretches(block(), Line::from_points(Point(50, 50, -10), Point(50, 50, 60)));
+    check(through.size() == 1 && std::abs(through[0][0] - 10.0) < 1e-9 && std::abs(through[0][1] - 60.0) < 1e-9, "a line through the block runs inside it from 10 to 60");
+
+    const std::vector<std::array<double, 2>> from_inside = inside_stretches(block(), Line::from_points(Point(50, 50, 25), Point(50, 50, 100)));
+    check(from_inside.size() == 1 && std::abs(from_inside[0][0] + 25.0) < 1e-9 && std::abs(from_inside[0][1] - 25.0) < 1e-9, "a line from inside the block carries the stretch past its own start");
+
+    check(inside_stretches(block(), Line::from_points(Point(150, 50, -10), Point(150, 50, 60))).empty(), "a line beside the block runs inside nothing");
+
+    std::cout << "brep_drill: through, tilted, blind and two holes exact and solid; edge and touching drills fall back; T-vertices of merged neighbours split so every edge is shared; two blind holes meeting one through bore; inside stretches through, from inside and beside" << std::endl;
 
     return 0;
 }

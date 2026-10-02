@@ -22,6 +22,13 @@
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace wood_session {
+
+/// The solid cuts a plate, beam, column, block or connector carries, in its own frame; null for any other element.
+const std::vector<SolidCut>* solid_cuts_of(const session_cpp::Element& element);
+
+}
+
 /// WoodSession::compute_features over loose plates, for callers without a scene: the plates are solved in place with `settings`, the sidecars the config names apply, and every detected joint is returned.
 std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,

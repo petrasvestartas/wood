@@ -55,6 +55,9 @@ std::vector<SolidCut>* get_solid_cuts(Element& element) {
     if (Block* block = dynamic_cast<Block*>(&element))
         return &block->solid_cuts;
 
+    if (JointBeam* connector = dynamic_cast<JointBeam*>(&element))
+        return &connector->solid_cuts;
+
     return nullptr;
 }
 
@@ -72,6 +75,10 @@ bool erase_solid_cut(std::vector<SolidCut>& cuts, const std::string& guid) {
 }
 
 }  // namespace
+
+const std::vector<SolidCut>* solid_cuts_of(const Element& element) {
+    return get_solid_cuts(const_cast<Element&>(element));
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession
@@ -863,7 +870,7 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
 
 static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills, Element& target);
 
-/// A connector's drills for one target: each end keeps the overshoot only where the dowel leaves the target there, tested just beyond the dowel's own end, else stops at the dowel.
+/// A connector's holes in one target: its dowels, each end run on by the overshoot where the dowel leaves the target there, tested just beyond the dowel's own end, so a blind hole stops at its dowel.
 static std::vector<Line> target_drills(const JointBeam& joint, const Element& target) {
 
     if (joint.drill_overshoot <= 0.0)
@@ -872,13 +879,11 @@ static std::vector<Line> target_drills(const JointBeam& joint, const Element& ta
     const Mesh& solid = target.element_geometry_mesh();
     std::vector<Line> drills;
 
-    for (const Line& drill : joint.drill_lines) {
-        const Vector d = drill.to_vector().normalized();
-        const Point start = drill.start() + d * joint.drill_overshoot;
-        const Point end = drill.end() - d * joint.drill_overshoot;
-        const bool blind_start = is_inside(solid, start - d * 1.0);
-        const bool blind_end = is_inside(solid, end + d * 1.0);
-        drills.push_back(Line::from_points(blind_start ? start : drill.start(), blind_end ? end : drill.end()));
+    for (const Line& dowel : joint.drill_lines) {
+        const Vector d = dowel.to_vector().normalized();
+        const bool blind_start = is_inside(solid, dowel.start() - d * 1.0);
+        const bool blind_end = is_inside(solid, dowel.end() + d * 1.0);
+        drills.push_back(Line::from_points(blind_start ? dowel.start() : dowel.start() - d * joint.drill_overshoot, blind_end ? dowel.end() : dowel.end() + d * joint.drill_overshoot));
     }
 
     return drills;
@@ -943,7 +948,7 @@ static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut
     std::vector<SolidCut>* cuts = get_solid_cuts(target);
 
     if (!cuts)
-        throw std::invalid_argument("Solid cutters require a plate, beam, column or block");
+        throw std::invalid_argument("Solid cutters require a plate, beam, column, block or connector");
 
     if ((cut.drills.empty() || cut.mesh.number_of_faces()) && (!cut.mesh.number_of_faces() || !cut.mesh.is_closed()))
         throw std::invalid_argument("Missing closed cutter solid");

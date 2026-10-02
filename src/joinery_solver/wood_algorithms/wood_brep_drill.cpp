@@ -15,7 +15,9 @@ const double CLEARANCE = 1e-6; // an edge must keep the drill radius plus this f
 const double STEEP = 0.2; // a drill crossing a face at a cosine below this is too oblique for a clean ellipse
 const int SAMPLES = 64; // points sampled along a hole loop to find how far it reaches along the axis
 const double VOLUME = 1e-3; // relative volume deviation the exact solid may show against the mesh it replaces
+const double BORE_SLACK = 0.15; // share of the bored volume the coarse check may miss besides, its polygons lying inside the true circles
 const double SQUARE = 1e-9; // a hole loop spanning less than this along its drill is square to it: the bore surface ends exactly on it, which the kernel meshes on its grid
+const double AXIS = 1e-6; // two drills whose radii, directions, axis offsets and span gap all lie within this are one bore
 const double COARSE_ANGLE = 30.0; // degrees between facets of the tessellation the volume check uses
 const double COARSE_CHORD = 0.02; // chord factor of that tessellation
 
@@ -85,8 +87,7 @@ static bool inside(const PlanarFace& face, const Point& point) {
     return true;
 }
 
-/// The shortest distance between two segments.
-static double segment_distance(const Point& p0, const Point& p1, const Point& q0, const Point& q1) {
+double segment_distance(const Point& p0, const Point& p1, const Point& q0, const Point& q1) {
 
     const Vector d1 = p1 - p0;
     const Vector d2 = q1 - q0;
@@ -364,12 +365,9 @@ static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
     return faces;
 }
 
-/// The stretches of one drill inside the solid, from where its axis crosses the faces, clipped to the drill.
-static std::vector<Stretch> compute_stretches(const std::vector<PlanarFace>& faces, const Drill& drill, size_t index) {
+/// Where the line through start along the unit direction d crosses the faces: the parameter along it and the face, sorted along the line.
+static std::vector<std::pair<double, int>> face_crossings(const std::vector<PlanarFace>& faces, const Point& start, const Vector& d) {
 
-    const Point start = drill.axis.start();
-    const Vector d = drill.axis.to_vector().normalized();
-    const double length = drill.axis.length();
     std::vector<std::pair<double, int>> crossings;
 
     for (size_t i = 0; i < faces.size(); i++) {
@@ -385,6 +383,17 @@ static std::vector<Stretch> compute_stretches(const std::vector<PlanarFace>& fac
     }
 
     std::sort(crossings.begin(), crossings.end());
+
+    return crossings;
+}
+
+/// The stretches of one drill inside the solid, from where its axis crosses the faces, clipped to the drill.
+static std::vector<Stretch> compute_stretches(const std::vector<PlanarFace>& faces, const Drill& drill, size_t index) {
+
+    const Point start = drill.axis.start();
+    const Vector d = drill.axis.to_vector().normalized();
+    const double length = drill.axis.length();
+    const std::vector<std::pair<double, int>> crossings = face_crossings(faces, start, d);
     std::vector<Stretch> stretches;
 
     for (size_t i = 0; i + 1 < crossings.size(); i++) {
@@ -432,8 +441,12 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
         if (face >= 0) {
             const double cosine = std::abs(faces[face].normal.dot(d));
 
-            if (cosine < STEEP)
+            if (cosine < STEEP) {
+                if constexpr (TRACE)
+                    std::cout << fmt::format("drill {} crosses face {} too obliquely, cosine {:.3f}", stretch.drill, face, cosine) << std::endl;
+
                 return false;
+            }
 
             margin = std::max(margin, drill.radius / cosine + drill.radius);
         }
@@ -449,8 +462,12 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
 
         for (const std::vector<Point>* loop : loops)
             for (size_t i = 0; i < loop->size(); i++)
-                if (segment_distance(a, b, (*loop)[i], (*loop)[(i + 1) % loop->size()]) < drill.radius + CLEARANCE)
+                if (segment_distance(a, b, (*loop)[i], (*loop)[(i + 1) % loop->size()]) < drill.radius + CLEARANCE) {
+                    if constexpr (TRACE)
+                        std::cout << fmt::format("drill {} within {:.3f} of an edge of a face of {} corners at ({:.1f} {:.1f} {:.1f})", stretch.drill, segment_distance(a, b, (*loop)[i], (*loop)[(i + 1) % loop->size()]), loop->size(), (*loop)[i][0], (*loop)[i][1], (*loop)[i][2]) << std::endl;
+
                     return false;
+                }
     }
 
     for (size_t o = 0; o < stretches.size(); o++) {
@@ -462,8 +479,12 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
         const Point c = other.axis.start() + e * stretches[o].t0;
         const Point f = other.axis.start() + e * stretches[o].t1;
 
-        if (segment_distance(drill.axis.start() + d * stretch.t0, drill.axis.start() + d * stretch.t1, c, f) < drill.radius + other.radius + CLEARANCE)
+        if (segment_distance(drill.axis.start() + d * stretch.t0, drill.axis.start() + d * stretch.t1, c, f) < drill.radius + other.radius + CLEARANCE) {
+            if constexpr (TRACE)
+                std::cout << fmt::format("drill {} within {:.3f} of drill {}", stretch.drill, segment_distance(drill.axis.start() + d * stretch.t0, drill.axis.start() + d * stretch.t1, c, f), stretches[o].drill) << std::endl;
+
             return false;
+        }
     }
 
     return true;
@@ -718,12 +739,62 @@ static double coarse_volume(const BRep& brep) {
 // Drilled BRep
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& drills) {
+/// The two drills as one when they share radius and axis, within AXIS, and their spans along it meet or overlap: the span from the lower start to the higher end along the first's direction.
+static std::optional<Drill> joined(const Drill& a, const Drill& b) {
 
+    if (std::abs(a.radius - b.radius) > AXIS)
+        return std::nullopt;
+
+    const Vector d = a.axis.to_vector().normalized();
+    const Vector e = b.axis.to_vector().normalized();
+
+    if (d.cross(e).magnitude() > AXIS)
+        return std::nullopt;
+
+    const Vector off = b.axis.start() - a.axis.start();
+
+    if ((off - d * off.dot(d)).magnitude() > AXIS)
+        return std::nullopt;
+
+    const double a0 = 0.0;
+    const double a1 = a.axis.length();
+    const double b0 = std::min(off.dot(d), (b.axis.end() - a.axis.start()).dot(d));
+    const double b1 = std::max(off.dot(d), (b.axis.end() - a.axis.start()).dot(d));
+
+    if (b0 > a1 + AXIS || a0 > b1 + AXIS)
+        return std::nullopt;
+
+    return Drill{Line::from_points(a.axis.start() + d * std::min(a0, b0), a.axis.start() + d * std::max(a1, b1)), a.radius};
+}
+
+std::vector<Drill> merged_drills(std::vector<Drill> drills) {
+
+    for (bool merged = true; merged;) {
+        merged = false;
+
+        for (size_t i = 0; i < drills.size() && !merged; i++)
+            for (size_t j = i + 1; j < drills.size() && !merged; j++)
+                if (const std::optional<Drill> one = joined(drills[i], drills[j])) {
+                    drills[i] = *one;
+                    drills.erase(drills.begin() + j);
+                    merged = true;
+                }
+    }
+
+    return drills;
+}
+
+std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& given) {
+
+    const std::vector<Drill> drills = merged_drills(given);
     std::vector<PlanarFace> faces = planar_faces(mesh);
 
-    if (faces.empty())
+    if (faces.empty()) {
+        if constexpr (TRACE)
+            std::cout << "a face is not planar" << std::endl;
+
         return std::nullopt;
+    }
 
     split_sides(faces);
 
@@ -820,8 +891,12 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& dri
     builder.brep.add_solid({{builder.brep.add_shell(shell), BRepOrientation::Forward}});
     const double expected = compute_volume(mesh) - removed;
 
-    if (!builder.brep.is_solid() || std::abs(coarse_volume(builder.brep) - expected) > VOLUME * expected)
+    if (!builder.brep.is_solid() || std::abs(coarse_volume(builder.brep) - expected) > VOLUME * expected + BORE_SLACK * removed) {
+        if constexpr (TRACE)
+            std::cout << fmt::format("built solid {} with volume {:.1f} against {:.1f} expected", builder.brep.is_solid(), coarse_volume(builder.brep), expected) << std::endl;
+
         return std::nullopt;
+    }
 
     if constexpr (TRACE) {
         std::map<int, int> uses;
@@ -837,6 +912,20 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& dri
     }
 
     return builder.brep;
+}
+
+std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line) {
+
+    const std::vector<PlanarFace> faces = planar_faces(mesh);
+    const Vector d = line.to_vector().normalized();
+    const std::vector<std::pair<double, int>> crossings = face_crossings(faces, line.start(), d);
+    std::vector<std::array<double, 2>> stretches;
+
+    for (size_t i = 0; i + 1 < crossings.size(); i++)
+        if (faces[crossings[i].second].normal.dot(d) < 0.0)
+            stretches.push_back({crossings[i].first, crossings[i + 1].first});
+
+    return stretches;
 }
 
 bool is_inside(const Mesh& mesh, const Point& point) {
