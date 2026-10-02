@@ -19,12 +19,15 @@ const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carve
 const double COMPAS_TF_TIED_RIB = 98812970.259836; // the same rib after the seam connector pocket too
 const double COMPAS_TF_TIE = 1570456.693007; // compas_tf OuterRibConnector.obj body, the parametric tie's defaults
 const double COMPAS_TF_HEAD_CUT = 211196000.0 - 176418621.638340; // compas_tf stock less its carved column: what the six head cutters take
+const double MODEL_HEAD_CUT = 34771221.351479; // the same with the model's middle cutter level at the outer rib bottoms, 0.243 mm deeper on the square
 
-/// Throws with the message when the condition fails.
+/// Prints the message and throws with it when the condition fails.
 void check(bool ok, const std::string& message) {
 
-    if (!ok)
+    if (!ok) {
+        std::cerr << "floor_elements FAILED: " << message << std::endl;
         throw std::runtime_error(message);
+    }
 }
 
 /// The beam is closed, has the face count, and encloses the volume of the plate lofted from the same outline.
@@ -116,6 +119,24 @@ double faceted_area(double radius, double chord_tolerance) {
     return 0.5 * n * radius * radius * std::sin(2.0 * M_PI / n);
 }
 
+/// What the six head cutters take from the column with the model's middle cutter level, the outer rib bottoms.
+double model_head_cut() {
+
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    WoodSession scene("model_head");
+    const std::shared_ptr<Support> support = wood_floor::to_support(floor.columns[0]);
+    const std::shared_ptr<Column> column = wood_floor::to_column(floor.columns[0], floor.sizes, *support);
+    scene.add(column);
+    const double stock = compute_volume(column->element_geometry_mesh());
+
+    for (const std::shared_ptr<Joint>& cutter : wood_floor::to_column_cutters(floor.quarter(0), *column)) {
+        scene.add(cutter);
+        scene.add_joint(cutter);
+    }
+
+    return stock - compute_volume(column->model_geometry_mesh());
+}
+
 /// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the screws, the head cutters still removing compas_tf's volume, and every dimension through a round trip.
 void check_support() {
 
@@ -147,6 +168,8 @@ void check_support() {
 
     const double head = stock - removed - compute_volume(column->model_geometry_mesh());
     check(std::abs(head - COMPAS_TF_HEAD_CUT) <= 1e-6 * COMPAS_TF_HEAD_CUT, "head cutters remove " + std::to_string(head));
+    const double model_head = model_head_cut();
+    check(std::abs(model_head - MODEL_HEAD_CUT) <= 1e-6 * MODEL_HEAD_CUT, fmt::format("the model's head cutters remove {:.6f}", model_head));
     check(column->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -154,7 +177,7 @@ void check_support() {
     check(loaded->plane.origin() == support->plane.origin() && loaded->height == support->height && loaded->head_plate_diameter == support->head_plate_diameter, "support round trip");
     check(loaded->screw_count == support->screw_count && loaded->screw_angle == support->screw_angle && loaded->base_plate_hole_spacing == support->base_plate_hole_spacing, "support round trip fasteners");
 
-    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.3f}, round trip pass", compute_volume(base), removed, head) << std::endl;
+    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.3f}, the model's {:.6f}, round trip pass", compute_volume(base), removed, head, model_head) << std::endl;
 }
 
 /// The number of exact bores in a BRep: its rational surfaces.
@@ -662,7 +685,7 @@ std::array<double, 2> central_bed_thickness(const wood_floor::Floor& floor) {
     return range;
 }
 
-/// The model's central layers on the square: every central bed plate exactly tsections thick where compas_tf's layers make it thicker at the column, and the report still holds.
+/// The model's definitions on the square: every central bed plate exactly tsections thick where compas_tf's layers make it thicker at the column, the middle cutter level at the outer rib bottoms, and the report still holds.
 void check_section_layers() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
@@ -670,7 +693,11 @@ void check_section_layers() {
     const std::array<double, 2> compas = central_bed_thickness(square_floor());
 
     check(floor.layers == wood_floor::CentralLayers::section, "the model's central layers are the default");
-    check(floor.check().ok(1e-6), "the square's report holds with the model's layers");
+    const wood_floor::FloorReport report = floor.check();
+    check(report.ok(1e-6), "the square's report holds with the model's layers");
+
+    for (size_t q = 0; q < 4; q++)
+        check(std::abs(report.rib_bottom_clearance_mm[q][0]) <= 1e-9 && std::abs(report.rib_bottom_clearance_mm[q][1]) <= 1e-9, fmt::format("the model's middle cutter level at quarter {}'s outer rib bottoms", q));
     check(std::abs(section[0] - floor.sizes.tsections) <= 1e-9 && std::abs(section[1] - floor.sizes.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", floor.sizes.tsections, section[0], section[1]));
     check(compas[1] > floor.sizes.tsections + 0.3, fmt::format("compas_tf's central bed thicker at the column, {:.3f}", compas[1]));
 

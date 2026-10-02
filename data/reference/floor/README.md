@@ -60,16 +60,19 @@ numbered in that search order, so `connector_wedge_2` is the seam between quarte
 
 ## The model's own baseline (plan step 7)
 
-The model departs from compas_tf by decision in one place on the square: the central panel's
+The model departs from compas_tf by decision in two places on the square: the central panel's
 +t / +2t layers are offsets in the panel's own cross-section (`CentralLayers::section`, exactly
 `tsections` thick on every plan) instead of compas_tf's offsets made in the outer rib's plane and
-swept (`docs/floor_parametric_model.md` 4.4). The examples build the model by default; run them with
+swept (`docs/floor_parametric_model.md` 4.4, step 7a); and the middle column cutter level is the
+deeper of the corner's two outer rib bottoms on their fan planes (`CutterLevel::rib_bottom`,
+-694.793 on the square) instead of compas_tf's -(height + 1.65 tsections) = -694.55 (R8, step 7b). The examples build the model by default; run them with
 `--compas` for compas_tf's parity mode (`Floor::compas_parity`), which the gates above read.
 
 | file | records | what | wood dump it is compared with |
 |---|---|---|---|
 | `model_floorguide.txt` | 193 | example 1 with the model's definitions | `templates_floor_1_floorguide` (no argument) |
 | `model_models.txt` | 145 | examples 4 + 5 with the model's definitions | `templates_floor_4_quarters` + `templates_floor_5_oculus` (no argument) |
+| `model_contacts_cantilevers.txt` | 21 | example 8 with the model's definitions: every column contact the full rib end face, 70238.714887 mm2, and the carved columns | `templates_floor_8_contacts_cantilevers` (no argument) |
 
 Gate G1b: the model's dump against `reference_floorguide.txt` fails in the central row only, bed row 1
 (`beds/6..11`), flanges 2b / 3a (`tsections/2`, `tsections/3`), `bed_top_planes/1` and
@@ -81,4 +84,10 @@ and it matches `model_floorguide.txt` within 1e-6:
     python3 tools/compare_dumps.py data/reference/floor/model_models.txt data/output/pb/floor_4_5_models.txt 1e-6 --relative 1e-9
 
 In examples 4 + 5 the same members change volume (beds_1_*, tsections_2/3_*, wedges_inner_beams_1_*,
-36 records); examples 6 and 8 do not read the central row and are unchanged.
+36 records); examples 6 and 8 do not read the central row.
+
+The cutter level moves the twelve `column_cutters/*` records of example 1 by 0.243 mm at the level
+(at most 0.741 mm on the narrowed bottom chamfer cutter), the eight column contacts of example 8 from
+70214.105060 to the full 70238.714887 mm2 (origins and axes unchanged), the head cut from
+34777378.362 to 34771221.351 mm3 (`tests/floor_elements.cpp` pins both, the carved column of example 2
+176866956.468 -> 176873113.478 mm3) and nothing else.

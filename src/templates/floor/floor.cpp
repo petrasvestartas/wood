@@ -127,17 +127,8 @@ static std::array<Vector, 2> corner_frame(const FloorPlan& plan, size_t k) {
     return {bisector.transformed(to_x), bisector.transformed(to_y)};
 }
 
-/// The middle column cutter level by the rule: compas_tf's height plus 1.65 tsections below the datum.
-static double middle_level(const FloorSizes& sizes, CutterLevel level) {
-
-    if (level == CutterLevel::compas_factor)
-        return -sizes.height - sizes.tsections * MIDDLE_CUTTER_FACTOR;
-
-    throw std::invalid_argument("unknown cutter level");
-}
-
 /// Column corner k before its fan: frame, head polygon, chamfer direction, the head's boundary sides, levels, axis and support plane.
-static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSizes& sizes, CutterLevel level) {
+static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSizes& sizes) {
 
     ColumnCorner column;
     column.corner = plan.corners[k];
@@ -152,7 +143,7 @@ static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSi
     column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
     column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
     column.sides = {edge_plane(edge(column.head, 0), down()), edge_plane(edge(column.head, 4), down())};
-    column.levels = {0.0, middle_level(sizes, level), -sizes.column_head_depth};
+    column.levels = {0.0, -sizes.height - sizes.tsections * MIDDLE_CUTTER_FACTOR, -sizes.column_head_depth};
     column.axis_point = column.corner + (x + y) * (head * 0.5);
     column.support_plane = Plane::from_frame(column.axis_point, x, y, up());
     column.axis = Line::from_points(column.axis_point, column.axis_point + up() * sizes.bay_height);
@@ -327,6 +318,17 @@ static void compute_quarter(Floor& floor, size_t q) {
     geometry.bed_top_planes = bed_top_planes(geometry.planes, geometry.parabolas, geometry.central_panel);
 }
 
+/// The middle cutter level of the quarter's column by the rib-bottom rule: the deeper of its two outer ribs' bottom corners on their fan planes, on either face.
+static double rib_bottom_level(const Quarter& quarter) {
+
+    double level = 0.0;
+
+    for (const Outline& rib : quarter.outer_ribs())
+        level = std::min({level, rib.top.get_point(2)[2], rib.bottom.get_point(2)[2]});
+
+    return level;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
@@ -356,13 +358,17 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, Central
         edges[q] = bay_edge(plan, q, sizes);
         seams[q] = seam(plan, q, centre, oculus_corners[q], sizes);
         oculus_edges[q] = oculus_edge(oculus_corners[q], oculus_corners[(q + 3) % 4], sizes);
-        columns[q] = column_corner(plan, q, sizes, cutter_level);
+        columns[q] = column_corner(plan, q, sizes);
     }
 
     for (size_t q = 0; q < 4; q++) {
         geometry[q].polygon = {plan.corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint};
         compute_quarter(*this, q);
     }
+
+    if (cutter_level == CutterLevel::rib_bottom)
+        for (size_t q = 0; q < 4; q++)
+            columns[q].levels[1] = rib_bottom_level(quarter(q));
 }
 
 Floor Floor::compas_parity(const FloorPlan& plan, const FloorSizes& sizes) {

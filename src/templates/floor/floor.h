@@ -62,8 +62,8 @@ enum class OculusRule { square_diamond, compas, explicit_distances };
 /// How the central panel's +t and +2t layers are made: offsets in the panel's own cross-section (the model: exactly tsections on every plan), or compas_tf's offsets in the outer rib's plane swept along the panel (the parity mode of the square gates).
 enum class CentralLayers { section, compas };
 
-/// The middle column cutter level: compas_tf's -(height + 1.65 tsections) is the only mode until the rib-bottom level arrives.
-enum class CutterLevel { compas_factor };
+/// The middle column cutter level: the deeper of the corner's two outer rib bottoms at their fan planes (the model: the carved band reaches both ribs on every plan), or compas_tf's -(height + 1.65 tsections) (the parity mode, R8).
+enum class CutterLevel { rib_bottom, compas_factor };
 
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
 struct FloorPlan {
@@ -143,7 +143,7 @@ struct ColumnCorner {
     session_cpp::Vector chamfer_direction; // Unit head[3] - head[2].
     std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan; // Side 0, the tilted chamfer and side 1 with their far faces.
     std::array<session_cpp::Plane, 2> sides; // The head edges on the bay boundary, normal into the bay.
-    std::array<double, 3> levels; // The cutter levels: the datum, the middle level and minus column_head_depth.
+    std::array<double, 3> levels; // The cutter levels: the datum, the middle level by the floor's CutterLevel and minus column_head_depth.
     session_cpp::Point axis_point; // The column axis at the datum, half a column head along both axes from the corner.
     session_cpp::Plane support_plane; // The support frame at the axis point on the slab.
     session_cpp::Line axis; // From the axis point up by bay_height.
@@ -254,7 +254,7 @@ struct Floor {
     FloorPlan plan; // The four corners and the oculus.
     FloorSizes sizes; // Everything that does not change with the plan.
     CentralLayers layers = CentralLayers::section; // How the central panel's layers are made.
-    CutterLevel cutter_level = CutterLevel::compas_factor; // How the middle column cutter level is set.
+    CutterLevel cutter_level = CutterLevel::rib_bottom; // How the middle column cutter level is set.
     session_cpp::Point centre; // The plan's centre.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
@@ -264,7 +264,7 @@ struct Floor {
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
 
     /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::compas_factor);
+    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::rib_bottom);
 
     /// The floor in compas_tf's parity mode, the definitions the compas_tf reference dumps were made with: its central layers and its cutter level.
     static Floor compas_parity(const FloorPlan& plan, const FloorSizes& sizes);
