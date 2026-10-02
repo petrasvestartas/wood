@@ -13,6 +13,7 @@ Generators under `src/templates/`, one folder per family (`grid/`, `reciprocal/`
 | Reciprocal rotation | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_rotation` | one beam plate per mesh edge, rotated about its midpoint |
 | Lamella gridshell | `shells/lamella_gridshell.h` | `templates_gridshell` | two upright boards per lamella on iso or asymptotic curves, in two layers, a hexagonal stud at every crossing |
 | Grid | `grid/grid.h` | `1_elements_*`, `templates_grid_{footprint,solid,lines,reference,framing}` | columns, heads, girders, beams, purlins, braces, decks and walls of a multistorey building |
+| Floor | `floor/floor.h` | `templates_floor_{1..6,8,9}_*` | the vaulted timber floor bay of compas_tf: outer and inner ribs, seam and oculus beams, wedge blocks, t-sections, beds, the oculus ring, columns on supports and their connectors |
 
 ## translation_shell
 
@@ -175,3 +176,34 @@ The joints and sections, fifteen bays side by side: heads that are the column se
 ![templates_grid_framing](templates/templates_grid_framing.png)
 
 \include{lineno} templates_grid_framing.cpp
+
+## floor
+
+`src/templates/floor/floor.h` is the timber vaulted floor bay of compas_tf (`compas_tf/floor_guide.py` and its `example_model_*` scripts) as a parametric model, designed in `docs/floor_parametric_model.md`. A `wood_floor::Floor` is a `FloorPlan` (four bay corners counter-clockwise at the floor datum and the oculus) plus `FloorSizes` (every thickness, offset, depth, angle and the column, fixed when the plan changes; the defaults are compas_tf's example set, 220 / 120 / 240):
+
+```cpp
+const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
+wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, group);
+wood_floor::add_columns(session, floor, columns_group, members);
+wood_floor::add_connectors(session, floor, members, connectors_group);
+std::cout << floor.check().str() << std::endl;
+```
+
+The constructor computes every shared entity once (the bay edges with their rib bands, the four seams, the oculus corners and edges, the four column corners with their carved fans and cutter levels) and every quarter's geometry once; `floor.quarter(q)` is a view that only builds that quarter's member outlines, in place at its own corner, so a rectangle is the mirror tiling of compas_tf's quarter and the square is exactly compas_tf's turned quarter. The ring is built from the four quarters' own oculus edges. `FloorPlan::valid` refuses a plan whose ring would leave a quarter's oculus beam uncovered.
+
+Three rules generalise what compas_tf's square left implicit: rule A for the central panel (the inner ribs swept along one direction solved so the central bed is one planar-faced cylinder between them; on the square it is compas_tf's chamfer direction), rib end faces cut in their end planes on each rib face, and the central panel's layers as offsets in its own cross-section (`CentralLayers::section`, exactly `tsections` thick on every plan). The middle column cutter level reaches the deeper outer rib bottom (`CutterLevel::rib_bottom`). `Floor::compas_parity` keeps compas_tf's layers and cutter level for the parity gates; every floor example takes `--compas` for it.
+
+Connectors come from `relationships(floor)`, 76 rows (4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps, 4 ties, 24 block dowel sets, 4 supports, 24 cutters) with their contact polygons read off the members' outlines on the shared planes; `add_connectors` makes one `JointBeam` per row through the factories, `verify_contacts` checks every one against the kernel's contact search, `require_contact` throws naming a relation that does not touch. `Floor::check()` returns a `FloorReport` of the relations compas_tf relied on silently (seam and oculus identities, rule A's closure and shear, end-face planarity, beds on flanges, rib bottoms against the cutter level, wedge seats, column offsets, the ring's overlap and coverage).
+
+| Example | What it builds |
+|---|---|
+| `templates_floor_1_floorguide` | quarter 0's planes, quads, parabolas and member outlines, the dump compared with compas_tf |
+| `templates_floor_2_column_model` | one column on its Sherpa support, carved by its six head cutters |
+| `templates_floor_3_columns_model` | the four columns at the bay corners |
+| `templates_floor_4_quarters` | the four quarters in place |
+| `templates_floor_5_oculus` | the oculus ring, its bottom wedges and plate |
+| `templates_floor_6_contacts_floor` | the quarters, the ring and the eight wedge connectors |
+| `templates_floor_8_contacts_cantilevers` | the whole square bay with columns and every connector, BReps with exact bores |
+| `templates_floor_9_rectangle` | the 6000 x 4800 bay, every connector, BReps and the report; `--compas` writes every quarter for the per-view parity with compas_tf |
+
+The compas_tf references and the gates that read them are in `data/reference/floor/README.md`.

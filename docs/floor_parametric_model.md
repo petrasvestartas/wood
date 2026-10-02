@@ -1174,3 +1174,53 @@ the origin, ring -197 .. -170, plate -170 .. -143. Contacts: seam wedges 376700.
 wedges 242696.248126, column plates 70214.105060, ties 19700, rib / block 146247.3 / 186221.6 /
 177024.3 mm2. Wedge connectors 1698.754410 (5 dowels) / 1038.771407 (3), thickness 67.081863 /
 68.578843. Tie key 1570456.693007. Head cut 211196000.0 - 176418621.638340.
+
+---------------------------------------------------------------------------------------------------
+
+## Implemented
+
+Branch `floor-model`, one commit per step, every gate of section 9 run under `tools/run_guarded.sh`
+against the step-0 baseline (examples 1, 2, 4, 5, 6, 8 and the four tests built at `0d123ce`) and the
+compas_tf references in `data/reference/floor/`.
+
+* Step 0, `0d123ce`: the references and `tools/compare_dumps.py` in the repository (open question 8).
+* Step 1, `3a61a0f`: `FloorSizes` (220 / 120 / 240, question 11); every dump byte-identical.
+* Step 2, `a4b0f86`: `Floor`, `FloorPlan`, the shared entities, `geometry[q]`, the `Quarter` view,
+  quarters in place; G1 byte-identical, G2, G3.
+* Step 3, `1df0b60`: the ring from the four oculus edges; G1 byte-identical without `oculus/*`, those
+  at 1e-9; G2, G4.
+* Step 4, `5a3bfda`: columns per `ColumnCorner`; G3, G5.
+* Step 5, `e448bd7`: `relationships()` (76 rows), `add_connectors`, `verify_contacts` (44 / 44),
+  `require_contact`; G4-G7. Deviation: the wedge dowels are numbered along the contact as compas_tf
+  numbers them, so `connector_wedge_k_cylinder_j` is the step-0 `_cylinder_{n-1-j}` (the same set).
+* Step 6, `249591d`: rule A (`CentralPanel`: the shared rib sweep r found by a scan and bisection of
+  the closure nearest n0 - n1, the ruling u from the start chord; on the square r = u = c, 10.704 deg
+  oblique, 11.342 mm shear, closure 3.1e-12), per-face rib end outlines (R4: the far face's end
+  corners on the end planes along the first and last facet, `to_rib` reading them), beds and bed
+  planes projected first and cut on each face, `CutterLevel` with `compas_factor`, `Floor::check()` /
+  `FloorReport` printed by every example; G1 0 failing and equal to step 0 at every printed digit,
+  G2-G7, report ok. Deviations: `CentralPanel` stores the six central traces (soffit, +t, +2t on both
+  central faces) and the informational `layer_shift` instead of the cross-section polylines; a bed row
+  whose layers are cut on different facets on its two faces throws instead of being built (never on
+  the square or the rectangle); `bed_flange_coincidence_mm` measures every bed underside corner
+  against the top loop of the flange beside it; `central_layer_shift_vs_compas_mm` is the same-index
+  vertex shift the design names, which on a rectangle is dominated by the stations sliding along the
+  layer (40-73 mm on 3000 x 2400), not a distance between the layers.
+* Step 7a, `a9092e6`: `CentralLayers::section` the default (question 1), `Floor::compas_parity` and
+  `--compas` on every example for the parity gates; G1b: against compas_tf only bed row 1, flanges
+  2b / 3a, `bed_top_planes/1` and `wedges_inner_beams/1` move, at most 2.666 mm (+t) and 5.332 mm
+  (+2t) at the trimmed vertices; central beds 27.000000000 thick (compas_tf's 27.003 .. 27.390);
+  re-baselined in `model_floorguide.txt` and `model_models.txt`.
+* Step 7b, `cc760d6`: `CutterLevel::rib_bottom` the default (question 4), -694.793 on the square;
+  the cutters move 0.243 mm at the level, the column contacts become the full 70238.714887 mm2, the
+  model's head cut 34771221.351479 pinned beside compas_tf's 34777378.362; `model_contacts_cantilevers.txt`.
+* Step 8, `c3084b4`: `templates_floor_9_rectangle`; G8 R1 141 records at 0 deviation in all four views
+  against `FloorGuide(3000, 2400)` / `(2400, 3000)` (`oculus_points` left out too: compas_tf lists the
+  four corners from its own quarter 0); R2 the probes' areas; R3 end faces 5.1e-13 mm, beds on flanges 0,
+  every member face planar within 4.5e-11 mm, rule A 2.647 deg / 13.640 / 37.681 deg; R4 ring overlap
+  1.1e-11 mm2, uncovered 0; R5 48 of 48 connectors, 44 of 44 contacts, 0 faceted, 384 of 384 bores
+  exact. No kernel change (question 10 not needed). The bounding box and the column positions hold by
+  construction (corner frames and axis points) and are not measured separately.
+* Step 9 (trapezoid) skipped by decision (question 6).
+* Step 10: the example descriptions, the floor section of `docs/templates.md`, this note;
+  `docs/floor_model_report.md` lists the numbers per step.

@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 6 of the timber floor, port of compas_tf example_model_6_contacts_floor: the four quarters and the oculus, then a wedge joint on every long-face contact among the inner beams and the four oculus boundary beams: the triangular wedge along the contact's top edge, its horizontal dowels, and in each beam a box pocket under the wedge face on its side plus the dowel holes. DUMP writes the carved ring beams, every wedge and its dowels, compared against compas_tf.
+Step 6 of the timber floor, port of compas_tf example_model_6_contacts_floor: the four quarters and the oculus, then a wedge joint on each of the floor's seam and oculus relationships, the contact polygon read from the members' outlines on their shared plane and checked against the kernel's contact search: the triangular wedge along the contact's top edge, its horizontal dowels, and in each beam a box pocket under the wedge face on its side plus the dowel holes. Prints the floor's report; DUMP writes the contact records, the carved ring beams, every wedge and its dowels, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

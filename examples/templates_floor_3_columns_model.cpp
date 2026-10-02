@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber floor, port of compas_tf example_model_3_columns_model: the column model of step 2, its support, the support joint and the carved column head, placed at the four grid corners by quarter turns about the bay centre, one group per column with its index on every name. Prints the carved volume of each column, the four the same.
+Step 3 of the timber floor, port of compas_tf example_model_3_columns_model: the column model of step 2 built in place at each of the four bay corners from that corner's frame and its quarter's cutters, no rotation applied, one group per column with its index on every name. Prints the floor's report and the carved volume of each column, the four the same on the square.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the timber floor, port of compas_tf example_model_2_column_model: the support of one quarter, the Sherpa Power Base L 140 C built from its datasheet dimensions, and the column standing on it, a 220 square from the support's column foot (the head plate top at 150 less the 12 the head plate is let into the column end) to the floor at 3500, its outer corner on the grid corner, with the head 120 wider on the two bay sides over the top 730 built into the same solid. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of the guide, lifted to the floor, carve the head. Prints the volumes of the support, the stock and the carved column, the figures compared against compas_tf.
+Step 2 of the timber floor, port of compas_tf example_model_2_column_model: the support of corner 0, the Sherpa Power Base L 140 C built from its datasheet dimensions, and the column standing on it, a 220 square in the corner frame from the support's column foot (the head plate top at 150 less the 12 the head plate is let into the column end) to the floor at 3500, its outer corner on the bay corner, with the head 120 wider on the two bay sides over the top 730 built into the same solid. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0, lifted to the floor, carve the head, their middle level at the outer rib bottoms (compas_tf's 1.65 tsections level with --compas). Prints the floor's report and the volumes of the support, the stock and the carved column.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

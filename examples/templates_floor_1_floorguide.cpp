@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the timber floor, port of compas_tf example_model_1_floorguide: the FloorGuide of one quarter bay with the same parameters, its plan polygons (quarter, column head, oculus points), the plan quad of every member at the floor datum and the four rib parabolas with their two t-section offsets. DUMP writes every construction plane, quad, parabola and member outline to floor_1_floorguide.txt in the format of the compas_tf reference dump, the record the C++ port is compared against coordinate by coordinate.
+Step 1 of the timber floor, port of compas_tf example_model_1_floorguide: the square bay Floor(FloorPlan::rectangle(3000, 3000), FloorSizes{}) and quarter 0 of it, its plan polygons (quarter, column head, oculus corners), the plan quad of every member at the floor datum and the four rib parabolas with their two t-section offsets; prints the floor's report. DUMP writes every construction plane, quad, parabola and member outline of quarter 0 to floor_1_floorguide.txt in the format of the compas_tf reference dump: with --compas (Floor::compas_parity) it equals compas_tf's coordinate by coordinate, without it the model's central layers and cutter level move the central row and the cutters as data/reference/floor/README.md records.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

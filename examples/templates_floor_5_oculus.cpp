@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the timber floor, port of compas_tf example_model_5_oculus: the oculus of the bay from the FloorGuide lifted to the floor at 3500, its four boundary beams as variable beams, the four bottom wedges and the inner plate as plates. DUMP writes name, volume and box centre of every element, compared against compas_tf.
+Step 5 of the timber floor, port of compas_tf example_model_5_oculus: the oculus ring built from the four quarters' own oculus edges, each ring beam between its edge's tilted bearing plane and the ring's inner plane, from the previous beam's inner plane to the next beam's tilted plane (compas_tf's pinwheel), lifted to the floor at 3500: the four ring beams as variable beams, the four bottom wedges and the inner plate as plates. Prints the floor's report; DUMP writes name, volume and box centre of every element, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 4 of the timber floor, port of compas_tf example_model_4_quarters: one quarter of the bay from the FloorGuide, lifted to the floor at 3500, in the groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams, placed four times by quarter turns about the bay centre with the quarter index on every name. Ribs and inner beams are variable beams, every other member a plate. DUMP writes name, volume and box centre of every element, compared against compas_tf.
+Step 4 of the timber floor, port of compas_tf example_model_4_quarters: the four quarters of the bay, each built in place at its corner from the floor's shared planes and lifted to the floor at 3500, in the groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams with the quarter index on every name. Ribs and inner beams are variable beams, every other member a plate. Prints the floor's report; DUMP writes name, volume and box centre of every element, compared against compas_tf with --compas.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
