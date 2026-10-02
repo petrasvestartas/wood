@@ -261,7 +261,7 @@ void check_wedges() {
     std::cout << "floor_elements: " << wedges.size() << " wedges, visible, dowels flush and exact, joints and carved beams through a round trip, every dowel bore exact in the BReps, pass" << std::endl;
 }
 
-/// The dowels factory on two plates face to face: four Ø10 dowels 30 long at the corners of the 600 x 200 contact inset by 50, 15 deep into both 60 plates, cut as exact bores into both, through a round trip.
+/// The dowels factory on two plates face to face: four Ø8 dowels 30 long at the corners of the 600 x 200 contact inset by 50, 15 deep into both 60 plates, cut as exact bores into both, through a round trip.
 void check_dowels() {
 
     WoodSession scene("dowels");
@@ -314,7 +314,7 @@ void check_quarter_dowels() {
     std::vector<std::string> misfits;
     double minimum_distance = 0.0;
     size_t through_bores = 0;
-    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, GUIDE, nullptr, 5.0, 30.0, 50.0, 20.0, &misfits, &minimum_distance, &through_bores);
+    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, GUIDE, nullptr, 4.0, 30.0, 50.0, 20.0, &misfits, &minimum_distance, &through_bores);
     size_t blocks = 0;
     size_t dowels = 0;
 

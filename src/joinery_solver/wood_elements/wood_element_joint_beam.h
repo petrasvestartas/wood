@@ -76,7 +76,7 @@ public:
         const session_cpp::Element& a,
         const session_cpp::Element& b,
         const InteractionContactFace& contact,
-        double radius = 5.0,
+        double radius = 4.0,
         double length = 30.0,
         double offset = 50.0,
         double overshoot = 10.0,
