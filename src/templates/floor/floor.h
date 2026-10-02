@@ -246,11 +246,11 @@ std::shared_ptr<wood_session::BeamVariable> to_beam(const Outline& outline, cons
 /// A member outline as a plate, bottom then top.
 std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std::string& name);
 
-/// The support of the column at corner 0, port of compas_tf SupportElement, on the slab at z 0 under the column axis.
-std::shared_ptr<wood_session::Support> to_support(const Floor& floor);
+/// The support of a column corner, port of compas_tf SupportElement, on the slab at z 0 under the column axis in the corner frame.
+std::shared_ptr<wood_session::Support> to_support(const ColumnCorner& corner);
 
-/// The column at corner 0, port of compas_tf ColumnElement, from the support's column foot to the floor with its wider head over the column head depth.
-std::shared_ptr<wood_session::Column> to_column(const Floor& floor, const wood_session::Support& support);
+/// The column of a corner, port of compas_tf ColumnElement: the square shaft in the corner frame from the support's column foot to the floor, with its head a chamfer wider along both axes over the column head depth.
+std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorSizes& sizes, const wood_session::Support& support);
 
 /// The quarter's column cutters lifted to the floor, one solid difference cutter each aimed at the column.
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const Quarter& quarter, const wood_session::Column& column);
@@ -281,8 +281,8 @@ struct QuarterMembers {
 /// A group named name under parent, at the root when parent is empty.
 std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
-/// The column model of compas_tf example_model_2 at corner 0 moved by placement, every name ending in suffix; returns the column.
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, const session_cpp::Xform& placement, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
+/// The column model of compas_tf example_model_2 built in place at a corner: support, column, support joint and the quarter's six cutters, every name ending in the corner index; returns the column.
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
 
 /// The quarter model of compas_tf example_model_4 built in place and lifted to bay_height, grouped by family, every name ending in the quarter's index.
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& quarter, const std::shared_ptr<session_cpp::TreeNode>& group);

@@ -80,7 +80,7 @@ void add_models(WoodSession& session, const wood_floor::Floor& floor_model, cons
     for (size_t q = 0; q < 4; q++) {
         const std::string suffix = fmt::format("_{}", q);
         quarters.push_back(wood_floor::add_quarter_model(session, floor_model.quarter(q), wood_floor::add_group(session, "quarter_model" + suffix, quarter_group)));
-        columns.push_back(wood_floor::add_column_model(session, floor_model, Xform::rotation_z(q * 90.0, true), wood_floor::add_group(session, "column_model" + suffix, column_group), suffix));
+        columns.push_back(wood_floor::add_column_model(session, floor_model, q, wood_floor::add_group(session, "column_model" + suffix, column_group)));
         ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
     }
 

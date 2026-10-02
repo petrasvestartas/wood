@@ -40,12 +40,18 @@ static std::vector<Member> to_members(Family family, const std::vector<Outline>&
     return members;
 }
 
-/// Places an element, names it and adds it under the group.
-static void add_placed(wood_session::WoodSession& session, const std::shared_ptr<Element>& element, const Xform& placement, const std::string& name, const std::shared_ptr<TreeNode>& group) {
+/// Names an element and adds it under the group.
+static void add_named(wood_session::WoodSession& session, const std::shared_ptr<Element>& element, const std::string& name, const std::shared_ptr<TreeNode>& group) {
 
-    element->place(placement);
     element->name = name;
     session.add(element, group);
+}
+
+/// Lifts an element to the floor, names it and adds it under the group.
+static void add_placed(wood_session::WoodSession& session, const std::shared_ptr<Element>& element, const Xform& lift, const std::string& name, const std::shared_ptr<TreeNode>& group) {
+
+    element->place(lift);
+    add_named(session, element, name, group);
 }
 
 /// Places the members under a new group <prefix><suffix>, each named <prefix>_<i><suffix>.
@@ -93,19 +99,19 @@ std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const st
     return node;
 }
 
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<TreeNode>& group) {
 
-    const std::shared_ptr<wood_session::Support> support = to_support(floor);
-    const std::shared_ptr<wood_session::Column> column = to_column(floor, *support);
-    add_placed(session, support, placement, "support" + suffix, group);
-    add_placed(session, column, placement, "column" + suffix, group);
+    const std::string suffix = fmt::format("_{}", corner % 4);
+    const std::shared_ptr<wood_session::Support> support = to_support(floor.columns[corner % 4]);
+    const std::shared_ptr<wood_session::Column> column = to_column(floor.columns[corner % 4], floor.sizes, *support);
+    add_named(session, support, "support" + suffix, group);
+    add_named(session, column, "column" + suffix, group);
 
     const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*support, *column);
     session.add(joint, group);
     session.add_joint(joint);
 
-    for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(floor.quarter(0), *column)) {
-        cutter->place(placement);
+    for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(floor.quarter(corner), *column)) {
         session.add(cutter, group);
         session.add_joint(cutter);
     }

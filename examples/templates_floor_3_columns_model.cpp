@@ -11,10 +11,9 @@ int main() {
     WoodSession session("templates_floor_3_columns_model");
     const std::shared_ptr<TreeNode> root = session.add_group("columns_model");
 
-    for (int i = 0; i < 4; i++) {
-        const std::string suffix = fmt::format("_{}", i);
-        const std::shared_ptr<TreeNode> group = wood_floor::add_group(session, "column_model" + suffix, root);
-        const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, Xform::rotation_z(i * 90.0, true), group, suffix);
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<TreeNode> group = wood_floor::add_group(session, fmt::format("column_model_{}", q), root);
+        const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, q, group);
         std::cout << fmt::format("{} carved volume {:.3f} closed {}", column->name, compute_volume(column->model_geometry_mesh()), column->model_geometry_mesh().is_closed()) << std::endl;
     }
 

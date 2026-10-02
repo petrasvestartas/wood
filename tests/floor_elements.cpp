@@ -120,8 +120,8 @@ double faceted_area(double radius, double chord_tolerance) {
 void check_support() {
 
     WoodSession scene("support");
-    const std::shared_ptr<Support> support = wood_floor::to_support(square_floor());
-    const std::shared_ptr<Column> column = wood_floor::to_column(square_floor(), *support);
+    const std::shared_ptr<Support> support = wood_floor::to_support(square_floor().columns[0]);
+    const std::shared_ptr<Column> column = wood_floor::to_column(square_floor().columns[0], square_floor().sizes, *support);
     scene.add(support);
     scene.add(column);
 
@@ -498,8 +498,8 @@ void check_rectangle_plates() {
     const std::vector<wood_floor::QuarterMembers> quarters = add_quarters(scene, ring);
     std::vector<std::shared_ptr<Column>> columns;
 
-    for (int i = 0; i < 4; i++)
-        columns.push_back(wood_floor::add_column_model(scene, square_floor(), Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
+    for (size_t q = 0; q < 4; q++)
+        columns.push_back(wood_floor::add_column_model(scene, square_floor(), q, nullptr));
 
     const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
     const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(scene, columns, ribs, nullptr);

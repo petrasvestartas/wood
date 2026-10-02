@@ -13,7 +13,7 @@ int main() {
     const std::shared_ptr<TreeNode> group = session.add_group("column_model");
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, Xform(), group, "");
+    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, 0, group);
     const std::shared_ptr<Support> support = session.supports().front();
 
     const Mesh& base = support->element_geometry_mesh();
