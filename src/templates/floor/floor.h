@@ -35,31 +35,37 @@ struct Outline {
 // Floor guide
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The sizes that do not change with the plan: thicknesses, offsets, depths, angles, the column and storey dimensions and compas_tf's middle wedge factor; the defaults are the example set of compas_tf example_model_1.
+struct FloorSizes {
+    double column_head = 220.0; // Side of the square column shaft and of the head polygon at the corner.
+    double column_head_chamfer = 120.0; // Where the chamfer vertices sit on the shaft faces; also the capitel width.
+    double outer_ribs = 100.0; // Outer rib thickness.
+    double inner_ribs = 60.0; // Inner rib thickness.
+    double inner_beams = 60.0; // Seam and oculus beam thickness; also the ring beam width at the datum.
+    double wedge = 240.0; // Side wedge block thickness; the middle block is middle_wedge_factor times it.
+    double tsections = 27.0; // Flange plane offset and bed layer thickness.
+    double height = 650.0; // Rib depth where the parabola starts, a wedge thickness past the column face.
+    double rise = 453.0; // Parabola rise from there to the seam.
+    double wedge_plane_angle = -10.0; // Degrees the chamfer fan plane leans about its top edge.
+    double oculus_plane_angle = 5.0; // Degrees the oculus bearing plane leans about its top edge.
+    double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
+    double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
+    double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses, compas_tf floor_guide.py:314.
+
+    /// Depth at every seam and at the oculus: height minus rise.
+    double static_h() const;
+};
+
 /// The parametric source of one quarter of a timber floor bay, port of compas_tf FloorGuide, every member as an outline pair at the floor datum z 0.
 struct FloorGuide {
     double size_grid_x = 3000.0; // Half the bay in x: the column corner sits at -size_grid_x.
     double size_grid_y = 3000.0; // Half the bay in y.
-    double size_column_head = 250.0; // Side of the column head polygon at the corner.
-    double size_column_head_chamfer = 100.0; // Chamfer of that polygon on the bay side.
-    double size_outer_ribs = 100.0; // Outer rib thickness.
-    double size_inner_ribs = 60.0; // Inner rib thickness.
-    double size_inner_beams = 60.0; // Inner beam thickness.
-    double size_wedge = 100.0; // Wedge thickness around the column head.
-    double size_tsections = 27.0; // T-section and bed thickness.
-    double height = 650.0; // Floor depth at the column.
-    double rise = 453.0; // Rise of the rib parabola from the column to the edge midpoint.
     double size_oculus = 1000.0; // Half diagonal of the oculus.
-    double wedge_plane_angle = -10.0; // Degrees the middle wedge plane leans about its top edge.
-    double bay_height = 3500.0; // Storey height, column plus support, the floor is lifted by.
-    double column_head_depth = 730.0; // How far below the floor datum the column head cutters reach.
-    double oculus_plane_angle = 5.0; // Degrees the oculus inner beam plane leans about its top edge.
+    FloorSizes sizes; // Everything that does not change with the plan.
 
     // ═══════════════════════════════════════════════════════════════════════
     // Plan
     // ═══════════════════════════════════════════════════════════════════════
-
-    /// Depth of the floor at the edge midpoints: height minus rise.
-    double static_h() const;
 
     /// Column base centre in plan for a column of that side: the grid corner inset by half of it.
     session_cpp::Point corner_point_column(double column_size = 200.0) const;

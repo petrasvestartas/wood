@@ -74,7 +74,7 @@ std::vector<Outline> FloorGuide::inner_beams() const {
 
     const ConstructionPlanes cp = construction_planes();
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-static_h());
+    const Plane side1 = level(-sizes.static_h());
 
     return {
         loft_planes({cp.outer_ribs[0][1], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
@@ -228,9 +228,9 @@ std::vector<Outline> FloorGuide::oculus() const {
 
     const ConstructionPlanes cp = construction_planes();
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-static_h() + size_tsections);
-    const Plane side2 = level(-static_h());
-    const Plane side3 = level(-static_h() + size_tsections * 2.0);
+    const Plane side1 = level(-sizes.static_h() + sizes.tsections);
+    const Plane side2 = level(-sizes.static_h());
+    const Plane side3 = level(-sizes.static_h() + sizes.tsections * 2.0);
     const Vector z(0.0, 0.0, 1.0);
     const Point origin(0.0, 0.0, 0.0);
 
@@ -239,7 +239,7 @@ std::vector<Outline> FloorGuide::oculus() const {
 
     for (int i = 0; i < 4; i++) {
         rotated.push_back(rotate(cp.inner_beams[1][0], i * M_PI / 2.0, z, origin));
-        rotated_inner.push_back(rotate(offset(cp.inner_beams[1][1], -size_inner_beams * 2.0), i * M_PI / 2.0, z, origin));
+        rotated_inner.push_back(rotate(offset(cp.inner_beams[1][1], -sizes.inner_beams * 2.0), i * M_PI / 2.0, z, origin));
     }
 
     std::vector<Outline> plates;
@@ -248,7 +248,7 @@ std::vector<Outline> FloorGuide::oculus() const {
         plates.push_back(loft_planes({side2, rotated[(i + 1) % 4], side0, rotated_inner[(i + 3) % 4]}, rotated[i], rotated_inner[i], true));
 
     for (size_t i = 0; i < 4; i++) {
-        const std::vector<Plane> sides = {rotated_inner[i], rotated_inner[(i + 1) % 4], offset(rotated_inner[i], -size_tsections), offset(rotated_inner[(i + 3) % 4], -size_tsections)};
+        const std::vector<Plane> sides = {rotated_inner[i], rotated_inner[(i + 1) % 4], offset(rotated_inner[i], -sizes.tsections), offset(rotated_inner[(i + 3) % 4], -sizes.tsections)};
         plates.push_back(loft_planes(sides, side2, side1));
     }
 
@@ -290,8 +290,8 @@ std::vector<Outline> FloorGuide::column_cutters() const {
     const std::vector<Point> column = quarter_column_polygon();
     const Vector down(0.0, 0.0, -1.0);
     const Plane xy0 = level(0.0);
-    const Plane xy1 = level(-height - size_tsections * 1.65);
-    const Plane xy2 = level(-column_head_depth);
+    const Plane xy1 = level(-sizes.height - sizes.tsections * 1.65);
+    const Plane xy2 = level(-sizes.column_head_depth);
     const Plane side0 = edge_plane(edge(column, 0), down);
     const Plane side1 = edge_plane(edge(column, 4), down);
     const std::vector<Plane> fan_top = {side0, cp.wedges[0][0], cp.wedges[1][0], cp.wedges[2][0], side1};

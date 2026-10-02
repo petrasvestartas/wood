@@ -6,19 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const wood_floor::FloorGuide GUIDE{
-    .size_grid_x = 3000.0,
-    .size_grid_y = 3000.0,
-    .size_column_head = 220.0,
-    .size_column_head_chamfer = 120.0,
-    .size_outer_ribs = 100.0,
-    .size_inner_ribs = 60.0,
-    .size_inner_beams = 60.0,
-    .size_wedge = 240.0,
-    .height = 650.0,
-    .rise = 453.0,
-    .size_oculus = 1000.0,
-};
+const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
 
 int main() {
 

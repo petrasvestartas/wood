@@ -7,19 +7,7 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of every element to data/output/pb/floor_4_quarters.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide GUIDE{
-    .size_grid_x = 3000.0,
-    .size_grid_y = 3000.0,
-    .size_column_head = 220.0,
-    .size_column_head_chamfer = 120.0,
-    .size_outer_ribs = 100.0,
-    .size_inner_ribs = 60.0,
-    .size_inner_beams = 60.0,
-    .size_wedge = 240.0,
-    .height = 650.0,
-    .rise = 453.0,
-    .size_oculus = 1000.0,
-};
+const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
 
 /// Every element under the group as `name volume cx cy cz`, the box centre in world coordinates, the parity record against compas_tf.
 void dump(const WoodSession& session, const std::string& path) {

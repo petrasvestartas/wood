@@ -6,11 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const wood_floor::FloorGuide GUIDE{
-    .size_column_head = 220.0,
-    .size_column_head_chamfer = 120.0,
-    .size_wedge = 240.0,
-};
+const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
 
 const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
 const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
@@ -97,9 +93,9 @@ void check_thickness() {
     const std::vector<wood_floor::Outline> outlines = GUIDE.outer_ribs();
 
     check(quarter.outer_ribs[0].thickness == wood_floor::outline_thickness(outlines[0]), "a turned rib keeps its outline's thickness");
-    check(std::abs(quarter.outer_ribs[0].thickness - GUIDE.size_outer_ribs) < 1e-6, "an outer rib as thick as the guide says, " + std::to_string(quarter.outer_ribs[0].thickness));
-    check(quarter.inner_beams[1].thickness > GUIDE.size_inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * GUIDE.size_inner_beams, "an inner beam about as thick as the guide says, " + std::to_string(quarter.inner_beams[1].thickness));
-    check(quarter.blocks[1].thickness > 1.25 * GUIDE.size_wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.blocks[1].thickness));
+    check(std::abs(quarter.outer_ribs[0].thickness - GUIDE.sizes.outer_ribs) < 1e-6, "an outer rib as thick as the guide says, " + std::to_string(quarter.outer_ribs[0].thickness));
+    check(quarter.inner_beams[1].thickness > GUIDE.sizes.inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * GUIDE.sizes.inner_beams, "an inner beam about as thick as the guide says, " + std::to_string(quarter.inner_beams[1].thickness));
+    check(quarter.blocks[1].thickness > 1.25 * GUIDE.sizes.wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.blocks[1].thickness));
     check(quarter.beds.size() == 3 && quarter.tsections.size() == 6 && quarter.inner_ribs.size() == 2, "a quarter of three bed rows, six t-sections and two inner ribs");
 
     std::cout << "floor_elements: every quarter member carries its outline thickness, a rib, a beam and a block checked" << std::endl;

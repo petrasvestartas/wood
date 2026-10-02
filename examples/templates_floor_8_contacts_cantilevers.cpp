@@ -10,19 +10,7 @@ using namespace wood_session;
 const bool BREPS = true; // write every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders, instead of its mesh
 const bool DUMP = true; // write name, volume and box centre of the carved columns and outer ribs to data/output/pb/floor_8_contacts_cantilevers.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide GUIDE{
-    .size_grid_x = 3000.0,
-    .size_grid_y = 3000.0,
-    .size_column_head = 220.0,
-    .size_column_head_chamfer = 120.0,
-    .size_outer_ribs = 100.0,
-    .size_inner_ribs = 60.0,
-    .size_inner_beams = 60.0,
-    .size_wedge = 240.0,
-    .height = 650.0,
-    .rise = 453.0,
-    .size_oculus = 1000.0,
-};
+const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
 
 /// The number of exact bores in a BRep: its rational surfaces, cylinders.
 size_t count_bores(const BRep& brep) {

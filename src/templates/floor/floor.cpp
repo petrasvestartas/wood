@@ -63,19 +63,19 @@ static std::vector<std::array<Plane, 2>> wedge_planes(const FloorGuide& guide, c
     const Line side1 = edge(column, 2);
     const Line side2 = edge(column, 3);
 
-    const Plane tilted = rotate(edge_plane(side1, UP), guide.wedge_plane_angle * M_PI / 180.0, direction(side1), side1.center());
+    const Plane tilted = rotate(edge_plane(side1, UP), guide.sizes.wedge_plane_angle * M_PI / 180.0, direction(side1), side1.center());
     const Line line0 = plane_plane(cp.inner_ribs[0][1], tilted).value();
     const Line line1 = plane_plane(cp.inner_ribs[1][1], tilted).value();
     const Plane wedge0 = Plane::from_point_normal(side0.center(), direction(line0).cross(direction(side0)));
     const Plane wedge2 = Plane::from_point_normal(side2.center(), (-direction(line1)).cross(direction(side2)));
 
     return {
-        pair(wedge0, guide.size_wedge),
-        pair(tilted, guide.size_wedge * 1.25),
-        pair(wedge2, guide.size_wedge),
-        pair(cp.inner_beams[0][1], guide.size_inner_beams),
-        pair(cp.inner_beams[1][1], guide.size_inner_beams),
-        pair(cp.inner_beams[2][1], guide.size_inner_beams),
+        pair(wedge0, guide.sizes.wedge),
+        pair(tilted, guide.sizes.wedge * guide.sizes.middle_wedge_factor),
+        pair(wedge2, guide.sizes.wedge),
+        pair(cp.inner_beams[0][1], guide.sizes.inner_beams),
+        pair(cp.inner_beams[1][1], guide.sizes.inner_beams),
+        pair(cp.inner_beams[2][1], guide.sizes.inner_beams),
     };
 }
 
@@ -83,7 +83,7 @@ static std::vector<std::array<Plane, 2>> wedge_planes(const FloorGuide& guide, c
 // Plan
 // ═══════════════════════════════════════════════════════════════════════════
 
-double FloorGuide::static_h() const {
+double FloorSizes::static_h() const {
     return height - rise;
 }
 
@@ -109,8 +109,8 @@ std::vector<Point> FloorGuide::quarter_polygon() const {
 std::vector<Point> FloorGuide::quarter_column_polygon() const {
 
     const Point corner = quarter_polygon()[0];
-    const double head = size_column_head;
-    const double chamfer = size_column_head_chamfer;
+    const double head = sizes.column_head;
+    const double chamfer = sizes.column_head_chamfer;
 
     return {corner, corner + Vector(head, 0.0, 0.0), corner + Vector(head, chamfer, 0.0), corner + Vector(chamfer, head, 0.0), corner + Vector(0.0, head, 0.0)};
 }
@@ -127,14 +127,14 @@ ConstructionPlanes FloorGuide::construction_planes() const {
 
     const Plane outer0 = edge_plane(edge(polygon, 0), DOWN);
     const Plane outer1 = edge_plane(edge(polygon, 4), DOWN);
-    cp.outer_ribs = {pair(outer0, size_outer_ribs), pair(outer1, size_outer_ribs)};
+    cp.outer_ribs = {pair(outer0, sizes.outer_ribs), pair(outer1, sizes.outer_ribs)};
 
     const Line oculus_edge = edge(polygon, 2);
     const Plane beam0 = edge_plane(edge(polygon, 1), DOWN);
     const Plane beam1 = edge_plane(oculus_edge, DOWN);
-    const Plane beam1_rotated = rotate(beam1, -oculus_plane_angle * M_PI / 180.0, direction(oculus_edge), oculus_edge.center());
+    const Plane beam1_rotated = rotate(beam1, -sizes.oculus_plane_angle * M_PI / 180.0, direction(oculus_edge), oculus_edge.center());
     const Plane beam2 = edge_plane(edge(polygon, 3), DOWN);
-    cp.inner_beams = {pair(beam0, size_inner_beams), {beam1_rotated, offset(beam1, size_inner_beams)}, pair(beam2, size_inner_beams)};
+    cp.inner_beams = {pair(beam0, sizes.inner_beams), {beam1_rotated, offset(beam1, sizes.inner_beams)}, pair(beam2, sizes.inner_beams)};
 
     const Plane xy = level(0.0);
     const Point p0 = plane_plane_plane(xy, cp.inner_beams[0][1], cp.inner_beams[1][1]).value();
@@ -143,17 +143,17 @@ ConstructionPlanes FloorGuide::construction_planes() const {
     const Point p3 = column[3];
     const Plane rib0 = Plane::from_point_normal(p2 + (p0 - p2) * 0.5, (p0 - p2).cross(DOWN));
     const Plane rib1 = Plane::from_point_normal(p3 + (p1 - p3) * 0.5, (p1 - p3).cross(UP));
-    cp.inner_ribs = {pair(rib0, size_inner_ribs), pair(rib1, size_inner_ribs)};
+    cp.inner_ribs = {pair(rib0, sizes.inner_ribs), pair(rib1, sizes.inner_ribs)};
 
     cp.wedges = wedge_planes(*this, cp);
 
     cp.t_sections = {
-        pair(cp.outer_ribs[0][1], size_tsections),
-        pair(cp.inner_ribs[0][0], -size_tsections),
-        pair(cp.inner_ribs[0][1], size_tsections),
-        pair(cp.inner_ribs[1][0], -size_tsections),
-        pair(cp.inner_ribs[1][1], size_tsections),
-        pair(cp.outer_ribs[1][1], size_tsections),
+        pair(cp.outer_ribs[0][1], sizes.tsections),
+        pair(cp.inner_ribs[0][0], -sizes.tsections),
+        pair(cp.inner_ribs[0][1], sizes.tsections),
+        pair(cp.inner_ribs[1][0], -sizes.tsections),
+        pair(cp.inner_ribs[1][1], sizes.tsections),
+        pair(cp.outer_ribs[1][1], sizes.tsections),
     };
 
     return cp;
@@ -206,10 +206,10 @@ std::vector<std::array<Polyline, 3>> FloorGuide::boundary_parabolas() const {
     for (const Polyline& quad : quads.outer_ribs) {
         const Point start = quad.get_point(0);
         const Point end = quad.get_point(1);
-        const Point trimmed = start + (end - start).normalized() * size_wedge;
+        const Point trimmed = start + (end - start).normalized() * sizes.wedge;
         const Point middle = trimmed + (end - trimmed) * 0.5;
-        const Polyline parabola = Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -height), middle + Vector(0.0, 0.0, -static_h()), end + Vector(0.0, 0.0, -static_h()));
-        parabolas.push_back({parabola, offset_polyline(parabola, size_tsections), offset_polyline(parabola, 2.0 * size_tsections)});
+        const Polyline parabola = Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -sizes.height), middle + Vector(0.0, 0.0, -sizes.static_h()), end + Vector(0.0, 0.0, -sizes.static_h()));
+        parabolas.push_back({parabola, offset_polyline(parabola, sizes.tsections), offset_polyline(parabola, 2.0 * sizes.tsections)});
     }
 
     for (size_t i = 0; i < 2; i++) {
@@ -230,7 +230,7 @@ double FloorGuide::block_level_bottom() const {
 }
 
 double FloorGuide::block_level_top() const {
-    return block_level_bottom() + size_wedge;
+    return block_level_bottom() + sizes.wedge;
 }
 
 std::vector<Plane> FloorGuide::bed_top_planes() const {

@@ -115,7 +115,7 @@ std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession
 
 Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
 
-    const Xform lift = placement * Xform::translation(0.0, 0.0, guide.bay_height);
+    const Xform lift = placement * Xform::translation(0.0, 0.0, guide.sizes.bay_height);
     const std::vector<std::vector<Outline>> beds = guide.beds();
     const std::shared_ptr<TreeNode> bed_group = add_group(session, "beds" + suffix, group);
     Quarter quarter;
@@ -141,7 +141,7 @@ Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& 
 
 std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, guide.sizes.bay_height);
     const std::vector<Outline> outlines = guide.oculus();
     std::vector<Member> beams;
 

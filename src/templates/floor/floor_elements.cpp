@@ -64,7 +64,7 @@ std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std:
 
 std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide) {
 
-    const Plane plane = Plane::from_frame(guide.corner_point_column(guide.size_column_head), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0));
+    const Plane plane = Plane::from_frame(guide.corner_point_column(guide.sizes.column_head), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0));
 
     return std::make_shared<wood_session::Support>(plane, "support");
 }
@@ -73,20 +73,20 @@ std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const w
 
     const Point corner = guide.quarter_polygon()[0];
     const Point foot = support.column_foot();
-    const double side = guide.size_column_head;
-    const double head = side + guide.size_column_head_chamfer;
-    const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
+    const double side = guide.sizes.column_head;
+    const double head = side + guide.sizes.column_head_chamfer;
+    const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.sizes.bay_height));
 
     std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, side, foot[2]), "column");
     column->head = square(corner, head, head, foot[2]);
-    column->head_height = guide.column_head_depth;
+    column->head_height = guide.sizes.column_head_depth;
 
     return column;
 }
 
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const FloorGuide& guide, const wood_session::Column& column) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, guide.sizes.bay_height);
     std::vector<std::shared_ptr<wood_session::Joint>> cutters;
 
     for (const Outline& outline : guide.column_cutters()) {
