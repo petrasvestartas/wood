@@ -104,10 +104,6 @@ Polyline trim(const Polyline& polyline, const Plane& plane0, const Plane& plane1
     return cut(Polyline(pts), plane0, plane1);
 }
 
-std::array<std::vector<Point>, 2> projected(const Polyline& polyline, const Xform& projection0, const Xform& projection1) {
-    return {polyline.transformed(projection0).get_points(), polyline.transformed(projection1).get_points()};
-}
-
 Polyline offset_polyline(const Polyline& polyline, double distance) {
 
     const std::vector<Point> pts = polyline.get_points();

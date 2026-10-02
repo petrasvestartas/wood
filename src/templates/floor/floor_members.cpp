@@ -13,15 +13,8 @@ const double CUTTER_MARGIN = 100.0; // how far column cutter quads overshoot and
 // Ribs
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A rib: the parabola trimmed by its two end planes, closed down to z 0, and that outline projected through the rib thickness; an inner rib also ends its base on the second plane.
-static Outline rib(const Polyline& parabola, const Xform& projection, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
-
-    std::vector<Point> pts = trim(parabola, cut_plane0, cut_plane1).get_points();
-    const double d0 = std::abs((pts.front() - cut_plane0.origin()).dot(cut_plane0.z_axis()));
-    const double d1 = std::abs((pts.back() - cut_plane0.origin()).dot(cut_plane0.z_axis()));
-
-    if (d0 > d1)
-        std::reverse(pts.begin(), pts.end());
+/// A rib face's outline: the trimmed soffit trace closed up to z 0 over the end planes; an inner rib also ends its base on the second plane.
+static Polyline rib_loop(const std::vector<Point>& pts, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
 
     const Vector span(pts.back()[0] - pts.front()[0], pts.back()[1] - pts.front()[1], 0.0);
     const Plane rib_plane = Plane::from_point_normal(pts.front(), span.cross(Vector(0.0, 0.0, 1.0)));
@@ -34,21 +27,41 @@ static Outline rib(const Polyline& parabola, const Xform& projection, const Plan
     std::vector<Point> loop = {p1, p0};
     loop.insert(loop.end(), pts.begin(), pts.end());
     loop.push_back(p1);
-    const Polyline top(loop);
 
-    return {top, top.transformed(projection)};
+    return Polyline(loop);
+}
+
+/// A rib: its soffit trace trimmed by the two end planes on its first face, and on its second face the trace swept along the rib with its end corners cut on the end planes, the first and last facet extended (R4).
+static Outline rib(const Polyline& trace, const Plane& face1, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
+
+    std::vector<Point> pts = trim(trace, cut_plane0, cut_plane1).get_points();
+    const double d0 = std::abs((pts.front() - cut_plane0.origin()).dot(cut_plane0.z_axis()));
+    const double d1 = std::abs((pts.back() - cut_plane0.origin()).dot(cut_plane0.z_axis()));
+
+    if (d0 > d1)
+        std::reverse(pts.begin(), pts.end());
+
+    const Xform projection = Xform::project_to_plane_by_axis(face1, sweep);
+    std::vector<Point> far;
+
+    for (const Point& point : pts)
+        far.push_back(point.transformed(projection));
+
+    const size_t n = far.size();
+    far[0] = line_plane(Line::from_points(far[0], far[1]), cut_plane0).value();
+    far[n - 1] = line_plane(Line::from_points(far[n - 2], far[n - 1]), cut_plane1).value();
+
+    return {rib_loop(pts, cut_plane0, cut_plane1, inner), rib_loop(far, cut_plane0, cut_plane1, inner)};
 }
 
 std::vector<Outline> Quarter::outer_ribs() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<std::array<Polyline, 3>>& parabolas = geometry().parabolas;
-    const Xform projection0 = Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis());
-    const Xform projection1 = Xform::project_to_plane_by_axis(cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis());
 
     return {
-        rib(parabolas[0][0], projection0, cp.wedges[0][0], cp.inner_beams[0][0], false),
-        rib(parabolas[1][0], projection1, cp.wedges[2][0], cp.inner_beams[2][0], false),
+        rib(parabolas[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis(), cp.wedges[0][0], cp.inner_beams[0][0], false),
+        rib(parabolas[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis(), cp.wedges[2][0], cp.inner_beams[2][0], false),
     };
 }
 
@@ -56,13 +69,11 @@ std::vector<Outline> Quarter::inner_ribs() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<std::array<Polyline, 3>>& parabolas = geometry().parabolas;
-    const Vector across = cp.inner_ribs[0][1].z_axis() - cp.inner_ribs[1][1].z_axis();
-    const Xform projection0 = Xform::project_to_plane_by_axis(cp.inner_ribs[0][1], across);
-    const Xform projection1 = Xform::project_to_plane_by_axis(cp.inner_ribs[1][1], across);
+    const Vector& sweep = geometry().central_panel.rib_sweep;
 
     return {
-        rib(parabolas[2][0], projection0, cp.wedges[1][0], cp.inner_beams[1][1], true),
-        rib(parabolas[3][0], projection1, cp.wedges[1][0], cp.inner_beams[1][1], true),
+        rib(parabolas[2][0], cp.inner_ribs[0][1], sweep, cp.wedges[1][0], cp.inner_beams[1][1], true),
+        rib(parabolas[3][0], cp.inner_ribs[1][1], sweep, cp.wedges[1][0], cp.inner_beams[1][1], true),
     };
 }
 
@@ -106,15 +117,13 @@ std::vector<Outline> Quarter::wedges_inner_beams() const {
 // T-sections and beds
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A t-section: two parabolas projected onto its first face and trimmed, closed into one outline, and the same on its second face.
-static Outline tsection(const Polyline& parabola0, const Polyline& parabola1, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection0, const Xform& projection10, const Xform& projection11) {
+/// A t-section: its soffit and +t traces on its first face, each trimmed there, closed into one outline, and the same traces projected onto its second face and trimmed there.
+static Outline tsection(const Polyline& soffit, const Polyline& layer, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection10, const Xform& projection11) {
 
-    const Polyline face00 = parabola0.transformed(projection0);
-    const Polyline face10 = parabola1.transformed(projection0);
-    const std::vector<Point> cut00 = trim(face00, cut_plane0, cut_plane1).get_points();
-    const std::vector<Point> cut01 = trim(face00.transformed(projection10), cut_plane0, cut_plane1).get_points();
-    const std::vector<Point> cut10 = trim(face10, cut_plane0, cut_plane1).get_points();
-    const std::vector<Point> cut11 = trim(face10.transformed(projection11), cut_plane0, cut_plane1).get_points();
+    const std::vector<Point> cut00 = trim(soffit, cut_plane0, cut_plane1).get_points();
+    const std::vector<Point> cut01 = trim(soffit.transformed(projection10), cut_plane0, cut_plane1).get_points();
+    const std::vector<Point> cut10 = trim(layer, cut_plane0, cut_plane1).get_points();
+    const std::vector<Point> cut11 = trim(layer.transformed(projection11), cut_plane0, cut_plane1).get_points();
 
     std::vector<Point> top = cut00;
     top.insert(top.end(), cut10.rbegin(), cut10.rend());
@@ -127,60 +136,53 @@ static Outline tsection(const Polyline& parabola0, const Polyline& parabola1, co
     return {Polyline(top), Polyline(bottom)};
 }
 
+/// The t-section beside an outer panel rib face: the outer parabola and its +t projected along the outer rib normal onto the face, the soffit continued to the far face along the rib's sweep, the +t along the panel.
+static Outline outer_tsection(const std::array<Polyline, 3>& parabola, const std::array<Plane, 2>& faces, const Vector& outer, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1) {
+
+    const Xform projection = Xform::project_to_plane_by_axis(faces[0], outer);
+
+    return tsection(
+        parabola[0].transformed(projection), parabola[1].transformed(projection), cut_plane0, cut_plane1,
+        Xform::project_to_plane_by_axis(faces[1], sweep),
+        Xform::project_to_plane_by_axis(faces[1], outer)
+    );
+}
+
 std::vector<Outline> Quarter::tsections() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<std::array<Polyline, 3>>& pb = geometry().parabolas;
+    const CentralPanel& panel = geometry().central_panel;
     const Vector outer0 = cp.outer_ribs[0][0].z_axis();
     const Vector outer1 = cp.outer_ribs[1][0].z_axis();
-    const Vector across = cp.inner_ribs[0][0].z_axis() - cp.inner_ribs[1][0].z_axis();
     const std::vector<std::array<Plane, 2>>& ts = cp.t_sections;
 
     return {
+        outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0]),
+        outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.wedges[0][0]),
         tsection(
-            pb[0][0], pb[0][1], cp.inner_beams[0][1], cp.wedges[0][0],
-            Xform::project_to_plane_by_axis(ts[0][0], outer0),
-            Xform::project_to_plane_by_axis(ts[0][1], outer0),
-            Xform::project_to_plane_by_axis(ts[0][1], outer0)
+            panel.traces[0][0], panel.traces[0][1], cp.inner_beams[1][1], cp.wedges[1][0],
+            Xform::project_to_plane_by_axis(ts[2][1], panel.rib_sweep),
+            Xform::project_to_plane_by_axis(ts[2][1], panel.ruling)
         ),
         tsection(
-            pb[0][0], pb[0][1], cp.inner_beams[0][1], cp.wedges[0][0],
-            Xform::project_to_plane_by_axis(ts[1][0], outer0),
-            Xform::project_to_plane_by_axis(ts[1][1], across),
-            Xform::project_to_plane_by_axis(ts[1][1], outer0)
+            panel.traces[1][0], panel.traces[1][1], cp.inner_beams[1][1], cp.wedges[1][0],
+            Xform::project_to_plane_by_axis(ts[4][1], panel.rib_sweep),
+            Xform::project_to_plane_by_axis(ts[4][1], panel.ruling)
         ),
-        tsection(
-            pb[2][0], pb[2][1], cp.inner_beams[1][1], cp.wedges[1][0],
-            Xform::project_to_plane_by_axis(ts[2][0], across),
-            Xform::project_to_plane_by_axis(ts[2][1], across),
-            Xform::project_to_plane_by_axis(ts[2][1], across)
-        ),
-        tsection(
-            pb[3][0], pb[3][1], cp.inner_beams[1][1], cp.wedges[1][0],
-            Xform::project_to_plane_by_axis(ts[4][0], across),
-            Xform::project_to_plane_by_axis(ts[4][1], across),
-            Xform::project_to_plane_by_axis(ts[4][1], across)
-        ),
-        tsection(
-            pb[1][0], pb[1][1], cp.inner_beams[2][1], cp.wedges[2][0],
-            Xform::project_to_plane_by_axis(ts[3][0], outer1),
-            Xform::project_to_plane_by_axis(ts[3][1], across),
-            Xform::project_to_plane_by_axis(ts[3][1], outer1)
-        ),
-        tsection(
-            pb[1][0], pb[1][1], cp.inner_beams[2][1], cp.wedges[2][0],
-            Xform::project_to_plane_by_axis(ts[5][0], outer1),
-            Xform::project_to_plane_by_axis(ts[5][1], outer1),
-            Xform::project_to_plane_by_axis(ts[5][1], outer1)
-        ),
+        outer_tsection(pb[1], ts[3], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
+        outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0]),
     };
 }
 
-/// One bed row: the lower and upper parabola trimmed, each projected onto the panel's two side planes, one quad pair per segment.
-static std::vector<Outline> bed_row(const Polyline& parabola0, const Polyline& parabola1, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection0, const Xform& projection1) {
+/// One bed row: the lower and upper layer on each of the panel's two side planes, each trimmed there, one quad pair per segment.
+static std::vector<Outline> bed_row(const std::array<Polyline, 2>& lower_faces, const std::array<Polyline, 2>& upper_faces, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-    const std::array<std::vector<Point>, 2> lower = projected(trim(parabola0, cut_plane0, cut_plane1), projection0, projection1);
-    const std::array<std::vector<Point>, 2> upper = projected(trim(parabola1, cut_plane0, cut_plane1), projection0, projection1);
+    const std::array<std::vector<Point>, 2> lower = {trim(lower_faces[0], cut_plane0, cut_plane1).get_points(), trim(lower_faces[1], cut_plane0, cut_plane1).get_points()};
+    const std::array<std::vector<Point>, 2> upper = {trim(upper_faces[0], cut_plane0, cut_plane1).get_points(), trim(upper_faces[1], cut_plane0, cut_plane1).get_points()};
+
+    if (lower[1].size() != lower[0].size() || upper[0].size() != lower[0].size() || upper[1].size() != lower[0].size())
+        throw std::runtime_error(fmt::format("a bed row's layers are cut on different facets: {} / {} lower and {} / {} upper points", lower[0].size(), lower[1].size(), upper[0].size(), upper[1].size()));
 
     std::vector<Outline> plates;
 
@@ -193,30 +195,25 @@ static std::vector<Outline> bed_row(const Polyline& parabola0, const Polyline& p
     return plates;
 }
 
+/// An outer bed row: the parabola's +t and +2t projected along the outer rib normal onto the panel's two side planes.
+static std::vector<Outline> outer_bed_row(const std::array<Polyline, 3>& parabola, const Plane& side0, const Plane& side1, const Vector& outer, const Plane& cut_plane0, const Plane& cut_plane1) {
+
+    const Xform projection0 = Xform::project_to_plane_by_axis(side0, outer);
+    const Xform projection1 = Xform::project_to_plane_by_axis(side1, outer);
+
+    return bed_row({parabola[1].transformed(projection0), parabola[1].transformed(projection1)}, {parabola[2].transformed(projection0), parabola[2].transformed(projection1)}, cut_plane0, cut_plane1);
+}
+
 std::vector<std::vector<Outline>> Quarter::beds() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<std::array<Polyline, 3>>& pb = geometry().parabolas;
-    const Vector outer0 = cp.outer_ribs[0][0].z_axis();
-    const Vector outer1 = cp.outer_ribs[1][0].z_axis();
-    const Vector across = cp.inner_ribs[0][0].z_axis() - cp.inner_ribs[1][0].z_axis();
+    const CentralPanel& panel = geometry().central_panel;
 
     return {
-        bed_row(
-            pb[0][1], pb[0][2], cp.inner_beams[0][1], cp.wedges[0][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[0][0], outer0),
-            Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], outer0)
-        ),
-        bed_row(
-            pb[2][1], pb[2][2], cp.inner_beams[1][1], cp.wedges[1][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[0][1], across),
-            Xform::project_to_plane_by_axis(cp.inner_ribs[1][1], across)
-        ),
-        bed_row(
-            pb[1][1], pb[1][2], cp.inner_beams[2][1], cp.wedges[2][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[1][0], outer1),
-            Xform::project_to_plane_by_axis(cp.outer_ribs[1][1], outer1)
-        ),
+        outer_bed_row(pb[0], cp.inner_ribs[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][0].z_axis(), cp.inner_beams[0][1], cp.wedges[0][0]),
+        bed_row({panel.traces[0][1], panel.traces[1][1]}, {panel.traces[0][2], panel.traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0]),
+        outer_bed_row(pb[1], cp.inner_ribs[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][0].z_axis(), cp.inner_beams[2][1], cp.wedges[2][0]),
     };
 }
 

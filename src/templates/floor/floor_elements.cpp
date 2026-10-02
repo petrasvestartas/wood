@@ -40,15 +40,19 @@ std::shared_ptr<wood_session::BeamVariable> to_rib(const Outline& outline, const
 
     for (size_t i = 0; i < stations; i++) {
         const Point& low = top[2 + i];
-        const Vector across = bottom[2 + i] - low;
-        Point high(low[0], low[1], 0.0);
+        const Point& far_low = bottom[2 + i];
+        Point high = at_level(low, 0.0);
+        Point far_high = at_level(far_low, 0.0);
 
-        if (i == 0)
+        if (i == 0) {
             high = top[1];
-        else if (i + 1 == stations)
+            far_high = bottom[1];
+        } else if (i + 1 == stations) {
             high = top[0];
+            far_high = bottom[0];
+        }
 
-        sections.push_back(section(low, high, high + across, low + across));
+        sections.push_back(section(low, high, far_high, far_low));
     }
 
     const Line axis = Line::from_points(Line::from_points(top[1], bottom[1]).center(), Line::from_points(top[0], bottom[0]).center());

@@ -54,10 +54,10 @@ static std::vector<Polyline> quads(const std::vector<std::array<Plane, 4>>& fami
     return result;
 }
 
-/// The plane fitted to the deepest quad of a bed panel: its parabola cut by the panel planes, projected onto the panel's two side planes.
-static Plane panel_top_plane(const Polyline& parabola, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection0, const Xform& projection1) {
+/// The plane fitted to the deepest quad of a bed panel: its top layer on the panel's two side planes, each cut there by the panel planes.
+static Plane panel_top_plane(const std::array<Polyline, 2>& faces, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-    std::array<std::vector<Point>, 2> pts = projected(trim(parabola, cut_plane0, cut_plane1), projection0, projection1);
+    std::array<std::vector<Point>, 2> pts = {trim(faces[0], cut_plane0, cut_plane1).get_points(), trim(faces[1], cut_plane0, cut_plane1).get_points()};
 
     if (pts[0].front()[2] > pts[0].back()[2]) {
         std::reverse(pts[0].begin(), pts[0].end());
@@ -127,8 +127,17 @@ static std::array<Vector, 2> corner_frame(const FloorPlan& plan, size_t k) {
     return {bisector.transformed(to_x), bisector.transformed(to_y)};
 }
 
+/// The middle column cutter level by the rule: compas_tf's height plus 1.65 tsections below the datum.
+static double middle_level(const FloorSizes& sizes, CutterLevel level) {
+
+    if (level == CutterLevel::compas_factor)
+        return -sizes.height - sizes.tsections * MIDDLE_CUTTER_FACTOR;
+
+    throw std::invalid_argument("unknown cutter level");
+}
+
 /// Column corner k before its fan: frame, head polygon, chamfer direction, the head's boundary sides, levels, axis and support plane.
-static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSizes& sizes) {
+static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSizes& sizes, CutterLevel level) {
 
     ColumnCorner column;
     column.corner = plan.corners[k];
@@ -143,7 +152,7 @@ static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSi
     column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
     column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
     column.sides = {edge_plane(edge(column.head, 0), down()), edge_plane(edge(column.head, 4), down())};
-    column.levels = {0.0, -sizes.height - sizes.tsections * MIDDLE_CUTTER_FACTOR, -sizes.column_head_depth};
+    column.levels = {0.0, middle_level(sizes, level), -sizes.column_head_depth};
     column.axis_point = column.corner + (x + y) * (head * 0.5);
     column.support_plane = Plane::from_frame(column.axis_point, x, y, up());
     column.axis = Line::from_points(column.axis_point, column.axis_point + up() * sizes.bay_height);
@@ -284,33 +293,18 @@ static std::vector<std::array<Polyline, 3>> boundary_parabolas(const Constructio
     return parabolas;
 }
 
-/// Per bed panel, matching the three wedges, the plane fitted to its deepest quad, normal up.
-static std::vector<Plane> bed_top_planes(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas) {
+/// Per bed panel, matching the three wedges, the plane fitted to its deepest quad, normal up: the outer panels' top layers projected along their outer rib normals, the central panel's read from its traces.
+static std::vector<Plane> bed_top_planes(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas, const CentralPanel& panel) {
 
-    const Vector rib_bisector = cp.inner_ribs[0][0].z_axis() - cp.inner_ribs[1][0].z_axis();
+    const Xform side00 = Xform::project_to_plane_by_axis(cp.inner_ribs[0][0], cp.outer_ribs[0][0].z_axis());
+    const Xform side01 = Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], cp.outer_ribs[0][0].z_axis());
+    const Xform side20 = Xform::project_to_plane_by_axis(cp.inner_ribs[1][0], cp.outer_ribs[1][0].z_axis());
+    const Xform side21 = Xform::project_to_plane_by_axis(cp.outer_ribs[1][1], cp.outer_ribs[1][0].z_axis());
 
     return {
-        panel_top_plane(
-            parabolas[0][2],
-            cp.inner_beams[0][1],
-            cp.wedges[0][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[0][0], cp.outer_ribs[0][0].z_axis()),
-            Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], cp.outer_ribs[0][0].z_axis())
-        ),
-        panel_top_plane(
-            parabolas[2][2],
-            cp.inner_beams[1][1],
-            cp.wedges[1][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[0][1], rib_bisector),
-            Xform::project_to_plane_by_axis(cp.inner_ribs[1][1], rib_bisector)
-        ),
-        panel_top_plane(
-            parabolas[1][2],
-            cp.inner_beams[2][1],
-            cp.wedges[2][0],
-            Xform::project_to_plane_by_axis(cp.inner_ribs[1][0], cp.outer_ribs[1][0].z_axis()),
-            Xform::project_to_plane_by_axis(cp.outer_ribs[1][1], cp.outer_ribs[1][0].z_axis())
-        ),
+        panel_top_plane({parabolas[0][2].transformed(side00), parabolas[0][2].transformed(side01)}, cp.inner_beams[0][1], cp.wedges[0][0]),
+        panel_top_plane({panel.traces[0][2], panel.traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0]),
+        panel_top_plane({parabolas[1][2].transformed(side20), parabolas[1][2].transformed(side21)}, cp.inner_beams[2][1], cp.wedges[2][0]),
     };
 }
 
@@ -329,7 +323,8 @@ static void compute_quarter(Floor& floor, size_t q) {
     const Polyline middle = cut(geometry.parabolas[2][0], geometry.planes.wedges[1][1], geometry.planes.inner_beams[1][1]);
     geometry.block_level_bottom = middle.get_point(0)[2];
     geometry.block_level_top = geometry.block_level_bottom + sizes.wedge;
-    geometry.bed_top_planes = bed_top_planes(geometry.planes, geometry.parabolas);
+    geometry.central_panel = central_panel(geometry.planes, geometry.parabolas, sizes, floor.layers);
+    geometry.bed_top_planes = bed_top_planes(geometry.planes, geometry.parabolas, geometry.central_panel);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -347,7 +342,7 @@ std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
     return pair(plane_into(quarter), thickness);
 }
 
-Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, CentralLayers central_layers) : plan(floor_plan), sizes(floor_sizes), layers(central_layers) {
+Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, CentralLayers central_layers, CutterLevel level) : plan(floor_plan), sizes(floor_sizes), layers(central_layers), cutter_level(level) {
 
     std::string why;
 
@@ -361,7 +356,7 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, Central
         edges[q] = bay_edge(plan, q, sizes);
         seams[q] = seam(plan, q, centre, oculus_corners[q], sizes);
         oculus_edges[q] = oculus_edge(oculus_corners[q], oculus_corners[(q + 3) % 4], sizes);
-        columns[q] = column_corner(plan, q, sizes);
+        columns[q] = column_corner(plan, q, sizes, cutter_level);
     }
 
     for (size_t q = 0; q < 4; q++) {

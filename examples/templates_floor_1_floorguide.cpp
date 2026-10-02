@@ -144,6 +144,7 @@ void add(WoodSession& session, const std::vector<Polyline>& quads, const std::st
 int main() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_1_floorguide");
 
     const wood_floor::QuarterGeometry& geometry = floor.geometry[0];

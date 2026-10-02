@@ -621,10 +621,30 @@ void check_ring() {
     std::cout << "floor_elements: the ring from the four oculus edges is the rotated ring within 1e-9 on the square" << std::endl;
 }
 
+/// The report on the square: every structural relation 0, rule A reducing to compas_tf's chamfer direction for both the ruling and the rib sweep, the outer rib bottoms 0.243 mm under the compas_tf cutter level.
+void check_report() {
+
+    const wood_floor::Floor& floor = square_floor();
+    const wood_floor::FloorReport report = floor.check();
+    std::cout << report.str() << std::endl;
+    check(report.ok(1e-6), "the square's report holds every structural relation");
+
+    for (size_t q = 0; q < 4; q++) {
+        const wood_floor::CentralPanel& panel = floor.geometry[q].central_panel;
+        const Vector& chamfer = floor.columns[q].chamfer_direction;
+        check(std::abs(std::abs(panel.ruling.dot(chamfer)) - 1.0) <= 1e-12 && std::abs(std::abs(panel.rib_sweep.dot(chamfer)) - 1.0) <= 1e-12, fmt::format("rule A gives quarter {} the chamfer direction for the ruling and the sweep", q));
+        check(std::abs(report.rib_sweep_obliqueness_deg[q][0] - report.rib_sweep_obliqueness_deg[q][1]) <= 1e-9, "both inner ribs equally oblique on the square");
+        check(std::abs(report.rib_bottom_clearance_mm[q][0] + 0.243) < 1e-3 && std::abs(report.rib_bottom_clearance_mm[q][1] + 0.243) < 1e-3, fmt::format("quarter {}'s outer rib bottoms 0.243 mm under the cutter level", q));
+    }
+
+    std::cout << "floor_elements: the square's report holds, rule A is the chamfer direction, the rib bottoms 0.243 mm under compas_tf's cutter level" << std::endl;
+}
+
 int main() {
 
     check_shared_entities();
     check_ring();
+    check_report();
     check_relationships();
     check_beams();
     check_thickness();

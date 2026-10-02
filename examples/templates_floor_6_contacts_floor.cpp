@@ -55,6 +55,7 @@ void dump(const WoodSession& session, const wood_floor::Floor& floor, const wood
 int main() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_6_contacts_floor");
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
     const wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, root);

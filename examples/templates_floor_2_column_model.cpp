@@ -9,6 +9,7 @@ using namespace wood_session;
 int main() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_2_column_model");
     const std::shared_ptr<TreeNode> group = session.add_group("column_model");
 

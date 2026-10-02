@@ -106,6 +106,8 @@ set(WOOD_SOURCES
     src/templates/floor/floor_geometry.cpp
     src/templates/floor/floor_plan.cpp
     src/templates/floor/floor.cpp
+    src/templates/floor/floor_panel.cpp
+    src/templates/floor/floor_report.cpp
     src/templates/floor/floor_members.cpp
     src/templates/floor/floor_elements.cpp
     src/templates/floor/floor_models.cpp

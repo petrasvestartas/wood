@@ -62,6 +62,9 @@ enum class OculusRule { square_diamond, compas, explicit_distances };
 /// How the central panel's +t and +2t layers are made; compas_tf's offsets in the outer rib's plane swept along the panel are the only mode until the model's cross-section layers arrive.
 enum class CentralLayers { compas };
 
+/// The middle column cutter level: compas_tf's -(height + 1.65 tsections) is the only mode until the rib-bottom level arrives.
+enum class CutterLevel { compas_factor };
+
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
 struct FloorPlan {
     std::array<session_cpp::Point, 4> corners; // Counter-clockwise; corner 0 is compas_tf's quarter 0.
@@ -148,12 +151,23 @@ struct ColumnCorner {
     std::array<double, 3> wedge_seat; // The side 0, chamfer and side 1 seats left on the head beyond the rib bands, mm.
 };
 
+/// The central panel of one quarter by rule A: its ruling, the one sweep of both inner ribs, and the soffit, +t and +2t traces on the two inner ribs' central faces the panel's members read.
+struct CentralPanel {
+    session_cpp::Vector ruling; // u: the panel's horizontal ruling, along which rib 0's central trace projects onto rib 1's.
+    session_cpp::Vector rib_sweep; // r: the horizontal direction both inner ribs are swept along from their outer to their central face.
+    std::array<std::array<session_cpp::Polyline, 3>, 2> traces; // Per inner rib, its central face's soffit, +t and +2t, by the floor's CentralLayers.
+    std::array<double, 2> obliqueness = {0.0, 0.0}; // Degrees between the sweep and each inner rib's normal.
+    std::array<double, 2> layer_shift = {0.0, 0.0}; // The largest +t and +2t vertex shift of the cross-section layers against compas_tf's, mm; informational.
+    double residual = 0.0; // How far rib 0's central trace projected along the ruling misses rib 1's, mm.
+};
+
 /// The private geometry of one quarter, computed once by the Floor: compas_tf's layout with the bands, seams, oculus edge and column fan read from the shared entities, every plane at the quarter's own points.
 struct QuarterGeometry {
     std::vector<session_cpp::Point> polygon; // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; // The member planes.
     ConstructionQuads quads; // The plan quad of every member at z 0.
     std::vector<std::array<session_cpp::Polyline, 3>> parabolas; // Outer 0, outer 1, shadow 0, shadow 1, each with its +t and +2t offsets.
+    CentralPanel central_panel; // The central panel by rule A.
     std::vector<session_cpp::Plane> bed_top_planes; // Per bed panel, the plane fitted to its deepest quad, normal up.
     double block_level_bottom = 0.0; // Bottom level of the wedge block, kept for the parity dump.
     double block_level_top = 0.0; // Top level of the wedge block, kept for the parity dump.
@@ -210,11 +224,37 @@ struct Quarter {
     std::vector<Outline> column_cutters() const;
 };
 
+/// The relations compas_tf relies on silently, measured per quarter (and per corner, which is the quarter's); ok() when the structural ones hold.
+struct FloorReport {
+    std::array<double, 4> seam_plane_gap = {}; // How far quarter q + 1's seam beam face leaves quarter q's seam plane, mm; 0 by construction.
+    std::array<double, 4> oculus_corner_gap = {}; // How far quarter q + 1's polygon misses quarter q's oculus corner, mm; 0 by construction.
+    std::array<double, 4> ruling_off_chamfer_deg = {}; // The central ruling against the column chamfer, signed about z.
+    std::array<double, 4> ruling_off_oculus_edge_deg = {}; // The central ruling against the oculus edge, signed about z.
+    std::array<std::array<double, 2>, 4> rib_sweep_obliqueness_deg = {}; // The inner rib sweep against each inner rib's normal.
+    std::array<std::array<double, 2>, 4> rib_shear_mm = {}; // How far each inner rib's central face is sheared against its outer face along the rib.
+    std::array<double, 4> closure_residual_mm = {}; // Rule A: rib 0's central trace projected along the ruling against rib 1's.
+    std::array<double, 4> end_face_planarity_mm = {}; // The farthest rib end face corner from its end plane, over the four ribs.
+    std::array<double, 4> bed_flange_coincidence_mm = {}; // The farthest bed underside corner from the top of the flange beside it, over the three rows and both sides.
+    std::array<std::array<double, 2>, 4> central_layer_shift_vs_compas_mm = {}; // +t and +2t vertex shift of the cross-section layers against compas_tf's; informational.
+    std::array<std::array<double, 2>, 4> rib_bottom_clearance_mm = {}; // Each outer rib's bottom at its fan plane above the middle cutter level; negative where it runs below the carved face.
+    std::array<std::array<double, 3>, 4> wedge_seat_mm = {}; // The side 0, chamfer and side 1 seats on the head.
+    std::array<std::array<double, 2>, 4> column_offset_mm = {}; // Signed, per corner and bay edge (R8).
+    double ring_overlap_mm2 = 0.0; // The ring beams' mutual overlap in plan, 0 required.
+    double ring_uncovered_mm2 = 0.0; // The quarter oculus beam faces' area outside their ring beams' faces, 0 required (R7).
+
+    /// Whether every structural relation holds within the tolerance: the seam and oculus identities, the closure, the end faces, the beds on the flanges and the ring.
+    bool ok(double tolerance = 1e-6) const;
+
+    /// The report as text, one line per relation.
+    std::string str() const;
+};
+
 /// The floor: a plan and sizes, every shared entity and every quarter's geometry computed once, quarter views on demand and the oculus; a plain value, since no view is stored.
 struct Floor {
     FloorPlan plan; // The four corners and the oculus.
     FloorSizes sizes; // Everything that does not change with the plan.
     CentralLayers layers = CentralLayers::compas; // How the central panel's layers are made.
+    CutterLevel cutter_level = CutterLevel::compas_factor; // How the middle column cutter level is set.
     session_cpp::Point centre; // The plan's centre.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
@@ -224,20 +264,23 @@ struct Floor {
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
 
     /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::compas);
+    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::compas, CutterLevel level = CutterLevel::compas_factor);
 
     /// A view of quarter q; it holds a reference and lives as long as the floor.
     Quarter quarter(size_t q) const;
 
     /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (compas_tf's pinwheel), four bottom wedges and the inner plate.
     std::vector<Outline> oculus() const;
+
+    /// Measures what compas_tf relied on silently, for every quarter and the ring.
+    FloorReport check() const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Elements
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A rib outline as a variable beam: one section per parabola point up to the top edge, through the rib thickness.
+/// A rib outline as a variable beam: one section per parabola point up to the top edge, its far corners read from the second outline, so the end sections lie in the end planes.
 std::shared_ptr<wood_session::BeamVariable> to_rib(const Outline& outline, const std::string& name);
 
 /// A four-corner member outline as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.

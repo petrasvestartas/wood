@@ -251,6 +251,7 @@ void dump_ties(const wood_floor::Floor& floor, const wood_floor::FloorMembers& m
 int main() {
 
     const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    std::cout << model.check().str() << std::endl;
     WoodSession session("templates_floor_8_contacts_cantilevers");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
     const std::shared_ptr<TreeNode> floor = wood_floor::add_group(session, "floor_model", root);

@@ -48,9 +48,6 @@ session_cpp::Polyline cut(const session_cpp::Polyline& polyline, const session_c
 /// The polyline with both end segments pushed out by EXTENSION, then cut by the two planes.
 session_cpp::Polyline trim(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
 
-/// The points of the polyline projected by each of the two projections.
-std::array<std::vector<session_cpp::Point>, 2> projected(const session_cpp::Polyline& polyline, const session_cpp::Xform& projection0, const session_cpp::Xform& projection1);
-
 /// The polyline offset by distance in its vertical plane, square to every segment, its ends on the end normals.
 session_cpp::Polyline offset_polyline(const session_cpp::Polyline& polyline, double distance);
 
@@ -59,6 +56,13 @@ session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
 
 /// The area of a closed planar polyline.
 double polygon_area(const session_cpp::Polyline& polyline);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Central panel
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Rule A for one quarter: the inner ribs' one sweep r so that rib 0's central trace projected along one ruling u lands on rib 1's, and the central traces by the layers.
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorSizes& sizes, CentralLayers layers);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
