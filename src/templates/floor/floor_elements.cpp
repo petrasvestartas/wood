@@ -5,14 +5,16 @@ using namespace session_cpp;
 
 namespace wood_floor {
 
+using namespace wood_floor::geometry;
+
 /// The closed quad of four points.
-Polyline section(const Point& a, const Point& b, const Point& c, const Point& d) {
-    return Polyline({a, b, c, d, a});
+static Polyline section(const Point& a, const Point& b, const Point& c, const Point& d) {
+    return Polyline({a, b, c, d}).closed();
 }
 
-/// The middle of two points.
-Point middle(const Point& a, const Point& b) {
-    return a + (b - a) * 0.5;
+/// The closed square from corner over the sides x and y, at z.
+static Polyline square(const Point& corner, double x, double y, double z) {
+    return section(Point(corner[0], corner[1], z), Point(corner[0] + x, corner[1], z), Point(corner[0] + x, corner[1] + y, z), Point(corner[0], corner[1] + y, z));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -39,7 +41,7 @@ std::shared_ptr<wood_session::BeamVariable> to_rib(const Outline& outline, const
         sections.push_back(section(low, high, high + across, low + across));
     }
 
-    const Line axis = Line::from_points(middle(top[1], bottom[1]), middle(top[0], bottom[0]));
+    const Line axis = Line::from_points(Line::from_points(top[1], bottom[1]).center(), Line::from_points(top[0], bottom[0]).center());
 
     return std::make_shared<wood_session::BeamVariable>(axis, sections, name);
 }
@@ -60,12 +62,8 @@ std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std:
     return std::make_shared<wood_session::Plate>(outline.bottom, outline.top, name);
 }
 
-/// The closed square from corner over the sides x and y, at z.
-Polyline square(const Point& corner, double x, double y, double z) {
-    return section(Point(corner[0], corner[1], z), Point(corner[0] + x, corner[1], z), Point(corner[0] + x, corner[1] + y, z), Point(corner[0], corner[1] + y, z));
-}
-
 std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide) {
+
     const Plane plane = Plane::from_frame(guide.corner_point_column(guide.size_column_head), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0));
 
     return std::make_shared<wood_session::Support>(plane, "support");
@@ -81,7 +79,7 @@ std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const w
 
     std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, side, foot[2]), "column");
     column->head = square(corner, head, head, foot[2]);
-    column->head_height = std::abs(guide.column_head_lowest_height);
+    column->head_height = guide.column_head_depth;
 
     return column;
 }
@@ -100,6 +98,10 @@ std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const FloorG
     }
 
     return cutters;
+}
+
+double outline_thickness(const Outline& outline) {
+    return (area_centroid(outline.top) - area_centroid(outline.bottom)).magnitude();
 }
 
 }

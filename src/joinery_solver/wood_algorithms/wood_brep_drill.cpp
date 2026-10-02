@@ -258,39 +258,52 @@ static void split_sides(std::vector<PlanarFace>& faces) {
     }
 }
 
-/// The planar faces of a mesh, every set of edge-adjacent coplanar mesh faces merged into one face with its outer loop and holes, each with its frame; empty when a face is not planar.
-static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
+/// The plane of every mesh face: its ring, unit normal and offset; empty when a face is not planar.
+struct FacePlane {
+    std::vector<size_t> ring; // Vertex keys around the face.
+    Vector normal; // Unit normal.
+    double offset = 0.0; // normal . point for any point of the face.
+};
 
-    const std::vector<size_t> keys = mesh.faces();
-    std::vector<std::vector<size_t>> rings;
-    std::vector<Vector> normals;
-    std::vector<double> offsets;
+/// The planes of the mesh faces in key order; empty when a face is not planar.
+static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
 
-    for (const size_t key : keys) {
-        rings.push_back(mesh.face_vertices(key).value());
+    std::vector<FacePlane> planes;
+
+    for (const size_t key : mesh.faces()) {
+        FacePlane plane;
+        plane.ring = mesh.face_vertices(key).value();
         std::vector<Point> points;
 
-        for (const size_t vertex : rings.back())
+        for (const size_t vertex : plane.ring)
             points.push_back(mesh.vertex_point(vertex).value());
 
-        normals.push_back(compute_newell(points).normalized());
-        offsets.push_back(normals.back().dot(points[0] - Point(0.0, 0.0, 0.0)));
+        plane.normal = compute_newell(points).normalized();
+        plane.offset = plane.normal.dot(points[0] - Point(0.0, 0.0, 0.0));
 
         for (const Point& point : points)
-            if (std::abs((point - points[0]).dot(normals.back())) > 1e-4)
+            if (std::abs((point - points[0]).dot(plane.normal)) > 1e-4)
                 return {};
+
+        planes.push_back(plane);
     }
+
+    return planes;
+}
+
+/// The regions of edge-adjacent coplanar faces: per region the face its plane is taken from and the faces it holds in index order.
+static std::vector<std::pair<size_t, std::vector<size_t>>> coplanar_regions(const std::vector<FacePlane>& planes) {
 
     std::map<std::pair<size_t, size_t>, std::vector<size_t>> edges;
 
-    for (size_t f = 0; f < rings.size(); f++)
-        for (size_t i = 0; i < rings[f].size(); i++) {
-            const size_t a = rings[f][i];
-            const size_t b = rings[f][(i + 1) % rings[f].size()];
+    for (size_t f = 0; f < planes.size(); f++)
+        for (size_t i = 0; i < planes[f].ring.size(); i++) {
+            const size_t a = planes[f].ring[i];
+            const size_t b = planes[f].ring[(i + 1) % planes[f].ring.size()];
             edges[{std::min(a, b), std::max(a, b)}].push_back(f);
         }
 
-    std::vector<size_t> parent(rings.size());
+    std::vector<size_t> parent(planes.size());
 
     for (size_t f = 0; f < parent.size(); f++)
         parent[f] = f;
@@ -300,64 +313,91 @@ static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
             const size_t f = edge.second[0];
             const size_t g = edge.second[1];
 
-            if (normals[f].dot(normals[g]) > 1.0 - 1e-9 && std::abs(offsets[f] - offsets[g]) < 1e-6)
+            if (planes[f].normal.dot(planes[g].normal) > 1.0 - 1e-9 && std::abs(planes[f].offset - planes[g].offset) < 1e-6)
                 parent[find_face(parent, g)] = find_face(parent, f);
         }
 
     std::map<size_t, std::vector<size_t>> regions;
 
-    for (size_t f = 0; f < rings.size(); f++)
+    for (size_t f = 0; f < planes.size(); f++)
         regions[find_face(parent, f)].push_back(f);
+
+    return std::vector<std::pair<size_t, std::vector<size_t>>>(regions.begin(), regions.end());
+}
+
+/// A planar face from its outer loop, holes and normal, framed along its first side.
+static PlanarFace framed_face(const std::vector<Point>& points, const std::vector<std::vector<Point>>& holes, const Vector& normal) {
+
+    PlanarFace face;
+    face.points = points;
+    face.holes = holes;
+    face.normal = normal;
+    face.x = (points[1] - points[0]).normalized();
+    face.y = normal.cross(face.x).normalized();
+
+    return face;
+}
+
+/// The faces of one coplanar region: one face with its outer loop and holes when its boundary has exactly one loop winding with the normal, else every mesh face of the region on its own.
+static std::vector<PlanarFace> region_faces(const Mesh& mesh, const std::vector<FacePlane>& planes, const Vector& normal, const std::vector<size_t>& region) {
+
+    std::vector<std::vector<size_t>> members;
+
+    for (const size_t f : region)
+        members.push_back(planes[f].ring);
+
+    const std::vector<std::vector<size_t>> loops = region_loops(members);
+    size_t outer = loops.size();
+    std::vector<std::vector<Point>> polygons;
+
+    for (size_t l = 0; l < loops.size(); l++) {
+        polygons.push_back({});
+
+        for (const size_t vertex : loops[l])
+            polygons.back().push_back(mesh.vertex_point(vertex).value());
+
+        if (compute_newell(polygons.back()).dot(normal) > 0.0)
+            outer = outer == loops.size() ? l : loops.size() + 1;
+    }
 
     std::vector<PlanarFace> faces;
 
-    for (const std::pair<const size_t, std::vector<size_t>>& region : regions) {
-        std::vector<std::vector<size_t>> members;
-
-        for (const size_t f : region.second)
-            members.push_back(rings[f]);
-
-        std::vector<std::vector<size_t>> loops = region_loops(members);
-        size_t outer = loops.size();
-        std::vector<std::vector<Point>> polygons;
-
-        for (size_t l = 0; l < loops.size(); l++) {
-            polygons.push_back({});
-
-            for (const size_t vertex : loops[l])
-                polygons.back().push_back(mesh.vertex_point(vertex).value());
-
-            if (compute_newell(polygons.back()).dot(normals[region.first]) > 0.0)
-                outer = outer == loops.size() ? l : loops.size() + 1;
-        }
-
-        if (outer >= loops.size()) {
-            for (const size_t f : region.second) {
-                PlanarFace face;
-
-                for (const size_t vertex : rings[f])
-                    face.points.push_back(mesh.vertex_point(vertex).value());
-
-                face.normal = normals[f];
-                face.x = (face.points[1] - face.points[0]).normalized();
-                face.y = face.normal.cross(face.x).normalized();
-                faces.push_back(face);
-            }
-
-            continue;
-        }
-
-        PlanarFace face;
-        face.points = polygons[outer];
+    if (outer < loops.size()) {
+        std::vector<std::vector<Point>> holes;
 
         for (size_t l = 0; l < polygons.size(); l++)
             if (l != outer)
-                face.holes.push_back(polygons[l]);
+                holes.push_back(polygons[l]);
 
-        face.normal = normals[region.first];
-        face.x = (face.points[1] - face.points[0]).normalized();
-        face.y = face.normal.cross(face.x).normalized();
-        faces.push_back(face);
+        faces.push_back(framed_face(polygons[outer], holes, normal));
+
+        return faces;
+    }
+
+    for (const size_t f : region) {
+        std::vector<Point> points;
+
+        for (const size_t vertex : planes[f].ring)
+            points.push_back(mesh.vertex_point(vertex).value());
+
+        faces.push_back(framed_face(points, {}, planes[f].normal));
+    }
+
+    return faces;
+}
+
+/// The planar faces of a mesh, every set of edge-adjacent coplanar mesh faces merged into one face with its outer loop and holes, each with its frame; empty when a face is not planar.
+static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
+
+    const std::vector<FacePlane> planes = mesh_planes(mesh);
+    std::vector<PlanarFace> faces;
+
+    if (planes.empty())
+        return faces;
+
+    for (const std::pair<size_t, std::vector<size_t>>& region : coplanar_regions(planes)) {
+        const std::vector<PlanarFace> found = region_faces(mesh, planes, planes[region.first].normal, region.second);
+        faces.insert(faces.end(), found.begin(), found.end());
     }
 
     return faces;
@@ -758,6 +798,138 @@ std::vector<Drill> merged_drills(std::vector<Drill> drills) {
     return drills;
 }
 
+/// The solid under construction: the builder, the hole loops of every stretch, which of them lie on each planar face, and the shell faces so far.
+struct Drilling {
+    Builder builder; // Vertices, edges and surfaces shared so far.
+    std::vector<std::array<Loop, 2>> loops; // The two hole loops of every stretch.
+    std::vector<std::vector<const Loop*>> holes; // Per planar face, the hole loops lying on it.
+    std::vector<BRepRef> shell; // Faces added so far: every bore and every bottom disc.
+    double removed = 0.0; // Volume the bores take out, for the check against the mesh.
+};
+
+/// The two hole loops of a stretch, on the faces it crosses or square to the drill at a bottom, each a closed edge from the vertex on its seam.
+static void add_hole_loops(Drilling& drilling, const std::vector<PlanarFace>& faces, const Drill& drill, const Stretch& stretch, size_t s, const Vector& e, const Vector& f) {
+
+    const Point start = drill.axis.start();
+    const Vector d = drill.axis.to_vector().normalized();
+
+    for (size_t end = 0; end < 2; end++) {
+        const int face = end == 0 ? stretch.face0 : stretch.face1;
+        const PlanarFace* plane = face >= 0 ? &faces[face] : nullptr;
+        const Point centre = end_centre(plane, start, d, end == 0 ? stretch.t0 : stretch.t1);
+        Loop& loop = drilling.loops[s][end];
+        loop.curve = hole_loop(centre, e, f, d, plane ? plane->normal : d, drill.radius);
+        const int vertex = drilling.builder.vertex(loop.curve.point_at(loop.curve.domain().first));
+        loop.edge = drilling.builder.brep.add_edge(drilling.builder.brep.add_curve_3d(loop.curve), vertex, vertex);
+    }
+}
+
+/// How far along the drill the loops of a stretch reach: the lowest and highest axis parameter of either, and whether each is square to the drill.
+static std::array<std::array<double, 2>, 2> loop_reach(const std::array<Loop, 2>& loops, const Point& start, const Vector& d) {
+
+    std::array<std::array<double, 2>, 2> reach = {{{1e300, -1e300}, {1e300, -1e300}}};
+
+    for (size_t end = 0; end < 2; end++)
+        for (const Point& point : loops[end].curve.divide_by_count(SAMPLES, true).first) {
+            reach[end][0] = std::min(reach[end][0], (point - start).dot(d));
+            reach[end][1] = std::max(reach[end][1], (point - start).dot(d));
+        }
+
+    return reach;
+}
+
+/// Adds the exact bore of one stretch: its two hole loops, the cylinder between them with its seam, and a flat disc at an end inside the solid, the loops on the faces crossed kept for those faces; false when the kernel circle does not match the cylinder's parameter.
+static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, const Drill& drill, const Stretch& stretch, size_t s, const NurbsCurve& circle) {
+
+    const Point start = drill.axis.start();
+    const Vector d = drill.axis.to_vector().normalized();
+    const Vector e = d.cross(std::abs(d[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0)).normalized();
+    const Vector f = d.cross(e).normalized();
+    Builder& builder = drilling.builder;
+    std::array<Loop, 2>& loops = drilling.loops[s];
+
+    add_hole_loops(drilling, faces, drill, stretch, s, e, f);
+
+    const std::array<std::array<double, 2>, 2> reach = loop_reach(loops, start, d);
+    const double low = std::min(reach[0][0], reach[1][0]);
+    const double high = std::max(reach[0][1], reach[1][1]);
+    const double pad_low = reach[0][1] - reach[0][0] < SQUARE ? 0.0 : drill.radius * 0.1;
+    const double pad_high = reach[1][1] - reach[1][0] < SQUARE ? 0.0 : drill.radius * 0.1;
+    const Point origin = start + d * (low - pad_low);
+    const double height = high - low + pad_low + pad_high;
+    Xform frame;
+    frame.m = {e[0], e[1], e[2], 0.0, f[0], f[1], f[2], 0.0, d[0], d[1], d[2], 0.0, origin[0], origin[1], origin[2], 1.0};
+    const NurbsSurface bore = Primitives::cylinder_surface(0.0, 0.0, 0.0, drill.radius, height).transformed(frame);
+    const int surface = builder.brep.add_surface(bore);
+    const std::pair<double, double> du = bore.domain(0);
+    const std::pair<double, double> dv = bore.domain(1);
+
+    if (std::abs(circle.domain().first - du.first) > 1e-12 || std::abs(circle.domain().second - du.second) > 1e-12 || circle.cv_count() != 2 * ((circle.cv_count() - 1) / 2) + 1)
+        return false;
+
+    for (Loop& loop : loops) {
+        const NurbsCurve uv = on_cylinder(circle, loop, origin, d, height, dv);
+        loop.v = uv.point_at(uv.domain().first)[1];
+        builder.brep.add_pcurve(loop.edge, surface, builder.brep.add_curve_2d(uv));
+    }
+
+    const int bottom = builder.vertex(loops[0].curve.point_at(du.first));
+    const int top = builder.vertex(loops[1].curve.point_at(du.first));
+    const int seam = builder.brep.add_edge(builder.brep.add_curve_3d(NurbsCurve::create(false, 1, {builder.vertices[bottom], builder.vertices[top]})), bottom, top);
+    builder.brep.add_pcurve(seam, surface, builder.brep.add_curve_2d(uv_line(du.second, loops[0].v, du.second, loops[1].v)), builder.brep.add_curve_2d(uv_line(du.first, loops[0].v, du.first, loops[1].v)));
+    const int wire = builder.brep.add_wire({{loops[0].edge, BRepOrientation::Forward}, {seam, BRepOrientation::Forward}, {loops[1].edge, BRepOrientation::Reversed}, {seam, BRepOrientation::Reversed}});
+    drilling.shell.push_back({builder.brep.add_face(surface, {{wire, BRepOrientation::Forward}}), BRepOrientation::Reversed});
+
+    for (size_t end = 0; end < 2; end++) {
+        const int face = end == 0 ? stretch.face0 : stretch.face1;
+        const Point centre = start + d * (end == 0 ? stretch.t0 : stretch.t1);
+
+        if (face >= 0)
+            drilling.holes[face].push_back(&loops[end]);
+        else
+            drilling.shell.push_back({add_bottom_face(builder, loops[end], centre, e, end == 0 ? d : -d), BRepOrientation::Forward});
+    }
+
+    const Point c0 = end_centre(stretch.face0 >= 0 ? &faces[stretch.face0] : nullptr, start, d, stretch.t0);
+    const Point c1 = end_centre(stretch.face1 >= 0 ? &faces[stretch.face1] : nullptr, start, d, stretch.t1);
+    drilling.removed += M_PI * drill.radius * drill.radius * (c1 - c0).magnitude();
+
+    return true;
+}
+
+/// Whether the built solid closes and holds the mesh's volume less the bores, within VOLUME and the kernel's tessellation slack on the bores.
+static bool check_volume(const BRep& brep, const Mesh& mesh, double removed, const std::vector<Drill>& drills, const std::vector<Stretch>& stretches) {
+
+    const double expected = compute_volume(mesh) - removed;
+
+    if (brep.is_solid() && std::abs(brep.volume() - expected) <= VOLUME * expected + BORE_SLACK * removed)
+        return true;
+
+    if constexpr (TRACE) {
+        std::cout << fmt::format("built solid {} with volume {:.1f} against {:.1f} expected, {:.1f} removed by {} drills in {} stretches", brep.is_solid(), brep.volume(), expected, removed, drills.size(), stretches.size()) << std::endl;
+
+        for (const Stretch& stretch : stretches)
+            std::cout << fmt::format("   drill {} radius {:.1f} length {:.1f}: stretch {:.1f} .. {:.1f} faces {} {}", stretch.drill, drills[stretch.drill].radius, drills[stretch.drill].axis.length(), stretch.t0, stretch.t1, stretch.face0, stretch.face1) << std::endl;
+    }
+
+    return false;
+}
+
+/// Prints every edge the faces do not use exactly twice.
+static void trace_edge_uses(const BRep& brep) {
+
+    std::map<int, int> uses;
+
+    for (const BRepFace& face : brep.m_faces)
+        for (const BRepRef& wire : face.wires)
+            for (const BRepRef& edge : brep.m_wires[wire.index].edges)
+                uses[edge.index]++;
+
+    for (const std::pair<const int, int>& use : uses)
+        if (use.second != 2)
+            std::cout << "edge " << use.first << " used " << use.second << " times" << std::endl;
+}
+
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& given) {
 
     const std::vector<Drill> drills = merged_drills(given);
@@ -784,112 +956,27 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
         if (!is_clear(faces, drills, stretches, s))
             return std::nullopt;
 
-    Builder builder;
-    std::vector<std::vector<const Loop*>> holes(faces.size());
-    std::vector<std::array<Loop, 2>> loops(stretches.size());
-    std::vector<BRepRef> shell;
-    double removed = 0.0;
+    Drilling drilling;
+    drilling.holes.resize(faces.size());
+    drilling.loops.resize(stretches.size());
 
-    for (size_t s = 0; s < stretches.size(); s++) {
-        const Stretch& stretch = stretches[s];
-        const Drill& drill = drills[stretch.drill];
-        const Point start = drill.axis.start();
-        const Vector d = drill.axis.to_vector().normalized();
-        const Vector e = d.cross(std::abs(d[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0)).normalized();
-        const Vector f = d.cross(e).normalized();
-
-        for (size_t end = 0; end < 2; end++) {
-            const int face = end == 0 ? stretch.face0 : stretch.face1;
-            const PlanarFace* plane = face >= 0 ? &faces[face] : nullptr;
-            const Point centre = end_centre(plane, start, d, end == 0 ? stretch.t0 : stretch.t1);
-            loops[s][end].curve = hole_loop(centre, e, f, d, plane ? plane->normal : d, drill.radius);
-            const int vertex = builder.vertex(loops[s][end].curve.point_at(loops[s][end].curve.domain().first));
-            loops[s][end].edge = builder.brep.add_edge(builder.brep.add_curve_3d(loops[s][end].curve), vertex, vertex);
-        }
-
-        std::array<std::array<double, 2>, 2> reach = {{{1e300, -1e300}, {1e300, -1e300}}};
-
-        for (size_t end = 0; end < 2; end++)
-            for (const Point& point : loops[s][end].curve.divide_by_count(SAMPLES, true).first) {
-                reach[end][0] = std::min(reach[end][0], (point - start).dot(d));
-                reach[end][1] = std::max(reach[end][1], (point - start).dot(d));
-            }
-
-        const double low = std::min(reach[0][0], reach[1][0]);
-        const double high = std::max(reach[0][1], reach[1][1]);
-        const double pad_low = reach[0][1] - reach[0][0] < SQUARE ? 0.0 : drill.radius * 0.1;
-        const double pad_high = reach[1][1] - reach[1][0] < SQUARE ? 0.0 : drill.radius * 0.1;
-        const Point origin = start + d * (low - pad_low);
-        const double height = high - low + pad_low + pad_high;
-        Xform frame;
-        frame.m = {e[0], e[1], e[2], 0.0, f[0], f[1], f[2], 0.0, d[0], d[1], d[2], 0.0, origin[0], origin[1], origin[2], 1.0};
-        const NurbsSurface bore = Primitives::cylinder_surface(0.0, 0.0, 0.0, drill.radius, height).transformed(frame);
-        const int surface = builder.brep.add_surface(bore);
-        const std::pair<double, double> du = bore.domain(0);
-        const std::pair<double, double> dv = bore.domain(1);
-
-        if (std::abs(circle.domain().first - du.first) > 1e-12 || std::abs(circle.domain().second - du.second) > 1e-12 || circle.cv_count() != 2 * ((circle.cv_count() - 1) / 2) + 1)
+    for (size_t s = 0; s < stretches.size(); s++)
+        if (!add_bore(drilling, faces, drills[stretches[s].drill], stretches[s], s, circle))
             return std::nullopt;
 
-        for (Loop& loop : loops[s]) {
-            const NurbsCurve uv = on_cylinder(circle, loop, origin, d, height, dv);
-            loop.v = uv.point_at(uv.domain().first)[1];
-            builder.brep.add_pcurve(loop.edge, surface, builder.brep.add_curve_2d(uv));
-        }
-
-        const int bottom = builder.vertex(loops[s][0].curve.point_at(du.first));
-        const int top = builder.vertex(loops[s][1].curve.point_at(du.first));
-        const int seam = builder.brep.add_edge(builder.brep.add_curve_3d(NurbsCurve::create(false, 1, {builder.vertices[bottom], builder.vertices[top]})), bottom, top);
-        builder.brep.add_pcurve(seam, surface, builder.brep.add_curve_2d(uv_line(du.second, loops[s][0].v, du.second, loops[s][1].v)), builder.brep.add_curve_2d(uv_line(du.first, loops[s][0].v, du.first, loops[s][1].v)));
-        const int wire = builder.brep.add_wire({{loops[s][0].edge, BRepOrientation::Forward}, {seam, BRepOrientation::Forward}, {loops[s][1].edge, BRepOrientation::Reversed}, {seam, BRepOrientation::Reversed}});
-        shell.push_back({builder.brep.add_face(surface, {{wire, BRepOrientation::Forward}}), BRepOrientation::Reversed});
-
-        for (size_t end = 0; end < 2; end++) {
-            const int face = end == 0 ? stretch.face0 : stretch.face1;
-            const Point centre = start + d * (end == 0 ? stretch.t0 : stretch.t1);
-
-            if (face >= 0)
-                holes[face].push_back(&loops[s][end]);
-            else
-                shell.push_back({add_bottom_face(builder, loops[s][end], centre, e, end == 0 ? d : -d), BRepOrientation::Forward});
-        }
-
-        const Point c0 = end_centre(stretch.face0 >= 0 ? &faces[stretch.face0] : nullptr, start, d, stretch.t0);
-        const Point c1 = end_centre(stretch.face1 >= 0 ? &faces[stretch.face1] : nullptr, start, d, stretch.t1);
-        removed += M_PI * drill.radius * drill.radius * (c1 - c0).magnitude();
-    }
-
     for (size_t i = 0; i < faces.size(); i++)
-        shell.push_back({add_planar_face(builder, faces[i], holes[i]), BRepOrientation::Forward});
+        drilling.shell.push_back({add_planar_face(drilling.builder, faces[i], drilling.holes[i]), BRepOrientation::Forward});
 
-    builder.brep.add_solid({{builder.brep.add_shell(shell), BRepOrientation::Forward}});
-    const double expected = compute_volume(mesh) - removed;
+    BRep& brep = drilling.builder.brep;
+    brep.add_solid({{brep.add_shell(drilling.shell), BRepOrientation::Forward}});
 
-    if (!builder.brep.is_solid() || std::abs(builder.brep.volume() - expected) > VOLUME * expected + BORE_SLACK * removed) {
-        if constexpr (TRACE) {
-            std::cout << fmt::format("built solid {} with volume {:.1f} against {:.1f} expected, {:.1f} removed by {} drills in {} stretches", builder.brep.is_solid(), builder.brep.volume(), expected, removed, drills.size(), stretches.size()) << std::endl;
-
-            for (const Stretch& stretch : stretches)
-                std::cout << fmt::format("   drill {} radius {:.1f} length {:.1f}: stretch {:.1f} .. {:.1f} faces {} {}", stretch.drill, drills[stretch.drill].radius, drills[stretch.drill].axis.length(), stretch.t0, stretch.t1, stretch.face0, stretch.face1) << std::endl;
-        }
-
+    if (!check_volume(brep, mesh, drilling.removed, drills, stretches))
         return std::nullopt;
-    }
 
-    if constexpr (TRACE) {
-        std::map<int, int> uses;
+    if constexpr (TRACE)
+        trace_edge_uses(brep);
 
-        for (const BRepFace& face : builder.brep.m_faces)
-            for (const BRepRef& wire : face.wires)
-                for (const BRepRef& edge : builder.brep.m_wires[wire.index].edges)
-                    uses[edge.index]++;
-
-        for (const std::pair<const int, int>& use : uses)
-            if (use.second != 2)
-                std::cout << "edge " << use.first << " used " << use.second << " times" << std::endl;
-    }
-
-    return builder.brep;
+    return brep;
 }
 
 std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line) {

@@ -3,51 +3,39 @@
 
 namespace wood_floor {
 
-using namespace session_cpp;
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Construction geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The planes of a quarter in pairs, one pair per member: the first plane is the member's base face, the second the face it is offset to.
 struct ConstructionPlanes {
-    std::vector<std::array<Plane, 2>> outer_ribs; // Along the two grid edges, offset inwards by size_outer_ribs.
-    std::vector<std::array<Plane, 2>> inner_beams; // Along the two seam lines and the oculus edge; the oculus one tilted by the oculus plane angle.
-    std::vector<std::array<Plane, 2>> inner_ribs; // From the column head chamfer to the inner beam corners.
-    std::vector<std::array<Plane, 2>> wedges; // Three around the column head, the middle one tilted by wedge_plane_angle, then the three inner beam faces.
-    std::vector<std::array<Plane, 2>> t_sections; // Beside the outer and inner ribs, size_tsections thick.
+    std::vector<std::array<session_cpp::Plane, 2>> outer_ribs; // Along the two grid edges, offset inwards by size_outer_ribs.
+    std::vector<std::array<session_cpp::Plane, 2>> inner_beams; // Along the two seam lines and the oculus edge; the oculus one tilted by the oculus plane angle.
+    std::vector<std::array<session_cpp::Plane, 2>> inner_ribs; // From the column head chamfer to the inner beam corners.
+    std::vector<std::array<session_cpp::Plane, 2>> wedges; // Three around the column head, the middle one tilted by wedge_plane_angle, then the three inner beam faces.
+    std::vector<std::array<session_cpp::Plane, 2>> t_sections; // Beside the outer and inner ribs, size_tsections thick.
 };
 
-/// Four planes per member whose intersections with the floor datum give its plan quad.
-struct QuadPlanes {
-    std::vector<std::array<Plane, 4>> outer_ribs; // Two.
-    std::vector<std::array<Plane, 4>> inner_beams; // Three.
-    std::vector<std::array<Plane, 4>> inner_ribs; // Two.
-    std::vector<std::array<Plane, 4>> wedges; // Six.
-    std::vector<std::array<Plane, 4>> t_sections; // Six.
-};
-
-/// One plan quad per member at the floor datum, from its quad planes.
+/// One plan quad per member at the floor datum.
 struct ConstructionQuads {
-    std::vector<Polyline> outer_ribs; // Two.
-    std::vector<Polyline> inner_beams; // Three.
-    std::vector<Polyline> inner_ribs; // Two.
-    std::vector<Polyline> wedges; // Six.
-    std::vector<Polyline> t_sections; // Six.
+    std::vector<session_cpp::Polyline> outer_ribs; // Two.
+    std::vector<session_cpp::Polyline> inner_beams; // Three.
+    std::vector<session_cpp::Polyline> inner_ribs; // Two.
+    std::vector<session_cpp::Polyline> wedges; // Six.
+    std::vector<session_cpp::Polyline> t_sections; // Six.
 };
 
 /// The two closed outlines a member is lofted between, as the guide authors them; the elements built from them choose which is the bottom.
 struct Outline {
-    Polyline top; // First outline.
-    Polyline bottom; // Second outline, vertex i facing vertex i of the first.
-    int row = -1; // Bed row 0, 1 or 2, -1 for every other member.
+    session_cpp::Polyline top; // First outline.
+    session_cpp::Polyline bottom; // Second outline, vertex i facing vertex i of the first.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor guide
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The parametric source of one quarter of a timber floor bay, port of compas_tf FloorGuide: a column head at the grid corner, ribs following parabolas to the edge midpoints and to the oculus, inner beams on the seams, t-sections, beds and the oculus, all as outline pairs at the floor datum z 0.
+/// The parametric source of one quarter of a timber floor bay, port of compas_tf FloorGuide, every member as an outline pair at the floor datum z 0.
 struct FloorGuide {
     double size_grid_x = 3000.0; // Half the bay in x: the column corner sits at -size_grid_x.
     double size_grid_y = 3000.0; // Half the bay in y.
@@ -63,7 +51,7 @@ struct FloorGuide {
     double size_oculus = 1000.0; // Half diagonal of the oculus.
     double wedge_plane_angle = -10.0; // Degrees the middle wedge plane leans about its top edge.
     double bay_height = 3500.0; // Storey height, column plus support, the floor is lifted by.
-    double column_head_lowest_height = -730.0; // Lowest level of the column head cutters.
+    double column_head_depth = 730.0; // How far below the floor datum the column head cutters reach.
     double oculus_plane_angle = 5.0; // Degrees the oculus inner beam plane leans about its top edge.
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -74,16 +62,16 @@ struct FloorGuide {
     double static_h() const;
 
     /// Column base centre in plan for a column of that side: the grid corner inset by half of it.
-    Point corner_point_column(double column_size = 200.0) const;
+    session_cpp::Point corner_point_column(double column_size = 200.0) const;
 
     /// The four oculus corners on the axes, scaled by the grid aspect.
-    std::vector<Point> oculus_points() const;
+    std::vector<session_cpp::Point> oculus_points() const;
 
     /// The quarter outline: grid corner, edge midpoint, two oculus corners, edge midpoint.
-    std::vector<Point> quarter_polygon() const;
+    std::vector<session_cpp::Point> quarter_polygon() const;
 
     /// The column head polygon at the grid corner the ribs start from.
-    std::vector<Point> quarter_column_polygon() const;
+    std::vector<session_cpp::Point> quarter_column_polygon() const;
 
     // ═══════════════════════════════════════════════════════════════════════
     // Construction planes
@@ -92,14 +80,11 @@ struct FloorGuide {
     /// The member planes of the quarter.
     ConstructionPlanes construction_planes() const;
 
-    /// The four bounding planes of every member.
-    QuadPlanes quad_planes() const;
-
     /// The plan quad of every member at z 0.
     ConstructionQuads construction_quads() const;
 
-    /// Per rib axis (outer 0, outer 1, inner 0, inner 1) the parabola and its two offsets by size_tsections; the inner ones are the outer projected onto the inner rib planes.
-    std::vector<std::array<Polyline, 3>> boundary_parabolas() const;
+    /// Per rib axis (outer 0, outer 1, inner 0, inner 1) the parabola and its two offsets by size_tsections.
+    std::vector<std::array<session_cpp::Polyline, 3>> boundary_parabolas() const;
 
     /// Bottom level of the wedge block.
     double block_level_bottom() const;
@@ -108,7 +93,7 @@ struct FloorGuide {
     double block_level_top() const;
 
     /// Per bed panel, matching the three wedges, the plane fitted to its deepest quad, normal up.
-    std::vector<Plane> bed_top_planes() const;
+    std::vector<session_cpp::Plane> bed_top_planes() const;
 
     // ═══════════════════════════════════════════════════════════════════════
     // Members
@@ -129,8 +114,8 @@ struct FloorGuide {
     /// The six t-sections beside the ribs.
     std::vector<Outline> tsections() const;
 
-    /// The bed plates in three rows, row set on each.
-    std::vector<Outline> beds() const;
+    /// The bed plates in three rows.
+    std::vector<std::vector<Outline>> beds() const;
 
     /// The oculus: four boundary beams, four bottom wedges and the inner plate.
     std::vector<Outline> oculus() const;
@@ -143,56 +128,72 @@ struct FloorGuide {
 // Elements
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A rib outline as a variable beam: one section per parabola point, from the parabola up to the top edge at z 0, through the rib thickness; the axis runs along the middle of the top face from the column end to the far end.
+/// A rib outline as a variable beam: one section per parabola point up to the top edge, through the rib thickness.
 std::shared_ptr<wood_session::BeamVariable> to_rib(const Outline& outline, const std::string& name);
 
-/// A four-corner member outline as a variable beam between two end sections: corners start[0], start[1] at one end and end[0], end[1] at the other, start[i] and end[i] on one long edge; the axis joins the section centroids.
+/// A four-corner member outline as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.
 std::shared_ptr<wood_session::BeamVariable> to_beam(const Outline& outline, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name);
 
 /// A member outline as a plate, bottom then top.
 std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std::string& name);
 
-/// The support of the quarter's column, port of compas_tf SupportElement: on the slab at z 0 under the column axis.
+/// The support of the quarter's column, port of compas_tf SupportElement, on the slab at z 0 under the column axis.
 std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide);
 
-/// The column of the quarter, port of compas_tf ColumnElement in example_model_2: a size_column_head square from the support's column foot to the floor at bay_height, its outer corner on the grid corner, and over the lowest column head level a head size_column_head_chamfer wider on the two bay sides.
+/// The column of the quarter, port of compas_tf ColumnElement, from the support's column foot to the floor with its wider head over the column head depth.
 std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const wood_session::Support& support);
 
 /// The column cutters lifted to the floor, one solid difference cutter each aimed at the column.
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const FloorGuide& guide, const wood_session::Column& column);
 
+/// compas_tf's computed_thickness of a member outline: the distance between the area centroids of its two loops.
+double outline_thickness(const Outline& outline);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Models
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// A member in the scene with the thickness the connectors on it are sized by.
+struct Member {
+    std::shared_ptr<session_cpp::Element> element; // The placed element.
+    double thickness = 0.0; // outline_thickness of the outline it was built from, measured in the guide frame.
+};
+
+/// The members of one quarter in the scene, by family.
+struct Quarter {
+    std::vector<Member> outer_ribs; // Two variable beams.
+    std::vector<Member> inner_ribs; // Two variable beams.
+    std::vector<Member> inner_beams; // Three variable beams.
+    std::vector<Member> blocks; // Three wedge block plates.
+    std::vector<Member> tsections; // Six plates.
+    std::vector<std::vector<Member>> beds; // Three rows of plates.
+};
+
 /// A group named name under parent, at the root when parent is empty.
-std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<TreeNode>& parent);
+std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
-/// The column model of compas_tf example_model_2 moved by placement: the support, the column on it, the support joint and the six head cutters, every name ending in suffix; returns the column.
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix);
+/// The column model of compas_tf example_model_2 moved by placement, every name ending in suffix; returns the column.
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const session_cpp::Xform& placement, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
 
-/// The quarter model of compas_tf example_model_4 lifted to bay_height and moved by placement: groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams, ribs and inner beams as variable beams, the rest plates, every name ending in suffix.
-void add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix);
+/// The quarter model of compas_tf example_model_4 lifted to bay_height and moved by placement, grouped by family, every name ending in suffix.
+Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const session_cpp::Xform& placement, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
 
-/// The oculus model of compas_tf example_model_5 lifted to bay_height: the four boundary beams as variable beams, the four bottom wedges and the inner plate as plates.
-void add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
+/// The oculus model of compas_tf example_model_5 lifted to bay_height; returns its four boundary beams.
+std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The column connectors of compas_tf example_model_8: a rectangle plate joint on the contact of every column with every outer rib, its dowels as long as the rib is thick by compas_tf's measure; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
+/// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the ring beams, sized by the thicker member; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const std::vector<Member>& ring, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The seam connectors of compas_tf example_model_8: a tie joint on every end-to-end contact of two outer ribs of neighbouring quarters; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& group);
+/// The column connectors of compas_tf example_model_8: a rectangle plate joint on the contact of every column with every outer rib; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::Column>>& columns, const std::vector<Member>& outer_ribs, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the inner beams and the four oculus boundary beams, shortened at both ends by 1.5 and pocketed 2/3 of the thicker member, its thickness the distance between its two outline centroids as compas_tf measures it; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group);
+/// The seam connectors of compas_tf example_model_8: a tie joint on every end-to-end contact of two outer ribs; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::vector<Member>& outer_ribs, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The thickness of a quarter member by its name, <group>_<k>_<quarter> for the wedge blocks, inner beams, outer ribs and inner ribs, compas_tf's computed_thickness of its outline; zero for any other member.
-double member_thickness(const FloorGuide& guide, const std::string& name);
+/// The assembly dowels of every quarter: a dowels joint on every contact of a wedge block with a rib, found on the members as they were before any cut; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const std::vector<Quarter>& quarters, const std::shared_ptr<session_cpp::TreeNode>& group, double radius = 4.0, double length = 30.0, double offset = 50.0);
 
-/// The assembly dowels within every quarter, the rib-to-wedge contact search of compas_tf example_model_8_contacts_quarter widened: a dowels joint on every face contact among the quarter's wedge blocks, inner beams, outer ribs and inner ribs, a wedge block's contacts with the ribs found on the members as they were before any cut, never across quarters, four dowels of radius and length per contact exactly at the corners of the contact inset by offset, half into each member. For information only, a dowel less than half its length inside a member or closer than clearance to another dowel's axis in one member is named in report when given, the smallest axis distance between two dowels is written to minimum_distance and the number of pairs meeting end to end on one axis to through_bores; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group, double radius = 4.0, double length = 30.0, double offset = 50.0, double clearance = 20.0, std::vector<std::string>* report = nullptr, double* minimum_distance = nullptr, size_t* through_bores = nullptr);
-
-/// The half laps of the column heads: a cross lap on every two rectangle plates that meet in one column, the first's slot from the top, the second's from the bottom; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_cross_laps(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates, const std::shared_ptr<TreeNode>& group);
+/// The half laps of the column heads: a cross lap on every two rectangle plates that meet in one column; returns the joints.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_cross_laps(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates, const std::shared_ptr<session_cpp::TreeNode>& group);
 
 }

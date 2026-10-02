@@ -872,13 +872,12 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     kPlateParametersFieldNumber = 17,
     kDivisionDistanceFieldNumber = 7,
     kShiftFieldNumber = 8,
-    kLineRadiusFieldNumber = 9,
     kVariantFieldNumber = 6,
-    kOperationFieldNumber = 16,
+    kGeneratedFieldNumber = 10,
+    kLineRadiusFieldNumber = 9,
     kChordToleranceFieldNumber = 12,
     kDrillOvershootFieldNumber = 20,
-    kGeneratedFieldNumber = 10,
-    kNestedFieldNumber = 22,
+    kOperationFieldNumber = 16,
   };
   // repeated .session_proto.Polyline loops = 1;
   [[nodiscard]] int loops_size() const;
@@ -1146,16 +1145,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   void _internal_set_shift(double value);
 
   public:
-  // double line_radius = 9;
-  void clear_line_radius() ;
-  [[nodiscard]] double line_radius() const;
-  void set_line_radius(double value);
-
-  private:
-  double _internal_line_radius() const;
-  void _internal_set_line_radius(double value);
-
-  public:
   // int32 variant = 6;
   void clear_variant() ;
   [[nodiscard]] ::int32_t variant() const;
@@ -1166,15 +1155,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   void _internal_set_variant(::int32_t value);
 
   public:
-  // optional int32 operation = 16;
-  [[nodiscard]] bool has_operation() const;
-  void clear_operation() ;
-  [[nodiscard]] ::int32_t operation() const;
-  void set_operation(::int32_t value);
+  // bool generated = 10;
+  void clear_generated() ;
+  [[nodiscard]] bool generated() const;
+  void set_generated(bool value);
 
   private:
-  ::int32_t _internal_operation() const;
-  void _internal_set_operation(::int32_t value);
+  bool _internal_generated() const;
+  void _internal_set_generated(bool value);
+
+  public:
+  // double line_radius = 9;
+  void clear_line_radius() ;
+  [[nodiscard]] double line_radius() const;
+  void set_line_radius(double value);
+
+  private:
+  double _internal_line_radius() const;
+  void _internal_set_line_radius(double value);
 
   public:
   // double chord_tolerance = 12;
@@ -1197,31 +1195,22 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   void _internal_set_drill_overshoot(double value);
 
   public:
-  // bool generated = 10;
-  void clear_generated() ;
-  [[nodiscard]] bool generated() const;
-  void set_generated(bool value);
+  // optional int32 operation = 16;
+  [[nodiscard]] bool has_operation() const;
+  void clear_operation() ;
+  [[nodiscard]] ::int32_t operation() const;
+  void set_operation(::int32_t value);
 
   private:
-  bool _internal_generated() const;
-  void _internal_set_generated(bool value);
-
-  public:
-  // bool nested = 22;
-  void clear_nested() ;
-  [[nodiscard]] bool nested() const;
-  void set_nested(bool value);
-
-  private:
-  bool _internal_nested() const;
-  void _internal_set_nested(bool value);
+  ::int32_t _internal_operation() const;
+  void _internal_set_operation(::int32_t value);
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.Joint)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<5, 22,
+      ::google::protobuf::internal::TcParseTable<5, 21,
                           11, 52,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -1265,13 +1254,12 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     ::wood_proto::JointPlateParameters* PROTOBUF_NULLABLE plate_parameters_;
     double division_distance_;
     double shift_;
-    double line_radius_;
     ::int32_t variant_;
-    ::int32_t operation_;
+    bool generated_;
+    double line_radius_;
     double chord_tolerance_;
     double drill_overshoot_;
-    bool generated_;
-    bool nested_;
+    ::int32_t operation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1613,7 +1601,7 @@ inline void Joint::set_allocated_beam_feature(::session_proto::Interaction* PROT
 inline void Joint::clear_variant() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.variant_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
 }
 inline ::int32_t Joint::variant() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.variant)
@@ -1621,7 +1609,7 @@ inline ::int32_t Joint::variant() const {
 }
 inline void Joint::set_variant(::int32_t value) {
   _internal_set_variant(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.variant)
 }
 inline ::int32_t Joint::_internal_variant() const {
@@ -1685,7 +1673,7 @@ inline void Joint::_internal_set_shift(double value) {
 inline void Joint::clear_line_radius() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.line_radius_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
 }
 inline double Joint::line_radius() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.line_radius)
@@ -1693,7 +1681,7 @@ inline double Joint::line_radius() const {
 }
 inline void Joint::set_line_radius(double value) {
   _internal_set_line_radius(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.line_radius)
 }
 inline double Joint::_internal_line_radius() const {
@@ -1709,7 +1697,7 @@ inline void Joint::_internal_set_line_radius(double value) {
 inline void Joint::clear_generated() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generated_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
 }
 inline bool Joint::generated() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.generated)
@@ -1717,7 +1705,7 @@ inline bool Joint::generated() const {
 }
 inline void Joint::set_generated(bool value) {
   _internal_set_generated(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.generated)
 }
 inline bool Joint::_internal_generated() const {
@@ -2012,13 +2000,13 @@ Joint::_internal_mutable_drill_lines() {
 
 // optional int32 operation = 16;
 inline bool Joint::has_operation() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00020000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00100000U);
   return value;
 }
 inline void Joint::clear_operation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.operation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
 }
 inline ::int32_t Joint::operation() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.operation)
@@ -2026,7 +2014,7 @@ inline ::int32_t Joint::operation() const {
 }
 inline void Joint::set_operation(::int32_t value) {
   _internal_set_operation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.operation)
 }
 inline ::int32_t Joint::_internal_operation() const {
@@ -2313,30 +2301,6 @@ inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NO
 Joint::_internal_mutable_solid_cuts() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.solid_cuts_;
-}
-
-// bool nested = 22;
-inline void Joint::clear_nested() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.nested_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
-}
-inline bool Joint::nested() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Joint.nested)
-  return _internal_nested();
-}
-inline void Joint::set_nested(bool value) {
-  _internal_set_nested(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Joint.nested)
-}
-inline bool Joint::_internal_nested() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.nested_;
-}
-inline void Joint::_internal_set_nested(bool value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.nested_ = value;
 }
 
 // -------------------------------------------------------------------

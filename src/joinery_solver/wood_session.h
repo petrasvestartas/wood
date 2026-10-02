@@ -107,6 +107,8 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
     void compute_lines_contacts(double tolerance = -1.0) { compute_line_contacts(tolerance); }
+
+    /// Adds the joint to the scene when it is not yet in it and cuts it into its targets: a plate joint merges its features, a beam joint hosts its feature volumes, a connector nests its parts and dowels as child elements of its node and stores its cutters and drills as solid cuts, any other joint its own solid or planes.
     void add_joint(const std::shared_ptr<Joint>& joint, bool merge = true);
 
     /// The closest axis segments of every two beams within `min_distance`, an InteractionContactAxis per beam pair.
@@ -235,10 +237,10 @@ public:
         return *objects.elements;
     }
 
-    /// Every Plate, in objects.elements order.
-    /// Adds a connector under group as a nested group: the connector's node with its parts and dowels as child elements, the connector itself drawing nothing, then cuts it into its targets as add_joint does; returns the connector's node.
+    /// Adds a connector under group and cuts it into its targets as add_joint does, so its parts and dowels become child elements of its node; returns that node.
     std::shared_ptr<session_cpp::TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<session_cpp::TreeNode>& group);
 
+    /// Every Plate, in objects.elements order.
     std::vector<std::shared_ptr<Plate>> plates() const {
         return get_elements<Plate>();
     }

@@ -85,62 +85,66 @@ void dump(std::ofstream& file, const std::string& name, const Mesh& mesh) {
     file << fmt::format("{} {:.6f} {:.6f} {:.6f} {:.6f}\n", name, compute_volume(mesh), box.cx, box.cy, box.cz);
 }
 
-int main() {
+/// The quarter and column models of the four quarters and the oculus; returns the quarters, the columns and the ring beams the wedges join.
+void add_models(WoodSession& session, const std::shared_ptr<TreeNode>& root, const std::shared_ptr<TreeNode>& floor, std::vector<wood_floor::Quarter>& quarters, std::vector<std::shared_ptr<Column>>& columns, std::vector<wood_floor::Member>& ring) {
 
-    WoodSession session("templates_floor_8_contacts_cantilevers");
-    const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
-    const std::shared_ptr<TreeNode> floor = wood_floor::add_group(session, "floor_model", root);
-    const std::shared_ptr<TreeNode> quarters = wood_floor::add_group(session, "quarters_model", floor);
-    const std::shared_ptr<TreeNode> columns = wood_floor::add_group(session, "columns_model", root);
+    const std::shared_ptr<TreeNode> quarter_group = wood_floor::add_group(session, "quarters_model", floor);
+    const std::shared_ptr<TreeNode> column_group = wood_floor::add_group(session, "columns_model", root);
 
     for (int i = 0; i < 4; i++) {
         const std::string suffix = fmt::format("_{}", i);
         const Xform turn = Xform::rotation_z(i * 90.0, true);
-        wood_floor::add_quarter_model(session, GUIDE, turn, wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
-        wood_floor::add_column_model(session, GUIDE, turn, wood_floor::add_group(session, "column_model" + suffix, columns), suffix);
+        quarters.push_back(wood_floor::add_quarter_model(session, GUIDE, turn, wood_floor::add_group(session, "quarter_model" + suffix, quarter_group), suffix));
+        columns.push_back(wood_floor::add_column_model(session, GUIDE, turn, wood_floor::add_group(session, "column_model" + suffix, column_group), suffix));
+        ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
     }
 
-    wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", floor));
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", floor));
+    ring.insert(ring.end(), oculus.begin(), oculus.end());
+}
 
-    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, GUIDE, wood_floor::add_group(session, "connectors", floor));
-    const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(session, GUIDE, wood_floor::add_group(session, "connectors", root));
-    const std::vector<std::shared_ptr<JointBeam>> laps = wood_floor::add_cross_laps(session, plates, wood_floor::add_group(session, "connectors", root));
-    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(session, wood_floor::add_group(session, "outer_rib_connectors", root));
-    std::vector<std::string> misfits;
-    double minimum_distance = 0.0;
-    size_t through = 0;
-    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_quarter_dowels(session, GUIDE, wood_floor::add_group(session, "quarter_connectors", floor), 4.0, 30.0, 50.0, 20.0, &misfits, &minimum_distance, &through);
-    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    size_t pins = 0;
+/// The outer ribs of every quarter, in quarter order.
+std::vector<wood_floor::Member> outer_ribs(const std::vector<wood_floor::Quarter>& quarters) {
 
-    for (const std::shared_ptr<JointBeam>& joint : dowels)
-        pins += joint->drill_lines.size();
+    std::vector<wood_floor::Member> ribs;
 
-    std::cout << fmt::format("{} elements, {} wedges, {} dowel sets of {} dowels at least {:.1f} apart, {} pairs meeting as one through bore, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), dowels.size(), pins, minimum_distance, through, plates.size(), laps.size(), ties.size(), ms) << std::endl;
+    for (const wood_floor::Quarter& quarter : quarters)
+        ribs.insert(ribs.end(), quarter.outer_ribs.begin(), quarter.outer_ribs.end());
 
-    for (int quarter = 0; quarter < 4; quarter++)
-        for (const bool rib : {true, false}) {
-            std::cout << fmt::format("quarter {} {}:", quarter, rib ? "wedge-rib contacts, inset 50" : "other contacts, inset 50") << std::endl;
+    return ribs;
+}
 
-            for (const std::shared_ptr<JointBeam>& set : dowels) {
-                const std::string a = session.get_element<Element>(set->targets[0])->name;
-                const std::string b = session.get_element<Element>(set->targets[1])->name;
+/// Prints every dowel set of a quarter: its two members, dowel count and length.
+void print_dowels(const WoodSession& session, const wood_floor::Quarter& quarter, const std::vector<std::shared_ptr<JointBeam>>& dowels, int index) {
 
-                if (a.ends_with(fmt::format("_{}", quarter)) && ((a.find("ribs_") != std::string::npos && b.starts_with("wedges_")) == rib))
-                    std::cout << fmt::format("   {} - {}: {} dowels {:.0f} long ({})", a, b, set->drill_lines.size(), set->drill_lines.empty() ? 0.0 : set->drill_lines.front().length(), set->name) << std::endl;
-            }
-        }
+    std::cout << fmt::format("quarter {} wedge-rib contacts, inset 50:", index) << std::endl;
 
-    for (const std::string& misfit : misfits)
-        std::cout << "dowels: " << misfit << std::endl;
+    for (const std::shared_ptr<JointBeam>& set : dowels) {
+        const std::shared_ptr<Element> rib = session.get_element<Element>(set->targets[0]);
+        bool own = false;
+
+        for (const wood_floor::Member& member : quarter.outer_ribs)
+            own = own || member.element == rib;
+
+        for (const wood_floor::Member& member : quarter.inner_ribs)
+            own = own || member.element == rib;
+
+        if (!own)
+            continue;
+
+        std::cout << fmt::format("   {} - {}: {} dowels {:.0f} long ({})", rib->name, session.get_element<Element>(set->targets[1])->name, set->drill_lines.size(), set->drill_lines.empty() ? 0.0 : set->drill_lines.front().length(), set->name) << std::endl;
+    }
+}
+
+/// Computes and counts the BReps: every cut element exact or faceted with its bores, every connector part with its bores, written when BREPS is set.
+void count_breps(WoodSession& session) {
 
     size_t exact = 0;
     size_t faceted = 0;
     size_t bores = 0;
     size_t connectors = 0;
     size_t part_bores = 0;
-    const std::chrono::steady_clock::time_point breps = std::chrono::steady_clock::now();
+    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
     for (const std::shared_ptr<Element>& element : *session.objects.elements) {
         if (std::dynamic_pointer_cast<Dowel>(element) || std::dynamic_pointer_cast<ConnectorPart>(element)) {
@@ -172,38 +176,72 @@ int main() {
             element->compute_geometry_brep();
     }
 
-    const double brep_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - breps).count();
-    std::cout << fmt::format("BReps of the cut elements: {} with {} exact bores, {} faceted, and of {} connectors with {} exact bores through their parts, in {:.0f} ms", exact, bores, faceted, connectors, part_bores, brep_ms) << std::endl;
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    std::cout << fmt::format("BReps of the cut elements: {} with {} exact bores, {} faceted, and of {} connectors with {} exact bores through their parts, in {:.0f} ms", exact, bores, faceted, connectors, part_bores, ms) << std::endl;
     std::cout << fmt::format("Every dowel bores every element it passes: {} dowel stretches through members and parts, {} exact bores found", dowel_crossings(session), bores + part_bores) << std::endl;
+}
 
+/// The parity record: the carved columns, the carved outer ribs and the tie keys.
+void dump_parity(const WoodSession& session, const std::vector<wood_floor::Member>& ribs, const std::vector<std::shared_ptr<JointBeam>>& ties) {
+
+    std::ofstream file(std::filesystem::path(pb_path("floor_8_contacts_cantilevers")).replace_extension(".txt").string());
+
+    for (const std::shared_ptr<Column>& column : session.columns())
+        dump(file, column->name, column->model_geometry_mesh());
+
+    for (const wood_floor::Member& rib : ribs)
+        dump(file, rib.element->name, rib.element->model_geometry_mesh());
+
+    for (const std::shared_ptr<JointBeam>& tie : ties) {
+        Mesh key;
+
+        for (const std::array<Polyline, 2>& part : tie->parts)
+            append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
+
+        dump(file, tie->name, key);
+    }
+}
+
+int main() {
+
+    WoodSession session("templates_floor_8_contacts_cantilevers");
+    const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
+    const std::shared_ptr<TreeNode> floor = wood_floor::add_group(session, "floor_model", root);
+    std::vector<wood_floor::Quarter> quarters;
+    std::vector<std::shared_ptr<Column>> columns;
+    std::vector<wood_floor::Member> ring;
+    add_models(session, root, floor, quarters, columns, ring);
+    const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
+
+    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, ring, wood_floor::add_group(session, "connectors", floor));
+    const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(session, columns, ribs, wood_floor::add_group(session, "connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> laps = wood_floor::add_cross_laps(session, plates, wood_floor::add_group(session, "connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(session, ribs, wood_floor::add_group(session, "outer_rib_connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_quarter_dowels(session, quarters, wood_floor::add_group(session, "quarter_connectors", floor));
+    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    size_t pins = 0;
+
+    for (const std::shared_ptr<JointBeam>& joint : dowels)
+        pins += joint->drill_lines.size();
+
+    std::cout << fmt::format("{} elements, {} wedges, {} dowel sets of {} dowels, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), dowels.size(), pins, plates.size(), laps.size(), ties.size(), ms) << std::endl;
+
+    for (size_t i = 0; i < quarters.size(); i++)
+        print_dowels(session, quarters[i], dowels, static_cast<int>(i));
+
+    count_breps(session);
     session.pb_dump(pb_path("live"));
 
-    if constexpr (DUMP) {
-        std::ofstream file(std::filesystem::path(pb_path("floor_8_contacts_cantilevers")).replace_extension(".txt").string());
-
-        for (const std::shared_ptr<Column>& column : session.columns())
-            dump(file, column->name, column->model_geometry_mesh());
-
-        for (const std::shared_ptr<BeamVariable>& beam : session.beam_variables())
-            if (beam->name.starts_with("outer_ribs_"))
-                dump(file, beam->name, beam->model_geometry_mesh());
-
-        for (const std::shared_ptr<JointBeam>& tie : ties) {
-            Mesh key;
-
-            for (const std::array<Polyline, 2>& part : tie->parts)
-                append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
-
-            dump(file, tie->name, key);
-        }
-    }
+    if constexpr (DUMP)
+        dump_parity(session, ribs, ties);
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every face contact among its wedge blocks, inner beams, outer ribs and inner ribs: four Ø8 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member; a dowel leaving a member or closer than 20 to another is listed for information. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
+Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every contact of a wedge block with an outer or inner rib: four Ø8 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

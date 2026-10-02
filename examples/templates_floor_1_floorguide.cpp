@@ -57,16 +57,27 @@ void dump(std::ofstream& file, const std::string& key, const std::vector<Polylin
         dump(file, fmt::format("quads/{}/{}", key, i), quads[i].get_points());
 }
 
-/// The outline pairs of one member group, and the bed row where there is one.
+/// The outline pairs of one member group.
 void dump(std::ofstream& file, const std::string& group, const std::vector<wood_floor::Outline>& outlines) {
 
     for (size_t i = 0; i < outlines.size(); i++) {
         dump(file, fmt::format("{}/{}/top", group, i), outlines[i].top.get_points());
         dump(file, fmt::format("{}/{}/bottom", group, i), outlines[i].bottom.get_points());
-
-        if (outlines[i].row >= 0)
-            file << fmt::format("{}/{}/row {:.9f}\n", group, i, static_cast<double>(outlines[i].row));
     }
+}
+
+/// The outline pairs of the bed rows, numbered through, each with its row.
+void dump(std::ofstream& file, const std::string& group, const std::vector<std::vector<wood_floor::Outline>>& rows) {
+
+    size_t i = 0;
+
+    for (size_t row = 0; row < rows.size(); row++)
+        for (const wood_floor::Outline& outline : rows[row]) {
+            dump(file, fmt::format("{}/{}/top", group, i), outline.top.get_points());
+            dump(file, fmt::format("{}/{}/bottom", group, i), outline.bottom.get_points());
+            file << fmt::format("{}/{}/row {:.9f}\n", group, i, static_cast<double>(row));
+            i++;
+        }
 }
 
 /// Every guide coordinate in the order compas_tf's dump writes them.

@@ -11,39 +11,48 @@ namespace wood_session {
 
 using namespace session_cpp;
 
-constexpr bool TRACE = false;
-
 JointBeam::JointBeam() {
     name = "JointBeam";
 }
+
 JointBeam::JointBeam(const InteractionFeatureBeam& feature) : feature(feature) {
     name = "JointBeam";
 }
-JointBeam::JointBeam(InteractionFeatureBeam input, const std::function<void(InteractionFeatureBeam&)>& builder)
-    : feature(std::move(input)) {
+
+JointBeam::JointBeam(InteractionFeatureBeam input, const std::function<void(InteractionFeatureBeam&)>& builder) : feature(std::move(input)) {
+
     if (!builder)
         throw std::invalid_argument("A custom beam joint needs a builder");
+
     name = "JointBeam";
     builder(feature);
 }
-JointBeam::JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact,
-                     double volume_length, double cross_or_side_to_end, int flip_male) {
+
+JointBeam::JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male) {
+
     name = "JointBeam";
+
     if (!beam_to_beam(source, target, contact, volume_length, cross_or_side_to_end, flip_male, feature))
         throw std::invalid_argument("Cannot construct joint for the given beam contact");
+
     targets = {source.guid(), target.guid()};
 }
-std::shared_ptr<JointBeam> JointBeam::from_contact(const Beam& source, const Beam& target,
-                                                   const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male) {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Static constructors
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::shared_ptr<JointBeam> JointBeam::from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male) {
+
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+
     if (!beam_to_beam(source, target, contact, volume_length, cross_or_side_to_end, flip_male, joint->feature))
         return nullptr;
+
     joint->targets = {source.guid(), target.guid()};
+
     return joint;
 }
-// ═══════════════════════════════════════════════════════════════════════════
-// Connectors
-// ═══════════════════════════════════════════════════════════════════════════
 
 /// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
 static std::vector<Point> merge_collinear(const Polyline& polygon) {
@@ -118,14 +127,6 @@ static Point frame_point(const Point& origin, const std::array<Vector, 3>& axes,
     return origin + axes[0] * x + axes[1] * y + axes[2] * z;
 }
 
-/// The closed loop of the points.
-static Polyline closed_loop(std::vector<Point> points) {
-
-    points.push_back(points.front());
-
-    return Polyline(points);
-}
-
 /// The chord tolerance that makes a drill of radius a prism of sides sides.
 static double sides_tolerance(double radius, int sides) {
     return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
@@ -185,13 +186,11 @@ static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::arra
         deep.push_back(frame_point(origin, axes, hx * sign[0], y - normal_y * depth, z - normal_z * depth));
     }
 
-    return {closed_loop(face), closed_loop(deep)};
+    return {Polyline(face).closed(), Polyline(deep).closed()};
 }
 
-std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, double dowel_radius, double dowel_spacing, int dowel_sides, double overshoot) {
-
-    const std::array<std::array<double, 2>, 3> profile = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}};
-    const std::array<double, 2> dowel = {80.0, -100.0};
+/// The wedge: a prism of the profile, apex down, along the contact's top edge, shortened by length_margin at both ends, dowels every dowel_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
+std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, double dowel_radius, double dowel_spacing, int dowel_sides, double overshoot, const std::array<std::array<double, 2>, 3>& profile, const std::array<double, 2>& dowel_offset) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
     const Line edge = top_edge(points);
@@ -205,7 +204,6 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "wedge";
     joint->is_visible = true;
-    joint->part_label = "wedge";
     joint->targets = {a.guid(), b.guid()};
 
     std::array<std::vector<Point>, 2> ends;
@@ -215,17 +213,17 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
         ends[1].push_back(frame_point(origin, axes, 0.5 * length, corner[0], corner[1]));
     }
 
-    joint->parts = {{closed_loop(ends[0]), closed_loop(ends[1])}};
+    joint->parts = {{Polyline(ends[0]).closed(), Polyline(ends[1]).closed()}};
 
     const int count = dowel_spacing > 0.0 ? std::max(static_cast<int>(length / dowel_spacing), 1) : 1;
 
     for (int i = 0; i < count; i++) {
         const double station = -0.5 * length + (i + 0.5) * (length / count);
-        const Point start = frame_point(origin, axes, station, -dowel[0], dowel[1]);
-        const Point end = frame_point(origin, axes, station, dowel[0], dowel[1]);
+        const Point start = frame_point(origin, axes, station, -dowel_offset[0], dowel_offset[1]);
+        const Point end = frame_point(origin, axes, station, dowel_offset[0], dowel_offset[1]);
         const Vector flat = Vector(end[0] - start[0], end[1] - start[1], 0.0).normalized();
         const Point centre = start + (end - start) * 0.5;
-        joint->drill_lines.push_back(flush_dowel(Line::from_points(centre - flat * dowel[0], centre + flat * dowel[0]), {&a, &b}));
+        joint->drill_lines.push_back(flush_dowel(Line::from_points(centre - flat * dowel_offset[0], centre + flat * dowel_offset[0]), {&a, &b}));
     }
 
     joint->line_radius = dowel_radius;
@@ -247,6 +245,31 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
     return joint;
 }
 
+/// The centre of the box around the contact's top edge: the corners within a fiftieth of the contact's height of its top, or 1 mm when that is more.
+static Point top_origin(const std::vector<Point>& points) {
+
+    double top = -1e300;
+    double bottom = 1e300;
+
+    for (const Point& point : points) {
+        top = std::max(top, point[2]);
+        bottom = std::min(bottom, point[2]);
+    }
+
+    const double tolerance = std::max(1.0, 0.02 * (top - bottom));
+    std::array<double, 3> low = {1e300, 1e300, 1e300};
+    std::array<double, 3> high = {-1e300, -1e300, -1e300};
+
+    for (const Point& point : points)
+        if (top - point[2] <= tolerance)
+            for (int i = 0; i < 3; i++) {
+                low[i] = std::min(low[i], point[i]);
+                high[i] = std::max(high[i], point[i]);
+            }
+
+    return Point(0.5 * (low[0] + high[0]), 0.5 * (low[1] + high[1]), 0.5 * (low[2] + high[2]));
+}
+
 /// The box from x0 to x1 and z0 to z1 across the width of the frame, as the loop pair at its two y faces.
 static std::array<Polyline, 2> frame_box(const Point& origin, const std::array<Vector, 3>& axes, double x0, double x1, double width, double z0, double z1) {
 
@@ -254,12 +277,13 @@ static std::array<Polyline, 2> frame_box(const Point& origin, const std::array<V
 
     for (size_t side = 0; side < 2; side++) {
         const double y = side == 0 ? -0.5 * width : 0.5 * width;
-        loops[side] = closed_loop({frame_point(origin, axes, x0, y, z0), frame_point(origin, axes, x1, y, z0), frame_point(origin, axes, x1, y, z1), frame_point(origin, axes, x0, y, z1)});
+        loops[side] = Polyline({frame_point(origin, axes, x0, y, z0), frame_point(origin, axes, x1, y, z0), frame_point(origin, axes, x1, y, z1), frame_point(origin, axes, x0, y, z1)}).closed();
     }
 
     return loops;
 }
 
+/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four dowels across it margin_x and margin_z radii in from its ends and its top and bottom, dowel_length long but flush with the members; it cuts its box, raised by overshoot, and the dowel holes out of both; aimed at the column then the rib.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, const Element& rib, const InteractionContactFace& contact, double dowel_length, double width, double back, double front, double height, double dowel_radius, double margin_x, double margin_z, double overshoot, int dowel_sides) {
 
     std::vector<Point> points = contact.polygon.get_points();
@@ -283,32 +307,11 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
 
     const Vector z(0.0, 0.0, 1.0);
     const std::array<Vector, 3> axes = {x, z.cross(x).normalized(), z};
-
-    double top = -1e300;
-    double bottom = 1e300;
-
-    for (const Point& point : points) {
-        top = std::max(top, point[2]);
-        bottom = std::min(bottom, point[2]);
-    }
-
-    const double tolerance = std::max(1.0, 0.02 * (top - bottom));
-    std::array<double, 3> low = {1e300, 1e300, 1e300};
-    std::array<double, 3> high = {-1e300, -1e300, -1e300};
-
-    for (const Point& point : points)
-        if (top - point[2] <= tolerance)
-            for (int i = 0; i < 3; i++) {
-                low[i] = std::min(low[i], point[i]);
-                high[i] = std::max(high[i], point[i]);
-            }
-
-    const Point origin(0.5 * (low[0] + high[0]), 0.5 * (low[1] + high[1]), 0.5 * (low[2] + high[2]));
+    const Point origin = top_origin(points);
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "rectangle_plate";
     joint->is_visible = true;
-    joint->part_label = "plate";
     joint->targets = {column.guid(), rib.guid()};
     joint->parts = {frame_box(origin, axes, -back, front, width, -height, 0.0)};
 
@@ -330,9 +333,10 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
 
 /// The cross section of the tie at y: from the top down to bottom, width wide across the frame z.
 static Polyline tie_section(const Point& origin, const std::array<Vector, 3>& axes, double y, double top, double bottom, double width) {
-    return closed_loop({frame_point(origin, axes, top, y, -0.5 * width), frame_point(origin, axes, bottom, y, -0.5 * width), frame_point(origin, axes, bottom, y, 0.5 * width), frame_point(origin, axes, top, y, 0.5 * width)});
+    return Polyline({frame_point(origin, axes, top, y, -0.5 * width), frame_point(origin, axes, bottom, y, -0.5 * width), frame_point(origin, axes, bottom, y, 0.5 * width), frame_point(origin, axes, top, y, 0.5 * width)}).closed();
 }
 
+/// The key: length long along the contact normal, top below the contact's top edge, heads head_width wide over head_length at both ends and the neck neck_width wide between, depth deep at the seam deepening straight to end_depth at its ends; each member gets a flat-bottomed pocket pocket_depth deep of its head and neck boxes, the neck overshoot past the seam; aimed at a then b, the defaults the OBJ template's.
 std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, const InteractionContactFace& contact, double top, double length, double head_length, double head_width, double neck_width, double depth, double end_depth, double pocket_depth, double overshoot) {
 
     std::vector<Point> points = contact.polygon.get_points();
@@ -344,34 +348,13 @@ std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, co
     const Vector x(0.0, 0.0, -1.0);
     const Vector y = Vector(normal[0], normal[1], 0.0).normalized();
     const std::array<Vector, 3> axes = {x, y, x.cross(y)};
-
-    double high = -1e300;
-    double low = 1e300;
-
-    for (const Point& point : points) {
-        high = std::max(high, point[2]);
-        low = std::min(low, point[2]);
-    }
-
-    const double tolerance = std::max(1.0, 0.02 * (high - low));
-    std::array<double, 3> lower = {1e300, 1e300, 1e300};
-    std::array<double, 3> upper = {-1e300, -1e300, -1e300};
-
-    for (const Point& point : points)
-        if (high - point[2] <= tolerance)
-            for (int i = 0; i < 3; i++) {
-                lower[i] = std::min(lower[i], point[i]);
-                upper[i] = std::max(upper[i], point[i]);
-            }
-
-    const Point origin(0.5 * (lower[0] + upper[0]), 0.5 * (lower[1] + upper[1]), 0.5 * (lower[2] + upper[2]));
+    const Point origin = top_origin(points);
     const double half = 0.5 * length;
     const double neck = half - head_length;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "tie";
     joint->is_visible = true;
-    joint->part_label = "key";
     joint->targets = {a.guid(), b.guid()};
 
     const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
@@ -446,6 +429,7 @@ static std::vector<std::array<double, 2>> extreme_corners(const std::vector<std:
     return corners;
 }
 
+/// The dowels: centred on the contact along its normal, one at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; they cut their holes out of both, overshoot past every face a dowel leaves; aimed at a then b.
 std::shared_ptr<JointBeam> JointBeam::dowels(const Element& a, const Element& b, const InteractionContactFace& contact, double radius, double length, double offset, double overshoot, int dowel_sides) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
@@ -524,6 +508,7 @@ static std::vector<Point> box_corners(const std::array<Polyline, 2>& box) {
     return corners;
 }
 
+/// The cross lap: each slot margin wider than the other part's thickness and longer than its height so the cut is through; stored on the connectors as their solid cuts when added; aimed at a then b, hidden, a relation rather than a part.
 std::shared_ptr<JointBeam> JointBeam::cross_lap(const JointBeam& a, const JointBeam& b, double share, double margin) {
 
     if (a.parts.size() != 1 || b.parts.size() != 1)
@@ -565,6 +550,10 @@ std::shared_ptr<JointBeam> JointBeam::cross_lap(const JointBeam& a, const JointB
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
+bool JointBeam::is_connector() const {
+    return !parts.empty() || !cutters.empty();
+}
+
 Mesh JointBeam::part_mesh(size_t index) const {
     return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
 }
@@ -600,55 +589,34 @@ std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
     std::vector<std::shared_ptr<Joint>> result;
 
     for (size_t i = 0; i < parts.size(); i++)
-        result.push_back(std::make_shared<ConnectorPart>(*this, i, parts.size() == 1 ? part_label : fmt::format("{}_{}", part_label, i)));
+        result.push_back(std::make_shared<ConnectorPart>(*this, i, parts.size() == 1 ? name + "_part" : fmt::format("{}_part_{}", name, i)));
 
-    for (size_t i = 0; i < drill_lines.size(); i++)
+    for (size_t i = 0; i < drill_lines.size(); i++) {
         result.push_back(std::make_shared<Dowel>(drill_lines[i], line_radius, chord_tolerance));
-
-    for (size_t i = 0; i < drill_lines.size(); i++)
-        result[parts.size() + i]->name = fmt::format("dowel_{}", i);
+        result.back()->name = fmt::format("{}_dowel_{}", name, i);
+    }
 
     return result;
 }
 
 const Mesh& JointBeam::element_geometry_mesh() const {
 
-    if (parts.empty() && !nested)
+    if (!is_connector())
         return Joint::element_geometry_mesh();
 
-    if (!mesh_) {
+    if (!mesh_)
         mesh_ = Mesh();
-
-        for (size_t i = 0; !nested && i < parts.size(); i++)
-            append_mesh(*mesh_, apply_solid_cuts(part_mesh(i), part_cuts(i)));
-
-        if (nested)
-            return *mesh_;
-
-        for (const Line& axis : drill_axes())
-            append_mesh(*mesh_, drill_mesh(axis, line_radius, chord_tolerance));
-    }
 
     return *mesh_;
 }
 
 const BRep& JointBeam::element_geometry_brep() const {
 
-    if (parts.empty() && !nested)
+    if (!is_connector())
         return Joint::element_geometry_brep();
 
-    if (!brep_) {
+    if (!brep_)
         brep_ = BRep();
-
-        for (size_t i = 0; !nested && i < parts.size(); i++)
-            append_brep(*brep_, part_brep(i));
-
-        if (nested)
-            return *brep_;
-
-        for (const Line& axis : drill_axes())
-            append_brep(*brep_, drill_brep(axis, line_radius));
-    }
 
     return *brep_;
 }
@@ -659,11 +627,18 @@ std::vector<std::array<Polyline, 2>> JointBeam::bodies() const {
         return parts;
 
     std::vector<std::array<Polyline, 2>> result;
+
     for (int k = 0; k < 4; k += 2)
         if (feature.volumes[k].point_count() >= 4 && feature.volumes[k + 1].point_count() >= 4)
             result.push_back({feature.volumes[k], feature.volumes[k + 1]});
+
     return result;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Transformation
+// ═══════════════════════════════════════════════════════════════════════════
+
 void JointBeam::place(const Xform& xform) {
 
     Joint::place(xform);
@@ -682,9 +657,14 @@ void JointBeam::place(const Xform& xform) {
         cut = cut.transformed(xform);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Protobuf
+// ═══════════════════════════════════════════════════════════════════════════
+
 void JointBeam::write_proto(wood_proto::Joint& proto) const {
 
     Joint::write_proto(proto);
+
     if (!proto.mutable_beam_feature()->ParseFromString(feature.pb_dumps()))
         throw std::runtime_error("Invalid beam feature");
 
@@ -694,7 +674,6 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
                 throw std::runtime_error("Invalid connector part");
 
     proto.set_drill_overshoot(drill_overshoot);
-    proto.set_nested(nested);
 
     for (const SolidCut& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
@@ -718,7 +697,6 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
         parts.push_back({Polyline::pb_loads(proto.parts(i).SerializeAsString()), Polyline::pb_loads(proto.parts(i + 1).SerializeAsString())});
 
     drill_overshoot = proto.drill_overshoot();
-    nested = proto.nested();
 
     for (const wood_proto::SolidCut& cut : proto.solid_cuts())
         solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
@@ -734,8 +712,10 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
         return;
 
     const std::shared_ptr<InteractionFeatureBeam> feature = std::dynamic_pointer_cast<InteractionFeatureBeam>(Interaction::pb_loads(proto.beam_feature().SerializeAsString()));
+
     if (!feature)
         throw std::runtime_error("Invalid beam joint feature");
+
     this->feature = *feature;
 }
 

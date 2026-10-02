@@ -51,16 +51,19 @@ int main() {
     WoodSession session("templates_floor_6_contacts_floor");
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
     const std::shared_ptr<TreeNode> quarters = wood_floor::add_group(session, "quarters_model", root);
+    std::vector<wood_floor::Member> ring;
 
     for (int i = 0; i < 4; i++) {
         const std::string suffix = fmt::format("_{}", i);
-        wood_floor::add_quarter_model(session, GUIDE, Xform::rotation_z(i * 90.0, true), wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
+        const wood_floor::Quarter quarter = wood_floor::add_quarter_model(session, GUIDE, Xform::rotation_z(i * 90.0, true), wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
+        ring.insert(ring.end(), quarter.inner_beams.begin(), quarter.inner_beams.end());
     }
 
-    wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", root));
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", root));
+    ring.insert(ring.end(), oculus.begin(), oculus.end());
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, GUIDE, wood_floor::add_group(session, "connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, ring, wood_floor::add_group(session, "connectors", root));
     session.pb_dump(pb_path("live"));
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     size_t dowels = 0;

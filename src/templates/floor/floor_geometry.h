@@ -3,70 +3,65 @@
 
 namespace wood_floor::geometry {
 
-using namespace session_cpp;
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The plane moved by distance along its normal.
-Plane offset(const Plane& plane, double distance);
+session_cpp::Plane offset(const session_cpp::Plane& plane, double distance);
 
 /// The plane turned by radians about the axis through point.
-Plane rotate(const Plane& plane, double radians, const Vector& axis, const Point& point);
+session_cpp::Plane rotate(const session_cpp::Plane& plane, double radians, const session_cpp::Vector& axis, const session_cpp::Point& point);
 
 /// The world xy plane lifted to z.
-Plane level(double z);
+session_cpp::Plane level(double z);
 
 /// The vertical plane through the midpoint of a plan edge, its normal edge x normal_z.
-Plane edge_plane(const Line& edge, const Vector& normal_z);
+session_cpp::Plane edge_plane(const session_cpp::Line& edge, const session_cpp::Vector& normal_z);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Intersections
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The line two planes share, from plane0 towards cross(n0, n1) with that unscaled length; empty when the normals agree.
-std::optional<Line> plane_plane(const Plane& plane0, const Plane& plane1);
+std::optional<session_cpp::Line> plane_plane(const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
 
 /// The point an infinite line meets a plane; empty when parallel.
-std::optional<Point> line_plane(const Line& line, const Plane& plane);
+std::optional<session_cpp::Point> line_plane(const session_cpp::Line& line, const session_cpp::Plane& plane);
 
 /// The point three planes share; empty when two of them are parallel.
-std::optional<Point> plane_plane_plane(const Plane& plane0, const Plane& plane1, const Plane& plane2);
+std::optional<session_cpp::Point> plane_plane_plane(const session_cpp::Plane& plane0, const session_cpp::Plane& plane1, const session_cpp::Plane& plane2);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Polylines
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The polygon side from point i to the next, closing to the first.
-Line edge(const std::vector<Point>& polygon, size_t i);
+session_cpp::Line edge(const std::vector<session_cpp::Point>& polygon, size_t i);
 
 /// The unit direction of a line.
-Vector direction(const Line& line);
-
-/// The points closed by repeating the first.
-Polyline closed(const std::vector<Point>& points);
-
-/// The polyline with both end segments extended outwards by amount.
-Polyline extend_ends(const Polyline& polyline, double amount);
+session_cpp::Vector direction(const session_cpp::Line& line);
 
 /// The polyline cut by two planes in turn, each keeping the side of the remaining middle.
-Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1);
+session_cpp::Polyline cut(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
+
+/// The polyline with both end segments pushed out by EXTENSION, then cut by the two planes.
+session_cpp::Polyline trim(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
+
+/// The points of the polyline projected by each of the two projections.
+std::array<std::vector<session_cpp::Point>, 2> projected(const session_cpp::Polyline& polyline, const session_cpp::Xform& projection0, const session_cpp::Xform& projection1);
 
 /// The polyline offset by distance in its vertical plane, square to every segment, its ends on the end normals.
-Polyline offset_polyline(const Polyline& polyline, double distance);
+session_cpp::Polyline offset_polyline(const session_cpp::Polyline& polyline, double distance);
 
 /// The area centroid of a closed planar polyline.
-Point area_centroid(const Polyline& polyline);
-
-/// Divisions points along the quadratic Bezier curve from p0 over control p1 to p2.
-Polyline quadratic_points(const Point& p0, const Point& p1, const Point& p2, int divisions = 7);
+session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The member bounded by a ring of side planes between a bottom and a top plane: each outline is the corners of consecutive side planes on its plane, a missing corner skipped.
-Outline loft_planes(const std::vector<Plane>& planes, const Plane& bottom, const Plane& top, bool flip = false);
+Outline loft_planes(const std::vector<session_cpp::Plane>& planes, const session_cpp::Plane& bottom, const session_cpp::Plane& top, bool flip = false);
 
 }

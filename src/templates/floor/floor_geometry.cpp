@@ -6,6 +6,7 @@ using namespace session_cpp;
 namespace wood_floor::geometry {
 
 const double TOLERANCE = 1e-9; // compas TOL.absolute: parallel planes and lines below it have no intersection
+const double EXTENSION = 1000.0; // how far parabola ends are pushed out before the panel planes trim them
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes
@@ -88,27 +89,23 @@ Vector direction(const Line& line) {
     return line.to_vector().normalized();
 }
 
-Polyline closed(const std::vector<Point>& points) {
-
-    std::vector<Point> loop = points;
-    loop.push_back(points.front());
-
-    return Polyline(loop);
+Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
+    return polyline.cut_by_plane(plane0).cut_by_plane(plane1);
 }
 
-Polyline extend_ends(const Polyline& polyline, double amount) {
+Polyline trim(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
 
     std::vector<Point> pts = polyline.get_points();
     const size_t n = pts.size();
 
-    pts[0] = pts[0] + (pts[0] - pts[1]).normalized() * amount;
-    pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * amount;
+    pts[0] = pts[0] + (pts[0] - pts[1]).normalized() * EXTENSION;
+    pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * EXTENSION;
 
-    return Polyline(pts);
+    return cut(Polyline(pts), plane0, plane1);
 }
 
-Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
-    return polyline.cut_by_plane(plane0).cut_by_plane(plane1);
+std::array<std::vector<Point>, 2> projected(const Polyline& polyline, const Xform& projection0, const Xform& projection1) {
+    return {polyline.transformed(projection0).get_points(), polyline.transformed(projection1).get_points()};
 }
 
 Polyline offset_polyline(const Polyline& polyline, double distance) {
@@ -159,21 +156,6 @@ Point area_centroid(const Polyline& polyline) {
     return origin + sum / area;
 }
 
-Polyline quadratic_points(const Point& p0, const Point& p1, const Point& p2, int divisions) {
-
-    std::vector<Point> pts;
-
-    for (int k = 0; k < divisions; k++) {
-        const double t = static_cast<double>(k) / (divisions - 1);
-        const double a = (1.0 - t) * (1.0 - t);
-        const double b = 2.0 * (1.0 - t) * t;
-        const double c = t * t;
-        pts.push_back(Point(a * p0[0] + b * p1[0] + c * p2[0], a * p0[1] + b * p1[1] + c * p2[1], a * p0[2] + b * p1[2] + c * p2[2]));
-    }
-
-    return Polyline(pts);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
@@ -195,7 +177,7 @@ Outline loft_planes(const std::vector<Plane>& planes, const Plane& bottom, const
             pts_top.push_back(*rt);
     }
 
-    Outline outline{closed(pts_top), closed(pts_bottom)};
+    Outline outline{Polyline(pts_top).closed(), Polyline(pts_bottom).closed()};
 
     if (flip)
         std::swap(outline.top, outline.bottom);

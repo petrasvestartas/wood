@@ -77,14 +77,17 @@ std::shared_ptr<Column> Column::from_element(Element e) {
     static_cast<Element&>(*column) = std::move(e);
 
     if (!bytes.empty() && bytes.front() == '{') {
-        try {
-            const nlohmann::json payload = nlohmann::json::parse(bytes);
-            if (payload.contains("axis") && !payload["axis"].is_null())
-                column->axis = Line::jsonload(payload["axis"]);
-            if (payload.contains("section") && !payload["section"].is_null())
-                column->section = Polyline::jsonload(payload["section"]);
-        } catch (const std::exception&) {
-        }
+        const nlohmann::json payload = nlohmann::json::parse(bytes, nullptr, false);
+
+        if (payload.is_discarded())
+            throw std::runtime_error("Invalid column JSON");
+
+        if (payload.contains("axis") && !payload["axis"].is_null())
+            column->axis = Line::jsonload(payload["axis"]);
+
+        if (payload.contains("section") && !payload["section"].is_null())
+            column->section = Polyline::jsonload(payload["section"]);
+
         return column;
     }
 
@@ -94,12 +97,16 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     if (proto.has_axis())
         column->axis = Line::pb_loads(proto.axis().SerializeAsString());
+
     if (proto.has_section())
         column->section = Polyline::pb_loads(proto.section().SerializeAsString());
+
     for (const session_proto::Plane& cut : proto.cuts())
         column->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
+
     for (const session_proto::Polyline& ring : proto.profile())
         column->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
+
     column->rotation = proto.rotation();
 
     if (proto.has_head())
@@ -107,7 +114,9 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     column->head_height = proto.head_height();
 
-    for (const auto& cut : proto.solid_cuts()) column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::SolidCut& cut : proto.solid_cuts())
+        column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+
     return column;
 }
 
@@ -215,7 +224,10 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     std::shared_ptr<Column> column = std::make_shared<Column>(axis.transformed(xform), section.transformed(xform), name);
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_cuts) column->solid_cuts.push_back(cut.transformed(xform));
+
+    for (const SolidCut& cut : solid_cuts)
+        column->solid_cuts.push_back(cut.transformed(xform));
+
     column->profile = profile;
     column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
     column->head = head.transformed(xform);
@@ -234,7 +246,10 @@ void Column::place(const Xform& xform) {
     section.transform(xform);
     head.transform(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
+
+    for (SolidCut& cut : solid_cuts)
+        cut = cut.transformed(xform);
+
     if (!profile.empty())
         rotation = compute_rotation(axis, x_world);
 
@@ -332,8 +347,10 @@ std::string Column::element_data_dumps() const {
 
     proto.set_head_height(head_height);
 
-    for (const auto& cut : solid_cuts)
-        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+    for (const SolidCut& cut : solid_cuts)
+        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Invalid solid cut");
+
     return proto.SerializeAsString();
 }
 

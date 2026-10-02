@@ -11,12 +11,12 @@ const Vector UP(0.0, 0.0, 1.0); // world z, the normal side of edge planes facin
 const Vector DOWN(0.0, 0.0, -1.0); // minus world z, the normal side of edge planes facing into the quarter
 
 /// A plane pair: the plane and its copy moved by distance along the normal.
-std::array<Plane, 2> pair(const Plane& plane, double distance) {
+static std::array<Plane, 2> pair(const Plane& plane, double distance) {
     return {plane, offset(plane, distance)};
 }
 
 /// The plan quad of four planes at z 0: corners 3-0, 0-1, 1-2 and 2-3.
-Polyline quad(const std::array<Plane, 4>& planes) {
+static Polyline quad(const std::array<Plane, 4>& planes) {
 
     const Plane xy = level(0.0);
 
@@ -29,7 +29,7 @@ Polyline quad(const std::array<Plane, 4>& planes) {
 }
 
 /// The plan quads of a family of quad planes.
-std::vector<Polyline> quads(const std::vector<std::array<Plane, 4>>& family) {
+static std::vector<Polyline> quads(const std::vector<std::array<Plane, 4>>& family) {
 
     std::vector<Polyline> result;
 
@@ -40,25 +40,23 @@ std::vector<Polyline> quads(const std::vector<std::array<Plane, 4>>& family) {
 }
 
 /// The plane fitted to the deepest quad of a bed panel: its parabola cut by the panel planes, projected onto the panel's two side planes.
-Plane panel_top_plane(const Polyline& parabola, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection0, const Xform& projection1) {
+static Plane panel_top_plane(const Polyline& parabola, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection0, const Xform& projection1) {
 
-    const Polyline middle = cut(extend_ends(parabola, 1000.0), cut_plane0, cut_plane1);
-    std::vector<Point> pts0 = middle.transformed(projection0).get_points();
-    std::vector<Point> pts1 = middle.transformed(projection1).get_points();
+    std::array<std::vector<Point>, 2> pts = projected(trim(parabola, cut_plane0, cut_plane1), projection0, projection1);
 
-    if (pts0.front()[2] > pts0.back()[2]) {
-        std::reverse(pts0.begin(), pts0.end());
-        std::reverse(pts1.begin(), pts1.end());
+    if (pts[0].front()[2] > pts[0].back()[2]) {
+        std::reverse(pts[0].begin(), pts[0].end());
+        std::reverse(pts[1].begin(), pts[1].end());
     }
 
-    const Plane plane = Plane::from_points_pca({pts0[0], pts0[1], pts1[0], pts1[1]});
+    const Plane plane = Plane::from_points_pca({pts[0][0], pts[0][1], pts[1][0], pts[1][1]});
     const Vector normal = plane.z_axis()[2] < 0.0 ? -plane.z_axis() : plane.z_axis();
 
     return Plane::from_point_normal(plane.origin(), normal);
 }
 
 /// The wedge plane pairs: three around the column head, the middle one tilted about its top edge and the outer two leaning to meet it on the inner ribs, then the three inner beam faces.
-std::vector<std::array<Plane, 2>> wedge_planes(const FloorGuide& guide, const ConstructionPlanes& cp) {
+static std::vector<std::array<Plane, 2>> wedge_planes(const FloorGuide& guide, const ConstructionPlanes& cp) {
 
     const std::vector<Point> column = guide.quarter_column_polygon();
     const Line side0 = edge(column, 1);
@@ -161,49 +159,42 @@ ConstructionPlanes FloorGuide::construction_planes() const {
     return cp;
 }
 
-QuadPlanes FloorGuide::quad_planes() const {
+ConstructionQuads FloorGuide::construction_quads() const {
 
     const ConstructionPlanes cp = construction_planes();
-    QuadPlanes qp;
+    ConstructionQuads result;
 
-    qp.outer_ribs = {
+    result.outer_ribs = quads({
         {cp.outer_ribs[0][0], cp.inner_beams[0][0], cp.outer_ribs[0][1], cp.wedges[0][0]},
         {cp.outer_ribs[1][0], cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.wedges[2][0]},
-    };
-    qp.inner_beams = {
+    });
+    result.inner_beams = quads({
         {cp.inner_beams[0][0], cp.inner_beams[1][0], cp.inner_beams[0][1], cp.outer_ribs[0][1]},
         {cp.inner_beams[1][0], cp.inner_beams[2][1], cp.inner_beams[1][1], cp.inner_beams[0][1]},
         {cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.inner_beams[2][1], cp.inner_beams[1][0]},
-    };
-    qp.inner_ribs = {
+    });
+    result.inner_ribs = quads({
         {cp.inner_ribs[0][1], cp.inner_beams[1][1], cp.inner_ribs[0][0], cp.wedges[1][0]},
         {cp.inner_ribs[1][1], cp.inner_beams[1][1], cp.inner_ribs[1][0], cp.wedges[1][0]},
-    };
-    qp.wedges = {
+    });
+    result.wedges = quads({
         {cp.wedges[0][0], cp.outer_ribs[0][1], cp.wedges[0][1], cp.inner_ribs[0][0]},
         {cp.wedges[1][0], cp.inner_ribs[0][1], cp.wedges[1][1], cp.inner_ribs[1][1]},
         {cp.wedges[2][0], cp.inner_ribs[1][0], cp.wedges[2][1], cp.outer_ribs[1][1]},
         {cp.wedges[3][0], cp.inner_ribs[0][0], cp.wedges[3][1], cp.outer_ribs[0][1]},
         {cp.wedges[4][0], cp.inner_ribs[1][1], cp.wedges[4][1], cp.inner_ribs[0][1]},
         {cp.wedges[5][0], cp.outer_ribs[1][1], cp.wedges[5][1], cp.inner_ribs[1][0]},
-    };
-    qp.t_sections = {
+    });
+    result.t_sections = quads({
         {cp.t_sections[0][0], cp.inner_beams[0][1], cp.t_sections[0][1], cp.wedges[0][1]},
         {cp.t_sections[1][0], cp.inner_beams[0][1], cp.t_sections[1][1], cp.wedges[0][1]},
         {cp.t_sections[2][0], cp.inner_beams[1][1], cp.t_sections[2][1], cp.wedges[1][1]},
         {cp.t_sections[3][0], cp.inner_beams[2][1], cp.t_sections[3][1], cp.wedges[2][1]},
         {cp.t_sections[4][0], cp.inner_beams[1][1], cp.t_sections[4][1], cp.wedges[1][1]},
         {cp.t_sections[5][0], cp.inner_beams[2][1], cp.t_sections[5][1], cp.wedges[2][1]},
-    };
+    });
 
-    return qp;
-}
-
-ConstructionQuads FloorGuide::construction_quads() const {
-
-    const QuadPlanes qp = quad_planes();
-
-    return {quads(qp.outer_ribs), quads(qp.inner_beams), quads(qp.inner_ribs), quads(qp.wedges), quads(qp.t_sections)};
+    return result;
 }
 
 std::vector<std::array<Polyline, 3>> FloorGuide::boundary_parabolas() const {
@@ -217,7 +208,7 @@ std::vector<std::array<Polyline, 3>> FloorGuide::boundary_parabolas() const {
         const Point end = quad.get_point(1);
         const Point trimmed = start + (end - start).normalized() * size_wedge;
         const Point middle = trimmed + (end - trimmed) * 0.5;
-        const Polyline parabola = quadratic_points(trimmed + Vector(0.0, 0.0, -height), middle + Vector(0.0, 0.0, -static_h()), end + Vector(0.0, 0.0, -static_h()));
+        const Polyline parabola = Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -height), middle + Vector(0.0, 0.0, -static_h()), end + Vector(0.0, 0.0, -static_h()));
         parabolas.push_back({parabola, offset_polyline(parabola, size_tsections), offset_polyline(parabola, 2.0 * size_tsections)});
     }
 
