@@ -104,6 +104,7 @@ set(WOOD_SOURCES
     src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
     src/templates/floor/floor_geometry.cpp
+    src/templates/floor/floor_plan.cpp
     src/templates/floor/floor.cpp
     src/templates/floor/floor_members.cpp
     src/templates/floor/floor_elements.cpp

@@ -39,10 +39,10 @@ static Outline rib(const Polyline& parabola, const Xform& projection, const Plan
     return {top, top.transformed(projection)};
 }
 
-std::vector<Outline> FloorGuide::outer_ribs() const {
+std::vector<Outline> Quarter::outer_ribs() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<std::array<Polyline, 3>> parabolas = boundary_parabolas();
+    const ConstructionPlanes& cp = geometry().planes;
+    const std::vector<std::array<Polyline, 3>>& parabolas = geometry().parabolas;
     const Xform projection0 = Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis());
     const Xform projection1 = Xform::project_to_plane_by_axis(cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis());
 
@@ -52,10 +52,10 @@ std::vector<Outline> FloorGuide::outer_ribs() const {
     };
 }
 
-std::vector<Outline> FloorGuide::inner_ribs() const {
+std::vector<Outline> Quarter::inner_ribs() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<std::array<Polyline, 3>> parabolas = boundary_parabolas();
+    const ConstructionPlanes& cp = geometry().planes;
+    const std::vector<std::array<Polyline, 3>>& parabolas = geometry().parabolas;
     const Vector across = cp.inner_ribs[0][1].z_axis() - cp.inner_ribs[1][1].z_axis();
     const Xform projection0 = Xform::project_to_plane_by_axis(cp.inner_ribs[0][1], across);
     const Xform projection1 = Xform::project_to_plane_by_axis(cp.inner_ribs[1][1], across);
@@ -70,11 +70,11 @@ std::vector<Outline> FloorGuide::inner_ribs() const {
 // Beams and wedges
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Outline> FloorGuide::inner_beams() const {
+std::vector<Outline> Quarter::inner_beams() const {
 
-    const ConstructionPlanes cp = construction_planes();
+    const ConstructionPlanes& cp = geometry().planes;
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-sizes.static_h());
+    const Plane side1 = level(-sizes().static_h());
 
     return {
         loft_planes({cp.outer_ribs[0][1], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
@@ -83,10 +83,10 @@ std::vector<Outline> FloorGuide::inner_beams() const {
     };
 }
 
-std::vector<Outline> FloorGuide::wedges_inner_beams() const {
+std::vector<Outline> Quarter::wedges_inner_beams() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<Plane> beds = bed_top_planes();
+    const ConstructionPlanes& cp = geometry().planes;
+    const std::vector<Plane>& beds = geometry().bed_top_planes;
     const Plane top = level(0.0);
     const std::array<std::array<Plane, 2>, 3> ribs = {{
         {cp.outer_ribs[0][1], cp.inner_ribs[0][0]},
@@ -127,10 +127,10 @@ static Outline tsection(const Polyline& parabola0, const Polyline& parabola1, co
     return {Polyline(top), Polyline(bottom)};
 }
 
-std::vector<Outline> FloorGuide::tsections() const {
+std::vector<Outline> Quarter::tsections() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<std::array<Polyline, 3>> pb = boundary_parabolas();
+    const ConstructionPlanes& cp = geometry().planes;
+    const std::vector<std::array<Polyline, 3>>& pb = geometry().parabolas;
     const Vector outer0 = cp.outer_ribs[0][0].z_axis();
     const Vector outer1 = cp.outer_ribs[1][0].z_axis();
     const Vector across = cp.inner_ribs[0][0].z_axis() - cp.inner_ribs[1][0].z_axis();
@@ -193,10 +193,10 @@ static std::vector<Outline> bed_row(const Polyline& parabola0, const Polyline& p
     return plates;
 }
 
-std::vector<std::vector<Outline>> FloorGuide::beds() const {
+std::vector<std::vector<Outline>> Quarter::beds() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<std::array<Polyline, 3>> pb = boundary_parabolas();
+    const ConstructionPlanes& cp = geometry().planes;
+    const std::vector<std::array<Polyline, 3>>& pb = geometry().parabolas;
     const Vector outer0 = cp.outer_ribs[0][0].z_axis();
     const Vector outer1 = cp.outer_ribs[1][0].z_axis();
     const Vector across = cp.inner_ribs[0][0].z_axis() - cp.inner_ribs[1][0].z_axis();
@@ -224,22 +224,21 @@ std::vector<std::vector<Outline>> FloorGuide::beds() const {
 // Oculus
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Outline> FloorGuide::oculus() const {
+std::vector<Outline> Floor::oculus() const {
 
-    const ConstructionPlanes cp = construction_planes();
+    const OculusEdge& first = oculus_edges[0];
     const Plane side0 = level(0.0);
     const Plane side1 = level(-sizes.static_h() + sizes.tsections);
     const Plane side2 = level(-sizes.static_h());
     const Plane side3 = level(-sizes.static_h() + sizes.tsections * 2.0);
     const Vector z(0.0, 0.0, 1.0);
-    const Point origin(0.0, 0.0, 0.0);
 
     std::vector<Plane> rotated;
     std::vector<Plane> rotated_inner;
 
     for (int i = 0; i < 4; i++) {
-        rotated.push_back(rotate(cp.inner_beams[1][0], i * M_PI / 2.0, z, origin));
-        rotated_inner.push_back(rotate(offset(cp.inner_beams[1][1], -sizes.inner_beams * 2.0), i * M_PI / 2.0, z, origin));
+        rotated.push_back(rotate(first.tilted, i * M_PI / 2.0, z, centre));
+        rotated_inner.push_back(rotate(first.ring_inner, i * M_PI / 2.0, z, centre));
     }
 
     std::vector<Outline> plates;
@@ -284,18 +283,19 @@ static std::vector<Point> stretch(std::vector<Point> quad, bool top) {
     return quad;
 }
 
-std::vector<Outline> FloorGuide::column_cutters() const {
+std::vector<Outline> Quarter::column_cutters() const {
 
-    const ConstructionPlanes cp = construction_planes();
-    const std::vector<Point> column = quarter_column_polygon();
+    const ConstructionPlanes& cp = geometry().planes;
+    const ColumnCorner& corner = column();
+    const std::vector<Point>& column = corner.head;
     const Vector down(0.0, 0.0, -1.0);
-    const Plane xy0 = level(0.0);
-    const Plane xy1 = level(-sizes.height - sizes.tsections * 1.65);
-    const Plane xy2 = level(-sizes.column_head_depth);
-    const Plane side0 = edge_plane(edge(column, 0), down);
-    const Plane side1 = edge_plane(edge(column, 4), down);
+    const Plane xy0 = level(corner.levels[0]);
+    const Plane xy1 = level(corner.levels[1]);
+    const Plane xy2 = level(corner.levels[2]);
+    const Plane side0 = corner.sides[0];
+    const Plane side1 = corner.sides[1];
     const std::vector<Plane> fan_top = {side0, cp.wedges[0][0], cp.wedges[1][0], cp.wedges[2][0], side1};
-    const std::vector<Plane> fan_bottom = {side0, edge_plane(edge(column, 1), down), edge_plane(edge(column, 3), down), side1};
+    const std::vector<Plane> fan_bottom = {side0, edge_plane(geometry::edge(column, 1), down), edge_plane(geometry::edge(column, 3), down), side1};
 
     std::vector<Point> p0;
     std::vector<Point> p1;

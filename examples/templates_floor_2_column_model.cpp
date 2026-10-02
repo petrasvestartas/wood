@@ -6,15 +6,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
-
 int main() {
 
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
     WoodSession session("templates_floor_2_column_model");
     const std::shared_ptr<TreeNode> group = session.add_group("column_model");
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, GUIDE, Xform(), group, "");
+    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, Xform(), group, "");
     const std::shared_ptr<Support> support = session.supports().front();
 
     const Mesh& base = support->element_geometry_mesh();

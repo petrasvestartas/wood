@@ -93,10 +93,10 @@ std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const st
     return node;
 }
 
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
 
-    const std::shared_ptr<wood_session::Support> support = to_support(guide);
-    const std::shared_ptr<wood_session::Column> column = to_column(guide, *support);
+    const std::shared_ptr<wood_session::Support> support = to_support(floor);
+    const std::shared_ptr<wood_session::Column> column = to_column(floor, *support);
     add_placed(session, support, placement, "support" + suffix, group);
     add_placed(session, column, placement, "column" + suffix, group);
 
@@ -104,7 +104,7 @@ std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession
     session.add(joint, group);
     session.add_joint(joint);
 
-    for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(guide, *column)) {
+    for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(floor.quarter(0), *column)) {
         cutter->place(placement);
         session.add(cutter, group);
         session.add_joint(cutter);
@@ -113,36 +113,37 @@ std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession
     return column;
 }
 
-Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
+QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& view, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = placement * Xform::translation(0.0, 0.0, guide.sizes.bay_height);
-    const std::vector<std::vector<Outline>> beds = guide.beds();
+    const Xform lift = Xform::translation(0.0, 0.0, view.sizes().bay_height);
+    const std::string suffix = fmt::format("_{}", view.index);
+    const std::vector<std::vector<Outline>> beds = view.beds();
     const std::shared_ptr<TreeNode> bed_group = add_group(session, "beds" + suffix, group);
-    Quarter quarter;
+    QuarterMembers quarter;
 
     for (size_t row = 0; row < beds.size(); row++) {
         quarter.beds.push_back(to_members(Family::beds, beds[row]));
         add_family(session, quarter.beds.back(), lift, fmt::format("beds_{}", row), suffix, bed_group);
     }
 
-    quarter.tsections = to_members(Family::tsections, guide.tsections());
+    quarter.tsections = to_members(Family::tsections, view.tsections());
     add_family(session, quarter.tsections, lift, "tsections", suffix, group);
-    quarter.outer_ribs = to_members(Family::outer_ribs, guide.outer_ribs());
+    quarter.outer_ribs = to_members(Family::outer_ribs, view.outer_ribs());
     add_family(session, quarter.outer_ribs, lift, "outer_ribs", suffix, group);
-    quarter.inner_ribs = to_members(Family::inner_ribs, guide.inner_ribs());
+    quarter.inner_ribs = to_members(Family::inner_ribs, view.inner_ribs());
     add_family(session, quarter.inner_ribs, lift, "inner_ribs", suffix, group);
-    quarter.blocks = to_members(Family::wedges_inner_beams, guide.wedges_inner_beams());
+    quarter.blocks = to_members(Family::wedges_inner_beams, view.wedges_inner_beams());
     add_family(session, quarter.blocks, lift, "wedges_inner_beams", suffix, group);
-    quarter.inner_beams = to_members(Family::inner_beams, guide.inner_beams());
+    quarter.inner_beams = to_members(Family::inner_beams, view.inner_beams());
     add_family(session, quarter.inner_beams, lift, "inner_beams", suffix, group);
 
     return quarter;
 }
 
-std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
+std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, guide.sizes.bay_height);
-    const std::vector<Outline> outlines = guide.oculus();
+    const Xform lift = Xform::translation(0.0, 0.0, floor.sizes.bay_height);
+    const std::vector<Outline> outlines = floor.oculus();
     std::vector<Member> beams;
 
     for (size_t i = 0; i < outlines.size(); i++) {
@@ -212,11 +213,11 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::Woo
     return ties;
 }
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const std::vector<Quarter>& quarters, const std::shared_ptr<TreeNode>& group, double radius, double length, double offset) {
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const std::vector<QuarterMembers>& quarters, const std::shared_ptr<TreeNode>& group, double radius, double length, double offset) {
 
     std::vector<std::shared_ptr<wood_session::JointBeam>> joints;
 
-    for (const Quarter& quarter : quarters) {
+    for (const QuarterMembers& quarter : quarters) {
         std::vector<Member> ribs = quarter.outer_ribs;
         ribs.insert(ribs.end(), quarter.inner_ribs.begin(), quarter.inner_ribs.end());
 

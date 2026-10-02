@@ -7,8 +7,6 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of every element to data/output/pb/floor_5_oculus.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
-
 /// Every element under the group as `name volume cx cy cz`, the box centre in world coordinates, the parity record against compas_tf.
 void dump(const WoodSession& session, const std::string& path) {
 
@@ -23,9 +21,10 @@ void dump(const WoodSession& session, const std::string& path) {
 
 int main() {
 
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
     WoodSession session("templates_floor_5_oculus");
     const std::shared_ptr<TreeNode> group = session.add_group("oculus");
-    wood_floor::add_oculus_model(session, GUIDE, group);
+    wood_floor::add_oculus_model(session, floor, group);
 
     std::cout << fmt::format("{} elements: {} plates, {} variable beams", session.objects.elements->size(), session.plates().size(), session.beam_variables().size()) << std::endl;
     session.pb_dump(pb_path("live"));

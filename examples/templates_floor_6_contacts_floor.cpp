@@ -8,8 +8,6 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of the carved ring beams, the wedges and their dowels to data/output/pb/floor_6_contacts_floor.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
-
 /// One dump line: name, volume and box centre of a mesh.
 void dump(std::ofstream& file, const std::string& name, const Mesh& mesh) {
 
@@ -36,18 +34,18 @@ void dump(const WoodSession& session, const std::vector<std::shared_ptr<JointBea
 
 int main() {
 
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
     WoodSession session("templates_floor_6_contacts_floor");
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
     const std::shared_ptr<TreeNode> quarters = wood_floor::add_group(session, "quarters_model", root);
     std::vector<wood_floor::Member> ring;
 
-    for (int i = 0; i < 4; i++) {
-        const std::string suffix = fmt::format("_{}", i);
-        const wood_floor::Quarter quarter = wood_floor::add_quarter_model(session, GUIDE, Xform::rotation_z(i * 90.0, true), wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
+    for (size_t q = 0; q < 4; q++) {
+        const wood_floor::QuarterMembers quarter = wood_floor::add_quarter_model(session, floor.quarter(q), wood_floor::add_group(session, fmt::format("quarter_model_{}", q), quarters));
         ring.insert(ring.end(), quarter.inner_beams.begin(), quarter.inner_beams.end());
     }
 
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", root));
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, floor, wood_floor::add_group(session, "oculus", root));
     ring.insert(ring.end(), oculus.begin(), oculus.end());
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();

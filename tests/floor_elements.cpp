@@ -6,7 +6,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const wood_floor::FloorGuide GUIDE{.size_grid_x = 3000.0, .size_grid_y = 3000.0, .size_oculus = 1000.0, .sizes = wood_floor::FloorSizes{}};
+/// The square floor every check reads, built on first use.
+const wood_floor::Floor& square_floor() {
+
+    static const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+
+    return floor;
+}
 
 const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
 const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
@@ -39,8 +45,9 @@ void check_beams() {
     WoodSession scene("beam_variable");
     std::vector<std::shared_ptr<BeamVariable>> beams;
 
-    const std::vector<wood_floor::Outline> outer = GUIDE.outer_ribs();
-    const std::vector<wood_floor::Outline> inner = GUIDE.inner_ribs();
+    const wood_floor::Quarter quarter = square_floor().quarter(0);
+    const std::vector<wood_floor::Outline> outer = quarter.outer_ribs();
+    const std::vector<wood_floor::Outline> inner = quarter.inner_ribs();
 
     for (size_t i = 0; i < 2; i++) {
         beams.push_back(wood_floor::to_rib(outer[i], "outer_rib"));
@@ -49,12 +56,12 @@ void check_beams() {
         check_beam(*beams.back(), inner[i], 11, "inner rib " + std::to_string(i));
     }
 
-    for (const wood_floor::Outline& outline : GUIDE.inner_beams()) {
+    for (const wood_floor::Outline& outline : quarter.inner_beams()) {
         beams.push_back(wood_floor::to_beam(outline, {0, 3}, {1, 2}, "inner_beam"));
         check_beam(*beams.back(), outline, 6, "inner beam");
     }
 
-    const std::vector<wood_floor::Outline> oculus = GUIDE.oculus();
+    const std::vector<wood_floor::Outline> oculus = square_floor().oculus();
 
     for (size_t i = 0; i < 4; i++) {
         beams.push_back(wood_floor::to_beam(oculus[i], {1, 0}, {2, 3}, "oculus_beam"));
@@ -89,13 +96,13 @@ void check_beams() {
 void check_thickness() {
 
     WoodSession scene("thickness");
-    const wood_floor::Quarter quarter = wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(90.0, true), nullptr, "_1");
-    const std::vector<wood_floor::Outline> outlines = GUIDE.outer_ribs();
+    const wood_floor::QuarterMembers quarter = wood_floor::add_quarter_model(scene, square_floor().quarter(1), nullptr);
+    const std::vector<wood_floor::Outline> outlines = square_floor().quarter(1).outer_ribs();
 
-    check(quarter.outer_ribs[0].thickness == wood_floor::outline_thickness(outlines[0]), "a turned rib keeps its outline's thickness");
-    check(std::abs(quarter.outer_ribs[0].thickness - GUIDE.sizes.outer_ribs) < 1e-6, "an outer rib as thick as the guide says, " + std::to_string(quarter.outer_ribs[0].thickness));
-    check(quarter.inner_beams[1].thickness > GUIDE.sizes.inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * GUIDE.sizes.inner_beams, "an inner beam about as thick as the guide says, " + std::to_string(quarter.inner_beams[1].thickness));
-    check(quarter.blocks[1].thickness > 1.25 * GUIDE.sizes.wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.blocks[1].thickness));
+    check(quarter.outer_ribs[0].thickness == wood_floor::outline_thickness(outlines[0]), "a rib keeps its outline's thickness");
+    check(std::abs(quarter.outer_ribs[0].thickness - square_floor().sizes.outer_ribs) < 1e-6, "an outer rib as thick as the sizes say, " + std::to_string(quarter.outer_ribs[0].thickness));
+    check(quarter.inner_beams[1].thickness > square_floor().sizes.inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * square_floor().sizes.inner_beams, "an inner beam about as thick as the sizes say, " + std::to_string(quarter.inner_beams[1].thickness));
+    check(quarter.blocks[1].thickness > 1.25 * square_floor().sizes.wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.blocks[1].thickness));
     check(quarter.beds.size() == 3 && quarter.tsections.size() == 6 && quarter.inner_ribs.size() == 2, "a quarter of three bed rows, six t-sections and two inner ribs");
 
     std::cout << "floor_elements: every quarter member carries its outline thickness, a rib, a beam and a block checked" << std::endl;
@@ -113,8 +120,8 @@ double faceted_area(double radius, double chord_tolerance) {
 void check_support() {
 
     WoodSession scene("support");
-    const std::shared_ptr<Support> support = wood_floor::to_support(GUIDE);
-    const std::shared_ptr<Column> column = wood_floor::to_column(GUIDE, *support);
+    const std::shared_ptr<Support> support = wood_floor::to_support(square_floor());
+    const std::shared_ptr<Column> column = wood_floor::to_column(square_floor(), *support);
     scene.add(support);
     scene.add(column);
 
@@ -133,7 +140,7 @@ void check_support() {
     const double removed = stock - compute_volume(column->model_geometry_mesh());
     check(std::abs(removed - pocket - screws) <= 1e-6 * removed, "support joint removes " + std::to_string(removed) + " not " + std::to_string(pocket + screws));
 
-    for (const std::shared_ptr<Joint>& cutter : wood_floor::to_column_cutters(GUIDE, *column)) {
+    for (const std::shared_ptr<Joint>& cutter : wood_floor::to_column_cutters(square_floor().quarter(0), *column)) {
         scene.add(cutter);
         scene.add_joint(cutter);
     }
@@ -213,13 +220,13 @@ void check_flush(const JointBeam& joint, const WoodSession& scene, const std::st
     }
 }
 
-/// The four quarters placed by quarter turns, their inner beams collected into the ring.
-std::vector<wood_floor::Quarter> add_quarters(WoodSession& scene, std::vector<wood_floor::Member>& ring) {
+/// The four quarters built in place, their inner beams collected into the ring.
+std::vector<wood_floor::QuarterMembers> add_quarters(WoodSession& scene, std::vector<wood_floor::Member>& ring) {
 
-    std::vector<wood_floor::Quarter> quarters;
+    std::vector<wood_floor::QuarterMembers> quarters;
 
-    for (int i = 0; i < 4; i++) {
-        quarters.push_back(wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
+    for (size_t q = 0; q < 4; q++) {
+        quarters.push_back(wood_floor::add_quarter_model(scene, square_floor().quarter(q), nullptr));
         ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
     }
 
@@ -227,11 +234,11 @@ std::vector<wood_floor::Quarter> add_quarters(WoodSession& scene, std::vector<wo
 }
 
 /// The outer ribs of every quarter, in quarter order.
-std::vector<wood_floor::Member> outer_ribs(const std::vector<wood_floor::Quarter>& quarters) {
+std::vector<wood_floor::Member> outer_ribs(const std::vector<wood_floor::QuarterMembers>& quarters) {
 
     std::vector<wood_floor::Member> ribs;
 
-    for (const wood_floor::Quarter& quarter : quarters)
+    for (const wood_floor::QuarterMembers& quarter : quarters)
         ribs.insert(ribs.end(), quarter.outer_ribs.begin(), quarter.outer_ribs.end());
 
     return ribs;
@@ -243,7 +250,7 @@ void check_wedges() {
     WoodSession scene("wedges");
     std::vector<wood_floor::Member> ring;
     add_quarters(scene, ring);
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(scene, GUIDE, nullptr);
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(scene, square_floor(), nullptr);
     ring.insert(ring.end(), oculus.begin(), oculus.end());
     const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(scene, ring, nullptr);
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
@@ -332,9 +339,9 @@ void check_dowels() {
 }
 
 /// Every inner rib is exact, bored once per dowel of the sets that join it.
-void check_inner_rib_bores(const std::vector<wood_floor::Quarter>& quarters, const std::vector<std::shared_ptr<JointBeam>>& sets) {
+void check_inner_rib_bores(const std::vector<wood_floor::QuarterMembers>& quarters, const std::vector<std::shared_ptr<JointBeam>>& sets) {
 
-    for (const wood_floor::Quarter& quarter : quarters)
+    for (const wood_floor::QuarterMembers& quarter : quarters)
         for (const wood_floor::Member& rib : quarter.inner_ribs) {
             size_t crossing = 0;
 
@@ -370,7 +377,7 @@ void check_quarter_dowels() {
 
     WoodSession scene("quarter_dowels");
     std::vector<wood_floor::Member> ring;
-    const std::vector<wood_floor::Quarter> quarters = add_quarters(scene, ring);
+    const std::vector<wood_floor::QuarterMembers> quarters = add_quarters(scene, ring);
     const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, quarters, nullptr);
     size_t dowels = 0;
 
@@ -488,11 +495,11 @@ void check_rectangle_plates() {
 
     WoodSession scene("rectangle_plates");
     std::vector<wood_floor::Member> ring;
-    const std::vector<wood_floor::Quarter> quarters = add_quarters(scene, ring);
+    const std::vector<wood_floor::QuarterMembers> quarters = add_quarters(scene, ring);
     std::vector<std::shared_ptr<Column>> columns;
 
     for (int i = 0; i < 4; i++)
-        columns.push_back(wood_floor::add_column_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
+        columns.push_back(wood_floor::add_column_model(scene, square_floor(), Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
 
     const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
     const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(scene, columns, ribs, nullptr);
@@ -525,8 +532,52 @@ void check_rectangle_plates() {
     check_loaded_tie_cuts(scene, ties);
 }
 
+/// Whether two planes are one plane: unit normals parallel or opposite as flip says, the same offset, within 1e-9.
+bool same_plane(const Plane& a, const Plane& b, bool opposite) {
+
+    const Vector normal = opposite ? -b.z_axis() : b.z_axis();
+    const double offset_a = a.z_axis().dot(Vector(a.origin()[0], a.origin()[1], a.origin()[2]));
+    const double offset_b = normal.dot(Vector(b.origin()[0], b.origin()[1], b.origin()[2]));
+
+    return (a.z_axis() - normal).magnitude() <= 1e-9 && std::abs(offset_a - offset_b) <= 1e-9;
+}
+
+/// The members of quarter q read every shared plane as the floor stores it, and on the square every quarter equals quarter 0 turned by its quarter turns within 1e-6.
+void check_shared_entities() {
+
+    const wood_floor::Floor& floor = square_floor();
+
+    for (size_t q = 0; q < 4; q++) {
+        const wood_floor::ConstructionPlanes& mine = floor.geometry[q].planes;
+        const wood_floor::ConstructionPlanes& next = floor.geometry[(q + 1) % 4].planes;
+        check(same_plane(floor.seams[q].plane, mine.inner_beams[0][0], false) && same_plane(floor.seams[q].plane, next.inner_beams[2][0], true), fmt::format("seam {} is the beam-0 plane of quarter {} and the beam-2 plane of quarter {}", q, q, (q + 1) % 4));
+        check(same_plane(floor.edges[q].band[0], mine.outer_ribs[0][0], false) && same_plane(floor.edges[q].band[0], next.outer_ribs[1][0], false), fmt::format("bay edge {} is the outer rib band of quarters {} and {}", q, q, (q + 1) % 4));
+        check(same_plane(floor.edges[q].band[1], mine.outer_ribs[0][1], false) && same_plane(floor.edges[q].band[1], next.outer_ribs[1][1], false), fmt::format("bay edge {} inner band plane shared", q));
+        check(same_plane(floor.oculus_edges[q].tilted, mine.inner_beams[1][0], false) && same_plane(floor.oculus_edges[q].back, mine.inner_beams[1][1], false), fmt::format("oculus edge {} is the oculus beam pair of quarter {}", q, q));
+
+        for (size_t k = 0; k < 3; k++)
+            check(same_plane(floor.columns[q].wedge_fan[k][0], mine.wedges[k][0], false) && same_plane(floor.columns[q].wedge_fan[k][1], mine.wedges[k][1], false), fmt::format("column {} fan plane {} is the quarter's wedge plane", q, k));
+
+        const Xform turn = Xform::rotation_z(static_cast<double>(q) * 90.0, true);
+        const std::vector<wood_floor::Outline> turned = floor.quarter(0).outer_ribs();
+        const std::vector<wood_floor::Outline> built = floor.quarter(q).outer_ribs();
+
+        for (size_t i = 0; i < 2; i++) {
+            const std::vector<Point> a = turned[i].top.transformed(turn).get_points();
+            const std::vector<Point> b = built[i].top.get_points();
+            check(a.size() == b.size(), "the in-place rib has the turned rib's vertex count");
+
+            for (size_t j = 0; j < a.size(); j++)
+                check((a[j] - b[j]).magnitude() <= 1e-6, fmt::format("quarter {} outer rib {} vertex {} is quarter 0's turned: {:.3e} off", q, i, j, (a[j] - b[j]).magnitude()));
+        }
+    }
+
+    std::cout << "floor_elements: every seam, bay edge, oculus edge and column fan plane read by its quarters as one plane, every in-place quarter equal to the turned quarter 0 within 1e-6" << std::endl;
+}
+
 int main() {
 
+    check_shared_entities();
     check_beams();
     check_thickness();
     check_support();
