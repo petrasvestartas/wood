@@ -87,7 +87,13 @@ struct FloorPlan {
     /// The oculus corner on seam k, between the midpoint of edge k and the centre, by the rule.
     std::array<session_cpp::Point, 4> oculus_corners() const;
 
-    /// Counter-clockwise, convex, at z 0, every oculus corner between the centre and its edge midpoint; why names the first failure.
+    /// The oculus corner angle at corner k in degrees, between the two oculus edges that meet there.
+    double oculus_corner_angle(size_t k) const;
+
+    /// The angle at oculus corner k between its seam and the next quarter's oculus edge, in degrees: the seam beam's end cut on that edge.
+    double oculus_seam_angle(size_t k) const;
+
+    /// Counter-clockwise, convex, at z 0, every oculus corner between the centre and its edge midpoint, and the ring covering every quarter beam face, sin(oculus corner angle) >= sin(seam angle) at every oculus corner; why names the first failure.
     bool valid(std::string& why) const;
 };
 
@@ -223,7 +229,7 @@ struct Floor {
     /// A view of quarter q; it holds a reference and lives as long as the floor.
     Quarter quarter(size_t q) const;
 
-    /// The oculus: four boundary beams, four bottom wedges and the inner plate, quarter 0's oculus planes turned about the centre until the ring is built from the four edges.
+    /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (compas_tf's pinwheel), four bottom wedges and the inner plate.
     std::vector<Outline> oculus() const;
 };
 

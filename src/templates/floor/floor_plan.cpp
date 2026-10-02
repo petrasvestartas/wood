@@ -74,6 +74,25 @@ std::array<Point, 4> FloorPlan::oculus_corners() const {
     return result;
 }
 
+/// The angle in degrees between two directions.
+static double angle_between(const Vector& a, const Vector& b) {
+    return std::acos(std::clamp(a.normalized().dot(b.normalized()), -1.0, 1.0)) * 180.0 / M_PI;
+}
+
+double FloorPlan::oculus_corner_angle(size_t k) const {
+
+    const std::array<Point, 4> o = oculus_corners();
+
+    return angle_between(o[(k + 3) % 4] - o[k % 4], o[(k + 1) % 4] - o[k % 4]);
+}
+
+double FloorPlan::oculus_seam_angle(size_t k) const {
+
+    const std::array<Point, 4> o = oculus_corners();
+
+    return angle_between(midpoint(k) - centre(), o[(k + 1) % 4] - o[k % 4]);
+}
+
 bool FloorPlan::valid(std::string& why) const {
 
     const Point c = centre();
@@ -106,6 +125,12 @@ bool FloorPlan::valid(std::string& why) const {
             return false;
         }
     }
+
+    for (size_t k = 0; k < 4; k++)
+        if (std::sin(oculus_corner_angle(k) * M_PI / 180.0) < std::sin(oculus_seam_angle(k) * M_PI / 180.0)) {
+            why = fmt::format("the ring beam leaves quarter {}'s oculus beam face uncovered at oculus corner {}: corner angle {:.3f}, seam angle {:.3f} degrees", (k + 1) % 4, k, oculus_corner_angle(k), oculus_seam_angle(k));
+            return false;
+        }
 
     why.clear();
 

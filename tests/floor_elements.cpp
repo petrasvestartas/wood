@@ -575,9 +575,39 @@ void check_shared_entities() {
     std::cout << "floor_elements: every seam, bay edge, oculus edge and column fan plane read by its quarters as one plane, every in-place quarter equal to the turned quarter 0 within 1e-6" << std::endl;
 }
 
+/// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9, so it is compas_tf's rotated ring.
+void check_ring() {
+
+    const std::vector<wood_floor::Outline> ring = square_floor().oculus();
+    check(ring.size() == 9, "four ring beams, four wedges and the plate");
+
+    for (size_t i = 0; i < 8; i++) {
+        const Xform turn = Xform::rotation_z(static_cast<double>(i % 4) * 90.0, true);
+        const wood_floor::Outline& first = ring[i < 4 ? 0 : 4];
+
+        for (const std::array<const Polyline*, 2>& loops : {std::array<const Polyline*, 2>{&first.top, &ring[i].top}, std::array<const Polyline*, 2>{&first.bottom, &ring[i].bottom}}) {
+            const std::vector<Point> a = loops[0]->transformed(turn).get_points();
+            const std::vector<Point> b = loops[1]->get_points();
+            check(a.size() == b.size(), "a ring member has the first member's vertex count");
+
+            for (size_t j = 0; j < a.size(); j++)
+                check((a[j] - b[j]).magnitude() <= 1e-9, fmt::format("ring member {} vertex {} is member {} turned: {:.3e} off", i, j, i < 4 ? 0 : 4, (a[j] - b[j]).magnitude()));
+        }
+    }
+
+    const std::vector<Point> plate = ring[8].top.get_points();
+    const std::vector<Point> turned = ring[8].top.transformed(Xform::rotation_z(90.0, true)).get_points();
+
+    for (size_t j = 0; j + 1 < plate.size(); j++)
+        check((turned[j] - plate[(j + 1) % (plate.size() - 1)]).magnitude() <= 1e-9, "the ring plate is four-fold symmetric");
+
+    std::cout << "floor_elements: the ring from the four oculus edges is the rotated ring within 1e-9 on the square" << std::endl;
+}
+
 int main() {
 
     check_shared_entities();
+    check_ring();
     check_beams();
     check_thickness();
     check_support();
