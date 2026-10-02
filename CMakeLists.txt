@@ -284,6 +284,7 @@ ADD_EXE(templates_floor_4_quarters       examples/templates_floor_4_quarters.cpp
 ADD_EXE(templates_floor_5_oculus         examples/templates_floor_5_oculus.cpp)
 ADD_EXE(templates_floor_6_contacts_floor examples/templates_floor_6_contacts_floor.cpp)
 ADD_EXE(templates_floor_8_contacts_cantilevers examples/templates_floor_8_contacts_cantilevers.cpp)
+ADD_EXE(templates_floor_9_rectangle      examples/templates_floor_9_rectangle.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

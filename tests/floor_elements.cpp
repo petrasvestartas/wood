@@ -704,12 +704,94 @@ void check_section_layers() {
     std::cout << fmt::format("floor_elements: the model's central bed plates {:.9f} .. {:.9f} thick, compas_tf's {:.3f} .. {:.3f}", section[0], section[1], compas[0], compas[1]) << std::endl;
 }
 
+/// The farthest point of a loop from the plane through its first point with its Newell normal, mm.
+double loop_flatness(std::vector<Point> points) {
+
+    if (points.size() > 1 && points.front() == points.back())
+        points.pop_back();
+
+    const Vector normal = compute_newell(points).normalized();
+    double worst = 0.0;
+
+    for (const Point& point : points)
+        worst = std::max(worst, std::abs((point - points[0]).dot(normal)));
+
+    return worst;
+}
+
+/// The least flat face of a member outline: its two loops and every side quad between them, mm.
+double outline_flatness(const wood_floor::Outline& outline) {
+
+    const std::vector<Point> top = outline.top.get_points();
+    const std::vector<Point> bottom = outline.bottom.get_points();
+    double worst = std::max(loop_flatness(top), loop_flatness(bottom));
+
+    for (size_t i = 0; i + 1 < top.size() && i + 1 < bottom.size(); i++)
+        worst = std::max(worst, loop_flatness({top[i], top[i + 1], bottom[i + 1], bottom[i]}));
+
+    return worst;
+}
+
+/// The least flat face over every member of the floor.
+double floor_flatness(const wood_floor::Floor& floor) {
+
+    std::vector<wood_floor::Outline> outlines = floor.oculus();
+
+    for (size_t q = 0; q < 4; q++) {
+        const wood_floor::Quarter quarter = floor.quarter(q);
+
+        for (const std::vector<wood_floor::Outline>& family : {quarter.outer_ribs(), quarter.inner_ribs(), quarter.inner_beams(), quarter.wedges_inner_beams(), quarter.tsections()})
+            outlines.insert(outlines.end(), family.begin(), family.end());
+
+        for (const std::vector<wood_floor::Outline>& row : quarter.beds())
+            outlines.insert(outlines.end(), row.begin(), row.end());
+    }
+
+    double worst = 0.0;
+
+    for (const wood_floor::Outline& outline : outlines)
+        worst = std::max(worst, outline_flatness(outline));
+
+    return worst;
+}
+
+/// The 3000 x 2400 bay (G8 R2-R5): the report holds, rule A as the design measured it, every member face planar, the probes' tiling areas with compas_tf's oculus, and 44 of 44 contacts found by the kernel's search.
+void check_rectangle() {
+
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
+    const wood_floor::FloorReport report = floor.check();
+    check(report.ok(1e-9), "the rectangle's report holds within 1e-9:\n" + report.str());
+    check(std::abs(std::abs(report.ruling_off_chamfer_deg[0]) - 2.647) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][0] - 13.640) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][1] - 37.681) < 1e-3, "rule A on 3000 x 2400: u 2.647 deg off the chamfer, r 13.640 / 37.681 deg oblique");
+    check(floor_flatness(floor) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(floor)));
+
+    const wood_floor::Floor compas = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
+    std::map<std::string, double> areas;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(compas))
+        if (row.kind == wood_floor::Relation::seam_wedge || row.kind == wood_floor::Relation::oculus_wedge || row.kind == wood_floor::Relation::seam_tie || row.kind == wood_floor::Relation::column_plate)
+            areas[fmt::format("{:.3f}", row.area())]++;
+
+    check(areas["297515.590"] == 2 && areas["328199.359"] == 2 && areas["253629.409"] == 4 && areas["19700.000"] == 4 && areas["70076.481"] == 4 && areas["70148.209"] == 4, "the probes' seams, ring contacts, ties and column contacts on 3000 x 2400 with compas_tf's oculus");
+
+    WoodSession scene("rectangle");
+    wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
+    wood_floor::add_columns(scene, floor, nullptr, members);
+    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(scene, floor, members);
+
+    for (const wood_floor::ContactMismatch& mismatch : mismatches)
+        std::cout << "   mismatch " << mismatch.relation << ": " << mismatch.what << std::endl;
+
+    check(mismatches.empty(), std::to_string(mismatches.size()) + " of 44 rectangle contacts disagree with the kernel's search");
+    std::cout << fmt::format("floor_elements: 3000 x 2400 report ok, rule A {:.3f} deg, faces planar within {:.1e}, the probes' tiling areas, 44 of 44 contacts", report.ruling_off_chamfer_deg[0], floor_flatness(floor)) << std::endl;
+}
+
 int main() {
 
     check_shared_entities();
     check_ring();
     check_report();
     check_section_layers();
+    check_rectangle();
     check_relationships();
     check_beams();
     check_thickness();

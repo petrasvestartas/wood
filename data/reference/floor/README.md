@@ -91,3 +91,30 @@ The cutter level moves the twelve `column_cutters/*` records of example 1 by 0.2
 70214.105060 to the full 70238.714887 mm2 (origins and axes unchanged), the head cut from
 34777378.362 to 34771221.351 mm3 (`tests/floor_elements.cpp` pins both, the carved column of example 2
 176866956.468 -> 176873113.478 mm3) and nothing else.
+
+## The rectangle (plan step 8, gate G8)
+
+`templates_floor_9_rectangle` builds `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`, a
+6000 x 4800 bay. compas_tf has no rectangular assembly, so parity is per quarter view (R1): run with
+`--compas` (compas_tf's oculus rule and parity definitions) and every quarter is written in its
+corner frame, mapped onto compas_tf's quarter 0 of `FloorGuide` with that quarter's half spans:
+
+    ../../../tools/run_guarded.sh -t 10 -m 4 -- python dump_floorguide.py reference_floorguide_3000x2400.txt 3000 2400
+    ../../../tools/run_guarded.sh -t 10 -m 4 -- python dump_floorguide.py reference_floorguide_2400x3000.txt 2400 3000
+
+| file | records | compared with |
+|---|---|---|
+| `reference_floorguide_3000x2400.txt` | 193 | `floor_9_rectangle_q0.txt`, `_q2.txt` (`--compas`) |
+| `reference_floorguide_2400x3000.txt` | 193 | `floor_9_rectangle_q1.txt`, `_q3.txt` (`--compas`) |
+| `model_rectangle.txt` | 59 | `floor_9_rectangle.txt` (no argument): the report, every contact relationship's area, the counts |
+
+R1 reads the 141 records compas_tf gets right on a rectangle: every polygon but `oculus_points`, every
+plane and quad, the parabolas and shadows, the block levels, `bed_top_planes/0` and `/2`, the outer
+ribs, the inner beams, blocks 0 / 2, flanges `tsections/0` / `/5`, bed rows 0 / 2 and the cutters (the
+inner ribs and the central row are left out: compas_tf is inconsistent there, design 4.1):
+
+    grep -v '^oculus_points\|^inner_ribs/\|^wedges_inner_beams/1/\|^tsections/[1-4]/\|^beds/\([6-9]\|1[01]\)/\|^bed_top_planes/1 \|^oculus/' \
+        data/reference/floor/reference_floorguide_3000x2400.txt > r1_0.txt
+    python3 tools/compare_dumps.py r1_0.txt data/output/pb/floor_9_rectangle_q0.txt 1e-6
+
+and gives `141 records, 0 failing, worst deviation 0.000e+00` in all four views.

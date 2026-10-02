@@ -1,4 +1,10 @@
-"""Dump compas_tf FloorGuide geometry as `name x y z x y z ...` lines, the parity reference for wood_floor."""
+"""Dump compas_tf FloorGuide geometry as `name x y z x y z ...` lines, the parity reference for wood_floor.
+
+    python dump_floorguide.py <output> [size_grid_x size_grid_y]
+
+The half spans default to example 1's 3000 / 3000; any other pair is one quarter view of a rectangle
+for gate G8 R1 (3000 2400 for quarters 0 and 2 of the 3000 x 2400 bay, 2400 3000 for quarters 1 and 3).
+"""
 
 import sys
 
@@ -14,8 +20,8 @@ class Recorder:
 fg.PlateElement = Recorder
 
 guide = fg.FloorGuide(
-    size_grid_x=3000,
-    size_grid_y=3000,
+    size_grid_x=float(sys.argv[2]) if len(sys.argv) > 3 else 3000,
+    size_grid_y=float(sys.argv[3]) if len(sys.argv) > 3 else 3000,
     size_column_head=220,
     size_column_head_chamfer=120,
     size_outer_ribs=100,
