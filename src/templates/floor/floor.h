@@ -65,6 +65,9 @@ enum class CentralLayers { section, compas };
 /// The middle column cutter level: the deeper of the corner's two outer rib bottoms at their fan planes (the model: the carved band reaches both ribs on every plan), or compas_tf's -(height + 1.65 tsections) (the parity mode, R8).
 enum class CutterLevel { rib_bottom, compas_factor };
 
+/// How each outer rib's soffit reaches its column: its straight run-in from the fan plane solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their compas_tf ends (the model), or compas_tf's run-in of one wedge for every rib (the parity mode).
+enum class RibLevel { shared_column, compas };
+
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
 struct FloorPlan {
     std::array<session_cpp::Point, 4> corners; // Counter-clockwise; corner 0 is compas_tf's quarter 0.
@@ -166,6 +169,7 @@ struct QuarterGeometry {
     std::vector<session_cpp::Point> polygon; // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; // The member planes.
     ConstructionQuads quads; // The plan quad of every member at z 0.
+    std::array<double, 2> run_in = {0.0, 0.0}; // Per outer rib, the straight run-in along its axis from the fan plane's datum trace to where its parabola starts, mm: wedge in compas_tf, solved by RibLevel::shared_column.
     std::vector<std::array<session_cpp::Polyline, 3>> parabolas; // Outer 0, outer 1, shadow 0, shadow 1, each with its +t and +2t offsets.
     CentralPanel central_panel; // The central panel by rule A.
     std::vector<session_cpp::Plane> bed_top_planes; // Per bed panel, the plane fitted to its deepest quad, normal up.
@@ -237,6 +241,7 @@ struct FloorReport {
     std::array<double, 4> bed_flange_coincidence_mm = {}; // The farthest bed underside corner from the top of the flange beside it, over the three rows and both sides.
     std::array<std::array<double, 2>, 4> central_layer_shift_vs_compas_mm = {}; // +t and +2t vertex shift of the cross-section layers against compas_tf's; informational.
     std::array<std::array<double, 2>, 4> rib_bottom_clearance_mm = {}; // Each outer rib's bottom at its fan plane above the middle cutter level; negative where it runs below the carved face.
+    std::array<double, 4> rib_level_spread_mm = {}; // Per corner, the highest less the lowest of the eight rib face bottoms at the column head: both faces of the two outer and the two inner ribs.
     std::array<std::array<double, 3>, 4> wedge_seat_mm = {}; // The side 0, chamfer and side 1 seats on the head.
     std::array<std::array<double, 2>, 4> column_offset_mm = {}; // Signed, per corner and bay edge (R8).
     double ring_overlap_mm2 = 0.0; // The ring beams' mutual overlap in plan, 0 required.
@@ -255,6 +260,7 @@ struct Floor {
     FloorSizes sizes; // Everything that does not change with the plan.
     CentralLayers layers = CentralLayers::section; // How the central panel's layers are made.
     CutterLevel cutter_level = CutterLevel::rib_bottom; // How the middle column cutter level is set.
+    RibLevel rib_level = RibLevel::shared_column; // How the outer ribs reach their columns.
     session_cpp::Point centre; // The plan's centre.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
@@ -264,9 +270,9 @@ struct Floor {
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
 
     /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::rib_bottom);
+    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::rib_bottom, RibLevel rib = RibLevel::shared_column);
 
-    /// The floor in compas_tf's parity mode, the definitions the compas_tf reference dumps were made with: its central layers and its cutter level.
+    /// The floor in compas_tf's parity mode, the definitions the compas_tf reference dumps were made with: its central layers, its cutter level and its rib run-ins.
     static Floor compas_parity(const FloorPlan& plan, const FloorSizes& sizes);
 
     /// A view of quarter q; it holds a reference and lives as long as the floor.

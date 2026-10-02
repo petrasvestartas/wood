@@ -214,6 +214,18 @@ static double bed_flange_coincidence(const Quarter& quarter) {
     return worst;
 }
 
+/// The highest less the lowest of the eight rib face bottoms at the column head: each outer and inner rib's soffit corner on its column end plane, on both faces.
+static double rib_level_spread(const Quarter& quarter) {
+
+    std::vector<double> levels;
+
+    for (const std::vector<Outline>& family : {quarter.outer_ribs(), quarter.inner_ribs()})
+        for (const Outline& rib : family)
+            levels.insert(levels.end(), {rib.top.get_point(2)[2], rib.bottom.get_point(2)[2]});
+
+    return *std::max_element(levels.begin(), levels.end()) - *std::min_element(levels.begin(), levels.end());
+}
+
 /// The plan overlap of the four ring beams, pair by pair.
 static double ring_overlap(const std::vector<Outline>& ring) {
 
@@ -267,6 +279,7 @@ static void measure_quarter(const Floor& floor, size_t q, FloorReport& report) {
     report.central_layer_shift_vs_compas_mm[q] = panel.layer_shift;
     report.wedge_seat_mm[q] = column.wedge_seat;
     report.column_offset_mm[q] = column.column_offset;
+    report.rib_level_spread_mm[q] = rib_level_spread(quarter);
 
     const std::vector<Outline> outer = quarter.outer_ribs();
 
@@ -312,7 +325,7 @@ std::string FloorReport::str() const {
     for (size_t q = 0; q < 4; q++) {
         text += fmt::format("  quarter {}: seam gap {:.3e}, oculus corner gap {:.3e}, closure {:.3e}, end faces {:.3e}, beds on flanges {:.3e} mm\n", q, seam_plane_gap[q], oculus_corner_gap[q], closure_residual_mm[q], end_face_planarity_mm[q], bed_flange_coincidence_mm[q]);
         text += fmt::format("    ruling {:.3f} deg off the chamfer, {:.3f} off the oculus edge; rib sweep {:.3f} / {:.3f} deg oblique, shear {:.3f} / {:.3f} mm\n", ruling_off_chamfer_deg[q], ruling_off_oculus_edge_deg[q], rib_sweep_obliqueness_deg[q][0], rib_sweep_obliqueness_deg[q][1], rib_shear_mm[q][0], rib_shear_mm[q][1]);
-        text += fmt::format("    section layers {:.3f} / {:.3f} mm from compas_tf's; rib bottoms {:.3f} / {:.3f} mm above the cutter level; seats {:.3f} / {:.3f} / {:.3f} mm; column offset {:.3f} / {:.3f} mm\n", central_layer_shift_vs_compas_mm[q][0], central_layer_shift_vs_compas_mm[q][1], rib_bottom_clearance_mm[q][0], rib_bottom_clearance_mm[q][1], wedge_seat_mm[q][0], wedge_seat_mm[q][1], wedge_seat_mm[q][2], column_offset_mm[q][0], column_offset_mm[q][1]);
+        text += fmt::format("    section layers {:.3f} / {:.3f} mm from compas_tf's; rib bottoms {:.3f} / {:.3f} mm above the cutter level, the eight rib bottoms at the head span {:.3f} mm; seats {:.3f} / {:.3f} / {:.3f} mm; column offset {:.3f} / {:.3f} mm\n", central_layer_shift_vs_compas_mm[q][0], central_layer_shift_vs_compas_mm[q][1], rib_bottom_clearance_mm[q][0], rib_bottom_clearance_mm[q][1], rib_level_spread_mm[q], wedge_seat_mm[q][0], wedge_seat_mm[q][1], wedge_seat_mm[q][2], column_offset_mm[q][0], column_offset_mm[q][1]);
     }
 
     text += fmt::format("  ring: beams overlap {:.3e} mm2, quarter beam faces uncovered {:.3e} mm2", ring_overlap_mm2, ring_uncovered_mm2);

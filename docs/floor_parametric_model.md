@@ -671,6 +671,27 @@ bottoms at the fan plane, compas_tf's unused `outer_ribs_bottom` intent (`:743-7
 per corner, because the three top cutter quads and the three bottom ones share their corner
 points (`:408-417`, `floor_members.cpp:304-320`). Open question 4.
 
+Rule: one rib level per column (`RibLevel::shared_column`, the model; `RibLevel::compas` keeps
+compas_tf's run-in in `Floor::compas_parity`). compas_tf starts every outer parabola one `wedge`
+(240) along its axis past the fan plane's datum trace and extends its first chord to the fan plane, so
+a rib ends at height + slope x (wedge - lean offset): on 3000 x 2400, with spans 2540 / 1940 (first
+chords 0.327 / 0.428) and side fans leaning 9.683 / 7.575 deg, the long rib ends at -689.979 and the
+short one at -712.196, 22.217 mm apart, and the inner ribs' central faces end 10.3 / 12.9 mm off their
+outer faces, rule A sweeping them -33.869 deg off the chamfer. The model solves each outer rib's run-in
+(a 1-D secant from the wedge, `QuarterGeometry::run_in`) so both outer ribs of a corner end on their
+fan planes at the corner's level, the shallower of their two compas_tf ends, which is then the middle
+cutter level (`rib_bottom`). Height, rise, `static_h`, the seam tangent and the 7-point Bezier stay, so
+same-index stations keep one depth and rule A still closes exactly; the inner ribs' outer faces reach
+the level by the fan construction (side plane, chamfer plane and inner rib outer face share one line),
+and rule A re-solves to r +0.474 deg off the chamfer, so their central faces end within 0.16 mm of it.
+The shallower end, because the deeper one puts the long rib's bottom corner 1.52 mm outside the 340
+capitel (that fan face leaves the head at -703.2; 40 of 44 contacts); a per-rib height or rise instead
+of the run-in puts the stations at different depths and opens rule A by 21.6 mm. Square: unchanged
+(both ends -694.793, run-in 240). 3000 x 2400: the short ribs' run-in 187.667 (span 1992.333), every
+corner at -689.979, the eight rib bottoms at a head within 0.307 mm (`FloorReport::rib_level_spread_mm`),
+u -0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique (22.675 / 3.500 mm shear), the short ribs'
+column contacts 69605.340 mm2.
+
 R9 Connectors from relationships (section 8). The contact polygon of a named pair is read off
 the outlines that share the plane; the kernel's `compute_face_contact` (`wood_session.h:102`) runs
 only in `verify_contacts`, and `require_contact` throws naming the relation instead of skipping.
@@ -1224,3 +1245,10 @@ compas_tf references in `data/reference/floor/`.
 * Step 9 (trapezoid) skipped by decision (question 6).
 * Step 10: the example descriptions, the floor section of `docs/templates.md`, this note;
   `docs/floor_model_report.md` lists the numbers per step.
+* One rib level per column (R8, `RibLevel::shared_column` the default): every square gate and every
+  parity-mode gate unchanged (example 1 bit-identical to step 7b, examples 2-8 dumps identical, the
+  rectangle's R1 141 records at 0 in all four views); 3000 x 2400 report ok, the corner level -689.979,
+  the short run-in 187.667, the eight rib bottoms within 0.307 mm, rule A 0.839 deg / 20.703 / 3.338 deg,
+  every face planar within 2.8e-11 mm, beds and layers 27.000, 48 of 48 connectors, 44 of 44 contacts,
+  0 faceted, 384 of 384 bores; `model_rectangle.txt` re-baselined (the short ribs' column plates
+  69605.340 mm2, the block dowel contacts of the changed ribs).

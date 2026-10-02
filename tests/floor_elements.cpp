@@ -755,13 +755,59 @@ double floor_flatness(const wood_floor::Floor& floor) {
     return worst;
 }
 
+/// The eight rib face bottoms of corner q at the column head: both faces of the two outer and the two inner ribs.
+std::vector<double> rib_bottoms(const wood_floor::Floor& floor, size_t q) {
+
+    const wood_floor::Quarter quarter = floor.quarter(q);
+    std::vector<double> levels;
+
+    for (const std::vector<wood_floor::Outline>& family : {quarter.outer_ribs(), quarter.inner_ribs()})
+        for (const wood_floor::Outline& rib : family)
+            levels.insert(levels.end(), {rib.top.get_point(2)[2], rib.bottom.get_point(2)[2]});
+
+    return levels;
+}
+
+/// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower compas_tf end -689.979, the short rib's run-in solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square and the parity mode keep compas_tf's run-ins.
+void check_rib_levels() {
+
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
+    const wood_floor::FloorReport report = floor.check();
+
+    for (size_t q = 0; q < 4; q++) {
+        const double level = floor.columns[q].levels[1];
+        const std::vector<double> bottoms = rib_bottoms(floor, q);
+        const std::array<double, 2>& run_in = floor.geometry[q].run_in;
+        check(std::abs(level + 689.979) < 1e-3, fmt::format("corner {}'s level at the shallower outer rib end, {:.3f}", q, level));
+        check(std::max(run_in[0], run_in[1]) == floor.sizes.wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
+
+        for (size_t i = 0; i < 4; i++)
+            check(std::abs(bottoms[i] - level) <= 1e-9, fmt::format("corner {}'s outer rib face {} ends {:.3e} mm off the level", q, i, bottoms[i] - level));
+
+        for (size_t i = 4; i < 8; i++)
+            check(std::abs(bottoms[i] - level) <= 0.2, fmt::format("corner {}'s inner rib face {} ends {:.3f} mm off the level", q, i - 4, bottoms[i] - level));
+
+        check(std::abs(report.rib_level_spread_mm[q] - (*std::max_element(bottoms.begin(), bottoms.end()) - *std::min_element(bottoms.begin(), bottoms.end()))) <= 1e-12, "the report's spread is the eight bottoms' range");
+    }
+
+    const wood_floor::Floor parity = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
+    const wood_floor::Floor square(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+
+    for (size_t q = 0; q < 4; q++) {
+        check(parity.geometry[q].run_in[0] == parity.sizes.wedge && parity.geometry[q].run_in[1] == parity.sizes.wedge, "the parity mode keeps compas_tf's run-in");
+        check(square.geometry[q].run_in[0] == square.sizes.wedge && square.geometry[q].run_in[1] == square.sizes.wedge && square.check().rib_level_spread_mm[q] <= 1e-9, "the square keeps compas_tf's run-in, every rib at one level");
+    }
+
+    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the eight rib bottoms span {:.3f} mm, the short run-in {:.3f}; the square and the parity mode at compas_tf's run-in", floor.columns[0].levels[1], report.rib_level_spread_mm[0], std::min(floor.geometry[0].run_in[0], floor.geometry[0].run_in[1])) << std::endl;
+}
+
 /// The 3000 x 2400 bay (G8 R2-R5): the report holds, rule A as the design measured it, every member face planar, the probes' tiling areas with compas_tf's oculus, and 44 of 44 contacts found by the kernel's search.
 void check_rectangle() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
     const wood_floor::FloorReport report = floor.check();
     check(report.ok(1e-9), "the rectangle's report holds within 1e-9:\n" + report.str());
-    check(std::abs(std::abs(report.ruling_off_chamfer_deg[0]) - 2.647) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][0] - 13.640) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][1] - 37.681) < 1e-3, "rule A on 3000 x 2400: u 2.647 deg off the chamfer, r 13.640 / 37.681 deg oblique");
+    check(std::abs(std::abs(report.ruling_off_chamfer_deg[0]) - 0.839) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][0] - 20.703) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][1] - 3.338) < 1e-3, "rule A on 3000 x 2400 with one rib level per column: u 0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique");
     check(floor_flatness(floor) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(floor)));
 
     const wood_floor::Floor compas = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
@@ -792,6 +838,7 @@ int main() {
     check_report();
     check_section_layers();
     check_rectangle();
+    check_rib_levels();
     check_relationships();
     check_beams();
     check_thickness();

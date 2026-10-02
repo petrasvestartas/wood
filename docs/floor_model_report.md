@@ -24,6 +24,7 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | 7b | `cc760d6` | `CutterLevel::rib_bottom` the default | parity mode unchanged; middle level -694.793; the 12 cutter records move 0.243 mm at the level (0.741 at most); column contacts the full 70238.714887 mm2; head cut re-pinned 34771221.351479 (compas_tf 34777378.362 kept); example 2 carves 176873113.478; `model_contacts_cantilevers.txt`; 44 / 44, 0 faceted, 396 / 396 |
 | 8 | `c3084b4` | `templates_floor_9_rectangle`, the 3000 x 2400 half spans bay; per-span compas_tf references | G8 R1-R5 below |
 | 10 | `69bfed1` | example descriptions, `docs/templates.md` floor section, Implemented notes in the design | every floor example in both modes and the four tests green |
+| R8 | (the rib level commit) | `RibLevel::shared_column` the default: each outer rib's run-in solved so both outer ribs of a corner end at the shallower compas_tf end | square and parity mode identical on every gate; 3000 x 2400: level -689.979, short run-in 187.667, eight rib bottoms within 0.307 mm, `model_rectangle.txt` re-baselined |
 
 ## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`
 
@@ -31,18 +32,18 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 |---|---|---|
 | connectors | 48 of 48: 8 wedges with 28 dowels (3 on short seams, 5 on long, 3 per oculus beam), 8 rectangle plates, 4 cross laps, 4 ties, 24 dowel sets of 96 dowels | 48 of 48, same counts |
 | ties | 4 x 19700 mm2 | 4 x 19700 mm2 |
-| column plate contacts | 69995.051 / 71846.613 mm2, full end faces | 70076.481 / 70148.209 (the probes' numbers) |
+| column plate contacts | 69995.051 / 69605.340 mm2, full end faces | 70076.481 / 70148.209 (the probes' numbers) |
 | seam / ring contacts | 258500.873 / 376700.873; ring 4 x 242696.248 | 297515.590 / 328199.359; ring 4 x 253629.409 |
 | contacts verified by the kernel's search | 44 / 44 | 44 / 44 |
 | faceted | 0 | 0 |
 | dowel bores | 384 of 384 stretches exact | 384 of 384 |
-| report | ok: closure 6.9e-12, end faces 5.1e-13, beds on flanges 0, ring overlap 1.1e-11 mm2, uncovered 0 | ok |
-| rule A | u 2.647 deg off the chamfer, r 13.640 / 37.681 deg oblique, 14.560 / 46.341 mm shear | u 16.059 deg, 16.957 / 41.686 deg, 18.295 / 53.432 mm |
-| rib bottoms vs cutter level | 18.047 / 0 mm (rib_bottom) | 2.887 / -15.160 mm (compas_factor) |
+| report | ok: closure 4.3e-12, end faces 5.1e-13, beds on flanges 0, ring overlap 1.1e-11 mm2, uncovered 0 | ok |
+| rule A | u 0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique, 22.675 / 3.500 mm shear (r 0.474 deg off the chamfer) | u 16.059 deg, 16.957 / 41.686 deg, 18.295 / 53.432 mm |
+| rib bottoms vs cutter level | 0 / 0 mm, the eight rib bottoms at a head within 0.307 mm (one rib level per column, -689.979) | 2.887 / -15.160 mm (compas_factor) |
 
 R1: every quarter written in its corner frame against compas_tf's `FloorGuide(3000, 2400)` (quarters 0,
 2) and `FloorGuide(2400, 3000)` (1, 3): 141 records, 0 failing, worst deviation 0 in all four views.
-R3: every member face planar within 4.5e-11 mm (test, 1e-9 required).
+R3: every member face planar within 2.8e-11 mm (test, 1e-9 required).
 
 ## Deviations
 

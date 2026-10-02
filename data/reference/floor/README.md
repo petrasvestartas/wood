@@ -106,7 +106,7 @@ corner frame, mapped onto compas_tf's quarter 0 of `FloorGuide` with that quarte
 |---|---|---|
 | `reference_floorguide_3000x2400.txt` | 193 | `floor_9_rectangle_q0.txt`, `_q2.txt` (`--compas`) |
 | `reference_floorguide_2400x3000.txt` | 193 | `floor_9_rectangle_q1.txt`, `_q3.txt` (`--compas`) |
-| `model_rectangle.txt` | 59 | `floor_9_rectangle.txt` (no argument): the report, every contact relationship's area, the counts |
+| `model_rectangle.txt` | 59 | `floor_9_rectangle.txt` (no argument): the report, every contact relationship's area, the counts; with one rib level per column (the short ribs' column plates 69605.340 mm2) |
 
 R1 reads the 141 records compas_tf gets right on a rectangle: every polygon but `oculus_points`, every
 plane and quad, the parabolas and shadows, the block levels, `bed_top_planes/0` and `/2`, the outer

@@ -9,6 +9,8 @@ using namespace wood_floor::geometry;
 
 const double RIGHT_ANGLE = 1e-9; // degrees off 90 within which a corner counts as right, so a rectangle keeps its exact edge directions
 const double MIDDLE_CUTTER_FACTOR = 1.65; // compas_tf floor_guide.py:386: the middle cutter level is height plus this many tsections below the datum
+const double RUN_IN_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps compas_tf's run-in
+const size_t RUN_IN_STEPS = 50; // secant steps a run-in may take to land its rib's end on the shared level
 
 /// World z, the normal side of edge planes facing out of the quarter.
 static Vector up() {
@@ -261,17 +263,78 @@ static ConstructionQuads construction_quads(const ConstructionPlanes& cp) {
     return result;
 }
 
-/// Per rib axis (outer 0, outer 1, shadow 0, shadow 1) the parabola and its two offsets by tsections: the outer ones from the rib quads, the shadows projected onto the inner ribs' outer faces along the outer rib normals.
-static std::vector<std::array<Polyline, 3>> boundary_parabolas(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes) {
+/// The outer parabola over a rib quad, compas_tf's 7-point Bezier: from -height at the run-in along the axis past the fan plane's datum trace, controlled at the axis midpoint at -static_h, to the seam at -static_h.
+static Polyline outer_parabola(const Polyline& quad, double run_in, const FloorSizes& sizes) {
+
+    const Point start = quad.get_point(0);
+    const Point end = quad.get_point(1);
+    const Point trimmed = start + (end - start).normalized() * run_in;
+    const Point middle = trimmed + (end - trimmed) * 0.5;
+
+    return Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -sizes.height), middle + Vector(0.0, 0.0, -sizes.static_h()), end + Vector(0.0, 0.0, -sizes.static_h()));
+}
+
+/// The z where an outer rib's soffit, its first chord extended, meets its fan plane: the bottom of the rib's column end face.
+static double fan_end(const Polyline& quad, double run_in, const Plane& fan, const Plane& seam, const FloorSizes& sizes) {
+
+    const std::vector<Point> pts = trim(outer_parabola(quad, run_in, sizes), fan, seam).get_points();
+    const double d0 = std::abs((pts.front() - fan.origin()).dot(fan.z_axis()));
+    const double d1 = std::abs((pts.back() - fan.origin()).dot(fan.z_axis()));
+
+    return d0 > d1 ? pts.back()[2] : pts.front()[2];
+}
+
+/// The run-in that lands an outer rib's end on the level, by the secant from compas_tf's wedge; throws when it leaves the axis or does not converge.
+static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plane& seam, double level, const FloorSizes& sizes) {
+
+    const double axis = (quad.get_point(1) - quad.get_point(0)).magnitude();
+    double x0 = sizes.wedge;
+    double f0 = fan_end(quad, x0, fan, seam, sizes) - level;
+
+    if (std::abs(f0) <= RUN_IN_TOLERANCE)
+        return x0;
+
+    double x1 = x0 + 1.0;
+    double f1 = fan_end(quad, x1, fan, seam, sizes) - level;
+
+    for (size_t i = 0; i < RUN_IN_STEPS; i++) {
+        if (std::abs(f1) <= RUN_IN_TOLERANCE)
+            return x1;
+
+        const double x2 = x1 - f1 * (x1 - x0) / (f1 - f0);
+
+        if (x2 <= 0.0 || x2 >= axis)
+            throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} leaves its axis: {:.3f} of {:.3f} mm", level, x2, axis));
+
+        x0 = x1;
+        f0 = f1;
+        x1 = x2;
+        f1 = fan_end(quad, x1, fan, seam, sizes) - level;
+    }
+
+    throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} did not converge: {:.3e} mm off", level, f1));
+}
+
+/// Per outer rib its run-in by the rib level: compas_tf's wedge, or the run-in that lands its end on the corner's shared level, the shallower of the two ends at the wedge.
+static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes, RibLevel rib_level) {
+
+    if (rib_level == RibLevel::compas)
+        return {sizes.wedge, sizes.wedge};
+
+    const std::array<Plane, 2> fans = {cp.wedges[0][0], cp.wedges[2][0]};
+    const std::array<Plane, 2> seams = {cp.inner_beams[0][0], cp.inner_beams[2][0]};
+    const double level = std::max(fan_end(quads.outer_ribs[0], sizes.wedge, fans[0], seams[0], sizes), fan_end(quads.outer_ribs[1], sizes.wedge, fans[1], seams[1], sizes));
+
+    return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, sizes), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level, sizes)};
+}
+
+/// Per rib axis (outer 0, outer 1, shadow 0, shadow 1) the parabola and its two offsets by tsections: the outer ones from the rib quads over their run-ins, the shadows projected onto the inner ribs' outer faces along the outer rib normals.
+static std::vector<std::array<Polyline, 3>> boundary_parabolas(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes, const std::array<double, 2>& run_in) {
 
     std::vector<std::array<Polyline, 3>> parabolas;
 
-    for (const Polyline& quad : quads.outer_ribs) {
-        const Point start = quad.get_point(0);
-        const Point end = quad.get_point(1);
-        const Point trimmed = start + (end - start).normalized() * sizes.wedge;
-        const Point middle = trimmed + (end - trimmed) * 0.5;
-        const Polyline parabola = Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -sizes.height), middle + Vector(0.0, 0.0, -sizes.static_h()), end + Vector(0.0, 0.0, -sizes.static_h()));
+    for (size_t k = 0; k < 2; k++) {
+        const Polyline parabola = outer_parabola(quads.outer_ribs[k], run_in[k], sizes);
         parabolas.push_back({parabola, offset_polyline(parabola, sizes.tsections), offset_polyline(parabola, 2.0 * sizes.tsections)});
     }
 
@@ -299,7 +362,7 @@ static std::vector<Plane> bed_top_planes(const ConstructionPlanes& cp, const std
     };
 }
 
-/// Quarter q's geometry in dependency order: planes, quads, parabolas and shadows, block levels, bed planes; the column fan and seats are written into its column.
+/// Quarter q's geometry in dependency order: planes, quads, run-ins, parabolas and shadows, block levels, bed planes; the column fan and seats are written into its column.
 static void compute_quarter(Floor& floor, size_t q) {
 
     QuarterGeometry& geometry = floor.geometry[q];
@@ -309,7 +372,8 @@ static void compute_quarter(Floor& floor, size_t q) {
     geometry.planes = construction_planes(floor, q, column);
     column_seats(column, floor.plan, q, geometry.planes, sizes);
     geometry.quads = construction_quads(geometry.planes);
-    geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, sizes);
+    geometry.run_in = run_ins(geometry.planes, geometry.quads, sizes, floor.rib_level);
+    geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, sizes, geometry.run_in);
 
     const Polyline middle = cut(geometry.parabolas[2][0], geometry.planes.wedges[1][1], geometry.planes.inner_beams[1][1]);
     geometry.block_level_bottom = middle.get_point(0)[2];
@@ -344,7 +408,7 @@ std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
     return pair(plane_into(quarter), thickness);
 }
 
-Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, CentralLayers central_layers, CutterLevel level) : plan(floor_plan), sizes(floor_sizes), layers(central_layers), cutter_level(level) {
+Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, CentralLayers central_layers, CutterLevel level, RibLevel rib) : plan(floor_plan), sizes(floor_sizes), layers(central_layers), cutter_level(level), rib_level(rib) {
 
     std::string why;
 
@@ -372,7 +436,7 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, Central
 }
 
 Floor Floor::compas_parity(const FloorPlan& plan, const FloorSizes& sizes) {
-    return Floor(plan, sizes, CentralLayers::compas, CutterLevel::compas_factor);
+    return Floor(plan, sizes, CentralLayers::compas, CutterLevel::compas_factor, RibLevel::compas);
 }
 
 Quarter Floor::quarter(size_t q) const {
