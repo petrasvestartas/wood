@@ -8,9 +8,9 @@ using namespace session_cpp;
 using namespace wood_session;
 
 const bool BREPS = true; // write every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders, instead of its mesh
-const bool DUMP = true; // write name, volume and box centre of the carved columns and outer ribs to data/output/pb/floor_8_contacts_cantilevers.txt, the parity record against compas_tf
+const bool DUMP = true; // write name, volume and box centre of the carved columns, outer ribs and ties to data/output/pb/floor_9_rectangle.txt
 const double GX = 3000.0; // half the bay in x
-const double GY = 3000.0; // half the bay in y
+const double GY = 2400.0; // half the bay in y
 
 const wood_floor::FloorGuide SIZES{
     .size_column_head = 220.0,
@@ -182,10 +182,10 @@ void count_breps(WoodSession& session) {
     std::cout << fmt::format("Every dowel bores every element it passes: {} dowel stretches through members and parts, {} exact bores found", dowel_crossings(session), bores + part_bores) << std::endl;
 }
 
-/// The parity record: the carved columns, the carved outer ribs and the tie keys.
+/// The record of the carved columns, the carved outer ribs and the tie keys.
 void dump_parity(const WoodSession& session, const std::vector<wood_floor::Member>& ribs, const std::vector<std::shared_ptr<JointBeam>>& ties) {
 
-    std::ofstream file(std::filesystem::path(pb_path("floor_8_contacts_cantilevers")).replace_extension(".txt").string());
+    std::ofstream file(std::filesystem::path(pb_path("floor_9_rectangle")).replace_extension(".txt").string());
 
     for (const std::shared_ptr<Column>& column : session.columns())
         dump(file, column->name, column->model_geometry_mesh());
@@ -205,7 +205,7 @@ void dump_parity(const WoodSession& session, const std::vector<wood_floor::Membe
 
 int main() {
 
-    WoodSession session("templates_floor_8_contacts_cantilevers");
+    WoodSession session("templates_floor_9_rectangle");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
     const std::shared_ptr<TreeNode> floor = wood_floor::add_group(session, "floor_model", root);
     std::vector<wood_floor::Quarter> quarters;
@@ -242,7 +242,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every contact of a wedge block with an outer or inner rib: four Ø8 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
+Step 9 of the timber floor, beyond compas_tf: the full cantilevers model of step 8 on a rectangular 6000 x 4800 bay. Each quarter guide is built in place from its bay corner and the two edge midpoints beside it, so the ribs follow the longer and the shorter edge instead of a square quarter turned into a pinwheel; the oculus takes its edges from the four quarters. The same connectors follow: a rectangle plate on every column-rib contact, a tie on every outer rib seam, a wedge on every ring beam contact and four dowels on every wedge-block-rib contact, all nested and exact. DUMP writes the carved columns, outer ribs and ties.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -251,7 +251,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_floor_8_contacts_cantilevers --parallel 6 && ./build/templates_floor_8_contacts_cantilevers && ../bash/publish-scene.sh --target templates_floor_8_contacts_cantilevers
+cmake --build build --target templates_floor_9_rectangle --parallel 6 && ./build/templates_floor_9_rectangle && ../bash/publish-scene.sh --target templates_floor_9_rectangle
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -7,9 +7,7 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of every element to data/output/pb/floor_5_oculus.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide GUIDE{
-    .size_grid_x = 3000.0,
-    .size_grid_y = 3000.0,
+const wood_floor::FloorGuide SIZES{
     .size_column_head = 220.0,
     .size_column_head_chamfer = 120.0,
     .size_outer_ribs = 100.0,
@@ -37,7 +35,12 @@ int main() {
 
     WoodSession session("templates_floor_5_oculus");
     const std::shared_ptr<TreeNode> group = session.add_group("oculus");
-    wood_floor::add_oculus_model(session, GUIDE, group);
+    std::vector<wood_floor::FloorGuide> quarters;
+
+    for (int i = 0; i < 4; i++)
+        quarters.push_back(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, SIZES));
+
+    wood_floor::add_oculus_model(session, quarters, group);
 
     std::cout << fmt::format("{} elements: {} plates, {} variable beams", session.objects.elements->size(), session.plates().size(), session.beam_variables().size()) << std::endl;
     session.pb_dump(pb_path("live"));

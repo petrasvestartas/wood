@@ -35,10 +35,13 @@ struct Outline {
 // Floor guide
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The parametric source of one quarter of a timber floor bay, port of compas_tf FloorGuide, every member as an outline pair at the floor datum z 0.
+/// The parametric source of one quarter of a timber floor bay, port of compas_tf FloorGuide, every member as an outline pair at the floor datum z 0; the quarter is framed by its bay corner and the two edge midpoints beside it, counter-clockwise about the bay centre at the origin.
 struct FloorGuide {
-    double size_grid_x = 3000.0; // Half the bay in x: the column corner sits at -size_grid_x.
-    double size_grid_y = 3000.0; // Half the bay in y.
+    session_cpp::Point corner = session_cpp::Point(-3000.0, -3000.0, 0.0); // The bay corner the column stands at.
+    session_cpp::Point midpoint_x = session_cpp::Point(0.0, -3000.0, 0.0); // Midpoint of the bay edge after the corner going counter-clockwise, the first outer rib's.
+    session_cpp::Point midpoint_y = session_cpp::Point(-3000.0, 0.0, 0.0); // Midpoint of the bay edge before the corner, the second outer rib's.
+    session_cpp::Point oculus_x = session_cpp::Point(0.0, -1000.0, 0.0); // The oculus corner on the line from the centre to midpoint_x.
+    session_cpp::Point oculus_y = session_cpp::Point(-1000.0, 0.0, 0.0); // The oculus corner on the line from the centre to midpoint_y.
     double size_column_head = 250.0; // Side of the column head polygon at the corner.
     double size_column_head_chamfer = 100.0; // Chamfer of that polygon on the bay side.
     double size_outer_ribs = 100.0; // Outer rib thickness.
@@ -48,11 +51,21 @@ struct FloorGuide {
     double size_tsections = 27.0; // T-section and bed thickness.
     double height = 650.0; // Floor depth at the column.
     double rise = 453.0; // Rise of the rib parabola from the column to the edge midpoint.
-    double size_oculus = 1000.0; // Half diagonal of the oculus.
+    double size_oculus = 1000.0; // Half diagonal of the oculus; rectangle and trapezoid place oculus_x and oculus_y by it.
     double wedge_plane_angle = -10.0; // Degrees the middle wedge plane leans about its top edge.
     double bay_height = 3500.0; // Storey height, column plus support, the floor is lifted by.
     double column_head_depth = 730.0; // How far below the floor datum the column head cutters reach.
     double oculus_plane_angle = 5.0; // Degrees the oculus inner beam plane leans about its top edge.
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Static constructors
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// The quarter of a bay with the four corners counter-clockwise about the origin, quadrant 0 to 3 picking the corner, with the sizes given; the oculus corner towards each edge midpoint lies size_oculus times that midpoint's distance over the geometric mean of its two neighbours' away from the centre. The members still sweep square to their ribs as compas_tf's guide does, so a corner off the right angle leaves the rib ends off the column's carved faces.
+    static FloorGuide trapezoid(const std::array<session_cpp::Point, 4>& corners, int quadrant, const FloorGuide& sizes);
+
+    /// The quarter of the rectangular bay of half sides gx and gy centred on the origin, quadrant 0 at (-gx, -gy) to 3 at (-gx, gy), with the sizes given.
+    static FloorGuide rectangle(double gx, double gy, int quadrant, const FloorGuide& sizes);
 
     // ═══════════════════════════════════════════════════════════════════════
     // Plan
@@ -61,16 +74,19 @@ struct FloorGuide {
     /// Depth of the floor at the edge midpoints: height minus rise.
     double static_h() const;
 
-    /// Column base centre in plan for a column of that side: the grid corner inset by half of it.
+    /// Unit direction from the corner towards midpoint_x.
+    session_cpp::Vector x_axis() const;
+
+    /// Unit direction from the corner towards midpoint_y.
+    session_cpp::Vector y_axis() const;
+
+    /// Column base centre in plan for a column of that side: the corner inset by half of it along both edges.
     session_cpp::Point corner_point_column(double column_size = 200.0) const;
 
-    /// The four oculus corners on the axes, scaled by the grid aspect.
-    std::vector<session_cpp::Point> oculus_points() const;
-
-    /// The quarter outline: grid corner, edge midpoint, two oculus corners, edge midpoint.
+    /// The quarter outline: corner, midpoint_x, oculus_x, oculus_y, midpoint_y.
     std::vector<session_cpp::Point> quarter_polygon() const;
 
-    /// The column head polygon at the grid corner the ribs start from.
+    /// The column head polygon at the corner the ribs start from, along the two edges.
     std::vector<session_cpp::Point> quarter_column_polygon() const;
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -117,8 +133,8 @@ struct FloorGuide {
     /// The bed plates in three rows.
     std::vector<std::vector<Outline>> beds() const;
 
-    /// The oculus: four boundary beams, four bottom wedges and the inner plate.
-    std::vector<Outline> oculus() const;
+    /// The oculus of the bay the quarters ring, in quadrant order: one boundary beam per quarter on its oculus edge, one bottom wedge per corner and the inner plate, sized by the first quarter.
+    static std::vector<Outline> oculus(const std::vector<FloorGuide>& quarters);
 
     /// The six plates that carve the column head, in the guide frame.
     std::vector<Outline> column_cutters() const;
@@ -172,14 +188,14 @@ struct Quarter {
 /// A group named name under parent, at the root when parent is empty.
 std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
-/// The column model of compas_tf example_model_2 moved by placement, every name ending in suffix; returns the column.
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const session_cpp::Xform& placement, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
+/// The column model of compas_tf example_model_2 at the guide's corner, every name ending in suffix; returns the column.
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
 
-/// The quarter model of compas_tf example_model_4 lifted to bay_height and moved by placement, grouped by family, every name ending in suffix.
-Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const session_cpp::Xform& placement, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
+/// The quarter model of compas_tf example_model_4 in the guide's frame lifted to bay_height, grouped by family, every name ending in suffix.
+Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group, const std::string& suffix);
 
-/// The oculus model of compas_tf example_model_5 lifted to bay_height; returns its four boundary beams.
-std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// The oculus model of compas_tf example_model_5 ringed by the quarters, lifted to bay_height; returns its boundary beams.
+std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const std::vector<FloorGuide>& quarters, const std::shared_ptr<session_cpp::TreeNode>& group);
 
 /// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the ring beams, sized by the thicker member; returns the joints.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const std::vector<Member>& ring, const std::shared_ptr<session_cpp::TreeNode>& group);

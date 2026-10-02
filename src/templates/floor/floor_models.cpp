@@ -93,19 +93,20 @@ std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const st
     return node;
 }
 
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
+std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
 
     const std::shared_ptr<wood_session::Support> support = to_support(guide);
     const std::shared_ptr<wood_session::Column> column = to_column(guide, *support);
-    add_placed(session, support, placement, "support" + suffix, group);
-    add_placed(session, column, placement, "column" + suffix, group);
+    support->name = "support" + suffix;
+    column->name = "column" + suffix;
+    session.add(support, group);
+    session.add(column, group);
 
     const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*support, *column);
     session.add(joint, group);
     session.add_joint(joint);
 
     for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(guide, *column)) {
-        cutter->place(placement);
         session.add(cutter, group);
         session.add_joint(cutter);
     }
@@ -113,9 +114,9 @@ std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession
     return column;
 }
 
-Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const Xform& placement, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
+Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group, const std::string& suffix) {
 
-    const Xform lift = placement * Xform::translation(0.0, 0.0, guide.bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::vector<std::vector<Outline>> beds = guide.beds();
     const std::shared_ptr<TreeNode> bed_group = add_group(session, "beds" + suffix, group);
     Quarter quarter;
@@ -139,17 +140,18 @@ Quarter add_quarter_model(wood_session::WoodSession& session, const FloorGuide& 
     return quarter;
 }
 
-std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
+std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const std::vector<FloorGuide>& quarters, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const std::vector<Outline> outlines = guide.oculus();
+    const Xform lift = Xform::translation(0.0, 0.0, quarters.front().bay_height);
+    const std::vector<Outline> outlines = FloorGuide::oculus(quarters);
+    const size_t n = quarters.size();
     std::vector<Member> beams;
 
     for (size_t i = 0; i < outlines.size(); i++) {
-        const std::shared_ptr<Element> member = i < 4 ? std::static_pointer_cast<Element>(to_beam(outlines[i], {1, 0}, {2, 3}, "oculus")) : std::static_pointer_cast<Element>(to_plate(outlines[i], "oculus"));
+        const std::shared_ptr<Element> member = i < n ? std::static_pointer_cast<Element>(to_beam(outlines[i], {1, 0}, {2, 3}, "oculus")) : std::static_pointer_cast<Element>(to_plate(outlines[i], "oculus"));
         add_placed(session, member, lift, fmt::format("oculus_{}", i), group);
 
-        if (i < 4)
+        if (i < n)
             beams.push_back({member, outline_thickness(outlines[i])});
     }
 

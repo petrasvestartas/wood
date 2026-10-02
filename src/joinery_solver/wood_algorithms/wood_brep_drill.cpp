@@ -245,19 +245,6 @@ static std::vector<Point> split_loop(const std::vector<Point>& loop, const std::
     return split;
 }
 
-/// Splits every side of every loop at the vertices lying on it, so faces meeting along a line share its edges one-to-one: a T-vertex, a vertex of one face on the side of another, whether the mesh carried it or merging coplanar faces left it, would otherwise give one edge against two.
-static void split_sides(std::vector<PlanarFace>& faces) {
-
-    const std::vector<Point> vertices = loop_vertices(faces);
-
-    for (PlanarFace& face : faces) {
-        face.points = split_loop(face.points, vertices);
-
-        for (std::vector<Point>& hole : face.holes)
-            hole = split_loop(hole, vertices);
-    }
-}
-
 /// The plane of every mesh face: its ring, unit normal and offset; empty when a face is not planar.
 struct FacePlane {
     std::vector<size_t> ring; // Vertex keys around the face.
@@ -401,6 +388,67 @@ static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
     }
 
     return faces;
+}
+
+/// The loops a loop falls into once every side it runs along twice, there and back, is taken out: a bridge of no width the boolean left where two cuts nearly share a plane, so the face on each side of it stands alone; loops of fewer than three corners go.
+static std::vector<std::vector<Point>> unbridged(const std::vector<Point>& loop) {
+
+    std::vector<std::vector<Point>> loops = {loop};
+
+    for (size_t l = 0; l < loops.size(); l++) {
+        const std::vector<Point> pts = loops[l];
+        const size_t n = pts.size();
+        bool split = false;
+
+        for (size_t i = 0; i < n && !split; i++)
+            for (size_t j = i + 1; j < n && !split; j++)
+                if (pts[i].distance(pts[(j + 1) % n]) <= WELD && pts[(i + 1) % n].distance(pts[j]) <= WELD) {
+                    loops[l] = std::vector<Point>(pts.begin() + i + 1, pts.begin() + j);
+                    loops.push_back({});
+
+                    for (size_t k = j + 1; k < n + i; k++)
+                        loops.back().push_back(pts[k % n]);
+
+                    split = true;
+                }
+
+        if (split)
+            l--;
+    }
+
+    for (size_t l = 0; l < loops.size();)
+        if (loops[l].size() < 3)
+            loops.erase(loops.begin() + l);
+        else
+            l++;
+
+    return loops;
+}
+
+/// Splits every side of every loop at the vertices lying on it, so faces meeting along a line share its edges one-to-one: a T-vertex, a vertex of one face on the side of another, whether the mesh carried it or merging coplanar faces left it, would otherwise give one edge against two; a face pinched along a bridge then falls into one face per side of it, each keeping the holes it encloses.
+static std::vector<PlanarFace> split_sides(const std::vector<PlanarFace>& faces) {
+
+    const std::vector<Point> vertices = loop_vertices(faces);
+    std::vector<PlanarFace> result;
+
+    for (const PlanarFace& face : faces) {
+        std::vector<std::vector<Point>> holes;
+
+        for (const std::vector<Point>& hole : face.holes)
+            holes.push_back(split_loop(hole, vertices));
+
+        for (const std::vector<Point>& loop : unbridged(split_loop(face.points, vertices))) {
+            PlanarFace piece = framed_face(loop, {}, face.normal);
+
+            for (const std::vector<Point>& hole : holes)
+                if (inside_loop(piece, piece.points, hole[0]))
+                    piece.holes.push_back(hole);
+
+            result.push_back(piece);
+        }
+    }
+
+    return result;
 }
 
 /// Where the line through start along the unit direction d crosses the faces: the parameter along it and the face, sorted along the line.
@@ -897,6 +945,21 @@ static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, c
     return true;
 }
 
+/// Prints every edge the faces do not use exactly twice.
+static void trace_edge_uses(const BRep& brep) {
+
+    std::map<int, int> uses;
+
+    for (const BRepFace& face : brep.m_faces)
+        for (const BRepRef& wire : face.wires)
+            for (const BRepRef& edge : brep.m_wires[wire.index].edges)
+                uses[edge.index]++;
+
+    for (const std::pair<const int, int>& use : uses)
+        if (use.second != 2)
+            std::cout << "edge " << use.first << " used " << use.second << " times: " << brep.m_vertices[brep.m_edges[use.first].start_vertex].point << " -> " << brep.m_vertices[brep.m_edges[use.first].end_vertex].point << std::endl;
+}
+
 /// Whether the built solid closes and holds the mesh's volume less the bores, within VOLUME and the kernel's tessellation slack on the bores.
 static bool check_volume(const BRep& brep, const Mesh& mesh, double removed, const std::vector<Drill>& drills, const std::vector<Stretch>& stretches) {
 
@@ -910,39 +973,27 @@ static bool check_volume(const BRep& brep, const Mesh& mesh, double removed, con
 
         for (const Stretch& stretch : stretches)
             std::cout << fmt::format("   drill {} radius {:.1f} length {:.1f}: stretch {:.1f} .. {:.1f} faces {} {}", stretch.drill, drills[stretch.drill].radius, drills[stretch.drill].axis.length(), stretch.t0, stretch.t1, stretch.face0, stretch.face1) << std::endl;
+
+        trace_edge_uses(brep);
+        std::cout << fmt::format("   faces {} edges {} vertices {}", brep.m_faces.size(), brep.m_edges.size(), brep.m_vertices.size()) << std::endl;
     }
 
     return false;
 }
 
-/// Prints every edge the faces do not use exactly twice.
-static void trace_edge_uses(const BRep& brep) {
-
-    std::map<int, int> uses;
-
-    for (const BRepFace& face : brep.m_faces)
-        for (const BRepRef& wire : face.wires)
-            for (const BRepRef& edge : brep.m_wires[wire.index].edges)
-                uses[edge.index]++;
-
-    for (const std::pair<const int, int>& use : uses)
-        if (use.second != 2)
-            std::cout << "edge " << use.first << " used " << use.second << " times" << std::endl;
-}
-
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& given) {
 
     const std::vector<Drill> drills = merged_drills(given);
-    std::vector<PlanarFace> faces = planar_faces(mesh);
+    const std::vector<PlanarFace> merged = planar_faces(mesh);
 
-    if (faces.empty()) {
+    if (merged.empty()) {
         if constexpr (TRACE)
             std::cout << "a face is not planar" << std::endl;
 
         return std::nullopt;
     }
 
-    split_sides(faces);
+    const std::vector<PlanarFace> faces = split_sides(merged);
 
     const NurbsCurve circle = Primitives::circle(0.0, 0.0, 0.0, 1.0);
     std::vector<Stretch> stretches;
