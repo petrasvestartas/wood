@@ -27,6 +27,35 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | R8 | `81969e0` | `RibLevel::shared_column` the default: each outer rib's run-in solved so both outer ribs of a corner end at the shallower compas_tf end | square and parity mode identical on every gate; 3000 x 2400: level -689.979, short run-in 187.667, eight rib bottoms within 0.307 mm, `model_rectangle.txt` re-baselined |
 | R8 | (the column block commit) | the column blocks span their ribs' run-in, the middle one `middle_wedge_factor` x the mean | square and parity mode identical on every gate; 3000 x 2400: blocks 240 / 267.292 / 187.667, side far ends 0.992 mm apart, `model_rectangle.txt` re-baselined |
 
+## Screws (branch `floor-screws`)
+
+Pre-drilled assembly screws, 200 x d4, design section 8.1: `JointBeam::screws` (pre-drill lines on one
+connector naming every member they pass, no cut), `WoodSession::pre_drill_lines`, five screw relations
+appended to `relationships()`.
+
+| | square | 3000 x 2400 |
+|---|---|---|
+| `screw_rib_beam` (outer rib into seam beam) | 16 | 16 |
+| `screw_beam_mitre` (red, seam beam into oculus beam) | 16 | 16 |
+| `screw_rib_corner` (blue, inner rib end through the beam corner) | 16 | 16 |
+| `screw_ring` (ring pinwheel corners) | 8 | 8 |
+| `screw_oculus` (ring toe screws into the quarters' oculus beams) | 16 | 16 |
+| screws / connectors | 72 / 36 | 72 / 36 |
+| screw contacts verified by the kernel's search | 36 / 36 | 36 / 36 |
+| closest screw axes | 28.143 mm | 28.143 mm |
+| closest screw to a dowel bore (surfaces, bore run on by its overshoot) | 137.272 mm | 137.272 mm |
+| closest screw to a pocket or connector part (surfaces) | 5.441 mm | 5.441 mm |
+| held by the members named | 200.000 mm, every screw | 200.000 mm, every screw |
+| misfits | 0 | 0 |
+
+No beam is too shallow (every joint 197 deep takes its two levels) and no screw needed shortening or
+dropping. Reported, not a misfit: the blue screws run along the inner rib's axis through the beam
+corner, so they pass three members (the seam beam's end, the oculus beam, at least 24.9 mm of them, and
+the rib) and name all three. Every existing gate unchanged: example 1 byte-identical (193 / 0 against
+compas_tf), examples 2, 4, 5, 6 and 8 dumps and consoles identical, example 9's records unchanged with
+the screw lines added (`model_rectangle.txt` 0 failing), 44 / 44 contacts, 0 faceted, 396 / 396 and
+384 / 384 bores; the four tests pass.
+
 ## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`
 
 | | model (default) | `--compas` (compas_tf oculus, parity definitions) |

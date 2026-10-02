@@ -248,6 +248,50 @@ void dump_ties(const wood_floor::Floor& floor, const wood_floor::FloorMembers& m
         dump(file, rib.element->name, rib.element->model_geometry_mesh());
 }
 
+/// The screw records: per screw its connector and index, relation, members, the members it also passes, head and tip.
+void dump_screws(const wood_floor::Floor& floor, const std::vector<std::shared_ptr<JointBeam>>& screws, const std::string& path) {
+
+    std::ofstream file(path);
+    size_t next = 0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor)) {
+        if (row.screws.empty() || next >= screws.size())
+            continue;
+
+        const std::shared_ptr<JointBeam>& connector = screws[next++];
+
+        std::string through;
+
+        for (const wood_floor::MemberRef& ref : row.through)
+            through += " through " + ref.name();
+
+        for (size_t i = 0; i < connector->drill_lines.size(); i++) {
+            const Line& screw = connector->drill_lines[i];
+            file << fmt::format("{}/{} {} {} {}{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n", connector->name, i, wood_floor::relation_name(row.kind), row.a.name(), row.b.name(), through, screw.start()[0], screw.start()[1], screw.start()[2], screw.end()[0], screw.end()[1], screw.end()[2]);
+        }
+    }
+}
+
+/// Adds the assembly screws of every screw relationship under group, after every other connector so nothing before changes, checks their contacts against the kernel's search and their clearances, prints both, and gives the screws' dowels their exact cylinders.
+std::vector<std::shared_ptr<JointBeam>> add_screws(WoodSession& session, const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::shared_ptr<TreeNode>& group) {
+
+    const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
+    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, floor, members, 1e-6, kinds);
+    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(session, floor, members, group, kinds);
+
+    for (const wood_floor::ContactMismatch& mismatch : mismatches)
+        std::cout << fmt::format("screw contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
+
+    std::cout << fmt::format("{} of {} screw contacts verified by the kernel's search", screws.size() - mismatches.size(), screws.size()) << std::endl;
+    std::cout << wood_floor::check_screws(session, floor, screws).str() << std::endl;
+
+    for (const std::shared_ptr<Dowel>& dowel : session.get_elements<Dowel>())
+        if (BREPS && dowel->name.starts_with("connector_screws_"))
+            dowel->compute_geometry_brep();
+
+    return screws;
+}
+
 /// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
 int main(int argc, char** argv) {
 
@@ -284,11 +328,13 @@ int main(int argc, char** argv) {
         print_dowels(session, members.quarters[i], dowels, static_cast<int>(i));
 
     count_breps(session);
+    const std::vector<std::shared_ptr<JointBeam>> screws = add_screws(session, model, members, wood_floor::add_group(session, "screw_connectors", floor));
     session.pb_dump(pb_path("live"));
 
     if constexpr (DUMP) {
         dump_parity(session, model, members, plates, ties);
         dump_ties(model, members, ties);
+        dump_screws(model, screws, std::filesystem::path(pb_path("floor_8_screws")).replace_extension(".txt").string());
     }
 
     return 0;
@@ -296,7 +342,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, every connector made from the floor's 76 relationships (the contact polygons read from the members' outlines, every one checked against the kernel's contact search), the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every contact of a wedge block with an outer or inner rib: four Ø8 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. Prints the floor's report. DUMP writes the column and seam contacts, the carved columns, outer ribs and ties, compared against compas_tf with --compas.
+Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, every connector made from the floor's 76 relationships (the contact polygons read from the members' outlines, every one checked against the kernel's contact search), the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every contact of a wedge block with an outer or inner rib: four Ø8 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. Prints the floor's report. DUMP writes the column and seam contacts, the carved columns, outer ribs and ties, compared against compas_tf with --compas. Then the assembly screws, after every other connector so nothing before them changes: pre-drilled lines 200 long, d 4, two per location at two heights, 12 per quarter (outer ribs into the seam beams, the seam beams into the oculus beam across the mitres, the inner rib ends through the beam corners), 8 at the ring's pinwheel corners and 16 toe screws from the ring into the quarters' oculus beams, 72 in all; each line stored once on its connector, which names every member it passes, no member cut, every screw a dowel child drawn as an exact cylinder; prints the screw count per kind, their contacts against the kernel's search and their closest approach to each other, to the dowel bores and to the pockets, and DUMP writes them with their heads and tips to floor_8_screws.txt.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

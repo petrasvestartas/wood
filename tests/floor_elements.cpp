@@ -203,7 +203,7 @@ std::vector<std::shared_ptr<Joint>> children_of(const WoodSession& scene, const 
     return children;
 }
 
-/// The connector is nested: it draws nothing itself, parts part children then dowels dowel children follow it in the tree, named after it, every one visible and exact.
+/// The connector is nested: it draws nothing itself, parts part children then dowels dowel children follow it in the tree, named after it (a pre-drilled screw <name>_screw_<i>), every one visible and exact.
 void check_nested(const WoodSession& scene, const JointBeam& connector, size_t parts, size_t dowels) {
 
     const std::vector<std::shared_ptr<Joint>> children = children_of(scene, connector);
@@ -219,7 +219,7 @@ void check_nested(const WoodSession& scene, const JointBeam& connector, size_t p
             check(std::dynamic_pointer_cast<ConnectorPart>(child) && child->name == name, connector.name + " part child " + child->name);
         } else {
             const double cylinder = M_PI * connector.line_radius * connector.line_radius * connector.drill_lines[i - parts].length();
-            check(std::dynamic_pointer_cast<Dowel>(child) && child->name == fmt::format("{}_dowel_{}", connector.name, i - parts) && std::abs(child->model_geometry_brep().volume() - cylinder) < 1e-2 * cylinder, connector.name + " dowel child " + child->name);
+            check(std::dynamic_pointer_cast<Dowel>(child) && child->name == fmt::format("{}_{}_{}", connector.name, connector.pre_drill ? "screw" : "dowel", i - parts) && std::abs(child->model_geometry_brep().volume() - cylinder) < 1e-2 * cylinder, connector.name + " dowel child " + child->name);
         }
     }
 }
@@ -254,7 +254,7 @@ std::vector<wood_floor::Member> outer_ribs(const wood_floor::FloorMembers& membe
     return ribs;
 }
 
-/// The relationship table: 76 rows in the counts of the design, every contact one the kernel's search finds on the square within 1e-6 of plane, top edge and area, and require_contact throwing for a pair that does not touch.
+/// The relationship table: 76 rows in the counts of the design and 36 screw rows, every contact one the kernel's search finds on the square within 1e-6 of plane, top edge and area, and require_contact throwing for a pair that does not touch.
 void check_relationships() {
 
     WoodSession scene("relationships");
@@ -266,7 +266,8 @@ void check_relationships() {
     for (const wood_floor::Relationship& row : rows)
         counts[row.kind]++;
 
-    check(rows.size() == 76, "76 relationships, not " + std::to_string(rows.size()));
+    check(rows.size() == 112, "112 relationships, 76 and 36 screw rows, not " + std::to_string(rows.size()));
+    check(counts[wood_floor::Relation::screw_rib_beam] == 8 && counts[wood_floor::Relation::screw_beam_mitre] == 8 && counts[wood_floor::Relation::screw_rib_corner] == 8 && counts[wood_floor::Relation::screw_ring] == 4 && counts[wood_floor::Relation::screw_oculus] == 8, "8 rib-beam, 8 mitre, 8 rib-corner, 4 ring and 8 oculus screw rows");
     check(counts[wood_floor::Relation::seam_wedge] == 4 && counts[wood_floor::Relation::oculus_wedge] == 4 && counts[wood_floor::Relation::column_plate] == 8 && counts[wood_floor::Relation::cross_lap] == 4, "4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps");
     check(counts[wood_floor::Relation::seam_tie] == 4 && counts[wood_floor::Relation::block_dowels] == 24 && counts[wood_floor::Relation::support] == 4 && counts[wood_floor::Relation::cutter] == 24, "4 ties, 24 dowel sets, 4 supports, 24 cutters");
 
@@ -289,7 +290,7 @@ void check_relationships() {
     }
 
     check(thrown, "require_contact throws naming the relation when the members do not touch");
-    std::cout << "floor_elements: 76 relationships, 44 contacts verified by the kernel's search within 1e-6, require_contact names the relation it misses" << std::endl;
+    std::cout << "floor_elements: 112 relationships (76 and 36 screw rows), 44 contacts verified by the kernel's search within 1e-6, require_contact names the relation it misses" << std::endl;
 }
 
 /// The wedges between the inner beams and the oculus: eight visible connectors with their parts and cutters, their dowels flush with the beams, exact cylinders in their BReps and exact bores through the wedge parts, and the carved beams, through a round trip.
@@ -881,6 +882,92 @@ void check_rectangle() {
     std::cout << fmt::format("floor_elements: 3000 x 2400 report ok, rule A {:.3f} deg, faces planar within {:.1e}, the probes' tiling areas, 44 of 44 contacts", report.ruling_off_chamfer_deg[0], floor_flatness(floor)) << std::endl;
 }
 
+/// The lines of a list that equal a line within 1e-9 mm at both ends.
+size_t matches(const std::vector<Line>& lines, const Line& line) {
+
+    size_t count = 0;
+
+    for (const Line& other : lines)
+        count += (other.start() - line.start()).magnitude() <= 1e-9 && (other.end() - line.end()).magnitude() <= 1e-9;
+
+    return count;
+}
+
+/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming both members of its relationship, every screw 200 long, radius 2, held over its length by its members, at least 8 mm from every other and clear of every bore and pocket; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip.
+void check_floor_screws(const wood_floor::Floor& floor, const std::string& label) {
+
+    WoodSession scene("screws");
+    wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
+    wood_floor::add_columns(scene, floor, nullptr, members);
+    wood_floor::add_connectors(scene, floor, members, nullptr);
+    std::map<std::string, double> volumes;
+
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+        volumes[beam->guid()] = compute_volume(beam->model_geometry_mesh());
+
+    const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
+    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(scene, floor, members, nullptr, kinds);
+    const wood_floor::ScrewCheck report = wood_floor::check_screws(scene, floor, screws);
+    check(report.counts.at(wood_floor::Relation::screw_rib_beam) == 16 && report.counts.at(wood_floor::Relation::screw_beam_mitre) == 16 && report.counts.at(wood_floor::Relation::screw_rib_corner) == 16 && report.counts.at(wood_floor::Relation::screw_ring) == 8 && report.counts.at(wood_floor::Relation::screw_oculus) == 16, label + " screws per kind:\n" + report.str());
+    check(report.misfits.empty() && report.screw_screw_mm >= 8.0 && report.screw_bore_mm >= 0.0 && report.screw_pocket_mm >= 0.0 && std::abs(report.embedded_min_mm - 200.0) <= 1e-3, label + " screws clear and held:\n" + report.str());
+    check(wood_floor::verify_contacts(scene, floor, members, 1e-6, kinds).empty(), label + " every screw contact the kernel's search finds");
+
+    size_t next = 0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor)) {
+        if (row.screws.empty())
+            continue;
+
+        const JointBeam& connector = *screws.at(next++);
+        check(connector.pre_drill && connector.cutters.empty() && connector.parts.empty() && connector.targets.size() == 2 + row.through.size(), label + " " + connector.name + " pre-drilled, no cutter, its members as targets");
+        check(connector.targets[0] == members.get(row.a)->guid() && connector.targets[1] == members.get(row.b)->guid(), label + " " + connector.name + " names both members of " + row.text());
+        check(std::abs(connector.line_radius - 2.0) <= 1e-12 && connector.drill_lines.size() == row.screws.size(), label + " " + connector.name + " radius 2, one line per screw");
+        check_nested(scene, connector, 0, connector.drill_lines.size());
+
+        for (const Line& line : connector.drill_lines) {
+            check(std::abs(line.length() - 200.0) <= 1e-9, label + " " + connector.name + " screws 200 long");
+
+            for (const std::string& guid : connector.targets)
+                check(matches(scene.pre_drill_lines(guid), line) == 1, label + " " + connector.name + " every member reads each screw once");
+        }
+    }
+
+    check(next == screws.size(), label + " one screw connector per screw row");
+
+    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+        check(std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <= 1e-9 * volumes.at(beam->guid()), label + " no member cut by the screws: " + beam->name);
+
+    const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
+    size_t loaded = 0;
+
+    for (const std::shared_ptr<JointBeam>& connector : screws) {
+        const std::shared_ptr<JointBeam> read = back.get_element<JointBeam>(connector->guid());
+        check(read && read->pre_drill && read->targets == connector->targets && read->drill_lines.size() == connector->drill_lines.size(), label + " screw connector round trip " + connector->name);
+        check_nested(back, *read, 0, read->drill_lines.size());
+
+        for (const Line& line : connector->drill_lines)
+            for (const std::string& guid : connector->targets)
+                check(matches(back.pre_drill_lines(guid), line) == 1, label + " pre-drill lines round trip " + connector->name);
+
+        loaded++;
+    }
+
+    check(loaded == screws.size(), label + " screw round trip count");
+    size_t total = 0;
+
+    for (const std::pair<const wood_floor::Relation, size_t>& count : report.counts)
+        total += count.second;
+
+    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, held, {:.3f} mm apart at the least, {:.3f} mm clear of bores, {:.3f} mm of pockets, nothing cut, pre-drill lines through a round trip", total, screws.size(), label, report.screw_screw_mm, report.screw_bore_mm, report.screw_pocket_mm) << std::endl;
+}
+
+/// The assembly screws on the square and on 3000 x 2400.
+void check_screws() {
+
+    check_floor_screws(wood_floor::Floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}), "the square");
+    check_floor_screws(wood_floor::Floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{}), "3000 x 2400");
+}
+
 int main() {
 
     check_shared_entities();
@@ -898,6 +985,7 @@ int main() {
     check_dowels();
     check_quarter_dowels();
     check_rectangle_plates();
+    check_screws();
 
     return 0;
 }

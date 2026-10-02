@@ -19,44 +19,6 @@ static MemberRef shared_member(Family family, size_t index, int quarter = -1) {
     return MemberRef{quarter, family, index, -1};
 }
 
-/// The closed polygon of the points lifted by lift.
-static Polyline lifted(const std::vector<Point>& points, double lift) {
-
-    std::vector<Point> result;
-
-    for (const Point& point : points)
-        result.push_back(point + Vector(0.0, 0.0, lift));
-
-    return Polyline(result).closed();
-}
-
-/// The plane lifted by lift.
-static Plane lifted(const Plane& plane, double lift) {
-    return Plane::from_frame(plane.origin() + Vector(0.0, 0.0, lift), plane.x_axis(), plane.y_axis(), plane.z_axis());
-}
-
-/// The polygon with everything below z removed, the crossing edges cut at z.
-static std::vector<Point> above(const std::vector<Point>& points, double z) {
-
-    std::vector<Point> result;
-    const size_t n = points.size();
-
-    for (size_t i = 0; i < n; i++) {
-        const Point& a = points[i];
-        const Point& b = points[(i + 1) % n];
-        const bool a_in = a[2] >= z;
-        const bool b_in = b[2] >= z;
-
-        if (a_in)
-            result.push_back(a);
-
-        if (a_in != b_in)
-            result.push_back(a + (b - a) * ((z - a[2]) / (b[2] - a[2])));
-    }
-
-    return result;
-}
-
 /// The points of a closed outline loop without its closing point.
 static std::vector<Point> loop(const Polyline& polyline) {
 
@@ -103,11 +65,15 @@ double Relationship::area() const {
     return polygon_area(contact);
 }
 
+std::string relation_name(Relation kind) {
+
+    const std::array<std::string, 13> kinds = {"support", "cutter", "column_plate", "cross_lap", "seam_tie", "seam_wedge", "oculus_wedge", "block_dowels", "screw_rib_beam", "screw_beam_mitre", "screw_rib_corner", "screw_ring", "screw_oculus"};
+
+    return kinds[static_cast<size_t>(kind)];
+}
+
 std::string Relationship::text() const {
-
-    const std::array<std::string, 8> kinds = {"support", "cutter", "column_plate", "cross_lap", "seam_tie", "seam_wedge", "oculus_wedge", "block_dowels"};
-
-    return fmt::format("{} {} - {}", kinds[static_cast<size_t>(kind)], a.name(), b.name());
+    return fmt::format("{} {} - {}", relation_name(kind), a.name(), b.name());
 }
 
 std::array<MemberRef, 2> Relationship::scene_pair() const {
@@ -308,6 +274,9 @@ std::vector<Relationship> relationships(const Floor& floor) {
         for (size_t j = 0; j < cutters.size(); j++)
             rows.push_back(cutter(floor, q, j, cutters[j]));
     }
+
+    for (const Relationship& row : screw_relationships(floor))
+        rows.push_back(row);
 
     return rows;
 }

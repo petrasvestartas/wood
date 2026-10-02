@@ -17,6 +17,7 @@ public:
     std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the dowels at an end where the dowel leaves the target; a blind hole stops at its dowel.
     std::vector<SolidCut> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's.
+    bool pre_drill = false; // A connector of screws: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
 
     JointBeam();
 
@@ -96,6 +97,25 @@ public:
         int dowel_sides = 16
     );
 
+    /// Assembly screws across the joint of two members: one drill line per screw from its head along the given line, length long, the pre-drilled holes both targets read through the connector without any cut; null when no line is given.
+    static std::shared_ptr<JointBeam> screws(
+        const session_cpp::Element& a,
+        const session_cpp::Element& b,
+        const std::vector<session_cpp::Line>& lines,
+        double radius = 2.0,
+        double length = 200.0,
+        int sides = 16
+    );
+
+    /// The screws across every member they pass, a and b first: the same lines, every member a target that reads them.
+    static std::shared_ptr<JointBeam> screws(
+        const std::vector<const session_cpp::Element*>& members,
+        const std::vector<session_cpp::Line>& lines,
+        double radius = 2.0,
+        double length = 200.0,
+        int sides = 16
+    );
+
     /// The half-lap cross joint of two connectors whose box parts cross: a slot through each where the other passes, a's from share of their common height up, b's from the bottom up to there.
     static std::shared_ptr<JointBeam> cross_lap(const JointBeam& a, const JointBeam& b, double share = 0.5, double margin = 1.0);
 
@@ -103,7 +123,7 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Whether this is a connector, with parts or cutters of its own, rather than a beam-to-beam joint.
+    /// Whether this is a connector, with parts, cutters or pre-drilled screws of its own, rather than a beam-to-beam joint.
     bool is_connector() const;
 
     /// One part as a closed mesh, its loops lofted, before any cut.
@@ -115,7 +135,7 @@ public:
     /// One part as a BRep with its cuts applied and its dowel bores exact.
     session_cpp::BRep part_brep(size_t index) const;
 
-    /// The connector's parts and dowels as elements to nest under it: a ConnectorPart per part named <name>_part, numbered when there are several, then a Dowel per drill line named <name>_dowel_<i>.
+    /// The connector's parts and dowels as elements to nest under it: a ConnectorPart per part named <name>_part, numbered when there are several, then a Dowel per drill line named <name>_dowel_<i>, or <name>_screw_<i> for pre-drilled screws.
     std::vector<std::shared_ptr<Joint>> children() const;
 
     /// A beam-to-beam joint's feature volumes; a connector draws nothing itself, its children carry its parts and dowels.

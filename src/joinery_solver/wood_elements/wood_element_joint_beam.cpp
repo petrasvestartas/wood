@@ -464,6 +464,35 @@ std::shared_ptr<JointBeam> JointBeam::dowels(const Element& a, const Element& b,
     return joint;
 }
 
+/// The screws: each line's start is a head, the screw length long along the line from there; no cutter and no cut, the lines are the pre-drilled holes of both members; aimed at a then b.
+std::shared_ptr<JointBeam> JointBeam::screws(const Element& a, const Element& b, const std::vector<Line>& lines, double radius, double length, int sides) {
+    return screws(std::vector<const Element*>{&a, &b}, lines, radius, length, sides);
+}
+
+std::shared_ptr<JointBeam> JointBeam::screws(const std::vector<const Element*>& members, const std::vector<Line>& lines, double radius, double length, int sides) {
+
+    if (lines.empty() || members.size() < 2)
+        return nullptr;
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "screws";
+    joint->is_visible = true;
+    joint->pre_drill = true;
+
+    for (const Element* member : members)
+        joint->targets.push_back(member->guid());
+
+    for (const Line& line : lines) {
+        const Point head = line.start();
+        joint->drill_lines.push_back(Line::from_points(head, head + line.to_vector().normalized() * length));
+    }
+
+    joint->line_radius = radius;
+    joint->chord_tolerance = sides_tolerance(radius, sides);
+
+    return joint;
+}
+
 /// The frame of a box part: origin at its centre, x along the first side of its first loop, z along the last, y from the first loop to the second; the loops frame_box makes.
 static std::pair<Point, std::array<Vector, 3>> box_frame(const std::array<Polyline, 2>& box) {
 
@@ -551,7 +580,7 @@ std::shared_ptr<JointBeam> JointBeam::cross_lap(const JointBeam& a, const JointB
 // ═══════════════════════════════════════════════════════════════════════════
 
 bool JointBeam::is_connector() const {
-    return !parts.empty() || !cutters.empty();
+    return !parts.empty() || !cutters.empty() || pre_drill;
 }
 
 Mesh JointBeam::part_mesh(size_t index) const {
@@ -593,7 +622,7 @@ std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
 
     for (size_t i = 0; i < drill_lines.size(); i++) {
         result.push_back(std::make_shared<Dowel>(drill_lines[i], line_radius, chord_tolerance));
-        result.back()->name = fmt::format("{}_dowel_{}", name, i);
+        result.back()->name = fmt::format("{}_{}_{}", name, pre_drill ? "screw" : "dowel", i);
     }
 
     return result;
@@ -674,6 +703,7 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
                 throw std::runtime_error("Invalid connector part");
 
     proto.set_drill_overshoot(drill_overshoot);
+    proto.set_pre_drill(pre_drill);
 
     for (const SolidCut& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
@@ -697,6 +727,7 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
         parts.push_back({Polyline::pb_loads(proto.parts(i).SerializeAsString()), Polyline::pb_loads(proto.parts(i + 1).SerializeAsString())});
 
     drill_overshoot = proto.drill_overshoot();
+    pre_drill = proto.pre_drill();
 
     for (const wood_proto::SolidCut& cut : proto.solid_cuts())
         solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));

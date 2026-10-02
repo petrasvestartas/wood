@@ -57,6 +57,18 @@ session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
 /// The area of a closed planar polyline.
 double polygon_area(const session_cpp::Polyline& polyline);
 
+/// The closed polygon of the points lifted by lift.
+session_cpp::Polyline lifted(const std::vector<session_cpp::Point>& points, double lift);
+
+/// The plane lifted by lift.
+session_cpp::Plane lifted(const session_cpp::Plane& plane, double lift);
+
+/// The line lifted by lift.
+session_cpp::Line lifted(const session_cpp::Line& line, double lift);
+
+/// The polygon with everything below z removed, the crossing edges cut at z.
+std::vector<session_cpp::Point> above(const std::vector<session_cpp::Point>& points, double z);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Central panel
 // ═══════════════════════════════════════════════════════════════════════════
@@ -70,5 +82,12 @@ CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::
 
 /// The member bounded by a ring of side planes between a bottom and a top plane: each outline is the corners of consecutive side planes on its plane, a missing corner skipped.
 Outline loft_planes(const std::vector<session_cpp::Plane>& planes, const session_cpp::Plane& bottom, const session_cpp::Plane& top, bool flip = false);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Screws
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The screw relationships of the floor: per quarter the outer ribs into the seam beams, the mitres, the inner rib ends, then the ring corners and the ring into the quarters' oculus beams, each with its screw axes.
+std::vector<Relationship> screw_relationships(const Floor& floor);
 
 }

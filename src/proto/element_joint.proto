@@ -29,6 +29,7 @@ message Joint {
   double drill_overshoot = 20;                  // How far a connector's holes run past its dowels where they leave a target
   repeated SolidCut solid_cuts = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
   reserved 22;                                  // Was nested; a connector's children in the tree now say it
+  bool pre_drill = 23;                          // A connector of screws: its drill lines are pre-drilled holes in its targets, never cut
 }
 
 // The solids a connector cuts out of one target, as bottom, top loop pairs.

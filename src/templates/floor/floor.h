@@ -328,8 +328,11 @@ enum class Family {
     cutter, // The six head cutters of a column.
 };
 
-/// What two members share and the connector that belongs to it.
-enum class Relation { support, cutter, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels };
+/// What two members share and the connector that belongs to it; the screw kinds are the assembly screws, pre-drilled lines both members read.
+enum class Relation { support, cutter, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels, screw_rib_beam, screw_beam_mitre, screw_rib_corner, screw_ring, screw_oculus };
+
+/// The screw relation kinds in the order relationships() lists them.
+const std::array<Relation, 5> SCREW_RELATIONS = {Relation::screw_rib_beam, Relation::screw_beam_mitre, Relation::screw_rib_corner, Relation::screw_ring, Relation::screw_oculus};
 
 /// A member of the floor by quarter (-1 for the ring, the columns and the supports), family and index; row for a bed plate.
 struct MemberRef {
@@ -354,6 +357,8 @@ struct Relationship {
     session_cpp::Polyline contact; // The contact polygon on that plane, closed; empty for a support, a cutter or a cross lap.
     wood_session::ContactType type = wood_session::ContactType::unknown; // The contact class the kernel's search reports for the pair, unknown where the design does not fix it.
     size_t seam_or_corner = 0; // The seam or the corner the relationship belongs to.
+    std::vector<session_cpp::Line> screws; // A screw relationship's screw axes, head to tip, in world coordinates; empty for every other kind.
+    std::vector<MemberRef> through; // The members a screw relationship's screws pass besides a and b: the seam beam end an inner rib screw crosses at the beam corner.
 
     /// The contact area in mm2.
     double area() const;
@@ -435,7 +440,7 @@ FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, c
 /// compas_tf's columns_model under group: the four column models, each in its own column_model_q group, filled into the members.
 void add_columns(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group, FloorMembers& members);
 
-/// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters; wedges and ties in the order compas_tf's search found them.
+/// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters, wedges and ties in the order compas_tf's search found them; then the screws, per quarter and kind, then the ring's.
 std::vector<Relationship> relationships(const Floor& floor);
 
 /// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under group; cross laps need the column plates in the same call.
@@ -446,5 +451,29 @@ std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session,
 
 /// The searched contact of two members as they were before any cut, of the expected type; throws naming the relation when there is none.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession& session, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, wood_session::ContactType expected, const std::string& relation);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Screws
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The name of a relation kind, as Relationship::text() writes it.
+std::string relation_name(Relation kind);
+
+/// How the screws of a floor sit: counts per kind, the closest approaches and how much of every screw its two members hold.
+struct ScrewCheck {
+    std::map<Relation, size_t> counts; // Screws per relation kind.
+    double screw_screw_mm = 1e300; // The smallest distance between the axes of two screws.
+    double screw_bore_mm = 1e300; // The smallest clearance between a screw and a dowel bore of another connector, run on by its overshoot: axis distance less both radii.
+    double screw_pocket_mm = 1e300; // The smallest distance from a screw's surface to a pocket or a part of another connector; negative where it cuts into one.
+    double embedded_min_mm = 1e300; // The shortest length of a screw inside the members it names together.
+    double member_min_mm = 1e300; // The shortest length of a screw inside one of the two members of its joint.
+    std::vector<std::string> misfits; // Every screw that breaks a rule: closer than 8 mm to another, into a bore or a pocket, or not held over its length by the members it names, each of the joint's two holding some.
+
+    /// The check as text: the counts and the distances, then every misfit.
+    std::string str() const;
+};
+
+/// Measures the screw connectors add_connectors made for the screw kinds, in relationships() order, against each other, every other connector's bores, pockets and parts, and their two members' solids before any cut.
+ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& floor, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws);
 
 }

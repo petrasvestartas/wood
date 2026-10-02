@@ -820,6 +820,23 @@ std::vector<std::string> WoodSession::element_guids() const {
     return guids;
 }
 
+std::vector<Line> WoodSession::pre_drill_lines(const std::string& guid) const {
+
+    std::vector<Line> lines;
+
+    for (const std::shared_ptr<JointBeam>& connector : get_elements<JointBeam>()) {
+        if (!connector->pre_drill || std::find(connector->targets.begin(), connector->targets.end(), guid) == connector->targets.end())
+            continue;
+
+        const Xform world = world_xform(connector->guid());
+
+        for (const Line& line : connector->drill_lines)
+            lines.push_back(line.transformed(world));
+    }
+
+    return lines;
+}
+
 }  // namespace wood_session
 
 namespace wood_session {
@@ -926,8 +943,29 @@ static void nest_children(WoodSession& scene, const JointBeam& connector) {
         scene.add(child, node);
 }
 
+/// A pre-drill connector on its targets: its screws nested as dowels and each pair on the graph, no cut, since its drill lines are holes the targets read through pre_drill_lines.
+static void add_pre_drill_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
+
+    nest_children(scene, *joint);
+
+    for (const std::string& guid : joint->targets) {
+        const std::shared_ptr<Element> target = scene.get_element<Element>(guid);
+
+        if (!target)
+            throw std::invalid_argument("Missing connector target");
+
+        scene.Session::remove_interaction(joint, target);
+        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+    }
+}
+
 /// A connector's cuts: per target its own cutters and every drill line kept as an axis, one solid cut each, the edge marked like a cutter joint's.
 static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
+
+    if (joint->pre_drill) {
+        add_pre_drill_joint(scene, joint);
+        return;
+    }
 
     nest_children(scene, *joint);
 

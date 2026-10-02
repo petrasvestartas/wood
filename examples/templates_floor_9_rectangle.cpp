@@ -279,6 +279,50 @@ void dump_bay(const wood_floor::Floor& floor, const std::string& counts, const s
     file << counts << "\n";
 }
 
+/// The screw records: per screw its connector and index, relation, members, the members it also passes, head and tip.
+void dump_screws(const wood_floor::Floor& floor, const std::vector<std::shared_ptr<JointBeam>>& screws, const std::string& path) {
+
+    std::ofstream file(path);
+    size_t next = 0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor)) {
+        if (row.screws.empty() || next >= screws.size())
+            continue;
+
+        const std::shared_ptr<JointBeam>& connector = screws[next++];
+
+        std::string through;
+
+        for (const wood_floor::MemberRef& ref : row.through)
+            through += " through " + ref.name();
+
+        for (size_t i = 0; i < connector->drill_lines.size(); i++) {
+            const Line& screw = connector->drill_lines[i];
+            file << fmt::format("{}/{} {} {} {}{} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n", connector->name, i, wood_floor::relation_name(row.kind), row.a.name(), row.b.name(), through, screw.start()[0], screw.start()[1], screw.start()[2], screw.end()[0], screw.end()[1], screw.end()[2]);
+        }
+    }
+}
+
+/// Adds the assembly screws of every screw relationship under group, after every other connector so nothing before changes, checks their contacts against the kernel's search and their clearances, prints both, and gives the screws' dowels their exact cylinders.
+std::vector<std::shared_ptr<JointBeam>> add_screws(WoodSession& session, const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::shared_ptr<TreeNode>& group) {
+
+    const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
+    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, floor, members, 1e-6, kinds);
+    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(session, floor, members, group, kinds);
+
+    for (const wood_floor::ContactMismatch& mismatch : mismatches)
+        std::cout << fmt::format("screw contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
+
+    std::cout << fmt::format("{} of {} screw contacts verified by the kernel's search", screws.size() - mismatches.size(), screws.size()) << std::endl;
+    std::cout << wood_floor::check_screws(session, floor, screws).str() << std::endl;
+
+    for (const std::shared_ptr<Dowel>& dowel : session.get_elements<Dowel>())
+        if (BREPS && dowel->name.starts_with("connector_screws_"))
+            dowel->compute_geometry_brep();
+
+    return screws;
+}
+
 /// The rectangular bay with the model's definitions, or with --compas in compas_tf's parity mode with its oculus rule, also writing every quarter view for R1.
 int main(int argc, char** argv) {
 
@@ -318,10 +362,13 @@ int main(int argc, char** argv) {
 
     const std::array<size_t, 3> breps = count_breps(session);
     std::cout << fmt::format("G8: {} of 48 connectors, {} faceted, {} of {} dowel stretches exact bores", wedges.size() + column_joints.size() + ties.size() + dowels.size(), breps[0], breps[1], breps[2]) << std::endl;
+    const std::vector<std::shared_ptr<JointBeam>> screws = add_screws(session, model, members, wood_floor::add_group(session, "screw_connectors", floor));
     session.pb_dump(pb_path("live"));
 
     if constexpr (DUMP) {
         dump_bay(model, counts, std::filesystem::path(pb_path(compas ? "floor_9_rectangle_compas" : "floor_9_rectangle")).replace_extension(".txt").string());
+
+        dump_screws(model, screws, std::filesystem::path(pb_path(compas ? "floor_9_screws_compas" : "floor_9_screws")).replace_extension(".txt").string());
 
         for (size_t q = 0; compas && q < 4; q++)
             dump_view(model, q, std::filesystem::path(pb_path(fmt::format("floor_9_rectangle_q{}", q))).replace_extension(".txt").string());
@@ -332,7 +379,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 9 of the timber floor, the parametric model on a rectangle: Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{}), a 6000 x 4800 bay. The four quarters are built in place at their own corners, so the bay is the mirror tiling of compas_tf's quarter: the two halves of every bay edge share one rib band and meet end to end at the seam, the seam beams share their seam planes, the ring is built from the four quarters' own oculus planes, and every column stands at its corner. The oculus is a square diamond of half-diagonal 1000 on the seams; the central panel of every quarter follows rule A, its inner ribs swept along one direction solved so the central bed is one planar-faced cylinder between them, with every layer exactly 27 thick; both outer ribs of every corner end on their fan planes at one level, the shallower of their compas_tf ends, the short ribs' straight run-in solved for it (187.667 instead of 240), and that level is the middle cutter level, so all eight rib faces meet the column head within 0.307 mm and rule A sweeps the inner ribs 0.474 deg off the chamfer; each side block between the ribs at the column spans its rib's run-in and the middle one 1.25 times their mean (240 / 267.292 / 187.667), so the blocks end level within 1 mm. The connectors come from the floor's 76 relationships as in example 8: 8 wedges, 8 rectangle plates with 4 cross laps, 4 ties and 24 dowel sets, every contact checked against the kernel's search. The report prints what compas_tf relied on silently. With --compas the bay uses compas_tf's oculus rule and parity definitions and also writes every quarter in its corner frame, compared against compas_tf's FloorGuide with that quarter's half spans (data/reference/floor/reference_floorguide_3000x2400.txt and _2400x3000.txt). BREPS writes every cut element and connector as its BRep.
+Step 9 of the timber floor, the parametric model on a rectangle: Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{}), a 6000 x 4800 bay. The four quarters are built in place at their own corners, so the bay is the mirror tiling of compas_tf's quarter: the two halves of every bay edge share one rib band and meet end to end at the seam, the seam beams share their seam planes, the ring is built from the four quarters' own oculus planes, and every column stands at its corner. The oculus is a square diamond of half-diagonal 1000 on the seams; the central panel of every quarter follows rule A, its inner ribs swept along one direction solved so the central bed is one planar-faced cylinder between them, with every layer exactly 27 thick; both outer ribs of every corner end on their fan planes at one level, the shallower of their compas_tf ends, the short ribs' straight run-in solved for it (187.667 instead of 240), and that level is the middle cutter level, so all eight rib faces meet the column head within 0.307 mm and rule A sweeps the inner ribs 0.474 deg off the chamfer; each side block between the ribs at the column spans its rib's run-in and the middle one 1.25 times their mean (240 / 267.292 / 187.667), so the blocks end level within 1 mm. The connectors come from the floor's 76 relationships as in example 8: 8 wedges, 8 rectangle plates with 4 cross laps, 4 ties and 24 dowel sets, every contact checked against the kernel's search. The report prints what compas_tf relied on silently. With --compas the bay uses compas_tf's oculus rule and parity definitions and also writes every quarter in its corner frame, compared against compas_tf's FloorGuide with that quarter's half spans (data/reference/floor/reference_floorguide_3000x2400.txt and _2400x3000.txt). BREPS writes every cut element and connector as its BRep. Then the assembly screws, after every other connector so nothing before them changes: pre-drilled lines 200 long, d 4, two per location at two heights, 12 per quarter (outer ribs into the seam beams, the seam beams into the oculus beam across the mitres, the inner rib ends through the beam corners), 8 at the ring's pinwheel corners and 16 toe screws from the ring into the quarters' oculus beams, 72 in all; each line stored once on its connector, which names every member it passes, no member cut, every screw a dowel child drawn as an exact cylinder; prints the screw count per kind, their contacts against the kernel's search and their closest approach to each other, to the dowel bores and to the pockets, and DUMP writes them with their heads and tips to floor_9_screws.txt.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

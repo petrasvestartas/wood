@@ -273,6 +273,9 @@ public:
     /// The guids of world_elements(), in order: the index space detection works in.
     std::vector<std::string> element_guids() const;
 
+    /// The pre-drilled holes of one element in world coordinates: the drill lines of every pre-drill connector that names it as a target, each stored once on its connector, so both members of a joint read the same lines.
+    std::vector<session_cpp::Line> pre_drill_lines(const std::string& guid) const;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Instances
     // ═══════════════════════════════════════════════════════════════════════════

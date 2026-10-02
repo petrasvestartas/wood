@@ -1020,6 +1020,61 @@ counts with mirrored plates). The search is kept only as this check: when geomet
 the constructed contact still exists and the mismatch is reported instead of a connector silently
 vanishing.
 
+### 8.1 Screws
+
+Pre-drilled assembly screws, 200 long, d 4, the user's marks in `docs/floor_screws_marks.webp`.
+They are lines, not cuts: `JointBeam::screws(a, b, lines, radius = 2, length = 200)` makes a
+connector with `pre_drill` set, one drill line per screw from its head, no part, no cutter and no
+solid cut, so no member's BRep changes. Each line is stored once, on the connector, which names
+every member it passes as a target; `WoodSession::pre_drill_lines(guid)` gives any member its
+pre-drill lines by reading the connectors that name it, so both members of a joint read the same
+line and nothing can drift. `pre_drill` is field 23 of `wood_proto.Joint`, the lines and targets
+the joint's own fields, and the session graph holds an edge from the connector to every target.
+The viewer draws each screw as a Dowel child of its connector, `<connector>_screw_<i>`, an exact
+cylinder.
+
+`relationships(floor)` appends 36 screw rows after the 76 of the design (none of those changes),
+each with its screw axes; `add_connectors` builds them for the kinds asked for, named
+`connector_screws_<i>`; every row has a contact polygon, which `verify_contacts` checks against
+the kernel's search (36 of 36). Every screw location has two screws at two heights of the joint
+depth (`static_h`, 197 at the seams, the oculus and the inner rib ends), horizontal, so screws at
+different heights are never closer than the height step:
+
+| kind | per | members (a side member, b the one butting on it) | rule | levels below the datum |
+|---|---|---|---|---|
+| `screw_rib_beam` | quarter, k = 0, 1 | outer rib k, seam beam 0 / 2 | along the seam beam's axis from the rib's outer face: 100 through the rib, 100 into the beam end | h / 4, h / 2 (49.3, 98.5): the rib's lower part at its seam end carries the tie key and its pocket from 138.5 down |
+| `screw_beam_mitre` (red) | quarter, k = 0, 1 | seam beam 0 / 2, oculus beam | along the oculus beam's axis from the seam plane, across the beam end on the seam beam's inner face: 84.9 through the seam beam, 115.1 into the oculus beam, the tip short of the oculus wedge | 2 / 7, 5 / 7 at k = 0; 3 / 7, 6 / 7 at k = 1 (the two quarters' mitres at one seam put their heads at one point of the seam plane) |
+| `screw_rib_corner` (blue) | quarter, k = 0, 1 | oculus beam, inner rib k, through seam beam 0 / 2 | along the inner rib's axis from where it leaves the tilted face: through the beam corner (the seam beam's end and the oculus beam) into the rib end, crossing the red in plan | 1 / 7, 4 / 7 |
+| `screw_ring` | oculus corner q | ring beam q, ring beam q + 1 | the pinwheel butt: along ring beam q + 1's axis from ring beam q's tilted face, through q (45.2 / 52.6 at the two levels, the tilted face leaning) into q + 1 | 3 / 7, 6 / 7 |
+| `screw_oculus` | quarter q, end k | ring beam q, quarter q's oculus beam | toe screws from the ring's inner face (driven from the oculus) through the ring and the oculus wedge contact into the quarter's oculus beam towards the corner; the head and angle the 200 line with the largest clearance (coarse 5 mm / 2 deg grid, refined at 0.25 mm / 0.1 deg) from the ring's end, the oculus beam's back face, tilted face and end, and the wedge, whose band (half the beam thickness either side of the contact) it crosses before the wedge starts, 1.5 beam thicknesses from the contact's end | 3 / 7, 6 / 7 at k = 0; 2 / 7, 5 / 7 at k = 1 |
+
+The levels are chosen so that screws that cross in plan never share a level: at a quarter's oculus
+corner the mitre, the rib end and the oculus screws of that side take six different sevenths, the
+two quarters' mitres at a seam differ, and the ring screws differ from the next quarter's oculus
+screws they cross.
+
+The oculus rule. The oculus members meet each other only at the four pinwheel corners, where ring
+beam q + 1 starts on ring beam q's inner face: the same end-on-side joint as an outer rib's end on a
+seam beam, so the same rule, screws along the butting member through the side member
+(`screw_ring`). Where the ring meets the quarters' oculus beams the joint is side to side, two 60
+members over the wedge's whole length; a 200 screw does not fit square across 120 and the wedge and
+its pockets fill the middle, so the screws are toe screws in the free ends beyond the wedge, from
+the ring's inner face, which stays reachable from the oculus after the ring is set
+(`screw_oculus`). The four bottom wedges and the inner plate (27 thick layers) take no screw. Every
+screw head on a contact face (the blue heads on the oculus beam's tilted face, the ring screws'
+heads under a seam beam's end) is driven before that face is closed: the quarter and the ring are
+screwed as two assemblies, then joined, then the oculus screws go in.
+
+Counts: 12 per quarter (4 + 4 + 4), 48 in the four quarters, 8 ring and 16 oculus screws, 72 per
+floor, the same on the square and on 3000 x 2400 (the square-diamond oculus makes every corner the
+same up to the inner ribs' directions). `check_screws` measures them against each other, every
+other connector's dowel bores (run on by their overshoot), its pockets (within their own target)
+and parts, and the members' uncut solids, and the examples print it. Both floors: the closest two
+screw axes 28.143 mm apart, every screw 137.272 mm clear of every dowel bore and 5.441 mm of every
+pocket or part (surfaces), every screw 200.000 mm inside the members it names, no misfit. The
+inner rib screws are the only ones through three members: at least 24.9 mm of them in the oculus
+beam, the rest in the seam beam's end and the rib; every other screw lies in its two members only.
+
 ---------------------------------------------------------------------------------------------------
 
 ## 9. Implementation plan and parity gates
@@ -1267,3 +1322,8 @@ compas_tf references in `data/reference/floor/`.
   R1 141 records at 0 in all four views; 3000 x 2400 blocks 240 / 267.292 / 187.667, the side blocks'
   far ends 0.992 mm apart, report ok, 48 of 48 connectors, 44 of 44 contacts, 0 faceted, 384 of 384
   bores; `model_rectangle.txt` re-baselined (only the 16 block dowel contacts of the changed blocks).
+* Screws (section 8.1): `JointBeam::screws` with `pre_drill` (proto field 23), `WoodSession::pre_drill_lines`,
+  five screw relations (36 rows) appended to `relationships`, `check_screws`, examples 8 and 9 adding them
+  after every other connector; 72 screws on the square and on 3000 x 2400, 36 of 36 screw contacts, the
+  closest screws 28.143 mm apart, 137.272 mm from bores, 5.441 mm from pockets, no misfit; every earlier
+  dump byte-identical, example 9's records unchanged with the screw lines added.

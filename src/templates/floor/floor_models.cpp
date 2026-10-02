@@ -265,10 +265,13 @@ static std::string connector_prefix(Relation kind) {
     if (kind == Relation::seam_tie)
         return "outer_rib_connector";
 
+    if (std::find(SCREW_RELATIONS.begin(), SCREW_RELATIONS.end(), kind) != SCREW_RELATIONS.end())
+        return "connector_screws";
+
     return "connector_dowels";
 }
 
-/// The connector of one contact relationship through its factory: the wedge sized by the thicker member, the plate by the rib's thickness, the tie and the dowels by their defaults.
+/// The connector of one contact relationship through its factory: the wedge sized by the thicker member, the plate by the rib's thickness, the tie, the screws and the dowels by their defaults.
 static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship& row, const FloorMembers& members) {
 
     const std::array<std::shared_ptr<Element>, 2> pair = members.pair(row);
@@ -284,6 +287,15 @@ static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship&
 
     if (row.kind == Relation::seam_tie)
         return wood_session::JointBeam::tie(*pair[0], *pair[1], contact);
+
+    if (!row.screws.empty()) {
+        std::vector<const Element*> passed = {pair[0].get(), pair[1].get()};
+
+        for (const MemberRef& ref : row.through)
+            passed.push_back(members.get(ref).get());
+
+        return wood_session::JointBeam::screws(passed, row.screws);
+    }
 
     const std::shared_ptr<wood_session::JointBeam> dowels = wood_session::JointBeam::dowels(*pair[0], *pair[1], contact);
 

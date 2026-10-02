@@ -113,6 +113,8 @@ set(WOOD_SOURCES
     src/templates/floor/floor_models.cpp
     src/templates/floor/floor_relations.cpp
     src/templates/floor/floor_verify.cpp
+    src/templates/floor/floor_screws.cpp
+    src/templates/floor/floor_screw_check.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
