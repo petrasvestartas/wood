@@ -19,9 +19,11 @@ void dump(const WoodSession& session, const std::string& path) {
     }
 }
 
-int main() {
+/// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
+int main(int argc, char** argv) {
 
-    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
+    const wood_floor::Floor floor = argc > 1 && std::string(argv[1]) == "--compas" ? wood_floor::Floor::compas_parity(plan, wood_floor::FloorSizes{}) : wood_floor::Floor(plan, wood_floor::FloorSizes{});
     std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_5_oculus");
     const std::shared_ptr<TreeNode> group = session.add_group("oculus");

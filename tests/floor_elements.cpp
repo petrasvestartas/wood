@@ -6,10 +6,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The square floor every check reads, built on first use.
+/// The square floor in compas_tf's parity mode every check reads, built on first use.
 const wood_floor::Floor& square_floor() {
 
-    static const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    static const wood_floor::Floor floor = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
 
     return floor;
 }
@@ -640,11 +640,49 @@ void check_report() {
     std::cout << "floor_elements: the square's report holds, rule A is the chamfer direction, the rib bottoms 0.243 mm under compas_tf's cutter level" << std::endl;
 }
 
+/// The thinnest and thickest central bed plate of a floor: the distance of each plate's top corners from its bottom face's plane.
+std::array<double, 2> central_bed_thickness(const wood_floor::Floor& floor) {
+
+    std::array<double, 2> range = {1e300, 0.0};
+
+    for (size_t q = 0; q < 4; q++) {
+        const std::vector<std::vector<wood_floor::Outline>> rows = floor.quarter(q).beds();
+
+        for (const wood_floor::Outline& bed : rows[1]) {
+            const std::vector<Point> bottom = bed.bottom.get_points();
+            const Plane plane = Plane::from_point_normal(bottom[0], (bottom[1] - bottom[0]).cross(bottom[3] - bottom[0]).normalized());
+
+            for (const Point& point : bed.top.get_points()) {
+                const double thickness = std::abs((point - plane.origin()).dot(plane.z_axis()));
+                range = {std::min(range[0], thickness), std::max(range[1], thickness)};
+            }
+        }
+    }
+
+    return range;
+}
+
+/// The model's central layers on the square: every central bed plate exactly tsections thick where compas_tf's layers make it thicker at the column, and the report still holds.
+void check_section_layers() {
+
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    const std::array<double, 2> section = central_bed_thickness(floor);
+    const std::array<double, 2> compas = central_bed_thickness(square_floor());
+
+    check(floor.layers == wood_floor::CentralLayers::section, "the model's central layers are the default");
+    check(floor.check().ok(1e-6), "the square's report holds with the model's layers");
+    check(std::abs(section[0] - floor.sizes.tsections) <= 1e-9 && std::abs(section[1] - floor.sizes.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", floor.sizes.tsections, section[0], section[1]));
+    check(compas[1] > floor.sizes.tsections + 0.3, fmt::format("compas_tf's central bed thicker at the column, {:.3f}", compas[1]));
+
+    std::cout << fmt::format("floor_elements: the model's central bed plates {:.9f} .. {:.9f} thick, compas_tf's {:.3f} .. {:.3f}", section[0], section[1], compas[0], compas[1]) << std::endl;
+}
+
 int main() {
 
     check_shared_entities();
     check_ring();
     check_report();
+    check_section_layers();
     check_relationships();
     check_beams();
     check_thickness();

@@ -141,19 +141,21 @@ void add(WoodSession& session, const std::vector<Polyline>& quads, const std::st
         add(session, loop(quads[i].get_points()), fmt::format("{}_{}", key, i), group);
 }
 
-int main() {
+/// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
+int main(int argc, char** argv) {
 
-    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
+    const wood_floor::Floor floor = argc > 1 && std::string(argv[1]) == "--compas" ? wood_floor::Floor::compas_parity(plan, wood_floor::FloorSizes{}) : wood_floor::Floor(plan, wood_floor::FloorSizes{});
     std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_1_floorguide");
 
     const wood_floor::QuarterGeometry& geometry = floor.geometry[0];
-    const std::shared_ptr<TreeNode> plan = session.add_group("plan");
-    add(session, loop(geometry.polygon), "quarter_polygon", plan);
-    add(session, loop(floor.columns[0].head), "quarter_column_polygon", plan);
+    const std::shared_ptr<TreeNode> plan_group = session.add_group("plan");
+    add(session, loop(geometry.polygon), "quarter_polygon", plan_group);
+    add(session, loop(floor.columns[0].head), "quarter_column_polygon", plan_group);
 
     for (const Point& point : floor.oculus_corners)
-        session.add_point(std::make_shared<Point>(point), plan);
+        session.add_point(std::make_shared<Point>(point), plan_group);
 
     const wood_floor::ConstructionQuads& quads = geometry.quads;
     const std::shared_ptr<TreeNode> quad_group = session.add_group("construction_quads");

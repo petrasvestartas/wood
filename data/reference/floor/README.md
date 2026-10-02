@@ -57,3 +57,28 @@ pairwise search listed it (the member earlier in the scene first), the thicker m
 length and dowel count, the contact area, the plate origin on the contact's top edge with its x
 axis toward the rib, and for a tie the contact normal toward the first member; the connectors are
 numbered in that search order, so `connector_wedge_2` is the seam between quarters 0 and 3.
+
+## The model's own baseline (plan step 7)
+
+The model departs from compas_tf by decision in one place on the square: the central panel's
++t / +2t layers are offsets in the panel's own cross-section (`CentralLayers::section`, exactly
+`tsections` thick on every plan) instead of compas_tf's offsets made in the outer rib's plane and
+swept (`docs/floor_parametric_model.md` 4.4). The examples build the model by default; run them with
+`--compas` for compas_tf's parity mode (`Floor::compas_parity`), which the gates above read.
+
+| file | records | what | wood dump it is compared with |
+|---|---|---|---|
+| `model_floorguide.txt` | 193 | example 1 with the model's definitions | `templates_floor_1_floorguide` (no argument) |
+| `model_models.txt` | 145 | examples 4 + 5 with the model's definitions | `templates_floor_4_quarters` + `templates_floor_5_oculus` (no argument) |
+
+Gate G1b: the model's dump against `reference_floorguide.txt` fails in the central row only, bed row 1
+(`beds/6..11`), flanges 2b / 3a (`tsections/2`, `tsections/3`), `bed_top_planes/1` and
+`wedges_inner_beams/1`, each vertex moved at most 2.666 mm on a +t edge and 5.332 mm on a +2t edge
+(the design's bounds 2.897 / 5.794 are the untrimmed traces'); every other record within 1e-6;
+and it matches `model_floorguide.txt` within 1e-6:
+
+    python3 tools/compare_dumps.py data/reference/floor/model_floorguide.txt data/output/pb/floor_1_floorguide.txt 1e-6
+    python3 tools/compare_dumps.py data/reference/floor/model_models.txt data/output/pb/floor_4_5_models.txt 1e-6 --relative 1e-9
+
+In examples 4 + 5 the same members change volume (beds_1_*, tsections_2/3_*, wedges_inner_beams_1_*,
+36 records); examples 6 and 8 do not read the central row and are unchanged.

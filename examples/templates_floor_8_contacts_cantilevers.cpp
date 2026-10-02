@@ -248,9 +248,11 @@ void dump_ties(const wood_floor::Floor& floor, const wood_floor::FloorMembers& m
         dump(file, rib.element->name, rib.element->model_geometry_mesh());
 }
 
-int main() {
+/// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
+int main(int argc, char** argv) {
 
-    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
+    const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
+    const wood_floor::Floor model = argc > 1 && std::string(argv[1]) == "--compas" ? wood_floor::Floor::compas_parity(plan, wood_floor::FloorSizes{}) : wood_floor::Floor(plan, wood_floor::FloorSizes{});
     std::cout << model.check().str() << std::endl;
     WoodSession session("templates_floor_8_contacts_cantilevers");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");

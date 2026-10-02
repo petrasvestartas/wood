@@ -365,6 +365,10 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, Central
     }
 }
 
+Floor Floor::compas_parity(const FloorPlan& plan, const FloorSizes& sizes) {
+    return Floor(plan, sizes, CentralLayers::compas, CutterLevel::compas_factor);
+}
+
 Quarter Floor::quarter(size_t q) const {
     return Quarter{*this, q % 4};
 }

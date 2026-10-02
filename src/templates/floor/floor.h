@@ -59,8 +59,8 @@ struct FloorSizes {
 /// How the oculus corners sit on the seams: the same distance on every seam (a square diamond on a rectangular bay), compas_tf's grid-aspect scaling kept for the parity gate, or four given distances.
 enum class OculusRule { square_diamond, compas, explicit_distances };
 
-/// How the central panel's +t and +2t layers are made; compas_tf's offsets in the outer rib's plane swept along the panel are the only mode until the model's cross-section layers arrive.
-enum class CentralLayers { compas };
+/// How the central panel's +t and +2t layers are made: offsets in the panel's own cross-section (the model: exactly tsections on every plan), or compas_tf's offsets in the outer rib's plane swept along the panel (the parity mode of the square gates).
+enum class CentralLayers { section, compas };
 
 /// The middle column cutter level: compas_tf's -(height + 1.65 tsections) is the only mode until the rib-bottom level arrives.
 enum class CutterLevel { compas_factor };
@@ -253,7 +253,7 @@ struct FloorReport {
 struct Floor {
     FloorPlan plan; // The four corners and the oculus.
     FloorSizes sizes; // Everything that does not change with the plan.
-    CentralLayers layers = CentralLayers::compas; // How the central panel's layers are made.
+    CentralLayers layers = CentralLayers::section; // How the central panel's layers are made.
     CutterLevel cutter_level = CutterLevel::compas_factor; // How the middle column cutter level is set.
     session_cpp::Point centre; // The plan's centre.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
@@ -264,7 +264,10 @@ struct Floor {
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
 
     /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::compas, CutterLevel level = CutterLevel::compas_factor);
+    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::compas_factor);
+
+    /// The floor in compas_tf's parity mode, the definitions the compas_tf reference dumps were made with: its central layers and its cutter level.
+    static Floor compas_parity(const FloorPlan& plan, const FloorSizes& sizes);
 
     /// A view of quarter q; it holds a reference and lives as long as the floor.
     Quarter quarter(size_t q) const;
