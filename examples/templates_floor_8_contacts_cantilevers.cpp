@@ -108,17 +108,32 @@ int main() {
     const std::vector<std::shared_ptr<JointBeam>> laps = wood_floor::add_cross_laps(session, plates, wood_floor::add_group(session, "connectors", root));
     const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(session, wood_floor::add_group(session, "outer_rib_connectors", root));
     std::vector<std::string> misfits;
-    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_quarter_dowels(session, GUIDE, wood_floor::add_group(session, "quarter_connectors", floor), 5.0, 60.0, 20.0, 20.0, &misfits);
+    double minimum_distance = 0.0;
+    size_t through = 0;
+    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_quarter_dowels(session, GUIDE, wood_floor::add_group(session, "quarter_connectors", floor), 5.0, 30.0, 50.0, 20.0, &misfits, &minimum_distance, &through);
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     size_t pins = 0;
 
     for (const std::shared_ptr<JointBeam>& joint : dowels)
         pins += joint->drill_lines.size();
 
-    std::cout << fmt::format("{} elements, {} wedges, {} dowel sets of {} dowels, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), dowels.size(), pins, plates.size(), laps.size(), ties.size(), ms) << std::endl;
+    std::cout << fmt::format("{} elements, {} wedges, {} dowel sets of {} dowels at least {:.1f} apart, {} pairs meeting as one through bore, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), dowels.size(), pins, minimum_distance, through, plates.size(), laps.size(), ties.size(), ms) << std::endl;
+
+    for (int quarter = 0; quarter < 4; quarter++)
+        for (const bool rib : {true, false}) {
+            std::cout << fmt::format("quarter {} {}:", quarter, rib ? "wedge-rib contacts, inset 50" : "other contacts, inset 50") << std::endl;
+
+            for (const std::shared_ptr<JointBeam>& set : dowels) {
+                const std::string a = session.get_element<Element>(set->targets[0])->name;
+                const std::string b = session.get_element<Element>(set->targets[1])->name;
+
+                if (a.ends_with(fmt::format("_{}", quarter)) && ((a.find("ribs_") != std::string::npos && b.starts_with("wedges_")) == rib))
+                    std::cout << fmt::format("   {} - {}: {} dowels {:.0f} long ({})", a, b, set->drill_lines.size(), set->drill_lines.empty() ? 0.0 : set->drill_lines.front().length(), set->name) << std::endl;
+            }
+        }
 
     for (const std::string& misfit : misfits)
-        std::cout << "dowel does not fit: " << misfit << std::endl;
+        std::cout << "dowels: " << misfit << std::endl;
 
     size_t exact = 0;
     size_t faceted = 0;
@@ -128,18 +143,18 @@ int main() {
     const std::chrono::steady_clock::time_point breps = std::chrono::steady_clock::now();
 
     for (const std::shared_ptr<Element>& element : *session.objects.elements) {
-        if (const std::shared_ptr<JointBeam> connector = std::dynamic_pointer_cast<JointBeam>(element)) {
-            if (connector->parts.empty() && connector->drill_lines.empty())
-                continue;
-
-            connectors++;
-
-            for (size_t i = 0; i < connector->parts.size(); i++)
-                part_bores += count_bores(connector->part_brep(i));
+        if (std::dynamic_pointer_cast<Dowel>(element) || std::dynamic_pointer_cast<ConnectorPart>(element)) {
+            if (std::dynamic_pointer_cast<ConnectorPart>(element))
+                part_bores += count_bores(element->model_geometry_brep());
 
             if constexpr (BREPS)
-                connector->compute_geometry_brep();
+                element->compute_geometry_brep();
 
+            continue;
+        }
+
+        if (const std::shared_ptr<JointBeam> connector = std::dynamic_pointer_cast<JointBeam>(element)) {
+            connectors += !connector->parts.empty() || !connector->drill_lines.empty();
             continue;
         }
 
@@ -188,7 +203,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every face contact among its wedge blocks, inner beams, outer ribs and inner ribs: four Ø10 dowels 60 long per contact, one at each corner of the contact inset by 20, 30 into each member, two meeting end to end in a 60 inner rib boring it through as one; a dowel that does not fit is listed: one less than 30 inside a member is kept, one whose bore would run into another's at a block's apex is dropped. Every connector is a visible element: its plate, wedge or key with exact bores where its dowels pass through, and its dowels, flush with the members they pass through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
+Step 8 of the timber floor, port of compas_tf example_model_8_contacts_cantilevers: the four quarters, the oculus and the four columns on their supports, the wedges of step 6, and a rectangle plate joint on the contact of every column with every outer rib: a 30 mm plate 220 into the column and 265 into the rib with four dowels, cut as a pocket and dowel holes into both; and a tie on every seam where two outer ribs of neighbouring quarters meet end to end: the bow-tie key of compas_tf's OBJ template made parametric, with its two mirrored pockets. Beyond compas_tf: the two rectangle plates of every column head cross as a half lap, a cross lap joint slotting each plate half its height where the other passes; and assembly dowels within every quarter, on every face contact among its wedge blocks, inner beams, outer ribs and inner ribs: four Ø10 dowels 30 long per contact, one exactly at each corner of the contact inset by 50, 15 into each member; a dowel leaving a member or closer than 20 to another is listed for information. Every connector is a nested group in the tree: the connector node holding the relation, under it its plate, wedge or key as an element with exact bores where its dowels pass through, and every dowel as an element of its own, an exact cylinder flush with the members it passes through, while the holes run on past every face a dowel leaves. BREPS writes every cut element and every connector as its BRep, the dowels and the dowel and screw bores exact cylinders. DUMP writes the carved columns and outer ribs and the ties, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -3,6 +3,8 @@
 #include "wood_session.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
+#include "wood_element_dowel.h"
+#include "wood_element_connector_part.h"
 #include "../src/clipper2/clipper.h"
 
 namespace wood_session {
@@ -203,6 +205,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "wedge";
     joint->is_visible = true;
+    joint->part_label = "wedge";
     joint->targets = {a.guid(), b.guid()};
 
     std::array<std::vector<Point>, 2> ends;
@@ -305,6 +308,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "rectangle_plate";
     joint->is_visible = true;
+    joint->part_label = "plate";
     joint->targets = {column.guid(), rib.guid()};
     joint->parts = {frame_box(origin, axes, -back, front, width, -height, 0.0)};
 
@@ -367,6 +371,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(const Element& a, const Element& b, co
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "tie";
     joint->is_visible = true;
+    joint->part_label = "key";
     joint->targets = {a.guid(), b.guid()};
 
     const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
@@ -564,19 +569,19 @@ Mesh JointBeam::part_mesh(size_t index) const {
     return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
 }
 
-/// The cuts into one part: the connector's stored cuts and, as one more, its own dowels where they pass through the part, so the part carries their bores.
-static std::vector<SolidCut> part_cuts(const JointBeam& joint, const Mesh& part) {
+std::vector<SolidCut> JointBeam::part_cuts(size_t index) const {
 
-    std::vector<SolidCut> cuts = joint.solid_cuts;
+    const Mesh part = part_mesh(index);
+    std::vector<SolidCut> cuts = solid_cuts;
     SolidCut bores;
 
-    for (const Line& dowel : joint.drill_lines)
+    for (const Line& dowel : drill_lines)
         if (!inside_stretches(part, dowel).empty())
             bores.drills.push_back(dowel);
 
     if (!bores.drills.empty()) {
-        bores.drill_radius = joint.line_radius;
-        bores.drill_tolerance = joint.chord_tolerance;
+        bores.drill_radius = line_radius;
+        bores.drill_tolerance = chord_tolerance;
         cuts.push_back(bores);
     }
 
@@ -585,24 +590,40 @@ static std::vector<SolidCut> part_cuts(const JointBeam& joint, const Mesh& part)
 
 BRep JointBeam::part_brep(size_t index) const {
 
-    const Mesh part = part_mesh(index);
-    const std::vector<SolidCut> cuts = part_cuts(*this, part);
+    const std::vector<SolidCut> cuts = part_cuts(index);
 
-    return cuts.empty() ? brep_between_loops({parts[index][0]}, {parts[index][1]}) : solid_cuts_brep(part, cuts);
+    return cuts.empty() ? brep_between_loops({parts[index][0]}, {parts[index][1]}) : solid_cuts_brep(part_mesh(index), cuts);
+}
+
+std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
+
+    std::vector<std::shared_ptr<Joint>> result;
+
+    for (size_t i = 0; i < parts.size(); i++)
+        result.push_back(std::make_shared<ConnectorPart>(*this, i, parts.size() == 1 ? part_label : fmt::format("{}_{}", part_label, i)));
+
+    for (size_t i = 0; i < drill_lines.size(); i++)
+        result.push_back(std::make_shared<Dowel>(drill_lines[i], line_radius, chord_tolerance));
+
+    for (size_t i = 0; i < drill_lines.size(); i++)
+        result[parts.size() + i]->name = fmt::format("dowel_{}", i);
+
+    return result;
 }
 
 const Mesh& JointBeam::element_geometry_mesh() const {
 
-    if (parts.empty())
+    if (parts.empty() && !nested)
         return Joint::element_geometry_mesh();
 
     if (!mesh_) {
         mesh_ = Mesh();
 
-        for (size_t i = 0; i < parts.size(); i++) {
-            const Mesh part = part_mesh(i);
-            append_mesh(*mesh_, apply_solid_cuts(part, part_cuts(*this, part)));
-        }
+        for (size_t i = 0; !nested && i < parts.size(); i++)
+            append_mesh(*mesh_, apply_solid_cuts(part_mesh(i), part_cuts(i)));
+
+        if (nested)
+            return *mesh_;
 
         for (const Line& axis : drill_axes())
             append_mesh(*mesh_, drill_mesh(axis, line_radius, chord_tolerance));
@@ -613,14 +634,17 @@ const Mesh& JointBeam::element_geometry_mesh() const {
 
 const BRep& JointBeam::element_geometry_brep() const {
 
-    if (parts.empty())
+    if (parts.empty() && !nested)
         return Joint::element_geometry_brep();
 
     if (!brep_) {
         brep_ = BRep();
 
-        for (size_t i = 0; i < parts.size(); i++)
+        for (size_t i = 0; !nested && i < parts.size(); i++)
             append_brep(*brep_, part_brep(i));
+
+        if (nested)
+            return *brep_;
 
         for (const Line& axis : drill_axes())
             append_brep(*brep_, drill_brep(axis, line_radius));
@@ -670,6 +694,7 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
                 throw std::runtime_error("Invalid connector part");
 
     proto.set_drill_overshoot(drill_overshoot);
+    proto.set_nested(nested);
 
     for (const SolidCut& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
@@ -693,6 +718,7 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
         parts.push_back({Polyline::pb_loads(proto.parts(i).SerializeAsString()), Polyline::pb_loads(proto.parts(i + 1).SerializeAsString())});
 
     drill_overshoot = proto.drill_overshoot();
+    nested = proto.nested();
 
     for (const wood_proto::SolidCut& cut : proto.solid_cuts())
         solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));

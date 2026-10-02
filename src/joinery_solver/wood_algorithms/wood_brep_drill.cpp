@@ -15,11 +15,9 @@ const double CLEARANCE = 1e-6; // an edge must keep the drill radius plus this f
 const double STEEP = 0.2; // a drill crossing a face at a cosine below this is too oblique for a clean ellipse
 const int SAMPLES = 64; // points sampled along a hole loop to find how far it reaches along the axis
 const double VOLUME = 1e-3; // relative volume deviation the exact solid may show against the mesh it replaces
-const double BORE_SLACK = 0.15; // share of the bored volume the coarse check may miss besides, its polygons lying inside the true circles
+const double BORE_SLACK = 0.15; // share of the bored volume the kernel's tessellated volume may miss besides, its polygons lying inside the true circles
 const double SQUARE = 1e-9; // a hole loop spanning less than this along its drill is square to it: the bore surface ends exactly on it, which the kernel meshes on its grid
-const double AXIS = 1e-6; // two drills whose radii, directions, axis offsets and span gap all lie within this are one bore
-const double COARSE_ANGLE = 30.0; // degrees between facets of the tessellation the volume check uses
-const double COARSE_CHORD = 0.02; // chord factor of that tessellation
+const double AXIS = 1e-4; // two drills whose radii, directions, axis offsets and span gap all lie within this are one bore
 
 /// One planar face of the solid, the coplanar mesh faces around it merged, with its frame.
 struct PlanarFace {
@@ -711,30 +709,6 @@ static NurbsCurve on_cylinder(const NurbsCurve& circle, const Loop& loop, const 
     return uv;
 }
 
-/// The volume of a BRep from a coarse tessellation of its faces, zero when a face does not tessellate: the check a built solid is whole, cheaper than its display tessellation.
-static double coarse_volume(const BRep& brep) {
-
-    double total = 0.0;
-
-    for (const Mesh& part : brep.face_meshes_q(true, COARSE_ANGLE, COARSE_CHORD)) {
-        if (!part.number_of_faces())
-            return 0.0;
-
-        for (const size_t face : part.faces()) {
-            const std::vector<size_t> ring = part.face_vertices(face).value();
-            const Vector a = part.vertex_point(ring[0]).value() - Point(0.0, 0.0, 0.0);
-
-            for (size_t i = 1; i + 1 < ring.size(); i++) {
-                const Vector b = part.vertex_point(ring[i]).value() - Point(0.0, 0.0, 0.0);
-                const Vector c = part.vertex_point(ring[i + 1]).value() - Point(0.0, 0.0, 0.0);
-                total += a.dot(b.cross(c)) / 6.0;
-            }
-        }
-    }
-
-    return total;
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Drilled BRep
 // ═══════════════════════════════════════════════════════════════════════════
@@ -891,9 +865,13 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     builder.brep.add_solid({{builder.brep.add_shell(shell), BRepOrientation::Forward}});
     const double expected = compute_volume(mesh) - removed;
 
-    if (!builder.brep.is_solid() || std::abs(coarse_volume(builder.brep) - expected) > VOLUME * expected + BORE_SLACK * removed) {
-        if constexpr (TRACE)
-            std::cout << fmt::format("built solid {} with volume {:.1f} against {:.1f} expected", builder.brep.is_solid(), coarse_volume(builder.brep), expected) << std::endl;
+    if (!builder.brep.is_solid() || std::abs(builder.brep.volume() - expected) > VOLUME * expected + BORE_SLACK * removed) {
+        if constexpr (TRACE) {
+            std::cout << fmt::format("built solid {} with volume {:.1f} against {:.1f} expected, {:.1f} removed by {} drills in {} stretches", builder.brep.is_solid(), builder.brep.volume(), expected, removed, drills.size(), stretches.size()) << std::endl;
+
+            for (const Stretch& stretch : stretches)
+                std::cout << fmt::format("   drill {} radius {:.1f} length {:.1f}: stretch {:.1f} .. {:.1f} faces {} {}", stretch.drill, drills[stretch.drill].radius, drills[stretch.drill].axis.length(), stretch.t0, stretch.t1, stretch.face0, stretch.face1) << std::endl;
+        }
 
         return std::nullopt;
     }

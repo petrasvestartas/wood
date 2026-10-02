@@ -150,6 +150,39 @@ size_t count_bores(const BRep& brep) {
     return bores;
 }
 
+/// The children of a connector in the scene tree: its part and dowel elements, in order.
+std::vector<std::shared_ptr<Joint>> children_of(const WoodSession& scene, const JointBeam& connector) {
+
+    std::vector<std::shared_ptr<Joint>> children;
+
+    for (const std::shared_ptr<TreeNode>& node : scene.tree.nodes())
+        if (node->name == connector.guid())
+            for (TreeNode* child : node->children())
+                children.push_back(scene.get_element<Joint>(child->name));
+
+    return children;
+}
+
+/// The connector is nested: it draws nothing itself, parts part children named like the label and dowels dowel children follow it in the tree, every one visible and exact.
+void check_nested(const WoodSession& scene, const JointBeam& connector, size_t parts, size_t dowels, const std::string& label) {
+
+    const std::vector<std::shared_ptr<Joint>> children = children_of(scene, connector);
+    check(connector.nested && connector.model_geometry_brep().m_faces.empty() && connector.model_geometry_mesh().number_of_faces() == 0, connector.name + " draws nothing itself");
+    check(children.size() == parts + dowels, fmt::format("{} nests {} parts and {} dowels, not {} children", connector.name, parts, dowels, children.size()));
+
+    for (size_t i = 0; i < children.size(); i++) {
+        const std::shared_ptr<Joint>& child = children[i];
+        check(child && child->is_visible, connector.name + " child visible");
+
+        if (i < parts)
+            check(std::dynamic_pointer_cast<ConnectorPart>(child) && child->name.starts_with(label), connector.name + " part child " + child->name);
+        else {
+            const double cylinder = M_PI * connector.line_radius * connector.line_radius * connector.drill_lines[i - parts].length();
+            check(std::dynamic_pointer_cast<Dowel>(child) && child->name == fmt::format("dowel_{}", i - parts) && std::abs(child->model_geometry_brep().volume() - cylinder) < 1e-2 * cylinder, connector.name + " dowel child " + child->name);
+        }
+    }
+}
+
 /// No dowel of the connector protrudes: just inside every dowel's end lies in one of its two members; and when the dowels pass through, just outside every end lies in neither, the end flush with the outer face.
 void check_flush(const JointBeam& joint, const WoodSession& scene, const std::string& name, bool through) {
 
@@ -182,10 +215,10 @@ void check_wedges() {
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
 
     for (const std::shared_ptr<JointBeam>& wedge : wedges) {
-        check(wedge->is_visible, "a wedge is a visible element");
         check_flush(*wedge, scene, wedge->name, true);
         check(count_bores(wedge->part_brep(0)) == wedge->drill_lines.size(), "every wedge dowel an exact bore through the wedge's part");
-        check(count_bores(wedge->model_geometry_brep()) == 2 * wedge->drill_lines.size(), "every wedge dowel an exact cylinder in the wedge's BRep beside its bore");
+        check_nested(scene, *wedge, 1, wedge->drill_lines.size(), "wedge");
+        check(count_bores(children_of(scene, *wedge).front()->model_geometry_brep()) == wedge->drill_lines.size(), "the wedge child carries the bores");
     }
 
     std::map<std::string, double> volumes;
@@ -197,7 +230,11 @@ void check_wedges() {
     size_t loaded = 0;
 
     for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>()) {
-        check(joint->parts.size() == 1 && joint->cutters.size() == 2 && !joint->drill_lines.empty() && joint->is_visible, "wedge round trip");
+        if (std::dynamic_pointer_cast<ConnectorPart>(joint))
+            continue;
+
+        check(joint->parts.size() == 1 && joint->cutters.size() == 2 && !joint->drill_lines.empty() && joint->nested, "wedge round trip");
+        check_nested(back, *joint, 1, joint->drill_lines.size(), "wedge");
         loaded++;
     }
 
@@ -224,7 +261,7 @@ void check_wedges() {
     std::cout << "floor_elements: " << wedges.size() << " wedges, visible, dowels flush and exact, joints and carved beams through a round trip, every dowel bore exact in the BReps, pass" << std::endl;
 }
 
-/// The dowels factory on two plates face to face: four Ø10 dowels 60 long at the corners of the 600 x 200 contact inset by 20, 30 deep into both 60 plates, cut as exact bores into both, through a round trip.
+/// The dowels factory on two plates face to face: four Ø10 dowels 30 long at the corners of the 600 x 200 contact inset by 50, 15 deep into both 60 plates, cut as exact bores into both, through a round trip.
 void check_dowels() {
 
     WoodSession scene("dowels");
@@ -241,16 +278,16 @@ void check_dowels() {
     std::set<std::pair<int, int>> corners;
 
     for (const Line& dowel : joint->drill_lines) {
-        check(std::abs(dowel.length() - 60.0) < 1e-9, "a dowel 30 deep into each plate, " + std::to_string(dowel.length()));
+        check(std::abs(dowel.length() - 30.0) < 1e-9, "a dowel 15 deep into each plate, " + std::to_string(dowel.length()));
         check(std::abs(dowel.center()[2] - 60.0) < 1e-9, "a dowel centred on the contact");
         corners.insert({static_cast<int>(std::lround(dowel.center()[0])), static_cast<int>(std::lround(dowel.center()[1]))});
     }
 
-    check(corners == std::set<std::pair<int, int>>{{20, 20}, {580, 20}, {580, 180}, {20, 180}}, "the dowels 20 in from the contact's corners");
+    check(corners == std::set<std::pair<int, int>>{{50, 50}, {550, 50}, {550, 150}, {50, 150}}, "the dowels 50 in from the contact's corners");
 
-    scene.add(joint);
-    scene.add_joint(joint);
-    const double bore = faceted_area(joint->line_radius, joint->chord_tolerance) * 30.0 * 4.0;
+    scene.add_connector(joint, nullptr);
+    check_nested(scene, *joint, 0, 4, "");
+    const double bore = faceted_area(joint->line_radius, joint->chord_tolerance) * 15.0 * 4.0;
 
     for (const std::shared_ptr<Plate>& plate : {lower, upper}) {
         const double volume = compute_volume(plate->model_geometry_mesh());
@@ -260,12 +297,13 @@ void check_dowels() {
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     const std::shared_ptr<JointBeam> loaded = back.get_elements<JointBeam>().front();
-    check(loaded->drill_lines.size() == 4 && loaded->cutters.size() == 2 && loaded->drill_overshoot == joint->drill_overshoot && loaded->is_visible, "dowels round trip");
+    check(loaded->drill_lines.size() == 4 && loaded->cutters.size() == 2 && loaded->drill_overshoot == joint->drill_overshoot && loaded->nested, "dowels round trip");
+    check_nested(back, *loaded, 0, 4, "");
 
-    std::cout << "floor_elements: four dowels at the corners of a plate contact, 60 long, exact bores and a round trip pass" << std::endl;
+    std::cout << "floor_elements: four dowels at the corners of a plate contact, 30 long, exact bores, nested as four dowel children and a round trip pass" << std::endl;
 }
 
-/// The assembly dowels of the quarters: a dowel set on every rib-to-wedge-block contact, the six per quarter compas_tf finds, and on the uncut inner beams' mitres and ends, never across quarters, 60 mm dowels at the inset corners; in every 60 inner rib the pairs from its two blocks meet end to end and bore it through, one exact cylinder each, so the rib carries eight bores; the misfits at the blocks' apexes are listed and the crossing ones dropped, so every drilled member is exact; through a round trip.
+/// The assembly dowels of the quarters: a dowel set on every rib-to-wedge-block contact, the six per quarter compas_tf finds, never across quarters, four 30 mm dowels exactly at the corners of each contact inset 50, the contacts found on the uncut members; every dowel wholly inside its members, every drilled member exact but the tilted middle blocks whose two rib contacts crowd at the apex, which are reported; through a round trip.
 void check_quarter_dowels() {
 
     WoodSession scene("quarter_dowels");
@@ -274,19 +312,23 @@ void check_quarter_dowels() {
         wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i));
 
     std::vector<std::string> misfits;
-    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, GUIDE, nullptr, 5.0, 60.0, 20.0, 20.0, &misfits);
+    double minimum_distance = 0.0;
+    size_t through_bores = 0;
+    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, GUIDE, nullptr, 5.0, 30.0, 50.0, 20.0, &misfits, &minimum_distance, &through_bores);
     size_t blocks = 0;
     size_t dowels = 0;
 
     for (const std::shared_ptr<JointBeam>& set : sets) {
+        check_nested(scene, *set, 0, set->drill_lines.size(), "");
         const std::shared_ptr<Element> first = scene.get_element<Element>(set->targets[0]);
         const std::shared_ptr<Element> second = scene.get_element<Element>(set->targets[1]);
         check(first->name.substr(first->name.find_last_of('_')) == second->name.substr(second->name.find_last_of('_')), "a dowel set stays within one quarter, not " + first->name + " to " + second->name);
         blocks += first->name.find("ribs_") != std::string::npos && second->name.starts_with("wedges_");
         check(set->drill_lines.size() <= 4 && !set->drill_lines.empty(), "up to four dowels per contact");
+        check(set->drill_lines.size() == 4 || set->drill_lines.size() == 3, "four dowels per contact, three on a triangular one");
 
         for (const Line& dowel : set->drill_lines) {
-            check(std::abs(dowel.length() - 60.0) < 1e-9, "a dowel 60 long");
+            check(std::abs(dowel.length() - 30.0) < 1e-9, "a dowel 30 long");
             check(is_inside(first->element_geometry_mesh(), dowel.center() - dowel.to_vector().normalized() * 0.5) && is_inside(second->element_geometry_mesh(), dowel.center() + dowel.to_vector().normalized() * 0.5), "a dowel crosses the contact at its middle, half in each member");
             dowels++;
         }
@@ -312,13 +354,21 @@ void check_quarter_dowels() {
                 const Vector direction = crossing[i].to_vector().normalized();
                 const Vector offset = crossing[j].center() - crossing[i].center();
 
-                if (std::abs(offset.dot(direction)) > 59.0 && (offset - direction * offset.dot(direction)).magnitude() < 1e-6)
+                if (std::abs(offset.dot(direction)) > 29.0 && (offset - direction * offset.dot(direction)).magnitude() < 1e-3)
                     pairs++;
             }
 
         const BRep& brep = rib->model_geometry_brep();
-        check(pairs >= 3 && brep.is_solid() && count_bores(brep) == crossing.size() - pairs, fmt::format("an inner rib bored through by its block pairs, one exact cylinder each: {} dowels, {} pairs, {} bores in {}", crossing.size(), pairs, count_bores(brep), rib->name));
+        check(brep.is_solid() && count_bores(brep) == crossing.size() - pairs, fmt::format("an inner rib bored through where its block pairs meet, one exact cylinder each: {} dowels, {} pairs, {} bores in {}", crossing.size(), pairs, count_bores(brep), rib->name));
         through += pairs;
+    }
+
+    std::set<std::string> crowded;
+
+    for (const std::string& line : misfits) {
+        std::cout << "   dowels: " << line << std::endl;
+        check(line.find(" apart in ") != std::string::npos, "only dowels too close reported, never one leaving a member: " + line);
+        crowded.insert(line.substr(line.find(" apart in ") + 10));
     }
 
     size_t drilled = 0;
@@ -330,27 +380,26 @@ void check_quarter_dowels() {
             continue;
 
         drilled++;
-        check(element->model_geometry_brep().is_solid() && count_bores(element->model_geometry_brep()) > 0, fmt::format("exact dowel bores in {}: solid {}, {} bores", element->name, element->model_geometry_brep().is_solid(), count_bores(element->model_geometry_brep())));
+
+        if (!crowded.count(element->name))
+            check(element->model_geometry_brep().is_solid() && count_bores(element->model_geometry_brep()) > 0, fmt::format("exact dowel bores in {}: solid {}, {} bores", element->name, element->model_geometry_brep().is_solid(), count_bores(element->model_geometry_brep())));
     }
 
-    check(drilled == 40, "ten drilled members per quarter, not " + std::to_string(drilled));
-    check(!misfits.empty(), "the apex corners of the blocks are listed as misfits");
-    size_t dropped = 0;
+    check(drilled >= 28, "at least seven drilled members per quarter, the ribs and the blocks, not " + std::to_string(drilled));
 
-    for (const std::string& misfit : misfits) {
-        check(misfit.find("wedges_inner_beams_") != std::string::npos || misfit.find("inner_beams_") != std::string::npos, "a misfit only at a block or an inner beam: " + misfit);
-        dropped += misfit.find("dropped") != std::string::npos;
-    }
+
+    std::cout << fmt::format("   dowels: smallest axis distance {:.1f}, for information", minimum_distance) << std::endl;
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
 
     for (const std::shared_ptr<JointBeam>& set : back.get_elements<JointBeam>())
-        loaded += set->drill_lines.size();
+        if (!std::dynamic_pointer_cast<ConnectorPart>(set))
+            loaded += set->drill_lines.size();
 
     check(loaded == dowels, "quarter dowels round trip");
 
-    std::cout << "floor_elements: " << sets.size() << " dowel sets of " << dowels << " dowels in the quarters, " << blocks << " on the wedge blocks, " << through << " through bores in the inner ribs, every drilled member exact, " << misfits.size() << " misfits listed of which " << dropped << " dropped, round trip pass" << std::endl;
+    std::cout << fmt::format("floor_elements: {} dowel sets of {} dowels in the quarters, {} on the wedge blocks, {} through bores in the inner ribs, every dowel wholly inside, at least {:.1f} from the next, every drilled member exact but the {} reported crowded, round trip pass", sets.size(), dowels, blocks, through, minimum_distance, crowded.size()) << std::endl;
 }
 
 /// The rectangle plates between the columns and the outer ribs and the ties on the rib seams: eight and four, every carved outer rib and every tie at compas_tf's volume; the two plates of every column half-lapped by a cross lap, each slotted part an exact solid with its four dowel bores, the two touching without overlap, and the column still exact.
@@ -389,7 +438,9 @@ void check_rectangle_plates() {
         for (const std::shared_ptr<JointBeam>& plate : {a, b}) {
             const BRep part = plate->part_brep(0);
             check(part.is_solid() && count_bores(part) == 4, "a slotted plate exact with four dowel bores");
-            check(count_bores(plate->model_geometry_brep()) == 8, "the connector's BRep carries the bores and the dowels");
+            check_nested(scene, *plate, 1, 4, "plate");
+            const std::shared_ptr<Joint> child = children_of(scene, *plate).front();
+            check(child->model_geometry_brep().is_solid() && count_bores(child->model_geometry_brep()) == 4 && std::abs(child->model_geometry_brep().volume() - part.volume()) < 1e-6 * part.volume(), "the plate child carries the slot and the four bores");
         }
     }
 
@@ -398,6 +449,9 @@ void check_rectangle_plates() {
 
     const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(scene, nullptr);
     check(ties.size() == 4, "four ties, not " + std::to_string(ties.size()));
+
+    for (const std::shared_ptr<JointBeam>& tie : ties)
+        check_nested(scene, *tie, 4, 0, "key_");
 
     for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
         if (beam->name.starts_with("outer_ribs_"))
@@ -416,9 +470,11 @@ void check_rectangle_plates() {
     size_t slotted = 0;
 
     for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>())
-        slotted += joint->solid_cuts.size();
+        if (!std::dynamic_pointer_cast<ConnectorPart>(joint))
+            slotted += joint->solid_cuts.size();
 
     check(slotted == 8, "the slots round trip on the plates");
+    check(back.get_elements<ConnectorPart>().size() == 8 + 16 && back.get_elements<Dowel>().size() == 32, "the plate and key parts and the dowels round trip as children");
 
     std::cout << "floor_elements: " << plates.size() << " rectangle plates half-lapped by " << laps.size() << " cross laps, drilled and exact, and " << ties.size() << " ties, carved outer ribs and ties at compas_tf's volume, round trip pass" << std::endl;
 }

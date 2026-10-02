@@ -91,6 +91,8 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_joint.cpp
     src/joinery_solver/wood_elements/wood_element_joint_plate.cpp
     src/joinery_solver/wood_elements/wood_element_joint_beam.cpp
+    src/joinery_solver/wood_elements/wood_element_dowel.cpp
+    src/joinery_solver/wood_elements/wood_element_connector_part.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_algorithms/wood_solid_boolean.cpp
     src/joinery_solver/wood_algorithms/wood_brep_drill.cpp

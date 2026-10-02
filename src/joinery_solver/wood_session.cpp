@@ -889,6 +889,18 @@ static std::vector<Line> target_drills(const JointBeam& joint, const Element& ta
     return drills;
 }
 
+/// Gives a cut connector's part children the connector's cuts again, so a slot stored on it after nesting reaches the part that draws it.
+static void sync_parts(WoodSession& scene, const JointBeam& connector) {
+
+    for (const std::shared_ptr<TreeNode>& node : scene.tree.nodes())
+        if (node->name == connector.guid())
+            for (TreeNode* child : node->children())
+                if (const std::shared_ptr<ConnectorPart> part = scene.get_element<ConnectorPart>(child->name)) {
+                    part->solid_cuts = connector.part_cuts(part->index);
+                    part->invalidate_geometry();
+                }
+}
+
 /// A connector's cuts: per target its own cutters and every drill line kept as an axis, one solid cut each, the edge marked like a cutter joint's.
 static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
 
@@ -906,6 +918,10 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
 
         add_solid_cut(scene, *joint, mesh, target_drills(*joint, *target), *target);
         target->invalidate_geometry();
+
+        if (const std::shared_ptr<JointBeam> connector = std::dynamic_pointer_cast<JointBeam>(target))
+            sync_parts(scene, *connector);
+
         scene.Session::remove_interaction(joint, target);
         scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
     }
@@ -1030,6 +1046,23 @@ static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& j
         scene.Session::remove_interaction(joint, target);
         scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
     }
+}
+
+std::shared_ptr<TreeNode> WoodSession::add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group) {
+
+    if (!connector)
+        throw std::invalid_argument("Missing connector");
+
+    const std::shared_ptr<TreeNode> node = add(connector, group);
+    connector->nested = true;
+    connector->invalidate_geometry();
+
+    for (const std::shared_ptr<Joint>& child : connector->children())
+        add(child, node);
+
+    add_joint(connector);
+
+    return node;
 }
 
 void WoodSession::add_joint(const std::shared_ptr<Joint>& joint, bool merge) {

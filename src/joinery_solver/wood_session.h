@@ -6,6 +6,8 @@
 #include "wood_element_joint.h"
 #include "wood_element_joint_plate.h"
 #include "wood_element_joint_beam.h"
+#include "wood_element_dowel.h"
+#include "wood_element_connector_part.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
 #include "wood_element_beam_variable.h"
@@ -234,6 +236,9 @@ public:
     }
 
     /// Every Plate, in objects.elements order.
+    /// Adds a connector under group as a nested group: the connector's node with its parts and dowels as child elements, the connector itself drawing nothing, then cuts it into its targets as add_joint does; returns the connector's node.
+    std::shared_ptr<session_cpp::TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<session_cpp::TreeNode>& group);
+
     std::vector<std::shared_ptr<Plate>> plates() const {
         return get_elements<Plate>();
     }

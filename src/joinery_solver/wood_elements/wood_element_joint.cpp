@@ -272,6 +272,10 @@ std::shared_ptr<Joint> Joint::from_element(Element element) {
         result = std::make_shared<JointPlate>();
     else if (proto.kind() == "JointBeam")
         result = std::make_shared<JointBeam>();
+    else if (proto.kind() == "ConnectorPart")
+        result = std::make_shared<ConnectorPart>();
+    else if (proto.kind() == "Dowel")
+        result = std::make_shared<Dowel>();
     else
         result = std::make_shared<Joint>();
     static_cast<Element&>(*result) = std::move(element);
@@ -302,7 +306,7 @@ void Joint::read_proto(const wood_proto::Joint& proto) {
 }
 
 void Joint::register_type() {
-    for (const std::string kind : {"Joint", "JointPlate", "JointBeam", "JointAnnen", "JointVidy", "JointElement"})
+    for (const std::string kind : {"Joint", "JointPlate", "JointBeam", "JointAnnen", "JointVidy", "JointElement", "ConnectorPart", "Dowel"})
         Element::register_type(kind, [](const std::string& data) { return Joint::from_element(Element::pb_loads(data)); });
 }
 

@@ -16,6 +16,8 @@ public:
     std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines, a connector's dowels flush with the members they pass through, cut every target.
     double drill_overshoot = 0.0; // How far a target's holes run past the dowels at an end where the dowel leaves the target, tested just beyond the dowel's end; a blind hole stops at its dowel.
     std::vector<SolidCut> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's; its dowels bore the parts they pass through without one.
+    bool nested = false; // The connector's parts and dowels are its children in the tree, each an element of its own, so the connector draws nothing itself; WoodSession::add_connector sets it.
+    std::string part_label = "part"; // What a part child is called: plate, wedge, key; the factories set it.
     JointBeam();
     JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact,
               double volume_length, double cross_or_side_to_end, int flip_male = 0);
@@ -69,14 +71,14 @@ public:
         double overshoot = 10.0
     );
 
-    /// Assembly dowels on the face contact of two members: four round dowels of radius, length long, centred on the contact along its normal so half goes into each member, one at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; they cut their holes out of both, overshoot past every face a dowel leaves; aimed at a then b. Null when the inset leaves nothing.
+    /// Assembly dowels on the face contact of two members: four round dowels of radius, length long, centred on the contact along its normal so half goes into each member, one exactly at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; nothing else moves them. They cut their holes out of both, overshoot past every face a dowel leaves; aimed at a then b. Null when the inset leaves nothing.
     static std::shared_ptr<JointBeam> dowels(
         const session_cpp::Element& a,
         const session_cpp::Element& b,
         const InteractionContactFace& contact,
         double radius = 5.0,
-        double length = 60.0,
-        double offset = 20.0,
+        double length = 30.0,
+        double offset = 50.0,
         double overshoot = 10.0,
         int dowel_sides = 16
     );
@@ -87,10 +89,16 @@ public:
     /// One part as a closed mesh, its loops lofted, before any cut.
     session_cpp::Mesh part_mesh(size_t index) const;
 
+    /// The cuts into one part: the connector's stored cuts and, as one more, its own dowels where they pass through the part, so the part carries their bores.
+    std::vector<SolidCut> part_cuts(size_t index) const;
+
+    /// The connector's parts and dowels as elements of their own, to nest under it in the tree: a ConnectorPart per part, named part_label, numbered when there are several, with its cuts and bores, then a Dowel per drill line, dowel_0 on; the connector keeps the relation, they carry the solids.
+    std::vector<std::shared_ptr<Joint>> children() const;
+
     /// One part as a BRep with its solid cuts applied and the bores of the dowels passing through it exact, cylinders with circle or ellipse loops.
     session_cpp::BRep part_brep(size_t index) const;
 
-    /// A connector's parts cut and bored, then its dowels as cylinders; a beam joint's feature volumes.
+    /// A connector's parts cut and bored, then its dowels as cylinders; nothing once it is nested, its children carrying them; a beam joint's feature volumes.
     const session_cpp::Mesh& element_geometry_mesh() const override;
     const session_cpp::BRep& element_geometry_brep() const override;
 
