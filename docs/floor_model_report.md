@@ -24,7 +24,8 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | 7b | `cc760d6` | `CutterLevel::rib_bottom` the default | parity mode unchanged; middle level -694.793; the 12 cutter records move 0.243 mm at the level (0.741 at most); column contacts the full 70238.714887 mm2; head cut re-pinned 34771221.351479 (compas_tf 34777378.362 kept); example 2 carves 176873113.478; `model_contacts_cantilevers.txt`; 44 / 44, 0 faceted, 396 / 396 |
 | 8 | `c3084b4` | `templates_floor_9_rectangle`, the 3000 x 2400 half spans bay; per-span compas_tf references | G8 R1-R5 below |
 | 10 | `69bfed1` | example descriptions, `docs/templates.md` floor section, Implemented notes in the design | every floor example in both modes and the four tests green |
-| R8 | (the rib level commit) | `RibLevel::shared_column` the default: each outer rib's run-in solved so both outer ribs of a corner end at the shallower compas_tf end | square and parity mode identical on every gate; 3000 x 2400: level -689.979, short run-in 187.667, eight rib bottoms within 0.307 mm, `model_rectangle.txt` re-baselined |
+| R8 | `81969e0` | `RibLevel::shared_column` the default: each outer rib's run-in solved so both outer ribs of a corner end at the shallower compas_tf end | square and parity mode identical on every gate; 3000 x 2400: level -689.979, short run-in 187.667, eight rib bottoms within 0.307 mm, `model_rectangle.txt` re-baselined |
+| R8 | (the column block commit) | the column blocks span their ribs' run-in, the middle one `middle_wedge_factor` x the mean | square and parity mode identical on every gate; 3000 x 2400: blocks 240 / 267.292 / 187.667, side far ends 0.992 mm apart, `model_rectangle.txt` re-baselined |
 
 ## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`
 
@@ -39,7 +40,8 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | dowel bores | 384 of 384 stretches exact | 384 of 384 |
 | report | ok: closure 4.3e-12, end faces 5.1e-13, beds on flanges 0, ring overlap 1.1e-11 mm2, uncovered 0 | ok |
 | rule A | u 0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique, 22.675 / 3.500 mm shear (r 0.474 deg off the chamfer) | u 16.059 deg, 16.957 / 41.686 deg, 18.295 / 53.432 mm |
-| rib bottoms vs cutter level | 0 / 0 mm, the eight rib bottoms at a head within 0.307 mm (one rib level per column, -689.979) | 2.887 / -15.160 mm (compas_factor) |
+| rib bottoms vs cutter level | 0 / 0 mm, the eight rib bottoms at a head within 0.307 mm (one rib level per column, -689.979) |
+| column blocks | 240 / 267.292 / 187.667 over the run-ins, the side far ends 0.992 mm apart | 2.887 / -15.160 mm (compas_factor) |
 
 R1: every quarter written in its corner frame against compas_tf's `FloorGuide(3000, 2400)` (quarters 0,
 2) and `FloorGuide(2400, 3000)` (1, 3): 141 records, 0 failing, worst deviation 0 in all four views.

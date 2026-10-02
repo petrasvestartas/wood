@@ -65,7 +65,7 @@ enum class CentralLayers { section, compas };
 /// The middle column cutter level: the deeper of the corner's two outer rib bottoms at their fan planes (the model: the carved band reaches both ribs on every plan), or compas_tf's -(height + 1.65 tsections) (the parity mode, R8).
 enum class CutterLevel { rib_bottom, compas_factor };
 
-/// How each outer rib's soffit reaches its column: its straight run-in from the fan plane solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their compas_tf ends (the model), or compas_tf's run-in of one wedge for every rib (the parity mode).
+/// How each outer rib's soffit reaches its column: its straight run-in from the fan plane solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their compas_tf ends (the model), or compas_tf's run-in of one wedge for every rib (the parity mode); the column blocks span the run-ins either way.
 enum class RibLevel { shared_column, compas };
 
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
@@ -144,7 +144,7 @@ struct ColumnCorner {
     session_cpp::Vector y_axis; // Along the edge before the corner, reversed.
     std::vector<session_cpp::Point> head; // compas_tf quarter_column_polygon in the frame: corner, two shaft corners, the two chamfer vertices.
     session_cpp::Vector chamfer_direction; // Unit head[3] - head[2].
-    std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan; // Side 0, the tilted chamfer and side 1 with their far faces.
+    std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan; // Side 0, the tilted chamfer and side 1 with their far faces, each block's far face over its ribs' run-ins.
     std::array<session_cpp::Plane, 2> sides; // The head edges on the bay boundary, normal into the bay.
     std::array<double, 3> levels; // The cutter levels: the datum, the middle level by the floor's CutterLevel and minus column_head_depth.
     session_cpp::Point axis_point; // The column axis at the datum, half a column head along both axes from the corner.
@@ -169,7 +169,7 @@ struct QuarterGeometry {
     std::vector<session_cpp::Point> polygon; // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; // The member planes.
     ConstructionQuads quads; // The plan quad of every member at z 0.
-    std::array<double, 2> run_in = {0.0, 0.0}; // Per outer rib, the straight run-in along its axis from the fan plane's datum trace to where its parabola starts, mm: wedge in compas_tf, solved by RibLevel::shared_column.
+    std::array<double, 2> run_in = {0.0, 0.0}; // Per outer rib, the straight run-in along its axis from the fan plane's datum trace to where its parabola starts, mm: wedge in compas_tf, solved by RibLevel::shared_column; the side column blocks are as thick, the middle one middle_wedge_factor times their mean.
     std::vector<std::array<session_cpp::Polyline, 3>> parabolas; // Outer 0, outer 1, shadow 0, shadow 1, each with its +t and +2t offsets.
     CentralPanel central_panel; // The central panel by rule A.
     std::vector<session_cpp::Plane> bed_top_planes; // Per bed panel, the plane fitted to its deepest quad, normal up.

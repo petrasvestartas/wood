@@ -692,6 +692,17 @@ corner at -689.979, the eight rib bottoms at a head within 0.307 mm (`FloorRepor
 u -0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique (22.675 / 3.500 mm shear), the short ribs'
 column contacts 69605.340 mm2.
 
+Rule: the column blocks span their ribs' run-in. compas_tf makes the block length and the run-in one
+number, `wedge`: each side block is its fan plane offset by 240 and the middle one by
+`middle_wedge_factor` x 240 = 300, so the parabola starts where a block ends. With the run-ins solved
+per rib, each side block is its fan plane offset by its own rib's run-in and the middle block by
+`middle_wedge_factor` x the mean of the two (the inner ribs carry the two outer profiles); the fan
+planes, the cutters and the head are unchanged (`block_planes`, after the run-ins in
+`compute_quarter`). Square and parity mode: 240 / 300 / 240, identical. 3000 x 2400: 240 / 267.292 /
+187.667; the side blocks' far faces end at -560.767 / -559.776, 0.992 mm apart instead of 21.843 with
+the 240 block on the short rib, the middle one 4.1 to 5.9 mm above them (3.4 on the square, 15.5 with
+300); the short ribs' block dowel contacts 113054.026 mm2.
+
 R9 Connectors from relationships (section 8). The contact polygon of a named pair is read off
 the outlines that share the plane; the kernel's `compute_face_contact` (`wood_session.h:102`) runs
 only in `verify_contacts`, and `require_contact` throws naming the relation instead of skipping.
@@ -1252,3 +1263,7 @@ compas_tf references in `data/reference/floor/`.
   every face planar within 2.8e-11 mm, beds and layers 27.000, 48 of 48 connectors, 44 of 44 contacts,
   0 faceted, 384 of 384 bores; `model_rectangle.txt` re-baselined (the short ribs' column plates
   69605.340 mm2, the block dowel contacts of the changed ribs).
+* Column blocks over the run-ins (R8): every square and parity-mode dump byte-identical, the rectangle's
+  R1 141 records at 0 in all four views; 3000 x 2400 blocks 240 / 267.292 / 187.667, the side blocks'
+  far ends 0.992 mm apart, report ok, 48 of 48 connectors, 44 of 44 contacts, 0 faceted, 384 of 384
+  bores; `model_rectangle.txt` re-baselined (only the 16 block dowel contacts of the changed blocks).

@@ -328,6 +328,17 @@ static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const Constru
     return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, sizes), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level, sizes)};
 }
 
+/// The column blocks' far planes over the ribs' run-ins: each side block its fan plane offset by its own rib's run-in, the middle block by middle_wedge_factor times their mean; compas_tf's wedge and middle wedge where both run-ins are the wedge.
+static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std::array<double, 2>& run_in, const FloorSizes& sizes) {
+
+    const std::array<double, 3> thickness = {run_in[0], sizes.middle_wedge_factor * (0.5 * (run_in[0] + run_in[1])), run_in[1]};
+
+    for (size_t i = 0; i < 3; i++) {
+        column.wedge_fan[i][1] = offset(column.wedge_fan[i][0], thickness[i]);
+        cp.wedges[i][1] = column.wedge_fan[i][1];
+    }
+}
+
 /// Per rib axis (outer 0, outer 1, shadow 0, shadow 1) the parabola and its two offsets by tsections: the outer ones from the rib quads over their run-ins, the shadows projected onto the inner ribs' outer faces along the outer rib normals.
 static std::vector<std::array<Polyline, 3>> boundary_parabolas(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes, const std::array<double, 2>& run_in) {
 
@@ -362,7 +373,7 @@ static std::vector<Plane> bed_top_planes(const ConstructionPlanes& cp, const std
     };
 }
 
-/// Quarter q's geometry in dependency order: planes, quads, run-ins, parabolas and shadows, block levels, bed planes; the column fan and seats are written into its column.
+/// Quarter q's geometry in dependency order: planes, quads, run-ins, the blocks' far planes over them and the quads again, parabolas and shadows, block levels, bed planes; the column fan and seats are written into its column.
 static void compute_quarter(Floor& floor, size_t q) {
 
     QuarterGeometry& geometry = floor.geometry[q];
@@ -373,6 +384,8 @@ static void compute_quarter(Floor& floor, size_t q) {
     column_seats(column, floor.plan, q, geometry.planes, sizes);
     geometry.quads = construction_quads(geometry.planes);
     geometry.run_in = run_ins(geometry.planes, geometry.quads, sizes, floor.rib_level);
+    block_planes(geometry.planes, column, geometry.run_in, sizes);
+    geometry.quads = construction_quads(geometry.planes);
     geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, sizes, geometry.run_in);
 
     const Polyline middle = cut(geometry.parabolas[2][0], geometry.planes.wedges[1][1], geometry.planes.inner_beams[1][1]);

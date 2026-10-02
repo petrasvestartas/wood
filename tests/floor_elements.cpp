@@ -801,6 +801,56 @@ void check_rib_levels() {
     std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the eight rib bottoms span {:.3f} mm, the short run-in {:.3f}; the square and the parity mode at compas_tf's run-in", floor.columns[0].levels[1], report.rib_level_spread_mm[0], std::min(floor.geometry[0].run_in[0], floor.geometry[0].run_in[1])) << std::endl;
 }
 
+/// The thickness of each column block of quarter q, side 0, middle and side 1: its far plane's distance from its fan plane.
+std::array<double, 3> block_thickness(const wood_floor::Floor& floor, size_t q) {
+
+    std::array<double, 3> thickness;
+
+    for (size_t i = 0; i < 3; i++) {
+        const std::array<Plane, 2>& planes = floor.geometry[q].planes.wedges[i];
+        thickness[i] = (planes[1].origin() - planes[0].origin()).dot(planes[0].z_axis());
+    }
+
+    return thickness;
+}
+
+/// The lowest corner of a column block's far face.
+double far_bottom(const wood_floor::Outline& block) {
+
+    double lowest = 1e300;
+
+    for (const Point& point : block.top.get_points())
+        lowest = std::min(lowest, point[2]);
+
+    return lowest;
+}
+
+/// The column blocks span their ribs' run-ins: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; compas_tf's 240 / 300 / 240 on the square and in the parity mode.
+void check_column_blocks() {
+
+    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
+
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<double, 3> thickness = block_thickness(floor, q);
+        const std::array<double, 2>& run_in = floor.geometry[q].run_in;
+        const std::vector<wood_floor::Outline> blocks = floor.quarter(q).wedges_inner_beams();
+        check(std::abs(thickness[0] - run_in[0]) <= 1e-9 && std::abs(thickness[2] - run_in[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the run-ins {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], run_in[0], run_in[1]));
+        check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
+    }
+
+    const wood_floor::Floor parity = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
+    const wood_floor::Floor square(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+
+    for (const wood_floor::Floor* other : {&parity, &square})
+        for (size_t q = 0; q < 4; q++) {
+            const std::array<double, 3> thickness = block_thickness(*other, q);
+            check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square and the parity mode keep compas_tf's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
+        }
+
+    const std::vector<wood_floor::Outline> blocks = floor.quarter(0).wedges_inner_beams();
+    std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square and in the parity mode", block_thickness(floor, 0)[0], block_thickness(floor, 0)[1], block_thickness(floor, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
+}
+
 /// The 3000 x 2400 bay (G8 R2-R5): the report holds, rule A as the design measured it, every member face planar, the probes' tiling areas with compas_tf's oculus, and 44 of 44 contacts found by the kernel's search.
 void check_rectangle() {
 
@@ -839,6 +889,7 @@ int main() {
     check_section_layers();
     check_rectangle();
     check_rib_levels();
+    check_column_blocks();
     check_relationships();
     check_beams();
     check_thickness();
