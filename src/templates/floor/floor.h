@@ -259,6 +259,61 @@ std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const Quarte
 double outline_thickness(const Outline& outline);
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Relationships
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The member families of the floor: the six of a quarter in the order they are added, then the ring beams, the columns, the supports and the column cutters.
+enum class Family {
+    outer_ribs, // Variable beams under the two outer parabolas.
+    inner_ribs, // Variable beams under the two inner parabolas.
+    inner_beams, // Variable beams between two slanted end faces.
+    wedges_inner_beams, // Wedge block plates.
+    tsections, // T-section plates.
+    beds, // Bed plates.
+    ring, // The four ring beams of the oculus.
+    column, // The four columns.
+    support, // The four supports.
+    cutter, // The six head cutters of a column.
+};
+
+/// What two members share and the connector that belongs to it.
+enum class Relation { support, cutter, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels };
+
+/// A member of the floor by quarter (-1 for the ring, the columns and the supports), family and index; row for a bed plate.
+struct MemberRef {
+    int quarter = -1; // The quarter the member belongs to, -1 for the ring, a column or a support.
+    Family family = Family::outer_ribs; // Its family.
+    size_t index = 0; // Its index in the family, or in the bed row.
+    int row = -1; // The bed row, -1 for every other family.
+
+    /// The member's place in the scene, quarter members before the ring, columns and supports, for the order compas_tf's contact search found the pairs in.
+    size_t order() const;
+
+    /// The scene name of the member, as the models name it.
+    std::string name() const;
+};
+
+/// One relationship: the two members by the rule of the design, the shared plane, the contact polygon read from their outlines in world coordinates, and the seam or corner it belongs to.
+struct Relationship {
+    Relation kind = Relation::support; // What the two members share.
+    MemberRef a; // The first member by the rule.
+    MemberRef b; // The second member by the rule.
+    session_cpp::Plane plane; // The plane they meet on, lifted to the floor.
+    session_cpp::Polyline contact; // The contact polygon on that plane, closed; empty for a support, a cutter or a cross lap.
+    wood_session::ContactType type = wood_session::ContactType::unknown; // The contact class the kernel's search reports for the pair, unknown where the design does not fix it.
+    size_t seam_or_corner = 0; // The seam or the corner the relationship belongs to.
+
+    /// The contact area in mm2.
+    double area() const;
+
+    /// The relationship as text: its kind and its two members.
+    std::string text() const;
+
+    /// The member with the smaller scene order first, as compas_tf's search listed the pair.
+    std::array<MemberRef, 2> scene_pair() const;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Models
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -278,11 +333,43 @@ struct QuarterMembers {
     std::vector<std::vector<Member>> beds; // Three rows of plates.
 };
 
+/// A column model in the scene: the support, the column and the six head cutters.
+struct ColumnModel {
+    std::shared_ptr<wood_session::Support> support; // On the slab.
+    std::shared_ptr<wood_session::Column> column; // Carved by the cutters.
+    std::vector<std::shared_ptr<wood_session::Joint>> cutters; // The six solid difference cutters.
+};
+
+/// The placed members of the whole floor by quarter and family, the ring beams and the column models.
+struct FloorMembers {
+    std::array<QuarterMembers, 4> quarters; // Quarter q at corner q.
+    std::vector<Member> ring; // The four ring beams.
+    std::vector<ColumnModel> columns; // Column q at corner q, empty until the columns are added.
+
+    /// The scene element a reference names; null for a reference that is not in the scene.
+    std::shared_ptr<session_cpp::Element> get(const MemberRef& ref) const;
+
+    /// The thickness the connectors on that member are sized by, 0 for a column, a support or a cutter.
+    double thickness(const MemberRef& ref) const;
+
+    /// The two scene elements of a relationship; throws naming it when one is not in the scene.
+    std::array<std::shared_ptr<session_cpp::Element>, 2> pair(const Relationship& row) const;
+};
+
+/// The member as it was before any cut, for the contact search: a copy without its plane and solid cuts, so a pocket or a hole on the cut model neither splits nor loses a contact.
+std::shared_ptr<session_cpp::Element> uncut(const session_cpp::Element& member);
+
+/// A searched contact that does not agree with the constructed one.
+struct ContactMismatch {
+    std::string relation; // The relationship, kind and members.
+    std::string what; // How the search disagrees: missing, another type, the plane, the top edge or the area.
+};
+
 /// A group named name under parent, at the root when parent is empty.
 std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
-/// The column model of compas_tf example_model_2 built in place at a corner: support, column, support joint and the quarter's six cutters, every name ending in the corner index; returns the column.
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// The column model of compas_tf example_model_2 built in place at a corner: support, column, support joint and the quarter's six cutters, every name ending in the corner index.
+ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
 
 /// The quarter model of compas_tf example_model_4 built in place and lifted to bay_height, grouped by family, every name ending in the quarter's index.
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& quarter, const std::shared_ptr<session_cpp::TreeNode>& group);
@@ -290,19 +377,22 @@ QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quart
 /// The oculus model of compas_tf example_model_5 lifted to bay_height; returns its four boundary beams.
 std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The wedges of compas_tf example_model_6: a wedge joint on every long-face contact among the ring beams, sized by the thicker member; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const std::vector<Member>& ring, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// compas_tf's floor_model under group: the four quarters under quarters_model and the oculus, in compas_tf's tree and names; the columns are added apart.
+FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The column connectors of compas_tf example_model_8: a rectangle plate joint on the contact of every column with every outer rib; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::Column>>& columns, const std::vector<Member>& outer_ribs, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// compas_tf's columns_model under group: the four column models, each in its own column_model_q group, filled into the members.
+void add_columns(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group, FloorMembers& members);
 
-/// The seam connectors of compas_tf example_model_8: a tie joint on every end-to-end contact of two outer ribs; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::vector<Member>& outer_ribs, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters; wedges and ties in the order compas_tf's search found them.
+std::vector<Relationship> relationships(const Floor& floor);
 
-/// The assembly dowels of every quarter: a dowels joint on every contact of a wedge block with a rib, found on the members as they were before any cut; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const std::vector<QuarterMembers>& quarters, const std::shared_ptr<session_cpp::TreeNode>& group, double radius = 4.0, double length = 30.0, double offset = 50.0);
+/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under group; cross laps need the column plates in the same call.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::shared_ptr<session_cpp::TreeNode>& group, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
 
-/// The half laps of the column heads: a cross lap on every two rectangle plates that meet in one column; returns the joints.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_cross_laps(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians); returns what does not.
+std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});
+
+/// The searched contact of two members as they were before any cut, of the expected type; throws naming the relation when there is none.
+std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession& session, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, wood_session::ContactType expected, const std::string& relation);
 
 }

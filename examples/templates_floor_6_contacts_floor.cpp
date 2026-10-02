@@ -15,10 +15,30 @@ void dump(std::ofstream& file, const std::string& name, const Mesh& mesh) {
     file << fmt::format("{} {:.6f} {:.6f} {:.6f} {:.6f}\n", name, compute_volume(mesh), box.cx, box.cy, box.cz);
 }
 
-/// The carved ring beams, then every wedge and its dowels apart, in compas_tf's names.
-void dump(const WoodSession& session, const std::vector<std::shared_ptr<JointBeam>>& wedges, const std::string& path) {
+/// The contact records of the wedges as compas_tf's example 6 wrote them: the pair in search order, the thicker member, the wedge length, its dowels and the contact area.
+void dump_contacts(std::ofstream& file, const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::vector<std::shared_ptr<JointBeam>>& wedges) {
+
+    std::vector<wood_floor::Relationship> rows;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor))
+        if (row.kind == wood_floor::Relation::seam_wedge || row.kind == wood_floor::Relation::oculus_wedge)
+            rows.push_back(row);
+
+    file << fmt::format("contacts {}\n", rows.size());
+
+    for (size_t k = 0; k < rows.size(); k++) {
+        const std::array<wood_floor::MemberRef, 2> pair = rows[k].scene_pair();
+        const double thickness = std::max(members.thickness(pair[0]), members.thickness(pair[1]));
+        const double length = (wedges[k]->parts[0][1].get_point(0) - wedges[k]->parts[0][0].get_point(0)).magnitude();
+        file << fmt::format("wedge {} {} {} thickness {:.6f} length {:.6f} dowels {} area {:.6f}\n", k, pair[0].name(), pair[1].name(), thickness, length, wedges[k]->drill_lines.size(), rows[k].area());
+    }
+}
+
+/// The contact records, the carved ring beams, then every wedge and its dowels apart, in compas_tf's names.
+void dump(const WoodSession& session, const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::vector<std::shared_ptr<JointBeam>>& wedges, const std::string& path) {
 
     std::ofstream file(path);
+    dump_contacts(file, floor, members, wedges);
 
     for (const std::shared_ptr<BeamVariable>& beam : session.beam_variables())
         if (beam->name.starts_with("inner_beams_") || (beam->name.starts_with("oculus_") && beam->name.size() == 8))
@@ -37,19 +57,15 @@ int main() {
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}, wood_floor::CentralLayers::compas);
     WoodSession session("templates_floor_6_contacts_floor");
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
-    const std::shared_ptr<TreeNode> quarters = wood_floor::add_group(session, "quarters_model", root);
-    std::vector<wood_floor::Member> ring;
+    const wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, root);
+    const std::vector<wood_floor::Relation> kinds = {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge};
+    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, floor, members, 1e-6, kinds);
 
-    for (size_t q = 0; q < 4; q++) {
-        const wood_floor::QuarterMembers quarter = wood_floor::add_quarter_model(session, floor.quarter(q), wood_floor::add_group(session, fmt::format("quarter_model_{}", q), quarters));
-        ring.insert(ring.end(), quarter.inner_beams.begin(), quarter.inner_beams.end());
-    }
-
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, floor, wood_floor::add_group(session, "oculus", root));
-    ring.insert(ring.end(), oculus.begin(), oculus.end());
+    for (const wood_floor::ContactMismatch& mismatch : mismatches)
+        std::cout << fmt::format("contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, ring, wood_floor::add_group(session, "connectors", root));
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, floor, members, wood_floor::add_group(session, "connectors", root), kinds);
     session.pb_dump(pb_path("live"));
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     size_t dowels = 0;
@@ -58,9 +74,10 @@ int main() {
         dowels += wedge->drill_lines.size();
 
     std::cout << fmt::format("{} wedges, {} dowels: contacts, cuts and pb in {:.0f} ms", wedges.size(), dowels, ms) << std::endl;
+    std::cout << fmt::format("{} of {} wedge contacts verified by the kernel's search", wedges.size() - mismatches.size(), wedges.size()) << std::endl;
 
     if constexpr (DUMP)
-        dump(session, wedges, std::filesystem::path(pb_path("floor_6_contacts_floor")).replace_extension(".txt").string());
+        dump(session, floor, members, wedges, std::filesystem::path(pb_path("floor_6_contacts_floor")).replace_extension(".txt").string());
 
     return 0;
 }

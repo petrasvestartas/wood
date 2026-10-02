@@ -5,17 +5,7 @@ using namespace session_cpp;
 
 namespace wood_floor {
 
-/// The member families of a quarter.
-enum class Family {
-    outer_ribs, // Variable beams under the two outer parabolas.
-    inner_ribs, // Variable beams under the two inner parabolas.
-    inner_beams, // Variable beams between two slanted end faces.
-    wedges_inner_beams, // Wedge block plates.
-    tsections, // T-section plates.
-    beds, // Bed plates.
-};
-
-const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges_inner_beams", "tsections", "beds"}; // the group each family is named after, in Family order
+const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges_inner_beams", "tsections", "beds"}; // the group each quarter family is named after, in Family order
 
 /// The member outlines of one family as members: ribs and inner beams as variable beams, every other family as plates, each with its outline's thickness.
 static std::vector<Member> to_members(Family family, const std::vector<Outline>& outlines) {
@@ -71,8 +61,7 @@ static void add_named(wood_session::WoodSession& session, std::vector<std::share
     connectors.push_back(connector);
 }
 
-/// The member as it was before any cut, for the contact search: a copy without its plane and solid cuts, so a pocket or a hole on the cut model neither splits nor loses a contact.
-static std::shared_ptr<Element> uncut(const Element& member) {
+std::shared_ptr<Element> uncut(const Element& member) {
 
     const std::shared_ptr<Element> copy = member.clone();
 
@@ -97,26 +86,6 @@ std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const st
     session.Session::add(node, parent);
 
     return node;
-}
-
-std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<TreeNode>& group) {
-
-    const std::string suffix = fmt::format("_{}", corner % 4);
-    const std::shared_ptr<wood_session::Support> support = to_support(floor.columns[corner % 4]);
-    const std::shared_ptr<wood_session::Column> column = to_column(floor.columns[corner % 4], floor.sizes, *support);
-    add_named(session, support, "support" + suffix, group);
-    add_named(session, column, "column" + suffix, group);
-
-    const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*support, *column);
-    session.add(joint, group);
-    session.add_joint(joint);
-
-    for (const std::shared_ptr<wood_session::Joint>& cutter : to_column_cutters(floor.quarter(corner), *column)) {
-        session.add(cutter, group);
-        session.add_joint(cutter);
-    }
-
-    return column;
 }
 
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& view, const std::shared_ptr<TreeNode>& group) {
@@ -164,95 +133,196 @@ std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const F
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Floor
+// ═══════════════════════════════════════════════════════════════════════════
+
+ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<TreeNode>& group) {
+
+    const std::string suffix = fmt::format("_{}", corner % 4);
+    ColumnModel model;
+    model.support = to_support(floor.columns[corner % 4]);
+    model.column = to_column(floor.columns[corner % 4], floor.sizes, *model.support);
+    add_named(session, model.support, "support" + suffix, group);
+    add_named(session, model.column, "column" + suffix, group);
+
+    const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*model.support, *model.column);
+    session.add(joint, group);
+    session.add_joint(joint);
+    model.cutters = to_column_cutters(floor.quarter(corner), *model.column);
+
+    for (const std::shared_ptr<wood_session::Joint>& cutter : model.cutters) {
+        session.add(cutter, group);
+        session.add_joint(cutter);
+    }
+
+    return model;
+}
+
+FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<TreeNode>& group) {
+
+    const std::shared_ptr<TreeNode> quarters = add_group(session, "quarters_model", group);
+    FloorMembers members;
+
+    for (size_t q = 0; q < 4; q++)
+        members.quarters[q] = add_quarter_model(session, floor.quarter(q), add_group(session, fmt::format("quarter_model_{}", q), quarters));
+
+    members.ring = add_oculus_model(session, floor, add_group(session, "oculus", group));
+
+    return members;
+}
+
+void add_columns(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<TreeNode>& group, FloorMembers& members) {
+
+    members.columns.clear();
+
+    for (size_t q = 0; q < 4; q++)
+        members.columns.push_back(add_column_model(session, floor, q, add_group(session, fmt::format("column_model_{}", q), group)));
+}
+
+/// The member a quarter reference names, null when the family or index is not in the quarter.
+static const Member* quarter_member(const QuarterMembers& quarter, const MemberRef& ref) {
+
+    const std::vector<Member>* family = nullptr;
+
+    if (ref.family == Family::outer_ribs)
+        family = &quarter.outer_ribs;
+    else if (ref.family == Family::inner_ribs)
+        family = &quarter.inner_ribs;
+    else if (ref.family == Family::inner_beams)
+        family = &quarter.inner_beams;
+    else if (ref.family == Family::wedges_inner_beams)
+        family = &quarter.blocks;
+    else if (ref.family == Family::tsections)
+        family = &quarter.tsections;
+    else if (ref.family == Family::beds && ref.row >= 0 && static_cast<size_t>(ref.row) < quarter.beds.size())
+        family = &quarter.beds[static_cast<size_t>(ref.row)];
+
+    return family && ref.index < family->size() ? &(*family)[ref.index] : nullptr;
+}
+
+std::shared_ptr<Element> FloorMembers::get(const MemberRef& ref) const {
+
+    if (ref.family == Family::ring)
+        return ref.index < ring.size() ? ring[ref.index].element : nullptr;
+
+    if (ref.family == Family::column)
+        return ref.index < columns.size() ? columns[ref.index].column : nullptr;
+
+    if (ref.family == Family::support)
+        return ref.index < columns.size() ? columns[ref.index].support : nullptr;
+
+    if (ref.family == Family::cutter)
+        return ref.quarter >= 0 && static_cast<size_t>(ref.quarter) < columns.size() && ref.index < columns[static_cast<size_t>(ref.quarter)].cutters.size() ? columns[static_cast<size_t>(ref.quarter)].cutters[ref.index] : nullptr;
+
+    if (ref.quarter < 0 || ref.quarter > 3)
+        return nullptr;
+
+    const Member* member = quarter_member(quarters[static_cast<size_t>(ref.quarter)], ref);
+
+    return member ? member->element : nullptr;
+}
+
+double FloorMembers::thickness(const MemberRef& ref) const {
+
+    if (ref.family == Family::ring)
+        return ref.index < ring.size() ? ring[ref.index].thickness : 0.0;
+
+    if (ref.quarter < 0 || ref.quarter > 3)
+        return 0.0;
+
+    const Member* member = quarter_member(quarters[static_cast<size_t>(ref.quarter)], ref);
+
+    return member ? member->thickness : 0.0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Connectors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_wedges(wood_session::WoodSession& session, const std::vector<Member>& ring, const std::shared_ptr<TreeNode>& group) {
+std::array<std::shared_ptr<Element>, 2> FloorMembers::pair(const Relationship& row) const {
 
-    std::vector<std::shared_ptr<wood_session::JointBeam>> wedges;
+    const std::shared_ptr<Element> a = get(row.a);
+    const std::shared_ptr<Element> b = get(row.b);
 
-    for (size_t i = 0; i < ring.size(); i++)
-        for (size_t j = i + 1; j < ring.size(); j++) {
-            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(ring[i].element, ring[j].element);
+    if (!a || !b)
+        throw std::runtime_error("the floor members do not hold both members of " + row.text());
 
-            if (!contact || contact->type != wood_session::ContactType::side_side)
-                continue;
-
-            const double thickness = std::max(ring[i].thickness, ring[j].thickness);
-            add_named(session, wedges, wood_session::JointBeam::wedge(*ring[i].element, *ring[j].element, *contact, 1.5 * thickness, 2.0 * thickness / 3.0), "connector_wedge", group);
-        }
-
-    return wedges;
+    return {a, b};
 }
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_rectangle_plates(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::Column>>& columns, const std::vector<Member>& outer_ribs, const std::shared_ptr<TreeNode>& group) {
+/// The name prefix of a connector of that kind, as the examples name them.
+static std::string connector_prefix(Relation kind) {
 
-    std::vector<std::shared_ptr<wood_session::JointBeam>> plates;
+    if (kind == Relation::seam_wedge || kind == Relation::oculus_wedge)
+        return "connector_wedge";
 
-    for (const std::shared_ptr<wood_session::Column>& column : columns)
-        for (const Member& rib : outer_ribs) {
-            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(column, rib.element);
+    if (kind == Relation::column_plate)
+        return "connector";
 
-            if (!contact)
-                continue;
+    if (kind == Relation::cross_lap)
+        return "connector_cross_lap";
 
-            add_named(session, plates, wood_session::JointBeam::rectangle_plate(*column, *rib.element, *contact, rib.thickness), "connector", group);
-        }
+    if (kind == Relation::seam_tie)
+        return "outer_rib_connector";
 
-    return plates;
+    return "connector_dowels";
 }
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_ties(wood_session::WoodSession& session, const std::vector<Member>& outer_ribs, const std::shared_ptr<TreeNode>& group) {
+/// The connector of one contact relationship through its factory: the wedge sized by the thicker member, the plate by the rib's thickness, the tie and the dowels by their defaults.
+static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship& row, const FloorMembers& members) {
 
-    std::vector<std::shared_ptr<wood_session::JointBeam>> ties;
+    const std::array<std::shared_ptr<Element>, 2> pair = members.pair(row);
+    const wood_session::InteractionContactFace contact(-1, -1, row.type, row.contact);
 
-    for (size_t i = 0; i < outer_ribs.size(); i++)
-        for (size_t j = i + 1; j < outer_ribs.size(); j++) {
-            const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(outer_ribs[i].element, outer_ribs[j].element);
-
-            if (!contact || contact->type != wood_session::ContactType::end_end)
-                continue;
-
-            add_named(session, ties, wood_session::JointBeam::tie(*outer_ribs[i].element, *outer_ribs[j].element, *contact), "outer_rib_connector", group);
-        }
-
-    return ties;
-}
-
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_quarter_dowels(wood_session::WoodSession& session, const std::vector<QuarterMembers>& quarters, const std::shared_ptr<TreeNode>& group, double radius, double length, double offset) {
-
-    std::vector<std::shared_ptr<wood_session::JointBeam>> joints;
-
-    for (const QuarterMembers& quarter : quarters) {
-        std::vector<Member> ribs = quarter.outer_ribs;
-        ribs.insert(ribs.end(), quarter.inner_ribs.begin(), quarter.inner_ribs.end());
-
-        for (const Member& rib : ribs)
-            for (const Member& block : quarter.blocks) {
-                const std::shared_ptr<wood_session::InteractionContactFace> contact = session.compute_face_contact(uncut(*rib.element), uncut(*block.element));
-                const std::shared_ptr<wood_session::JointBeam> dowels = contact ? wood_session::JointBeam::dowels(*rib.element, *block.element, *contact, radius, length, offset) : nullptr;
-
-                if (dowels)
-                    add_named(session, joints, dowels, "connector_dowels", group);
-            }
+    if (row.kind == Relation::seam_wedge || row.kind == Relation::oculus_wedge) {
+        const double thickness = std::max(members.thickness(row.a), members.thickness(row.b));
+        return wood_session::JointBeam::wedge(*pair[0], *pair[1], contact, 1.5 * thickness, 2.0 * thickness / 3.0);
     }
 
-    return joints;
+    if (row.kind == Relation::column_plate)
+        return wood_session::JointBeam::rectangle_plate(*pair[0], *pair[1], contact, members.thickness(row.b));
+
+    if (row.kind == Relation::seam_tie)
+        return wood_session::JointBeam::tie(*pair[0], *pair[1], contact);
+
+    const std::shared_ptr<wood_session::JointBeam> dowels = wood_session::JointBeam::dowels(*pair[0], *pair[1], contact);
+
+    if (!dowels)
+        throw std::runtime_error("the inset leaves no room for the dowels of " + row.text());
+
+    return dowels;
 }
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_cross_laps(wood_session::WoodSession& session, const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates, const std::shared_ptr<TreeNode>& group) {
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::shared_ptr<TreeNode>& group, const std::vector<Relation>& kinds) {
 
-    std::vector<std::shared_ptr<wood_session::JointBeam>> laps;
+    std::map<std::string, std::vector<std::shared_ptr<wood_session::JointBeam>>> by_prefix;
+    std::map<size_t, std::vector<std::shared_ptr<wood_session::JointBeam>>> plates_of_corner;
+    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors;
 
-    for (size_t i = 0; i < plates.size(); i++)
-        for (size_t j = i + 1; j < plates.size(); j++) {
-            if (plates[i]->targets.front() != plates[j]->targets.front())
-                continue;
+    for (const Relationship& row : relationships(floor)) {
+        if (row.kind == Relation::support || row.kind == Relation::cutter || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
+            continue;
 
-            add_named(session, laps, wood_session::JointBeam::cross_lap(*plates[i], *plates[j]), "connector_cross_lap", group);
-        }
+        std::shared_ptr<wood_session::JointBeam> connector;
 
-    return laps;
+        if (row.kind == Relation::cross_lap) {
+            const std::vector<std::shared_ptr<wood_session::JointBeam>>& plates = plates_of_corner[row.seam_or_corner];
+
+            if (plates.size() != 2)
+                throw std::runtime_error("the cross lap of corner " + std::to_string(row.seam_or_corner) + " needs its two column plates in the same call");
+
+            connector = wood_session::JointBeam::cross_lap(*plates[0], *plates[1]);
+        } else
+            connector = connector_of(row, members);
+
+        add_named(session, by_prefix[connector_prefix(row.kind)], connector, connector_prefix(row.kind), group);
+        connectors.push_back(connector);
+
+        if (row.kind == Relation::column_plate)
+            plates_of_corner[row.seam_or_corner].push_back(connector);
+    }
+
+    return connectors;
 }
 
 }

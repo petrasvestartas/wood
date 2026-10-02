@@ -71,32 +71,58 @@ void dump(std::ofstream& file, const std::string& name, const Mesh& mesh) {
     file << fmt::format("{} {:.6f} {:.6f} {:.6f} {:.6f}\n", name, compute_volume(mesh), box.cx, box.cy, box.cz);
 }
 
-/// The quarter and column models of the four quarters and the oculus; returns the quarters, the columns and the ring beams the wedges join.
-void add_models(WoodSession& session, const wood_floor::Floor& floor_model, const std::shared_ptr<TreeNode>& root, const std::shared_ptr<TreeNode>& floor, std::vector<wood_floor::QuarterMembers>& quarters, std::vector<std::shared_ptr<Column>>& columns, std::vector<wood_floor::Member>& ring) {
-
-    const std::shared_ptr<TreeNode> quarter_group = wood_floor::add_group(session, "quarters_model", floor);
-    const std::shared_ptr<TreeNode> column_group = wood_floor::add_group(session, "columns_model", root);
-
-    for (size_t q = 0; q < 4; q++) {
-        const std::string suffix = fmt::format("_{}", q);
-        quarters.push_back(wood_floor::add_quarter_model(session, floor_model.quarter(q), wood_floor::add_group(session, "quarter_model" + suffix, quarter_group)));
-        columns.push_back(wood_floor::add_column_model(session, floor_model, q, wood_floor::add_group(session, "column_model" + suffix, column_group)));
-        ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
-    }
-
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, floor_model, wood_floor::add_group(session, "oculus", floor));
-    ring.insert(ring.end(), oculus.begin(), oculus.end());
-}
-
 /// The outer ribs of every quarter, in quarter order.
-std::vector<wood_floor::Member> outer_ribs(const std::vector<wood_floor::QuarterMembers>& quarters) {
+std::vector<wood_floor::Member> outer_ribs(const wood_floor::FloorMembers& members) {
 
     std::vector<wood_floor::Member> ribs;
 
-    for (const wood_floor::QuarterMembers& quarter : quarters)
+    for (const wood_floor::QuarterMembers& quarter : members.quarters)
         ribs.insert(ribs.end(), quarter.outer_ribs.begin(), quarter.outer_ribs.end());
 
     return ribs;
+}
+
+/// The connectors of one kind among those made.
+std::vector<std::shared_ptr<JointBeam>> of_kind(const std::vector<std::shared_ptr<JointBeam>>& connectors, const std::string& prefix) {
+
+    std::vector<std::shared_ptr<JointBeam>> result;
+
+    for (const std::shared_ptr<JointBeam>& connector : connectors)
+        if (connector->name.starts_with(prefix) && !std::isdigit(static_cast<unsigned char>(connector->name[prefix.size()])) && connector->name[prefix.size()] == '_' && connector->name.find('_', prefix.size() + 1) == std::string::npos)
+            result.push_back(connector);
+
+    return result;
+}
+
+/// The relationships of one kind, in connector order.
+std::vector<wood_floor::Relationship> rows_of(const wood_floor::Floor& floor, wood_floor::Relation kind) {
+
+    std::vector<wood_floor::Relationship> rows;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor))
+        if (row.kind == kind)
+            rows.push_back(row);
+
+    return rows;
+}
+
+/// The midpoint of the top edge of a contact: the connector origin compas_tf's records carry.
+Point top_edge_midpoint(const Polyline& contact) {
+
+    std::vector<Point> points = contact.get_points();
+    points.pop_back();
+    double top = -1e300;
+
+    for (const Point& point : points)
+        top = std::max(top, point[2]);
+
+    std::vector<Point> highest;
+
+    for (const Point& point : points)
+        if (top - point[2] <= 1e-6)
+            highest.push_back(point);
+
+    return Point::centroid(highest);
 }
 
 /// Prints every dowel set of a quarter: its two members, dowel count and length.
@@ -166,25 +192,60 @@ void count_breps(WoodSession& session) {
     std::cout << fmt::format("Every dowel bores every element it passes: {} dowel stretches through members and parts, {} exact bores found", dowel_crossings(session), bores + part_bores) << std::endl;
 }
 
-/// The parity record: the carved columns, the carved outer ribs and the tie keys.
-void dump_parity(const WoodSession& session, const std::vector<wood_floor::Member>& ribs, const std::vector<std::shared_ptr<JointBeam>>& ties) {
+/// The tie key as one mesh.
+Mesh tie_key(const JointBeam& tie) {
+
+    Mesh key;
+
+    for (const std::array<Polyline, 2>& part : tie.parts)
+        append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
+
+    return key;
+}
+
+/// The parity record of compas_tf's example 8, first half: the eight column contacts as compas_tf wrote them (column, rib, area, rib thickness, the plate origin on the contact's top edge and its x axis toward the rib), then the carved columns, the carved outer ribs and the tie keys.
+void dump_parity(const WoodSession& session, const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::vector<std::shared_ptr<JointBeam>>& plates, const std::vector<std::shared_ptr<JointBeam>>& ties) {
 
     std::ofstream file(std::filesystem::path(pb_path("floor_8_contacts_cantilevers")).replace_extension(".txt").string());
+    const std::vector<wood_floor::Relationship> rows = rows_of(floor, wood_floor::Relation::column_plate);
+    file << fmt::format("contacts {}\n", rows.size());
+
+    for (size_t i = 0; i < rows.size(); i++) {
+        const Point origin = top_edge_midpoint(rows[i].contact);
+        const Polyline& part = plates[i]->parts[0][0];
+        const Vector x = (part.get_point(1) - part.get_point(0)).normalized();
+        file << fmt::format("connector {} {} {} area {:.6f} thickness {:.6f} origin {:.6f} {:.6f} {:.6f} x {:.6f} {:.6f} {:.6f}\n", i, rows[i].a.name(), rows[i].b.name(), rows[i].area(), members.thickness(rows[i].b), origin[0], origin[1], origin[2], x[0], x[1], x[2]);
+    }
 
     for (const std::shared_ptr<Column>& column : session.columns())
         dump(file, column->name, column->model_geometry_mesh());
 
-    for (const wood_floor::Member& rib : ribs)
+    for (const wood_floor::Member& rib : outer_ribs(members))
         dump(file, rib.element->name, rib.element->model_geometry_mesh());
 
-    for (const std::shared_ptr<JointBeam>& tie : ties) {
-        Mesh key;
+    for (const std::shared_ptr<JointBeam>& tie : ties)
+        dump(file, tie->name, tie_key(*tie));
+}
 
-        for (const std::array<Polyline, 2>& part : tie->parts)
-            append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
+/// The parity record of compas_tf's example 8, second half: the four seam contacts as compas_tf wrote them (the pair in search order, area, the tie origin on the contact's top edge and the contact normal toward the first member), each with its key, then the carved outer ribs.
+void dump_ties(const wood_floor::Floor& floor, const wood_floor::FloorMembers& members, const std::vector<std::shared_ptr<JointBeam>>& ties) {
 
-        dump(file, tie->name, key);
+    std::ofstream file(std::filesystem::path(pb_path("floor_8_ties")).replace_extension(".txt").string());
+    const std::vector<wood_floor::Relationship> rows = rows_of(floor, wood_floor::Relation::seam_tie);
+    file << fmt::format("contacts {}\n", rows.size());
+
+    for (size_t i = 0; i < rows.size(); i++) {
+        const std::array<wood_floor::MemberRef, 2> pair = rows[i].scene_pair();
+        const Point origin = top_edge_midpoint(rows[i].contact);
+        const Point first = members.get(pair[0])->model_geometry_mesh().centroid();
+        Vector y(rows[i].plane.z_axis()[0], rows[i].plane.z_axis()[1], 0.0);
+        y = y.normalized() * ((first - origin).dot(y) < 0.0 ? -1.0 : 1.0);
+        file << fmt::format("tie {} {} {} area {:.6f} origin {:.6f} {:.6f} {:.6f} y {:.6f} {:.6f} {:.6f}\n", i, pair[0].name(), pair[1].name(), rows[i].area(), origin[0], origin[1], origin[2], y[0], y[1], y[2]);
+        dump(file, ties[i]->name, tie_key(*ties[i]));
     }
+
+    for (const wood_floor::Member& rib : outer_ribs(members))
+        dump(file, rib.element->name, rib.element->model_geometry_mesh());
 }
 
 int main() {
@@ -193,18 +254,20 @@ int main() {
     WoodSession session("templates_floor_8_contacts_cantilevers");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
     const std::shared_ptr<TreeNode> floor = wood_floor::add_group(session, "floor_model", root);
-    std::vector<wood_floor::QuarterMembers> quarters;
-    std::vector<std::shared_ptr<Column>> columns;
-    std::vector<wood_floor::Member> ring;
-    add_models(session, model, root, floor, quarters, columns, ring);
-    const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
+    wood_floor::FloorMembers members = wood_floor::add_floor(session, model, floor);
+    wood_floor::add_columns(session, model, wood_floor::add_group(session, "columns_model", root), members);
+    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, model, members);
+
+    for (const wood_floor::ContactMismatch& mismatch : mismatches)
+        std::cout << fmt::format("contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(session, ring, wood_floor::add_group(session, "connectors", floor));
-    const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(session, columns, ribs, wood_floor::add_group(session, "connectors", root));
-    const std::vector<std::shared_ptr<JointBeam>> laps = wood_floor::add_cross_laps(session, plates, wood_floor::add_group(session, "connectors", root));
-    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_ties(session, ribs, wood_floor::add_group(session, "outer_rib_connectors", root));
-    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_quarter_dowels(session, quarters, wood_floor::add_group(session, "quarter_connectors", floor));
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, model, members, wood_floor::add_group(session, "connectors", floor), {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
+    const std::vector<std::shared_ptr<JointBeam>> column_joints = wood_floor::add_connectors(session, model, members, wood_floor::add_group(session, "connectors", root), {wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap});
+    const std::vector<std::shared_ptr<JointBeam>> plates = of_kind(column_joints, "connector");
+    const std::vector<std::shared_ptr<JointBeam>> laps = of_kind(column_joints, "connector_cross_lap");
+    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_connectors(session, model, members, wood_floor::add_group(session, "outer_rib_connectors", root), {wood_floor::Relation::seam_tie});
+    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_connectors(session, model, members, wood_floor::add_group(session, "quarter_connectors", floor), {wood_floor::Relation::block_dowels});
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     size_t pins = 0;
 
@@ -212,15 +275,18 @@ int main() {
         pins += joint->drill_lines.size();
 
     std::cout << fmt::format("{} elements, {} wedges, {} dowel sets of {} dowels, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), dowels.size(), pins, plates.size(), laps.size(), ties.size(), ms) << std::endl;
+    std::cout << fmt::format("{} of 44 contacts verified by the kernel's search", 44 - mismatches.size()) << std::endl;
 
-    for (size_t i = 0; i < quarters.size(); i++)
-        print_dowels(session, quarters[i], dowels, static_cast<int>(i));
+    for (size_t i = 0; i < members.quarters.size(); i++)
+        print_dowels(session, members.quarters[i], dowels, static_cast<int>(i));
 
     count_breps(session);
     session.pb_dump(pb_path("live"));
 
-    if constexpr (DUMP)
-        dump_parity(session, ribs, ties);
+    if constexpr (DUMP) {
+        dump_parity(session, model, members, plates, ties);
+        dump_ties(model, members, ties);
+    }
 
     return 0;
 }

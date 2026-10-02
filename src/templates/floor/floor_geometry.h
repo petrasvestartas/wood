@@ -57,6 +57,9 @@ session_cpp::Polyline offset_polyline(const session_cpp::Polyline& polyline, dou
 /// The area centroid of a closed planar polyline.
 session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
 
+/// The area of a closed planar polyline.
+double polygon_area(const session_cpp::Polyline& polyline);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════

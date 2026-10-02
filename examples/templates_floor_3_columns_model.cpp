@@ -13,7 +13,7 @@ int main() {
 
     for (size_t q = 0; q < 4; q++) {
         const std::shared_ptr<TreeNode> group = wood_floor::add_group(session, fmt::format("column_model_{}", q), root);
-        const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, q, group);
+        const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, q, group).column;
         std::cout << fmt::format("{} carved volume {:.3f} closed {}", column->name, compute_volume(column->model_geometry_mesh()), column->model_geometry_mesh().is_closed()) << std::endl;
     }
 

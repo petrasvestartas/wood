@@ -156,6 +156,24 @@ Point area_centroid(const Polyline& polyline) {
     return origin + sum / area;
 }
 
+double polygon_area(const Polyline& polyline) {
+
+    std::vector<Point> points = polyline.get_points();
+
+    if (polyline.is_closed())
+        points.pop_back();
+
+    if (points.size() < 3)
+        return 0.0;
+
+    Vector sum(0.0, 0.0, 0.0);
+
+    for (size_t i = 1; i + 1 < points.size(); i++)
+        sum += (points[i] - points[0]).cross(points[i + 1] - points[0]);
+
+    return 0.5 * sum.magnitude();
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
