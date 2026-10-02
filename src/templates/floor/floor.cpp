@@ -80,43 +80,6 @@ static std::vector<std::array<Plane, 2>> wedge_planes(const FloorGuide& guide, c
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Static constructors
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// The oculus corner towards the edge midpoint at index k of the four: its distance from the centre is size_oculus times its own over the geometric mean of its neighbours'.
-static Point oculus_corner(const std::array<Point, 4>& midpoints, size_t k, double size_oculus) {
-
-    const Point centre(0.0, 0.0, 0.0);
-    const double own = (midpoints[k] - centre).magnitude();
-    const double before = (midpoints[(k + 3) % 4] - centre).magnitude();
-    const double after = (midpoints[(k + 1) % 4] - centre).magnitude();
-
-    return centre + (midpoints[k] - centre).normalized() * (size_oculus * own / std::sqrt(before * after));
-}
-
-FloorGuide FloorGuide::trapezoid(const std::array<Point, 4>& corners, int quadrant, const FloorGuide& sizes) {
-
-    const size_t q = static_cast<size_t>(quadrant) % 4;
-    std::array<Point, 4> midpoints;
-
-    for (size_t k = 0; k < 4; k++)
-        midpoints[k] = Line::from_points(corners[k], corners[(k + 1) % 4]).center();
-
-    FloorGuide guide = sizes;
-    guide.corner = corners[q];
-    guide.midpoint_x = midpoints[q];
-    guide.midpoint_y = midpoints[(q + 3) % 4];
-    guide.oculus_x = oculus_corner(midpoints, q, sizes.size_oculus);
-    guide.oculus_y = oculus_corner(midpoints, (q + 3) % 4, sizes.size_oculus);
-
-    return guide;
-}
-
-FloorGuide FloorGuide::rectangle(double gx, double gy, int quadrant, const FloorGuide& sizes) {
-    return trapezoid({Point(-gx, -gy, 0.0), Point(gx, -gy, 0.0), Point(gx, gy, 0.0), Point(-gx, gy, 0.0)}, quadrant, sizes);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Plan
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -124,30 +87,32 @@ double FloorGuide::static_h() const {
     return height - rise;
 }
 
-Vector FloorGuide::x_axis() const {
-    return (midpoint_x - corner).normalized();
-}
-
-Vector FloorGuide::y_axis() const {
-    return (midpoint_y - corner).normalized();
-}
-
 Point FloorGuide::corner_point_column(double column_size) const {
-    return corner + x_axis() * (column_size * 0.5) + y_axis() * (column_size * 0.5);
+    return Point(-(size_grid_x - column_size * 0.5), -(size_grid_y - column_size * 0.5), 0.0);
+}
+
+std::vector<Point> FloorGuide::oculus_points() const {
+
+    const double x = size_oculus * size_grid_x / size_grid_y;
+    const double y = size_oculus * size_grid_y / size_grid_x;
+
+    return {Point(0.0, -y, 0.0), Point(x, 0.0, 0.0), Point(0.0, y, 0.0), Point(-x, 0.0, 0.0)};
 }
 
 std::vector<Point> FloorGuide::quarter_polygon() const {
-    return {corner, midpoint_x, oculus_x, oculus_y, midpoint_y};
+
+    const std::vector<Point> oculus = oculus_points();
+
+    return {Point(-size_grid_x, -size_grid_y, 0.0), Point(0.0, -size_grid_y, 0.0), oculus[0], oculus[3], Point(-size_grid_x, 0.0, 0.0)};
 }
 
 std::vector<Point> FloorGuide::quarter_column_polygon() const {
 
-    const Vector x = x_axis();
-    const Vector y = y_axis();
+    const Point corner = quarter_polygon()[0];
     const double head = size_column_head;
     const double chamfer = size_column_head_chamfer;
 
-    return {corner, corner + x * head, corner + x * head + y * chamfer, corner + x * chamfer + y * head, corner + y * head};
+    return {corner, corner + Vector(head, 0.0, 0.0), corner + Vector(head, chamfer, 0.0), corner + Vector(chamfer, head, 0.0), corner + Vector(0.0, head, 0.0)};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

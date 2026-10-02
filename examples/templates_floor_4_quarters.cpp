@@ -7,7 +7,9 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of every element to data/output/pb/floor_4_quarters.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide SIZES{
+const wood_floor::FloorGuide GUIDE{
+    .size_grid_x = 3000.0,
+    .size_grid_y = 3000.0,
     .size_column_head = 220.0,
     .size_column_head_chamfer = 120.0,
     .size_outer_ribs = 100.0,
@@ -39,7 +41,7 @@ int main() {
     for (int i = 0; i < 4; i++) {
         const std::string suffix = fmt::format("_{}", i);
         const std::shared_ptr<TreeNode> group = wood_floor::add_group(session, "quarter_model" + suffix, root);
-        wood_floor::add_quarter_model(session, wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, SIZES), group, suffix);
+        wood_floor::add_quarter_model(session, GUIDE, Xform::rotation_z(i * 90.0, true), group, suffix);
     }
 
     std::cout << fmt::format("{} elements: {} plates, {} variable beams", session.objects.elements->size(), session.plates().size(), session.beam_variables().size()) << std::endl;
@@ -53,7 +55,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 4 of the timber floor, port of compas_tf example_model_4_quarters: one quarter of the bay from the FloorGuide, lifted to the floor at 3500, in the groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams, built in place in each quadrant of the bay with the quarter index on every name. Ribs and inner beams are variable beams, every other member a plate. DUMP writes name, volume and box centre of every element, compared against compas_tf.
+Step 4 of the timber floor, port of compas_tf example_model_4_quarters: one quarter of the bay from the FloorGuide, lifted to the floor at 3500, in the groups beds (one per row), tsections, outer_ribs, inner_ribs, wedges_inner_beams and inner_beams, placed four times by quarter turns about the bay centre with the quarter index on every name. Ribs and inner beams are variable beams, every other member a plate. DUMP writes name, volume and box centre of every element, compared against compas_tf.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

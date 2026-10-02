@@ -12,17 +12,6 @@ const wood_floor::FloorGuide GUIDE{
     .size_wedge = 240.0,
 };
 
-/// The four quarter guides of the square bay.
-std::vector<wood_floor::FloorGuide> square_guides() {
-
-    std::vector<wood_floor::FloorGuide> guides;
-
-    for (int i = 0; i < 4; i++)
-        guides.push_back(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, GUIDE));
-
-    return guides;
-}
-
 const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
 const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
 const double COMPAS_TF_TIED_RIB = 98812970.259836; // the same rib after the seam connector pocket too
@@ -69,7 +58,7 @@ void check_beams() {
         check_beam(*beams.back(), outline, 6, "inner beam");
     }
 
-    const std::vector<wood_floor::Outline> oculus = wood_floor::FloorGuide::oculus(square_guides());
+    const std::vector<wood_floor::Outline> oculus = GUIDE.oculus();
 
     for (size_t i = 0; i < 4; i++) {
         beams.push_back(wood_floor::to_beam(oculus[i], {1, 0}, {2, 3}, "oculus_beam"));
@@ -104,7 +93,7 @@ void check_beams() {
 void check_thickness() {
 
     WoodSession scene("thickness");
-    const wood_floor::Quarter quarter = wood_floor::add_quarter_model(scene, wood_floor::FloorGuide::rectangle(3000.0, 3000.0, 1, GUIDE), nullptr, "_1");
+    const wood_floor::Quarter quarter = wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(90.0, true), nullptr, "_1");
     const std::vector<wood_floor::Outline> outlines = GUIDE.outer_ribs();
 
     check(quarter.outer_ribs[0].thickness == wood_floor::outline_thickness(outlines[0]), "a turned rib keeps its outline's thickness");
@@ -234,7 +223,7 @@ std::vector<wood_floor::Quarter> add_quarters(WoodSession& scene, std::vector<wo
     std::vector<wood_floor::Quarter> quarters;
 
     for (int i = 0; i < 4; i++) {
-        quarters.push_back(wood_floor::add_quarter_model(scene, wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, GUIDE), nullptr, fmt::format("_{}", i)));
+        quarters.push_back(wood_floor::add_quarter_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
         ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
     }
 
@@ -258,7 +247,7 @@ void check_wedges() {
     WoodSession scene("wedges");
     std::vector<wood_floor::Member> ring;
     add_quarters(scene, ring);
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(scene, square_guides(), nullptr);
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(scene, GUIDE, nullptr);
     ring.insert(ring.end(), oculus.begin(), oculus.end());
     const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_wedges(scene, ring, nullptr);
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
@@ -507,7 +496,7 @@ void check_rectangle_plates() {
     std::vector<std::shared_ptr<Column>> columns;
 
     for (int i = 0; i < 4; i++)
-        columns.push_back(wood_floor::add_column_model(scene, wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, GUIDE), nullptr, fmt::format("_{}", i)));
+        columns.push_back(wood_floor::add_column_model(scene, GUIDE, Xform::rotation_z(i * 90.0, true), nullptr, fmt::format("_{}", i)));
 
     const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
     const std::vector<std::shared_ptr<JointBeam>> plates = wood_floor::add_rectangle_plates(scene, columns, ribs, nullptr);
@@ -540,44 +529,6 @@ void check_rectangle_plates() {
     check_loaded_tie_cuts(scene, ties);
 }
 
-/// The 6000 x 4800 bay: four quarters built in place, their outer ribs along the long and the short edge, the oculus ringed by them, and the same connectors as on the square: eight rectangle plates, four ties and twenty-four dowel sets of four.
-void check_rectangle_bay() {
-
-    WoodSession scene("rectangle_bay");
-    std::vector<wood_floor::FloorGuide> guides;
-    std::vector<wood_floor::Quarter> quarters;
-    std::vector<std::shared_ptr<Column>> columns;
-    std::vector<wood_floor::Member> ring;
-
-    for (int i = 0; i < 4; i++) {
-        guides.push_back(wood_floor::FloorGuide::rectangle(3000.0, 2400.0, i, GUIDE));
-        quarters.push_back(wood_floor::add_quarter_model(scene, guides.back(), nullptr, fmt::format("_{}", i)));
-        columns.push_back(wood_floor::add_column_model(scene, guides.back(), nullptr, fmt::format("_{}", i)));
-        ring.insert(ring.end(), quarters.back().inner_beams.begin(), quarters.back().inner_beams.end());
-    }
-
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(scene, guides, nullptr);
-    ring.insert(ring.end(), oculus.begin(), oculus.end());
-    const std::vector<wood_floor::Member> ribs = outer_ribs(quarters);
-    const double long_rib = compute_volume(ribs[0].element->element_geometry_mesh());
-    const double short_rib = compute_volume(ribs[1].element->element_geometry_mesh());
-    check(long_rib > short_rib && std::abs(compute_volume(ribs[3].element->element_geometry_mesh()) - long_rib) <= 1e-9 * long_rib, "the outer ribs follow the long and the short edge in every quarter");
-
-    for (const std::shared_ptr<Element>& element : scene.world_elements())
-        check(element->element_geometry_mesh().is_closed(), element->name + " closed");
-
-    check(wood_floor::add_wedges(scene, ring, nullptr).size() == 8, "eight wedges");
-    check(wood_floor::add_rectangle_plates(scene, columns, ribs, nullptr).size() == 8, "eight rectangle plates");
-    check(wood_floor::add_ties(scene, ribs, nullptr).size() == 4, "four ties");
-    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_quarter_dowels(scene, quarters, nullptr);
-    check(sets.size() == 24, "twenty-four dowel sets, not " + std::to_string(sets.size()));
-
-    for (const std::shared_ptr<JointBeam>& set : sets)
-        check(set->drill_lines.size() == 4, "four dowels per contact");
-
-    std::cout << "floor_elements: the 6000 x 4800 bay closed with 8 wedges, 8 rectangle plates, 4 ties and 24 dowel sets of four" << std::endl;
-}
-
 int main() {
 
     check_beams();
@@ -587,7 +538,6 @@ int main() {
     check_dowels();
     check_quarter_dowels();
     check_rectangle_plates();
-    check_rectangle_bay();
 
     return 0;
 }

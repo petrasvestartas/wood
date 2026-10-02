@@ -224,35 +224,35 @@ std::vector<std::vector<Outline>> FloorGuide::beds() const {
 // Oculus
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Outline> FloorGuide::oculus(const std::vector<FloorGuide>& quarters) {
+std::vector<Outline> FloorGuide::oculus() const {
 
-    const FloorGuide& guide = quarters.front();
-    const size_t n = quarters.size();
+    const ConstructionPlanes cp = construction_planes();
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-guide.static_h() + guide.size_tsections);
-    const Plane side2 = level(-guide.static_h());
-    const Plane side3 = level(-guide.static_h() + guide.size_tsections * 2.0);
+    const Plane side1 = level(-static_h() + size_tsections);
+    const Plane side2 = level(-static_h());
+    const Plane side3 = level(-static_h() + size_tsections * 2.0);
+    const Vector z(0.0, 0.0, 1.0);
+    const Point origin(0.0, 0.0, 0.0);
 
-    std::vector<Plane> outer;
-    std::vector<Plane> inner;
+    std::vector<Plane> rotated;
+    std::vector<Plane> rotated_inner;
 
-    for (const FloorGuide& quarter : quarters) {
-        const ConstructionPlanes cp = quarter.construction_planes();
-        outer.push_back(cp.inner_beams[1][0]);
-        inner.push_back(offset(cp.inner_beams[1][1], -guide.size_inner_beams * 2.0));
+    for (int i = 0; i < 4; i++) {
+        rotated.push_back(rotate(cp.inner_beams[1][0], i * M_PI / 2.0, z, origin));
+        rotated_inner.push_back(rotate(offset(cp.inner_beams[1][1], -size_inner_beams * 2.0), i * M_PI / 2.0, z, origin));
     }
 
     std::vector<Outline> plates;
 
-    for (size_t i = 0; i < n; i++)
-        plates.push_back(loft_planes({side2, outer[(i + 1) % n], side0, inner[(i + n - 1) % n]}, outer[i], inner[i], true));
+    for (size_t i = 0; i < 4; i++)
+        plates.push_back(loft_planes({side2, rotated[(i + 1) % 4], side0, rotated_inner[(i + 3) % 4]}, rotated[i], rotated_inner[i], true));
 
-    for (size_t i = 0; i < n; i++) {
-        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % n], offset(inner[i], -guide.size_tsections), offset(inner[(i + n - 1) % n], -guide.size_tsections)};
+    for (size_t i = 0; i < 4; i++) {
+        const std::vector<Plane> sides = {rotated_inner[i], rotated_inner[(i + 1) % 4], offset(rotated_inner[i], -size_tsections), offset(rotated_inner[(i + 3) % 4], -size_tsections)};
         plates.push_back(loft_planes(sides, side2, side1));
     }
 
-    plates.push_back(loft_planes(inner, side1, side3));
+    plates.push_back(loft_planes(rotated_inner, side1, side3));
 
     return plates;
 }

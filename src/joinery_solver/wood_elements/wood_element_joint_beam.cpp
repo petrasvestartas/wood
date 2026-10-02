@@ -283,7 +283,7 @@ static std::array<Polyline, 2> frame_box(const Point& origin, const std::array<V
     return loops;
 }
 
-/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four dowels across it margin_x and margin_z radii in from its ends and its top and bottom, dowel_length long but flush with the members; it cuts its box, raised and run back by overshoot so a slot through the column opens cleanly, and the dowel holes out of both; aimed at the column then the rib.
+/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four dowels across it margin_x and margin_z radii in from its ends and its top and bottom, dowel_length long but flush with the members; it cuts its box, raised by overshoot, and the dowel holes out of both; aimed at the column then the rib.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, const Element& rib, const InteractionContactFace& contact, double dowel_length, double width, double back, double front, double height, double dowel_radius, double margin_x, double margin_z, double overshoot, int dowel_sides) {
 
     std::vector<Point> points = contact.polygon.get_points();
@@ -315,7 +315,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(const Element& column, con
     joint->targets = {column.guid(), rib.guid()};
     joint->parts = {frame_box(origin, axes, -back, front, width, -height, 0.0)};
 
-    const std::array<Polyline, 2> pocket = frame_box(origin, axes, -back - overshoot, front, width, -height, overshoot);
+    const std::array<Polyline, 2> pocket = frame_box(origin, axes, -back, front, width, -height, overshoot);
     joint->cutters = {{pocket}, {pocket}};
 
     const double half = 0.5 * dowel_length;

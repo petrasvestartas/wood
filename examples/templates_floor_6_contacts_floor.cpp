@@ -8,7 +8,9 @@ using namespace wood_session;
 
 const bool DUMP = true; // write name, volume and box centre of the carved ring beams, the wedges and their dowels to data/output/pb/floor_6_contacts_floor.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide SIZES{
+const wood_floor::FloorGuide GUIDE{
+    .size_grid_x = 3000.0,
+    .size_grid_y = 3000.0,
     .size_column_head = 220.0,
     .size_column_head_chamfer = 120.0,
     .size_outer_ribs = 100.0,
@@ -50,16 +52,14 @@ int main() {
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
     const std::shared_ptr<TreeNode> quarters = wood_floor::add_group(session, "quarters_model", root);
     std::vector<wood_floor::Member> ring;
-    std::vector<wood_floor::FloorGuide> guides;
 
     for (int i = 0; i < 4; i++) {
         const std::string suffix = fmt::format("_{}", i);
-        guides.push_back(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, SIZES));
-        const wood_floor::Quarter quarter = wood_floor::add_quarter_model(session, guides.back(), wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
+        const wood_floor::Quarter quarter = wood_floor::add_quarter_model(session, GUIDE, Xform::rotation_z(i * 90.0, true), wood_floor::add_group(session, "quarter_model" + suffix, quarters), suffix);
         ring.insert(ring.end(), quarter.inner_beams.begin(), quarter.inner_beams.end());
     }
 
-    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, guides, wood_floor::add_group(session, "oculus", root));
+    const std::vector<wood_floor::Member> oculus = wood_floor::add_oculus_model(session, GUIDE, wood_floor::add_group(session, "oculus", root));
     ring.insert(ring.end(), oculus.begin(), oculus.end());
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();

@@ -6,7 +6,9 @@ using namespace wood_session;
 
 const bool DUMP = true; // write every guide coordinate to data/output/pb/floor_1_floorguide.txt, the parity record against compas_tf
 
-const wood_floor::FloorGuide SIZES{
+const wood_floor::FloorGuide GUIDE{
+    .size_grid_x = 3000.0,
+    .size_grid_y = 3000.0,
     .size_column_head = 220.0,
     .size_column_head_chamfer = 120.0,
     .size_outer_ribs = 100.0,
@@ -78,25 +80,13 @@ void dump(std::ofstream& file, const std::string& group, const std::vector<std::
         }
 }
 
-/// The oculus corners of the bay, one per quarter towards its first edge midpoint, in quadrant order.
-std::vector<Point> oculus_points(const std::vector<wood_floor::FloorGuide>& quarters) {
+/// Every guide coordinate in the order compas_tf's dump writes them.
+void dump_guide(const wood_floor::FloorGuide& guide, const std::string& path) {
 
-    std::vector<Point> points;
-
-    for (const wood_floor::FloorGuide& quarter : quarters)
-        points.push_back(quarter.oculus_x);
-
-    return points;
-}
-
-/// Every guide coordinate of the first quarter in the order compas_tf's dump writes them, the oculus from all four.
-void dump_guide(const std::vector<wood_floor::FloorGuide>& quarters, const std::string& path) {
-
-    const wood_floor::FloorGuide& guide = quarters.front();
     std::ofstream file(path);
     dump(file, "quarter_polygon", guide.quarter_polygon());
     dump(file, "quarter_column_polygon", guide.quarter_column_polygon());
-    dump(file, "oculus_points", oculus_points(quarters));
+    dump(file, "oculus_points", guide.oculus_points());
 
     const wood_floor::ConstructionPlanes cp = guide.construction_planes();
     dump(file, "outer_ribs", cp.outer_ribs);
@@ -132,7 +122,7 @@ void dump_guide(const std::vector<wood_floor::FloorGuide>& quarters, const std::
     dump(file, "wedges_inner_beams", guide.wedges_inner_beams());
     dump(file, "tsections", guide.tsections());
     dump(file, "beds", guide.beds());
-    dump(file, "oculus", wood_floor::FloorGuide::oculus(quarters));
+    dump(file, "oculus", guide.oculus());
     dump(file, "column_cutters", guide.column_cutters());
 }
 
@@ -166,20 +156,15 @@ void add(WoodSession& session, const std::vector<Polyline>& quads, const std::st
 int main() {
 
     WoodSession session("templates_floor_1_floorguide");
-    std::vector<wood_floor::FloorGuide> quarters;
 
-    for (int i = 0; i < 4; i++)
-        quarters.push_back(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, i, SIZES));
-
-    const wood_floor::FloorGuide& guide = quarters.front();
     const std::shared_ptr<TreeNode> plan = session.add_group("plan");
-    add(session, loop(guide.quarter_polygon()), "quarter_polygon", plan);
-    add(session, loop(guide.quarter_column_polygon()), "quarter_column_polygon", plan);
+    add(session, loop(GUIDE.quarter_polygon()), "quarter_polygon", plan);
+    add(session, loop(GUIDE.quarter_column_polygon()), "quarter_column_polygon", plan);
 
-    for (const Point& point : oculus_points(quarters))
+    for (const Point& point : GUIDE.oculus_points())
         session.add_point(std::make_shared<Point>(point), plan);
 
-    const wood_floor::ConstructionQuads quads = guide.construction_quads();
+    const wood_floor::ConstructionQuads quads = GUIDE.construction_quads();
     const std::shared_ptr<TreeNode> quad_group = session.add_group("construction_quads");
     add(session, quads.outer_ribs, "outer_ribs", quad_group);
     add(session, quads.inner_beams, "inner_beams", quad_group);
@@ -187,7 +172,7 @@ int main() {
     add(session, quads.wedges, "wedges", quad_group);
     add(session, quads.t_sections, "t_sections", quad_group);
 
-    const std::vector<std::array<Polyline, 3>> parabolas = guide.boundary_parabolas();
+    const std::vector<std::array<Polyline, 3>> parabolas = GUIDE.boundary_parabolas();
     const std::shared_ptr<TreeNode> parabola_group = session.add_group("parabolas");
 
     for (size_t i = 0; i < parabolas.size(); i++)
@@ -197,7 +182,7 @@ int main() {
     session.pb_dump(pb_path("live"));
 
     if constexpr (DUMP)
-        dump_guide(quarters, std::filesystem::path(pb_path("floor_1_floorguide")).replace_extension(".txt").string());
+        dump_guide(GUIDE, std::filesystem::path(pb_path("floor_1_floorguide")).replace_extension(".txt").string());
 
     return 0;
 }

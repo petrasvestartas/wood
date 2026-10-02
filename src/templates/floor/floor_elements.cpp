@@ -12,14 +12,9 @@ static Polyline section(const Point& a, const Point& b, const Point& c, const Po
     return Polyline({a, b, c, d}).closed();
 }
 
-/// The closed rhombus from corner over side along the guide's two edge directions, at z.
-static Polyline rhombus(const FloorGuide& guide, double side, double z) {
-
-    const Point corner(guide.corner[0], guide.corner[1], z);
-    const Vector x = guide.x_axis() * side;
-    const Vector y = guide.y_axis() * side;
-
-    return section(corner, corner + x, corner + x + y, corner + y);
+/// The closed square from corner over the sides x and y, at z.
+static Polyline square(const Point& corner, double x, double y, double z) {
+    return section(Point(corner[0], corner[1], z), Point(corner[0] + x, corner[1], z), Point(corner[0] + x, corner[1] + y, z), Point(corner[0], corner[1] + y, z));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -69,19 +64,21 @@ std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std:
 
 std::shared_ptr<wood_session::Support> to_support(const FloorGuide& guide) {
 
-    const Plane plane = Plane::from_frame(guide.corner_point_column(guide.size_column_head), guide.x_axis(), guide.y_axis(), Vector(0.0, 0.0, 1.0));
+    const Plane plane = Plane::from_frame(guide.corner_point_column(guide.size_column_head), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0));
 
     return std::make_shared<wood_session::Support>(plane, "support");
 }
 
 std::shared_ptr<wood_session::Column> to_column(const FloorGuide& guide, const wood_session::Support& support) {
 
+    const Point corner = guide.quarter_polygon()[0];
     const Point foot = support.column_foot();
     const double side = guide.size_column_head;
+    const double head = side + guide.size_column_head_chamfer;
     const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
 
-    std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, rhombus(guide, side, foot[2]), "column");
-    column->head = rhombus(guide, side + guide.size_column_head_chamfer, foot[2]);
+    std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, side, foot[2]), "column");
+    column->head = square(corner, head, head, foot[2]);
     column->head_height = guide.column_head_depth;
 
     return column;
