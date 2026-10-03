@@ -331,6 +331,9 @@ enum class Family {
 /// What two members share and the connector that belongs to it; the screw kinds are the assembly screws, pre-drilled lines both members read.
 enum class Relation { support, cutter, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels, screw_rib_beam, screw_beam_mitre, screw_rib_corner, screw_ring, screw_oculus };
 
+/// Where a relationship's connector lives in the scene tree: inside one quarter, in the oculus, at a column, or on the seam between two quarters.
+enum class Place { quarter, oculus, column, seam };
+
 /// The screw relation kinds in the order relationships() lists them.
 const std::array<Relation, 5> SCREW_RELATIONS = {Relation::screw_rib_beam, Relation::screw_beam_mitre, Relation::screw_rib_corner, Relation::screw_ring, Relation::screw_oculus};
 
@@ -368,6 +371,9 @@ struct Relationship {
 
     /// The member with the smaller scene order first, as compas_tf's search listed the pair.
     std::array<MemberRef, 2> scene_pair() const;
+
+    /// Where its connector lives, by its kind: the block dowels and the quarter screws in quarter seam_or_corner, the oculus wedges and the ring and oculus screws in the oculus, the column plates, cross laps, supports and cutters at column seam_or_corner, the seam wedges and ties on seam seam_or_corner.
+    Place place() const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -388,6 +394,7 @@ struct QuarterMembers {
     std::vector<Member> blocks; // Three wedge block plates.
     std::vector<Member> tsections; // Six plates.
     std::vector<std::vector<Member>> beds; // Three rows of plates.
+    std::shared_ptr<session_cpp::TreeNode> group; // Its quarter_model_q group, which holds its connectors_q.
 };
 
 /// A column model in the scene: the support, the column and the six head cutters.
@@ -395,6 +402,7 @@ struct ColumnModel {
     std::shared_ptr<wood_session::Support> support; // On the slab.
     std::shared_ptr<wood_session::Column> column; // Carved by the cutters.
     std::vector<std::shared_ptr<wood_session::Joint>> cutters; // The six solid difference cutters.
+    std::shared_ptr<session_cpp::TreeNode> group; // Its column_model_q group, which holds its connectors_column_q.
 };
 
 /// The placed members of the whole floor by quarter and family, the ring beams and the column models.
@@ -402,6 +410,8 @@ struct FloorMembers {
     std::array<QuarterMembers, 4> quarters; // Quarter q at corner q.
     std::vector<Member> ring; // The four ring beams.
     std::vector<ColumnModel> columns; // Column q at corner q, empty until the columns are added.
+    std::shared_ptr<session_cpp::TreeNode> group; // The group the floor was added under, null at the tree root; it holds the seams group.
+    std::shared_ptr<session_cpp::TreeNode> oculus; // The oculus group, which holds connectors_oculus.
 
     /// The scene element a reference names; null for a reference that is not in the scene.
     std::shared_ptr<session_cpp::Element> get(const MemberRef& ref) const;
@@ -446,8 +456,11 @@ std::vector<Relationship> relationships(const Floor& floor);
 /// The colour of every connector node and of every part and dowel node nested under it.
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color::red();
 
-/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::shared_ptr<session_cpp::TreeNode>& group, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
+/// The group a relationship's connector goes under, by its place, made the first time: connectors_q under quarter_model_q, connectors_oculus under the oculus, connectors_column_q under column_model_q, seam_k under the floor's seams group, which holds seam_0 to seam_3 in order.
+std::shared_ptr<session_cpp::TreeNode> connector_group(wood_session::WoodSession& session, const FloorMembers& members, const Relationship& row);
+
+/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
 
 /// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians); returns what does not.
 std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});

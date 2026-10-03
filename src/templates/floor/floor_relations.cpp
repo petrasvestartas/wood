@@ -80,6 +80,20 @@ std::array<MemberRef, 2> Relationship::scene_pair() const {
     return a.order() <= b.order() ? std::array<MemberRef, 2>{a, b} : std::array<MemberRef, 2>{b, a};
 }
 
+Place Relationship::place() const {
+
+    if (kind == Relation::column_plate || kind == Relation::cross_lap || kind == Relation::support || kind == Relation::cutter)
+        return Place::column;
+
+    if (kind == Relation::seam_wedge || kind == Relation::seam_tie)
+        return Place::seam;
+
+    if (kind == Relation::oculus_wedge || kind == Relation::screw_ring || kind == Relation::screw_oculus)
+        return Place::oculus;
+
+    return Place::quarter;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Relationships
 // ═══════════════════════════════════════════════════════════════════════════

@@ -861,7 +861,7 @@ FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, c
 std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession&, const Floor&, size_t corner, group);                 // Support, column, support joint, six cutters at corner k.
 QuarterMembers add_quarter_model(wood_session::WoodSession&, const Quarter&, group);                                                     // The six families, suffix "_k".
 std::vector<Member> add_oculus_model(wood_session::WoodSession&, const Floor&, group);
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession&, const Floor&, const FloorMembers&, group);   // One JointBeam per relationship through the existing factories.
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession&, const Floor&, const FloorMembers&, kinds);   // One JointBeam per relationship through the existing factories, under connector_group(row) (section 8.2).
 std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession&, const Floor&, const FloorMembers&, double tolerance = 1e-6);        // compute_face_contact on uncut copies against every constructed contact: plane, top edge, area.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession&, const Member& a, const Member& b, wood_session::ContactType expected, const std::string& relation);   // Throws naming the relation.
 ```
@@ -1024,6 +1024,64 @@ Every connector is drawn red: `add_connectors` sets `CONNECTOR_COLOR` (`Color::r
 connector's tree node and on every part and dowel node nested under it (`Session::set_node_color`),
 and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
 rather than on a group, because no viewer reads a group's colour for the objects under it.
+
+### 8.2 The scene tree
+
+Every connector sits, with its nested parts and dowels, in the group of the members it joins, so
+each quarter, the oculus, each column and each seam is one subtree. `Relationship::place()` reads
+the place from the row's kind and `seam_or_corner` holds its index; no name is parsed:
+
+| place | relations | group |
+|---|---|---|
+| quarter q | `block_dowels`, `screw_rib_beam`, `screw_beam_mitre`, `screw_rib_corner` | `quarter_model_q > connectors_q` |
+| oculus | `oculus_wedge`, `screw_ring`, `screw_oculus` | `oculus > connectors_oculus` |
+| column q | `column_plate`, `cross_lap` (and `support`, `cutter`, already in `column_model_q`) | `column_model_q > connectors_column_q` |
+| seam k | `seam_wedge`, `seam_tie` (the two quarters' mitre screws at a seam stay in their own quarters) | `floor_model > seams > seam_k` |
+
+`connector_group(session, members, row)` finds the group among its parent's children or adds it
+after them the first time; the parents are kept in `FloorMembers` (`group`, `oculus`,
+`quarters[q].group`, `columns[q].group`), and `seams` is made with `seam_0` to `seam_3` in order.
+`add_connectors` adds each connector there, and `add_connector` nests its parts and dowels under
+its node as before. Names, the connector order and the geometry do not change. Examples 8 and 9:
+
+```
+cantilever_model
+  floor_model
+    quarters_model
+      quarter_model_0
+        beds_0, tsections_0, outer_ribs_0, inner_ribs_0, wedges_inner_beams_0, inner_beams_0
+        connectors_0                      6 connector_dowels, 6 connector_screws
+          connector_dowels_0
+            connector_dowels_0_dowel_0 .. _3
+          connector_screws_0
+            connector_screws_0_screw_0, _1
+      quarter_model_1 .. 3
+    oculus
+      oculus_0 .. oculus_8
+      connectors_oculus                   4 oculus wedges, 4 ring and 8 oculus screw connectors
+        connector_wedge_1
+          connector_wedge_1_part, connector_wedge_1_dowel_0 ..
+    seams
+      seam_0                              the seam wedge and the tie of seam 0
+        connector_wedge_0
+        outer_rib_connector_0
+          outer_rib_connector_0_part_0 .. _3
+      seam_1 .. 3
+  columns_model
+    column_model_0
+      support_0, column_0, the support joint, the six cutters
+      connectors_column_0                 2 rectangle plates and their cross lap
+        connector_0
+          connector_0_part, connector_0_dowel_0 .. _3
+        connector_1
+        connector_cross_lap_0
+    column_model_1 .. 3
+```
+
+Counts: 12 connectors per quarter, 16 in the oculus, 3 per column and 2 per seam, 84 in all, on
+the square and on 3000 x 2400; the pb keeps the tree (`floor_elements` checks both). The mitre
+screws (`screw_beam_mitre`) of two quarters put their heads at one point of a seam plane but join
+members of one quarter, so they stay in that quarter.
 
 ### 8.1 Screws
 
@@ -1332,3 +1390,7 @@ compas_tf references in `data/reference/floor/`.
   after every other connector; 72 screws on the square and on 3000 x 2400, 36 of 36 screw contacts, the
   closest screws 28.143 mm apart, 137.272 mm from bores, 5.441 mm from pockets, no misfit; every earlier
   dump byte-identical, example 9's records unchanged with the screw lines added.
+* Connector colour and tree (sections 8 and 8.2): every connector node and its nested parts and dowels
+  red; every connector in the subtree of its place (`Relationship::place()`, `connector_group`), 12 per
+  quarter, 16 in the oculus, 3 per column, 2 per seam, kept by the pb; every dump and console of examples
+  1-9, with and without `--compas`, byte-identical.

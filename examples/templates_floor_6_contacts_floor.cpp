@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         std::cout << fmt::format("contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
 
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, floor, members, wood_floor::add_group(session, "connectors", root), kinds);
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, floor, members, kinds);
     session.pb_dump(pb_path("live"));
     const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     size_t dowels = 0;
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 6 of the timber floor, port of compas_tf example_model_6_contacts_floor: the four quarters and the oculus, then a wedge joint on each of the floor's seam and oculus relationships, the contact polygon read from the members' outlines on their shared plane and checked against the kernel's contact search: the triangular wedge along the contact's top edge, its horizontal dowels, and in each beam a box pocket under the wedge face on its side plus the dowel holes. Prints the floor's report; DUMP writes the contact records, the carved ring beams, every wedge and its dowels, compared against compas_tf. Every connector node and every part and dowel nested under it carries the connector colour, red (wood_floor::CONNECTOR_COLOR on the tree node, which the pb keeps).
+Step 6 of the timber floor, port of compas_tf example_model_6_contacts_floor: the four quarters and the oculus, then a wedge joint on each of the floor's seam and oculus relationships, the contact polygon read from the members' outlines on their shared plane and checked against the kernel's contact search: the triangular wedge along the contact's top edge, its horizontal dowels, and in each beam a box pocket under the wedge face on its side plus the dowel holes. Prints the floor's report; DUMP writes the contact records, the carved ring beams, every wedge and its dowels, compared against compas_tf. Every connector node and every part and dowel nested under it carries the connector colour, red (wood_floor::CONNECTOR_COLOR on the tree node, which the pb keeps). The wedges sit in the tree by the members they join: the oculus wedges in oculus > connectors_oculus, the seam wedge of seam k in floor_model > seams > seam_k, each with its wedge and dowels nested under it.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

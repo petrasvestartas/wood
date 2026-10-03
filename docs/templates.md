@@ -185,7 +185,7 @@ The joints and sections, fifteen bays side by side: heads that are the column se
 const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
 wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, group);
 wood_floor::add_columns(session, floor, columns_group, members);
-wood_floor::add_connectors(session, floor, members, connectors_group);
+wood_floor::add_connectors(session, floor, members);
 std::cout << floor.check().str() << std::endl;
 ```
 
@@ -193,7 +193,7 @@ The constructor computes every shared entity once (the bay edges with their rib 
 
 Three rules generalise what compas_tf's square left implicit: rule A for the central panel (the inner ribs swept along one direction solved so the central bed is one planar-faced cylinder between them; on the square it is compas_tf's chamfer direction), rib end faces cut in their end planes on each rib face, and the central panel's layers as offsets in its own cross-section (`CentralLayers::section`, exactly `tsections` thick on every plan). Every outer rib's straight run-in is solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their compas_tf ends (`RibLevel::shared_column`), and the middle column cutter level is that level (`CutterLevel::rib_bottom`); on a rectangle rule A then sweeps the inner ribs within half a degree of the chamfer and every rib meets the head within 0.2 mm of the level. `Floor::compas_parity` keeps compas_tf's layers, cutter level and run-ins for the parity gates; every floor example takes `--compas` for it.
 
-Connectors come from `relationships(floor)`, 76 rows (4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps, 4 ties, 24 block dowel sets, 4 supports, 24 cutters) with their contact polygons read off the members' outlines on the shared planes; `add_connectors` makes one `JointBeam` per row through the factories, `verify_contacts` checks every one against the kernel's contact search, `require_contact` throws naming a relation that does not touch. Every connector node and every part and dowel nested under it is red (`CONNECTOR_COLOR`). `Floor::check()` returns a `FloorReport` of the relations compas_tf relied on silently (seam and oculus identities, rule A's closure and shear, end-face planarity, beds on flanges, rib bottoms against the cutter level, wedge seats, column offsets, the ring's overlap and coverage).
+Connectors come from `relationships(floor)`, 76 rows (4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps, 4 ties, 24 block dowel sets, 4 supports, 24 cutters) with their contact polygons read off the members' outlines on the shared planes; `add_connectors` makes one `JointBeam` per row through the factories, `verify_contacts` checks every one against the kernel's contact search, `require_contact` throws naming a relation that does not touch. Every connector node and every part and dowel nested under it is red (`CONNECTOR_COLOR`). Each connector lives in the subtree of the members it joins, by `Relationship::place()`: `quarter_model_q > connectors_q`, `oculus > connectors_oculus`, `column_model_q > connectors_column_q`, `seams > seam_k`. `Floor::check()` returns a `FloorReport` of the relations compas_tf relied on silently (seam and oculus identities, rule A's closure and shear, end-face planarity, beds on flanges, rib bottoms against the cutter level, wedge seats, column offsets, the ring's overlap and coverage).
 
 | Example | What it builds |
 |---|---|

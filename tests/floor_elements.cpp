@@ -298,7 +298,7 @@ void check_wedges() {
 
     WoodSession scene("wedges");
     const wood_floor::FloorMembers members = wood_floor::add_floor(scene, square_floor(), nullptr);
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(scene, square_floor(), members, nullptr, {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
+    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(scene, square_floor(), members, {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
 
     for (const std::shared_ptr<JointBeam>& wedge : wedges) {
@@ -423,7 +423,7 @@ void check_quarter_dowels() {
 
     WoodSession scene("quarter_dowels");
     const wood_floor::FloorMembers members = wood_floor::add_floor(scene, square_floor(), nullptr);
-    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_connectors(scene, square_floor(), members, nullptr, {wood_floor::Relation::block_dowels});
+    const std::vector<std::shared_ptr<JointBeam>> sets = wood_floor::add_connectors(scene, square_floor(), members, {wood_floor::Relation::block_dowels});
     size_t dowels = 0;
 
     for (const std::shared_ptr<JointBeam>& set : sets) {
@@ -542,7 +542,7 @@ void check_rectangle_plates() {
     wood_floor::FloorMembers members = wood_floor::add_floor(scene, square_floor(), nullptr);
     wood_floor::add_columns(scene, square_floor(), nullptr, members);
     const std::vector<wood_floor::Member> ribs = outer_ribs(members);
-    const std::vector<std::shared_ptr<JointBeam>> joints = wood_floor::add_connectors(scene, square_floor(), members, nullptr, {wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap});
+    const std::vector<std::shared_ptr<JointBeam>> joints = wood_floor::add_connectors(scene, square_floor(), members, {wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap});
     check(joints.size() == 12, "eight rectangle plates and four cross laps, not " + std::to_string(joints.size()));
     const std::vector<std::shared_ptr<JointBeam>> plates(joints.begin(), joints.begin() + 8);
     const std::vector<std::shared_ptr<JointBeam>> laps(joints.begin() + 8, joints.end());
@@ -556,7 +556,7 @@ void check_rectangle_plates() {
     for (const wood_floor::ColumnModel& column : members.columns)
         check(column.column->model_geometry_brep().is_solid() && count_bores(column.column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
 
-    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_connectors(scene, square_floor(), members, nullptr, {wood_floor::Relation::seam_tie});
+    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_connectors(scene, square_floor(), members, {wood_floor::Relation::seam_tie});
     check_ties(scene, ribs, ties);
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -920,20 +920,61 @@ size_t check_connector_colors(const WoodSession& scene, const std::vector<std::s
     return nodes;
 }
 
-/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming both members of its relationship, every screw 200 long, radius 2, held over its length by its members, at least 8 mm from every other and clear of every bore and pocket; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it red, also after the round trip.
+/// The group a connector of that relationship belongs under and that group's parent, as parent/group.
+std::string expected_group(const wood_floor::Relationship& row) {
+
+    const size_t index = row.seam_or_corner;
+
+    if (row.place() == wood_floor::Place::quarter)
+        return fmt::format("quarter_model_{}/connectors_{}", index, index);
+
+    if (row.place() == wood_floor::Place::oculus)
+        return "oculus/connectors_oculus";
+
+    if (row.place() == wood_floor::Place::column)
+        return fmt::format("column_model_{}/connectors_column_{}", index, index);
+
+    return fmt::format("seams/seam_{}", index);
+}
+
+/// Every connector of the floor's relationships, in their order, sits in the group of its place, its parts and dowels nested under it; returns the connectors per group as parent/group.
+std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, const wood_floor::Floor& floor, const std::vector<std::shared_ptr<JointBeam>>& connectors, const std::string& label) {
+
+    std::map<std::string, size_t> counts;
+    size_t next = 0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(floor)) {
+        if (row.kind == wood_floor::Relation::support || row.kind == wood_floor::Relation::cutter)
+            continue;
+
+        const JointBeam& connector = *connectors.at(next++);
+        const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector.guid());
+        const std::shared_ptr<TreeNode> group = node ? node->parent() : nullptr;
+        const std::shared_ptr<TreeNode> parent = group ? group->parent() : nullptr;
+        const std::string path = parent ? parent->name + "/" + group->name : "";
+        check(path == expected_group(row), fmt::format("{} {} of {} under {}, not {}", label, connector.name, row.text(), expected_group(row), path));
+        counts[path]++;
+    }
+
+    check(next == connectors.size(), label + " one connector per relationship");
+
+    return counts;
+}
+
+/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming both members of its relationship, every screw 200 long, radius 2, held over its length by its members, at least 8 mm from every other and clear of every bore and pocket; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it red, every connector in the group of its place with the counts per group, also after the round trip.
 void check_floor_screws(const wood_floor::Floor& floor, const std::string& label) {
 
     WoodSession scene("screws");
     wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
     wood_floor::add_columns(scene, floor, nullptr, members);
-    std::vector<std::shared_ptr<JointBeam>> connectors = wood_floor::add_connectors(scene, floor, members, nullptr);
+    std::vector<std::shared_ptr<JointBeam>> connectors = wood_floor::add_connectors(scene, floor, members);
     std::map<std::string, double> volumes;
 
     for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
         volumes[beam->guid()] = compute_volume(beam->model_geometry_mesh());
 
     const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
-    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(scene, floor, members, nullptr, kinds);
+    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(scene, floor, members, kinds);
     const wood_floor::ScrewCheck report = wood_floor::check_screws(scene, floor, screws);
     connectors.insert(connectors.end(), screws.begin(), screws.end());
     check(report.counts.at(wood_floor::Relation::screw_rib_beam) == 16 && report.counts.at(wood_floor::Relation::screw_beam_mitre) == 16 && report.counts.at(wood_floor::Relation::screw_rib_corner) == 16 && report.counts.at(wood_floor::Relation::screw_ring) == 8 && report.counts.at(wood_floor::Relation::screw_oculus) == 16, label + " screws per kind:\n" + report.str());
@@ -982,13 +1023,24 @@ void check_floor_screws(const wood_floor::Floor& floor, const std::string& label
 
     check(loaded == screws.size(), label + " screw round trip count");
     const size_t painted = check_connector_colors(scene, connectors, label);
+    const std::map<std::string, size_t> groups = check_connector_tree(scene, floor, connectors, label);
+    std::map<std::string, size_t> expected = {{"oculus/connectors_oculus", 16}};
+
+    for (size_t q = 0; q < 4; q++) {
+        expected[fmt::format("quarter_model_{}/connectors_{}", q, q)] = 12;
+        expected[fmt::format("column_model_{}/connectors_column_{}", q, q)] = 3;
+        expected[fmt::format("seams/seam_{}", q)] = 2;
+    }
+
+    check(groups == expected, label + " 12 connectors per quarter, 16 in the oculus, 3 per column, 2 per seam");
+    check(check_connector_tree(back, floor, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
     check(connectors.size() == 84 && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} 84 connectors, {} red nodes, the same after a round trip", label, painted));
     size_t total = 0;
 
     for (const std::pair<const wood_floor::Relation, size_t>& count : report.counts)
         total += count.second;
 
-    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, held, {:.3f} mm apart at the least, {:.3f} mm clear of bores, {:.3f} mm of pockets, nothing cut, pre-drill lines through a round trip; {} connectors and their {} part and dowel nodes red, also after it", total, screws.size(), label, report.screw_screw_mm, report.screw_bore_mm, report.screw_pocket_mm, connectors.size(), painted - connectors.size()) << std::endl;
+    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, held, {:.3f} mm apart at the least, {:.3f} mm clear of bores, {:.3f} mm of pockets, nothing cut, pre-drill lines through a round trip; {} connectors and their {} part and dowel nodes red, 12 in each quarter, 16 in the oculus, 3 at each column, 2 on each seam, also after it", total, screws.size(), label, report.screw_screw_mm, report.screw_bore_mm, report.screw_pocket_mm, connectors.size(), painted - connectors.size()) << std::endl;
 }
 
 /// The assembly screws on the square and on 3000 x 2400.

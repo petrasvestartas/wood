@@ -104,6 +104,7 @@ QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quart
     const std::vector<std::vector<Outline>> beds = view.beds();
     const std::shared_ptr<TreeNode> bed_group = add_group(session, "beds" + suffix, group);
     QuarterMembers quarter;
+    quarter.group = group;
 
     for (size_t row = 0; row < beds.size(); row++) {
         quarter.beds.push_back(to_members(Family::beds, beds[row]));
@@ -149,6 +150,7 @@ ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& fl
 
     const std::string suffix = fmt::format("_{}", corner % 4);
     ColumnModel model;
+    model.group = group;
     model.support = to_support(floor.columns[corner % 4]);
     model.column = to_column(floor.columns[corner % 4], floor.sizes, *model.support);
     add_named(session, model.support, "support" + suffix, group);
@@ -171,11 +173,13 @@ FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, c
 
     const std::shared_ptr<TreeNode> quarters = add_group(session, "quarters_model", group);
     FloorMembers members;
+    members.group = group;
 
     for (size_t q = 0; q < 4; q++)
         members.quarters[q] = add_quarter_model(session, floor.quarter(q), add_group(session, fmt::format("quarter_model_{}", q), quarters));
 
-    members.ring = add_oculus_model(session, floor, add_group(session, "oculus", group));
+    members.oculus = add_group(session, "oculus", group);
+    members.ring = add_oculus_model(session, floor, members.oculus);
 
     return members;
 }
@@ -280,6 +284,65 @@ static std::string connector_prefix(Relation kind) {
     return "connector_dowels";
 }
 
+/// The live child of parent named name, null when there is none; a null parent is the tree's root.
+static std::shared_ptr<TreeNode> child_named(const wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& parent, const std::string& name) {
+
+    const std::shared_ptr<TreeNode> host = parent ? parent : session.tree.root();
+
+    if (!host)
+        return nullptr;
+
+    for (TreeNode* child : host->children())
+        if (child->name == name)
+            return child->shared_from_this();
+
+    return nullptr;
+}
+
+/// The group named name under parent, added after its other children the first time.
+static std::shared_ptr<TreeNode> group_named(wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& parent, const std::string& name) {
+
+    const std::shared_ptr<TreeNode> group = child_named(session, parent, name);
+
+    return group ? group : add_group(session, name, parent);
+}
+
+/// The group of seam k under the floor's seams group, which is made with seam_0 to seam_3 in order the first time.
+static std::shared_ptr<TreeNode> seam_group(wood_session::WoodSession& session, const FloorMembers& members, size_t seam) {
+
+    std::shared_ptr<TreeNode> seams = child_named(session, members.group, "seams");
+
+    if (!seams) {
+        seams = add_group(session, "seams", members.group);
+
+        for (size_t k = 0; k < 4; k++)
+            add_group(session, fmt::format("seam_{}", k), seams);
+    }
+
+    return child_named(session, seams, fmt::format("seam_{}", seam));
+}
+
+std::shared_ptr<TreeNode> connector_group(wood_session::WoodSession& session, const FloorMembers& members, const Relationship& row) {
+
+    const size_t index = row.seam_or_corner;
+    const Place place = row.place();
+
+    if (place == Place::quarter)
+        return group_named(session, members.quarters.at(index).group, fmt::format("connectors_{}", index));
+
+    if (place == Place::oculus)
+        return group_named(session, members.oculus, "connectors_oculus");
+
+    if (place == Place::column) {
+        if (index >= members.columns.size())
+            throw std::runtime_error("the columns are not in the scene for " + row.text());
+
+        return group_named(session, members.columns[index].group, fmt::format("connectors_column_{}", index));
+    }
+
+    return seam_group(session, members, index);
+}
+
 /// The connector of one contact relationship through its factory: the wedge sized by the thicker member, the plate by the rib's thickness, the tie, the screws and the dowels by their defaults.
 static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship& row, const FloorMembers& members) {
 
@@ -314,7 +377,7 @@ static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship&
     return dowels;
 }
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::shared_ptr<TreeNode>& group, const std::vector<Relation>& kinds) {
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::vector<Relation>& kinds) {
 
     std::map<std::string, std::vector<std::shared_ptr<wood_session::JointBeam>>> by_prefix;
     std::map<size_t, std::vector<std::shared_ptr<wood_session::JointBeam>>> plates_of_corner;
@@ -336,7 +399,7 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_sessio
         } else
             connector = connector_of(row, members);
 
-        add_named(session, by_prefix[connector_prefix(row.kind)], connector, connector_prefix(row.kind), group);
+        add_named(session, by_prefix[connector_prefix(row.kind)], connector, connector_prefix(row.kind), connector_group(session, members, row));
         connectors.push_back(connector);
 
         if (row.kind == Relation::column_plate)
