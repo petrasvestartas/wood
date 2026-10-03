@@ -1020,6 +1020,11 @@ counts with mirrored plates). The search is kept only as this check: when geomet
 the constructed contact still exists and the mismatch is reported instead of a connector silently
 vanishing.
 
+Every connector is drawn red: `add_connectors` sets `CONNECTOR_COLOR` (`Color::red()`) on the
+connector's tree node and on every part and dowel node nested under it (`Session::set_node_color`),
+and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
+rather than on a group, because no viewer reads a group's colour for the objects under it.
+
 ### 8.1 Screws
 
 Pre-drilled assembly screws, 200 long, d 4, the user's marks in `docs/floor_screws_marks.webp`.

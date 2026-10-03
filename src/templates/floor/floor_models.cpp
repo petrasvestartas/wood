@@ -53,11 +53,20 @@ static void add_family(wood_session::WoodSession& session, const std::vector<Mem
         add_placed(session, members[i].element, placement, fmt::format("{}_{}{}", prefix, i, suffix), node);
 }
 
-/// Names the connector <prefix>_<i> by its place among the connectors, adds it under the group and appends it.
+/// Colours the node and every node nested under it.
+static void paint(wood_session::WoodSession& session, const std::shared_ptr<TreeNode>& node, const Color& color) {
+
+    session.set_node_color(node, color);
+
+    for (TreeNode* child : node->descendants())
+        session.set_node_color(child->shared_from_this(), color);
+}
+
+/// Names the connector <prefix>_<i> by its place among the connectors, adds it under the group, colours it and its parts and dowels, and appends it.
 static void add_named(wood_session::WoodSession& session, std::vector<std::shared_ptr<wood_session::JointBeam>>& connectors, const std::shared_ptr<wood_session::JointBeam>& connector, const std::string& prefix, const std::shared_ptr<TreeNode>& group) {
 
     connector->name = fmt::format("{}_{}", prefix, connectors.size());
-    session.add_connector(connector, group);
+    paint(session, session.add_connector(connector, group), CONNECTOR_COLOR);
     connectors.push_back(connector);
 }
 

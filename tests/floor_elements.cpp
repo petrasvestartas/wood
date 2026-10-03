@@ -893,13 +893,40 @@ size_t matches(const std::vector<Line>& lines, const Line& line) {
     return count;
 }
 
-/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming both members of its relationship, every screw 200 long, radius 2, held over its length by its members, at least 8 mm from every other and clear of every bore and pocket; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip.
+/// Whether the node carries the connector colour.
+bool in_connector_color(const TreeNode& node) {
+
+    const Color& color = wood_floor::CONNECTOR_COLOR;
+
+    return node.color && node.color->r == color.r && node.color->g == color.g && node.color->b == color.b && node.color->a == color.a;
+}
+
+/// Every connector's node and every part and dowel node nested under it carry the connector colour; returns the nodes checked.
+size_t check_connector_colors(const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& connectors, const std::string& label) {
+
+    size_t nodes = 0;
+
+    for (const std::shared_ptr<JointBeam>& connector : connectors) {
+        const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector->guid());
+        check(node && in_connector_color(*node), label + " " + connector->name + " in the connector colour");
+        nodes++;
+
+        for (TreeNode* child : node->descendants()) {
+            check(in_connector_color(*child), label + " " + connector->name + " child " + child->name + " in the connector colour");
+            nodes++;
+        }
+    }
+
+    return nodes;
+}
+
+/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming both members of its relationship, every screw 200 long, radius 2, held over its length by its members, at least 8 mm from every other and clear of every bore and pocket; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it red, also after the round trip.
 void check_floor_screws(const wood_floor::Floor& floor, const std::string& label) {
 
     WoodSession scene("screws");
     wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
     wood_floor::add_columns(scene, floor, nullptr, members);
-    wood_floor::add_connectors(scene, floor, members, nullptr);
+    std::vector<std::shared_ptr<JointBeam>> connectors = wood_floor::add_connectors(scene, floor, members, nullptr);
     std::map<std::string, double> volumes;
 
     for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
@@ -908,6 +935,7 @@ void check_floor_screws(const wood_floor::Floor& floor, const std::string& label
     const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
     const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(scene, floor, members, nullptr, kinds);
     const wood_floor::ScrewCheck report = wood_floor::check_screws(scene, floor, screws);
+    connectors.insert(connectors.end(), screws.begin(), screws.end());
     check(report.counts.at(wood_floor::Relation::screw_rib_beam) == 16 && report.counts.at(wood_floor::Relation::screw_beam_mitre) == 16 && report.counts.at(wood_floor::Relation::screw_rib_corner) == 16 && report.counts.at(wood_floor::Relation::screw_ring) == 8 && report.counts.at(wood_floor::Relation::screw_oculus) == 16, label + " screws per kind:\n" + report.str());
     check(report.misfits.empty() && report.screw_screw_mm >= 8.0 && report.screw_bore_mm >= 0.0 && report.screw_pocket_mm >= 0.0 && std::abs(report.embedded_min_mm - 200.0) <= 1e-3, label + " screws clear and held:\n" + report.str());
     check(wood_floor::verify_contacts(scene, floor, members, 1e-6, kinds).empty(), label + " every screw contact the kernel's search finds");
@@ -953,12 +981,14 @@ void check_floor_screws(const wood_floor::Floor& floor, const std::string& label
     }
 
     check(loaded == screws.size(), label + " screw round trip count");
+    const size_t painted = check_connector_colors(scene, connectors, label);
+    check(connectors.size() == 84 && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} 84 connectors, {} red nodes, the same after a round trip", label, painted));
     size_t total = 0;
 
     for (const std::pair<const wood_floor::Relation, size_t>& count : report.counts)
         total += count.second;
 
-    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, held, {:.3f} mm apart at the least, {:.3f} mm clear of bores, {:.3f} mm of pockets, nothing cut, pre-drill lines through a round trip", total, screws.size(), label, report.screw_screw_mm, report.screw_bore_mm, report.screw_pocket_mm) << std::endl;
+    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, held, {:.3f} mm apart at the least, {:.3f} mm clear of bores, {:.3f} mm of pockets, nothing cut, pre-drill lines through a round trip; {} connectors and their {} part and dowel nodes red, also after it", total, screws.size(), label, report.screw_screw_mm, report.screw_bore_mm, report.screw_pocket_mm, connectors.size(), painted - connectors.size()) << std::endl;
 }
 
 /// The assembly screws on the square and on 3000 x 2400.

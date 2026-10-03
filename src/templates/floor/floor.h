@@ -443,7 +443,10 @@ void add_columns(wood_session::WoodSession& session, const Floor& floor, const s
 /// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters, wedges and ties in the order compas_tf's search found them; then the screws, per quarter and kind, then the ring's.
 std::vector<Relationship> relationships(const Floor& floor);
 
-/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under group; cross laps need the column plates in the same call.
+/// The colour of every connector node and of every part and dowel node nested under it.
+const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color::red();
+
+/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::shared_ptr<session_cpp::TreeNode>& group, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
 
 /// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians); returns what does not.
