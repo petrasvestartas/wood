@@ -258,6 +258,31 @@ bool face_overlap_area(
     return true;
 }
 
+/// A plate's contact faces: its own planes and outlines in the plate convention, then every face its solid cuts made that none of them holds, so a cut corner meets what cut it.
+void add_cut_faces(const Plate& plate, std::vector<Plane>& planes, std::vector<Polyline>& outlines) {
+
+    if (plate.solid_cuts.empty())
+        return;
+
+    for (const Polyline& outline : plate.model_geometry_mesh().face_outlines()) {
+        std::vector<Point> points = outline.get_points();
+        if (points.size() > 1 && points.front() == points.back())
+            points.pop_back();
+        if (points.size() < 3)
+            continue;
+
+        const Plane plane = Plane::from_point_normal(Point::centroid(points), Vector::average_normal(points));
+        bool known = false;
+        for (const Plane& other : planes)
+            known = known || (other.z_axis().dot(plane.z_axis()) > 1.0 - 1e-6 && std::abs((plane.origin() - other.origin()).dot(other.z_axis())) < 1e-3);
+        if (known)
+            continue;
+
+        planes.push_back(plane);
+        outlines.push_back(outline);
+    }
+}
+
 std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea,
     Element& eb,
@@ -268,14 +293,14 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
 
     const auto* plate_a = dynamic_cast<const Plate*>(&ea);
     const auto* plate_b = dynamic_cast<const Plate*>(&eb);
-    const auto fallback_planes_a = plate_a ? std::vector<Plane>{} : ea.planes();
-    const auto fallback_planes_b = plate_b ? std::vector<Plane>{} : eb.planes();
-    const auto fallback_outlines_a = plate_a ? std::vector<Polyline>{} : ea.polylines();
-    const auto fallback_outlines_b = plate_b ? std::vector<Polyline>{} : eb.polylines();
-    const auto& planes_a = plate_a ? plate_a->planes : fallback_planes_a;
-    const auto& planes_b = plate_b ? plate_b->planes : fallback_planes_b;
-    const auto& outlines_a = plate_a ? plate_a->polylines : fallback_outlines_a;
-    const auto& outlines_b = plate_b ? plate_b->polylines : fallback_outlines_b;
+    std::vector<Plane> planes_a = plate_a ? plate_a->planes : ea.planes();
+    std::vector<Plane> planes_b = plate_b ? plate_b->planes : eb.planes();
+    std::vector<Polyline> outlines_a = plate_a ? plate_a->polylines : ea.polylines();
+    std::vector<Polyline> outlines_b = plate_b ? plate_b->polylines : eb.polylines();
+    if (plate_a)
+        add_cut_faces(*plate_a, planes_a, outlines_a);
+    if (plate_b)
+        add_cut_faces(*plate_b, planes_b, outlines_b);
 
     std::vector<InteractionContactFace> contacts;
     for (size_t i = 0; i < std::min(planes_a.size(), outlines_a.size()); ++i) {
