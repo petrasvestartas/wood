@@ -8,7 +8,7 @@ const Vector X(1.0, 0.0, 0.0);
 const Vector Y(0.0, 1.0, 0.0);
 const std::vector<double> XS = {4000.0};
 const std::vector<double> YS = {3000.0};
-const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3000 + head 300 + beam 200 + deck 200, the datum is the deck underside
+const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3400 + head 300 up to the datum, the deck underside; the 200 deep members sit in the head's top 200 on its arms
 const double GAP = 2000.0;
 const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .head = 300.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances

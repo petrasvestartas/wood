@@ -165,8 +165,23 @@ void add_exit(std::vector<Plane>& planes, const std::vector<Point>& polygon, con
 /// Cut planes of the member on the edge from vertex to other at its vertex end: the column face there, then the through member's side, the mitre with an equal neighbour, or its own open end.
 End compute_cuts(const Context& context, size_t vertex, size_t other);
 
-/// Lowest member bottom at a vertex relative to the datum, 0 when only the deck arrives: the head top under node 0.
+/// Highest member top at a vertex relative to the datum, 0 when only the deck arrives: the head top under node 0.
 double compute_head_top(const Context& context, size_t vertex);
+
+/// Head bottom at a vertex relative to the datum under node 0: head below its top, lower when a member is deeper.
+double compute_head_bottom(const Context& context, size_t vertex);
+
+/// Lowest member bottom at a vertex relative to the datum, 0 when only the deck arrives: where a brace stops.
+double compute_under(const Context& context, size_t vertex);
+
+/// Distance from a vertex along a member to where the head arm under it starts at the top: past the column standing there, its corners within the member's width included, and past every neighbour member it would cross.
+double compute_arm_start(const Context& context, size_t vertex, const Member& member);
+
+/// The sloped end face of the head arm under a member at its vertex, at z 0 for the datum: from reach at the head bottom up to the arm start at the head top, normal out along the member and up.
+Plane compute_arm_face(const Context& context, size_t vertex, const Member& member);
+
+/// Plan intersection of two lines given by a point and a direction.
+Point compute_meet(const Point& p, const Vector& d, const Point& q, const Vector& e);
 
 /// Farthest corner of any column section at a vertex along a plan direction, 0 without a column.
 double compute_column_reach(const Context& context, size_t vertex, const Vector& direction);

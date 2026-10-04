@@ -224,6 +224,12 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
     const Vector direction = members[me].direction;
 
     End end;
+    if (context.framing.node == 0 && context.standing.count(vertex)) {
+        end.planes.push_back(compute_arm_face(context, vertex, members[me]));
+        end.bearing = true;
+        return end;
+    }
+
     if (context.framing.node != 0 && context.standing.count(vertex))
         add_exit(end.planes, context.standing.at(vertex), origin, direction);
     end.bearing = !end.planes.empty();
@@ -263,11 +269,73 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
 
 double compute_head_top(const Context& context, size_t vertex) {
 
-    double top = 0.0;
-    for (const Member& member : compute_members(context, vertex))
-        top = std::min(top, member.bottom);
+    const std::vector<Member> members = compute_members(context, vertex);
+    if (members.empty())
+        return 0.0;
+
+    double top = members[0].top;
+    for (const Member& member : members)
+        top = std::max(top, member.top);
 
     return top;
+}
+
+double compute_head_bottom(const Context& context, size_t vertex) {
+
+    double bottom = compute_head_top(context, vertex) - context.framing.head;
+    for (const Member& member : compute_members(context, vertex))
+        bottom = std::min(bottom, member.bottom);
+
+    return bottom;
+}
+
+double compute_under(const Context& context, size_t vertex) {
+
+    double under = 0.0;
+    for (const Member& member : compute_members(context, vertex))
+        under = std::min(under, member.bottom);
+
+    return under;
+}
+
+double compute_arm_start(const Context& context, size_t vertex, const Member& member) {
+
+    const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
+    const Vector side = Vector(0.0, 0.0, 1.0).cross(member.direction) * (member.width / 2.0);
+    double start = 0.0;
+    for (const double sign : {-1.0, 1.0}) {
+        const std::optional<Plane> exit = compute_exit(context.standing.at(vertex), centre + side * sign, member.direction);
+        if (exit)
+            start = std::max(start, (exit->origin() - centre).dot(member.direction));
+    }
+    for (const Point& corner : context.standing.at(vertex)) {
+        const Vector offset = compute_lift(corner, 0.0) - centre;
+        if (std::abs(offset.dot(side)) <= side.dot(side) + 1e-9)
+            start = std::max(start, offset.dot(member.direction));
+    }
+
+    // past the corner where its side crosses the side of a neighbour less than straight on
+    for (const Member& other : compute_members(context, vertex)) {
+        const double cosine = other.direction.dot(member.direction);
+        const double sine = std::sqrt(std::max(0.0, 1.0 - cosine * cosine));
+        if (other.other != member.other && sine > 1e-6)
+            start = std::max(start, (other.width / 2.0 + member.width / 2.0 * cosine) / sine);
+    }
+
+    return start;
+}
+
+Plane compute_arm_face(const Context& context, size_t vertex, const Member& member) {
+
+    const Vector direction = member.direction;
+    const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
+    const double start = compute_arm_start(context, vertex, member);
+    const double reach = std::max(context.framing.reach, start);
+    const double top = compute_head_top(context, vertex);
+    const double bottom = compute_head_bottom(context, vertex);
+    const Vector normal = direction * (top - bottom) + Vector(0.0, 0.0, reach - start);
+
+    return Plane::from_point_normal(centre + direction * reach + Vector(0.0, 0.0, bottom), normal.normalized());
 }
 
 double compute_column_reach(const Context& context, size_t vertex, const Vector& direction) {
