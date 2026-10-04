@@ -14,10 +14,10 @@ const double NEAR = 30.0; // mm a solid's box is inflated by before a screw is m
 /// A convex solid of another connector a screw must keep out of: its mesh as triangles and its box.
 struct KeepOut {
     std::string name; // The connector it belongs to.
-    Mesh mesh; // The solid.
+    std::vector<wood_session::PlanarFace> faces; // The solid's faces, for the inside test.
     std::vector<std::array<Point, 3>> triangles; // Its faces fanned into triangles.
     AABB box; // Its box, inflated by NEAR.
-    std::optional<Mesh> within; // For a cutter, its target's solid: only the screw's points inside the target meet the pocket.
+    std::optional<std::vector<wood_session::PlanarFace>> within; // For a cutter, its target's solid faces: only the screw's points inside the target meet the pocket.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -95,7 +95,7 @@ static KeepOut keep_out(const std::string& name, const Mesh& mesh) {
 
     KeepOut solid;
     solid.name = name;
-    solid.mesh = mesh;
+    solid.faces = wood_session::planar_faces(mesh);
     const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
 
     for (const std::vector<size_t>& face : data.second)
@@ -128,7 +128,7 @@ static double solid_clearance(const Line& screw, double radius, const KeepOut& s
         for (const std::array<Point, 3>& triangle : solid.triangles)
             distance = std::min(distance, triangle_distance(p, triangle));
 
-        best = std::min(best, wood_session::is_inside(solid.mesh, p) ? -distance - radius : distance - radius);
+        best = std::min(best, wood_session::is_inside(solid.faces, p) ? -distance - radius : distance - radius);
     }
 
     return best;
@@ -154,7 +154,7 @@ static void collect(const wood_session::WoodSession& session, std::vector<std::p
             solids.push_back(keep_out(connector->name, connector->part_mesh(i)));
 
         for (size_t side = 0; side < connector->cutters.size() && side < connector->targets.size(); side++) {
-            const Mesh target = uncut(*session.get_element<Element>(connector->targets[side]))->element_geometry_mesh();
+            const std::vector<wood_session::PlanarFace> target = wood_session::planar_faces(uncut(*session.get_element<Element>(connector->targets[side]))->element_geometry_mesh());
 
             for (const std::array<Polyline, 2>& cutter : connector->cutters[side]) {
                 solids.push_back(keep_out(connector->name, Mesh::loft({cutter[0]}, {cutter[1]}, true)));

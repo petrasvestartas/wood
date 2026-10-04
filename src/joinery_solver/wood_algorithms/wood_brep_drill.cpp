@@ -19,15 +19,6 @@ const double BORE_SLACK = 0.15; // share of the bored volume the kernel's tessel
 const double SQUARE = 1e-9; // a hole loop spanning less than this along its drill is square to it: the bore surface ends exactly on it, which the kernel meshes on its grid
 const double AXIS = 1e-4; // two drills whose radii, directions, axis offsets and span gap all lie within this are one bore
 
-/// One planar face of the solid, the coplanar mesh faces around it merged, with its frame.
-struct PlanarFace {
-    std::vector<Point> points; // Outer loop, counter-clockwise about the normal.
-    std::vector<std::vector<Point>> holes; // Inner loops, clockwise.
-    Vector normal; // Outward unit normal.
-    Vector x; // In-plane x along the first side.
-    Vector y; // normal x x.
-};
-
 /// One stretch of a drill inside the solid: its axis parameters and, per end, the face it crosses there or -1 for a flat bottom.
 struct Stretch {
     size_t drill = 0; // Drill index.
@@ -386,8 +377,7 @@ static std::vector<PlanarFace> region_faces(const Mesh& mesh, const std::vector<
     return faces;
 }
 
-/// The planar faces of a mesh, every set of edge-adjacent coplanar mesh faces merged into one face with its outer loop and holes, each with its frame; empty when a face is not planar.
-static std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
+std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
 
     const std::vector<FacePlane> planes = mesh_planes(mesh);
     std::vector<PlanarFace> faces;
@@ -569,9 +559,21 @@ static NurbsCurve on_patch(const NurbsCurve& curve, const Patch& patch) {
 }
 
 /// Twice the signed area a closed pcurve encloses.
+/// Points at count equal steps of a curve's parameter, both ends included: enough wherever the shape, not the spacing, matters, and free of the arc-length integration divide_by_count does.
+static std::vector<Point> sample_curve(const NurbsCurve& curve, int count) {
+
+    const std::pair<double, double> domain = curve.domain();
+    std::vector<Point> points;
+    points.reserve(count + 1);
+    for (int i = 0; i <= count; i++)
+        points.push_back(curve.point_at(domain.first + (domain.second - domain.first) * i / count));
+
+    return points;
+}
+
 static double uv_area(const NurbsCurve& uv) {
 
-    const std::vector<Point> points = uv.divide_by_count(std::max(uv.cv_count() * 4, 32), true).first;
+    const std::vector<Point> points = sample_curve(uv, std::max(uv.cv_count() * 4, 32));
     double area = 0.0;
 
     for (size_t i = 0; i + 1 < points.size(); i++)
@@ -679,7 +681,7 @@ static int add_planar_face(Builder& builder, const PlanarFace& face, const std::
     std::vector<Point> span = face.points;
 
     for (const Loop* drill : drills) {
-        const std::vector<Point> points = drill->curve.divide_by_count(16, true).first;
+        const std::vector<Point> points = sample_curve(drill->curve, 16);
         span.insert(span.end(), points.begin(), points.end());
     }
 
@@ -701,7 +703,7 @@ static int add_planar_face(Builder& builder, const PlanarFace& face, const std::
 /// Adds the flat bottom of a hole ending inside the solid: its loop as the outer wire of a disc facing out of the solid.
 static int add_bottom_face(Builder& builder, const Loop& loop, const Point& centre, const Vector& e, const Vector& outward) {
 
-    const std::vector<Point> span = loop.curve.divide_by_count(16, true).first;
+    const std::vector<Point> span = sample_curve(loop.curve, 16);
     const Patch patch = builder.patch(span, centre, e, outward.cross(e).normalized());
     const NurbsCurve uv = on_patch(loop.curve, patch);
     builder.brep.add_pcurve(loop.edge, patch.surface, builder.brep.add_curve_2d(uv));
@@ -830,7 +832,7 @@ static std::array<std::array<double, 2>, 2> loop_reach(const std::array<Loop, 2>
     std::array<std::array<double, 2>, 2> reach = {{{1e300, -1e300}, {1e300, -1e300}}};
 
     for (size_t end = 0; end < 2; end++)
-        for (const Point& point : loops[end].curve.divide_by_count(SAMPLES, true).first) {
+        for (const Point& point : sample_curve(loops[end].curve, SAMPLES)) {
             reach[end][0] = std::min(reach[end][0], (point - start).dot(d));
             reach[end][1] = std::max(reach[end][1], (point - start).dot(d));
         }
@@ -993,9 +995,8 @@ std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line
     return stretches;
 }
 
-bool is_inside(const Mesh& mesh, const Point& point) {
+bool is_inside(const std::vector<PlanarFace>& faces, const Point& point) {
 
-    const std::vector<PlanarFace> faces = planar_faces(mesh);
     const Vector ray = Vector(0.12345, 0.23456, 1.0).normalized();
     bool in = false;
 

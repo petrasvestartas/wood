@@ -227,18 +227,18 @@ void check_nested(const WoodSession& scene, const JointBeam& connector, size_t p
 /// No dowel of the connector protrudes: just inside every dowel's end lies in one of its two members; and when the dowels pass through, just outside every end lies in neither, the end flush with the outer face.
 void check_flush(const JointBeam& joint, const WoodSession& scene, const std::string& name, bool through) {
 
-    const std::shared_ptr<Element> a = scene.get_element<Element>(joint.targets[0]);
-    const std::shared_ptr<Element> b = scene.get_element<Element>(joint.targets[1]);
+    const std::vector<PlanarFace> a = planar_faces(scene.get_element<Element>(joint.targets[0])->element_geometry_mesh());
+    const std::vector<PlanarFace> b = planar_faces(scene.get_element<Element>(joint.targets[1])->element_geometry_mesh());
 
     for (const Line& dowel : joint.drill_lines) {
         const Vector d = dowel.to_vector().normalized();
 
         for (const Point& end : {dowel.start(), dowel.end()}) {
             const Vector out = end == dowel.start() ? -d : d;
-            check(is_inside(a->element_geometry_mesh(), end - out * 0.5) || is_inside(b->element_geometry_mesh(), end - out * 0.5), name + " dowel does not protrude");
+            check(is_inside(a, end - out * 0.5) || is_inside(b, end - out * 0.5), name + " dowel does not protrude");
 
             if (through)
-                check(!is_inside(a->element_geometry_mesh(), end + out * 0.5) && !is_inside(b->element_geometry_mesh(), end + out * 0.5), name + " dowel ends flush with the outer face");
+                check(!is_inside(a, end + out * 0.5) && !is_inside(b, end + out * 0.5), name + " dowel ends flush with the outer face");
         }
     }
 }
@@ -436,7 +436,7 @@ void check_quarter_dowels() {
 
         for (const Line& dowel : set->drill_lines) {
             check(std::abs(dowel.length() - 30.0) < 1e-9, "a dowel 30 long");
-            check(is_inside(rib->element_geometry_mesh(), dowel.center() - dowel.to_vector().normalized() * 0.5) && is_inside(block->element_geometry_mesh(), dowel.center() + dowel.to_vector().normalized() * 0.5), "a dowel crosses the contact at its middle, half in each member");
+            check(is_inside(planar_faces(rib->element_geometry_mesh()), dowel.center() - dowel.to_vector().normalized() * 0.5) && is_inside(planar_faces(block->element_geometry_mesh()), dowel.center() + dowel.to_vector().normalized() * 0.5), "a dowel crosses the contact at its middle, half in each member");
             dowels++;
         }
     }

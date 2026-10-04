@@ -893,7 +893,7 @@ static std::vector<Line> target_drills(const JointBeam& joint, const Element& ta
     if (joint.drill_overshoot <= 0.0)
         return joint.drill_lines;
 
-    const Mesh& solid = target.element_geometry_mesh();
+    const std::vector<PlanarFace> solid = planar_faces(target.element_geometry_mesh());
     std::vector<Line> drills;
 
     for (const Line& dowel : joint.drill_lines) {
