@@ -6,9 +6,26 @@ using namespace wood_session;
 
 const std::vector<double> XS = {4000.0, 4000.0, 4000.0};
 const std::vector<double> YS = {3000.0, 3000.0};
-const std::vector<Polyline> FOOTPRINT = {Polyline({Point(0.0, 0.0, 0.0), Point(12000.0, 0.0, 0.0), Point(12000.0, 3000.0, 0.0), Point(8000.0, 3000.0, 0.0), Point(8000.0, 6000.0, 0.0), Point(0.0, 6000.0, 0.0), Point(0.0, 0.0, 0.0)})}; // an L: three by two bays, the far corner bay left open
+const std::vector<Polyline> FOOTPRINT = {Polyline({
+    Point(0.0, 0.0, 0.0), 
+    Point(12000.0, 0.0, 0.0), 
+    Point(12000.0, 3000.0, 0.0), 
+    Point(8000.0, 3000.0, 0.0), 
+    Point(8000.0, 6000.0, 0.0), 
+    Point(0.0, 6000.0, 0.0), 
+    Point(0.0, 0.0, 0.0)})
+}; // an L: three by two bays, the far corner bay left open
 const std::vector<double> ELEVATIONS = {0.0, 3000.0, 6000.0}; // two storeys of column 2800 + head 200, each datum the top of the heads, members and deck
-const wood_grid::Framing FRAMING{.system = 1, .span = -1, .node = 0, .deck = 200.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
+const wood_grid::Framing FRAMING{
+    .system = 1, 
+    .span = -1, 
+    .node = 0, 
+    .deck = 200.0, 
+    .reach = 200.0, 
+    .profiles = {
+        .column = profile_rectangle(200.0, 200.0), 
+        .girder = profile_rectangle(200.0, 200.0)
+    }};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
 int main() {
@@ -16,16 +33,18 @@ int main() {
     WoodSession wood_session("elements_tree");
     const wood_grid::Building building = wood_grid::Building::from_footprint(FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS));
 
-    // one branch per storey, one twig per kind of element under it
+    // storey_0, storey_1 under the root; under each a group per kind holding its elements
     for (size_t storey = 0; storey + 1 < ELEVATIONS.size(); storey++) {
         const std::shared_ptr<TreeNode> branch = wood_session.add_group(fmt::format("storey_{}", storey));
-        std::map<std::string, std::shared_ptr<TreeNode>> kinds;
-        for (const std::shared_ptr<Element>& element : building.to_elements(FRAMING, storey)) {
-            if (!kinds.count(element->name)) {
-                kinds[element->name] = std::make_shared<TreeNode>(element->name + "s");
-                wood_session.add(kinds[element->name], branch);
-            }
-            wood_session.add(element, kinds[element->name]);
+        const std::vector<std::shared_ptr<Element>> elements = building.to_elements(FRAMING, storey);
+
+        for (const std::string kind : {"column", "head", "beam", "deck"}) {
+            const std::shared_ptr<TreeNode> group = std::make_shared<TreeNode>(kind);
+            wood_session.add(group, branch);
+
+            for (const std::shared_ptr<Element>& element : elements)
+                if (element->name == kind)
+                    wood_session.add(element, group);
         }
     }
 
