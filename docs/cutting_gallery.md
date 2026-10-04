@@ -2,11 +2,11 @@
 
 | Target | Cases |
 | --- | --- |
-| `13_profile_cuts` | Concave L profile, profile with a hole, a slot producing two separate pieces, concave pocket |
-| `14_drill_solids` | Radius 35 with chord tolerances 2, 0.2 and 0.02; exact cylindrical BReps; a tilted radius 28 drill through a block |
-| `15_solid_cuts` | Difference, intersection and union of sloped solids; arbitrary tetrahedral mesh cutter |
-| `16_cutting_gallery` | Loads the three saved scenes and places them side by side |
-| `17_plate_joint_library` | Six side-to-top joints created by named library factories |
+| `15_profile_cuts` | Concave L profile, profile with a hole, a slot producing two separate pieces, concave pocket |
+| `16_drill_solids` | Radius 35 with chord tolerances 2, 0.2 and 0.02; exact cylindrical BReps; a tilted radius 28 drill through a block |
+| `17_solid_cuts` | Difference, intersection and union of sloped solids; arbitrary tetrahedral mesh cutter |
+| `18_cutting_gallery` | Loads the three saved scenes and places them side by side |
+| `19_plate_joint_library` | Six side-to-top joints created by named library factories |
 
 Each cutting row reads **stock → cutter → result** from left to right. The cutter
 is moved to the middle column after application for display. The target stores
@@ -19,11 +19,11 @@ Run from `wood/`. The combined gallery depends on the three named scene files.
 
 ```bash
 ~/.local/bin/cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-buildslot ~/.local/bin/cmake --build build --target 13_profile_cuts 14_drill_solids 15_solid_cuts 16_cutting_gallery --parallel 4
-tools/run_guarded.sh -t 10 -m 4 -- build/13_profile_cuts
-tools/run_guarded.sh -t 10 -m 4 -- build/14_drill_solids
-tools/run_guarded.sh -t 10 -m 4 -- build/15_solid_cuts
-tools/run_guarded.sh -t 10 -m 4 -- build/16_cutting_gallery
+buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts 16_drill_solids 17_solid_cuts 18_cutting_gallery --parallel 4
+tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
+tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
+tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_cuts
+tools/run_guarded.sh -t 10 -m 4 -- build/18_cutting_gallery
 ```
 
 Files are written to `data/output/pb/<target>.pb`. Each example also writes
@@ -35,10 +35,10 @@ The existing script publishes one file to the viewer's live slot. Publishing
 replaces that slot. The named local scene files remain available.
 
 ```bash
-../bash/publish-scene.sh "$PWD/data/output/pb/16_cutting_gallery.pb" --no-notify
+../bash/publish-scene.sh "$PWD/data/output/pb/18_cutting_gallery.pb" --no-notify
 ```
 
-Use another named scene file, including `17_plate_joint_library.pb`, to show that scene. Passing an explicit
+Use another named scene file, including `19_plate_joint_library.pb`, to show that scene. Passing an explicit
 file uses the already generated artifact, with no unguarded solver invocation.
 Open [the viewer](https://petrasvestartas.github.io/session/).
 

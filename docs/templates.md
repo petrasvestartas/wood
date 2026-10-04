@@ -4,14 +4,14 @@ Generators under `src/templates/`, one folder per family (`grid/`, `reciprocal/`
 
 | Template | Header | Example | Elements |
 |---|---|---|---|
-| Translation shell | `shells/translation_shell.h` | `templates_translation_shell` | one chamfered plate per swept quad |
-| Reflex fold | `folding/reflex_fold.h` | `templates_reflex_fold` | one plate per fold |
-| Chevron | `shells/chevron.h` | `templates_chevron` | four plates per face of an Annen surface |
-| Diamond mesh | `folding/diamond_mesh.h` | `templates_diamond_mesh` | one plate per triangle of a rhombus pattern |
-| VDA mesh | `cross/vda_mesh.h` | `templates_vda_mesh` | one plate per face plus connector plates across every interior edge |
-| Reciprocal move | `reciprocal/reciprocal_move.h` | `templates_reciprocal_move` | one beam plate per mesh edge, shifted past its neighbours |
-| Reciprocal rotation | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_rotation` | one beam plate per mesh edge, rotated about its midpoint |
-| Lamella gridshell | `shells/lamella_gridshell.h` | `templates_gridshell` | two upright boards per lamella on iso or asymptotic curves, in two layers, a hexagonal stud at every crossing |
+| Translation shell | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | one chamfered plate per swept quad |
+| Reflex fold | `folding/reflex_fold.h` | `templates_folding_1_reflex_fold` | one plate per fold |
+| Chevron | `shells/chevron.h` | `templates_folding_2_chevron` | four plates per face of an Annen surface |
+| Diamond mesh | `folding/diamond_mesh.h` | `templates_folding_3_diamond_mesh` | one plate per triangle of a rhombus pattern |
+| VDA mesh | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | one plate per face plus connector plates across every interior edge |
+| Reciprocal move | `reciprocal/reciprocal_move.h` | `templates_reciprocal_2_move` | one beam plate per mesh edge, shifted past its neighbours |
+| Reciprocal rotation | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_1_rotation` | one beam plate per mesh edge, rotated about its midpoint |
+| Lamella gridshell | `shells/lamella_gridshell.h` | `templates_shells_2_gridshell` | two upright boards per lamella on iso or asymptotic curves, in two layers, a hexagonal stud at every crossing |
 | Grid | `grid/grid.h` | `1_elements_*`, `templates_grid_{footprint,solid,lines,reference,framing}` | columns, heads, girders, beams, purlins, braces, decks and walls of a multistorey building |
 | Floor | `floor/floor.h` | `templates_floor_{1..6,8,9}_*` | the vaulted timber floor bay of compas_tf: outer and inner ribs, seam and oculus beams, wedge blocks, t-sections, beds, the oculus ring, columns on supports and their connectors |
 
@@ -19,57 +19,57 @@ Generators under `src/templates/`, one folder per family (`grid/`, `reciprocal/`
 
 A cross section polyline swept along a profile polyline by accumulating the profile's displacement steps: a quad mesh, then `Mesh::miter_contours` gives every quad a bottom and a top outline at the plate thickness, and the corners sharper than the chamfer angle are chamfered. `TranslationShell` holds the mesh and the plates in `elements`.
 
-![translation shell](templates/templates_translation_shell.png)
+![translation shell](templates/templates_shells_1_translation_shell.png)
 
-\include{lineno} templates_translation_shell.cpp
+\include{lineno} templates_shells_1_translation_shell.cpp
 
 ## reflex_fold
 
 The profile folded along the cross section: each profile row is projected onto the perpendicular bisector plane at each cross-section point, so the strips alternate in a reflex fold. One plate per fold with its own bottom and top chamfer.
 
-![reflex fold](templates/templates_reflex_fold.png)
+![reflex fold](templates/templates_folding_1_reflex_fold.png)
 
-\include{lineno} templates_reflex_fold.cpp
+\include{lineno} templates_folding_1_reflex_fold.cpp
 
 ## chevron
 
 The Annen shell: one of the 23 NURBS surfaces in `data/annen_surfaces.json` divided into chevron strips, eight outlines per face folded into four plates, with the insertion vectors, joint types, three-valence groups and adjacency the solver reads. `wood_chevron::annen_surfaces` loads the surfaces, `Chevron` builds the mesh and the plates.
 
-![chevron](templates/templates_chevron.png)
+![chevron](templates/templates_folding_2_chevron.png)
 
-\include{lineno} templates_chevron.cpp
+\include{lineno} templates_folding_2_chevron.cpp
 
 ## diamond_mesh
 
 A NURBS surface split into a rhombus pattern: triangle pairs that share alternating edge-midpoint vertices, six triangles per cell on the first row and four after, welded into one mesh. `Mesh::miter_contours` gives every triangle its bottom and top outline and the corners sharper than the chamfer angle are chamfered. The default surface is a bicubic arch, 3000 by 5000 with a rise of 1500.
 
-![diamond mesh](templates/templates_diamond_mesh.png)
+![diamond mesh](templates/templates_folding_3_diamond_mesh.png)
 
-\include{lineno} templates_diamond_mesh.cpp
+\include{lineno} templates_folding_3_diamond_mesh.cpp
 
 ## vda_mesh
 
 Any mesh into plates and connectors: every face gets a bottom and top outline per face position, its sides cut back by the bisector planes between it and its neighbours so the plates meet in mitres; every interior edge gets a row of connector rectangles across it, two per subdivision, on the planes perpendicular to the edge. `VdaMesh` keeps the outlines in `f_polylines` and `e_polylines` as bottom, top pairs; the example turns each pair into a `Plate`. The default mesh is a fifteen-face hexagonal dome.
 
-![vda mesh](templates/templates_vda_mesh.png)
+![vda mesh](templates/templates_cross_1_vda_mesh.png)
 
-\include{lineno} templates_vda_mesh.cpp
+\include{lineno} templates_cross_1_vda_mesh.cpp
 
 ## reciprocal_move
 
 A nexorade by translation: the edges of a quad or hexagonal mesh on a surface become beams, the even edges of every face moved sideways in the face plane by the shift, so each beam bears on the next; every end is cut flush against the beam it lands on. The boundary is a frame of straight beams with one tilt per boundary curve, mirrored sections across every mitre and butt corners (`reciprocal_boundary.h`). `SURFACE` and `GRID` pick the case, `reciprocal_surface.h` holds the test surfaces and the meshes on them. One plate per beam.
 
-![reciprocal move](templates/templates_reciprocal_move.png)
+![reciprocal move](templates/templates_reciprocal_2_move.png)
 
-\include{lineno} templates_reciprocal_move.cpp
+\include{lineno} templates_reciprocal_2_move.cpp
 
 ## reciprocal_rotation
 
 A nexorade by rotation: every mesh edge is stretched about its midpoint and turned about the edge normal, so the beams round each vertex form a pinwheel; each end then stops at the first side face it would cross. The same boundary frame as the move template. At home on quads, since on hexagons the rotated beams can cross each other.
 
-![reciprocal rotation](templates/templates_reciprocal_rotation.png)
+![reciprocal rotation](templates/templates_reciprocal_1_rotation.png)
 
-\include{lineno} templates_reciprocal_rotation.cpp
+\include{lineno} templates_reciprocal_1_rotation.cpp
 
 ## lamella_gridshell
 
@@ -79,11 +79,11 @@ Every lamella is two upright boards, `height` along the local normal and `thickn
 
 Along an asymptotic curve the normal curvature is zero, so a board standing on the normal bends only about its weak axis and unrolls to a straight strip: the point of the system. The example builds a 10 m saddle in asymptotic mode and a 6 m one in iso mode beside it, and prints for each the largest normal curvature along the lamellas, the largest distance of an unrolled lamella from a straight line and the largest tilt of a board section from the normal; both first numbers are about zero for the asymptotic shell and large for the iso one. It then finds the face contacts, fails unless every stud touches its four boards, and cuts every two convex pieces (a board segment, a stud) of different elements by each other, failing on any volume left.
 
-![lamella gridshell](templates/templates_gridshell.png)
+![lamella gridshell](templates/templates_shells_2_gridshell.png)
 
-![one crossing: two boards per layer and the stud in both gaps](templates/templates_gridshell_joint.png)
+![one crossing: two boards per layer and the stud in both gaps](templates/templates_shells_2_gridshell_joint.png)
 
-\include{lineno} templates_gridshell.cpp
+\include{lineno} templates_shells_2_gridshell.cpp
 
 ## grid
 
@@ -119,55 +119,55 @@ flowchart LR
 
 Joints are small rules in `grid_joints.cpp`, not per-case code. At every plan vertex the members are ranked (perimeter, girder, beam, purlin, brace); the highest runs through and the rest butt into its side, or into the column face under nodes 1 and 2; a member with anything straight across the node runs through it, so only a pure corner (an L of two perimeter members, a Y of three equal beams) is mitred on the bisector; a through member with nothing beyond it stops at the farthest corner of what butts into it, or over the column's far face under node 0. A member's height layer says whether a cut is made at all: girders drop by `drop`, a purlin over a stacked girder is not cut but rests on it. Decks are one Clipper difference per bay: the bay pushed out to the outer faces of the perimeter members and columns, minus the columns rising through it (node 2), the core walls, and the decks built before it, so a re-entrant corner belongs to one deck alone; `panel` splits a deck into strips across its span.
 
-Column heads (`node` 0) take their shape from what they carry. Where members arrive the head is a convex pyramid exactly as deep as they are: one side per plan direction, the side under a member its sloped end face that the member rests on, every other side on the column face, and a sloped chamfer between every two neighbouring members, as compas_grid's column head. Under post and beam the deck sits in the bay between the members, its top flush with theirs and its corners cut by the heads. Where only the deck arrives (point supported) the head flares up to `reach`, by `Framing::capital`: 0 conical, a frustum from the column section; 1 stepped, a capital to halfway under a drop panel (a second element, `drop_panel`), cut back at the deck edge. Every head is cut back at a core wall. Every cut is a `Plane` in the element's `cuts`, applied by `Mesh::cut_by_plane` when the solid is built, so every element touches its neighbours face to face and none overlap; `templates_grid_framing` proves it by cutting every pair of overlapping elements against each other and failing on any volume left.
+Column heads (`node` 0) take their shape from what they carry. Where members arrive the head is a convex pyramid exactly as deep as they are: one side per plan direction, the side under a member its sloped end face that the member rests on, every other side on the column face, and a sloped chamfer between every two neighbouring members, as compas_grid's column head. Under post and beam the deck sits in the bay between the members, its top flush with theirs and its corners cut by the heads. Where only the deck arrives (point supported) the head flares up to `reach`, by `Framing::capital`: 0 conical, a frustum from the column section; 1 stepped, a capital to halfway under a drop panel (a second element, `drop_panel`), cut back at the deck edge. Every head is cut back at a core wall. Every cut is a `Plane` in the element's `cuts`, applied by `Mesh::cut_by_plane` when the solid is built, so every element touches its neighbours face to face and none overlap; `templates_grid_5_framing` proves it by cutting every pair of overlapping elements against each other and failing on any volume left.
 
-### 1_elements_tree
+### 3_elements_tree
 
 A two storey L of five bays - three by two with the far corner bay left open - with a beam on every grid line, so the heads meet every case: two beams at the outer corners, three on the edges, four inside and at the re-entrant corner. Each storey is a branch of the tree with a group per kind of element, and `compute_face_contacts(0)` pairs across the storeys, every column standing on the head below. `INSTANCES` keeps one definition each of column, head, beam and deck, placed by instances.
 
-![1_elements_tree](templates/1_elements_tree.png)
+![3_elements_tree](templates/3_elements_tree.png)
 
-\include{lineno} 1_elements_tree.cpp
+\include{lineno} 3_elements_tree.cpp
 
-### templates_grid_footprint
+### templates_grid_1_footprint
 
 Workflow B, nine buildings side by side over three storeys, one group each: an L with uneven bays, purlins on girders and facade walls; a grid whose y lines lean 30 degrees with flush columns; a radial plan with girders on the rays; triangular and hexagonal cells with every line a beam mitred at the nodes; five hand-drawn axes clipped to a five-sided footprint; a courtyard ring with columns through the levels; Branch3D's pentagon with girders hung 8 in and purlins at 10 ft; its institutional U with two cores as pinwheel walls.
 
-![templates_grid_footprint](templates/templates_grid_footprint.png)
+![templates_grid_1_footprint](templates/templates_grid_1_footprint.png)
 
-\include{lineno} templates_grid_footprint.cpp
+\include{lineno} templates_grid_1_footprint.cpp
 
-### templates_grid_solid
+### templates_grid_2_solid
 
 Workflow A, six massings sliced at their levels: a box; a pentagonal prism whose diagonal side cuts every girder, purlin and deck obliquely; a tapered loft whose perimeter columns lean to follow the moving section within `taper`; a podium with a tower, the tower ring added to the roof plan so every tower column stands on a podium column or girder; a block with an atrium through every level; a cylinder whose facet corners fall on the sixteen rays.
 
-![templates_grid_solid](templates/templates_grid_solid.png)
+![templates_grid_2_solid](templates/templates_grid_2_solid.png)
 
-\include{lineno} templates_grid_solid.cpp
+\include{lineno} templates_grid_2_solid.cpp
 
-### templates_grid_lines
+### templates_grid_3_lines
 
 Workflow C, line by line: the crea dataset compas_grid ships, read from `data/crea/<INPUT>_input.pb`, every column, beam, floor, facade and core quad as drawn, the vertical quads as the walls compas_grid drops, every line a beam ending on the head tops and its neighbours' sides; and a braced frame drawn as lines and floor quads, every brace cut by the column faces, the deck top at its foot and the beam bottom at its head.
 
-![templates_grid_lines](templates/templates_grid_lines.png)
+![templates_grid_3_lines](templates/templates_grid_3_lines.png)
 
-\include{lineno} templates_grid_lines.cpp
+\include{lineno} templates_grid_3_lines.cpp
 
-### templates_grid_reference
+### templates_grid_4_reference
 
 The reference configurations side by side: Branch3D's 60 ft square in its three structural methods (plate on columns with stepped heads under CLT strips, post and beam, purlin on girder with the girders hung 8 in), its residential L with a core, and the four FAST+EPP timber bay variants with the datum at the framing top, so the members overlay the reference: columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides, CLT strips over the outer column faces. FAST+EPP v3 draws no beam on its short sides; here they carry beams.
 
-![templates_grid_reference](templates/templates_grid_reference.png)
+![templates_grid_4_reference](templates/templates_grid_4_reference.png)
 
-\include{lineno} templates_grid_reference.cpp
+\include{lineno} templates_grid_4_reference.cpp
 
-### templates_grid_framing
+### templates_grid_5_framing
 
 The joints and sections, fifteen bays side by side: heads that are the column section where the girders run straight over them and conical at the corners, then conical and stepped under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with, hung from and stacked over their girders; the seven profiles as girders with a matching column. The example ends with the clash check and fails on any overlap.
 
-![templates_grid_framing](templates/templates_grid_framing.png)
+![templates_grid_5_framing](templates/templates_grid_5_framing.png)
 
-\include{lineno} templates_grid_framing.cpp
+\include{lineno} templates_grid_5_framing.cpp
 
 ## floor
 
@@ -195,7 +195,7 @@ Connectors come from `relationships(floor)`, 76 rows (4 seam wedges, 4 oculus we
 | `templates_floor_4_quarters` | the four quarters in place |
 | `templates_floor_5_oculus` | the oculus ring, its bottom wedges and plate |
 | `templates_floor_6_contacts_floor` | the quarters, the ring and the eight wedge connectors |
-| `templates_floor_8_contacts_cantilevers` | the whole square bay with columns and every connector, BReps with exact bores |
-| `templates_floor_9_rectangle` | the 6000 x 4800 bay, every connector, BReps and the report; `--compas` writes every quarter for the per-view parity with compas_tf |
+| `templates_floor_7_contacts_cantilevers` | the whole square bay with columns and every connector, BReps with exact bores |
+| `templates_floor_8_rectangle` | the 6000 x 4800 bay, every connector, BReps and the report; `--compas` writes every quarter for the per-view parity with compas_tf |
 
 The compas_tf references and the gates that read them are in `data/reference/floor/README.md`.

@@ -1164,7 +1164,7 @@ be moved into `data/reference/floor/` (open question 8). Comparison with
 | 5 | `relationships()`, `add_connectors`, `verify_contacts`, `require_contact`; examples 6 and 8 and the tests call them | G4, G5, G6, G7 |
 | 6 | The general rules, each square-neutral: (a) `chamfer_direction` / rule A (u, r) with `CentralLayers::compas` instead of `n0 - n1`; (b) per-face rib end outlines and project-then-cut beds; (c) `CutterLevel` with `compas_factor`; (d) `Floor::check()` printed by every example | G1 at 1e-6 (same vertices to roundoff), G2-G7 |
 | 7 | `CentralLayers::section` as the default (the fixed rule; open question 1 is the re-baseline): the central-row records re-baselined with the measured shifts; `CutterLevel::rib_bottom` if adopted (open question 4), the head-cut constant re-pinned | G1 with the split tolerance of G1b; G3 re-pinned if question 4 is adopted |
-| 8 | `examples/templates_floor_9_rectangle.cpp`: `Floor floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`, the whole bay, connectors, BReps, the report; `CMakeLists.txt` target | G8 (R1-R5) |
+| 8 | `examples/templates_floor_8_rectangle.cpp`: `Floor floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`, the whole bay, connectors, BReps, the report; `CMakeLists.txt` target | G8 (R1-R5) |
 | 9 | `templates_floor_10_trapezoid.cpp` behind `FloorPlan::quadrilateral`, only after the rectangle is accepted | G9 |
 | 10 | `docs/templates.md` and `docs/examples.md` updated, example descriptions, `pushmono`, CI green | - |
 
@@ -1193,7 +1193,7 @@ Gates:
   the volume records against the step-0 baseline (columns 172978229.06, ribs 98810031.25, ties
   1570456.692913, which include the support joint, the foot recess and the dowels); the console
   line `... 8 wedges, 24 dowel sets of 96 dowels, 8 rectangle plates with 4 cross laps, 4 ties`
-  (`examples/templates_floor_8_contacts_cantilevers.cpp:228`), `0 faceted`, every dowel stretch an
+  (`examples/templates_floor_7_contacts_cantilevers.cpp:228`), `0 faceted`, every dowel stretch an
   exact bore; R4 keeps every rib a plain loft with empty `cuts`, so on the square the elements and
   these records are the step-0 ones, not re-measured.
 * G6 `tests/floor_elements` green under `MINITEST_JOBS=6`: unchanged constants and new checks:
@@ -1364,7 +1364,7 @@ compas_tf references in `data/reference/floor/`.
 * Step 7b, `cc760d6`: `CutterLevel::rib_bottom` the default (question 4), -694.793 on the square;
   the cutters move 0.243 mm at the level, the column contacts become the full 70238.714887 mm2, the
   model's head cut 34771221.351479 pinned beside compas_tf's 34777378.362; `model_contacts_cantilevers.txt`.
-* Step 8, `c3084b4`: `templates_floor_9_rectangle`; G8 R1 141 records at 0 deviation in all four views
+* Step 8, `c3084b4`: `templates_floor_8_rectangle`; G8 R1 141 records at 0 deviation in all four views
   against `FloorGuide(3000, 2400)` / `(2400, 3000)` (`oculus_points` left out too: compas_tf lists the
   four corners from its own quarter 0); R2 the probes' areas; R3 end faces 5.1e-13 mm, beds on flanges 0,
   every member face planar within 4.5e-11 mm, rule A 2.647 deg / 13.640 / 37.681 deg; R4 ring overlap

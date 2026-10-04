@@ -5,25 +5,25 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | Example | Behaviour |
 |---|---|
 | `1_elements` | The four element kinds built in code and added to a scene, one authored interaction record; `get_element` and the typed lists |
-| `1_elements_tree` | The same bay three times, each under its own tree branch, so `compute_face_contacts(1)` stays inside a branch; `instance_by_key` for one definition per repeated element |
-| `2_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
-| `3_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
-| `4_features` | The joinery pipeline: every plate joint, a plate's geometry alone and cut, the joint features on the hosts |
-| `5_traversal` | From a joint to its plates, the interactions on their edge, the contact on the plate-pair edge, the edge |
-| `6_settings` | The solver settings as a value on the scene, set in code and read back from the file |
-| `7_custom_joint` | A joint variant supplied as outlines through the settings |
-| `8_assignment` | Feature types and insertion vectors filled from points and lines placed on the plates |
-| `9_beams` | Beams, axis contacts and one beam feature per pair with its four volume rectangles |
-| `10_serialization` | Bytes and back, the kernel reading the same bytes, one record as JSON and as protobuf |
-| `11_viewer` | The scene arranged for the viewer, the colour tables, the files `pb_dump` writes |
-| `12_cross_joints` | Cross joints and the search type chosen per solve |
-| `13_profile_cuts` | Concave profiles, holes, disconnected pieces and pockets |
-| `14_drill_solids` | Tolerance-controlled drill meshes, exact cylindrical BReps and a tilted bore |
-| `15_solid_cuts` | Solid difference, intersection, union and an arbitrary mesh cutter |
-| `16_cutting_gallery` | Loads the three saved cutting scenes into one viewer gallery |
-| `17_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
+| `3_elements_tree` | The same bay three times, each under its own tree branch, so `compute_face_contacts(1)` stays inside a branch; `instance_by_key` for one definition per repeated element |
+| `4_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
+| `5_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
+| `6_features` | The joinery pipeline: every plate joint, a plate's geometry alone and cut, the joint features on the hosts |
+| `7_traversal` | From a joint to its plates, the interactions on their edge, the contact on the plate-pair edge, the edge |
+| `8_settings` | The solver settings as a value on the scene, set in code and read back from the file |
+| `9_custom_joint` | A joint variant supplied as outlines through the settings |
+| `10_assignment` | Feature types and insertion vectors filled from points and lines placed on the plates |
+| `11_beams` | Beams, axis contacts and one beam feature per pair with its four volume rectangles |
+| `12_serialization` | Bytes and back, the kernel reading the same bytes, one record as JSON and as protobuf |
+| `13_viewer` | The scene arranged for the viewer, the colour tables, the files `pb_dump` writes |
+| `14_cross_joints` | Cross joints and the search type chosen per solve |
+| `15_profile_cuts` | Concave profiles, holes, disconnected pieces and pockets |
+| `16_drill_solids` | Tolerance-controlled drill meshes, exact cylindrical BReps and a tilted bore |
+| `17_solid_cuts` | Solid difference, intersection, union and an arbitrary mesh cutter |
+| `18_cutting_gallery` | Loads the three saved cutting scenes into one viewer gallery |
+| `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
 
-Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
+Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
 The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
 
@@ -58,75 +58,75 @@ and supply the elements in reversed order when orienting or adding the interacti
 | Other | `b_0`, `b_custom`, `side_removal`, `side_removal_ss_e_r_1_port` | Outlines, merge and shift options |
 
 Exact signatures are declared together in `wood_element_joint_plate.h`.
-`17_plate_joint_library` demonstrates six side-to-top configurations and writes
-`data/output/pb/17_plate_joint_library.pb` for the viewer.
+`19_plate_joint_library` demonstrates six side-to-top configurations and writes
+`data/output/pb/19_plate_joint_library.pb` for the viewer.
 
 \include{lineno} 1_elements.cpp
 
-## 1_elements_tree
+## 3_elements_tree
 
-\include{lineno} 1_elements_tree.cpp
+\include{lineno} 3_elements_tree.cpp
 
-## 2_datasets
+## 4_datasets
 
-\include{lineno} 2_datasets.cpp
+\include{lineno} 4_datasets.cpp
 
-## 3_contacts
+## 5_contacts
 
-\include{lineno} 3_contacts.cpp
+\include{lineno} 5_contacts.cpp
 
-## 4_features
+## 6_features
 
-\include{lineno} 4_features.cpp
+\include{lineno} 6_features.cpp
 
-## 5_traversal
+## 7_traversal
 
-\include{lineno} 5_traversal.cpp
+\include{lineno} 7_traversal.cpp
 
-## 6_settings
+## 8_settings
 
-\include{lineno} 6_settings.cpp
+\include{lineno} 8_settings.cpp
 
-## 7_custom_joint
+## 9_custom_joint
 
-\include{lineno} 7_custom_joint.cpp
+\include{lineno} 9_custom_joint.cpp
 
-## 8_assignment
+## 10_assignment
 
-\include{lineno} 8_assignment.cpp
+\include{lineno} 10_assignment.cpp
 
-## 9_beams
+## 11_beams
 
-\include{lineno} 9_beams.cpp
+\include{lineno} 11_beams.cpp
 
-## 10_serialization
+## 12_serialization
 
-\include{lineno} 10_serialization.cpp
+\include{lineno} 12_serialization.cpp
 
-## 11_viewer
+## 13_viewer
 
-\include{lineno} 11_viewer.cpp
+\include{lineno} 13_viewer.cpp
 
-## 12_cross_joints
+## 14_cross_joints
 
-\include{lineno} 12_cross_joints.cpp
+\include{lineno} 14_cross_joints.cpp
 
 ## Cutting gallery
 
 See [the cutting gallery](cutting_gallery.md) for the API, geometry limits and Cloudflare command.
 
-### 13_profile_cuts
+### 15_profile_cuts
 
-\include{lineno} 13_profile_cuts.cpp
+\include{lineno} 15_profile_cuts.cpp
 
-### 14_drill_solids
+### 16_drill_solids
 
-\include{lineno} 14_drill_solids.cpp
+\include{lineno} 16_drill_solids.cpp
 
-### 15_solid_cuts
+### 17_solid_cuts
 
-\include{lineno} 15_solid_cuts.cpp
+\include{lineno} 17_solid_cuts.cpp
 
-### 16_cutting_gallery
+### 18_cutting_gallery
 
-\include{lineno} 16_cutting_gallery.cpp
+\include{lineno} 18_cutting_gallery.cpp
