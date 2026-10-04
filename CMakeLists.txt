@@ -237,7 +237,6 @@ endfunction()
 
 ADD_EXE(1_session_contacts               examples/1_session_contacts.cpp)
 ADD_EXE(1_session_hard_coded_contacts    examples/1_session_hard_coded_contacts.cpp)
-ADD_EXE(1_elements_flat                  examples/1_elements_flat.cpp)
 ADD_EXE(1_elements_tree                  examples/1_elements_tree.cpp)
 ADD_EXE(2_datasets                       examples/2_datasets.cpp)
 ADD_EXE(3_contacts                       examples/3_contacts.cpp)

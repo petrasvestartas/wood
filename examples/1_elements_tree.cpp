@@ -35,16 +35,17 @@ int main() {
 
     // storey_0, storey_1 under the root; under each a group per kind holding its elements
     for (size_t storey = 0; storey + 1 < ELEVATIONS.size(); storey++) {
-        const std::shared_ptr<TreeNode> branch = wood_session.add_group(fmt::format("storey_{}", storey));
+ 
+        const std::shared_ptr<TreeNode> tree_storey = wood_session.add_group(fmt::format("storey_{}", storey));
         const std::vector<std::shared_ptr<Element>> elements = building.to_elements(FRAMING, storey);
 
         for (const std::string kind : {"column", "head", "beam", "deck"}) {
-            const std::shared_ptr<TreeNode> group = std::make_shared<TreeNode>(kind);
-            wood_session.add(group, branch);
+            const std::shared_ptr<TreeNode> tree_type = std::make_shared<TreeNode>(kind);
+            wood_session.add(tree_type, tree_storey);
 
             for (const std::shared_ptr<Element>& element : elements)
                 if (element->name == kind)
-                    wood_session.add(element, group);
+                    wood_session.add(element, tree_type);
         }
     }
 
@@ -61,7 +62,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-an L of five bays - three by two with the far corner bay left open - in the 1_elements_flat framing stacked two storeys high, a beam on every grid line between the column heads (span -1), so the heads meet every case - two beams at the outer corners, three on the edges, four inside and at the re-entrant corner, every head chamfered between each two neighbouring beams - and every deck sits between four beams with its corners cut by the heads; each storey a branch of the tree root and every kind of element a twig under it: columns, heads, beams and decks; each column stands on the head below it, so compute_face_contacts(0) pairs every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: four definitions, column, head, beam and deck.
+an L of five bays - three by two with the far corner bay left open - post and beam with 200 square columns and beams, stacked two storeys high, a beam on every grid line between the column heads (span -1), so the heads meet every case - two beams at the outer corners, three on the edges, four inside and at the re-entrant corner, every head chamfered between each two neighbouring beams - and every deck sits between four beams with its corners cut by the heads; each storey a branch of the tree root and every kind of element a twig under it: columns, heads, beams and decks; each column stands on the head below it, so compute_face_contacts(0) pairs every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: four definitions, column, head, beam and deck.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

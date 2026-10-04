@@ -99,7 +99,7 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | Target | Source |
 |---|---|
 | `1_elements` … `12_cross_joints` | `examples/`: one behaviour each, in reading order; the list is in `docs/examples.md` and on the docs site |
-| `1_elements_flat`, `1_elements_tree` | one floor bay from the grid template under the root, and three bays under tree branches; `compute_face_contacts(0)` and `(1)`, `instance_by_key` |
+| `1_elements_tree` | a two storey L of five bays from the grid template, a branch per storey and a group per kind of element; pyramid column heads, flush decks, `compute_face_contacts(0)`, `instance_by_key` |
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `templates_translation_shell`, `templates_reflex_fold`, `templates_chevron`, `templates_diamond_mesh`, `templates_vda_mesh`, `templates_reciprocal_move`, `templates_reciprocal_rotation` | each shell template built with its defaults and written to `live.pb` as a mesh plus its plates |
