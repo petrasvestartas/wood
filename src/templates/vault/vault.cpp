@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "src/templates/vault/vault.h"
+#include "primitives.h"
 
 using namespace session_cpp;
 
@@ -374,53 +375,106 @@ Point compute_on_sail(const Sail& sail, const Point& plan, double offset) {
     return centre + (point - centre) * ((sail.radius + offset) / sail.radius);
 }
 
-/// The web over a counter-clockwise plan triangle: its intrados and extrados meshed at subdivisions per side, the sides radial to the sail so neighbouring webs share them.
-std::shared_ptr<Element> to_shell(const Sail& sail, const std::vector<Point>& corners, double thickness, int subdivisions) {
+/// The sail intrados as one cubic NURBS surface whose parameters are the plan coordinates over the bay: its control points stand over the Greville abscissae, so a plan line is a straight line in its parameters, and its normal points up.
+NurbsSurface compute_sail_surface(const Sail& sail, double half, int count) {
 
-    const int n = subdivisions;
-    std::map<std::pair<int, int>, size_t> index;
-    std::vector<Point> vertices;
-    for (int i = 0; i <= n; i++)
-        for (int j = 0; i + j <= n; j++) {
-            index[{i, j}] = vertices.size();
-            vertices.push_back(corners[0] + (corners[1] - corners[0]) * (static_cast<double>(i) / n) + (corners[2] - corners[0]) * (static_cast<double>(j) / n));
+    NurbsSurface surface(3, false, 4, 4, count, count);
+    for (int dir = 0; dir < 2; dir++)
+        for (int k = 0; k < count + 2; k++)
+            surface.set_nurbsknot(dir, k, std::clamp(static_cast<double>(k - 2), 0.0, static_cast<double>(count - 3)));
+
+    for (int i = 0; i < count; i++)
+        for (int j = 0; j < count; j++) {
+            const double x = -half + 2.0 * half * std::clamp(i - 1.0, 0.0, count - 3.0) / (count - 3);
+            const double y = -half + 2.0 * half * std::clamp(j - 1.0, 0.0, count - 3.0) / (count - 3);
+            surface.set_cv(i, j, compute_on_sail(sail, Point(x, y, 0.0), 0.0));
         }
 
-    const size_t count = vertices.size();
-    std::vector<Point> points;
-    for (const Point& plan : vertices)
-        points.push_back(compute_on_sail(sail, plan, 0.0));
-    for (const Point& plan : vertices)
-        points.push_back(compute_on_sail(sail, plan, thickness));
+    return surface;
+}
 
-    // the extrados counter-clockwise from above, the intrados the other way
-    std::vector<std::vector<size_t>> faces;
-    const auto add_triangle = [&](size_t a, size_t b, size_t c) {
-        faces.push_back({a + count, b + count, c + count});
-        faces.push_back({c, b, a});
-    };
-    for (int i = 0; i < n; i++)
-        for (int j = 0; i + j < n; j++) {
-            add_triangle(index[{i, j}], index[{i + 1, j}], index[{i, j + 1}]);
-            if (i + j + 1 < n)
-                add_triangle(index[{i + 1, j}], index[{i + 1, j + 1}], index[{i, j + 1}]);
-        }
+/// The parameters of a plan point on the sail surface.
+Point compute_uv(const NurbsSurface& surface, double half, const Point& plan) {
 
-    // the radial sides round the boundary, counter-clockwise
-    std::vector<size_t> boundary;
-    for (int k = 0; k < n; k++)
-        boundary.push_back(index[{k, 0}]);
-    for (int k = 0; k < n; k++)
-        boundary.push_back(index[{n - k, k}]);
-    for (int k = 0; k < n; k++)
-        boundary.push_back(index[{0, n - k}]);
-    for (size_t k = 0; k < boundary.size(); k++) {
-        const size_t a = boundary[k];
-        const size_t b = boundary[(k + 1) % boundary.size()];
-        faces.push_back({a, b, b + count, a + count});
+    const std::pair<double, double> u = surface.domain(0);
+    const std::pair<double, double> v = surface.domain(1);
+
+    return Point(u.first + (plan[0] + half) / (2.0 * half) * (u.second - u.first), v.first + (plan[1] + half) / (2.0 * half) * (v.second - v.first), 0.0);
+}
+
+/// A straight parameter-space curve from a to b.
+NurbsCurve to_uv_line(const Point& a, const Point& b) {
+    return NurbsCurve::create(false, 1, {Point(a[0], a[1], 0.0), Point(b[0], b[1], 0.0)});
+}
+
+/// The web over a counter-clockwise plan triangle as a BRep solid: its intrados the sail surface trimmed by the three rib lines, its extrados that surface moved out from the sphere centre by thickness, its sides ruled between the two, so neighbouring webs share them.
+std::shared_ptr<Element> to_shell(const Sail& sail, const NurbsSurface& surface, double half, const std::vector<Point>& corners, double thickness, int subdivisions) {
+
+    const Point centre(0.0, 0.0, sail.centre);
+    const double scale = (sail.radius + thickness) / sail.radius;
+    const Xform out = Xform::scale_uniform(centre, scale);
+
+    // the intrados runs with its parameters swapped so its normal points down, out of the web
+    NurbsSurface below = surface;
+    below.transpose();
+    const NurbsSurface above = surface.transformed(out);
+
+    BRep brep;
+    brep.name = "web";
+    const int s_below = brep.add_surface(below);
+    const int s_above = brep.add_surface(above);
+
+    std::vector<int> inner;
+    std::vector<int> outer;
+    std::vector<Point> uvs;
+    for (const Point& corner : corners) {
+        uvs.push_back(compute_uv(surface, half, corner));
+        inner.push_back(brep.add_vertex(surface.point_at(uvs.back()[0], uvs.back()[1])));
+        outer.push_back(brep.add_vertex(above.point_at(uvs.back()[0], uvs.back()[1])));
     }
 
-    return std::make_shared<wood_session::Block>(Mesh::from_vertices_and_faces(points, faces), "web");
+    // the boundary curves on the intrados and their copies on the extrados, counter-clockwise
+    std::vector<int> e_inner;
+    std::vector<int> e_outer;
+    std::vector<int> e_rise;
+    std::vector<NurbsCurve> curves;
+    for (size_t k = 0; k < 3; k++) {
+        const size_t next = (k + 1) % 3;
+        std::vector<Point> samples;
+        for (int t = 0; t <= subdivisions; t++) {
+            const Point uv = uvs[k] + (uvs[next] - uvs[k]) * (static_cast<double>(t) / subdivisions);
+            samples.push_back(surface.point_at(uv[0], uv[1]));
+        }
+        curves.push_back(Primitives::create_interpolated(samples));
+        e_inner.push_back(brep.add_edge(brep.add_curve_3d(curves.back()), inner[k], inner[next]));
+        e_outer.push_back(brep.add_edge(brep.add_curve_3d(curves.back().transformed(out)), outer[k], outer[next]));
+        e_rise.push_back(brep.add_edge(brep.add_curve_3d(NurbsCurve::create(false, 1, {brep.m_vertices[inner[k]].point, brep.m_vertices[outer[k]].point})), inner[k], outer[k]));
+    }
+
+    std::vector<BRepRef> faces;
+    std::vector<BRepRef> wire_below;
+    std::vector<BRepRef> wire_above;
+    for (size_t k = 0; k < 3; k++) {
+        const size_t next = (k + 1) % 3;
+        brep.add_pcurve(e_inner[k], s_below, brep.add_curve_2d(to_uv_line(Point(uvs[k][1], uvs[k][0], 0.0), Point(uvs[next][1], uvs[next][0], 0.0))));
+        brep.add_pcurve(e_outer[k], s_above, brep.add_curve_2d(to_uv_line(uvs[k], uvs[next])));
+        wire_above.push_back({e_outer[k], BRepOrientation::Forward});
+        wire_below.insert(wire_below.begin(), {e_inner[k], BRepOrientation::Reversed});
+
+        // the ruled side, intrados curve to extrados curve, counter-clockwise in its own parameters
+        const int s_side = brep.add_surface(Primitives::create_ruled(curves[k], curves[k].transformed(out)));
+        brep.add_pcurve(e_inner[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0))));
+        brep.add_pcurve(e_outer[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0))));
+        brep.add_pcurve(e_rise[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0))));
+        brep.add_pcurve(e_rise[next], s_side, brep.add_curve_2d(to_uv_line(Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0))));
+        const int wire = brep.add_wire({{e_inner[k], BRepOrientation::Forward}, {e_rise[next], BRepOrientation::Forward}, {e_outer[k], BRepOrientation::Reversed}, {e_rise[k], BRepOrientation::Reversed}});
+        faces.push_back({brep.add_face(s_side, {{wire, BRepOrientation::Forward}}), BRepOrientation::Forward});
+    }
+    faces.push_back({brep.add_face(s_below, {{brep.add_wire(wire_below), BRepOrientation::Forward}}), BRepOrientation::Forward});
+    faces.push_back({brep.add_face(s_above, {{brep.add_wire(wire_above), BRepOrientation::Forward}}), BRepOrientation::Forward});
+    brep.add_solid({{brep.add_shell(faces), BRepOrientation::Forward}});
+
+    return std::make_shared<Element>(brep, "web");
 }
 
 /// A rib along a plan segment under the sail: a square section of rib with its top on the intrados, sampled at subdivisions.
@@ -444,14 +498,15 @@ std::vector<std::shared_ptr<Element>> star_vault(double span, double rise, doubl
     const std::vector<Point> corners = {Point(half, half, 0.0), Point(-half, half, 0.0), Point(-half, -half, 0.0), Point(half, -half, 0.0)};
     const std::vector<Point> stars = {Point(0.0, star * half, 0.0), Point(-star * half, 0.0, 0.0), Point(0.0, -star * half, 0.0), Point(star * half, 0.0, 0.0)};
 
-    // twelve webs: one against each wall, two either side of each diagonal
+    // twelve webs on one NURBS sail: one against each wall, two either side of each diagonal
+    const NurbsSurface surface = compute_sail_surface(sail, half, subdivisions + 3);
     std::vector<std::shared_ptr<Element>> elements;
     for (size_t i = 0; i < 4; i++) {
         const size_t next = (i + 1) % 4;
         const size_t before = (i + 3) % 4;
-        elements.push_back(to_shell(sail, {corners[i], corners[next], stars[i]}, thickness, subdivisions));
-        elements.push_back(to_shell(sail, {crown, stars[before], corners[i]}, thickness, subdivisions));
-        elements.push_back(to_shell(sail, {crown, corners[i], stars[i]}, thickness, subdivisions));
+        elements.push_back(to_shell(sail, surface, half, {corners[i], corners[next], stars[i]}, thickness, subdivisions));
+        elements.push_back(to_shell(sail, surface, half, {crown, stars[before], corners[i]}, thickness, subdivisions));
+        elements.push_back(to_shell(sail, surface, half, {crown, corners[i], stars[i]}, thickness, subdivisions));
     }
 
     // twenty ribs: the diagonals, the tiercerons, the liernes and the wall arches

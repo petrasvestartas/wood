@@ -35,7 +35,7 @@ std::vector<std::shared_ptr<session_cpp::Element>> cross_vault(double span, doub
 /// A cloister (pavilion) vault over a square bay of span: four webs rising from the four walls, each the lower barrel, its voussoirs courses from the wall up to the crown and rings along the wall, cut on the bay diagonals where the webs meet.
 std::vector<std::shared_ptr<session_cpp::Element>> cloister_vault(double span, double rise, double thickness, int courses, int rings);
 
-/// A star (stellar) vault over a square bay of span on the sail surface through its corners, crown at rise: ribs along the diagonals, the tiercerons from every corner to the star points at star of the half span on the axes, the liernes from the star points to the crown and the wall arches; a web of thickness between every three ribs, its intrados meshed at subdivisions per rib.
+/// A star (stellar) vault over a square bay of span on the sail surface through its corners, crown at rise: ribs along the diagonals, the tiercerons from every corner to the star points at star of the half span on the axes, the liernes from the star points to the crown and the wall arches; a web of thickness between every three ribs, a BRep solid whose intrados is one cubic NURBS sail surface trimmed by its ribs, extrados that surface moved out, sides ruled; subdivisions sets the sail's control net and the samples per rib.
 std::vector<std::shared_ptr<session_cpp::Element>> star_vault(double span, double rise, double thickness, double star, double rib, int subdivisions);
 
 } // namespace wood_vault

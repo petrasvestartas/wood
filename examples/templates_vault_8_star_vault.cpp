@@ -9,7 +9,7 @@ const double RISE = 2500.0; // crown of the sail above the corners
 const double THICKNESS = 150.0; // of the webs
 const double STAR = 0.5; // star points at half the half span on the axes
 const double RIB = 200.0; // square rib section
-const int SUBDIVISIONS = 8; // intrados mesh and rib samples per rib
+const int SUBDIVISIONS = 8; // sail control net and samples per rib
 
 int main() {
 
@@ -27,7 +27,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A star (stellar) vault over an 8 m square bay on the sail surface through its corners: twenty ribs - four diagonals, eight tiercerons from the corners to the star points, four liernes to the crown and four wall arches - and the twelve webs between them, each 150 thick and meshed radially so neighbouring webs share their sides; compute_face_contacts(0) pairs the webs along the ribs.
+A star (stellar) vault over an 8 m square bay on the sail surface through its corners: twenty ribs - four diagonals, eight tiercerons from the corners to the star points, four liernes to the crown and four wall arches - and the twelve webs between them, each 150 thick: a BRep solid whose intrados is one cubic NURBS sail surface trimmed by its three ribs, whose extrados is that surface moved out from the sphere centre and whose sides are ruled surfaces neighbouring webs share.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
