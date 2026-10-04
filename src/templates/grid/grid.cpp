@@ -248,7 +248,7 @@ Mesh compute_loft(const std::vector<Point>& bottom, const std::vector<Point>& to
     return Mesh::from_polylines(kept, tolerance);
 }
 
-/// The head at a vertex where members arrive as a closed convex mesh between z_bottom and z_top, the datum at z: a pyramid frustum with one side per plan direction there, the side under a member its sloped end face, every other side standing on the column face.
+/// The head at a vertex where members arrive as a closed convex mesh between z_bottom and z_top, the datum at z: a pyramid frustum with one side per plan direction there, the side under a member its sloped end face, every other side standing on the column face, and a sloped chamfer between every two neighbouring members that seats the deck corner.
 Mesh compute_pyramid(const Context& context, size_t vertex, double z_bottom, double z_top, double z) {
 
     const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
@@ -273,6 +273,24 @@ Mesh compute_pyramid(const Context& context, size_t vertex, double z_bottom, dou
             if (member.direction.dot(direction) > 1.0 - 1e-9)
                 side = compute_slope_face(context, vertex, member);
         solid = solid.cut_by_plane(Plane::from_point_normal(side.origin() + Vector(0.0, 0.0, z), -side.z_axis()));
+    }
+
+    // a chamfer between every two neighbouring members, as compas_grid: from the line joining their sides' far ends at the bottom up to the corner they meet at on top
+    for (size_t k = 0; k < members.size() && members.size() > 1; k++) {
+        const Member& member = members[k];
+        const Member& next = members[(k + 1) % members.size()];
+        if (member.direction.cross(next.direction)[2] <= 1e-6)
+            continue;
+
+        const Vector left = Vector(0.0, 0.0, 1.0).cross(member.direction) * (member.width / 2.0);
+        const Vector right = Vector(0.0, 0.0, 1.0).cross(next.direction) * (-next.width / 2.0);
+        const Point a = compute_lift(centre + left + member.direction * std::max(context.framing.reach, compute_slope_start(context, vertex, member)), z_bottom);
+        const Point b = compute_lift(centre + right + next.direction * std::max(context.framing.reach, compute_slope_start(context, vertex, next)), z_bottom);
+        const Point c = compute_lift(compute_meet(centre + left, member.direction, centre + right, next.direction), z_top);
+        Vector normal = (b - a).cross(c - a).normalized();
+        if (normal.dot(compute_lift(centre, z_bottom) - a) > 0.0)
+            normal = -normal;
+        solid = solid.cut_by_plane(Plane::from_point_normal(a, -normal));
     }
 
     return solid;
