@@ -103,6 +103,7 @@ set(WOOD_SOURCES
     src/templates/grid/grid_levels.cpp
     src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
+    src/templates/vault/vault.cpp
     src/templates/floor/floor_geometry.cpp
     src/templates/floor/floor_plan.cpp
     src/templates/floor/floor.cpp
@@ -287,6 +288,14 @@ ADD_EXE(templates_floor_5_oculus         examples/templates_floor_5_oculus.cpp)
 ADD_EXE(templates_floor_6_contacts_floor examples/templates_floor_6_contacts_floor.cpp)
 ADD_EXE(templates_floor_8_contacts_cantilevers examples/templates_floor_8_contacts_cantilevers.cpp)
 ADD_EXE(templates_floor_9_rectangle      examples/templates_floor_9_rectangle.cpp)
+ADD_EXE(templates_vault_1_arch           examples/templates_vault_1_arch.cpp)
+ADD_EXE(templates_vault_2_barrel         examples/templates_vault_2_barrel.cpp)
+ADD_EXE(templates_vault_3_barrel_staggered examples/templates_vault_3_barrel_staggered.cpp)
+ADD_EXE(templates_vault_4_dome           examples/templates_vault_4_dome.cpp)
+ADD_EXE(templates_vault_5_wall           examples/templates_vault_5_wall.cpp)
+ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.cpp)
+ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
+ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
