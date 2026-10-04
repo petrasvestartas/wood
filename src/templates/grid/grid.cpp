@@ -248,23 +248,34 @@ Mesh compute_loft(const std::vector<Point>& bottom, const std::vector<Point>& to
     return Mesh::from_polylines(kept, tolerance);
 }
 
-/// The arm under a member at a vertex as a closed mesh: as wide as the member, from the column centre out to reach between z_bottom and z_top, below the member's sloped end face lifted to z.
-Mesh compute_arm(const Context& context, size_t vertex, const Member& member, double z_bottom, double z_top, double z) {
+/// The head at a vertex where members arrive as a closed convex mesh between z_bottom and z_top, the datum at z: a pyramid frustum with one side per plan direction there, the side under a member its sloped end face, every other side standing on the column face.
+Mesh compute_pyramid(const Context& context, size_t vertex, double z_bottom, double z_top, double z) {
 
     const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
-    const Vector side = Vector(0.0, 0.0, 1.0).cross(member.direction) * (member.width / 2.0);
-    const Vector out = member.direction * std::max(context.framing.reach, compute_arm_start(context, vertex, member));
-    const std::vector<Point> footprint = {centre - side, centre - side + out, centre + side + out, centre + side};
+    const std::vector<Member> members = compute_members(context, vertex);
+    double far = context.framing.reach;
+    for (const Point& corner : context.standing.at(vertex))
+        far = std::max(far, compute_distance(compute_lift(corner, 0.0), centre));
+    for (const Member& member : members)
+        far = std::max(far, compute_slope_start(context, vertex, member));
+
+    // a box round the vertex, cut down to the pyramid one side at a time
     std::vector<Point> bottom;
     std::vector<Point> top;
-    for (const Point& point : footprint) {
-        bottom.push_back(compute_lift(point, z_bottom));
-        top.push_back(compute_lift(point, z_top));
+    for (const Vector& corner : {Vector(-1.0, -1.0, 0.0), Vector(1.0, -1.0, 0.0), Vector(1.0, 1.0, 0.0), Vector(-1.0, 1.0, 0.0)}) {
+        bottom.push_back(compute_lift(centre + corner * (4.0 * far), z_bottom));
+        top.push_back(compute_lift(centre + corner * (4.0 * far), z_top));
+    }
+    Mesh solid = compute_loft(bottom, top, context.tolerance);
+    for (const Vector& direction : compute_directions(context.plan, vertex)) {
+        Plane side = Plane::from_point_normal(centre + direction * compute_reach(context.standing.at(vertex), centre, direction), direction);
+        for (const Member& member : members)
+            if (member.direction.dot(direction) > 1.0 - 1e-9)
+                side = compute_slope_face(context, vertex, member);
+        solid = solid.cut_by_plane(Plane::from_point_normal(side.origin() + Vector(0.0, 0.0, z), -side.z_axis()));
     }
 
-    const Plane face = compute_arm_face(context, vertex, member);
-
-    return compute_loft(bottom, top, context.tolerance).cut_by_plane(Plane::from_point_normal(face.origin() + Vector(0.0, 0.0, z), -face.z_axis()));
+    return solid;
 }
 
 /// A head block between two plan polygons at z_bottom and z_top with cuts.
@@ -277,31 +288,17 @@ std::shared_ptr<Element> to_block(const std::vector<Point>& bottom, const std::v
     return block;
 }
 
-/// The head at a vertex under node 0: where members arrive the column section with a sloped arm under each, the members resting on the arms at their own height; under the deck alone a frustum from the column to reach (capital 0) or a capital to halfway under a drop panel at reach (capital 1); cut back at the core walls, the frustum also at the deck edge.
+/// The head at a vertex under node 0: where members arrive a pyramid frustum as tall as they are deep, each member resting on its sloped side; under the deck alone a frustum from the column to reach (capital 0) or a capital to halfway under a drop panel at reach (capital 1); cut back at the core walls, the frustum also at the deck edge.
 std::vector<std::shared_ptr<Element>> to_head(const Context& context, const Level& level, size_t vertex, double z_bottom, double z_top) {
 
     const std::vector<Member> members = compute_members(context, vertex);
     if (!members.empty()) {
-        std::vector<Point> bottom;
-        std::vector<Point> top;
-        for (const Point& point : context.standing.at(vertex)) {
-            bottom.push_back(compute_lift(point, z_bottom));
-            top.push_back(compute_lift(point, z_top));
-        }
-        if (compute_area(bottom) < 0.0) {
-            std::reverse(bottom.begin(), bottom.end());
-            std::reverse(top.begin(), top.end());
-        }
-
-        // the column section united with the arm under every member; the arm ends say how far the core walls cut it back
-        Mesh solid = compute_loft(bottom, top, context.tolerance);
+        // the reach under every member says how far the core walls cut the head back
         std::vector<Point> extent = context.standing.at(vertex);
-        for (const Member& member : members) {
-            solid = wood_session::solid_boolean(solid, compute_arm(context, vertex, member, z_bottom, z_top, level.z), wood_session::SolidOperation::unite);
+        for (const Member& member : members)
             extent.push_back(compute_lift(*context.plan.vertex_point(vertex), 0.0) + member.direction * context.framing.reach);
-        }
 
-        std::shared_ptr<wood_session::Block> head = std::make_shared<wood_session::Block>(solid, "head");
+        std::shared_ptr<wood_session::Block> head = std::make_shared<wood_session::Block>(compute_pyramid(context, vertex, z_bottom, z_top, level.z), "head");
         head->cuts = compute_head_cuts(level, vertex, extent, context.framing);
         head->invalidate_geometry();
         return {head};
@@ -424,7 +421,7 @@ std::vector<std::shared_ptr<Element>> to_deck(const std::vector<Polyline>& outli
     return decks;
 }
 
-/// The side of a facade wall at a vertex, bottom up: on the column face from foot to top, under the arm of the member along the wall or the faces of a head that carries the deck; inward is +1 at the start of the wall line and -1 at its end.
+/// The side of a facade wall at a vertex, bottom up: on the column face from foot to top, under the sloped side of the member along the wall or the faces of a head that carries the deck; inward is +1 at the start of the wall line and -1 at its end.
 std::vector<Point> compute_wall_side(const Context& context, size_t vertex, const Vector& along, double inward, double foot, double datum, double top) {
 
     const Point base = compute_lift(*context.plan.vertex_point(vertex), 0.0);
@@ -437,15 +434,15 @@ std::vector<Point> compute_wall_side(const Context& context, size_t vertex, cons
     const double head_bottom = datum + compute_head_bottom(context, vertex);
     const std::vector<Member> members = compute_members(context, vertex);
     if (!members.empty()) {
-        std::optional<Member> armed;
+        std::optional<Member> along_wall;
         for (const Member& member : members)
             if (member.direction.dot(along * inward) > 0.999)
-                armed = member;
-        if (!armed)
+                along_wall = member;
+        if (!along_wall)
             return plain;
 
-        // under the arm: out along its bottom, then up its slope to the member bottom
-        const double start = compute_arm_start(context, vertex, *armed);
+        // under the sloped side: out along its bottom, then up its slope to the member bottom
+        const double start = compute_slope_start(context, vertex, *along_wall);
         const double reach = std::max(context.framing.reach, start);
         std::vector<Point> points = {plain[0], compute_lift(base + along * (support * inward), head_bottom), compute_lift(base + along * (reach * inward), head_bottom)};
         if (top > head_bottom + context.tolerance)
@@ -483,11 +480,11 @@ std::shared_ptr<Element> to_wall(const Context& context, std::pair<size_t, size_
     return std::make_shared<wood_session::Plate>(middle.translated(normal * (-context.framing.wall / 2.0)), middle.translated(normal * (context.framing.wall / 2.0)), name);
 }
 
-/// Deck thickness at a level vertex: the framing's deck under a floor face there, 0 without a floor.
+/// Deck thickness over the datum at a level vertex: the framing's deck under a floor face there that is not flush in its bay, 0 otherwise.
 double compute_floor(const Mesh& plan, size_t vertex, const Framing& framing) {
 
     for (const size_t face : plan.vertex_faces(vertex).value_or(std::vector<size_t>()))
-        if (plan.face_attribute(face, "floor").value_or(0.0) == 1.0)
+        if (plan.face_attribute(face, "floor").value_or(0.0) == 1.0 && !is_flush(plan, face, framing))
             return framing.deck;
 
     return 0.0;
@@ -609,9 +606,27 @@ std::vector<std::shared_ptr<Element>> to_floor(const Level& level, const Context
                 elements.push_back(purlin);
     }
 
-    for (const std::pair<const size_t, std::vector<Polyline>>& outline : outlines)
-        for (const std::shared_ptr<Element>& deck : to_deck(outline.second, level.z, context.framing.deck, compute_span(level.plan, outline.first, context.framing), context.framing.panel))
+    for (const std::pair<const size_t, std::vector<Polyline>>& outline : outlines) {
+        const bool flush = is_flush(level.plan, outline.first, context.framing);
+
+        // a flush deck hangs under the datum between the members, the heads at its corners cut out of it
+        std::vector<wood_session::SolidCut> heads;
+        for (const size_t vertex : flush ? compute_loop(level.plan, outline.first) : std::vector<size_t>()) {
+            if (!context.standing.count(vertex))
+                continue;
+
+            wood_session::SolidCut head;
+            head.mesh = compute_pyramid(context, vertex, level.z + compute_head_bottom(context, vertex), level.z + compute_head_top(context, vertex), level.z);
+            heads.push_back(head);
+        }
+
+        for (const std::shared_ptr<Element>& deck : to_deck(outline.second, flush ? level.z - context.framing.deck : level.z, context.framing.deck, compute_span(level.plan, outline.first, context.framing), context.framing.panel)) {
+            std::shared_ptr<wood_session::Plate> plate = std::static_pointer_cast<wood_session::Plate>(deck);
+            plate->solid_cuts = heads;
+            plate->invalidate_geometry();
             elements.push_back(deck);
+        }
+    }
 
     return elements;
 }

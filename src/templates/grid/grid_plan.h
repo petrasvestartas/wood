@@ -168,17 +168,17 @@ End compute_cuts(const Context& context, size_t vertex, size_t other);
 /// Highest member top at a vertex relative to the datum, 0 when only the deck arrives: the head top under node 0.
 double compute_head_top(const Context& context, size_t vertex);
 
-/// Head bottom at a vertex relative to the datum under node 0: head below its top, lower when a member is deeper.
+/// Head bottom at a vertex relative to the datum under node 0: the lowest member bottom, so the head is as tall as its members; head below the datum under the deck alone.
 double compute_head_bottom(const Context& context, size_t vertex);
 
 /// Lowest member bottom at a vertex relative to the datum, 0 when only the deck arrives: where a brace stops.
 double compute_under(const Context& context, size_t vertex);
 
-/// Distance from a vertex along a member to where the head arm under it starts at the top: past the column standing there, its corners within the member's width included, and past every neighbour member it would cross.
-double compute_arm_start(const Context& context, size_t vertex, const Member& member);
+/// Distance from a vertex along a member to where the sloped head side under it meets the head top: past the column standing there, its corners within the member's width included, and past every neighbour member it would cross.
+double compute_slope_start(const Context& context, size_t vertex, const Member& member);
 
-/// The sloped end face of the head arm under a member at its vertex, at z 0 for the datum: from reach at the head bottom up to the arm start at the head top, normal out along the member and up.
-Plane compute_arm_face(const Context& context, size_t vertex, const Member& member);
+/// The sloped head side under a member at its vertex, the member's end face, at z 0 for the datum: from reach at the head bottom up to the slope start at the head top, normal out along the member and up.
+Plane compute_slope_face(const Context& context, size_t vertex, const Member& member);
 
 /// Plan intersection of two lines given by a point and a direction.
 Point compute_meet(const Point& p, const Vector& d, const Point& q, const Vector& e);
@@ -201,7 +201,13 @@ double compute_side(const Context& context, std::pair<size_t, size_t> edge);
 /// The four corners of the walls of a core ring in plan, pinwheel: each wall runs from the inner face of the wall before it to the outer face of the wall after it.
 std::vector<std::vector<Point>> compute_core_quads(const Polyline& ring, double wall);
 
-/// Deck loops of every floor face at z 0, largest first: perimeter sides out to the outer face of the member or column there, minus the columns rising through the deck, the core walls, and the decks built before it.
+/// True when the deck of a face sits in the bay, its top flush with the member tops and its corners cut by the heads: post and beam under node 0.
+bool is_flush(const Mesh& plan, size_t face, const Framing& framing);
+
+/// How far a bay deck moves out from a plan edge: in to the inner face of the member there, 0 without one.
+double compute_inset(const Context& context, std::pair<size_t, size_t> edge);
+
+/// Deck loops of every floor face at z 0, largest first: in a flush bay in to the member inner faces; otherwise perimeter sides out to the outer face of the member or column there, minus the columns rising through the deck, the core walls, and the decks built before it.
 std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context, const std::vector<Polyline>& cores);
 
 /// Loops of a deck cut into equal strips across the deck span, as many as compute_bays lays over its width at panel; one loop set when panel is 0.

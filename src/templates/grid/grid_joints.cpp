@@ -225,7 +225,7 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
 
     End end;
     if (context.framing.node == 0 && context.standing.count(vertex)) {
-        end.planes.push_back(compute_arm_face(context, vertex, members[me]));
+        end.planes.push_back(compute_slope_face(context, vertex, members[me]));
         end.bearing = true;
         return end;
     }
@@ -282,8 +282,12 @@ double compute_head_top(const Context& context, size_t vertex) {
 
 double compute_head_bottom(const Context& context, size_t vertex) {
 
-    double bottom = compute_head_top(context, vertex) - context.framing.head;
-    for (const Member& member : compute_members(context, vertex))
+    const std::vector<Member> members = compute_members(context, vertex);
+    if (members.empty())
+        return -context.framing.head;
+
+    double bottom = members[0].bottom;
+    for (const Member& member : members)
         bottom = std::min(bottom, member.bottom);
 
     return bottom;
@@ -298,7 +302,7 @@ double compute_under(const Context& context, size_t vertex) {
     return under;
 }
 
-double compute_arm_start(const Context& context, size_t vertex, const Member& member) {
+double compute_slope_start(const Context& context, size_t vertex, const Member& member) {
 
     const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
     const Vector side = Vector(0.0, 0.0, 1.0).cross(member.direction) * (member.width / 2.0);
@@ -325,11 +329,11 @@ double compute_arm_start(const Context& context, size_t vertex, const Member& me
     return start;
 }
 
-Plane compute_arm_face(const Context& context, size_t vertex, const Member& member) {
+Plane compute_slope_face(const Context& context, size_t vertex, const Member& member) {
 
     const Vector direction = member.direction;
     const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
-    const double start = compute_arm_start(context, vertex, member);
+    const double start = compute_slope_start(context, vertex, member);
     const double reach = std::max(context.framing.reach, start);
     const double top = compute_head_top(context, vertex);
     const double bottom = compute_head_bottom(context, vertex);
@@ -440,6 +444,17 @@ std::vector<Polyline> compute_largest(std::vector<Polyline> rings) {
     return kept;
 }
 
+bool is_flush(const Mesh& plan, size_t face, const Framing& framing) {
+    return framing.node == 0 && static_cast<int>(plan.face_attribute(face, "system").value_or(framing.system)) == 1;
+}
+
+double compute_inset(const Context& context, std::pair<size_t, size_t> edge) {
+
+    const int role = static_cast<int>(context.plan.edge_attribute(edge, "role").value_or(0.0));
+
+    return role > 0 ? -wood_session::compute_size(compute_profile(role, context.framing)).first / 2.0 : 0.0;
+}
+
 std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context, const std::vector<Polyline>& cores) {
 
     std::vector<Polyline> cutters;
@@ -452,10 +467,11 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
             continue;
 
         const std::vector<size_t> loop = compute_loop(context.plan, face);
+        const bool flush = is_flush(context.plan, face, context.framing);
         std::vector<double> distances;
         std::vector<Polyline> notches = cutters;
         for (const std::pair<size_t, size_t>& side : compute_sides(loop)) {
-            distances.push_back(compute_side(context, side));
+            distances.push_back(flush ? compute_inset(context, side) : compute_side(context, side));
             if (context.framing.node == 2 && context.rising.count(side.first))
                 notches.push_back(to_polyline(context.rising.at(side.first)));
         }

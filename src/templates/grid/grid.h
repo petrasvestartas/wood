@@ -55,12 +55,12 @@ struct Framing {
     int system = 1; // 0 point supported (deck on columns or heads, no members), 1 post and beam (girders on the span family, the deck spans between them), 2 purlin on girder (girders plus purlin rows at spacing).
     int span = 0; // Pattern family the girders run on, and under system 0 the family the deck strips run along; -1 every line carries a beam (two-way, hexagonal, irregular).
     double spacing = 3000.0; // Largest purlin spacing under system 2: ceil(bay / spacing) intervals per bay, a row on every interior cross line.
-    int node = 0; // Column joint: 0 head (the members rest on its sloped arms at their own height, tops at the datum; under the deck where none arrive), 1 flush (column top at the datum, members into its faces, deck over all), 2 through (column datum to datum, deck notched, members into its faces; as 1 under system 0, so the deck has a bearing).
+    int node = 0; // Column joint: 0 head (a pyramid as tall as the members, each resting on its sloped side, tops at the datum; under the deck where none arrive), 1 flush (column top at the datum, members into its faces, deck over all), 2 through (column datum to datum, deck notched, members into its faces; as 1 under system 0, so the deck has a bearing).
     double drop = 0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
-    double deck = 200.0; // Deck thickness above the datum.
+    double deck = 200.0; // Deck thickness: above the datum, or under it in the bay with its top flush with the members and its corners cut by the heads under post and beam with node 0.
     double wall = 200.0; // Facade and core wall thickness, centred on the line.
-    double head = 300.0; // Head height under node 0, down from the datum; deeper where a member is.
-    double reach = 400.0; // How far a head reaches from the column centre: the bottom of the arm under each member, or the top half-width of a head under the deck.
+    double head = 300.0; // Height of a head under the deck alone under node 0; a head members arrive at is as tall as they are deep.
+    double reach = 400.0; // How far a head reaches from the column centre: the bottom of its sloped side under each member, or the top half-width of a head under the deck.
     int capital = 0; // Shape of a head under the deck where no member arrives: 0 conical, a frustum from the column section up to reach; 1 stepped, a capital to halfway under a drop panel at reach.
     double panel = 0.0; // Largest deck strip width across the deck span; 0 one deck per bay.
     double taper = 30.0; // Largest lean in degrees of a column following a moving section; beyond it the vertex is a transfer.

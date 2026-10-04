@@ -9,8 +9,8 @@ const Vector Y(0.0, 1.0, 0.0);
 const std::vector<double> XS = {4000.0};
 const std::vector<double> YS = {3000.0};
 const std::vector<Polyline> FOOTPRINT = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 4000.0, 3000.0)};
-const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3400 + head 300 up to the datum, the deck underside; the 200 deep members sit in the head's top 200 on its arms
-const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .head = 300.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
+const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3500 + head 200 up to the datum, the top of the heads, members and deck; the pyramid head is as tall as the 200 deep members resting on its sloped sides
+const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
 int main() {
@@ -31,7 +31,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-one floor bay built on the grid template - a one-bay footprint over one storey, post and beam with the girders on the x sides: four columns, four heads with a sloped arm under each member that arrives, two girders and two beams resting on the arms at the head height and a deck on the head and member tops; compute_face_contacts(0) pairs every element with every other and finds 20 contacts: column under head 4, girder and beam ends on the head arms 8, head tops under the deck 4, girder and beam tops under the deck 4; the members end at the heads, so no member touches another. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+one floor bay built on the grid template - a one-bay footprint over one storey, post and beam with the girders on the x sides: four columns, four pyramid heads as tall as the members, two girders and two beams each resting on a sloped head side, and a deck in the bay between them, its top flush with theirs and its corners cut by the heads; compute_face_contacts(0) pairs every element with every other and finds 16 contacts: column under head 4, girder and beam ends on the sloped head sides 8, deck edges on the girder and beam inner faces 4; the members end at the heads, so no member touches another. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

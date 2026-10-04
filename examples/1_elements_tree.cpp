@@ -8,30 +8,33 @@ const Vector X(1.0, 0.0, 0.0);
 const Vector Y(0.0, 1.0, 0.0);
 const std::vector<double> XS = {4000.0};
 const std::vector<double> YS = {3000.0};
-const std::vector<double> ELEVATIONS = {0.0, 3700.0}; // column 3400 + head 300 up to the datum, the deck underside; the 200 deep members sit in the head's top 200 on its arms
-const double GAP = 2000.0;
-const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .head = 300.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
+const std::vector<Polyline> FOOTPRINT = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 4000.0, 3000.0)};
+const std::vector<double> ELEVATIONS = {0.0, 3700.0, 7400.0, 11100.0}; // three storeys of column 3500 + head 200, each datum the top of the heads, members and deck
+const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
 int main() {
 
     WoodSession wood_session("elements_tree");
+    const wood_grid::Building building = wood_grid::Building::from_footprint(FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS));
 
-    for (int i = 0; i < 3; i++) {
-
-        const Xform shift = Xform::translation(i * (XS[0] + 2.0 * FRAMING.reach + GAP), 0.0, 0.0);
-        const std::vector<Polyline> footprint = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, XS[0], YS[0]).transformed(shift)};
-        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS).transformed(shift));
-        const std::shared_ptr<TreeNode> branch = wood_session.add_group(fmt::format("bay_{}", i));
-
-        for (const std::shared_ptr<Element>& element : building.to_elements(FRAMING, 0))
-            wood_session.add(element, branch);
+    // one branch per storey, one twig per kind of element under it
+    for (size_t storey = 0; storey + 1 < ELEVATIONS.size(); storey++) {
+        const std::shared_ptr<TreeNode> branch = wood_session.add_group(fmt::format("storey_{}", storey));
+        std::map<std::string, std::shared_ptr<TreeNode>> kinds;
+        for (const std::shared_ptr<Element>& element : building.to_elements(FRAMING, storey)) {
+            if (!kinds.count(element->name)) {
+                kinds[element->name] = std::make_shared<TreeNode>(element->name + "s");
+                wood_session.add(kinds[element->name], branch);
+            }
+            wood_session.add(element, kinds[element->name]);
+        }
     }
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_face_contacts(1);
+    wood_session.compute_face_contacts(0);
 
     std::cout << wood_session;
     wood_session.pb_dump(pb_path("live"));
@@ -41,7 +44,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the floor bay of 1_elements_flat built on the grid template three times side by side, each bay a branch of the tree root; compute_face_contacts(1) pairs elements only inside the same branch, so no contact crosses from one bay to another. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
+the floor bay of 1_elements_flat stacked three storeys high, each storey a branch of the tree root and every kind of element a twig under it: columns, heads, girders, beams and decks; each column stands on the head below it, so compute_face_contacts(0) pairs every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
