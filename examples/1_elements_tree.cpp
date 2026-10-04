@@ -6,10 +6,10 @@ using namespace wood_session;
 
 const Vector X(1.0, 0.0, 0.0);
 const Vector Y(0.0, 1.0, 0.0);
-const std::vector<double> XS = {4000.0};
-const std::vector<double> YS = {3000.0};
-const std::vector<Polyline> FOOTPRINT = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 4000.0, 3000.0)};
-const std::vector<double> ELEVATIONS = {0.0, 3700.0, 7400.0, 11100.0}; // three storeys of column 3500 + head 200, each datum the top of the heads, members and deck
+const std::vector<double> XS = {4000.0, 4000.0};
+const std::vector<double> YS = {3000.0, 3000.0};
+const std::vector<Polyline> FOOTPRINT = {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 8000.0, 6000.0)};
+const std::vector<double> ELEVATIONS = {0.0, 3000.0, 6000.0, 9000.0}; // three storeys of column 2800 + head 200, each datum the top of the heads, members and deck
 const wood_grid::Framing FRAMING{.system = 1, .span = 0, .node = 0, .deck = 200.0, .reach = 200.0, .profiles = {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}};
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
@@ -44,7 +44,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-the floor bay of 1_elements_flat stacked three storeys high, each storey a branch of the tree root and every kind of element a twig under it: columns, heads, girders, beams and decks; each column stands on the head below it, so compute_face_contacts(0) pairs every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
+two by two bays of the 1_elements_flat framing stacked three storeys high, so the heads meet every case - two members at the corners, three on the edges, four at the centre - and every deck is cut by the four heads at its corners; each storey a branch of the tree root and every kind of element a twig under it: columns, heads, girders, beams and decks; each column stands on the head below it, so compute_face_contacts(0) pairs every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: five definitions, column, head, girder, beam and deck.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
