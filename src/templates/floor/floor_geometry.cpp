@@ -154,8 +154,12 @@ Point area_centroid(const Polyline& polyline) {
 double polygon_area(const Polyline& polyline) {
 
     const std::vector<Point> points = open_points(polyline);
+    Vector twice(0.0, 0.0, 0.0);
 
-    return points.size() < 3 ? 0.0 : 0.5 * wood_session::compute_newell(points).magnitude();
+    for (size_t i = 1; i + 1 < points.size(); i++)
+        twice += (points[i] - points[0]).cross(points[i + 1] - points[0]);
+
+    return 0.5 * twice.magnitude();
 }
 
 Polyline lifted(const std::vector<Point>& points, double lift) {

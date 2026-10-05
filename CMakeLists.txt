@@ -288,6 +288,7 @@ ADD_EXE(templates_floor_5_oculus         examples/templates_floor_5_oculus.cpp)
 ADD_EXE(templates_floor_6_contacts_floor examples/templates_floor_6_contacts_floor.cpp)
 ADD_EXE(templates_floor_7_contacts_cantilevers examples/templates_floor_7_contacts_cantilevers.cpp)
 ADD_EXE(templates_floor_8_rectangle      examples/templates_floor_8_rectangle.cpp)
+
 ADD_EXE(templates_vault_1_arch           examples/templates_vault_1_arch.cpp)
 ADD_EXE(templates_vault_2_barrel         examples/templates_vault_2_barrel.cpp)
 ADD_EXE(templates_vault_3_barrel_staggered examples/templates_vault_3_barrel_staggered.cpp)
@@ -297,9 +298,14 @@ ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.
 ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
 ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.cpp)
 
+# Documentation film of the floor: one scene and its notes per step, a chapter per file, rendered by docs/floor/render.py.
+file(GLOB DOCS_FLOOR_MOVIE ${CMAKE_CURRENT_SOURCE_DIR}/docs/floor/*.cpp)
+ADD_EXE(docs_floor_movie ${DOCS_FLOOR_MOVIE})
+
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
-# docs/examples.md and docs/templates.md (its screenshots under docs/images); Doxygen only, no Python.
+# docs/examples.md, docs/templates.md and a page per template family under docs/templates (their pictures
+# under docs/images, the floor's beside its page in docs/templates/floor, made by docs/floor); Doxygen only.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
     set(DOXYGEN_PROJECT_NAME "Wood")
@@ -309,7 +315,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_FILE_PATTERNS *.h *.md)
     set(DOXYGEN_FILTER_PATTERNS "*.md=${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/mermaid_filter.sh")
     set(DOXYGEN_EXAMPLE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/examples)
-    set(DOXYGEN_IMAGE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/docs/images)
+    set(DOXYGEN_IMAGE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/docs/images ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates)
     set(DOXYGEN_EXTRACT_ALL YES)
     set(DOXYGEN_EXTRACT_STATIC YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
@@ -336,6 +342,7 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
         ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
         COMMENT "Doxygen: build/docs/html"

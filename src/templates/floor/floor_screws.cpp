@@ -205,7 +205,7 @@ static CornerFaces corner_faces(const FloorGuide& guide, size_t q, size_t k) {
     return faces;
 }
 
-/// Outer rib k of quarter q and the seam beam it meets: two screws along the seam beam from the rib's outer face, the contact the beam's end on the rib's inner face; when the seam runs through the rib band, two screws along the rib, 20 mm below its top and above its bottom and either side of its axis, from the beam's seam face through the beam into the rib end, the contact the rib's end on the beam.
+/// Outer rib k of quarter q and the seam beam it meets: two screws along the seam beam from the rib's outer face, the contact the beam's end where it meets the rib's inner face, so not the strip of the end below the rib when the soffit is deeper; when the seam runs through the rib band, two screws along the rib, 20 mm below its top and above its bottom and either side of its axis, from the beam's seam face through the beam into the rib end, the contact the rib's end on the beam.
 static Relationship rib_beam(const FloorGuide& guide, size_t q, size_t k) {
 
     const ConstructionPlanes& cp = guide.geometry[q].planes;
@@ -230,7 +230,11 @@ static Relationship rib_beam(const FloorGuide& guide, size_t q, size_t k) {
     for (double fraction : RIB_BEAM_LEVELS)
         screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -guide.parameters.static_h() * fraction));
 
-    return screw_row(guide, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.outer_ribs[k][1], {top[3], top[0], bottom[0], bottom[3]}, screws, q);
+    const Polyline end = Polyline({top[3], top[0], bottom[0], bottom[3]}).closed();
+    const std::vector<Polyline> overlap = Polyline::boolean_op(end, guide.quarter(q).outer_ribs()[k].bottom, cp.outer_ribs[k][1], 0);
+    const std::vector<Point> contact = overlap.empty() ? open_points(end) : open_points(overlap.front());
+
+    return screw_row(guide, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.outer_ribs[k][1], contact, screws, q);
 }
 
 /// Seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it: two screws along the oculus beam from the seam plane, the contact the oculus beam's end.

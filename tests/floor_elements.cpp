@@ -245,6 +245,24 @@ std::vector<wood_floor::Member> outer_ribs(const wood_floor::FloorMembers& membe
     return ribs;
 }
 
+/// Relationship::area() is the contact polygon's area: a 100 x 50 rectangle tilted out of every axis plane gives 5000, and every contact of the default floor its own area, never the 0.5 a unit Newell vector gave before.
+void check_contact_areas() {
+
+    const Xform tilt = Xform::rotation(Vector(1.0, 2.0, 3.0).normalized(), 37.0, true) * Xform::translation(120.0, -40.0, 900.0);
+    wood_floor::Relationship rectangle;
+    rectangle.contact = Polyline({Point(0.0, 0.0, 0.0), Point(100.0, 0.0, 0.0), Point(100.0, 50.0, 0.0), Point(0.0, 50.0, 0.0)}).closed().transformed(tilt);
+    check(std::abs(rectangle.area() - 5000.0) <= 1e-9, fmt::format("a tilted 100 x 50 contact is 5000 mm2, not {:.9f}", rectangle.area()));
+
+    double smallest = std::numeric_limits<double>::max();
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(square_guide()))
+        if (row.contact.point_count() > 0)
+            smallest = std::min(smallest, row.area());
+
+    check(smallest > 100.0, fmt::format("every contact of the square has its own area, the smallest {:.3f} mm2", smallest));
+    std::cout << fmt::format("floor_elements: contact areas are polygon areas, a tilted 100 x 50 contact 5000 mm2, the smallest of the square {:.3f} mm2", smallest) << std::endl;
+}
+
 /// The relationship table of the default floor, the seams through the ribs: 48 rows in the counts of the design and 36 screw rows, every contact one the kernel's search finds on the square within 1e-6 of plane, top edge and area, and require_contact throwing for a pair that does not touch.
 void check_relationships() {
 
@@ -406,7 +424,8 @@ void check_seam_through_ribs() {
 
     wood_floor::add_connectors(scene, guide, members, {wood_floor::Relation::oculus_wedge, wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap, wood_floor::Relation::block_dowels});
     const std::vector<wood_floor::Relation> kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
-    check(wood_floor::verify_contacts(scene, guide, members, 1e-6, kinds).ok(), "seam through ribs: every screw contact the kernel's search finds");
+    const wood_floor::ContactCheck screw_contacts = wood_floor::verify_contacts(scene, guide, members, 1e-6, kinds);
+    check(screw_contacts.ok(), "seam through ribs: every screw contact the kernel's search finds, " + screw_contacts.str());
     const wood_floor::ScrewCheck screws = wood_floor::check_screws(scene, guide, wood_floor::add_connectors(scene, guide, members, kinds));
     check(screws.misfits.empty() && screws.screw_pocket_mm >= 0.0 && std::abs(screws.embedded_min_mm - 200.0) <= 1e-3, "seam through ribs screws clear and held:\n" + screws.str());
 
@@ -1205,7 +1224,8 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
     connectors.insert(connectors.end(), screws.begin(), screws.end());
     check(report.counts.at(wood_floor::Relation::screw_rib_beam) == 16 && report.counts.at(wood_floor::Relation::screw_beam_mitre) == 16 && report.counts.at(wood_floor::Relation::screw_rib_corner) == 16 && report.counts.at(wood_floor::Relation::screw_ring) == 8 && report.counts.at(wood_floor::Relation::screw_oculus) == 16, label + " screws per kind:\n" + report.str());
     check(report.misfits.empty() && report.screw_screw_mm >= 8.0 && report.screw_bore_mm >= 0.0 && report.screw_pocket_mm >= 0.0 && std::abs(report.embedded_min_mm - 200.0) <= 1e-3, label + " screws clear and held:\n" + report.str());
-    check(wood_floor::verify_contacts(scene, guide, members, 1e-6, kinds).ok(), label + " every screw contact the kernel's search finds");
+    const wood_floor::ContactCheck screw_contacts = wood_floor::verify_contacts(scene, guide, members, 1e-6, kinds);
+    check(screw_contacts.ok(), label + " every screw contact the kernel's search finds, " + screw_contacts.str());
 
     size_t next = 0;
 
@@ -1285,6 +1305,7 @@ int main() {
     check_rectangle();
     check_rib_levels();
     check_column_blocks();
+    check_contact_areas();
     check_relationships();
     check_beams();
     check_thickness();

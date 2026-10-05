@@ -39,12 +39,11 @@ double FloorGuide::oculus_seam_angle(size_t k) const {
     return (midpoint(k) - centre).angle(oculus_corners[(k + 1) % 4] - oculus_corners[k % 4], false);
 }
 
-/// One quarter family as the guide draws it: its plan quads and face planes in member order, its colour, and the index of its first rib parabola, -1 for none.
+/// One quarter family as the guide draws it: its plan quads and face planes in member order and the index of its first rib parabola, -1 for none.
 struct DrawnFamily {
     Family family;
     const std::vector<Polyline>& quads;
     const std::vector<std::array<Plane, 2>>& planes;
-    Color color;
     int parabola;
 };
 
@@ -71,25 +70,26 @@ void FloorGuide::draw() {
         add_point(corner, plan);
 
         const std::array<DrawnFamily, 5> families = {{
-            {Family::outer_ribs, drawn.quads.outer_ribs, drawn.planes.outer_ribs, Color(0.85f, 0.33f, 0.10f, 1.0f, "outer_ribs"), 0},
-            {Family::inner_ribs, drawn.quads.inner_ribs, drawn.planes.inner_ribs, Color(0.93f, 0.69f, 0.13f, 1.0f, "inner_ribs"), 2},
-            {Family::inner_beams, drawn.quads.inner_beams, drawn.planes.inner_beams, Color(0.13f, 0.55f, 0.45f, 1.0f, "inner_beams"), -1},
-            {Family::wedges, drawn.quads.wedges, drawn.planes.wedges, Color(0.49f, 0.18f, 0.56f, 1.0f, "wedges"), -1},
-            {Family::tsections, drawn.quads.tsections, drawn.planes.tsections, Color(0.47f, 0.67f, 0.19f, 1.0f, "tsections"), -1},
+            {Family::outer_ribs, drawn.quads.outer_ribs, drawn.planes.outer_ribs, 0},
+            {Family::inner_ribs, drawn.quads.inner_ribs, drawn.planes.inner_ribs, 2},
+            {Family::inner_beams, drawn.quads.inner_beams, drawn.planes.inner_beams, -1},
+            {Family::wedges, drawn.quads.wedges, drawn.planes.wedges, -1},
+            {Family::tsections, drawn.quads.tsections, drawn.planes.tsections, -1},
         }};
 
         for (const DrawnFamily& family : families) {
             const std::string& name = FAMILY_NAMES[static_cast<size_t>(family.family)];
+            const Color& color = FAMILY_COLORS[static_cast<size_t>(family.family)];
             const std::shared_ptr<TreeNode> group = wood_floor::add_group(*this, name + suffix, quarter);
 
             for (size_t i = 0; i < family.quads.size(); i++) {
                 const std::shared_ptr<TreeNode> member = wood_floor::add_group(*this, fmt::format("{}_{}{}", name, i, suffix), group);
-                line(family.quads[i].closed(), "quad", family.color, 2.0, member);
+                line(family.quads[i].closed(), "quad", color, 2.0, member);
 
                 for (size_t side = 0; side < 2; side++) {
                     Plane face = family.planes[i][side];
                     face.name = fmt::format("face_{}", side);
-                    face.linecolor = family.color;
+                    face.linecolor = color;
                     add_plane(face, member);
                 }
 
@@ -97,9 +97,9 @@ void FloorGuide::draw() {
                     continue;
 
                 const std::array<Polyline, 3>& parabola = drawn.parabolas[static_cast<size_t>(family.parabola) + i];
-                line(parabola[0], "soffit", family.color, 2.0, member);
-                line(parabola[1], "tsections_top", family.color, 1.0, member);
-                line(parabola[2], "beds_top", family.color, 1.0, member);
+                line(parabola[0], "soffit", color, 2.0, member);
+                line(parabola[1], "tsections_top", color, 1.0, member);
+                line(parabola[2], "beds_top", color, 1.0, member);
             }
         }
     }

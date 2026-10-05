@@ -299,6 +299,16 @@ enum class Family {
 
 const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges", "tsections", "beds"}; // The group and element name prefix of each quarter family, in Family order; the guide draws each member's construction under the same names.
 
+/// The display colour of each quarter family, in Family order: the guide draws a member's construction in it and the documentation shows the member in it.
+const std::array<session_cpp::Color, 6> FAMILY_COLORS = {
+    session_cpp::Color(0.85f, 0.33f, 0.10f, 1.0f, "outer_ribs"),
+    session_cpp::Color(0.93f, 0.69f, 0.13f, 1.0f, "inner_ribs"),
+    session_cpp::Color(0.13f, 0.55f, 0.45f, 1.0f, "inner_beams"),
+    session_cpp::Color(0.49f, 0.18f, 0.56f, 1.0f, "wedges"),
+    session_cpp::Color(0.47f, 0.67f, 0.19f, 1.0f, "tsections"),
+    session_cpp::Color(0.30f, 0.47f, 0.78f, 1.0f, "beds"),
+};
+
 /// What two members share and the connector that belongs to it; the screw kinds are the assembly screws, pre-drilled lines both members read.
 enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels, screw_rib_beam, screw_beam_mitre, screw_rib_corner, screw_ring, screw_oculus };
 
