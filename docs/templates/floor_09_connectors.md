@@ -2,7 +2,7 @@
 
 This chapter turns the contact relationships of chapter 08 into connectors. `wood_floor::add_connectors` (src/templates/floor/floor_models.cpp) walks `relationships(guide)`, builds one `JointBeam` per row through the factories in src/joinery_solver/wood_elements/wood_element_joint_beam.cpp, names it, and hands it to `WoodSession::add_connector` (src/joinery_solver/wood_session.cpp), which nests its parts and dowels and stores its cuts in the members. It takes the members `add_members()` placed and the `Relationship` rows. It gives chapter 10 the cut members and the connectors that the screws are checked against. `add_screws()` uses the same function for the screw kinds.
 
-Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) calls `add_connectors()` on the default square bay and makes every connector of this chapter, and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) does the same on the 3000 x 2400 bay with `seam_through_ribs` false, which makes the tie keys of sections 184 to 186.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) calls `add_connectors()` on the default square bay and makes every connector of this chapter, and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) does the same on the 3000 x 2400 bay with `seam_through_ribs` false, which makes the tie keys of sections 184 to 186.
 
 ![](floor/film_09_connectors.webp)
 
@@ -22,7 +22,7 @@ All values below are for the default bay, `FloorGuide::rectangle(3000, 3000)` wi
 | `Floor::connectors` | 44 | 4 + 4 + 8 + 4 + 0 + 24 connectors |
 | `Floor::screws` | 36 | The screw connectors of `add_screws()` |
 
-Code: `Floor::add_connectors`, `Floor::add_screws`, [src/templates/floor/floor_models.cpp:413-430](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L413-L430); [src/templates/floor/floor.h:316](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L316), [444](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L444).
+Code: `Floor::add_connectors`, `Floor::add_screws`, [src/templates/floor/floor_models.cpp:413-430](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L413-L430); [src/templates/floor/floor.h:316](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L316), [444](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L444).
 
 ## 170. Walk and filter
 
@@ -39,7 +39,7 @@ Code: `Floor::add_connectors`, `Floor::add_screws`, [src/templates/floor/floor_m
 | `connectors` | 44 | The returned list, in `relationships()` order |
 | `FloorParameters::seam_through_ribs` | true | Suppresses the seam_tie rows |
 
-Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:348-356](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L348-L356); `relationships`, [src/templates/floor/floor_relations.cpp:173-209](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L173-L209).
+Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:348-356](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L348-L356); `relationships`, [src/templates/floor/floor_relations.cpp:173-209](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L173-L209).
 
 ## 171. Wedge sizing
 
@@ -55,7 +55,7 @@ For a seam_wedge or oculus_wedge row, `connector_of` takes `thickness = max(memb
 | `length_margin` | seam 100.62; oculus 102.98 | `1.5 * thickness`, cut back at both ends |
 | `pocket_depth` | seam 44.72; oculus 45.77 | `2 * thickness / 3` |
 
-Code: `connector_of`, [src/templates/floor/floor_models.cpp:320-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L320-L323).
+Code: `connector_of`, [src/templates/floor/floor_models.cpp:320-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L320-L323).
 
 ## 172. Wedge frame
 
@@ -71,7 +71,7 @@ Code: `connector_of`, [src/templates/floor/floor_models.cpp:320-323](https://git
 | `normal` | (-1, 0, 0) | Newell normal of the contact |
 | `axes` | x (0, 1, 0), y (-1, 0, 0), z (0, 0, 1) | The wedge frame |
 
-Code: `JointBeam::wedge`, `merge_collinear`, `top_edge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:57-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L57-L123), [216-221](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L216-L221).
+Code: `JointBeam::wedge`, `merge_collinear`, `top_edge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:57-123](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L57-L123), [216-221](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L216-L221).
 
 ## 173. Wedge stations onto the end plane
 
@@ -88,7 +88,7 @@ The two stations are positions along `x` measured from <span style="color:#8C969
 | `origin` | seam 0: (0, -2050.31, 3500) | Wedge centre on the top edge |
 | `length` | seam 1899.38 (y -3000 to -1100.62); oculus 1038.54 | Wedge length |
 
-Code: `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:222-236](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L222-L236).
+Code: `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:222-236](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L222-L236).
 
 ## 174. Wedge profile clipped flush
 
@@ -103,7 +103,7 @@ Code: `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_b
 | `profile` | `WEDGE_PROFILE` | Cross-section in frame (y, z) |
 | `joint->parts[0]` | seam: triangle 60 wide at z 3500, apex z 3303, y -3000 to -1100.62 | The wedge prism, its two end loops |
 
-Code: `below_top`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:156-174](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L156-L174), [243-250](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L243-L250); `WEDGE_PROFILE`, [wood_element_joint_beam.h:15](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.h#L15).
+Code: `below_top`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:156-174](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L156-L174), [243-250](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L243-L250); `WEDGE_PROFILE`, [wood_element_joint_beam.h:15](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.h#L15).
 
 ## 175. Wedge dowels
 
@@ -124,7 +124,7 @@ Code: `below_top`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_el
 | `dowel_sides` | 8 | Facets: `chord_tolerance = sides_tolerance(10, 8)` = 0.7612 |
 | `overshoot` | 20 | Stored as `drill_overshoot`: hole run-on where a dowel leaves a target |
 
-Code: `JointBeam::wedge`, `flush_dowel`, `sides_tolerance`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:131-153](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L131-L153), [252-265](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L252-L265).
+Code: `JointBeam::wedge`, `flush_dowel`, `sides_tolerance`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:131-153](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L131-L153), [252-265](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L252-L265).
 
 ## 176. Wedge pockets
 
@@ -141,7 +141,7 @@ Code: `JointBeam::wedge`, `flush_dowel`, `sides_tolerance`, [src/joinery_solver/
 | `joint->cutters[0]` | inner_beams_0_0: face x -31.76 at z 3511.53 to 0 at z 3303, deep side x +12.46 to +44.21 | The box under the world x < 0 face |
 | `joint->cutters[1]` | inner_beams_2_1: the mirror box | The box under the world x > 0 face |
 
-Code: `wedge_pocket`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:177-211](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L177-L211), [267-277](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L267-L277).
+Code: `wedge_pocket`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:177-211](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L177-L211), [267-277](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L267-L277).
 
 ## 177. Oculus wedge (example 6)
 
@@ -159,7 +159,7 @@ For quarter q the oculus_wedge row has a = inner beam 1 of q and b = ring beam q
 | `connector_wedge_4` | length 1038.54, 3 dowels, targets {inner_beams_1_0, oculus_0} | Quarter 0's oculus wedge |
 | `Floor::connectors` (example 6) | 8 | 4 seam wedges and 4 oculus wedges |
 
-Code: `oculus_wedge`, [src/templates/floor/floor_relations.cpp:75-88](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L75-L88); `connector_of`, [src/templates/floor/floor_models.cpp:320-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L320-L323); [examples/templates_floor_6_contacts_floor.cpp:10-13](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_6_contacts_floor.cpp#L10-L13).
+Code: `oculus_wedge`, [src/templates/floor/floor_relations.cpp:75-88](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L75-L88); `connector_of`, [src/templates/floor/floor_models.cpp:320-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L320-L323); [examples/templates_floor_6_contacts_floor.cpp:10-13](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_6_contacts_floor.cpp#L10-L13).
 
 ## 178. Plate frame
 
@@ -175,7 +175,7 @@ Code: `oculus_wedge`, [src/templates/floor/floor_relations.cpp:75-88](https://gi
 | `origin` | (-2780, -2950, 3500) | Centre of the contact's top edge |
 | `dowel_length` | 100 | `members.thickness(row.b)` |
 
-Code: `JointBeam::rectangle_plate`, `top_origin`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:283-305](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L283-L305), [321-344](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L321-L344); `connector_of`, [src/templates/floor/floor_models.cpp:325-326](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L325-L326).
+Code: `JointBeam::rectangle_plate`, `top_origin`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:283-305](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L283-L305), [321-344](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L321-L344); `connector_of`, [src/templates/floor/floor_models.cpp:325-326](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L325-L326).
 
 ## 179. Plate part and pocket
 
@@ -196,7 +196,7 @@ Code: `JointBeam::rectangle_plate`, `top_origin`, [src/joinery_solver/wood_eleme
 | `joint->cutters` | the same box up to z 3525, for both targets | `{{pocket}, {pocket}}` |
 | `joint->targets` | {column_0, outer_ribs_0_0} | {column, rib} |
 
-Code: `frame_box`, `JointBeam::rectangle_plate`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:308-318](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L308-L318), [346-353](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L346-L353).
+Code: `frame_box`, `JointBeam::rectangle_plate`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:308-318](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L308-L318), [346-353](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L346-L353).
 
 ## 180. Plate dowels
 
@@ -215,7 +215,7 @@ The dowel stations along x lie <span style="color:#EB7721">`margin_x * dowel_rad
 | `joint->drill_lines` | connector_0: x -2848.75 and -2666.25, z 3425 and 3325, y -3000 to -2900 (100) | Four dowel axes |
 | `drill_overshoot` | 25 | Hole run-on |
 
-Code: `JointBeam::rectangle_plate`, `flush_dowel`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:355-363](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L355-L363).
+Code: `JointBeam::rectangle_plate`, `flush_dowel`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:355-363](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L355-L363).
 
 ## 181. plates_of_corner
 
@@ -229,7 +229,7 @@ After each column_plate connector is named, added and appended, it is pushed to 
 |---|---|---|
 | `plates_of_corner[0]` | {connector_0, connector_1} | The plates on rib 0 and rib 1 of corner 0 |
 
-Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:358-374](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L358-L374); `cross_lap`, [src/templates/floor/floor_relations.cpp:109-118](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L109-L118).
+Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:358-374](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L358-L374); `cross_lap`, [src/templates/floor/floor_relations.cpp:109-118](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L109-L118).
 
 ## 182. Cross lap frames and lap level
 
@@ -247,7 +247,7 @@ Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:358-37
 | `share` | 0.5 | Where the lap splits the common height |
 | `lap` | 0 (world z 3375) | The split level in frame_a z |
 
-Code: `JointBeam::cross_lap`, `box_frame`, `extent`, `box_corners`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:531-572](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L531-L572), [575-593](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L575-L593).
+Code: `JointBeam::cross_lap`, `box_frame`, `extent`, `box_corners`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:531-572](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L531-L572), [575-593](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L575-L593).
 
 ## 183. Cross lap slots
 
@@ -264,7 +264,7 @@ Code: `JointBeam::cross_lap`, `box_frame`, `extent`, `box_corners`, [src/joinery
 | `cutters[1]` | y -2965 to -2935, x -2966 to -2934, z 3249 to 3375 | Slot in connector_1 |
 | `targets` | {connector_0, connector_1} | The two plate connectors |
 
-Code: `JointBeam::cross_lap`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:594-610](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L594-L610); `Joint::Joint`, [wood_element_joint.cpp:10-12](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint.cpp#L10-L12).
+Code: `JointBeam::cross_lap`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:594-610](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L594-L610); `Joint::Joint`, [wood_element_joint.cpp:10-12](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint.cpp#L10-L12).
 
 ## 184. Tie frame
 
@@ -282,7 +282,7 @@ A seam_tie row exists only when `seam_through_ribs` is false: outer rib 0 of q a
 | `head_length` | 200 | Each head |
 | `half`, `neck` | 400, 200 | Half length and neck end |
 
-Code: `JointBeam::tie`, `top_origin`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:374-392](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L374-L392); `connector_of`, [src/templates/floor/floor_models.cpp:328-329](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L328-L329); `seam_tie`, [src/templates/floor/floor_relations.cpp:121-138](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L121-L138).
+Code: `JointBeam::tie`, `top_origin`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:374-392](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L374-L392); `connector_of`, [src/templates/floor/floor_models.cpp:328-329](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L328-L329); `seam_tie`, [src/templates/floor/floor_relations.cpp:121-138](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L121-L138).
 
 ## 185. Tie key
 
@@ -301,7 +301,7 @@ The key has <span style="color:#2196EA">four pieces</span> along frame y: a head
 | `end_depth` | 58.5 + 302 / 25.4 = 70.39 | Key depth at the ends: bottom z 3291.11 |
 | `joint->parts` | 4 loop pairs | Heads world y -2970 to -2930, neck -2960 to -2940 (square bay) |
 
-Code: `tie_section`, `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:369-371](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L369-L371), [394-400](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L394-L400).
+Code: `tie_section`, `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:369-371](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L369-L371), [394-400](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L394-L400).
 
 ## 186. Tie pockets
 
@@ -317,7 +317,7 @@ The pocket floor is `top + pocket_depth`, flat. <span style="color:#2196EA">The 
 | `overshoot` | 10 | Neck pocket run past the seam |
 | `joint->cutters` | outer_ribs_0_0: head -400 to -200 and neck -200 to +10 along frame y | Two boxes per target |
 
-Code: `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:402-416](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L402-L416).
+Code: `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:402-416](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L402-L416).
 
 ## 187. Dowels: frame and inset
 
@@ -333,7 +333,7 @@ A block_dowels row joins a rib (a) and a wedge block (b) on the rib's face plane
 | `normal` | outer rib 0 block: (0, 1, 0) | Toward the block |
 | `ring` | 4 corners, 50 inside each edge | The inset contact in frame coordinates |
 
-Code: `JointBeam::dowels`, `inset_polygon`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:419-441](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L419-L441), [467-481](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L467-L481); `connector_of`, [src/templates/floor/floor_models.cpp:340-345](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L340-L345).
+Code: `JointBeam::dowels`, `inset_polygon`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:419-441](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L419-L441), [467-481](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L467-L481); `connector_of`, [src/templates/floor/floor_models.cpp:340-345](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L340-L345).
 
 ## 188. Dowels: axes at the inset corners
 
@@ -351,7 +351,7 @@ Code: `JointBeam::dowels`, `inset_polygon`, [src/joinery_solver/wood_elements/wo
 | `dowel_sides` | 16 | Facets |
 | `joint->drill_lines` | connector_dowels_0: (x, z) (-2722.04, 3450), (-2644.26, 2925.33), (-2509.27, 2969.47), (-2580.51, 3450), y -2915 to -2885 | Four dowels |
 
-Code: `extreme_corners`, `JointBeam::dowels`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:444-464](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L444-L464), [483-499](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L483-L499).
+Code: `extreme_corners`, `JointBeam::dowels`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:444-464](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L444-L464), [483-499](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L483-L499).
 
 ## 189. Screws factory
 
@@ -369,7 +369,7 @@ This branch runs for a row that carries screw axes, which only the `SCREW_RELATI
 | `connector_screws_0` | targets {outer_ribs_0_0, inner_beams_0_0}, 2 screws x 0 to -200 at y -2965, z 3480 and 3321.22 | The first screw connector (rib_beam) |
 | rib_corner connector | targets {inner_beams_1_q, inner_ribs_k_q, the seam beam} | Three targets |
 
-Code: `connector_of`, [src/templates/floor/floor_models.cpp:331-338](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L331-L338); `JointBeam::screws`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:502-528](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L502-L528); `rib_corner`, [src/templates/floor/floor_screws.cpp:258-281](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L258-L281).
+Code: `connector_of`, [src/templates/floor/floor_models.cpp:331-338](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L331-L338); `JointBeam::screws`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:502-528](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L502-L528); `rib_corner`, [src/templates/floor/floor_screws.cpp:258-281](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L258-L281).
 
 ## 190. Naming
 
@@ -389,9 +389,7 @@ Code: `connector_of`, [src/templates/floor/floor_models.cpp:331-338](https://git
 | block_dowels | `connector_dowels` | connector_dowels_{6q + j}: 0 .. 23 |
 | the five screw kinds | `connector_screws` | connector_screws_0 .. 35 |
 
-The name plates in this film are placed by docs/floor/render.py, not by the floor code. `place()` solves the point-feature labelling problem: each plate has candidate positions on rings of growing radius in 24 directions around its point; a candidate is allowed only inside the picture and clear of every other plate and every other labelled point; among the allowed ones the plate takes the cheapest by leader length, the drawing it covers and the leaders it crosses. Centred plates go first, then the most crowded labels; then every label is placed again against all the others, for up to six passes, until nothing moves. A label with no allowed place, or two labels whose points are less than 14 px apart, fails the render.
-
-Code: `connector_prefix`, `add_named`, [src/templates/floor/floor_models.cpp:92-97](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L92-L97), [289-307](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L289-L307), [370](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L370).
+Code: `connector_prefix`, `add_named`, [src/templates/floor/floor_models.cpp:92-97](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L92-L97), [289-307](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L289-L307), [370](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L370).
 
 ## 191. connectors_q grouping
 
@@ -418,7 +416,7 @@ graph TD
 |---|---|---|
 | `group` | quarter_q / connectors_q | The tree node the connector goes under |
 
-Code: `connector_group`, `quarter_group`, `group_named`, [src/templates/floor/floor_models.cpp:79-89](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L79-L89), [310-312](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L310-L312), [370](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L370).
+Code: `connector_group`, `quarter_group`, `group_named`, [src/templates/floor/floor_models.cpp:79-89](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L79-L89), [310-312](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L310-L312), [370](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L370).
 
 ## 192. add_connector dispatch
 
@@ -444,7 +442,7 @@ graph TD
 |---|---|---|
 | `node` | the connector's tree node | Returned by `add_connector` for painting |
 
-Code: `WoodSession::add_connector`, `WoodSession::add_joint`, [src/joinery_solver/wood_session.cpp:1260-1285](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1260-L1285); `add_connector_joint`, [wood_session.cpp:1112-1139](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1112-L1139); `JointBeam::is_connector`, [wood_element_joint_beam.cpp:616-618](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L616-L618).
+Code: `WoodSession::add_connector`, `WoodSession::add_joint`, [src/joinery_solver/wood_session.cpp:1260-1285](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1260-L1285); `add_connector_joint`, [wood_session.cpp:1112-1139](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1112-L1139); `JointBeam::is_connector`, [wood_element_joint_beam.cpp:616-618](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L616-L618).
 
 ## 193. nest_children
 
@@ -458,7 +456,7 @@ Code: `WoodSession::add_connector`, `WoodSession::add_joint`, [src/joinery_solve
 |---|---|---|
 | `children` | connector_wedge_0: _part + _dowel_0 .. 4; connector_0: _part + _dowel_0 .. 3; connector_dowels_k: _dowel_0 .. 3; tie: _part_0 .. 3; cross lap: none | ConnectorPart and Dowel nodes |
 
-Code: `nest_children`, [src/joinery_solver/wood_session.cpp:1045-1054](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1045-L1054); `JointBeam::children`, `JointBeam::part_cuts`, [wood_element_joint_beam.cpp:624-641](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L624-L641), [650-663](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L650-L663); `ConnectorPart::ConnectorPart`, [wood_element_connector_part.cpp:13-21](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_connector_part.cpp#L13-L21).
+Code: `nest_children`, [src/joinery_solver/wood_session.cpp:1045-1054](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1045-L1054); `JointBeam::children`, `JointBeam::part_cuts`, [wood_element_joint_beam.cpp:624-641](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L624-L641), [650-663](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L650-L663); `ConnectorPart::ConnectorPart`, [wood_element_connector_part.cpp:13-21](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_connector_part.cpp#L13-L21).
 
 ## 194. Cutter solid stored in the target
 
@@ -473,7 +471,7 @@ For target side s, <span style="color:#2196EA">every loop pair in `cutters[s]`</
 | `mesh` | wedge 1 box; plate 1 box; cross lap 1 slot; tie 2 boxes; dowels empty | This target's cutter boxes in one mesh |
 | target `solid_cuts` | inner_beams_0_0: pocket (6 faces) + 5 drills r 10; outer_ribs_0_0 from connector_dowels_0: 0 faces + 4 drills r 4; connector_0: slot, 0 drills | One difference cut per connector per target |
 
-Code: `add_connector_joint`, [src/joinery_solver/wood_session.cpp:1121-1131](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1121-L1131); `store_solid_cut`, `add_drills`, `add_solid_cut`, [wood_session.cpp:1168-1201](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1168-L1201), [1218-1225](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1218-L1225); `get_solid_cuts`, [wood_session.cpp:43-64](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L43-L64).
+Code: `add_connector_joint`, [src/joinery_solver/wood_session.cpp:1121-1131](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1121-L1131); `store_solid_cut`, `add_drills`, `add_solid_cut`, [wood_session.cpp:1168-1201](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1168-L1201), [1218-1225](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1218-L1225); `get_solid_cuts`, [wood_session.cpp:43-64](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L43-L64).
 
 ## 195. target_drills: blind or overshoot
 
@@ -490,7 +488,7 @@ When `drill_overshoot <= 0` the drill lines are returned unchanged; for the cros
 | `drills` on outer_ribs_0_0 (connector_dowels_0) | y -2915 (blind) to -2875 | The rib's hole |
 | `drills` on wedges_0_0 (connector_dowels_0) | y -2925 to -2885 (blind) | The block's hole |
 
-Code: `target_drills`, [src/joinery_solver/wood_session.cpp:1001-1017](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1001-L1017).
+Code: `target_drills`, [src/joinery_solver/wood_session.cpp:1001-1017](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1001-L1017).
 
 ## 196. host_drills: drill features (wedges_1_0)
 
@@ -505,7 +503,7 @@ Code: `target_drills`, [src/joinery_solver/wood_session.cpp:1001-1017](https://g
 | `DRILL_SIDES` | 16 | Circle segments |
 | drill features | wedges_1_0: 8; connector_wedge_0 d20: 5 on each seam beam; connector_0 d50: 4 on column_0, only dowels 2 and 3 on outer_ribs_0_0 | Entry and exit circles per hole |
 
-Code: `host_drills`, [src/joinery_solver/wood_session.cpp:13](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L13), [1057-1092](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1057-L1092), [1134](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1134).
+Code: `host_drills`, [src/joinery_solver/wood_session.cpp:13](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L13), [1057-1092](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1057-L1092), [1134](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1134).
 
 ## 197. refresh and sync_parts
 
@@ -520,7 +518,7 @@ Code: `host_drills`, [src/joinery_solver/wood_session.cpp:13](https://github.com
 | connector_0_part `solid_cuts` | upper slot z 3375 to 3501 + 4 d50 bores | Slot and dowel bores |
 | connector_1_part `solid_cuts` | lower slot z 3249 to 3375 + 4 bores | Slot and dowel bores |
 
-Code: `refresh_target`, `sync_parts`, `add_pre_drill_joint`, [src/joinery_solver/wood_session.cpp:1020-1042](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1020-L1042), [1095-1109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1095-L1109), [1135-1137](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1135-L1137).
+Code: `refresh_target`, `sync_parts`, `add_pre_drill_joint`, [src/joinery_solver/wood_session.cpp:1020-1042](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1020-L1042), [1095-1109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1095-L1109), [1135-1137](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1135-L1137).
 
 ## 198. Paint and append
 
@@ -534,7 +532,7 @@ Code: `refresh_target`, `sync_parts`, `add_pre_drill_joint`, [src/joinery_solver
 |---|---|---|
 | `CONNECTOR_COLOR` | brg_blue, RGB (33, 150, 234) / 255 = `#2196EA`, the same blue as built | Colour of every connector node and its children |
 
-Code: `paint`, `add_named`, [src/templates/floor/floor_models.cpp:55-61](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L55-L61), [92-97](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L92-L97), [370-374](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L370-L374); [src/templates/floor/floor.h:441](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L441).
+Code: `paint`, `add_named`, [src/templates/floor/floor_models.cpp:55-61](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L55-L61), [92-97](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L92-L97), [370-374](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L370-L374); [src/templates/floor/floor.h:441](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L441).
 
 ## 199. The connector node draws nothing
 
@@ -549,4 +547,4 @@ For a connector, `JointBeam::element_geometry_mesh()` and `element_geometry_brep
 | ConnectorPart mesh | connector_0_part: the 485 x 30 x 250 box minus the upper slot and 4 d50 bores | Lofted part minus its cuts |
 | connector mesh | empty | The JointBeam node draws nothing |
 
-Code: `JointBeam::element_geometry_mesh`, `JointBeam::element_geometry_brep`, `JointBeam::part_brep`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:643-648](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L643-L648), [665-685](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L665-L685); `ConnectorPart::element_geometry_mesh`, [wood_element_connector_part.cpp:23-37](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_connector_part.cpp#L23-L37).
+Code: `JointBeam::element_geometry_mesh`, `JointBeam::element_geometry_brep`, `JointBeam::part_brep`, [src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:643-648](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L643-L648), [665-685](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L665-L685); `ConnectorPart::element_geometry_mesh`, [wood_element_connector_part.cpp:23-37](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_connector_part.cpp#L23-L37).

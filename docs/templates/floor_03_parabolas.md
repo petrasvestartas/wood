@@ -2,7 +2,7 @@
 
 This chapter follows `compute_quarter` in `src/templates/floor/floor.cpp` (lines 360-375) from the first `construction_quads` call to `boundary_parabolas`. It takes the construction planes of chapter 2 (`geometry.planes`, whose block far faces `cp.wedges[i][1]` are still the provisional ones from `wedge_fan`) and the column corner. It gives the plan quads `geometry.quads`, the solved run-ins `geometry.run_in`, the final block far faces in `cp.wedges[i][1]` and `column.wedge_fan[i][1]`, and the four `geometry.parabolas` with their +t and +2t layers, which chapter 4 reads to solve the central panel. The pictures show quarter 0 of the 6000 x 6000 bay `FloorGuide::rectangle(3000.0, 3000.0)`, except frames 43 and 44, which use `FloorGuide::rectangle(3000.0, 2400.0)`, a 6000 x 4800 bay called the 3000 x 2400 bay below after its half spans, because only there does the run-in solve change anything. Its quarter 0 spans x from -3000 to 0 and y from -2400 to 0.
 
-Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) draws this chapter's result on the square bay, quarter 0's plan quads at the datum and the three parabolas of every rib; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) builds the 3000 x 2400 bay, whose short outer ribs end at the shared level with their run-in solved to 187.667.
+Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) draws this chapter's result on the square bay, quarter 0's plan quads at the datum and the three parabolas of every rib; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) builds the 3000 x 2400 bay, whose short outer ribs end at the shared level with their run-in solved to 187.667.
 
 ![](floor/film_03_parabolas.webp)
 
@@ -43,7 +43,7 @@ return Polyline({
 | `quads.outer_ribs[0]` | (-2780,-3000), (0,-3000), (0,-2900), (-2780,-2900) | Outer rib 0 footprint. Its axis `get_point(0)` to `get_point(1)` is 2780 long. |
 | `quads.outer_ribs[1]` | (-3000,-2780), (-3000,0), (-2900,0), (-2900,-2780) | Outer rib 1 footprint, the mirror in x = y. |
 
-Code: `quad`, `quads`, `construction_quads`, [floor.cpp:25-46](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L25-L46), [218-225](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L218-L225) (called at 368).
+Code: `quad`, `quads`, `construction_quads`, [floor.cpp:25-46](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L25-L46), [218-225](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L218-L225) (called at 368).
 
 ## 36. Inner beam quads
 
@@ -67,7 +67,7 @@ result.inner_beams = quads({
 | `quads.inner_beams[1]` | (-60,-940), (-940,-60), (-1024.853,-60), (-60,-1024.853) | Oculus beam, from the oculus edge to the back face, 60 behind it along its normal (84.853 along x or y). |
 | `quads.inner_beams[2]` | (-1000,0), (-2900,0), (-2900,-60), (-940,-60) | Seam beam 2, on seam 3 read into quarter 0. |
 
-Code: `construction_quads`, [floor.cpp:226-230](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L226-L230).
+Code: `construction_quads`, [floor.cpp:226-230](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L226-L230).
 
 ## 37. Inner rib quads
 
@@ -91,7 +91,7 @@ result.inner_ribs = quads({
 | `p0` | (-60,-1024.853) | Far face of seam beam 0 x oculus back face at the datum. |
 | `head[2]` | (-2780,-2880) | First chamfer vertex of the column head. |
 
-Code: `construction_quads`, [floor.cpp:231-234](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L231-L234).
+Code: `construction_quads`, [floor.cpp:231-234](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L231-L234).
 
 ## 38. Wedge quads (provisional)
 
@@ -117,7 +117,7 @@ result.wedges = quads({
 | `wedge` | 240 | Provisional side block thickness along the normal. |
 | `middle_wedge_factor` | 1.25 | Provisional middle block thickness in `wedge`: 300. |
 
-Code: `construction_quads`, [floor.cpp:235-239](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L235-L239); provisional far faces `wedge_fan`, [floor.cpp:158](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L158).
+Code: `construction_quads`, [floor.cpp:235-239](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L235-L239); provisional far faces `wedge_fan`, [floor.cpp:158](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L158).
 
 ## 39. T-section quads
 
@@ -144,7 +144,7 @@ result.tsections = quads({
 | `quads.tsections[3..5]` | mirrors of [2], [1], [0] in x = y | Inner rib 1 central, inner rib 1 outer, outer rib 1. |
 | `tsections` | 27 | Flange width. |
 
-Code: `construction_quads`, [floor.cpp:240-247](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L240-L247).
+Code: `construction_quads`, [floor.cpp:240-247](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L240-L247).
 
 ## 40. Outer parabola at the trial run-in
 
@@ -172,7 +172,7 @@ return Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -parameters.height)
 | `static_h()` | 197 | Depth of the control point and of the seam end. |
 | soffit [x, z] | (-2540,-650), (-2116.667,-511.583), (-1693.333,-398.333), (-1270,-310.25), (-846.667,-247.333), (-423.333,-209.583), (0,-197) | `outer_parabola(quads.outer_ribs[0], 240)` in y = -3000. |
 
-Code: `outer_parabola`, [floor.cpp:253-261](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L253-L261); `Polyline::quadratic_points`, [session_cpp polyline.cpp:264-281](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/polyline.cpp#L264-L281).
+Code: `outer_parabola`, [floor.cpp:253-261](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L253-L261); `Polyline::quadratic_points`, [session_cpp polyline.cpp:264-281](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/polyline.cpp#L264-L281).
 
 ## 41. fan_end: first chord extended onto the fan plane
 
@@ -199,7 +199,7 @@ return d0 > d1 ? pts.back()[2] : pts.front()[2];
 | `fan_end(quads.outer_ribs[0], 240, ...)` | -694.7934 at (-2676.996,-3000) | z of the soffit on the fan plane. |
 | `fan_end(quads.outer_ribs[1], 240, ...)` | -694.7934 | The same for outer rib 1. |
 
-Code: `fan_end`, [floor.cpp:264-271](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L264-L271); `trim`, `cut`, [floor_geometry.cpp:69-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L69-L82); `Polyline::cut_by_plane`, [polyline.cpp:860-900](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/polyline.cpp#L860-L900).
+Code: `fan_end`, [floor.cpp:264-271](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L264-L271); `trim`, `cut`, [floor_geometry.cpp:69-82](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L69-L82); `Polyline::cut_by_plane`, [polyline.cpp:860-900](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/polyline.cpp#L860-L900).
 
 ## 42. run_ins: the corner's shared level
 
@@ -222,7 +222,7 @@ return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, parameter
 | `seams` | `{cp.inner_beams[0][0], cp.inner_beams[2][0]}` | Seam plane each outer rib ends on. |
 | `level` | -694.7934 (3000 x 2400: -689.979) | Target z of both rib ends: the shallower `fan_end` at `wedge`. |
 
-Code: `run_ins`, [floor.cpp:305-312](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L305-L312) (called at 369).
+Code: `run_ins`, [floor.cpp:305-312](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L305-L312) (called at 369).
 
 ## 43. run_in_to_level: secant (3000x2400)
 
@@ -258,7 +258,7 @@ The secant on outer rib 1 of the 3000 x 2400 bay:
 | `RUN_IN_STEPS` | 50 | Secant step cap. |
 | `geometry.run_in` | {240, 240} (3000 x 2400: {240, 187.667}) | The solved run-ins. |
 
-Code: `run_in_to_level`, [floor.cpp:274-302](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L274-L302) (called at 311); constants [floor.cpp:11-12](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L11-L12).
+Code: `run_in_to_level`, [floor.cpp:274-302](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L274-L302) (called at 311); constants [floor.cpp:11-12](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L11-L12).
 
 ## 44. block_planes: final far faces
 
@@ -282,7 +282,7 @@ for (size_t i = 0; i < 3; i++) {
 | `middle_wedge_factor` | 1.25 | The middle block in mean run-ins. |
 | `cp.wedges[i][1]`, `column.wedge_fan[i][1]` | fan plane moved by `thickness[i]` | Final block far faces. |
 
-Code: `block_planes`, [floor.cpp:315-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L315-L323) (called at 370).
+Code: `block_planes`, [floor.cpp:315-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L315-L323) (called at 370).
 
 ## 45. Construction quads, second pass
 
@@ -297,7 +297,7 @@ Code: `block_planes`, [floor.cpp:315-323](https://github.com/petrasvestartas/woo
 | `geometry.quads` (final) | 16 plan quads at z 0, equal to the first pass on the square | The footprints the members are built on. |
 | `quads.wedges`, `quads.tsections` | rebuilt on the final far faces | The only families that change. |
 
-Code: `compute_quarter`, [floor.cpp:371](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L371); `construction_quads`, [floor.cpp:218-250](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L218-L250).
+Code: `compute_quarter`, [floor.cpp:371](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L371); `construction_quads`, [floor.cpp:218-250](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L218-L250).
 
 ## 46. boundary_parabolas at the solved run-in
 
@@ -320,7 +320,7 @@ for (size_t k = 0; k < 2; k++) {
 | `parabolas[0][0]` | (-2540,-3000,-650) ... (0,-3000,-197) | Outer rib 0 soffit. |
 | `parabolas[1][0]` | (-3000,-2540,-650) ... (-3000,0,-197) | Outer rib 1 soffit. |
 
-Code: `boundary_parabolas`, [floor.cpp:326-333](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L326-L333) (called at 372).
+Code: `boundary_parabolas`, [floor.cpp:326-333](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L326-L333) (called at 372).
 
 ## 47. Layers by offset_polyline
 
@@ -344,7 +344,7 @@ result.push_back(plane_plane_plane(planes[i], planes[i + 1], base).value());
 | `parabolas[0][1]` [x, z] | (-2548.391,-624.337) ... (-0.802,-170.012) | Soffit + t, the t-section top. |
 | `parabolas[0][2]` [x, z] | (-2556.782,-598.674) ... (-1.604,-143.024) | Soffit + 2t, the bed top. |
 
-Code: `offset_polyline`, [floor_geometry.cpp:84-109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L84-L109) (called at [floor.cpp:332](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L332)).
+Code: `offset_polyline`, [floor_geometry.cpp:84-109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L84-L109) (called at [floor.cpp:332](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L332)).
 
 ## 48. Shadow parabolas on the inner ribs
 
@@ -369,4 +369,4 @@ for (size_t i = 0; i < 2; i++) {
 | `parabolas[3][0]` | (-2716.311,-2540,-650) ... (-983.930,0,-197) | Shadow of outer rib 1's soffit, the mirror in x = y. |
 | `parabolas[2][1..2]`, `parabolas[3][1..2]` | the +t and +2t layers projected the same way | Shadow layers. |
 
-Code: `boundary_parabolas`, [floor.cpp:335-339](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L335-L339); `Xform::project_to_plane_by_axis`, [session_cpp xform.cpp:612-638](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/xform.cpp#L612-L638).
+Code: `boundary_parabolas`, [floor.cpp:335-339](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L335-L339); `Xform::project_to_plane_by_axis`, [session_cpp xform.cpp:612-638](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/xform.cpp#L612-L638).

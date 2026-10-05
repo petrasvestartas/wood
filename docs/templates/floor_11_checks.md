@@ -2,7 +2,7 @@
 
 This chapter covers the checks that run after the model is built. `FloorGuide::check()` (`src/templates/floor/floor_report.cpp:173-186`) measures the relations the design relies on in the guide's outlines and returns a `FloorReport`. `compute_breps` and `check_breps` (`src/templates/floor/floor_brep_check.cpp:84-125`) turn the cut members and connector parts of a `Floor` into BReps with exact bores and count them against the bores the dowels and screws need. `check()` reads the guide of chapters 1 to 6. `compute_breps` and `check_breps` read the `Floor` of chapters 7 to 10, with every member, connector and screw. The chapter ends with the two examples that build the complete model: example 7 on the square bay and example 8 on the tied 6000 x 4800 bay. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)` unless a section says otherwise.
 
-Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) build the complete connected floor this chapter checks, on the square bay and on the tied 6000 x 4800 bay, with `compute_breps` writing every dowel and screw bore as an exact cylinder.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) build the complete connected floor this chapter checks, on the square bay and on the tied 6000 x 4800 bay, with `compute_breps` writing every dowel and screw bore as an exact cylinder.
 
 ![](floor/film_11_checks.webp)
 
@@ -55,7 +55,7 @@ plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) %
 | `oculus_plane_angle` | 5 | Degrees the bearing plane `tilted` leans about the oculus edge |
 | `oculus` | 1000 | Distance of each oculus corner from the centre |
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:234-262](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L234-L262); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233); `oculus_edge`, [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L103).
+Code: `FloorGuide::oculus`, [floor_members.cpp:234-262](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L234-L262); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L210-L233); `oculus_edge`, [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L93-L103).
 
 ## 235. seam_plane_gap and oculus_corner_gap
 
@@ -82,7 +82,7 @@ for (const Point& point : open_points(guide.quarter(next).inner_beams()[2].botto
 | `planes.inner_beams[0][0]` | `seams[q].plane_into(q)` | Quarter `q`'s seam plane, normal into `q` |
 | `inner_beams` | 60 | `Seam::thickness`, the offset of each seam beam into its quarter |
 
-Code: `measure_quarter`, [floor_report.cpp:145-150](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L145-L150); `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L392-L397).
+Code: `measure_quarter`, [floor_report.cpp:145-150](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L145-L150); `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L392-L397).
 
 ## 236. end_face_planarity
 
@@ -109,7 +109,7 @@ The outer ribs end on the <span style="color:#2196EA">side fan planes</span> at 
 | `rib_seam_ends()` | `{cp.inner_beams[0][1], cp.inner_beams[2][1]}` | The outer ribs' seam end planes; face 1 when `seam_through_ribs`, face 0 otherwise |
 | `seam_through_ribs` | true | Seam beams run through the rib band; the outer ribs end on their far faces |
 
-Code: `end_face_offset`, `end_face_planarity`, [floor_report.cpp:47-76](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L47-L76); `rib_loop`, [floor_members.cpp:17-32](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L17-L32); `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L69-L75).
+Code: `end_face_offset`, `end_face_planarity`, [floor_report.cpp:47-76](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L47-L76); `rib_loop`, [floor_members.cpp:17-32](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L17-L32); `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L69-L75).
 
 ## 237. bed_flange_coincidence
 
@@ -133,7 +133,7 @@ Row 0 lies between <span style="color:#455B6B">`tsections[1]`</span>, on inner r
 | `beside` | `{{1, 0}, {2, 3}, {4, 5}}` | Per row, the t-section index for side 0 and for side 1 |
 | `tsections` | 27 | Flange depth (soffit to `+t`) and bed thickness (`+t` to `+2t`) |
 
-Code: `bed_flange_coincidence`, [floor_report.cpp:79-94](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L79-L94); `distance`, [floor_report.cpp:13-15](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L13-L15); `bed_row`, [floor_members.cpp:189-206](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L189-L206).
+Code: `bed_flange_coincidence`, [floor_report.cpp:79-94](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L79-L94); `distance`, [floor_report.cpp:13-15](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L13-L15); `bed_row`, [floor_members.cpp:189-206](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L189-L206).
 
 ## 238. ring_uncovered
 
@@ -157,7 +157,7 @@ On quarter 0, <span style="color:#2196EA">the quarter beam's face</span> runs be
 | `clip_type` | 2 | `a` minus `b` |
 | `oculus_corner_angle(0)`, `oculus_seam_angle(0)` | 90, 45 | The angles the `invalid()` precondition compares |
 
-Code: `ring_uncovered`, [floor_report.cpp:133-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L133-L136); `boolean_area`, [floor_report.cpp:32-40](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L32-L40); `geometry::invalid`, [floor_plan.cpp:110-139](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L110-L139).
+Code: `ring_uncovered`, [floor_report.cpp:133-136](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L133-L136); `boolean_area`, [floor_report.cpp:32-40](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L32-L40); `geometry::invalid`, [floor_plan.cpp:110-139](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L110-L139).
 
 ## 239. ring_overlap
 
@@ -181,7 +181,7 @@ Beam `i + 1` starts on beam `i`'s vertical `ring_inner` plane and lies on the ot
 | `report.ring_overlap_mm2` | 0.000e+00 | Sum of the pairwise plan overlaps of the four footprints, mm2 |
 | `clip_type` | 0 | The intersection of the two polygons |
 
-Code: `ring_overlap`, [floor_report.cpp:109-131](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L109-L131).
+Code: `ring_overlap`, [floor_report.cpp:109-131](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L109-L131).
 
 ## 240. FloorReport::ok and str
 
@@ -231,7 +231,7 @@ floor report: ok
 | `tolerance` | 1e-6 | Threshold in mm for the identities and in mm2 for the ring areas |
 | `ok()` | true | All seven gated relations hold on the square |
 
-Code: `FloorReport::ok`, [floor_report.cpp:188-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L188-L195); `FloorReport::str`, [floor_report.cpp:197-210](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L197-L210); `measure_quarter`, [floor_report.cpp:139-167](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L139-L167).
+Code: `FloorReport::ok`, [floor_report.cpp:188-195](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L188-L195); `FloorReport::str`, [floor_report.cpp:197-210](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L197-L210); `measure_quarter`, [floor_report.cpp:139-167](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L139-L167).
 
 ## 241. compute_breps (example 7)
 
@@ -258,7 +258,7 @@ Example 7 (`templates_floor_7_contacts_cantilevers.cpp`) builds `Floor(FloorGuid
 | `is_cut_member(element)` | not a `Joint`, model mesh vertex count != element mesh vertex count | A member a joint has cut |
 | `drills` | every `SolidCut::drills` line with its `drill_radius` | The bores `drilled_brep` makes exact |
 
-Code: `compute_breps`, [floor_brep_check.cpp:120-125](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L120-L125); `is_connector_child`, `is_cut_member`, [floor_brep_check.cpp:16-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L16-L25); `solid_cuts_brep`, [wood_element_solid_cut.cpp:40-58](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_solid_cut.cpp#L40-L58); `main`, [templates_floor_7_contacts_cantilevers.cpp:10-23](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp#L10-L23).
+Code: `compute_breps`, [floor_brep_check.cpp:120-125](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L120-L125); `is_connector_child`, `is_cut_member`, [floor_brep_check.cpp:16-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L16-L25); `solid_cuts_brep`, [wood_element_solid_cut.cpp:40-58](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_solid_cut.cpp#L40-L58); `main`, [templates_floor_7_contacts_cantilevers.cpp:10-23](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp#L10-L23).
 
 ## 242. check_breps: parts, connectors, members, timing
 
@@ -291,7 +291,7 @@ A connector child adds its part's exact bores to <span style="color:#EBB121">`pa
 | `check.faceted` | in the caption | Names of the cut members without an exact bore |
 | `check.ms` | in the caption | Time of the element loop, ms |
 
-Code: `check_breps`, [floor_brep_check.cpp:84-118](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L84-L118); `count_bores`, [floor_brep_check.cpp:27-36](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L27-L36).
+Code: `check_breps`, [floor_brep_check.cpp:84-118](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L84-L118); `count_bores`, [floor_brep_check.cpp:27-36](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L27-L36).
 
 ## 243. dowel_stretches and bore_stretches
 
@@ -318,7 +318,7 @@ for (const wood_session::Drill& drill : wood_session::merged_drills(drills))
 | `stretch` | `[t0, t1]`, mm | A stretch of the infinite drill line inside the solid |
 | `check.stretches` | in frame 242's caption | Bores asked for over members and parts |
 
-Code: `dowel_stretches`, [floor_brep_check.cpp:52-78](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L52-L78); `bore_stretches`, [floor_brep_check.cpp:39-49](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L39-L49); `merged_drills`, [wood_brep_drill.cpp:786](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L786); `inside_stretches`, [wood_brep_drill.cpp:984](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L984).
+Code: `dowel_stretches`, [floor_brep_check.cpp:52-78](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L52-L78); `bore_stretches`, [floor_brep_check.cpp:39-49](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L39-L49); `merged_drills`, [wood_brep_drill.cpp:786](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L786); `inside_stretches`, [wood_brep_drill.cpp:984](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L984).
 
 ## 244. BrepCheck::str
 
@@ -352,7 +352,7 @@ flowchart TD
 | `bores + part_bores` | in frame 242's caption | Exact bores found |
 | `stretches` | in frame 242's caption | Exact bores asked for |
 
-Code: `BrepCheck::str`, [floor_brep_check.cpp:127-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L127-L136).
+Code: `BrepCheck::str`, [floor_brep_check.cpp:127-136](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_brep_check.cpp#L127-L136).
 
 ## 245. Example 8: tied 6000 x 4800 bay
 
@@ -373,4 +373,4 @@ Example 8 (`templates_floor_8_rectangle.cpp`) builds the same model as example 7
 | wedge blocks | 240 / 267.292 / 187.667 | Side 0, middle (1.25 x mean run-in), side 1 |
 | connectors | 84 | On the tied 3000 x 2400, 72 screws in 36 of them (floor_elements run) |
 
-Code: `main`, [templates_floor_8_rectangle.cpp:13-28](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp#L13-L28); `seam_tie`, [floor_relations.cpp:120-138](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L120-L138).
+Code: `main`, [templates_floor_8_rectangle.cpp:13-28](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp#L13-L28); `seam_tie`, [floor_relations.cpp:120-138](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L120-L138).

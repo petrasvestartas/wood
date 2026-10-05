@@ -2,7 +2,7 @@
 
 `relationships(guide)` in `src/templates/floor/floor_relations.cpp` lists, by the rules of the design, every pair of members that share something: the kind of relation, the two members as `MemberRef`s, the plane they meet on, and the contact polygon read off their outlines. It reads only the guide: the outlines and construction planes from the earlier chapters, lifted from the datum z 0 to `bay_height`. The members built in chapter 07 are needed only by the checks at the end (`FloorMembers::get`, `pair`, `verify_contacts`). The next chapter, connectors, turns each row into a `JointBeam` through `connector_of`.
 
-Example: [templates_floor_6_contacts_floor.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_6_contacts_floor.cpp) puts a wedge on every seam_wedge and oculus_wedge row, and [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) builds the connector of every row this chapter lists on the whole bay.
+Example: [templates_floor_6_contacts_floor.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_6_contacts_floor.cpp) puts a wedge on every seam_wedge and oculus_wedge row, and [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) builds the connector of every row this chapter lists on the whole bay.
 
 ![](floor/film_08_relationships.webp)
 
@@ -27,7 +27,7 @@ A row does not hold elements. It names its two members by `MemberRef{quarter, fa
 | `shared_member(ring, 0)` | `{-1, ring, 0, -1}` | `oculus_0` |
 | `shared_member(column, 0)`, `shared_member(support, 0)` | `{-1, column, 0, -1}`, `{-1, support, 0, -1}` | `column_0`, `support_0` |
 
-Code: `MemberRef::name`, [floor_relations.cpp:19-34](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L19-L34); `shared_member`, [floor_relations.cpp:11-13](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L11-L13); `quarter_member`, [floor_geometry.cpp:202-204](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L202-L204); `struct MemberRef`, [floor.h:319-327](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L319-L327).
+Code: `MemberRef::name`, [floor_relations.cpp:19-34](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L19-L34); `shared_member`, [floor_relations.cpp:11-13](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L11-L13); `quarter_member`, [floor_geometry.cpp:202-204](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L202-L204); `struct MemberRef`, [floor.h:319-327](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L319-L327).
 
 ## 145. Relationship record and defaults
 
@@ -55,7 +55,7 @@ A `Relationship` is a plain record. Each factory sets only the fields its kind f
 | `ContactType` | unknown -1, side_side 0, side_top 1, top_top 2, end_side 3, end_end 4, end_top 5 | The enum the type check compares |
 | `end` default | `std::nullopt` | Set only on a seam wedge with `seam_through_ribs` |
 
-Code: `struct Relationship`, [floor.h:330-347](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L330-L347); `enum class Relation`, [floor.h:313](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L313); `relation_name`, [floor_relations.cpp:40-45](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L40-L45); `screw_row`, [floor_screws.cpp:177-192](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L177-L192).
+Code: `struct Relationship`, [floor.h:330-347](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L330-L347); `enum class Relation`, [floor.h:313](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L313); `relation_name`, [floor_relations.cpp:40-45](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L40-L45); `screw_row`, [floor_screws.cpp:177-192](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L177-L192).
 
 ## 146. seam_wedge: members
 
@@ -73,7 +73,7 @@ Code: `struct Relationship`, [floor.h:330-347](https://github.com/petrasvestarta
 | `seams[0].line` | (0, -3000) to (0, 0) | Edge midpoint to centre |
 | `seams[0].oculus_corner` | (0, -1000) | Where the seam beams end; `oculus` = 1000 from the centre |
 
-Code: `seam_wedge`, [floor_relations.cpp:56-62](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L56-L62); loop at [floor_relations.cpp:177-178](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L177-L178); `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L191).
+Code: `seam_wedge`, [floor_relations.cpp:56-62](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L56-L62); loop at [floor_relations.cpp:177-178](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L177-L178); `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L191).
 
 ## 147. seam_wedge: plane
 
@@ -90,7 +90,7 @@ Code: `seam_wedge`, [floor_relations.cpp:56-62](https://github.com/petrasvestart
 | `row.plane` (q = 1, 2, 3) | (2000, 0, 3500) n (0, -1, 0); (0, 2000, 3500) n (1, 0, 0); (-2000, 0, 3500) n (0, 1, 0) | The other three seams |
 | `oculus` | 1000 | Places the oculus corner, the end of the half seam |
 
-Code: `seam_wedge`, [floor_relations.cpp:58](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L58), [63](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L63); `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L392-L397); `edge_plane`, [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L23-L25); `lifted(Plane)`, [floor_geometry.cpp:169-171](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L169-L171).
+Code: `seam_wedge`, [floor_relations.cpp:58](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L58), [63](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L63); `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L392-L397); `edge_plane`, [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L23-L25); `lifted(Plane)`, [floor_geometry.cpp:169-171](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L169-L171).
 
 ## 148. seam_wedge: contact
 
@@ -109,7 +109,7 @@ Code: `seam_wedge`, [floor_relations.cpp:58](https://github.com/petrasvestartas/
 | `oculus_plane_angle` | 5 deg | Lean of the oculus end |
 | `seam_through_ribs` | true | Picks `outer_ribs[0][0]`, the bay edge, as the beam's outer end (face 1, the band's inner face, when false) |
 
-Code: `seam_wedge`, [floor_relations.cpp:64](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L64); `Quarter::inner_beams`, [floor_members.cpp:93-105](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L93-L105); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233); `open_points`, [floor_geometry.cpp:111-119](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L111-L119); soffit, [floor.cpp:430-438](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L430-L438).
+Code: `seam_wedge`, [floor_relations.cpp:64](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L64); `Quarter::inner_beams`, [floor_members.cpp:93-105](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L93-L105); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L210-L233); `open_points`, [floor_geometry.cpp:111-119](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L111-L119); soffit, [floor.cpp:430-438](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L430-L438).
 
 ## 149. seam_wedge: type and end plane
 
@@ -127,7 +127,7 @@ The row then sets `type = ContactType::side_side` and `seam_or_corner = q`. When
 | `seam_through_ribs` | true | Whether `end` is set |
 | `outer_ribs` | 100 | Offset of `band[1]`; not used for `end` |
 
-Code: `seam_wedge`, [floor_relations.cpp:65-71](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L65-L71); `bay_edge`, [floor.cpp:69-76](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L69-L76); `connector_of`, [floor_models.cpp:315-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L315-L323).
+Code: `seam_wedge`, [floor_relations.cpp:65-71](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L65-L71); `bay_edge`, [floor.cpp:69-76](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L69-L76); `connector_of`, [floor_models.cpp:315-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L315-L323).
 
 ## 150. oculus_wedge: members and plane
 
@@ -145,7 +145,7 @@ The second loop pushes `oculus_wedge(guide, q)` for q = 0..3: <span style="color
 | `oculus_plane_angle` | 5 deg | Rotation of the edge plane about the edge |
 | `oculus` | 1000 | Oculus corners (0, -1000), (1000, 0), (0, 1000), (-1000, 0) |
 
-Code: `oculus_wedge`, [floor_relations.cpp:75-88](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L75-L88), loop at 180-181; `oculus_edge`, [floor.cpp:93-104](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L104); `rotate`, [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L15-L17).
+Code: `oculus_wedge`, [floor_relations.cpp:75-88](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L75-L88), loop at 180-181; `oculus_edge`, [floor.cpp:93-104](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L93-L104); `rotate`, [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L15-L17).
 
 ## 151. oculus_wedge: contact
 
@@ -162,7 +162,7 @@ Code: `oculus_wedge`, [floor_relations.cpp:75-88](https://github.com/petrasvesta
 | `inner_beams` | 60 | Seam beam thickness: the x = -60 and y = -60 sides |
 | `guide.soffit` | -198.7835 | Bottom level |
 
-Code: `oculus_wedge`, [floor_relations.cpp:83](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L83); `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L102); `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L191).
+Code: `oculus_wedge`, [floor_relations.cpp:83](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L83); `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L102); `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L191).
 
 ## 152. column_plate: fan side plane
 
@@ -181,7 +181,7 @@ The third loop pushes `column_plate(guide, q, k)` for q = 0..3 and k = 0, 1: `a 
 | `column_head`, `column_head_chamfer` | 220, 120 | The head polygon whose edges 1 to 3 carry the fan planes |
 | `wedge_plane_angle` | -10 deg | Lean of the chamfer plane that sets the creases |
 
-Code: `column_plate`, [floor_relations.cpp:91-106](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L91-L106), loop at 183-185; `wedge_fan`, [floor.cpp:146-159](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L146-L159).
+Code: `column_plate`, [floor_relations.cpp:91-106](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L91-L106), loop at 183-185; `wedge_fan`, [floor.cpp:146-159](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L146-L159).
 
 ## 153. column_plate: rib end face
 
@@ -199,7 +199,7 @@ Code: `column_plate`, [floor_relations.cpp:91-106](https://github.com/petrasvest
 | `wedge` | 240 | Run-in seed; the solved `run_in` is 240 on both ribs |
 | `outer_ribs` | 100 | Band width, the quad's width |
 
-Code: `column_plate`, [floor_relations.cpp:94-96](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L94-L96), [102](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L102); `rib_loop` and `rib`, [floor_members.cpp:17-55](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L17-L55); `above`, [floor_geometry.cpp:177-196](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L177-L196); `rib_bottom_level`, [floor.cpp:378-386](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L378-L386), [427-428](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L427-L428).
+Code: `column_plate`, [floor_relations.cpp:94-96](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L94-L96), [102](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L102); `rib_loop` and `rib`, [floor_members.cpp:17-55](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L17-L55); `above`, [floor_geometry.cpp:177-196](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L177-L196); `rib_bottom_level`, [floor.cpp:378-386](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L378-L386), [427-428](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L427-L428).
 
 ## 154. cross_lap: no geometry
 
@@ -216,7 +216,7 @@ The fourth loop pushes `cross_lap(q)` for q = 0..3: <span style="color:#2196EA">
 | `row.contact` | 0 points | Empty |
 | `row.type` | `unknown` (-1) | |
 
-Code: `cross_lap`, [floor_relations.cpp:109-118](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L109-L118), loop at 187-188; `add_connectors`, [floor_models.cpp:360-366](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L360-L366), [373-374](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L373-L374).
+Code: `cross_lap`, [floor_relations.cpp:109-118](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L109-L118), loop at 187-188; `add_connectors`, [floor_models.cpp:360-366](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L360-L366), [373-374](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L373-L374).
 
 ## 155. seam_tie (not on the default)
 
@@ -233,7 +233,7 @@ The fifth loop runs `for (q = 0; q < 4 && !parameters.seam_through_ribs; q++)`, 
 | `row.type` | `end_end` (4) | |
 | `seam_through_ribs` | true | false turns the ties on |
 
-Code: `seam_tie`, [floor_relations.cpp:121-138](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L121-L138), loop at 190-191; `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L69-L75).
+Code: `seam_tie`, [floor_relations.cpp:121-138](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L121-L138), loop at 190-191; `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L69-L75).
 
 ## 156. block_dowels: rib plane table
 
@@ -254,7 +254,7 @@ Code: `seam_tie`, [floor_relations.cpp:121-138](https://github.com/petrasvestart
 | `inner_ribs[1][0]` / `[1][1]` | origin (-1952.426, -1420, 3500) / (-1902.858, -1453.808, 3500), normal (0.82614, -0.56346, 0) | Inner rib 1's outer and central face |
 | `outer_ribs`, `inner_ribs` | 100, 60 | Band offset and inner rib thickness |
 
-Code: `block_dowels`, [floor_relations.cpp:141-153](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L141-L153); `construction_planes`, [floor.cpp:193-200](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L193-L200); `Quarter::wedges`, [floor_members.cpp:107-124](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L107-L124).
+Code: `block_dowels`, [floor_relations.cpp:141-153](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L141-L153); `construction_planes`, [floor.cpp:193-200](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L193-L200); `Quarter::wedges`, [floor_members.cpp:107-124](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L107-L124).
 
 ## 157. block_dowels: block face contact
 
@@ -272,7 +272,7 @@ Code: `block_dowels`, [floor_relations.cpp:141-153](https://github.com/petrasves
 | `wedge`, `middle_wedge_factor` | 240, 1.25 | Block widths: `run_in` (240) for the side blocks, 1.25 x their mean (300) for the middle one |
 | `tsections` | 27 | Bed layers that set `bed_top_planes` |
 
-Code: `block_dowels`, [floor_relations.cpp:144-146](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L144-L146), [154-155](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L154-L155); `Quarter::wedges`, [floor_members.cpp:107-124](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L107-L124); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233).
+Code: `block_dowels`, [floor_relations.cpp:144-146](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L144-L146), [154-155](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L154-L155); `Quarter::wedges`, [floor_members.cpp:107-124](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L107-L124); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L210-L233).
 
 ## 158. block_dowels: six rows
 
@@ -287,7 +287,7 @@ Per quarter, `block_dowels` is called six times in a fixed order, as (k, side, r
 | rows per quarter | 6 | 24 in all, row indices 20-43 |
 | `text()` of the q0 rows | `block_dowels outer_ribs_0_0 - wedges_0_0`, `... outer_ribs_1_0 - wedges_2_0`, `... inner_ribs_0_0 - wedges_0_0`, `... inner_ribs_0_0 - wedges_1_0`, `... inner_ribs_1_0 - wedges_1_0`, `... inner_ribs_1_0 - wedges_2_0` | In push order |
 
-Code: `relationships` (block loop), [floor_relations.cpp:193-200](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L193-L200); `block_dowels`, [floor_relations.cpp:151-152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L151-L152).
+Code: `relationships` (block loop), [floor_relations.cpp:193-200](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L193-L200); `block_dowels`, [floor_relations.cpp:151-152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L151-L152).
 
 ## 159. support row
 
@@ -304,7 +304,7 @@ The next loop pushes `support(guide, q)`: <span style="color:#455B6B">`a = share
 | `row.plane` q1, q2, q3 | (2890, -2890, 0) x (0, 1, 0); (2890, 2890, 0) x (-1, 0, 0); (-2890, 2890, 0) x (0, -1, 0) | |
 | `column_head` | 220 | Axis offset 110 along x and y |
 
-Code: `support`, [floor_relations.cpp:161-171](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L161-L171), loop at 202-203; `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L106-L119); `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L138-L139).
+Code: `support`, [floor_relations.cpp:161-171](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L161-L171), loop at 202-203; `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L106-L119); `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L138-L139).
 
 ## 160. Screw rows and counts
 
@@ -324,7 +324,7 @@ Last, `relationships()` appends every row of `screw_relationships(guide)`: per q
 | screw_oculus | 8 | 76-83 |
 | total | 84 = 48 + 36 | Asserted by `check_relationships` in tests/floor_elements.cpp |
 
-Code: `relationships`, [floor_relations.cpp:205-206](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L205-L206); `screw_relationships`, [floor_screws.cpp:321-345](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L321-L345).
+Code: `relationships`, [floor_relations.cpp:205-206](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L205-L206); `screw_relationships`, [floor_screws.cpp:321-345](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L321-L345).
 
 ## 161. Filter, text, area()
 
@@ -343,7 +343,7 @@ Code: `relationships`, [floor_relations.cpp:205-206](https://github.com/petrasve
 | 24 | block_dowels inner_ribs_1_0 - wedges_1_0 | as row 23, mirror image |
 | 44 | support support_0 - column_0 | 0, empty contact |
 
-Code: `relationships(guide, kind)`, [floor_relations.cpp:211-220](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L211-L220); `relation_name`, `text`, `area`, [floor_relations.cpp:36-49](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L36-L49); `polygon_area`, [floor_geometry.cpp:154-163](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L154-L163).
+Code: `relationships(guide, kind)`, [floor_relations.cpp:211-220](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L211-L220); `relation_name`, `text`, `area`, [floor_relations.cpp:36-49](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L36-L49); `polygon_area`, [floor_geometry.cpp:154-163](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L154-L163).
 
 ## 162. Members resolve in the scene
 
@@ -360,7 +360,7 @@ The references resolve against the members a `Floor` places. `add_floor` builds 
 | `FloorMembers::columns` | 4 | `column_q` and `support_q` |
 | `bay_height` | 3500 | Lift of every placed member |
 
-Code: `add_quarter_model`, [floor_models.cpp:126-152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L126-L152); `add_oculus_model`, [floor_models.cpp:154-170](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L154-L170); `add_column_model`, [floor_models.cpp:176-196](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L176-L196); `add_floor`, `add_columns`, [floor_models.cpp:198-218](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L198-L218); `Floor::add_members`, [floor_models.cpp:395-418](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L395-L418).
+Code: `add_quarter_model`, [floor_models.cpp:126-152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L126-L152); `add_oculus_model`, [floor_models.cpp:154-170](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L154-L170); `add_column_model`, [floor_models.cpp:176-196](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L176-L196); `add_floor`, `add_columns`, [floor_models.cpp:198-218](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L198-L218); `Floor::add_members`, [floor_models.cpp:395-418](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L395-L418).
 
 ## 163. get, thickness, pair
 
@@ -376,7 +376,7 @@ Code: `add_quarter_model`, [floor_models.cpp:126-152](https://github.com/petrasv
 | `pair(row)` | `{inner_beams_0_0, inner_beams_2_1}` for the seam wedge of q = 0 | The two scene elements |
 | `contact` in `connector_of` | `InteractionContactFace(-1, -1, row.type, row.contact)` | The constructed polygon, closed, in world coordinates |
 
-Code: `FloorMembers::get`, [floor_models.cpp:241-258](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L241-L258); `thickness`, [floor_models.cpp:260-271](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L260-L271); `pair`, [floor_models.cpp:277-286](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L277-L286); `outline_thickness`, [floor_elements.cpp:107-109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L107-L109); `connector_of`, [floor_models.cpp:315-319](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L315-L319).
+Code: `FloorMembers::get`, [floor_models.cpp:241-258](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L241-L258); `thickness`, [floor_models.cpp:260-271](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L260-L271); `pair`, [floor_models.cpp:277-286](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L277-L286); `outline_thickness`, [floor_elements.cpp:107-109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L107-L109); `connector_of`, [floor_models.cpp:315-319](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L315-L319).
 
 ## 164. uncut copies
 
@@ -392,7 +392,7 @@ The contact search runs on copies of the members as they were before any connect
 | `uncut(Plate)` | `solid_cuts` cleared | Wedges, t-sections, beds |
 | `uncut(Column)` | unchanged clone | Keeps its head cuts |
 
-Code: `uncut`, [floor_models.cpp:99-112](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L99-L112); head cuts, [floor_models.cpp:190-193](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L190-L193).
+Code: `uncut`, [floor_models.cpp:99-112](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L99-L112); head cuts, [floor_models.cpp:190-193](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L190-L193).
 
 ## 165. verify_contacts: search
 
@@ -409,7 +409,7 @@ Code: `uncut`, [floor_models.cpp:99-112](https://github.com/petrasvestartas/wood
 | `check.count` | 40 = 4 + 4 + 8 + 0 + 24 | Contacts checked on the default bay |
 | `found` | `InteractionContactFace` | Its `polygon` is the boolean intersection of the two face outlines in face a's plane |
 
-Code: `verify_contacts`, [floor_verify.cpp:87-104](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L87-L104); declaration, [floor.h:450](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.h#L450).
+Code: `verify_contacts`, [floor_verify.cpp:87-104](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L87-L104); declaration, [floor.h:450](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.h#L450).
 
 ## 166. disagreement: normal and top edge
 
@@ -426,7 +426,7 @@ For a found contact of the right type, `disagreement(row, found, tolerance)` com
 | top edge, oculus wedge q0 | (-60, -940, 3500) to (-940, -60, 3500), length 1244.5, midpoint (-500, -500, 3500) | |
 | top edge, column plate q0 k0 | (-2780, -2900, 3500) to (-2780, -3000, 3500), length 100 | The closing edge of the quad |
 
-Code: `disagreement`, [floor_verify.cpp:61-84](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L61-L84); `top_edge`, [floor_verify.cpp:13-33](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L13-L33).
+Code: `disagreement`, [floor_verify.cpp:61-84](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L61-L84); `top_edge`, [floor_verify.cpp:13-33](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L13-L33).
 
 ## 167. Type and area checks
 
@@ -461,7 +461,7 @@ flowchart TD
 | type mismatches | none on the default bay | |
 | `area` | relative difference of the found and constructed areas | Compared against `tolerance` 1e-6 |
 
-Code: `verify_contacts`, [floor_verify.cpp:106-109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L106-L109); `type_name`, [floor_verify.cpp:36-45](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L36-L45); `disagreement`, [floor_verify.cpp:71-73](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L71-L73), [81-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L81-L82).
+Code: `verify_contacts`, [floor_verify.cpp:106-109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L106-L109); `type_name`, [floor_verify.cpp:36-45](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L36-L45); `disagreement`, [floor_verify.cpp:71-73](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L71-L73), [81-82](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L81-L82).
 
 ## 168. ContactCheck and require_contact
 
@@ -478,4 +478,4 @@ Every non-empty disagreement is pushed as `{row.text(), what}`. `ContactCheck::o
 | `require_contact(..., end_end, "no such seam")` | throws "no contact for no such seam between outer_ribs_0_0 and outer_ribs_0_2" | The two ribs do not touch |
 | `expected` | a `ContactType`, `unknown` to skip the type check | |
 
-Code: `ContactCheck::ok`, `ContactCheck::str`, [floor_verify.cpp:120-132](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L120-L132); `require_contact`, [floor_verify.cpp:47-58](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_verify.cpp#L47-L58); test, [tests/floor_elements.cpp:289-297](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/tests/floor_elements.cpp#L289-L297).
+Code: `ContactCheck::ok`, `ContactCheck::str`, [floor_verify.cpp:120-132](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L120-L132); `require_contact`, [floor_verify.cpp:47-58](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_verify.cpp#L47-L58); test, [tests/floor_elements.cpp:289-297](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/tests/floor_elements.cpp#L289-L297).

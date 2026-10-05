@@ -2,7 +2,7 @@
 
 This chapter computes the member planes of one quarter. `compute_quarter` (`src/templates/floor/floor.cpp:360-375`) calls `construction_planes` (`floor.cpp:180-215`) and then `column_seats` (`floor.cpp:162-173`). It reads what chapter 1 built: the bay edges with their bands, the seams, the oculus edges and the column head polygons. It writes `ConstructionPlanes cp` into `guide.geometry[q].planes`, and `wedge_fan`, `column_offset` and `wedge_seat` into `guide.columns[q]`. Chapter 3 reads these planes in `construction_quads`, `run_ins` and `block_planes`. Every plane except the oculus beam's is stored as a pair `{plane, plane.translate_by_normal(distance)}` made by `pair()` (`floor.cpp:15-17`): `[0]` is the base face and `[1]` is the face offset from it. All values below are for quarter 0 of the default bay, `FloorGuide::rectangle(3000, 3000)` (half sizes, so a 6000 x 6000 bay). Quarter 0 has its column corner at (-3000, -3000) and its oculus edge from (0, -1000) to (-1000, 0).
 
-Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) draws quarter 0 of the square guide with every member's two face planes `face_0` and `face_1`, the `cp` pairs this chapter computes, grouped by family.
+Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) draws quarter 0 of the square guide with every member's two face planes `face_0` and `face_1`, the `cp` pairs this chapter computes, grouped by family.
 
 ![](floor/film_02_quarter_planes.webp)
 
@@ -43,7 +43,7 @@ cp.outer_ribs = {pair(outer0, parameters.outer_ribs), pair(outer1, parameters.ou
 | `cp.outer_ribs[1][0]` | x = -3000, normal (1, 0, 0), origin (-3000, -1500, 0) | Outer face of outer rib 1, on bay edge 3 |
 | `cp.outer_ribs[1][1]` | x = -2900 | Inner face of outer rib 1 |
 
-Code: `construction_planes`, [floor.cpp:186-188](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L186-L188); `reoriginated` [floor.cpp:20-22](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L20-L22); `pair` [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L15-L17); `bay_edge` [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L69-L77).
+Code: `construction_planes`, [floor.cpp:186-188](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L186-L188); `reoriginated` [floor.cpp:20-22](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L20-L22); `pair` [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L15-L17); `bay_edge` [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L69-L77).
 
 ## 24. Seam beam planes into the quarter
 
@@ -71,7 +71,7 @@ cp.inner_beams = {guide.seams[q].faces_into(q), {oculus.tilted, oculus.back}, gu
 | `cp.inner_beams[2][0]` | y = 0, normal (0, -1, 0), origin (-2000, 0, 0) | Seam plane of `seams[3]`, normal into quarter 0 |
 | `cp.inner_beams[2][1]` | y = -60 | Far face of seam beam 2 |
 
-Code: `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L191); `Seam::plane_into` [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L392-L397); `Seam::faces_into` [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L399-L401); `seam` [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L80-L90); `edge_plane` [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L23-L25).
+Code: `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L191); `Seam::plane_into` [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L392-L397); `Seam::faces_into` [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L399-L401); `seam` [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L80-L90); `edge_plane` [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L23-L25).
 
 ## 25. Oculus beam planes
 
@@ -97,7 +97,7 @@ edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 | `cp.inner_beams[1][1]` = `oculus.back` | origin (-542.43, -542.43, 0), normal (-0.7071, -0.7071, 0); x + y = -1084.853 | Vertical back face of the oculus beam |
 | `oculus.ring_inner` | x + y = -915.147 | The ring's inner plane, not read by the quarter |
 
-Code: `construction_planes`, [floor.cpp:190-191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L190-L191); `oculus_edge` [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L103); `rotate` [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L15-L17).
+Code: `construction_planes`, [floor.cpp:190-191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L190-L191); `oculus_edge` [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L93-L103); `rotate` [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L15-L17).
 
 ## 26. p0 and p1
 
@@ -119,7 +119,7 @@ const Point p1 = plane_plane_plane(xy, cp.inner_beams[1][1], cp.inner_beams[2][1
 | `p0` | (-60, -1024.853, 0) | Seam beam 0 far face, oculus back face and datum |
 | `p1` | (-1024.853, -60, 0) | Oculus back face, seam beam 2 far face and datum |
 
-Code: `construction_planes`, [floor.cpp:193-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L193-L195); `plane_plane_plane` [floor_geometry.cpp:51-59](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L51-L59).
+Code: `construction_planes`, [floor.cpp:193-195](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L193-L195); `plane_plane_plane` [floor_geometry.cpp:51-59](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L51-L59).
 
 ## 27. p2 = head[2], p3 = head[3]
 
@@ -147,7 +147,7 @@ const Point p3 = column.head[3];
 | `p3` = `head[3]` | (-2880, -2780, 0) | Chamfer vertex on the shaft face y = corner + 220 |
 | `column.chamfer_direction` | (-0.7071, 0.7071, 0) | unit(head[3] - head[2]) |
 
-Code: `construction_planes`, [floor.cpp:196-197](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L196-L197); `column_corner` [floor.cpp:122-143](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L122-L143); `corner_frame` [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L106-L119).
+Code: `construction_planes`, [floor.cpp:196-197](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L196-L197); `column_corner` [floor.cpp:122-143](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L122-L143); `corner_frame` [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L106-L119).
 
 ## 28. Inner rib planes and their normals
 
@@ -172,7 +172,7 @@ cp.inner_ribs = {pair(rib0, parameters.inner_ribs), pair(rib1, parameters.inner_
 | `cp.inner_ribs[1][1]` = `faces[1]` | origin (-1902.858, -1453.808, 0) | Central face of rib 1 |
 | `normals[0]`, `normals[1]` | (-0.5635, 0.8261, 0), (0.8261, -0.5635, 0) | Horizontal unit normals, both toward the diagonal |
 
-Code: `construction_planes`, [floor.cpp:198-200](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L198-L200); `central_panel` [floor_panel.cpp:143-146](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L143-L146).
+Code: `construction_planes`, [floor.cpp:198-200](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L198-L200); `central_panel` [floor_panel.cpp:143-146](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L143-L146).
 
 ## 29. Wedge fan: tilted chamfer plane
 
@@ -196,7 +196,7 @@ const Plane tilted = rotate(edge_plane(side1, Vector::z_axis()), parameters.wedg
 | `edge_plane(side1, +z)` | origin (-2830, -2830, 0), normal (0.7071, 0.7071, 0) | The vertical plane on the chamfer before the turn |
 | `tilted` | origin (-2830, -2830, 0), normal (0.6964, 0.6964, 0.1736) | Middle fan plane, later `cp.wedges[1][0]` |
 
-Code: `wedge_fan`, [floor.cpp:146-152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L146-L152).
+Code: `wedge_fan`, [floor.cpp:146-152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L146-L152).
 
 ## 30. Wedge fan: crease lines
 
@@ -216,7 +216,7 @@ const Line line1 = plane_plane(cp.inner_ribs[1][1], tilted).value();
 | `line0.to_direction()` | (0.1459, 0.0995, -0.9843) | Crease of `tilted` with rib 0's central face |
 | `line1.to_direction()` | (-0.0995, -0.1459, 0.9843) | Crease of `tilted` with rib 1's central face |
 
-Code: `wedge_fan`, [floor.cpp:153-154](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L153-L154); `plane_plane` [floor_geometry.cpp:31-39](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L31-L39).
+Code: `wedge_fan`, [floor.cpp:153-154](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L153-L154); `plane_plane` [floor_geometry.cpp:31-39](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L31-L39).
 
 ## 31. Side fan planes and provisional far faces
 
@@ -243,7 +243,7 @@ return {pair(wedge0, parameters.wedge), pair(tilted, parameters.wedge * paramete
 | `cp.wedges[2][1]` | origin (-2940, -2542.59, 35.20); trace y = -2537.377 | Provisional far face, 240 along the normal |
 | `column.wedge_fan` | = `cp.wedges` | The same three pairs, kept on the column |
 
-Code: `wedge_fan`, [floor.cpp:155-158](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L155-L158); stored at [floor.cpp:202-203](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L202-L203); replaced by `block_planes` [floor.cpp:315-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L315-L323), [370](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L370).
+Code: `wedge_fan`, [floor.cpp:155-158](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L155-L158); stored at [floor.cpp:202-203](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L202-L203); replaced by `block_planes` [floor.cpp:315-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L315-L323), [370](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L370).
 
 ## 32. T-section planes
 
@@ -271,7 +271,7 @@ cp.tsections = {
 | `cp.tsections[4]` | inner_ribs[1][0] to origin (-1974.73, -1404.79) | On rib 1's outer face, side panel 2 |
 | `cp.tsections[5]` | x = -2900 to x = -2873 | On outer rib 1's inner face, side panel 2 |
 
-Code: `construction_planes`, [floor.cpp:205-212](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L205-L212).
+Code: `construction_planes`, [floor.cpp:205-212](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L205-L212).
 
 ## 33. column_seats: column_offset
 
@@ -298,7 +298,7 @@ column.column_offset = {offset, offset};
 | `column.column_offset` | {0, 0} | Signed overhang per bay edge, mm |
 | `report.column_offset_mm[0]` | 0.000 / 0.000 | The same, copied by `measure_quarter` |
 
-Code: `column_seats`, [floor.cpp:162-167](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L162-L167) (called at 367); `report.column_offset_mm` [floor_report.cpp:157](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L157).
+Code: `column_seats`, [floor.cpp:162-167](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L162-L167) (called at 367); `report.column_offset_mm` [floor_report.cpp:157](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L157).
 
 ## 34. column_seats: wedge_seat
 
@@ -327,4 +327,4 @@ column.wedge_seat = {guide.parameters.column_head_chamfer - band,
 | `column.wedge_seat` | {20.000, 19.296, 20.000} | Seats of side 0, chamfer and side 1, mm |
 | `report.wedge_seat_mm[0]` | 20.000 / 19.296 / 20.000 | The same, copied by `measure_quarter` |
 
-Code: `column_seats`, [floor.cpp:169-172](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L169-L172) (called at 367); `report.wedge_seat_mm` [floor_report.cpp:156](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L156).
+Code: `column_seats`, [floor.cpp:169-172](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L169-L172) (called at 367); `report.wedge_seat_mm` [floor_report.cpp:156](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L156).

@@ -2,7 +2,7 @@
 
 This chapter covers the part of the `FloorGuide` constructor (`src/templates/floor/floor.cpp:403-425`) that runs before any quarter geometry exists. From the four corners and `FloorParameters` it computes the centre, the oculus corners and the validity gate `geometry::invalid` (`floor_plan.cpp:110-139`). It then builds the shared entities every quarter reads, in one loop over `q`: `edges[q]` (`bay_edge`), `seams[q]` (`seam`), `oculus_edges[q]` (`oculus_edge`) and `columns[q]` (`column_corner`), all in `floor.cpp:69-143`. The chapter ends where the second loop stores each quarter pentagon `geometry[q].polygon` and calls `compute_quarter`. Chapter 2 starts from those polygons and the shared entities. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)`, a 6000 x 6000 mm square with corner 0 at (-3000, -3000).
 
-Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) builds this default guide and draws quarter 0 of it, the quarter polygon of step 22 with its column head and oculus corner.
+Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) builds this default guide and draws quarter 0 of it, the quarter polygon of step 22 with its column head and oculus corner.
 
 ![](floor/film_01_bay.webp)
 
@@ -49,7 +49,7 @@ FloorGuide FloorGuide::rectangle(double half_x, double half_y, const FloorParame
 | `corners[0..3]` | (-3000, -3000, 0), (3000, -3000, 0), (3000, 3000, 0), (-3000, 3000, 0) | Bay corners, counter-clockwise at z 0 |
 | `parameters` | defaults of `FloorParameters`, `floor.h:40-55` | oculus 1000, column_head 220, column_head_chamfer 120, outer_ribs 100, inner_ribs 60, inner_beams 60, wedge 240, tsections 27, height 650, rise 453, wedge_plane_angle -10, oculus_plane_angle 5, column_head_depth 730, bay_height 3500, middle_wedge_factor 1.25, seam_through_ribs true |
 
-Code: `FloorGuide::rectangle`, [floor_plan.cpp:22-24](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L22-L24); constructor initialiser, [floor.cpp:403](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L403).
+Code: `FloorGuide::rectangle`, [floor_plan.cpp:22-24](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L22-L24); constructor initialiser, [floor.cpp:403](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L403).
 
 ## 2. Centre and edge midpoints
 
@@ -74,7 +74,7 @@ Point FloorGuide::midpoint(size_t k) const {
 | `midpoint(2)` | (0, 3000, 0) | Middle of edge 2 |
 | `midpoint(3)` | (-3000, 0, 0) | Middle of edge 3 |
 
-Code: `FloorGuide::FloorGuide`, [floor.cpp:405](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L405); `FloorGuide::midpoint`, [floor_plan.cpp:26-28](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L26-L28).
+Code: `FloorGuide::FloorGuide`, [floor.cpp:405](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L405); `FloorGuide::midpoint`, [floor_plan.cpp:26-28](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L26-L28).
 
 ## 3. Oculus corners on the centre-to-midpoint rays
 
@@ -97,7 +97,7 @@ for (size_t q = 0; q < 4; q++)
 | `oculus_corners[2]` | (0, 1000, 0) | On seam 2 |
 | `oculus_corners[3]` | (-1000, 0, 0) | On seam 3 |
 
-Code: `FloorGuide::FloorGuide`, [floor.cpp:407-408](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L407-L408).
+Code: `FloorGuide::FloorGuide`, [floor.cpp:407-408](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L407-L408).
 
 ## 4. Validity A: z 0, left turns, no repeats
 
@@ -128,7 +128,7 @@ if (after.magnitude() <= 0.0 || before.magnitude() <= 0.0) return fmt::format("c
 | `before` (local) | at corner 0: (0, 6000, 0) | Edge vector from corner k to corner k - 1 |
 | `turn` (local) | 6000 x 6000 = 3.6e7 at every corner | z of the cross product of consecutive edges, positive for a left turn |
 
-Code: `geometry::invalid`, [floor_plan.cpp:110-126](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L110-L126); thrown in `FloorGuide::FloorGuide`, [floor.cpp:410-413](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L410-L413).
+Code: `geometry::invalid`, [floor_plan.cpp:110-126](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L110-L126); thrown in `FloorGuide::FloorGuide`, [floor.cpp:410-413](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L410-L413).
 
 ## 5. Validity B: oculus corner inside its seam
 
@@ -149,7 +149,7 @@ if (along <= 0.0 || along >= (guide.midpoint(k) - guide.centre).magnitude())
 | `along` (local) | 1000 | Distance of the oculus corner from the centre along seam k |
 | `\|midpoint(k) - centre\|` | 3000 | Upper bound of the open interval |
 
-Code: `geometry::invalid`, [floor_plan.cpp:128-131](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L128-L131).
+Code: `geometry::invalid`, [floor_plan.cpp:128-131](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L128-L131).
 
 ## 6. Validity C: ring covers the oculus beam face
 
@@ -176,7 +176,7 @@ if (std::sin(guide.oculus_corner_angle(k) * M_PI / 180.0) < std::sin(guide.oculu
 | `oculus_seam_angle(k)` | 135 | Angle between seam k (outward) and the oculus edge towards corner k + 1, degrees |
 | `sin` comparison | 1.000 >= 0.707 | Passes at every k |
 
-Code: `geometry::invalid`, [floor_plan.cpp:134-138](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L134-L138); `oculus_corner_angle`, `oculus_seam_angle`, [floor_plan.cpp:34-40](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L34-L40).
+Code: `geometry::invalid`, [floor_plan.cpp:134-138](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L134-L138); `oculus_corner_angle`, `oculus_seam_angle`, [floor_plan.cpp:34-40](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L34-L40).
 
 ## 7. Geometry primitives
 
@@ -207,7 +207,7 @@ std::optional<Point> line_plane(const Line& line, const Plane& plane) {
 | `plane_plane_plane(...)` in the frame | (-3000, -3000, 0) | `corners[0]` |
 | `line_plane(...)` in the frame | (0, -1000, 0) | `oculus_corners[0]` |
 
-Code: `level`, `edge_plane`, [floor_geometry.cpp:19-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L19-L25); `line_plane`, 41-49; `plane_plane_plane`, 51-59; `edge`, 65-67; `TOLERANCE`, 8.
+Code: `level`, `edge_plane`, [floor_geometry.cpp:19-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L19-L25); `line_plane`, 41-49; `plane_plane_plane`, 51-59; `edge`, 65-67; `TOLERANCE`, 8.
 
 ## 8. Bay edge line and band[0]
 
@@ -229,7 +229,7 @@ edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction(
 | `edges[0].midpoint` | (0, -3000, 0) | Where the two quarters' outer ribs on this edge meet |
 | `edges[k].band[0]` | edge 0: origin (0, -3000, 0), normal (0, 1, 0); edge 1: (3000, 0, 0), (-1, 0, 0); edge 2: (0, 3000, 0), (0, -1, 0); edge 3: (-3000, 0, 0), (1, 0, 0) | Outer face of the outer rib band, normal into the bay |
 
-Code: `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L69-L77); loop, [floor.cpp:415-420](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L415-L420).
+Code: `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L69-L77); loop, [floor.cpp:415-420](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L415-L420).
 
 ## 9. band[1]: offset by outer_ribs
 
@@ -253,7 +253,7 @@ static std::array<Plane, 2> pair(const Plane& plane, double distance) {
 | `edges[2].band[1]` | y = 2900 | Inner face on edge 2 |
 | `edges[3].band[1]` | x = -2900 | Inner face on edge 3 |
 
-Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L15-L17); used in `bay_edge`, [floor.cpp:74](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L74).
+Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L15-L17); used in `bay_edge`, [floor.cpp:74](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L74).
 
 ## 10. Seams
 
@@ -278,7 +278,7 @@ result.plane = result.plane_into(k);
 | `seams[0].oculus_corner` | (0, -1000, 0) | End of both seam beams |
 | `seams[k].thickness` | 60 (`inner_beams`) | Seam beam thickness |
 
-Code: `seam`, [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L80-L90); called [floor.cpp:417](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L417).
+Code: `seam`, [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L80-L90); called [floor.cpp:417](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L417).
 
 ## 11. Seam plane into its own quarter
 
@@ -303,7 +303,7 @@ Plane Seam::plane_into(size_t quarter) const {
 | `seams[2].plane` | origin (0, 2000, 0), normal (1, 0, 0) | Into quarter 2 |
 | `seams[3].plane` | origin (-2000, 0, 0), normal (0, 1, 0) | Into quarter 3 |
 
-Code: `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L392-L397); assigned [floor.cpp:87](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L87); `edge_plane`, [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L23-L25).
+Code: `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L392-L397); assigned [floor.cpp:87](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L87); `edge_plane`, [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L23-L25).
 
 ## 12. plane_into the other quarter and faces_into
 
@@ -325,7 +325,7 @@ std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
 | `seams[0].faces_into(1)` | {x = 0, normal (1, 0, 0), origin (0, -2000, 0); x = 60, origin (60, -2000, 0)} | Quarter 1's beam on seam 0 |
 | `seams[3].faces_into(0)` | {y = 0, normal (0, -1, 0), origin (-2000, 0, 0); y = -60} | Quarter 0's beam on seam 3 |
 
-Code: `Seam::plane_into` else branch, [floor.cpp:396](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L396); `Seam::faces_into`, [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L399-L401); read in `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L191).
+Code: `Seam::plane_into` else branch, [floor.cpp:396](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L396); `Seam::faces_into`, [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L399-L401); read in `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L191).
 
 ## 13. Oculus edge and its vertical plane
 
@@ -345,7 +345,7 @@ const Plane plane = edge_plane(edge.line, -Vector::z_axis());
 | `oculus_edges[0].line` | (0, -1000, 0) to (-1000, 0, 0), direction (-1, 1, 0)/sqrt 2 | Oculus edge of quarter 0 |
 | `plane` (local) | origin (-500, -500, 0), normal (-1, -1, 0)/sqrt 2 | Vertical plane on the edge, 707.1 from the centre |
 
-Code: `oculus_edge`, [floor.cpp:93-97](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L97); called [floor.cpp:418](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L418).
+Code: `oculus_edge`, [floor.cpp:93-97](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L93-L97); called [floor.cpp:418](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L418).
 
 ## 14. tilted: rotate by -oculus_plane_angle
 
@@ -368,7 +368,7 @@ Plane rotate(const Plane& plane, double radians, const Vector& axis, const Point
 | `oculus_edges[0].tilted` | origin (-500, -500, 0), normal (-0.7044, -0.7044, -0.0872) | Oculus bearing plane, leaned 5 degrees about the edge |
 | offset at depth h | h tan 5 = 0.0875 h | Horizontal move of the plane towards the centre |
 
-Code: `oculus_edge`, [floor.cpp:98](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L98); `rotate`, [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L15-L17).
+Code: `oculus_edge`, [floor.cpp:98](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L98); `rotate`, [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L15-L17).
 
 ## 15. back and ring_inner
 
@@ -389,7 +389,7 @@ edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 | `oculus_edges[0].back` | origin (-542.43, -542.43, 0), normal (-1, -1, 0)/sqrt 2; 767.1 from the centre | Oculus beam back face |
 | `oculus_edges[0].ring_inner` | origin (-457.57, -457.57, 0), normal (-1, -1, 0)/sqrt 2; 647.1 from the centre | Inner face of the ring beam |
 
-Code: `oculus_edge`, [floor.cpp:99-100](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L99-L100).
+Code: `oculus_edge`, [floor.cpp:99-100](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L99-L100).
 
 ## 16. Column corner frame
 
@@ -413,7 +413,7 @@ return {bisector.transformed(Xform::rotation(Vector::z_axis(), -45.0, true)), bi
 | `columns[k].x_axis` | k0 (1, 0, 0); k1 (0, 1, 0); k2 (-1, 0, 0); k3 (0, -1, 0) | Frame x, along the edge after the corner |
 | `columns[k].y_axis` | k0 (0, 1, 0); k1 (-1, 0, 0); k2 (0, -1, 0); k3 (1, 0, 0) | Frame y, along the edge before the corner, reversed |
 
-Code: `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L106-L119); `RIGHT_ANGLE`, [floor.cpp:10](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L10); `corner_angle`, [floor_plan.cpp:30-32](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L30-L32); stored [floor.cpp:126-128](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L126-L128).
+Code: `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L106-L119); `RIGHT_ANGLE`, [floor.cpp:10](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L10); `corner_angle`, [floor_plan.cpp:30-32](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L30-L32); stored [floor.cpp:126-128](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L126-L128).
 
 ## 17. Head polygon and chamfer_direction
 
@@ -435,7 +435,7 @@ column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
 | `columns[0].head` | (-3000, -3000), (-2780, -3000), (-2780, -2880), (-2880, -2780), (-3000, -2780) | Corner, two shaft corners, two chamfer vertices |
 | `columns[0].chamfer_direction` | (-1, 1, 0)/sqrt 2 | Unit vector along the chamfer; the chamfer is 141.42 long |
 
-Code: `column_corner`, [floor.cpp:130-135](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L130-L135); capitel in `to_column`, [floor_elements.cpp:78-91](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L78-L91).
+Code: `column_corner`, [floor.cpp:130-135](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L130-L135); capitel in `to_column`, [floor_elements.cpp:78-91](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L78-L91).
 
 ## 18. Head side planes
 
@@ -454,7 +454,7 @@ column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(
 | `columns[0].sides[0]` | origin (-2890, -3000, 0), normal (0, 1, 0) | Head side on bay edge 0 |
 | `columns[0].sides[1]` | origin (-3000, -2890, 0), normal (1, 0, 0) | Head side on bay edge 3 |
 
-Code: `column_corner`, [floor.cpp:136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L136); `edge`, [floor_geometry.cpp:65-67](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L65-L67).
+Code: `column_corner`, [floor.cpp:136](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L136); `edge`, [floor_geometry.cpp:65-67](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L65-L67).
 
 ## 19. Initial cutter levels
 
@@ -477,7 +477,7 @@ for (size_t q = 0; q < 4; q++)
 | `columns[k].levels[1]` | 0 here; -694.79 after `rib_bottom_level` | Middle cutter level, at the outer rib bottoms |
 | `columns[k].levels[2]` | -730 | Bottom of the carved head |
 
-Code: `column_corner`, [floor.cpp:137](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L137); overwritten [floor.cpp:427-428](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L427-L428); `rib_bottom_level`, [floor.cpp:378-386](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L378-L386).
+Code: `column_corner`, [floor.cpp:137](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L137); overwritten [floor.cpp:427-428](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L427-L428); `rib_bottom_level`, [floor.cpp:378-386](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L378-L386).
 
 ## 20. axis_point and support_plane
 
@@ -497,7 +497,7 @@ column.support_plane = Plane::from_frame(column.axis_point, x, y, Vector::z_axis
 | `columns[0].axis_point` | (-2890, -2890, 0) | Column axis at z 0 |
 | `columns[0].support_plane` | origin (-2890, -2890, 0), x (1, 0, 0), y (0, 1, 0), z (0, 0, 1) | Support frame on the slab |
 
-Code: `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L138-L139); `to_support`, [floor_elements.cpp:74-76](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L74-L76); [floor_relations.cpp:167](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L167).
+Code: `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L138-L139); `to_support`, [floor_elements.cpp:74-76](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L74-L76); [floor_relations.cpp:167](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L167).
 
 ## 21. Column axes
 
@@ -516,7 +516,7 @@ column.axis = Line::from_points(column.axis_point, column.axis_point + Vector::z
 | `bay_height` | 3500 | Axis length, one storey |
 | `columns[0].axis` | (-2890, -2890, 0) to (-2890, -2890, 3500) | Column axis |
 
-Code: `column_corner`, [floor.cpp:140](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L140).
+Code: `column_corner`, [floor.cpp:140](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L140).
 
 ## 22. Quarter polygon and compute_quarter order
 
@@ -545,4 +545,4 @@ flowchart LR
 | `geometry[0].polygon` | (-3000, -3000), (0, -3000), (0, -1000), (-1000, 0), (-3000, 0) | Quarter 0 pentagon, counter-clockwise |
 | `geometry[1].polygon` | (3000, -3000), (3000, 0), (1000, 0), (0, -1000), (0, -3000) | Quarter 1 pentagon |
 
-Code: `FloorGuide::FloorGuide`, [floor.cpp:422-425](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L422-L425); `compute_quarter`, [floor.cpp:360-375](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L360-L375).
+Code: `FloorGuide::FloorGuide`, [floor.cpp:422-425](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L422-L425); `compute_quarter`, [floor.cpp:360-375](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L360-L375).

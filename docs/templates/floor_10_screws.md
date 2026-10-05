@@ -2,7 +2,7 @@
 
 `Floor::add_screws` (`src/templates/floor/floor_models.cpp:426-430`) adds the assembly screws after every other connector, so nothing built in chapter 9 changes. The screw axes come from `geometry::screw_relationships` (`floor_screws.cpp:321-345`), which reads only the guide: the construction planes of chapter 2, the member outlines of chapters 5 and 6 and `guide.soffit`. Every screw is a horizontal 200 mm line built in a slice at a level below the datum, lifted by `bay_height`, and turned into a pre-drill `JointBeam` that the members read as drill features. The chapter ends with `check_screws`, which measures the 72 screws against each other and the other connectors; chapter 11 checks the finished floor. Every value below is for the default bay `FloorGuide::rectangle(3000, 3000)` with `seam_through_ribs = true`, except frame 213, which uses the tied 6000 x 4800 bay.
 
-Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) builds the square bay with every connector and calls `add_screws`, the 72 screws of this chapter; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) does the same on the tied 6000 x 4800 bay of frame 213.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) builds the square bay with every connector and calls `add_screws`, the 72 screws of this chapter; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) does the same on the tied 6000 x 4800 bay of frame 213.
 
 ![](floor/film_10_screws.webp)
 
@@ -32,7 +32,7 @@ flowchart LR
 | `passed` | 2 members, 3 for every `rib_corner` row | `a`, `b`, then `row.through` |
 | connector name | `connector_screws_0` to `connector_screws_35` | `connector_prefix` for a screw kind, numbered in row order |
 
-Code: `Floor::add_screws`, [floor_models.cpp:426-430](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L426-L430); `add_connectors`, [floor_models.cpp:348-378](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L348-L378); `connector_of`, [floor_models.cpp:315-346](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L315-L346); `add_named`, [floor_models.cpp:92-97](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L92-L97).
+Code: `Floor::add_screws`, [floor_models.cpp:426-430](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L426-L430); `add_connectors`, [floor_models.cpp:348-378](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L348-L378); `connector_of`, [floor_models.cpp:315-346](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L315-L346); `add_named`, [floor_models.cpp:92-97](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L92-L97).
 
 ## 201. Screw row order
 
@@ -50,7 +50,7 @@ Code: `Floor::add_screws`, [floor_models.cpp:426-430](https://github.com/petrasv
 | row count | 8 rib_beam, 8 beam_mitre, 8 rib_corner, 4 ring, 8 oculus = 36 | Each row holds 2 screws (`tests/floor_elements.cpp:261`) |
 | `rings` | 9 outlines, 4 read | `guide.oculus()` |
 
-Code: `geometry::screw_relationships`, [floor_screws.cpp:321-345](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L321-L345); `relationships`, [floor_relations.cpp:205-206](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L205-L206).
+Code: `geometry::screw_relationships`, [floor_screws.cpp:321-345](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L321-L345); `relationships`, [floor_relations.cpp:205-206](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_relations.cpp#L205-L206).
 
 ## 202. Screw levels
 
@@ -70,7 +70,7 @@ Every screw is built in one horizontal slice `level(z)` with `z` at or below the
 | level sets | `MITRE_LEVELS` {2, 5} / {3, 6}, `RIB_CORNER_LEVELS` {1, 4}, `RING_LEVELS` {3, 6}, `OCULUS_LEVELS` {3, 6} / {2, 5} | Sevenths per kind, per `k` where two are given |
 | `SCREW_LENGTH` | 200 | Every screw |
 
-Code: `FloorParameters::static_h`, [floor_plan.cpp:14-16](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L14-L16); constants, [floor_screws.cpp:10-23](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L10-L23); `corner_level`, [floor_screws.cpp:67-69](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L67-L69).
+Code: `FloorParameters::static_h`, [floor_plan.cpp:14-16](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L14-L16); constants, [floor_screws.cpp:10-23](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L10-L23); `corner_level`, [floor_screws.cpp:67-69](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L67-L69).
 
 ## 203. Faces the screws read
 
@@ -91,7 +91,7 @@ Every screw rule reads face pairs from `cp = guide.geometry[q].planes`. `pair(pl
 | `oculus_plane_angle` | 5 deg | Lean of `tilted` |
 | `oculus` | 1000 | Oculus corner distance from the centre: corner 0 at (0, -1000) |
 
-Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L15-L17); `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L69-L77); `oculus_edge`, [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L103); `construction_planes`, [floor.cpp:180-191](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L180-L191); `Seam::faces_into`, [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L399-L401); soffit, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L430-L439).
+Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L15-L17); `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L69-L77); `oculus_edge`, [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L93-L103); `construction_planes`, [floor.cpp:180-191](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L180-L191); `Seam::faces_into`, [floor.cpp:399-401](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L399-L401); soffit, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L430-L439).
 
 ## 204. trace and axis
 
@@ -110,7 +110,7 @@ Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/0c9
 | axis | x + y = -1037.20 | Midway between the two traces |
 | axis of outer rib 0, q 0 | y = -2950 | The same rule on a vertical pair |
 
-Code: `trace`, [floor_screws.cpp:39-41](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L39-L41); `axis`, [floor_screws.cpp:44-54](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L44-L54); `plane_plane`, [floor_geometry.cpp:31-39](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L31-L39); `level`, [floor_geometry.cpp:19-21](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L19-L21).
+Code: `trace`, [floor_screws.cpp:39-41](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L39-L41); `axis`, [floor_screws.cpp:44-54](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L44-L54); `plane_plane`, [floor_geometry.cpp:31-39](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L31-L39); `level`, [floor_geometry.cpp:19-21](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L19-L21).
 
 ## 205. body and depth
 
@@ -126,7 +126,7 @@ Code: `trace`, [floor_screws.cpp:39-41](https://github.com/petrasvestartas/wood/
 | `body(ring 0)` | about (-457.574, -493.864, -99.178) | Inside ring beam 0 |
 | `depth(...) > 0` | | The point is on the body's side of the face |
 
-Code: `body`, [floor_screws.cpp:57-59](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L57-L59); `depth`, [floor_screws.cpp:62-64](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L62-L64); `area_centroid`, [floor_geometry.cpp:137-152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L137-L152); `signed_distance`, [floor_geometry.cpp:121-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L121-L123).
+Code: `body`, [floor_screws.cpp:57-59](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L57-L59); `depth`, [floor_screws.cpp:62-64](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L62-L64); `area_centroid`, [floor_geometry.cpp:137-152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L137-L152); `signed_distance`, [floor_geometry.cpp:121-123](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L121-L123).
 
 ## 206. along_axis
 
@@ -145,7 +145,7 @@ Code: `body`, [floor_screws.cpp:57-59](https://github.com/petrasvestartas/wood/b
 | tip | (-141.421, -897.523, 3443.714) | `head + d * 200` |
 | `SCREW_LENGTH` | 200 | |
 
-Code: `along_axis`, [floor_screws.cpp:76-86](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L76-L86).
+Code: `along_axis`, [floor_screws.cpp:76-86](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L76-L86).
 
 ## 207. from_seam_face
 
@@ -165,7 +165,7 @@ Code: `along_axis`, [floor_screws.cpp:76-86](https://github.com/petrasvestartas/
 | `offset` | `SEAM_SCREW_OFFSET` = +15 for k 1, -15 for k 0 | Across the rib, along `rib[0]`'s normal |
 | screw | (-2935, 0, 3480) -> (-2935, -200, 3480) | World |
 
-Code: `from_seam_face`, [floor_screws.cpp:89-97](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L89-L97).
+Code: `from_seam_face`, [floor_screws.cpp:89-97](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L89-L97).
 
 ## 208. rib_beam: which seam beam
 
@@ -182,7 +182,7 @@ Code: `from_seam_face`, [floor_screws.cpp:89-97](https://github.com/petrasvestar
 | `bottom` | the same on x = 0 | The loop on the seam plane |
 | `seam_through_ribs` | true | The beam runs to the bay's outer face |
 
-Code: `rib_beam`, [floor_screws.cpp:209-217](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L209-L217); `Quarter::inner_beams`, [floor_members.cpp:93-105](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L93-L105); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233).
+Code: `rib_beam`, [floor_screws.cpp:209-217](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L209-L217); `Quarter::inner_beams`, [floor_members.cpp:93-105](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L93-L105); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L210-L233).
 
 ## 209. rib_beam: levels
 
@@ -198,7 +198,7 @@ With `seam_through_ribs`, outer rib `k` ends on <span style="color:#455B6B">`rib
 | `end_level` | -198.783 | Rib bottom at its end on the beam |
 | levels | -20 and -178.783 | World 3480 and 3321.217 |
 
-Code: `rib_beam`, [floor_screws.cpp:218-224](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L218-L224); `end_level`, [floor_geometry.cpp:125-135](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L125-L135); `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L69-L75).
+Code: `rib_beam`, [floor_screws.cpp:218-224](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L218-L224); `end_level`, [floor_geometry.cpp:125-135](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L125-L135); `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L69-L75).
 
 ## 210. rib_beam: axis meets the seam plane
 
@@ -213,7 +213,7 @@ At each level `from_seam_face` takes the axis of `cp.outer_ribs[k]`, y = -2950 f
 | `seam` | (0, -2950, z) | Rib axis on the seam plane |
 | `along` | (-1, 0, 0) | Into the beam towards the rib |
 
-Code: `rib_beam`, [floor_screws.cpp:224-225](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L224-L225); `from_seam_face`, [floor_screws.cpp:91-93](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L91-L93).
+Code: `rib_beam`, [floor_screws.cpp:224-225](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L224-L225); `from_seam_face`, [floor_screws.cpp:91-93](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L91-L93).
 
 ## 211. rib_beam: heads 30 apart
 
@@ -230,7 +230,7 @@ Code: `rib_beam`, [floor_screws.cpp:224-225](https://github.com/petrasvestartas/
 | `rows[7]`, q 1 rib 1 | (0, -2935, 3480) -> (200, -2935, 3480); (0, -2935, 3321.217) -> (200, -2935, 3321.217) | World |
 | head gap | 30 | On the seam plane |
 
-Code: `from_seam_face`, [floor_screws.cpp:94-96](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L94-L96); `rib_beam`, [floor_screws.cpp:225](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L225).
+Code: `from_seam_face`, [floor_screws.cpp:94-96](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L94-L96); `rib_beam`, [floor_screws.cpp:225](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L225).
 
 ## 212. rib_beam: contact
 
@@ -246,7 +246,7 @@ The contact is the rib's end face <span style="color:#2196EA">`{rib_top[0], rib_
 | plane | x = -60, normal (-1, 0, 0) | `cp.inner_beams[0][1]` |
 | `a`, `b` | `outer_ribs_0_0`, `inner_beams_0_0` | |
 
-Code: `rib_beam`, [floor_screws.cpp:219-227](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L219-L227); `rib_loop`, [floor_members.cpp:17-32](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L17-L32).
+Code: `rib_beam`, [floor_screws.cpp:219-227](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L219-L227); `rib_loop`, [floor_members.cpp:17-32](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L17-L32).
 
 ## 213. rib_beam: tied variant
 
@@ -263,7 +263,7 @@ When `seam_through_ribs` is false the seam beam ends on the rib's inner face. Fo
 | screws, q 0 rib 0 (tied bay) | (-30, -2400, z) -> (-30, -2200, z) | 100 through the rib, 100 into the beam |
 | plane | `cp.outer_ribs[k][1]` | The rib's inner face |
 
-Code: `rib_beam`, [floor_screws.cpp:230-237](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L230-L237).
+Code: `rib_beam`, [floor_screws.cpp:230-237](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L230-L237).
 
 ## 214. screw_row lift
 
@@ -278,7 +278,7 @@ Every screw rule ends in `screw_row`, which builds a `Relationship` with `kind`,
 | `bay_height` | 3500 | The lift |
 | `row.plane`, `row.contact`, `row.screws` | lifted | World coordinates |
 
-Code: `screw_row`, [floor_screws.cpp:177-192](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L177-L192); `lifted`, [floor_geometry.cpp:165-175](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L165-L175).
+Code: `screw_row`, [floor_screws.cpp:177-192](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L177-L192); `lifted`, [floor_geometry.cpp:165-175](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L165-L175).
 
 ## 215. beam_mitre: contact
 
@@ -294,7 +294,7 @@ Code: `screw_row`, [floor_screws.cpp:177-192](https://github.com/petrasvestartas
 | plane | `cp.inner_beams[seam][1]` | x = -60 for k 0 |
 | `a`, `b` | seam beam, `inner_beams_1_q` | |
 
-Code: `beam_mitre`, [floor_screws.cpp:241-248](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L241-L248); `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L102).
+Code: `beam_mitre`, [floor_screws.cpp:241-248](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L241-L248); `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L102).
 
 ## 216. beam_mitre: screws
 
@@ -310,7 +310,7 @@ For each level in `MITRE_LEVELS[k]` `beam_mitre` calls `along_axis(cp.inner_beam
 | q 0 k 0 | (0, -1038.944, 3443.714) -> (-141.421, -897.523, 3443.714); (0, -1033.721, 3359.286) -> (-141.421, -892.300, 3359.286) | World |
 | q 1 k 1 | (0, -1037.203, 3415.571) -> (141.421, -895.782, 3415.571); (0, -1031.980, 3331.143) -> (141.421, -890.559, 3331.143) | World, by the quarter's symmetry |
 
-Code: `beam_mitre`, [floor_screws.cpp:251-254](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L251-L254).
+Code: `beam_mitre`, [floor_screws.cpp:251-254](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L251-L254).
 
 ## 217. corner_faces
 
@@ -328,7 +328,7 @@ Code: `beam_mitre`, [floor_screws.cpp:251-254](https://github.com/petrasvestarta
 | `rib` | `cp.inner_ribs[0]` | Inner rib 0's two faces |
 | `beam_body`, `rib_body` | `body(inner_beams()[1])`, `body(inner_ribs()[k])` | Inside points |
 
-Code: `CornerFaces`, [floor_screws.cpp:26-32](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L26-L32); `corner_faces`, [floor_screws.cpp:195-206](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L195-L206).
+Code: `CornerFaces`, [floor_screws.cpp:26-32](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L26-L32); `corner_faces`, [floor_screws.cpp:195-206](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L195-L206).
 
 ## 218. rib_corner screws
 
@@ -344,7 +344,7 @@ For each level in `RIB_CORNER_LEVELS` `rib_corner` calls <span style="color:#219
 | q 0 k 0 | (-29.072, -967.446, 3471.857) -> (-194.301, -1080.138, 3471.857); (-22.862, -963.210, 3387.429) -> (-188.090, -1075.902, 3387.429) | World |
 | direction | about -145.7 deg in plan | Along inner rib 0 |
 
-Code: `rib_corner`, [floor_screws.cpp:258-272](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L258-L272).
+Code: `rib_corner`, [floor_screws.cpp:258-272](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L258-L272).
 
 ## 219. rib_corner: through the seam beam
 
@@ -361,7 +361,7 @@ After each screw `rib_corner` tests <span style="color:#EB7721">`depth(head, fac
 | `row.through` | `inner_beams_0_0` for k 0 | Seam beam |
 | `connector_screws_4.targets` | 3 | Oculus beam, inner rib 0, seam beam 0 |
 
-Code: `rib_corner`, [floor_screws.cpp:267-280](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L267-L280); `connector_of`, [floor_models.cpp:331-338](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L331-L338).
+Code: `rib_corner`, [floor_screws.cpp:267-280](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L267-L280); `connector_of`, [floor_models.cpp:331-338](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L331-L338).
 
 ## 220. rib_corner: contact clipped at soffit
 
@@ -377,7 +377,7 @@ The contact is inner rib `k`'s end face on the back face, <span style="color:#21
 | `guide.soffit` | -198.783 | Minimum of `-static_h` and every rib end level |
 | plane | `cp.inner_beams[1][1]` | Back face |
 
-Code: `rib_corner`, [floor_screws.cpp:274-275](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L274-L275); `above`, [floor_geometry.cpp:177-196](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L177-L196); soffit, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L430-L439).
+Code: `rib_corner`, [floor_screws.cpp:274-275](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L274-L275); `above`, [floor_geometry.cpp:177-196](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L177-L196); soffit, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L430-L439).
 
 ## 221. ring screws
 
@@ -395,7 +395,7 @@ Ring beam `i` is lofted with `flip`, so its top lies on `tilted[i]` and its bott
 | plane | `oculus_edges[q].ring_inner` | |
 | `a`, `b` | `MemberRef{-1, ring, q}`, `MemberRef{-1, ring, next}` | `oculus_q`, `oculus_next` |
 
-Code: `ring`, [floor_screws.cpp:284-296](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L284-L296); `FloorGuide::oculus`, [floor_members.cpp:251-252](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L251-L252).
+Code: `ring`, [floor_screws.cpp:284-296](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L284-L296); `FloorGuide::oculus`, [floor_members.cpp:251-252](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L251-L252).
 
 ## 222. oculus: RingFaces and wedge_start
 
@@ -418,7 +418,7 @@ Code: `ring`, [floor_screws.cpp:284-296](https://github.com/petrasvestartas/wood
 | `ring.wedge_start` | (-132.821, -867.179, 0), 102.984 along | |
 | `ring.band` | 30 | Half of `inner_beams` |
 
-Code: `RingFaces`, [floor_screws.cpp:100-107](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L100-L107); `oculus`, [floor_screws.cpp:299-312](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L299-L312); `outline_thickness`, [floor_elements.cpp:107-109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L107-L109).
+Code: `RingFaces`, [floor_screws.cpp:100-107](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L100-L107); `oculus`, [floor_screws.cpp:299-312](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L299-L312); `outline_thickness`, [floor_elements.cpp:107-109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L107-L109).
 
 ## 223. oculus_screw: start and across
 
@@ -435,7 +435,7 @@ At level `z` `oculus_screw` traces <span style="color:#455B6B">`ring.inner`</spa
 | `start` q 0 k 1 | (-855.147, -60, z) | On y = -60 |
 | `across` | (-0.7071, -0.7071, 0) | Into the quarter |
 
-Code: `oculus_screw`, [floor_screws.cpp:156-162](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L156-L162).
+Code: `oculus_screw`, [floor_screws.cpp:156-162](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L156-L162).
 
 ## 224. Aim: offset and angle
 
@@ -454,7 +454,7 @@ An `Aim` is `(offset, angle)`. <span style="color:#2196EA">`head = start + ring.
 | `clearance` | -1e300 until scored | `Aim::clearance` |
 | chosen q 0 k 0 at 3/7 | offset 67.5, angle 56.2 | From frame 227 |
 
-Code: `Aim`, [floor_screws.cpp:131-135](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L131-L135); `best_aim`, [floor_screws.cpp:144-145](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L144-L145).
+Code: `Aim`, [floor_screws.cpp:131-135](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L131-L135); `best_aim`, [floor_screws.cpp:144-145](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L144-L145).
 
 ## 225. oculus_clearance: side of the contact
 
@@ -472,7 +472,7 @@ Code: `Aim`, [floor_screws.cpp:131-135](https://github.com/petrasvestartas/wood/
 | `s_rate` | `u . n` | Negative when the screw approaches |
 | rejected | -1e300 | Score when `s_rate >= 0` |
 
-Code: `oculus_clearance`, [floor_screws.cpp:110-118](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L110-L118).
+Code: `oculus_clearance`, [floor_screws.cpp:110-118](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L110-L118).
 
 ## 226. oculus_clearance: test points and maximin
 
@@ -492,7 +492,7 @@ Three points lie on the candidate. <span style="color:#2196EA">`band_point = hea
 | `beam` | min of three tip depths | Tip inside the oculus beam |
 | clearance | `min(wedge, ring_part, beam)` | mm the worst constraint is kept |
 
-Code: `oculus_clearance`, [floor_screws.cpp:120-127](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L120-L127).
+Code: `oculus_clearance`, [floor_screws.cpp:120-127](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L120-L127).
 
 ## 227. Coarse and fine grid search
 
@@ -521,7 +521,7 @@ flowchart TD
 | q 0 k 0 aims | 67.5 mm, 56.2 deg at 3/7; 58.5 mm, 55.2 deg at 6/7 | |
 | q 0 k 0 screws | (-107.730, -807.417, 3415.571) -> (-68.883, -1003.609, 3415.571); (-101.366, -813.781, 3331.143) -> (-65.949, -1010.621, 3331.143) | World |
 
-Code: `best_aim`, [floor_screws.cpp:138-153](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L138-L153); `oculus_screw`, [floor_screws.cpp:164-169](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L164-L169).
+Code: `best_aim`, [floor_screws.cpp:138-153](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L138-L153); `oculus_screw`, [floor_screws.cpp:164-169](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L164-L169).
 
 ## 228. oculus row: contact
 
@@ -537,7 +537,7 @@ Code: `best_aim`, [floor_screws.cpp:138-153](https://github.com/petrasvestartas/
 | plane | `oculus_edges[0].tilted` | |
 | `a`, `b` | `oculus_0`, `inner_beams_1_0` | |
 
-Code: `oculus`, [floor_screws.cpp:315-318](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screws.cpp#L315-L318).
+Code: `oculus`, [floor_screws.cpp:315-318](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screws.cpp#L315-L318).
 
 ## 229. Pre-drill joint and pre_drill_lines
 
@@ -554,7 +554,7 @@ Code: `oculus`, [floor_screws.cpp:315-318](https://github.com/petrasvestartas/wo
 | drill feature name | `connector_screws_2 d4` for the mitre q 0 k 0 | `<joint> d<diameter>` |
 | `pre_drill_lines(inner_beams_1_0)` | 12 by the rows: two mitres, two rib corners, two oculus ends, 2 screws each | The frame prints the count it reads |
 
-Code: `JointBeam::screws`, [wood_element_joint_beam.cpp:502-528](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L502-L528); `JointBeam::children`, [wood_element_joint_beam.cpp:650-663](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L650-L663); `add_pre_drill_joint`, [wood_session.cpp:1095-1109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1095-L1109); `host_drills`, [wood_session.cpp:1057-1092](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L1057-L1092); `pre_drill_lines`, [wood_session.cpp:933-947](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_session.cpp#L933-L947).
+Code: `JointBeam::screws`, [wood_element_joint_beam.cpp:502-528](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L502-L528); `JointBeam::children`, [wood_element_joint_beam.cpp:650-663](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L650-L663); `add_pre_drill_joint`, [wood_session.cpp:1095-1109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1095-L1109); `host_drills`, [wood_session.cpp:1057-1092](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L1057-L1092); `pre_drill_lines`, [wood_session.cpp:933-947](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/joinery_solver/wood_session.cpp#L933-L947).
 
 ## 230. check_screws: keep-outs
 
@@ -570,7 +570,7 @@ Code: `JointBeam::screws`, [wood_element_joint_beam.cpp:502-528](https://github.
 | bores | drill line +- `drill_overshoot`, `line_radius` | Other connectors' holes |
 | solids | parts, and cutters `within` their target | Pockets and connector parts |
 
-Code: `collect`, [floor_screw_check.cpp:138-164](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L138-L164); `keep_out`, [floor_screw_check.cpp:90-104](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L90-L104).
+Code: `collect`, [floor_screw_check.cpp:138-164](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L138-L164); `keep_out`, [floor_screw_check.cpp:90-104](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L90-L104).
 
 ## 231. check_screws: counts and drilled_from
 
@@ -585,7 +585,7 @@ Code: `collect`, [floor_screw_check.cpp:138-164](https://github.com/petrasvestar
 | `screw_oculus` | 8 | 16 | none |
 | all | 36 | 72 | |
 
-Code: `check_screws`, [floor_screw_check.cpp:222-228](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L222-L228); `check_screw`, [floor_screw_check.cpp:203-205](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L203-L205).
+Code: `check_screws`, [floor_screw_check.cpp:222-228](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L222-L228); `check_screw`, [floor_screw_check.cpp:203-205](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L203-L205).
 
 ## 232. check_screws: held length
 
@@ -603,7 +603,7 @@ pie title Mitre screw, 200 mm held
 | `member_min_mm` | the smaller of targets 0 and 1 | |
 | misfit | target 0 or 1 under 1e-6, or total off by more than 1e-3 | |
 
-Code: `held`, [floor_screw_check.cpp:167-180](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L167-L180); `check_screw`, [floor_screw_check.cpp:183-193](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L183-L193).
+Code: `held`, [floor_screw_check.cpp:167-180](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L167-L180); `check_screw`, [floor_screw_check.cpp:183-193](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L183-L193).
 
 ## 233. check_screws: bores, pockets, spacing
 
@@ -620,4 +620,4 @@ Bore clearance is `segment_distance(screw, bore)` minus both radii. Pocket clear
 | `screw_screw_mm` | 28.143, 197 / 7 | Closest two axes (`tests/floor_elements.cpp:1267`) |
 | `misfits` | none | The test requires none (`tests/floor_elements.cpp:1207`) |
 
-Code: `segment_distance`, [floor_screw_check.cpp:29-52](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L29-L52); `solid_clearance`, [floor_screw_check.cpp:107-131](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L107-L131); `check_screw`, [floor_screw_check.cpp:195-212](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L195-L212); `check_screws`, [floor_screw_check.cpp:239-246](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_screw_check.cpp#L239-L246).
+Code: `segment_distance`, [floor_screw_check.cpp:29-52](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L29-L52); `solid_clearance`, [floor_screw_check.cpp:107-131](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L107-L131); `check_screw`, [floor_screw_check.cpp:195-212](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L195-L212); `check_screws`, [floor_screw_check.cpp:239-246](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_screw_check.cpp#L239-L246).

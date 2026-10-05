@@ -298,14 +298,10 @@ ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.
 ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
 ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.cpp)
 
-# Documentation film of the floor: one scene and its notes per step, a chapter per file, rendered by docs/floor/render.py.
-file(GLOB DOCS_FLOOR_MOVIE ${CMAKE_CURRENT_SOURCE_DIR}/docs/floor/*.cpp)
-ADD_EXE(docs_floor_movie ${DOCS_FLOOR_MOVIE})
-
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
 # docs/examples.md, docs/templates.md and a page per template family under docs/templates (their pictures
-# under docs/images, the floor's beside its page in docs/templates/floor, made by docs/floor); Doxygen only.
+# under docs/images, the floor's beside its page in docs/templates/floor); Doxygen only.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
     set(DOXYGEN_PROJECT_NAME "Wood")

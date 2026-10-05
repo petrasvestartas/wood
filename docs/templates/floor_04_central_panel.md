@@ -4,7 +4,7 @@ This chapter covers the last two calls of `compute_quarter` (floor.cpp:373-374).
 
 All values are for quarter 0 of the default square bay, `FloorGuide::rectangle(3000, 3000)`, in guide coordinates (datum z 0; the pictures lift them by `bay_height`).
 
-Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) builds the four quarters, whose inner ribs, central t-sections, central bed row and middle wedge are cut from this chapter's `central_panel` and `bed_top_planes`; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) builds the same on the 3000 x 2400 bay, where rule A turns `rib_sweep` away from the reference.
+Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_4_quarters.cpp) builds the four quarters, whose inner ribs, central t-sections, central bed row and middle wedge are cut from this chapter's `central_panel` and `bed_top_planes`; [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) builds the same on the 3000 x 2400 bay, where rule A turns `rib_sweep` away from the reference.
 
 ![](floor/film_04_central_panel.webp)
 
@@ -37,7 +37,7 @@ const Vector reference = flat(normals[0] - normals[1]).normalized();
 | `central_panel.obliqueness` | {10.704, 10.704} | Degrees between the sweep and each rib normal |
 | `central_panel.residual` | 3.1e-12 | Rule A miss in mm, rounding noise |
 
-Code: `central_panel`, [floor_panel.cpp:143-163](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L143-L163); called from `compute_quarter`, [floor.cpp:373](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L373).
+Code: `central_panel`, [floor_panel.cpp:143-163](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L143-L163); called from `compute_quarter`, [floor.cpp:373](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L373).
 
 ## 50. Reference direction
 
@@ -53,7 +53,7 @@ Code: `central_panel`, [floor_panel.cpp:143-163](https://github.com/petrasvestar
 | `reference` | (-0.707107, 0.707107, 0) | Unit plan vector, 0 degrees of the scan; equal to `column.chamfer_direction` on the square |
 | angle to `normals[0]` and to `-normals[1]` | 10.70 deg each | The reference is equally oblique to both faces |
 
-Code: `central_panel`, [floor_panel.cpp:148](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L148); `flat`, [floor_panel.cpp:13-16](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L13-L16).
+Code: `central_panel`, [floor_panel.cpp:148](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L148); `flat`, [floor_panel.cpp:13-16](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L13-L16).
 
 ## 51. Scan fan of trial sweeps
 
@@ -74,7 +74,7 @@ for (double lo = -SCAN_RANGE; lo < SCAN_RANGE; lo += SCAN_STEP) {
 | `SCAN_RANGE` | 85.0 | Degrees either side of the reference |
 | `lo`, `hi` | -85.0 ... 84.5, `lo + 0.5` | Bounding angles of one interval, 340 intervals |
 
-Code: `turned`, [floor_panel.cpp:18-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L18-L25); `rib_sweep` loop, [floor_panel.cpp:100-101](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L100-L101).
+Code: `turned`, [floor_panel.cpp:18-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L18-L25); `rib_sweep` loop, [floor_panel.cpp:100-101](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L100-L101).
 
 ## 52. Skip grazing and crossing intervals
 
@@ -95,7 +95,7 @@ if (!sweep_sides(normals, reference, lo, sides_lo) || !sweep_sides(normals, refe
 | skipped intervals | [-79.5, -79.0] and [79.0, 79.5] | `normals[1] . r = 0` at about -79.30, `normals[0] . r = 0` at about +79.30 (= 90 - 10.70) |
 | `sides` | {true, true} on -85 .. -79.5; {true, false} on -79.0 .. 79.0; {false, false} on 79.5 .. 85 | Shift-sign pattern of the scanned intervals |
 
-Code: `sweep_sides`, [floor_panel.cpp:63-70](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L63-L70); skip test, [floor_panel.cpp:102-106](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L102-L106).
+Code: `sweep_sides`, [floor_panel.cpp:63-70](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L63-L70); skip test, [floor_panel.cpp:102-106](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L102-L106).
 
 ## 53. shifts: a = t/(n.r)
 
@@ -115,7 +115,7 @@ return {thickness / normals[0].dot(r), thickness / normals[1].dot(r)};
 | `a[0]`, `a[1]` | 61.0626, -61.0626 at the final r (60 / 0.982600) | Signed shift along r per rib |
 | `shadows[0]` pt 0 | (-2540, -2716.311, -650) | The point shown |
 
-Code: `shifts`, [floor_panel.cpp:47-50](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L47-L50), used at 55.
+Code: `shifts`, [floor_panel.cpp:47-50](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L47-L50), used at 55.
 
 ## 54. closure: start chord vs vertex chord
 
@@ -139,7 +139,7 @@ return start.cross(vertex)[2] / (start.magnitude() * vertex.magnitude());
 | `vertex` | (-897.575, 897.575, 0), length 1269.363, at the final r | Index-6 chord |
 | `closure(r)` | -0.1505 at -10 deg, 0 at 0, +0.1505 at +10, +0.808 at +60 | Rule A residual function |
 
-Code: `closure`, [floor_panel.cpp:52-61](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L52-L61).
+Code: `closure`, [floor_panel.cpp:52-61](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L52-L61).
 
 ## 55. Sign-change brackets
 
@@ -171,7 +171,7 @@ flowchart LR
     E -- yes --> F["best = root"]
 ```
 
-Code: `rib_sweep` bracket test, [floor_panel.cpp:108-112](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L108-L112).
+Code: `rib_sweep` bracket test, [floor_panel.cpp:108-112](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L108-L112).
 
 ## 56. Bisection
 
@@ -191,7 +191,7 @@ Code: `rib_sweep` bracket test, [floor_panel.cpp:108-112](https://github.com/pet
 | `BISECTIONS` | 200 | Maximum halvings of the bracket |
 | `root` | 0 deg from both brackets | Angle of a closure zero in the bracket |
 
-Code: `bisect`, [floor_panel.cpp:72-92](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L72-L92).
+Code: `bisect`, [floor_panel.cpp:72-92](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L72-L92).
 
 ## 57. Root nearest the reference: rib_sweep
 
@@ -214,7 +214,7 @@ return turned(reference, found ? best : 0.0);
 | `found` | true | Whether any bracket held a root |
 | `panel.rib_sweep` (r) | (-0.707107, 0.707107, 0) in quarter 0; the reference rotated with the quarter in q1..q3 | Common sweep of both inner ribs |
 
-Code: `rib_sweep`, [floor_panel.cpp:94-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L94-L123); stored at [floor_panel.cpp:151](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L151).
+Code: `rib_sweep`, [floor_panel.cpp:94-123](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L94-L123); stored at [floor_panel.cpp:151](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L151).
 
 ## 58. along(): soffits on the central faces
 
@@ -233,7 +233,7 @@ const std::array<Polyline, 2> soffits = {along(shadows[0], faces[0], panel.rib_s
 | `soffits[0]` | pt0 (-2583.178, -2673.133, -650) ... pt6 (-43.178, -940.753, -197) | Rib 0's central-face soffit |
 | `soffits[1]` | pt0 (-2673.133, -2583.178, -650) ... pt6 (-940.753, -43.178, -197) | Rib 1's central-face soffit |
 
-Code: `along`, [floor_panel.cpp:27-30](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L27-L30); `central_panel`, [floor_panel.cpp:152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L152).
+Code: `along`, [floor_panel.cpp:27-30](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L27-L30); `central_panel`, [floor_panel.cpp:152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L152).
 
 ## 59. Ruling u
 
@@ -254,7 +254,7 @@ panel.ruling = flat(soffits[1].get_point(0) - soffits[0].get_point(0)).normalize
 | `report.ruling_off_chamfer_deg[0]` | 0.000 (-0.839 on 3000 x 2400) | `plan_angle(column.chamfer_direction, panel.ruling)` |
 | `report.ruling_off_oculus_edge_deg[0]` | 0.000 | `plan_angle(oculus_edges[0].line.to_direction(), panel.ruling)`; the edge runs from oculus corner 0 to oculus corner 3 |
 
-Code: `central_panel`, [floor_panel.cpp:153](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L153); `measure_quarter`, [floor_report.cpp:151-152](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L151-L152); `plan_angle`, [floor_report.cpp:18-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L18-L25).
+Code: `central_panel`, [floor_panel.cpp:153](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L153); `measure_quarter`, [floor_report.cpp:151-152](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L151-L152); `plan_angle`, [floor_report.cpp:18-25](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L18-L25).
 
 ## 60. Obliqueness and shear
 
@@ -273,7 +273,7 @@ panel.obliqueness[k] = std::acos(std::clamp(std::abs(normals[k].dot(panel.rib_sw
 | `panel.obliqueness[0]`, `[1]` | 10.704471, 10.704471 (20.703 / 3.338 on 3000 x 2400) | Degrees between r and each rib normal |
 | `report.rib_shear_mm[0][k]` | 11.342 / 11.342 | `inner_ribs * tan(obliqueness)`, along-rib shear in mm |
 
-Code: `central_panel`, [floor_panel.cpp:155-156](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L155-L156); `measure_quarter`, [floor_report.cpp:163-164](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L163-L164).
+Code: `central_panel`, [floor_panel.cpp:155-156](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L155-L156); `measure_quarter`, [floor_report.cpp:163-164](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L163-L164).
 
 ## 61. Residual
 
@@ -292,7 +292,7 @@ panel.residual = largest_shift(along(soffits[0], faces[1], panel.ruling), soffit
 | `panel.residual` | 3.103e-12 in each quarter | Worst same-index miss, mm |
 | `report.closure_residual_mm[q]` | 3.103e-12 | Copy of `panel.residual`, read by `ok()` |
 
-Code: `largest_shift`, [floor_panel.cpp:32-41](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L32-L41); `central_panel`, [floor_panel.cpp:158](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L158); `FloorReport::ok`, [floor_report.cpp:188-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L188-L195).
+Code: `largest_shift`, [floor_panel.cpp:32-41](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L32-L41); `central_panel`, [floor_panel.cpp:158](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L158); `FloorReport::ok`, [floor_report.cpp:188-195](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L188-L195).
 
 ## 62. Panel cross-section
 
@@ -310,7 +310,7 @@ const Polyline section = along(soffits[0], Plane::from_point_normal(soffits[0].g
 |---|---|---|
 | `section` | pt0 (-2583.178, -2673.133, -650), pt3 (-1515.083, -1605.038, -310.250), pt6 (-446.988, -536.943, -197); plan length 3021 | The soffit in the plane x - y = 89.955 |
 
-Code: `section_layers`, [floor_panel.cpp:129-132](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L129-L132), called at 160.
+Code: `section_layers`, [floor_panel.cpp:129-132](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L129-L132), called at 160.
 
 ## 63. Section offsets t and 2t
 
@@ -332,7 +332,7 @@ const Polyline offset2 = offset_polyline(section, 2.0 * tsections);
 | `offset2` | pt0 (-2593.299, -2683.254, -597.932) ... pt6 (-447.942, -537.897, -143.017) | +2t line in the section |
 | vertical gaps | 26.034 / 52.068 at pt0; 26.992 / 53.983 at pt6 | z gap from `section`, below 27 / 54 where the soffit slopes |
 
-Code: `section_layers`, [floor_panel.cpp:133-134](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L133-L134); `offset_polyline`, [floor_geometry.cpp:84-109](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L84-L109).
+Code: `section_layers`, [floor_panel.cpp:133-134](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L133-L134); `offset_polyline`, [floor_geometry.cpp:84-109](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L84-L109).
 
 ## 64. Layers back on both central faces: traces
 
@@ -353,7 +353,7 @@ for (size_t k = 0; k < 2; k++)
 | `panel.traces[k][1]` | rib 0 pt0 (-2589.195, -2677.237, -623.966) ... pt6 (-43.745, -941.139, -170.008); rib 1 mirrored | +t trace |
 | `panel.traces[k][2]` | rib 0 pt0 (-2595.213, -2681.341, -597.932) ... pt6 (-44.312, -941.526, -143.017); rib 1 mirrored | +2t trace |
 
-Code: `section_layers`, [floor_panel.cpp:135-140](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L135-L140); stored at [floor_panel.cpp:160](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_panel.cpp#L160).
+Code: `section_layers`, [floor_panel.cpp:135-140](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L135-L140); stored at [floor_panel.cpp:160](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_panel.cpp#L160).
 
 ## 65. Where the panel is consumed
 
@@ -372,7 +372,7 @@ Code: `section_layers`, [floor_panel.cpp:135-140](https://github.com/petrasvesta
 | `Quarter::beds`: bed row 1, between the inner ribs | `traces[k][1]` (bottom), `traces[k][2]` (top) | floor_members.cpp:225 |
 | `measure_quarter` (chapter 11) | `ruling`, `residual`, `obliqueness` | floor_report.cpp:151-153, 163-164 |
 
-Code: `compute_quarter`, [floor.cpp:372-374](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L372-L374); [floor_members.cpp:77-86](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L77-L86), [161-185](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L161-L185), [217-228](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L217-L228).
+Code: `compute_quarter`, [floor.cpp:372-374](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L372-L374); [floor_members.cpp:77-86](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L77-L86), [161-185](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L161-L185), [217-228](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L217-L228).
 
 ## 66. Bed top: side projections
 
@@ -392,7 +392,7 @@ const Xform side01 = Xform::project_to_plane_by_axis(cp.outer_ribs[0][1], cp.out
 | `side00`, `side01` | onto inner rib 0's outer face and y = -2900 | Projections onto the side faces of bed panel 0 |
 | `side20`, `side21` | onto inner rib 1's outer face and x = -2900 | Projections onto the side faces of bed panel 2 |
 
-Code: `bed_top_planes`, [floor.cpp:347-350](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L347-L350), called at 374.
+Code: `bed_top_planes`, [floor.cpp:347-350](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L347-L350), called at 374.
 
 ## 67. panel_top_plane for side beds
 
@@ -417,7 +417,7 @@ return Plane::from_point_normal(plane.origin(), normal);
 | `bed_top_planes[0]` | origin (-2408.538, -2763.324, -550.203), normal (-0.3108, 0, 0.9505), 18.11 deg from z | Plane side block 0 stands on |
 | `bed_top_planes[2]` | origin (-2763.324, -2408.538, -550.203), normal (0, -0.3108, 0.9505) | Plane side block 2 stands on |
 
-Code: `panel_top_plane`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L48-L62), used at 353 and 355; `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L73-L82); `Plane::from_points_pca`, [session_cpp/src/plane.cpp:224-243](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/plane.cpp#L224-L243).
+Code: `panel_top_plane`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L48-L62), used at 353 and 355; `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L73-L82); `Plane::from_points_pca`, [session_cpp/src/plane.cpp:224-243](https://github.com/petrasvestartas/session_cpp/blob/9919e7f7fd09acd90feea9dccf72aa63cf083fbf/src/plane.cpp#L224-L243).
 
 ## 68. panel_top_plane for the central bed
 
@@ -437,4 +437,4 @@ panel_top_plane({panel.traces[0][2], panel.traces[1][2]}, cp.inner_beams[1][1], 
 | `pts[1][0]`, `pts[1][1]` | (-2771.970, -2728.093, -641.379), (-2391.909, -2170.849, -459.178) | Deepest two points of `traces[1][2]` after trimming |
 | `bed_top_planes[1]` | origin (-2515.705, -2515.705, -550.279), normal (-0.1874, -0.1874, 0.9642), 15.37 deg from z | Plane the middle block stands on |
 
-Code: `bed_top_planes`, [floor.cpp:354](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L354); `panel_top_plane`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L48-L62).
+Code: `bed_top_planes`, [floor.cpp:354](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L354); `panel_top_plane`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L48-L62).

@@ -131,24 +131,17 @@ Every member has one name, the same in the guide's drawing, the outline lists an
 
 | Example | What it builds |
 |---|---|
-| [templates_floor_1_floorguide](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
-| [templates_floor_2_column_model](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_2_column_model.cpp) | one column on its support, carved by its six head cutters |
-| [templates_floor_3_columns_model](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_3_columns_model.cpp) | the four columns at the bay corners |
-| [templates_floor_4_quarters](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) | the four quarters in place |
-| [templates_floor_5_oculus](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_5_oculus.cpp) | the oculus ring, its bottom wedges and plate |
-| [templates_floor_6_contacts_floor](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_6_contacts_floor.cpp) | the quarters, the ring and the eight wedge connectors |
-| [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and screw, BReps with exact bores |
-| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
+| [templates_floor_1_floorguide](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
+| [templates_floor_2_column_model](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_2_column_model.cpp) | one column on its support, carved by its six head cutters |
+| [templates_floor_3_columns_model](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_3_columns_model.cpp) | the four columns at the bay corners |
+| [templates_floor_4_quarters](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_4_quarters.cpp) | the four quarters in place |
+| [templates_floor_5_oculus](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_5_oculus.cpp) | the oculus ring, its bottom wedges and plate |
+| [templates_floor_6_contacts_floor](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_6_contacts_floor.cpp) | the quarters, the ring and the eight wedge connectors |
+| [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and screw, BReps with exact bores |
+| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
 
 ## How the pictures are made
 
-Every picture is made from the code, not drawn. `docs/floor/main.cpp` builds the guide and the floors once and calls one chapter file per chapter, `docs/floor/chapter_*.cpp`; each writes a scene per step with its caption, labels and camera. `docs/floor/render.py` renders every scene with session_viewer's headless renderer, places the labels, and writes the pictures and the films beside this page, in `docs/templates/floor/`.
+Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay.
 
-Placing the labels is the point-feature labelling problem. Every label has candidate plates on rings of growing radius around its point in 24 directions. A candidate is allowed only inside the picture and clear of every other plate and every other labelled point. Among the allowed ones a label takes the cheapest: the leader's length, the drawing the plate covers, read off the rendered picture, and every leader that crosses another leader or plate. A greedy pass places the most crowded labels first, then passes re-place each label against all the others until none moves. The script fails if a label finds no allowed place, or if two labels name points closer than 14 pixels, so no picture is written with overlapping names.
-
-To make them again after a change:
-
-```bash
-cmake --build build --target docs_floor_movie --parallel 6 && ./build/docs_floor_movie
-python3 docs/floor/render.py
-```
+Their names are placed by solving the point-feature labelling problem. Every label has candidate plates on rings of growing radius around its point in 24 directions. A candidate is allowed only inside the picture and clear of every other plate and every other labelled point. Among the allowed ones a label takes the cheapest: the leader's length, the drawing the plate covers, read off the rendered picture, and every leader that crosses another leader or plate. A greedy pass places the most crowded labels first, then passes re-place each label against all the others until none moves. A picture was not accepted while a label had no allowed place or two labels named points closer than 14 pixels, so no two names overlap.

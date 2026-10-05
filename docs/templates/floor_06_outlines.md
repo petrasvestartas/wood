@@ -2,7 +2,7 @@
 
 This chapter builds the outlines of every quarter member other than the ribs, plus the oculus and the column cutters. The functions are `Quarter::inner_beams`, `Quarter::wedges`, `Quarter::tsections`, `Quarter::beds`, `FloorGuide::oculus` and `Quarter::column_cutters` in `floor_members.cpp`, together with the helper `geometry::loft_planes` in `floor_geometry.cpp`. Their inputs come from the earlier chapters: the construction planes `cp`, the parabolas and their `+t` / `+2t` offsets, the central panel traces, `bed_top_planes`, `guide.soffit` and the column levels. Each one returns `Outline{top, bottom}` pairs at the datum z 0. Chapter 07 turns those pairs into elements with `to_beam` and `to_plate`, and into the column's solid cuts.
 
-Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) builds the four quarters, every inner beam, wedge, t-section and bed made from these outlines, [templates_floor_5_oculus.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_5_oculus.cpp) builds the oculus ring, its bottom wedges and the central plate, and [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_2_column_model.cpp) carves column 0's head with quarter 0's six column cutters.
+Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_4_quarters.cpp) builds the four quarters, every inner beam, wedge, t-section and bed made from these outlines, [templates_floor_5_oculus.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_5_oculus.cpp) builds the oculus ring, its bottom wedges and the central plate, and [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_2_column_model.cpp) carves column 0's head with quarter 0's six column cutters.
 
 ![](floor/film_06_outlines.webp)
 
@@ -52,7 +52,7 @@ Outline loft_planes(const std::vector<Plane>& planes, const Plane& bottom, const
 }
 ```
 
-Code: `geometry::loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233)
+Code: `geometry::loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L210-L233)
 
 ## 83. inner_beams: levels and face choice
 
@@ -76,7 +76,7 @@ const Plane side1 = level(guide.soffit);
 const size_t face = parameters().seam_through_ribs ? 0 : 1;
 ```
 
-Code: `Quarter::inner_beams`, [floor_members.cpp:93-98](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L93-L98)
+Code: `Quarter::inner_beams`, [floor_members.cpp:93-98](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L93-L98)
 
 ## 84. Seam beam 0
 
@@ -97,7 +97,7 @@ Seam beam 0 is `loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0]
 loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
 ```
 
-Code: `Quarter::inner_beams`, [floor_members.cpp:101](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L101)
+Code: `Quarter::inner_beams`, [floor_members.cpp:101](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L101)
 
 ## 85. Oculus beam
 
@@ -126,7 +126,7 @@ edge.back = plane.translate_by_normal(parameters.inner_beams);
 edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 ```
 
-Code: `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L102); planes `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L92-L103)
+Code: `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L102); planes `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L92-L103)
 
 ## 86. Seam beam 2
 
@@ -147,7 +147,7 @@ Seam beam 2 mirrors seam beam 0 on seam 3: `loft_planes({cp.outer_ribs[1][face],
 loft_planes({cp.outer_ribs[1][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1]),
 ```
 
-Code: `Quarter::inner_beams`, [floor_members.cpp:103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L103)
+Code: `Quarter::inner_beams`, [floor_members.cpp:103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L103)
 
 ## 87. Wedges: bounding rib faces and bed planes
 
@@ -185,7 +185,7 @@ const Vector normal = plane.z_axis()[2] < 0.0 ? -plane.z_axis() : plane.z_axis()
 return Plane::from_point_normal(plane.origin(), normal);
 ```
 
-Code: `Quarter::wedges`, [floor_members.cpp:107-116](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L107-L116); `panel_top_plane` and `bed_top_planes`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L48-L62), [344-357](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L344-L357)
+Code: `Quarter::wedges`, [floor_members.cpp:107-116](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L107-L116); `panel_top_plane` and `bed_top_planes`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L48-L62), [344-357](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L344-L357)
 
 ## 88. Wedges: loft between fan and far face
 
@@ -220,7 +220,7 @@ for (size_t i = 0; i < 3; i++) {
 }
 ```
 
-Code: `Quarter::wedges`, [floor_members.cpp:118-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L118-L123); `block_planes`, [floor.cpp:314-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L314-L323)
+Code: `Quarter::wedges`, [floor_members.cpp:118-123](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L118-L123); `block_planes`, [floor.cpp:314-323](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L314-L323)
 
 ## 89. tsection: trim four traces
 
@@ -253,7 +253,7 @@ pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * EXTENSION;
 return cut(Polyline(pts), plane0, plane1);
 ```
 
-Code: `tsection`, [floor_members.cpp:130-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L130-L136); `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L73-L82)
+Code: `tsection`, [floor_members.cpp:130-136](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L130-L136); `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L73-L82)
 
 ## 90. tsection: the 15-point loop
 
@@ -282,7 +282,7 @@ bottom.push_back(cut01.front());
 return {Polyline(top), Polyline(bottom)};
 ```
 
-Code: `tsection`, [floor_members.cpp:138-146](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L138-L146)
+Code: `tsection`, [floor_members.cpp:138-146](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L138-L146)
 
 ## 91. outer_tsection projections
 
@@ -311,7 +311,7 @@ return tsection(
 );
 ```
 
-Code: `outer_tsection`, [floor_members.cpp:149-159](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L149-L159)
+Code: `outer_tsection`, [floor_members.cpp:149-159](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L149-L159)
 
 ## 92. Flanges 0 and 5
 
@@ -349,7 +349,7 @@ cp.tsections = {
 };
 ```
 
-Code: `Quarter::tsections`, [floor_members.cpp:161-171](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L161-L171), [184](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L184); planes `construction_planes`, [floor.cpp:205-212](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L205-L212)
+Code: `Quarter::tsections`, [floor_members.cpp:161-171](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L161-L171), [184](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L184); planes `construction_planes`, [floor.cpp:205-212](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L205-L212)
 
 ## 93. Flanges 1 and 4
 
@@ -374,7 +374,7 @@ outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.w
 outer_tsection(pb[1], ts[4], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
 ```
 
-Code: `Quarter::tsections`, [floor_members.cpp:172](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L172), [183](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L183)
+Code: `Quarter::tsections`, [floor_members.cpp:172](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L172), [183](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L183)
 
 ## 94. Flanges 2 and 3
 
@@ -406,7 +406,7 @@ tsection(
 ),
 ```
 
-Code: `Quarter::tsections`, [floor_members.cpp:173-182](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L173-L182)
+Code: `Quarter::tsections`, [floor_members.cpp:173-182](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L173-L182)
 
 ## 95. bed_row: trim layers on both side faces
 
@@ -432,7 +432,7 @@ if (lower[1].size() != lower[0].size() || upper[0].size() != lower[0].size() || 
     throw std::runtime_error(fmt::format("a bed row's layers are cut on different facets: {} / {} lower and {} / {} upper points", lower[0].size(), lower[1].size(), upper[0].size(), upper[1].size()));
 ```
 
-Code: `bed_row`, [floor_members.cpp:188-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L188-L195)
+Code: `bed_row`, [floor_members.cpp:188-195](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L188-L195)
 
 ## 96. bed_row: one plate per facet
 
@@ -457,7 +457,7 @@ for (size_t i = 0; i + 1 < lower[0].size(); i++) {
 }
 ```
 
-Code: `bed_row`, [floor_members.cpp:197-205](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L197-L205)
+Code: `bed_row`, [floor_members.cpp:197-205](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L197-L205)
 
 ## 97. outer_bed_row projections
 
@@ -484,7 +484,7 @@ const Xform projection1 = Xform::project_to_plane_by_axis(side1, outer);
 return bed_row({parabola[1].transformed(projection0), parabola[1].transformed(projection1)}, {parabola[2].transformed(projection0), parabola[2].transformed(projection1)}, cut_plane0, cut_plane1);
 ```
 
-Code: `outer_bed_row`, [floor_members.cpp:208-215](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L208-L215)
+Code: `outer_bed_row`, [floor_members.cpp:208-215](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L208-L215)
 
 ## 98. Three bed rows
 
@@ -509,7 +509,7 @@ return {
 };
 ```
 
-Code: `Quarter::beds`, [floor_members.cpp:217-228](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L217-L228)
+Code: `Quarter::beds`, [floor_members.cpp:217-228](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L217-L228)
 
 ## 99. Oculus levels side0..side3
 
@@ -535,7 +535,7 @@ const Plane side2 = level(soffit);
 const Plane side3 = level(soffit + parameters.tsections * 2.0);
 ```
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:234-239](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L234-L239)
+Code: `FloorGuide::oculus`, [floor_members.cpp:234-239](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L234-L239)
 
 ## 100. Oculus planes tilted[q], inner[q]
 
@@ -567,7 +567,7 @@ edge.back = plane.translate_by_normal(parameters.inner_beams);
 edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 ```
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:241-247](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L241-L247); `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L92-L103)
+Code: `FloorGuide::oculus`, [floor_members.cpp:241-247](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L241-L247); `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L92-L103)
 
 ## 101. Ring beams: pinwheel
 
@@ -590,7 +590,7 @@ for (size_t i = 0; i < 4; i++)
     plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 ```
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:249-252](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L249-L252)
+Code: `FloorGuide::oculus`, [floor_members.cpp:249-252](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L249-L252)
 
 ## 102. Bottom wedges: ledge strips
 
@@ -616,7 +616,7 @@ for (size_t i = 0; i < 4; i++) {
 }
 ```
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:254-257](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L254-L257)
+Code: `FloorGuide::oculus`, [floor_members.cpp:254-257](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L254-L257)
 
 ## 103. Central plate
 
@@ -637,7 +637,7 @@ Code: `FloorGuide::oculus`, [floor_members.cpp:254-257](https://github.com/petra
 plates.push_back(loft_planes(inner, side1, side3));
 ```
 
-Code: `FloorGuide::oculus`, [floor_members.cpp:259-261](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L259-L261)
+Code: `FloorGuide::oculus`, [floor_members.cpp:259-261](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L259-L261)
 
 ## 104. column_cutters: fan_top
 
@@ -670,7 +670,7 @@ column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(
 column.levels = {0.0, 0.0, -guide.parameters.column_head_depth};
 ```
 
-Code: `Quarter::column_cutters`, [floor_members.cpp:291-302](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L291-L302); `column_corner`, [floor.cpp:134-137](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L134-L137); levels[1] [floor.cpp:377-386](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L377-L386), [427-428](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L427-L428)
+Code: `Quarter::column_cutters`, [floor_members.cpp:291-302](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L291-L302); `column_corner`, [floor.cpp:134-137](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L134-L137); levels[1] [floor.cpp:377-386](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L377-L386), [427-428](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L427-L428)
 
 ## 105. column_cutters: fan_bottom
 
@@ -694,7 +694,7 @@ Code: `Quarter::column_cutters`, [floor_members.cpp:291-302](https://github.com/
 const std::vector<Plane> fan_bottom = {side0, edge_plane(geometry::edge(column, 1), down), edge_plane(geometry::edge(column, 3), down), side1};
 ```
 
-Code: `Quarter::column_cutters`, [floor_members.cpp:303](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L303)
+Code: `Quarter::column_cutters`, [floor_members.cpp:303](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L303)
 
 ## 106. Cutter corners p0, p1, p2
 
@@ -721,7 +721,7 @@ for (size_t i = 0; i + 1 < fan_bottom.size(); i++)
     p2.push_back(plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1]).value());
 ```
 
-Code: `Quarter::column_cutters`, [floor_members.cpp:305-315](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L305-L315)
+Code: `Quarter::column_cutters`, [floor_members.cpp:305-315](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L305-L315)
 
 ## 107. Six cutter quads
 
@@ -751,7 +751,7 @@ const std::vector<std::vector<Point>> quads = {
 };
 ```
 
-Code: `Quarter::column_cutters`, [floor_members.cpp:317-325](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L317-L325)
+Code: `Quarter::column_cutters`, [floor_members.cpp:317-325](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L317-L325)
 
 ## 108. stretch: edges lengthened
 
@@ -778,7 +778,7 @@ quad[2] = quad[2] - d1;
 quad[3] = quad[3] + d1;
 ```
 
-Code: `stretch`, [floor_members.cpp:268-276](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L268-L276)
+Code: `stretch`, [floor_members.cpp:268-276](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L268-L276)
 
 ## 109. stretch: edges pushed apart
 
@@ -809,7 +809,7 @@ if (top) {
 }
 ```
 
-Code: `stretch`, [floor_members.cpp:278-289](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L278-L289)
+Code: `stretch`, [floor_members.cpp:278-289](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L278-L289)
 
 ## 110. Cutter plates thickened
 
@@ -847,4 +847,4 @@ for (const Outline& outline : quarter.column_cutters()) {
 }
 ```
 
-Code: `Quarter::column_cutters`, [floor_members.cpp:327-336](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L327-L336); `column_cuts`, [floor_elements.cpp:92-105](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L92-L105); [floor_models.cpp:186-193](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L186-L193)
+Code: `Quarter::column_cutters`, [floor_members.cpp:327-336](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L327-L336); `column_cuts`, [floor_elements.cpp:92-105](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L92-L105); [floor_models.cpp:186-193](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L186-L193)

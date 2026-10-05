@@ -3,7 +3,7 @@
 This chapter turns each rib's soffit trace into a closed member outline, then runs the last three passes of the `FloorGuide` constructor. The outline is built by the static `rib()` and `rib_loop()` in `floor_members.cpp`, called from `Quarter::outer_ribs()` and `Quarter::inner_ribs()`. The constructor passes, in `floor.cpp`, are `rib_bottom_level` into `columns[q].levels[1]`, the common beam `soffit`, and `draw()`.
 From chapter 04 it takes the four parabolas `parabolas[k][0]`, the planes in `geometry[q].planes` and `central_panel.rib_sweep`. To the next chapters it gives the rib outlines (which `to_rib` turns into elements), the middle column cutter level `levels[1]` and the `soffit` level that every inner beam and ring beam goes down to.
 
-Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) is the finished guide of this chapter, quarter 0 of its `draw()` taken out with `get_branch("quarter_0")`, and [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) builds the four quarters, whose ribs are these outlines turned into variable beams.
+Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) is the finished guide of this chapter, quarter 0 of its `draw()` taken out with `get_branch("quarter_0")`, and [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_4_quarters.cpp) builds the four quarters, whose ribs are these outlines turned into variable beams.
 
 ![](floor/film_05_rib_outlines.webp)
 
@@ -33,7 +33,7 @@ Before the outer ribs can be trimmed, <span style="color:#2196EA">`Quarter::rib_
 | `rib_seam_ends()[0]` | `cp.inner_beams[0][1]`: x = -60, normal (-1, 0, 0) | End plane of outer rib 0 |
 | `rib_seam_ends()[1]` | `cp.inner_beams[2][1]`: y = -60, normal (0, -1, 0) | End plane of outer rib 1 |
 
-Code: `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L69-L75).
+Code: `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L69-L75).
 
 ## 70. rib(): trim and orient
 
@@ -54,7 +54,7 @@ Code: `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/pet
 | `d0` | 3.7e-14 | Distance of `pts.front()` from `cut_plane0` (outer rib 0) |
 | `d1` | 2661.44 | Distance of `pts.back()` from `cut_plane0` (outer rib 0) |
 
-Code: `rib`, [floor_members.cpp:37-42](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L37-L42); `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L73-L82).
+Code: `rib`, [floor_members.cpp:37-42](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L37-L42); `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L73-L82).
 
 ## 71. rib(): sweep to the second face
 
@@ -74,7 +74,7 @@ The second face of the rib is reached by projection. `projection = Xform::projec
 | `far` (outer rib 0) | (-2677.0, -2900, -694.8) ... (-60.0, -2900, -198.8) | The trace on face y = -2900 |
 | `far` (inner rib 0) | (-2720.2, -2766.6, -694.8) ... (-103.2, -981.7, -198.8) | The trace on the central face `inner_ribs[0][1]` |
 
-Code: `rib`, [floor_members.cpp:44-48](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L44-L48).
+Code: `rib`, [floor_members.cpp:44-48](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L44-L48).
 
 ## 72. rib(): re-cut far end facets
 
@@ -89,7 +89,7 @@ A point projected along `sweep` need not lie on a tilted end plane. To fix this,
 | `far[0]` | outer 0: (-2677.0, -2900, -694.8); inner 0: (-2720.2, -2766.6, -694.8) | Far end on the fan plane, unchanged here |
 | `far[n-1]` | outer 0: (-60, -2900, -198.8); inner 0: (-103.2, -981.7, -198.8) | Far end on the beam plane, unchanged here |
 
-Code: `rib`, [floor_members.cpp:50-52](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L50-L52).
+Code: `rib`, [floor_members.cpp:50-52](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L50-L52).
 
 ## 73. rib_loop: rib_plane and p0
 
@@ -105,7 +105,7 @@ Code: `rib`, [floor_members.cpp:50-52](https://github.com/petrasvestartas/wood/b
 | `p0` | outer 0: (-2780, -3000, 0) base, (-2780, -2900, 0) far; inner 0: (-2780, -2880, 0) base, (-2823.2, -2836.8, 0) far | Top corner of the column end |
 | `wedge_plane_angle` | -10.0 deg | Lean of the chamfer fan plane; the side fan planes follow its crease with the inner ribs' central faces |
 
-Code: `rib_loop`, [floor_members.cpp:19-21](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L19-L21).
+Code: `rib_loop`, [floor_members.cpp:19-21](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L19-L21).
 
 ## 74. rib_loop: p1 and the closed 10-point loop
 
@@ -123,7 +123,7 @@ Code: `rib_loop`, [floor_members.cpp:19-21](https://github.com/petrasvestartas/w
 | `inner_ribs()[0].top` | (-60,-1024.9,0) (-2780,-2880,0) (-2677.0,-2809.7,-694.8) ... | Base face loop of inner rib 0 |
 | `inner_ribs()[0].bottom` | (-103.2,-981.7,0) (-2823.2,-2836.8,0) (-2720.2,-2766.6,-694.8) ... | Central face loop of inner rib 0 |
 
-Code: `rib_loop`, [floor_members.cpp:22-31](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L22-L31); `rib`, [floor_members.cpp:54](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L54); `to_rib`, [floor_elements.cpp:29-56](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L29-L56).
+Code: `rib_loop`, [floor_members.cpp:22-31](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L22-L31); `rib`, [floor_members.cpp:54](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L54); `to_rib`, [floor_elements.cpp:29-56](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_elements.cpp#L29-L56).
 
 ## 75. Outer rib outlines
 
@@ -141,7 +141,7 @@ Code: `rib_loop`, [floor_members.cpp:22-31](https://github.com/petrasvestartas/w
 | `rise` | 453.0 | Parabola rise; `static_h()` = `height - rise` = 197.0 |
 | `run_in` | 240, 240 | The run-in of both ribs (equal to `wedge` on the square bay) |
 
-Code: `Quarter::outer_ribs`, [floor_members.cpp:57-67](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L57-L67).
+Code: `Quarter::outer_ribs`, [floor_members.cpp:57-67](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L57-L67).
 
 ## 76. Inner rib outlines
 
@@ -158,7 +158,7 @@ Code: `Quarter::outer_ribs`, [floor_members.cpp:57-67](https://github.com/petras
 | `inner_ribs` | 60.0 | Inner rib thickness along the normal |
 | `cp.inner_beams[1][1]` | x + y = -1084.9 | Oculus beam back face, the end plane of both inner ribs |
 
-Code: `Quarter::inner_ribs`, [floor_members.cpp:77-87](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L77-L87).
+Code: `Quarter::inner_ribs`, [floor_members.cpp:77-87](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L77-L87).
 
 ## 77. rib_bottom_level -> levels[1]
 
@@ -176,7 +176,7 @@ The report reads these points again. `rib_bottom_clearance_mm[q][k]` is `min(top
 | `rib_level_spread_mm[q]` | 0.000 (square), 0.307 on 3000 x 2400 | Range of the eight rib face bottoms at the head |
 | `wedge` | 240.0 | Starting run-in of the solver that levels both outer ribs (chapter 03) |
 
-Code: `rib_bottom_level`, [floor.cpp:377-386](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L377-L386), written at [floor.cpp:427-428](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L427-L428); report [floor_report.cpp:97-106](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L97-L106), [165](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L165).
+Code: `rib_bottom_level`, [floor.cpp:377-386](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L377-L386), written at [floor.cpp:427-428](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L427-L428); report [floor_report.cpp:97-106](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L97-L106), [165](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_report.cpp#L165).
 
 ## 78. soffit: -static_h and outer end_level
 
@@ -191,7 +191,7 @@ The constructor starts the common beam soffit at <span style="color:#EB7721">`so
 | `end_level(outer[k], rib_seam_ends()[k])` | -198.7835 | Deepest corner of outer rib k on its end plane |
 | `1e-6` (literal in `end_level`) | 1e-6 | Distance within which a point counts as on the end plane |
 
-Code: `FloorGuide::FloorGuide`, [floor.cpp:430-438](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L430-L438); `end_level`, [floor_geometry.cpp:125-135](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L125-L135); `signed_distance`, [floor_geometry.cpp:121-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L121-L123).
+Code: `FloorGuide::FloorGuide`, [floor.cpp:430-438](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L430-L438); `end_level`, [floor_geometry.cpp:125-135](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L125-L135); `signed_distance`, [floor_geometry.cpp:121-123](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_geometry.cpp#L121-L123).
 
 ## 79. Inner end_level and the final soffit
 
@@ -205,7 +205,7 @@ For the inner ribs the end plane is the oculus beam's back face, `geometry[q].pl
 | `end_level(inner[k], inner_beams[1][1])` | -198.7835 | Deepest inner rib corner on the oculus back face |
 | `soffit` | -198.7835 | z of every inner beam and ring beam soffit |
 
-Code: `FloorGuide::FloorGuide`, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L430-L439); `Quarter::inner_ribs`, [floor_members.cpp:77-87](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L77-L87).
+Code: `FloorGuide::FloorGuide`, [floor.cpp:430-439](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor.cpp#L430-L439); `Quarter::inner_ribs`, [floor_members.cpp:77-87](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_members.cpp#L77-L87).
 
 ## 80. Guide drawing: plan groups
 
@@ -228,7 +228,7 @@ flowchart TD
 | `quarter_q` | 4 groups at the root | One per quarter |
 | `plan_q` | 3 objects | `polygon_q`, `column_head_q`, `oculus_corner_q` |
 
-Code: `FloorGuide::draw`, [floor_plan.cpp:50-70](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L50-L70); `add_group`, [floor_models.cpp:117-122](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L117-L122).
+Code: `FloorGuide::draw`, [floor_plan.cpp:50-70](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L50-L70); `add_group`, [floor_models.cpp:117-122](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_models.cpp#L117-L122).
 
 ## 81. Guide drawing: member families (example 1)
 
@@ -253,4 +253,4 @@ For the five families <span style="color:#EB7721">`outer_ribs`</span>, <span sty
 | `DrawnFamily::parabola` | 0, 2, -1, -1, -1 | First parabola index per family, -1 for none |
 | `session` (example 1) | 63 objects in 6 groups | `get_branch("quarter_0").lookup.size()`, test floor_elements.cpp:600 |
 
-Code: `FloorGuide::draw`, [floor_plan.cpp:72-104](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L72-L104); example [templates_floor_1_floorguide.cpp:10-13](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp#L10-L13).
+Code: `FloorGuide::draw`, [floor_plan.cpp:72-104](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/src/templates/floor/floor_plan.cpp#L72-L104); example [templates_floor_1_floorguide.cpp:10-13](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp#L10-L13).
