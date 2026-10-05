@@ -2,11 +2,11 @@
 
 ## House style
 
-Apply `../.claude/agents/session-reviewer.md` to all handwritten wood code. The user's wood scope
+- Apply `../.claude/agents/session-reviewer.md` to all handwritten wood code. The user's wood scope
 overrides that reviewer's default exclusion of wood. Kernel parity and kernel CI
 steps apply only when changing the kernels; wood remains a C++ consumer.
 
-Use explicit types, one concept per file, normal multiline function bodies, short
+- Use explicit types, one concept per file, normal multiline function bodies, short
 functions and the standard section banners. Keep one header/source pair for Joint, JointPlate and JointBeam. Plate factories,
 parameters, Annen and Vidy stay in the JointPlate pair; use sections and small
 functions instead of files per factory or family. Expose library designs by their
@@ -25,3 +25,53 @@ completion accurately. Generated protobuf files follow the generator's format.
 - A helper two files need lives once in the module's internal header, never as two
   `static` copies.
 
+
+## Examples folder
+
+- Examples files must be minimal.
+- Where possible, the template classes must be WoodSession and examples must have no or very minimal creation of separate session just to dump geometry for file exchange and vizualization.
+- Each example file must follow these instructions to configure cmake, build and publish to the viewer e.g.:
+  - First includes:
+
+#include "wood_session.h"
+#include "src/templates/floor/floor.h"
+
+  - Use namescapes of session_cpp and wood_session:
+
+using namespace session_cpp;
+using namespace wood_session;
+
+  - Add a main function:
+
+/// The guide of the square floor, drawn: every quarter's plan, construction quads and parabolas.
+int main() {
+
+    wood_floor::FloorGuide floor = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
+    std::cout << floor << std::endl;
+    floor.pb_dump(pb_path("live"));
+    return 0;
+}
+
+/// At the end provide the description with the commands to configure, build and publish:
+
+/*
+|||||||| DESCRIPTION ||||||||
+Step 1 of the timber floor: the guide alone, FloorGuide::rectangle(3000, 3000) with the default parameters, a session that draws its own construction: every quarter's plan polygon and column head with the oculus corners, the plan quad of every member at the floor datum, and the four rib parabolas of every quarter with their two t-section offsets, each kind in its group. No member is built; a Floor builds them from the guide.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target templates_floor_1_floorguide --parallel 6 && ./build/templates_floor_1_floorguide && ../bash/publish-scene.sh --target templates_floor_1_floorguide
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
+*/
+
+## Before push to github
+
+- Run each examples locally, if it is not working fix it and the push it.
+- After push monitor if ci works.

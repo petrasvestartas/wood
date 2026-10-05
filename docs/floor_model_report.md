@@ -20,7 +20,7 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | step | commit | what | gates and key numbers |
 |---|---|---|---|
 | 6 | `249591d` | rule A (`CentralPanel`, shared rib sweep r, ruling u), per-face rib end outlines (R4), project-then-cut beds and bed planes, `CutterLevel::compas_factor`, `Floor::check()` / `FloorReport` printed by every example | G1 at 1e-6: 193 / 0 against compas_tf and equal to step 0 at every printed digit; G2 145 / 0; G3 unchanged; G4 33 / 0; G5 9 / 0 + 9 / 0, volumes within 1e-9; G6 test green; G7 44 / 44 and report ok. Square: r = u = chamfer direction, 10.704 deg oblique, 11.342 mm shear, closure 3.1e-12 mm, seats 20 / 19.296 / 20, rib bottoms 0.243 mm under -694.55 |
-| 7a | `a9092e6` | `CentralLayers::section` the default, `Floor::compas_parity`, `--compas` on every floor example | parity mode identical to step 6 on every gate. G1b: only bed row 1, flanges 2b / 3a, `bed_top_planes/1`, `wedges_inner_beams/1` move, at most 2.666 mm (+t) / 5.332 mm (+2t) (bounds 2.897 / 5.794); central beds exactly 27.000000000 (compas_tf 27.003 .. 27.390); re-baselined `model_floorguide.txt`, `model_models.txt` |
+| 7a | `a9092e6` | `CentralLayers::section` the default, `Floor::compas_parity`, `--compas` on every floor example | parity mode identical to step 6 on every gate. G1b: only bed row 1, flanges 2b / 3a, `bed_top_planes/1`, `wedges/1` move, at most 2.666 mm (+t) / 5.332 mm (+2t) (bounds 2.897 / 5.794); central beds exactly 27.000000000 (compas_tf 27.003 .. 27.390); re-baselined `model_floorguide.txt`, `model_models.txt` |
 | 7b | `cc760d6` | `CutterLevel::rib_bottom` the default | parity mode unchanged; middle level -694.793; the 12 cutter records move 0.243 mm at the level (0.741 at most); column contacts the full 70238.714887 mm2; head cut re-pinned 34771221.351479 (compas_tf 34777378.362 kept); example 2 carves 176873113.478; `model_contacts_cantilevers.txt`; 44 / 44, 0 faceted, 396 / 396 |
 | 8 | `c3084b4` | `templates_floor_8_rectangle`, the 3000 x 2400 half spans bay; per-span compas_tf references | G8 R1-R5 below |
 | 10 | `69bfed1` | example descriptions, `docs/templates.md` floor section, Implemented notes in the design | every floor example in both modes and the four tests green |
@@ -56,7 +56,9 @@ compas_tf), examples 2, 4, 5, 6 and 8 dumps and consoles identical, example 9's 
 the screw lines added (`model_rectangle.txt` 0 failing), 44 / 44 contacts, 0 faceted, 396 / 396 and
 384 / 384 bores; the four tests pass.
 
-## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`
+## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400))`
+
+Numbers of 2026-10-02, before the 2026-10-05 changes below.
 
 | | model (default) | `--compas` (compas_tf oculus, parity definitions; removed 2026-10-05) |
 |---|---|---|
@@ -101,3 +103,34 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
 `tools/compare_dumps.py` removed; `Floor(plan, sizes)` builds the model's definitions only.
 `tests/floor_elements` pins the model's own square: head cut 34771221.351479, carved outer rib
 99598198.606378, tied outer rib 98812970.259836, tie key 1570456.693007, unchanged.
+
+## 2026-10-05: one plan, seams through the ribs
+
+* `FloorSizes` folded into `FloorPlan`: every field and `static_h()` beside `corners` and `oculus`,
+  each with its default. `explicit Floor(const FloorPlan& plan)`, e.g.
+  `Floor(FloorPlan::rectangle(3000, 2400))`, keeps it as `const FloorPlan plan`; a changed plan makes
+  a new floor. `Quarter::sizes()` -> `Quarter::plan()`.
+* `OculusRule`, `FloorPlan::rule` and `FloorPlan::oculus_distances` removed: every oculus corner sits
+  `oculus` from the centre along its seam, a square diamond on a rectangle. A trapezoid or general
+  quadrilateral has no per-seam oculus distances any more.
+* `FloorPlan::seam_through_ribs` (default false, true since later on 2026-10-05): the two seam beams of every seam run through the
+  outer rib band to the bay's outer face, the wedge between them flush with it (`JointBeam::wedge`
+  takes an optional end plane); each outer rib ends on its beam's far face
+  (`Quarter::rib_seam_ends()`). `screw_rib_beam` then runs horizontally along the rib, 20 mm below its
+  top and 20 mm above its bottom at its end, 15 mm either side of its axis, from the beam's seam face
+  through the beam into the rib end, drilled before the wedge goes in; `check_screws` lets it cross
+  that wedge. No ties.
+* `Floor::soffit`, the deepest end of a rib that ends on a beam, is the soffit of every inner and
+  ring beam (about -198.783 on the square); the oculus bottom wedges and plate sit on it.
+* Every wedge cut horizontally flush with the floor top, the tilted oculus wedges too;
+  `JointBeam::WEDGE_PROFILE` the shared profile.
+* The column head cutters are solid cuts of the column (`column_cuts(quarter)`), drawn as its "cut"
+  element features, no longer joint elements. `Family::cutter` and the 24 cutter relationships
+  removed: `relationships(floor)` has 88 rows, 52 plus 36 screw rows. The carved column volume is
+  unchanged.
+* Every member carries a "drill" element feature per hole a joint makes in it (dowels, screws,
+  support screws): the two circles of the hole's radius where it enters and leaves, named by the joint
+  and the diameter. 476 on the square.
+* Connectors BRG blue, RGB 38 / 149 / 233 (`CONNECTOR_COLOR`).
+* `verify_contacts` returns a `ContactCheck` (count, mismatches, `ok()`, `str()`); `count_bores`
+  public. Wedges and ties numbered in quarter order; the compas_tf search order is gone.

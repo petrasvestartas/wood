@@ -1,69 +1,35 @@
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
-#include <chrono>
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const bool SEAM_THROUGH_RIBS = false; // run the seam beams on through the outer rib band to the bay's outer face, the ribs ending on them, instead of the ties
+const bool SEAM_THROUGH_RIBS = false; // true, the default, runs the seam beams on through the outer rib band to the bay's outer face; false ties the outer ribs where they meet at every seam
 const bool BREPS = true; // write every cut member, connector part and dowel as its BRep, the dowel and screw bores exact cylinders, instead of its mesh
 const double HALF_X = 3000.0; // half span along x: the bay is 6000 long
 const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
 
-/// The number of dowels over a set of connectors.
-size_t count_dowels(const std::vector<std::shared_ptr<JointBeam>>& connectors) {
-
-    size_t count = 0;
-
-    for (const std::shared_ptr<JointBeam>& connector : connectors)
-        count += connector->drill_lines.size();
-
-    return count;
-}
-
-/// The rectangular bay.
+/// The rectangular bay with its columns, every connector and the assembly screws.
 int main() {
 
-    wood_floor::FloorSizes sizes;
-    sizes.seam_through_ribs = SEAM_THROUGH_RIBS;
-    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(HALF_X, HALF_Y), sizes);
-    
-    std::cout << model.check().str() << std::endl;
-    WoodSession session("templates_floor_8_rectangle");
-    const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
-    wood_floor::FloorMembers members = wood_floor::add_floor(session, model, wood_floor::add_group(session, "floor_model", root));
-    wood_floor::add_columns(session, model, wood_floor::add_group(session, "columns_model", root), members);
-
-    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(session, model, members);
-    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
-    const std::vector<std::shared_ptr<JointBeam>> column_joints = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap});
-    const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::seam_tie});
-    const std::vector<std::shared_ptr<JointBeam>> dowels = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::block_dowels});
-    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    const size_t plates = wood_floor::relationships(model, wood_floor::Relation::column_plate).size();
-
-    std::cout << fmt::format("{} elements, {} wedges with {} dowels, {} dowel sets of {} dowels, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), count_dowels(wedges), dowels.size(), count_dowels(dowels), plates, column_joints.size() - plates, ties.size(), ms) << std::endl;
-    std::cout << contacts.str() << std::endl;
-    std::cout << wood_floor::check_breps(session).str() << std::endl;
-
-    const std::vector<wood_floor::Relation> screw_kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
-    const wood_floor::ContactCheck screw_contacts = wood_floor::verify_contacts(session, model, members, 1e-6, screw_kinds);
-    const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(session, model, members, screw_kinds);
-    std::cout << "screws: " << screw_contacts.str() << std::endl;
-    std::cout << wood_floor::check_screws(session, model, screws).str() << std::endl;
+    wood_floor::FloorGuide::Parameters parameters;
+    parameters.seam_through_ribs = SEAM_THROUGH_RIBS;
+    wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(HALF_X, HALF_Y, parameters));
+    floor.add_members();
+    floor.add_connectors();
+    floor.add_screws();
 
     if constexpr (BREPS)
-        wood_floor::compute_breps(session);
+        wood_floor::compute_breps(floor);
 
-    session.pb_dump(pb_path("live"));
+    floor.pb_dump(pb_path("live"));
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floor: the same model on a 6000 x 4800 bay, Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{}). The quarters are built in place at their own corners and mirror each other; the oculus is a square diamond of half-diagonal 1000; the central panel follows rule A, its inner ribs swept along one direction so the central bed is one planar-faced cylinder with every layer 27 thick; both outer ribs of a corner end at one level (the short ribs' run-in solved to 187.667), which is the middle cutter level, so every rib meets its column head within 0.307 mm. The connectors and screws are those of step 7. Prints the report, the counts, the BRep check and the screw check; BREPS writes the BReps.
+Step 8 of the timber floor: the same model on a 6000 x 4800 bay, FloorGuide::rectangle(3000, 2400). The quarters are built in place at their own corners and mirror each other; the oculus is a square diamond of half-diagonal 1000; the central panel follows rule A, its inner ribs swept along one direction so the central bed is one planar-faced cylinder with every layer 27 thick; both outer ribs of a corner end at one level (the short ribs' run-in solved to 187.667), which is the middle cutter level, so every rib meets its column head within 0.307 mm. The connectors and screws are those of step 7. BREPS writes the BReps.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

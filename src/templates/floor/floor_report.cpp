@@ -131,25 +131,25 @@ static double ring_overlap(const std::vector<Outline>& ring) {
 }
 
 /// The area of quarter q's oculus beam face outside ring beam q's outer face, on their shared tilted plane.
-static double ring_uncovered(const Floor& floor, size_t q, const Outline& ring_beam) {
-    return boolean_area(floor.quarter(q).inner_beams()[1].bottom, ring_beam.top, floor.oculus_edges[q].tilted, 2);
+static double ring_uncovered(const FloorGuide& guide, size_t q, const Outline& ring_beam) {
+    return boolean_area(guide.quarter(q).inner_beams()[1].bottom, ring_beam.top, guide.oculus_edges[q].tilted, 2);
 }
 
 /// The relations of quarter q and its corner written into the report.
-static void measure_quarter(const Floor& floor, size_t q, FloorReport& report) {
+static void measure_quarter(const FloorGuide& guide, size_t q, FloorReport& report) {
 
-    const Quarter quarter = floor.quarter(q);
+    const Quarter quarter = guide.quarter(q);
     const QuarterGeometry& geometry = quarter.geometry();
     const CentralPanel& panel = geometry.central_panel;
-    const ColumnCorner& column = floor.columns[q];
+    const ColumnCorner& column = guide.columns[q];
     const size_t next = (q + 1) % 4;
 
-    for (const Point& point : open_points(floor.quarter(next).inner_beams()[2].bottom))
+    for (const Point& point : open_points(guide.quarter(next).inner_beams()[2].bottom))
         report.seam_plane_gap[q] = std::max(report.seam_plane_gap[q], std::abs(signed_distance(point, geometry.planes.inner_beams[0][0])));
 
-    report.oculus_corner_gap[q] = (geometry.polygon[2] - floor.geometry[next].polygon[3]).magnitude();
+    report.oculus_corner_gap[q] = (geometry.polygon[2] - guide.geometry[next].polygon[3]).magnitude();
     report.ruling_off_chamfer_deg[q] = plan_angle(column.chamfer_direction, panel.ruling);
-    report.ruling_off_oculus_edge_deg[q] = plan_angle(floor.oculus_edges[q].line.to_direction(), panel.ruling);
+    report.ruling_off_oculus_edge_deg[q] = plan_angle(guide.oculus_edges[q].line.to_direction(), panel.ruling);
     report.closure_residual_mm[q] = panel.residual;
     report.end_face_planarity_mm[q] = end_face_planarity(quarter);
     report.bed_flange_coincidence_mm[q] = bed_flange_coincidence(quarter);
@@ -161,7 +161,7 @@ static void measure_quarter(const Floor& floor, size_t q, FloorReport& report) {
 
     for (size_t k = 0; k < 2; k++) {
         report.rib_sweep_obliqueness_deg[q][k] = panel.obliqueness[k];
-        report.rib_shear_mm[q][k] = floor.sizes.inner_ribs * std::tan(panel.obliqueness[k] * M_PI / 180.0);
+        report.rib_shear_mm[q][k] = guide.parameters.inner_ribs * std::tan(panel.obliqueness[k] * M_PI / 180.0);
         report.rib_bottom_clearance_mm[q][k] = std::min(outer[k].top.get_point(2)[2], outer[k].bottom.get_point(2)[2]) - column.levels[1];
     }
 }
@@ -170,7 +170,7 @@ static void measure_quarter(const Floor& floor, size_t q, FloorReport& report) {
 // Report
 // ═══════════════════════════════════════════════════════════════════════════
 
-FloorReport Floor::check() const {
+FloorReport FloorGuide::check() const {
 
     FloorReport report;
     const std::vector<Outline> ring = oculus();

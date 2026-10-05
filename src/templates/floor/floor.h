@@ -12,17 +12,17 @@ struct ConstructionPlanes {
     std::vector<std::array<session_cpp::Plane, 2>> outer_ribs; // Along the two bay edges, the band offset inwards by outer_ribs.
     std::vector<std::array<session_cpp::Plane, 2>> inner_beams; // Along the two seams and the oculus edge; the oculus one tilted by the oculus plane angle.
     std::vector<std::array<session_cpp::Plane, 2>> inner_ribs; // From the column head chamfer to the inner beam corners.
-    std::vector<std::array<session_cpp::Plane, 2>> wedges; // Three around the column head, the middle one tilted by wedge_plane_angle, then the three inner beam faces.
-    std::vector<std::array<session_cpp::Plane, 2>> t_sections; // Beside the outer and inner ribs, tsections thick.
+    std::vector<std::array<session_cpp::Plane, 2>> wedges; // The column head fan: side 0, the middle one tilted by wedge_plane_angle, side 1.
+    std::vector<std::array<session_cpp::Plane, 2>> tsections; // Beside the ribs, tsections thick, in t-section order: outer rib 0, inner rib 0 outer and central face, inner rib 1 central and outer face, outer rib 1.
 };
 
-/// One plan quad per member at the floor datum.
+/// One plan quad per member at the floor datum, index i the footprint of member i of that family.
 struct ConstructionQuads {
     std::vector<session_cpp::Polyline> outer_ribs; // Two.
-    std::vector<session_cpp::Polyline> inner_beams; // Three.
+    std::vector<session_cpp::Polyline> inner_beams; // Three: seam 0, oculus edge, seam 1.
     std::vector<session_cpp::Polyline> inner_ribs; // Two.
-    std::vector<session_cpp::Polyline> wedges; // Six.
-    std::vector<session_cpp::Polyline> t_sections; // Six.
+    std::vector<session_cpp::Polyline> wedges; // Three.
+    std::vector<session_cpp::Polyline> tsections; // Six.
 };
 
 /// The two closed outlines a member is lofted between, as the guide authors them; the elements built from them choose which is the bottom.
@@ -32,11 +32,12 @@ struct Outline {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Sizes and plan
+// Parameters
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The sizes that do not change with the plan: thicknesses, offsets, depths, angles, the column and storey dimensions and the middle wedge factor.
-struct FloorSizes {
+/// Everything about a floor but its corners, each with its default: the oculus, the thicknesses, offsets, depths and angles of the members and the column, and how the seams meet the outer ribs.
+struct FloorParameters {
+    double oculus = 1000.0; // Distance of every oculus corner from the centre along its seam: a square diamond on a rectangular bay.
     double column_head = 220.0; // Side of the square column shaft and of the head polygon at the corner.
     double column_head_chamfer = 120.0; // Where the chamfer vertices sit on the shaft faces; also the capitel width.
     double outer_ribs = 100.0; // Outer rib thickness.
@@ -51,48 +52,10 @@ struct FloorSizes {
     double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
     double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
     double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses.
-    bool seam_through_ribs = false; // Run the two seam beams of every seam on through the outer rib band to the bay's outer face: the outer ribs end on the beams, the rib screws go from the beam's seam face into the rib end, and no ties are made.
+    bool seam_through_ribs = true; // Run the two seam beams of every seam on through the outer rib band to the bay's outer face: the outer ribs end on the beams, the rib screws go from the beam's seam face into the rib end, and no ties are made.
 
     /// Depth at every seam and at the oculus: height minus rise.
     double static_h() const;
-};
-
-/// How the oculus corners sit on the seams: the same distance on every seam (a square diamond on a rectangular bay), or four given distances.
-enum class OculusRule { square_diamond, explicit_distances };
-
-/// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
-struct FloorPlan {
-    std::array<session_cpp::Point, 4> corners; // Counter-clockwise.
-    double oculus = 1000.0; // Distance of an oculus corner from the centre along its seam.
-    OculusRule rule = OculusRule::square_diamond; // How the four corners sit on the seams.
-    std::array<double, 4> oculus_distances = {}; // explicit_distances only.
-
-    /// The rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
-    static FloorPlan rectangle(double half_x, double half_y, double oculus = 1000.0);
-
-    /// Any four corners counter-clockwise at z 0.
-    static FloorPlan quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0);
-
-    /// The vertex centroid, where the bimedians cross and bisect each other.
-    session_cpp::Point centre() const;
-
-    /// The midpoint of edge k, corner k to corner k + 1.
-    session_cpp::Point midpoint(size_t k) const;
-
-    /// The interior angle at corner k in degrees.
-    double corner_angle(size_t k) const;
-
-    /// The oculus corner on seam k, between the midpoint of edge k and the centre, by the rule.
-    std::array<session_cpp::Point, 4> oculus_corners() const;
-
-    /// The oculus corner angle at corner k in degrees, between the two oculus edges that meet there.
-    double oculus_corner_angle(size_t k) const;
-
-    /// The angle at oculus corner k between its seam and the next quarter's oculus edge, in degrees: the seam beam's end cut on that edge.
-    double oculus_seam_angle(size_t k) const;
-
-    /// Counter-clockwise, convex, at z 0, every oculus corner between the centre and its edge midpoint, and the ring covering every quarter beam face, sin(oculus corner angle) >= sin(seam angle) at every oculus corner; why names the first failure.
-    bool valid(std::string& why) const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -167,58 +130,10 @@ struct QuarterGeometry {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Floor and quarter
+// Guide
 // ═══════════════════════════════════════════════════════════════════════════
 
-struct Floor;
-
-/// One quarter as a view of the floor: the shared entities and its geometry read by reference, only members (outlines) built, every one at the floor datum z 0.
-struct Quarter {
-    const Floor& floor; // The floor the quarter belongs to.
-    size_t index; // Counter-clockwise from corner 0.
-
-    /// The quarter's geometry.
-    const QuarterGeometry& geometry() const;
-
-    /// The sizes of the floor.
-    const FloorSizes& sizes() const;
-
-    /// The column corner the quarter starts from.
-    const ColumnCorner& column() const;
-
-    /// The oculus edge the quarter ends on.
-    const OculusEdge& oculus_edge() const;
-
-    /// The seam on the quarter's beam-0 side (0) or beam-2 side (1).
-    const Seam& seam(size_t side) const;
-
-    /// The bay edge the quarter's outer rib 0 (0) or outer rib 1 (1) lies on.
-    const BayEdge& edge(size_t side) const;
-
-    /// The two outer ribs along the bay edges.
-    std::vector<Outline> outer_ribs() const;
-
-    /// The plane each outer rib ends on at its seam: the seam plane, or the seam beam's far face when the seam runs through the rib band.
-    std::array<session_cpp::Plane, 2> rib_seam_ends() const;
-
-    /// The two inner ribs from the column head towards the oculus.
-    std::vector<Outline> inner_ribs() const;
-
-    /// The three inner beams on the seams and the oculus edge.
-    std::vector<Outline> inner_beams() const;
-
-    /// The three wedge blocks between the ribs at the column head, standing on the beds.
-    std::vector<Outline> wedges_inner_beams() const;
-
-    /// The six t-sections beside the ribs.
-    std::vector<Outline> tsections() const;
-
-    /// The bed plates in three rows.
-    std::vector<std::vector<Outline>> beds() const;
-
-    /// The six plates that carve the column head at the quarter's corner.
-    std::vector<Outline> column_cutters() const;
-};
+struct Quarter;
 
 /// The relations the design relies on, measured per quarter (and per corner, which is the quarter's); ok() when the structural ones hold.
 struct FloorReport {
@@ -245,23 +160,40 @@ struct FloorReport {
     std::string str() const;
 };
 
-/// The floor: a plan and sizes, every shared entity and every quarter's geometry computed once, quarter views on demand and the oculus; a plain value, since no view is stored.
-struct Floor {
-    FloorPlan plan; // The four corners and the oculus.
-    FloorSizes sizes; // Everything that does not change with the plan.
-    session_cpp::Point centre; // The plan's centre.
+/// The floor guide, a session ready to draw: the corners and the parameters, read-only once given, the geometry every member is built from, computed from them once (the bay edges, seams, oculus, columns and every quarter's planes, quads and parabolas), and that construction drawn into the session itself, grouped by quarter; quarter views and the oculus on demand. A Floor builds the model from it.
+struct FloorGuide : public wood_session::WoodSession {
+    using Parameters = FloorParameters;
+
+    const std::array<session_cpp::Point, 4> corners; // Counter-clockwise at z 0.
+    const FloorParameters parameters; // Everything but the corners.
+    session_cpp::Point centre; // The vertex centroid, where the bimedians cross and bisect each other.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
-    std::array<session_cpp::Point, 4> oculus_corners; // Corner q on seam q.
+    std::array<session_cpp::Point, 4> oculus_corners; // Corner q on seam q, parameters.oculus from the centre.
     std::array<OculusEdge, 4> oculus_edges; // Edge q from oculus corner q to oculus corner q - 1.
     std::array<ColumnCorner, 4> columns; // Column q at corner q.
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
     double soffit = 0.0; // The level of every inner and ring beam's soffit: the deepest end of a rib that ends on one, so every rib end meets its beam in full.
 
-    /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes);
+    /// Computes everything from the corners and the parameters; throws naming the failure when the corners are not counter-clockwise and convex at z 0, an oculus corner leaves its seam or the ring would leave a quarter's oculus beam uncovered.
+    explicit FloorGuide(const std::array<session_cpp::Point, 4>& corners, const FloorParameters& parameters = {});
 
-    /// A view of quarter q; it holds a reference and lives as long as the floor.
+    /// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
+    static FloorGuide rectangle(double half_x, double half_y, const FloorParameters& parameters = {});
+
+    /// The midpoint of edge k, corner k to corner k + 1.
+    session_cpp::Point midpoint(size_t k) const;
+
+    /// The interior angle at corner k in degrees.
+    double corner_angle(size_t k) const;
+
+    /// The oculus corner angle at corner k in degrees, between the two oculus edges that meet there.
+    double oculus_corner_angle(size_t k) const;
+
+    /// The angle at oculus corner k between its seam and the next quarter's oculus edge, in degrees: the seam beam's end cut on that edge.
+    double oculus_seam_angle(size_t k) const;
+
+    /// A view of quarter q; it holds a reference and lives as long as the guide.
     Quarter quarter(size_t q) const;
 
     /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (a pinwheel), four bottom wedges and the inner plate.
@@ -269,6 +201,58 @@ struct Floor {
 
     /// Measures the relations the design relies on, for every quarter and the ring.
     FloorReport check() const;
+
+private:
+    /// Draws the construction into the session by quarter, under the names the Floor gives the members: quarter_q holds plan_q (polygon_q, column_head_q, oculus_corner_q) and a group per family (outer_ribs_q, inner_ribs_q, inner_beams_q, wedges_q, tsections_q), with a group per member named as its element (outer_ribs_0_q, ...), holding its plan quad, its two face planes face_0 and face_1, and for a rib its parabolas: soffit, tsections_top and beds_top. Each family has its own colour.
+    void draw();
+};
+
+/// One quarter as a view of the guide: the shared entities and its geometry read by reference, only members (outlines) built, every one at the floor datum z 0.
+struct Quarter {
+    const FloorGuide& guide; // The guide the quarter belongs to.
+    size_t index; // Counter-clockwise from corner 0.
+
+    /// The quarter's geometry.
+    const QuarterGeometry& geometry() const;
+
+    /// The parameters of the guide.
+    const FloorParameters& parameters() const;
+
+    /// The column corner the quarter starts from.
+    const ColumnCorner& column() const;
+
+    /// The oculus edge the quarter ends on.
+    const OculusEdge& oculus_edge() const;
+
+    /// The seam on the quarter's beam-0 side (0) or beam-2 side (1).
+    const Seam& seam(size_t side) const;
+
+    /// The bay edge the quarter's outer rib 0 (0) or outer rib 1 (1) lies on.
+    const BayEdge& edge(size_t side) const;
+
+    /// The two outer ribs along the bay edges.
+    std::vector<Outline> outer_ribs() const;
+
+    /// The plane each outer rib ends on at its seam: the seam plane, or the seam beam's far face when the seam runs through the rib band.
+    std::array<session_cpp::Plane, 2> rib_seam_ends() const;
+
+    /// The two inner ribs from the column head towards the oculus.
+    std::vector<Outline> inner_ribs() const;
+
+    /// The three inner beams on the seams and the oculus edge.
+    std::vector<Outline> inner_beams() const;
+
+    /// The three wedge blocks between the ribs at the column head, standing on the beds.
+    std::vector<Outline> wedges() const;
+
+    /// The six t-sections beside the ribs.
+    std::vector<Outline> tsections() const;
+
+    /// The bed plates in three rows.
+    std::vector<std::vector<Outline>> beds() const;
+
+    /// The six plates that carve the column head at the quarter's corner.
+    std::vector<Outline> column_cutters() const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -288,7 +272,7 @@ std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std:
 std::shared_ptr<wood_session::Support> to_support(const ColumnCorner& corner);
 
 /// The column of a corner: the square shaft in the corner frame from the support's column foot to the floor, with its head a chamfer wider along both axes over the column head depth.
-std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorSizes& sizes, const wood_session::Support& support);
+std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorParameters& parameters, const wood_session::Support& support);
 
 /// The quarter's column cutters lifted to the floor as solid difference cuts of its column: features of the column, not elements of the scene.
 std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter);
@@ -305,7 +289,7 @@ enum class Family {
     outer_ribs, // Variable beams under the two outer parabolas.
     inner_ribs, // Variable beams under the two inner parabolas.
     inner_beams, // Variable beams between two slanted end faces.
-    wedges_inner_beams, // Wedge block plates.
+    wedges, // The three wedge block plates at the column head.
     tsections, // T-section plates.
     beds, // Bed plates.
     ring, // The four ring beams of the oculus.
@@ -313,11 +297,10 @@ enum class Family {
     support, // The four supports.
 };
 
+const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges", "tsections", "beds"}; // The group and element name prefix of each quarter family, in Family order; the guide draws each member's construction under the same names.
+
 /// What two members share and the connector that belongs to it; the screw kinds are the assembly screws, pre-drilled lines both members read.
 enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels, screw_rib_beam, screw_beam_mitre, screw_rib_corner, screw_ring, screw_oculus };
-
-/// Where a relationship's connector lives in the scene tree: inside one quarter, in the oculus, at a column, or on the seam between two quarters.
-enum class Place { quarter, oculus, column, seam };
 
 /// The screw relation kinds in the order relationships() lists them.
 const std::array<Relation, 5> SCREW_RELATIONS = {Relation::screw_rib_beam, Relation::screw_beam_mitre, Relation::screw_rib_corner, Relation::screw_ring, Relation::screw_oculus};
@@ -351,9 +334,6 @@ struct Relationship {
 
     /// The relationship as text: its kind and its two members.
     std::string text() const;
-
-    /// Where its connector lives, by its kind: the block dowels and the quarter screws in quarter seam_or_corner, the oculus wedges and the ring and oculus screws in the oculus, the column plates, cross laps and supports at column seam_or_corner, the seam wedges and ties on seam seam_or_corner.
-    Place place() const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -371,17 +351,17 @@ struct QuarterMembers {
     std::vector<Member> outer_ribs; // Two variable beams.
     std::vector<Member> inner_ribs; // Two variable beams.
     std::vector<Member> inner_beams; // Three variable beams.
-    std::vector<Member> blocks; // Three wedge block plates.
+    std::vector<Member> wedges; // Three wedge block plates.
     std::vector<Member> tsections; // Six plates.
     std::vector<std::vector<Member>> beds; // Three rows of plates.
-    std::shared_ptr<session_cpp::TreeNode> group; // Its quarter_model_q group, which holds its connectors_q.
+    std::shared_ptr<session_cpp::TreeNode> group; // Its quarter_q group, which holds its families, its column_q, its oculus_q and its connectors_q.
 };
 
 /// A column model in the scene: the support and the column, carved by its six head cuts.
 struct ColumnModel {
     std::shared_ptr<wood_session::Support> support; // On the slab.
     std::shared_ptr<wood_session::Column> column; // Carved by the head cuts, solid cuts of its own drawn as its cut features.
-    std::shared_ptr<session_cpp::TreeNode> group; // Its column_model_q group, which holds its connectors_column_q.
+    std::shared_ptr<session_cpp::TreeNode> group; // Its column_q group inside quarter_q.
 };
 
 /// The placed members of the whole floor by quarter and family, the ring beams and the column models.
@@ -389,8 +369,8 @@ struct FloorMembers {
     std::array<QuarterMembers, 4> quarters; // Quarter q at corner q.
     std::vector<Member> ring; // The four ring beams.
     std::vector<ColumnModel> columns; // Column q at corner q, empty until the columns are added.
-    std::shared_ptr<session_cpp::TreeNode> group; // The group the floor was added under, null at the tree root; it holds the seams group.
-    std::shared_ptr<session_cpp::TreeNode> oculus; // The oculus group, which holds connectors_oculus.
+    std::shared_ptr<session_cpp::TreeNode> group; // The group the floor was added under, null at the tree root; it holds quarter_0 to quarter_3 and the oculus.
+    std::shared_ptr<session_cpp::TreeNode> oculus; // The oculus group with the central plate, the one member of no quarter.
 
     /// The scene element a reference names; null for a reference that is not in the scene.
     std::shared_ptr<session_cpp::Element> get(const MemberRef& ref) const;
@@ -427,34 +407,37 @@ struct ContactCheck {
 std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
 /// The column model built in place at a corner: support, column, support joint and the column carved by the quarter's six head cuts, every name ending in the corner index.
-ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
+ColumnModel add_column_model(wood_session::WoodSession& session, const FloorGuide& guide, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
 
 /// The quarter model built in place and lifted to bay_height, grouped by family, every name ending in the quarter's index.
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& quarter, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The oculus model lifted to bay_height; returns its four boundary beams.
-std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// The oculus model lifted to bay_height, ring beam q and bottom wedge q in oculus_q of quarter q under group, the central plate in oculus; returns the four ring beams.
+std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The floor under group: the four quarters under quarters_model and the oculus; the columns are added apart.
-FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
+/// The floor under group, every quarter in its quarter_q group and the oculus as add_oculus_model places it; the columns are added apart.
+FloorMembers add_floor(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The columns under group: the four column models, each in its own column_model_q group, filled into the members.
-void add_columns(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group, FloorMembers& members);
+/// The four column models, column q in column_q of quarter q under the members' group, filled into the members.
+void add_columns(wood_session::WoodSession& session, const FloorGuide& guide, FloorMembers& members);
 
 /// Every relationship of the floor in the order the connectors are named in: the seam wedges, the oculus wedges, the column plates, the cross laps, the ties (none when the seam runs through the ribs), the block dowels and the supports, each kind in quarter order; then the screws, per quarter and kind, then the ring's.
-std::vector<Relationship> relationships(const Floor& floor);
+std::vector<Relationship> relationships(const FloorGuide& guide);
 
 /// The relationships of one kind, in the same order.
-std::vector<Relationship> relationships(const Floor& floor, Relation kind);
+std::vector<Relationship> relationships(const FloorGuide& guide, Relation kind);
 
 /// The colour of every connector node and of every part and dowel node nested under it.
-const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(0.3f, 0.3f, 0.3f, 1.0f, "dark_grey");
+const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(38.0f / 255.0f, 149.0f / 255.0f, 233.0f / 255.0f, 1.0f, "brg_blue");
+
+/// The relation kinds of the connectors: the wedges, the column plates and their cross laps, the ties and the block dowels.
+const std::vector<Relation> CONNECTOR_RELATIONS = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels};
 
 /// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
-std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
+std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, const std::vector<Relation>& kinds = CONNECTOR_RELATIONS);
 
 /// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians).
-ContactCheck verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});
+ContactCheck verify_contacts(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});
 
 /// The searched contact of two members as they were before any cut, of the expected type; throws naming the relation when there is none.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession& session, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, wood_session::ContactType expected, const std::string& relation);
@@ -481,7 +464,7 @@ struct ScrewCheck {
 };
 
 /// Measures the screw connectors add_connectors made for the screw kinds, in relationships() order, against each other, every other connector's bores, pockets and parts, and their two members' solids before any cut.
-ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& floor, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws);
+ScrewCheck check_screws(const wood_session::WoodSession& session, const FloorGuide& guide, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BReps
@@ -510,4 +493,46 @@ BrepCheck check_breps(const wood_session::WoodSession& session);
 /// Writes every cut member, connector part and dowel as its BRep instead of its mesh, the bores exact cylinders.
 void compute_breps(wood_session::WoodSession& session);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Model
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The floor model, a session built step by step from a guide, grouped by quarter: under its root, quarter_0 to quarter_3 each with its members, its column, its part of the oculus ring and its connectors and screws, and the oculus with the central plate; a scene takes it in with merge, or with graft under a group of its own.
+class Floor : public wood_session::WoodSession {
+public:
+    const FloorGuide guide; // The geometry the model is built from.
+    FloorMembers members; // The placed members by quarter and family, the ring and the column models.
+    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors; // Every connector added, wedges, plates, cross laps, ties and dowels.
+    std::vector<std::shared_ptr<wood_session::JointBeam>> screws; // Every screw connector added.
+
+    /// An empty model of the guide, the session named name.
+    explicit Floor(const FloorGuide& guide, const std::string& name = "floor");
+
+    /// Not copied: the members name this session's own objects.
+    Floor(const Floor&) = delete;
+
+    /// Not assigned, as it is not copied.
+    Floor& operator=(const Floor&) = delete;
+
+    /// Adds the column model at one corner: its support, the column and the column's head cuts.
+    void add_column(size_t corner);
+
+    /// Adds the column model at every corner.
+    void add_columns();
+
+    /// Adds the four quarters.
+    void add_quarters();
+
+    /// Adds the oculus ring.
+    void add_oculus();
+
+    /// Adds the quarters, the oculus and the columns: every member of the floor.
+    void add_members();
+
+    /// Adds one connector per relationship of the kinds asked for, the members they join already in.
+    void add_connectors(const std::vector<Relation>& kinds = CONNECTOR_RELATIONS);
+
+    /// Adds the assembly screws, after every other connector so nothing before them changes.
+    void add_screws();
+};
 }

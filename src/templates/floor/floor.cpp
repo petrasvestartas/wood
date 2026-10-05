@@ -66,49 +66,49 @@ static Plane panel_top_plane(const std::array<Polyline, 2>& faces, const Plane& 
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Bay edge k: the line from corner k to corner k + 1, its midpoint and the band of the edge plane, normal into the bay, with its offset by outer_ribs.
-static BayEdge bay_edge(const FloorPlan& plan, size_t k, const FloorSizes& sizes) {
+static BayEdge bay_edge(const FloorGuide& guide, size_t k) {
 
     BayEdge edge;
-    edge.line = Line::from_points(plan.corners[k], plan.corners[(k + 1) % 4]);
-    edge.midpoint = plan.midpoint(k);
-    edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(-Vector::z_axis())), sizes.outer_ribs);
+    edge.line = Line::from_points(guide.corners[k], guide.corners[(k + 1) % 4]);
+    edge.midpoint = guide.midpoint(k);
+    edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(-Vector::z_axis())), guide.parameters.outer_ribs);
 
     return edge;
 }
 
 /// Seam k: the line from the midpoint of edge k to the centre, its plane into quarter k at the half edge up to the oculus corner, and the beam thickness.
-static Seam seam(const FloorPlan& plan, size_t k, const Point& centre, const Point& oculus_corner, const FloorSizes& sizes) {
+static Seam seam(const FloorGuide& guide, size_t k, const Point& centre, const Point& oculus_corner) {
 
     Seam result;
     result.index = k;
-    result.line = Line::from_points(plan.midpoint(k), centre);
+    result.line = Line::from_points(guide.midpoint(k), centre);
     result.oculus_corner = oculus_corner;
-    result.thickness = sizes.inner_beams;
+    result.thickness = guide.parameters.inner_beams;
     result.plane = result.plane_into(k);
 
     return result;
 }
 
 /// Oculus edge q from oculus corner q to oculus corner q - 1: its tilted bearing plane, the back face offset into the quarter and the ring's inner plane.
-static OculusEdge oculus_edge(const Point& corner, const Point& previous, const FloorSizes& sizes) {
+static OculusEdge oculus_edge(const Point& corner, const Point& previous, const FloorParameters& parameters) {
 
     OculusEdge edge;
     edge.line = Line::from_points(corner, previous);
     const Plane plane = edge_plane(edge.line, -Vector::z_axis());
-    edge.tilted = rotate(plane, -sizes.oculus_plane_angle * M_PI / 180.0, edge.line.to_direction(), edge.line.center());
-    edge.back = plane.translate_by_normal(sizes.inner_beams);
-    edge.ring_inner = edge.back.translate_by_normal(-sizes.inner_beams * 2.0);
+    edge.tilted = rotate(plane, -parameters.oculus_plane_angle * M_PI / 180.0, edge.line.to_direction(), edge.line.center());
+    edge.back = plane.translate_by_normal(parameters.inner_beams);
+    edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 
     return edge;
 }
 
 /// The corner frame of column k: the edge directions at a right corner, the two axes symmetric about the corner bisector otherwise.
-static std::array<Vector, 2> corner_frame(const FloorPlan& plan, size_t k) {
+static std::array<Vector, 2> corner_frame(const FloorGuide& guide, size_t k) {
 
-    const Vector after = (plan.corners[(k + 1) % 4] - plan.corners[k]).normalized();
-    const Vector before = (plan.corners[(k + 3) % 4] - plan.corners[k]).normalized();
+    const Vector after = (guide.corners[(k + 1) % 4] - guide.corners[k]).normalized();
+    const Vector before = (guide.corners[(k + 3) % 4] - guide.corners[k]).normalized();
 
-    if (std::abs(plan.corner_angle(k) - 90.0) <= RIGHT_ANGLE)
+    if (std::abs(guide.corner_angle(k) - 90.0) <= RIGHT_ANGLE)
         return {after, before};
 
     const Vector bisector = (after + before).normalized();
@@ -119,57 +119,57 @@ static std::array<Vector, 2> corner_frame(const FloorPlan& plan, size_t k) {
 }
 
 /// Column corner k before its fan: frame, head polygon, chamfer direction, the head's boundary sides, levels, axis and support plane.
-static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSizes& sizes) {
+static ColumnCorner column_corner(const FloorGuide& guide, size_t k) {
 
     ColumnCorner column;
-    column.corner = plan.corners[k];
-    const std::array<Vector, 2> frame = corner_frame(plan, k);
+    column.corner = guide.corners[k];
+    const std::array<Vector, 2> frame = corner_frame(guide, k);
     column.x_axis = frame[0];
     column.y_axis = frame[1];
 
     const Vector& x = column.x_axis;
     const Vector& y = column.y_axis;
-    const double head = sizes.column_head;
-    const double chamfer = sizes.column_head_chamfer;
+    const double head = guide.parameters.column_head;
+    const double chamfer = guide.parameters.column_head_chamfer;
     column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
     column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
     column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(edge(column.head, 4), -Vector::z_axis())};
-    column.levels = {0.0, 0.0, -sizes.column_head_depth};
+    column.levels = {0.0, 0.0, -guide.parameters.column_head_depth};
     column.axis_point = column.corner + (x + y) * (head * 0.5);
     column.support_plane = Plane::from_frame(column.axis_point, x, y, Vector::z_axis());
-    column.axis = Line::from_points(column.axis_point, column.axis_point + Vector::z_axis() * sizes.bay_height);
+    column.axis = Line::from_points(column.axis_point, column.axis_point + Vector::z_axis() * guide.parameters.bay_height);
 
     return column;
 }
 
 /// The wedge fan of a column corner: the tilted chamfer plane and the two side planes through the head edges, each leaning parallel to the chamfer plane's crease with the inner rib's central face.
-static std::array<std::array<Plane, 2>, 3> wedge_fan(const ColumnCorner& column, const ConstructionPlanes& cp, const FloorSizes& sizes) {
+static std::array<std::array<Plane, 2>, 3> wedge_fan(const ColumnCorner& column, const ConstructionPlanes& cp, const FloorParameters& parameters) {
 
     const Line side0 = edge(column.head, 1);
     const Line side1 = edge(column.head, 2);
     const Line side2 = edge(column.head, 3);
 
-    const Plane tilted = rotate(edge_plane(side1, Vector::z_axis()), sizes.wedge_plane_angle * M_PI / 180.0, side1.to_direction(), side1.center());
+    const Plane tilted = rotate(edge_plane(side1, Vector::z_axis()), parameters.wedge_plane_angle * M_PI / 180.0, side1.to_direction(), side1.center());
     const Line line0 = plane_plane(cp.inner_ribs[0][1], tilted).value();
     const Line line1 = plane_plane(cp.inner_ribs[1][1], tilted).value();
     const Plane wedge0 = Plane::from_point_normal(side0.center(), line0.to_direction().cross(side0.to_direction()));
     const Plane wedge2 = Plane::from_point_normal(side2.center(), (-line1.to_direction()).cross(side2.to_direction()));
 
-    return {pair(wedge0, sizes.wedge), pair(tilted, sizes.wedge * sizes.middle_wedge_factor), pair(wedge2, sizes.wedge)};
+    return {pair(wedge0, parameters.wedge), pair(tilted, parameters.wedge * parameters.middle_wedge_factor), pair(wedge2, parameters.wedge)};
 }
 
 /// The signed offset of the column's outer faces from the bay edges and the three wedge seats left on the head beyond the rib bands (R8).
-static void column_seats(ColumnCorner& column, const FloorPlan& plan, size_t k, const ConstructionPlanes& cp, const FloorSizes& sizes) {
+static void column_seats(ColumnCorner& column, const FloorGuide& guide, size_t k, const ConstructionPlanes& cp) {
 
-    const double phi = (plan.corner_angle(k) - 90.0) * 0.5 * M_PI / 180.0;
-    const double offset = sizes.column_head * std::sin(phi);
-    const double band = (sizes.outer_ribs - offset) / std::cos(phi);
+    const double phi = (guide.corner_angle(k) - 90.0) * 0.5 * M_PI / 180.0;
+    const double offset = guide.parameters.column_head * std::sin(phi);
+    const double band = (guide.parameters.outer_ribs - offset) / std::cos(phi);
     column.column_offset = {offset, offset};
 
     const double chamfer_length = (column.head[3] - column.head[2]).magnitude();
     const double sin0 = std::abs(cp.inner_ribs[0][0].z_axis().dot(column.chamfer_direction));
     const double sin1 = std::abs(cp.inner_ribs[1][0].z_axis().dot(column.chamfer_direction));
-    column.wedge_seat = {sizes.column_head_chamfer - band, chamfer_length - sizes.inner_ribs / sin0 - sizes.inner_ribs / sin1, sizes.column_head_chamfer - band};
+    column.wedge_seat = {guide.parameters.column_head_chamfer - band, chamfer_length - guide.parameters.inner_ribs / sin0 - guide.parameters.inner_ribs / sin1, guide.parameters.column_head_chamfer - band};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -177,18 +177,18 @@ static void column_seats(ColumnCorner& column, const FloorPlan& plan, size_t k, 
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The member planes of quarter q from the shared entities, every one at the quarter's own points: the bands at the half-edge midpoints, the seams at the half seams, the oculus edge and the column fan as they are.
-static ConstructionPlanes construction_planes(const Floor& floor, size_t q, ColumnCorner& column) {
+static ConstructionPlanes construction_planes(const FloorGuide& guide, size_t q, ColumnCorner& column) {
 
-    const FloorSizes& sizes = floor.sizes;
-    const std::vector<Point>& polygon = floor.geometry[q].polygon;
+    const FloorParameters& parameters = guide.parameters;
+    const std::vector<Point>& polygon = guide.geometry[q].polygon;
     ConstructionPlanes cp;
 
-    const Plane outer0 = reoriginated(floor.edges[q].band[0], edge(polygon, 0).center());
-    const Plane outer1 = reoriginated(floor.edges[(q + 3) % 4].band[0], edge(polygon, 4).center());
-    cp.outer_ribs = {pair(outer0, sizes.outer_ribs), pair(outer1, sizes.outer_ribs)};
+    const Plane outer0 = reoriginated(guide.edges[q].band[0], edge(polygon, 0).center());
+    const Plane outer1 = reoriginated(guide.edges[(q + 3) % 4].band[0], edge(polygon, 4).center());
+    cp.outer_ribs = {pair(outer0, parameters.outer_ribs), pair(outer1, parameters.outer_ribs)};
 
-    const OculusEdge& oculus = floor.oculus_edges[q];
-    cp.inner_beams = {floor.seams[q].faces_into(q), {oculus.tilted, oculus.back}, floor.seams[(q + 3) % 4].faces_into(q)};
+    const OculusEdge& oculus = guide.oculus_edges[q];
+    cp.inner_beams = {guide.seams[q].faces_into(q), {oculus.tilted, oculus.back}, guide.seams[(q + 3) % 4].faces_into(q)};
 
     const Plane xy = level(0.0);
     const Point p0 = plane_plane_plane(xy, cp.inner_beams[0][1], cp.inner_beams[1][1]).value();
@@ -197,18 +197,18 @@ static ConstructionPlanes construction_planes(const Floor& floor, size_t q, Colu
     const Point p3 = column.head[3];
     const Plane rib0 = Plane::from_point_normal(p2 + (p0 - p2) * 0.5, (p0 - p2).cross(-Vector::z_axis()));
     const Plane rib1 = Plane::from_point_normal(p3 + (p1 - p3) * 0.5, (p1 - p3).cross(Vector::z_axis()));
-    cp.inner_ribs = {pair(rib0, sizes.inner_ribs), pair(rib1, sizes.inner_ribs)};
+    cp.inner_ribs = {pair(rib0, parameters.inner_ribs), pair(rib1, parameters.inner_ribs)};
 
-    column.wedge_fan = wedge_fan(column, cp, sizes);
-    cp.wedges = {column.wedge_fan[0], column.wedge_fan[1], column.wedge_fan[2], pair(cp.inner_beams[0][1], sizes.inner_beams), pair(cp.inner_beams[1][1], sizes.inner_beams), pair(cp.inner_beams[2][1], sizes.inner_beams)};
+    column.wedge_fan = wedge_fan(column, cp, parameters);
+    cp.wedges = {column.wedge_fan[0], column.wedge_fan[1], column.wedge_fan[2]};
 
-    cp.t_sections = {
-        pair(cp.outer_ribs[0][1], sizes.tsections),
-        pair(cp.inner_ribs[0][0], -sizes.tsections),
-        pair(cp.inner_ribs[0][1], sizes.tsections),
-        pair(cp.inner_ribs[1][0], -sizes.tsections),
-        pair(cp.inner_ribs[1][1], sizes.tsections),
-        pair(cp.outer_ribs[1][1], sizes.tsections),
+    cp.tsections = {
+        pair(cp.outer_ribs[0][1], parameters.tsections),
+        pair(cp.inner_ribs[0][0], -parameters.tsections),
+        pair(cp.inner_ribs[0][1], parameters.tsections),
+        pair(cp.inner_ribs[1][1], parameters.tsections),
+        pair(cp.inner_ribs[1][0], -parameters.tsections),
+        pair(cp.outer_ribs[1][1], parameters.tsections),
     };
 
     return cp;
@@ -236,37 +236,34 @@ static ConstructionQuads construction_quads(const ConstructionPlanes& cp) {
         {cp.wedges[0][0], cp.outer_ribs[0][1], cp.wedges[0][1], cp.inner_ribs[0][0]},
         {cp.wedges[1][0], cp.inner_ribs[0][1], cp.wedges[1][1], cp.inner_ribs[1][1]},
         {cp.wedges[2][0], cp.inner_ribs[1][0], cp.wedges[2][1], cp.outer_ribs[1][1]},
-        {cp.wedges[3][0], cp.inner_ribs[0][0], cp.wedges[3][1], cp.outer_ribs[0][1]},
-        {cp.wedges[4][0], cp.inner_ribs[1][1], cp.wedges[4][1], cp.inner_ribs[0][1]},
-        {cp.wedges[5][0], cp.outer_ribs[1][1], cp.wedges[5][1], cp.inner_ribs[1][0]},
     });
-    result.t_sections = quads({
-        {cp.t_sections[0][0], cp.inner_beams[0][1], cp.t_sections[0][1], cp.wedges[0][1]},
-        {cp.t_sections[1][0], cp.inner_beams[0][1], cp.t_sections[1][1], cp.wedges[0][1]},
-        {cp.t_sections[2][0], cp.inner_beams[1][1], cp.t_sections[2][1], cp.wedges[1][1]},
-        {cp.t_sections[3][0], cp.inner_beams[2][1], cp.t_sections[3][1], cp.wedges[2][1]},
-        {cp.t_sections[4][0], cp.inner_beams[1][1], cp.t_sections[4][1], cp.wedges[1][1]},
-        {cp.t_sections[5][0], cp.inner_beams[2][1], cp.t_sections[5][1], cp.wedges[2][1]},
+    result.tsections = quads({
+        {cp.tsections[0][0], cp.inner_beams[0][1], cp.tsections[0][1], cp.wedges[0][1]},
+        {cp.tsections[1][0], cp.inner_beams[0][1], cp.tsections[1][1], cp.wedges[0][1]},
+        {cp.tsections[2][0], cp.inner_beams[1][1], cp.tsections[2][1], cp.wedges[1][1]},
+        {cp.tsections[3][0], cp.inner_beams[1][1], cp.tsections[3][1], cp.wedges[1][1]},
+        {cp.tsections[4][0], cp.inner_beams[2][1], cp.tsections[4][1], cp.wedges[2][1]},
+        {cp.tsections[5][0], cp.inner_beams[2][1], cp.tsections[5][1], cp.wedges[2][1]},
     });
 
     return result;
 }
 
 /// The outer parabola over a rib quad, a 7-point Bezier: from -height at the run-in along the axis past the fan plane's datum trace, controlled at the axis midpoint at -static_h, to the seam at -static_h.
-static Polyline outer_parabola(const Polyline& quad, double run_in, const FloorSizes& sizes) {
+static Polyline outer_parabola(const Polyline& quad, double run_in, const FloorParameters& parameters) {
 
     const Point start = quad.get_point(0);
     const Point end = quad.get_point(1);
     const Point trimmed = start + (end - start).normalized() * run_in;
     const Point middle = trimmed + (end - trimmed) * 0.5;
 
-    return Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -sizes.height), middle + Vector(0.0, 0.0, -sizes.static_h()), end + Vector(0.0, 0.0, -sizes.static_h()));
+    return Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -parameters.height), middle + Vector(0.0, 0.0, -parameters.static_h()), end + Vector(0.0, 0.0, -parameters.static_h()));
 }
 
 /// The z where an outer rib's soffit, its first chord extended, meets its fan plane: the bottom of the rib's column end face.
-static double fan_end(const Polyline& quad, double run_in, const Plane& fan, const Plane& seam, const FloorSizes& sizes) {
+static double fan_end(const Polyline& quad, double run_in, const Plane& fan, const Plane& seam, const FloorParameters& parameters) {
 
-    const std::vector<Point> pts = trim(outer_parabola(quad, run_in, sizes), fan, seam).get_points();
+    const std::vector<Point> pts = trim(outer_parabola(quad, run_in, parameters), fan, seam).get_points();
     const double d0 = std::abs((pts.front() - fan.origin()).dot(fan.z_axis()));
     const double d1 = std::abs((pts.back() - fan.origin()).dot(fan.z_axis()));
 
@@ -274,17 +271,17 @@ static double fan_end(const Polyline& quad, double run_in, const Plane& fan, con
 }
 
 /// The run-in that lands an outer rib's end on the level, by the secant from the wedge; throws when it leaves the axis or does not converge.
-static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plane& seam, double level, const FloorSizes& sizes) {
+static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plane& seam, double level, const FloorParameters& parameters) {
 
     const double axis = (quad.get_point(1) - quad.get_point(0)).magnitude();
-    double x0 = sizes.wedge;
-    double f0 = fan_end(quad, x0, fan, seam, sizes) - level;
+    double x0 = parameters.wedge;
+    double f0 = fan_end(quad, x0, fan, seam, parameters) - level;
 
     if (std::abs(f0) <= RUN_IN_TOLERANCE)
         return x0;
 
     double x1 = x0 + 1.0;
-    double f1 = fan_end(quad, x1, fan, seam, sizes) - level;
+    double f1 = fan_end(quad, x1, fan, seam, parameters) - level;
 
     for (size_t i = 0; i < RUN_IN_STEPS; i++) {
         if (std::abs(f1) <= RUN_IN_TOLERANCE)
@@ -298,26 +295,26 @@ static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plan
         x0 = x1;
         f0 = f1;
         x1 = x2;
-        f1 = fan_end(quad, x1, fan, seam, sizes) - level;
+        f1 = fan_end(quad, x1, fan, seam, parameters) - level;
     }
 
     throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} did not converge: {:.3e} mm off", level, f1));
 }
 
 /// Per outer rib the run-in that lands its end on the corner's shared level, the shallower of the two ends at the wedge.
-static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes) {
+static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorParameters& parameters) {
 
     const std::array<Plane, 2> fans = {cp.wedges[0][0], cp.wedges[2][0]};
     const std::array<Plane, 2> seams = {cp.inner_beams[0][0], cp.inner_beams[2][0]};
-    const double level = std::max(fan_end(quads.outer_ribs[0], sizes.wedge, fans[0], seams[0], sizes), fan_end(quads.outer_ribs[1], sizes.wedge, fans[1], seams[1], sizes));
+    const double level = std::max(fan_end(quads.outer_ribs[0], parameters.wedge, fans[0], seams[0], parameters), fan_end(quads.outer_ribs[1], parameters.wedge, fans[1], seams[1], parameters));
 
-    return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, sizes), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level, sizes)};
+    return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, parameters), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level, parameters)};
 }
 
 /// The column blocks' far planes over the ribs' run-ins: each side block its fan plane offset by its own rib's run-in, the middle block by middle_wedge_factor times their mean.
-static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std::array<double, 2>& run_in, const FloorSizes& sizes) {
+static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std::array<double, 2>& run_in, const FloorParameters& parameters) {
 
-    const std::array<double, 3> thickness = {run_in[0], sizes.middle_wedge_factor * (0.5 * (run_in[0] + run_in[1])), run_in[1]};
+    const std::array<double, 3> thickness = {run_in[0], parameters.middle_wedge_factor * (0.5 * (run_in[0] + run_in[1])), run_in[1]};
 
     for (size_t i = 0; i < 3; i++) {
         column.wedge_fan[i][1] = column.wedge_fan[i][0].translate_by_normal(thickness[i]);
@@ -326,13 +323,13 @@ static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std
 }
 
 /// Per rib axis (outer 0, outer 1, shadow 0, shadow 1) the parabola and its two offsets by tsections: the outer ones from the rib quads over their run-ins, the shadows projected onto the inner ribs' outer faces along the outer rib normals.
-static std::vector<std::array<Polyline, 3>> boundary_parabolas(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes, const std::array<double, 2>& run_in) {
+static std::vector<std::array<Polyline, 3>> boundary_parabolas(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorParameters& parameters, const std::array<double, 2>& run_in) {
 
     std::vector<std::array<Polyline, 3>> parabolas;
 
     for (size_t k = 0; k < 2; k++) {
-        const Polyline parabola = outer_parabola(quads.outer_ribs[k], run_in[k], sizes);
-        parabolas.push_back({parabola, offset_polyline(parabola, sizes.tsections), offset_polyline(parabola, 2.0 * sizes.tsections)});
+        const Polyline parabola = outer_parabola(quads.outer_ribs[k], run_in[k], parameters);
+        parabolas.push_back({parabola, offset_polyline(parabola, parameters.tsections), offset_polyline(parabola, 2.0 * parameters.tsections)});
     }
 
     for (size_t i = 0; i < 2; i++) {
@@ -360,20 +357,20 @@ static std::vector<Plane> bed_top_planes(const ConstructionPlanes& cp, const std
 }
 
 /// Quarter q's geometry in dependency order: planes, quads, run-ins, the blocks' far planes over them and the quads again, parabolas and shadows, block levels, bed planes; the column fan and seats are written into its column.
-static void compute_quarter(Floor& floor, size_t q) {
+static void compute_quarter(FloorGuide& guide, size_t q) {
 
-    QuarterGeometry& geometry = floor.geometry[q];
-    ColumnCorner& column = floor.columns[q];
-    const FloorSizes& sizes = floor.sizes;
+    QuarterGeometry& geometry = guide.geometry[q];
+    ColumnCorner& column = guide.columns[q];
+    const FloorParameters& parameters = guide.parameters;
 
-    geometry.planes = construction_planes(floor, q, column);
-    column_seats(column, floor.plan, q, geometry.planes, sizes);
+    geometry.planes = construction_planes(guide, q, column);
+    column_seats(column, guide, q, geometry.planes);
     geometry.quads = construction_quads(geometry.planes);
-    geometry.run_in = run_ins(geometry.planes, geometry.quads, sizes);
-    block_planes(geometry.planes, column, geometry.run_in, sizes);
+    geometry.run_in = run_ins(geometry.planes, geometry.quads, parameters);
+    block_planes(geometry.planes, column, geometry.run_in, parameters);
     geometry.quads = construction_quads(geometry.planes);
-    geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, sizes, geometry.run_in);
-    geometry.central_panel = central_panel(geometry.planes, geometry.parabolas, sizes);
+    geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, parameters, geometry.run_in);
+    geometry.central_panel = central_panel(geometry.planes, geometry.parabolas, parameters);
     geometry.bed_top_planes = bed_top_planes(geometry.planes, geometry.parabolas, geometry.central_panel);
 }
 
@@ -403,32 +400,34 @@ std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
     return pair(plane_into(quarter), thickness);
 }
 
-Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes) : plan(floor_plan), sizes(floor_sizes) {
+FloorGuide::FloorGuide(const std::array<Point, 4>& guide_corners, const FloorParameters& guide_parameters) : wood_session::WoodSession("floor_guide"), corners(guide_corners), parameters(guide_parameters) {
 
-    std::string why;
+    centre = Point::centroid({corners[0], corners[1], corners[2], corners[3]});
 
-    if (!plan.valid(why))
-        throw std::invalid_argument("invalid floor plan: " + why);
+    for (size_t q = 0; q < 4; q++)
+        oculus_corners[q] = centre + (midpoint(q) - centre).normalized() * parameters.oculus;
 
-    centre = plan.centre();
-    oculus_corners = plan.oculus_corners();
+    const std::string why = invalid(*this);
+
+    if (!why.empty())
+        throw std::invalid_argument("invalid floor guide: " + why);
 
     for (size_t q = 0; q < 4; q++) {
-        edges[q] = bay_edge(plan, q, sizes);
-        seams[q] = seam(plan, q, centre, oculus_corners[q], sizes);
-        oculus_edges[q] = oculus_edge(oculus_corners[q], oculus_corners[(q + 3) % 4], sizes);
-        columns[q] = column_corner(plan, q, sizes);
+        edges[q] = bay_edge(*this, q);
+        seams[q] = seam(*this, q, centre, oculus_corners[q]);
+        oculus_edges[q] = oculus_edge(oculus_corners[q], oculus_corners[(q + 3) % 4], parameters);
+        columns[q] = column_corner(*this, q);
     }
 
     for (size_t q = 0; q < 4; q++) {
-        geometry[q].polygon = {plan.corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint};
+        geometry[q].polygon = {corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint};
         compute_quarter(*this, q);
     }
 
     for (size_t q = 0; q < 4; q++)
         columns[q].levels[1] = rib_bottom_level(quarter(q));
 
-    soffit = -sizes.static_h();
+    soffit = -parameters.static_h();
 
     for (size_t q = 0; q < 4; q++) {
         const Quarter view = quarter(q);
@@ -438,34 +437,36 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes) : plan(
         for (size_t k = 0; k < 2; k++)
             soffit = std::min({soffit, end_level(outer[k], view.rib_seam_ends()[k]), end_level(inner[k], geometry[q].planes.inner_beams[1][1])});
     }
+
+    draw();
 }
 
-Quarter Floor::quarter(size_t q) const {
+Quarter FloorGuide::quarter(size_t q) const {
     return Quarter{*this, q % 4};
 }
 
 const QuarterGeometry& Quarter::geometry() const {
-    return floor.geometry[index];
+    return guide.geometry[index];
 }
 
-const FloorSizes& Quarter::sizes() const {
-    return floor.sizes;
+const FloorParameters& Quarter::parameters() const {
+    return guide.parameters;
 }
 
 const ColumnCorner& Quarter::column() const {
-    return floor.columns[index];
+    return guide.columns[index];
 }
 
 const OculusEdge& Quarter::oculus_edge() const {
-    return floor.oculus_edges[index];
+    return guide.oculus_edges[index];
 }
 
 const Seam& Quarter::seam(size_t side) const {
-    return floor.seams[side == 0 ? index : (index + 3) % 4];
+    return guide.seams[side == 0 ? index : (index + 3) % 4];
 }
 
 const BayEdge& Quarter::edge(size_t side) const {
-    return floor.edges[side == 0 ? index : (index + 3) % 4];
+    return guide.edges[side == 0 ? index : (index + 3) % 4];
 }
 
 }

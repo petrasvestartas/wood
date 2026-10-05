@@ -171,25 +171,119 @@ The joints and sections, fifteen bays side by side: heads that are the column se
 
 ## floor
 
-`src/templates/floor/floor.h` is the timber vaulted floor bay of compas_tf (`compas_tf/floor_guide.py` and its `example_model_*` scripts) as a parametric model, designed in `docs/floor_parametric_model.md`. A `wood_floor::Floor` is a `FloorPlan` (four bay corners counter-clockwise at the floor datum and the oculus) plus `FloorSizes` (every thickness, offset, depth, angle and the column, fixed when the plan changes; the defaults are compas_tf's example set, 220 / 120 / 240):
+`src/templates/floor/floor.h` is the timber vaulted floor bay of compas_tf (`compas_tf/floor_guide.py` and its `example_model_*` scripts) as a parametric model, designed in `docs/floor_parametric_model.md`. Two classes, both a `WoodSession`. `wood_floor::FloorGuide` is the geometry: the four bay corners counter-clockwise at the floor datum and `FloorGuide::Parameters` (the oculus distance and every thickness, offset, depth and angle, each with a default), from which it computes once the bay edges, seams, oculus, columns and every quarter's planes, quads and parabolas, and draws them into itself; example 1 writes it. `wood_floor::Floor` is the model: built from a guide step by step (`add_column`, `add_columns`, `add_quarters`, `add_oculus`, `add_members`, `add_connectors`, `add_screws`), it holds the members, connectors and screws, and a scene of several templates takes it in with `merge` or `graft`. Both trees are grouped by quarter first, `quarter_0` … `quarter_3`, and `get_branch("quarter_0")` takes one quarter out as a `WoodSession` of its own, the wood elements, joints, settings and plate adjacency kept:
 
 ```cpp
-const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
-wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, group);
-wood_floor::add_columns(session, floor, columns_group, members);
-wood_floor::add_connectors(session, floor, members);
-std::cout << floor.check().str() << std::endl;
+wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(3000.0, 2400.0));
+floor.add_connectors();
+floor.add_screws();
+floor.pb_dump(pb_path("live"));
+
+WoodSession scene("building");
+scene.graft(floor, scene.add_group("level_1"));
+
+WoodSession quarter = floor.get_branch("quarter_0");
 ```
 
-The constructor computes every shared entity once (the bay edges with their rib bands, the four seams, the oculus corners and edges, the four column corners with their carved fans and cutter levels) and every quarter's geometry once; `floor.quarter(q)` is a view that only builds that quarter's member outlines, in place at its own corner, so a rectangle is the mirror tiling of compas_tf's quarter and the square is exactly compas_tf's turned quarter. The ring is built from the four quarters' own oculus edges. `FloorPlan::valid` refuses a plan whose ring would leave a quarter's oculus beam uncovered.
+### Floor data structures
+
+Four layers, each built from the one before; only the first two hold geometry of their own, the last two are a scene.
+
+```mermaid
+classDiagram
+    direction LR
+    class FloorParameters {
+        oculus, column_head, outer_ribs, inner_ribs
+        inner_beams, wedge, tsections, height, rise
+        seam_through_ribs
+    }
+    class FloorGuide {
+        <<WoodSession>>
+        corners[4], parameters
+        edges[4], seams[4], oculus_corners[4]
+        oculus_edges[4], columns[4]
+        geometry[4] QuarterGeometry
+        quarter(q) Quarter
+        oculus() Outline list
+    }
+    class QuarterGeometry {
+        polygon
+        planes ConstructionPlanes
+        quads ConstructionQuads
+        parabolas, central_panel, bed_top_planes
+    }
+    class Quarter {
+        guide, index
+        outer_ribs() inner_ribs() inner_beams()
+        wedges() tsections() beds() column_cutters()
+    }
+    class Outline {
+        top Polyline
+        bottom Polyline
+    }
+    class Floor {
+        <<WoodSession>>
+        guide
+        members FloorMembers
+        connectors, screws
+        add_members() add_connectors() add_screws()
+    }
+    class FloorMembers {
+        quarters[4] QuarterMembers
+        ring, columns ColumnModel
+        get(MemberRef) Element
+    }
+    class Relationship {
+        kind Relation
+        a, b MemberRef
+        plane, contact, screws
+    }
+    class MemberRef {
+        quarter, family, index, row
+        name()
+    }
+    FloorParameters --> FloorGuide
+    FloorGuide --> QuarterGeometry : one per quarter
+    FloorGuide --> Quarter : view
+    Quarter --> Outline : one per member
+    FloorGuide --> Floor
+    Floor --> FloorMembers
+    FloorMembers --> Outline : to_rib, to_beam, to_plate
+    FloorGuide --> Relationship : relationships(guide)
+    Relationship --> MemberRef
+    MemberRef --> FloorMembers : names an element
+```
+
+- **Guide.** `FloorGuide` computes everything once, from the corners and `FloorParameters`: the shared entities (`edges`, `seams`, `oculus_corners`, `oculus_edges`, `columns`) and one `QuarterGeometry` per quarter, whose `planes` hold the two face planes of every member and whose `quads` its plan footprint at the floor datum, index i of a family being member i. It draws them into itself under the member names below.
+- **Outlines.** `guide.quarter(q)` is a view that builds a quarter's members as `Outline`s, a pair of closed polylines a member is lofted between, at the floor datum; `guide.oculus()` gives the ring's four beams, four bottom wedges and the central plate. No element exists yet.
+- **Elements.** `Floor` turns every outline into an element lifted to `bay_height`: ribs and inner beams `BeamVariable` (`to_rib`, `to_beam`), every other member a `Plate` (`to_plate`), and per corner a `Support` and a `Column` carved by its head cuts. `FloorMembers` keeps them by quarter and family as `Member`s, the element and the thickness its connectors are sized by.
+- **Relations.** `relationships(guide)` lists what two members share, as rules of the design, not as a search: a `Relationship` holds its `Relation` kind, the two members as `MemberRef`s, the plane they meet on, the contact polygon and, for a screw kind, the screw axes. `add_connectors` and `add_screws` make one `JointBeam` per relationship, which cuts its holes into both members as "drill" features.
+
+Every member has one name, the same in the guide, the outline list and the scene, and `MemberRef::name()` gives it:
+
+| Family | Count per quarter | Element | Name |
+|---|---|---|---|
+| `outer_ribs` | 2 | `BeamVariable` | `outer_ribs_<i>_<q>` |
+| `inner_ribs` | 2 | `BeamVariable` | `inner_ribs_<i>_<q>` |
+| `inner_beams` | 3: seam, oculus edge, seam | `BeamVariable` | `inner_beams_<i>_<q>` |
+| `wedges` | 3 at the column head | `Plate` | `wedges_<i>_<q>` |
+| `tsections` | 6 beside the ribs | `Plate` | `tsections_<i>_<q>` |
+| `beds` | 3 rows | `Plate` | `beds_<row>_<i>_<q>` |
+| ring | 1 beam and 1 bottom wedge | `BeamVariable`, `Plate` | `oculus_<q>`, `oculus_<q + 4>` |
+| column | 1 support, 1 column | `Support`, `Column` | `support_<q>`, `column_<q>` |
+| central plate | 1 for the floor | `Plate` | `oculus_8` |
+
+The scene tree is grouped by quarter first: `quarter_<q>` holds one group per family, `column_<q>`, `oculus_<q>` and `connectors_<q>` with its connectors and screws; the central plate sits in `oculus`. The four quarters are the same up to placement on a square bay, so one quarter, one column and the oculus describe every part: `get_branch("quarter_0")` takes quarter 0 with its column, ring part and connectors as a `WoodSession` of its own.
+
+The constructor computes every shared entity once (the bay edges with their rib bands, the four seams, the oculus corners and edges, the four column corners with their carved fans and cutter levels) and every quarter's geometry once; `guide.quarter(q)` is a view that only builds that quarter's member outlines, in place at its own corner, so a rectangle is the mirror tiling of compas_tf's quarter and the square is exactly compas_tf's turned quarter. The ring is built from the four quarters' own oculus edges. The guide refuses a plan whose ring would leave a quarter's oculus beam uncovered.
 
 Three rules generalise what compas_tf's square left implicit: rule A for the central panel (the inner ribs swept along one direction solved so the central bed is one planar-faced cylinder between them; on the square it is compas_tf's chamfer direction), rib end faces cut in their end planes on each rib face, and the central panel's layers as offsets in its own cross-section, exactly `tsections` thick on every plan. Every outer rib's straight run-in is solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their two ends, and the middle column cutter level is that level; on a rectangle rule A then sweeps the inner ribs within half a degree of the chamfer and every rib meets the head within 0.2 mm of the level.
 
-Connectors come from `relationships(floor)`, 52 rows (4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps, 4 ties, 24 block dowel sets, 4 supports) with their contact polygons read off the members' outlines on the shared planes; `add_connectors` makes one `JointBeam` per row through the factories, `verify_contacts` checks every one against the kernel's contact search, `require_contact` throws naming a relation that does not touch. Every connector node and every part and dowel nested under it is dark grey (`CONNECTOR_COLOR`). Each connector lives in the subtree of the members it joins, by `Relationship::place()`: `quarter_model_q > connectors_q`, `oculus > connectors_oculus`, `column_model_q > connectors_column_q`, `seams > seam_k`. The six head cutters of every column are solid cuts of the column itself, shown as its cut features, not elements of the scene. `Floor::check()` returns a `FloorReport` of the relations compas_tf relied on silently (seam and oculus identities, rule A's closure and shear, end-face planarity, beds on flanges, rib bottoms against the cutter level, wedge seats, column offsets, the ring's overlap and coverage); `check_breps` counts the exact bores of the cut members and connector parts against the dowel stretches, `check_screws` the screws' clearances. Every wedge is cut horizontally flush with the floor top, the tilted oculus wedges too. Every inner and ring beam's soffit is `Floor::soffit`, the deepest end of a rib that ends on one, so every rib end meets its beam in full; the oculus bottom wedges and plate sit on it. With `FloorSizes::seam_through_ribs` the two seam beams of every seam run on through the outer rib band to the bay's outer face with the wedge between them flush with that face, each outer rib ends on its beam's far face, two horizontal screws per rib run along it, 20 mm below its top and 20 mm above its bottom at its end and 15 mm either side of its axis, from the beam's open seam face through the beam into the rib end, drilled before the wedge goes in (the screw check lets them cross that wedge), and no ties are made; examples 7 and 8 switch it with `SEAM_THROUGH_RIBS`.
+Connectors come from `relationships(floor)`, 48 rows with the seams through the ribs (4 seam wedges, 4 oculus wedges, 8 column plates, 4 cross laps, 24 block dowel sets, 4 supports; tied, 4 ties more) with their contact polygons read off the members' outlines on the shared planes; `add_connectors` makes one `JointBeam` per row through the factories, `verify_contacts` checks every one against the kernel's contact search, `require_contact` throws naming a relation that does not touch. Every connector node and every part and dowel nested under it is BRG blue, RGB 38 / 149 / 233 (`CONNECTOR_COLOR`). Each connector lives in its quarter: `quarter_q > connectors_q`. The six head cutters of every column are solid cuts of the column itself, shown as its cut features, not elements of the scene. Every member also carries a "drill" feature per hole a joint makes in it, dowels, screws and the support screws alike: the two circles of the hole's radius where it enters and leaves the member, named by the joint and the diameter, so each member can be pre-drilled from its own features. `FloorGuide::check()` returns a `FloorReport` of the relations compas_tf relied on silently (seam and oculus identities, rule A's closure and shear, end-face planarity, beds on flanges, rib bottoms against the cutter level, wedge seats, column offsets, the ring's overlap and coverage); `check_breps` counts the exact bores of the cut members and connector parts against the dowel stretches, `check_screws` the screws' clearances. Every wedge is cut horizontally flush with the floor top, the tilted oculus wedges too. Every inner and ring beam's soffit is `FloorGuide::soffit`, the deepest end of a rib that ends on one, so every rib end meets its beam in full; the oculus bottom wedges and plate sit on it. By default (`FloorGuide::Parameters::seam_through_ribs`, true) the two seam beams of every seam run on through the outer rib band to the bay's outer face with the wedge between them flush with that face, each outer rib ends on its beam's far face, two horizontal screws per rib run along it, 20 mm below its top and 20 mm above its bottom at its end and 15 mm either side of its axis, from the beam's open seam face through the beam into the rib end, drilled before the wedge goes in (the screw check lets them cross that wedge), and no ties are made; false ties the outer ribs where they meet at every seam instead, as example 8 shows with `SEAM_THROUGH_RIBS`.
 
 | Example | What it builds |
 |---|---|
-| `templates_floor_1_floorguide` | quarter 0's plan polygons, quads and parabolas |
+| `templates_floor_1_floorguide` | quarter 0 of the guide: its plan, and per member `<family>_i_q` (named as the floor's element) its plan quad, two face planes and, for a rib, its soffit, t-section and bed parabolas, one colour per family |
 | `templates_floor_2_column_model` | one column on its Sherpa support, carved by its six head cutters |
 | `templates_floor_3_columns_model` | the four columns at the bay corners |
 | `templates_floor_4_quarters` | the four quarters in place |

@@ -75,23 +75,23 @@ std::shared_ptr<wood_session::Support> to_support(const ColumnCorner& corner) {
     return std::make_shared<wood_session::Support>(corner.support_plane, "support");
 }
 
-std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorSizes& sizes, const wood_session::Support& support) {
+std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorParameters& parameters, const wood_session::Support& support) {
 
     const Point foot = support.column_foot();
-    const double side = sizes.column_head;
-    const double head = side + sizes.column_head_chamfer;
-    const Line axis = Line::from_points(foot, Point(foot[0], foot[1], sizes.bay_height));
+    const double side = parameters.column_head;
+    const double head = side + parameters.column_head_chamfer;
+    const Line axis = Line::from_points(foot, Point(foot[0], foot[1], parameters.bay_height));
 
     std::shared_ptr<wood_session::Column> column = std::make_shared<wood_session::Column>(axis, square(corner, side, foot[2]), "column");
     column->head = square(corner, head, foot[2]);
-    column->head_height = sizes.column_head_depth;
+    column->head_height = parameters.column_head_depth;
 
     return column;
 }
 
 std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, quarter.sizes().bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, quarter.parameters().bay_height);
     std::vector<wood_session::SolidCut> cuts;
 
     for (const Outline& outline : quarter.column_cutters()) {

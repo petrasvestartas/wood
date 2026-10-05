@@ -4,6 +4,13 @@
 namespace wood_floor::geometry {
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Guide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Why the guide's corners and oculus make no floor, empty when they do: the corners counter-clockwise and convex at z 0, every oculus corner between the centre and its edge midpoint, and the ring covering every quarter beam face, sin(oculus corner angle) >= sin(seam angle) at every oculus corner.
+std::string invalid(const FloorGuide& guide);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -84,7 +91,7 @@ MemberRef quarter_member(size_t quarter, Family family, size_t index);
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Rule A for one quarter: the inner ribs' one sweep r so that rib 0's central trace projected along one ruling u lands on rib 1's, and the central traces by the layers.
-CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorSizes& sizes);
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorParameters& parameters);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
@@ -98,6 +105,6 @@ Outline loft_planes(const std::vector<session_cpp::Plane>& planes, const session
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The screw relationships of the floor: per quarter the outer ribs into the seam beams, the mitres, the inner rib ends, then the ring corners and the ring into the quarters' oculus beams, each with its screw axes.
-std::vector<Relationship> screw_relationships(const Floor& floor);
+std::vector<Relationship> screw_relationships(const FloorGuide& guide);
 
 }

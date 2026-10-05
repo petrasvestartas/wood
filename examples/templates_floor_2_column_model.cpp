@@ -1,41 +1,22 @@
 #include "wood_session.h"
-#include "wood_element_geometry.h"
 #include "src/templates/floor/floor.h"
-#include <chrono>
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The square floor.
+/// The column model at corner 0 of the square floor.
 int main() {
 
-    const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
-    const wood_floor::Floor floor(plan, wood_floor::FloorSizes{});
-    std::cout << floor.check().str() << std::endl;
-    WoodSession session("templates_floor_2_column_model");
-    const std::shared_ptr<TreeNode> group = session.add_group("column_model");
-
-    const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    const std::shared_ptr<Column> column = wood_floor::add_column_model(session, floor, 0, group).column;
-    const std::shared_ptr<Support> support = session.supports().front();
-
-    const Mesh& base = support->element_geometry_mesh();
-    const Mesh& stock = column->element_geometry_mesh();
-    std::cout << fmt::format("support volume {:.6f} closed {}", compute_volume(base), base.is_closed()) << std::endl;
-    std::cout << fmt::format("stock   volume {:.6f} faces {} closed {}", compute_volume(stock), stock.number_of_faces(), stock.is_closed()) << std::endl;
-
-    const Mesh& carved = column->model_geometry_mesh();
-    const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    std::cout << fmt::format("carved  volume {:.6f} faces {} closed {} in {:.1f} ms", compute_volume(carved), carved.number_of_faces(), carved.is_closed(), ms) << std::endl;
-
-    session.pb_dump(pb_path("live"));
+    wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(3000.0, 3000.0));
+    floor.add_column(0);
+    floor.pb_dump(pb_path("live"));
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the timber floor: the support of corner 0, a Sherpa Power Base L 140 C from its datasheet, and the 220 square column standing on it from the support's head plate to the floor at 3500, with the head 120 wider on the two bay sides over the top 730. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0 carve the head down to the outer rib bottoms. Prints the floor's report and the volumes of the support, the stock and the carved column.
+Step 2 of the timber floor: the support of corner 0, a Sherpa Power Base L 140 C from its datasheet, and the 220 square column standing on it from the support's head plate to the floor at 3500, with the head 120 wider on the two bay sides over the top 730. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0 carve the head down to the outer rib bottoms.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

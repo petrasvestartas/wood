@@ -212,7 +212,7 @@ static void check_screw(const wood_session::WoodSession& session, const wood_ses
     }
 }
 
-ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& floor, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws) {
+ScrewCheck check_screws(const wood_session::WoodSession& session, const FloorGuide& guide, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws) {
 
     ScrewCheck check;
     std::vector<std::pair<Line, double>> bores;
@@ -221,10 +221,10 @@ ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& f
     collect(session, bores, solids);
     std::vector<std::string> drilled_from;
 
-    for (const Relationship& row : relationships(floor))
+    for (const Relationship& row : relationships(guide))
         if (!row.screws.empty() && drilled_from.size() < screws.size()) {
             check.counts[row.kind] += screws[drilled_from.size()]->drill_lines.size();
-            drilled_from.push_back(row.kind == Relation::screw_rib_beam && floor.sizes.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
+            drilled_from.push_back(row.kind == Relation::screw_rib_beam && guide.parameters.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
         }
 
     for (size_t c = 0; c < screws.size(); c++) {

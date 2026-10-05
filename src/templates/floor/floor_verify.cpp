@@ -84,12 +84,12 @@ static std::string disagreement(const Relationship& row, const wood_session::Int
     return "";
 }
 
-ContactCheck verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance, const std::vector<Relation>& kinds) {
+ContactCheck verify_contacts(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, double tolerance, const std::vector<Relation>& kinds) {
 
     ContactCheck check;
     std::vector<ContactMismatch>& mismatches = check.mismatches;
 
-    for (const Relationship& row : relationships(floor)) {
+    for (const Relationship& row : relationships(guide)) {
         if (row.contact.point_count() == 0 || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
             continue;
 

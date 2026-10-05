@@ -81,6 +81,18 @@ public:
     /// A dataset name (`data/<name>.yml`) or a .yml path: its solver keys become the scene's settings, the obj it names its plates, its sidecars the adjacency, three-valence groups, insertion vectors and joint types.
     static WoodSession yaml_load(const std::filesystem::path& path);
 
+    /// Session::jsonload, the elements and interactions as their wood types.
+    static WoodSession jsonload(const nlohmann::json& data);
+
+    /// Session::file_json_loads as a WoodSession.
+    static WoodSession file_json_loads(const std::string& json_string);
+
+    /// Session::file_json_load as a WoodSession.
+    static WoodSession file_json_load(const std::string& filename);
+
+    /// Session::from_proto as a WoodSession; the settings live only in the wood_proto bytes pb_loads reads.
+    static WoodSession from_proto(const session_proto::Session& proto);
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Operators
     // ═══════════════════════════════════════════════════════════════════════════
@@ -107,6 +119,18 @@ public:
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
     void compute_lines_contacts(double tolerance = -1.0) { compute_line_contacts(tolerance); }
+
+    using Session::merge;
+    using Session::graft;
+
+    /// Session::merge, and other's plate adjacency and three-valence groups appended with their plate positions moved past this session's plates.
+    void merge(const WoodSession& other);
+
+    /// Session::graft, the adjacency and three-valence groups appended as merge appends them.
+    void graft(const WoodSession& other, std::shared_ptr<session_cpp::TreeNode> parent);
+
+    /// Session::get_branch as a WoodSession: the same settings, and the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates.
+    WoodSession get_branch(const std::string& name) const;
 
     /// Adds the joint to the scene when it is not yet in it and cuts it into its targets: a plate joint merges its features, a beam joint hosts its feature volumes, a connector nests its parts and dowels as child elements of its node and stores its cutters and drills as solid cuts, any other joint its own solid or planes.
     void add_joint(const std::shared_ptr<Joint>& joint, bool merge = true);

@@ -69,7 +69,7 @@ std::vector<Outline> Quarter::outer_ribs() const {
 std::array<Plane, 2> Quarter::rib_seam_ends() const {
 
     const ConstructionPlanes& cp = geometry().planes;
-    const size_t face = sizes().seam_through_ribs ? 1 : 0;
+    const size_t face = parameters().seam_through_ribs ? 1 : 0;
 
     return {cp.inner_beams[0][face], cp.inner_beams[2][face]};
 }
@@ -94,8 +94,8 @@ std::vector<Outline> Quarter::inner_beams() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const Plane side0 = level(0.0);
-    const Plane side1 = level(floor.soffit);
-    const size_t face = sizes().seam_through_ribs ? 0 : 1;
+    const Plane side1 = level(guide.soffit);
+    const size_t face = parameters().seam_through_ribs ? 0 : 1;
 
     return {
         loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
@@ -104,7 +104,7 @@ std::vector<Outline> Quarter::inner_beams() const {
     };
 }
 
-std::vector<Outline> Quarter::wedges_inner_beams() const {
+std::vector<Outline> Quarter::wedges() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<Plane>& beds = geometry().bed_top_planes;
@@ -165,7 +165,7 @@ std::vector<Outline> Quarter::tsections() const {
     const CentralPanel& panel = geometry().central_panel;
     const Vector outer0 = cp.outer_ribs[0][0].z_axis();
     const Vector outer1 = cp.outer_ribs[1][0].z_axis();
-    const std::vector<std::array<Plane, 2>>& ts = cp.t_sections;
+    const std::vector<std::array<Plane, 2>>& ts = cp.tsections;
 
     return {
         outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0]),
@@ -177,10 +177,10 @@ std::vector<Outline> Quarter::tsections() const {
         ),
         tsection(
             panel.traces[1][0], panel.traces[1][1], cp.inner_beams[1][1], cp.wedges[1][0],
-            Xform::project_to_plane_by_axis(ts[4][1], panel.rib_sweep),
-            Xform::project_to_plane_by_axis(ts[4][1], panel.ruling)
+            Xform::project_to_plane_by_axis(ts[3][1], panel.rib_sweep),
+            Xform::project_to_plane_by_axis(ts[3][1], panel.ruling)
         ),
-        outer_tsection(pb[1], ts[3], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
+        outer_tsection(pb[1], ts[4], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
         outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0]),
     };
 }
@@ -231,12 +231,12 @@ std::vector<std::vector<Outline>> Quarter::beds() const {
 // Oculus
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Outline> Floor::oculus() const {
+std::vector<Outline> FloorGuide::oculus() const {
 
     const Plane side0 = level(0.0);
-    const Plane side1 = level(soffit + sizes.tsections);
+    const Plane side1 = level(soffit + parameters.tsections);
     const Plane side2 = level(soffit);
-    const Plane side3 = level(soffit + sizes.tsections * 2.0);
+    const Plane side3 = level(soffit + parameters.tsections * 2.0);
 
     std::vector<Plane> tilted;
     std::vector<Plane> inner;
@@ -252,7 +252,7 @@ std::vector<Outline> Floor::oculus() const {
         plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 
     for (size_t i = 0; i < 4; i++) {
-        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-sizes.tsections), inner[(i + 3) % 4].translate_by_normal(-sizes.tsections)};
+        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-parameters.tsections), inner[(i + 3) % 4].translate_by_normal(-parameters.tsections)};
         plates.push_back(loft_planes(sides, side2, side1));
     }
 
