@@ -5,6 +5,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+const bool SEAM_THROUGH_RIBS = true; // run the seam beams on through the outer rib band to the bay's outer face, the ribs ending on them, instead of the ties
 const bool BREPS = true; // write every cut member, connector part and dowel as its BRep, the dowel and screw bores exact cylinders, instead of its mesh
 
 /// Prints every dowel set by quarter: its two members, dowel count and length.
@@ -24,7 +25,9 @@ void print_dowels(const wood_floor::Floor& floor, const std::vector<std::shared_
 /// The square floor.
 int main() {
 
-    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    wood_floor::FloorSizes sizes;
+    sizes.seam_through_ribs = SEAM_THROUGH_RIBS;
+    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), sizes);
     std::cout << model.check().str() << std::endl;
     WoodSession session("templates_floor_7_contacts_cantilevers");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");

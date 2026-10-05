@@ -5,6 +5,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+const bool SEAM_THROUGH_RIBS = false; // run the seam beams on through the outer rib band to the bay's outer face, the ribs ending on them, instead of the ties
 const bool BREPS = true; // write every cut member, connector part and dowel as its BRep, the dowel and screw bores exact cylinders, instead of its mesh
 const double HALF_X = 3000.0; // half span along x: the bay is 6000 long
 const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
@@ -23,7 +24,9 @@ size_t count_dowels(const std::vector<std::shared_ptr<JointBeam>>& connectors) {
 /// The rectangular bay.
 int main() {
 
-    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(HALF_X, HALF_Y), wood_floor::FloorSizes{});
+    wood_floor::FloorSizes sizes;
+    sizes.seam_through_ribs = SEAM_THROUGH_RIBS;
+    const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(HALF_X, HALF_Y), sizes);
     
     std::cout << model.check().str() << std::endl;
     WoodSession session("templates_floor_8_rectangle");

@@ -68,8 +68,8 @@ face is cut in its end plane on each rib face (R4). The central panel follows ru
 is solved so that the first inner rib's central trace projects onto the second rib's with the
 right span, and one rib sweep r is solved so the start points match; this reduces exactly to c on
 the square and closes to 1e-13 on every rectangle probed, keeps every face planar and needs no
-kernel change. Connectors are generated from the relationships the Floor states (76 rows: 48
-connectors, 4 supports, 24 cutters), with the contact search kept as a verification pass and a
+kernel change. Connectors are generated from the relationships the Floor states (52 rows: 48
+connectors and 4 supports; the 24 column head cutters are cut features of the columns since 2026-10-05), with the contact search kept as a verification pass and a
 `FloorReport` of the relations compas_tf relied on silently. On the square the model is compas_tf's
 floor except the central row (bed row 1, the tops of flanges 2b / 3a, bed plane 1, block 1), which
 the fixed rule moves by up to 2.9 / 5.8 mm (4.4), and the middle cutter level, 0.243 mm lower (R8):
@@ -535,7 +535,7 @@ FloorPlan (corners, oculus, rule)    FloorSizes (fixed)
             |                 |                      |
             v                 v                      v
       quarter(q)         oculus()               relationships()  ->  add_connectors / verify_contacts
-      (a view)           (ring from the            (76 rows)
+      (a view)           (ring from the            (52 rows)
             |             four edges)
             v
    const references into geometry[q] -> members (outlines) -> elements -> scene
@@ -992,8 +992,8 @@ corner k lies on planes k and k+1 (`floor_geometry.cpp:163-186`); a rib's top ou
 | support q | support q, column q | the column axis | - | - | `Joint::support` | 4 | `example_model_2:48-50`; `support.py:177` |
 | cutter (q, 0..5) | column q, cutter plate | `wedge_fan`, `sides`, `levels` | - | difference | `Joint` solid difference | 24 | `:338-360`; `example_model_2:46` |
 
-Totals: 44 contact relationships, 48 connectors (with the 4 cross laps), 76 rows with the supports
-and cutters. `add_connectors` iterates `relationships()` in this order and keeps today's names
+Totals: 44 contact relationships, 48 connectors (with the 4 cross laps), 52 rows with the supports;
+the cutter rows above are gone, the head cutters being cut features of the columns. `add_connectors` iterates `relationships()` in this order and keeps today's names
 (`connector_wedge_k`, `connector_k`, `outer_rib_connector_k`, `connector_dowels_k`,
 `connector_cross_lap_k`). Pockets of wedges, dowels and ties are assigned by the side of the contact
 normal (`wood_element_joint_beam.cpp:239-243`, `379`, `439`), so their geometry is
@@ -1010,7 +1010,7 @@ counts with mirrored plates). The search is kept only as this check: when geomet
 the constructed contact still exists and the mismatch is reported instead of a connector silently
 vanishing.
 
-Every connector is drawn red: `add_connectors` sets `CONNECTOR_COLOR` (`Color::red()`) on the
+Every connector is drawn dark grey: `add_connectors` sets `CONNECTOR_COLOR` (0.3 grey) on the
 connector's tree node and on every part and dowel node nested under it (`Session::set_node_color`),
 and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
 rather than on a group, because no viewer reads a group's colour for the objects under it.
@@ -1259,7 +1259,7 @@ entry). Example numbers are those of the time.
 * Step 3, `1df0b60`: the ring from the four oculus edges; G1 byte-identical without `oculus/*`, those
   at 1e-9; G2, G4.
 * Step 4, `5a3bfda`: columns per `ColumnCorner`; G3, G5.
-* Step 5, `e448bd7`: `relationships()` (76 rows), `add_connectors`, `verify_contacts` (44 / 44),
+* Step 5, `e448bd7`: `relationships()` (52 rows), `add_connectors`, `verify_contacts` (44 / 44),
   `require_contact`; G4-G7. Deviation: the wedge dowels are numbered along the contact as compas_tf
   numbers them, so `connector_wedge_k_cylinder_j` is the step-0 `_cylinder_{n-1-j}` (the same set).
 * Step 6, `249591d`: rule A (`CentralPanel`: the shared rib sweep r found by a scan and bisection of

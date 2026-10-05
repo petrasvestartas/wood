@@ -9,9 +9,9 @@ using namespace wood_floor::geometry;
 
 const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges_inner_beams", "tsections", "beds"}; // the group each quarter family is named after, in Family order
 
-/// A ring, column, support or cutter reference; a cutter belongs to the quarter whose planes it carves.
-static MemberRef shared_member(Family family, size_t index, int quarter = -1) {
-    return MemberRef{quarter, family, index, -1};
+/// A ring, column or support reference.
+static MemberRef shared_member(Family family, size_t index) {
+    return MemberRef{-1, family, index, -1};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,9 +29,6 @@ std::string MemberRef::name() const {
     if (family == Family::support)
         return fmt::format("support_{}", index);
 
-    if (family == Family::cutter)
-        return fmt::format("column_cutter_{}_{}", index, quarter);
-
     if (family == Family::beds)
         return fmt::format("beds_{}_{}_{}", row, index, quarter);
 
@@ -44,7 +41,7 @@ double Relationship::area() const {
 
 std::string relation_name(Relation kind) {
 
-    const std::array<std::string, 13> kinds = {"support", "cutter", "column_plate", "cross_lap", "seam_tie", "seam_wedge", "oculus_wedge", "block_dowels", "screw_rib_beam", "screw_beam_mitre", "screw_rib_corner", "screw_ring", "screw_oculus"};
+    const std::array<std::string, 12> kinds = {"support", "column_plate", "cross_lap", "seam_tie", "seam_wedge", "oculus_wedge", "block_dowels", "screw_rib_beam", "screw_beam_mitre", "screw_rib_corner", "screw_ring", "screw_oculus"};
 
     return kinds[static_cast<size_t>(kind)];
 }
@@ -55,7 +52,7 @@ std::string Relationship::text() const {
 
 Place Relationship::place() const {
 
-    if (kind == Relation::column_plate || kind == Relation::cross_lap || kind == Relation::support || kind == Relation::cutter)
+    if (kind == Relation::column_plate || kind == Relation::cross_lap || kind == Relation::support)
         return Place::column;
 
     if (kind == Relation::seam_wedge || kind == Relation::seam_tie)
@@ -71,7 +68,7 @@ Place Relationship::place() const {
 // Relationships
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The seam wedge of seam q: inner beam 0 of q and inner beam 2 of q + 1 on the seam plane, the contact beam 0's loop on it.
+/// The seam wedge of seam q: inner beam 0 of q and inner beam 2 of q + 1 on the seam plane, the contact beam 0's loop on it; run on to the bay's outer face when the beams run through the rib band.
 static Relationship seam_wedge(const Floor& floor, size_t q) {
 
     const double lift = floor.sizes.bay_height;
@@ -83,6 +80,9 @@ static Relationship seam_wedge(const Floor& floor, size_t q) {
     row.contact = lifted(open_points(floor.quarter(q).inner_beams()[0].bottom), lift);
     row.type = wood_session::ContactType::side_side;
     row.seam_or_corner = q;
+
+    if (floor.sizes.seam_through_ribs)
+        row.end = lifted(floor.edges[q].band[0], lift);
 
     return row;
 }
@@ -186,22 +186,6 @@ static Relationship support(const Floor& floor, size_t q) {
     return row;
 }
 
-/// Cutter j of corner q on its column: the cutter quad lifted to the floor.
-static Relationship cutter(const Floor& floor, size_t q, size_t j, const Outline& outline) {
-
-    const double lift = floor.sizes.bay_height;
-    const std::vector<Point> quad = open_points(outline.top);
-    Relationship row;
-    row.kind = Relation::cutter;
-    row.a = shared_member(Family::column, q);
-    row.b = shared_member(Family::cutter, j, static_cast<int>(q));
-    row.plane = lifted(Plane::from_point_normal(quad[0], wood_session::compute_newell(quad)), lift);
-    row.contact = lifted(quad, lift);
-    row.seam_or_corner = q;
-
-    return row;
-}
-
 std::vector<Relationship> relationships(const Floor& floor) {
 
     std::vector<Relationship> rows;
@@ -219,7 +203,7 @@ std::vector<Relationship> relationships(const Floor& floor) {
     for (size_t q = 0; q < 4; q++)
         rows.push_back(cross_lap(q));
 
-    for (size_t q = 0; q < 4; q++)
+    for (size_t q = 0; q < 4 && !floor.sizes.seam_through_ribs; q++)
         rows.push_back(seam_tie(floor, q));
 
     for (size_t q = 0; q < 4; q++) {
@@ -233,13 +217,6 @@ std::vector<Relationship> relationships(const Floor& floor) {
 
     for (size_t q = 0; q < 4; q++)
         rows.push_back(support(floor, q));
-
-    for (size_t q = 0; q < 4; q++) {
-        const std::vector<Outline> cutters = floor.quarter(q).column_cutters();
-
-        for (size_t j = 0; j < cutters.size(); j++)
-            rows.push_back(cutter(floor, q, j, cutters[j]));
-    }
 
     for (const Relationship& row : screw_relationships(floor))
         rows.push_back(row);

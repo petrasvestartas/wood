@@ -12,6 +12,8 @@ class InteractionContactFace;
 /// A joint between beams: either a beam-to-beam joint carrying the feature volumes detection found, or a connector, a part of its own with cutters per target and dowels, nested in the tree as one child element per part and per dowel.
 class JointBeam : public Joint {
 public:
+    static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.
+
     InteractionFeatureBeam feature; // The beam-to-beam feature: the four volume rectangles of the male and female corners; empty for a connector.
     std::vector<std::array<session_cpp::Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
@@ -37,18 +39,19 @@ public:
     /// A beam-to-beam joint on the axis contact of two beams; null when none fits.
     static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0);
 
-    /// The wedge connector of compas_tf ConnectorWedgeElement on the face contact of two members: a prism of the profile along the contact's top edge with horizontal dowels, and a pocket in each member.
+    /// The wedge connector on the face contact of two members: a prism of the profile along the contact's top edge, cut flush with its level, with horizontal dowels, and a pocket in each member; an end plane takes the wedge's nearer end onto it, flush.
     static std::shared_ptr<JointBeam> wedge(
         const session_cpp::Element& a,
         const session_cpp::Element& b,
         const InteractionContactFace& contact,
         double length_margin,
         double pocket_depth,
+        const std::optional<session_cpp::Plane>& end = std::nullopt,
         double dowel_radius = 10.0,
         double dowel_spacing = 320.0,
         int dowel_sides = 8,
         double overshoot = 20.0,
-        const std::array<std::array<double, 2>, 3>& profile = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}},
+        const std::array<std::array<double, 2>, 3>& profile = WEDGE_PROFILE,
         const std::array<double, 2>& dowel_offset = {80.0, -100.0}
     );
 

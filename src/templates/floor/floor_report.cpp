@@ -68,8 +68,8 @@ static double end_face_planarity(const Quarter& quarter) {
     const std::vector<Outline> inner = quarter.inner_ribs();
 
     return std::max({
-        end_face_offset(outer[0], cp.wedges[0][0], cp.inner_beams[0][0]),
-        end_face_offset(outer[1], cp.wedges[2][0], cp.inner_beams[2][0]),
+        end_face_offset(outer[0], cp.wedges[0][0], quarter.rib_seam_ends()[0]),
+        end_face_offset(outer[1], cp.wedges[2][0], quarter.rib_seam_ends()[1]),
         end_face_offset(inner[0], cp.wedges[1][0], cp.inner_beams[1][1]),
         end_face_offset(inner[1], cp.wedges[1][0], cp.inner_beams[1][1]),
     });

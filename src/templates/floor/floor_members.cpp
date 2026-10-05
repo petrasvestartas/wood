@@ -58,11 +58,20 @@ std::vector<Outline> Quarter::outer_ribs() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const std::vector<std::array<Polyline, 3>>& parabolas = geometry().parabolas;
+    const std::array<Plane, 2> ends = rib_seam_ends();
 
     return {
-        rib(parabolas[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis(), cp.wedges[0][0], cp.inner_beams[0][0], false),
-        rib(parabolas[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis(), cp.wedges[2][0], cp.inner_beams[2][0], false),
+        rib(parabolas[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis(), cp.wedges[0][0], ends[0], false),
+        rib(parabolas[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis(), cp.wedges[2][0], ends[1], false),
     };
+}
+
+std::array<Plane, 2> Quarter::rib_seam_ends() const {
+
+    const ConstructionPlanes& cp = geometry().planes;
+    const size_t face = sizes().seam_through_ribs ? 1 : 0;
+
+    return {cp.inner_beams[0][face], cp.inner_beams[2][face]};
 }
 
 std::vector<Outline> Quarter::inner_ribs() const {
@@ -85,12 +94,13 @@ std::vector<Outline> Quarter::inner_beams() const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-sizes().static_h());
+    const Plane side1 = level(floor.soffit);
+    const size_t face = sizes().seam_through_ribs ? 0 : 1;
 
     return {
-        loft_planes({cp.outer_ribs[0][1], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
+        loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
         loft_planes({cp.inner_beams[0][1], side0, cp.inner_beams[2][1], side1}, cp.inner_beams[1][0], cp.inner_beams[1][1]),
-        loft_planes({cp.outer_ribs[1][1], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1]),
+        loft_planes({cp.outer_ribs[1][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1]),
     };
 }
 
@@ -224,9 +234,9 @@ std::vector<std::vector<Outline>> Quarter::beds() const {
 std::vector<Outline> Floor::oculus() const {
 
     const Plane side0 = level(0.0);
-    const Plane side1 = level(-sizes.static_h() + sizes.tsections);
-    const Plane side2 = level(-sizes.static_h());
-    const Plane side3 = level(-sizes.static_h() + sizes.tsections * 2.0);
+    const Plane side1 = level(soffit + sizes.tsections);
+    const Plane side2 = level(soffit);
+    const Plane side3 = level(soffit + sizes.tsections * 2.0);
 
     std::vector<Plane> tilted;
     std::vector<Plane> inner;

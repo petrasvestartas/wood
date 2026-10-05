@@ -89,20 +89,19 @@ std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, cons
     return column;
 }
 
-std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const Quarter& quarter, const wood_session::Column& column) {
+std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter) {
 
     const Xform lift = Xform::translation(0.0, 0.0, quarter.sizes().bay_height);
-    std::vector<std::shared_ptr<wood_session::Joint>> cutters;
+    std::vector<wood_session::SolidCut> cuts;
 
     for (const Outline& outline : quarter.column_cutters()) {
-        const Mesh solid = to_plate(outline, "column_cutter")->element_geometry_mesh().transformed(lift);
-        std::shared_ptr<wood_session::Joint> cutter = std::make_shared<wood_session::Joint>(solid, wood_session::SolidOperation::difference);
-        cutter->name = "column_cutter";
-        cutter->targets = {column.guid()};
-        cutters.push_back(cutter);
+        wood_session::SolidCut cut;
+        cut.mesh = to_plate(outline, "column_cutter")->element_geometry_mesh().transformed(lift);
+        cut.operation = wood_session::SolidOperation::difference;
+        cuts.push_back(cut);
     }
 
-    return cutters;
+    return cuts;
 }
 
 double outline_thickness(const Outline& outline) {

@@ -18,6 +18,7 @@ struct KeepOut {
     std::vector<std::array<Point, 3>> triangles; // Its faces fanned into triangles.
     AABB box; // Its box, inflated by NEAR.
     std::optional<std::vector<wood_session::PlanarFace>> within; // For a cutter, its target's solid faces: only the screw's points inside the target meet the pocket.
+    std::vector<std::string> targets; // The guids of the connector's members.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -133,11 +134,11 @@ static double solid_clearance(const Line& screw, double radius, const KeepOut& s
 // Check
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Every bore and every pocket or part of the connectors that are not screws: the bores as lines run on by their overshoot, with their radius, each pocket within its target.
+/// Every bore and every pocket or part of the connectors that are not screws, each part once from its connector, not again from its part child: the bores as lines run on by their overshoot, with their radius, each pocket within its target.
 static void collect(const wood_session::WoodSession& session, std::vector<std::pair<Line, double>>& bores, std::vector<KeepOut>& solids) {
 
     for (const std::shared_ptr<wood_session::JointBeam>& connector : session.get_elements<wood_session::JointBeam>()) {
-        if (connector->pre_drill)
+        if (connector->pre_drill || std::dynamic_pointer_cast<wood_session::ConnectorPart>(connector))
             continue;
 
         for (const Line& dowel : connector->drill_lines) {
@@ -145,8 +146,10 @@ static void collect(const wood_session::WoodSession& session, std::vector<std::p
             bores.push_back({Line::from_points(dowel.start() - d, dowel.end() + d), connector->line_radius});
         }
 
-        for (size_t i = 0; i < connector->parts.size(); i++)
+        for (size_t i = 0; i < connector->parts.size(); i++) {
             solids.push_back(keep_out(connector->name, connector->part_mesh(i)));
+            solids.back().targets = connector->targets;
+        }
 
         for (size_t side = 0; side < connector->cutters.size() && side < connector->targets.size(); side++) {
             const std::vector<wood_session::PlanarFace> target = wood_session::planar_faces(uncut(*session.get_element<Element>(connector->targets[side]))->element_geometry_mesh());
@@ -154,6 +157,7 @@ static void collect(const wood_session::WoodSession& session, std::vector<std::p
             for (const std::array<Polyline, 2>& cutter : connector->cutters[side]) {
                 solids.push_back(keep_out(connector->name, Mesh::loft({cutter[0]}, {cutter[1]}, true)));
                 solids.back().within = target;
+                solids.back().targets = connector->targets;
             }
         }
     }
@@ -175,8 +179,8 @@ static std::vector<double> held(const wood_session::WoodSession& session, const 
     return lengths;
 }
 
-/// Measures one screw against the other screws after it, the bores and the solids, and how its members hold it.
-static void check_screw(const wood_session::WoodSession& session, const wood_session::JointBeam& connector, size_t index, const std::vector<std::pair<Line, double>>& bores, const std::vector<KeepOut>& solids, ScrewCheck& check) {
+/// Measures one screw against the other screws after it, the bores and the solids, and how its members hold it; a screw drilled from a seam face before the wedge goes in, its member drilled_from, may cross the parts and pockets of the connectors on that member.
+static void check_screw(const wood_session::WoodSession& session, const wood_session::JointBeam& connector, size_t index, const std::vector<std::pair<Line, double>>& bores, const std::vector<KeepOut>& solids, const std::string& drilled_from, ScrewCheck& check) {
 
     const Line& screw = connector.drill_lines[index];
     const std::string name = fmt::format("{} screw {}", connector.name, index);
@@ -197,6 +201,9 @@ static void check_screw(const wood_session::WoodSession& session, const wood_ses
     }
 
     for (const KeepOut& solid : solids) {
+        if (!drilled_from.empty() && std::find(solid.targets.begin(), solid.targets.end(), drilled_from) != solid.targets.end())
+            continue;
+
         const double clearance = solid_clearance(screw, connector.line_radius, solid);
         check.screw_pocket_mm = std::min(check.screw_pocket_mm, clearance);
 
@@ -212,17 +219,22 @@ ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& f
     std::vector<KeepOut> solids;
     std::vector<std::pair<std::string, Line>> all;
     collect(session, bores, solids);
-    size_t next = 0;
+    std::vector<std::string> drilled_from;
 
     for (const Relationship& row : relationships(floor))
-        if (!row.screws.empty() && next < screws.size())
-            check.counts[row.kind] += screws[next++]->drill_lines.size();
-
-    for (const std::shared_ptr<wood_session::JointBeam>& connector : screws)
-        for (size_t i = 0; i < connector->drill_lines.size(); i++) {
-            check_screw(session, *connector, i, bores, solids, check);
-            all.push_back({fmt::format("{} screw {}", connector->name, i), connector->drill_lines[i]});
+        if (!row.screws.empty() && drilled_from.size() < screws.size()) {
+            check.counts[row.kind] += screws[drilled_from.size()]->drill_lines.size();
+            drilled_from.push_back(row.kind == Relation::screw_rib_beam && floor.sizes.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
         }
+
+    for (size_t c = 0; c < screws.size(); c++) {
+        const wood_session::JointBeam& connector = *screws[c];
+
+        for (size_t i = 0; i < connector.drill_lines.size(); i++) {
+            check_screw(session, connector, i, bores, solids, drilled_from[c], check);
+            all.push_back({fmt::format("{} screw {}", connector.name, i), connector.drill_lines[i]});
+        }
+    }
 
     for (size_t i = 0; i < all.size(); i++)
         for (size_t j = i + 1; j < all.size(); j++) {

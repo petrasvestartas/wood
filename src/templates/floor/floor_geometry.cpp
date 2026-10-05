@@ -122,6 +122,18 @@ double signed_distance(const Point& point, const Plane& plane) {
     return (point - plane.origin()).dot(plane.z_axis());
 }
 
+double end_level(const Outline& outline, const Plane& end) {
+
+    double level = 0.0;
+
+    for (const Polyline& loop : {outline.top, outline.bottom})
+        for (const Point& point : loop.get_points())
+            if (std::abs(signed_distance(point, end)) <= 1e-6)
+                level = std::min(level, point[2]);
+
+    return level;
+}
+
 Point area_centroid(const Polyline& polyline) {
 
     const std::vector<Point> points = open_points(polyline);

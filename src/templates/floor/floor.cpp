@@ -427,6 +427,17 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes) : plan(
 
     for (size_t q = 0; q < 4; q++)
         columns[q].levels[1] = rib_bottom_level(quarter(q));
+
+    soffit = -sizes.static_h();
+
+    for (size_t q = 0; q < 4; q++) {
+        const Quarter view = quarter(q);
+        const std::vector<Outline> outer = view.outer_ribs();
+        const std::vector<Outline> inner = view.inner_ribs();
+
+        for (size_t k = 0; k < 2; k++)
+            soffit = std::min({soffit, end_level(outer[k], view.rib_seam_ends()[k]), end_level(inner[k], geometry[q].planes.inner_beams[1][1])});
+    }
 }
 
 Quarter Floor::quarter(size_t q) const {

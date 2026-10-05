@@ -51,6 +51,9 @@ std::vector<session_cpp::Point> open_points(const session_cpp::Polyline& polylin
 /// The signed distance of a point from a plane, positive on the normal side.
 double signed_distance(const session_cpp::Point& point, const session_cpp::Plane& plane);
 
+/// The lowest corner of a member outline on a plane it ends on, at most 0.
+double end_level(const Outline& outline, const session_cpp::Plane& end);
+
 /// The area centroid of a closed planar polyline.
 session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
 

@@ -152,6 +152,27 @@ static Line flush_dowel(const Line& dowel, const std::vector<const Element*>& me
     return Line::from_points(low > 0.0 ? dowel.start() + d * low : dowel.start(), high < length ? dowel.start() + d * high : dowel.end());
 }
 
+/// The profile cut horizontally at the frame's origin: its corners at or below that level and where its sides cross it, so a profile turned with a tilted frame still ends flush with the level of the contact's top edge.
+static std::vector<std::array<double, 2>> below_top(const std::array<std::array<double, 2>, 3>& profile, const std::array<Vector, 3>& axes) {
+
+    std::vector<std::array<double, 2>> corners;
+
+    for (size_t i = 0; i < profile.size(); i++) {
+        const std::array<double, 2>& a = profile[i];
+        const std::array<double, 2>& b = profile[(i + 1) % profile.size()];
+        const double ha = a[0] * axes[1][2] + a[1] * axes[2][2];
+        const double hb = b[0] * axes[1][2] + b[1] * axes[2][2];
+
+        if (ha <= 0.0)
+            corners.push_back(a);
+
+        if ((ha > 0.0) != (hb > 0.0))
+            corners.push_back({a[0] + (b[0] - a[0]) * (ha / (ha - hb)), a[1] + (b[1] - a[1]) * (ha / (ha - hb))});
+    }
+
+    return corners;
+}
+
 /// The pocket under one slanted wedge face p0-p1: the face rectangle over the wedge length and the same rectangle pocket_depth into the member, compas_tf inclined_face_box_outlines.
 static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::array<Vector, 3>& axes, const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& middle, double length, double depth) {
 
@@ -189,8 +210,8 @@ static std::array<Polyline, 2> wedge_pocket(const Point& origin, const std::arra
     return {Polyline(face).closed(), Polyline(deep).closed()};
 }
 
-/// The wedge: a prism of the profile, apex down, along the contact's top edge, shortened by length_margin at both ends, dowels every dowel_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
-std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, double dowel_radius, double dowel_spacing, int dowel_sides, double overshoot, const std::array<std::array<double, 2>, 3>& profile, const std::array<double, 2>& dowel_offset) {
+/// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, dowels every dowel_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
+std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, const std::optional<Plane>& end, double dowel_radius, double dowel_spacing, int dowel_sides, double overshoot, const std::array<std::array<double, 2>, 3>& profile, const std::array<double, 2>& dowel_offset) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
     const Line edge = top_edge(points);
@@ -198,8 +219,21 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
     const Vector x = edge.to_vector().normalized();
     const Vector y = (normal - x * normal.dot(x)).normalized();
     const std::array<Vector, 3> axes = {x, y, x.cross(y)};
-    const Point origin = edge.center();
-    const double length = std::max(edge.length() - 2.0 * length_margin, 1e-6);
+    std::array<double, 2> stations = {-0.5 * edge.length() + length_margin, 0.5 * edge.length() - length_margin};
+
+    if (end) {
+        Point hit;
+        Intersection::line_plane(Line::from_points(edge.center(), edge.center() + x), *end, hit, false);
+        const double station = (hit - edge.center()).dot(x);
+
+        if (std::abs(station - stations[0]) < std::abs(station - stations[1]))
+            stations[0] = station;
+        else
+            stations[1] = station;
+    }
+
+    const Point origin = edge.center() + x * (0.5 * (stations[0] + stations[1]));
+    const double length = std::max(end ? stations[1] - stations[0] : edge.length() - 2.0 * length_margin, 1e-6);
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "wedge";
@@ -208,7 +242,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(const Element& a, const Element& b, 
 
     std::array<std::vector<Point>, 2> ends;
 
-    for (const std::array<double, 2>& corner : profile) {
+    for (const std::array<double, 2>& corner : below_top(profile, axes)) {
         ends[0].push_back(frame_point(origin, axes, -0.5 * length, corner[0], corner[1]));
         ends[1].push_back(frame_point(origin, axes, 0.5 * length, corner[0], corner[1]));
     }

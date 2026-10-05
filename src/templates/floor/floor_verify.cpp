@@ -90,7 +90,7 @@ ContactCheck verify_contacts(wood_session::WoodSession& session, const Floor& fl
     std::vector<ContactMismatch>& mismatches = check.mismatches;
 
     for (const Relationship& row : relationships(floor)) {
-        if (row.contact.point_count() == 0 || row.kind == Relation::cutter || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
+        if (row.contact.point_count() == 0 || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
             continue;
 
         check.count++;

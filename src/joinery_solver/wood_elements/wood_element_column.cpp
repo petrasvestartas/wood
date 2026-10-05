@@ -275,6 +275,24 @@ void Column::compute_geometry_brep_impl() {
     compute_geometry_features();
 }
 
+/// A solid cut of the column's own, not a joint's, as a cut feature: the loop of every face of its solid.
+static ElementFeature cut_feature(const Mesh& solid) {
+
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> mesh = solid.to_vertices_and_faces();
+    std::vector<Polyline> loops;
+
+    for (const std::vector<size_t>& face : mesh.second) {
+        std::vector<Point> points;
+
+        for (size_t vertex : face)
+            points.push_back(mesh.first[vertex]);
+
+        loops.push_back(Polyline(points).closed());
+    }
+
+    return ElementFeature("cut", -1, loops, "cut");
+}
+
 void Column::compute_geometry_features() {
 
     std::vector<Polyline> ends;
@@ -288,6 +306,10 @@ void Column::compute_geometry_features() {
 
     if (!trimmed.second.empty() && trimmed.second.front().point_count() > 0)
         next.push_back(polyline_feature("section", trimmed.second.front()));
+
+    for (const SolidCut& cut : solid_cuts)
+        if (cut.joint_guid.empty() && cut.mesh.number_of_faces() > 0)
+            next.push_back(cut_feature(cut.mesh));
 
     for (ElementFeature& feature : session_features(*this))
         next.push_back(std::move(feature));

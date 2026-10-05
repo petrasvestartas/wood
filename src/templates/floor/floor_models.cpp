@@ -159,12 +159,11 @@ ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& fl
     const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*model.support, *model.column);
     session.add(joint, group);
     session.add_joint(joint);
-    model.cutters = to_column_cutters(floor.quarter(corner), *model.column);
 
-    for (const std::shared_ptr<wood_session::Joint>& cutter : model.cutters) {
-        session.add(cutter, group);
-        session.add_joint(cutter);
-    }
+    for (const wood_session::SolidCut& cut : column_cuts(floor.quarter(corner)))
+        model.column->solid_cuts.push_back(cut);
+
+    model.column->invalidate_geometry();
 
     return model;
 }
@@ -223,9 +222,6 @@ std::shared_ptr<Element> FloorMembers::get(const MemberRef& ref) const {
 
     if (ref.family == Family::support)
         return ref.index < columns.size() ? columns[ref.index].support : nullptr;
-
-    if (ref.family == Family::cutter)
-        return ref.quarter >= 0 && static_cast<size_t>(ref.quarter) < columns.size() && ref.index < columns[static_cast<size_t>(ref.quarter)].cutters.size() ? columns[static_cast<size_t>(ref.quarter)].cutters[ref.index] : nullptr;
 
     if (ref.quarter < 0 || ref.quarter > 3)
         return nullptr;
@@ -352,7 +348,7 @@ static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship&
 
     if (row.kind == Relation::seam_wedge || row.kind == Relation::oculus_wedge) {
         const double thickness = std::max(members.thickness(row.a), members.thickness(row.b));
-        return wood_session::JointBeam::wedge(*pair[0], *pair[1], contact, 1.5 * thickness, 2.0 * thickness / 3.0);
+        return wood_session::JointBeam::wedge(*pair[0], *pair[1], contact, 1.5 * thickness, 2.0 * thickness / 3.0, row.end);
     }
 
     if (row.kind == Relation::column_plate)
@@ -385,7 +381,7 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_sessio
     std::vector<std::shared_ptr<wood_session::JointBeam>> connectors;
 
     for (const Relationship& row : relationships(floor)) {
-        if (row.kind == Relation::support || row.kind == Relation::cutter || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
+        if (row.kind == Relation::support || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
             continue;
 
         std::shared_ptr<wood_session::JointBeam> connector;
