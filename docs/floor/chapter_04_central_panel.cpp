@@ -11,11 +11,7 @@ const double GRAZING = 1e-3; // As floor_panel.cpp's GRAZING, the smallest |n . 
 const double TRIAL = 10.0; // Degrees of the wrong trial sweep the closure frame shows.
 const Box PANEL_PLAN = {-3050.0, -3050.0, H - 700.0, 50.0, 50.0, H + 20.0}; // Quarter 0 in plan.
 const Box PANEL_3D = {-2850.0, -2850.0, H - 680.0, -20.0, -20.0, H + 20.0}; // The central panel in 3D.
-const std::array<Color, 3> SIDE_TINTS = {
-    Color(0.55f, 0.75f, 0.95f, 1.0f, "sides_true_true"),
-    Color(0.72f, 0.86f, 0.52f, 1.0f, "sides_true_false"),
-    Color(0.98f, 0.76f, 0.48f, 1.0f, "sides_false_false"),
-};
+const std::array<Color, 3> SIDE_TINTS = {RESULT, BUILT, RESULT}; // sides {true, true}, {true, false}, {false, false}: the panel's own pattern built, the outer two, where both ribs shift one way, set apart.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -183,18 +179,18 @@ void panel_inputs_outputs(const Context& context) {
     rib_bands(frame, context.guide);
 
     for (size_t k = 0; k < 2; k++) {
-        frame.polyline(up(shadow(geometry, k)), GREY, 3.0);
-        frame.polyline(up(panel.traces[k][0]), FAMILY_COLORS[1], 5.0);
-        frame.polyline(up(panel.traces[k][1]), FAMILY_COLORS[4], 2.0);
-        frame.polyline(up(panel.traces[k][2]), FAMILY_COLORS[5], 2.0);
+        frame.polyline(up(shadow(geometry, k)), INPUT, 3.0);
+        frame.polyline(up(panel.traces[k][0]), BUILT, 5.0);
+        frame.polyline(up(panel.traces[k][1]), BUILT, 2.0);
+        frame.polyline(up(panel.traces[k][2]), BUILT, 2.0);
     }
 
     const size_t last = panel.traces[0][0].point_count() - 1;
 
     for (const size_t i : {size_t(0), last / 2, last})
-        frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], i)), MARK, 3.0);
+        frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], i)), RESULT, 3.0);
 
-    frame.line(up(Line::from_points(shadow(geometry, 0).get_point(0), panel.traces[0][0].get_point(0))), MARK, 5.0, false, true);
+    frame.line(up(Line::from_points(shadow(geometry, 0).get_point(0), panel.traces[0][0].get_point(0))), VARIABLE, 5.0, false, true);
     frame.label("parabolas[2][0]", up(shadow(geometry, 0).get_point(2)));
     frame.label("parabolas[3][0]", up(shadow(geometry, 1).get_point(2)));
     frame.label("traces[0][0]", up(panel.traces[0][0].get_point(5)));
@@ -216,12 +212,12 @@ void reference_direction(const Context& context) {
     Frame frame(CHAPTER, 50, "reference", "reference = flat(normals[0] - normals[1]).normalized(): equally oblique to both central faces", "top", around({centre, centre + normals[0] * length, centre + normals[1] * length, centre - normals[1] * length, centre + ref * length * 1.2}, 70.0));
     rib_bands(frame, context.guide);
 
-    frame.line(up(Line::from_points(centre, centre + normals[0] * length)), FAMILY_COLORS[1], 3.0, false, true);
-    frame.line(up(Line::from_points(centre, centre + normals[1] * length)), FAMILY_COLORS[1], 3.0, false, true);
-    frame.line(up(Line::from_points(centre, centre - normals[1] * length * 0.8)), INK, 2.0, true, true);
-    frame.line(up(Line::from_points(centre, centre + ref * length * 1.2)), MARK, 5.0, false, true);
-    frame.polyline(up(arc(centre, ref, normals[0], radius)), INK, 2.0);
-    frame.polyline(up(arc(centre, ref, -normals[1], radius)), INK, 2.0);
+    frame.line(up(Line::from_points(centre, centre + normals[0] * length)), INPUT, 3.0, false, true);
+    frame.line(up(Line::from_points(centre, centre + normals[1] * length)), INPUT, 3.0, false, true);
+    frame.line(up(Line::from_points(centre, centre - normals[1] * length * 0.8)), INPUT, 2.0, true, true);
+    frame.line(up(Line::from_points(centre, centre + ref * length * 1.2)), BUILT, 5.0, false, true);
+    frame.polyline(up(arc(centre, ref, normals[0], radius)), VARIABLE, 2.0);
+    frame.polyline(up(arc(centre, ref, -normals[1], radius)), VARIABLE, 2.0);
 
     frame.label("normals[0]", up(centre + normals[0] * length));
     frame.label("normals[1]", up(centre + normals[1] * length));
@@ -247,17 +243,20 @@ void scan_fan(const Context& context) {
 
     Frame frame(CHAPTER, 51, "scan_fan", fmt::format("rib_sweep scans r = turned(reference, lo) for lo = -85 .. 84.5 in steps of 0.5: {} intervals", intervals), "top", around({centre}, 175.0));
     frame.polyline(up(Polyline(column.head).closed()), GREY, 2.0);
-    frame.polyline(up(Polyline::from_sides(72, radius, true).translated(centre - Point(0.0, 0.0, 0.0))), INK, 1.0);
+    frame.polyline(up(Polyline::from_sides(72, radius, true).translated(centre - Point(0.0, 0.0, 0.0))), GREY, 1.0);
 
-    for (double degrees = -SCAN_RANGE; degrees <= SCAN_RANGE + 1e-9; degrees += 10.0 * SCAN_STEP)
-        frame.line(up(Line::from_points(centre, centre + turned(ref, degrees) * radius)), INK, 1.0);
+    // The trial sweeps built, the two at -SCAN_RANGE and +SCAN_RANGE in the variable's colour.
+    for (double degrees = -SCAN_RANGE; degrees <= SCAN_RANGE + 1e-9; degrees += 10.0 * SCAN_STEP) {
+        const bool bound = std::abs(std::abs(degrees) - SCAN_RANGE) < 1e-9;
+        frame.line(up(Line::from_points(centre, centre + turned(ref, degrees) * radius)), bound ? VARIABLE : BUILT, bound ? 2.0 : 1.0);
+    }
 
     for (double degrees = SCAN_RANGE + 1.0; degrees <= 90.0 + 1e-9; degrees += 1.0) {
         frame.line(up(Line::from_points(centre, centre + turned(ref, degrees) * radius)), GREY, 2.0);
         frame.line(up(Line::from_points(centre, centre + turned(ref, -degrees) * radius)), GREY, 2.0);
     }
 
-    frame.line(up(Line::from_points(centre, centre + ref * radius * 1.15)), MARK, 4.0, false, true);
+    frame.line(up(Line::from_points(centre, centre + ref * radius * 1.15)), INPUT, 4.0, false, true);
     frame.label("reference: 0 deg", up(centre + ref * radius * 1.15));
     frame.label(fmt::format("first lo = -SCAN_RANGE = {:.0f}", -SCAN_RANGE), up(centre + turned(ref, -SCAN_RANGE) * radius));
     frame.label(fmt::format("last hi = SCAN_RANGE = {:.0f}", SCAN_RANGE), up(centre + turned(ref, SCAN_RANGE) * radius));
@@ -266,7 +265,7 @@ void scan_fan(const Context& context) {
     frame.write(context.dir);
 }
 
-/// 52: every scanned interval as a ray tinted by its sides, the two that change side red, the face directions dashed.
+/// 52: every scanned interval as a ray tinted by its sides, the two skipped ones in the variable's colour, the face directions dashed.
 void skip_intervals(const Context& context) {
 
     const QuarterGeometry& geometry = context.guide.geometry[0];
@@ -275,7 +274,7 @@ void skip_intervals(const Context& context) {
     const Vector ref = reference(geometry);
     const Point centre = Point::centroid({column.head[2], column.head[3]});
     const double radius = 150.0;
-    Frame frame(CHAPTER, 52, "skip_intervals", "sweep_sides: skip an interval where r grazes a face or changes side; red where r is parallel to a face", "top", around({centre}, 185.0));
+    Frame frame(CHAPTER, 52, "skip_intervals", "sweep_sides: skip an interval where r grazes a face or changes side; orange where r is parallel to a face", "top", around({centre}, 185.0));
     frame.polyline(up(Polyline(column.head).closed()), GREY, 2.0);
     std::vector<double> skipped;
 
@@ -297,14 +296,14 @@ void skip_intervals(const Context& context) {
     for (size_t k = 0; k < 2; k++) {
         const Vector along = Vector::z_axis().cross(normals[k]).normalized();
         const Vector scanned = along.dot(ref) > 0.0 ? along : -along;
-        frame.line(up(Line::from_points(centre - scanned * radius * 1.2, centre + scanned * radius * 1.2)), FAMILY_COLORS[1], 2.0, true);
+        frame.line(up(Line::from_points(centre - scanned * radius * 1.2, centre + scanned * radius * 1.2)), INPUT, 2.0, true);
         frame.label(fmt::format("r parallel to faces[{}]", k), up(centre + scanned * radius * 1.2));
     }
 
     // The skipped rays lie within 0.05 degrees of the face directions: drawn last and wider, so the dashed face lines do not hide them.
     for (const double lo : skipped) {
         const Vector r = turned(ref, lo + 0.5 * SCAN_STEP);
-        frame.line(up(Line::from_points(centre, centre + r * radius * 1.1)), MARK, 5.0);
+        frame.line(up(Line::from_points(centre, centre + r * radius * 1.1)), VARIABLE, 5.0);
         frame.label(fmt::format("skipped [{:.1f}, {:.1f}]", lo, lo + SCAN_STEP), up(centre + r * radius * 0.55));
     }
 
@@ -329,13 +328,13 @@ void shift_frame(const Context& context) {
     Frame frame(CHAPTER, 53, "shifts", fmt::format("shifts: a = thickness / (n . r); a[0] = {:.2f}, a[1] = {:.2f} at the final r", a[0], a[1]), "top", around({start, hit}, 80.0));
     frame.distance = 0.75;
 
-    frame.line(up(face_line(start, normals[0], 100.0)), GREY, 3.0);
-    frame.line(up(face_line(foot, normals[0], 100.0)), GREY, 3.0);
-    frame.line(up(Line::from_points(start, foot)), INK, 2.0, true);
-    frame.line(up(Line::from_points(start, hit)), MARK, 3.0, false, true);
-    frame.polyline(up(arc(start, normals[0], panel.rib_sweep, 40.0)), INK, 2.0);
-    frame.point(up(start), INK);
-    frame.point(up(hit), MARK);
+    frame.line(up(face_line(start, normals[0], 100.0)), INPUT, 3.0);
+    frame.line(up(face_line(foot, normals[0], 100.0)), INPUT, 3.0);
+    frame.line(up(Line::from_points(start, foot)), VARIABLE, 2.0, true);
+    frame.line(up(Line::from_points(start, hit)), BUILT, 3.0, false, true);
+    frame.polyline(up(arc(start, normals[0], panel.rib_sweep, 40.0)), VARIABLE, 2.0);
+    frame.point(up(start), INPUT);
+    frame.point(up(hit), BUILT);
 
     frame.label("shadows[0] pt 0", up(start));
     frame.label("soffits[0] pt 0", up(hit));
@@ -366,23 +365,23 @@ void closure_frame(const Context& context) {
     Frame frame(CHAPTER, 54, "closure", fmt::format("closure at a wrong trial r = turned(reference, {:.0f}): sine from start chord to vertex chord = {:.4f}", TRIAL, closure), "top", PANEL_PLAN);
 
     for (size_t k = 0; k < 2; k++) {
-        frame.polyline(up(shadow(geometry, k)), GREY, 2.0);
-        frame.polyline(up(shifted[k]), FAMILY_COLORS[1], 3.0);
+        frame.polyline(up(shadow(geometry, k)), INPUT, 2.0);
+        frame.polyline(up(shifted[k]), BUILT, 3.0);
     }
 
-    frame.line(up(start), MARK, 5.0);
-    frame.line(up(vertex), MARK, 5.0);
-    frame.line(up(Line::from_points(vertex.start(), extension)), INK, 2.0, true);
-    frame.line(up(Line::from_points(shadow(geometry, 0).get_point(0), shadow(geometry, 0).get_point(0) + r * 250.0)), MARK, 3.0, false, true);
+    frame.line(up(start), RESULT, 5.0);
+    frame.line(up(vertex), RESULT, 5.0);
+    frame.line(up(Line::from_points(vertex.start(), extension)), VARIABLE, 2.0, true);
+    frame.line(up(Line::from_points(shadow(geometry, 0).get_point(0), shadow(geometry, 0).get_point(0) + r * 250.0)), VARIABLE, 3.0, false, true);
 
     const Point origin = panel.traces[0][0].get_point(0);
     const Xform inset = Xform::translation(-1300.0 - origin[0], -2850.0 - origin[1], 0.0) * Xform::scale_uniform(origin, 0.35);
 
     for (size_t k = 0; k < 2; k++)
-        frame.polyline(up(panel.traces[k][0].transformed(inset)), FAMILY_COLORS[1], 2.0);
+        frame.polyline(up(panel.traces[k][0].transformed(inset)), BUILT, 2.0);
 
-    frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], 0).transformed(inset)), MARK, 3.0);
-    frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], n).transformed(inset)), MARK, 3.0);
+    frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], 0).transformed(inset)), RESULT, 3.0);
+    frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], n).transformed(inset)), RESULT, 3.0);
 
     frame.label("start", up(start.center()));
     frame.label("vertex", up(vertex.center()));
@@ -407,10 +406,10 @@ void rib_sweep_frame(const Context& context) {
     rib_bands(frame, context.guide);
     frame.polyline(up(geometry.quads.wedges[1].closed()), GREY, 2.0);
 
-    frame.line(up(Line::from_points(middle_wedge - panel.rib_sweep * 120.0, middle_wedge + panel.rib_sweep * 120.0)), MARK, 5.0, false, true);
+    frame.line(up(Line::from_points(middle_wedge - panel.rib_sweep * 120.0, middle_wedge + panel.rib_sweep * 120.0)), BUILT, 5.0, false, true);
 
     for (size_t k = 0; k < 2; k++)
-        frame.line(up(Line::from_points(plan(shadow(geometry, k).get_point(0)), plan(panel.traces[k][0].get_point(0)))), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(plan(shadow(geometry, k).get_point(0)), plan(panel.traces[k][0].get_point(0)))), VARIABLE, 3.0, false, true);
 
     frame.label("panel.rib_sweep r", up(middle_wedge + panel.rib_sweep * 120.0));
     frame.label("parabolas[2][0] pt 0", up(plan(shadow(geometry, 0).get_point(0))));
@@ -431,11 +430,11 @@ void soffits_frame(const Context& context) {
     rib_bands(frame, context.guide);
 
     for (size_t k = 0; k < 2; k++) {
-        frame.polyline(up(shadow(geometry, k)), GREY, 3.0);
-        frame.polyline(up(panel.traces[k][0]), FAMILY_COLORS[1], 5.0);
+        frame.polyline(up(shadow(geometry, k)), INPUT, 3.0);
+        frame.polyline(up(panel.traces[k][0]), BUILT, 5.0);
 
         for (size_t i = 0; i < shadow(geometry, k).point_count(); i++)
-            frame.line(up(Line::from_points(shadow(geometry, k).get_point(i), panel.traces[k][0].get_point(i))), MARK, 2.0, false, true);
+            frame.line(up(Line::from_points(shadow(geometry, k).get_point(i), panel.traces[k][0].get_point(i))), VARIABLE, 2.0, false, true);
     }
 
     const size_t last = panel.traces[0][0].point_count() - 1;
@@ -460,14 +459,15 @@ void ruling_frame(const Context& context) {
     Frame frame(CHAPTER, 59, "ruling", "ruling u = flat(soffits[1] pt 0 - soffits[0] pt 0): all seven same-index chords run along it", "top", PANEL_PLAN);
     frame.key = true;
     rib_bands(frame, context.guide);
-    frame.line(up(oculus_edge), GREY, 4.0);
-    frame.line(up(Line::from_points(column.head[2], column.head[3])), GREY, 4.0);
+    frame.line(up(oculus_edge), INPUT, 4.0);
+    frame.line(up(Line::from_points(column.head[2], column.head[3])), INPUT, 4.0);
 
     for (size_t k = 0; k < 2; k++)
-        frame.polyline(up(panel.traces[k][0]), FAMILY_COLORS[1], 4.0);
+        frame.polyline(up(panel.traces[k][0]), INPUT, 4.0);
 
+    // Chord 0 is the ruling built, the other six the chord lengths measured along it.
     for (size_t i = 0; i <= last; i++)
-        frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], i)), MARK, i == 0 ? 5.0 : 2.0);
+        frame.line(up(chord(panel.traces[0][0], panel.traces[1][0], i)), i == 0 ? BUILT : VARIABLE, i == 0 ? 5.0 : 2.0);
 
     frame.label("ruling u", up(chord(panel.traces[0][0], panel.traces[1][0], 0).center()));
     frame.label(fmt::format("chord {}: {:.2f}", last, chord(panel.traces[0][0], panel.traces[1][0], last).length()), up(chord(panel.traces[0][0], panel.traces[1][0], last).center()));
@@ -491,14 +491,14 @@ void obliqueness_shear(const Context& context) {
     Frame frame(CHAPTER, 60, "obliqueness_shear", fmt::format("obliqueness = {:.3f} / {:.3f} deg; rib_shear_mm = inner_ribs tan(obliqueness) = {:.3f}", panel.obliqueness[0], panel.obliqueness[1], shear), "top", around({start, hit, foot}, 45.0));
     frame.distance = 0.75;
 
-    frame.line(up(face_line(start, normals[0], 90.0)), GREY, 3.0);
-    frame.line(up(face_line(foot, normals[0], 90.0)), GREY, 3.0);
-    frame.line(up(Line::from_points(start, foot)), INK, 2.0, true);
-    frame.line(up(Line::from_points(start, hit)), MARK, 3.0, false, true);
-    frame.line(up(Line::from_points(foot, hit)), MARK, 5.0);
-    frame.polyline(up(arc(start, normals[0], panel.rib_sweep, 35.0)), INK, 2.0);
-    frame.point(up(foot), INK);
-    frame.point(up(hit), MARK);
+    frame.line(up(face_line(start, normals[0], 90.0)), INPUT, 3.0);
+    frame.line(up(face_line(foot, normals[0], 90.0)), INPUT, 3.0);
+    frame.line(up(Line::from_points(start, foot)), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(start, hit)), INPUT, 3.0, true, true);
+    frame.line(up(Line::from_points(foot, hit)), BUILT, 5.0);
+    frame.polyline(up(arc(start, normals[0], panel.rib_sweep, 35.0)), VARIABLE, 2.0);
+    frame.point(up(foot), BUILT);
+    frame.point(up(hit), BUILT);
 
     frame.label("shadows[0] pt 0", up(start));
     frame.label("normal foot", up(foot));
@@ -520,11 +520,11 @@ void residual_frame(const Context& context) {
     rib_bands(frame, context.guide);
 
     for (size_t k = 0; k < 2; k++)
-        frame.polyline(up(panel.traces[k][0]), FAMILY_COLORS[1], 4.0);
+        frame.polyline(up(panel.traces[k][0]), INPUT, 4.0);
 
     for (size_t i = 0; i <= last; i++) {
-        frame.line(up(Line::from_points(panel.traces[0][0].get_point(i), landed.get_point(i))), INK, 2.0, true);
-        frame.point(up(landed.get_point(i)), MARK);
+        frame.line(up(Line::from_points(panel.traces[0][0].get_point(i), landed.get_point(i))), INPUT, 2.0, true);
+        frame.point(up(landed.get_point(i)), BUILT);
     }
 
     frame.label("soffits[0]", up(panel.traces[0][0].get_point(2)));
@@ -547,14 +547,14 @@ void section_frame(const Context& context) {
     frame.distance = 0.8;
     frame.plane_size = 300.0;
     rib_bands(frame, context.guide);
-    frame.polyline(up(soffit), GREY, 3.0);
+    frame.polyline(up(soffit), INPUT, 3.0);
     frame.polyline(up(panel.traces[1][0]), GREY, 3.0);
-    frame.plane(up(Plane::from_point_normal(soffit.get_point(0), panel.ruling)), MARK);
+    frame.plane(up(Plane::from_point_normal(soffit.get_point(0), panel.ruling)), VARIABLE);
 
     for (size_t i = 1; i <= last; i++)
-        frame.line(up(Line::from_points(soffit.get_point(i), section.get_point(i))), INK, 2.0, true, true);
+        frame.line(up(Line::from_points(soffit.get_point(i), section.get_point(i))), INPUT, 2.0, true, true);
 
-    frame.polyline(up(section), MARK, 5.0);
+    frame.polyline(up(section), BUILT, 5.0);
     frame.label("section", up(section.get_point(last)));
     frame.label("soffits[0]", up(soffit.get_point(4)));
     frame.label("Plane::from_point_normal(soffits[0] pt 0, ruling)", up(soffit.get_point(0)));
@@ -578,13 +578,13 @@ void section_offsets(const Context& context) {
     Frame frame(CHAPTER, 63, "section_offsets", fmt::format("offset1 = offset_polyline(section, {:.0f}), offset2 by {:.0f}: mitred corners, square ends, seen along u", t, 2.0 * t), "iso", around({section.get_point(0), section.get_point(1), offset2.get_point(0), offset2.get_point(1)}, 50.0));
     frame.orbit = "-262,-105";
 
-    frame.polyline(up(section), FAMILY_COLORS[1], 4.0);
-    frame.polyline(up(curves[1]), FAMILY_COLORS[4], 3.0);
-    frame.polyline(up(offset2), FAMILY_COLORS[5], 3.0);
-    frame.line(up(Line::from_points(offset2.get_point(1), offset2.get_point(1) + in0 * 150.0)), INK, 2.0, true);
-    frame.line(up(Line::from_points(offset2.get_point(1), offset2.get_point(1) - in1 * 150.0)), INK, 2.0, true);
-    frame.line(up(Line::from_points(section.get_point(0), offset2.get_point(0))), INK, 2.0);
-    frame.line(up(Line::from_points(segment.center(), segment.center() + normal * t)), MARK, 3.0, false, true);
+    frame.polyline(up(section), INPUT, 4.0);
+    frame.polyline(up(curves[1]), BUILT, 3.0);
+    frame.polyline(up(offset2), RESULT, 3.0);
+    frame.line(up(Line::from_points(offset2.get_point(1), offset2.get_point(1) + in0 * 150.0)), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(offset2.get_point(1), offset2.get_point(1) - in1 * 150.0)), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(section.get_point(0), offset2.get_point(0))), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(segment.center(), segment.center() + normal * t)), VARIABLE, 3.0, false, true);
 
     frame.label("section", up(segment.point_at(0.8)));
     frame.label("offset1", up(Line::from_points(curves[1].get_point(0), curves[1].get_point(1)).point_at(0.25)));
@@ -601,7 +601,7 @@ void traces_frame(const Context& context) {
     const QuarterGeometry& geometry = context.guide.geometry[0];
     const CentralPanel& panel = geometry.central_panel;
     const std::array<Polyline, 3> curves = section_curves(panel, context.guide.parameters.tsections);
-    const std::array<Color, 3> colors = {FAMILY_COLORS[1], FAMILY_COLORS[4], FAMILY_COLORS[5]};
+    const std::array<Color, 3> colors = {INPUT, BUILT, RESULT}; // The soffit read from frame 58, the +t and +2t traces built here.
     const size_t last = panel.traces[0][0].point_count() - 1;
     Frame frame(CHAPTER, 64, "traces", "traces[k] = {soffits[k], along(offset1, faces[k], u), along(offset2, faces[k], u)}: nested cylinders", "iso", PANEL_3D);
     frame.key = true;
@@ -609,7 +609,7 @@ void traces_frame(const Context& context) {
     rib_bands(frame, context.guide);
 
     for (const Polyline& curve : curves)
-        frame.polyline(up(curve), GREY, 2.0);
+        frame.polyline(up(curve), INPUT, 2.0);
 
     for (size_t layer = 0; layer < 3; layer++)
         for (size_t k = 0; k < 2; k++)
@@ -617,10 +617,10 @@ void traces_frame(const Context& context) {
 
     for (const size_t i : {size_t(0), last / 2, last}) {
         for (size_t layer = 0; layer < 3; layer++)
-            frame.line(up(chord(panel.traces[0][layer], panel.traces[1][layer], i)), INK, 1.0);
+            frame.line(up(chord(panel.traces[0][layer], panel.traces[1][layer], i)), GREY, 1.0);
 
         for (size_t k = 0; k < 2; k++)
-            frame.line(up(Line::from_points(curves[2].get_point(i), panel.traces[k][2].get_point(i))), GREY, 1.5, true);
+            frame.line(up(Line::from_points(curves[2].get_point(i), panel.traces[k][2].get_point(i))), INPUT, 1.5, true);
     }
 
     frame.label("traces[0][0]: soffit", up(panel.traces[0][0].get_point(last)));
@@ -660,7 +660,7 @@ void consumers(const Context& context) {
         frame.polyline(up(plate.bottom), FAMILY_COLORS[5], 1.5);
     }
 
-    frame.plane(up(geometry.bed_top_planes[1]), MARK);
+    frame.plane(up(geometry.bed_top_planes[1]), BUILT); // A family frame; no connector is drawn, so BUILT (= CONNECTOR_COLOR) is free for the plane frame 68 builds.
     frame.label(fmt::format("{}: far loop along rib_sweep", member_name(Family::inner_ribs, 0, 0)), up(area_centroid(inner[0].bottom)));
     frame.label(member_name(Family::inner_ribs, 1, 0), up(area_centroid(inner[1].bottom)));
     frame.label(fmt::format("{}: traces[0][0..1]", member_name(Family::tsections, 2, 0)), up(panel.traces[0][1].get_point(5)));
@@ -680,13 +680,12 @@ void side_projections(const Context& context) {
     frame.distance = 0.85;
     frame.polyline(up(geometry.quads.outer_ribs[0].closed()), GREY, 2.0);
     frame.polyline(up(geometry.quads.inner_ribs[0].closed()), GREY, 2.0);
-    frame.polyline(up(top), GREY, 3.0);
-
-    for (const Polyline& face : faces)
-        frame.polyline(up(face), FAMILY_COLORS[5], 4.0);
+    frame.polyline(up(top), INPUT, 3.0);
+    frame.polyline(up(faces[0]), BUILT, 4.0);
+    frame.polyline(up(faces[1]), RESULT, 4.0);
 
     for (size_t i = 0; i < top.point_count(); i++)
-        frame.line(up(Line::from_points(top.get_point(i), faces[0].get_point(i))), INK, 1.5, true);
+        frame.line(up(Line::from_points(top.get_point(i), faces[0].get_point(i))), INPUT, 1.5, true);
 
     frame.label("parabolas[0][2]", up(top.get_point(2)));
     frame.label("side01: on cp.outer_ribs[0][1]", up(faces[1].get_point(1)));
@@ -708,13 +707,13 @@ void side_bed_plane(const Context& context) {
     frame.orbit = "-105,0"; // About 30 degrees of yaw, so the curve on y = -2900 separates from the one on inner rib 0 and the deepest quad opens.
 
     for (size_t k = 0; k < 2; k++)
-        frame.polyline(up(Polyline(pts[k])), GREY, 3.0);
+        frame.polyline(up(Polyline(pts[k])), INPUT, 3.0);
 
-    frame.polyline(up(deepest_quad(pts)), MARK, 3.0);
-    frame.plane(up(plane), FAMILY_COLORS[5]);
+    frame.polyline(up(deepest_quad(pts)), VARIABLE, 3.0);
+    frame.plane(up(plane), BUILT);
 
     for (const Point& corner : {pts[0][0], pts[0][1], pts[1][0], pts[1][1]})
-        frame.point(up(corner), MARK);
+        frame.point(up(corner), VARIABLE);
 
     frame.label("pts[0][0], on cp.wedges[0][0]", up(pts[0][0]));
     frame.label("pts[0][1]", up(pts[0][1]));
@@ -736,14 +735,14 @@ void central_bed_plane(const Context& context) {
     frame.distance = 0.85;
 
     for (size_t k = 0; k < 2; k++)
-        frame.polyline(up(Polyline(pts[k])), GREY, 3.0);
+        frame.polyline(up(Polyline(pts[k])), INPUT, 3.0);
 
-    frame.polyline(up(deepest_quad(pts)), MARK, 3.0);
-    frame.line(up(Line::from_points(pts[0][0], pts[1][0])), INK, 2.0, true);
-    frame.plane(up(plane), FAMILY_COLORS[5]);
+    frame.polyline(up(deepest_quad(pts)), VARIABLE, 3.0);
+    frame.line(up(Line::from_points(pts[0][0], pts[1][0])), INPUT, 2.0, true);
+    frame.plane(up(plane), BUILT);
 
     for (const Point& corner : {pts[0][0], pts[0][1], pts[1][0], pts[1][1]})
-        frame.point(up(corner), MARK);
+        frame.point(up(corner), VARIABLE);
 
     frame.label("pts[0][0], on cp.wedges[1][0]", up(pts[0][0]));
     frame.label("pts[1][1]", up(pts[1][1]));

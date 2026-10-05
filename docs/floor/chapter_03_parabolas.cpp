@@ -115,7 +115,7 @@ Line face_trace(const Plane& plane, const Plane& face, double z) {
 }
 
 /// A quad's side from corner i to corner i + 1, extended both ways by margin and dashed: the datum trace of the plane the side lies on.
-void side_trace(Frame& frame, const Polyline& quad, size_t i, double margin, const Color& color = INK) {
+void side_trace(Frame& frame, const Polyline& quad, size_t i, double margin, const Color& color = INPUT) {
 
     const Point a = quad.get_point(i);
     const Point b = quad.get_point((i + 1) % 4);
@@ -137,13 +137,13 @@ void all_quads_grey(Frame& frame, const ConstructionQuads& quads) {
         draw_quads(frame, *list, GREY, 1.0);
 }
 
-/// The polyline in a colour with a dot on every point.
+/// The polyline and a dot on every point, in one colour.
 void dotted(Frame& frame, const Polyline& polyline, const Color& color, double width) {
 
     frame.polyline(up(polyline), color, width);
 
     for (const Point& point : polyline.get_points())
-        frame.point(up(point), INK, 8.0);
+        frame.point(up(point), color, 8.0);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -162,8 +162,8 @@ void outer_rib_quads(const Context& context) {
         side_trace(frame, ribs[0], i, 250.0);
 
     for (const Polyline& quad : ribs) {
-        frame.polyline(up(quad.closed()), FAMILY_COLORS[0], 3.0);
-        frame.line(up(Line::from_points(quad.get_point(0), quad.get_point(1))), MARK, 3.0, false, true);
+        frame.polyline(up(quad.closed()), BUILT, 3.0);
+        frame.line(up(Line::from_points(quad.get_point(0), quad.get_point(1))), VARIABLE, 3.0, false, true);
     }
 
     const std::array<std::string, 4> corners = {
@@ -174,7 +174,7 @@ void outer_rib_quads(const Context& context) {
     };
 
     for (size_t i = 0; i < 4; i++) {
-        frame.point(up(ribs[0].get_point(i)), INK, 10.0);
+        frame.point(up(ribs[0].get_point(i)), BUILT, 10.0);
         frame.label(corners[i], up(ribs[0].get_point(i)));
     }
 
@@ -192,7 +192,7 @@ void inner_beam_quads(const Context& context) {
     Frame frame(CHAPTER, 36, "inner_beam_quads", "Inner beam quads: seam beam 0, the oculus beam and seam beam 2, each between two faces and two ends", "top", QUARTER);
     frame.polyline(up(Polyline(geometry.polygon).closed()), GREY, 1.0);
     draw_quads(frame, geometry.quads.outer_ribs, GREY, 2.0);
-    draw_quads(frame, beams, FAMILY_COLORS[2], 3.0);
+    draw_quads(frame, beams, BUILT, 3.0);
 
     const std::array<std::string, 3> names = {"quads.inner_beams[0]: seam beam 0", "quads.inner_beams[1]: oculus beam", "quads.inner_beams[2]: seam beam 2"};
 
@@ -211,14 +211,14 @@ void inner_rib_quads(const Context& context) {
     frame.polyline(up(Polyline(geometry.polygon).closed()), GREY, 1.0);
     draw_quads(frame, geometry.quads.outer_ribs, GREY, 2.0);
     draw_quads(frame, geometry.quads.inner_beams, GREY, 2.0);
-    frame.polyline(up(Polyline(context.guide.columns[0].head).closed()), GREY, 2.0);
-    draw_quads(frame, ribs, FAMILY_COLORS[1], 3.0);
+    frame.polyline(up(Polyline(context.guide.columns[0].head).closed()), INPUT, 2.0);
+    draw_quads(frame, ribs, BUILT, 3.0);
 
     const std::array<std::array<std::string, 2>, 2> corners = {{{"corner 2 = p0", "corner 3 = head[2]"}, {"corner 2 = p1", "corner 3 = head[3]"}}};
 
     for (size_t k = 0; k < ribs.size(); k++)
         for (size_t c = 0; c < 2; c++) {
-            frame.point(up(ribs[k].get_point(2 + c)), MARK, 12.0);
+            frame.point(up(ribs[k].get_point(2 + c)), VARIABLE, 12.0);
             frame.label(corners[k][c], up(ribs[k].get_point(2 + c)));
         }
 
@@ -237,7 +237,7 @@ void wedge_quads(const Context& context) {
     draw_quads(frame, geometry.quads.outer_ribs, GREY, 2.0);
     draw_quads(frame, geometry.quads.inner_ribs, GREY, 2.0);
     frame.polyline(up(Polyline(context.guide.columns[0].head).closed()), GREY, 2.0);
-    draw_quads(frame, blocks, FAMILY_COLORS[3], 3.0);
+    draw_quads(frame, blocks, BUILT, 3.0);
 
     for (const Polyline& block : blocks)
         side_trace(frame, block, 2, 60.0);
@@ -261,10 +261,10 @@ void tsection_quads(const Context& context) {
     draw_quads(frame, geometry.quads.inner_beams, GREY, 1.5);
     draw_quads(frame, geometry.quads.inner_ribs, GREY, 1.5);
     draw_quads(frame, first_pass_wedges(context.guide), GREY, 1.5);
-    draw_quads(frame, flanges, FAMILY_COLORS[4], 2.5);
+    draw_quads(frame, flanges, BUILT, 2.5);
 
     for (size_t i = 0; i < flanges.size(); i++) {
-        frame.line(up(Line::from_points(flanges[i].get_point(3), flanges[i].get_point(0))), MARK, 6.0);
+        frame.line(up(Line::from_points(flanges[i].get_point(3), flanges[i].get_point(0))), INPUT, 6.0);
         frame.label(fmt::format("quads.tsections[{}]", i), up(between(flanges[i].get_point(0), flanges[i].get_point(1), stations[i])));
     }
 
@@ -287,17 +287,17 @@ void outer_parabola_trial(const Context& context) {
     Frame frame(CHAPTER, 40, "outer_parabola", "outer_parabola at run_in = wedge: a 7-point quadratic Bezier, its control point as deep as its end", "front", RIB_RUN);
     frame.key = true;
 
-    frame.line(up(Line::from_points(start, end)), GREY, 2.0);
+    frame.line(up(Line::from_points(start, end)), INPUT, 2.0);
     frame.line(up(face_trace(cp.wedges[0][0], cp.outer_ribs[0][0], -parameters.height - 60.0)), GREY, 2.0);
     frame.line(up(face_trace(cp.inner_beams[0][0], cp.outer_ribs[0][0], -parameters.height - 60.0)), GREY, 2.0);
-    frame.line(up(Line::from_points(control[0], control[1])), INK, 1.5, true);
-    frame.line(up(Line::from_points(control[1], control[2])), INK, 1.5, true);
+    frame.line(up(Line::from_points(control[0], control[1])), INPUT, 1.5, true);
+    frame.line(up(Line::from_points(control[1], control[2])), INPUT, 1.5, true);
 
     for (const std::array<Point, 2>& drop : std::array<std::array<Point, 2>, 3>{{{trimmed, control[0]}, {middle, control[1]}, {end, control[2]}}})
-        frame.line(up(Line::from_points(drop[0], drop[1])), INK, 1.0, true);
+        frame.line(up(Line::from_points(drop[0], drop[1])), VARIABLE, 1.0, true);
 
-    dotted(frame, soffit, FAMILY_COLORS[0], 4.0);
-    frame.line(up(Line::from_points(start, trimmed)), MARK, 5.0);
+    dotted(frame, soffit, BUILT, 4.0);
+    frame.line(up(Line::from_points(start, trimmed)), VARIABLE, 5.0);
 
     frame.label("start = quad.get_point(0)", up(start));
     frame.label("trimmed", up(trimmed));
@@ -325,12 +325,12 @@ void fan_end_cut(const Context& context) {
     Frame frame(CHAPTER, 41, "fan_end", "fan_end: trim extends the first chord by EXTENSION and cuts it on the fan plane; the Bezier start drops", "front", FAN_END);
     frame.key = true;
 
-    frame.polyline(up(soffit), GREY, 3.0);
+    frame.polyline(up(soffit), INPUT, 3.0);
     frame.point(up(first), GREY, 16.0);
-    frame.line(up(Line::from_points(second, pushed)), INK, 1.5, true);
-    frame.line(up(face_trace(ends[0], cp.outer_ribs[0][0], -760.0)), FAMILY_COLORS[3], 3.0);
-    frame.polyline(up(trim(soffit, ends[0], ends[1])), FAMILY_COLORS[0], 4.0);
-    frame.point(up(hit), MARK, 16.0);
+    frame.line(up(Line::from_points(second, pushed)), VARIABLE, 1.5, true);
+    frame.line(up(face_trace(ends[0], cp.outer_ribs[0][0], -760.0)), INPUT, 3.0);
+    frame.polyline(up(trim(soffit, ends[0], ends[1])), BUILT, 4.0);
+    frame.point(up(hit), VARIABLE, 16.0);
 
     frame.label(fmt::format("dropped: Bezier start ({:.0f}, {:.0f})", first[0], first[2]), up(first));
     frame.label("outer_parabola(quads.outer_ribs[0], wedge)", up(second));
@@ -356,9 +356,9 @@ void shared_level(const Context& context) {
         const Line inner = face_trace(ends[0], cp.outer_ribs[k][1], -760.0);
         const Point hit = fan_hit(geometry.quads.outer_ribs[k], parameters.wedge, ends[0], ends[1], parameters);
         ends_z[k] = hit[2];
-        frame.polyline(up(Polyline({outer.start(), outer.end(), inner.end(), inner.start()}).closed()), GREY, 2.0);
+        frame.polyline(up(Polyline({outer.start(), outer.end(), inner.end(), inner.start()}).closed()), INPUT, 2.0);
         frame.polyline(up(trim(outer_parabola(geometry.quads.outer_ribs[k], parameters.wedge, parameters), ends[0], ends[1])), GREY, 3.0);
-        frame.point(up(hit), MARK, 16.0);
+        frame.point(up(hit), VARIABLE, 16.0);
         frame.label(fmt::format("fan_end(quads.outer_ribs[{}]) = {:.2f}", k, hit[2]), up(hit));
         frame.label(fmt::format("fan plane wedges[{}][0]", k == 0 ? 0 : 2), up(outer.start()));
     }
@@ -370,7 +370,7 @@ void shared_level(const Context& context) {
         Point(corner[0] + 600.0, corner[1] + 600.0, level_z),
         Point(corner[0] - 50.0, corner[1] + 600.0, level_z),
     };
-    frame.polyline(up(Polyline(slice).closed()), MARK, 1.5);
+    frame.polyline(up(Polyline(slice).closed()), BUILT, 1.5);
     frame.label(fmt::format("level = max(fan_end 0, fan_end 1) = {:.2f}", level_z), up(slice[2]));
     frame.write(context.dir);
 }
@@ -403,8 +403,8 @@ void secant(const Context& context) {
     const Box box = {std::min(near[0], graph_end[0]) - 60.0, std::min(near[1], graph_end[1]) - 60.0, H - 820.0, std::max(near[0], graph_end[0]) + 60.0, std::max(near[1], graph_end[1]) + 60.0, H - 450.0};
     Frame frame(CHAPTER, 43, "secant", "run_in_to_level, 3000 x 2400: soffits at x0 = wedge, x1 = wedge + 1 and x*; right, f(x) and the secant", k == 0 ? "front" : "right", box);
 
-    frame.line(up(face_trace(ends[0], cp.outer_ribs[k][0], -760.0)), GREY, 3.0);
-    frame.line(up(Line::from_points(near, far)), MARK, 1.5, true);
+    frame.line(up(face_trace(ends[0], cp.outer_ribs[k][0], -760.0)), INPUT, 3.0);
+    frame.line(up(Line::from_points(near, far)), INPUT, 1.5, true);
     std::array<Point, 3> hits;
     std::array<Point, 3> starts;
 
@@ -412,9 +412,9 @@ void secant(const Context& context) {
         const Polyline soffit = outer_parabola(quad, runs[i], parameters);
         hits[i] = fan_hit(quad, runs[i], ends[0], ends[1], parameters);
         starts[i] = soffit.get_point(0);
-        frame.polyline(up(trim(soffit, ends[0], ends[1])), i == 2 ? FAMILY_COLORS[0] : GREY, i == 2 ? 4.0 : 2.0);
-        frame.point(up(starts[i]), INK, 8.0);
-        frame.point(up(hits[i]), i == 2 ? MARK : INK, 14.0);
+        frame.polyline(up(trim(soffit, ends[0], ends[1])), i == 2 ? BUILT : GREY, i == 2 ? 4.0 : 2.0);
+        frame.point(up(starts[i]), i == 2 ? BUILT : GREY, 8.0);
+        frame.point(up(hits[i]), i == 2 ? BUILT : VARIABLE, 14.0);
     }
 
     frame.label(fmt::format("x0 = {:.0f}, x1 = {:.0f}: f0 = {:.3f}, f1 = {:.3f}", runs[0], runs[1], hits[0][2] - level_z, hits[1][2] - level_z), up(hits[0]));
@@ -433,12 +433,12 @@ void secant(const Context& context) {
     const double f1 = hits[1][2] - level_z;
     const double x2 = runs[1] - f1 * (runs[1] - runs[0]) / (f1 - f0);
     frame.line(up(Line::from_points(graph, graph_end)), GREY, 1.5);
-    frame.polyline(up(Polyline(curve)), INK, 2.5);
-    frame.line(up(Line::from_points(graph_point(graph, along, runs[0], f0), graph_point(graph, along, x2, 0.0))), MARK, 1.5, true);
-    frame.point(up(graph_point(graph, along, runs[0], f0)), INK, 10.0);
-    frame.point(up(graph_point(graph, along, runs[1], f1)), INK, 10.0);
-    frame.point(up(graph_point(graph, along, x2, 0.0)), MARK, 12.0);
-    frame.point(up(graph_point(graph, along, runs[2], 0.0)), FAMILY_COLORS[0], 12.0);
+    frame.polyline(up(Polyline(curve)), VARIABLE, 2.5);
+    frame.line(up(Line::from_points(graph_point(graph, along, runs[0], f0), graph_point(graph, along, x2, 0.0))), VARIABLE, 1.5, true);
+    frame.point(up(graph_point(graph, along, runs[0], f0)), VARIABLE, 10.0);
+    frame.point(up(graph_point(graph, along, runs[1], f1)), VARIABLE, 10.0);
+    frame.point(up(graph_point(graph, along, x2, 0.0)), VARIABLE, 12.0);
+    frame.point(up(graph_point(graph, along, runs[2], 0.0)), BUILT, 12.0);
     frame.label("f(x) = fan_end(x) - level", up(curve.back()));
     frame.label(fmt::format("secant through x0, x1: x2 = {:.2f}", x2), up(graph_point(graph, along, x2, 0.0)));
     frame.write(context.dir);
@@ -463,16 +463,16 @@ void block_far_faces(const Context& context) {
     draw_quads(frame, geometry.quads.outer_ribs, GREY, 2.0);
     draw_quads(frame, geometry.quads.inner_ribs, GREY, 2.0);
     frame.polyline(up(Polyline(guide.columns[0].head).closed()), GREY, 2.0);
-    draw_quads(frame, blocks, FAMILY_COLORS[3], 2.0);
+    draw_quads(frame, blocks, BUILT, 2.0);
 
     for (size_t i = 0; i < 3; i++) {
         side_trace(frame, provisional[i], 2, 60.0, GREY);
-        frame.line(up(Line::from_points(blocks[i].get_point(2), blocks[i].get_point(3))), FAMILY_COLORS[3], 5.0);
+        frame.line(up(Line::from_points(blocks[i].get_point(2), blocks[i].get_point(3))), BUILT, 5.0);
         const Point origin = cp.wedges[i][0].origin();
         const Vector normal = cp.wedges[i][0].z_axis();
         const Vector plan = Vector(normal[0], normal[1], 0.0).normalized();
         const Point end = line_plane(Line::from_points(origin, origin + plan), cp.wedges[i][1]).value();
-        frame.line(up(Line::from_points(origin, end)), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(origin, end)), VARIABLE, 3.0, false, true);
         frame.label(fmt::format("{} = {:.3f}", names[i], thickness[i]), up(between(origin, end, 0.5)));
     }
 
@@ -489,8 +489,8 @@ void second_pass(const Context& context) {
     draw_quads(frame, quads.outer_ribs, GREY, 1.5);
     draw_quads(frame, quads.inner_beams, GREY, 1.5);
     draw_quads(frame, quads.inner_ribs, GREY, 1.5);
-    draw_quads(frame, quads.wedges, FAMILY_COLORS[3], 3.5);
-    draw_quads(frame, quads.tsections, FAMILY_COLORS[4], 3.5);
+    draw_quads(frame, quads.wedges, BUILT, 3.5);
+    draw_quads(frame, quads.tsections, RESULT, 3.5);
 
     frame.label("rebuilt: quads.wedges", up(area_centroid(quads.wedges[1].closed())));
     frame.label("rebuilt: quads.tsections", up(between(quads.tsections[0].get_point(0), quads.tsections[0].get_point(1), 0.4)));
@@ -510,9 +510,9 @@ void boundary_soffits(const Context& context) {
         const Polyline& soffit = geometry.parabolas[k][0];
         const Point first = soffit.get_point(0);
         const Point last = soffit.get_point(soffit.point_count() - 1);
-        dotted(frame, soffit, FAMILY_COLORS[0], 4.0);
-        frame.line(up(Line::from_points(first, Point(first[0], first[1], 0.0))), INK, 1.5, true);
-        frame.line(up(Line::from_points(last, Point(last[0], last[1], 0.0))), INK, 1.5, true);
+        dotted(frame, soffit, BUILT, 4.0);
+        frame.line(up(Line::from_points(first, Point(first[0], first[1], 0.0))), VARIABLE, 1.5, true);
+        frame.line(up(Line::from_points(last, Point(last[0], last[1], 0.0))), INPUT, 1.5, true);
         frame.label(fmt::format("parabolas[{}][0]", k), up(soffit.get_point(3)));
         frame.label(fmt::format("run_in[{}] = {:.0f}: z {:.0f}", k, geometry.run_in[k], -parameters.height), up(first));
     }
@@ -532,22 +532,22 @@ void layers(const Context& context) {
     std::array<Vector, 2> normals;
     Frame frame(CHAPTER, 47, "layers", "offset_polyline: each segment's plane moved up by t, cut with the next and the base plane; caps square", "front", LAYERS);
 
-    frame.polyline(up(layer[0]), GREY, 4.0);
-    frame.polyline(up(layer[1]), FAMILY_COLORS[4], 3.0);
-    frame.polyline(up(layer[2]), FAMILY_COLORS[5], 3.0);
+    frame.polyline(up(layer[0]), INPUT, 4.0);
+    frame.polyline(up(layer[1]), BUILT, 3.0);
+    frame.polyline(up(layer[2]), RESULT, 3.0);
 
     for (size_t i = 0; i < 2; i++) {
         const Vector x = (pts[i + 1] - pts[i]).normalized();
         normals[i] = x.cross(z.cross(x)).normalized();
-        frame.line(up(Line::from_points(pts[i] + normals[i] * t + x * -150.0, pts[i + 1] + normals[i] * t + x * 150.0)), INK, 1.5, true);
+        frame.line(up(Line::from_points(pts[i] + normals[i] * t + x * -150.0, pts[i + 1] + normals[i] * t + x * 150.0)), INPUT, 1.5, true);
     }
 
     const Point cap = pts[0] + normals[0] * (2.0 * t + 25.0);
     const Point centre = between(pts[1], pts[2], 0.5);
-    frame.line(up(Line::from_points(pts[0] + normals[0] * -20.0, cap)), INK, 1.5, true);
-    frame.line(up(Line::from_points(centre, centre + normals[1] * t)), MARK, 3.0, false, true);
-    frame.point(up(layer[1].get_point(1)), MARK, 14.0);
-    frame.point(up(layer[1].get_point(0)), INK, 10.0);
+    frame.line(up(Line::from_points(pts[0] + normals[0] * -20.0, cap)), INPUT, 1.5, true);
+    frame.line(up(Line::from_points(centre, centre + normals[1] * t)), VARIABLE, 3.0, false, true);
+    frame.point(up(layer[1].get_point(1)), BUILT, 14.0);
+    frame.point(up(layer[1].get_point(0)), BUILT, 10.0);
 
     frame.label("parabolas[0][0]: soffit", up(pts[2]));
     frame.label("parabolas[0][1]: offset by tsections", up(between(layer[1].get_point(0), layer[1].get_point(1), 0.5)));
@@ -568,13 +568,13 @@ void shadows(const Context& context) {
     draw_quads(frame, geometry.quads.inner_ribs, GREY, 1.5);
 
     for (size_t i = 0; i < 2; i++) {
-        frame.polyline(up(geometry.parabolas[i][0]), GREY, 3.0);
-        frame.polyline(up(geometry.parabolas[2 + i][0]), FAMILY_COLORS[1], 5.0);
-        frame.polyline(up(geometry.parabolas[2 + i][1]), FAMILY_COLORS[1], 1.5);
-        frame.polyline(up(geometry.parabolas[2 + i][2]), FAMILY_COLORS[1], 1.5);
+        frame.polyline(up(geometry.parabolas[i][0]), INPUT, 3.0);
+        frame.polyline(up(geometry.parabolas[2 + i][0]), BUILT, 5.0);
+        frame.polyline(up(geometry.parabolas[2 + i][1]), BUILT, 1.5);
+        frame.polyline(up(geometry.parabolas[2 + i][2]), BUILT, 1.5);
 
         for (const size_t j : {size_t(0), size_t(3), size_t(6)})
-            frame.line(up(Line::from_points(geometry.parabolas[i][0].get_point(j), geometry.parabolas[2 + i][0].get_point(j))), INK, 1.5, true, true);
+            frame.line(up(Line::from_points(geometry.parabolas[i][0].get_point(j), geometry.parabolas[2 + i][0].get_point(j))), VARIABLE, 1.5, true, true);
 
         frame.label(fmt::format("parabolas[{}][0]", i), up(geometry.parabolas[i][0].get_point(3)));
         frame.label(fmt::format("parabolas[{}]: shadow on inner_ribs[{}][0]", 2 + i, i), up(geometry.parabolas[2 + i][0].get_point(6)));

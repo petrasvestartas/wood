@@ -10,14 +10,6 @@ const Box COLUMN = {-3100.0, -3100.0, 0.0, -2600.0, -2600.0, H + 60.0}; // Colum
 const Box BRANCH = {-3300.0, -3300.0, 0.0, 3300.0, 3300.0, H + 3100.0}; // The floor and the branch raised above it.
 const double RAISE = 3000.0; // How far the branch is drawn above the floor it was copied from, clear of the floor behind it in the lowered view.
 
-/// The four tints of the quarters' oculus groups.
-const std::array<Color, 4> QUARTER_TINTS = {
-    Color(0.85f, 0.33f, 0.10f, 1.0f, "quarter_0"),
-    Color(0.13f, 0.55f, 0.45f, 1.0f, "quarter_1"),
-    Color(0.30f, 0.47f, 0.78f, 1.0f, "quarter_2"),
-    Color(0.93f, 0.69f, 0.13f, 1.0f, "quarter_3"),
-};
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════
@@ -163,12 +155,18 @@ std::vector<size_t> spread(size_t n, size_t count) {
 // The scene and its groups
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The guide's plan, grey: the Floor holds nothing else yet.
+/// The guide's plan, its bay edges the input the Floor copies: the Floor holds nothing else yet.
 void empty_floor(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     Frame frame(CHAPTER, 111, "empty_floor", "Floor floor(guide): an empty WoodSession; only the guide's plan exists, no member yet", "top", BAY);
-    plan_context(frame, guide, true);
+
+    for (const BayEdge& edge : guide.edges)
+        frame.line(up(edge.line), INPUT, 2.0);
+
+    for (size_t q = 0; q < 4; q++)
+        frame.polyline(up(Polyline(guide.geometry[q].polygon).closed()), GREY, 1.0);
+
     frame.label(fmt::format("Floor \"{}\": empty WoodSession, root", context.members.name), up(guide.corners[3]));
     frame.label(fmt::format("guide = FloorGuide::rectangle({:.0f}, {:.0f})", guide.corners[2][0], guide.corners[2][1]), up(guide.corners[1]));
     frame.label("members.group = nullptr: the tree root", up(guide.centre));
@@ -184,7 +182,7 @@ void quarter_groups(const Context& context) {
 
     for (size_t q = 0; q < 4; q++) {
         const Polyline polygon = Polyline(guide.geometry[q].polygon).closed();
-        frame.polyline(up(polygon), q == 0 ? MARK : GREY, q == 0 ? 4.0 : 2.0);
+        frame.polyline(up(polygon), q == 0 ? BUILT : GREY, q == 0 ? 4.0 : 2.0);
         frame.label(context.members.members.quarters[q].group->name, up(area_centroid(polygon)), true);
     }
 
@@ -201,14 +199,14 @@ void lift(const Context& context) {
 
     for (const Family family : FAMILIES)
         for (const Outline& outline : outlines(quarter, family)) {
-            frame.polyline(outline.top, GREY, 1.0);
-            frame.polyline(outline.bottom, GREY, 1.0);
+            frame.polyline(outline.top, INPUT, 1.0);
+            frame.polyline(outline.bottom, INPUT, 1.0);
         }
 
-    family_members(frame, context.members, 0, {FAMILIES.begin(), FAMILIES.end()});
+    family_members(frame, context.members, 0, {FAMILIES.begin(), FAMILIES.end()}, &BUILT);
 
     const Point foot(-1500.0, -1500.0, 0.0);
-    frame.line(Line::from_points(foot, foot + Vector(0.0, 0.0, height)), MARK, 4.0, false, true);
+    frame.line(Line::from_points(foot, foot + Vector(0.0, 0.0, height)), VARIABLE, 4.0, false, true);
     frame.label(fmt::format("lift = Xform::translation(0, 0, {:.0f})", height), foot + Vector(0.0, 0.0, height * 0.5));
     frame.label("outlines at the datum, z = 0", quarter.outer_ribs()[0].top.get_point(1));
     frame.label(fmt::format("quarter_0 members, top at z = {:.0f}", height), up(quarter.outer_ribs()[1].top.get_point(1)));
@@ -225,11 +223,11 @@ void thickness(const Context& context) {
     Frame frame(CHAPTER, 115, "outline_thickness", "outline_thickness: the distance between the area centroids of the outline's two loops", "iso", RIB);
     frame.distance = 0.85;
 
-    frame.polyline(up(rib.top), family_color(Family::outer_ribs), 3.0);
-    frame.polyline(up(rib.bottom), family_color(Family::outer_ribs), 3.0);
-    frame.line(Line::from_points(a, b), MARK, 4.0);
-    frame.point(a, MARK);
-    frame.point(b, MARK);
+    frame.polyline(up(rib.top), INPUT, 3.0);
+    frame.polyline(up(rib.bottom), INPUT, 3.0);
+    frame.line(Line::from_points(a, b), VARIABLE, 4.0);
+    frame.point(a, BUILT);
+    frame.point(b, BUILT);
     frame.label("area_centroid(outline.top)", a);
     frame.label(fmt::format("area_centroid(outline.bottom): thickness = {:.3f}", outline_thickness(rib)), b);
     frame.label(fmt::format("outline.top on y = {:.0f}", rib.top.get_point(1)[1]), up(rib.top.get_point(1)));
@@ -270,9 +268,9 @@ void bed_plates(const Context& context) {
     frame.distance = 0.72;
 
     family_members(frame, context.members, 0, {Family::outer_ribs, Family::inner_ribs}, &GREY);
-    family_members(frame, context.members, 0, {Family::beds});
-    frame.polyline(up(plate.bottom), INK, 3.0);
-    frame.polyline(up(plate.top), MARK, 3.0);
+    family_members(frame, context.members, 0, {Family::beds}, &BUILT);
+    frame.polyline(up(plate.bottom), INPUT, 3.0);
+    frame.polyline(up(plate.top), VARIABLE, 3.0);
 
     frame.label("outline.bottom: the +t layer", up(plate.bottom.get_point(0)));
     frame.label(fmt::format("outline.top: the +2t layer, {:.3f} higher", outline_thickness(plate)), up(plate.top.get_point(2)));
@@ -293,15 +291,15 @@ void family_names(const Context& context) {
     Frame frame(CHAPTER, 118, "add_family", "add_family: group beds_0_0, each plate placed by lift and named beds_0_<i>_0", "front", {-3100.0, -3100.0, -750.0, 100.0, 100.0, H + 100.0});
 
     for (const Outline& outline : row) {
-        frame.polyline(outline.top, GREY, 2.0);
-        frame.polyline(outline.bottom, GREY, 2.0);
+        frame.polyline(outline.top, INPUT, 2.0);
+        frame.polyline(outline.bottom, INPUT, 2.0);
     }
 
     for (const Member& member : placed)
-        frame.element(member.element, family_color(Family::beds));
+        frame.element(member.element, BUILT);
 
     const Point base = area_centroid(row[0].top);
-    frame.line(Line::from_points(base, up(base)), MARK, 3.0, false, true);
+    frame.line(Line::from_points(base, up(base)), VARIABLE, 3.0, false, true);
     frame.label(fmt::format("element->place(lift): +{:.0f}", height), base + Vector(0.0, 0.0, height * 0.5));
 
     for (size_t i : spread(row.size(), 6))
@@ -332,16 +330,23 @@ void tsection_plates(const Context& context) {
 
     Frame frame(CHAPTER, 119, "tsection_plates", fmt::format("T-sections: {:.0f} mm strips from the soffit to +t beside the rib faces; the cut across inner rib 0", guide.parameters.tsections), "iso", around(corners, 60.0));
 
-    for (const Family family : {Family::outer_ribs, Family::inner_ribs})
-        for (const Outline& outline : outlines(quarter, family)) {
-            const Polyline rib = section_quad({up(outline.top), up(outline.bottom)}, cut);
-            if (rib.point_count() > 0)
-                frame.polyline(rib, GREY, 4.0);
-        }
+    for (const Outline& outline : quarter.outer_ribs()) {
+        const Polyline rib = section_quad({up(outline.top), up(outline.bottom)}, cut);
+        if (rib.point_count() > 0)
+            frame.polyline(rib, GREY, 4.0);
+    }
+
+    const std::vector<Outline> inner_ribs = quarter.inner_ribs();
+
+    for (size_t i = 0; i < inner_ribs.size(); i++) {
+        const Polyline rib = section_quad({up(inner_ribs[i].top), up(inner_ribs[i].bottom)}, cut);
+        if (rib.point_count() > 0)
+            frame.polyline(rib, i == 0 ? INPUT : GREY, 4.0); // Inner rib 0: the faces its two strips lie beside.
+    }
 
     for (size_t k = 0; k < strips.size(); k++)
         if (strips[k].point_count() > 0)
-            frame.polyline(strips[k], family_color(Family::tsections), 5.0);
+            frame.polyline(strips[k], BUILT, 5.0);
 
     for (const size_t k : shown)
         if (strips[k].point_count() > 0)
@@ -369,16 +374,16 @@ void rib_stations(const Context& context) {
     const Point end = parabola.get_point(parabola.point_count() - 1);
     Frame frame(CHAPTER, 120, "rib_stations", fmt::format("to_rib: outline.top = [p1, p0, soffit points, p1], stations = top.size() - 3 = {}", stations), "front", RIB);
 
-    frame.polyline(up(rib.top), family_color(Family::outer_ribs), 4.0);
-    frame.line(up(Line::from_points(parabola.get_point(1), top[2])), INK, 2.0, true);
-    frame.line(up(Line::from_points(top[1 + stations], end)), INK, 2.0, true);
+    frame.polyline(up(rib.top), BUILT, 4.0);
+    frame.line(up(Line::from_points(parabola.get_point(1), top[2])), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(top[1 + stations], end)), INPUT, 2.0, true);
     frame.point(up(start), GREY, 14.0);
     frame.point(up(end), GREY, 14.0);
-    frame.point(up(top[0]), INK);
-    frame.point(up(top[1]), INK);
+    frame.point(up(top[0]), RESULT);
+    frame.point(up(top[1]), RESULT);
 
     for (size_t i = 0; i < stations; i++)
-        frame.point(up(top[2 + i]), MARK);
+        frame.point(up(top[2 + i]), VARIABLE);
 
     frame.label("top[0] = p1", up(top[0]));
     frame.label("top[1] = p0", up(top[1]));
@@ -402,11 +407,11 @@ void rib_interior(const Context& context) {
     Frame frame(CHAPTER, 121, "rib_interior", "to_rib: an interior section per station, {low, high, far_high, far_low}, from the soffit to z 0", "iso", RIB);
     frame.distance = 0.85;
 
-    frame.polyline(up(rib.top), GREY, 2.0);
-    frame.polyline(up(rib.bottom), GREY, 2.0);
+    frame.polyline(up(rib.top), INPUT, 2.0);
+    frame.polyline(up(rib.bottom), INPUT, 2.0);
 
     for (size_t i = 1; i + 1 < sections.size(); i++)
-        frame.polyline(sections[i], family_color(Family::outer_ribs), i == k ? 5.0 : 3.0);
+        frame.polyline(sections[i], BUILT, i == k ? 5.0 : 3.0);
 
     frame.label(fmt::format("low = top[{}]", 2 + k), corners[0]);
     frame.label("high = at_level(low, 0)", corners[1]);
@@ -433,10 +438,10 @@ void rib_ends(const Context& context) {
     for (size_t i = 1; i + 1 < sections.size(); i++)
         frame.polyline(sections[i], GREY, 2.0);
 
-    frame.plane(at(up(cp.wedges[0][0]), area_centroid(first)), INK);
-    frame.plane(at(up(end), area_centroid(last)), INK);
-    frame.polyline(first, MARK, 5.0);
-    frame.polyline(last, MARK, 5.0);
+    frame.plane(at(up(cp.wedges[0][0]), area_centroid(first)), INPUT);
+    frame.plane(at(up(end), area_centroid(last)), INPUT);
+    frame.polyline(first, BUILT, 5.0);
+    frame.polyline(last, BUILT, 5.0);
 
     frame.label("sections[0] in cut_plane0 = cp.wedges[0][0]", area_centroid(first));
     frame.label(fmt::format("sections[{}] in cut_plane1 = rib_seam_ends()[0], x = {:.0f}", sections.size() - 1, end.origin()[0]), area_centroid(last));
@@ -457,7 +462,7 @@ void rib_axes(const Context& context) {
     for (const Family family : {Family::outer_ribs, Family::inner_ribs})
         for (const Member& member : members(quarter, family)) {
             const Line& axis = variable(member)->axis;
-            frame.line(axis, family_color(family), 5.0, false, true);
+            frame.line(axis, BUILT, 5.0, false, true);
             frame.label(member.element->name, axis.center());
         }
 
@@ -477,7 +482,7 @@ void outer_ribs(const Context& context) {
 
     for (size_t i = 0; i < quarter.outer_ribs.size(); i++) {
         const std::shared_ptr<Element>& element = quarter.outer_ribs[i].element;
-        frame.element(element, family_color(Family::outer_ribs));
+        frame.element(element, BUILT);
         frame.label(fmt::format("{}: {} faces", element->name, element->element_geometry_mesh().number_of_faces()), up(middle(ribs[i])));
     }
 
@@ -493,7 +498,7 @@ void inner_ribs(const Context& context) {
     const QuarterMembers& quarter = context.members.members.quarters[0];
     Frame frame(CHAPTER, 125, "inner_ribs", "Inner ribs: the same to_rib, the second loop swept along central_panel.rib_sweep, not the face normal", "top", QUARTER);
     family_members(frame, context.members, 0, {Family::outer_ribs}, &GREY);
-    family_members(frame, context.members, 0, {Family::inner_ribs});
+    family_members(frame, context.members, 0, {Family::inner_ribs}, &BUILT);
 
     for (size_t i = 0; i < ribs.size(); i++) {
         const Point mid = middle(ribs[i]);
@@ -502,8 +507,8 @@ void inner_ribs(const Context& context) {
         const double way = panel.rib_sweep.dot(face_normal) < 0.0 ? -600.0 : 600.0; // Inner rib 1's far points move along -rib_sweep.
         const Point sweep = from + panel.rib_sweep.normalized() * way;
         const Point normal = from + face_normal * 400.0;
-        frame.line(up(Line::from_points(from, sweep)), MARK, 4.0, false, true);
-        frame.line(up(Line::from_points(from, normal)), INK, 2.0, true, true);
+        frame.line(up(Line::from_points(from, sweep)), VARIABLE, 4.0, false, true);
+        frame.line(up(Line::from_points(from, normal)), INPUT, 2.0, true, true);
         frame.label(quarter.inner_ribs[i].element->name, up(ribs[i].top.get_point(1)));
 
         if (i == 0) {
@@ -530,10 +535,10 @@ void wedge_blocks(const Context& context) {
     Frame frame(CHAPTER, 126, "wedge_blocks", "Wedges: loft_planes of the rib faces, the bed top and z 0, from the fan plane to the far face", "iso", FAN_HEAD);
     frame.plane_size = 90.0;
     family_members(frame, context.members, 0, {Family::outer_ribs, Family::inner_ribs}, &GREY);
-    family_members(frame, context.members, 0, {Family::wedges});
+    family_members(frame, context.members, 0, {Family::wedges}, &BUILT);
 
     for (size_t i = 0; i < blocks.size(); i++) {
-        frame.plane(up(cp.wedges[i][0]), family_color(Family::wedges));
+        frame.plane(up(cp.wedges[i][0]), INPUT);
         frame.label(quarter.wedges[i].element->name, up(middle(blocks[i])));
     }
 
@@ -561,11 +566,11 @@ void beam_caps(const Context& context) {
 
     Frame frame(CHAPTER, 127, "beam_caps", "to_beam(outline, {0, 3}, {1, 2}): two end caps and a vertex-centroid axis a -> b, a 6-face BeamVariable", "iso", around(corners, 150.0));
     frame.element(quarter.inner_beams[1].element, GREY);
-    frame.polyline(up(beam.top), INK, 2.0);
-    frame.polyline(up(beam.bottom), INK, 2.0);
-    frame.polyline(element->sections.front(), family_color(Family::inner_beams), 6.0);
-    frame.polyline(element->sections.back(), family_color(Family::inner_beams), 6.0);
-    frame.line(element->axis, MARK, 4.0, false, true);
+    frame.polyline(up(beam.top), INPUT, 2.0);
+    frame.polyline(up(beam.bottom), INPUT, 2.0);
+    frame.polyline(element->sections.front(), BUILT, 6.0);
+    frame.polyline(element->sections.back(), BUILT, 6.0);
+    frame.line(element->axis, RESULT, 4.0, false, true);
 
     for (size_t k = 0; k < 4; k++)
         frame.label(fmt::format("top[{}]", k), up(top[k]));
@@ -589,8 +594,8 @@ void oculus_levels(const Context& context) {
     Frame frame(CHAPTER, 128, "oculus_levels", "guide.oculus(): nine outlines between four levels, z 0, the soffit, soffit + t and soffit + 2t", "front", {650.0, -1300.0, H - 240.0, 1250.0, 1300.0, H + 30.0}); // The right end of the ring, so the 27 mm steps between the levels open up.
 
     for (const Outline& outline : guide.oculus()) {
-        frame.polyline(up(outline.top), GREY, 1.0);
-        frame.polyline(up(outline.bottom), GREY, 1.0);
+        frame.polyline(up(outline.top), BUILT, 1.0);
+        frame.polyline(up(outline.bottom), BUILT, 1.0);
     }
 
     const std::array<std::pair<std::string, double>, 4> levels = {{
@@ -601,7 +606,7 @@ void oculus_levels(const Context& context) {
     }};
 
     for (size_t i = 0; i < levels.size(); i++) {
-        frame.line(up(Line::from_points(Point(-1200.0, -1200.0, levels[i].second), Point(1200.0, -1200.0, levels[i].second))), INK, 2.0, true);
+        frame.line(up(Line::from_points(Point(-1200.0, -1200.0, levels[i].second), Point(1200.0, -1200.0, levels[i].second))), VARIABLE, 2.0, true);
         frame.label(levels[i].first, up(Point(1180.0 - 140.0 * static_cast<double>(i), -1200.0, levels[i].second)));
     }
 
@@ -619,8 +624,8 @@ void ring_beams(const Context& context) {
 
     for (size_t i = 0; i < floor.members.ring.size(); i++) {
         const std::shared_ptr<BeamVariable> beam = variable(floor.members.ring[i]);
-        frame.element(beam, RING);
-        frame.polyline(beam->sections.front(), MARK, 7.0);
+        frame.element(beam, BUILT);
+        frame.polyline(beam->sections.front(), RESULT, 7.0);
         frame.label(fmt::format("{} starts on tilted[{}]", beam->name, (i + 1) % 4), area_centroid(beam->sections.front()));
     }
 
@@ -651,7 +656,7 @@ void bottom_wedges(const Context& context) {
         frame.element(member.element, GREY);
 
     for (size_t i = 4; i < 8; i++)
-        frame.element(named(floor, fmt::format("oculus_{}", i)), RING);
+        frame.element(named(floor, fmt::format("oculus_{}", i)), BUILT);
 
     for (const size_t i : std::array<size_t, 2>{6, 7}) {
         const Point along = corner + (up(middle(oculus[i])) - corner).normalized() * 180.0;
@@ -679,9 +684,9 @@ void central_plate(const Context& context) {
         frame.element(member.element, GREY);
 
     for (size_t i = 4; i < 8; i++)
-        frame.element(named(floor, fmt::format("oculus_{}", i)), GREY);
+        frame.element(named(floor, fmt::format("oculus_{}", i)), INPUT);
 
-    frame.element(named(floor, "oculus_8"), RING);
+    frame.element(named(floor, "oculus_8"), BUILT);
     frame.label("oculus_8", up(middle(plate)));
     frame.label(fmt::format("bottom: z {:.3f}", up(plate.bottom.get_point(0))[2]), up(plate.bottom.get_point(0)));
     frame.label(fmt::format("top: z {:.3f}", up(plate.top.get_point(2))[2]), up(plate.top.get_point(2)));
@@ -689,7 +694,7 @@ void central_plate(const Context& context) {
     frame.write(context.dir);
 }
 
-/// The oculus tinted by the group that holds each member: quarter_q/oculus_q, and oculus at the root.
+/// The oculus by the group that holds each member: quarter_0/oculus_0 built, oculus at the root the second result, the other quarters' groups grey.
 void oculus_groups(const Context& context) {
 
     const Floor& floor = context.members;
@@ -704,7 +709,7 @@ void oculus_groups(const Context& context) {
             std::string names;
             for (TreeNode* node : group->children())
                 if (const std::shared_ptr<Element> element = element_of(floor, *node)) {
-                    frame.element(element, QUARTER_TINTS[q]);
+                    frame.element(element, q == 0 ? BUILT : GREY);
                     names += (names.empty() ? "" : ", ") + element->name;
                 }
 
@@ -713,7 +718,7 @@ void oculus_groups(const Context& context) {
 
     for (TreeNode* node : floor.members.oculus->children())
         if (const std::shared_ptr<Element> element = element_of(floor, *node))
-            frame.element(element, RING);
+            frame.element(element, RESULT);
 
     frame.label(fmt::format("{} (root): oculus_8", floor.members.oculus->name), up(middle(oculus[8])), true);
     frame.write(context.dir);
@@ -733,10 +738,10 @@ void support_foot(const Context& context) {
     Frame frame(CHAPTER, 134, "support_foot", "to_support on corner.support_plane at z 0; the column axis from column_foot() to bay_height", "front", {foot[0] - 260.0, foot[1] - 260.0, -80.0, foot[0] + 260.0, foot[1] + 260.0, 520.0}); // The support close up; the axis runs on out of the top.
     frame.plane_size = 100.0;
 
-    frame.element(model.support, STEEL);
-    frame.plane(corner.support_plane, INK);
-    frame.line(Line::from_points(foot, top), MARK, 4.0, false, true);
-    frame.point(foot, MARK);
+    frame.element(model.support, BUILT);
+    frame.plane(corner.support_plane, INPUT);
+    frame.line(Line::from_points(foot, top), RESULT, 4.0, false, true);
+    frame.point(foot, VARIABLE);
     frame.label(fmt::format("support_plane: origin ({:.0f}, {:.0f}, 0)", corner.support_plane.origin()[0], corner.support_plane.origin()[1]), corner.support_plane.origin());
     frame.label(fmt::format("foot = column_foot(): z {:.0f}", foot[2]), foot);
     frame.label(fmt::format("axis up to z = bay_height = {:.0f}", top[2]), foot + Vector(0.0, 0.0, 380.0));
@@ -754,9 +759,9 @@ void shaft_capitel(const Context& context) {
     const Polyline head = column->head.transformed(to_step);
     Frame frame(CHAPTER, 135, "shaft_capitel", "to_column: the shaft square, and the wider head square over head_height = column_head_depth", "iso", COLUMN);
 
-    frame.element(column, STEEL);
-    frame.polyline(section, MARK, 4.0);
-    frame.polyline(head, INK, 4.0);
+    frame.element(column, BUILT);
+    frame.polyline(section, VARIABLE, 4.0);
+    frame.polyline(head, RESULT, 4.0);
     frame.label(fmt::format("section: {:.0f} square", (section.get_point(1) - section.get_point(0)).magnitude()), section.get_point(2));
     frame.label(fmt::format("head: {:.0f} square", (head.get_point(1) - head.get_point(0)).magnitude()), head.get_point(1));
     frame.label(fmt::format("step: z {:.0f}, head_height = {:.0f} below the top", step, column->head_height), Point(column->axis.start()[0], column->axis.start()[1], step));
@@ -775,16 +780,16 @@ void support_joint(const Context& context) {
     const Point foot = support.column_foot();
     Frame frame(CHAPTER, 136, "support_joint", "Joint::support: the head plate disc between two loops and one drill per screw, cut into the column end", "front", {axis[0] - 110.0, axis[1] - 110.0, 60.0, axis[0] + 110.0, axis[1] + 110.0, 340.0});
 
-    frame.element(model.support, GREY);
+    frame.element(model.support, INPUT);
 
     for (const Polyline& loop : joint->loops)
-        frame.polyline(loop, MARK, 3.0);
+        frame.polyline(loop, BUILT, 3.0);
 
     for (const Line& drill : joint->drill_lines)
-        frame.line(drill, MARK, 3.0, false, true);
+        frame.line(drill, RESULT, 3.0, false, true);
 
     for (const double z : {joint->loops[0].get_point(0)[2], foot[2], joint->loops[1].get_point(0)[2]})
-        frame.line(Line::from_points(Point(axis[0] - 100.0, axis[1], z), Point(axis[0] + 100.0, axis[1], z)), INK, 1.5, true);
+        frame.line(Line::from_points(Point(axis[0] - 100.0, axis[1], z), Point(axis[0] + 100.0, axis[1], z)), VARIABLE, 1.5, true);
 
     const Polyline& lower = joint->loops[0];
     const Polyline& upper = joint->loops[1];
@@ -802,11 +807,11 @@ void head_carving(const Context& context) {
     const std::vector<Outline> cutters = context.guide.quarter(0).column_cutters();
     Frame frame(CHAPTER, 137, "head_carving", "column_cuts: six cutter plates lifted by bay_height, solid difference cuts of column_0", "iso", FAN_HEAD);
     frame.key = true;
-    frame.element(context.members.members.columns[0].column, STEEL);
+    frame.element(context.members.members.columns[0].column, BUILT);
 
     for (size_t k = 0; k < cutters.size(); k++) {
-        frame.polyline(up(cutters[k].top), MARK, 3.0);
-        frame.polyline(up(cutters[k].bottom), MARK, 1.5);
+        frame.polyline(up(cutters[k].top), INPUT, 3.0);
+        frame.polyline(up(cutters[k].bottom), INPUT, 1.5);
         frame.label(k == 0 ? fmt::format("column_cutters()[0]: {:.0f} thick", outline_thickness(cutters[0])) : fmt::format("[{}]", k), up(middle(cutters[k])));
     }
 
@@ -823,15 +828,15 @@ void four_columns(const Context& context) {
     grey_floor(frame, floor, {}, false);
 
     for (const ColumnModel& model : floor.members.columns) {
-        frame.element(model.column, STEEL);
-        frame.element(model.support, STEEL);
+        frame.element(model.column, BUILT);
+        frame.element(model.support, RESULT);
         frame.label(model.column->name, model.column->axis.center());
     }
 
     frame.write(context.dir);
 }
 
-/// Every member of the floor: the quarters in their family colours, the oculus and the columns.
+/// Every member of the floor: the quarters in their family colours, the oculus ring and plates, and the columns on their supports.
 void whole_floor(const Context& context) {
 
     const Floor& floor = context.members;
@@ -850,8 +855,8 @@ void whole_floor(const Context& context) {
         frame.element(named(floor, fmt::format("oculus_{}", i)), RING);
 
     for (const ColumnModel& model : floor.members.columns) {
-        frame.element(model.column, GREY);
-        frame.element(model.support, GREY);
+        frame.element(model.column, STEEL);
+        frame.element(model.support, STEEL);
     }
 
     frame.label("oculus_0 .. oculus_3: the ring", up(middle(context.guide.oculus()[0])));
@@ -901,7 +906,7 @@ void branch(const Context& context) {
     Frame frame(CHAPTER, 142, "get_branch", "get_branch(\"quarter_0\"): a WoodSession of the quarter_0 subtree alone, drawn raised above its place", "iso", BRANCH);
     frame.orbit = "0,-52"; // Looks down 15 deg instead of 30, so the raised quarter stands clear above the floor behind it.
     grey_floor(frame, floor, own, true);
-    frame.polyline(polygon, INK, 2.0);
+    frame.polyline(polygon, GREY, 2.0); // Context, as the raise below: in a frame of family colours a role colour would read as a family.
     size_t count = 0;
 
     for (const std::shared_ptr<Element>& element : *part.objects.elements) {
@@ -914,7 +919,7 @@ void branch(const Context& context) {
         count++;
     }
 
-    frame.line(Line::from_points(centre, centre + Vector(0.0, 0.0, RAISE)), MARK, 4.0, false, true);
+    frame.line(Line::from_points(centre, centre + Vector(0.0, 0.0, RAISE)), GREY, 4.0, true, true);
     frame.label(fmt::format("part: {} elements of quarter_0", part.objects.elements->size()), centre + Vector(0.0, 0.0, RAISE));
     frame.label(fmt::format("{} drawn, the support Joint left out", count), centre + Vector(0.0, 0.0, RAISE * 0.5));
     frame.label("oculus_8 stays: its group oculus is at the root", up(middle(context.guide.oculus()[8])));

@@ -312,7 +312,7 @@ Relationship first(const FloorGuide& guide, Relation kind) {
 // Entry and walk
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// 169: the bay's members grey, the connectors the call makes in CONNECTOR_COLOR, one label per connector kind with its row count, and the total.
+/// 169: the bay's members grey, the connectors the call makes built, one label per connector kind with its row count, and the total.
 void entry(const Context& context) {
 
     const FloorGuide& guide = context.guide;
@@ -322,7 +322,7 @@ void entry(const Context& context) {
         quarter_members(frame, context.members, q, GREY);
 
     for (const std::shared_ptr<JointBeam>& connector : context.connected.connectors)
-        nested(frame, *connector, CONNECTOR_COLOR);
+        nested(frame, *connector, BUILT);
 
     const std::array<std::pair<Relation, size_t>, 4> pinned = {{{Relation::seam_wedge, 0}, {Relation::oculus_wedge, 1}, {Relation::column_plate, 2}, {Relation::block_dowels, 20}}};
 
@@ -352,10 +352,10 @@ void walk(const Context& context) {
             continue;
 
         const Point at = pin(rows[n], guide);
-        frame.point(at, MARK, 14.0);
+        frame.point(at, BUILT, 14.0);
 
         if (previous)
-            frame.line(Line::from_points(*previous, at), INK, 1.5, true, true);
+            frame.line(Line::from_points(*previous, at), INPUT, 1.5, true, true);
 
         previous = at;
         of_kind[rows[n].kind].push_back(n);
@@ -390,10 +390,10 @@ void wedge_sizing(const Context& context) {
     Frame frame(CHAPTER, 171, "wedge_sizing", "Seam wedge 0 sized by the thicker beam: 1.5 t cut back at both ends of the top edge, pockets 2t/3 deep", "right", around(middle + Vector(0.0, 0.0, -100.0), 100.0, 1150.0, 260.0));
 
     frame.polyline(row.contact, GREY, 2.0);
-    frame.line(wedge.edge, INK, 3.0);
-    frame.line(Line::from_points(wedge.edge.start(), wedge.edge.start() + x * margin), MARK, 7.0);
-    frame.line(Line::from_points(wedge.edge.end() - x * margin, wedge.edge.end()), MARK, 7.0);
-    frame.line(Line::from_points(middle, middle - Vector(0.0, 0.0, pocket_depth)), MARK, 3.0, false, true);
+    frame.line(wedge.edge, INPUT, 3.0);
+    frame.line(Line::from_points(wedge.edge.start(), wedge.edge.start() + x * margin), VARIABLE, 7.0);
+    frame.line(Line::from_points(wedge.edge.end() - x * margin, wedge.edge.end()), VARIABLE, 7.0);
+    frame.line(Line::from_points(middle, middle - Vector(0.0, 0.0, pocket_depth)), VARIABLE, 3.0, false, true);
 
     frame.label(fmt::format("thickness t = max({:.2f}, {:.2f})", context.members.members.thickness(row.a), context.members.members.thickness(row.b)), area_centroid(row.contact) + x * 400.0);
     frame.label(fmt::format("length_margin = 1.5 t = {:.2f}", margin), wedge.edge.start() + x * (0.5 * margin));
@@ -410,13 +410,13 @@ void wedge_axes(const Context& context) {
     const Point at = wedge.edge.center();
     Frame frame(CHAPTER, 172, "wedge_frame", "The wedge frame: x along the contact's top edge, y its Newell normal without the x part, z = x cross y", "iso", around(at + Vector(0.0, 0.0, -80.0), 350.0, 650.0, 260.0));
 
-    frame.polyline(row.contact, GREY, 2.0);
-    frame.line(wedge.edge, MARK, 5.0);
+    frame.polyline(row.contact, INPUT, 2.0);
+    frame.line(wedge.edge, VARIABLE, 5.0);
 
     const std::array<std::string, 3> names = {"x = edge direction", "y = normal - x (normal . x)", "z = x cross y"};
 
     for (size_t i = 0; i < 3; i++) {
-        frame.line(Line::from_points(at, at + wedge.axes[i] * 220.0), i == 0 ? MARK : INK, 3.0, false, true);
+        frame.line(Line::from_points(at, at + wedge.axes[i] * 220.0), BUILT, 3.0, false, true);
         frame.label(names[i], at + wedge.axes[i] * 220.0);
     }
 
@@ -439,13 +439,13 @@ void wedge_stations(const Context& context) {
     frame.line(wedge.edge, GREY, 3.0);
 
     for (const double station : wedge.margins)
-        frame.line(Line::from_points(centre_point + x * station - rise, centre_point + x * station + rise), INK, 3.0);
+        frame.line(Line::from_points(centre_point + x * station - rise, centre_point + x * station + rise), INPUT, 3.0);
 
     const Point hit = centre_point + x * wedge.stations[moved];
-    frame.line(Line::from_points(hit - Vector(0.0, 0.0, 260.0), hit + Vector(0.0, 0.0, 80.0)), INK, 2.0, true);
-    frame.line(Line::from_points(centre_point + x * wedge.margins[moved] + rise, hit + rise), MARK, 3.0, false, true);
-    frame.line(Line::from_points(centre_point + x * wedge.stations[0] - rise * 0.5, centre_point + x * wedge.stations[1] - rise * 0.5), MARK, 7.0);
-    frame.point(wedge.origin, MARK, 16.0);
+    frame.line(Line::from_points(hit - Vector(0.0, 0.0, 260.0), hit + Vector(0.0, 0.0, 80.0)), VARIABLE, 2.0, true);
+    frame.line(Line::from_points(centre_point + x * wedge.margins[moved] + rise, hit + rise), VARIABLE, 3.0, false, true);
+    frame.line(Line::from_points(centre_point + x * wedge.stations[0] - rise * 0.5, centre_point + x * wedge.stations[1] - rise * 0.5), BUILT, 7.0);
+    frame.point(wedge.origin, RESULT, 16.0);
 
     frame.label(fmt::format("stations[{}] -> end: {:.2f}", moved, wedge.stations[moved]), hit + rise);
     frame.label(fmt::format("stations[{}] = {:.2f}", 1 - moved, wedge.stations[1 - moved]), centre_point + x * wedge.stations[1 - moved] + rise);
@@ -464,12 +464,12 @@ void wedge_profile(const Context& context) {
     const std::array<std::array<double, 2>, 3>& profile = JointBeam::WEDGE_PROFILE;
     Frame frame(CHAPTER, 174, "wedge_profile", "below_top cuts WEDGE_PROFILE level with the top edge; the kept triangle runs the wedge length", "front", around(wedge.at(-0.5 * wedge.length, 0.0, -90.0), 110.0, 60.0, 150.0));
 
-    solid(frame, connector->parts[0], CONNECTOR_COLOR, "connector_wedge_0_part");
+    solid(frame, connector->parts[0], BUILT, "connector_wedge_0_part");
 
     for (size_t i = 0; i < 3; i++)
-        frame.line(Line::from_points(wedge.at(front, profile[i][0], profile[i][1]), wedge.at(front, profile[(i + 1) % 3][0], profile[(i + 1) % 3][1])), INK, 2.0, true);
+        frame.line(Line::from_points(wedge.at(front, profile[i][0], profile[i][1]), wedge.at(front, profile[(i + 1) % 3][0], profile[(i + 1) % 3][1])), INPUT, 2.0, true);
 
-    frame.line(Line::from_points(wedge.at(front, -48.0, 0.0), wedge.at(front, 48.0, 0.0)), MARK, 4.0);
+    frame.line(Line::from_points(wedge.at(front, -48.0, 0.0), wedge.at(front, 48.0, 0.0)), VARIABLE, 4.0);
 
     frame.label(fmt::format("apex: WEDGE_PROFILE[0] = ({:g}, {:g})", profile[0][0], profile[0][1]), wedge.at(front, profile[0][0], profile[0][1]));
     frame.label(fmt::format("corner ({:.2f}, {:.2f}) dropped", profile[1][0], profile[1][1]), wedge.at(front, profile[1][0], profile[1][1]));
@@ -489,10 +489,10 @@ void wedge_dowels(const Context& context) {
 
     outline_wire(frame, context.guide.quarter(0).inner_beams()[0], GREY);
     outline_wire(frame, context.guide.quarter(1).inner_beams()[2], GREY);
-    solid(frame, connector->parts[0], CONNECTOR_COLOR, "connector_wedge_0_part");
+    solid(frame, connector->parts[0], INPUT, "connector_wedge_0_part");
 
     for (const Line& dowel : dowels)
-        frame.line(dowel, MARK, 6.0);
+        frame.line(dowel, BUILT, 6.0);
 
     frame.label(connector->name + "_dowel_0", dowels.front().start());
     frame.label(fmt::format("length / count = {:.2f} / {} = {:.2f}", wedge.length, dowels.size(), wedge.length / static_cast<double>(dowels.size())), Point::centroid({dowels[0].center(), dowels[1].center()}));
@@ -510,13 +510,13 @@ void wedge_pockets(const Context& context) {
 
     outline_wire(frame, context.guide.quarter(0).inner_beams()[0], GREY);
     outline_wire(frame, context.guide.quarter(1).inner_beams()[2], GREY);
-    solid(frame, connector->cutters[0][0], MARK, "pocket_a");
-    solid(frame, connector->cutters[1][0], CONNECTOR_COLOR, "pocket_b");
+    solid(frame, connector->cutters[0][0], BUILT, "pocket_a");
+    solid(frame, connector->cutters[1][0], RESULT, "pocket_b");
 
     const std::vector<Point> triangle = corners(connector->parts[0][0]);
 
     for (size_t i = 0; i < triangle.size(); i++)
-        frame.line(Line::from_points(triangle[i] + ahead, triangle[(i + 1) % triangle.size()] + ahead), INK, 3.0);
+        frame.line(Line::from_points(triangle[i] + ahead, triangle[(i + 1) % triangle.size()] + ahead), INPUT, 3.0);
 
     for (size_t side = 0; side < 2; side++) {
         const std::vector<Point> face = corners(connector->cutters[side][0][0]);
@@ -548,8 +548,8 @@ void oculus_wedge(const Context& context) {
 
     outline_wire(frame, context.guide.quarter(0).inner_beams()[1], GREY, turn);
     outline_wire(frame, context.guide.oculus()[0], GREY, turn);
-    frame.polyline(row.contact.transformed(turn), MARK, 4.0);
-    solid(frame, {connector->parts[0][0].transformed(turn), connector->parts[0][1].transformed(turn)}, CONNECTOR_COLOR, "connector_wedge_4_part");
+    frame.polyline(row.contact.transformed(turn), VARIABLE, 4.0);
+    solid(frame, {connector->parts[0][0].transformed(turn), connector->parts[0][1].transformed(turn)}, BUILT, "connector_wedge_4_part");
 
     frame.label("row.plane = oculus_edges[0].tilted", area_centroid(row.contact).transformed(turn));
     frame.label(fmt::format("flush cut at z {:.2f}", top[2]), top.transformed(turn));
@@ -583,12 +583,12 @@ void plate_frame(const Context& context) {
     const Point origin = top_origin(points);
     Frame frame(CHAPTER, 178, "plate_frame", "Plate frame: x the contact normal made horizontal, toward the rib; z up; origin the top edge's centre", "iso", around(origin + Vector(0.0, 0.0, -60.0), 330.0, 330.0, 260.0));
 
-    frame.polyline(row.contact, GREY, 3.0);
-    frame.line(Line::from_points(middle_point, middle_point + normal * 220.0), INK, 2.0, true, true);
-    frame.line(Line::from_points(origin, origin + x * 260.0), MARK, 4.0, false, true);
-    frame.line(Line::from_points(origin, origin + y * 160.0), INK, 3.0, false, true);
-    frame.line(Line::from_points(origin, origin + z * 160.0), INK, 3.0, false, true);
-    frame.point(origin, MARK, 16.0);
+    frame.polyline(row.contact, INPUT, 3.0);
+    frame.line(Line::from_points(middle_point, middle_point + normal * 220.0), INPUT, 2.0, true, true);
+    frame.line(Line::from_points(origin, origin + x * 260.0), BUILT, 4.0, false, true);
+    frame.line(Line::from_points(origin, origin + y * 160.0), BUILT, 3.0, false, true);
+    frame.line(Line::from_points(origin, origin + z * 160.0), BUILT, 3.0, false, true);
+    frame.point(origin, RESULT, 16.0);
 
     frame.label("normal = compute_newell(points)", middle_point + normal * 220.0);
     frame.label(fmt::format("x: toward {}", context.members.members.get(row.b)->name), origin + x * 260.0);
@@ -611,9 +611,9 @@ void plate_part(const Context& context) {
     const Point front_end = Point::centroid({near[2], far[2]});
     Frame frame(CHAPTER, 179, "plate_part", "frame_box: plate back into the column, front into the rib, height down; pocket overshoot higher", "iso", around(centre(plate->parts[0]), 340.0, 220.0, 230.0));
 
-    frame.polyline(row.contact, GREY, 3.0);
-    solid(frame, plate->parts[0], CONNECTOR_COLOR, "connector_0_part");
-    wire(frame, plate->cutters[0][0], INK, 1.5, true);
+    frame.polyline(row.contact, INPUT, 3.0);
+    solid(frame, plate->parts[0], BUILT, "connector_0_part");
+    wire(frame, plate->cutters[0][0], RESULT, 1.5, true);
 
     frame.label(fmt::format("back = {:.0f} into {}", origin.distance(back_end), name_of(context.connected, plate->targets[0])), Point::centroid({origin, back_end}));
     frame.label(fmt::format("front = {:.0f} into {}", origin.distance(front_end), name_of(context.connected, plate->targets[1])), Point::centroid({origin, front_end}));
@@ -639,13 +639,13 @@ void plate_dowels(const Context& context) {
     const double down = (back_top - dowel).dot(z);
     Frame frame(CHAPTER, 180, "plate_dowels", "Plate dowels: stations margin_x radii in from the ends, levels margin_z radii in from top and bottom", "front", around(centre(plate->parts[0]), 300.0, 150.0, 175.0));
 
-    solid(frame, plate->parts[0], CONNECTOR_COLOR, "connector_0_part");
+    solid(frame, plate->parts[0], INPUT, "connector_0_part");
 
     for (const Line& line : plate->drill_lines)
-        frame.element(std::make_shared<Dowel>(line, plate->line_radius, plate->chord_tolerance), MARK);
+        frame.element(std::make_shared<Dowel>(line, plate->line_radius, plate->chord_tolerance), BUILT);
 
-    frame.line(Line::from_points(dowel - x * along + ahead, dowel + ahead), INK, 2.0, false, true);
-    frame.line(Line::from_points(dowel + z * down + ahead, dowel + ahead), INK, 2.0, false, true);
+    frame.line(Line::from_points(dowel - x * along + ahead, dowel + ahead), VARIABLE, 2.0, false, true);
+    frame.line(Line::from_points(dowel + z * down + ahead, dowel + ahead), VARIABLE, 2.0, false, true);
 
     frame.label(fmt::format("margin_x * dowel_radius = {:.2f}", along), dowel - x * (0.5 * along) + ahead);
     frame.label(fmt::format("margin_z * dowel_radius = {:.2f}", down), dowel + z * (0.5 * down) + ahead);
@@ -663,8 +663,8 @@ void corner_plates(const Context& context) {
     Frame frame(CHAPTER, 181, "plates_of_corner", "Each column plate goes to plates_of_corner[corner]; the cross lap is built from those two, not the ribs", "top", around(Point::centroid({centre(plate_0->parts[0]), centre(plate_1->parts[0])}), 330.0, 330.0, 200.0));
 
     frame.element(context.connected.members.columns[0].column, GREY);
-    solid(frame, plate_0->parts[0], CONNECTOR_COLOR, "connector_0_part");
-    solid(frame, plate_1->parts[0], CONNECTOR_COLOR, "connector_1_part");
+    solid(frame, plate_0->parts[0], BUILT, "connector_0_part");
+    solid(frame, plate_1->parts[0], RESULT, "connector_1_part");
 
     frame.label("plates_of_corner[0][0] = connector_0", centre(plate_0->parts[0]));
     frame.label("plates_of_corner[0][1] = connector_1", centre(plate_1->parts[0]));
@@ -689,20 +689,20 @@ void cross_lap_level(const Context& context) {
     const Vector ahead = frame_a.second[1] * -80.0;
     Frame frame(CHAPTER, 182, "cross_lap_level", "Cross lap: common height low..high along frame_a z, split at lap = low + share (high - low)", "front", around(frame_a.first, 330.0, 200.0, 190.0));
 
-    solid(frame, a->parts[0], CONNECTOR_COLOR, "connector_0_part");
-    wire(frame, b->parts[0], CONNECTOR_COLOR, 3.0);
+    solid(frame, a->parts[0], INPUT, "connector_0_part");
+    wire(frame, b->parts[0], INPUT, 3.0);
 
     const std::array<std::pair<double, std::string>, 3> levels = {{{low, fmt::format("low = max(z_a[0], z_b[0]) = {:.1f}", low)}, {high, fmt::format("high = min(z_a[1], z_b[1]) = {:.1f}", high)}, {lap, fmt::format("lap = {:.1f}: z {:.0f}, share {:g}", lap, frame_a.first[2] + lap, (lap - low) / (high - low))}}};
 
     for (size_t i = 0; i < levels.size(); i++) {
         const Point left = frame_a.first + frame_a.second[0] * (span[0] - 40.0) + frame_a.second[2] * levels[i].first + ahead;
         const Point right = frame_a.first + frame_a.second[0] * (span[1] + 40.0) + frame_a.second[2] * levels[i].first + ahead;
-        frame.line(Line::from_points(left, right), i == 2 ? MARK : INK, i == 2 ? 4.0 : 2.0, i != 2);
+        frame.line(Line::from_points(left, right), i == 2 ? BUILT : VARIABLE, i == 2 ? 4.0 : 2.0, i != 2);
         frame.label(levels[i].second, i == 2 ? left : right);
     }
 
-    frame.point(frame_a.first + ahead, INK, 12.0);
-    frame.point(frame_b.first + ahead, INK, 12.0);
+    frame.point(frame_a.first + ahead, INPUT, 12.0);
+    frame.point(frame_b.first + ahead, INPUT, 12.0);
     frame.label("frame_a origin", frame_a.first + ahead);
     frame.label("frame_b origin", frame_b.first + ahead);
     frame.write(context.dir);
@@ -720,10 +720,10 @@ void cross_lap_slots(const Context& context) {
     Frame frame(CHAPTER, 183, "cross_lap_slots", "Cross lap slots: connector_0 cut from the lap up through its top, connector_1 from its bottom to the lap", "iso", around(meet, 160.0, 160.0, 170.0));
     frame.key = true;
 
-    wire(frame, a->parts[0], CONNECTOR_COLOR, 2.0);
-    wire(frame, b->parts[0], CONNECTOR_COLOR, 2.0);
-    solid(frame, lap->cutters[0][0], MARK, "slot_a");
-    solid(frame, lap->cutters[1][0], MARK, "slot_b");
+    wire(frame, a->parts[0], INPUT, 2.0);
+    wire(frame, b->parts[0], INPUT, 2.0);
+    solid(frame, lap->cutters[0][0], BUILT, "slot_a");
+    solid(frame, lap->cutters[1][0], RESULT, "slot_b");
 
     frame.label(fmt::format("cutters[0]: slot in {}, lap to top", name_of(context.connected, lap->targets[0])), slot_a);
     frame.label(fmt::format("cutters[1]: slot in {}, bottom to lap", name_of(context.connected, lap->targets[1])), slot_b);
@@ -755,17 +755,17 @@ void tie_frame(const Context& context, const Floor& tied) {
     Frame frame(CHAPTER, 184, "tie_frame", "Tie frame on the tied bay's seam 0: x down, y the contact normal made horizontal, z = x cross y", "iso", around(origin + Vector(0.0, 0.0, -120.0), 350.0, 300.0, 230.0));
 
     tied_ribs(frame, tied);
-    frame.polyline(row.contact, GREY, 3.0);
+    frame.polyline(row.contact, INPUT, 3.0);
 
     const std::array<Vector, 3> axes = {x, y, z};
     const std::array<std::string, 3> names = {"x = (0, 0, -1): down", "y: contact normal, horizontal", "z = x cross y"};
 
     for (size_t i = 0; i < 3; i++) {
-        frame.line(Line::from_points(origin, origin + axes[i] * 200.0), MARK, 3.0, false, true);
+        frame.line(Line::from_points(origin, origin + axes[i] * 200.0), BUILT, 3.0, false, true);
         frame.label(names[i], origin + axes[i] * 200.0);
     }
 
-    frame.point(origin, MARK, 14.0);
+    frame.point(origin, RESULT, 14.0);
     frame.label("origin = top_origin(points)", origin);
     frame.write(context.dir);
 }
@@ -783,10 +783,10 @@ void tie_key(const Context& context, const Floor& tied) {
     Frame frame(CHAPTER, 185, "tie_key", "The tie key: four lofted pieces, heads at both ends and the neck across the seam, from above", "top", around(origin, 440.0, 80.0, 120.0));
 
     tied_ribs(frame, tied);
-    frame.line(Line::from_points(origin - across * 200.0, origin + across * 200.0), INK, 2.0, true);
+    frame.line(Line::from_points(origin - across * 200.0, origin + across * 200.0), INPUT, 2.0, true);
 
     for (size_t i = 0; i < tie->parts.size(); i++)
-        solid(frame, tie->parts[i], CONNECTOR_COLOR, fmt::format("{}_part_{}", tie->name, i));
+        solid(frame, tie->parts[i], BUILT, fmt::format("{}_part_{}", tie->name, i));
 
     frame.label(fmt::format("head: head_width {:.0f}, {:.0f} long", head[0].distance(head[3]), Point::centroid(head).distance(Point::centroid(corners(tie->parts[0][1])))), centre(tie->parts[0]));
     frame.label(fmt::format("neck: neck_width {:.0f}", neck[0].distance(neck[3])), centre(tie->parts[1]));
@@ -801,7 +801,7 @@ void tie_pockets(const Context& context, const Floor& tied) {
     const std::shared_ptr<JointBeam> tie = tied.connectors.at(0);
     const Relationship row = first(tied.guide, Relation::seam_tie);
     const Point origin = top_origin(corners(row.contact));
-    const std::array<Color, 2> colors = {MARK, CONNECTOR_COLOR};
+    const std::array<Color, 2> colors = {BUILT, RESULT};
     Frame frame(CHAPTER, 186, "tie_pockets", "Tie pockets: a head box and a neck box per rib down to a flat floor, each neck overshoot past the seam", "top", around(origin, 440.0, 80.0, 120.0));
 
     tied_ribs(frame, tied);
@@ -849,9 +849,9 @@ void dowels_inset(const Context& context) {
     const std::array<double, 2> zs = extent(points, origin, Vector(0.0, 0.0, 1.0));
     Frame frame(CHAPTER, 187, "dowels_inset", "Block dowels: the contact inset by offset with Clipper2; the ring's corners take the dowels", "front", {origin[0] + xs[0] - 60.0, origin[1] - 100.0, origin[2] + zs[0] - 60.0, origin[0] + xs[1] + 60.0, origin[1] + 100.0, origin[2] + zs[1] + 60.0});
 
-    frame.polyline(row.contact, GREY, 3.0);
-    frame.polyline(Polyline(ring).closed(), MARK, 3.0);
-    frame.point(origin, INK, 12.0);
+    frame.polyline(row.contact, INPUT, 3.0);
+    frame.polyline(Polyline(ring).closed(), BUILT, 3.0);
+    frame.point(origin, RESULT, 12.0);
 
     frame.label(fmt::format("contact: {} | {}", row.a.name(), row.b.name()), points[0]);
     frame.label(fmt::format("inset_polygon: offset = {:.0f}", offset), Point::centroid({ring[0], ring[1]}));
@@ -869,10 +869,10 @@ void dowels_axes(const Context& context) {
 
     outline_wire(frame, outlines(context.guide.quarter(static_cast<size_t>(row.a.quarter)), row.a.family).at(row.a.index), GREY);
     outline_wire(frame, outlines(context.guide.quarter(static_cast<size_t>(row.b.quarter)), row.b.family).at(row.b.index), GREY);
-    frame.polyline(row.contact, INK, 2.0);
+    frame.polyline(row.contact, INPUT, 2.0);
 
     for (const Line& line : lines)
-        frame.element(std::make_shared<Dowel>(line, dowels->line_radius, dowels->chord_tolerance), MARK);
+        frame.element(std::make_shared<Dowel>(line, dowels->line_radius, dowels->chord_tolerance), BUILT);
 
     frame.label(fmt::format("{}_dowel_0: d{:g}, {:.0f} long", dowels->name, 2.0 * dowels->line_radius, lines[0].length()), lines[0].center());
     frame.label(fmt::format("start: half in {}", row.a.name()), lines[1].start());
@@ -880,7 +880,7 @@ void dowels_axes(const Context& context) {
     frame.write(context.dir);
 }
 
-/// 189: quarter 0's first rib_corner screw connector: its three targets in their family colours, each named a step from the screws toward its own middle, and its two drill lines.
+/// 189: quarter 0's first rib_corner screw connector: its targets a and b as input, the seam beam row.through adds as the variable, each named a step from the screws toward its own middle, and its two drill lines.
 void screws_factory(const Context& context) {
 
     const std::vector<Relationship> rows = walked(context.guide, screw_kinds());
@@ -898,15 +898,16 @@ void screws_factory(const Context& context) {
     Frame frame(CHAPTER, 189, "screws_factory", fmt::format("JointBeam::screws: pre_drill, every passed member a target ({} here), no cutters", passed.size()), "iso", around(at, 280.0, 280.0, 230.0));
     frame.distance = 0.6;
 
-    for (const MemberRef& ref : passed) {
+    for (size_t i = 0; i < passed.size(); i++) {
+        const MemberRef& ref = passed[i];
         const std::shared_ptr<Element> member = context.members.members.get(ref);
         const Vector along = (member->model_geometry_mesh().centroid() - at).normalized();
-        frame.element(member, static_cast<size_t>(ref.family) < FAMILY_COLORS.size() ? FAMILY_COLORS[static_cast<size_t>(ref.family)] : GREY);
+        frame.element(member, i < 2 ? INPUT : VARIABLE);
         frame.label(fmt::format("target {}", ref.name()), inside_point(member->element_geometry_mesh(), {Line::from_points(at + along * 150.0, at + along * 400.0)}));
     }
 
     for (const Line& line : lines)
-        frame.line(line, MARK, 4.0, false, true);
+        frame.line(line, BUILT, 4.0, false, true);
 
     frame.label(fmt::format("{}: {} drill lines, r {:g}, {:.0f} long", screws->name, lines.size(), screws->line_radius, lines[0].length()), lines.back().end());
     frame.write(context.dir);
@@ -925,7 +926,7 @@ void naming(const Context& context) {
         if (rows[n].seam_or_corner != 0)
             continue;
 
-        nested(frame, *context.connected.connectors.at(n), CONNECTOR_COLOR);
+        nested(frame, *context.connected.connectors.at(n), BUILT);
 
         if (shown.count(context.connected.connectors[n]->name))
             frame.label(context.connected.connectors[n]->name, pin(*context.connected.connectors[n]));
@@ -933,7 +934,7 @@ void naming(const Context& context) {
 
     for (size_t n = 0; n < screw_rows.size(); n++)
         if (screw_rows[n].seam_or_corner == 0) {
-            nested(frame, *context.connected.screws.at(n), CONNECTOR_COLOR);
+            nested(frame, *context.connected.screws.at(n), BUILT);
 
             if (shown.count(context.connected.screws[n]->name))
                 frame.label(context.connected.screws[n]->name, context.connected.screws[n]->drill_lines.front().start());
@@ -955,14 +956,14 @@ void nesting(const Context& context) {
     const Point at = centre(wedge->parts[0]);
     Frame frame(CHAPTER, 193, "nest_children", "nest_children: a ConnectorPart per part, carrying the bores, and a Dowel per drill line, lifted out here", "iso", around(at + lift * 0.5, 300.0, 450.0, 260.0));
 
-    frame.element(children[0], CONNECTOR_COLOR);
+    frame.element(children[0], BUILT);
 
     for (size_t i = 1; i < children.size(); i++) {
         const Line& axis = wedge->drill_lines[i - 1];
         std::shared_ptr<Dowel> dowel = std::make_shared<Dowel>(axis.transformed(Xform::translation(lift[0], lift[1], lift[2])), wedge->line_radius, wedge->chord_tolerance);
         dowel->name = children[i]->name;
-        frame.element(dowel, MARK);
-        frame.line(Line::from_points(axis.center(), axis.center() + lift), INK, 1.5, true, true);
+        frame.element(dowel, RESULT);
+        frame.line(Line::from_points(axis.center(), axis.center() + lift), INPUT, 1.5, true, true);
     }
 
     frame.label(fmt::format("{}: SolidCut bores, {} drills", children[0]->name, wedge->drill_lines.size()), Point(at[0], wedge->drill_lines[0].center()[1], at[2]));
@@ -985,10 +986,10 @@ void cutter_solid(const Context& context) {
     Frame frame(CHAPTER, 194, "cutter_solid", "Per target: its cutters lofted into one mesh and the target_drills, stored as one SolidCut in the target", "iso", around(Point::centroid({cut->drills[0].center(), cut->drills[1].center()}) + Vector(0.0, 0.0, 30.0), 260.0, 420.0, 220.0));
 
     frame.element(beam, GREY);
-    wire(frame, wedge->cutters[0][0], MARK, 2.5);
+    wire(frame, wedge->cutters[0][0], BUILT, 2.5);
 
     for (const Line& drill : cut->drills)
-        frame.line(drill, INK, 1.5, true);
+        frame.line(drill, RESULT, 1.5, true);
 
     frame.label("Mesh::loft(cutters[0][0]), closed", deep[0]);
     frame.label(fmt::format("drills: {} x r {:g}", cut->drills.size(), cut->drill_radius), cut->drills[0].start());
@@ -1010,9 +1011,9 @@ void target_holes(const Context& context) {
     Frame frame(CHAPTER, 195, "target_drills", "target_drills: a hole runs on by drill_overshoot where the dowel leaves the target, blind where it ends", "right", around(dowel.center(), 60.0, 75.0, 45.0));
 
     frame.polyline(row.contact, GREY, 3.0);
-    frame.line(dowel, MARK, 8.0);
-    frame.line(rib_hole.transformed(Xform::translation(shift[0], shift[1], shift[2])), FAMILY_COLORS[0], 4.0);
-    frame.line(block_hole.transformed(Xform::translation(-shift[0], -shift[1], -shift[2])), FAMILY_COLORS[3], 4.0);
+    frame.line(dowel, INPUT, 8.0);
+    frame.line(rib_hole.transformed(Xform::translation(shift[0], shift[1], shift[2])), BUILT, 4.0);
+    frame.line(block_hole.transformed(Xform::translation(-shift[0], -shift[1], -shift[2])), RESULT, 4.0);
 
     frame.label(fmt::format("{} hole start: {}", rib->name, run_on(rib_hole.start(), dowel.start())), rib_hole.start() + shift);
     frame.label(run_on(rib_hole.end(), dowel.end()), rib_hole.end() + shift);
@@ -1039,7 +1040,7 @@ void hosted_drills(const Context& context) {
 
     for (const ElementFeature& feature : drills)
         for (const Polyline& circle : feature.outlines)
-            frame.polyline(circle, MARK, 3.0);
+            frame.polyline(circle, BUILT, 3.0);
 
     frame.label(fmt::format("{}: {} drill features", block->name, drills.size()), at);
 
@@ -1064,8 +1065,8 @@ void synced_parts(const Context& context) {
     frame.key = true;
     frame.distance = 0.7;
 
-    frame.element(parts_a[0], CONNECTOR_COLOR);
-    frame.element(parts_b[0], CONNECTOR_COLOR);
+    frame.element(parts_a[0], BUILT);
+    frame.element(parts_b[0], RESULT);
 
     frame.label(parts_a[0]->name, centre(a->parts[0]));
     frame.label(parts_b[0]->name, centre(b->parts[0]));
@@ -1073,7 +1074,7 @@ void synced_parts(const Context& context) {
     frame.write(context.dir);
 }
 
-/// 198: quarter 0 grey and every part, dowel and screw of its connectors in CONNECTOR_COLOR.
+/// 198: quarter 0 grey and every part, dowel and screw of its connectors built, the colour paint gives them.
 void painted(const Context& context) {
 
     const std::vector<Relationship> rows = walked(context.guide, CONNECTOR_RELATIONS);
@@ -1085,11 +1086,11 @@ void painted(const Context& context) {
 
     for (size_t n = 0; n < rows.size(); n++)
         if (rows[n].seam_or_corner == 0)
-            nested(frame, *context.connected.connectors.at(n), CONNECTOR_COLOR);
+            nested(frame, *context.connected.connectors.at(n), BUILT);
 
     for (size_t n = 0; n < screw_rows.size(); n++)
         if (screw_rows[n].seam_or_corner == 0)
-            nested(frame, *context.connected.screws.at(n), CONNECTOR_COLOR);
+            nested(frame, *context.connected.screws.at(n), BUILT);
 
     frame.write(context.dir);
 }
@@ -1103,8 +1104,8 @@ void empty_node(const Context& context) {
     const std::array<Polyline, 2> outline = {plate->parts[0][0].transformed(grow), plate->parts[0][1].transformed(grow)};
     Frame frame(CHAPTER, 199, "empty_node", "The connector node's own mesh and BRep are empty; its ConnectorPart and Dowel children draw it", "iso", around(at, 340.0, 220.0, 230.0));
 
-    nested(frame, *plate, CONNECTOR_COLOR);
-    wire(frame, outline, INK, 1.5, true);
+    nested(frame, *plate, BUILT);
+    wire(frame, outline, VARIABLE, 1.5, true);
 
     frame.label(fmt::format("{}_part: apply_solid_cuts(part_mesh(0), solid_cuts)", plate->name), at);
     frame.label(fmt::format("{}_dowel_0", plate->name), plate->drill_lines[0].start());

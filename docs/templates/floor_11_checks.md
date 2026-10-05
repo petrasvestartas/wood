@@ -2,6 +2,8 @@
 
 This chapter covers the checks that run after the model is built. `FloorGuide::check()` (`src/templates/floor/floor_report.cpp:173-186`) measures the relations the design relies on in the guide's outlines and returns a `FloorReport`. `compute_breps` and `check_breps` (`src/templates/floor/floor_brep_check.cpp:84-125`) turn the cut members and connector parts of a `Floor` into BReps with exact bores and count them against the bores the dowels and screws need. `check()` reads the guide of chapters 1 to 6. `compute_breps` and `check_breps` read the `Floor` of chapters 7 to 10, with every member, connector and screw. The chapter ends with the two examples that build the complete model: example 7 on the square bay and example 8 on the tied 6000 x 4800 bay. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)` unless a section says otherwise.
 
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) build the complete connected floor this chapter checks, on the square bay and on the tied 6000 x 4800 bay, with `compute_breps` writing every dowel and screw bore as an exact cylinder.
+
 ![](floor/film_11_checks.webp)
 
 The order the checks run in, with the frames of this chapter:
@@ -32,13 +34,15 @@ No example calls `check()`, `FloorReport::str()` or `check_breps()`; `grep` find
 
 ![](floor/234_ring.webp)
 
-`check()` calls `oculus()` once and keeps the result as `ring` (`floor_report.cpp:176`). Only `ring[0..3]`, the four ring beams, are measured. Outlines 4 to 8 are the bottom wedges and the central plate, and `check()` does not read them. Ring beam `i` is `loft_planes` over four side planes between two loop planes. Each corner is `plane_plane_plane` of two consecutive side planes and one loop plane:
+<span style="color:#2196EA">■ built</span> `ring[0..3].top` on `tilted`   <span style="color:#EBB121">■ result</span> `ring[0..3].bottom` on `ring_inner`   <span style="color:#455B6B">■ input</span> `oculus_edges[0..3].line`
+
+`check()` calls `oculus()` once and keeps the result as `ring` (`floor_report.cpp:176`). Only <span style="color:#2196EA">`ring[0..3]`</span>, the four ring beams, are measured. Outlines 4 to 8 are the bottom wedges and the central plate, and `check()` does not read them. Ring beam `i` is `loft_planes` over four side planes between two loop planes. Each corner is `plane_plane_plane` of two consecutive side planes and one loop plane:
 
 ```cpp
 plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 ```
 
-`side0 = level(0)` is the datum and `side2 = level(soffit)`. The beam starts on the previous beam's `ring_inner` plane and ends on the next beam's `tilted` plane, flush with that beam's outer face, so the four beams form a pinwheel. `flip = true` swaps the two loops. `ring[i].top` is the loop on `oculus_edges[i].tilted`, the outer face the quarter's oculus beam bears on. `ring[i].bottom` is the loop on `oculus_edges[i].ring_inner`. `tilted` is the oculus edge's vertical plane rotated by `-oculus_plane_angle` about the edge line through its centre. Its trace at the datum is the edge itself, and below the datum it moves `|z| tan(5 deg)` toward the centre. `back` is the edge plane offset `inner_beams` into the quarter, and `ring_inner = back` offset by `-2 inner_beams`, which puts it `inner_beams` inside the edge (`floor.cpp:93-103`). The ring beam is therefore 60 wide at the datum and `60 - 198.783 tan(5 deg) = 42.6` wide at the soffit. In the picture, the two loops of each beam are drawn in plan.
+`side0 = level(0)` is the datum and `side2 = level(soffit)`. The beam starts on the previous beam's `ring_inner` plane and ends on the next beam's `tilted` plane, flush with that beam's outer face, so the four beams form a pinwheel. `flip = true` swaps the two loops. <span style="color:#2196EA">`ring[i].top`</span> is the loop on `oculus_edges[i].tilted`, the outer face the quarter's oculus beam bears on. <span style="color:#EBB121">`ring[i].bottom`</span> is the loop on `oculus_edges[i].ring_inner`. `tilted` is the oculus edge's vertical plane rotated by `-oculus_plane_angle` about the edge line through its centre. Its trace at the datum is <span style="color:#455B6B">the edge itself</span>, and below the datum it moves `|z| tan(5 deg)` toward the centre. `back` is the edge plane offset `inner_beams` into the quarter, and `ring_inner = back` offset by `-2 inner_beams`, which puts it `inner_beams` inside the edge (`floor.cpp:93-103`). The ring beam is therefore 60 wide at the datum and `60 - 198.783 tan(5 deg) = 42.6` wide at the soffit. In the picture, the two loops of each beam are drawn in plan.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -51,22 +55,24 @@ plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) %
 | `oculus_plane_angle` | 5 | Degrees the bearing plane `tilted` leans about the oculus edge |
 | `oculus` | 1000 | Distance of each oculus corner from the centre |
 
-Code: `FloorGuide::oculus`, floor_members.cpp:234-262; `loft_planes`, floor_geometry.cpp:210-233; `oculus_edge`, floor.cpp:93-103.
+Code: `FloorGuide::oculus`, [floor_members.cpp:234-262](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L234-L262); `loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233); `oculus_edge`, [floor.cpp:93-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L93-L103).
 
 ## 235. seam_plane_gap and oculus_corner_gap
 
 ![](floor/235_seam_identities.webp)
 
-Both measures are taken in `measure_quarter` for quarter `q` and its neighbour `next = (q + 1) % 4`. `seam_plane_gap[q]` checks that the two seam beams of seam `q` meet on one plane. For quarter `next`, `cp.inner_beams[2]` is `seams[(next + 3) % 4].faces_into(next) = seams[q].faces_into(next)` (`floor.cpp:191`). The loop `inner_beams()[2].bottom` is therefore on `seams[q].plane_into(next)`. For every corner of that loop, the step takes the absolute `signed_distance` to quarter `q`'s `planes.inner_beams[0][0] = seams[q].plane_into(q)` and keeps the largest:
+<span style="color:#2196EA">■ built</span> `quarter(1).inner_beams()[2]`   <span style="color:#EB7721">■ variable</span> `seam_plane_gap[0]` corners, `oculus_corner_gap[0]` at `polygon[2]`   <span style="color:#455B6B">■ input</span> `quarter(0).inner_beams()[0]`, seam plane `planes.inner_beams[0][0]` (dashed), `oculus_corners[0]`   <span style="color:#8C969E">■ context</span> quarter polygons 0 and 1
+
+Both measures are taken in `measure_quarter` for quarter `q` and its neighbour `next = (q + 1) % 4`. <span style="color:#EB7721">`seam_plane_gap[q]`</span> checks that the two seam beams of seam `q` meet on one plane. For quarter `next`, `cp.inner_beams[2]` is `seams[(next + 3) % 4].faces_into(next) = seams[q].faces_into(next)` (`floor.cpp:191`). The loop <span style="color:#2196EA">`inner_beams()[2].bottom`</span> is therefore on `seams[q].plane_into(next)`. For every corner of that loop, the step takes the absolute `signed_distance` to quarter `q`'s <span style="color:#455B6B">`planes.inner_beams[0][0] = seams[q].plane_into(q)`</span> and keeps the largest:
 
 ```cpp
 for (const Point& point : open_points(guide.quarter(next).inner_beams()[2].bottom))
     report.seam_plane_gap[q] = std::max(report.seam_plane_gap[q], std::abs(signed_distance(point, geometry.planes.inner_beams[0][0])));
 ```
 
-`plane_into` makes both planes with `edge_plane` from the same seam segment, midpoint to oculus corner. Only the direction is reversed, so the planes coincide with opposite normals. Quarter 0's beam 0 lies 60 into quarter 0, x from -60 to 0, and quarter 1's beam 2 lies 60 into quarter 1, x from 0 to 60. The four measured corners on the square are (0, -3000, 0), (0, -1000, 0), (0, -975.4, -198.783) and (0, -3000, -198.783). The soffit corner on the oculus side is 24.6 nearer the centre because the tilted plane leans.
+`plane_into` makes both planes with `edge_plane` from the same seam segment, midpoint to oculus corner. Only the direction is reversed, so the planes coincide with opposite normals. <span style="color:#455B6B">Quarter 0's beam 0</span> lies 60 into quarter 0, x from -60 to 0, and <span style="color:#2196EA">quarter 1's beam 2</span> lies 60 into quarter 1, x from 0 to 60. The four <span style="color:#EB7721">measured corners</span> on the square are (0, -3000, 0), (0, -1000, 0), (0, -975.4, -198.783) and (0, -3000, -198.783). The soffit corner on the oculus side is 24.6 nearer the centre because the tilted plane leans.
 
-`oculus_corner_gap[q]` is `(geometry.polygon[2] - guide.geometry[next].polygon[3]).magnitude()`. The quarter polygon is `{corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint}` (`floor.cpp:423`). `polygon[2]` of `q` and `polygon[3]` of `q + 1` are both the stored point `oculus_corners[q]`. The measure checks the polygon indexing. It does not test that the quarter polygons tile the bay. Both values are 0 by construction, and `ok()` requires both.
+<span style="color:#EB7721">`oculus_corner_gap[q]`</span> is `(geometry.polygon[2] - guide.geometry[next].polygon[3]).magnitude()`. The quarter polygon is `{corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint}` (`floor.cpp:423`). `polygon[2]` of `q` and `polygon[3]` of `q + 1` are both the stored point <span style="color:#455B6B">`oculus_corners[q]`</span>. The measure checks the polygon indexing. It does not test that the quarter polygons tile the bay. Both values are 0 by construction, and `ok()` requires both.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -76,13 +82,15 @@ for (const Point& point : open_points(guide.quarter(next).inner_beams()[2].botto
 | `planes.inner_beams[0][0]` | `seams[q].plane_into(q)` | Quarter `q`'s seam plane, normal into `q` |
 | `inner_beams` | 60 | `Seam::thickness`, the offset of each seam beam into its quarter |
 
-Code: `measure_quarter`, floor_report.cpp:145-150; `Seam::plane_into`, floor.cpp:392-397.
+Code: `measure_quarter`, [floor_report.cpp:145-150](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L145-L150); `Seam::plane_into`, [floor.cpp:392-397](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L392-L397).
 
 ## 236. end_face_planarity
 
 ![](floor/236_end_faces.webp)
 
-`end_face_planarity_mm[q]` is the farthest end-face corner of the quarter's four ribs from the plane that end should lie on. A rib loop is `{p1, p0, pts..., p1}` (`floor_members.cpp:27-29`). Index 1 is `p0` at the datum on the column end plane. Index 2 is the first soffit point at the column end. Index `n - 2` is the last soffit point, and index 0 is `p1` at the datum on the far end. `end_face_offset` takes the largest `|signed_distance|` of `top[1], top[2], bottom[2], bottom[1]` to `cut_plane0` and of `top[0], top[n - 2], bottom[n - 2], bottom[0]` to `cut_plane1`:
+<span style="color:#2196EA">■ built</span> column end plane `cp.wedges[0][0]`   <span style="color:#EBB121">■ result</span> seam end plane `rib_seam_ends()[0]`   <span style="color:#EB7721">■ variable</span> the eight end corners, `end_face_planarity_mm[0]`   <span style="color:#455B6B">■ input</span> `outer_ribs()[0]`
+
+<span style="color:#EB7721">`end_face_planarity_mm[q]`</span> is the farthest end-face corner of the quarter's four ribs from the plane that end should lie on. A rib loop is `{p1, p0, pts..., p1}` (`floor_members.cpp:27-29`). Index 1 is `p0` at the datum on the column end plane. Index 2 is the first soffit point at the column end. Index `n - 2` is the last soffit point, and index 0 is `p1` at the datum on the far end. `end_face_offset` takes the largest `|signed_distance|` of <span style="color:#EB7721">`top[1], top[2], bottom[2], bottom[1]`</span> to `cut_plane0` and of <span style="color:#EB7721">`top[0], top[n - 2], bottom[n - 2], bottom[0]`</span> to `cut_plane1`:
 
 ```cpp
 end_face_offset(outer[0], cp.wedges[0][0], quarter.rib_seam_ends()[0]),
@@ -91,7 +99,7 @@ end_face_offset(inner[0], cp.wedges[1][0], cp.inner_beams[1][1]),
 end_face_offset(inner[1], cp.wedges[1][0], cp.inner_beams[1][1]),
 ```
 
-The outer ribs end on the side fan planes at the column and on `rib_seam_ends()` at the seam. With `seam_through_ribs` (the default), `rib_seam_ends()` returns the seam beams' far faces `{cp.inner_beams[0][1], cp.inner_beams[2][1]}`, x = -60 for outer rib 0. With `seam_through_ribs = false`, it returns the seam planes `[0][0]` and `[2][0]`. The inner ribs end on the middle fan plane and on the oculus beam's back face. The result is a floating-point residue, so every end face is flat and seated on its plane. The picture shows outer rib 0 with its two end planes and the eight corners.
+The outer ribs end on the <span style="color:#2196EA">side fan planes</span> at the column and on <span style="color:#EBB121">`rib_seam_ends()`</span> at the seam. With `seam_through_ribs` (the default), <span style="color:#EBB121">`rib_seam_ends()`</span> returns the seam beams' far faces <span style="color:#EBB121">`{cp.inner_beams[0][1], cp.inner_beams[2][1]}`</span>, x = -60 for outer rib 0. With `seam_through_ribs = false`, it returns the seam planes `[0][0]` and `[2][0]`. The inner ribs end on the middle fan plane and on the oculus beam's back face. The result is a floating-point residue, so every end face is flat and seated on its plane. The picture shows <span style="color:#455B6B">outer rib 0</span> with its two end planes, <span style="color:#2196EA">`cp.wedges[0][0]`</span> and <span style="color:#EBB121">`rib_seam_ends()[0]`</span>, and <span style="color:#EB7721">the eight corners</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -101,20 +109,22 @@ The outer ribs end on the side fan planes at the column and on `rib_seam_ends()`
 | `rib_seam_ends()` | `{cp.inner_beams[0][1], cp.inner_beams[2][1]}` | The outer ribs' seam end planes; face 1 when `seam_through_ribs`, face 0 otherwise |
 | `seam_through_ribs` | true | Seam beams run through the rib band; the outer ribs end on their far faces |
 
-Code: `end_face_offset`, `end_face_planarity`, floor_report.cpp:47-76; `rib_loop`, floor_members.cpp:17-32; `Quarter::rib_seam_ends`, floor_members.cpp:69-75.
+Code: `end_face_offset`, `end_face_planarity`, [floor_report.cpp:47-76](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L47-L76); `rib_loop`, [floor_members.cpp:17-32](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L17-L32); `Quarter::rib_seam_ends`, [floor_members.cpp:69-75](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L69-L75).
 
 ## 237. bed_flange_coincidence
 
 ![](floor/237_beds_on_flanges.webp)
 
-`bed_flange_coincidence_mm[q]` checks that every bed plate's underside sits on the t-sections beside it. A bed's bottom loop is `{lower[0][i], lower[0][i + 1], lower[1][i + 1], lower[1][i]}` (`floor_members.cpp:200`): two corners on the row's side plane 0 and two on side plane 1. The step takes these corners as `under[0..3]`. Each corner's distance to the closed top loop of its t-section comes from `Closest::polyline_point`. The rows pair with the flanges as `beside = {{1, 0}, {2, 3}, {4, 5}}`:
+<span style="color:#2196EA">■ built</span> the middle bed of row 0   <span style="color:#EB7721">■ variable</span> `under[0..3]`   <span style="color:#455B6B">■ input</span> `tsections[1]`, `tsections[0]`   <span style="color:#8C969E">■ context</span> the other beds of row 0
+
+<span style="color:#EB7721">`bed_flange_coincidence_mm[q]`</span> checks that every bed plate's underside sits on the t-sections beside it. A bed's bottom loop is `{lower[0][i], lower[0][i + 1], lower[1][i + 1], lower[1][i]}` (`floor_members.cpp:200`): two corners on the row's side plane 0 and two on side plane 1. The step takes these corners as <span style="color:#EB7721">`under[0..3]`</span>. Each corner's distance to the closed top loop of its t-section comes from `Closest::polyline_point`. The rows pair with the flanges as `beside = {{1, 0}, {2, 3}, {4, 5}}`:
 
 ```cpp
 worst = std::max({worst, distance(under[0], flanges[beside[row][0]].top), distance(under[1], flanges[beside[row][0]].top)});
 worst = std::max({worst, distance(under[2], flanges[beside[row][1]].top), distance(under[3], flanges[beside[row][1]].top)});
 ```
 
-Row 0 lies between `tsections[1]`, on inner rib 0's outer face, and `tsections[0]`, on outer rib 0. Row 1 lies between `tsections[2]` and `[3]` on the two central faces. Row 2 lies between `tsections[4]` and `[5]`. A t-section's top loop is its trimmed soffit trace followed by its reversed `+t` trace, closed (`floor_members.cpp:138-140`). Zero means every bed corner lies on that closed flange outline. By construction it lies on the `+t` trace, because the bed and the flange take the same `parabolas[k][1]` or `central_panel.traces[k][1]` and trim it by the same two planes. In the picture, the camera looks along outer rib 0 at the middle bed of row 0. Each flange name sits on the corner of the flange's top loop nearest the bed corner but not on it: the soffit corner of the same station, about `tsections` = 27 from it.
+Row 0 lies between <span style="color:#455B6B">`tsections[1]`</span>, on inner rib 0's outer face, and <span style="color:#455B6B">`tsections[0]`</span>, on outer rib 0. Row 1 lies between `tsections[2]` and `[3]` on the two central faces. Row 2 lies between `tsections[4]` and `[5]`. A t-section's top loop is its trimmed soffit trace followed by its reversed `+t` trace, closed (`floor_members.cpp:138-140`). Zero means every bed corner lies on that closed flange outline. By construction it lies on the `+t` trace, because the bed and the flange take the same `parabolas[k][1]` or `central_panel.traces[k][1]` and trim it by the same two planes. In the picture, the camera looks along outer rib 0 at <span style="color:#2196EA">the middle bed of row 0</span>. Each flange name sits on the corner of the flange's top loop nearest the bed corner but not on it: the soffit corner of the same station, about `tsections` = 27 from it.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -123,19 +133,21 @@ Row 0 lies between `tsections[1]`, on inner rib 0's outer face, and `tsections[0
 | `beside` | `{{1, 0}, {2, 3}, {4, 5}}` | Per row, the t-section index for side 0 and for side 1 |
 | `tsections` | 27 | Flange depth (soffit to `+t`) and bed thickness (`+t` to `+2t`) |
 
-Code: `bed_flange_coincidence`, floor_report.cpp:79-94; `distance`, floor_report.cpp:13-15; `bed_row`, floor_members.cpp:189-206.
+Code: `bed_flange_coincidence`, [floor_report.cpp:79-94](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L79-L94); `distance`, [floor_report.cpp:13-15](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L13-L15); `bed_row`, [floor_members.cpp:189-206](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L189-L206).
 
 ## 238. ring_uncovered
 
 ![](floor/238_ring_uncovered.webp)
 
-`ring_uncovered_mm2` checks that each quarter's oculus beam bears on its ring beam over its full face. Quarter `q`'s `inner_beams()[1]` is lofted between `cp.inner_beams[1] = {oculus.tilted, oculus.back}` (`floor.cpp:191`), so its `.bottom` loop lies on `oculus_edges[q].tilted`, the plane `ring[q].top` lies on. `boolean_area` runs `Polyline::boolean_op(a, b, tilted, 2)`, the part of `a` outside `b`, and sums `polygon_area` over the pieces. `check()` adds this over the four quarters:
+<span style="color:#2196EA">■ built</span> `a = quarter(0).inner_beams()[1].bottom`   <span style="color:#EB7721">■ variable</span> uncovered pieces, `ring_uncovered_mm2` (none on the square)   <span style="color:#455B6B">■ input</span> `b = ring[0].top`
+
+<span style="color:#EB7721">`ring_uncovered_mm2`</span> checks that each quarter's oculus beam bears on its ring beam over its full face. Quarter `q`'s <span style="color:#2196EA">`inner_beams()[1]`</span> is lofted between `cp.inner_beams[1] = {oculus.tilted, oculus.back}` (`floor.cpp:191`), so its <span style="color:#2196EA">`.bottom`</span> loop lies on `oculus_edges[q].tilted`, the plane <span style="color:#455B6B">`ring[q].top`</span> lies on. `boolean_area` runs `Polyline::boolean_op(a, b, tilted, 2)`, the part of `a` outside `b`, and sums `polygon_area` over the pieces. `check()` adds this over the four quarters:
 
 ```cpp
 return boolean_area(guide.quarter(q).inner_beams()[1].bottom, ring_beam.top, guide.oculus_edges[q].tilted, 2);
 ```
 
-On quarter 0, the quarter beam's face runs between the seam beams' far faces x = -60 and y = -60, from (-60, -940) to (-940, -60) at the datum. The ring face runs on past both ends, from `ring_inner` of edge 3 to `tilted` of edge 1, so nothing is left outside it. The guide guarantees this before `check()` runs. `geometry::invalid` refuses any guide with `sin(oculus_corner_angle(k)) < sin(oculus_seam_angle(k))` (`floor_plan.cpp:134-136`), and the constructor throws. On the square the two angles are 90 and 45 degrees. `polygon_area` (`floor_geometry.cpp:154-163`) sums the cross products of a triangle fan, which gives the true area. The committed version took the magnitude of `compute_newell`, which returns a unit vector, so every piece counted 0.5 mm2 and the sum only told whether a piece existed. The picture looks face on at the tilted plane of oculus edge 0.
+On quarter 0, <span style="color:#2196EA">the quarter beam's face</span> runs between the seam beams' far faces x = -60 and y = -60, from (-60, -940) to (-940, -60) at the datum. <span style="color:#455B6B">The ring face</span> runs on past both ends, from `ring_inner` of edge 3 to `tilted` of edge 1, so nothing is left <span style="color:#EB7721">outside it</span>. The guide guarantees this before `check()` runs. `geometry::invalid` refuses any guide with `sin(oculus_corner_angle(k)) < sin(oculus_seam_angle(k))` (`floor_plan.cpp:134-136`), and the constructor throws. On the square the two angles are 90 and 45 degrees. `polygon_area` (`floor_geometry.cpp:154-163`) sums the cross products of a triangle fan, which gives the true area. The committed version took the magnitude of `compute_newell`, which returns a unit vector, so every piece counted 0.5 mm2 and the sum only told whether a piece existed. The picture looks face on at the tilted plane of oculus edge 0.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -145,13 +157,15 @@ On quarter 0, the quarter beam's face runs between the seam beams' far faces x =
 | `clip_type` | 2 | `a` minus `b` |
 | `oculus_corner_angle(0)`, `oculus_seam_angle(0)` | 90, 45 | The angles the `invalid()` precondition compares |
 
-Code: `ring_uncovered`, floor_report.cpp:133-136; `boolean_area`, floor_report.cpp:32-40; `geometry::invalid`, floor_plan.cpp:110-139.
+Code: `ring_uncovered`, [floor_report.cpp:133-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L133-L136); `boolean_area`, [floor_report.cpp:32-40](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L32-L40); `geometry::invalid`, [floor_plan.cpp:110-139](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_plan.cpp#L110-L139).
 
 ## 239. ring_overlap
 
 ![](floor/239_ring_overlap.webp)
 
-`ring_overlap_mm2` checks that the four ring beams do not overlap in plan. For each ring beam, the open points of its two loops are collected, set to z 0 and wrapped by `ConvexHull::hull_2d` into a closed footprint. For the six pairs `i < j`, `boolean_area(footprints[i], footprints[j], level(0.0), 0)` takes their intersection, and the areas are summed:
+<span style="color:#2196EA">■ built</span> `footprints[0..3]`   <span style="color:#EB7721">■ variable</span> pairwise overlaps, `ring_overlap_mm2` (none on the square)   <span style="color:#8C969E">■ context</span> oculus edges (dashed)
+
+<span style="color:#EB7721">`ring_overlap_mm2`</span> checks that the four ring beams do not overlap in plan. For each ring beam, the open points of its two loops are collected, set to z 0 and wrapped by `ConvexHull::hull_2d` into a <span style="color:#2196EA">closed footprint</span>. For the six pairs `i < j`, `boolean_area(footprints[i], footprints[j], level(0.0), 0)` takes their intersection, and the areas are summed:
 
 ```cpp
 for (size_t i = 0; i < 4; i++)
@@ -159,7 +173,7 @@ for (size_t i = 0; i < 4; i++)
         overlap += boolean_area(footprints[i], footprints[j], level(0.0), 0);
 ```
 
-Beam `i + 1` starts on beam `i`'s vertical `ring_inner` plane and lies on the other side of it, so two neighbouring footprints touch only on that plane and their intersection has no area. Opposite beams lie on opposite sides of the oculus and do not meet. The sum is 0, and `ok()` requires it to stay within the tolerance. Because the footprint is a convex hull of both loops, the leaning outer face counts at its widest, the datum trace.
+Beam `i + 1` starts on beam `i`'s vertical `ring_inner` plane and lies on the other side of it, so two neighbouring footprints touch only on that plane and their <span style="color:#EB7721">intersection</span> has no area. Opposite beams lie on opposite sides of the oculus and do not meet. The sum is 0, and `ok()` requires it to stay within the tolerance. Because the footprint is a convex hull of both loops, the leaning outer face counts at its widest, the datum trace.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -167,7 +181,7 @@ Beam `i + 1` starts on beam `i`'s vertical `ring_inner` plane and lies on the ot
 | `report.ring_overlap_mm2` | 0.000e+00 | Sum of the pairwise plan overlaps of the four footprints, mm2 |
 | `clip_type` | 0 | The intersection of the two polygons |
 
-Code: `ring_overlap`, floor_report.cpp:109-131.
+Code: `ring_overlap`, [floor_report.cpp:109-131](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L109-L131).
 
 ## 240. FloorReport::ok and str
 
@@ -217,11 +231,13 @@ floor report: ok
 | `tolerance` | 1e-6 | Threshold in mm for the identities and in mm2 for the ring areas |
 | `ok()` | true | All seven gated relations hold on the square |
 
-Code: `FloorReport::ok`, floor_report.cpp:188-195; `FloorReport::str`, floor_report.cpp:197-210; `measure_quarter`, floor_report.cpp:139-167.
+Code: `FloorReport::ok`, [floor_report.cpp:188-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L188-L195); `FloorReport::str`, [floor_report.cpp:197-210](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L197-L210); `measure_quarter`, [floor_report.cpp:139-167](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_report.cpp#L139-L167).
 
 ## 241. compute_breps (example 7)
 
 ![](floor/241_drilled_block.webp)
+
+<span style="color:#2196EA">■ built</span> `model_geometry_brep()` of `wedges_1_0`, bores exact   <span style="color:#455B6B">■ input</span> `model_geometry_mesh()`, bores faceted
 
 `compute_breps(session)` walks `session.objects.elements` and calls `compute_geometry_brep()` on every connector child (a `Dowel` or a `ConnectorPart`) and on every cut member. A cut member is an element that is not a `Joint` and whose `model_geometry_mesh()` vertex count differs from its `element_geometry_mesh()`:
 
@@ -231,7 +247,7 @@ for (const std::shared_ptr<Element>& element : *session.objects.elements)
         element->compute_geometry_brep();
 ```
 
-`Element::compute_geometry_brep` runs the type's `compute_geometry_brep_impl`, which for a `Plate` or a `BeamVariable` stores `model_geometry_brep()` as the element's geometry. With solid cuts, that BRep is `solid_cuts_brep(mesh, solid_cuts)`. It collects every cut's drill lines with their `drill_radius` and runs `drilled_brep` on the mesh with the pockets cut and the drills not cut (`apply_solid_cuts(mesh, cuts, false)`), so each bore is an exact cylinder surface. If that fails, it falls back to a planar BRep of the mesh with the drills cut as meshes, and then to `mesh_brep`. `model_geometry_mesh()` keeps the meshed version: `apply_solid_cuts` with `drills = true` subtracts each drill as `drill_mesh`, a faceted cylinder. The picture shows the central wedge block `wedges_1_0` of the connected floor in both forms, the mesh to the left and the BRep, with its `count_bores`, to the right.
+`Element::compute_geometry_brep` runs the type's `compute_geometry_brep_impl`, which for a `Plate` or a `BeamVariable` stores <span style="color:#2196EA">`model_geometry_brep()`</span> as the element's geometry. With solid cuts, that BRep is `solid_cuts_brep(mesh, solid_cuts)`. It collects every cut's drill lines with their `drill_radius` and runs `drilled_brep` on the mesh with the pockets cut and the drills not cut (`apply_solid_cuts(mesh, cuts, false)`), so each bore is an exact cylinder surface. If that fails, it falls back to a planar BRep of the mesh with the drills cut as meshes, and then to `mesh_brep`. <span style="color:#455B6B">`model_geometry_mesh()`</span> keeps the meshed version: `apply_solid_cuts` with `drills = true` subtracts each drill as `drill_mesh`, a faceted cylinder. The picture shows the central wedge block `wedges_1_0` of the connected floor in both forms, <span style="color:#455B6B">the mesh</span> to the left and <span style="color:#2196EA">the BRep</span>, with its `count_bores`, to the right.
 
 Example 7 (`templates_floor_7_contacts_cantilevers.cpp`) builds `Floor(FloorGuide::rectangle(3000, 3000))`, then calls `add_members()`, `add_connectors()` and `add_screws()`, then `compute_breps(floor)` when `BREPS` is true, and writes the scene. It calls neither `check()` nor `check_breps()`. The floor_elements test run gives 80 connectors on the square, 72 screws in 36 of them.
 
@@ -242,11 +258,13 @@ Example 7 (`templates_floor_7_contacts_cantilevers.cpp`) builds `Floor(FloorGuid
 | `is_cut_member(element)` | not a `Joint`, model mesh vertex count != element mesh vertex count | A member a joint has cut |
 | `drills` | every `SolidCut::drills` line with its `drill_radius` | The bores `drilled_brep` makes exact |
 
-Code: `compute_breps`, floor_brep_check.cpp:120-125; `is_connector_child`, `is_cut_member`, floor_brep_check.cpp:16-25; `solid_cuts_brep`, wood_element_solid_cut.cpp:40-58; `main`, templates_floor_7_contacts_cantilevers.cpp:10-23.
+Code: `compute_breps`, [floor_brep_check.cpp:120-125](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L120-L125); `is_connector_child`, `is_cut_member`, [floor_brep_check.cpp:16-25](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L16-L25); `solid_cuts_brep`, [wood_element_solid_cut.cpp:40-58](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_elements/wood_element_solid_cut.cpp#L40-L58); `main`, [templates_floor_7_contacts_cantilevers.cpp:10-23](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp#L10-L23).
 
 ## 242. check_breps: parts, connectors, members, timing
 
 ![](floor/242_check_breps.webp)
+
+<span style="color:#2196EA">■ built</span> exact members, `check.exact`, `check.bores`   <span style="color:#EB7721">■ variable</span> faceted members, `check.faceted`   <span style="color:#EBB121">■ result</span> connector parts and dowels, `check.part_bores`   <span style="color:#8C969E">■ context</span> uncut members
 
 `check_breps(session)` starts a `steady_clock` timer and walks `session.objects.elements` once. Each element falls into one of three branches:
 
@@ -262,7 +280,7 @@ if (const std::shared_ptr<wood_session::JointBeam> connector = std::dynamic_poin
 }
 ```
 
-A connector child adds its part's exact bores to `part_bores`; a `Dowel` adds nothing. A `JointBeam` adds 1 to `connectors` when it has parts or drill lines, so screw connectors, whose screws are drill lines, count too. No `JointBeam` reaches the member branch. Every remaining element that `is_cut_member` accepts adds `count_bores(model_geometry_brep())` to `bores`. It counts as `exact` when that number is above 0; otherwise its name goes into `faceted`. `count_bores` counts the rational NURBS surfaces of a BRep, which are the cylinders `add_bore` makes. A member ends up faceted when `drilled_brep` returned nothing (a non-planar face, a drill too near an edge or another drill, a crossing too oblique, a failed volume check) or when it had no drills at all. `ms` is the loop's time, including the BReps it builds lazily, and excludes `dowel_stretches`, which runs after it. This page does not run `check_breps`, so it gives no counts; the frame's caption prints the counts for the whole connected floor when the film is made. The picture draws quarter 0 the way the loop sorts it: exact members in their family colour, faceted members in red, uncut members grey, and the parts and dowels of every connector on them in `CONNECTOR_COLOR`.
+A connector child adds its part's exact bores to <span style="color:#EBB121">`part_bores`</span>; a `Dowel` adds nothing. A `JointBeam` adds 1 to `connectors` when it has parts or drill lines, so screw connectors, whose screws are drill lines, count too. No `JointBeam` reaches the member branch. Every remaining element that `is_cut_member` accepts adds `count_bores(model_geometry_brep())` to <span style="color:#2196EA">`bores`</span>. It counts as <span style="color:#2196EA">`exact`</span> when that number is above 0; otherwise its name goes into <span style="color:#EB7721">`faceted`</span>. `count_bores` counts the rational NURBS surfaces of a BRep, which are the cylinders `add_bore` makes. A member ends up faceted when `drilled_brep` returned nothing (a non-planar face, a drill too near an edge or another drill, a crossing too oblique, a failed volume check) or when it had no drills at all. `ms` is the loop's time, including the BReps it builds lazily, and excludes `dowel_stretches`, which runs after it. This page does not run `check_breps`, so it gives no counts; the frame's caption prints the counts for the whole connected floor when the film is made. The picture draws quarter 0 the way the loop sorts it: <span style="color:#2196EA">exact members</span>, <span style="color:#EB7721">faceted members</span>, <span style="color:#8C969E">uncut members</span>, and <span style="color:#EBB121">the parts and dowels of every connector on them</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -273,11 +291,13 @@ A connector child adds its part's exact bores to `part_bores`; a `Dowel` adds no
 | `check.faceted` | in the caption | Names of the cut members without an exact bore |
 | `check.ms` | in the caption | Time of the element loop, ms |
 
-Code: `check_breps`, floor_brep_check.cpp:84-118; `count_bores`, floor_brep_check.cpp:27-36.
+Code: `check_breps`, [floor_brep_check.cpp:84-118](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L84-L118); `count_bores`, [floor_brep_check.cpp:27-36](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L27-L36).
 
 ## 243. dowel_stretches and bore_stretches
 
 ![](floor/243_bore_stretches.webp)
+
+<span style="color:#2196EA">■ built</span> stretch in `wedges_0_0`   <span style="color:#EBB121">■ result</span> stretch in `outer_ribs_0_0`   <span style="color:#455B6B">■ input</span> `drill_axes()[0]` (headed)   <span style="color:#8C969E">■ context</span> the two target solids
 
 `check.stretches = dowel_stretches(session)` counts the bores the dowels and screws need, independently of the BReps. For every `Joint` from `get_elements<Joint>()`, the step builds `own`, its `drill_axes()` with radius `line_radius`. `own` is appended to `drills[target]` for every guid in `joint->targets`. For a `JointBeam`, each part `part_mesh(i)` is cut by the connector's `solid_cuts` without drills, and `bore_stretches(part, own)` is added at once. Then each target's solid, its `element_geometry_mesh()` cut by its own solid cuts without drills (or the raw mesh when it has none), goes through `bore_stretches` with all the drills that pass it:
 
@@ -288,7 +308,7 @@ for (const wood_session::Drill& drill : wood_session::merged_drills(drills))
             stretches++;
 ```
 
-`merged_drills` joins drills of equal radius on one axis whose spans meet or overlap, within `AXIS = 1e-4`, into one. `inside_stretches` intersects the infinite line with the solid's planar faces, sorts the crossings by their distance `t` from the line's start along its unit direction, and returns `[t_i, t_i+1]` for every crossing whose face normal points against the line, where the line enters the solid. A stretch counts when it overlaps the drill's own span, `t1 > 1e-6` and `t0 < length - 1e-6`. Each counted stretch is one cylinder the BReps should contain. The picture takes the first drill axis of the block dowels between `wedges_0_0` and `outer_ribs_0_0` (`floor_relations.cpp:194`). It draws, thick, the stretch `bore_stretches` counts in each of the two target solids, in that target's family colour and numbered in the order of `targets`. `get_elements<Joint>()` also returns the `Dowel` and `ConnectorPart` children, but they add nothing: a `Dowel` has its axis as `drill_lines` and no `targets`, and a `ConnectorPart` has one part and no `drill_lines`, so `own` is empty (`wood_element_dowel.cpp:13-23`, `wood_element_connector_part.cpp:13-21`, `JointBeam::children`, `wood_element_joint_beam.cpp:650-662`). The out-of-date documentation gives 396 stretches on the square, which this page has not re-run.
+`merged_drills` joins drills of equal radius on one axis whose spans meet or overlap, within `AXIS = 1e-4`, into one. `inside_stretches` intersects the infinite line with the solid's planar faces, sorts the crossings by their distance `t` from the line's start along its unit direction, and returns `[t_i, t_i+1]` for every crossing whose face normal points against the line, where the line enters the solid. A stretch counts when it overlaps the drill's own span, `t1 > 1e-6` and `t0 < length - 1e-6`. Each counted stretch is one cylinder the BReps should contain. The picture takes <span style="color:#455B6B">the first drill axis</span> of the block dowels between `wedges_0_0` and `outer_ribs_0_0` (`floor_relations.cpp:194`). It draws, thick, the stretch `bore_stretches` counts in each of the two target solids, <span style="color:#2196EA">the one in `wedges_0_0`</span> and <span style="color:#EBB121">the one in `outer_ribs_0_0`</span>, numbered in the order of `targets`. `get_elements<Joint>()` also returns the `Dowel` and `ConnectorPart` children, but they add nothing: a `Dowel` has its axis as `drill_lines` and no `targets`, and a `ConnectorPart` has one part and no `drill_lines`, so `own` is empty (`wood_element_dowel.cpp:13-23`, `wood_element_connector_part.cpp:13-21`, `JointBeam::children`, `wood_element_joint_beam.cpp:650-662`). The out-of-date documentation gives 396 stretches on the square, which this page has not re-run.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -298,7 +318,7 @@ for (const wood_session::Drill& drill : wood_session::merged_drills(drills))
 | `stretch` | `[t0, t1]`, mm | A stretch of the infinite drill line inside the solid |
 | `check.stretches` | in frame 242's caption | Bores asked for over members and parts |
 
-Code: `dowel_stretches`, floor_brep_check.cpp:52-78; `bore_stretches`, floor_brep_check.cpp:39-49; `merged_drills`, wood_brep_drill.cpp:786; `inside_stretches`, wood_brep_drill.cpp:984.
+Code: `dowel_stretches`, [floor_brep_check.cpp:52-78](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L52-L78); `bore_stretches`, [floor_brep_check.cpp:39-49](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L39-L49); `merged_drills`, [wood_brep_drill.cpp:786](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L786); `inside_stretches`, [wood_brep_drill.cpp:984](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/joinery_solver/wood_algorithms/wood_brep_drill.cpp#L984).
 
 ## 244. BrepCheck::str
 
@@ -332,13 +352,15 @@ flowchart TD
 | `bores + part_bores` | in frame 242's caption | Exact bores found |
 | `stretches` | in frame 242's caption | Exact bores asked for |
 
-Code: `BrepCheck::str`, floor_brep_check.cpp:127-136.
+Code: `BrepCheck::str`, [floor_brep_check.cpp:127-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_brep_check.cpp#L127-L136).
 
 ## 245. Example 8: tied 6000 x 4800 bay
 
 ![](floor/245_tied_bay.webp)
 
-Example 8 (`templates_floor_8_rectangle.cpp`) builds the same model as example 7 on `FloorGuide::rectangle(HALF_X, HALF_Y, parameters)` = `rectangle(3000, 2400)`, with `parameters.seam_through_ribs = SEAM_THROUGH_RIBS = false`. It then calls `add_members()`, `add_connectors()`, `add_screws()` and, with `BREPS`, `compute_breps`. It calls neither `check()` nor `check_breps()`. With `seam_through_ribs` false, `rib_seam_ends()` returns the seam planes, so the outer ribs end on the seam plane. The seam beams stop at the outer rib band: `Quarter::inner_beams` starts beams 0 and 2 on `cp.outer_ribs[0][1]` and `cp.outer_ribs[1][1]`, the outer ribs' inner faces, instead of face 0 on the bay edge (`floor_members.cpp:93-104`). `relationships()` adds a `seam_tie` per seam (`floor_relations.cpp:190-191`): outer rib 0 of `q` and outer rib 1 of `q + 1` meet end to end, and the contact is rib 0's seam end face. The oculus corners still lie `oculus = 1000` from the centre along each seam, so the oculus is a square diamond on the rectangle. The shorter ribs along y get the shorter run-in from the run-in solve of chapter 3. The tests assert the run-in, `levels[1]` and spread values below on the seam-through 3000 x 2400 guide. They carry over because `run_ins` and `rib_bottom_level` read only the fan planes, the seam planes and the column-end corners, none of which depends on `rib_seam_ends`. The picture draws the outer ribs of all four quarters, end to end at the four seam ties, and labels quarter 0's run-ins from the tied guide itself.
+<span style="color:#2196EA">■ built</span> `quads.outer_ribs` of all four quarters   <span style="color:#EB7721">■ variable</span> `seam_tie` contacts, `SEAM_THROUGH_RIBS = false`   <span style="color:#455B6B">■ input</span> `oculus_edges[0..3].line`, `seams[0..3].line` (dashed)   <span style="color:#8C969E">■ context</span> bay edges, quarter polygons
+
+Example 8 (`templates_floor_8_rectangle.cpp`) builds the same model as example 7 on `FloorGuide::rectangle(HALF_X, HALF_Y, parameters)` = `rectangle(3000, 2400)`, with <span style="color:#EB7721">`parameters.seam_through_ribs = SEAM_THROUGH_RIBS = false`</span>. It then calls `add_members()`, `add_connectors()`, `add_screws()` and, with `BREPS`, `compute_breps`. It calls neither `check()` nor `check_breps()`. With `seam_through_ribs` false, `rib_seam_ends()` returns the seam planes, so the outer ribs end on the seam plane. The seam beams stop at the outer rib band: `Quarter::inner_beams` starts beams 0 and 2 on `cp.outer_ribs[0][1]` and `cp.outer_ribs[1][1]`, the outer ribs' inner faces, instead of face 0 on the bay edge (`floor_members.cpp:93-104`). `relationships()` adds a <span style="color:#EB7721">`seam_tie`</span> per seam (`floor_relations.cpp:190-191`): outer rib 0 of `q` and outer rib 1 of `q + 1` meet end to end, and <span style="color:#EB7721">the contact is rib 0's seam end face</span>. The oculus corners still lie `oculus = 1000` from the centre along <span style="color:#455B6B">each seam</span>, so <span style="color:#455B6B">the oculus</span> is a square diamond on the rectangle. The shorter ribs along y get the shorter run-in from the run-in solve of chapter 3. The tests assert the run-in, `levels[1]` and spread values below on the seam-through 3000 x 2400 guide. They carry over because `run_ins` and `rib_bottom_level` read only the fan planes, the seam planes and the column-end corners, none of which depends on `rib_seam_ends`. The picture draws <span style="color:#2196EA">the outer ribs of all four quarters</span>, end to end at <span style="color:#EB7721">the four seam ties</span>, and labels quarter 0's run-ins from the tied guide itself.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -351,4 +373,4 @@ Example 8 (`templates_floor_8_rectangle.cpp`) builds the same model as example 7
 | wedge blocks | 240 / 267.292 / 187.667 | Side 0, middle (1.25 x mean run-in), side 1 |
 | connectors | 84 | On the tied 3000 x 2400, 72 screws in 36 of them (floor_elements run) |
 
-Code: `main`, templates_floor_8_rectangle.cpp:13-28; `seam_tie`, floor_relations.cpp:120-138.
+Code: `main`, [templates_floor_8_rectangle.cpp:13-28](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp#L13-L28); `seam_tie`, [floor_relations.cpp:120-138](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_relations.cpp#L120-L138).

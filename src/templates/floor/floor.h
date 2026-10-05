@@ -299,14 +299,14 @@ enum class Family {
 
 const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges", "tsections", "beds"}; // The group and element name prefix of each quarter family, in Family order; the guide draws each member's construction under the same names.
 
-/// The display colour of each quarter family, in Family order: the guide draws a member's construction in it and the documentation shows the member in it.
+/// The display colour of each quarter family, in Family order, from the Block Research Group palette (brg.ethz.ch): accent orange, highlight amber, secondary slate and their tints, primary blue kept for the connectors. The guide draws a member's construction in it.
 const std::array<session_cpp::Color, 6> FAMILY_COLORS = {
-    session_cpp::Color(0.85f, 0.33f, 0.10f, 1.0f, "outer_ribs"),
-    session_cpp::Color(0.93f, 0.69f, 0.13f, 1.0f, "inner_ribs"),
-    session_cpp::Color(0.13f, 0.55f, 0.45f, 1.0f, "inner_beams"),
-    session_cpp::Color(0.49f, 0.18f, 0.56f, 1.0f, "wedges"),
-    session_cpp::Color(0.47f, 0.67f, 0.19f, 1.0f, "tsections"),
-    session_cpp::Color(0.30f, 0.47f, 0.78f, 1.0f, "beds"),
+    session_cpp::Color(235.0f / 255.0f, 119.0f / 255.0f, 33.0f / 255.0f, 1.0f, "outer_ribs"),
+    session_cpp::Color(235.0f / 255.0f, 177.0f / 255.0f, 33.0f / 255.0f, 1.0f, "inner_ribs"),
+    session_cpp::Color(69.0f / 255.0f, 91.0f / 255.0f, 107.0f / 255.0f, 1.0f, "inner_beams"),
+    session_cpp::Color(140.0f / 255.0f, 155.0f / 255.0f, 166.0f / 255.0f, 1.0f, "wedges"),
+    session_cpp::Color(245.0f / 255.0f, 216.0f / 255.0f, 144.0f / 255.0f, 1.0f, "tsections"),
+    session_cpp::Color(166.0f / 255.0f, 211.0f / 255.0f, 246.0f / 255.0f, 1.0f, "beds"),
 };
 
 /// What two members share and the connector that belongs to it; the screw kinds are the assembly screws, pre-drilled lines both members read.
@@ -438,7 +438,7 @@ std::vector<Relationship> relationships(const FloorGuide& guide);
 std::vector<Relationship> relationships(const FloorGuide& guide, Relation kind);
 
 /// The colour of every connector node and of every part and dowel node nested under it.
-const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(38.0f / 255.0f, 149.0f / 255.0f, 233.0f / 255.0f, 1.0f, "brg_blue");
+const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue");
 
 /// The relation kinds of the connectors: the wedges, the column plates and their cross laps, the ties and the block dowels.
 const std::vector<Relation> CONNECTOR_RELATIONS = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels};

@@ -93,13 +93,13 @@ void outer_rib_planes(const Context& context) {
         const Plane& inner = cp.outer_ribs[k][1];
         const Point shared = guide.edges[edges[k]].band[0].origin();
         const Point corner = outer.origin() + (outer.origin() - shared);
-        frame.polyline(up(sheet(outer, corner, shared, depth)), FAMILY_COLORS[0], 3.0);
-        frame.polyline(up(sheet(inner, corner, shared, depth)), FAMILY_COLORS[0], 1.5);
+        frame.polyline(up(sheet(outer, corner, shared, depth)), BUILT, 3.0);
+        frame.polyline(up(sheet(inner, corner, shared, depth)), BUILT, 1.5);
         const Vector lift(0.0, 0.0, 120.0);
-        frame.line(up(Line::from_points(shared + lift, outer.origin() + lift)), INK, 2.0, true, true);
-        frame.point(up(shared), INK);
-        frame.point(up(outer.origin()), MARK);
-        frame.line(up(Line::from_points(outer.origin(), outer.origin() + outer.z_axis() * 450.0)), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(shared + lift, outer.origin() + lift)), INPUT, 2.0, true, true);
+        frame.point(up(shared), INPUT);
+        frame.point(up(outer.origin()), BUILT);
+        frame.line(up(Line::from_points(outer.origin(), outer.origin() + outer.z_axis() * 450.0)), BUILT, 3.0, false, true);
         frame.label(fmt::format("cp.outer_ribs[{}][0]", k), up(outer.origin()));
         frame.label(fmt::format("cp.outer_ribs[{}][1]", k), up(fall(inner, inner.origin(), depth).end()));
         frame.label(fmt::format("edges[{}].band[0].origin()", edges[k]), up(shared));
@@ -107,7 +107,7 @@ void outer_rib_planes(const Context& context) {
 
     const Point station = cp.outer_ribs[0][0].origin() + (cp.outer_ribs[0][0].origin() - guide.edges[0].band[0].origin()) * 0.5;
     const Line thickness = Line::from_points(station, cp.outer_ribs[0][1].project(station));
-    frame.line(up(thickness), MARK, 4.0);
+    frame.line(up(thickness), VARIABLE, 4.0);
     frame.label(fmt::format("outer_ribs = {:.0f}", guide.parameters.outer_ribs), up(thickness.center()));
     frame.write(context.dir);
 }
@@ -128,10 +128,10 @@ void seam_beam_planes(const Context& context) {
         const Point& oculus_corner = seam.oculus_corner;
         const std::array<Plane, 2>& faces = cp.inner_beams[beams[k]];
         frame.polyline(up(strip(cp.outer_ribs[k][0], cp.outer_ribs[k][1], guide.corners[0], midpoint)), GREY, 1.0);
-        frame.line(up(span(faces[0], midpoint, oculus_corner)), FAMILY_COLORS[2], 3.0);
-        frame.line(up(span(faces[1], midpoint, oculus_corner)), FAMILY_COLORS[2], 2.0, true);
-        frame.line(up(Line::from_points(faces[0].origin(), faces[0].origin() + faces[0].z_axis() * 320.0)), MARK, 3.0, false, true);
-        frame.point(up(faces[0].origin()), MARK);
+        frame.line(up(span(faces[0], midpoint, oculus_corner)), BUILT, 3.0);
+        frame.line(up(span(faces[1], midpoint, oculus_corner)), BUILT, 2.0, true);
+        frame.line(up(Line::from_points(faces[0].origin(), faces[0].origin() + faces[0].z_axis() * 320.0)), BUILT, 3.0, false, true);
+        frame.point(up(faces[0].origin()), BUILT);
         frame.label(fmt::format("cp.inner_beams[{}][0]", beams[k]), up(foot(faces[0], midpoint + (oculus_corner - midpoint) * 0.25)));
         frame.label(fmt::format("cp.inner_beams[{}][1]", beams[k]), up(foot(faces[1], midpoint + (oculus_corner - midpoint) * 0.8)));
         frame.label(fmt::format("seams[{}].oculus_corner", seam.index), up(oculus_corner));
@@ -140,7 +140,7 @@ void seam_beam_planes(const Context& context) {
     const Seam& seam = quarter.seam(0);
     const Point station = foot(cp.inner_beams[0][0], seam.line.start() + (seam.oculus_corner - seam.line.start()) * 0.55);
     const Line thickness = Line::from_points(station, cp.inner_beams[0][1].project(station));
-    frame.line(up(thickness), MARK, 4.0);
+    frame.line(up(thickness), VARIABLE, 4.0);
     frame.label(fmt::format("inner_beams = {:.0f}", guide.parameters.inner_beams), up(thickness.center()));
     frame.write(context.dir);
 }
@@ -160,16 +160,16 @@ void oculus_beam_planes(const Context& context) {
     frame.distance = 0.8;
 
     frame.line(up(Line::from_points(centre - vertical.z_axis() * 160.0, centre + vertical.z_axis() * 160.0)), GREY, 2.0);
-    frame.line(up(fall(vertical, centre, depth)), GREY, 2.0);
+    frame.line(up(fall(vertical, centre, depth)), INPUT, 2.0, true);
     frame.line(up(fall(oculus.ring_inner, centre, depth)), GREY, 1.5, true);
-    frame.line(up(fall(cp.inner_beams[1][1], centre, depth)), FAMILY_COLORS[2], 3.0, true);
-    frame.line(up(fall(cp.inner_beams[1][0], centre, depth)), FAMILY_COLORS[2], 4.0);
+    frame.line(up(fall(cp.inner_beams[1][1], centre, depth)), RESULT, 3.0, true);
+    frame.line(up(fall(cp.inner_beams[1][0], centre, depth)), BUILT, 4.0);
     const Polyline sweep = arc(centre, oculus.line.to_direction(), -angle * M_PI / 180.0, 120.0);
-    frame.polyline(up(sweep), MARK, 3.0);
+    frame.polyline(up(sweep), VARIABLE, 3.0);
 
     const Point station = foot(vertical, centre) + Vector(0.0, 0.0, -170.0);
     const Line thickness = Line::from_points(station, cp.inner_beams[1][1].project(station));
-    frame.line(up(thickness), MARK, 3.0);
+    frame.line(up(thickness), VARIABLE, 3.0);
 
     frame.label("oculus_edges[0].line", up(centre));
     frame.label("cp.inner_beams[1][0] = oculus.tilted", up(fall(cp.inner_beams[1][0], centre, depth).end()));
@@ -193,7 +193,7 @@ void p0_p1(const Context& context) {
     frame.line(up(quarter.oculus_edge().line), GREY, 2.0);
     const Point oculus_start = quarter.oculus_edge().line.start();
     const Point oculus_end = quarter.oculus_edge().line.end();
-    frame.line(up(span(cp.inner_beams[1][1], oculus_start + (oculus_start - oculus_end) * 0.15, oculus_end + (oculus_end - oculus_start) * 0.15)), INK, 2.0, true);
+    frame.line(up(span(cp.inner_beams[1][1], oculus_start + (oculus_start - oculus_end) * 0.15, oculus_end + (oculus_end - oculus_start) * 0.15)), INPUT, 2.0, true);
     frame.label("cp.inner_beams[1][1]", up(foot(cp.inner_beams[1][1], centre)));
 
     for (size_t k = 0; k < 2; k++) {
@@ -201,11 +201,11 @@ void p0_p1(const Context& context) {
         const Point& oculus_corner = seam.oculus_corner;
         const std::array<Plane, 2>& faces = cp.inner_beams[beams[k]];
         frame.line(up(span(faces[0], oculus_corner + (oculus_corner - centre) * 0.25, centre)), GREY, 2.0);
-        frame.line(up(span(faces[1], oculus_corner + (oculus_corner - centre) * 0.25, centre)), INK, 2.0, true);
+        frame.line(up(span(faces[1], oculus_corner + (oculus_corner - centre) * 0.25, centre)), INPUT, 2.0, true);
         frame.label(fmt::format("cp.inner_beams[{}][1]", beams[k]), up(foot(faces[1], oculus_corner + (centre - oculus_corner) * 0.6)));
 
         const Point corner = far_corner(cp, k);
-        frame.point(up(corner), MARK, 16.0);
+        frame.point(up(corner), BUILT, 16.0);
         frame.label(fmt::format("p{} = ({:.1f}, {:.1f})", k, corner[0], corner[1]), up(corner));
     }
 
@@ -222,15 +222,15 @@ void head_chamfer(const Context& context) {
 
     frame.line(up(guide.edges[0].line), GREY, 2.0);
     frame.line(up(guide.edges[3].line), GREY, 2.0);
-    frame.polyline(up(Polyline(column.head).closed()), INK, 3.0);
-    frame.line(up(Line::from_points(column.head[2], column.head[3])), MARK, 7.0);
-    frame.line(up(Line::from_points(column.corner, column.corner + column.x_axis * 90.0)), INK, 3.0, false, true);
-    frame.line(up(Line::from_points(column.corner, column.corner + column.y_axis * 90.0)), INK, 3.0, false, true);
+    frame.polyline(up(Polyline(column.head).closed()), INPUT, 3.0);
+    frame.line(up(Line::from_points(column.head[2], column.head[3])), BUILT, 7.0);
+    frame.line(up(Line::from_points(column.corner, column.corner + column.x_axis * 90.0)), INPUT, 3.0, false, true);
+    frame.line(up(Line::from_points(column.corner, column.corner + column.y_axis * 90.0)), INPUT, 3.0, false, true);
     frame.label("x_axis", up(column.corner + column.x_axis * 90.0));
     frame.label("y_axis", up(column.corner + column.y_axis * 90.0));
 
     for (size_t i = 0; i < column.head.size(); i++) {
-        frame.point(up(column.head[i]), i == 2 || i == 3 ? MARK : INK);
+        frame.point(up(column.head[i]), i == 2 || i == 3 ? BUILT : INPUT);
         frame.label(names[i], up(column.head[i]));
     }
 
@@ -256,10 +256,10 @@ void inner_rib_planes(const Context& context) {
         const Line face = span(outer, from, to);
         const Line other = span(central, from, to);
         frame.line(up(span(cp.inner_beams[2 * k][1], to, guide.centre)), GREY, 1.5);
-        frame.line(up(face), FAMILY_COLORS[1], 3.0);
-        frame.line(up(other), FAMILY_COLORS[1], 2.0, true);
-        frame.line(up(Line::from_points(outer.origin(), outer.origin() + outer.z_axis() * 250.0)), MARK, 3.0, false, true);
-        frame.point(up(to), MARK);
+        frame.line(up(face), BUILT, 3.0);
+        frame.line(up(other), BUILT, 2.0, true);
+        frame.line(up(Line::from_points(outer.origin(), outer.origin() + outer.z_axis() * 250.0)), BUILT, 3.0, false, true);
+        frame.point(up(to), INPUT);
         frame.label(fmt::format("cp.inner_ribs[{}][0]", k), up(face.point_at(1.0 / 3.0)));
         frame.label(fmt::format("faces[{0}] = cp.inner_ribs[{0}][1]", k), up(other.point_at(2.0 / 3.0)));
         frame.label(fmt::format("normals[{}]", k), up(outer.origin() + outer.z_axis() * 250.0));
@@ -285,11 +285,12 @@ void tilted_chamfer_plane(const Context& context) {
     frame.distance = 0.8;
 
     frame.polyline(up(Polyline(column.head).closed()), GREY, 2.0);
-    frame.polyline(up(sheet(vertical, side1.start(), side1.end(), depth)), GREY, 2.0);
-    frame.polyline(up(sheet(tilted, side1.start(), side1.end(), depth)), FAMILY_COLORS[3], 3.0);
-    frame.line(up(side1), MARK, 6.0);
+    for (const Line& helper : sheet(vertical, side1.start(), side1.end(), depth).get_lines())
+        frame.line(up(helper), INPUT, 2.0, true);
+    frame.polyline(up(sheet(tilted, side1.start(), side1.end(), depth)), BUILT, 3.0);
+    frame.line(up(side1), INPUT, 6.0);
     const Polyline sweep = arc(side1.center(), side1.to_direction(), angle * M_PI / 180.0, 320.0);
-    frame.polyline(up(sweep), MARK, 3.0);
+    frame.polyline(up(sweep), VARIABLE, 3.0);
 
     frame.label("side1 = edge(head, 2)", up(side1.start()));
     frame.label("edge_plane(side1, +z)", up(fall(vertical, side1.center(), depth).end()));
@@ -310,7 +311,7 @@ void crease_lines(const Context& context) {
     frame.distance = 0.9;
 
     frame.polyline(up(Polyline(column.head).closed()), GREY, 2.0);
-    frame.polyline(up(sheet(tilted, column.head[2], column.head[3], depth)), GREY, 1.5);
+    frame.polyline(up(sheet(tilted, column.head[2], column.head[3], depth)), INPUT, 1.5);
 
     for (size_t k = 0; k < 2; k++) {
         const Plane& central = cp.inner_ribs[k][1];
@@ -319,8 +320,8 @@ void crease_lines(const Context& context) {
         const Point bottom = line_plane(crease, level(-depth)).value();
         const Line line = crease.to_direction().dot(bottom - top) > 0.0 ? Line::from_points(top, bottom) : Line::from_points(bottom, top);
         const Point inward = top + (far_corner(cp, k) - head_end(column, k)).normalized() * 300.0;
-        frame.polyline(up(sheet(central, top, inward, depth)), GREY, 1.5);
-        frame.line(up(line), MARK, 5.0, false, true);
+        frame.polyline(up(sheet(central, top, inward, depth)), INPUT, 1.5);
+        frame.line(up(line), BUILT, 5.0, false, true);
         frame.label(fmt::format("line{}", k), up(k == 0 ? bottom : top));
         frame.label(fmt::format("cp.inner_ribs[{}][1]", k), up(fall(central, inward, depth).end()));
     }
@@ -351,9 +352,9 @@ void fan_planes(const Context& context) {
         const Plane& fan = cp.wedges[i][0];
         const Plane provisional = fan.translate_by_normal(thickness[i]);
         const Line side = edge(column.head, i + 1);
-        frame.line(up(span(fan, side.start(), side.end())), FAMILY_COLORS[3], 4.0);
-        frame.line(up(span(provisional, side.start(), side.end())), FAMILY_COLORS[3], 2.0, true);
-        frame.line(up(Line::from_points(fan.origin(), fan.origin() + fan.z_axis() * 120.0)), MARK, 3.0, false, true);
+        frame.line(up(span(fan, side.start(), side.end())), BUILT, 4.0);
+        frame.line(up(span(provisional, side.start(), side.end())), RESULT, 2.0, true);
+        frame.line(up(Line::from_points(fan.origin(), fan.origin() + fan.z_axis() * 120.0)), BUILT, 3.0, false, true);
         frame.label(fmt::format("cp.wedges[{}][0] = {}", i, names[i]), up(side.point_at(0.75)));
         frame.label(fmt::format("cp.wedges[{}][1]: + {:.0f}", i, thickness[i]), up(foot(provisional, side.center())));
     }
@@ -375,14 +376,14 @@ void tsection_planes(const Context& context) {
     for (size_t k = 0; k < 2; k++) {
         const Point from = head_end(column, k);
         const Point to = far_corner(cp, k);
-        frame.polyline(up(strip(cp.outer_ribs[k][0], cp.outer_ribs[k][1], from, to)), GREY, 1.5);
-        frame.polyline(up(strip(cp.inner_ribs[k][0], cp.inner_ribs[k][1], from, to)), GREY, 1.5);
+        frame.polyline(up(strip(cp.outer_ribs[k][0], cp.outer_ribs[k][1], from, to)), INPUT, 1.5);
+        frame.polyline(up(strip(cp.inner_ribs[k][0], cp.inner_ribs[k][1], from, to)), INPUT, 1.5);
     }
 
     for (size_t i = 0; i < cp.tsections.size(); i++) {
         const Point from = head_end(column, rib[i]);
         const Point to = far_corner(cp, rib[i]);
-        frame.polyline(up(strip(cp.tsections[i][0], cp.tsections[i][1], from, to)), FAMILY_COLORS[4], 2.5);
+        frame.polyline(up(strip(cp.tsections[i][0], cp.tsections[i][1], from, to)), BUILT, 2.5);
         const Line flange = span(cp.tsections[i][1], from, to);
         const std::string text = i == 0 ? fmt::format("cp.tsections[0], tsections = {:.0f}", guide.parameters.tsections) : fmt::format("cp.tsections[{}]", i);
         frame.label(text, up(flange.point_at(station[i])));
@@ -408,10 +409,10 @@ void column_offset(const Context& context) {
     for (size_t k = 0; k < 2; k++) {
         const Vector along = k == 0 ? column.x_axis : column.y_axis;
         const Vector across = k == 0 ? column.y_axis : column.x_axis;
-        frame.polyline(up(band(column, parameters, k)), FAMILY_COLORS[0], 3.0);
+        frame.polyline(up(band(column, parameters, k)), INPUT, 3.0);
 
         for (double s = 20.0; s + parameters.outer_ribs * 0.5 < parameters.column_head; s += 25.0)
-            frame.line(up(Line::from_points(column.corner + along * s, column.corner + along * (s + parameters.outer_ribs * 0.5) + across * parameters.outer_ribs)), FAMILY_COLORS[0], 1.0);
+            frame.line(up(Line::from_points(column.corner + along * s, column.corner + along * (s + parameters.outer_ribs * 0.5) + across * parameters.outer_ribs)), INPUT, 1.0);
 
         frame.label(fmt::format("column_offset[{}] = {:.0f}", k, column.column_offset[k]), up(column.corner + along * (parameters.column_head * 0.6)));
         frame.label(fmt::format("cp.outer_ribs[{}] band", k), up(column.corner + along * parameters.column_head + across * (parameters.outer_ribs * 0.5)));
@@ -419,7 +420,7 @@ void column_offset(const Context& context) {
 
     const Point station = column.corner + column.x_axis * (parameters.column_head * 0.3);
     const Line dimension = Line::from_points(station, station + column.y_axis * width);
-    frame.line(up(dimension), MARK, 4.0);
+    frame.line(up(dimension), VARIABLE, 4.0);
     frame.label(fmt::format("band = {:.0f}", width), up(dimension.point_at(0.5)));
     frame.label(fmt::format("corner_angle(0) = {:.0f} deg", guide.corner_angle(0)), up(column.corner));
     frame.write(context.dir);
@@ -439,8 +440,8 @@ void wedge_seat(const Context& context) {
 
     for (size_t k = 0; k < 2; k++) {
         const Point from = head_end(column, k);
-        frame.polyline(up(band(column, parameters, k)), GREY, 1.5);
-        frame.polyline(up(strip(cp.inner_ribs[k][0], cp.inner_ribs[k][1], from + (from - far_corner(cp, k)).normalized() * 40.0, from + (far_corner(cp, k) - from).normalized() * 160.0)), FAMILY_COLORS[1], 2.5);
+        frame.polyline(up(band(column, parameters, k)), INPUT, 1.5);
+        frame.polyline(up(strip(cp.inner_ribs[k][0], cp.inner_ribs[k][1], from + (from - far_corner(cp, k)).normalized() * 40.0, from + (far_corner(cp, k) - from).normalized() * 160.0)), INPUT, 2.5);
     }
 
     const std::array<Point, 2> footprint = {
@@ -454,7 +455,7 @@ void wedge_seat(const Context& context) {
     };
 
     for (size_t i = 0; i < 3; i++) {
-        frame.line(up(seats[i]), MARK, 6.0);
+        frame.line(up(seats[i]), BUILT, 6.0);
         frame.label(fmt::format("wedge_seat[{}] = {:.3f}", i, column.wedge_seat[i]), up(seats[i].center()));
     }
 

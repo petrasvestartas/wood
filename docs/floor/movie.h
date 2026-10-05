@@ -15,11 +15,14 @@ using namespace wood_floor::geometry;
 // Look
 // ═══════════════════════════════════════════════════════════════════════════
 
-const Color GREY(0.74f, 0.74f, 0.74f, 1.0f, "context"); // What earlier steps built.
-const Color INK(0.10f, 0.10f, 0.10f, 1.0f, "ink"); // The construction of this step.
-const Color MARK(0.86f, 0.12f, 0.12f, 1.0f, "mark"); // The variable this step introduces.
-const Color RING(0.78f, 0.22f, 0.48f, 1.0f, "oculus"); // The oculus ring and plate.
-const Color STEEL(0.42f, 0.42f, 0.46f, 1.0f, "column"); // The column and its support.
+// The role a colour plays in a frame, from the Block Research Group palette (brg.ethz.ch): the same colour names the same role in the picture and in its page's text.
+const Color BUILT(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "built"); // #2196EA, BRG primary: what this step builds.
+const Color VARIABLE(235.0f / 255.0f, 119.0f / 255.0f, 33.0f / 255.0f, 1.0f, "variable"); // #EB7721, BRG accent: the variable or value this step introduces.
+const Color RESULT(235.0f / 255.0f, 177.0f / 255.0f, 33.0f / 255.0f, 1.0f, "result"); // #EBB121, BRG highlight: a second thing this step builds, set apart from the first.
+const Color INPUT(69.0f / 255.0f, 91.0f / 255.0f, 107.0f / 255.0f, 1.0f, "input"); // #455B6B, BRG secondary: what this step reads from earlier steps; dashed, a construction helper.
+const Color GREY(205.0f / 255.0f, 210.0f / 255.0f, 214.0f / 255.0f, 1.0f, "context"); // #CDD2D6: everything else, for context.
+const Color RING(245.0f / 255.0f, 187.0f / 255.0f, 144.0f / 255.0f, 1.0f, "oculus"); // #F5BB90, accent tint: the oculus ring, where families are told apart.
+const Color STEEL(46.0f / 255.0f, 61.0f / 255.0f, 72.0f / 255.0f, 1.0f, "column"); // #2E3D48, secondary shade: the column and its support, where families are told apart.
 
 /// The quarter families in Family order, the colour of each in FAMILY_COLORS.
 const std::array<Family, 6> FAMILIES = {Family::outer_ribs, Family::inner_ribs, Family::inner_beams, Family::wedges, Family::tsections, Family::beds};

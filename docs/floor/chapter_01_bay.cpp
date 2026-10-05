@@ -5,9 +5,6 @@ namespace movie {
 namespace {
 
 const std::string CHAPTER = "01_bay";
-const Color AXIS_X(0.86f, 0.12f, 0.12f, 1.0f, "x_axis"); // A frame's x axis.
-const Color AXIS_Y(0.15f, 0.62f, 0.25f, 1.0f, "y_axis"); // A frame's y axis.
-const Color AXIS_Z(0.15f, 0.35f, 0.85f, 1.0f, "z_axis"); // A frame's z axis.
 const size_t ARC_STEPS = 24; // Segments of a drawn angle arc.
 const double ORBIT_RADIANS_PER_PIXEL = 0.005; // session_viewer's camera turn per mouse pixel.
 const Vector X = Vector::x_axis();
@@ -19,11 +16,6 @@ const Box CORNER = {-3060.0, -3060.0, H - 10.0, -2660.0, -2660.0, H + 10.0}; // 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════
-
-/// The colour of a quarter family.
-const Color& colour(Family family) {
-    return FAMILY_COLORS[static_cast<size_t>(family)];
-}
 
 /// The arc of radius about centre from one direction to another, turned about their common normal.
 Polyline arc(const Point& centre, const Vector& from, const Vector& to, double radius) {
@@ -50,11 +42,11 @@ void turn(Frame& frame, const Polyline& arc, const Color& color) {
     frame.line(Line::from_points(arc.get_point(ARC_STEPS - 2), arc.get_point(ARC_STEPS)), color, 3.0, false, true);
 }
 
-/// A dimension between two scene points, moved off them by offset, with its extension lines and the text on its middle.
+/// A dimension between two scene points, moved off them by offset, with its extension lines and the text on its middle, in VARIABLE: the value it measures.
 void dimension(Frame& frame, const Point& a, const Point& b, const Vector& offset, const std::string& text) {
-    frame.line(Line::from_points(a + offset, b + offset), INK, 2.0);
-    frame.line(Line::from_points(a, a + offset * 1.3), INK, 1.0);
-    frame.line(Line::from_points(b, b + offset * 1.3), INK, 1.0);
+    frame.line(Line::from_points(a + offset, b + offset), VARIABLE, 2.0);
+    frame.line(Line::from_points(a, a + offset * 1.3), VARIABLE, 1.0);
+    frame.line(Line::from_points(b, b + offset * 1.3), VARIABLE, 1.0);
     frame.label(text, Line::from_points(a + offset, b + offset).center());
 }
 
@@ -85,17 +77,17 @@ void bay_corners(const Context& context) {
     const double half_x = guide.corners[1][0];
     const double half_y = guide.corners[2][1];
     Frame frame(CHAPTER, 1, "bay_corners", fmt::format("FloorGuide::rectangle({:.0f}, {:.0f}): four corners counter-clockwise at z 0, half spans about the origin", half_x, half_y), "top", WIDE);
-    frame.polyline(up(Polyline({guide.corners[0], guide.corners[1], guide.corners[2], guide.corners[3]}).closed()), INK, 4.0);
+    frame.polyline(up(Polyline({guide.corners[0], guide.corners[1], guide.corners[2], guide.corners[3]}).closed()), BUILT, 4.0);
 
     for (size_t k = 0; k < 4; k++) {
-        frame.point(up(guide.corners[k]), MARK);
+        frame.point(up(guide.corners[k]), BUILT);
         frame.label(fmt::format("corners[{}] = ({:.0f}, {:.0f}, {:.0f})", k, guide.corners[k][0], guide.corners[k][1], guide.corners[k][2]), up(guide.corners[k]));
     }
 
     const Polyline last = arc(guide.centre, -X, -Y, 900.0);
-    frame.polyline(up(arc(guide.centre, X, Y, 900.0)), MARK, 3.0);
-    frame.polyline(up(arc(guide.centre, Y, -X, 900.0)), MARK, 3.0);
-    turn(frame, up(last), MARK);
+    frame.polyline(up(arc(guide.centre, X, Y, 900.0)), BUILT, 3.0);
+    frame.polyline(up(arc(guide.centre, Y, -X, 900.0)), BUILT, 3.0);
+    turn(frame, up(last), BUILT);
     frame.label("counter-clockwise", up(last.get_point(ARC_STEPS)));
     dimension(frame, up(guide.corners[0]), up(guide.corners[1]), Vector(0.0, -250.0, 0.0), fmt::format("{:.0f}", (guide.corners[1] - guide.corners[0]).magnitude()));
     dimension(frame, up(guide.corners[1]), up(guide.corners[2]), Vector(250.0, 0.0, 0.0), fmt::format("{:.0f}", (guide.corners[2] - guide.corners[1]).magnitude()));
@@ -110,15 +102,15 @@ void centre_midpoints(const Context& context) {
     plan_context(frame, guide, false);
     frame.line(up(Line::from_points(guide.corners[0], guide.corners[2])), GREY, 1.0, true);
     frame.line(up(Line::from_points(guide.corners[1], guide.corners[3])), GREY, 1.0, true);
-    frame.line(up(Line::from_points(guide.midpoint(0), guide.midpoint(2))), INK, 2.0, true);
-    frame.line(up(Line::from_points(guide.midpoint(1), guide.midpoint(3))), INK, 2.0, true);
+    frame.line(up(Line::from_points(guide.midpoint(0), guide.midpoint(2))), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(guide.midpoint(1), guide.midpoint(3))), INPUT, 2.0, true);
 
     for (size_t k = 0; k < 4; k++) {
-        frame.point(up(guide.midpoint(k)), MARK);
+        frame.point(up(guide.midpoint(k)), RESULT);
         frame.label(fmt::format("midpoint({})", k), up(guide.midpoint(k)));
     }
 
-    frame.point(up(guide.centre), MARK, 16.0);
+    frame.point(up(guide.centre), BUILT, 16.0);
     frame.label(fmt::format("centre = ({:.0f}, {:.0f}, {:.0f})", guide.centre[0], guide.centre[1], guide.centre[2]), up(guide.centre));
     frame.write(context.dir);
 }
@@ -130,16 +122,16 @@ void oculus_corners(const Context& context) {
     Frame frame(CHAPTER, 3, "oculus_corners", "oculus_corners[q] = centre + unit(midpoint(q) - centre) * oculus: a square diamond on a rectangle", "top", BAY);
     frame.key = true;
     plan_context(frame, guide, false);
-    frame.point(up(guide.centre), GREY);
+    frame.point(up(guide.centre), INPUT);
 
     for (size_t q = 0; q < 4; q++) {
-        frame.point(up(guide.midpoint(q)), GREY);
-        frame.line(up(Line::from_points(guide.centre, guide.midpoint(q))), INK, 2.0, true);
-        frame.point(up(guide.oculus_corners[q]), MARK);
+        frame.point(up(guide.midpoint(q)), INPUT);
+        frame.line(up(Line::from_points(guide.centre, guide.midpoint(q))), INPUT, 2.0, true);
+        frame.point(up(guide.oculus_corners[q]), BUILT);
         frame.label(fmt::format("oculus_corners[{}]", q), up(guide.oculus_corners[q]));
     }
 
-    frame.polyline(up(diamond(guide)), MARK, 3.0);
+    frame.polyline(up(diamond(guide)), BUILT, 3.0);
     dimension(frame, up(guide.centre), up(guide.oculus_corners[0]), Vector(180.0, 0.0, 0.0), fmt::format("oculus = {:.0f}", guide.parameters.oculus));
     frame.write(context.dir);
 }
@@ -159,9 +151,9 @@ void validity_turns(const Context& context) {
         const Point& corner = guide.corners[(k + 1) % 4];
         const Vector after = corner - guide.corners[k];
         const Vector next = guide.corners[(k + 2) % 4] - corner;
-        frame.line(up(Line::from_points(guide.corners[k], corner)), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(guide.corners[k], corner)), VARIABLE, 3.0, false, true);
         const Polyline bend = arc(corner, after, next, 500.0);
-        turn(frame, up(bend), INK);
+        turn(frame, up(bend), BUILT);
 
         if (k == 0)
             frame.label(fmt::format("turn = after.cross(corners[2] - corners[1])[2] = {:.3g}", after.cross(next)[2]), up(arc_middle(bend)));
@@ -172,7 +164,7 @@ void validity_turns(const Context& context) {
     const Vector before = guide.corners[3] - guide.corners[0];
     const Point before_start = guide.corners[0] + (X + Y) * 250.0;
     const Line before_arrow = Line::from_points(before_start, before_start + before * 0.4);
-    frame.line(up(before_arrow), INK, 2.0, false, true);
+    frame.line(up(before_arrow), VARIABLE, 2.0, false, true);
     frame.label("after = corners[1] - corners[0]", up(Line::from_points(guide.corners[0], guide.corners[1]).point_at(0.3)));
     frame.label("corners[2] - corners[1]", up(Line::from_points(guide.corners[1], guide.corners[2]).point_at(0.3)));
     frame.label("before = corners[3] - corners[0]", up(before_arrow.center()));
@@ -192,13 +184,13 @@ void validity_seam(const Context& context) {
     frame.line(up(Line::from_points(centre, midpoint)), GREY, 3.0);
 
     for (const Point& end : {centre, midpoint})
-        frame.line(up(Line::from_points(end - X * 150.0, end + X * 150.0)), INK, 2.0);
+        frame.line(up(Line::from_points(end - X * 150.0, end + X * 150.0)), INPUT, 2.0);
 
     const Vector side = X * 300.0;
-    frame.line(up(Line::from_points(centre + side, midpoint + side)), INK, 6.0, true);
-    frame.line(up(Line::from_points(centre - side, corner - side)), MARK, 4.0);
-    frame.line(up(Line::from_points(corner, corner - side * 1.3)), MARK, 1.0);
-    frame.point(up(corner), MARK);
+    frame.line(up(Line::from_points(centre + side, midpoint + side)), INPUT, 6.0, true);
+    frame.line(up(Line::from_points(centre - side, corner - side)), VARIABLE, 4.0);
+    frame.line(up(Line::from_points(corner, corner - side * 1.3)), VARIABLE, 1.0);
+    frame.point(up(corner), INPUT);
     frame.label("centre: along = 0", up(centre));
     frame.label(fmt::format("midpoint(0): along = {:.0f}", length), up(midpoint));
     frame.label("oculus_corners[0]", up(corner));
@@ -224,15 +216,15 @@ void validity_ring(const Context& context) {
     const Point next_tip = corner + to_next.normalized() * 400.0;
     const Point previous_tip = corner + to_previous.normalized() * 400.0;
     const Point seam_tip = corner + seam.normalized() * 400.0;
-    frame.line(up(Line::from_points(corner, next_tip)), RING, 3.0, false, true);
-    frame.line(up(Line::from_points(corner, previous_tip)), RING, 3.0, false, true);
-    frame.line(up(Line::from_points(corner, seam_tip)), colour(Family::inner_beams), 3.0, false, true);
+    frame.line(up(Line::from_points(corner, next_tip)), INPUT, 3.0, false, true);
+    frame.line(up(Line::from_points(corner, previous_tip)), INPUT, 3.0, false, true);
+    frame.line(up(Line::from_points(corner, seam_tip)), INPUT, 3.0, false, true);
 
     const Polyline corner_arc = arc(corner, to_next, to_previous, 150.0);
     const Polyline seam_arc = arc(corner, seam, to_next, 250.0);
-    frame.polyline(up(corner_arc), RING, 3.0);
-    frame.polyline(up(seam_arc), colour(Family::inner_beams), 3.0);
-    frame.point(up(corner), MARK);
+    frame.polyline(up(corner_arc), BUILT, 3.0);
+    frame.polyline(up(seam_arc), RESULT, 3.0);
+    frame.point(up(corner), INPUT);
     frame.label("oculus_corners[0]", up(corner));
     frame.label("oculus_corners[1] - oculus_corners[0]", up(next_tip));
     frame.label("oculus_corners[3] - oculus_corners[0]", up(previous_tip));
@@ -263,16 +255,16 @@ void primitives(const Context& context) {
     const Point datum_origin = corner + (X + Y) * 300.0;
     const Point edge0_origin = corner + X * 300.0;
     const Point edge3_origin = corner + Y * 300.0;
-    frame.plane(up(facing(datum, datum_origin, X)), INK);
-    frame.plane(up(facing(edge0, edge0_origin, X)), colour(Family::outer_ribs));
-    frame.plane(up(facing(edge3, edge3_origin, Y)), colour(Family::outer_ribs));
-    frame.line(up(Line::from_point_direction_length(corner, guide.edges[0].line.to_direction(), 650.0)), INK, 3.0, false, true);
-    frame.point(up(corner), MARK, 16.0);
+    frame.plane(up(facing(datum, datum_origin, X)), BUILT);
+    frame.plane(up(facing(edge0, edge0_origin, X)), BUILT);
+    frame.plane(up(facing(edge3, edge3_origin, Y)), BUILT);
+    frame.line(up(Line::from_point_direction_length(corner, guide.edges[0].line.to_direction(), 650.0)), VARIABLE, 3.0, false, true);
+    frame.point(up(corner), RESULT, 16.0);
 
     const Vector along = oculus.line.to_direction();
-    frame.line(up(guide.seams[0].line), INK, 3.0);
-    frame.plane(up(facing(oculus.tilted, hit + along * 300.0, along)), colour(Family::inner_beams));
-    frame.point(up(hit), MARK, 16.0);
+    frame.line(up(guide.seams[0].line), INPUT, 3.0);
+    frame.plane(up(facing(oculus.tilted, hit + along * 300.0, along)), INPUT);
+    frame.point(up(hit), RESULT, 16.0);
 
     frame.label("level(0.0)", up(datum_origin));
     frame.label("edge_plane(edges[0].line, -Z)", up(edge0_origin));
@@ -299,10 +291,10 @@ void bay_edge(const Context& context) {
     Frame frame(CHAPTER, 8, "bay_edge_band0", "edges[0]: line and midpoint; band[0] = the vertical plane on it, normal direction x (-Z) into the bay", "iso", {-3300.0, -3400.0, H - 750.0, 3300.0, -1800.0, H + 200.0});
     frame.plane_size = 300.0;
     plan_context(frame, guide, false);
-    frame.polyline(up(Polyline({edge.line.start(), edge.line.end(), edge.line.end() - Z * depth, edge.line.start() - Z * depth}).closed()), colour(Family::outer_ribs), 2.0);
-    frame.plane(up(facing(band, band.origin(), edge.line.to_direction())), colour(Family::outer_ribs));
-    frame.line(up(edge.line), MARK, 5.0, false, true);
-    frame.point(up(edge.midpoint), MARK);
+    frame.polyline(up(Polyline({edge.line.start(), edge.line.end(), edge.line.end() - Z * depth, edge.line.start() - Z * depth}).closed()), RESULT, 2.0);
+    frame.plane(up(facing(band, band.origin(), edge.line.to_direction())), RESULT);
+    frame.line(up(edge.line), BUILT, 5.0, false, true);
+    frame.point(up(edge.midpoint), BUILT);
     frame.label("corners[0]", up(edge.line.start()));
     frame.label("corners[1]", up(edge.line.end()));
     frame.label("edges[0].line", up(edge.line.point_at(0.25)));
@@ -327,14 +319,14 @@ void bands(const Context& context) {
         const BayEdge& edge = guide.edges[k];
         const Vector direction = edge.line.to_direction();
         const Vector normal = edge.band[0].z_axis();
-        frame.line(up(edge.line), colour(Family::outer_ribs), 3.0);
-        frame.line(up(Line::from_points(inner[k], inner[(k + 1) % 4])), colour(Family::outer_ribs), 3.0);
+        frame.line(up(edge.line), INPUT, 3.0);
+        frame.line(up(Line::from_points(inner[k], inner[(k + 1) % 4])), BUILT, 3.0);
 
         const double run = (inner[(k + 1) % 4] - inner[k]).magnitude() - thickness;
 
         for (double s = 150.0; s < run; s += 150.0) {
             const Point at = inner[k] + direction * s;
-            frame.line(up(Line::from_points(at, at - normal * thickness + direction * thickness)), colour(Family::outer_ribs), 1.0);
+            frame.line(up(Line::from_points(at, at - normal * thickness + direction * thickness)), VARIABLE, 1.0);
         }
     }
 
@@ -362,9 +354,9 @@ void seams(const Context& context) {
 
     for (size_t k = 0; k < 4; k++) {
         const Seam& seam = guide.seams[k];
-        frame.line(up(Line::from_points(seam.line.start(), seam.oculus_corner)), MARK, 5.0);
-        frame.line(up(Line::from_points(seam.oculus_corner, seam.line.end())), INK, 2.0, true);
-        frame.point(up(seam.oculus_corner), MARK);
+        frame.line(up(Line::from_points(seam.line.start(), seam.oculus_corner)), BUILT, 5.0);
+        frame.line(up(Line::from_points(seam.oculus_corner, seam.line.end())), BUILT, 2.0, true);
+        frame.point(up(seam.oculus_corner), INPUT);
 
         if (k > 0)
             frame.label(fmt::format("seams[{}]", k), up(Line::from_points(seam.line.start(), seam.oculus_corner).center()));
@@ -391,9 +383,9 @@ void seam_plane(const Context& context) {
     frame.plane_size = (seam.oculus_corner - seam.line.start()).magnitude() * 0.5;
     frame.polyline(up(quarter), GREY, 3.0);
     frame.polyline(up(diamond(guide)), GREY, 1.0);
-    frame.line(up(Line::from_points(seam.line.start(), seam.oculus_corner)), INK, 5.0);
-    frame.plane(up(facing(plane, plane.origin(), seam.line.to_direction())), MARK);
-    frame.point(up(plane.origin()), MARK, 16.0);
+    frame.line(up(Line::from_points(seam.line.start(), seam.oculus_corner)), INPUT, 5.0);
+    frame.plane(up(facing(plane, plane.origin(), seam.line.to_direction())), BUILT);
+    frame.point(up(plane.origin()), BUILT, 16.0);
     frame.label("seams[0].plane", up(plane.origin() + Z * (frame.plane_size * 0.6)));
     frame.label(fmt::format("origin() = ({:.0f}, {:.0f}, {:.0f})", plane.origin()[0], plane.origin()[1], plane.origin()[2]), up(plane.origin()));
     frame.label(fmt::format("z_axis() = ({:.0f}, {:.0f}, {:.0f})", normal[0] + 0.0, normal[1] + 0.0, normal[2] + 0.0), up(plane.origin() + normal * 400.0));
@@ -411,10 +403,10 @@ void seam_faces(const Context& context) {
     const Point& a = seam.line.start();
     const Point& b = seam.oculus_corner;
     const std::array<std::array<Plane, 2>, 2> faces = {seam.faces_into(0), seam.faces_into(1)};
-    const std::array<Color, 2> colors = {colour(Family::inner_beams), MARK};
+    const std::array<Color, 2> colors = {BUILT, RESULT};
     const std::array<double, 2> heights = {-2150.0, -1850.0};
     Frame frame(CHAPTER, 12, "seam_faces", "faces_into(q) = pair(plane_into(q), thickness): quarter 0's and quarter 1's seam beams back to back", "top", {-450.0, -2350.0, H - 10.0, 450.0, -1650.0, H + 10.0});
-    frame.line(up(trace(faces[0][0], a, b)), INK, 3.0);
+    frame.line(up(trace(faces[0][0], a, b)), INPUT, 3.0);
 
     for (size_t q = 0; q < 2; q++) {
         const Line far = trace(faces[q][1], a, b);
@@ -453,9 +445,9 @@ void oculus_edge(const Context& context) {
     frame.polyline(up(diamond(guide)), GREY, 2.0);
     frame.polyline(up(Polyline(guide.geometry[0].polygon).closed()), GREY, 1.0);
     frame.point(up(guide.centre), GREY);
-    frame.plane(up(facing(plane, plane.origin(), edge.line.to_direction())), colour(Family::inner_beams));
-    frame.line(up(edge.line), MARK, 4.0, false, true);
-    frame.point(up(plane.origin()), INK);
+    frame.plane(up(facing(plane, plane.origin(), edge.line.to_direction())), RESULT);
+    frame.line(up(edge.line), BUILT, 4.0, false, true);
+    frame.point(up(plane.origin()), RESULT);
     frame.label("oculus_edges[0].line", up(edge.line.point_at(0.25)));
     frame.label("oculus_corners[0]", up(edge.line.start()));
     frame.label("oculus_corners[3]", up(edge.line.end()));
@@ -485,12 +477,12 @@ void tilted(const Context& context) {
 
     const Polyline lean = arc(centre, vertical_bottom - centre, tilted_bottom - centre, depth * 0.7);
     const Point foot = Line::from_points(centre, tilted_bottom).center();
-    frame.line(up(Line::from_points(centre - inward * 350.0, centre + inward * 350.0)), INK, 2.0, true);
-    frame.line(up(Line::from_points(centre, vertical_bottom)), GREY, 3.0);
-    frame.line(up(Line::from_points(centre, tilted_bottom)), colour(Family::inner_beams), 4.0);
-    frame.polyline(up(lean), MARK, 3.0);
-    frame.line(up(Line::from_points(vertical_bottom, tilted_bottom)), MARK, 4.0);
-    frame.line(up(Line::from_points(foot, foot + edge.tilted.z_axis() * 150.0)), INK, 3.0, false, true);
+    frame.line(up(Line::from_points(centre - inward * 350.0, centre + inward * 350.0)), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(centre, vertical_bottom)), INPUT, 3.0);
+    frame.line(up(Line::from_points(centre, tilted_bottom)), BUILT, 4.0);
+    frame.polyline(up(lean), VARIABLE, 3.0);
+    frame.line(up(Line::from_points(vertical_bottom, tilted_bottom)), VARIABLE, 4.0);
+    frame.line(up(Line::from_points(foot, foot + edge.tilted.z_axis() * 150.0)), BUILT, 3.0, false, true);
     frame.label("oculus_edges[0].line, seen end-on", up(centre));
     frame.label("plane, vertical", up(Line::from_points(centre, vertical_bottom).point_at(0.85)));
     frame.label("oculus_edges[0].tilted", up(Line::from_points(centre, tilted_bottom).point_at(0.3)));
@@ -514,15 +506,15 @@ void back_ring_inner(const Context& context) {
     const Line ring = trace(edge.ring_inner, a, b);
     const double thickness = guide.parameters.inner_beams;
     Frame frame(CHAPTER, 15, "back_ring_inner", "back = plane + inner_beams into the quarter; ring_inner = back - 2 inner_beams, inside the edge", "top", {-900.0, -900.0, H - 10.0, -100.0, -100.0, H + 10.0});
-    frame.line(up(Line::from_points(a, b)), GREY, 3.0);
-    frame.line(up(back), colour(Family::inner_beams), 4.0);
-    frame.line(up(ring), RING, 4.0);
+    frame.line(up(Line::from_points(a, b)), INPUT, 3.0);
+    frame.line(up(back), BUILT, 4.0);
+    frame.line(up(ring), RESULT, 4.0);
 
     const Point back_foot = centre - direction * 150.0;
     const Point ring_foot = centre + direction * 150.0;
-    frame.line(up(Line::from_points(back_foot, edge.back.project(back_foot))), INK, 2.0);
-    frame.line(up(Line::from_points(ring_foot, edge.ring_inner.project(ring_foot))), INK, 2.0);
-    frame.line(up(Line::from_points(back.point_at(0.7), back.point_at(0.7) + edge.back.z_axis() * 80.0)), colour(Family::inner_beams), 3.0, false, true);
+    frame.line(up(Line::from_points(back_foot, edge.back.project(back_foot))), VARIABLE, 2.0);
+    frame.line(up(Line::from_points(ring_foot, edge.ring_inner.project(ring_foot))), VARIABLE, 2.0);
+    frame.line(up(Line::from_points(back.point_at(0.7), back.point_at(0.7) + edge.back.z_axis() * 80.0)), BUILT, 3.0, false, true);
     frame.label("oculus_edges[0].back", up(back.point_at(0.25)));
     frame.label("oculus_edges[0].line = tilted's datum trace", up(Line::from_points(a, b).point_at(0.5)));
     frame.label("oculus_edges[0].ring_inner", up(ring.point_at(0.75)));
@@ -546,13 +538,13 @@ void corner_frame(const Context& context) {
     Frame frame(CHAPTER, 16, "corner_frame", fmt::format("corner_frame: corner_angle(0) = {:.0f}, so x_axis = after and y_axis = before; else bisector -/+ 45 deg", guide.corner_angle(0)), "top", CORNER);
     frame.line(up(guide.edges[0].line), GREY, 2.0);
     frame.line(up(guide.edges[3].line), GREY, 2.0);
-    frame.line(up(Line::from_points(corner, corner + column.x_axis * 300.0)), AXIS_X, 5.0, false, true);
-    frame.line(up(Line::from_points(corner, corner + column.y_axis * 300.0)), AXIS_Y, 5.0, false, true);
-    frame.line(up(Line::from_points(corner, corner + bisector * 340.0)), INK, 2.0, true);
+    frame.line(up(Line::from_points(corner, corner + column.x_axis * 300.0)), BUILT, 5.0, false, true);
+    frame.line(up(Line::from_points(corner, corner + column.y_axis * 300.0)), RESULT, 5.0, false, true);
+    frame.line(up(Line::from_points(corner, corner + bisector * 340.0)), INPUT, 2.0, true);
 
     const Polyline right = arc(corner, column.x_axis, column.y_axis, 110.0);
-    frame.polyline(up(right), MARK, 3.0);
-    frame.point(up(corner), INK);
+    frame.polyline(up(right), VARIABLE, 3.0);
+    frame.point(up(corner), INPUT);
     frame.label("corners[0]", up(corner));
     frame.label(fmt::format("columns[0].x_axis = ({:.0f}, {:.0f}, 0)", column.x_axis[0], column.x_axis[1]), up(corner + column.x_axis * 300.0));
     frame.label(fmt::format("columns[0].y_axis = ({:.0f}, {:.0f}, 0)", column.y_axis[0], column.y_axis[1]), up(corner + column.y_axis * 300.0));
@@ -572,16 +564,16 @@ void head(const Context& context) {
     frame.key = true;
     frame.line(up(guide.edges[0].line), GREY, 2.0);
     frame.line(up(guide.edges[3].line), GREY, 2.0);
-    frame.polyline(up(Polyline(column.head).closed()), MARK, 4.0);
+    frame.polyline(up(Polyline(column.head).closed()), BUILT, 4.0);
 
     for (size_t i = 0; i < column.head.size(); i++) {
-        frame.point(up(column.head[i]), MARK);
+        frame.point(up(column.head[i]), BUILT);
         frame.label(fmt::format("head[{}]", i), up(column.head[i]));
     }
 
     dimension(frame, up(column.head[0]), up(column.head[1]), column.y_axis * -30.0, fmt::format("column_head = {:.0f}", parameters.column_head));
     dimension(frame, up(column.head[1]), up(column.head[2]), column.x_axis * 30.0, fmt::format("column_head_chamfer = {:.0f}", parameters.column_head_chamfer));
-    frame.line(up(chamfer), INK, 4.0, false, true);
+    frame.line(up(chamfer), RESULT, 4.0, false, true);
     frame.label(fmt::format("chamfer_direction, |head[3] - head[2]| = {:.2f}", chamfer.length()), up(chamfer.center()));
     frame.write(context.dir);
 }
@@ -596,9 +588,9 @@ void head_sides(const Context& context) {
     frame.distance = 0.75;
     frame.line(up(guide.edges[0].line), GREY, 2.0);
     frame.line(up(guide.edges[3].line), GREY, 2.0);
-    frame.polyline(up(Polyline(column.head).closed()), GREY, 3.0);
-    frame.plane(up(facing(column.sides[0], column.sides[0].origin(), edge(column.head, 0).to_direction())), MARK);
-    frame.plane(up(facing(column.sides[1], column.sides[1].origin(), edge(column.head, 4).to_direction())), MARK);
+    frame.polyline(up(Polyline(column.head).closed()), INPUT, 3.0);
+    frame.plane(up(facing(column.sides[0], column.sides[0].origin(), edge(column.head, 0).to_direction())), BUILT);
+    frame.plane(up(facing(column.sides[1], column.sides[1].origin(), edge(column.head, 4).to_direction())), BUILT);
     frame.label("columns[0].sides[0]", up(column.sides[0].origin()));
     frame.label("columns[0].sides[1]", up(column.sides[1].origin()));
     frame.label("head[0] = corners[0]", up(column.head[0]));
@@ -615,7 +607,7 @@ void levels(const Context& context) {
     const double bottom = -guide.parameters.column_head_depth;
     Frame frame(CHAPTER, 19, "levels", "columns[0].levels = {0, 0, -column_head_depth}; levels[1] is overwritten after the four quarters", "front", {-3200.0, -3050.0, H + bottom - 90.0, -2580.0, -2750.0, H + 60.0});
     const Polyline outline = Polyline(column.head).closed();
-    frame.polyline(up(outline), GREY, 2.0);
+    frame.polyline(up(outline), INPUT, 2.0);
     frame.polyline(up(outline + Z * bottom), GREY, 2.0);
 
     for (const Point& point : column.head)
@@ -631,7 +623,7 @@ void levels(const Context& context) {
 
     for (size_t i = 0; i < 3; i++) {
         const Line level_line = Line::from_points(column.axis_point - X * 280.0 + Z * shown[i], column.axis_point + X * 280.0 + Z * shown[i]);
-        frame.line(up(level_line), MARK, 3.0, i == 1);
+        frame.line(up(level_line), BUILT, 3.0, i == 1);
         frame.label(texts[i], up(level_line.point_at(labelled_at[i])));
     }
 
@@ -653,24 +645,23 @@ void support_plane(const Context& context) {
     const std::array<Point, 4> square = {corner, corner + column.x_axis * side, corner + (column.x_axis + column.y_axis) * side, corner + column.y_axis * side};
 
     for (size_t i = 0; i < 4; i++)
-        frame.line(Line::from_points(square[i], square[(i + 1) % 4]), INK, 2.0, true);
+        frame.line(Line::from_points(square[i], square[(i + 1) % 4]), INPUT, 2.0, true);
 
-    frame.plane(support, STEEL);
-    frame.point(column.axis_point, MARK, 16.0);
+    frame.plane(support, BUILT);
+    frame.point(column.axis_point, RESULT, 16.0);
 
     const std::array<Vector, 3> axes = {support.x_axis(), support.y_axis(), support.z_axis()};
-    const std::array<Color, 3> colors = {AXIS_X, AXIS_Y, AXIS_Z};
     const std::array<std::string, 3> names = {"x_axis()", "y_axis()", "z_axis()"};
 
     for (size_t i = 0; i < 3; i++) {
-        frame.line(Line::from_point_direction_length(column.axis_point, axes[i], 130.0), colors[i], 4.0, false, true);
+        frame.line(Line::from_point_direction_length(column.axis_point, axes[i], 130.0), BUILT, 4.0, false, true);
         frame.label(fmt::format("support_plane.{}", names[i]), column.axis_point + axes[i] * 130.0);
     }
 
     const Point foot_x = column.axis_point - column.y_axis * (side * 0.5);
     const Point foot_y = column.axis_point - column.x_axis * (side * 0.5);
-    frame.line(Line::from_points(column.axis_point, foot_x), INK, 2.0);
-    frame.line(Line::from_points(column.axis_point, foot_y), INK, 2.0);
+    frame.line(Line::from_points(column.axis_point, foot_x), VARIABLE, 2.0);
+    frame.line(Line::from_points(column.axis_point, foot_y), VARIABLE, 2.0);
     frame.label(fmt::format("column_head / 2 = {:.0f}", side * 0.5), Line::from_points(column.axis_point, foot_x).point_at(0.6));
     frame.label(fmt::format("axis_point = ({:.0f}, {:.0f}, 0)", column.axis_point[0], column.axis_point[1]), column.axis_point);
     frame.write(context.dir);
@@ -687,8 +678,8 @@ void column_axes(const Context& context) {
     for (size_t k = 0; k < 4; k++) {
         const ColumnCorner& column = guide.columns[k];
         frame.polyline(up(Polyline(column.head).closed()), GREY, 2.0);
-        frame.line(column.axis, MARK, 4.0, false, true);
-        frame.point(column.axis.start(), INK);
+        frame.line(column.axis, BUILT, 4.0, false, true);
+        frame.point(column.axis.start(), INPUT);
         frame.label(fmt::format("columns[{}].axis", k), column.axis.point_at(k == 0 ? 0.5 : 0.6));
     }
 
@@ -713,7 +704,7 @@ void quarter_polygons(const Context& context) {
 
     for (size_t q = 0; q < 4; q++) {
         const Polyline outline = Polyline(guide.geometry[q].polygon).closed();
-        frame.polyline(up(outline), q == 0 ? MARK : GREY, q == 0 ? 4.0 : 2.0);
+        frame.polyline(up(outline), q == 0 ? BUILT : GREY, q == 0 ? 4.0 : 2.0);
         frame.polyline(up(Polyline(guide.columns[q].head).closed()), GREY, 2.0);
 
         if (q > 0)
@@ -723,7 +714,7 @@ void quarter_polygons(const Context& context) {
     const std::array<std::string, 5> names = {"corners[0]", "edges[0].midpoint", "oculus_corners[0]", "oculus_corners[3]", "edges[3].midpoint"};
 
     for (size_t i = 0; i < polygon.size(); i++) {
-        frame.point(up(polygon[i]), MARK);
+        frame.point(up(polygon[i]), INPUT);
         frame.label(fmt::format("polygon[{}] = {}", i, names[i]), up(polygon[i]));
     }
 

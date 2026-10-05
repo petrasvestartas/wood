@@ -141,11 +141,11 @@ void ring_loops(const Context& context, const std::vector<Outline>& ring) {
     Frame frame(CHAPTER, 234, "ring", fmt::format("check() calls oculus(): ring[0..3], each from its tilted to its ring_inner plane, datum to soffit {:.1f}", guide.soffit), "top", {-1150.0, -1150.0, H - 250.0, 1150.0, 1150.0, H + 20.0});
 
     for (const OculusEdge& edge : guide.oculus_edges)
-        frame.line(up(edge.line), GREY, 2.0);
+        frame.line(up(edge.line), INPUT, 2.0);
 
     for (size_t i = 0; i < 4; i++) {
-        frame.polyline(up(ring[i].top), RING, 3.0);
-        frame.polyline(up(ring[i].bottom), RING, 3.0);
+        frame.polyline(up(ring[i].top), BUILT, 3.0);
+        frame.polyline(up(ring[i].bottom), RESULT, 3.0);
         frame.label(fmt::format("ring[{}]", i), up(middle(ring[i])));
     }
 
@@ -167,18 +167,17 @@ void seam_identities(const Context& context, const FloorReport& report) {
     for (size_t q = 0; q < 2; q++)
         frame.polyline(up(Polyline(guide.geometry[q].polygon).closed()), GREY, 1.0);
 
-    for (const Outline* beam : {&beam0, &beam2}) {
-        frame.polyline(up(beam->top), FAMILY_COLORS[2], 3.0);
-        frame.polyline(up(beam->bottom), FAMILY_COLORS[2], 3.0);
-    }
-
-    frame.line(up(Line::from_points(guide.seams[0].line.start(), guide.seams[0].oculus_corner)), INK, 2.0, true);
+    frame.polyline(up(beam0.top), INPUT, 3.0);
+    frame.polyline(up(beam0.bottom), INPUT, 3.0);
+    frame.polyline(up(beam2.top), BUILT, 3.0);
+    frame.polyline(up(beam2.bottom), BUILT, 3.0);
+    frame.line(up(Line::from_points(guide.seams[0].line.start(), guide.seams[0].oculus_corner)), INPUT, 2.0, true);
 
     for (const Point& point : open_points(beam2.bottom))
-        frame.point(up(point), MARK);
+        frame.point(up(point), VARIABLE);
 
-    frame.point(up(corner), MARK, 24.0);
-    frame.point(up(corner), INK, 10.0);
+    frame.point(up(corner), VARIABLE, 24.0);
+    frame.point(up(corner), INPUT, 10.0);
     frame.label(fmt::format("seam_plane_gap[0] = {:.1e}", report.seam_plane_gap[0]), up(beam2.bottom.get_point(0)));
     frame.label("q0.polygon[2] = q1.polygon[3]", up(corner));
     frame.label("quarter(0).inner_beams()[0]", up(middle(beam0)));
@@ -202,14 +201,14 @@ void end_faces(const Context& context, const FloorReport& report) {
     frame.plane_size = 300.0;
     frame.distance = 0.9;
 
-    frame.polyline(up(rib.top), GREY, 2.0);
-    frame.polyline(up(rib.bottom), GREY, 2.0);
-    frame.plane(up(re_origin(cp.wedges[0][0], Point::centroid(column_end))), FAMILY_COLORS[3]);
-    frame.plane(up(re_origin(quarter.rib_seam_ends()[0], Point::centroid(seam_end))), FAMILY_COLORS[2]);
+    frame.polyline(up(rib.top), INPUT, 2.0);
+    frame.polyline(up(rib.bottom), INPUT, 2.0);
+    frame.plane(up(re_origin(cp.wedges[0][0], Point::centroid(column_end))), BUILT);
+    frame.plane(up(re_origin(quarter.rib_seam_ends()[0], Point::centroid(seam_end))), RESULT);
 
     for (const std::vector<Point>* end : {&column_end, &seam_end})
         for (const Point& point : *end)
-            frame.point(up(point), MARK);
+            frame.point(up(point), VARIABLE);
 
     frame.label("top[1]", up(top[1]));
     frame.label("top[2]", up(top[2]));
@@ -235,13 +234,13 @@ void beds_on_flanges(const Context& context, const FloorReport& report) {
     frame.orbit = orbit_along(Vector(along[0], along[1], -0.45));
 
     for (size_t i = 0; i < row.size(); i++)
-        frame.element(placed.beds[0][i].element, i == index ? FAMILY_COLORS[5] : GREY);
+        frame.element(placed.beds[0][i].element, i == index ? BUILT : GREY);
 
-    frame.element(placed.tsections[0].element, FAMILY_COLORS[4]);
-    frame.element(placed.tsections[1].element, FAMILY_COLORS[4]);
+    frame.element(placed.tsections[0].element, INPUT);
+    frame.element(placed.tsections[1].element, INPUT);
 
     for (size_t k = 0; k < 4; k++) {
-        frame.point(up(under[k]), MARK);
+        frame.point(up(under[k]), VARIABLE);
         frame.label(fmt::format("under[{}]", k), up(under[k]));
     }
 
@@ -270,11 +269,11 @@ void ring_cover(const Context& context, const FloorReport& report, const std::ve
     Frame frame(CHAPTER, 238, "ring_uncovered", fmt::format("ring_uncovered_mm2 = {:.1e}: quarter 0's oculus beam face inside ring[0].top on the tilted plane", report.ring_uncovered_mm2), "iso", around(corners, 120.0));
     frame.orbit = orbit_along(look);
     frame.distance = 0.7;
-    frame.polyline(up(ring[0].top), GREY, 5.0);
-    frame.polyline(up(face), FAMILY_COLORS[2], 3.0);
+    frame.polyline(up(ring[0].top), INPUT, 5.0);
+    frame.polyline(up(face), BUILT, 3.0);
 
     for (const Polyline& piece : uncovered)
-        frame.polyline(up(piece), MARK, 4.0);
+        frame.polyline(up(piece), VARIABLE, 4.0);
 
     frame.label("ring[0].top", up(ring[0].top.get_point(3)));
     frame.label("quarter(0).inner_beams()[1].bottom", up(face.get_point(0)));
@@ -292,12 +291,12 @@ void ring_footprints(const Context& context, const FloorReport& report, const st
         footprints.push_back(footprint(ring[i]));
 
     for (size_t i = 0; i < footprints.size(); i++) {
-        frame.polyline(up(footprints[i]), RING, 3.0);
+        frame.polyline(up(footprints[i]), BUILT, 3.0);
         frame.label(fmt::format("footprints[{}]", i), up(area_centroid(footprints[i])));
 
         for (size_t j = i + 1; j < footprints.size(); j++)
             for (const Polyline& overlap : Polyline::boolean_op(footprints[i], footprints[j], level(0.0), 0))
-                frame.polyline(up(overlap), MARK, 5.0);
+                frame.polyline(up(overlap), VARIABLE, 5.0);
     }
 
     for (const OculusEdge& edge : context.guide.oculus_edges)
@@ -320,14 +319,14 @@ void drilled_block(const Context& context) {
     Frame frame(CHAPTER, 241, "drilled_block", fmt::format("compute_breps: {} as its model mesh, bores faceted, and as model_geometry_brep(), bores exact", block->name), "iso", around({centre, centre + shift}, 330.0));
     frame.distance = 0.55;
 
-    frame.scene.set_node_color(frame.scene.add_mesh(block->model_geometry_mesh().transformed(Xform::translation(shift[0], shift[1], shift[2]))), GREY);
-    frame.scene.set_node_color(frame.scene.add_brep(brep), FAMILY_COLORS[3]);
+    frame.scene.set_node_color(frame.scene.add_mesh(block->model_geometry_mesh().transformed(Xform::translation(shift[0], shift[1], shift[2]))), INPUT);
+    frame.scene.set_node_color(frame.scene.add_brep(brep), BUILT);
     frame.label(fmt::format("model_geometry_mesh(): {} vertices", block->model_geometry_mesh().number_of_vertices()), centre + shift);
     frame.label(fmt::format("model_geometry_brep(): count_bores = {}", count_bores(brep)), centre);
     frame.write(context.dir);
 }
 
-/// Quarter 0's members of one family as check_breps sorts them, exact in the family colour, faceted in MARK, uncut grey; the member with the most bores named.
+/// Quarter 0's members of one family as check_breps sorts them, exact in BUILT, faceted in VARIABLE, uncut grey; the member with the most bores named.
 void family_bores(Frame& frame, const Context& context, size_t f, std::set<std::string>& guids) {
 
     const std::vector<Member> placed = members(context.connected.members.quarters[0], FAMILIES[f]);
@@ -339,7 +338,7 @@ void family_bores(Frame& frame, const Context& context, size_t f, std::set<std::
         const std::shared_ptr<Element>& element = placed[i].element;
         const size_t bores = bores_of(element);
         guids.insert(element->guid());
-        frame.element(element, !is_cut_by_joint(element) ? GREY : bores > 0 ? FAMILY_COLORS[f] : MARK);
+        frame.element(element, !is_cut_by_joint(element) ? GREY : bores > 0 ? BUILT : VARIABLE);
 
         if (is_cut_by_joint(element) && bores == 0 && frame.labels.size() < 8)
             frame.label(element->name + ": faceted", up(middle(shapes[i])));
@@ -353,7 +352,7 @@ void family_bores(Frame& frame, const Context& context, size_t f, std::set<std::
         frame.label(fmt::format("{}: {} bores", placed[named].element->name, most), up(middle(shapes[named])));
 }
 
-/// The parts and dowels of every connector on quarter 0's members, the ring beam and the column, in CONNECTOR_COLOR.
+/// The parts and dowels of every connector on quarter 0's members, the ring beam and the column, in RESULT: the second thing check_breps counts bores in.
 void quarter_connectors(Frame& frame, const Floor& floor, const std::set<std::string>& guids) {
 
     for (const std::shared_ptr<JointBeam>& connector : floor.connectors) {
@@ -361,11 +360,11 @@ void quarter_connectors(Frame& frame, const Floor& floor, const std::set<std::st
 
         if (on_quarter)
             for (const std::shared_ptr<Joint>& child : connector->children())
-                frame.element(child, CONNECTOR_COLOR);
+                frame.element(child, RESULT);
     }
 }
 
-/// 242: check_breps over the floor, quarter 0 drawn as it sorts the elements: exact members tinted, faceted red, connector parts blue.
+/// 242: check_breps over the floor, quarter 0 drawn as it sorts the elements: exact members BUILT, faceted VARIABLE, connector parts RESULT, uncut grey.
 void brep_counts(const Context& context, const BrepCheck& check) {
 
     const Floor& floor = context.connected;
@@ -379,14 +378,14 @@ void brep_counts(const Context& context, const BrepCheck& check) {
 
     for (const std::shared_ptr<Element>& element : {floor.members.ring[0].element, std::static_pointer_cast<Element>(floor.members.columns[0].column)}) {
         guids.insert(element->guid());
-        frame.element(element, !is_cut_by_joint(element) ? GREY : bores_of(element) > 0 ? (element == floor.members.ring[0].element ? RING : STEEL) : MARK);
+        frame.element(element, !is_cut_by_joint(element) ? GREY : bores_of(element) > 0 ? BUILT : VARIABLE);
     }
 
     quarter_connectors(frame, floor, guids);
     frame.write(context.dir);
 }
 
-/// 243: one dowel of the block dowels between wedge block 0 and outer rib 0 in section, each stretch inside a target drawn thick in its family colour and numbered.
+/// 243: one dowel of the block dowels between wedge block 0 and outer rib 0 in section, each stretch inside a target drawn thick, the block's BUILT and the other target's RESULT, and numbered.
 void bore_stretch_section(const Context& context) {
 
     const Floor& floor = context.connected;
@@ -411,14 +410,14 @@ void bore_stretch_section(const Context& context) {
     Frame frame(CHAPTER, 243, "bore_stretches", fmt::format("bore_stretches: drill_axes()[0] of {} through its {} targets, {} stretches counted", connector->name, connector->targets.size(), stretches.size()), view, around(extent, 60.0));
     frame.element(block, GREY);
     frame.element(rib, GREY);
-    frame.line(axis, INK, 2.0, false, true);
+    frame.line(axis, INPUT, 2.0, false, true);
 
     double start_clear = 1e300;
     double end_clear = 1e300;
 
     for (size_t k = 0; k < stretches.size(); k++) {
         const std::string& name = stretches[k].first;
-        const Color& color = name == block->name ? FAMILY_COLORS[3] : name == rib->name ? FAMILY_COLORS[0] : MARK;
+        const Color& color = name == block->name ? BUILT : RESULT;
         frame.line(stretches[k].second, color, 8.0);
         start_clear = std::min(start_clear, (stretches[k].second.center() - axis.start()).magnitude());
         end_clear = std::min(end_clear, (stretches[k].second.center() - axis.end()).magnitude());
@@ -446,18 +445,18 @@ void tied_bay(const Context& context) {
     plan_context(frame, tied, true);
 
     for (size_t k = 0; k < 4; k++) {
-        frame.line(up(tied.oculus_edges[k].line), INK, 3.0);
-        frame.line(up(tied.seams[k].line), GREY, 1.0, true);
+        frame.line(up(tied.oculus_edges[k].line), INPUT, 3.0);
+        frame.line(up(tied.seams[k].line), INPUT, 1.0, true);
     }
 
     for (const QuarterGeometry& quarter : tied.geometry)
         for (const Polyline& quad : quarter.quads.outer_ribs)
-            frame.polyline(up(quad.closed()), FAMILY_COLORS[0], 3.0);
+            frame.polyline(up(quad.closed()), BUILT, 3.0);
 
     const std::vector<Relationship> ties = relationships(tied, Relation::seam_tie);
 
     for (const Relationship& row : ties)
-        frame.polyline(row.contact, MARK, 6.0);
+        frame.polyline(row.contact, VARIABLE, 6.0);
 
     if (!ties.empty() && ties.front().contact.point_count() > 2)
         frame.label(fmt::format("seam_tie of seam {}", ties.front().seam_or_corner), area_centroid(ties.front().contact));

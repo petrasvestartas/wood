@@ -32,7 +32,17 @@ The chapters below take the algorithm one step at a time, in the order the code 
 10. @subpage templates_floor_10_screws (the five screw kinds, their levels and aim, and the screw check)
 11. @subpage templates_floor_11_checks (the floor report, the BRep check and the eight examples)
 
-**Reading the pictures.** Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Grey is what earlier steps built, red the variable a step introduces, dashed lines construction helpers. Every family has its colour, in `FAMILY_COLORS`: outer ribs orange, inner ribs amber, inner beams green, wedges purple, t-sections light green, beds blue; the oculus ring is pink, the column grey, connectors BRG blue. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner.
+**Reading the pictures.** Every colour names a role, in the palette of the Block Research Group (brg.ethz.ch), and the same colour marks the same role in the picture, in its colour key and in the text:
+
+| Colour | Role |
+|---|---|
+| <span style="color:#2196EA">■ blue</span> `#2196EA` | what the step builds |
+| <span style="color:#EB7721">■ orange</span> `#EB7721` | the variable or value the step introduces |
+| <span style="color:#EBB121">■ amber</span> `#EBB121` | a second result, set apart from the first |
+| <span style="color:#455B6B">■ slate</span> `#455B6B` | what the step reads from earlier steps; dashed, a construction helper |
+| <span style="color:#8C969E">■ grey</span> `#CDD2D6` | context |
+
+Pictures that tell the member families apart use the family colours of `FAMILY_COLORS` instead: <span style="color:#EB7721">outer ribs</span>, <span style="color:#EBB121">inner ribs</span>, <span style="color:#455B6B">inner beams</span>, <span style="color:#8C9BA6">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, with the oculus ring <span style="color:#E8955A">light orange</span>, the column <span style="color:#2E3D48">dark slate</span> and the connectors <span style="color:#2196EA">BRG blue</span>. Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner. Each step ends with a link to the lines of code that perform it, at the commit these pages describe.
 
 ## Data structures
 
@@ -121,14 +131,14 @@ Every member has one name, the same in the guide's drawing, the outline lists an
 
 | Example | What it builds |
 |---|---|
-| `templates_floor_1_floorguide` | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
-| `templates_floor_2_column_model` | one column on its support, carved by its six head cutters |
-| `templates_floor_3_columns_model` | the four columns at the bay corners |
-| `templates_floor_4_quarters` | the four quarters in place |
-| `templates_floor_5_oculus` | the oculus ring, its bottom wedges and plate |
-| `templates_floor_6_contacts_floor` | the quarters, the ring and the eight wedge connectors |
-| `templates_floor_7_contacts_cantilevers` | the whole square bay with columns, every connector and screw, BReps with exact bores |
-| `templates_floor_8_rectangle` | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
+| [templates_floor_1_floorguide](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_1_floorguide.cpp) | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
+| [templates_floor_2_column_model](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_2_column_model.cpp) | one column on its support, carved by its six head cutters |
+| [templates_floor_3_columns_model](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_3_columns_model.cpp) | the four columns at the bay corners |
+| [templates_floor_4_quarters](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) | the four quarters in place |
+| [templates_floor_5_oculus](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_5_oculus.cpp) | the oculus ring, its bottom wedges and plate |
+| [templates_floor_6_contacts_floor](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_6_contacts_floor.cpp) | the quarters, the ring and the eight wedge connectors |
+| [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and screw, BReps with exact bores |
+| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_8_rectangle.cpp) | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
 
 ## How the pictures are made
 

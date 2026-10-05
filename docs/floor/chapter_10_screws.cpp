@@ -13,7 +13,7 @@ const double COARSE_STEP = 5.0; // floor_screws.cpp:20, internal there: the coar
 const double COARSE_SPAN = 150.0; // floor_screws.cpp:164, internal there: the coarse search's offset centre and span.
 const double CORNER_REACH = 450.0; // mm in plan from an oculus corner within which a screw head belongs to that corner's picture.
 
-/// The colour of each screw kind, in SCREW_RELATIONS order: the family of the member the screws run along.
+/// The colour of each screw kind, in SCREW_RELATIONS order, for frame 201 alone, which tells the kinds apart: the family of the member the screws run along, the ring for the ring screws and the beds tint for the oculus screws, whose oculus beam already has the mitre screws' colour.
 const std::array<Color, 5> SCREW_COLORS = {FAMILY_COLORS[0], FAMILY_COLORS[2], FAMILY_COLORS[1], RING, FAMILY_COLORS[5]};
 
 const Box CORNER_3D = {-750.0, -1350.0, H - 260.0, 150.0, -450.0, H + 40.0}; // Oculus corner 0 in 3D.
@@ -111,13 +111,13 @@ bool in(const Box& box, const Point& point) {
     return point[0] >= box[0] && point[0] <= box[3] && point[1] >= box[1] && point[1] <= box[4] && point[2] >= box[2] && point[2] <= box[5];
 }
 
-/// Every screw row's screws whose heads sit at a corner, in their kind's colour.
-void corner_screws(Frame& frame, const std::vector<Relationship>& rows, const Point& corner, double width) {
+/// Every screw row's screws whose heads sit at a corner, in one colour.
+void corner_screws(Frame& frame, const std::vector<Relationship>& rows, const Point& corner, double width, const Color& color) {
 
     for (const Relationship& row : rows)
         for (const Line& screw : row.screws)
             if (at(screw, corner))
-                frame.line(screw, kind_color(row.kind), width, false, true);
+                frame.line(screw, color, width, false, true);
 }
 
 /// The ring faces an oculus screw of quarter q at end k reads at level z, as floor_screws.cpp's oculus() and oculus_screw() build them.
@@ -205,7 +205,7 @@ void row_order(const Context& context, const std::vector<Relationship>& rows) {
     frame.write(context.dir);
 }
 
-/// The joint depth at oculus corner 0 in elevation, its six seventh levels and the screws that sit on each.
+/// The joint depth at oculus corner 0 in elevation, its six seventh levels and the screws that sit on each: the screws built, the levels the variable, the depth read.
 void levels(const Context& context, const std::vector<Relationship>& rows) {
 
     const FloorGuide& guide = context.guide;
@@ -215,19 +215,19 @@ void levels(const Context& context, const std::vector<Relationship>& rows) {
     Frame frame(CHAPTER, 202, "levels", fmt::format("static_h = height - rise = {:.0f} split in sevenths: six levels, two per corner screw kind", static_h), "front", {corner[0] - 450.0, corner[1] - 100.0, H - 250.0, corner[0] + 450.0, corner[1] + 100.0, H + 50.0});
 
     const Vector deep(0.0, 0.0, -static_h);
-    frame.polyline(up(Polyline({corner - side, corner + side, corner + side + deep, corner - side + deep}).closed()), GREY, 2.0);
+    frame.polyline(up(Polyline({corner - side, corner + side, corner + side + deep, corner - side + deep}).closed()), INPUT, 2.0);
     std::map<size_t, std::set<std::string>> kinds;
 
     for (const Relationship& row : rows)
         for (const Line& screw : row.screws)
             if (at(screw, corner)) {
-                frame.line(screw, kind_color(row.kind), 3.0, false, true);
+                frame.line(screw, BUILT, 3.0, false, true);
                 kinds[seventh(datum_z(screw), static_h)].insert(relation_name(row.kind).substr(6));
             }
 
     for (size_t i = 1; i < static_cast<size_t>(CORNER_LEVELS); i++) {
         const Vector z(0.0, 0.0, -static_h * static_cast<double>(i) / CORNER_LEVELS);
-        frame.line(up(Line::from_points(corner - side + z, corner + side + z)), INK, 1.5, true);
+        frame.line(up(Line::from_points(corner - side + z, corner + side + z)), VARIABLE, 1.5, true);
         std::string names;
 
         for (const std::string& name : kinds[i])
@@ -246,7 +246,7 @@ void face(Frame& frame, const Plane& plane, const Point& a, const Point& b, doub
     const Line trace = trace_between(plane, 0.0, a, b);
     const Point pin = trace.point_at(t);
     frame.line(up(trace), color, 3.0);
-    frame.line(up(Line::from_points(pin, pin + plane.z_axis() * 150.0)), INK, 2.0, false, true);
+    frame.line(up(Line::from_points(pin, pin + plane.z_axis() * 150.0)), INPUT, 2.0, false, true);
     frame.label(name, up(pin));
 }
 
@@ -260,13 +260,13 @@ void faces(const Context& context) {
     Frame frame(CHAPTER, 203, "faces", "Faces the screws read: cp's outer rib and seam beam pairs, the oculus edge's tilted, back and ring_inner", "top", {-1350.0, -3120.0, H - 10.0, 200.0, -250.0, H + 10.0});
     frame.polyline(up(Polyline(polygon).closed()), GREY, 1.0);
 
-    face(frame, cp.outer_ribs[0][0], polygon[1], polygon[0], 0.35, "outer_ribs[0][0]: the bay edge", FAMILY_COLORS[0]);
-    face(frame, cp.outer_ribs[0][1], polygon[1], polygon[0], 0.12, fmt::format("outer_ribs[0][1]: + {:.0f}", guide.parameters.outer_ribs), FAMILY_COLORS[0]);
-    face(frame, cp.inner_beams[0][0], polygon[1], polygon[2], 0.3, "inner_beams[0][0]: the seam plane", FAMILY_COLORS[2]);
-    face(frame, cp.inner_beams[0][1], polygon[1], polygon[2], 0.6, fmt::format("inner_beams[0][1]: + {:.0f}", guide.parameters.inner_beams), FAMILY_COLORS[2]);
-    face(frame, oculus.tilted, polygon[2], polygon[3], 0.25, "inner_beams[1][0] = tilted", FAMILY_COLORS[2]);
-    face(frame, oculus.back, polygon[2], polygon[3], 0.45, "inner_beams[1][1] = back", FAMILY_COLORS[2]);
-    face(frame, oculus.ring_inner, polygon[2], polygon[3], 0.65, "oculus_edges[0].ring_inner", RING);
+    face(frame, cp.outer_ribs[0][0], polygon[1], polygon[0], 0.35, "outer_ribs[0][0]: the bay edge", BUILT);
+    face(frame, cp.outer_ribs[0][1], polygon[1], polygon[0], 0.12, fmt::format("outer_ribs[0][1]: + {:.0f}", guide.parameters.outer_ribs), BUILT);
+    face(frame, cp.inner_beams[0][0], polygon[1], polygon[2], 0.3, "inner_beams[0][0]: the seam plane", BUILT);
+    face(frame, cp.inner_beams[0][1], polygon[1], polygon[2], 0.6, fmt::format("inner_beams[0][1]: + {:.0f}", guide.parameters.inner_beams), BUILT);
+    face(frame, oculus.tilted, polygon[2], polygon[3], 0.25, "inner_beams[1][0] = tilted", BUILT);
+    face(frame, oculus.back, polygon[2], polygon[3], 0.45, "inner_beams[1][1] = back", BUILT);
+    face(frame, oculus.ring_inner, polygon[2], polygon[3], 0.65, "oculus_edges[0].ring_inner", RESULT);
     frame.write(context.dir);
 }
 
@@ -294,14 +294,14 @@ void trace_axis(const Context& context) {
 
     loops(frame, beam, GREY);
     const Point centre = axis.start();
-    frame.polyline(up(Polyline({centre - d * 420.0 - across * 160.0, centre + d * 420.0 - across * 160.0, centre + d * 420.0 + across * 160.0, centre - d * 420.0 + across * 160.0}).closed()), INK, 1.0);
-    frame.line(up(Line::from_points(p0 - d * 380.0, p0 + d * 380.0)), MARK, 2.5);
-    frame.line(up(Line::from_points(p1 - d * 380.0, p1 + d * 380.0)), MARK, 2.5);
-    frame.line(up(Line::from_points(p0, p1)), INK, 1.5, true);
-    frame.line(up(Line::from_points(centre - d * 380.0, centre + d * 380.0)), MARK, 4.0, false, true);
-    frame.point(up(p0), MARK);
-    frame.point(up(p1), MARK);
-    frame.point(up(centre), INK);
+    frame.polyline(up(Polyline({centre - d * 420.0 - across * 160.0, centre + d * 420.0 - across * 160.0, centre + d * 420.0 + across * 160.0, centre - d * 420.0 + across * 160.0}).closed()), VARIABLE, 1.0);
+    frame.line(up(Line::from_points(p0 - d * 380.0, p0 + d * 380.0)), RESULT, 2.5);
+    frame.line(up(Line::from_points(p1 - d * 380.0, p1 + d * 380.0)), RESULT, 2.5);
+    frame.line(up(Line::from_points(p0, p1)), INPUT, 1.5, true);
+    frame.line(up(Line::from_points(centre - d * 380.0, centre + d * 380.0)), BUILT, 4.0, false, true);
+    frame.point(up(p0), RESULT);
+    frame.point(up(p1), RESULT);
+    frame.point(up(centre), BUILT);
 
     frame.label("faces[0] = inner_beams[1][0]: tilted", up(beam.bottom.get_point(2)));
     frame.label("faces[1] = inner_beams[1][1]: back", up(beam.top.get_point(1)));
@@ -330,13 +330,13 @@ void body_depth(const Context& context) {
     Frame frame(CHAPTER, 205, "body_depth", "body(outline): the middle of its loops' area centroids; depth(point, plane, inside) > 0 on inside's side", "top", {-850.0, -850.0, H - 220.0, -200.0, -200.0, H + 30.0});
 
     loops(frame, beam, GREY);
-    frame.line(up(Line::from_points(top, bottom)), INK, 1.5, true);
-    frame.point(up(top), INK);
-    frame.point(up(bottom), INK);
-    frame.point(up(body), MARK, 16.0);
-    frame.plane(up(back), FAMILY_COLORS[2]);
-    frame.point(up(plus), MARK);
-    frame.point(up(minus), INK);
+    frame.line(up(Line::from_points(top, bottom)), INPUT, 1.5, true);
+    frame.point(up(top), INPUT);
+    frame.point(up(bottom), INPUT);
+    frame.point(up(body), BUILT, 16.0);
+    frame.plane(up(back), INPUT);
+    frame.point(up(plus), VARIABLE);
+    frame.point(up(minus), VARIABLE);
 
     frame.label("area_centroid(outline.top)", up(top));
     frame.label("area_centroid(outline.bottom)", up(bottom));
@@ -364,12 +364,12 @@ void along_axis(const Context& context, const std::vector<Relationship>& rows) {
     const Line tilted = trace_between(cp.inner_beams[1][0], z, a, b);
     const Line back = trace_between(cp.inner_beams[1][1], z, a, b);
     const Line seam = trace_between(cp.inner_beams[0][0], z, a, guide.oculus_corners[0] + Vector(0.0, 200.0, 0.0));
-    frame.line(up(tilted), FAMILY_COLORS[2], 2.0);
-    frame.line(up(back), FAMILY_COLORS[2], 2.0);
-    frame.line(up(seam), FAMILY_COLORS[2], 4.0);
-    frame.line(up(Line::from_points(head, head + d * 520.0)), INK, 1.5, true);
-    frame.point(up(head), MARK);
-    frame.line(screw, MARK, 4.0, false, true);
+    frame.line(up(tilted), INPUT, 2.0);
+    frame.line(up(back), INPUT, 2.0);
+    frame.line(up(seam), VARIABLE, 4.0);
+    frame.line(up(Line::from_points(head, head + d * 520.0)), INPUT, 1.5, true);
+    frame.point(up(head), BUILT);
+    frame.line(screw, BUILT, 4.0, false, true);
 
     frame.label("butting = inner_beams[1]: axis(butting, z)", up(head + d * 430.0));
     frame.label("trace of butting[0], tilted", up(tilted.point_at(0.55)));
@@ -400,16 +400,16 @@ void from_seam_face(const Context& context, const std::vector<Relationship>& row
     const Line rib1 = trace_between(rib[1], z, polygon[4], polygon[0]);
     const Line beam0 = trace_between(beam[0], z, polygon[4], polygon[3]);
     const Line beam1 = trace_between(beam[1], z, polygon[4], polygon[3]);
-    frame.line(up(rib0), FAMILY_COLORS[0], 3.0);
-    frame.line(up(rib1), FAMILY_COLORS[0], 3.0);
-    frame.line(up(beam0), FAMILY_COLORS[2], 3.0);
-    frame.line(up(beam1), FAMILY_COLORS[2], 3.0);
-    frame.line(up(Line::from_points(axis.closest_point(polygon[0], false).second, seam + (seam - inner) * 1.5)), INK, 1.5, true);
-    frame.line(Line::from_points(up(seam), screw.start()), MARK, 3.0);
-    frame.point(up(seam), INK);
-    frame.point(up(inner), INK);
-    frame.point(screw.start(), MARK);
-    frame.line(screw, MARK, 4.0, false, true);
+    frame.line(up(rib0), INPUT, 3.0);
+    frame.line(up(rib1), INPUT, 3.0);
+    frame.line(up(beam0), INPUT, 3.0);
+    frame.line(up(beam1), INPUT, 3.0);
+    frame.line(up(Line::from_points(axis.closest_point(polygon[0], false).second, seam + (seam - inner) * 1.5)), INPUT, 1.5, true);
+    frame.line(Line::from_points(up(seam), screw.start()), VARIABLE, 3.0);
+    frame.point(up(seam), INPUT);
+    frame.point(up(inner), INPUT);
+    frame.point(screw.start(), BUILT);
+    frame.line(screw, BUILT, 4.0, false, true);
 
     frame.label("rib[0] = outer_ribs[1][0]", up(rib0.point_at(0.1)));
     frame.label("beam[0] = inner_beams[2][0]: seam plane", up(beam0.point_at(0.08)));
@@ -436,10 +436,10 @@ void rib_beam_beam(const Context& context) {
     Frame frame(CHAPTER, 208, "rib_beam_beam", "rib_beam: outer rib k meets seam beam 0 for k 0, 2 for k 1, lofted between its two seam faces", "iso", {-700.0, -3150.0, H - 700.0, 300.0, -750.0, H + 60.0});
 
     frame.element(quarter.outer_ribs[0].element, GREY);
-    frame.element(quarter.inner_beams[0].element, FAMILY_COLORS[2]);
+    frame.element(quarter.inner_beams[0].element, BUILT);
 
     for (size_t i = 0; i < 4; i++) {
-        frame.point(up(beam.top.get_point(i)), MARK);
+        frame.point(up(beam.top.get_point(i)), VARIABLE);
         frame.label(fmt::format("top[{}]", i), up(beam.top.get_point(i)));
     }
 
@@ -460,11 +460,11 @@ void rib_beam_levels(const Context& context, const std::vector<Relationship>& ro
     Frame frame(CHAPTER, 209, "rib_beam_levels", fmt::format("rib_beam, seam through ribs: screws {:.0f} below the rib top and {:.0f} above its end bottom", margin, margin), "right", {-200.0, -3070.0, H - 280.0, 100.0, -2830.0, H + 30.0});
 
     frame.element(context.members.members.quarters[0].outer_ribs[0].element, GREY);
-    frame.polyline(row.contact, FAMILY_COLORS[0], 5.0);
+    frame.polyline(row.contact, INPUT, 5.0);
 
     for (const Line& screw : row.screws) {
         const Point at_level(centre[0], centre[1], screw.start()[2]);
-        frame.line(Line::from_points(at_level - wide, at_level + wide), MARK, 2.5, true);
+        frame.line(Line::from_points(at_level - wide, at_level + wide), VARIABLE, 2.5, true);
     }
 
     const Point upper(centre[0], centre[1], row.screws[0].start()[2]);
@@ -497,12 +497,12 @@ void rib_beam_seam_point(const Context& context, const std::vector<Relationship>
     const Line beam1 = trace_between(cp.inner_beams[0][1], z, polygon[1], polygon[2]);
     frame.line(up(rib0), GREY, 3.0);
     frame.line(up(rib1), GREY, 3.0);
-    frame.line(up(beam0), FAMILY_COLORS[2], 3.0);
-    frame.line(up(beam1), FAMILY_COLORS[2], 3.0);
-    frame.line(up(Line::from_points(seam - along * 100.0, seam + along * 300.0)), INK, 1.5, true);
-    frame.line(up(Line::from_points(seam, seam + along * 120.0)), MARK, 4.0, false, true);
-    frame.point(up(seam), MARK);
-    frame.point(up(inner), INK);
+    frame.line(up(beam0), INPUT, 3.0);
+    frame.line(up(beam1), INPUT, 3.0);
+    frame.line(up(Line::from_points(seam - along * 100.0, seam + along * 300.0)), INPUT, 1.5, true);
+    frame.line(up(Line::from_points(seam, seam + along * 120.0)), VARIABLE, 4.0, false, true);
+    frame.point(up(seam), BUILT);
+    frame.point(up(inner), INPUT);
 
     frame.label(fmt::format("axis(cp.outer_ribs[0], z): y = {:.0f}", seam[1]), up(seam + along * 250.0));
     frame.label("cp.inner_beams[0][0]: x = 0", up(beam0.point_at(0.06)));
@@ -538,15 +538,15 @@ void rib_beam_heads(const Context& context, const std::vector<Relationship>& row
         frame.line(up(trace_between(plane, z, a, b)), GREY, 2.0);
 
     for (const Plane& plane : {cp0.inner_beams[0][1], cp1.inner_beams[2][1]})
-        frame.line(up(trace_between(plane, z, guide.edges[0].midpoint, c)), FAMILY_COLORS[2], 2.0);
+        frame.line(up(trace_between(plane, z, guide.edges[0].midpoint, c)), INPUT, 2.0);
 
     const Line seam_plane = trace_between(cp0.inner_beams[0][0], z, guide.edges[0].midpoint, c);
-    frame.line(up(seam_plane), FAMILY_COLORS[2], 3.0);
-    frame.line(screw0, MARK, 4.0, false, true);
-    frame.line(screw1, MARK, 4.0, true, true);
-    frame.line(Line::from_points(screw0.start(), screw1.start()), INK, 3.0);
-    frame.point(screw0.start(), MARK);
-    frame.point(screw1.start(), MARK);
+    frame.line(up(seam_plane), INPUT, 3.0);
+    frame.line(screw0, BUILT, 4.0, false, true);
+    frame.line(screw1, RESULT, 4.0, true, true);
+    frame.line(Line::from_points(screw0.start(), screw1.start()), VARIABLE, 3.0);
+    frame.point(screw0.start(), BUILT);
+    frame.point(screw1.start(), RESULT);
 
     frame.label(fmt::format("rows[{}]: quarter 0, rib 0, offset {:+.0f}", index0, offset0), screw0.end());
     frame.label(fmt::format("rows[{}]: quarter 1, rib 1, offset {:+.0f}", index1, offset1), screw1.end());
@@ -566,10 +566,10 @@ void rib_beam_contact(const Context& context, const std::vector<Relationship>& r
 
     frame.element(context.members.members.quarters[0].inner_beams[0].element, GREY);
     loops(frame, guide.quarter(0).outer_ribs()[0], GREY);
-    frame.polyline(row.contact, FAMILY_COLORS[0], 5.0);
+    frame.polyline(row.contact, BUILT, 5.0);
 
     for (const Line& screw : row.screws)
-        frame.line(screw, MARK, 4.0, false, true);
+        frame.line(screw, INPUT, 4.0, false, true);
 
     for (size_t i = 0; i < corners.size(); i++)
         frame.label(fmt::format("contact[{}] = {}", i, corners[i]), row.contact.get_point(i));
@@ -597,13 +597,13 @@ void rib_beam_tied(const Context& context) {
 
     loops(frame, tied.quarter(0).outer_ribs()[0], GREY);
     loops(frame, tied.quarter(0).inner_beams()[0], GREY);
-    frame.line(up(Line::from_points(axis.closest_point(polygon[1], false).second, axis.closest_point(polygon[2], false).second)), INK, 1.5, true);
-    frame.polyline(row.contact, MARK, 4.0);
+    frame.line(up(Line::from_points(axis.closest_point(polygon[1], false).second, axis.closest_point(polygon[2], false).second)), INPUT, 1.5, true);
+    frame.polyline(row.contact, RESULT, 4.0);
 
     for (const Line& line : row.screws)
-        frame.line(line, MARK, 4.0, false, true);
+        frame.line(line, BUILT, 4.0, false, true);
 
-    frame.point(screw.start(), MARK);
+    frame.point(screw.start(), BUILT);
     frame.label(fmt::format("axis(inner_beams[0], z): x = {:.0f}", screw.start()[0]), screw.start() + d * 250.0);
     frame.label("far_face = outer_ribs[0][0]", up(far_face.closest_point(screw.start() + Vector(-200.0, 0.0, 0.0), false).second));
     frame.label("head", screw.start());
@@ -612,7 +612,7 @@ void rib_beam_tied(const Context& context) {
     frame.write(context.dir);
 }
 
-/// screw_row: the screws built at the datum, grey, and lifted by bay_height to the floor, in their kind's colour.
+/// screw_row: the screws built at the datum, read, and lifted by bay_height to the floor, built.
 void lift(const Context& context, const std::vector<Relationship>& rows) {
 
     const Xform down = Xform::translation(0.0, 0.0, -H);
@@ -623,17 +623,17 @@ void lift(const Context& context, const std::vector<Relationship>& rows) {
         if (row.seam_or_corner != 0)
             continue;
 
-        frame.polyline(row.contact.transformed(down), GREY, 1.5);
-        frame.polyline(row.contact, kind_color(row.kind), 1.5);
+        frame.polyline(row.contact.transformed(down), INPUT, 1.5);
+        frame.polyline(row.contact, BUILT, 1.5);
 
         for (const Line& screw : row.screws) {
-            frame.line(screw.transformed(down), GREY, 3.0, false, true);
-            frame.line(screw, kind_color(row.kind), 3.0, false, true);
+            frame.line(screw.transformed(down), INPUT, 3.0, false, true);
+            frame.line(screw, BUILT, 3.0, false, true);
         }
     }
 
     const Line& screw = mitre.screws.front();
-    frame.line(Line::from_points(screw.start().transformed(down), screw.start()), INK, 2.0, true, true);
+    frame.line(Line::from_points(screw.start().transformed(down), screw.start()), VARIABLE, 2.0, true, true);
     frame.label("the screws at the datum, z 0", screw.end().transformed(down));
     frame.label("lifted(screw, bay_height)", screw.end());
     frame.label(fmt::format("+ bay_height = {:.0f}", context.guide.parameters.bay_height), screw.start() + Vector(0.0, 0.0, -H * 0.5));
@@ -655,7 +655,7 @@ void mitre_contact(const Context& context, const std::vector<Relationship>& rows
 
     frame.element(context.members.members.quarters[0].inner_beams[0].element, GREY);
     loops(frame, guide.quarter(0).inner_beams()[1], GREY);
-    frame.polyline(row.contact, FAMILY_COLORS[2], 5.0);
+    frame.polyline(row.contact, BUILT, 5.0);
 
     for (size_t i = 0; i < corners.size(); i++)
         frame.label(corners[i], row.contact.get_point(i));
@@ -681,10 +681,10 @@ void mitre_screws(const Context& context, const std::vector<Relationship>& rows)
                 frame.polyline(up(guide.geometry[q].quads.inner_beams[i].closed()), GREY, 2.0);
 
     for (const Line& screw : own.screws)
-        frame.line(screw, MARK, 4.0, false, true);
+        frame.line(screw, BUILT, 4.0, false, true);
 
     for (const Line& screw : next.screws)
-        frame.line(screw, MARK, 4.0, true, true);
+        frame.line(screw, RESULT, 4.0, true, true);
 
     frame.label(fmt::format("q 0, k 0 at {}/7: head on x = 0", seventh(datum_z(own.screws[0]), static_h)), own.screws[0].start());
     frame.label(fmt::format("q 0, k 0 at {}/7", seventh(datum_z(own.screws[1]), static_h)), own.screws[1].end());
@@ -714,13 +714,13 @@ void corner_faces(const Context& context) {
     frame.distance = 0.7;
 
     for (const Plane& plane : {tilted, back, beam_end})
-        frame.plane(up(plane), FAMILY_COLORS[2]);
+        frame.plane(up(plane), BUILT);
 
     for (const Plane& plane : {rib0, rib1})
-        frame.plane(up(plane), FAMILY_COLORS[1]);
+        frame.plane(up(plane), RESULT);
 
-    frame.point(up(beam_body), MARK, 16.0);
-    frame.line(up(Line::from_points(rib0.origin(), rib0.origin() + (rib_body - rib0.origin()).normalized() * 300.0)), MARK, 2.0, true, true);
+    frame.point(up(beam_body), VARIABLE, 16.0);
+    frame.line(up(Line::from_points(rib0.origin(), rib0.origin() + (rib_body - rib0.origin()).normalized() * 300.0)), VARIABLE, 2.0, true, true);
 
     frame.label("beam[0] = inner_beams[1][0]: tilted", up(tilted.origin()));
     frame.label("beam[1] = inner_beams[1][1]: back", up(back.origin()));
@@ -749,13 +749,13 @@ void rib_corner(const Context& context, const std::vector<Relationship>& rows) {
     for (const Polyline& quad : {guide.geometry[0].quads.inner_beams[0], guide.geometry[0].quads.inner_beams[1], guide.geometry[0].quads.inner_ribs[0]})
         frame.polyline(up(quad.closed()), GREY, 2.0);
 
-    frame.line(up(tilted), FAMILY_COLORS[2], 3.0);
-    frame.line(up(Line::from_points(head, head + d * 360.0)), INK, 1.5, true);
+    frame.line(up(tilted), INPUT, 3.0);
+    frame.line(up(Line::from_points(head, head + d * 360.0)), INPUT, 1.5, true);
 
     for (const Line& line : row.screws)
-        frame.line(line, MARK, 4.0, false, true);
+        frame.line(line, BUILT, 4.0, false, true);
 
-    frame.point(screw.start(), MARK);
+    frame.point(screw.start(), BUILT);
     frame.label("axis(inner_ribs[0], z)", up(head + d * 340.0));
     frame.label("inner_beams[1][0] at z", up(tilted.point_at(0.0)));
     frame.label(fmt::format("head = ({:.1f}, {:.1f})", screw.start()[0], screw.start()[1]), screw.start());
@@ -781,12 +781,12 @@ void rib_corner_through(const Context& context, const std::vector<Relationship>&
     Frame frame(CHAPTER, 219, "rib_corner_through", fmt::format("rib_corner: depth(head, beam_end, beam_body) = {:.1f} < 0, so the seam beam joins row.through", depth), "top", {-200.0, -1160.0, H - 100.0, 80.0, -900.0, H + 10.0});
 
     frame.polyline(up(guide.geometry[0].quads.inner_beams[1].closed()), GREY, 2.0);
-    frame.polyline(up(guide.geometry[0].quads.inner_beams[0].closed()), MARK, 3.0);
-    frame.line(up(trace), INK, 3.0);
+    frame.polyline(up(guide.geometry[0].quads.inner_beams[0].closed()), BUILT, 3.0);
+    frame.line(up(trace), INPUT, 3.0);
 
     for (const Line& screw : row.screws) {
         frame.line(screw, GREY, 3.0, false, true);
-        frame.point(screw.start(), MARK);
+        frame.point(screw.start(), VARIABLE);
     }
 
     frame.label("faces.beam_end = inner_beams[0][1]", up(trace.point_at(0.15)));
@@ -811,11 +811,11 @@ void rib_corner_contact(const Context& context, const std::vector<Relationship>&
 
     frame.element(context.members.members.quarters[0].inner_beams[1].element, GREY);
     loops(frame, rib, GREY);
-    frame.polyline(row.contact, FAMILY_COLORS[1], 5.0);
-    frame.line(up(soffit), INK, 2.0, true);
+    frame.polyline(row.contact, BUILT, 5.0);
+    frame.line(up(soffit), VARIABLE, 2.0, true);
 
     for (const Line& screw : row.screws)
-        frame.line(screw, MARK, 3.0, false, true);
+        frame.line(screw, INPUT, 3.0, false, true);
 
     frame.label("contact = above(end, guide.soffit)", row.contact.get_point(3));
     frame.label(fmt::format("guide.soffit = {:.1f}", guide.soffit), up(soffit.point_at(0.9)));
@@ -841,12 +841,12 @@ void ring_screws(const Context& context, const std::vector<Relationship>& rows) 
     for (size_t i = 0; i < 4; i++)
         loops(frame, oculus[i], GREY);
 
-    frame.line(up(trace_between(guide.oculus_edges[0].tilted, z, guide.oculus_corners[0], guide.oculus_corners[3])), RING, 2.0);
-    frame.line(up(Line::from_points(head - d * 120.0, head + d * 520.0)), INK, 1.5, true);
-    frame.polyline(row.contact, RING, 5.0);
+    frame.line(up(trace_between(guide.oculus_edges[0].tilted, z, guide.oculus_corners[0], guide.oculus_corners[3])), INPUT, 2.0);
+    frame.line(up(Line::from_points(head - d * 120.0, head + d * 520.0)), INPUT, 1.5, true);
+    frame.polyline(row.contact, RESULT, 5.0);
 
     for (const Line& line : row.screws)
-        frame.line(line, MARK, 4.0, false, true);
+        frame.line(line, BUILT, 4.0, false, true);
 
     frame.label("oculus_0: ring q = 0", up(middle(oculus[0])));
     frame.label("oculus_1: ring next = 1", up(middle(oculus[1])));
@@ -879,14 +879,14 @@ void ring_faces(const Context& context) {
     const Line inner = trace_between(aim.inner, 0.0, corner, other);
     const Line end = trace_between(aim.end, 0.0, corner, guide.oculus_corners[1]);
     const Line band_line = trace_between(band, 0.0, corner, other);
-    frame.line(up(inner), RING, 3.5);
-    frame.line(up(end), INK, 2.0);
-    frame.line(up(band_line), RING, 2.0, true);
-    frame.line(up(Line::from_points(aim.end_point, beam.bottom.get_point(1))), FAMILY_COLORS[2], 4.0);
-    frame.line(up(Line::from_points(aim.end_point, aim.wedge_start)), MARK, 7.0);
-    frame.line(up(Line::from_points(aim.end_point, aim.end_point + aim.along * 250.0)), INK, 2.0, false, true);
-    frame.point(up(aim.end_point), MARK);
-    frame.point(up(aim.wedge_start), MARK);
+    frame.line(up(inner), BUILT, 3.5);
+    frame.line(up(end), BUILT, 2.0);
+    frame.line(up(band_line), VARIABLE, 2.0, true);
+    frame.line(up(Line::from_points(aim.end_point, beam.bottom.get_point(1))), INPUT, 4.0);
+    frame.line(up(Line::from_points(aim.end_point, aim.wedge_start)), VARIABLE, 7.0);
+    frame.line(up(Line::from_points(aim.end_point, aim.end_point + aim.along * 250.0)), INPUT, 2.0, false, true);
+    frame.point(up(aim.end_point), INPUT);
+    frame.point(up(aim.wedge_start), RESULT);
 
     frame.label("end = loop[0]", up(aim.end_point));
     frame.label("ring.along", up(aim.end_point + aim.along * 250.0));
@@ -911,11 +911,11 @@ void oculus_start(const Context& context, const std::vector<Relationship>& rows)
 
     loops(frame, guide.oculus()[0], GREY);
     loops(frame, guide.quarter(0).inner_beams()[1], GREY);
-    frame.line(up(inner), RING, 4.5);
-    frame.line(up(beam_end), FAMILY_COLORS[2], 3.0);
-    frame.line(up(Line::from_points(aim.start, aim.start + aim.across * 120.0)), MARK, 4.0, false, true);
-    frame.line(up(Line::from_points(aim.start, aim.start + aim.along * 120.0)), INK, 3.0, false, true);
-    frame.point(up(aim.start), MARK);
+    frame.line(up(inner), INPUT, 4.5);
+    frame.line(up(beam_end), INPUT, 3.0);
+    frame.line(up(Line::from_points(aim.start, aim.start + aim.across * 120.0)), RESULT, 4.0, false, true);
+    frame.line(up(Line::from_points(aim.start, aim.start + aim.along * 120.0)), INPUT, 3.0, false, true);
+    frame.point(up(aim.start), BUILT);
 
     frame.label("trace(ring.inner, z)", up(inner.point_at(0.08)));
     frame.label("faces.beam_end = inner_beams[0][1]", up(beam_end.point_at(0.5)));
@@ -925,7 +925,7 @@ void oculus_start(const Context& context, const std::vector<Relationship>& rows)
     frame.write(context.dir);
 }
 
-/// An aim: the head slid by offset along ring.along, rays every 10 degrees from across back towards the corner, the chosen one in red.
+/// An aim: the head slid by offset along ring.along, rays every 10 degrees from across back towards the corner, the chosen one built.
 void aim_fan(const Context& context, const std::vector<Relationship>& rows) {
 
     const FloorGuide& guide = context.guide;
@@ -937,16 +937,16 @@ void aim_fan(const Context& context, const std::vector<Relationship>& rows) {
 
     loops(frame, guide.oculus()[0], GREY);
     loops(frame, guide.quarter(0).inner_beams()[1], GREY);
-    frame.line(Line::from_points(up(ring.start), head), MARK, 3.0);
+    frame.line(Line::from_points(up(ring.start), head), VARIABLE, 3.0);
 
     for (double angle = 0.0; angle <= 80.0; angle += 10.0) {
         const Vector u = ring.across * std::cos(angle * M_PI / 180.0) - ring.along * std::sin(angle * M_PI / 180.0);
-        frame.line(Line::from_points(head, head + u * screw.length()), INK, 1.0, true);
+        frame.line(Line::from_points(head, head + u * screw.length()), INPUT, 1.0, true);
     }
 
-    frame.line(screw, MARK, 4.0, false, true);
-    frame.point(up(ring.start), INK);
-    frame.point(head, MARK);
+    frame.line(screw, BUILT, 4.0, false, true);
+    frame.point(up(ring.start), INPUT);
+    frame.point(head, BUILT);
 
     const Vector across = ring.across * screw.length();
     const Vector back = (ring.across * std::cos(80.0 * M_PI / 180.0) - ring.along * std::sin(80.0 * M_PI / 180.0)) * screw.length();
@@ -984,14 +984,14 @@ void clearance_side(const Context& context, const std::vector<Relationship>& row
     for (size_t i = 0; i < planes.size(); i++) {
         const Line cut = plane_plane(planes[i], section).value();
         tops[i] = line_plane(cut, level(H)).value();
-        frame.line(Line::from_points(tops[i], line_plane(cut, level(H + guide.soffit)).value()), i == 0 ? FAMILY_COLORS[2] : GREY, i == 0 ? 4.0 : 2.0);
+        frame.line(Line::from_points(tops[i], line_plane(cut, level(H + guide.soffit)).value()), i == 0 ? INPUT : GREY, i == 0 ? 4.0 : 2.0);
     }
 
-    frame.line(Line::from_points(crossing, crossing + n * 80.0), MARK, 3.0, false, true);
-    frame.line(Line::from_points(screw.start(), foot), INK, 1.5, true);
-    frame.line(screw, INK, 3.0, false, true);
-    frame.point(screw.start(), MARK);
-    frame.point(crossing, MARK);
+    frame.line(Line::from_points(crossing, crossing + n * 80.0), RESULT, 3.0, false, true);
+    frame.line(Line::from_points(screw.start(), foot), VARIABLE, 1.5, true);
+    frame.line(screw, INPUT, 3.0, false, true);
+    frame.point(screw.start(), INPUT);
+    frame.point(crossing, BUILT);
 
     frame.label("contact = faces.beam[0]: tilted", tops[0]);
     frame.label("back", tops[1]);
@@ -1030,18 +1030,18 @@ void clearance_points(const Context& context, const std::vector<Relationship>& r
 
     const Line band = trace_between(contact.translate_by_normal(ring.band * n.dot(contact.z_axis())), z, corner, other);
     const Line end = trace_between(ring.end, z, corner + Vector(-100.0, -100.0, 0.0), guide.oculus_corners[1]);
-    frame.line(up(trace_between(ring.inner, z, corner, other)), RING, 2.0);
-    frame.line(up(trace_between(contact, z, corner, other)), FAMILY_COLORS[2], 3.0);
-    frame.line(up(trace_between(cp.inner_beams[1][1], z, corner, other)), FAMILY_COLORS[2], 2.0);
-    frame.line(up(trace_between(ring.beam_end, z, corner + Vector(0.0, -200.0, 0.0), corner + Vector(0.0, 100.0, 0.0))), FAMILY_COLORS[2], 2.0);
-    frame.line(up(band), RING, 2.0, true);
-    frame.line(up(end), MARK, 2.0, true);
+    frame.line(up(trace_between(ring.inner, z, corner, other)), GREY, 2.0);
+    frame.line(up(trace_between(contact, z, corner, other)), INPUT, 3.0);
+    frame.line(up(trace_between(cp.inner_beams[1][1], z, corner, other)), INPUT, 2.0);
+    frame.line(up(trace_between(ring.beam_end, z, corner + Vector(0.0, -200.0, 0.0), corner + Vector(0.0, 100.0, 0.0))), INPUT, 2.0);
+    frame.line(up(band), INPUT, 2.0, true);
+    frame.line(up(end), INPUT, 2.0, true);
     const Point wedge_start(ring.wedge_start[0], ring.wedge_start[1], z);
-    frame.line(up(Line::from_points(band.closest_point(wedge_start, false).second, trace_between(contact, z, corner, other).closest_point(wedge_start, false).second)), MARK, 3.0);
-    frame.line(screw, INK, 3.0, false, true);
+    frame.line(up(Line::from_points(band.closest_point(wedge_start, false).second, trace_between(contact, z, corner, other).closest_point(wedge_start, false).second)), INPUT, 3.0);
+    frame.line(screw, INPUT, 3.0, false, true);
 
     for (const Point& point : {band_point, crossing, tip})
-        frame.point(up(point), MARK);
+        frame.point(up(point), BUILT);
 
     frame.label("head", screw.start());
     frame.label(fmt::format("band_point: wedge = {:.1f}", wedge), up(band_point));
@@ -1069,12 +1069,12 @@ void search(const Context& context, const std::vector<Relationship>& rows) {
         const RingAim ring = ring_aim(guide, 0, k, datum_z(row.screws[0]));
 
         for (double offset = 0.0; offset <= 2.0 * COARSE_SPAN; offset += COARSE_STEP)
-            frame.point(up(ring.start + ring.along * offset), INK, 5.0);
+            frame.point(up(ring.start + ring.along * offset), VARIABLE, 5.0);
 
         for (size_t i = 0; i < row.screws.size(); i++) {
             const Line& screw = row.screws[i];
             const std::array<double, 2> chosen = aim_of(ring_aim(guide, 0, k, datum_z(screw)), screw);
-            frame.line(screw, MARK, 4.0, false, true);
+            frame.line(screw, BUILT, 4.0, false, true);
             frame.label(fmt::format("k {}, {}/7: offset {:.2f}, angle {:.1f}", k, seventh(datum_z(screw), static_h), chosen[0], chosen[1]), i == 0 ? screw.end() : screw.start());
         }
 
@@ -1097,11 +1097,11 @@ void oculus_contact(const Context& context, const std::vector<Relationship>& row
 
     frame.element(context.members.members.ring[0].element, GREY);
     loops(frame, beam, GREY);
-    frame.polyline(row0.contact, FAMILY_COLORS[2], 5.0);
+    frame.polyline(row0.contact, BUILT, 5.0);
 
     for (const Relationship* row : {&row0, &row1})
         for (const Line& screw : row->screws)
-            frame.line(screw, MARK, 4.0, false, true);
+            frame.line(screw, INPUT, 4.0, false, true);
 
     frame.label("contact: the tilted-face loop", area_centroid(row0.contact));
     frame.label("plane = oculus_edges[0].tilted", row0.contact.get_point(1));
@@ -1134,7 +1134,7 @@ void pre_drill(const Context& context, const std::vector<Relationship>& rows) {
     frame.element(quarter.inner_beams[1].element, GREY);
 
     for (const Line& line : lines)
-        frame.line(line, MARK, 3.0, false, true);
+        frame.line(line, BUILT, 3.0, false, true);
 
     frame.label(fmt::format("{}: {} pre_drill_lines", member_name(Family::inner_beams, 1, 0), lines.size()), up(middle(guide.quarter(0).inner_beams()[1])));
     frame.label(member_name(Family::inner_beams, 0, 0), up(seam.top.get_point(0) + (seam.top.get_point(1) - seam.top.get_point(0)) * 0.85));
@@ -1156,8 +1156,8 @@ Point pin_near(const std::array<Polyline, 2>& solid, const Point& to) {
     return nearest + (area_centroid(solid[0]) - nearest) * (1.0 / 3.0);
 }
 
-/// Every keep-out of the other connectors near oculus corner 0 as a wireframe, the bores run on by their overshoot, and the screws there.
-size_t keep_outs(Frame& frame, const Context& context, const Box& box, std::vector<std::pair<std::string, Point>>& named) {
+/// Every keep-out of the other connectors near oculus corner 0 as a wireframe in solid_color, the bores run on by their overshoot in bore_color.
+size_t keep_outs(Frame& frame, const Context& context, const Box& box, std::vector<std::pair<std::string, Point>>& named, const Color& solid_color, const Color& bore_color) {
 
     const Point corner = up(context.guide.oculus_corners[0]);
 
@@ -1169,7 +1169,7 @@ size_t keep_outs(Frame& frame, const Context& context, const Box& box, std::vect
 
         for (const std::array<Polyline, 2>& part : connector->parts)
             if (in(box, part[0].get_point(0)) || in(box, part[1].get_point(0))) {
-                wire(frame, part, MARK, 2.0);
+                wire(frame, part, solid_color, 2.0);
                 named.push_back({fmt::format("{} part", connector->name), pin_near(part, corner)});
                 count++;
             }
@@ -1177,7 +1177,7 @@ size_t keep_outs(Frame& frame, const Context& context, const Box& box, std::vect
         for (size_t side = 0; side < connector->cutters.size() && side < connector->targets.size(); side++)
             for (const std::array<Polyline, 2>& cutter : connector->cutters[side])
                 if (in(box, cutter[0].get_point(0)) || in(box, cutter[1].get_point(0))) {
-                    wire(frame, cutter, MARK, 1.0);
+                    wire(frame, cutter, solid_color, 1.0);
                     named.push_back({fmt::format("{} cutter, side {}", connector->name, side), area_centroid(cutter[1])});
                     count++;
                 }
@@ -1185,7 +1185,7 @@ size_t keep_outs(Frame& frame, const Context& context, const Box& box, std::vect
         for (const Line& dowel : connector->drill_lines)
             if (in(box, dowel.center())) {
                 const Vector d = dowel.to_direction() * connector->drill_overshoot;
-                frame.line(Line::from_points(dowel.start() - d, dowel.end() + d), MARK, 3.0);
+                frame.line(Line::from_points(dowel.start() - d, dowel.end() + d), bore_color, 3.0);
                 named.push_back({fmt::format("{} bore + drill_overshoot", connector->name), dowel.end() + d});
                 count++;
             }
@@ -1199,8 +1199,8 @@ void keep_out(const Context& context, const std::vector<Relationship>& rows) {
 
     Frame frame(CHAPTER, 230, "keep_outs", "check_screws: every other connector's parts and cutters are keep-out solids, its drill lines bores", "iso", CORNER_3D);
     std::vector<std::pair<std::string, Point>> named;
-    const size_t count = keep_outs(frame, context, {-750.0, -1350.0, H - 400.0, 250.0, -450.0, H + 60.0}, named);
-    corner_screws(frame, rows, context.guide.oculus_corners[0], 3.0);
+    const size_t count = keep_outs(frame, context, {-750.0, -1350.0, H - 400.0, 250.0, -450.0, H + 60.0}, named, BUILT, RESULT);
+    corner_screws(frame, rows, context.guide.oculus_corners[0], 3.0, INPUT);
 
     std::set<std::string> kinds;
     std::vector<Point> pinned;
@@ -1248,10 +1248,10 @@ void spacing(const Context& context, const std::vector<Relationship>& rows) {
 
     Frame frame(CHAPTER, 233, "spacing", fmt::format("check_screws: screw to screw {:.3f}, to bore {:.3f}, to pocket {:.3f} mm; {} misfits", check.screw_screw_mm, check.screw_bore_mm, check.screw_pocket_mm, check.misfits.size()), "top", {-420.0, -1250.0, H - 10.0, 420.0, -750.0, H + 10.0});
     std::vector<std::pair<std::string, Point>> named;
-    keep_outs(frame, context, {-750.0, -1350.0, H - 400.0, 250.0, -450.0, H + 60.0}, named);
-    corner_screws(frame, rows, context.guide.oculus_corners[0], 3.0);
-    frame.line(Line::from_points(closest[0], closest[1]), INK, 4.0);
-    frame.point(closest[0], INK);
+    keep_outs(frame, context, {-750.0, -1350.0, H - 400.0, 250.0, -450.0, H + 60.0}, named, GREY, GREY);
+    corner_screws(frame, rows, context.guide.oculus_corners[0], 3.0, INPUT);
+    frame.line(Line::from_points(closest[0], closest[1]), VARIABLE, 4.0);
+    frame.point(closest[0], VARIABLE);
 
     frame.label(fmt::format("closest axes: {:.3f}", (closest[1] - closest[0]).magnitude()), closest[0] + (closest[1] - closest[0]) * 0.5);
     frame.label(screws[pair[0]].first, screws[pair[0]].second.end());

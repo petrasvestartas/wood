@@ -10,11 +10,6 @@ const std::string CHAPTER = "06_outlines";
 // Drawing helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The colour of a quarter family.
-const Color& colour(Family family) {
-    return FAMILY_COLORS[static_cast<size_t>(family)];
-}
-
 /// The plane re-origined at the foot of a point on it, its axes kept, so its square is drawn there.
 Plane at(const Plane& plane, const Point& near) {
     return Plane::from_frame(plane.project(near), plane.x_axis(), plane.y_axis(), plane.z_axis());
@@ -45,7 +40,7 @@ void dashed(Frame& frame, const Polyline& polyline, const Color& color) {
         frame.line(line, color, 1.5, true);
 }
 
-/// An outline's two loops, lifted, and the thin lines joining their facing corners.
+/// An outline's two loops, lifted, and the thin grey lines joining their facing corners.
 void loops(Frame& frame, const Outline& outline, const Color& top, const Color& bottom, double width) {
     frame.polyline(up(outline.top), top, width);
     frame.polyline(up(outline.bottom), bottom, width);
@@ -53,7 +48,7 @@ void loops(Frame& frame, const Outline& outline, const Color& top, const Color& 
     const std::vector<Point> b = open_points(outline.bottom);
 
     for (size_t i = 0; i < std::min(a.size(), b.size()); i++)
-        frame.line(up(Line::from_points(a[i], b[i])), INK, 1.0);
+        frame.line(up(Line::from_points(a[i], b[i])), GREY, 1.0);
 }
 
 /// Quarter 0's placed members of a family, in one colour.
@@ -161,19 +156,19 @@ void show_loft_planes(const Context& context) {
     for (size_t i = 0; i < 4; i++) {
         const size_t before = (i + 3) % 4;
         const Point face = Point::centroid({top[before], top[i], bottom[before], bottom[i]});
-        frame.plane(up(at(planes[i], face)), INK);
+        frame.plane(up(at(planes[i], face)), VARIABLE);
         frame.label(fmt::format("planes[{}] = {}", i, names[i]), up(face));
     }
 
     const Point near_bottom = Point::lerp(bottom[0], bottom[1], 0.75) + Vector(0.0, 0.0, guide.soffit * 0.5);
     const Point near_top = Point::lerp(top[0], top[1], 0.25) + Vector(0.0, 0.0, guide.soffit * 0.5);
-    frame.plane(up(at(cp.inner_beams[0][0], near_bottom)), colour(Family::inner_beams));
-    frame.plane(up(at(cp.inner_beams[0][1], near_top)), colour(Family::inner_beams));
-    loops(frame, beam, colour(Family::inner_beams), colour(Family::inner_beams), 3.0);
+    frame.plane(up(at(cp.inner_beams[0][0], near_bottom)), INPUT);
+    frame.plane(up(at(cp.inner_beams[0][1], near_top)), INPUT);
+    loops(frame, beam, BUILT, BUILT, 3.0);
 
     for (size_t i = 0; i < 4; i++) {
-        frame.point(up(top[i]), MARK, 10.0);
-        frame.point(up(bottom[i]), MARK, 10.0);
+        frame.point(up(top[i]), BUILT, 10.0);
+        frame.point(up(bottom[i]), BUILT, 10.0);
     }
 
     frame.label("bottom = inner_beams[0][0]", up(cp.inner_beams[0][0].project(near_bottom)));
@@ -195,10 +190,10 @@ void show_beam_levels(const Context& context) {
     const Line face1 = cross_trace(cp.outer_ribs[0][1], seam, 60.0, guide.soffit - 60.0);
     Frame frame(CHAPTER, 83, "beam_levels", "inner_beams: side0 = level(0.0), side1 = level(soffit); face = 0 runs the seam beams to the bay edge", "right", {-100.0, -3200.0, H - 300.0, 100.0, -800.0, H + 100.0});
 
-    frame.line(up(side0), colour(Family::inner_beams), 4.0);
-    frame.line(up(side1), colour(Family::inner_beams), 4.0);
-    frame.line(up(face0), MARK, 4.0);
-    frame.line(up(face1), INK, 2.0, true);
+    frame.line(up(side0), BUILT, 4.0);
+    frame.line(up(side1), BUILT, 4.0);
+    frame.line(up(face0), VARIABLE, 4.0);
+    frame.line(up(face1), INPUT, 2.0, true);
     frame.line(up(cross_trace(cp.inner_beams[1][0], seam, 0.0, guide.soffit)), GREY, 2.0);
 
     frame.label("side0 = level(0.0)", up(side0.point_at(0.6)));
@@ -216,11 +211,11 @@ void show_seam_beam_0(const Context& context) {
     const std::array<std::string, 4> pairs = {"outer_ribs[0][face] x side0", "side0 x inner_beams[1][0]", "inner_beams[1][0] x side1", "side1 x outer_ribs[0][face]"};
     Frame frame(CHAPTER, 84, "seam_beam_0", "inner_beams()[0]: seam beam 0, its bottom loop on the seam plane x 0, its oculus end on the tilted plane", "right", {-100.0, -3150.0, H - 260.0, 100.0, -850.0, H + 60.0});
 
-    frame.polyline(up(beam.top), GREY, 1.5);
-    frame.polyline(up(beam.bottom), colour(Family::inner_beams), 4.0);
+    frame.polyline(up(beam.top), RESULT, 1.5);
+    frame.polyline(up(beam.bottom), BUILT, 4.0);
 
     for (size_t i = 0; i < bottom.size(); i++) {
-        frame.point(up(bottom[i]), MARK);
+        frame.point(up(bottom[i]), VARIABLE);
         frame.label(fmt::format("bottom[{}] = {}", i, pairs[i]), up(bottom[i]));
     }
 
@@ -242,11 +237,11 @@ void show_oculus_beam(const Context& context) {
     const std::vector<Point> bottom = open_points(beams[1].bottom);
     Frame frame(CHAPTER, 85, "oculus_beam", "inner_beams()[1]: the oculus beam between the seam beams' far faces, from tilted to back", "iso", {-1250.0, -1250.0, H - 260.0, 100.0, 100.0, H + 60.0});
 
-    one_member(frame, context, Family::inner_beams, 0, GREY);
-    one_member(frame, context, Family::inner_beams, 2, GREY);
-    loops(frame, beams[1], INK, colour(Family::inner_beams), 3.0);
-    frame.line(up(Line::from_points(centre, drop)), INK, 1.5, true);
-    frame.line(up(Line::from_points(drop, foot)), MARK, 4.0);
+    one_member(frame, context, Family::inner_beams, 0, INPUT);
+    one_member(frame, context, Family::inner_beams, 2, INPUT);
+    loops(frame, beams[1], RESULT, BUILT, 3.0);
+    frame.line(up(Line::from_points(centre, drop)), INPUT, 1.5, true);
+    frame.line(up(Line::from_points(drop, foot)), VARIABLE, 4.0);
 
     frame.label("bottom loop on oculus_edges[0].tilted", up(bottom[2]));
     frame.label("top loop on oculus_edges[0].back", up(top[1]));
@@ -267,7 +262,7 @@ void show_seam_beam_2(const Context& context) {
     frame.key = true;
 
     family_members(frame, context, Family::outer_ribs, GREY);
-    family_members(frame, context, Family::inner_beams, colour(Family::inner_beams));
+    family_members(frame, context, Family::inner_beams, BUILT);
 
     for (size_t i = 0; i < beams.size(); i++)
         frame.label(member_name(Family::inner_beams, i, 0), up(middle(beams[i])));
@@ -301,9 +296,9 @@ void show_wedge_bounds(const Context& context) {
     for (size_t i = 0; i < 3; i++) {
         const Plane beyond = cp.wedges[i][1].translate_by_normal(150.0);
         const Line face0 = trace(ribs[i][0], cp.wedges[i][0], beyond);
-        frame.line(up(face0), colour(Family::wedges), 4.0);
-        frame.line(up(trace(ribs[i][1], cp.wedges[i][0], beyond)), colour(Family::wedges), 4.0);
-        frame.plane(up(geometry.bed_top_planes[i]), colour(Family::beds));
+        frame.line(up(face0), BUILT, 4.0);
+        frame.line(up(trace(ribs[i][1], cp.wedges[i][0], beyond)), BUILT, 4.0);
+        frame.plane(up(geometry.bed_top_planes[i]), INPUT);
         frame.label(fmt::format("ribs[{}]: {}", i, names[i]), up(face0.point_at(0.5)));
         frame.label(fmt::format("beds[{}] = bed_top_planes[{}]", i, i), up(geometry.bed_top_planes[i].origin()));
     }
@@ -322,7 +317,7 @@ void show_wedge_blocks(const Context& context) {
 
     family_members(frame, context, Family::outer_ribs, GREY);
     family_members(frame, context, Family::inner_ribs, GREY);
-    family_members(frame, context, Family::wedges, colour(Family::wedges));
+    family_members(frame, context, Family::wedges, BUILT);
 
     for (size_t i = 0; i < wedges.size(); i++) {
         const double thickness = signed_distance(cp.wedges[i][1].origin(), cp.wedges[i][0]);
@@ -356,13 +351,13 @@ void show_tsection_trim(const Context& context) {
     Frame frame(CHAPTER, 89, "tsection_trim", "tsection: the soffit and + t traces on face 0, each trimmed between cut_plane0 and cut_plane1", "front", {-2850.0, -2960.0, H - 780.0, 60.0, -2840.0, H + 80.0});
 
     frame.polyline(up(quarter.outer_ribs()[0].bottom), GREY, 1.5);
-    dashed(frame, up(soffit), INK);
-    dashed(frame, up(layer), INK);
-    frame.polyline(up(cut00), colour(Family::tsections), 4.0);
-    frame.polyline(up(cut10), colour(Family::tsections), 4.0);
-    frame.line(up(beam), INK, 2.0);
-    frame.line(up(fan), INK, 2.0);
-    frame.line(up(gap), MARK, 4.0);
+    dashed(frame, up(soffit), INPUT);
+    dashed(frame, up(layer), INPUT);
+    frame.polyline(up(cut00), BUILT, 4.0);
+    frame.polyline(up(cut10), RESULT, 4.0);
+    frame.line(up(beam), INPUT, 2.0);
+    frame.line(up(fan), INPUT, 2.0);
+    frame.line(up(gap), VARIABLE, 4.0);
 
     frame.label("soffit = parabolas[0][0] projected along outer0 onto ts[0][0]", up(soffit.get_point(0)));
     frame.label("cut00 = trim(soffit, cut_plane0, cut_plane1)", up(cut00.get_point(3)));
@@ -383,13 +378,13 @@ void show_tsection_loop(const Context& context) {
     Frame frame(CHAPTER, 90, "tsection_loop", "tsection: top = cut00 + cut10 reversed + cut00.front(), one closed strip on ts[0][0]", "front", {-2850.0, -2960.0, H - 780.0, 60.0, -2840.0, H + 80.0});
 
     frame.polyline(up(quarter.outer_ribs()[0].bottom), GREY, 1.5);
-    frame.polyline(up(loop), colour(Family::tsections), 3.0);
+    frame.polyline(up(loop), BUILT, 3.0);
 
     for (size_t i = 0; i + 1 < n; i++)
-        frame.point(up(points[i]), MARK, 8.0);
+        frame.point(up(points[i]), VARIABLE, 8.0);
 
-    frame.line(up(Line::from_points(points[0], points[1])), MARK, 3.0, false, true);
-    frame.line(up(Line::from_points(points[half], points[half + 1])), MARK, 3.0, false, true);
+    frame.line(up(Line::from_points(points[0], points[1])), VARIABLE, 3.0, false, true);
+    frame.line(up(Line::from_points(points[half], points[half + 1])), VARIABLE, 3.0, false, true);
 
     frame.label(fmt::format("0 = {}: cut00.front(); {}: cut10.front()", n - 1, n - 2), up(points[0]));
     frame.label(fmt::format("1 .. {}: cut00, the soffit", half - 1), up(points[2]));
@@ -411,12 +406,12 @@ void show_outer_tsection(const Context& context) {
 
     frame.line(up(trace(cp.tsections[0][0], cp.wedges[0][0], cp.inner_beams[0][1])), GREY, 2.0);
     frame.line(up(trace(cp.tsections[1][0], cp.wedges[0][0], cp.inner_beams[0][1])), GREY, 2.0);
-    frame.polyline(up(parabola), INK, 3.0);
-    frame.polyline(up(on0), colour(Family::tsections), 3.0);
-    frame.polyline(up(on1), colour(Family::tsections), 3.0);
+    frame.polyline(up(parabola), INPUT, 3.0);
+    frame.polyline(up(on0), BUILT, 3.0);
+    frame.polyline(up(on1), BUILT, 3.0);
 
     for (size_t i = 0; i < parabola.point_count(); i++)
-        frame.line(up(Line::from_points(parabola.get_point(i), on1.get_point(i))), MARK, 1.5, false, true);
+        frame.line(up(Line::from_points(parabola.get_point(i), on1.get_point(i))), VARIABLE, 1.5, false, true);
 
     frame.label(fmt::format("parabolas[0][0]: in plan on y {:.0f}", parabola.get_point(0)[1]), up(parabola.get_point(1)));
     frame.label("along outer = outer_ribs[0][0].z_axis()", up(Point::mid_point(parabola.get_point(3), on1.get_point(3))));
@@ -436,8 +431,8 @@ void show_flanges_0_5(const Context& context) {
     frame.distance = 0.72;
 
     family_members(frame, context, Family::outer_ribs, GREY);
-    one_member(frame, context, Family::tsections, 0, colour(Family::tsections));
-    one_member(frame, context, Family::tsections, 5, colour(Family::tsections));
+    one_member(frame, context, Family::tsections, 0, BUILT);
+    one_member(frame, context, Family::tsections, 5, BUILT);
 
     frame.label(member_name(Family::tsections, 0, 0), up(middle(flanges[0])));
     frame.label(member_name(Family::tsections, 5, 0), up(middle(flanges[5])));
@@ -460,16 +455,16 @@ void show_flanges_1_4(const Context& context) {
     Frame frame(CHAPTER, 93, "flanges_1_4", "tsections 1 and 4: on face 1 the soffit arrives along rib_sweep, the + t along the outer rib normal", "top", {-2800.0, -2960.0, H - 760.0, -1150.0, -1750.0, H + 20.0});
 
     one_member(frame, context, Family::inner_ribs, 0, GREY);
-    frame.line(up(face0), INK, 1.5, true);
-    frame.line(up(face1), INK, 1.5, true);
-    frame.polyline(up(flange.top), GREY, 2.0);
-    frame.polyline(up(flange.bottom), colour(Family::tsections), 3.0);
+    frame.line(up(face0), INPUT, 1.5, true);
+    frame.line(up(face1), INPUT, 1.5, true);
+    frame.polyline(up(flange.top), RESULT, 2.0);
+    frame.polyline(up(flange.bottom), BUILT, 3.0);
 
     for (size_t i = 1; i + 1 < half; i++)
-        frame.line(up(Line::from_points(top[i], bottom[i])), MARK, 2.5, false, true);
+        frame.line(up(Line::from_points(top[i], bottom[i])), VARIABLE, 2.5, false, true);
 
     for (size_t i = half + 1; i + 2 < n; i++)
-        frame.line(up(Line::from_points(top[i], bottom[i])), INK, 2.5, false, true);
+        frame.line(up(Line::from_points(top[i], bottom[i])), INPUT, 2.5, false, true);
 
     frame.label("rib_sweep: the soffit onto ts[1][1]", up(Point::mid_point(top[2], bottom[2])));
     frame.label("outer0: the + t onto ts[1][1]", up(Point::mid_point(top[n - 3], bottom[n - 3])));
@@ -493,10 +488,10 @@ void show_flanges_2_3(const Context& context) {
     Frame frame(CHAPTER, 94, "flanges_2_3", "tsections 2 and 3: tsection on panel.traces[k], the soffit along rib_sweep, the + t along panel.ruling", "top", {-2900.0, -2900.0, H - 700.0, 0.0, 0.0, H + 30.0});
 
     family_members(frame, context, Family::inner_ribs, GREY);
-    one_member(frame, context, Family::tsections, 2, colour(Family::tsections));
-    one_member(frame, context, Family::tsections, 3, colour(Family::tsections));
-    frame.line(up(Line::from_points(a, b)), MARK, 3.0, false, true);
-    frame.line(up(Line::from_points(a, r)), INK, 3.0, false, true);
+    one_member(frame, context, Family::tsections, 2, BUILT);
+    one_member(frame, context, Family::tsections, 3, BUILT);
+    frame.line(up(Line::from_points(a, b)), VARIABLE, 3.0, false, true);
+    frame.line(up(Line::from_points(a, r)), INPUT, 3.0, false, true);
 
     frame.label(member_name(Family::tsections, 2, 0), up(middle(flanges[2])));
     frame.label(member_name(Family::tsections, 3, 0), up(middle(flanges[3])));
@@ -532,10 +527,10 @@ void show_bed_layers(const Context& context) {
         const Polyline upper_face = geometry.parabolas[0][2].transformed(projection);
         lower[s] = trim(lower_face, cp.inner_beams[0][1], cp.wedges[0][0]);
         upper[s] = trim(upper_face, cp.inner_beams[0][1], cp.wedges[0][0]);
-        dashed(frame, up(lower_face), INK);
-        dashed(frame, up(upper_face), INK);
-        frame.polyline(up(lower[s]), colour(Family::beds), 3.0);
-        frame.polyline(up(upper[s]), colour(Family::beds), 3.0);
+        dashed(frame, up(lower_face), INPUT);
+        dashed(frame, up(upper_face), INPUT);
+        frame.polyline(up(lower[s]), BUILT, 3.0);
+        frame.polyline(up(upper[s]), RESULT, 3.0);
     }
 
     frame.label(fmt::format("lower[0]: + t on inner_ribs[0][0], {} points", lower[0].point_count()), up(lower[0].get_point(2)));
@@ -560,7 +555,7 @@ void show_bed_plates(const Context& context) {
     one_member(frame, context, Family::tsections, 1, GREY);
 
     for (size_t i = 0; i < row.size(); i++) {
-        frame.element(context.members.members.quarters[0].beds[0][i].element, colour(Family::beds));
+        frame.element(context.members.members.quarters[0].beds[0][i].element, BUILT);
         frame.label(bed_name(0, i), up(middle(row[i])));
     }
 
@@ -580,13 +575,13 @@ void show_outer_bed_row(const Context& context) {
 
     frame.line(up(trace(cp.inner_ribs[0][0], cp.wedges[0][0], cp.inner_beams[0][1])), GREY, 2.0);
     frame.line(up(trace(cp.outer_ribs[0][1], cp.wedges[0][0], cp.inner_beams[0][1])), GREY, 2.0);
-    frame.polyline(up(upper), GREY, 2.0);
-    frame.polyline(up(lower), INK, 3.0);
-    frame.polyline(up(on0), colour(Family::beds), 3.0);
-    frame.polyline(up(on1), colour(Family::beds), 3.0);
+    frame.polyline(up(upper), INPUT, 2.0);
+    frame.polyline(up(lower), INPUT, 3.0);
+    frame.polyline(up(on0), BUILT, 3.0);
+    frame.polyline(up(on1), BUILT, 3.0);
 
     for (size_t i = 0; i < lower.point_count(); i++)
-        frame.line(up(Line::from_points(lower.get_point(i), on0.get_point(i))), MARK, 1.5, false, true);
+        frame.line(up(Line::from_points(lower.get_point(i), on0.get_point(i))), VARIABLE, 1.5, false, true);
 
     frame.label("parabolas[0][1], + t: lower_faces", up(lower.get_point(1)));
     frame.label("parabolas[0][2], + 2t: upper_faces", up(upper.get_point(5)));
@@ -605,7 +600,7 @@ void show_bed_rows(const Context& context) {
 
     family_members(frame, context, Family::outer_ribs, GREY);
     family_members(frame, context, Family::inner_ribs, GREY);
-    family_members(frame, context, Family::beds, colour(Family::beds));
+    family_members(frame, context, Family::beds, BUILT);
 
     for (size_t r = 0; r < rows.size(); r++)
         frame.label(fmt::format("beds()[{}]: {} .. {}", r, bed_name(r, 0), bed_name(r, rows[r].size() - 1)), up(middle(rows[r][rows[r].size() / 2])));
@@ -630,7 +625,7 @@ void show_oculus_levels(const Context& context) {
         frame.element(member.element, GREY);
 
     for (size_t i = 0; i < 4; i++) {
-        frame.line(up(Line::from_points(Point(-1150.0, -1100.0, z[i]), Point(1150.0, -1100.0, z[i]))), RING, 3.0);
+        frame.line(up(Line::from_points(Point(-1150.0, -1100.0, z[i]), Point(1150.0, -1100.0, z[i]))), BUILT, 3.0);
         frame.label(fmt::format("{}: z {:.2f}", names[i], z[i]), up(Point(pins[i], -1100.0, z[i])));
     }
 
@@ -647,9 +642,9 @@ void show_oculus_planes(const Context& context) {
         const Line datum = trace_under(edge.tilted, edge.line, 0.0);
         const Line soffit = trace_under(edge.tilted, edge.line, guide.soffit);
         const Line inner = trace_under(edge.ring_inner, edge.line, 0.0);
-        frame.line(up(datum), INK, 2.5);
-        frame.line(up(soffit), colour(Family::inner_beams), 2.5);
-        frame.line(up(inner), RING, 2.5);
+        frame.line(up(datum), BUILT, 2.5);
+        frame.line(up(soffit), VARIABLE, 2.5);
+        frame.line(up(inner), RESULT, 2.5);
 
         if (q % 2 == 1)
             continue;
@@ -678,8 +673,8 @@ void show_ring_beams(const Context& context) {
     for (size_t i = 0; i < 4; i++) {
         const std::vector<Point> top = open_points(oculus[i].top);
         const std::vector<Point> bottom = open_points(oculus[i].bottom);
-        frame.element(context.members.members.ring[i].element, RING);
-        frame.line(up(Line::from_points(Point::mid_point(top[2], bottom[2]) + lift, Point::mid_point(top[1], bottom[1]) + lift)), INK, 3.0, false, true);
+        frame.element(context.members.members.ring[i].element, BUILT);
+        frame.line(up(Line::from_points(Point::mid_point(top[2], bottom[2]) + lift, Point::mid_point(top[1], bottom[1]) + lift)), VARIABLE, 3.0, false, true);
         frame.label(fmt::format("oculus_{}", i), up(middle(oculus[i])));
     }
 
@@ -699,7 +694,7 @@ void show_bottom_wedges(const Context& context) {
         frame.element(member.element, GREY);
 
     for (size_t i = 4; i < 8; i++) {
-        frame.element(placed_plate(oculus[i], fmt::format("oculus_{}", i)), colour(Family::wedges));
+        frame.element(placed_plate(oculus[i], fmt::format("oculus_{}", i)), BUILT);
         frame.label(fmt::format("oculus_{}", i), up(middle(oculus[i])));
     }
 
@@ -724,8 +719,8 @@ void show_central_plate(const Context& context) {
     for (size_t i = 4; i < 8; i++)
         frame.element(placed_plate(oculus[i], fmt::format("oculus_{}", i)), GREY);
 
-    frame.element(placed_plate(plate, "oculus_8"), colour(Family::beds));
-    frame.line(up(Line::from_points(centre, top[0])), MARK, 3.0);
+    frame.element(placed_plate(plate, "oculus_8"), BUILT);
+    frame.line(up(Line::from_points(centre, top[0])), VARIABLE, 3.0);
 
     frame.label("oculus_8", up(Point::lerp(centre, top[2], 0.5)), true);
     frame.label(fmt::format("half-diagonal {:.1f}", Point::distance(centre, top[0])), up(Point::mid_point(centre, top[0])));
@@ -748,8 +743,8 @@ void show_fan_top(const Context& context) {
 
     for (size_t k = 0; k < cutters.fan_top.size(); k++) {
         const Line edge = wood_floor::geometry::edge(column.head, k);
-        frame.line(up(edge), colour(Family::wedges), 4.0);
-        frame.plane(up(at(cutters.fan_top[k], edge.center())), INK);
+        frame.line(up(edge), INPUT, 4.0);
+        frame.plane(up(at(cutters.fan_top[k], edge.center())), BUILT);
         frame.label(fmt::format("fan_top[{}] = {}", k, names[k]), up(edge.center()));
     }
 
@@ -773,15 +768,15 @@ void show_fan_bottom(const Context& context) {
         if (k != 2)
             frame.line(up(wood_floor::geometry::edge(column.head, k)), GREY, 2.0);
 
-    frame.line(up(chamfer), INK, 2.0, true);
-    frame.polyline(up(Polyline(square).closed()), MARK, 4.0);
+    frame.line(up(chamfer), INPUT, 2.0, true);
+    frame.polyline(up(Polyline(square).closed()), VARIABLE, 4.0);
 
     for (const Point& point : square)
-        frame.line(up(Line::from_points(point, point + rise)), INK, 1.5, true);
+        frame.line(up(Line::from_points(point, point + rise)), INPUT, 1.5, true);
 
     for (size_t k = 0; k < 4; k++) {
         const Point foot = Point::mid_point(square[k], square[(k + 1) % 4]);
-        frame.plane(up(at(cutters.fan_bottom[k], foot + rise * 0.5)), INK);
+        frame.plane(up(at(cutters.fan_bottom[k], foot + rise * 0.5)), BUILT);
         frame.label(fmt::format("fan_bottom[{}] = {}", k, names[k]), up(foot));
     }
 
@@ -800,13 +795,13 @@ void show_cutter_corners(const Context& context) {
     frame.polyline(up(Polyline(square).closed()), GREY, 2.0);
 
     for (size_t i = 0; i < cutters.p0.size(); i++) {
-        frame.line(up(Line::from_points(cutters.p0[i], cutters.p1[i])), INK, 1.5, true);
-        frame.point(up(cutters.p0[i]), MARK, 14.0);
-        frame.point(up(cutters.p1[i]), colour(Family::wedges), 14.0);
+        frame.line(up(Line::from_points(cutters.p0[i], cutters.p1[i])), INPUT, 1.5, true);
+        frame.point(up(cutters.p0[i]), BUILT, 14.0);
+        frame.point(up(cutters.p1[i]), BUILT, 14.0);
     }
 
     for (const Point& point : cutters.p2)
-        frame.point(up(point), STEEL, 14.0);
+        frame.point(up(point), RESULT, 14.0);
 
     frame.label(fmt::format("p0[0], z {:.0f}", cutters.p0[0][2]), up(cutters.p0[0]));
     frame.label("p0[2]", up(cutters.p0[2]));
@@ -831,11 +826,11 @@ void show_cutter_quads(const Context& context) {
 
     for (size_t i = 0; i < cutters.quads.size(); i++) {
         const Polyline quad = Polyline(cutters.quads[i]).closed();
-        frame.polyline(up(quad), i < 3 ? colour(Family::wedges) : STEEL, 3.0);
+        frame.polyline(up(quad), i < 3 ? BUILT : RESULT, 3.0);
         frame.label(fmt::format("quads[{}]", i), up(area_centroid(quad)));
     }
 
-    frame.line(up(Line::from_points(p21 - cutters.quarter, p21 + cutters.quarter)), MARK, 5.0);
+    frame.line(up(Line::from_points(p21 - cutters.quarter, p21 + cutters.quarter)), VARIABLE, 5.0);
     frame.label(fmt::format("p2[1] +- quarter: {:.1f} long", (cutters.quarter * 2.0).magnitude()), up(p21 + cutters.quarter));
     frame.write(context.dir);
 }
@@ -850,11 +845,11 @@ void show_stretch_edges(const Context& context) {
     Frame frame(CHAPTER, 108, "stretch_edges", "stretch: d0 and d1 lengthen edges 0-1 and 2-3 by CUTTER_MARGIN at both ends", "iso", {-2900.0, -3200.0, H - 830.0, -2550.0, -2600.0, H + 130.0});
     frame.orbit = "-419,-75";
 
-    frame.polyline(up(Polyline(quad).closed()), GREY, 3.0);
-    frame.polyline(up(Polyline(longer).closed()), colour(Family::wedges), 3.0);
+    frame.polyline(up(Polyline(quad).closed()), INPUT, 3.0);
+    frame.polyline(up(Polyline(longer).closed()), BUILT, 3.0);
 
     for (size_t k = 0; k < 4; k++) {
-        frame.line(up(Line::from_points(quad[k], longer[k])), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(quad[k], longer[k])), VARIABLE, 3.0, false, true);
         frame.label(names[k], up(longer[k]));
     }
 
@@ -875,16 +870,16 @@ void show_stretch_apart(const Context& context) {
     Frame frame(CHAPTER, 109, "stretch_apart", "stretch: edge 0-1 moves by -d2; edge 2-3 by -d3 only on a top quad, a bottom quad keeps it on levels[2]", "iso", {-2900.0, -3200.0, H - 830.0, -2550.0, -2600.0, H + 130.0});
     frame.orbit = "-419,-75";
 
-    frame.polyline(up(Polyline(longer0).closed()), GREY, 2.0);
-    dashed(frame, up(Polyline(longer3).closed()), GREY);
-    frame.polyline(up(plates[0].top), colour(Family::wedges), 3.0);
-    frame.polyline(up(plates[3].top), STEEL, 3.0);
+    frame.polyline(up(Polyline(longer0).closed()), INPUT, 2.0);
+    dashed(frame, up(Polyline(longer3).closed()), INPUT);
+    frame.polyline(up(plates[0].top), BUILT, 3.0);
+    frame.polyline(up(plates[3].top), RESULT, 3.0);
 
     for (size_t k = 0; k < 4; k++)
-        frame.line(up(Line::from_points(longer0[k], final0[k])), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(longer0[k], final0[k])), VARIABLE, 3.0, false, true);
 
     for (size_t k = 0; k < 2; k++)
-        frame.line(up(Line::from_points(longer3[k], final3[k])), MARK, 3.0, false, true);
+        frame.line(up(Line::from_points(longer3[k], final3[k])), VARIABLE, 3.0, false, true);
 
     frame.label(fmt::format("-d2: quads[0] edge 0-1 to z {:.1f}", final0[0][2]), up(final0[0]));
     frame.label(fmt::format("-d3: quads[0] edge 2-3 to z {:.1f}", final0[3][2]), up(final0[3]));
@@ -912,8 +907,8 @@ void show_cutter_plates(const Context& context) {
         frame.line(up(Line::from_points(point, point + depth)), GREY, 1.5);
 
     for (size_t i = 0; i < plates.size(); i++) {
-        frame.element(placed_plate(plates[i], "column_cutter"), i < 3 ? colour(Family::wedges) : STEEL);
-        frame.line(up(Line::from_points(area_centroid(plates[i].top), area_centroid(plates[i].bottom))), MARK, 3.0, false, true);
+        frame.element(placed_plate(plates[i], "column_cutter"), i < 3 ? BUILT : RESULT);
+        frame.line(up(Line::from_points(area_centroid(plates[i].top), area_centroid(plates[i].bottom))), VARIABLE, 3.0, false, true);
         frame.label(fmt::format("column_cutters()[{}]", i), up(middle(plates[i])));
     }
 

@@ -2,13 +2,19 @@
 
 This chapter builds the outlines of every quarter member other than the ribs, plus the oculus and the column cutters. The functions are `Quarter::inner_beams`, `Quarter::wedges`, `Quarter::tsections`, `Quarter::beds`, `FloorGuide::oculus` and `Quarter::column_cutters` in `floor_members.cpp`, together with the helper `geometry::loft_planes` in `floor_geometry.cpp`. Their inputs come from the earlier chapters: the construction planes `cp`, the parabolas and their `+t` / `+2t` offsets, the central panel traces, `bed_top_planes`, `guide.soffit` and the column levels. Each one returns `Outline{top, bottom}` pairs at the datum z 0. Chapter 07 turns those pairs into elements with `to_beam` and `to_plate`, and into the column's solid cuts.
 
+Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_4_quarters.cpp) builds the four quarters, every inner beam, wedge, t-section and bed made from these outlines, [templates_floor_5_oculus.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_5_oculus.cpp) builds the oculus ring, its bottom wedges and the central plate, and [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/examples/templates_floor_2_column_model.cpp) carves column 0's head with quarter 0's six column cutters.
+
 ![](floor/film_06_outlines.webp)
+
+<span style="color:#2196EA">■ built</span> what each step builds   <span style="color:#EB7721">■ variable</span> the variable or value it introduces   <span style="color:#EBB121">■ result</span> a second result, set apart   <span style="color:#455B6B">■ input</span> what it reads from earlier steps, dashed for helpers   <span style="color:#8C969E">■ context</span> everything else
 
 ## 82. loft_planes helper
 
 ![](floor/082_loft_planes.webp)
 
-`loft_planes(planes, bottom, top, flip)` takes `n` side planes in ring order and two cap planes. For each `i` it calls `plane_plane_plane(planes[i], planes[(i + 1) % n], bottom)` and the same call with `top`. A corner whose solve returns `nullopt` is skipped without any error, so a degenerate ring returns a loop with fewer corners. The solve returns `nullopt` when the kernel's 3x3 system is not full rank: two of the planes are parallel, or all three share one line. Both corner lists are closed into polylines and returned as `Outline{top loop, bottom loop}`, so corner `i` of one loop faces corner `i` of the other. `flip = true` swaps the two loops. The frame shows the call that builds seam beam 0: ring `{outer_ribs[0][0], side0, inner_beams[1][0], side1}`, bottom `inner_beams[0][0]`, top `inner_beams[0][1]`. Every inner beam, wedge block and oculus piece is built with this function.
+<span style="color:#2196EA">■ built</span> `Outline{top, bottom}` loops and their corners   <span style="color:#EB7721">■ variable</span> `planes[0..3]`, the ring   <span style="color:#455B6B">■ input</span> `bottom = inner_beams[0][0]`, `top = inner_beams[0][1]`   <span style="color:#8C969E">■ context</span> lines joining facing corners
+
+`loft_planes(planes, bottom, top, flip)` takes `n` side planes in ring order and two cap planes. For each `i` it calls `plane_plane_plane(planes[i], planes[(i + 1) % n], bottom)` and the same call with `top`. A corner whose solve returns `nullopt` is skipped without any error, so a degenerate ring returns a loop with fewer corners. The solve returns `nullopt` when the kernel's 3x3 system is not full rank: two of the planes are parallel, or all three share one line. Both corner lists are closed into polylines and returned as <span style="color:#2196EA">`Outline{top loop, bottom loop}`</span>, so corner `i` of one loop faces corner `i` of the other. `flip = true` swaps the two loops. The frame shows the call that builds seam beam 0: ring <span style="color:#EB7721">`{outer_ribs[0][0], side0, inner_beams[1][0], side1}`</span>, bottom <span style="color:#455B6B">`inner_beams[0][0]`</span>, top <span style="color:#455B6B">`inner_beams[0][1]`</span>. Every inner beam, wedge block and oculus piece is built with this function.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -46,13 +52,15 @@ Outline loft_planes(const std::vector<Plane>& planes, const Plane& bottom, const
 }
 ```
 
-Code: `geometry::loft_planes`, floor_geometry.cpp:210-233
+Code: `geometry::loft_planes`, [floor_geometry.cpp:210-233](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L210-L233)
 
 ## 83. inner_beams: levels and face choice
 
 ![](floor/083_beam_levels.webp)
 
-`Quarter::inner_beams` starts with two levels: `side0 = level(0.0)`, the beam top, and `side1 = level(guide.soffit)`, the beam soffit. `guide.soffit` is the deepest rib end found after the rib outlines (chapter 05), so every rib end lands fully on its beam. `face = seam_through_ribs ? 0 : 1` picks which outer rib plane closes the seam beams at the bay end. With the default `seam_through_ribs = true`, the beams run through the rib band to the bay edge `outer_ribs[k][0]` (y = -3000). In the tied variant they stop on the rib's inner face `outer_ribs[k][1]` (y = -2900). This is the inverse of `rib_seam_ends`, which makes the outer ribs end on the beams' far faces in the default case.
+<span style="color:#2196EA">■ built</span> `side0 = level(0.0)`, `side1 = level(guide.soffit)`   <span style="color:#EB7721">■ variable</span> `face = 0`: `outer_ribs[0][0]`   <span style="color:#455B6B">■ input</span> `outer_ribs[0][1]`, the tied variant (dashed)   <span style="color:#8C969E">■ context</span> `inner_beams[1][0]`, the oculus end
+
+`Quarter::inner_beams` starts with two levels: <span style="color:#2196EA">`side0 = level(0.0)`</span>, the beam top, and <span style="color:#2196EA">`side1 = level(guide.soffit)`</span>, the beam soffit. `guide.soffit` is the deepest rib end found after the rib outlines (chapter 05), so every rib end lands fully on its beam. <span style="color:#EB7721">`face = seam_through_ribs ? 0 : 1`</span> picks which outer rib plane closes the seam beams at the bay end. With the default `seam_through_ribs = true`, the beams run through the rib band to the bay edge <span style="color:#EB7721">`outer_ribs[k][0]`</span> (y = -3000). In the tied variant they stop on the rib's inner face <span style="color:#455B6B">`outer_ribs[k][1]`</span> (y = -2900). This is the inverse of `rib_seam_ends`, which makes the outer ribs end on the beams' far faces in the default case.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -68,13 +76,15 @@ const Plane side1 = level(guide.soffit);
 const size_t face = parameters().seam_through_ribs ? 0 : 1;
 ```
 
-Code: `Quarter::inner_beams`, floor_members.cpp:93-98
+Code: `Quarter::inner_beams`, [floor_members.cpp:93-98](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L93-L98)
 
 ## 84. Seam beam 0
 
 ![](floor/084_seam_beam_0.webp)
 
-Seam beam 0 is `loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1])`. The ring runs bay edge, datum, the oculus edge's tilted bearing plane, soffit. The corners are therefore (edge, datum), (datum, tilted), (tilted, soffit) and (soffit, edge). The bottom loop lies on the seam plane x = 0 and the top loop on the beam's far face x = -60. The result is a loft outline, not a box: the oculus end is cut on the plane tilted by 5 degrees, so the face is 2000 long at the datum and 2024.6 long at the soffit. Its soffit corner sits at y = -975.4, 24.6 mm nearer the centre than its top corner at y = -1000.
+<span style="color:#2196EA">■ built</span> `inner_beams()[0].bottom` on x = 0   <span style="color:#EBB121">■ result</span> `inner_beams()[0].top` on x = -60   <span style="color:#EB7721">■ variable</span> the corners `bottom[0..3]`
+
+Seam beam 0 is `loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1])`. The ring runs bay edge, datum, the oculus edge's tilted bearing plane, soffit. <span style="color:#EB7721">The corners</span> are therefore (edge, datum), (datum, tilted), (tilted, soffit) and (soffit, edge). <span style="color:#2196EA">The bottom loop</span> lies on the seam plane x = 0 and <span style="color:#EBB121">the top loop</span> on the beam's far face x = -60. The result is a loft outline, not a box: the oculus end is cut on the plane tilted by 5 degrees, so the face is 2000 long at the datum and 2024.6 long at the soffit. Its soffit corner sits at y = -975.4, 24.6 mm nearer the centre than its top corner at y = -1000.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -87,13 +97,15 @@ Seam beam 0 is `loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0]
 loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
 ```
 
-Code: `Quarter::inner_beams`, floor_members.cpp:101
+Code: `Quarter::inner_beams`, [floor_members.cpp:101](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L101)
 
 ## 85. Oculus beam
 
 ![](floor/085_oculus_beam.webp)
 
-The oculus beam is `loft_planes({cp.inner_beams[0][1], side0, cp.inner_beams[2][1], side1}, cp.inner_beams[1][0], cp.inner_beams[1][1])`. Its ring is seam beam 0's far face, datum, seam beam 2's far face, soffit, so it fits between the two seam beams. The bottom loop lies on `oculus_edges[0].tilted`, the bearing plane it shares with ring beam 0. The top loop lies on the vertical back face `oculus_edges[0].back`, 60 mm into the quarter, which is also where the inner ribs end. `tilted` is the vertical edge plane turned by `-oculus_plane_angle` about the oculus edge through its centre (floor.cpp:98). Its trace stays on the edge at z 0. Below the datum it moves toward the centre by `-soffit * tan(5 deg)` = 17.4 mm at the soffit, measured square to the edge (24.6 mm along each seam).
+<span style="color:#2196EA">■ built</span> bottom loop on `oculus_edges[0].tilted`   <span style="color:#EBB121">■ result</span> top loop on `oculus_edges[0].back`   <span style="color:#EB7721">■ variable</span> lean 17.4 = `-soffit tan(oculus_plane_angle)`   <span style="color:#455B6B">■ input</span> `inner_beams_0_0`, `inner_beams_2_0` and the drop from the edge centre (dashed)   <span style="color:#8C969E">■ context</span> lines joining facing corners
+
+The oculus beam is `loft_planes({cp.inner_beams[0][1], side0, cp.inner_beams[2][1], side1}, cp.inner_beams[1][0], cp.inner_beams[1][1])`. Its ring is <span style="color:#455B6B">seam beam 0's far face</span>, datum, <span style="color:#455B6B">seam beam 2's far face</span>, soffit, so it fits between the two seam beams. The bottom loop lies on <span style="color:#2196EA">`oculus_edges[0].tilted`</span>, the bearing plane it shares with ring beam 0. The top loop lies on the vertical back face <span style="color:#EBB121">`oculus_edges[0].back`</span>, 60 mm into the quarter, which is also where the inner ribs end. `tilted` is the vertical edge plane turned by `-oculus_plane_angle` about the oculus edge through its centre (floor.cpp:98). Its trace stays on the edge at z 0. Below the datum it moves toward the centre by <span style="color:#EB7721">`-soffit * tan(5 deg)` = 17.4 mm</span> at the soffit, measured square to the edge (24.6 mm along each seam).
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -114,13 +126,15 @@ edge.back = plane.translate_by_normal(parameters.inner_beams);
 edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 ```
 
-Code: `Quarter::inner_beams`, floor_members.cpp:102; planes `oculus_edge`, floor.cpp:92-103
+Code: `Quarter::inner_beams`, [floor_members.cpp:102](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L102); planes `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L92-L103)
 
 ## 86. Seam beam 2
 
 ![](floor/086_seam_beam_2.webp)
 
-Seam beam 2 mirrors seam beam 0 on seam 3: `loft_planes({cp.outer_ribs[1][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1])`. Its bottom loop lies on the seam plane y = 0 and its top loop on y = -60. The frame shows all three inner beams of quarter 0 in plan, with seam beam 0 on x in [-60, 0] and seam beam 2 on y in [-60, 0]. With `seam_through_ribs` the two outer ribs end on the beams' far faces x = -60 and y = -60.
+<span style="color:#2196EA">■ built</span> `inner_beams_0_0`, `inner_beams_1_0`, `inner_beams_2_0`   <span style="color:#8C969E">■ context</span> the outer ribs of quarter 0
+
+Seam beam 2 mirrors seam beam 0 on seam 3: `loft_planes({cp.outer_ribs[1][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1])`. Its bottom loop lies on the seam plane y = 0 and its top loop on y = -60. The frame shows <span style="color:#2196EA">all three inner beams of quarter 0</span> in plan, with seam beam 0 on x in [-60, 0] and seam beam 2 on y in [-60, 0]. With `seam_through_ribs` <span style="color:#8C969E">the two outer ribs</span> end on the beams' far faces x = -60 and y = -60.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -133,13 +147,15 @@ Seam beam 2 mirrors seam beam 0 on seam 3: `loft_planes({cp.outer_ribs[1][face],
 loft_planes({cp.outer_ribs[1][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1]),
 ```
 
-Code: `Quarter::inner_beams`, floor_members.cpp:103
+Code: `Quarter::inner_beams`, [floor_members.cpp:103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L103)
 
 ## 87. Wedges: bounding rib faces and bed planes
 
 ![](floor/087_wedge_bounds.webp)
 
-`Quarter::wedges` sets `top = level(0.0)` and `ribs[i]`, the two rib faces that bound block `i`. Block 0 lies in outer panel 0 between `outer_ribs[0][1]` and `inner_ribs[0][0]`. Block 1 lies between the two central faces `inner_ribs[0][1]` and `inner_ribs[1][1]`. Block 2 lies in outer panel 1 between `inner_ribs[1][0]` and `outer_ribs[1][1]`. The underside of each block is `beds[i] = geometry().bed_top_planes[i]`. `panel_top_plane` builds each of these planes as `Plane::from_points_pca` through four points: the first two points of each `+2t` side curve after trimming by the beam face and the fan plane, ordered deepest first. The normal is then flipped up and the plane rebuilt at the PCA centroid. Each block therefore stands on the top of the bed row in its panel.
+<span style="color:#2196EA">■ built</span> `ribs[0..2]`, the two faces of each block   <span style="color:#455B6B">■ input</span> `beds[i] = bed_top_planes[i]`   <span style="color:#8C969E">■ context</span> the outer and inner ribs
+
+`Quarter::wedges` sets `top = level(0.0)` and <span style="color:#2196EA">`ribs[i]`</span>, the two rib faces that bound block `i`. Block 0 lies in outer panel 0 between <span style="color:#2196EA">`outer_ribs[0][1]`</span> and <span style="color:#2196EA">`inner_ribs[0][0]`</span>. Block 1 lies between the two central faces <span style="color:#2196EA">`inner_ribs[0][1]`</span> and <span style="color:#2196EA">`inner_ribs[1][1]`</span>. Block 2 lies in outer panel 1 between <span style="color:#2196EA">`inner_ribs[1][0]`</span> and <span style="color:#2196EA">`outer_ribs[1][1]`</span>. The underside of each block is <span style="color:#455B6B">`beds[i] = geometry().bed_top_planes[i]`</span>. `panel_top_plane` builds each of these planes as `Plane::from_points_pca` through four points: the first two points of each `+2t` side curve after trimming by the beam face and the fan plane, ordered deepest first. The normal is then flipped up and the plane rebuilt at the PCA centroid. Each block therefore stands on the top of the bed row in its panel.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -169,13 +185,15 @@ const Vector normal = plane.z_axis()[2] < 0.0 ? -plane.z_axis() : plane.z_axis()
 return Plane::from_point_normal(plane.origin(), normal);
 ```
 
-Code: `Quarter::wedges`, floor_members.cpp:107-116; `panel_top_plane` and `bed_top_planes`, floor.cpp:48-62, 344-357
+Code: `Quarter::wedges`, [floor_members.cpp:107-116](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L107-L116); `panel_top_plane` and `bed_top_planes`, [floor.cpp:48-62](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L48-L62), [344-357](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L344-L357)
 
 ## 88. Wedges: loft between fan and far face
 
 ![](floor/088_wedge_blocks.webp)
 
-Each block is `loft_planes({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1])`. Its corners are (rib 0, bed), (bed, rib 1), (rib 1, datum) and (datum, rib 0). The bottom loop lies on the fan plane `cp.wedges[i][0]` against the column head. The top loop lies on the far face `cp.wedges[i][1]`. The far faces come from `block_planes`: the fan plane moved along its normal by `run_in[0]`, `middle_wedge_factor * mean(run_in)` and `run_in[1]`. The `pair(..., wedge)` far faces made earlier in `wedge_fan` are placeholders until `block_planes` replaces them. On the square bay both run-ins stay at 240, so the blocks are 240, 300 and 240 thick. The blocks lean because the fan planes lean.
+<span style="color:#2196EA">■ built</span> `wedges_0_0`, `wedges_1_0`, `wedges_2_0`   <span style="color:#8C969E">■ context</span> the outer and inner ribs
+
+Each block is <span style="color:#2196EA">`loft_planes({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1])`</span>. Its corners are (rib 0, bed), (bed, rib 1), (rib 1, datum) and (datum, rib 0). The bottom loop lies on the fan plane `cp.wedges[i][0]` against the column head. The top loop lies on the far face `cp.wedges[i][1]`. The far faces come from `block_planes`: the fan plane moved along its normal by `run_in[0]`, `middle_wedge_factor * mean(run_in)` and `run_in[1]`. The `pair(..., wedge)` far faces made earlier in `wedge_fan` are placeholders until `block_planes` replaces them. On the square bay both run-ins stay at 240, so the blocks are 240, 300 and 240 thick. The blocks lean because the fan planes lean.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -202,13 +220,15 @@ for (size_t i = 0; i < 3; i++) {
 }
 ```
 
-Code: `Quarter::wedges`, floor_members.cpp:118-123; `block_planes`, floor.cpp:314-323
+Code: `Quarter::wedges`, [floor_members.cpp:118-123](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L118-L123); `block_planes`, [floor.cpp:314-323](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L314-L323)
 
 ## 89. tsection: trim four traces
 
 ![](floor/089_tsection_trim.webp)
 
-`tsection(soffit, layer, cut_plane0, cut_plane1, projection10, projection11)` makes one flange plate. It trims four traces between the same two planes: `cut_plane0`, the beam face the flange ends on, and `cut_plane1`, the fan plane. `cut00` is the soffit on face 0 and `cut10` the `+t` layer on face 0. `cut01` and `cut11` are the same two traces after `projection10` and `projection11` carry them onto face 1. Each trace is trimmed after it is projected, so its ends lie exactly on the cut planes on both faces. `trim` first pushes both end segments out by `EXTENSION` = 1000 along their own direction and then calls `cut_by_plane` twice. As a result the parabola's start point at the run-in (x -2540, z -650) is dropped, and the soffit reaches the fan plane along its extended first chord at z -694.8. The frame shows t-section 0 on face y = -2900: the untrimmed traces dashed, the trimmed ones solid, 27 apart.
+<span style="color:#2196EA">■ built</span> `cut00`, the soffit trimmed   <span style="color:#EBB121">■ result</span> `cut10`, the `+t` trimmed   <span style="color:#EB7721">■ variable</span> `tsections = 27`   <span style="color:#455B6B">■ input</span> the untrimmed traces (dashed), `cut_plane0`, `cut_plane1`   <span style="color:#8C969E">■ context</span> outer rib 0's bottom loop
+
+`tsection(soffit, layer, cut_plane0, cut_plane1, projection10, projection11)` makes one flange plate. It trims four traces between the same two planes: <span style="color:#455B6B">`cut_plane0`</span>, the beam face the flange ends on, and <span style="color:#455B6B">`cut_plane1`</span>, the fan plane. <span style="color:#2196EA">`cut00`</span> is the soffit on face 0 and <span style="color:#EBB121">`cut10`</span> the `+t` layer on face 0. `cut01` and `cut11` are the same two traces after `projection10` and `projection11` carry them onto face 1. Each trace is trimmed after it is projected, so its ends lie exactly on the cut planes on both faces. `trim` first pushes both end segments out by `EXTENSION` = 1000 along their own direction and then calls `cut_by_plane` twice. As a result the parabola's start point at the run-in (x -2540, z -650) is dropped, and the soffit reaches the fan plane along its extended first chord at z -694.8. The frame shows t-section 0 on face y = -2900: <span style="color:#455B6B">the untrimmed traces dashed</span>, the trimmed ones solid, <span style="color:#EB7721">27 apart</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -233,13 +253,15 @@ pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * EXTENSION;
 return cut(Polyline(pts), plane0, plane1);
 ```
 
-Code: `tsection`, floor_members.cpp:130-136; `trim`, floor_geometry.cpp:73-82
+Code: `tsection`, [floor_members.cpp:130-136](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L130-L136); `trim`, [floor_geometry.cpp:73-82](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_geometry.cpp#L73-L82)
 
 ## 90. tsection: the 15-point loop
 
 ![](floor/090_tsection_loop.webp)
 
-The top loop is `cut00`, then `cut10` in reverse, then `cut00.front()` again. On face 0 that is one closed strip: along the soffit from the fan to the beam face (points 0 to 6), up the beam face by `tsections` (6 to 7), back along `+t` (7 to 13), and down the fan plane to the start (13 to 14). The bottom loop is built the same way from `cut01` and `cut11` on face 1. The outline is `{Polyline(top), Polyline(bottom)}`, a 27 mm plate lying flat against the rib face.
+<span style="color:#2196EA">■ built</span> `tsections()[0].top`, 15 points   <span style="color:#EB7721">■ variable</span> the point order 0 .. 14 and its direction   <span style="color:#8C969E">■ context</span> outer rib 0's bottom loop
+
+<span style="color:#2196EA">The top loop</span> is `cut00`, then `cut10` in reverse, then `cut00.front()` again. On face 0 that is one closed strip: along the soffit from the fan to the beam face (<span style="color:#EB7721">points 0 to 6</span>), up the beam face by `tsections` (<span style="color:#EB7721">6 to 7</span>), back along `+t` (<span style="color:#EB7721">7 to 13</span>), and down the fan plane to the start (<span style="color:#EB7721">13 to 14</span>). The bottom loop is built the same way from `cut01` and `cut11` on face 1. The outline is `{Polyline(top), Polyline(bottom)}`, a 27 mm plate lying flat against the rib face.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -260,13 +282,15 @@ bottom.push_back(cut01.front());
 return {Polyline(top), Polyline(bottom)};
 ```
 
-Code: `tsection`, floor_members.cpp:138-146
+Code: `tsection`, [floor_members.cpp:138-146](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L138-L146)
 
 ## 91. outer_tsection projections
 
 ![](floor/091_outer_tsection.webp)
 
-`outer_tsection(parabola, faces, outer, sweep, cut_plane0, cut_plane1)` makes a flange beside an outer panel rib face. `projection = project_to_plane_by_axis(faces[0], outer)` slides the outer parabola's soffit `parabola[0]` and `+t` `parabola[1]` along the outer rib normal onto face 0. `tsection` then gets `projection10 = project_to_plane_by_axis(faces[1], sweep)` for the soffit and `projection11 = project_to_plane_by_axis(faces[1], outer)` for the `+t`. Every direction used here is horizontal, so z does not change. For t-section 0, face 0 is y = -2900. For t-section 1, face 0 is `inner_ribs[0][0]`, and the projected soffit there equals the shadow parabola `parabolas[2][0]`.
+<span style="color:#2196EA">■ built</span> the soffit on `ts[0][0]` and on `ts[1][0]`   <span style="color:#EB7721">■ variable</span> `outer = outer_ribs[0][0].z_axis()`   <span style="color:#455B6B">■ input</span> `parabolas[0][0]` in plan   <span style="color:#8C969E">■ context</span> the two flange face traces
+
+`outer_tsection(parabola, faces, outer, sweep, cut_plane0, cut_plane1)` makes a flange beside an outer panel rib face. <span style="color:#2196EA">`projection = project_to_plane_by_axis(faces[0], outer)`</span> slides the outer parabola's soffit <span style="color:#455B6B">`parabola[0]`</span> and `+t` `parabola[1]` <span style="color:#EB7721">along the outer rib normal</span> onto face 0. `tsection` then gets `projection10 = project_to_plane_by_axis(faces[1], sweep)` for the soffit and `projection11 = project_to_plane_by_axis(faces[1], outer)` for the `+t`. Every direction used here is horizontal, so z does not change. For t-section 0, face 0 is y = -2900. For t-section 1, face 0 is `inner_ribs[0][0]`, and the projected soffit there equals the shadow parabola `parabolas[2][0]`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -287,13 +311,15 @@ return tsection(
 );
 ```
 
-Code: `outer_tsection`, floor_members.cpp:149-159
+Code: `outer_tsection`, [floor_members.cpp:149-159](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L149-L159)
 
 ## 92. Flanges 0 and 5
 
 ![](floor/092_flanges_0_5.webp)
 
-T-section 0 is `outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0])`, with `ts[0] = pair(outer_ribs[0][1], +tsections)`. Both projections run along the outer normal, so the plate is a straight 27 mm extrusion of the trimmed strip from y = -2900 to y = -2873. It runs from the fan plane at x = -2677 to the seam beam face x = -60. T-section 5 is the mirror on outer rib 1: `outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0])`. The frame looks from the bay centre, so the flanges on the panel sides of the ribs are in view.
+<span style="color:#2196EA">■ built</span> `tsections_0_0`, `tsections_5_0`   <span style="color:#8C969E">■ context</span> the outer ribs
+
+<span style="color:#2196EA">T-section 0 is</span> `outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0])`, with `ts[0] = pair(outer_ribs[0][1], +tsections)`. Both projections run along the outer normal, so the plate is a straight 27 mm extrusion of the trimmed strip from y = -2900 to y = -2873. It runs from the fan plane at x = -2677 to the seam beam face x = -60. <span style="color:#2196EA">T-section 5 is</span> the mirror on outer rib 1: `outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0])`. The frame looks from the bay centre, so the flanges on the panel sides of the ribs are in view.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -323,13 +349,15 @@ cp.tsections = {
 };
 ```
 
-Code: `Quarter::tsections`, floor_members.cpp:161-171, 184; planes `construction_planes`, floor.cpp:205-212
+Code: `Quarter::tsections`, [floor_members.cpp:161-171](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L161-L171), [184](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L184); planes `construction_planes`, [floor.cpp:205-212](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L205-L212)
 
 ## 93. Flanges 1 and 4
 
 ![](floor/093_flanges_1_4.webp)
 
-T-section 1 is `outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.wedges[0][0])`, with `ts[1] = pair(inner_ribs[0][0], -tsections)`. The flange lies against inner rib 0's outer face, inside outer panel 0. Face 0 carries the outer parabola projected along `outer0`, which is the shadow parabola. On face 1 the soffit arrives along `rib_sweep` (red arrows in the frame) and the `+t` along `outer0` (black arrows). Because the two directions differ, the bottom loop is not a parallel copy of the top loop. After trimming, its fan end lies at z -700.9 instead of -694.8, and its seam end at (-60,-1057.5,-199.4), 0.6 mm below the soffit. T-section 4 mirrors it with `pb[1]`, `ts[4]`, `outer1`, `inner_beams[2][1]` and `wedges[2][0]`.
+<span style="color:#2196EA">■ built</span> `tsections()[1].bottom` on `ts[1][1]`   <span style="color:#EBB121">■ result</span> `tsections()[1].top` on `ts[1][0]`   <span style="color:#EB7721">■ variable</span> `panel.rib_sweep`, the soffit's direction   <span style="color:#455B6B">■ input</span> `outer0`, the `+t`'s direction, and faces `ts[1][0]`, `ts[1][1]` (dashed)   <span style="color:#8C969E">■ context</span> inner rib 0
+
+T-section 1 is `outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.wedges[0][0])`, with `ts[1] = pair(inner_ribs[0][0], -tsections)`. The flange lies against inner rib 0's outer face, inside outer panel 0. Face 0 carries the outer parabola projected along `outer0`, which is the shadow parabola. On face 1 the soffit arrives along <span style="color:#EB7721">`rib_sweep`</span> (orange arrows in the frame) and the `+t` along <span style="color:#455B6B">`outer0`</span> (slate arrows). Because the two directions differ, <span style="color:#2196EA">the bottom loop</span> is not a parallel copy of <span style="color:#EBB121">the top loop</span>. After trimming, its fan end lies at z -700.9 instead of -694.8, and its seam end at (-60,-1057.5,-199.4), 0.6 mm below the soffit. T-section 4 mirrors it with `pb[1]`, `ts[4]`, `outer1`, `inner_beams[2][1]` and `wedges[2][0]`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -346,13 +374,15 @@ outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.w
 outer_tsection(pb[1], ts[4], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
 ```
 
-Code: `Quarter::tsections`, floor_members.cpp:172, 183
+Code: `Quarter::tsections`, [floor_members.cpp:172](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L172), [183](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L183)
 
 ## 94. Flanges 2 and 3
 
 ![](floor/094_flanges_2_3.webp)
 
-T-sections 2 and 3 do not use `outer_tsection`. They call `tsection` directly on the central panel traces: `tsection(panel.traces[0][0], panel.traces[0][1], cp.inner_beams[1][1], cp.wedges[1][0], project_to_plane_by_axis(ts[2][1], panel.rib_sweep), project_to_plane_by_axis(ts[2][1], panel.ruling))`, with `ts[2] = pair(inner_ribs[0][1], +tsections)`. Face 0 carries the central panel's soffit and `+t` on inner rib 0's central face. The soffit is carried to face 1 along `rib_sweep`, and the `+t` along the ruling `u`. Both are cut between the oculus beam back face and the middle fan plane. T-section 3 does the same for inner rib 1 with `panel.traces[1]` and `ts[3]`.
+<span style="color:#2196EA">■ built</span> `tsections_2_0`, `tsections_3_0`   <span style="color:#EB7721">■ variable</span> `panel.ruling` u, the `+t`'s direction   <span style="color:#455B6B">■ input</span> `panel.rib_sweep` r, the soffit's direction   <span style="color:#8C969E">■ context</span> the inner ribs
+
+<span style="color:#2196EA">T-sections 2 and 3</span> do not use `outer_tsection`. They call `tsection` directly on the central panel traces: `tsection(panel.traces[0][0], panel.traces[0][1], cp.inner_beams[1][1], cp.wedges[1][0], project_to_plane_by_axis(ts[2][1], panel.rib_sweep), project_to_plane_by_axis(ts[2][1], panel.ruling))`, with `ts[2] = pair(inner_ribs[0][1], +tsections)`. Face 0 carries the central panel's soffit and `+t` on inner rib 0's central face. The soffit is carried to face 1 along <span style="color:#455B6B">`rib_sweep`</span>, and the `+t` along <span style="color:#EB7721">the ruling `u`</span>. Both are cut between the oculus beam back face and the middle fan plane. T-section 3 does the same for inner rib 1 with `panel.traces[1]` and `ts[3]`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -376,13 +406,15 @@ tsection(
 ),
 ```
 
-Code: `Quarter::tsections`, floor_members.cpp:173-182
+Code: `Quarter::tsections`, [floor_members.cpp:173-182](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L173-L182)
 
 ## 95. bed_row: trim layers on both side faces
 
 ![](floor/095_bed_layers.webp)
 
-`bed_row(lower_faces, upper_faces, cut_plane0, cut_plane1)` trims four polylines between the beam face and the fan plane. `lower[s]` is the `+t` layer and `upper[s]` the `+2t` layer, each on the panel's side face `s` = 0, 1. All four trimmed point lists must have the same length. Otherwise the function throws `std::runtime_error("a bed row's layers are cut on different facets: ...")` and names the four counts. Equal counts mean every facet gives one plate that reaches both sides. The frame shows row 0: side 0 is `inner_ribs[0][0]`, side 1 is `outer_ribs[0][1]`.
+<span style="color:#2196EA">■ built</span> `lower[0]`, `lower[1]`: `+t` trimmed   <span style="color:#EBB121">■ result</span> `upper[0]`, `upper[1]`: `+2t` trimmed   <span style="color:#455B6B">■ input</span> the untrimmed layers (dashed)   <span style="color:#8C969E">■ context</span> outer rib 0 and inner rib 0
+
+`bed_row(lower_faces, upper_faces, cut_plane0, cut_plane1)` trims four polylines between the beam face and the fan plane. <span style="color:#2196EA">`lower[s]`</span> is the `+t` layer and <span style="color:#EBB121">`upper[s]`</span> the `+2t` layer, each on the panel's side face `s` = 0, 1. All four trimmed point lists must have the same length. Otherwise the function throws `std::runtime_error("a bed row's layers are cut on different facets: ...")` and names the four counts. Equal counts mean every facet gives one plate that reaches both sides. The frame shows row 0: side 0 is `inner_ribs[0][0]`, side 1 is `outer_ribs[0][1]`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -400,13 +432,15 @@ if (lower[1].size() != lower[0].size() || upper[0].size() != lower[0].size() || 
     throw std::runtime_error(fmt::format("a bed row's layers are cut on different facets: {} / {} lower and {} / {} upper points", lower[0].size(), lower[1].size(), upper[0].size(), upper[1].size()));
 ```
 
-Code: `bed_row`, floor_members.cpp:188-195
+Code: `bed_row`, [floor_members.cpp:188-195](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L188-L195)
 
 ## 96. bed_row: one plate per facet
 
 ![](floor/096_bed_plates.webp)
 
-For each facet `i`, the bottom quad is `{lower[0][i], lower[0][i + 1], lower[1][i + 1], lower[1][i]}`, closed, and the top quad is the same four indices taken from `upper`. Each plate is pushed as `{top, bottom}`: a 27 mm plank spanning the panel from side face to side face. Its underside is the flange top (`+t`) and its top is the `+2t` layer. Seven trimmed points give six plates, stepping up the parabola from the column to the seam beam.
+<span style="color:#2196EA">■ built</span> `beds_0_0_0` .. `beds_0_5_0`   <span style="color:#8C969E">■ context</span> the ribs, `tsections_0_0` and `tsections_1_0`
+
+For each facet `i`, the bottom quad is `{lower[0][i], lower[0][i + 1], lower[1][i + 1], lower[1][i]}`, closed, and the top quad is the same four indices taken from `upper`. Each plate is pushed as `{top, bottom}`: a 27 mm plank spanning the panel from side face to side face. Its underside is <span style="color:#8C969E">the flange top</span> (`+t`) and its top is the `+2t` layer. Seven trimmed points give <span style="color:#2196EA">six plates</span>, stepping up the parabola from the column to the seam beam.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -423,13 +457,15 @@ for (size_t i = 0; i + 1 < lower[0].size(); i++) {
 }
 ```
 
-Code: `bed_row`, floor_members.cpp:197-205
+Code: `bed_row`, [floor_members.cpp:197-205](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L197-L205)
 
 ## 97. outer_bed_row projections
 
 ![](floor/097_outer_bed_row.webp)
 
-`outer_bed_row(parabola, side0, side1, outer, cut_plane0, cut_plane1)` makes `projection0 = project_to_plane_by_axis(side0, outer)` and `projection1 = project_to_plane_by_axis(side1, outer)`. It projects the outer parabola's `+t` (`parabola[1]`) and `+2t` (`parabola[2]`) onto both sides along the outer rib normal. It then passes them to `bed_row` as `lower_faces = {+t on side0, +t on side1}` and `upper_faces = {+2t on side0, +2t on side1}`. In plan both layers lie on y = -3000, because `offset_polyline` offsets inside the parabola's vertical plane.
+<span style="color:#2196EA">■ built</span> the `+t` on `side0` and on `side1`   <span style="color:#EB7721">■ variable</span> `outer` = (0,1,0)   <span style="color:#455B6B">■ input</span> `parabolas[0][1]` (`+t`) and `parabolas[0][2]` (`+2t`)   <span style="color:#8C969E">■ context</span> the two side face traces
+
+`outer_bed_row(parabola, side0, side1, outer, cut_plane0, cut_plane1)` makes <span style="color:#2196EA">`projection0 = project_to_plane_by_axis(side0, outer)`</span> and <span style="color:#2196EA">`projection1 = project_to_plane_by_axis(side1, outer)`</span>. It projects the outer parabola's `+t` (<span style="color:#455B6B">`parabola[1]`</span>) and `+2t` (<span style="color:#455B6B">`parabola[2]`</span>) onto both sides <span style="color:#EB7721">along the outer rib normal</span>. It then passes them to `bed_row` as `lower_faces = {+t on side0, +t on side1}` and `upper_faces = {+2t on side0, +2t on side1}`. In plan both layers lie on y = -3000, because `offset_polyline` offsets inside the parabola's vertical plane.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -448,13 +484,15 @@ const Xform projection1 = Xform::project_to_plane_by_axis(side1, outer);
 return bed_row({parabola[1].transformed(projection0), parabola[1].transformed(projection1)}, {parabola[2].transformed(projection0), parabola[2].transformed(projection1)}, cut_plane0, cut_plane1);
 ```
 
-Code: `outer_bed_row`, floor_members.cpp:208-215
+Code: `outer_bed_row`, [floor_members.cpp:208-215](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L208-L215)
 
 ## 98. Three bed rows
 
 ![](floor/098_bed_rows.webp)
 
-`Quarter::beds` returns three rows. Row 0 is `outer_bed_row(pb[0], cp.inner_ribs[0][0], cp.outer_ribs[0][1], outer_ribs[0][0].z_axis(), cp.inner_beams[0][1], cp.wedges[0][0])`. Row 1 is `bed_row({traces[0][1], traces[1][1]}, {traces[0][2], traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0])`. It reads the central panel traces on the two central faces directly and runs from the middle fan plane to the oculus beam back face. Row 2 mirrors row 0 with `pb[1]`, `inner_ribs[1][0]`, `outer_ribs[1][1]`, `inner_beams[2][1]` and `wedges[2][0]`. On the square bay that is 18 plates per quarter.
+<span style="color:#2196EA">■ built</span> `beds()[0]`, `beds()[1]`, `beds()[2]`   <span style="color:#8C969E">■ context</span> the outer and inner ribs
+
+`Quarter::beds` returns <span style="color:#2196EA">three rows</span>. Row 0 is `outer_bed_row(pb[0], cp.inner_ribs[0][0], cp.outer_ribs[0][1], outer_ribs[0][0].z_axis(), cp.inner_beams[0][1], cp.wedges[0][0])`. Row 1 is `bed_row({traces[0][1], traces[1][1]}, {traces[0][2], traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0])`. It reads the central panel traces on the two central faces directly and runs from the middle fan plane to the oculus beam back face. Row 2 mirrors row 0 with `pb[1]`, `inner_ribs[1][0]`, `outer_ribs[1][1]`, `inner_beams[2][1]` and `wedges[2][0]`. On the square bay that is <span style="color:#2196EA">18 plates per quarter</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -471,13 +509,15 @@ return {
 };
 ```
 
-Code: `Quarter::beds`, floor_members.cpp:217-228
+Code: `Quarter::beds`, [floor_members.cpp:217-228](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L217-L228)
 
 ## 99. Oculus levels side0..side3
 
 ![](floor/099_oculus_levels.webp)
 
-`FloorGuide::oculus` builds the ring for the whole floor, not per quarter. It first sets four horizontal planes. `side0 = level(0)` is the datum. `side1 = level(soffit + tsections)` is the top of the bottom wedges and the underside of the central plate. `side2 = level(soffit)` is the ring soffit. `side3 = level(soffit + 2 * tsections)` is the top of the central plate.
+<span style="color:#2196EA">■ built</span> `side0`, `side1`, `side2`, `side3`   <span style="color:#8C969E">■ context</span> the ring beams
+
+`FloorGuide::oculus` builds the ring for the whole floor, not per quarter. It first sets four horizontal planes. <span style="color:#2196EA">`side0 = level(0)`</span> is the datum. <span style="color:#2196EA">`side1 = level(soffit + tsections)`</span> is the top of the bottom wedges and the underside of the central plate. <span style="color:#2196EA">`side2 = level(soffit)`</span> is the ring soffit. <span style="color:#2196EA">`side3 = level(soffit + 2 * tsections)`</span> is the top of the central plate.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -495,13 +535,15 @@ const Plane side2 = level(soffit);
 const Plane side3 = level(soffit + parameters.tsections * 2.0);
 ```
 
-Code: `FloorGuide::oculus`, floor_members.cpp:234-239
+Code: `FloorGuide::oculus`, [floor_members.cpp:234-239](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L234-L239)
 
 ## 100. Oculus planes tilted[q], inner[q]
 
 ![](floor/100_oculus_planes.webp)
 
-For each `OculusEdge` `q`, `tilted[q] = edge.tilted` and `inner[q] = edge.ring_inner`. `tilted` is the vertical edge plane turned by `-oculus_plane_angle` about the edge line through its centre. At z 0 it lies on the edge, and at the soffit it lies 17.4 mm toward the centre. `ring_inner` is the back face moved back by `2 * inner_beams`, so it stands vertically 60 mm inside the edge, toward the centre. The oculus is the diamond through (0,-1000), (1000,0), (0,1000) and (-1000,0).
+<span style="color:#2196EA">■ built</span> `tilted[q]` at `side0`, on the edge   <span style="color:#EB7721">■ variable</span> `tilted[q]` at `side2`, 17.4 inward   <span style="color:#EBB121">■ result</span> `inner[q] = ring_inner`, 60 inside
+
+For each `OculusEdge` `q`, <span style="color:#2196EA">`tilted[q] = edge.tilted`</span> and <span style="color:#EBB121">`inner[q] = edge.ring_inner`</span>. `tilted` is the vertical edge plane turned by `-oculus_plane_angle` about the edge line through its centre. At z 0 it lies on the edge, and <span style="color:#EB7721">at the soffit it lies 17.4 mm toward the centre</span>. `ring_inner` is the back face moved back by `2 * inner_beams`, so it stands vertically 60 mm inside the edge, toward the centre. The oculus is the diamond through (0,-1000), (1000,0), (0,1000) and (-1000,0).
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -525,13 +567,15 @@ edge.back = plane.translate_by_normal(parameters.inner_beams);
 edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
 ```
 
-Code: `FloorGuide::oculus`, floor_members.cpp:241-247; `oculus_edge`, floor.cpp:92-103
+Code: `FloorGuide::oculus`, [floor_members.cpp:241-247](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L241-L247); `oculus_edge`, [floor.cpp:92-103](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L92-L103)
 
 ## 101. Ring beams: pinwheel
 
 ![](floor/101_ring_beams.webp)
 
-Ring beam `i` is `loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true)`. The beam lies between its own tilted plane and ring-inner plane, from the soffit up to the datum. At its oculus-corner-`i` end it runs through the corner and ends on the next edge's tilted plane `tilted[(i + 1) % 4]`. At its other end it stops on the previous edge's inner plane. All four beams do the same, so they close as a pinwheel with no mitres (arrows in the frame). `flip = true` puts the loop on `tilted[i]` first, as `Outline.top`, so `top` is the face the ring beam shares with the quarter's oculus beam. The ring beams become `oculus_0` .. `oculus_3` (`to_beam(outline, {1, 0}, {2, 3})`).
+<span style="color:#2196EA">■ built</span> `oculus_0` .. `oculus_3`   <span style="color:#EB7721">■ variable</span> each beam's run on to `tilted[(i + 1) % 4]`   <span style="color:#8C969E">■ context</span> the oculus edges
+
+Ring beam `i` is `loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true)`. The beam lies between its own tilted plane and ring-inner plane, from the soffit up to the datum. At its oculus-corner-`i` end it runs through the corner and ends on the next edge's tilted plane <span style="color:#EB7721">`tilted[(i + 1) % 4]`</span>. At its other end it stops on the previous edge's inner plane. All four beams do the same, so they close as a pinwheel with no mitres <span style="color:#EB7721">(arrows in the frame)</span>. `flip = true` puts the loop on `tilted[i]` first, as `Outline.top`, so `top` is the face the ring beam shares with the quarter's oculus beam. The ring beams become <span style="color:#2196EA">`oculus_0` .. `oculus_3`</span> (`to_beam(outline, {1, 0}, {2, 3})`).
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -546,13 +590,15 @@ for (size_t i = 0; i < 4; i++)
     plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 ```
 
-Code: `FloorGuide::oculus`, floor_members.cpp:249-252
+Code: `FloorGuide::oculus`, [floor_members.cpp:249-252](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L249-L252)
 
 ## 102. Bottom wedges: ledge strips
 
 ![](floor/102_bottom_wedges.webp)
 
-For each `i`, `sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-tsections), inner[(i + 3) % 4].translate_by_normal(-tsections)}`, lofted with `loft_planes(sides, side2, side1)`. The `-tsections` offset moves toward the centre. The result is a ledge strip 27 mm wide and 27 mm thick along ring beam `i`'s inner face, from the soffit to soffit + t. Like the ring beams, the strips run in a pinwheel. They are not under the ring beams but inside the ring, and together they carry the central plate. They are `oculus_4` .. `oculus_7`, made with `to_plate`.
+<span style="color:#2196EA">■ built</span> `oculus_4` .. `oculus_7`   <span style="color:#8C969E">■ context</span> the ring beams
+
+For each `i`, `sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-tsections), inner[(i + 3) % 4].translate_by_normal(-tsections)}`, lofted with `loft_planes(sides, side2, side1)`. The `-tsections` offset moves toward the centre. The result is a ledge strip 27 mm wide and 27 mm thick along ring beam `i`'s inner face, from the soffit to soffit + t. Like the ring beams, the strips run in a pinwheel. They are not under the ring beams but inside the ring, and together they carry the central plate. They are <span style="color:#2196EA">`oculus_4` .. `oculus_7`</span>, made with `to_plate`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -570,13 +616,15 @@ for (size_t i = 0; i < 4; i++) {
 }
 ```
 
-Code: `FloorGuide::oculus`, floor_members.cpp:254-257
+Code: `FloorGuide::oculus`, [floor_members.cpp:254-257](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L254-L257)
 
 ## 103. Central plate
 
 ![](floor/103_central_plate.webp)
 
-`loft_planes(inner, side1, side3)` gives the square bounded by the four ring-inner planes, between soffit + t and soffit + 2t. It fills the ring and rests on the bottom wedges. It is `oculus_8`, the only member of no quarter, kept in the `oculus` group. Its top is `soffit + 2 * tsections` = -144.78. The beds' `+2t` layer ends at -144.76 on the beam faces, so the two differ by about 0.02 mm. Nothing in the construction ties them together.
+<span style="color:#2196EA">■ built</span> `oculus_8`   <span style="color:#EB7721">■ variable</span> half-diagonal 915.1   <span style="color:#8C969E">■ context</span> the ring beams and bottom wedges
+
+`loft_planes(inner, side1, side3)` gives the square bounded by the four ring-inner planes, between soffit + t and soffit + 2t. It fills the ring and rests on <span style="color:#8C969E">the bottom wedges</span>. It is <span style="color:#2196EA">`oculus_8`</span>, the only member of no quarter, kept in the `oculus` group. Its top is `soffit + 2 * tsections` = -144.78. The beds' `+2t` layer ends at -144.76 on the beam faces, so the two differ by about 0.02 mm. Nothing in the construction ties them together.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -589,13 +637,15 @@ Code: `FloorGuide::oculus`, floor_members.cpp:254-257
 plates.push_back(loft_planes(inner, side1, side3));
 ```
 
-Code: `FloorGuide::oculus`, floor_members.cpp:259-261
+Code: `FloorGuide::oculus`, [floor_members.cpp:259-261](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L259-L261)
 
 ## 104. column_cutters: fan_top
 
 ![](floor/104_fan_top.webp)
 
-`Quarter::column_cutters` carves the column head at the quarter's corner. It first sets three levels, `xy0`, `xy1` and `xy2` = `level(corner.levels[0..2])`, and reads `side0` and `side1` = `corner.sides`, the vertical planes on the head edges along the bay boundary with normals into the bay. `fan_top = {side0, wedges[0][0], wedges[1][0], wedges[2][0], side1}` is the chain of planes the carved head face follows from the datum down to the rib-bottom level. At the datum each of the five planes passes through one head edge, `edge(head, k)` for k = 0..4: the two side planes stand on edges 0 and 4, and the three fan planes pass through edges 1, 2 and 3. `levels[1]` is not known when `column_corner` runs (it writes 0 there as a placeholder). The `FloorGuide` constructor sets it to `rib_bottom_level` after all four quarters are computed.
+<span style="color:#2196EA">■ built</span> `fan_top[0..4]`   <span style="color:#455B6B">■ input</span> `edge(head, k)`, the head edges
+
+`Quarter::column_cutters` carves the column head at the quarter's corner. It first sets three levels, `xy0`, `xy1` and `xy2` = `level(corner.levels[0..2])`, and reads `side0` and `side1` = `corner.sides`, the vertical planes on the head edges along the bay boundary with normals into the bay. <span style="color:#2196EA">`fan_top = {side0, wedges[0][0], wedges[1][0], wedges[2][0], side1}`</span> is the chain of planes the carved head face follows from the datum down to the rib-bottom level. At the datum each of the five planes passes through one head edge, <span style="color:#455B6B">`edge(head, k)`</span> for k = 0..4: the two side planes stand on edges 0 and 4, and the three fan planes pass through edges 1, 2 and 3. `levels[1]` is not known when `column_corner` runs (it writes 0 there as a placeholder). The `FloorGuide` constructor sets it to `rib_bottom_level` after all four quarters are computed.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -620,13 +670,15 @@ column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(
 column.levels = {0.0, 0.0, -guide.parameters.column_head_depth};
 ```
 
-Code: `Quarter::column_cutters`, floor_members.cpp:291-302; `column_corner`, floor.cpp:134-137; levels[1] floor.cpp:377-386, 427-428
+Code: `Quarter::column_cutters`, [floor_members.cpp:291-302](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L291-L302); `column_corner`, [floor.cpp:134-137](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L134-L137); levels[1] [floor.cpp:377-386](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L377-L386), [427-428](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor.cpp#L427-L428)
 
 ## 105. column_cutters: fan_bottom
 
 ![](floor/105_fan_bottom.webp)
 
-`fan_bottom = {side0, edge_plane(edge(column, 1), down), edge_plane(edge(column, 3), down), side1}`. Edge 1 runs from `head[1]` to `head[2]` on x = -2780, and edge 3 from `head[3]` to `head[4]` on y = -2780. These two planes are the faces of the square shaft. The chamfer edge 2 has no plane in this list. Below the rib-bottom level, the carve therefore returns from the chamfered head to the square shaft corner (-2780, -2780).
+<span style="color:#2196EA">■ built</span> `fan_bottom[0..3]`   <span style="color:#EB7721">■ variable</span> the shaft square, `column_head` = 220, at `levels[2]`   <span style="color:#455B6B">■ input</span> chamfer `edge(column, 2)` and the drops to `levels[2]` (dashed)   <span style="color:#8C969E">■ context</span> the head edges
+
+<span style="color:#2196EA">`fan_bottom = {side0, edge_plane(edge(column, 1), down), edge_plane(edge(column, 3), down), side1}`</span>. Edge 1 runs from `head[1]` to `head[2]` on x = -2780, and edge 3 from `head[3]` to `head[4]` on y = -2780. These two planes are the faces of <span style="color:#EB7721">the square shaft</span>. <span style="color:#455B6B">The chamfer edge 2</span> has no plane in this list. Below the rib-bottom level, the carve therefore returns from the chamfered head to the square shaft corner (-2780, -2780).
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -642,13 +694,15 @@ Code: `Quarter::column_cutters`, floor_members.cpp:291-302; `column_corner`, flo
 const std::vector<Plane> fan_bottom = {side0, edge_plane(geometry::edge(column, 1), down), edge_plane(geometry::edge(column, 3), down), side1};
 ```
 
-Code: `Quarter::column_cutters`, floor_members.cpp:303
+Code: `Quarter::column_cutters`, [floor_members.cpp:303](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L303)
 
 ## 106. Cutter corners p0, p1, p2
 
 ![](floor/106_cutter_corners.webp)
 
-For `i` = 0..3, `p0[i] = plane_plane_plane(xy0, fan_top[i], fan_top[i + 1])` and `p1[i]` is the same on `xy1`. These are the creases of the top fan at the datum and at the rib-bottom level. For `i` = 0..2, `p2[i] = plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1])` at -730. `p2[1]` is the shaft corner. Every solve is unwrapped with `.value()`, so a parallel pair would throw `std::bad_optional_access`. The frame labels eight of the eleven points. The table lists all of them.
+<span style="color:#2196EA">■ built</span> `p0`, `p1`: the top fan creases   <span style="color:#EBB121">■ result</span> `p2`: the bottom fan creases   <span style="color:#455B6B">■ input</span> the crease lines `fan_top[i]` x `fan_top[i + 1]` (dashed)   <span style="color:#8C969E">■ context</span> the head and the shaft square
+
+For `i` = 0..3, <span style="color:#2196EA">`p0[i] = plane_plane_plane(xy0, fan_top[i], fan_top[i + 1])`</span> and <span style="color:#2196EA">`p1[i]`</span> is the same on `xy1`. These are the creases of the top fan at the datum and at the rib-bottom level. For `i` = 0..2, <span style="color:#EBB121">`p2[i] = plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1])`</span> at -730. <span style="color:#EBB121">`p2[1]`</span> is the shaft corner. Every solve is unwrapped with `.value()`, so a parallel pair would throw `std::bad_optional_access`. The frame labels eight of the eleven points. The table lists all of them.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -667,13 +721,15 @@ for (size_t i = 0; i + 1 < fan_bottom.size(); i++)
     p2.push_back(plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1]).value());
 ```
 
-Code: `Quarter::column_cutters`, floor_members.cpp:305-315
+Code: `Quarter::column_cutters`, [floor_members.cpp:305-315](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L305-L315)
 
 ## 107. Six cutter quads
 
 ![](floor/107_cutter_quads.webp)
 
-`quarter = (p2[2] - p2[0]) * 0.25`. Quads 0 to 2 are the three top fan faces between the datum and the rib-bottom level, `{p0[i], p0[i + 1], p1[i + 1], p1[i]}`. Only these three lie on the fan planes. Quad 3 = `{p1[0], p1[1], p2[1], p2[0]}` slopes from fan face 0's lower edge down to the shaft face x = -2780. Quad 4 = `{p1[1], p1[2], p2[1] + quarter, p2[1] - quarter}` slopes from the chamfer face's lower edge down to a 155.6 mm segment centred on the shaft corner. Quad 5 = `{p1[2], p1[3], p2[2], p2[1]}` mirrors quad 3 onto y = -2780.
+<span style="color:#2196EA">■ built</span> `quads[0..2]` on the fan   <span style="color:#EBB121">■ result</span> `quads[3..5]` down to `levels[2]`   <span style="color:#EB7721">■ variable</span> `p2[1] +- quarter`, 155.6 long   <span style="color:#8C969E">■ context</span> the head
+
+<span style="color:#EB7721">`quarter = (p2[2] - p2[0]) * 0.25`</span>. <span style="color:#2196EA">Quads 0 to 2</span> are the three top fan faces between the datum and the rib-bottom level, `{p0[i], p0[i + 1], p1[i + 1], p1[i]}`. Only these three lie on the fan planes. <span style="color:#EBB121">Quad 3</span> = `{p1[0], p1[1], p2[1], p2[0]}` slopes from fan face 0's lower edge down to the shaft face x = -2780. <span style="color:#EBB121">Quad 4</span> = `{p1[1], p1[2], p2[1] + quarter, p2[1] - quarter}` slopes from the chamfer face's lower edge down to <span style="color:#EB7721">a 155.6 mm segment</span> centred on the shaft corner. <span style="color:#EBB121">Quad 5</span> = `{p1[2], p1[3], p2[2], p2[1]}` mirrors quad 3 onto y = -2780.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -695,13 +751,15 @@ const std::vector<std::vector<Point>> quads = {
 };
 ```
 
-Code: `Quarter::column_cutters`, floor_members.cpp:317-325
+Code: `Quarter::column_cutters`, [floor_members.cpp:317-325](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L317-L325)
 
 ## 108. stretch: edges lengthened
 
 ![](floor/108_stretch_edges.webp)
 
-`stretch(quad, top)` grows each quad in its own plane before it is thickened. The first half sets `d0 = unit(quad[1] - quad[0]) * CUTTER_MARGIN` and `d1 = unit(quad[3] - quad[2]) * CUTTER_MARGIN`. Edge 0-1 is lengthened by 100 mm at both ends (`quad[0] -= d0`, `quad[1] += d0`), and edge 2-3 likewise with `d1` (`quad[2] -= d1`, `quad[3] += d1`). This makes the cutter overshoot the side planes and the neighbouring fan faces, so no sliver of the head is left between two cutters. The frame looks square onto quad 0.
+<span style="color:#2196EA">■ built</span> quad 0 lengthened   <span style="color:#EB7721">■ variable</span> `d0`, `d1`: `CUTTER_MARGIN` = 100   <span style="color:#455B6B">■ input</span> `quads[0]` before stretch
+
+`stretch(quad, top)` grows each quad in its own plane before it is thickened. The first half sets <span style="color:#EB7721">`d0 = unit(quad[1] - quad[0]) * CUTTER_MARGIN`</span> and <span style="color:#EB7721">`d1 = unit(quad[3] - quad[2]) * CUTTER_MARGIN`</span>. <span style="color:#2196EA">Edge 0-1 is lengthened</span> by 100 mm at both ends (`quad[0] -= d0`, `quad[1] += d0`), and edge 2-3 likewise with `d1` (`quad[2] -= d1`, `quad[3] += d1`). This makes the cutter overshoot the side planes and the neighbouring fan faces, so no sliver of the head is left between two cutters. The frame looks square <span style="color:#455B6B">onto quad 0</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -720,13 +778,15 @@ quad[2] = quad[2] - d1;
 quad[3] = quad[3] + d1;
 ```
 
-Code: `stretch`, floor_members.cpp:268-276
+Code: `stretch`, [floor_members.cpp:268-276](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L268-L276)
 
 ## 109. stretch: edges pushed apart
 
 ![](floor/109_stretch_apart.webp)
 
-The second half reads `d2 = unit(quad[2] - quad[1]) * 100` and `d3 = unit(quad[0] - quad[3]) * 100`, both from the lengthened quad before either edge moves. Edge 0-1 always moves by `-d2`, away from edge 2-3: for a top quad that is up past the datum. Edge 2-3 moves by `-d3`, away from edge 0-1 (down past the rib-bottom level), only when `top` is true, which is `i < 3`. A bottom quad keeps edge 2-3 on -730, so the carve never goes deeper than `column_head_depth`. The doc comment of `stretch` (line 268) calls this move "inwards". In the code and in the numbers every edge that moves goes outward, away from the opposite edge: a top quad grows on all four sides, a bottom quad on three.
+<span style="color:#2196EA">■ built</span> `quads[0]` stretched, a top quad   <span style="color:#EBB121">■ result</span> `quads[3]` stretched, a bottom quad   <span style="color:#EB7721">■ variable</span> the moves `-d2`, `-d3`   <span style="color:#455B6B">■ input</span> the two quads lengthened, `quads[3]` dashed
+
+The second half reads <span style="color:#EB7721">`d2 = unit(quad[2] - quad[1]) * 100`</span> and <span style="color:#EB7721">`d3 = unit(quad[0] - quad[3]) * 100`</span>, both from the lengthened quad before either edge moves. Edge 0-1 always moves by `-d2`, away from edge 2-3: <span style="color:#2196EA">for a top quad</span> that is up past the datum. Edge 2-3 moves by `-d3`, away from edge 0-1 (down past the rib-bottom level), only when `top` is true, which is `i < 3`. <span style="color:#EBB121">A bottom quad</span> keeps edge 2-3 on -730, so the carve never goes deeper than `column_head_depth`. The doc comment of `stretch` (line 268) calls this move "inwards". In the code and in the numbers every edge that moves goes outward, away from the opposite edge: a top quad grows on all four sides, a bottom quad on three.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -749,13 +809,15 @@ if (top) {
 }
 ```
 
-Code: `stretch`, floor_members.cpp:278-289
+Code: `stretch`, [floor_members.cpp:278-289](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L278-L289)
 
 ## 110. Cutter plates thickened
 
 ![](floor/110_cutter_plates.webp)
 
-For each stretched quad, `normal = (quad[2] - quad[1]) x (quad[1] - quad[0])`, normalised and scaled by `CUTTER_MARGIN`. The outline is `{top, top translated by normal}` with `top = Polyline(quad).closed()`. That is a 100 mm slab whose first face lies on the carved surface and which extends toward the bay, into the space the wedge blocks and ribs occupy. `column_cuts` later turns each outline into `to_plate(...)->element_geometry_mesh()` lifted by `bay_height`, as a `SolidCut` with `SolidOperation::difference`. `add_column_model` adds the support joint first and then pushes those six cuts onto `model.column->solid_cuts`. The frame draws the capitel box, 340 x 340 x 730 (`column_head + column_head_chamfer` square, `column_head_depth` deep), in grey.
+<span style="color:#2196EA">■ built</span> `column_cutters()[0..2]`, the top cutters   <span style="color:#EBB121">■ result</span> `column_cutters()[3..5]`, the bottom cutters   <span style="color:#EB7721">■ variable</span> `normal`, `CUTTER_MARGIN` = 100   <span style="color:#8C969E">■ context</span> the capitel box 340 x 340 x 730
+
+For each stretched quad, <span style="color:#EB7721">`normal = (quad[2] - quad[1]) x (quad[1] - quad[0])`</span>, normalised and scaled by `CUTTER_MARGIN`. The outline is `{top, top translated by normal}` with `top = Polyline(quad).closed()`. That is <span style="color:#2196EA">a 100 mm slab</span> whose first face lies on the carved surface and which extends toward the bay, into the space the wedge blocks and ribs occupy. `column_cuts` later turns each outline into `to_plate(...)->element_geometry_mesh()` lifted by `bay_height`, as a `SolidCut` with `SolidOperation::difference`. `add_column_model` adds the support joint first and then pushes those six cuts onto `model.column->solid_cuts`. The frame draws <span style="color:#8C969E">the capitel box</span>, 340 x 340 x 730 (`column_head + column_head_chamfer` square, `column_head_depth` deep), in grey.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -785,4 +847,4 @@ for (const Outline& outline : quarter.column_cutters()) {
 }
 ```
 
-Code: `Quarter::column_cutters`, floor_members.cpp:327-336; `column_cuts`, floor_elements.cpp:92-105; floor_models.cpp:186-193
+Code: `Quarter::column_cutters`, [floor_members.cpp:327-336](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_members.cpp#L327-L336); `column_cuts`, [floor_elements.cpp:92-105](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_elements.cpp#L92-L105); [floor_models.cpp:186-193](https://github.com/petrasvestartas/wood/blob/0c9f4e49b3ac503e917b90c037f43f827533d641/src/templates/floor/floor_models.cpp#L186-L193)

@@ -7,9 +7,6 @@ namespace movie {
 namespace {
 
 const std::string CHAPTER = "08_relationships";
-const Color AXIS_X(0.86f, 0.12f, 0.12f, 1.0f, "x");
-const Color AXIS_Y(0.15f, 0.65f, 0.25f, 1.0f, "y");
-const Color AXIS_Z(0.15f, 0.35f, 0.85f, 1.0f, "z");
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -211,10 +208,10 @@ void seam_members(const Context& context) {
     Frame frame(CHAPTER, 146, "seam_wedge_members", "seam_wedge(guide, 0): row.a is inner beam 0 of quarter 0, row.b inner beam 2 of quarter 1, along seams[0]", "top", {-500.0, -3150.0, H - 800.0, 500.0, -500.0, H + 20.0});
     plan_context(frame, guide, false);
     grey_members(frame, floor, {0, 1}, {row.a.name(), row.b.name()});
-    frame.element(floor.members.get(row.a), FAMILY_COLORS[2]);
-    frame.element(floor.members.get(row.b), MARK);
-    frame.line(up(seam.line), INK, 2.0, true);
-    frame.point(up(seam.oculus_corner), INK);
+    frame.element(floor.members.get(row.a), BUILT);
+    frame.element(floor.members.get(row.b), RESULT);
+    frame.line(up(seam.line), INPUT, 2.0, true);
+    frame.point(up(seam.oculus_corner), INPUT);
 
     frame.label("row.a = quarter_member(0, inner_beams, 0): " + row.a.name(), up(along(a.get_point(0), a.get_point(1), 0.5)));
     frame.label("row.b = quarter_member(1, inner_beams, 2): " + row.b.name(), up(along(b.get_point(0), b.get_point(1), 0.5)));
@@ -235,8 +232,8 @@ void seam_plane(const Context& context) {
     frame.distance = 0.65;
     frame.element(floor.members.get(row.a), GREY);
     frame.element(floor.members.get(row.b), GREY);
-    frame.line(up(guide.seams[0].line), INK, 2.0, true);
-    frame.plane(row.plane, MARK);
+    frame.line(up(guide.seams[0].line), INPUT, 2.0, true);
+    frame.plane(row.plane, BUILT);
 
     frame.label(fmt::format("row.plane origin {}: the half seam's midpoint, lifted {:.0f}", coordinates(row.plane.origin(), 0), guide.parameters.bay_height), row.plane.origin());
     frame.label(fmt::format("normal {}: into quarter 0", coordinates(row.plane.z_axis(), 0)), row.plane.origin() + row.plane.z_axis() * 300.0);
@@ -257,10 +254,10 @@ void seam_contact(const Context& context) {
 
     for (size_t i = 0; i < c.size(); i++) {
         const Vector direction = (c[(i + 1) % c.size()] - c[i]).normalized();
-        frame.line(Line::from_points(c[i] - direction * 120.0, c[(i + 1) % c.size()] + direction * 120.0), INK, 1.5, true);
+        frame.line(Line::from_points(c[i] - direction * 120.0, c[(i + 1) % c.size()] + direction * 120.0), INPUT, 1.5, true);
     }
 
-    frame.polyline(row.contact, MARK, 5.0);
+    frame.polyline(row.contact, BUILT, 5.0);
 
     frame.label("0: outer_ribs[0][0], the bay edge, meets level(0)", c[0]);
     frame.label("1: level(0) meets the tilted oculus plane", c[1]);
@@ -286,7 +283,7 @@ void seam_end(const Context& context) {
     frame.element(floor.members.get(quarter_member(0, Family::outer_ribs, 0)), GREY);
     frame.element(floor.members.get(quarter_member(1, Family::outer_ribs, 1)), GREY);
     frame.polyline(row.contact, GREY, 4.0);
-    frame.plane(end, MARK);
+    frame.plane(end, BUILT);
 
     frame.label("row.end = lifted(edges[0].band[0], bay_height)", end.origin());
     frame.label(fmt::format("row.end normal {}: into the bay", coordinates(end.z_axis(), 0)), end.origin() + end.z_axis() * 200.0);
@@ -314,10 +311,10 @@ void oculus_plane(const Context& context) {
     Frame frame(CHAPTER, 150, "oculus_wedge_plane", "oculus_wedge(guide, 0): the oculus beam and ring beam 0 on oculus_edges[0].tilted, seen along the edge", "iso", {-700.0, -700.0, H - 360.0, -300.0, -300.0, H + 60.0});
     frame.orbit = "-262,-105";
     frame.distance = 0.7;
-    frame.element(floor.members.get(row.a), FAMILY_COLORS[2]);
-    frame.element(floor.members.get(row.b), RING);
-    frame.line(up(Line::from_points(centre, vertical)), INK, 2.0, true);
-    frame.line(up(Line::from_points(centre, tilted)), MARK, 4.0);
+    frame.element(floor.members.get(row.a), BUILT);
+    frame.element(floor.members.get(row.b), RESULT);
+    frame.line(up(Line::from_points(centre, vertical)), INPUT, 2.0, true);
+    frame.line(up(Line::from_points(centre, tilted)), VARIABLE, 4.0);
 
     frame.label("row.a = " + row.a.name(), up(middle(guide.quarter(0).inner_beams()[1])));
     frame.label("row.b = shared_member(ring, 0): " + row.b.name(), up(middle(guide.oculus()[0])));
@@ -342,9 +339,9 @@ void oculus_contact(const Context& context) {
     frame.element(floor.members.get(quarter_member(0, Family::inner_beams, 0)), GREY);
     frame.element(floor.members.get(quarter_member(0, Family::inner_beams, 2)), GREY);
     frame.element(floor.members.get(row.b), GREY);
-    frame.line(up(oculus.line), INK, 2.0, true);
-    frame.line(back, GREY, 2.0, true);
-    frame.polyline(row.contact, MARK, 5.0);
+    frame.line(up(oculus.line), INPUT, 2.0, true);
+    frame.line(back, VARIABLE, 2.0, true);
+    frame.polyline(row.contact, BUILT, 5.0);
 
     frame.label("0: inner_beams[0][1] meets level(0)", c[0]);
     frame.label("1: level(0) meets inner_beams[2][1]", c[1]);
@@ -381,7 +378,7 @@ void column_plane(const Context& context) {
         const Point outside = origin - (far - origin) * (100.0 / 220.0);
         const double lean = std::asin(std::abs(row.plane.z_axis()[2])) * 180.0 / M_PI;
 
-        frame.line(Line::from_points(origin - (far - origin), far), MARK, 4.0);
+        frame.line(Line::from_points(origin - (far - origin), far), BUILT, 4.0);
         frame.label(fmt::format("k={}: row.plane = wedge_fan[{}][0], {:.2f} deg off vertical", k, k == 0 ? 0 : 2, lean), outside);
         frame.label("row.b = " + row.b.name(), up(along(rib.get_point(1), rib.get_point(0), 0.04)));
     }
@@ -402,8 +399,8 @@ void column_contact(const Context& context) {
     Frame frame(CHAPTER, 153, "column_plate_contact", "row.contact = above({top[1], top[2], bottom[2], bottom[1]}, levels[1]): the rib's end face on the fan plane", "front", {-2830.0, -3050.0, H - 740.0, -2560.0, -2850.0, H + 40.0});
     frame.element(floor.members.get(row.a), GREY);
     frame.element(floor.members.get(row.b), GREY);
-    frame.line(Line::from_points(Point(-2830.0, c[0][1], H + level1), Point(-2580.0, c[0][1], H + level1)), INK, 2.0, true);
-    frame.polyline(row.contact, MARK, 6.0);
+    frame.line(Line::from_points(Point(-2830.0, c[0][1], H + level1), Point(-2580.0, c[0][1], H + level1)), VARIABLE, 2.0, true);
+    frame.polyline(row.contact, BUILT, 6.0);
 
     frame.label("top[1] = p0: the fan plane at level(0)", c[0]);
     frame.label(fmt::format("top[2]: the first soffit point, z {:.2f}", c[1][2]), c[1]);
@@ -423,13 +420,13 @@ void cross_lap(const Context& context) {
 
     Frame frame(CHAPTER, 154, "cross_lap", "cross_lap(0): outer ribs 0 and 1 of the corner, no plane and no contact; the plates crossing come later", "top", {-3150.0, -3150.0, H - 800.0, -2550.0, -2550.0, H + 20.0});
     frame.element(floor.members.get(shared(Family::column, 0)), GREY);
-    frame.element(floor.members.get(lap.a), FAMILY_COLORS[0]);
-    frame.element(floor.members.get(lap.b), FAMILY_COLORS[0]);
+    frame.element(floor.members.get(lap.a), BUILT);
+    frame.element(floor.members.get(lap.b), RESULT);
 
     for (size_t k = 0; k < plates.size(); k++) {
         const Vector direction = plates[k].plane.z_axis().cross(Vector::z_axis()).normalized();
         frame.polyline(plates[k].contact, GREY, 5.0);
-        frame.line(Line::from_points(crossing - direction * 200.0, crossing + direction * 200.0), MARK, 3.0, true);
+        frame.line(Line::from_points(crossing - direction * 200.0, crossing + direction * 200.0), INPUT, 3.0, true);
         frame.label(fmt::format("column_plate k={}", k), area_centroid(plates[k].contact));
     }
 
@@ -465,7 +462,7 @@ void seam_tie(const Context& context) {
     Frame frame(CHAPTER, 155, "seam_tie", "seam_tie(guide, q): made only when seam_through_ribs is false; above the default bay, below the tied one", "iso", {-700.0, -3350.0, H - 1600.0, 700.0, -2450.0, H + 80.0});
     seam_end_loops(frame, guide, Vector(0.0, 0.0, 0.0));
     seam_end_loops(frame, tied, shift);
-    frame.polyline(row.contact + shift, MARK, 5.0);
+    frame.polyline(row.contact + shift, BUILT, 5.0);
 
     frame.label(fmt::format("default, seam_through_ribs = true: {} seam_tie rows, the rib ends on x = -{:.0f}", relationships(guide, Relation::seam_tie).size(), guide.parameters.inner_beams), up(rib.get_point(0)));
     frame.label(fmt::format("tied {:.0f} x {:.0f}: row.contact on seams[0].plane_into(0), row.type = {}", span[0], span[1], to_string(row.type)), area_centroid(row.contact) + shift);
@@ -492,12 +489,12 @@ void block_planes(const Context& context) {
     for (const Relationship& row : rows) {
         const Line edge = datum_edge(row);
         const Vector direction = (edge.end() - edge.start()).normalized();
-        const Color& color = row.a.family == Family::outer_ribs ? FAMILY_COLORS[0] : FAMILY_COLORS[1];
+        const Color& color = row.a.family == Family::outer_ribs ? BUILT : RESULT;
         frame.line(Line::from_points(edge.start() - direction * 120.0, edge.end() + direction * 160.0), color, 3.0);
     }
 
     for (size_t k = 0; k < quads.wedges.size(); k++) {
-        frame.polyline(up(quads.wedges[k].closed()), FAMILY_COLORS[3], 3.0);
+        frame.polyline(up(quads.wedges[k].closed()), INPUT, 3.0);
         frame.label(fmt::format("wedges_{}_0: {}", k, table[k]), up(area_centroid(quads.wedges[k].closed())));
     }
 
@@ -515,7 +512,7 @@ void block_contact(const Context& context) {
 
     Frame frame(CHAPTER, 157, "block_dowels_contact", "row.contact: block k's quad on its rib face, side 0 corners 3 and 0 of both loops, side 1 corners 1 and 2", "iso", around(up(middle(block)), 330.0));
     frame.element(floor.members.quarters[0].wedges[0].element, GREY);
-    frame.polyline(up(block.bottom), INK, 2.0);
+    frame.polyline(up(block.bottom), INPUT, 2.0);
 
     for (size_t i = 0; i < corners.size(); i++)
         frame.label(corners[i], up(block.bottom.get_point(i)));
@@ -525,7 +522,7 @@ void block_contact(const Context& context) {
     for (const Relationship& row : rows)
         if (row.b.index == 0) {
             const bool side0 = row.a.family == Family::outer_ribs;
-            frame.polyline(row.contact, MARK, 5.0);
+            frame.polyline(row.contact, side0 ? BUILT : RESULT, 5.0);
             frame.label(side0 ? "side 0: {bottom[3], bottom[0], top[0], top[3]} on outer_ribs[0][1]" : "side 1: {bottom[1], bottom[2], top[2], top[1]} on inner_ribs[0][0]", area_centroid(row.contact));
         }
 
@@ -548,7 +545,7 @@ void block_rows(const Context& context) {
             frame.element(member.element, GREY);
 
     for (size_t j = 0; j < rows.size(); j++) {
-        frame.polyline(rows[j].contact, MARK, 5.0);
+        frame.polyline(rows[j].contact, BUILT, 5.0);
         frame.label(fmt::format("{}: {} - {}", j + 1, rows[j].a.name(), rows[j].b.name()), datum_edge(rows[j]).center());
     }
 
@@ -572,11 +569,11 @@ void support(const Context& context) {
 
     for (const Relationship& row : rows) {
         const Plane& plane = row.plane;
-        frame.element(floor.members.get(row.a), STEEL);
-        frame.line(guide.columns[row.seam_or_corner].axis, GREY, 2.0, true);
-        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.x_axis() * 600.0), AXIS_X, 4.0, false, true);
-        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.y_axis() * 600.0), AXIS_Y, 4.0, false, true);
-        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.z_axis() * 600.0), AXIS_Z, 4.0, false, true);
+        frame.element(floor.members.get(row.a), INPUT);
+        frame.line(guide.columns[row.seam_or_corner].axis, INPUT, 2.0, true);
+        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.x_axis() * 600.0), BUILT, 4.0, false, true);
+        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.y_axis() * 600.0), RESULT, 4.0, false, true);
+        frame.line(Line::from_points(plane.origin(), plane.origin() + plane.z_axis() * 600.0), GREY, 4.0, false, true);
         frame.label(fmt::format("{}: origin {}, x {}", row.a.name(), coordinates(plane.origin(), 0), coordinates(plane.x_axis(), 0)), plane.origin());
     }
 
@@ -606,6 +603,7 @@ void scene_members(const Context& context) {
 
         frame.element(floor.members.ring[q].element, RING);
         frame.element(floor.members.columns[q].column, STEEL);
+        frame.element(floor.members.columns[q].support, STEEL);
     }
 
     for (size_t f = 0; f < FAMILIES.size(); f++) {
@@ -634,11 +632,11 @@ void thickness(const Context& context) {
 
     Frame frame(CHAPTER, 163, "thickness_pair", "members.get(ref), members.thickness(ref) = outline_thickness, members.pair(row): what a connector reads", "top", {mid[0] - 230.0, mid[1] - 140.0, H - 280.0, mid[0] + 230.0, mid[1] + 140.0, H + 20.0});
     frame.element(floor.members.get(row.b), GREY);
-    frame.polyline(up(outline.top), GREY, 2.0);
-    frame.polyline(up(outline.bottom), GREY, 2.0);
-    frame.line(Line::from_points(bottom, top), MARK, 4.0);
-    frame.point(top, MARK);
-    frame.point(bottom, MARK);
+    frame.polyline(up(outline.top), INPUT, 2.0);
+    frame.polyline(up(outline.bottom), INPUT, 2.0);
+    frame.line(Line::from_points(bottom, top), VARIABLE, 4.0);
+    frame.point(top, VARIABLE);
+    frame.point(bottom, VARIABLE);
 
     frame.label(fmt::format("area_centroid(bottom), members.thickness(row.a) = {:.2f}", floor.members.thickness(row.a)), bottom);
     frame.label("area_centroid(top), on inner_beams[0][1]", top);
@@ -665,9 +663,9 @@ void uncut_copies(const Context& context) {
 
     Frame frame(CHAPTER, 164, "uncut", "uncut(member): a copy without its cuts for the contact search; a Column is neither cast and keeps its head", "iso", FAN);
     frame.features = true;
-    frame.element(rib, FAMILY_COLORS[0]);
-    frame.element(copy, MARK);
-    frame.element(column, STEEL);
+    frame.element(rib, INPUT);
+    frame.element(copy, BUILT);
+    frame.element(column, RESULT);
 
     frame.label(fmt::format("{} in the floor: {} cuts, {} solid_cuts", rib->name, cut ? cut->cuts.size() : 0, cut ? cut->solid_cuts.size() : 0), pin);
     frame.label(fmt::format("uncut({}): {} solid_cuts, drawn {:.0f} mm aside", rib->name, clean ? clean->solid_cuts.size() : 0, shift.magnitude()), pin + shift);
@@ -686,7 +684,7 @@ void verify_search(const Context& context, const ContactCheck& check) {
     WoodSession session("verify_contacts");
     std::set<Relation> named;
 
-    Frame frame(CHAPTER, 165, "verify_search", "verify_contacts: per checked row, compute_face_contact(uncut(a), uncut(b)); red as built, black as found", "iso", QUARTER);
+    Frame frame(CHAPTER, 165, "verify_search", "verify_contacts: per checked row, compute_face_contact(uncut(a), uncut(b)); slate as built, blue as found", "iso", QUARTER);
     frame.key = true;
     frame.distance = 0.72;
     frame.polyline(up(Polyline(guide.geometry[0].polygon).closed()), GREY, 2.0);
@@ -696,10 +694,10 @@ void verify_search(const Context& context, const ContactCheck& check) {
             continue;
 
         const std::shared_ptr<InteractionContactFace> found = search(session, context.members, row);
-        frame.polyline(row.contact, MARK, 6.0);
+        frame.polyline(row.contact, INPUT, 6.0);
 
         if (found)
-            frame.polyline(found->polygon, INK, 2.0);
+            frame.polyline(found->polygon, BUILT, 2.0);
 
         if (named.insert(row.kind).second)
             frame.label(fmt::format("{}: found {}", relation_name(row.kind), found ? std::string(to_string(found->type)) : "nothing"), area_centroid(row.contact));
@@ -718,8 +716,8 @@ void disagreement(const Context& context) {
     const std::shared_ptr<InteractionContactFace> found = search(session, context.members, row);
 
     Frame frame(CHAPTER, 166, "disagreement", "disagreement(row, found): plane normal, top edge midpoint and length, then area, each within tolerance", "iso", {-400.0, -3150.0, H - 300.0, 300.0, -850.0, H + 250.0});
-    frame.polyline(row.contact, GREY, 4.0);
-    frame.line(Line::from_points(row.plane.origin(), row.plane.origin() + row.plane.z_axis() * 300.0), MARK, 4.0, false, true);
+    frame.polyline(row.contact, INPUT, 4.0);
+    frame.line(Line::from_points(row.plane.origin(), row.plane.origin() + row.plane.z_axis() * 300.0), INPUT, 4.0, false, true);
     frame.label("row.plane.z_axis()", row.plane.origin() + row.plane.z_axis() * 300.0);
 
     if (found) {
@@ -730,10 +728,10 @@ void disagreement(const Context& context) {
         const Line their_edge = highest_edge(theirs);
         const Point centroid = area_centroid(found->polygon);
 
-        frame.polyline(found->polygon, INK, 2.0);
-        frame.line(their_edge, MARK, 6.0);
-        frame.point(their_edge.center(), MARK);
-        frame.line(Line::from_points(centroid, centroid + normal * 300.0), INK, 4.0, false, true);
+        frame.polyline(found->polygon, BUILT, 2.0);
+        frame.line(their_edge, VARIABLE, 6.0);
+        frame.point(their_edge.center(), VARIABLE);
+        frame.line(Line::from_points(centroid, centroid + normal * 300.0), BUILT, 4.0, false, true);
 
         frame.label(fmt::format("compute_newell(theirs): {:.1e} rad from row.plane", angle), centroid + normal * 300.0);
         frame.label(fmt::format("top edge: {:.1f} long, midpoint {:.1e} mm off, length {:.1e} mm off", their_edge.length(), (mine_edge.center() - their_edge.center()).magnitude(), std::abs(mine_edge.length() - their_edge.length())), their_edge.center());
@@ -764,9 +762,9 @@ void require(const Context& context, const ContactCheck& check) {
 
     Frame frame(CHAPTER, 168, "require_contact", "ContactCheck::str() for the floor, and require_contact throwing for two ribs that do not touch", "top", BAY);
     plan_context(frame, guide, true);
-    frame.element(a, FAMILY_COLORS[0]);
-    frame.element(b, FAMILY_COLORS[0]);
-    frame.line(Line::from_points(pa, pb), MARK, 3.0, true);
+    frame.element(a, INPUT);
+    frame.element(b, INPUT);
+    frame.line(Line::from_points(pa, pb), VARIABLE, 3.0, true);
 
     frame.label("a = members.quarters[0].outer_ribs[0]: " + a->name, pa);
     frame.label("b = members.quarters[2].outer_ribs[0]: " + b->name, pb);
