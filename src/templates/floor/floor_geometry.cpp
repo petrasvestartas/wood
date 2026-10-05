@@ -5,7 +5,7 @@ using namespace session_cpp;
 
 namespace wood_floor::geometry {
 
-const double TOLERANCE = 1e-9; // compas TOL.absolute: parallel planes and lines below it have no intersection
+const double TOLERANCE = 1e-9; // parallel planes and lines below it have no intersection
 const double EXTENSION = 1000.0; // how far parabola ends are pushed out before the panel planes trim them
 
 // ═══════════════════════════════════════════════════════════════════════════

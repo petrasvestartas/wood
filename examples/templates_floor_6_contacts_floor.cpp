@@ -15,11 +15,7 @@ int main() {
     const std::shared_ptr<TreeNode> root = session.add_group("floor_model");
     const wood_floor::FloorMembers members = wood_floor::add_floor(session, floor, root);
     const std::vector<wood_floor::Relation> kinds = {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge};
-    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, floor, members, 1e-6, kinds);
-
-    for (const wood_floor::ContactMismatch& mismatch : mismatches)
-        std::cout << fmt::format("contact mismatch: {}: {}", mismatch.relation, mismatch.what) << std::endl;
-
+    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(session, floor, members, 1e-6, kinds);
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, floor, members, kinds);
     session.pb_dump(pb_path("live"));
@@ -30,7 +26,7 @@ int main() {
         dowels += wedge->drill_lines.size();
 
     std::cout << fmt::format("{} wedges, {} dowels: contacts, cuts and pb in {:.0f} ms", wedges.size(), dowels, ms) << std::endl;
-    std::cout << fmt::format("{} of {} wedge contacts verified by the kernel's search", wedges.size() - mismatches.size(), wedges.size()) << std::endl;
+    std::cout << contacts.str() << std::endl;
 
     return 0;
 }

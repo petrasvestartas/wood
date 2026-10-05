@@ -11,16 +11,6 @@ const double RIGHT_ANGLE = 1e-9; // degrees off 90 within which a corner counts 
 const double RUN_IN_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps the wedge as its run-in
 const size_t RUN_IN_STEPS = 50; // secant steps a run-in may take to land its rib's end on the shared level
 
-/// World z, the normal side of edge planes facing out of the quarter.
-static Vector up() {
-    return Vector(0.0, 0.0, 1.0);
-}
-
-/// Minus world z, the normal side of edge planes facing into the quarter.
-static Vector down() {
-    return Vector(0.0, 0.0, -1.0);
-}
-
 /// A plane pair: the plane and its copy moved by distance along the normal.
 static std::array<Plane, 2> pair(const Plane& plane, double distance) {
     return {plane, plane.translate_by_normal(distance)};
@@ -81,7 +71,7 @@ static BayEdge bay_edge(const FloorPlan& plan, size_t k, const FloorSizes& sizes
     BayEdge edge;
     edge.line = Line::from_points(plan.corners[k], plan.corners[(k + 1) % 4]);
     edge.midpoint = plan.midpoint(k);
-    edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(down())), sizes.outer_ribs);
+    edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(-Vector::z_axis())), sizes.outer_ribs);
 
     return edge;
 }
@@ -104,7 +94,7 @@ static OculusEdge oculus_edge(const Point& corner, const Point& previous, const 
 
     OculusEdge edge;
     edge.line = Line::from_points(corner, previous);
-    const Plane plane = edge_plane(edge.line, down());
+    const Plane plane = edge_plane(edge.line, -Vector::z_axis());
     edge.tilted = rotate(plane, -sizes.oculus_plane_angle * M_PI / 180.0, edge.line.to_direction(), edge.line.center());
     edge.back = plane.translate_by_normal(sizes.inner_beams);
     edge.ring_inner = edge.back.translate_by_normal(-sizes.inner_beams * 2.0);
@@ -122,8 +112,8 @@ static std::array<Vector, 2> corner_frame(const FloorPlan& plan, size_t k) {
         return {after, before};
 
     const Vector bisector = (after + before).normalized();
-    const Xform to_x = Xform::rotation(up(), -45.0, true);
-    const Xform to_y = Xform::rotation(up(), 45.0, true);
+    const Xform to_x = Xform::rotation(Vector::z_axis(), -45.0, true);
+    const Xform to_y = Xform::rotation(Vector::z_axis(), 45.0, true);
 
     return {bisector.transformed(to_x), bisector.transformed(to_y)};
 }
@@ -143,11 +133,11 @@ static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSi
     const double chamfer = sizes.column_head_chamfer;
     column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
     column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
-    column.sides = {edge_plane(edge(column.head, 0), down()), edge_plane(edge(column.head, 4), down())};
+    column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(edge(column.head, 4), -Vector::z_axis())};
     column.levels = {0.0, 0.0, -sizes.column_head_depth};
     column.axis_point = column.corner + (x + y) * (head * 0.5);
-    column.support_plane = Plane::from_frame(column.axis_point, x, y, up());
-    column.axis = Line::from_points(column.axis_point, column.axis_point + up() * sizes.bay_height);
+    column.support_plane = Plane::from_frame(column.axis_point, x, y, Vector::z_axis());
+    column.axis = Line::from_points(column.axis_point, column.axis_point + Vector::z_axis() * sizes.bay_height);
 
     return column;
 }
@@ -159,7 +149,7 @@ static std::array<std::array<Plane, 2>, 3> wedge_fan(const ColumnCorner& column,
     const Line side1 = edge(column.head, 2);
     const Line side2 = edge(column.head, 3);
 
-    const Plane tilted = rotate(edge_plane(side1, up()), sizes.wedge_plane_angle * M_PI / 180.0, side1.to_direction(), side1.center());
+    const Plane tilted = rotate(edge_plane(side1, Vector::z_axis()), sizes.wedge_plane_angle * M_PI / 180.0, side1.to_direction(), side1.center());
     const Line line0 = plane_plane(cp.inner_ribs[0][1], tilted).value();
     const Line line1 = plane_plane(cp.inner_ribs[1][1], tilted).value();
     const Plane wedge0 = Plane::from_point_normal(side0.center(), line0.to_direction().cross(side0.to_direction()));
@@ -205,8 +195,8 @@ static ConstructionPlanes construction_planes(const Floor& floor, size_t q, Colu
     const Point p1 = plane_plane_plane(xy, cp.inner_beams[1][1], cp.inner_beams[2][1]).value();
     const Point p2 = column.head[2];
     const Point p3 = column.head[3];
-    const Plane rib0 = Plane::from_point_normal(p2 + (p0 - p2) * 0.5, (p0 - p2).cross(down()));
-    const Plane rib1 = Plane::from_point_normal(p3 + (p1 - p3) * 0.5, (p1 - p3).cross(up()));
+    const Plane rib0 = Plane::from_point_normal(p2 + (p0 - p2) * 0.5, (p0 - p2).cross(-Vector::z_axis()));
+    const Plane rib1 = Plane::from_point_normal(p3 + (p1 - p3) * 0.5, (p1 - p3).cross(Vector::z_axis()));
     cp.inner_ribs = {pair(rib0, sizes.inner_ribs), pair(rib1, sizes.inner_ribs)};
 
     column.wedge_fan = wedge_fan(column, cp, sizes);
@@ -262,7 +252,7 @@ static ConstructionQuads construction_quads(const ConstructionPlanes& cp) {
     return result;
 }
 
-/// The outer parabola over a rib quad, compas_tf's 7-point Bezier: from -height at the run-in along the axis past the fan plane's datum trace, controlled at the axis midpoint at -static_h, to the seam at -static_h.
+/// The outer parabola over a rib quad, a 7-point Bezier: from -height at the run-in along the axis past the fan plane's datum trace, controlled at the axis midpoint at -static_h, to the seam at -static_h.
 static Polyline outer_parabola(const Polyline& quad, double run_in, const FloorSizes& sizes) {
 
     const Point start = quad.get_point(0);
@@ -283,7 +273,7 @@ static double fan_end(const Polyline& quad, double run_in, const Plane& fan, con
     return d0 > d1 ? pts.back()[2] : pts.front()[2];
 }
 
-/// The run-in that lands an outer rib's end on the level, by the secant from compas_tf's wedge; throws when it leaves the axis or does not converge.
+/// The run-in that lands an outer rib's end on the level, by the secant from the wedge; throws when it leaves the axis or does not converge.
 static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plane& seam, double level, const FloorSizes& sizes) {
 
     const double axis = (quad.get_point(1) - quad.get_point(0)).magnitude();
@@ -324,7 +314,7 @@ static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const Constru
     return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level, sizes), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level, sizes)};
 }
 
-/// The column blocks' far planes over the ribs' run-ins: each side block its fan plane offset by its own rib's run-in, the middle block by middle_wedge_factor times their mean; compas_tf's wedge and middle wedge where both run-ins are the wedge.
+/// The column blocks' far planes over the ribs' run-ins: each side block its fan plane offset by its own rib's run-in, the middle block by middle_wedge_factor times their mean.
 static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std::array<double, 2>& run_in, const FloorSizes& sizes) {
 
     const std::array<double, 3> thickness = {run_in[0], sizes.middle_wedge_factor * (0.5 * (run_in[0] + run_in[1])), run_in[1]};
@@ -406,7 +396,7 @@ Plane Seam::plane_into(size_t quarter) const {
 
     const Point& midpoint = line.start();
 
-    return quarter % 4 == index ? edge_plane(Line::from_points(midpoint, oculus_corner), down()) : edge_plane(Line::from_points(oculus_corner, midpoint), down());
+    return quarter % 4 == index ? edge_plane(Line::from_points(midpoint, oculus_corner), -Vector::z_axis()) : edge_plane(Line::from_points(oculus_corner, midpoint), -Vector::z_axis());
 }
 
 std::array<Plane, 2> Seam::faces_into(size_t quarter) const {

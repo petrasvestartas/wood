@@ -24,8 +24,7 @@ static bool is_cut_member(const std::shared_ptr<Element>& element) {
     return !std::dynamic_pointer_cast<wood_session::Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices();
 }
 
-/// The exact bores of a BRep: its rational surfaces, cylinders.
-static size_t count_bores(const BRep& brep) {
+size_t count_bores(const BRep& brep) {
 
     size_t bores = 0;
 

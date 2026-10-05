@@ -731,8 +731,8 @@ struct FloorPlan {
     double oculus = 1000.0;                                   // Distance of an oculus corner from the centre along its seam.
     OculusRule rule = OculusRule::square_diamond;
     std::array<double, 4> oculus_distances = {};              // explicit_distances only.
-    static FloorPlan rectangle(double half_x, double half_y, double oculus = 1000.0, OculusRule rule = OculusRule::square_diamond);
-    static FloorPlan quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0, OculusRule rule = OculusRule::square_diamond);
+    static FloorPlan rectangle(double half_x, double half_y, double oculus = 1000.0);
+    static FloorPlan quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0);
     session_cpp::Point centre() const;                        // The vertex centroid, where the bimedians cross and bisect each other.
     session_cpp::Point midpoint(size_t k) const;              // Of edge k, corner k to corner k + 1.
     double corner_angle(size_t k) const;                      // Degrees.
@@ -846,7 +846,7 @@ std::shared_ptr<wood_session::Column> add_column_model(wood_session::WoodSession
 QuarterMembers add_quarter_model(wood_session::WoodSession&, const Quarter&, group);                                                     // The six families, suffix "_k".
 std::vector<Member> add_oculus_model(wood_session::WoodSession&, const Floor&, group);
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession&, const Floor&, const FloorMembers&, kinds);   // One JointBeam per relationship through the existing factories, under connector_group(row) (section 8.2).
-std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession&, const Floor&, const FloorMembers&, double tolerance = 1e-6);        // compute_face_contact on uncut copies against every constructed contact: plane, top edge, area.
+ContactCheck verify_contacts(wood_session::WoodSession&, const Floor&, const FloorMembers&, double tolerance = 1e-6);        // compute_face_contact on uncut copies against every constructed contact: plane, top edge, area.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession&, const Member& a, const Member& b, wood_session::ContactType expected, const std::string& relation);   // Throws naming the relation.
 
 /// Exact bores in the cut members and connector parts against the dowel stretches that ask for them; str() lists the counts, then every faceted member.

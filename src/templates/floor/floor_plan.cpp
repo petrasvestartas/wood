@@ -19,16 +19,15 @@ double FloorSizes::static_h() const {
 // Plan
 // ═══════════════════════════════════════════════════════════════════════════
 
-FloorPlan FloorPlan::rectangle(double half_x, double half_y, double oculus, OculusRule rule) {
-    return quadrilateral({Point(-half_x, -half_y, 0.0), Point(half_x, -half_y, 0.0), Point(half_x, half_y, 0.0), Point(-half_x, half_y, 0.0)}, oculus, rule);
+FloorPlan FloorPlan::rectangle(double half_x, double half_y, double oculus) {
+    return quadrilateral({Point(-half_x, -half_y, 0.0), Point(half_x, -half_y, 0.0), Point(half_x, half_y, 0.0), Point(-half_x, half_y, 0.0)}, oculus);
 }
 
-FloorPlan FloorPlan::quadrilateral(const std::array<Point, 4>& corners, double oculus, OculusRule rule) {
+FloorPlan FloorPlan::quadrilateral(const std::array<Point, 4>& corners, double oculus) {
 
     FloorPlan plan;
     plan.corners = corners;
     plan.oculus = oculus;
-    plan.rule = rule;
 
     return plan;
 }

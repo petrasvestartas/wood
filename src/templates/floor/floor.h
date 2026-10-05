@@ -35,7 +35,7 @@ struct Outline {
 // Sizes and plan
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The sizes that do not change with the plan: thicknesses, offsets, depths, angles, the column and storey dimensions and compas_tf's middle wedge factor; the defaults are the example set of compas_tf example_model_1.
+/// The sizes that do not change with the plan: thicknesses, offsets, depths, angles, the column and storey dimensions and the middle wedge factor.
 struct FloorSizes {
     double column_head = 220.0; // Side of the square column shaft and of the head polygon at the corner.
     double column_head_chamfer = 120.0; // Where the chamfer vertices sit on the shaft faces; also the capitel width.
@@ -50,7 +50,7 @@ struct FloorSizes {
     double oculus_plane_angle = 5.0; // Degrees the oculus bearing plane leans about its top edge.
     double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
     double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
-    double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses, compas_tf floor_guide.py:314.
+    double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses.
 
     /// Depth at every seam and at the oculus: height minus rise.
     double static_h() const;
@@ -61,16 +61,16 @@ enum class OculusRule { square_diamond, explicit_distances };
 
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
 struct FloorPlan {
-    std::array<session_cpp::Point, 4> corners; // Counter-clockwise; corner 0 is compas_tf's quarter 0.
+    std::array<session_cpp::Point, 4> corners; // Counter-clockwise.
     double oculus = 1000.0; // Distance of an oculus corner from the centre along its seam.
     OculusRule rule = OculusRule::square_diamond; // How the four corners sit on the seams.
     std::array<double, 4> oculus_distances = {}; // explicit_distances only.
 
     /// The rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
-    static FloorPlan rectangle(double half_x, double half_y, double oculus = 1000.0, OculusRule rule = OculusRule::square_diamond);
+    static FloorPlan rectangle(double half_x, double half_y, double oculus = 1000.0);
 
     /// Any four corners counter-clockwise at z 0.
-    static FloorPlan quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0, OculusRule rule = OculusRule::square_diamond);
+    static FloorPlan quadrilateral(const std::array<session_cpp::Point, 4>& corners, double oculus = 1000.0);
 
     /// The vertex centroid, where the bimedians cross and bisect each other.
     session_cpp::Point centre() const;
@@ -133,7 +133,7 @@ struct ColumnCorner {
     session_cpp::Point corner; // The bay corner.
     session_cpp::Vector x_axis; // Along the edge after the corner at a right corner, symmetric about the bisector otherwise.
     session_cpp::Vector y_axis; // Along the edge before the corner, reversed.
-    std::vector<session_cpp::Point> head; // compas_tf quarter_column_polygon in the frame: corner, two shaft corners, the two chamfer vertices.
+    std::vector<session_cpp::Point> head; // The head polygon in the frame: corner, two shaft corners, the two chamfer vertices.
     session_cpp::Vector chamfer_direction; // Unit head[3] - head[2].
     std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan; // Side 0, the tilted chamfer and side 1 with their far faces, each block's far face over its ribs' run-ins.
     std::array<session_cpp::Plane, 2> sides; // The head edges on the bay boundary, normal into the bay.
@@ -154,7 +154,7 @@ struct CentralPanel {
     double residual = 0.0; // How far rib 0's central trace projected along the ruling misses rib 1's, mm.
 };
 
-/// The private geometry of one quarter, computed once by the Floor: compas_tf's layout with the bands, seams, oculus edge and column fan read from the shared entities, every plane at the quarter's own points.
+/// The private geometry of one quarter, computed once by the Floor: the bands, seams, oculus edge and column fan read from the shared entities, every plane at the quarter's own points.
 struct QuarterGeometry {
     std::vector<session_cpp::Point> polygon; // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; // The member planes.
@@ -216,7 +216,7 @@ struct Quarter {
     std::vector<Outline> column_cutters() const;
 };
 
-/// The relations compas_tf relies on silently, measured per quarter (and per corner, which is the quarter's); ok() when the structural ones hold.
+/// The relations the design relies on, measured per quarter (and per corner, which is the quarter's); ok() when the structural ones hold.
 struct FloorReport {
     std::array<double, 4> seam_plane_gap = {}; // How far quarter q + 1's seam beam face leaves quarter q's seam plane, mm; 0 by construction.
     std::array<double, 4> oculus_corner_gap = {}; // How far quarter q + 1's polygon misses quarter q's oculus corner, mm; 0 by construction.
@@ -259,10 +259,10 @@ struct Floor {
     /// A view of quarter q; it holds a reference and lives as long as the floor.
     Quarter quarter(size_t q) const;
 
-    /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (compas_tf's pinwheel), four bottom wedges and the inner plate.
+    /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (a pinwheel), four bottom wedges and the inner plate.
     std::vector<Outline> oculus() const;
 
-    /// Measures what compas_tf relied on silently, for every quarter and the ring.
+    /// Measures the relations the design relies on, for every quarter and the ring.
     FloorReport check() const;
 };
 
@@ -279,16 +279,16 @@ std::shared_ptr<wood_session::BeamVariable> to_beam(const Outline& outline, cons
 /// A member outline as a plate, bottom then top.
 std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std::string& name);
 
-/// The support of a column corner, port of compas_tf SupportElement, on the slab at z 0 under the column axis in the corner frame.
+/// The support of a column corner on the slab at z 0 under the column axis in the corner frame.
 std::shared_ptr<wood_session::Support> to_support(const ColumnCorner& corner);
 
-/// The column of a corner, port of compas_tf ColumnElement: the square shaft in the corner frame from the support's column foot to the floor, with its head a chamfer wider along both axes over the column head depth.
+/// The column of a corner: the square shaft in the corner frame from the support's column foot to the floor, with its head a chamfer wider along both axes over the column head depth.
 std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorSizes& sizes, const wood_session::Support& support);
 
 /// The quarter's column cutters lifted to the floor, one solid difference cutter each aimed at the column.
 std::vector<std::shared_ptr<wood_session::Joint>> to_column_cutters(const Quarter& quarter, const wood_session::Column& column);
 
-/// compas_tf's computed_thickness of a member outline: the distance between the area centroids of its two loops.
+/// The thickness of a member outline: the distance between the area centroids of its two loops.
 double outline_thickness(const Outline& outline);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -325,9 +325,6 @@ struct MemberRef {
     size_t index = 0; // Its index in the family, or in the bed row.
     int row = -1; // The bed row, -1 for every other family.
 
-    /// The member's place in the scene, quarter members before the ring, columns and supports, for the order compas_tf's contact search found the pairs in.
-    size_t order() const;
-
     /// The scene name of the member, as the models name it.
     std::string name() const;
 };
@@ -349,9 +346,6 @@ struct Relationship {
 
     /// The relationship as text: its kind and its two members.
     std::string text() const;
-
-    /// The member with the smaller scene order first, as compas_tf's search listed the pair.
-    std::array<MemberRef, 2> scene_pair() const;
 
     /// Where its connector lives, by its kind: the block dowels and the quarter screws in quarter seam_or_corner, the oculus wedges and the ring and oculus screws in the oculus, the column plates, cross laps, supports and cutters at column seam_or_corner, the seam wedges and ties on seam seam_or_corner.
     Place place() const;
@@ -413,25 +407,37 @@ struct ContactMismatch {
     std::string what; // How the search disagrees: missing, another type, the plane, the top edge or the area.
 };
 
+/// The constructed contacts checked against the kernel's contact search.
+struct ContactCheck {
+    size_t count = 0; // Contacts checked.
+    std::vector<ContactMismatch> mismatches; // Every contact the search disagrees with.
+
+    /// Whether the search agrees with every contact.
+    bool ok() const;
+
+    /// The check as text: how many agree, then every mismatch.
+    std::string str() const;
+};
+
 /// A group named name under parent, at the root when parent is empty.
 std::shared_ptr<session_cpp::TreeNode> add_group(wood_session::WoodSession& session, const std::string& name, const std::shared_ptr<session_cpp::TreeNode>& parent);
 
-/// The column model of compas_tf example_model_2 built in place at a corner: support, column, support joint and the quarter's six cutters, every name ending in the corner index.
+/// The column model built in place at a corner: support, column, support joint and the quarter's six cutters, every name ending in the corner index.
 ColumnModel add_column_model(wood_session::WoodSession& session, const Floor& floor, size_t corner, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The quarter model of compas_tf example_model_4 built in place and lifted to bay_height, grouped by family, every name ending in the quarter's index.
+/// The quarter model built in place and lifted to bay_height, grouped by family, every name ending in the quarter's index.
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& quarter, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// The oculus model of compas_tf example_model_5 lifted to bay_height; returns its four boundary beams.
+/// The oculus model lifted to bay_height; returns its four boundary beams.
 std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// compas_tf's floor_model under group: the four quarters under quarters_model and the oculus, in compas_tf's tree and names; the columns are added apart.
+/// The floor under group: the four quarters under quarters_model and the oculus; the columns are added apart.
 FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);
 
-/// compas_tf's columns_model under group: the four column models, each in its own column_model_q group, filled into the members.
+/// The columns under group: the four column models, each in its own column_model_q group, filled into the members.
 void add_columns(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group, FloorMembers& members);
 
-/// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters, wedges and ties in the order compas_tf's search found them; then the screws, per quarter and kind, then the ring's.
+/// Every relationship of the floor in the order the connectors are named in: the seam wedges, the oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters, each kind in quarter order; then the screws, per quarter and kind, then the ring's.
 std::vector<Relationship> relationships(const Floor& floor);
 
 /// The relationships of one kind, in the same order.
@@ -440,14 +446,11 @@ std::vector<Relationship> relationships(const Floor& floor, Relation kind);
 /// The colour of every connector node and of every part and dowel node nested under it.
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color::red();
 
-/// The group a relationship's connector goes under, by its place, made the first time: connectors_q under quarter_model_q, connectors_oculus under the oculus, connectors_column_q under column_model_q, seam_k under the floor's seams group, which holds seam_0 to seam_3 in order.
-std::shared_ptr<session_cpp::TreeNode> connector_group(wood_session::WoodSession& session, const FloorMembers& members, const Relationship& row);
-
 /// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels});
 
-/// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians); returns what does not.
-std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});
+/// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians).
+ContactCheck verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance = 1e-6, const std::vector<Relation>& kinds = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::seam_tie, Relation::block_dowels});
 
 /// The searched contact of two members as they were before any cut, of the expected type; throws naming the relation when there is none.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession& session, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, wood_session::ContactType expected, const std::string& relation);
@@ -493,6 +496,9 @@ struct BrepCheck {
     /// The check as text: the counts, the bores found against the bores asked for, then every faceted member.
     std::string str() const;
 };
+
+/// The exact bores of a BRep: its rational surfaces, cylinders.
+size_t count_bores(const session_cpp::BRep& brep);
 
 /// Builds the BRep of every cut member and connector part and counts their exact bores against the dowel stretches.
 BrepCheck check_breps(const wood_session::WoodSession& session);

@@ -322,7 +322,8 @@ static std::shared_ptr<TreeNode> seam_group(wood_session::WoodSession& session, 
     return child_named(session, seams, fmt::format("seam_{}", seam));
 }
 
-std::shared_ptr<TreeNode> connector_group(wood_session::WoodSession& session, const FloorMembers& members, const Relationship& row) {
+/// The group a relationship's connector goes under, by its place, made the first time: connectors_q under quarter_model_q, connectors_oculus under the oculus, connectors_column_q under column_model_q, seam_k under the floor's seams group, which holds seam_0 to seam_3 in order.
+static std::shared_ptr<TreeNode> connector_group(wood_session::WoodSession& session, const FloorMembers& members, const Relationship& row) {
 
     const size_t index = row.seam_or_corner;
     const Place place = row.place();

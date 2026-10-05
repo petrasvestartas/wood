@@ -84,13 +84,16 @@ static std::string disagreement(const Relationship& row, const wood_session::Int
     return "";
 }
 
-std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance, const std::vector<Relation>& kinds) {
+ContactCheck verify_contacts(wood_session::WoodSession& session, const Floor& floor, const FloorMembers& members, double tolerance, const std::vector<Relation>& kinds) {
 
-    std::vector<ContactMismatch> mismatches;
+    ContactCheck check;
+    std::vector<ContactMismatch>& mismatches = check.mismatches;
 
     for (const Relationship& row : relationships(floor)) {
         if (row.contact.point_count() == 0 || row.kind == Relation::cutter || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
             continue;
+
+        check.count++;
 
         const std::array<std::shared_ptr<Element>, 2> pair = members.pair(row);
         const std::shared_ptr<wood_session::InteractionContactFace> found = session.compute_face_contact(uncut(*pair[0]), uncut(*pair[1]));
@@ -111,7 +114,21 @@ std::vector<ContactMismatch> verify_contacts(wood_session::WoodSession& session,
             mismatches.push_back({row.text(), what});
     }
 
-    return mismatches;
+    return check;
+}
+
+bool ContactCheck::ok() const {
+    return mismatches.empty();
+}
+
+std::string ContactCheck::str() const {
+
+    std::string text = fmt::format("{} of {} contacts verified by the kernel's search", count - mismatches.size(), count);
+
+    for (const ContactMismatch& mismatch : mismatches)
+        text += fmt::format("\n  mismatch: {}: {}", mismatch.relation, mismatch.what);
+
+    return text;
 }
 
 }

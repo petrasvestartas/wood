@@ -18,13 +18,6 @@ static MemberRef shared_member(Family family, size_t index, int quarter = -1) {
 // References
 // ═══════════════════════════════════════════════════════════════════════════
 
-size_t MemberRef::order() const {
-
-    const size_t place = quarter < 0 ? 4 : static_cast<size_t>(quarter);
-
-    return place * 1000 + static_cast<size_t>(family) * 100 + (row < 0 ? 0 : static_cast<size_t>(row) * 10) + index;
-}
-
 std::string MemberRef::name() const {
 
     if (family == Family::ring)
@@ -58,10 +51,6 @@ std::string relation_name(Relation kind) {
 
 std::string Relationship::text() const {
     return fmt::format("{} {} - {}", relation_name(kind), a.name(), b.name());
-}
-
-std::array<MemberRef, 2> Relationship::scene_pair() const {
-    return a.order() <= b.order() ? std::array<MemberRef, 2>{a, b} : std::array<MemberRef, 2>{b, a};
 }
 
 Place Relationship::place() const {
@@ -213,36 +202,15 @@ static Relationship cutter(const Floor& floor, size_t q, size_t j, const Outline
     return row;
 }
 
-/// Whether x comes before y in compas_tf's pairwise search: by the scene order of the earlier member, then of the later one.
-static bool found_before(const Relationship& x, const Relationship& y) {
-
-    const std::array<MemberRef, 2> px = x.scene_pair();
-    const std::array<MemberRef, 2> py = y.scene_pair();
-
-    return px[0].order() != py[0].order() ? px[0].order() < py[0].order() : px[1].order() < py[1].order();
-}
-
-/// The rows in the order compas_tf's pairwise search found them.
-static std::vector<Relationship> in_search_order(std::vector<Relationship> rows) {
-
-    std::stable_sort(rows.begin(), rows.end(), found_before);
-
-    return rows;
-}
-
 std::vector<Relationship> relationships(const Floor& floor) {
 
-    std::vector<Relationship> wedges;
-    std::vector<Relationship> ties;
     std::vector<Relationship> rows;
 
-    for (size_t q = 0; q < 4; q++) {
-        wedges.push_back(seam_wedge(floor, q));
-        wedges.push_back(oculus_wedge(floor, q));
-        ties.push_back(seam_tie(floor, q));
-    }
+    for (size_t q = 0; q < 4; q++)
+        rows.push_back(seam_wedge(floor, q));
 
-    rows = in_search_order(wedges);
+    for (size_t q = 0; q < 4; q++)
+        rows.push_back(oculus_wedge(floor, q));
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++)
@@ -251,8 +219,8 @@ std::vector<Relationship> relationships(const Floor& floor) {
     for (size_t q = 0; q < 4; q++)
         rows.push_back(cross_lap(q));
 
-    for (const Relationship& tie : in_search_order(ties))
-        rows.push_back(tie);
+    for (size_t q = 0; q < 4; q++)
+        rows.push_back(seam_tie(floor, q));
 
     for (size_t q = 0; q < 4; q++) {
         rows.push_back(block_dowels(floor, q, 0, 0, quarter_member(q, Family::outer_ribs, 0)));

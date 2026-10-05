@@ -7,11 +7,6 @@ namespace wood_floor {
 
 using namespace wood_floor::geometry;
 
-/// The closed quad of four points.
-static Polyline section(const Point& a, const Point& b, const Point& c, const Point& d) {
-    return Polyline({a, b, c, d}).closed();
-}
-
 /// The point at z.
 static Point at_level(const Point& point, double z) {
     return Point(point[0], point[1], z);
@@ -24,7 +19,7 @@ static Polyline square(const ColumnCorner& corner, double side, double z) {
     const Vector x = corner.x_axis * side;
     const Vector y = corner.y_axis * side;
 
-    return section(at_level(o, z), at_level(o + x, z), at_level(o + x + y, z), at_level(o + y, z));
+    return Polyline({at_level(o, z), at_level(o + x, z), at_level(o + x + y, z), at_level(o + y, z)}).closed();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -52,7 +47,7 @@ std::shared_ptr<wood_session::BeamVariable> to_rib(const Outline& outline, const
             far_high = bottom[0];
         }
 
-        sections.push_back(section(low, high, far_high, far_low));
+        sections.push_back(Polyline({low, high, far_high, far_low}).closed());
     }
 
     const Line axis = Line::from_points(Line::from_points(top[1], bottom[1]).center(), Line::from_points(top[0], bottom[0]).center());
@@ -64,8 +59,8 @@ std::shared_ptr<wood_session::BeamVariable> to_beam(const Outline& outline, cons
 
     const std::vector<Point> top = outline.top.get_points();
     const std::vector<Point> bottom = outline.bottom.get_points();
-    const Polyline first = section(top[start[0]], top[start[1]], bottom[start[1]], bottom[start[0]]);
-    const Polyline last = section(top[end[0]], top[end[1]], bottom[end[1]], bottom[end[0]]);
+    const Polyline first = Polyline({top[start[0]], top[start[1]], bottom[start[1]], bottom[start[0]]}).closed();
+    const Polyline last = Polyline({top[end[0]], top[end[1]], bottom[end[1]], bottom[end[0]]}).closed();
     const Point a = Point::centroid({top[start[0]], top[start[1]], bottom[start[1]], bottom[start[0]]});
     const Point b = Point::centroid({top[end[0]], top[end[1]], bottom[end[1]], bottom[end[0]]});
 

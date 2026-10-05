@@ -159,18 +159,6 @@ void check_support() {
     std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
 }
 
-/// The number of exact bores in a BRep: its rational surfaces.
-size_t count_bores(const BRep& brep) {
-
-    size_t bores = 0;
-
-    for (const NurbsSurface& surface : brep.m_surfaces)
-        if (surface.is_rational())
-            bores++;
-
-    return bores;
-}
-
 /// The children of a connector in the scene tree: its part and dowel elements, in order.
 std::vector<std::shared_ptr<Joint>> children_of(const WoodSession& scene, const JointBeam& connector) {
 
@@ -253,12 +241,8 @@ void check_relationships() {
     for (const wood_floor::Relationship& row : rows)
         check(members.get(row.a) != nullptr && members.get(row.b) != nullptr, "every relationship names two scene members: " + row.text());
 
-    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(scene, square_floor(), members);
-
-    for (const wood_floor::ContactMismatch& mismatch : mismatches)
-        std::cout << "   mismatch " << mismatch.relation << ": " << mismatch.what << std::endl;
-
-    check(mismatches.empty(), std::to_string(mismatches.size()) + " of 44 contacts disagree with the kernel's search");
+    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(scene, square_floor(), members);
+    check(contacts.ok() && contacts.count == 44, contacts.str());
 
     bool thrown = false;
 
@@ -282,9 +266,9 @@ void check_wedges() {
 
     for (const std::shared_ptr<JointBeam>& wedge : wedges) {
         check_flush(*wedge, scene, wedge->name, true);
-        check(count_bores(wedge->part_brep(0)) == wedge->drill_lines.size(), "every wedge dowel an exact bore through the wedge's part");
+        check(wood_floor::count_bores(wedge->part_brep(0)) == wedge->drill_lines.size(), "every wedge dowel an exact bore through the wedge's part");
         check_nested(scene, *wedge, 1, wedge->drill_lines.size());
-        check(count_bores(children_of(scene, *wedge).front()->model_geometry_brep()) == wedge->drill_lines.size(), "the wedge child carries the bores");
+        check(wood_floor::count_bores(children_of(scene, *wedge).front()->model_geometry_brep()) == wedge->drill_lines.size(), "the wedge child carries the bores");
     }
 
     std::map<std::string, double> volumes;
@@ -315,7 +299,7 @@ void check_wedges() {
 
         const BRep& brep = beam->model_geometry_brep();
         const double volume = compute_volume(beam->model_geometry_mesh());
-        check(count_bores(brep) > 0 && brep.is_solid() && std::abs(brep.volume() - volume) <= 1e-3 * volume, "exact dowel bores in " + beam->name);
+        check(wood_floor::count_bores(brep) > 0 && brep.is_solid() && std::abs(brep.volume() - volume) <= 1e-3 * volume, "exact dowel bores in " + beam->name);
     }
 
     std::cout << "floor_elements: " << wedges.size() << " wedges, visible, dowels flush and exact, joints and carved beams through a round trip, every dowel bore exact in the BReps, pass" << std::endl;
@@ -352,7 +336,7 @@ void check_dowels() {
     for (const std::shared_ptr<Plate>& plate : {lower, upper}) {
         const double volume = compute_volume(plate->model_geometry_mesh());
         check(std::abs(600.0 * 200.0 * 60.0 - bore - volume) <= 1e-6 * volume, "four blind holes out of " + plate->name);
-        check(count_bores(plate->model_geometry_brep()) == 4 && plate->model_geometry_brep().is_solid(), "four exact bores in " + plate->name);
+        check(wood_floor::count_bores(plate->model_geometry_brep()) == 4 && plate->model_geometry_brep().is_solid(), "four exact bores in " + plate->name);
     }
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -375,7 +359,7 @@ void check_inner_rib_bores(const std::array<wood_floor::QuarterMembers, 4>& quar
                     crossing += set->drill_lines.size();
 
             const BRep& brep = rib.element->model_geometry_brep();
-            check(brep.is_solid() && count_bores(brep) == crossing, fmt::format("an inner rib bored once per dowel, one exact cylinder each: {} dowels, {} bores in {}", crossing, count_bores(brep), rib.element->name));
+            check(brep.is_solid() && wood_floor::count_bores(brep) == crossing, fmt::format("an inner rib bored once per dowel, one exact cylinder each: {} dowels, {} bores in {}", crossing, wood_floor::count_bores(brep), rib.element->name));
         }
 }
 
@@ -391,7 +375,7 @@ void check_drilled_members(const WoodSession& scene) {
             continue;
 
         drilled++;
-        check(element->model_geometry_brep().is_solid() && count_bores(element->model_geometry_brep()) > 0, fmt::format("exact dowel bores in {}: solid {}, {} bores", element->name, element->model_geometry_brep().is_solid(), count_bores(element->model_geometry_brep())));
+        check(element->model_geometry_brep().is_solid() && wood_floor::count_bores(element->model_geometry_brep()) > 0, fmt::format("exact dowel bores in {}: solid {}, {} bores", element->name, element->model_geometry_brep().is_solid(), wood_floor::count_bores(element->model_geometry_brep())));
     }
 
     check(drilled == 28, "seven drilled members per quarter, the ribs and the blocks, not " + std::to_string(drilled));
@@ -454,10 +438,10 @@ void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_pt
 
         for (const std::shared_ptr<JointBeam>& plate : {a, b}) {
             const BRep part = plate->part_brep(0);
-            check(part.is_solid() && count_bores(part) == 4, "a slotted plate exact with four dowel bores");
+            check(part.is_solid() && wood_floor::count_bores(part) == 4, "a slotted plate exact with four dowel bores");
             check_nested(scene, *plate, 1, 4);
             const std::shared_ptr<Joint> child = children_of(scene, *plate).front();
-            check(child->model_geometry_brep().is_solid() && count_bores(child->model_geometry_brep()) == 4 && std::abs(child->model_geometry_brep().volume() - part.volume()) < 1e-6 * part.volume(), "the plate child carries the slot and the four bores");
+            check(child->model_geometry_brep().is_solid() && wood_floor::count_bores(child->model_geometry_brep()) == 4 && std::abs(child->model_geometry_brep().volume() - part.volume()) < 1e-6 * part.volume(), "the plate child carries the slot and the four bores");
         }
     }
 }
@@ -533,7 +517,7 @@ void check_rectangle_plates() {
     check_cross_laps(scene, laps);
 
     for (const wood_floor::ColumnModel& column : members.columns)
-        check(column.column->model_geometry_brep().is_solid() && count_bores(column.column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
+        check(column.column->model_geometry_brep().is_solid() && wood_floor::count_bores(column.column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
 
     const std::vector<std::shared_ptr<JointBeam>> ties = wood_floor::add_connectors(scene, square_floor(), members, {wood_floor::Relation::seam_tie});
     check_ties(scene, ribs, ties);
@@ -827,12 +811,8 @@ void check_rectangle() {
     WoodSession scene("rectangle");
     wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
     wood_floor::add_columns(scene, floor, nullptr, members);
-    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(scene, floor, members);
-
-    for (const wood_floor::ContactMismatch& mismatch : mismatches)
-        std::cout << "   mismatch " << mismatch.relation << ": " << mismatch.what << std::endl;
-
-    check(mismatches.empty(), std::to_string(mismatches.size()) + " of 44 rectangle contacts disagree with the kernel's search");
+    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(scene, floor, members);
+    check(contacts.ok() && contacts.count == 44, "rectangle " + contacts.str());
     std::cout << fmt::format("floor_elements: 3000 x 2400 report ok, rule A {:.3f} deg, faces planar within {:.1e}, 44 of 44 contacts", report.ruling_off_chamfer_deg[0], floor_flatness(floor)) << std::endl;
 }
 
@@ -933,7 +913,7 @@ void check_floor_screws(const wood_floor::Floor& floor, const std::string& label
     connectors.insert(connectors.end(), screws.begin(), screws.end());
     check(report.counts.at(wood_floor::Relation::screw_rib_beam) == 16 && report.counts.at(wood_floor::Relation::screw_beam_mitre) == 16 && report.counts.at(wood_floor::Relation::screw_rib_corner) == 16 && report.counts.at(wood_floor::Relation::screw_ring) == 8 && report.counts.at(wood_floor::Relation::screw_oculus) == 16, label + " screws per kind:\n" + report.str());
     check(report.misfits.empty() && report.screw_screw_mm >= 8.0 && report.screw_bore_mm >= 0.0 && report.screw_pocket_mm >= 0.0 && std::abs(report.embedded_min_mm - 200.0) <= 1e-3, label + " screws clear and held:\n" + report.str());
-    check(wood_floor::verify_contacts(scene, floor, members, 1e-6, kinds).empty(), label + " every screw contact the kernel's search finds");
+    check(wood_floor::verify_contacts(scene, floor, members, 1e-6, kinds).ok(), label + " every screw contact the kernel's search finds");
 
     size_t next = 0;
 

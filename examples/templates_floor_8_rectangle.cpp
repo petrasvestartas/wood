@@ -9,15 +9,6 @@ const bool BREPS = true; // write every cut member, connector part and dowel as 
 const double HALF_X = 3000.0; // half span along x: the bay is 6000 long
 const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
 
-/// Prints the contacts the kernel's search disagrees with and how many of the count agree.
-void print_contacts(const std::string& what, const std::vector<wood_floor::ContactMismatch>& mismatches, size_t count) {
-
-    for (const wood_floor::ContactMismatch& mismatch : mismatches)
-        std::cout << fmt::format("{} mismatch: {}: {}", what, mismatch.relation, mismatch.what) << std::endl;
-
-    std::cout << fmt::format("{} of {} {}s verified by the kernel's search", count - mismatches.size(), count, what) << std::endl;
-}
-
 /// The number of dowels over a set of connectors.
 size_t count_dowels(const std::vector<std::shared_ptr<JointBeam>>& connectors) {
 
@@ -33,13 +24,14 @@ size_t count_dowels(const std::vector<std::shared_ptr<JointBeam>>& connectors) {
 int main() {
 
     const wood_floor::Floor model(wood_floor::FloorPlan::rectangle(HALF_X, HALF_Y), wood_floor::FloorSizes{});
+    
     std::cout << model.check().str() << std::endl;
     WoodSession session("templates_floor_8_rectangle");
     const std::shared_ptr<TreeNode> root = session.add_group("cantilever_model");
     wood_floor::FloorMembers members = wood_floor::add_floor(session, model, wood_floor::add_group(session, "floor_model", root));
     wood_floor::add_columns(session, model, wood_floor::add_group(session, "columns_model", root), members);
 
-    const std::vector<wood_floor::ContactMismatch> mismatches = wood_floor::verify_contacts(session, model, members);
+    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(session, model, members);
     const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     const std::vector<std::shared_ptr<JointBeam>> wedges = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
     const std::vector<std::shared_ptr<JointBeam>> column_joints = wood_floor::add_connectors(session, model, members, {wood_floor::Relation::column_plate, wood_floor::Relation::cross_lap});
@@ -49,13 +41,13 @@ int main() {
     const size_t plates = wood_floor::relationships(model, wood_floor::Relation::column_plate).size();
 
     std::cout << fmt::format("{} elements, {} wedges with {} dowels, {} dowel sets of {} dowels, {} rectangle plates with {} cross laps, {} ties: contacts and cuts in {:.0f} ms", session.objects.elements->size(), wedges.size(), count_dowels(wedges), dowels.size(), count_dowels(dowels), plates, column_joints.size() - plates, ties.size(), ms) << std::endl;
-    print_contacts("contact", mismatches, wedges.size() + plates + ties.size() + dowels.size());
+    std::cout << contacts.str() << std::endl;
     std::cout << wood_floor::check_breps(session).str() << std::endl;
 
     const std::vector<wood_floor::Relation> screw_kinds(wood_floor::SCREW_RELATIONS.begin(), wood_floor::SCREW_RELATIONS.end());
-    const std::vector<wood_floor::ContactMismatch> screw_mismatches = wood_floor::verify_contacts(session, model, members, 1e-6, screw_kinds);
+    const wood_floor::ContactCheck screw_contacts = wood_floor::verify_contacts(session, model, members, 1e-6, screw_kinds);
     const std::vector<std::shared_ptr<JointBeam>> screws = wood_floor::add_connectors(session, model, members, screw_kinds);
-    print_contacts("screw contact", screw_mismatches, screws.size());
+    std::cout << "screws: " << screw_contacts.str() << std::endl;
     std::cout << wood_floor::check_screws(session, model, screws).str() << std::endl;
 
     if constexpr (BREPS)

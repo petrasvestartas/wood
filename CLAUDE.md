@@ -1,77 +1,8 @@
 # wood — Agent Instructions
 
-## Running anything: use the guard
-
-**Never launch a solver, example or dataset sweep directly.** Run it through the
-guard, which applies a wall-clock timeout, a kernel-enforced memory cap, and a
-one-at-a-time check:
-
-```bash
-tools/run_guarded.sh -t 10 -m 4 -- build/main_all_datasets          # Linux / macOS
-```
-```powershell
-tools/run_guarded.ps1 -FilePath build/Release/main_all_datasets.exe `
-    -TimeoutMinutes 10 -MemoryLimitGB 4                              # Windows
-```
-
-Defaults are 10 minutes and 4 GB. Exit code 124 means the timeout killed it, 137
-the memory cap, 75 that a copy was already running. Builds have their own limit:
-`cmake --build build --parallel 6`, through `buildslot` where installed, never `-j$(nproc)`;
-cmake as in the superproject `CLAUDE.md` (never the snap, which escapes the memory cap).
-
-Why this exists: on 2026-08-27 three concurrent copies of
-`main_wood_04_all_datasets.exe` reached 51 GB, 45 GB and 18 GB of committed
-memory on a 32 GB machine. Windows logged Resource-Exhaustion-Detector (event
-2004) three times and then took a dirty shutdown (Kernel-Power 41).
-
-Three rules follow from that:
-
-1. **Bound every run.** These algorithms are small — the whole floor_model solve
-   is ~200 ms. Anything that has not finished in ten minutes is wedged, not
-   slow. Kill it and investigate.
-2. **Bound the memory too.** A timeout alone would not have saved that machine:
-   it was thrashing long before any sensible deadline expired. The memory cap is
-   the guard that protects the box, because the kernel refuses the allocation
-   rather than letting it eat the page file.
-3. **One run at a time.** Never start a second copy of a sweep while one is
-   running. Concurrency is what turned a survivable leak into a crash, and the
-   three copies also raced on each other's `data/output/` files, so their
-   results were meaningless anyway.
-
-## Prefer one dataset over all of them
-
-`main_all_datasets` runs 44 datasets in a single process, so any per-dataset
-leak accumulates and one bad dataset takes the whole sweep down with it. When
-investigating, use `main_dataset_runner` for the single dataset you care about.
-Reach for the full sweep only to confirm a finished change, and only guarded.
-
-## Benchmarking
-
-Build the comparison binary into a **separate build directory**, never over the
-current one, and run the two alternately rather than in parallel — parallel runs
-contend for memory and cache and give numbers that are noise.
-
-## Verifying "output unchanged"
-
-Every dataset run (`WoodSession::write` with a `.pb` name, so the whole sweep) writes
-`<name>.pb_coords.txt` and `<name>.pb_meta.txt` next to the `.pb`: every plate's merged
-outlines. Diff those between two builds to prove a refactor changed nothing.
-Compare against a dump taken from a **clean checkout of the baseline commit** —
-a dump left behind by a half-finished or concurrent run is not a baseline.
-
-## Trace and diagnostics flags
-
-`WOOD_F2F_DUMP=<path>` is the only environment flag: it appends every rotated (type 13) joint
-volume to that file and is the parity harness beside the `_coords.txt` / `_meta.txt` dumps.
-Everything else is a compile-time `constexpr bool TRACE = false;` at the top of the file it
-belongs to (`wood_main.cpp`, `wood_face_to_face.cpp`, `wood_merge.cpp`, `wood_joint.cpp`,
-`wood_beams.cpp`); flip it and rebuild to see that file's trace. Traces cost real time when
-on, so they are never on for timing runs.
-
 ## House style
 
-Apply `../.claude/agents/session-reviewer.md`, including its `session-format` and
-`session-comments` skills, to all handwritten wood code. The user's wood scope
+Apply `../.claude/agents/session-reviewer.md` to all handwritten wood code. The user's wood scope
 overrides that reviewer's default exclusion of wood. Kernel parity and kernel CI
 steps apply only when changing the kernels; wood remains a C++ consumer.
 
@@ -82,3 +13,15 @@ functions instead of files per factory or family. Expose library designs by thei
 actual names, such as `JointPlate::ts_e_p_3`, with their own parameters.
 Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
 completion accurately. Generated protobuf files follow the generator's format.
+
+## Kernel first
+
+- Before writing a geometry or scene helper in wood, search the kernel headers
+  (`../session/session_cpp/src/*.h`: Point, Vector, Line, Plane, Polyline, Mesh, Xform,
+  Intersection, Closest, ConvexHull, BooleanPolyline, Session). If it exists, call it
+  directly; never re-implement its math and never wrap it only to rename it.
+- If the operation is missing and is not timber-specific, propose it for the kernel
+  (cpp, py and rust together) instead of writing it in wood.
+- A helper two files need lives once in the module's internal header, never as two
+  `static` copies.
+
