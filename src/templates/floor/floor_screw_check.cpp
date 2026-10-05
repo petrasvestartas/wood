@@ -50,14 +50,9 @@ static double segment_distance(const Line& s, const Line& t) {
     return ((s.start() + d1 * u) - (t.start() + d2 * v)).magnitude();
 }
 
-/// The distance from a point to a segment.
+/// The distance from a point to the segment a b.
 static double point_distance(const Point& p, const Point& a, const Point& b) {
-
-    const Vector ab = b - a;
-    const double length = ab.dot(ab);
-    const double t = length > 1e-24 ? std::clamp((p - a).dot(ab) / length, 0.0, 1.0) : 0.0;
-
-    return (p - (a + ab * t)).magnitude();
+    return (p - Line::from_points(a, b).closest_point(p).second).magnitude();
 }
 
 /// The distance from a point to a triangle.

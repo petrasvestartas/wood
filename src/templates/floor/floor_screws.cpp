@@ -43,12 +43,12 @@ static Line axis(const std::array<Plane, 2>& faces, double z) {
 
     const Line line0 = trace(faces[0], z);
     const Line line1 = trace(faces[1], z);
-    const Vector d = direction(line1);
+    const Vector d = line1.to_direction();
     const Point p0 = line0.start();
     const Point p1 = line1.start() + d * (p0 - line1.start()).dot(d);
     const Point middle = p0 + (p1 - p0) * 0.5;
 
-    return Line::from_points(middle, middle + direction(line0));
+    return Line::from_points(middle, middle + line0.to_direction());
 }
 
 /// The middle of a member outline: the mean of its two loops' area centroids.
@@ -58,15 +58,7 @@ static Point body(const Outline& outline) {
 
 /// The distance of a point from a plane, positive on the side of inside.
 static double depth(const Point& point, const Plane& plane, const Point& inside) {
-
-    const double side = (inside - plane.origin()).dot(plane.z_axis()) < 0.0 ? -1.0 : 1.0;
-
-    return side * (point - plane.origin()).dot(plane.z_axis());
-}
-
-/// The depth of a point between two faces: the smaller of its distances from either, negative outside.
-static double depth(const Point& point, const std::array<Plane, 2>& faces, const Point& inside) {
-    return std::min(depth(point, faces[0], inside), depth(point, faces[1], inside));
+    return signed_distance(inside, plane) < 0.0 ? -signed_distance(point, plane) : signed_distance(point, plane);
 }
 
 /// The level of screw i of a corner's level set: down from the datum in sevenths of the depth.
@@ -83,7 +75,7 @@ static Line along_axis(const std::array<Plane, 2>& butting, const Plane& far_fac
 
     const Line line = axis(butting, z);
     const Point head = line_plane(line, far_face).value();
-    Vector d = direction(line);
+    Vector d = line.to_direction();
 
     if (d.dot(butting_body - head) < 0.0)
         d = -d;
@@ -168,11 +160,6 @@ static Line oculus_screw(const CornerFaces& faces, const RingFaces& ring, double
 // Relationships
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A quarter member reference.
-static MemberRef member(size_t quarter, Family family, size_t index) {
-    return MemberRef{static_cast<int>(quarter), family, index, -1};
-}
-
 /// A screw relationship: the two members, the face the second ends on and its end face there, the screws lifted to the floor.
 static Relationship screw_row(const Floor& floor, Relation kind, const MemberRef& a, const MemberRef& b, const Plane& plane, const std::vector<Point>& contact, const std::vector<Line>& screws, size_t corner) {
 
@@ -218,7 +205,7 @@ static Relationship rib_beam(const Floor& floor, size_t q, size_t k) {
     for (double fraction : RIB_BEAM_LEVELS)
         screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -floor.sizes.static_h() * fraction));
 
-    return screw_row(floor, Relation::screw_rib_beam, member(q, Family::outer_ribs, k), member(q, Family::inner_beams, beam), cp.outer_ribs[k][1], {top[3], top[0], bottom[0], bottom[3]}, screws, q);
+    return screw_row(floor, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.outer_ribs[k][1], {top[3], top[0], bottom[0], bottom[3]}, screws, q);
 }
 
 /// Seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it: two screws along the oculus beam from the seam plane, the contact the oculus beam's end.
@@ -235,7 +222,7 @@ static Relationship beam_mitre(const Floor& floor, size_t q, size_t k) {
     for (double levels : MITRE_LEVELS[k])
         screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body(outline), corner_level(levels, floor.sizes.static_h())));
 
-    return screw_row(floor, Relation::screw_beam_mitre, member(q, Family::inner_beams, seam), member(q, Family::inner_beams, 1), cp.inner_beams[seam][1], contact, screws, q);
+    return screw_row(floor, Relation::screw_beam_mitre, quarter_member(q, Family::inner_beams, seam), quarter_member(q, Family::inner_beams, 1), cp.inner_beams[seam][1], contact, screws, q);
 }
 
 /// The oculus beam of quarter q into inner rib k ending on its back face: two screws along the rib from where its axis leaves the tilted face, through the beam corner, so they also pass the seam beam's end where the corner needs it; the contact the rib's end face down to the beam's soffit.
@@ -256,10 +243,10 @@ static Relationship rib_corner(const Floor& floor, size_t q, size_t k) {
     }
 
     const std::vector<Point> end = above({top[0], top[top.size() - 2], bottom[bottom.size() - 2], bottom[0]}, -floor.sizes.static_h());
-    Relationship row = screw_row(floor, Relation::screw_rib_corner, member(q, Family::inner_beams, 1), member(q, Family::inner_ribs, k), cp.inner_beams[1][1], end, screws, q);
+    Relationship row = screw_row(floor, Relation::screw_rib_corner, quarter_member(q, Family::inner_beams, 1), quarter_member(q, Family::inner_ribs, k), cp.inner_beams[1][1], end, screws, q);
 
     if (through_seam)
-        row.through.push_back(member(q, Family::inner_beams, seam));
+        row.through.push_back(quarter_member(q, Family::inner_beams, seam));
 
     return row;
 }
@@ -299,7 +286,7 @@ static Relationship oculus(const Floor& floor, size_t q, size_t k, const std::ve
     for (double levels : OCULUS_LEVELS[k])
         screws.push_back(oculus_screw(faces, ring, corner_level(levels, floor.sizes.static_h())));
 
-    return screw_row(floor, Relation::screw_oculus, MemberRef{-1, Family::ring, q, -1}, member(q, Family::inner_beams, 1), floor.oculus_edges[q].tilted, {loop.begin(), loop.end() - 1}, screws, q);
+    return screw_row(floor, Relation::screw_oculus, MemberRef{-1, Family::ring, q, -1}, quarter_member(q, Family::inner_beams, 1), floor.oculus_edges[q].tilted, {loop.begin(), loop.end() - 1}, screws, q);
 }
 
 std::vector<Relationship> geometry::screw_relationships(const Floor& floor) {

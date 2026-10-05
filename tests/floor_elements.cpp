@@ -6,20 +6,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The square floor in compas_tf's parity mode every check reads, built on first use.
+/// The square floor every check reads, built on first use.
 const wood_floor::Floor& square_floor() {
 
-    static const wood_floor::Floor floor = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    static const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
 
     return floor;
 }
 
-const double EXACT_SUPPORT = 500671.261678; // compas_tf SupportElement.brep volume, exact cylinders and hexagons
-const double COMPAS_TF_OUTER_RIB = 99598198.606378; // compas_tf outer rib carved by its rectangle plate pocket and dowels
-const double COMPAS_TF_TIED_RIB = 98812970.259836; // the same rib after the seam connector pocket too
-const double COMPAS_TF_TIE = 1570456.693007; // compas_tf OuterRibConnector.obj body, the parametric tie's defaults
-const double COMPAS_TF_HEAD_CUT = 211196000.0 - 176418621.638340; // compas_tf stock less its carved column: what the six head cutters take
-const double MODEL_HEAD_CUT = 34771221.351479; // the same with the model's middle cutter level at the outer rib bottoms, 0.243 mm deeper on the square
+const double EXACT_SUPPORT = 500671.261678; // the support's exact BRep volume, cylinders and hexagons
+const double CARVED_OUTER_RIB = 99598198.606378; // an outer rib carved by its rectangle plate pocket and dowels
+const double TIED_OUTER_RIB = 98812970.259836; // the same rib after the tie pocket too
+const double TIE_KEY = 1570456.693007; // the tie key's body with the tie's defaults
+const double HEAD_CUT = 34771221.351479; // what the six head cutters take from the column
 
 /// Prints the message and throws with it when the condition fails.
 void check(bool ok, const std::string& message) {
@@ -119,25 +118,7 @@ double faceted_area(double radius, double chord_tolerance) {
     return 0.5 * n * radius * radius * std::sin(2.0 * M_PI / n);
 }
 
-/// What the six head cutters take from the column with the model's middle cutter level, the outer rib bottoms.
-double model_head_cut() {
-
-    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
-    WoodSession scene("model_head");
-    const std::shared_ptr<Support> support = wood_floor::to_support(floor.columns[0]);
-    const std::shared_ptr<Column> column = wood_floor::to_column(floor.columns[0], floor.sizes, *support);
-    scene.add(column);
-    const double stock = compute_volume(column->element_geometry_mesh());
-
-    for (const std::shared_ptr<Joint>& cutter : wood_floor::to_column_cutters(floor.quarter(0), *column)) {
-        scene.add(cutter);
-        scene.add_joint(cutter);
-    }
-
-    return stock - compute_volume(column->model_geometry_mesh());
-}
-
-/// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the screws, the head cutters still removing compas_tf's volume, and every dimension through a round trip.
+/// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the screws, the head cutters removing their volume, and every dimension through a round trip.
 void check_support() {
 
     WoodSession scene("support");
@@ -167,9 +148,7 @@ void check_support() {
     }
 
     const double head = stock - removed - compute_volume(column->model_geometry_mesh());
-    check(std::abs(head - COMPAS_TF_HEAD_CUT) <= 1e-6 * COMPAS_TF_HEAD_CUT, "head cutters remove " + std::to_string(head));
-    const double model_head = model_head_cut();
-    check(std::abs(model_head - MODEL_HEAD_CUT) <= 1e-6 * MODEL_HEAD_CUT, fmt::format("the model's head cutters remove {:.6f}", model_head));
+    check(std::abs(head - HEAD_CUT) <= 1e-6 * HEAD_CUT, fmt::format("head cutters remove {:.6f}", head));
     check(column->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -177,7 +156,7 @@ void check_support() {
     check(loaded->plane.origin() == support->plane.origin() && loaded->height == support->height && loaded->head_plate_diameter == support->head_plate_diameter, "support round trip");
     check(loaded->screw_count == support->screw_count && loaded->screw_angle == support->screw_angle && loaded->base_plate_hole_spacing == support->base_plate_hole_spacing, "support round trip fasteners");
 
-    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.3f}, the model's {:.6f}, round trip pass", compute_volume(base), removed, head, model_head) << std::endl;
+    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, head cutters {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
 }
 
 /// The number of exact bores in a BRep: its rational surfaces.
@@ -418,7 +397,7 @@ void check_drilled_members(const WoodSession& scene) {
     check(drilled == 28, "seven drilled members per quarter, the ribs and the blocks, not " + std::to_string(drilled));
 }
 
-/// The assembly dowels of the quarters: a dowel set on every rib-to-wedge-block contact, the six per quarter compas_tf finds, never across quarters, four 30 mm dowels exactly at the corners of each contact inset 50, the contacts found on the uncut members; every dowel half in each member, every drilled member exact; through a round trip.
+/// The assembly dowels of the quarters: a dowel set on every rib-to-wedge-block contact, six per quarter, never across quarters, four 30 mm dowels exactly at the corners of each contact inset 50, the contacts found on the uncut members; every dowel half in each member, every drilled member exact; through a round trip.
 void check_quarter_dowels() {
 
     WoodSession scene("quarter_dowels");
@@ -483,7 +462,7 @@ void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_pt
     }
 }
 
-/// The ties on the rib seams: four, nested as four key parts, every tied outer rib and every key at compas_tf's volume.
+/// The ties on the rib seams: four, nested as four key parts, every tied outer rib and every key at its pinned volume.
 void check_ties(const WoodSession& scene, const std::vector<wood_floor::Member>& ribs, const std::vector<std::shared_ptr<JointBeam>>& ties) {
 
     check(ties.size() == 4, "four ties, not " + std::to_string(ties.size()));
@@ -492,7 +471,7 @@ void check_ties(const WoodSession& scene, const std::vector<wood_floor::Member>&
         check_nested(scene, *tie, 4, 0);
 
     for (const wood_floor::Member& rib : ribs)
-        check(std::abs(compute_volume(rib.element->model_geometry_mesh()) - COMPAS_TF_TIED_RIB) <= 1e-9 * COMPAS_TF_TIED_RIB, "tied outer rib " + rib.element->name);
+        check(std::abs(compute_volume(rib.element->model_geometry_mesh()) - TIED_OUTER_RIB) <= 1e-9 * TIED_OUTER_RIB, fmt::format("tied outer rib {} {:.6f}", rib.element->name, compute_volume(rib.element->model_geometry_mesh())));
 
     for (const std::shared_ptr<JointBeam>& tie : ties) {
         Mesh key;
@@ -500,7 +479,7 @@ void check_ties(const WoodSession& scene, const std::vector<wood_floor::Member>&
         for (const std::array<Polyline, 2>& part : tie->parts)
             append_mesh(key, Mesh::loft({part[0]}, {part[1]}, true));
 
-        check(std::abs(compute_volume(key) - COMPAS_TF_TIE) <= 1e-9 * COMPAS_TF_TIE, "tie volume " + std::to_string(compute_volume(key)));
+        check(std::abs(compute_volume(key) - TIE_KEY) <= 1e-9 * TIE_KEY, fmt::format("tie volume {:.6f}", compute_volume(key)));
     }
 }
 
@@ -535,7 +514,7 @@ void check_loaded_tie_cuts(WoodSession& scene, const std::vector<std::shared_ptr
     std::cout << "floor_elements: a loaded tie drilled through one key, every key child cut as its own part" << std::endl;
 }
 
-/// The rectangle plates between the columns and the outer ribs and the ties on the rib seams: eight and four, every carved outer rib at compas_tf's volume, the plates half-lapped and the column still exact, through a round trip.
+/// The rectangle plates between the columns and the outer ribs and the ties on the rib seams: eight and four, every carved outer rib at its pinned volume, the plates half-lapped and the column still exact, through a round trip.
 void check_rectangle_plates() {
 
     WoodSession scene("rectangle_plates");
@@ -548,7 +527,7 @@ void check_rectangle_plates() {
     const std::vector<std::shared_ptr<JointBeam>> laps(joints.begin() + 8, joints.end());
 
     for (const wood_floor::Member& rib : ribs)
-        check(std::abs(compute_volume(rib.element->model_geometry_mesh()) - COMPAS_TF_OUTER_RIB) <= 1e-9 * COMPAS_TF_OUTER_RIB, "carved outer rib " + rib.element->name);
+        check(std::abs(compute_volume(rib.element->model_geometry_mesh()) - CARVED_OUTER_RIB) <= 1e-9 * CARVED_OUTER_RIB, fmt::format("carved outer rib {} {:.6f}", rib.element->name, compute_volume(rib.element->model_geometry_mesh())));
 
     check(laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_7", "four cross laps after the eight plates");
     check_cross_laps(scene, laps);
@@ -569,7 +548,7 @@ void check_rectangle_plates() {
     check(slotted == 8, "the slots round trip on the plates");
     check(back.get_elements<ConnectorPart>().size() == 8 + 16 && back.get_elements<Dowel>().size() == 32, "the plate and key parts and the dowels round trip as children");
 
-    std::cout << "floor_elements: " << plates.size() << " rectangle plates half-lapped by " << laps.size() << " cross laps, drilled and exact, and " << ties.size() << " ties, carved outer ribs and ties at compas_tf's volume, round trip pass" << std::endl;
+    std::cout << "floor_elements: " << plates.size() << " rectangle plates half-lapped by " << laps.size() << " cross laps, drilled and exact, and " << ties.size() << " ties, carved outer ribs and ties at their pinned volumes, round trip pass" << std::endl;
     check_loaded_tie_cuts(scene, ties);
 }
 
@@ -616,7 +595,7 @@ void check_shared_entities() {
     std::cout << "floor_elements: every seam, bay edge, oculus edge and column fan plane read by its quarters as one plane, every in-place quarter equal to the turned quarter 0 within 1e-6" << std::endl;
 }
 
-/// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9, so it is compas_tf's rotated ring.
+/// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9.
 void check_ring() {
 
     const std::vector<wood_floor::Outline> ring = square_floor().oculus();
@@ -645,7 +624,7 @@ void check_ring() {
     std::cout << "floor_elements: the ring from the four oculus edges is the rotated ring within 1e-9 on the square" << std::endl;
 }
 
-/// The report on the square: every structural relation 0, rule A reducing to compas_tf's chamfer direction for both the ruling and the rib sweep, the outer rib bottoms 0.243 mm under the compas_tf cutter level.
+/// The report on the square: every structural relation 0, rule A reducing to the chamfer direction for both the ruling and the rib sweep, the middle cutter level at the outer rib bottoms.
 void check_report() {
 
     const wood_floor::Floor& floor = square_floor();
@@ -658,10 +637,10 @@ void check_report() {
         const Vector& chamfer = floor.columns[q].chamfer_direction;
         check(std::abs(std::abs(panel.ruling.dot(chamfer)) - 1.0) <= 1e-12 && std::abs(std::abs(panel.rib_sweep.dot(chamfer)) - 1.0) <= 1e-12, fmt::format("rule A gives quarter {} the chamfer direction for the ruling and the sweep", q));
         check(std::abs(report.rib_sweep_obliqueness_deg[q][0] - report.rib_sweep_obliqueness_deg[q][1]) <= 1e-9, "both inner ribs equally oblique on the square");
-        check(std::abs(report.rib_bottom_clearance_mm[q][0] + 0.243) < 1e-3 && std::abs(report.rib_bottom_clearance_mm[q][1] + 0.243) < 1e-3, fmt::format("quarter {}'s outer rib bottoms 0.243 mm under the cutter level", q));
+        check(std::abs(report.rib_bottom_clearance_mm[q][0]) <= 1e-9 && std::abs(report.rib_bottom_clearance_mm[q][1]) <= 1e-9, fmt::format("the middle cutter level at quarter {}'s outer rib bottoms", q));
     }
 
-    std::cout << "floor_elements: the square's report holds, rule A is the chamfer direction, the rib bottoms 0.243 mm under compas_tf's cutter level" << std::endl;
+    std::cout << "floor_elements: the square's report holds, rule A is the chamfer direction, the middle cutter level at the rib bottoms" << std::endl;
 }
 
 /// The thinnest and thickest central bed plate of a floor: the distance of each plate's top corners from its bottom face's plane.
@@ -686,23 +665,14 @@ std::array<double, 2> central_bed_thickness(const wood_floor::Floor& floor) {
     return range;
 }
 
-/// The model's definitions on the square: every central bed plate exactly tsections thick where compas_tf's layers make it thicker at the column, the middle cutter level at the outer rib bottoms, and the report still holds.
+/// Every central bed plate on the square exactly tsections thick.
 void check_section_layers() {
 
-    const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    const wood_floor::Floor& floor = square_floor();
     const std::array<double, 2> section = central_bed_thickness(floor);
-    const std::array<double, 2> compas = central_bed_thickness(square_floor());
-
-    check(floor.layers == wood_floor::CentralLayers::section, "the model's central layers are the default");
-    const wood_floor::FloorReport report = floor.check();
-    check(report.ok(1e-6), "the square's report holds with the model's layers");
-
-    for (size_t q = 0; q < 4; q++)
-        check(std::abs(report.rib_bottom_clearance_mm[q][0]) <= 1e-9 && std::abs(report.rib_bottom_clearance_mm[q][1]) <= 1e-9, fmt::format("the model's middle cutter level at quarter {}'s outer rib bottoms", q));
     check(std::abs(section[0] - floor.sizes.tsections) <= 1e-9 && std::abs(section[1] - floor.sizes.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", floor.sizes.tsections, section[0], section[1]));
-    check(compas[1] > floor.sizes.tsections + 0.3, fmt::format("compas_tf's central bed thicker at the column, {:.3f}", compas[1]));
 
-    std::cout << fmt::format("floor_elements: the model's central bed plates {:.9f} .. {:.9f} thick, compas_tf's {:.3f} .. {:.3f}", section[0], section[1], compas[0], compas[1]) << std::endl;
+    std::cout << fmt::format("floor_elements: the central bed plates {:.9f} .. {:.9f} thick", section[0], section[1]) << std::endl;
 }
 
 /// The farthest point of a loop from the plane through its first point with its Newell normal, mm.
@@ -769,7 +739,7 @@ std::vector<double> rib_bottoms(const wood_floor::Floor& floor, size_t q) {
     return levels;
 }
 
-/// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower compas_tf end -689.979, the short rib's run-in solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square and the parity mode keep compas_tf's run-ins.
+/// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower end -689.979, the short rib's run-in solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square keeps the wedge as both run-ins.
 void check_rib_levels() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
@@ -791,15 +761,12 @@ void check_rib_levels() {
         check(std::abs(report.rib_level_spread_mm[q] - (*std::max_element(bottoms.begin(), bottoms.end()) - *std::min_element(bottoms.begin(), bottoms.end()))) <= 1e-12, "the report's spread is the eight bottoms' range");
     }
 
-    const wood_floor::Floor parity = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
-    const wood_floor::Floor square(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
+    const wood_floor::Floor& square = square_floor();
 
-    for (size_t q = 0; q < 4; q++) {
-        check(parity.geometry[q].run_in[0] == parity.sizes.wedge && parity.geometry[q].run_in[1] == parity.sizes.wedge, "the parity mode keeps compas_tf's run-in");
-        check(square.geometry[q].run_in[0] == square.sizes.wedge && square.geometry[q].run_in[1] == square.sizes.wedge && square.check().rib_level_spread_mm[q] <= 1e-9, "the square keeps compas_tf's run-in, every rib at one level");
-    }
+    for (size_t q = 0; q < 4; q++)
+        check(square.geometry[q].run_in[0] == square.sizes.wedge && square.geometry[q].run_in[1] == square.sizes.wedge && square.check().rib_level_spread_mm[q] <= 1e-9, "the square keeps the wedge as its run-in, every rib at one level");
 
-    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the eight rib bottoms span {:.3f} mm, the short run-in {:.3f}; the square and the parity mode at compas_tf's run-in", floor.columns[0].levels[1], report.rib_level_spread_mm[0], std::min(floor.geometry[0].run_in[0], floor.geometry[0].run_in[1])) << std::endl;
+    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the eight rib bottoms span {:.3f} mm, the short run-in {:.3f}; the square at the wedge run-in", floor.columns[0].levels[1], report.rib_level_spread_mm[0], std::min(floor.geometry[0].run_in[0], floor.geometry[0].run_in[1])) << std::endl;
 }
 
 /// The thickness of each column block of quarter q, side 0, middle and side 1: its far plane's distance from its fan plane.
@@ -826,7 +793,7 @@ double far_bottom(const wood_floor::Outline& block) {
     return lowest;
 }
 
-/// The column blocks span their ribs' run-ins: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; compas_tf's 240 / 300 / 240 on the square and in the parity mode.
+/// The column blocks span their ribs' run-ins: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; 240 / 300 / 240 on the square.
 void check_column_blocks() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
@@ -839,20 +806,16 @@ void check_column_blocks() {
         check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
     }
 
-    const wood_floor::Floor parity = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
-    const wood_floor::Floor square(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{});
-
-    for (const wood_floor::Floor* other : {&parity, &square})
-        for (size_t q = 0; q < 4; q++) {
-            const std::array<double, 3> thickness = block_thickness(*other, q);
-            check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square and the parity mode keep compas_tf's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
-        }
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<double, 3> thickness = block_thickness(square_floor(), q);
+        check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
+    }
 
     const std::vector<wood_floor::Outline> blocks = floor.quarter(0).wedges_inner_beams();
-    std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square and in the parity mode", block_thickness(floor, 0)[0], block_thickness(floor, 0)[1], block_thickness(floor, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
+    std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(floor, 0)[0], block_thickness(floor, 0)[1], block_thickness(floor, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
 }
 
-/// The 3000 x 2400 bay (G8 R2-R5): the report holds, rule A as the design measured it, every member face planar, the probes' tiling areas with compas_tf's oculus, and 44 of 44 contacts found by the kernel's search.
+/// The 3000 x 2400 bay: the report holds, rule A as the design measured it, every member face planar, and 44 of 44 contacts found by the kernel's search.
 void check_rectangle() {
 
     const wood_floor::Floor floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{});
@@ -860,15 +823,6 @@ void check_rectangle() {
     check(report.ok(1e-9), "the rectangle's report holds within 1e-9:\n" + report.str());
     check(std::abs(std::abs(report.ruling_off_chamfer_deg[0]) - 0.839) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][0] - 20.703) < 1e-3 && std::abs(report.rib_sweep_obliqueness_deg[0][1] - 3.338) < 1e-3, "rule A on 3000 x 2400 with one rib level per column: u 0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique");
     check(floor_flatness(floor) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(floor)));
-
-    const wood_floor::Floor compas = wood_floor::Floor::compas_parity(wood_floor::FloorPlan::rectangle(3000.0, 2400.0, 1000.0, wood_floor::OculusRule::compas), wood_floor::FloorSizes{});
-    std::map<std::string, double> areas;
-
-    for (const wood_floor::Relationship& row : wood_floor::relationships(compas))
-        if (row.kind == wood_floor::Relation::seam_wedge || row.kind == wood_floor::Relation::oculus_wedge || row.kind == wood_floor::Relation::seam_tie || row.kind == wood_floor::Relation::column_plate)
-            areas[fmt::format("{:.3f}", row.area())]++;
-
-    check(areas["297515.590"] == 2 && areas["328199.359"] == 2 && areas["253629.409"] == 4 && areas["19700.000"] == 4 && areas["70076.481"] == 4 && areas["70148.209"] == 4, "the probes' seams, ring contacts, ties and column contacts on 3000 x 2400 with compas_tf's oculus");
 
     WoodSession scene("rectangle");
     wood_floor::FloorMembers members = wood_floor::add_floor(scene, floor, nullptr);
@@ -879,7 +833,7 @@ void check_rectangle() {
         std::cout << "   mismatch " << mismatch.relation << ": " << mismatch.what << std::endl;
 
     check(mismatches.empty(), std::to_string(mismatches.size()) + " of 44 rectangle contacts disagree with the kernel's search");
-    std::cout << fmt::format("floor_elements: 3000 x 2400 report ok, rule A {:.3f} deg, faces planar within {:.1e}, the probes' tiling areas, 44 of 44 contacts", report.ruling_off_chamfer_deg[0], floor_flatness(floor)) << std::endl;
+    std::cout << fmt::format("floor_elements: 3000 x 2400 report ok, rule A {:.3f} deg, faces planar within {:.1e}, 44 of 44 contacts", report.ruling_off_chamfer_deg[0], floor_flatness(floor)) << std::endl;
 }
 
 /// The lines of a list that equal a line within 1e-9 mm at both ends.
@@ -1046,7 +1000,7 @@ void check_floor_screws(const wood_floor::Floor& floor, const std::string& label
 /// The assembly screws on the square and on 3000 x 2400.
 void check_screws() {
 
-    check_floor_screws(wood_floor::Floor(wood_floor::FloorPlan::rectangle(3000.0, 3000.0), wood_floor::FloorSizes{}), "the square");
+    check_floor_screws(square_floor(), "the square");
     check_floor_screws(wood_floor::Floor(wood_floor::FloorPlan::rectangle(3000.0, 2400.0), wood_floor::FloorSizes{}), "3000 x 2400");
 }
 

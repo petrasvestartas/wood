@@ -6,11 +6,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
-int main(int argc, char** argv) {
+/// The square floor.
+int main() {
 
     const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
-    const wood_floor::Floor floor = argc > 1 && std::string(argv[1]) == "--compas" ? wood_floor::Floor::compas_parity(plan, wood_floor::FloorSizes{}) : wood_floor::Floor(plan, wood_floor::FloorSizes{});
+    const wood_floor::Floor floor(plan, wood_floor::FloorSizes{});
     std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_2_column_model");
     const std::shared_ptr<TreeNode> group = session.add_group("column_model");
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the timber floor, port of compas_tf example_model_2_column_model: the support of corner 0, the Sherpa Power Base L 140 C built from its datasheet dimensions, and the column standing on it, a 220 square in the corner frame from the support's column foot (the head plate top at 150 less the 12 the head plate is let into the column end) to the floor at 3500, its outer corner on the bay corner, with the head 120 wider on the two bay sides over the top 730 built into the same solid. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0, lifted to the floor, carve the head, their middle level at the outer rib bottoms (compas_tf's 1.65 tsections level with --compas). Prints the floor's report and the volumes of the support, the stock and the carved column.
+Step 2 of the timber floor: the support of corner 0, a Sherpa Power Base L 140 C from its datasheet, and the 220 square column standing on it from the support's head plate to the floor at 3500, with the head 120 wider on the two bay sides over the top 730. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0 carve the head down to the outer rib bottoms. Prints the floor's report and the volumes of the support, the stock and the carved column.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

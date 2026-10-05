@@ -126,18 +126,7 @@ static Vector rib_sweep(const std::array<Polyline, 2>& shadows, const std::array
 // Layers
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// compas_tf's central layers: rib 0's shadow offsets projected along the ruling onto both central faces.
-static std::array<std::array<Polyline, 3>, 2> compas_layers(const std::array<Polyline, 2>& soffits, const std::array<Polyline, 3>& shadow0, const std::array<Plane, 2>& faces, const Vector& ruling) {
-
-    std::array<std::array<Polyline, 3>, 2> traces;
-
-    for (size_t k = 0; k < 2; k++)
-        traces[k] = {soffits[k], along(shadow0[1], faces[k], ruling), along(shadow0[2], faces[k], ruling)};
-
-    return traces;
-}
-
-/// The model's central layers: the panel soffit's offsets by tsections and twice that in the panel's own cross-section, projected along the ruling onto both central faces.
+/// The central layers: the panel soffit's offsets by tsections and twice that in the panel's own cross-section, projected along the ruling onto both central faces.
 static std::array<std::array<Polyline, 3>, 2> section_layers(const std::array<Polyline, 2>& soffits, const std::array<Plane, 2>& faces, const Vector& ruling, double tsections) {
 
     const Polyline section = along(soffits[0], Plane::from_point_normal(soffits[0].get_point(0), ruling), ruling);
@@ -151,7 +140,7 @@ static std::array<std::array<Polyline, 3>, 2> section_layers(const std::array<Po
     return traces;
 }
 
-CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas, const FloorSizes& sizes, CentralLayers layers) {
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas, const FloorSizes& sizes) {
 
     const std::array<Plane, 2> faces = {cp.inner_ribs[0][1], cp.inner_ribs[1][1]};
     const std::array<Vector, 2> normals = {faces[0].z_axis(), faces[1].z_axis()};
@@ -168,13 +157,7 @@ CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::
 
     panel.residual = largest_shift(along(soffits[0], faces[1], panel.ruling), soffits[1]);
 
-    const std::array<std::array<Polyline, 3>, 2> compas = compas_layers(soffits, parabolas[2], faces, panel.ruling);
-    const std::array<std::array<Polyline, 3>, 2> section = section_layers(soffits, faces, panel.ruling, sizes.tsections);
-
-    for (size_t j = 0; j < 2; j++)
-        panel.layer_shift[j] = std::max(largest_shift(compas[0][j + 1], section[0][j + 1]), largest_shift(compas[1][j + 1], section[1][j + 1]));
-
-    panel.traces = layers == CentralLayers::compas ? compas : section;
+    panel.traces = section_layers(soffits, faces, panel.ruling, sizes.tsections);
 
     return panel;
 }

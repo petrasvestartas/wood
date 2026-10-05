@@ -56,17 +56,8 @@ struct FloorSizes {
     double static_h() const;
 };
 
-/// How the oculus corners sit on the seams: the same distance on every seam (a square diamond on a rectangular bay), compas_tf's grid-aspect scaling kept for the parity gate, or four given distances.
-enum class OculusRule { square_diamond, compas, explicit_distances };
-
-/// How the central panel's +t and +2t layers are made: offsets in the panel's own cross-section (the model: exactly tsections on every plan), or compas_tf's offsets in the outer rib's plane swept along the panel (the parity mode of the square gates).
-enum class CentralLayers { section, compas };
-
-/// The middle column cutter level: the deeper of the corner's two outer rib bottoms at their fan planes (the model: the carved band reaches both ribs on every plan), or compas_tf's -(height + 1.65 tsections) (the parity mode, R8).
-enum class CutterLevel { rib_bottom, compas_factor };
-
-/// How each outer rib's soffit reaches its column: its straight run-in from the fan plane solved so both outer ribs of a corner end on their fan planes at one level, the shallower of their compas_tf ends (the model), or compas_tf's run-in of one wedge for every rib (the parity mode); the column blocks span the run-ins either way.
-enum class RibLevel { shared_column, compas };
+/// How the oculus corners sit on the seams: the same distance on every seam (a square diamond on a rectangular bay), or four given distances.
+enum class OculusRule { square_diamond, explicit_distances };
 
 /// The plan: four bay corners counter-clockwise at the datum z 0 and the oculus; everything else is derived.
 struct FloorPlan {
@@ -146,7 +137,7 @@ struct ColumnCorner {
     session_cpp::Vector chamfer_direction; // Unit head[3] - head[2].
     std::array<std::array<session_cpp::Plane, 2>, 3> wedge_fan; // Side 0, the tilted chamfer and side 1 with their far faces, each block's far face over its ribs' run-ins.
     std::array<session_cpp::Plane, 2> sides; // The head edges on the bay boundary, normal into the bay.
-    std::array<double, 3> levels; // The cutter levels: the datum, the middle level by the floor's CutterLevel and minus column_head_depth.
+    std::array<double, 3> levels; // The cutter levels: the datum, the middle level at the outer rib bottoms and minus column_head_depth.
     session_cpp::Point axis_point; // The column axis at the datum, half a column head along both axes from the corner.
     session_cpp::Plane support_plane; // The support frame at the axis point on the slab.
     session_cpp::Line axis; // From the axis point up by bay_height.
@@ -158,9 +149,8 @@ struct ColumnCorner {
 struct CentralPanel {
     session_cpp::Vector ruling; // u: the panel's horizontal ruling, along which rib 0's central trace projects onto rib 1's.
     session_cpp::Vector rib_sweep; // r: the horizontal direction both inner ribs are swept along from their outer to their central face.
-    std::array<std::array<session_cpp::Polyline, 3>, 2> traces; // Per inner rib, its central face's soffit, +t and +2t, by the floor's CentralLayers.
+    std::array<std::array<session_cpp::Polyline, 3>, 2> traces; // Per inner rib, its central face's soffit, +t and +2t, offset in the panel's own cross-section.
     std::array<double, 2> obliqueness = {0.0, 0.0}; // Degrees between the sweep and each inner rib's normal.
-    std::array<double, 2> layer_shift = {0.0, 0.0}; // The largest +t and +2t vertex shift of the cross-section layers against compas_tf's, mm; informational.
     double residual = 0.0; // How far rib 0's central trace projected along the ruling misses rib 1's, mm.
 };
 
@@ -169,12 +159,10 @@ struct QuarterGeometry {
     std::vector<session_cpp::Point> polygon; // Corner, midpoint, oculus corner, oculus corner, midpoint.
     ConstructionPlanes planes; // The member planes.
     ConstructionQuads quads; // The plan quad of every member at z 0.
-    std::array<double, 2> run_in = {0.0, 0.0}; // Per outer rib, the straight run-in along its axis from the fan plane's datum trace to where its parabola starts, mm: wedge in compas_tf, solved by RibLevel::shared_column; the side column blocks are as thick, the middle one middle_wedge_factor times their mean.
+    std::array<double, 2> run_in = {0.0, 0.0}; // Per outer rib, the straight run-in along its axis from the fan plane's datum trace to where its parabola starts, mm, solved so both outer ribs of a corner end at one level; the side column blocks are as thick, the middle one middle_wedge_factor times their mean.
     std::vector<std::array<session_cpp::Polyline, 3>> parabolas; // Outer 0, outer 1, shadow 0, shadow 1, each with its +t and +2t offsets.
     CentralPanel central_panel; // The central panel by rule A.
     std::vector<session_cpp::Plane> bed_top_planes; // Per bed panel, the plane fitted to its deepest quad, normal up.
-    double block_level_bottom = 0.0; // Bottom level of the wedge block, kept for the parity dump.
-    double block_level_top = 0.0; // Top level of the wedge block, kept for the parity dump.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -239,7 +227,6 @@ struct FloorReport {
     std::array<double, 4> closure_residual_mm = {}; // Rule A: rib 0's central trace projected along the ruling against rib 1's.
     std::array<double, 4> end_face_planarity_mm = {}; // The farthest rib end face corner from its end plane, over the four ribs.
     std::array<double, 4> bed_flange_coincidence_mm = {}; // The farthest bed underside corner from the top of the flange beside it, over the three rows and both sides.
-    std::array<std::array<double, 2>, 4> central_layer_shift_vs_compas_mm = {}; // +t and +2t vertex shift of the cross-section layers against compas_tf's; informational.
     std::array<std::array<double, 2>, 4> rib_bottom_clearance_mm = {}; // Each outer rib's bottom at its fan plane above the middle cutter level; negative where it runs below the carved face.
     std::array<double, 4> rib_level_spread_mm = {}; // Per corner, the highest less the lowest of the eight rib face bottoms at the column head: both faces of the two outer and the two inner ribs.
     std::array<std::array<double, 3>, 4> wedge_seat_mm = {}; // The side 0, chamfer and side 1 seats on the head.
@@ -258,9 +245,6 @@ struct FloorReport {
 struct Floor {
     FloorPlan plan; // The four corners and the oculus.
     FloorSizes sizes; // Everything that does not change with the plan.
-    CentralLayers layers = CentralLayers::section; // How the central panel's layers are made.
-    CutterLevel cutter_level = CutterLevel::rib_bottom; // How the middle column cutter level is set.
-    RibLevel rib_level = RibLevel::shared_column; // How the outer ribs reach their columns.
     session_cpp::Point centre; // The plan's centre.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
@@ -270,10 +254,7 @@ struct Floor {
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
 
     /// Computes everything from the plan and the sizes; throws when the plan is invalid.
-    Floor(const FloorPlan& plan, const FloorSizes& sizes, CentralLayers layers = CentralLayers::section, CutterLevel level = CutterLevel::rib_bottom, RibLevel rib = RibLevel::shared_column);
-
-    /// The floor in compas_tf's parity mode, the definitions the compas_tf reference dumps were made with: its central layers, its cutter level and its rib run-ins.
-    static Floor compas_parity(const FloorPlan& plan, const FloorSizes& sizes);
+    Floor(const FloorPlan& plan, const FloorSizes& sizes);
 
     /// A view of quarter q; it holds a reference and lives as long as the floor.
     Quarter quarter(size_t q) const;
@@ -453,6 +434,9 @@ void add_columns(wood_session::WoodSession& session, const Floor& floor, const s
 /// Every relationship of the floor in the order the connectors are named in: the seam and oculus wedges, the column plates, the cross laps, the ties, the block dowels, the supports and the cutters, wedges and ties in the order compas_tf's search found them; then the screws, per quarter and kind, then the ring's.
 std::vector<Relationship> relationships(const Floor& floor);
 
+/// The relationships of one kind, in the same order.
+std::vector<Relationship> relationships(const Floor& floor, Relation kind);
+
 /// The colour of every connector node and of every part and dowel node nested under it.
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color::red();
 
@@ -491,5 +475,29 @@ struct ScrewCheck {
 
 /// Measures the screw connectors add_connectors made for the screw kinds, in relationships() order, against each other, every other connector's bores, pockets and parts, and their two members' solids before any cut.
 ScrewCheck check_screws(const wood_session::WoodSession& session, const Floor& floor, const std::vector<std::shared_ptr<wood_session::JointBeam>>& screws);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BReps
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// How the cut members and the connector parts come out as BReps: exact where a dowel bores them, and whether every dowel stretch through a member or a part found its bore.
+struct BrepCheck {
+    size_t exact = 0; // Cut members with at least one exact bore.
+    size_t bores = 0; // Exact bores in the cut members.
+    size_t connectors = 0; // Connectors with a part or a dowel.
+    size_t part_bores = 0; // Exact bores in the connector parts.
+    size_t stretches = 0; // Dowel stretches through members and parts: the bores the dowels ask for.
+    double ms = 0.0; // The time the BReps took.
+    std::vector<std::string> faceted; // Every cut member without an exact bore.
+
+    /// The check as text: the counts, the bores found against the bores asked for, then every faceted member.
+    std::string str() const;
+};
+
+/// Builds the BRep of every cut member and connector part and counts their exact bores against the dowel stretches.
+BrepCheck check_breps(const wood_session::WoodSession& session);
+
+/// Writes every cut member, connector part and dowel as its BRep instead of its mesh, the bores exact cylinders.
+void compute_breps(wood_session::WoodSession& session);
 
 }

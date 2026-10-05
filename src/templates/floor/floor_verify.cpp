@@ -32,17 +32,6 @@ static Line top_edge(const std::vector<Point>& points) {
     return best;
 }
 
-/// The points of a closed polygon without the closing point.
-static std::vector<Point> ring_points(const Polyline& polygon) {
-
-    std::vector<Point> points = polygon.get_points();
-
-    if (polygon.is_closed() && !points.empty())
-        points.pop_back();
-
-    return points;
-}
-
 /// The name of a contact type.
 static std::string type_name(wood_session::ContactType type) {
 
@@ -71,8 +60,8 @@ std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_sessi
 /// How the searched contact disagrees with the constructed one: the plane normal, the top edge midpoint and length, and the area, beyond the tolerance; empty when it agrees.
 static std::string disagreement(const Relationship& row, const wood_session::InteractionContactFace& found, double tolerance) {
 
-    const std::vector<Point> mine = ring_points(row.contact);
-    const std::vector<Point> theirs = ring_points(found.polygon);
+    const std::vector<Point> mine = geometry::open_points(row.contact);
+    const std::vector<Point> theirs = geometry::open_points(found.polygon);
     const Vector normal = wood_session::compute_newell(theirs).normalized();
     const double angle = std::acos(std::clamp(std::abs(normal.dot(row.plane.z_axis())), 0.0, 1.0));
     const Line edge_mine = top_edge(mine);

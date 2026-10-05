@@ -1,29 +1,14 @@
 #include "wood_session.h"
-#include "wood_element_geometry.h"
 #include "src/templates/floor/floor.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const bool DUMP = true; // write name, volume and box centre of every element to data/output/pb/floor_5_oculus.txt, the parity record against compas_tf
-
-/// Every element under the group as `name volume cx cy cz`, the box centre in world coordinates, the parity record against compas_tf.
-void dump(const WoodSession& session, const std::string& path) {
-
-    std::ofstream file(path);
-
-    for (const std::shared_ptr<Element>& element : *session.objects.elements) {
-        const Mesh& mesh = element->model_geometry_mesh();
-        const AABB box = AABB::from_mesh(mesh);
-        file << fmt::format("{} {:.6f} {:.6f} {:.6f} {:.6f}\n", element->name, compute_volume(mesh), box.cx, box.cy, box.cz);
-    }
-}
-
-/// The square floor with the model's definitions, or in compas_tf's parity mode with --compas.
-int main(int argc, char** argv) {
+/// The square floor.
+int main() {
 
     const wood_floor::FloorPlan plan = wood_floor::FloorPlan::rectangle(3000.0, 3000.0);
-    const wood_floor::Floor floor = argc > 1 && std::string(argv[1]) == "--compas" ? wood_floor::Floor::compas_parity(plan, wood_floor::FloorSizes{}) : wood_floor::Floor(plan, wood_floor::FloorSizes{});
+    const wood_floor::Floor floor(plan, wood_floor::FloorSizes{});
     std::cout << floor.check().str() << std::endl;
     WoodSession session("templates_floor_5_oculus");
     const std::shared_ptr<TreeNode> group = session.add_group("oculus");
@@ -32,15 +17,12 @@ int main(int argc, char** argv) {
     std::cout << fmt::format("{} elements: {} plates, {} variable beams", session.objects.elements->size(), session.plates().size(), session.beam_variables().size()) << std::endl;
     session.pb_dump(pb_path("live"));
 
-    if constexpr (DUMP)
-        dump(session, std::filesystem::path(pb_path("floor_5_oculus")).replace_extension(".txt").string());
-
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the timber floor, port of compas_tf example_model_5_oculus: the oculus ring built from the four quarters' own oculus edges, each ring beam between its edge's tilted bearing plane and the ring's inner plane, from the previous beam's inner plane to the next beam's tilted plane (compas_tf's pinwheel), lifted to the floor at 3500: the four ring beams as variable beams, the four bottom wedges and the inner plate as plates. Prints the floor's report; DUMP writes name, volume and box centre of every element, compared against compas_tf.
+Step 5 of the timber floor: the oculus ring built from the four quarters' oculus edges as a pinwheel, each ring beam between its edge's tilted bearing plane and the ring's inner plane, lifted to the floor at 3500: four ring beams as variable beams, four bottom wedges and the inner plate as plates. Prints the floor's report and the element counts.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

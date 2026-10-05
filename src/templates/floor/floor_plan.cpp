@@ -7,11 +7,6 @@ namespace wood_floor {
 
 using namespace wood_floor::geometry;
 
-/// The unit vector from a to b.
-static Vector unit(const Point& a, const Point& b) {
-    return (b - a).normalized();
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Sizes
 // ═══════════════════════════════════════════════════════════════════════════
@@ -48,8 +43,8 @@ Point FloorPlan::midpoint(size_t k) const {
 
 double FloorPlan::corner_angle(size_t k) const {
 
-    const Vector after = unit(corners[k % 4], corners[(k + 1) % 4]);
-    const Vector before = unit(corners[k % 4], corners[(k + 3) % 4]);
+    const Vector after = (corners[(k + 1) % 4] - corners[k % 4]).normalized();
+    const Vector before = (corners[(k + 3) % 4] - corners[k % 4]).normalized();
 
     return std::acos(std::clamp(after.dot(before), -1.0, 1.0)) * 180.0 / M_PI;
 }
@@ -63,34 +58,27 @@ std::array<Point, 4> FloorPlan::oculus_corners() const {
         const Point m = midpoint(q);
         double distance = oculus;
 
-        if (rule == OculusRule::compas)
-            distance = oculus * (m - c).magnitude() / std::sqrt((midpoint(q + 3) - c).magnitude() * (midpoint(q + 1) - c).magnitude());
-        else if (rule == OculusRule::explicit_distances)
+        if (rule == OculusRule::explicit_distances)
             distance = oculus_distances[q];
 
-        result[q] = c + unit(c, m) * distance;
+        result[q] = c + (m - c).normalized() * distance;
     }
 
     return result;
-}
-
-/// The angle in degrees between two directions.
-static double angle_between(const Vector& a, const Vector& b) {
-    return std::acos(std::clamp(a.normalized().dot(b.normalized()), -1.0, 1.0)) * 180.0 / M_PI;
 }
 
 double FloorPlan::oculus_corner_angle(size_t k) const {
 
     const std::array<Point, 4> o = oculus_corners();
 
-    return angle_between(o[(k + 3) % 4] - o[k % 4], o[(k + 1) % 4] - o[k % 4]);
+    return (o[(k + 3) % 4] - o[k % 4]).angle(o[(k + 1) % 4] - o[k % 4], false);
 }
 
 double FloorPlan::oculus_seam_angle(size_t k) const {
 
     const std::array<Point, 4> o = oculus_corners();
 
-    return angle_between(midpoint(k) - centre(), o[(k + 1) % 4] - o[k % 4]);
+    return (midpoint(k) - centre()).angle(o[(k + 1) % 4] - o[k % 4], false);
 }
 
 bool FloorPlan::valid(std::string& why) const {
@@ -118,7 +106,7 @@ bool FloorPlan::valid(std::string& why) const {
             return false;
         }
 
-        const double along = (oculus_points[k] - c).dot(unit(c, midpoint(k)));
+        const double along = (oculus_points[k] - c).dot((midpoint(k) - c).normalized());
 
         if (along <= 0.0 || along >= (midpoint(k) - c).magnitude()) {
             why = fmt::format("oculus corner {} is not between the centre and the midpoint of edge {}", k, k);

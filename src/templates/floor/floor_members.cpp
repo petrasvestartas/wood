@@ -242,7 +242,7 @@ std::vector<Outline> Floor::oculus() const {
         plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 
     for (size_t i = 0; i < 4; i++) {
-        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], offset(inner[i], -sizes.tsections), offset(inner[(i + 3) % 4], -sizes.tsections)};
+        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-sizes.tsections), inner[(i + 3) % 4].translate_by_normal(-sizes.tsections)};
         plates.push_back(loft_planes(sides, side2, side1));
     }
 

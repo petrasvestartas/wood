@@ -7,9 +7,6 @@ namespace wood_floor::geometry {
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The plane moved by distance along its normal.
-session_cpp::Plane offset(const session_cpp::Plane& plane, double distance);
-
 /// The plane turned by radians about the axis through point.
 session_cpp::Plane rotate(const session_cpp::Plane& plane, double radians, const session_cpp::Vector& axis, const session_cpp::Point& point);
 
@@ -23,13 +20,13 @@ session_cpp::Plane edge_plane(const session_cpp::Line& edge, const session_cpp::
 // Intersections
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The line two planes share, from plane0 towards cross(n0, n1) with that unscaled length; empty when the normals agree.
+/// The line two planes share, by Intersection::plane_plane, pointing along cross(n0, n1); empty when the normals agree.
 std::optional<session_cpp::Line> plane_plane(const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
 
-/// The point an infinite line meets a plane; empty when parallel.
+/// The point an infinite line meets a plane, by Intersection::line_plane; empty when parallel.
 std::optional<session_cpp::Point> line_plane(const session_cpp::Line& line, const session_cpp::Plane& plane);
 
-/// The point three planes share; empty when two of them are parallel.
+/// The point three planes share, by Intersection::plane_plane_plane; empty when two of them are parallel.
 std::optional<session_cpp::Point> plane_plane_plane(const session_cpp::Plane& plane0, const session_cpp::Plane& plane1, const session_cpp::Plane& plane2);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -39,9 +36,6 @@ std::optional<session_cpp::Point> plane_plane_plane(const session_cpp::Plane& pl
 /// The polygon side from point i to the next, closing to the first.
 session_cpp::Line edge(const std::vector<session_cpp::Point>& polygon, size_t i);
 
-/// The unit direction of a line.
-session_cpp::Vector direction(const session_cpp::Line& line);
-
 /// The polyline cut by two planes in turn, each keeping the side of the remaining middle.
 session_cpp::Polyline cut(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
 
@@ -50,6 +44,12 @@ session_cpp::Polyline trim(const session_cpp::Polyline& polyline, const session_
 
 /// The polyline offset by distance in its vertical plane, square to every segment, its ends on the end normals.
 session_cpp::Polyline offset_polyline(const session_cpp::Polyline& polyline, double distance);
+
+/// The points of a closed loop without its closing point.
+std::vector<session_cpp::Point> open_points(const session_cpp::Polyline& polyline);
+
+/// The signed distance of a point from a plane, positive on the normal side.
+double signed_distance(const session_cpp::Point& point, const session_cpp::Plane& plane);
 
 /// The area centroid of a closed planar polyline.
 session_cpp::Point area_centroid(const session_cpp::Polyline& polyline);
@@ -70,11 +70,18 @@ session_cpp::Line lifted(const session_cpp::Line& line, double lift);
 std::vector<session_cpp::Point> above(const std::vector<session_cpp::Point>& points, double z);
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Members
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A quarter member reference.
+MemberRef quarter_member(size_t quarter, Family family, size_t index);
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Central panel
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Rule A for one quarter: the inner ribs' one sweep r so that rib 0's central trace projected along one ruling u lands on rib 1's, and the central traces by the layers.
-CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorSizes& sizes, CentralLayers layers);
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorSizes& sizes);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines

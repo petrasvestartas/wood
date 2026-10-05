@@ -9,25 +9,9 @@ using namespace wood_floor::geometry;
 
 const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges_inner_beams", "tsections", "beds"}; // the group each quarter family is named after, in Family order
 
-/// A quarter member reference.
-static MemberRef quarter_member(size_t quarter, Family family, size_t index) {
-    return MemberRef{static_cast<int>(quarter), family, index, -1};
-}
-
 /// A ring, column, support or cutter reference; a cutter belongs to the quarter whose planes it carves.
 static MemberRef shared_member(Family family, size_t index, int quarter = -1) {
     return MemberRef{quarter, family, index, -1};
-}
-
-/// The points of a closed outline loop without its closing point.
-static std::vector<Point> loop(const Polyline& polyline) {
-
-    std::vector<Point> points = polyline.get_points();
-
-    if (polyline.is_closed())
-        points.pop_back();
-
-    return points;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -107,7 +91,7 @@ static Relationship seam_wedge(const Floor& floor, size_t q) {
     row.a = quarter_member(q, Family::inner_beams, 0);
     row.b = quarter_member((q + 1) % 4, Family::inner_beams, 2);
     row.plane = lifted(floor.seams[q].plane_into(q), lift);
-    row.contact = lifted(loop(floor.quarter(q).inner_beams()[0].bottom), lift);
+    row.contact = lifted(open_points(floor.quarter(q).inner_beams()[0].bottom), lift);
     row.type = wood_session::ContactType::side_side;
     row.seam_or_corner = q;
 
@@ -123,7 +107,7 @@ static Relationship oculus_wedge(const Floor& floor, size_t q) {
     row.a = quarter_member(q, Family::inner_beams, 1);
     row.b = shared_member(Family::ring, q);
     row.plane = lifted(floor.oculus_edges[q].tilted, lift);
-    row.contact = lifted(loop(floor.quarter(q).inner_beams()[1].bottom), lift);
+    row.contact = lifted(open_points(floor.quarter(q).inner_beams()[1].bottom), lift);
     row.type = wood_session::ContactType::side_side;
     row.seam_or_corner = q;
 
@@ -217,7 +201,7 @@ static Relationship support(const Floor& floor, size_t q) {
 static Relationship cutter(const Floor& floor, size_t q, size_t j, const Outline& outline) {
 
     const double lift = floor.sizes.bay_height;
-    const std::vector<Point> quad = loop(outline.top);
+    const std::vector<Point> quad = open_points(outline.top);
     Relationship row;
     row.kind = Relation::cutter;
     row.a = shared_member(Family::column, q);
@@ -291,6 +275,17 @@ std::vector<Relationship> relationships(const Floor& floor) {
 
     for (const Relationship& row : screw_relationships(floor))
         rows.push_back(row);
+
+    return rows;
+}
+
+std::vector<Relationship> relationships(const Floor& floor, Relation kind) {
+
+    std::vector<Relationship> rows;
+
+    for (const Relationship& row : relationships(floor))
+        if (row.kind == kind)
+            rows.push_back(row);
 
     return rows;
 }

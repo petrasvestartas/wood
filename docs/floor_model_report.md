@@ -1,7 +1,7 @@
 # Floor model: implementation report
 
 Branch `floor-model`, 2026-10-02. Steps 6, 7 (two commits), 8 and 10 of `docs/floor_parametric_model.md`
-section 9 on top of steps 0-5 (`e448bd7`). Trapezoids (step 9) skipped by decision 6. No kernel change.
+(its Implemented list) on top of steps 0-5 (`e448bd7`). Trapezoids (step 9) skipped by decision 6. No kernel change.
 
 ## Baseline
 
@@ -58,7 +58,7 @@ the screw lines added (`model_rectangle.txt` 0 failing), 44 / 44 contacts, 0 fac
 
 ## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400), FloorSizes{})`
 
-| | model (default) | `--compas` (compas_tf oculus, parity definitions) |
+| | model (default) | `--compas` (compas_tf oculus, parity definitions; removed 2026-10-05) |
 |---|---|---|
 | connectors | 48 of 48: 8 wedges with 28 dowels (3 on short seams, 5 on long, 3 per oculus beam), 8 rectangle plates, 4 cross laps, 4 ties, 24 dowel sets of 96 dowels | 48 of 48, same counts |
 | ties | 4 x 19700 mm2 | 4 x 19700 mm2 |
@@ -78,17 +78,26 @@ R3: every member face planar within 2.8e-11 mm (test, 1e-9 required).
 
 ## Deviations
 
-* `CentralPanel` stores the six central traces and an informational `layer_shift` instead of the
-  cross-section polylines. `central_layer_shift_vs_compas_mm` is the same-index vertex shift the
+* `CentralPanel` stores the six central traces (and stored an informational `layer_shift`, removed
+  2026-10-05) instead of the cross-section polylines. `central_layer_shift_vs_compas_mm` was the same-index vertex shift the
   design names; on a rectangle it is dominated by the stations sliding along the layer (40-73 mm on
   3000 x 2400), not a distance between the layers.
 * A bed row whose layers fall on different facets on its two faces throws instead of being built
   (never on the square or 3000 x 2400).
-* `Floor::compas_parity` and the examples' `--compas` switch are additions to the API of 6.3, so the
-  compas_tf parity gates stay runnable after the defaults moved to the model's definitions.
+* `Floor::compas_parity` and the examples' `--compas` switch were additions to the API of 6.3, so the
+  compas_tf parity gates stayed runnable after the defaults moved to the model's definitions
+  (removed 2026-10-05).
 * R1 also leaves out `oculus_points` (compas_tf lists the four corners from its own quarter 0).
 * The bounding box and column positions of R2 hold by construction and are not measured separately.
 * Decision 10 not needed: 0 faceted without the kernel changes of `1b42862`.
-* The model's own re-baselined dumps are in `data/reference/floor/model_*.txt` (README there).
+* The model's own re-baselined dumps were in `data/reference/floor/model_*.txt` (removed 2026-10-05).
 
 Final commit before this report: `69bfed1`.
+
+## 2026-10-05
+
+The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLevel`,
+`OculusRule::compas`, `--compas`), the reference and model dumps in `data/reference/floor/` and
+`tools/compare_dumps.py` removed; `Floor(plan, sizes)` builds the model's definitions only.
+`tests/floor_elements` pins the model's own square: head cut 34771221.351479, carved outer rib
+99598198.606378, tied outer rib 98812970.259836, tie key 1570456.693007, unchanged.

@@ -8,8 +8,7 @@ namespace wood_floor {
 using namespace wood_floor::geometry;
 
 const double RIGHT_ANGLE = 1e-9; // degrees off 90 within which a corner counts as right, so a rectangle keeps its exact edge directions
-const double MIDDLE_CUTTER_FACTOR = 1.65; // compas_tf floor_guide.py:386: the middle cutter level is height plus this many tsections below the datum
-const double RUN_IN_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps compas_tf's run-in
+const double RUN_IN_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps the wedge as its run-in
 const size_t RUN_IN_STEPS = 50; // secant steps a run-in may take to land its rib's end on the shared level
 
 /// World z, the normal side of edge planes facing out of the quarter.
@@ -24,7 +23,7 @@ static Vector down() {
 
 /// A plane pair: the plane and its copy moved by distance along the normal.
 static std::array<Plane, 2> pair(const Plane& plane, double distance) {
-    return {plane, offset(plane, distance)};
+    return {plane, plane.translate_by_normal(distance)};
 }
 
 /// The plane moved to a new origin with its axes kept, so its normal and offset read the same bits.
@@ -82,7 +81,7 @@ static BayEdge bay_edge(const FloorPlan& plan, size_t k, const FloorSizes& sizes
     BayEdge edge;
     edge.line = Line::from_points(plan.corners[k], plan.corners[(k + 1) % 4]);
     edge.midpoint = plan.midpoint(k);
-    edge.band = pair(Plane::from_point_normal(edge.midpoint, direction(edge.line).cross(down())), sizes.outer_ribs);
+    edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(down())), sizes.outer_ribs);
 
     return edge;
 }
@@ -106,9 +105,9 @@ static OculusEdge oculus_edge(const Point& corner, const Point& previous, const 
     OculusEdge edge;
     edge.line = Line::from_points(corner, previous);
     const Plane plane = edge_plane(edge.line, down());
-    edge.tilted = rotate(plane, -sizes.oculus_plane_angle * M_PI / 180.0, direction(edge.line), edge.line.center());
-    edge.back = offset(plane, sizes.inner_beams);
-    edge.ring_inner = offset(edge.back, -sizes.inner_beams * 2.0);
+    edge.tilted = rotate(plane, -sizes.oculus_plane_angle * M_PI / 180.0, edge.line.to_direction(), edge.line.center());
+    edge.back = plane.translate_by_normal(sizes.inner_beams);
+    edge.ring_inner = edge.back.translate_by_normal(-sizes.inner_beams * 2.0);
 
     return edge;
 }
@@ -145,7 +144,7 @@ static ColumnCorner column_corner(const FloorPlan& plan, size_t k, const FloorSi
     column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
     column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
     column.sides = {edge_plane(edge(column.head, 0), down()), edge_plane(edge(column.head, 4), down())};
-    column.levels = {0.0, -sizes.height - sizes.tsections * MIDDLE_CUTTER_FACTOR, -sizes.column_head_depth};
+    column.levels = {0.0, 0.0, -sizes.column_head_depth};
     column.axis_point = column.corner + (x + y) * (head * 0.5);
     column.support_plane = Plane::from_frame(column.axis_point, x, y, up());
     column.axis = Line::from_points(column.axis_point, column.axis_point + up() * sizes.bay_height);
@@ -160,11 +159,11 @@ static std::array<std::array<Plane, 2>, 3> wedge_fan(const ColumnCorner& column,
     const Line side1 = edge(column.head, 2);
     const Line side2 = edge(column.head, 3);
 
-    const Plane tilted = rotate(edge_plane(side1, up()), sizes.wedge_plane_angle * M_PI / 180.0, direction(side1), side1.center());
+    const Plane tilted = rotate(edge_plane(side1, up()), sizes.wedge_plane_angle * M_PI / 180.0, side1.to_direction(), side1.center());
     const Line line0 = plane_plane(cp.inner_ribs[0][1], tilted).value();
     const Line line1 = plane_plane(cp.inner_ribs[1][1], tilted).value();
-    const Plane wedge0 = Plane::from_point_normal(side0.center(), direction(line0).cross(direction(side0)));
-    const Plane wedge2 = Plane::from_point_normal(side2.center(), (-direction(line1)).cross(direction(side2)));
+    const Plane wedge0 = Plane::from_point_normal(side0.center(), line0.to_direction().cross(side0.to_direction()));
+    const Plane wedge2 = Plane::from_point_normal(side2.center(), (-line1.to_direction()).cross(side2.to_direction()));
 
     return {pair(wedge0, sizes.wedge), pair(tilted, sizes.wedge * sizes.middle_wedge_factor), pair(wedge2, sizes.wedge)};
 }
@@ -315,11 +314,8 @@ static double run_in_to_level(const Polyline& quad, const Plane& fan, const Plan
     throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} did not converge: {:.3e} mm off", level, f1));
 }
 
-/// Per outer rib its run-in by the rib level: compas_tf's wedge, or the run-in that lands its end on the corner's shared level, the shallower of the two ends at the wedge.
-static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes, RibLevel rib_level) {
-
-    if (rib_level == RibLevel::compas)
-        return {sizes.wedge, sizes.wedge};
+/// Per outer rib the run-in that lands its end on the corner's shared level, the shallower of the two ends at the wedge.
+static std::array<double, 2> run_ins(const ConstructionPlanes& cp, const ConstructionQuads& quads, const FloorSizes& sizes) {
 
     const std::array<Plane, 2> fans = {cp.wedges[0][0], cp.wedges[2][0]};
     const std::array<Plane, 2> seams = {cp.inner_beams[0][0], cp.inner_beams[2][0]};
@@ -334,7 +330,7 @@ static void block_planes(ConstructionPlanes& cp, ColumnCorner& column, const std
     const std::array<double, 3> thickness = {run_in[0], sizes.middle_wedge_factor * (0.5 * (run_in[0] + run_in[1])), run_in[1]};
 
     for (size_t i = 0; i < 3; i++) {
-        column.wedge_fan[i][1] = offset(column.wedge_fan[i][0], thickness[i]);
+        column.wedge_fan[i][1] = column.wedge_fan[i][0].translate_by_normal(thickness[i]);
         cp.wedges[i][1] = column.wedge_fan[i][1];
     }
 }
@@ -383,15 +379,11 @@ static void compute_quarter(Floor& floor, size_t q) {
     geometry.planes = construction_planes(floor, q, column);
     column_seats(column, floor.plan, q, geometry.planes, sizes);
     geometry.quads = construction_quads(geometry.planes);
-    geometry.run_in = run_ins(geometry.planes, geometry.quads, sizes, floor.rib_level);
+    geometry.run_in = run_ins(geometry.planes, geometry.quads, sizes);
     block_planes(geometry.planes, column, geometry.run_in, sizes);
     geometry.quads = construction_quads(geometry.planes);
     geometry.parabolas = boundary_parabolas(geometry.planes, geometry.quads, sizes, geometry.run_in);
-
-    const Polyline middle = cut(geometry.parabolas[2][0], geometry.planes.wedges[1][1], geometry.planes.inner_beams[1][1]);
-    geometry.block_level_bottom = middle.get_point(0)[2];
-    geometry.block_level_top = geometry.block_level_bottom + sizes.wedge;
-    geometry.central_panel = central_panel(geometry.planes, geometry.parabolas, sizes, floor.layers);
+    geometry.central_panel = central_panel(geometry.planes, geometry.parabolas, sizes);
     geometry.bed_top_planes = bed_top_planes(geometry.planes, geometry.parabolas, geometry.central_panel);
 }
 
@@ -421,7 +413,7 @@ std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
     return pair(plane_into(quarter), thickness);
 }
 
-Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, CentralLayers central_layers, CutterLevel level, RibLevel rib) : plan(floor_plan), sizes(floor_sizes), layers(central_layers), cutter_level(level), rib_level(rib) {
+Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes) : plan(floor_plan), sizes(floor_sizes) {
 
     std::string why;
 
@@ -443,13 +435,8 @@ Floor::Floor(const FloorPlan& floor_plan, const FloorSizes& floor_sizes, Central
         compute_quarter(*this, q);
     }
 
-    if (cutter_level == CutterLevel::rib_bottom)
-        for (size_t q = 0; q < 4; q++)
-            columns[q].levels[1] = rib_bottom_level(quarter(q));
-}
-
-Floor Floor::compas_parity(const FloorPlan& plan, const FloorSizes& sizes) {
-    return Floor(plan, sizes, CentralLayers::compas, CutterLevel::compas_factor, RibLevel::compas);
+    for (size_t q = 0; q < 4; q++)
+        columns[q].levels[1] = rib_bottom_level(quarter(q));
 }
 
 Quarter Floor::quarter(size_t q) const {

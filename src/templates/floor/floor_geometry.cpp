@@ -12,23 +12,16 @@ const double EXTENSION = 1000.0; // how far parabola ends are pushed out before 
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
 
-Plane offset(const Plane& plane, double distance) {
-    return Plane::from_point_normal(plane.origin() + plane.z_axis() * distance, plane.z_axis());
-}
-
 Plane rotate(const Plane& plane, double radians, const Vector& axis, const Point& point) {
-
-    const Xform rotation = Xform::rotation_around_line(Line::from_points(point, point + axis), radians);
-
-    return Plane::from_point_normal(plane.origin().transformed(rotation), plane.z_axis().transformed(rotation));
+    return plane.transformed(Xform::rotation_around_line(Line::from_points(point, point + axis), radians));
 }
 
 Plane level(double z) {
-    return Plane::from_point_normal(Point(0.0, 0.0, z), Vector(0.0, 0.0, 1.0));
+    return Plane::xy_plane() + Vector(0.0, 0.0, z);
 }
 
 Plane edge_plane(const Line& edge, const Vector& normal_z) {
-    return Plane::from_point_normal(edge.center(), direction(edge).cross(normal_z));
+    return Plane::from_point_normal(edge.center(), edge.to_direction().cross(normal_z));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -37,44 +30,32 @@ Plane edge_plane(const Line& edge, const Vector& normal_z) {
 
 std::optional<Line> plane_plane(const Plane& plane0, const Plane& plane1) {
 
-    const Vector& n0 = plane0.z_axis();
-    const Vector& n1 = plane1.z_axis();
+    Line line;
 
-    if (std::abs(n0.dot(n1) - 1.0) <= TOLERANCE)
+    if (!Intersection::plane_plane(plane0, plane1, line))
         return std::nullopt;
 
-    const Vector d = n0.cross(n1);
-    const Point o = plane0.origin();
-    const std::optional<Point> x1 = line_plane(Line::from_points(o, o + d.cross(n0)), plane1);
-
-    if (!x1)
-        return std::nullopt;
-
-    return Line::from_points(*x1, *x1 + d);
+    return line.to_vector().dot(plane0.z_axis().cross(plane1.z_axis())) < 0.0 ? Line::from_points(line.end(), line.start()) : line;
 }
 
 std::optional<Point> line_plane(const Line& line, const Plane& plane) {
 
-    const Point a = line.start();
-    const Vector ab = line.end() - a;
-    const double cosa = plane.z_axis().dot(ab);
+    Point point;
 
-    if (std::abs(cosa) <= TOLERANCE)
+    if (std::abs(plane.z_axis().dot(line.to_direction())) <= TOLERANCE || !Intersection::line_plane(line, plane, point, false))
         return std::nullopt;
 
-    const double ratio = -plane.z_axis().dot(a - plane.origin()) / cosa;
-
-    return a + ab * ratio;
+    return point;
 }
 
 std::optional<Point> plane_plane_plane(const Plane& plane0, const Plane& plane1, const Plane& plane2) {
 
-    const std::optional<Line> line = plane_plane(plane0, plane1);
+    Point point;
 
-    if (!line)
+    if (!Intersection::plane_plane_plane(plane0, plane1, plane2, point))
         return std::nullopt;
 
-    return line_plane(*line, plane2);
+    return point;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -83,10 +64,6 @@ std::optional<Point> plane_plane_plane(const Plane& plane0, const Plane& plane1,
 
 Line edge(const std::vector<Point>& polygon, size_t i) {
     return Line::from_points(polygon[i], polygon[(i + 1) % polygon.size()]);
-}
-
-Vector direction(const Line& line) {
-    return line.to_vector().normalized();
 }
 
 Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
@@ -114,9 +91,9 @@ Polyline offset_polyline(const Polyline& polyline, double distance) {
 
     for (size_t i = 0; i + 1 < n; i++) {
         const Line line = Line::from_points(pts[i], pts[i + 1]);
-        const Vector x = direction(line);
+        const Vector x = line.to_direction();
         const Vector y = z.cross(x);
-        planes.push_back(offset(Plane::from_point_normal(line.center(), x.cross(y)), distance));
+        planes.push_back(Plane::from_point_normal(line.center(), x.cross(y)).translate_by_normal(distance));
     }
 
     planes.push_back(Plane::from_point_normal(pts[n - 1], pts[n - 2] - pts[n - 1]));
@@ -131,13 +108,23 @@ Polyline offset_polyline(const Polyline& polyline, double distance) {
     return Polyline(result);
 }
 
-Point area_centroid(const Polyline& polyline) {
+std::vector<Point> open_points(const Polyline& polyline) {
 
     std::vector<Point> points = polyline.get_points();
 
     if (polyline.is_closed())
         points.pop_back();
 
+    return points;
+}
+
+double signed_distance(const Point& point, const Plane& plane) {
+    return (point - plane.origin()).dot(plane.z_axis());
+}
+
+Point area_centroid(const Polyline& polyline) {
+
+    const std::vector<Point> points = open_points(polyline);
     const Vector normal = wood_session::compute_newell(points).normalized();
     const Point origin = points[0];
     Vector sum(0.0, 0.0, 0.0);
@@ -154,38 +141,21 @@ Point area_centroid(const Polyline& polyline) {
 
 double polygon_area(const Polyline& polyline) {
 
-    std::vector<Point> points = polyline.get_points();
+    const std::vector<Point> points = open_points(polyline);
 
-    if (polyline.is_closed())
-        points.pop_back();
-
-    if (points.size() < 3)
-        return 0.0;
-
-    Vector sum(0.0, 0.0, 0.0);
-
-    for (size_t i = 1; i + 1 < points.size(); i++)
-        sum += (points[i] - points[0]).cross(points[i + 1] - points[0]);
-
-    return 0.5 * sum.magnitude();
+    return points.size() < 3 ? 0.0 : 0.5 * wood_session::compute_newell(points).magnitude();
 }
 
 Polyline lifted(const std::vector<Point>& points, double lift) {
-
-    std::vector<Point> result;
-
-    for (const Point& point : points)
-        result.push_back(point + Vector(0.0, 0.0, lift));
-
-    return Polyline(result).closed();
+    return Polyline(points).translated(Vector(0.0, 0.0, lift)).closed();
 }
 
 Plane lifted(const Plane& plane, double lift) {
-    return Plane::from_frame(plane.origin() + Vector(0.0, 0.0, lift), plane.x_axis(), plane.y_axis(), plane.z_axis());
+    return plane + Vector(0.0, 0.0, lift);
 }
 
 Line lifted(const Line& line, double lift) {
-    return Line::from_points(line.start() + Vector(0.0, 0.0, lift), line.end() + Vector(0.0, 0.0, lift));
+    return line.transformed(Xform::translation(0.0, 0.0, lift));
 }
 
 std::vector<Point> above(const std::vector<Point>& points, double z) {
@@ -207,6 +177,14 @@ std::vector<Point> above(const std::vector<Point>& points, double z) {
     }
 
     return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Members
+// ═══════════════════════════════════════════════════════════════════════════
+
+MemberRef quarter_member(size_t quarter, Family family, size_t index) {
+    return MemberRef{static_cast<int>(quarter), family, index, -1};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

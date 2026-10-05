@@ -25,15 +25,6 @@ Arc compute_arc(double span, double rise) {
     return {radius, rise - radius, std::asin(std::min(1.0, span / 2.0 / radius))};
 }
 
-/// A closed polyline through points.
-Polyline to_loop(const std::vector<Point>& points) {
-
-    std::vector<Point> closed = points;
-    closed.push_back(points.front());
-
-    return Polyline(closed);
-}
-
 /// A voussoir lofted from its intrados corners to its extrados corners, both turned so the intrados faces away from the extrados.
 std::shared_ptr<wood_session::Block> to_voussoir(std::vector<Point> intrados, std::vector<Point> extrados, const std::string& name) {
 
@@ -46,7 +37,7 @@ std::shared_ptr<wood_session::Block> to_voussoir(std::vector<Point> intrados, st
         std::reverse(extrados.begin(), extrados.end());
     }
 
-    return std::make_shared<wood_session::Block>(std::vector<Polyline>{to_loop(intrados), to_loop(extrados)}, name);
+    return std::make_shared<wood_session::Block>(std::vector<Polyline>{Polyline(intrados).closed(), Polyline(extrados).closed()}, name);
 }
 
 /// A stone lofted from an intrados loop to an extrados loop of paired corners, the corners a pair shares merged, so a bent stone such as a groin keeps one solid.
