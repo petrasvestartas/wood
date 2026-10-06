@@ -1,12 +1,12 @@
 # Floor {#templates_floor}
 
-`src/templates/floor/floor.h` builds the vaulted timber floor bay of compas_tf: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, wedges, t-sections and beds around a central oculus. Two `WoodSession` classes do it: `wood_floor::FloorGuide` computes the planes, quads and parabolas (chapters 1 to 5), and `wood_floor::Floor` builds the members, connectors and screws from it (chapters 6 to 10).
+The vaulted timber floor bay of compas_tf: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, column blocks, t-sections and beds around a central oculus. Two `WoodSession` classes build it: `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`, a port of compas_tf's `floor_guide.py`) computes the geometry, and `wood_floor::Floor` (`src/templates/floor/floor.h`) builds the elements, their contacts, the connectors and the screws from it.
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with the vocabulary: what every class is, in pictures.
+One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with page 0: what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film; their names predate the port.
 
-0. @subpage templates_floor_00_vocabulary (every class of floor.h, one picture each: the guide and its parts, the quarter and its members, the relationships and the floor)
+0. @subpage templates_floor_00_vocabulary (FloorGuide and Floor: what the guide computes, step by step, and what the floor builds from it, one picture each)
 1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)
 2. @subpage templates_floor_02_quarter_planes (every member's two faces in quarter 0: outer ribs, seam and oculus beams, inner ribs, the wedge fan and the t-sections)
 3. @subpage templates_floor_03_parabolas (the plan quads, the run-in solve that levels both outer ribs at the column, the final wedge faces and the rib parabolas with their layers)
@@ -33,56 +33,42 @@ Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</spa
 
 ## Data structures
 
-The guide holds the corners, the parameters as its own fields and the geometry they make; the floor is built from it. The vocabulary page shows every class in a picture.
+FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it. Page 0 shows every step in a picture.
 
 ```mermaid
 classDiagram
     direction TB
     class FloorGuide {
         <<WoodSession>>
-        corners[4], the parameters
-        edges, seams, oculus_edges, columns
-        geometry QuarterGeometry per quarter
-        compute()
-        quarter(q) Quarter
-        oculus() Outline list
-        relationships() Relationship list
-    }
-    class QuarterGeometry {
-        polygon
-        planes ConstructionPlanes
-        quads ConstructionQuads
-        parabolas, central_panel, bed_top_planes
-    }
-    class Quarter {
-        guide, index
-        outer_ribs() inner_ribs() inner_beams()
-        wedges() tsections() beds()
-    }
-    class Outline {
-        top, bottom
-        to_rib() to_beam() to_plate()
-    }
-    class Relationship {
-        kind Relation
-        a, b MemberRef
-        plane, contact, screws
+        corners[4], size_ parameters
+        quarter_polygon(q), quarter_column_polygon(q)
+        construction_planes(q), construction_quads(q)
+        boundary_parabolas(q), central_panel(q)
+        outer_ribs(q), inner_ribs(q), inner_beams(q)
+        wedges(q), tsections(q), beds(q)
+        oculus(), column_cutters(q)
     }
     class Floor {
         <<WoodSession>>
         guide
-        quarters QuarterMembers, ring, columns
-        connectors, screws
-        add_members() add_connectors() add_screws()
-        get(MemberRef) Element
+        quarters, ring, columns
+        add_members()
+        add_contacts()
+        add_connectors()
+        add_screws()
     }
-    FloorGuide --> QuarterGeometry : one per quarter
-    FloorGuide --> Quarter : view
-    Quarter --> Outline : Rib, TSection, BedRow
-    FloorGuide --> Relationship : Contacts, Screws
-    FloorGuide --> Floor
-    Floor --> Outline : elements from
-    Floor --> Relationship : connectors on
+    class ContactFaces {
+        seam_wedge(q), oculus_wedge(q)
+        column_plate(q, k), seam_tie(q)
+        block_dowels(q, k, side)
+    }
+    class ScrewLines {
+        rib_beam, beam_mitre, rib_corner
+        ring, oculus
+    }
+    FloorGuide --> Floor : loops become elements
+    ContactFaces --> Floor : contact interactions
+    ScrewLines --> Floor : screw lines
 ```
 
 Each member has one name everywhere, from `MemberRef::name()`.

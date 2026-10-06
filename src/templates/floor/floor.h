@@ -184,7 +184,7 @@ public:
     /// Adds a contact interaction between every two members the design joins, of the members already in the session; one already there is kept.
     void add_contacts();
 
-    /// Adds one connector per contact interaction of the kinds asked for, in the order of their names, under connectors_q of its quarter, named <prefix>_<n> and numbered on from those already in the session, and returns them; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
+    /// Adds one connector per contact interaction of the kinds asked for, in the order of their names, under connectors_q of its quarter, named `<prefix>_<n>` and numbered on from those already in the session, and returns them; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
     std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(const std::vector<ContactKind>& kinds = CONNECTOR_CONTACTS);
 
     /// Adds the assembly screws on the members they join, after every other connector so nothing before them changes, and returns them.
@@ -212,7 +212,7 @@ private:
     /// The name prefix of a connector of that kind.
     static std::string connector_prefix(ContactKind kind);
 
-    /// Names a connector <prefix>_<n>, numbered on from the session, and adds it under connectors_q of quarter q in CONNECTOR_COLOR.
+    /// Names a connector `<prefix>_<n>`, numbered on from the session, and adds it under connectors_q of quarter q in CONNECTOR_COLOR.
     void add_named_connector(const std::shared_ptr<wood_session::JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers);
 
     /// The screw connector of lines through the members, the first two the joint's.

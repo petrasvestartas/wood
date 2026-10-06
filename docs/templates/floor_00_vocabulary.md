@@ -1,225 +1,232 @@
-# 0. Vocabulary {#templates_floor_00_vocabulary}
+# 0. FloorGuide and Floor {#templates_floor_00_vocabulary}
 
-Every class of `floor.h`, one picture each, in the order the floor is built. The chapters after this page use these names.
+The floor is two classes. **`FloorGuide`** (`floor_guide.h`, a port of compas_tf's `floor_guide.py`, method for method) computes geometry only: planes, quads, parabolas and every member as two face loops. **`Floor`** (`floor.h`) builds the model from it: elements, the contact interactions between them, connectors and screws.
 
 ```mermaid
 flowchart TD
-    FloorGuide --> BayEdge & Seam & OculusEdge & ColumnCorner
-    FloorGuide --> QuarterGeometry
-    QuarterGeometry --> ConstructionPlanes & ConstructionQuads & CentralPanel
-    FloorGuide --> Quarter
-    Quarter --> Rib & TSection & BedRow & ColumnCutters
-    Rib & TSection & BedRow & ColumnCutters --> Outline
-    FloorGuide --> Contacts & Screws
-    Screws --> OculusScrew
-    Contacts & Screws --> Relationship
-    Outline & Relationship --> Floor
+    subgraph G["FloorGuide: geometry"]
+        direction TB
+        A["corners + parameters"] --> P["quarter_polygon, quarter_column_polygon"]
+        P --> CP["construction_planes"] --> CQ["construction_quads"] --> BP["boundary_parabolas, central_panel"]
+        BP --> M["outer_ribs, inner_ribs, inner_beams, wedges, tsections, beds, oculus, column_cutters: Loops"]
+    end
+    subgraph F["Floor: model"]
+        direction TB
+        E["add_quarters, add_oculus, add_columns: elements"] --> I["add_contacts: interactions"] --> J["add_connectors"] --> S["add_screws"]
+    end
+    M --> E
 ```
 
-## FloorGuide
+## FloorGuide: the geometry
+
+### FloorGuide
 
 ![FloorGuide](floor/901_floor_guide.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#737373">■ the seams, dashed</span>
+<span style="color:#2196EA">■ corners, oculus points</span> <span style="color:#737373">■ seams, dashed</span>
 
-The guide is the first thing you make: four corners and the parameters as its fields; `compute()` turns them into every part on this page and draws them.
+The guide is made from four corners and the parameters (`size_outer_ribs`, `size_wedge`, `height`, `rise` ...); `compute()` runs every method below for each quarter and draws the result.
 
-Code: [`FloorGuide`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L76)
+Code: [`FloorGuide`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L67)
 
-## BayEdge
+### quarter_polygon(q)
 
-![BayEdge](floor/902_bay_edge.webp)
+![quarter_polygon(q)](floor/902_quarter_polygon.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#F2CC0C">■ its band</span>
+<span style="color:#2196EA">■ quarter 0</span> <span style="color:#A3A3A3">■ the other quarters</span>
 
-One side of the bay. Its band is the strip of outer rib that the two quarters on either side of the edge midpoint share.
+Quarter q in plan. Its five lines carry every plane of the quarter: the bay edges, the two seams, the oculus edge.
 
-Code: [`BayEdge`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L163)
+Code: [`quarter_polygon`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L117)
 
-## Seam
+### quarter_column_polygon(q)
 
-![Seam](floor/903_seam.webp)
+![quarter_column_polygon(q)](floor/903_quarter_column_polygon.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#F2CC0C">■ faces_into(0)</span> <span style="color:#E8478B">■ faces_into(1)</span>
+<span style="color:#2196EA">■ the column head</span> <span style="color:#737373">■ column_frame(q)</span>
 
-The line from an edge midpoint to the centre, where two quarters meet. Each quarter reads its own seam beam face from it.
+The column head at corner q, where the ribs start; column_frame(q) gives its axes.
 
-Code: [`Seam`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L174)
+Code: [`quarter_column_polygon`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L120)
 
-## OculusEdge
+### construction_planes(q)
 
-![OculusEdge](floor/904_oculus_edge.webp)
+![construction_planes(q)](floor/904_construction_planes.webp)
 
-<span style="color:#2196EA">■ the class</span> and its tilted plane <span style="color:#F2CC0C">■ back</span> <span style="color:#E8478B">■ ring_inner</span>
+<span style="color:#2196EA">■ base face</span> <span style="color:#F2CC0C">■ offset face</span> <span style="color:#A3A3A3">■ the member's footprint</span>
 
-One side of the central hole. Its tilted plane is where a quarter's oculus beam meets a ring beam.
+A plane pair for every member: its base face on one of the polygon's lines, and the face offset by the member's size. Every member is cut from these planes.
 
-Code: [`OculusEdge`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L193)
+Code: [`construction_planes`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L133)
 
-## ColumnCorner
+### construction_quads(q)
 
-![ColumnCorner](floor/905_column_corner.webp)
-
-<span style="color:#2196EA">■ the class</span>: head and frame <span style="color:#F2CC0C">■ wedge_fan</span>
-
-The column head at one bay corner, with its frame and the fan of planes the column blocks stand on.
-
-Code: [`ColumnCorner`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L205)
-
-## ConstructionPlanes
-
-![ConstructionPlanes](floor/906_construction_planes.webp)
-
-<span style="color:#F2CC0C">■ base face</span> <span style="color:#2196EA">■ the class</span>: the face offset by the thickness <span style="color:#A3A3A3">■ the member footprint</span>
-
-Two planes per member of a quarter: the face it starts from and the face it is offset to. Every member is cut from these planes.
-
-Code: [`ConstructionPlanes`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L234)
-
-## ConstructionQuads
-
-![ConstructionQuads](floor/907_construction_quads.webp)
+![construction_quads(q)](floor/905_construction_quads.webp)
 
 family colours
 
 Where each member's four planes meet the floor datum: its footprint in plan.
 
-Code: [`ConstructionQuads`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L252)
+Code: [`construction_quads`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L136)
 
-## CentralPanel
+### boundary_parabolas(q)
 
-![CentralPanel](floor/908_central_panel.webp)
+![boundary_parabolas(q)](floor/906_boundary_parabolas.webp)
 
-<span style="color:#2196EA">■ the class</span>: soffit traces <span style="color:#F2CC0C">■ +t and +2t layers</span> <span style="color:#E8478B">■ the ruling</span>
+<span style="color:#2196EA">■ the parabolas</span> <span style="color:#F2CC0C">■ their +t and +2t layers</span> <span style="color:#737373">■ rib quads</span>
 
-The panel between the two inner ribs. One ruling crosses it and one sweep serves both ribs, so its bed plates stay buildable.
+A parabola under each rib axis, from `-height` at the column to `-static_h` at the seam. The inner ones are the outer ones projected onto the inner ribs.
 
-Code: [`CentralPanel`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L271)
+Code: [`boundary_parabolas`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L146)
 
-## QuarterGeometry
+### central_panel(q)
 
-![QuarterGeometry](floor/909_quarter_geometry.webp)
+![central_panel(q)](floor/907_central_panel.webp)
 
-<span style="color:#2196EA">■ the class</span>: the quarter polygon <span style="color:#F2CC0C">■ the rib parabolas</span> <span style="color:#737373">■ rib quads</span>
+<span style="color:#2196EA">■ soffit traces</span> <span style="color:#F2CC0C">■ layers</span> <span style="color:#E8478B">■ ruling</span>
 
-Everything one quarter is built from: polygon, planes, quads, run-ins, parabolas, central panel and bed planes. The guide holds four of them.
+Between the two inner ribs, one ruling crosses the panel and one sweep serves both ribs (rule A), so the central beds stay flat quads.
 
-Code: [`QuarterGeometry`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L306)
+Code: [`central_panel`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L149)
 
-## Outline
+### Loops
 
-![Outline](floor/910_outline.webp)
+![Loops](floor/908_loops.webp)
 
-<span style="color:#2196EA">■ the class</span>: top <span style="color:#F2CC0C">■ bottom</span>
+<span style="color:#2196EA">■ [0]: top</span> <span style="color:#F2CC0C">■ [1]: bottom</span>
 
-A member as two closed loops. The element is lofted between them.
+Every member method below returns each member as its two face loops. The guide stops here; the Floor turns loops into elements.
 
-Code: [`Outline`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L347)
+Code: [`Loops`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L171)
 
-## Quarter
+### outer_ribs(q), inner_ribs(q)
 
-![Quarter](floor/911_quarter.webp)
+![outer_ribs(q), inner_ribs(q)](floor/909_ribs.webp)
 
-family colours
+<span style="color:#2196EA">■ the ribs</span> <span style="color:#A3A3A3">■ the rest of the quarter</span>
 
-A view of one quarter of the guide. It builds that quarter's member outlines: outer ribs, inner ribs, inner beams, column blocks, t-sections and beds.
+Each rib's parabola trimmed by the planes it ends on, on both of its faces.
 
-Code: [`Quarter`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L375)
+Code: [`outer_ribs`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L171)
 
-## Rib
+### tsections(q)
 
-![Rib](floor/912_rib.webp)
+![tsections(q)](floor/910_tsections.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#A3A3A3">■ the rest of the quarter</span>
+<span style="color:#2196EA">■ the t-sections</span> <span style="color:#A3A3A3">■ ribs and beams</span>
 
-A rib's outline: its parabola trace, trimmed by the planes it ends on, on both faces of the rib.
+Flange strips beside the rib faces; the beds rest on them.
 
-Code: [`Rib`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L415)
+Code: [`tsections`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L168)
 
-## TSection
+### beds(q)
 
-![TSection](floor/913_tsection.webp)
+![beds(q)](floor/911_beds.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#A3A3A3">■ the ribs and beams</span>
+<span style="color:#2196EA">■ the beds</span>
 
-A flange strip beside a rib face. The beds rest on it.
+Three rows of bed plates between the ribs, each row trimmed alike so every plate stays a quad.
 
-Code: [`TSection`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L435)
+Code: [`beds`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L165)
 
-## BedRow
+### wedges(q), inner_beams(q)
 
-![BedRow](floor/914_bed_row.webp)
+![wedges(q), inner_beams(q)](floor/912_wedges_and_beams.webp)
 
-<span style="color:#2196EA">■ the class</span>
+<span style="color:#2196EA">■ column blocks and inner beams</span>
 
-A row of bed plates between two ribs, trimmed alike so every plate stays a quad.
+The three column blocks at the head, and the three beams on the seams and the oculus edge.
 
-Code: [`BedRow`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L447)
+Code: [`wedges`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L177)
 
-## ColumnCutters
+### oculus()
 
-![ColumnCutters](floor/915_column_cutters.webp)
+![oculus()](floor/913_oculus.webp)
 
-<span style="color:#2196EA">■ the class</span> <span style="color:#A3A3A3">■ the column</span>
+<span style="color:#2196EA">■ ring beams</span> <span style="color:#F2CC0C">■ the quarters' oculus beams</span> <span style="color:#A3A3A3">■ bottom wedges and central plate</span>
+
+Four ring beams around the hole, one per oculus edge, each meeting its quarter's oculus beam on the tilted plane.
+
+Code: [`oculus`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L183)
+
+### column_cutters(q)
+
+![column_cutters(q)](floor/914_column_cutters.webp)
+
+<span style="color:#2196EA">■ the cutters</span> <span style="color:#A3A3A3">■ the column</span>
 
 Six plates that carve the column head so the ribs and the column blocks sit on it.
 
-Code: [`ColumnCutters`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L459)
+Code: [`column_cutters`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L189)
 
-## Ring
+## Floor: the model
 
-![Ring](floor/921_ring.webp)
+### add_quarters(), add_oculus(), add_columns()
 
-<span style="color:#2196EA">■ the class</span>: ring beams <span style="color:#F2CC0C">■ the quarters' oculus beams</span> <span style="color:#A3A3A3">■ bottom wedges and central plate</span>
+![add_quarters(), add_oculus(), add_columns()](floor/915_elements.webp)
 
-The ring is not a class: it is the family `ring`, the four ring beams `FloorGuide::oculus()` makes around the hole, one per oculus edge. They are neither t-sections nor the quarters' inner beams: each quarter's oculus beam (`inner_beams[1]`) sits outside its ring beam and meets it on the tilted plane, where the oculus wedge goes.
+<span style="color:#2196EA">■ BeamVariable</span> <span style="color:#F2CC0C">■ Plate</span> <span style="color:#737373">■ Column, Support</span>
 
-## Relationship
+The loops become elements: ribs, inner beams and ring beams are `BeamVariable`, t-sections, beds, blocks and the oculus plates `Plate`, and each column a `Column` on its `Support`, named `outer_ribs_<i>_<q>`, `beds_<row>_<i>_<q>` ...
 
-![Relationship](floor/916_relationship.webp)
+Code: [`add_quarters`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L173)
 
-<span style="color:#F2CC0C">■ member a</span> <span style="color:#E8478B">■ member b, its loops</span> <span style="color:#2196EA">■ the class</span>: the contact
+### add_contacts()
 
-Two members, named by `MemberRef`, the plane they meet on, and the contact the connector stands on.
+![add_contacts()](floor/916_contacts.webp)
 
-Code: [`Relationship`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L497)
+<span style="color:#2196EA">■ contact polygons</span>
 
-## Contacts
+Every two members that touch get a contact interaction on the session's edge between them, an `InteractionContactFace` named by its kind and place (`seam_wedge_0`, `column_plate_0_1`, `block_dowels_0_1_0` ...). `ContactFaces` computes its polygon from the guide's loops.
 
-![Contacts](floor/917_contacts.webp)
+Code: [`add_contacts`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L185)
 
-<span style="color:#2196EA">■ the class</span>: the contacts <span style="color:#A3A3A3">■ the members</span>
+### add_interaction(a, b, contact)
 
-Finds every surface two members share: where the wedges, column plates, ties and dowels go.
+![add_interaction(a, b, contact)](floor/917_contact.webp)
 
-Code: [`Contacts`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L521)
+<span style="color:#F2CC0C">■ member a</span> <span style="color:#E8478B">■ member b</span> <span style="color:#2196EA">■ the contact</span>
 
-## Screws
+One of them: the two seam beams of seam 0 and the face they share.
 
-![Screws](floor/918_screws.webp)
+Code: [`add_interaction`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L19)
 
-<span style="color:#2196EA">■ the class</span>: the screws <span style="color:#A3A3A3">■ the members' loops</span>
+### add_connectors()
 
-Finds where the assembly screws go between members that butt, each a 200 mm line.
+![add_connectors()](floor/918_connectors.webp)
 
-Code: [`Screws`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L556)
+<span style="color:#2196EA">■ connector parts</span> <span style="color:#A3A3A3">■ members</span>
 
-## OculusScrew
+Each contact interaction gets the connector of its kind: seam and oculus wedges, column plates with their cross lap, ties, dowels.
 
-![OculusScrew](floor/919_oculus_screw.webp)
+Code: [`add_connectors`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L188)
 
-<span style="color:#2196EA">■ the class</span>: the screws <span style="color:#A3A3A3">■ ring beam and oculus beam</span>
+### add_screws()
 
-Aims a screw from a ring beam into a quarter's oculus beam, past the wedge between them.
+![add_screws()](floor/919_screws.webp)
 
-Code: [`OculusScrew`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L601)
+<span style="color:#2196EA">■ screw lines</span> <span style="color:#A3A3A3">■ member loops</span>
 
-## Floor
+`ScrewLines` finds the 200 mm screw lines between members that butt; `JointBeam::screws` pre-drills them into both members.
 
-![Floor](floor/920_floor.webp)
+Code: [`add_screws`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L191)
 
-family colours, the connectors in <span style="color:#2196EA">■ blue</span>
+### OculusScrew
 
-The model: every member placed at `bay_height`, then the connectors and the screws added.
+![OculusScrew](floor/920_oculus_screw.webp)
 
-Code: [`Floor`](https://github.com/petrasvestartas/wood/blob/75225ff780b6cf052999a265701fd37a14e116e4/src/templates/floor/floor.h#L671)
+<span style="color:#2196EA">■ the aimed screws</span> <span style="color:#A3A3A3">■ ring beam and oculus beam</span>
+
+The ring screws are aimed past the oculus wedge by a search over head offsets and angles.
+
+Code: [`OculusScrew`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L93)
+
+### Floor
+
+![Floor](floor/921_floor.webp)
+
+family colours, connectors in blue
+
+The finished model: every member at `bay_height`, its contacts, connectors and screws.
+
+Code: [`Floor`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L150)
