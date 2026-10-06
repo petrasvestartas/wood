@@ -39,8 +39,8 @@ The chapters below take the algorithm one step at a time, in the order the code 
 | <span style="color:#2196EA">■ blue</span> `#2196EA` | what the step builds |
 | <span style="color:#EB7721">■ orange</span> `#EB7721` | the variable or value the step introduces |
 | <span style="color:#EBB121">■ amber</span> `#EBB121` | a second result, set apart from the first |
-| <span style="color:#455B6B">■ slate</span> `#455B6B` | what the step reads from earlier steps; dashed, a construction helper |
-| <span style="color:#8C969E">■ grey</span> `#CDD2D6` | context |
+| <span style="color:#737373">■ grey</span> `#737373` | what the step reads from earlier steps; dashed, a construction helper |
+| <span style="color:#A3A3A3">■ light grey</span> `#DADADA` | context, solid, with `#B8B8B8` edges |
 
 Pictures that tell the member families apart use the family colours of `FAMILY_COLORS` instead: <span style="color:#EB7721">outer ribs</span>, <span style="color:#EBB121">inner ribs</span>, <span style="color:#455B6B">inner beams</span>, <span style="color:#8C9BA6">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, with the oculus ring <span style="color:#E8955A">light orange</span>, the column <span style="color:#2E3D48">dark slate</span> and the connectors <span style="color:#2196EA">BRG blue</span>. Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner. Each step ends with a link to the lines of code that perform it, at the commit these pages describe.
 
@@ -142,6 +142,6 @@ Every member has one name, the same in the guide's drawing, the outline lists an
 
 ## How the pictures are made
 
-Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay.
+Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay. The renderer draws in the viewer's Arctic view, soft contact shading and outlines, so solids read by their form, and every surface at the viewer's opacity of 0.95: the members are solid, and only a member right behind another shows faintly through it.
 
 Their names are placed by solving the point-feature labelling problem. Every label has candidate plates on rings of growing radius around its point in 24 directions. A candidate is allowed only inside the picture and clear of every other plate and every other labelled point. Among the allowed ones a label takes the cheapest: the leader's length, the drawing the plate covers, read off the rendered picture, and every leader that crosses another leader or plate. A greedy pass places the most crowded labels first, then passes re-place each label against all the others until none moves. A picture was not accepted while a label had no allowed place or two labels named points closer than 14 pixels, so no two names overlap.

@@ -452,7 +452,7 @@ const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 15
 /// The relation kinds of the connectors: the wedges, the column plates and their cross laps, the ties and the block dowels.
 const std::vector<Relation> CONNECTOR_RELATIONS = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels};
 
-/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named <prefix>_<n> within its kind, numbered on from the connectors of that kind already in the session, and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR. All are built before any is added, so a member missing from the scene throws with nothing added; cross laps need the column plates in the same call.
+/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named `<prefix>_<n>` within its kind, numbered on from the connectors of that kind already in the session, and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR. All are built before any is added, so a member missing from the scene throws with nothing added; cross laps need the column plates in the same call.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, const std::vector<Relation>& kinds = CONNECTOR_RELATIONS);
 
 /// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians).
