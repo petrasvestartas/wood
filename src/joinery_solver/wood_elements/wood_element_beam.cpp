@@ -8,16 +8,16 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-Beam::Beam() : Element("beam") {}
+Beam::Beam() : WoodElement("beam") {}
 
 Beam::Beam(const Polyline& axis, double radius, const std::string& name)
-    : Element(name), axis(axis), radii(axis.segment_count(), radius) {}
+    : WoodElement(name), axis(axis), radii(axis.segment_count(), radius) {}
 
 Beam::Beam(const Polyline& axis, const std::vector<double>& radii, const std::vector<Vector>& directions, int allowed_type, const std::string& name)
-    : Element(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
+    : WoodElement(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
 
 Beam::Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vector<Vector>& directions, const std::string& name)
-    : Element(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0), directions(directions), profile(profile) {}
+    : WoodElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0), directions(directions), profile(profile) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -139,35 +139,16 @@ const BRep& Beam::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& Beam::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh) {
-        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_mesh;
+Mesh Beam::trimmed_mesh() const {
+    return cut_mesh(element_geometry_mesh(), cuts);
 }
 
-const BRep& Beam::model_geometry_brep() const {
-
-    if (!_model_geometry_brep) {
-        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : solid_cuts_brep(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_brep;
+BRep Beam::trimmed_brep() const {
+    return cut_brep(element_geometry_brep(), cuts);
 }
 
 std::vector<Plane> Beam::compute_planes() const {
     return face_planes(model_geometry_mesh());
-}
-
-void Beam::invalidate_geometry() {
-    _element_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 /// The up directions moved by xform; while xform tilts z every segment without one takes xform·z, the world z sections() used before the move.
@@ -208,8 +189,8 @@ void Beam::place(const Xform& xform) {
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
+    _model_mesh_cache.reset();
+    _model_brep_cache.reset();
 }
 
 void Beam::compute_geometry_mesh_impl() {

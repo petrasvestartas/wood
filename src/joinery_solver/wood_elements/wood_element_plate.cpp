@@ -12,10 +12,10 @@ using namespace session_cpp;
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-Plate::Plate() : Element("plate") {}
+Plate::Plate() : WoodElement("plate") {}
 
 /// A bad outline pair degrades to an empty element, which detection skips, rather than taking a dataset run down.
-Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : Element(name) {
+Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : WoodElement(name) {
 
     Polyline pp0 = bot;
     Polyline pp1 = top;
@@ -180,25 +180,12 @@ const BRep& Plate::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& Plate::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh) {
-        _model_geometry_mesh = features.top.empty()
-            ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top);
-        _model_geometry_mesh = apply_solid_cuts(*_model_geometry_mesh, solid_cuts);
-    }
-
-    return *_model_geometry_mesh;
+Mesh Plate::trimmed_mesh() const {
+    return features.top.empty() ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top);
 }
 
-const BRep& Plate::model_geometry_brep() const {
-
-    if (!_model_geometry_brep) {
-        _model_geometry_brep = !solid_cuts.empty() ? solid_cuts_brep(features.top.empty() ? element_geometry_mesh() : Mesh::loft(features.bottom, features.top), solid_cuts) : features.top.empty()
-            ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
-    }
-
-    return *_model_geometry_brep;
+BRep Plate::trimmed_brep() const {
+    return features.top.empty() ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
 }
 
 void Plate::flip() {
@@ -209,15 +196,6 @@ void Plate::flip() {
         std::swap(planes[0], planes[1]);
     reset();
     invalidate_geometry();
-}
-
-void Plate::invalidate_geometry() {
-    _element_geometry_mesh.reset();
-    _model_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    _model_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
@@ -250,9 +228,9 @@ void Plate::place(const Xform& xform) {
     features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
 
     _element_geometry_mesh.reset();
-    _model_geometry_mesh.reset();
+    _model_mesh_cache.reset();
     _element_geometry_brep.reset();
-    _model_geometry_brep.reset();
+    _model_brep_cache.reset();
 }
 
 void Plate::compute_geometry_mesh_impl() {

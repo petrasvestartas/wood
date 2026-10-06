@@ -12,9 +12,9 @@ using namespace session_cpp;
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-Support::Support() : Element("support") {}
+Support::Support() : WoodElement("support") {}
 
-Support::Support(const Plane& plane, const std::string& name) : Element(name), plane(plane) {}
+Support::Support(const Plane& plane, const std::string& name) : WoodElement(name), plane(plane) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -200,14 +200,6 @@ const BRep& Support::model_geometry_brep() const {
 
 std::vector<Plane> Support::compute_planes() const {
     return face_planes(model_geometry_mesh());
-}
-
-void Support::invalidate_geometry() {
-
-    _element_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 std::shared_ptr<Support> Support::transformed(const Xform& xform) const {

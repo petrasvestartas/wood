@@ -82,6 +82,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_serialization.cpp
     src/joinery_solver/wood_io.cpp
     src/joinery_solver/wood_view.cpp
+    src/joinery_solver/wood_elements/wood_element.cpp
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam_variable.cpp

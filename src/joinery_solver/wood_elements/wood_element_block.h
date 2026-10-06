@@ -1,27 +1,27 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element_geometry.h"
+#include "wood_element.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
 /// A block: a closed solid lofted between a bottom loop and a top loop, for contact detection; no plate convention.
-class Block : public Element {
+class Block : public WoodElement {
 public:
-    std::vector<SolidCut> solid_cuts;
     std::optional<Mesh> source_mesh;
     static constexpr std::string_view ELEMENT_TYPE = "Solid"; // The element_type this block is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "BlockElement"; // The element_type wood wrote before, still accepted on read.
     std::vector<Polyline> loops; // Bottom loop, top loop, then their holes paired in order; empty when the solid came as a mesh.
     std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
 
-private:
-    mutable std::optional<Mesh> _element_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<BRep> _element_geometry_brep; // Cache of the brep form.
-    mutable std::optional<Mesh> _model_geometry_mesh; // Cache of the cut mesh form.
-    mutable std::optional<BRep> _model_geometry_brep; // Cache of the cut brep form.
+protected:
+    /// The solid trimmed by its cut planes as a Mesh, before the solid cuts.
+    Mesh trimmed_mesh() const override;
+
+    /// The solid trimmed by its cut planes as a BRep, before the solid cuts.
+    BRep trimmed_brep() const override;
 
 public:
     /// An empty block: no solid.
@@ -48,17 +48,11 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-    /// The shape with joints or cuts applied as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().
-    const Mesh& model_geometry_mesh() const override;
 
-    /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
-    const BRep& model_geometry_brep() const override;
 
     /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
     std::vector<Plane> compute_planes() const override;
 
-    /// Drops the cached solids and marks the Element slot stale; call after assigning the loops or the cuts by hand.
-    void invalidate_geometry() override;
 
     /// A copy moved by xform from the parameters alone, guid and name kept: loops, cuts, features and insertion vectors moved, no solid until one is asked for, the source mesh moved too; nullptr for a mirror.
     std::shared_ptr<Block> transformed(const Xform& xform) const;

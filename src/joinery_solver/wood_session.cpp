@@ -42,20 +42,11 @@ void register_types() {
 
 std::vector<SolidCut>* get_solid_cuts(Element& element) {
 
-    if (Plate* plate = dynamic_cast<Plate*>(&element))
-        return &plate->solid_cuts;
+    if (dynamic_cast<Support*>(&element))
+        return nullptr;
 
-    if (Beam* beam = dynamic_cast<Beam*>(&element))
-        return &beam->solid_cuts;
-
-    if (Column* column = dynamic_cast<Column*>(&element))
-        return &column->solid_cuts;
-
-    if (BeamVariable* beam = dynamic_cast<BeamVariable*>(&element))
-        return &beam->solid_cuts;
-
-    if (Block* block = dynamic_cast<Block*>(&element))
-        return &block->solid_cuts;
+    if (WoodElement* member = dynamic_cast<WoodElement*>(&element))
+        return &member->solid_cuts;
 
     if (JointBeam* connector = dynamic_cast<JointBeam*>(&element))
         return &connector->solid_cuts;

@@ -13,13 +13,13 @@ using namespace session_cpp;
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-Column::Column() : Element("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {}
+Column::Column() : WoodElement("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {}
 
 Column::Column(const Line& axis, const Polyline& section, const std::string& name)
-    : Element(name), axis(axis), section(section) {}
+    : WoodElement(name), axis(axis), section(section) {}
 
 Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name)
-    : Element(solid, name), axis(axis), section(section) {}
+    : WoodElement(solid, name), axis(axis), section(section) {}
 
 /// The profile x axis in world space: world x projected perpendicular to the axis (world y when the axis is along x), turned by rotation degrees about the axis.
 static Vector profile_x(const Line& axis, double rotation) {
@@ -60,7 +60,7 @@ static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<
 }
 
 Column::Column(const Line& axis, const std::vector<Polyline>& profile, double rotation, const std::string& name)
-    : Element(name), axis(axis), profile(profile), rotation(rotation) {
+    : WoodElement(name), axis(axis), profile(profile), rotation(rotation) {
 
     if (!profile.empty() && axis.length() > 0.0)
         section = placed_profile(axis, profile, rotation)[0];
@@ -205,35 +205,16 @@ const BRep& Column::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& Column::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh) {
-        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_mesh;
+Mesh Column::trimmed_mesh() const {
+    return cut_mesh(element_geometry_mesh(), cuts);
 }
 
-const BRep& Column::model_geometry_brep() const {
-
-    if (!_model_geometry_brep) {
-        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : solid_cuts_brep(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_brep;
+BRep Column::trimmed_brep() const {
+    return cut_brep(element_geometry_brep(), cuts);
 }
 
 std::vector<Plane> Column::compute_planes() const {
     return face_planes(model_geometry_mesh());
-}
-
-void Column::invalidate_geometry() {
-    _element_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
@@ -275,8 +256,8 @@ void Column::place(const Xform& xform) {
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
+    _model_mesh_cache.reset();
+    _model_brep_cache.reset();
 }
 
 void Column::compute_geometry_mesh_impl() {

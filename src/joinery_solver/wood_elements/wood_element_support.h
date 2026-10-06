@@ -1,14 +1,14 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element_geometry.h"
+#include "wood_element.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
 /// A column base, parametric after the Sherpa Power Base L 140 C: a drilled base plate on the slab, an adjustment nut, a threaded rod, a coupling nut and the head plate the column end is let onto; the dimensions default to the manufacturer's table.
-class Support : public Element {
+class Support : public WoodElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Support"; // The element_type this support is written under.
     Plane plane = Plane::xy_plane(); // Base plate underside centre, z up the column, x along a base plate side.
@@ -34,11 +34,6 @@ public:
     double anchor_embedment = 100.0; // Anchor depth below the plate underside.
     double chord_tolerance = 0.05; // Largest deviation of a round part's facets.
 
-private:
-    mutable std::optional<Mesh> _element_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<BRep> _element_geometry_brep; // Cache of the brep form.
-
-public:
     /// A support at the world origin standing up z, with the manufacturer's dimensions.
     Support();
 
@@ -83,8 +78,6 @@ public:
     /// One plane per face of the solid with a Newell normal.
     std::vector<Plane> compute_planes() const override;
 
-    /// Drops the cached solids and marks the Element slot stale; call after assigning a dimension by hand.
-    void invalidate_geometry() override;
 
     /// A copy moved by xform, guid and name kept; nullptr for a mirror.
     std::shared_ptr<Support> transformed(const Xform& xform) const;

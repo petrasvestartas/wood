@@ -12,10 +12,10 @@ using namespace session_cpp;
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-Block::Block() : Element("block") {}
-Block::Block(const Mesh& mesh, const std::string& name) : Element(name), source_mesh(mesh) {}
+Block::Block() : WoodElement("block") {}
+Block::Block(const Mesh& mesh, const std::string& name) : WoodElement(name), source_mesh(mesh) {}
 
-Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Element(name), loops(loops) {}
+Block::Block(const std::vector<Polyline>& loops, const std::string& name) : WoodElement(name), loops(loops) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -84,35 +84,16 @@ const BRep& Block::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& Block::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh) {
-        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_mesh;
+Mesh Block::trimmed_mesh() const {
+    return cut_mesh(element_geometry_mesh(), cuts);
 }
 
-const BRep& Block::model_geometry_brep() const {
-
-    if (!_model_geometry_brep) {
-        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : solid_cuts_brep(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-    }
-
-    return *_model_geometry_brep;
+BRep Block::trimmed_brep() const {
+    return cut_brep(element_geometry_brep(), cuts);
 }
 
 std::vector<Plane> Block::compute_planes() const {
     return face_planes(model_geometry_mesh());
-}
-
-void Block::invalidate_geometry() {
-    _element_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
@@ -141,8 +122,8 @@ void Block::place(const Xform& xform) {
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
+    _model_mesh_cache.reset();
+    _model_brep_cache.reset();
 }
 
 void Block::compute_geometry_mesh_impl() {

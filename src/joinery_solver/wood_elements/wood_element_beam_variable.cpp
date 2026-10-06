@@ -12,9 +12,9 @@ using namespace session_cpp;
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-BeamVariable::BeamVariable() : Element("beam_variable") {}
+BeamVariable::BeamVariable() : WoodElement("beam_variable") {}
 
-BeamVariable::BeamVariable(const Line& axis, const std::vector<Polyline>& sections, const std::string& name) : Element(name), axis(axis), sections(sections) {}
+BeamVariable::BeamVariable(const Line& axis, const std::vector<Polyline>& sections, const std::string& name) : WoodElement(name), axis(axis), sections(sections) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
@@ -72,34 +72,16 @@ const BRep& BeamVariable::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& BeamVariable::model_geometry_mesh() const {
-
-    if (!_model_geometry_mesh)
-        _model_geometry_mesh = apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-
-    return *_model_geometry_mesh;
+Mesh BeamVariable::trimmed_mesh() const {
+    return cut_mesh(element_geometry_mesh(), cuts);
 }
 
-const BRep& BeamVariable::model_geometry_brep() const {
-
-    if (!_model_geometry_brep)
-        _model_geometry_brep = solid_cuts.empty() ? cut_brep(element_geometry_brep(), cuts) : solid_cuts_brep(cut_mesh(element_geometry_mesh(), cuts), solid_cuts);
-
-    return *_model_geometry_brep;
+BRep BeamVariable::trimmed_brep() const {
+    return cut_brep(element_geometry_brep(), cuts);
 }
 
 std::vector<Plane> BeamVariable::compute_planes() const {
     return face_planes(model_geometry_mesh());
-}
-
-void BeamVariable::invalidate_geometry() {
-
-    _element_geometry_mesh.reset();
-    _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
-    Element::invalidate_geometry();
-    reset();
 }
 
 std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) const {
@@ -132,8 +114,8 @@ void BeamVariable::place(const Xform& xform) {
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
-    _model_geometry_mesh.reset();
-    _model_geometry_brep.reset();
+    _model_mesh_cache.reset();
+    _model_brep_cache.reset();
 }
 
 void BeamVariable::compute_geometry_mesh_impl() {

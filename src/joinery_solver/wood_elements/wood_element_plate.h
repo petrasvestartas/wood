@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element_geometry.h"
+#include "wood_element.h"
 
 using namespace session_cpp;
 
@@ -14,9 +14,8 @@ struct Features {
 };
 
 /// A timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry_mesh() / element_geometry_brep() give the plate alone, the loft of its two outlines, never cut; model_geometry_mesh() / model_geometry_brep() give the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
-class Plate : public Element {
+class Plate : public WoodElement {
 public:
-    std::vector<SolidCut> solid_cuts;
     static constexpr std::string_view ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
     static constexpr std::string_view LEGACY_ELEMENT_TYPE = "WoodElement"; // The element_type wood wrote before, still accepted on read.
     std::vector<Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
@@ -26,11 +25,12 @@ public:
     Features features; // Merged cut outlines after compute_features; empty before. Call invalidate_geometry() after assigning.
     std::vector<int> feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide. The annen and vidy datasets only.
 
-private:
-    mutable std::optional<Mesh> _element_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<BRep> _element_geometry_brep; // Cache of the brep form.
-    mutable std::optional<Mesh> _model_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<BRep> _model_geometry_brep; // Cache of the brep form.
+protected:
+    /// The plate before the solid cuts as a Mesh: the loft of the merged feature outlines once compute_features has run, else the plate alone.
+    Mesh trimmed_mesh() const override;
+
+    /// The plate before the solid cuts as a BRep: the loft of the merged feature outlines once compute_features has run, else the plate alone.
+    BRep trimmed_brep() const override;
 
 public:
     /// An empty plate: no outlines, no planes, nothing to loft.
@@ -59,17 +59,11 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-    /// The shape with joints or cuts applied as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().
-    const Mesh& model_geometry_mesh() const override;
 
-    /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
-    const BRep& model_geometry_brep() const override;
 
     /// Swaps bottom and top, outlines and planes, and drops every cache the kernel and the plate hold; detection asks for it when a joint wants the other face first.
     void flip();
 
-    /// Drops all cached lofts and marks the Element slot stale; the merge calls it after filling features, and so must anyone assigning polylines or features by hand.
-    void invalidate_geometry() override;
 
     /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.
     std::shared_ptr<Plate> transformed(const Xform& xform) const;
