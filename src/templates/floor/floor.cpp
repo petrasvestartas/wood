@@ -5,68 +5,11 @@ using namespace session_cpp;
 
 namespace wood_floor {
 
-const double EXTENSION = 1000.0; // how far a trace's ends are pushed out before the planes that end its member trim it
-
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 // CONTACTS AND SCREWS
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-
-ContactFaces::ContactFaces(const FloorGuide& floor_guide) : guide(floor_guide), lift(Xform::translation(0.0, 0.0, floor_guide.bay_height)) {
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::face(ContactKind kind, const std::string& place, wood_session::ContactType type, const Polyline& polygon) const {
-
-    std::shared_ptr<wood_session::InteractionContactFace> contact = std::make_shared<wood_session::InteractionContactFace>(-1, -1, type, polygon.closed().transformed(lift));
-    contact->name = CONTACT_NAMES[static_cast<size_t>(kind)] + "_" + place;
-
-    return contact;
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::seam_wedge(size_t q) const {
-
-    const Polyline a = guide.inner_beams(q)[0][1];
-    const Polyline b = guide.inner_beams((q + 1) % 4)[2][1];
-
-    return face(ContactKind::seam_wedge, std::to_string(q), wood_session::ContactType::side_side, a.overlap(b, guide.construction_planes(q).inner_beams[0][0]));
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::oculus_wedge(size_t q) const {
-    return face(ContactKind::oculus_wedge, std::to_string(q), wood_session::ContactType::side_side, guide.inner_beams(q)[1][1]);
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::column_plate(size_t q, size_t k) const {
-
-    const size_t fan = k == 0 ? 0 : 2;
-    const Loops rib = guide.outer_ribs(q)[k];
-    const std::vector<Point> top = rib[0].get_points();
-    const std::vector<Point> bottom = rib[1].get_points();
-    const Polyline end_face = Polyline({top[1], top[2], bottom[2], bottom[1]}).closed();
-    const Polyline carved = Polyline(guide.column_face(q, fan)).closed();
-
-    return face(ContactKind::column_plate, fmt::format("{}_{}", q, k), wood_session::ContactType::unknown, end_face.overlap(carved, guide.construction_planes(q).wedges[fan][0]));
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::seam_tie(size_t q) const {
-
-    const Loops rib = guide.outer_ribs(q)[0];
-    const std::vector<Point> top = rib[0].get_points();
-    const std::vector<Point> bottom = rib[1].get_points();
-    const size_t n = top.size();
-
-    return face(ContactKind::seam_tie, std::to_string(q), wood_session::ContactType::end_end, Polyline({top[0], top[n - 2], bottom[n - 2], bottom[0]}));
-}
-
-std::shared_ptr<wood_session::InteractionContactFace> ContactFaces::block_dowels(size_t q, size_t k, size_t side) const {
-
-    const Loops block = guide.wedges(q)[k];
-    const std::vector<Point> top = block[0].get_points();
-    const std::vector<Point> bottom = block[1].get_points();
-    const Polyline polygon = side == 0 ? Polyline({bottom[3], bottom[0], top[0], top[3]}) : Polyline({bottom[1], bottom[2], top[2], top[1]});
-
-    return face(ContactKind::block_dowels, fmt::format("{}_{}_{}", q, k, side), wood_session::ContactType::unknown, polygon);
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Screws
@@ -391,43 +334,51 @@ std::shared_ptr<wood_session::BeamVariable> Floor::beam(const Loops& loops, cons
 
 void Floor::add_contacts() {
 
-    const ContactFaces faces(guide);
     const bool have_columns = columns.size() == 4 && columns[0].column;
 
     for (size_t q = 0; q < 4; q++) {
         const QuarterMembers& members = quarters[q];
         const QuarterMembers& next = quarters[(q + 1) % 4];
+        const std::string place = std::to_string(q);
 
         if (members.inner_beams.empty())
             continue;
 
-        add_contact(members.inner_beams[0], next.inner_beams[2], faces.seam_wedge(q));
+        add_contact(ContactKind::seam_wedge, place, members.inner_beams[0], next.inner_beams[2]);
 
         if (q < ring.size())
-            add_contact(members.inner_beams[1], ring[q], faces.oculus_wedge(q));
+            add_contact(ContactKind::oculus_wedge, place, members.inner_beams[1], ring[q]);
 
         for (size_t k = 0; k < 2 && have_columns; k++)
-            add_contact(columns[q].column, members.outer_ribs[k], faces.column_plate(q, k));
+            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), columns[q].column, members.outer_ribs[k]);
 
         if (!guide.seam_through_ribs)
-            add_contact(members.outer_ribs[0], next.outer_ribs[1], faces.seam_tie(q));
+            add_contact(ContactKind::seam_tie, place, members.outer_ribs[0], next.outer_ribs[1]);
 
         // each column block on the two ribs either side of it
-        add_contact(members.outer_ribs[0], members.wedges[0], faces.block_dowels(q, 0, 0));
-        add_contact(members.outer_ribs[1], members.wedges[2], faces.block_dowels(q, 2, 1));
-        add_contact(members.inner_ribs[0], members.wedges[0], faces.block_dowels(q, 0, 1));
-        add_contact(members.inner_ribs[0], members.wedges[1], faces.block_dowels(q, 1, 0));
-        add_contact(members.inner_ribs[1], members.wedges[1], faces.block_dowels(q, 1, 1));
-        add_contact(members.inner_ribs[1], members.wedges[2], faces.block_dowels(q, 2, 0));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), members.outer_ribs[0], members.wedges[0]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_2_1", q), members.outer_ribs[1], members.wedges[2]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_0_1", q), members.inner_ribs[0], members.wedges[0]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_1_0", q), members.inner_ribs[0], members.wedges[1]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_1_1", q), members.inner_ribs[1], members.wedges[1]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_2_0", q), members.inner_ribs[1], members.wedges[2]);
     }
 }
 
-void Floor::add_contact(const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b, const std::shared_ptr<wood_session::InteractionContactFace>& contact) {
+void Floor::add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
+
+    const std::string name = CONTACT_NAMES[static_cast<size_t>(kind)] + "_" + place;
 
     for (const std::shared_ptr<Interaction>& existing : get_interaction(a, b))
-        if (existing->name == contact->name)
+        if (existing->name == name)
             return;
 
+    const std::shared_ptr<wood_session::InteractionContactFace> contact = compute_face_contact(a, b);
+
+    if (!contact)
+        throw std::runtime_error(fmt::format("no contact {} between {} and {}", name, a->name, b->name));
+
+    contact->name = name;
     add_interaction(a, b, contact);
 }
 

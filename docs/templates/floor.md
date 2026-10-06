@@ -53,20 +53,14 @@ classDiagram
         guide
         quarters, ring, columns
         add_members()
-        add_contacts()
+        add_contacts() by contact search
         add_connectors()
         add_screws()
-    }
-    class ContactFaces {
-        seam_wedge(q), oculus_wedge(q)
-        column_plate(q, k), seam_tie(q)
-        block_dowels(q, k, side)
     }
     class ScrewLines {
         rib_beam, beam_mitre, rib_corner
     }
     FloorGuide --> Floor : loops become elements
-    ContactFaces --> Floor : contact interactions
     ScrewLines --> Floor : screw lines
 ```
 

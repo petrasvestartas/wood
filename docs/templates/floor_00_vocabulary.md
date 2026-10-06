@@ -177,7 +177,7 @@ Code: [`add_quarters`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4d
 
 <span style="color:#2196EA">■ contact polygons</span>
 
-Every two members that touch get a contact interaction on the session's edge between them, an `InteractionContactFace` named by its kind and place (`seam_wedge_0`, `column_plate_0_1`, `block_dowels_0_1_0` ...). `ContactFaces` computes its polygon from the guide's loops.
+For every two members the design joins, the session's contact search (`compute_face_contact`) finds the face they share, as compas_tf's examples do with `compute_contacts`, and `add_interaction` stores it on the session's edge between them as an `InteractionContactFace` named by its kind and place (`seam_wedge_0`, `column_plate_0_1`, `block_dowels_0_1_0` ...).
 
 Code: [`add_contacts`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L185)
 

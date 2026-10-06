@@ -15,35 +15,6 @@ const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 15
 // Contacts and screws
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Where two members of the floor touch, by the rules of the design: each contact a face interaction, named by its kind and place, its polygon read from the members' loops and lifted to the floor.
-class ContactFaces {
-public:
-    /// The contacts of the guide's floor.
-    explicit ContactFaces(const FloorGuide& guide);
-
-    /// Inner beam 0 of quarter q and inner beam 2 of quarter q + 1 on the seam plane, where their end faces overlap.
-    std::shared_ptr<wood_session::InteractionContactFace> seam_wedge(size_t q) const;
-
-    /// Inner beam 1 of quarter q and ring beam q on the tilted plane: the beam's face on it.
-    std::shared_ptr<wood_session::InteractionContactFace> oculus_wedge(size_t q) const;
-
-    /// Column q and outer rib k: the rib's column end face on its fan plane where it meets the column's carved face.
-    std::shared_ptr<wood_session::InteractionContactFace> column_plate(size_t q, size_t k) const;
-
-    /// Outer rib 0 of quarter q and outer rib 1 of quarter q + 1 end to end on the seam plane: rib 0's seam end face.
-    std::shared_ptr<wood_session::InteractionContactFace> seam_tie(size_t q) const;
-
-    /// Column block k of quarter q on one of its two ribs: the block's face on that rib's plane.
-    std::shared_ptr<wood_session::InteractionContactFace> block_dowels(size_t q, size_t k, size_t side) const;
-
-private:
-    const FloorGuide& guide;
-    const session_cpp::Xform lift; // Up from the datum to the floor.
-
-    /// A face interaction of a kind at a place, named <kind>_<place>, its polygon closed and lifted.
-    std::shared_ptr<wood_session::InteractionContactFace> face(ContactKind kind, const std::string& place, wood_session::ContactType type, const session_cpp::Polyline& polygon) const;
-};
-
 /// Where the assembly screws go, as 200 mm lines in world coordinates, between members that butt.
 class ScrewLines {
 public:
@@ -141,7 +112,7 @@ public:
     /// Adds the column at one corner: its support, the column, the support joint and the column's six head cuts.
     void add_column(size_t corner);
 
-    /// Adds a contact interaction between every two members the design joins, of the members already in the session; one already there is kept.
+    /// Searches the contact between every two members the design joins, as compas_tf's examples do, and stores it as their interaction; members not yet in the session are skipped, a contact already there is kept.
     void add_contacts();
 
     /// Adds one connector per contact interaction of the kinds asked for, in the order of their names, under connectors_q of its quarter, named `<prefix>_<n>` and numbered on from those already in the session, and returns them; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
@@ -163,8 +134,8 @@ private:
     /// A four-corner member as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.
     static std::shared_ptr<wood_session::BeamVariable> beam(const Loops& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name);
 
-    /// The contact interaction between two members, added the first time.
-    void add_contact(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b, const std::shared_ptr<wood_session::InteractionContactFace>& contact);
+    /// The contact the session's search finds between two members, stored as their interaction named `<kind>_<place>`; one already there is kept, and a pair that does not touch throws naming it.
+    void add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
     /// The connector a contact interaction gets, by its kind and the place its name ends in (quarter, then rib or block index): a wedge sized by the thicker member, a plate by the rib's thickness, a tie, or dowels.
     std::shared_ptr<wood_session::JointBeam> connector_of(ContactKind kind, const std::vector<size_t>& place, const session_cpp::Element& a, const session_cpp::Element& b, const wood_session::InteractionContactFace& contact) const;

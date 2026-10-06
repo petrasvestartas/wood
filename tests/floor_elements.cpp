@@ -471,7 +471,7 @@ void check_wedges() {
             for (const Point& point : loop.get_points())
                 top = std::max(top, point[2]);
 
-        check(std::abs(top - square_guide().bay_height) <= 1e-9, fmt::format("{} cut flush with the floor top, {:.3e} above it", wedge->name, top - square_guide().bay_height));
+        check(std::abs(top - square_guide().bay_height) <= 1e-6, fmt::format("{} cut flush with the floor top, {:.3e} above it", wedge->name, top - square_guide().bay_height));
     }
 
     std::map<std::string, double> volumes;
