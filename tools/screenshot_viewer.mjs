@@ -1,4 +1,4 @@
-// node --experimental-websocket shoot.mjs <out.png> [command ...]: opens the hosted viewer in a Chrome window on the GPU with ?cmd= commands, screenshots.
+// node --experimental-websocket screenshot_viewer.mjs <out.png> [command ...]: opens the hosted viewer in a Chrome window on the GPU with the commands as ?cmd=, waits for the scene, screenshots.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
