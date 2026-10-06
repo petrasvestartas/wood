@@ -52,7 +52,7 @@ std::string Relationship::text() const {
 // Relationships
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The seam wedge of seam q: inner beam 0 of q and inner beam 2 of q + 1 on the seam plane, the contact beam 0's loop on it; run on to the bay's outer face when the beams run through the rib band.
+/// The seam wedge of seam q: inner beam 0 of q and inner beam 2 of q + 1 on the seam plane, the contact where their end faces on it overlap; run on to the bay's outer face when the beams run through the rib band.
 static Relationship seam_wedge(const FloorGuide& guide, size_t q) {
 
     const double lift = guide.parameters.bay_height;
@@ -61,7 +61,7 @@ static Relationship seam_wedge(const FloorGuide& guide, size_t q) {
     row.a = quarter_member(q, Family::inner_beams, 0);
     row.b = quarter_member((q + 1) % 4, Family::inner_beams, 2);
     row.plane = lifted(guide.seams[q].plane_into(q), lift);
-    row.contact = lifted(open_points(guide.quarter(q).inner_beams()[0].bottom), lift);
+    row.contact = lifted(overlap(guide.quarter(q).inner_beams()[0].bottom, guide.quarter((q + 1) % 4).inner_beams()[2].bottom, guide.seams[q].plane_into(q)), lift);
     row.type = wood_session::ContactType::side_side;
     row.seam_or_corner = q;
 
@@ -87,7 +87,7 @@ static Relationship oculus_wedge(const FloorGuide& guide, size_t q) {
     return row;
 }
 
-/// The column plate of corner q on outer rib k: the rib's column end face on the fan side plane, clipped at the middle cutter level where the carved face ends.
+/// The column plate of corner q on outer rib k: the rib's column end face on the fan side plane where it meets the column's carved face, down to the middle cutter level.
 static Relationship column_plate(const FloorGuide& guide, size_t q, size_t k) {
 
     const double lift = guide.parameters.bay_height;
@@ -99,7 +99,7 @@ static Relationship column_plate(const FloorGuide& guide, size_t q, size_t k) {
     row.a = shared_member(Family::column, q);
     row.b = quarter_member(q, Family::outer_ribs, k);
     row.plane = lifted(guide.columns[q].wedge_fan[k == 0 ? 0 : 2][0], lift);
-    row.contact = lifted(above({top[1], top[2], bottom[2], bottom[1]}, guide.columns[q].levels[1]), lift);
+    row.contact = lifted(overlap(Polyline({top[1], top[2], bottom[2], bottom[1]}).closed(), Polyline(guide.quarter(q).column_face(k == 0 ? 0 : 2)).closed(), guide.columns[q].wedge_fan[k == 0 ? 0 : 2][0]), lift);
     row.seam_or_corner = q;
 
     return row;

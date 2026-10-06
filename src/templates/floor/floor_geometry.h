@@ -43,11 +43,11 @@ std::optional<session_cpp::Point> plane_plane_plane(const session_cpp::Plane& pl
 /// The polygon side from point i to the next, closing to the first.
 session_cpp::Line edge(const std::vector<session_cpp::Point>& polygon, size_t i);
 
-/// The polyline cut by two planes in turn, each keeping the side of the remaining middle.
-session_cpp::Polyline cut(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
-
-/// The polyline with both end segments pushed out by EXTENSION, then cut by the two planes.
+/// The polyline with both end segments pushed out by EXTENSION, then cut by the two planes, each cut keeping the side the original polyline's points average on.
 session_cpp::Polyline trim(const session_cpp::Polyline& polyline, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
+
+/// Polylines of one vertex count trimmed alike, so the quads between them stay quads: each pushed out like trim, then cut at both planes on the segment the first one first crosses there, that segment's line on the others carried to the plane, keeping the vertices between.
+std::vector<session_cpp::Polyline> trim_alike(const std::vector<session_cpp::Polyline>& polylines, const session_cpp::Plane& plane0, const session_cpp::Plane& plane1);
 
 /// The polyline offset by distance in its vertical plane, square to every segment, its ends on the end normals.
 session_cpp::Polyline offset_polyline(const session_cpp::Polyline& polyline, double distance);
@@ -75,6 +75,9 @@ session_cpp::Plane lifted(const session_cpp::Plane& plane, double lift);
 
 /// The line lifted by lift.
 session_cpp::Line lifted(const session_cpp::Line& line, double lift);
+
+/// The points of the region two closed loops on a plane share, by the kernel's boolean intersection; the first loop when they share none.
+std::vector<session_cpp::Point> overlap(const session_cpp::Polyline& a, const session_cpp::Polyline& b, const session_cpp::Plane& plane);
 
 /// The polygon with everything below z removed, the crossing edges cut at z.
 std::vector<session_cpp::Point> above(const std::vector<session_cpp::Point>& points, double z);

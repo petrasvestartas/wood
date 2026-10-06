@@ -55,8 +55,8 @@ bool is_type(const session_cpp::Element& element) {
 class WoodSession : public session_cpp::Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
-    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. The adjacency sidecar fills it.
-    std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. The three_valence sidecar fills it.
+    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. yaml_load fills it from the adjacency sidecar; pb_dump writes it.
+    std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. yaml_load fills it from the three_valence sidecar; pb_dump writes it.
     std::unordered_map<std::string, std::string> definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
 
     /// An empty scene; registers the element and interaction factories with the kernel.
@@ -104,7 +104,7 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Drops every feature from every edge and the "joint" features the elements host; the contacts stay.
+    /// Removes the joints compute_features and compute_beam_features generated, with every feature on the edges and every "joint" feature the elements host, but those of the joints the user added; the contacts and the user's joints, their cuts and drills stay.
     void clear_features();
 
     /// Coplanar face-overlap detection: an InteractionContactFace per touching face pair, onto the pair's edge; only elements under the same tree node at depth `level` are paired, 0 the root and so every element, 1 each branch of the root on its own.
@@ -123,13 +123,13 @@ public:
     using Session::merge;
     using Session::graft;
 
-    /// Session::merge, and other's plate adjacency and three-valence groups appended with their plate positions moved past this session's plates.
+    /// Session::merge, and both sessions' plate adjacency and three-valence groups renumbered by plate guid to the merged plate order; when either side has plates but no adjacency, the merged adjacency stays empty so compute_features searches every pair.
     void merge(const WoodSession& other);
 
     /// Session::graft, the adjacency and three-valence groups appended as merge appends them.
     void graft(const WoodSession& other, std::shared_ptr<session_cpp::TreeNode> parent);
 
-    /// Session::get_branch as a WoodSession: the same settings, and the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates.
+    /// Session::get_branch as a WoodSession: the same settings, the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates, and at its root every pre-drill connector from outside it that drills one of its members, in place, so pre_drill_lines() reads the same holes.
     WoodSession get_branch(const std::string& name) const;
 
     /// Adds the joint to the scene when it is not yet in it and cuts it into its targets: a plate joint merges its features, a beam joint hosts its feature volumes, a connector nests its parts and dowels as child elements of its node and stores its cutters and drills as solid cuts, any other joint its own solid or planes.
@@ -141,13 +141,13 @@ public:
     /// An InteractionFeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over world_elements<Plate>(), in place: load_sidecars, adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
+    /// The joinery pipeline over world_elements<Plate>(), in place: adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
     std::vector<InteractionFeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
     std::vector<InteractionFeaturePlate> compute_features(SearchType search_type);
 
-    /// The four sidecars the dataset yml names onto the scene: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate of elements, by position, that carries none.
+    /// The four sidecars of the dataset config::load_yaml read last onto the scene, called by yaml_load only: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate of elements, by position, that carries none.
     void load_sidecars(const std::vector<std::shared_ptr<Plate>>& elements);
 
     /// Candidate pairs by position in elements: `adjacency` when the scene has one, else the OBB and BVH search within config::DISTANCE.
@@ -197,7 +197,7 @@ public:
         std::shared_ptr<session_cpp::Interaction> interaction
     );
 
-    /// Session::remove_interaction, and the "contact" and "joint" features its interactions put on the two elements; already merged geometry is not recomputed.
+    /// Session::remove_interaction, and the "contact" and "joint" features its interactions put on the two elements, the solid cut and the "drill" features the one put on the other; already merged geometry is not recomputed.
     void remove_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
     // ═══════════════════════════════════════════════════════════════════════════

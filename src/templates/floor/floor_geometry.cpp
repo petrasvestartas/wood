@@ -66,19 +66,62 @@ Line edge(const std::vector<Point>& polygon, size_t i) {
     return Line::from_points(polygon[i], polygon[(i + 1) % polygon.size()]);
 }
 
-Polyline cut(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
-    return polyline.cut_by_plane(plane0).cut_by_plane(plane1);
-}
-
 Polyline trim(const Polyline& polyline, const Plane& plane0, const Plane& plane1) {
 
     std::vector<Point> pts = polyline.get_points();
     const size_t n = pts.size();
+    const Point middle = polyline.center();
 
     pts[0] = pts[0] + (pts[0] - pts[1]).normalized() * EXTENSION;
     pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * EXTENSION;
 
-    return cut(Polyline(pts), plane0, plane1);
+    // each cut keeps the side of the original's middle, not the extended one's, which a short member puts past the second plane
+    return Polyline(pts).cut_by_plane(plane0, signed_distance(middle, plane0) >= 0.0).cut_by_plane(plane1, signed_distance(middle, plane1) >= 0.0);
+}
+
+/// The points pushed out at both ends by EXTENSION.
+static std::vector<Point> extended(const Polyline& polyline) {
+
+    std::vector<Point> pts = polyline.get_points();
+    const size_t n = pts.size();
+    pts[0] = pts[0] + (pts[0] - pts[1]).normalized() * EXTENSION;
+    pts[n - 1] = pts[n - 1] + (pts[n - 1] - pts[n - 2]).normalized() * EXTENSION;
+
+    return pts;
+}
+
+/// The first segment of the points the plane crosses.
+static size_t crossed(const std::vector<Point>& pts, const Plane& plane) {
+
+    for (size_t i = 0; i + 1 < pts.size(); i++)
+        if ((signed_distance(pts[i], plane) >= 0.0) != (signed_distance(pts[i + 1], plane) >= 0.0))
+            return i;
+
+    throw std::runtime_error("trim_alike: a plane misses the extended polyline");
+}
+
+std::vector<Polyline> trim_alike(const std::vector<Polyline>& polylines, const Plane& plane0, const Plane& plane1) {
+
+    const std::vector<Point> first = extended(polylines[0]);
+    const size_t a = crossed(first, plane0);
+    const size_t b = crossed(first, plane1);
+    const std::array<size_t, 2> ends = {std::min(a, b), std::max(a, b)};
+    const std::array<const Plane*, 2> planes = a <= b ? std::array<const Plane*, 2>{&plane0, &plane1} : std::array<const Plane*, 2>{&plane1, &plane0};
+    std::vector<Polyline> trimmed;
+
+    for (const Polyline& polyline : polylines) {
+
+        if (polyline.point_count() != polylines[0].point_count())
+            throw std::invalid_argument("trim_alike: polylines of different vertex counts");
+
+        const std::vector<Point> pts = extended(polyline);
+        std::vector<Point> kept = {line_plane(Line::from_points(pts[ends[0]], pts[ends[0] + 1]), *planes[0]).value()};
+        kept.insert(kept.end(), pts.begin() + ends[0] + 1, pts.begin() + ends[1] + 1);
+        kept.push_back(line_plane(Line::from_points(pts[ends[1]], pts[ends[1] + 1]), *planes[1]).value());
+        trimmed.push_back(Polyline(kept));
+    }
+
+    return trimmed;
 }
 
 Polyline offset_polyline(const Polyline& polyline, double distance) {
@@ -172,6 +215,26 @@ Plane lifted(const Plane& plane, double lift) {
 
 Line lifted(const Line& line, double lift) {
     return line.transformed(Xform::translation(0.0, 0.0, lift));
+}
+
+std::vector<Point> overlap(const Polyline& a, const Polyline& b, const Plane& plane) {
+
+    const std::vector<Point> loop = open_points(a);
+    const std::vector<Polyline> shared = Polyline::boolean_op(a, b, plane, 0);
+
+    if (shared.empty() || std::abs(polygon_area(shared.front()) - polygon_area(a)) <= 1e-6 * polygon_area(a))
+        return loop;
+
+    // the overlap in a's winding, from the corner nearest a's first, so a contact's top edge and normal read as a's do
+    std::vector<Point> points = open_points(shared.front());
+
+    if (wood_session::compute_newell(points).dot(wood_session::compute_newell(loop)) < 0.0)
+        std::reverse(points.begin(), points.end());
+
+    const auto nearest = std::min_element(points.begin(), points.end(), [&loop](const Point& p, const Point& q) { return p.distance(loop[0]) < q.distance(loop[0]); });
+    std::rotate(points.begin(), nearest, points.end());
+
+    return points;
 }
 
 std::vector<Point> above(const std::vector<Point>& points, double z) {

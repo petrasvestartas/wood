@@ -23,4 +23,17 @@ message WoodSession {
   repeated session_proto.InteractionEntry interactions = 9;  // Interactions per graph edge, in edge-guid order; wood types in interaction_data
   reserved 100;                                    // was: wood_proto.Interaction per edge, before the kernel held interactions
   Settings settings = 101;                         // The solver settings the scene was solved with
+  repeated PlatePair adjacency = 102;              // Plate pairs by position the solver classifies; empty lets it search
+  repeated PlateGroup three_valence = 103;         // The three-valence instruction row, then one row of plate positions per group
+}
+
+// Two plate positions in world_elements<Plate>() order.
+message PlatePair {
+  int32 first = 1;
+  int32 second = 2;
+}
+
+// A row of plate positions, or the three-valence instruction row.
+message PlateGroup {
+  repeated int32 values = 1;
 }

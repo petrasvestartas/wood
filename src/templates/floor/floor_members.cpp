@@ -185,14 +185,12 @@ std::vector<Outline> Quarter::tsections() const {
     };
 }
 
-/// One bed row: the lower and upper layer on each of the panel's two side planes, each trimmed there, one quad pair per segment.
+/// One bed row: the lower and upper layer on each of the panel's two side planes, trimmed alike, so on a skewed bay too, one quad pair per segment.
 static std::vector<Outline> bed_row(const std::array<Polyline, 2>& lower_faces, const std::array<Polyline, 2>& upper_faces, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-    const std::array<std::vector<Point>, 2> lower = {trim(lower_faces[0], cut_plane0, cut_plane1).get_points(), trim(lower_faces[1], cut_plane0, cut_plane1).get_points()};
-    const std::array<std::vector<Point>, 2> upper = {trim(upper_faces[0], cut_plane0, cut_plane1).get_points(), trim(upper_faces[1], cut_plane0, cut_plane1).get_points()};
-
-    if (lower[1].size() != lower[0].size() || upper[0].size() != lower[0].size() || upper[1].size() != lower[0].size())
-        throw std::runtime_error(fmt::format("a bed row's layers are cut on different facets: {} / {} lower and {} / {} upper points", lower[0].size(), lower[1].size(), upper[0].size(), upper[1].size()));
+    const std::vector<Polyline> layers = trim_alike({lower_faces[0], lower_faces[1], upper_faces[0], upper_faces[1]}, cut_plane0, cut_plane1);
+    const std::array<std::vector<Point>, 2> lower = {layers[0].get_points(), layers[1].get_points()};
+    const std::array<std::vector<Point>, 2> upper = {layers[2].get_points(), layers[3].get_points()};
 
     std::vector<Outline> plates;
 
@@ -288,37 +286,42 @@ static std::vector<Point> stretch(std::vector<Point> quad, bool top) {
     return quad;
 }
 
-std::vector<Outline> Quarter::column_cutters() const {
+std::vector<Point> Quarter::column_face(size_t i) const {
 
     const ConstructionPlanes& cp = geometry().planes;
     const ColumnCorner& corner = column();
-    const std::vector<Point>& column = corner.head;
-    const Vector down(0.0, 0.0, -1.0);
+    const std::array<Plane, 5> fan = {corner.sides[0], cp.wedges[0][0], cp.wedges[1][0], cp.wedges[2][0], corner.sides[1]};
     const Plane xy0 = level(corner.levels[0]);
     const Plane xy1 = level(corner.levels[1]);
+
+    return {
+        plane_plane_plane(xy0, fan[i], fan[i + 1]).value(),
+        plane_plane_plane(xy0, fan[i + 1], fan[i + 2]).value(),
+        plane_plane_plane(xy1, fan[i + 1], fan[i + 2]).value(),
+        plane_plane_plane(xy1, fan[i], fan[i + 1]).value(),
+    };
+}
+
+std::vector<Outline> Quarter::column_cutters() const {
+
+    const ColumnCorner& corner = column();
+    const std::vector<Point>& column = corner.head;
+    const Vector down(0.0, 0.0, -1.0);
     const Plane xy2 = level(corner.levels[2]);
-    const Plane side0 = corner.sides[0];
-    const Plane side1 = corner.sides[1];
-    const std::vector<Plane> fan_top = {side0, cp.wedges[0][0], cp.wedges[1][0], cp.wedges[2][0], side1};
-    const std::vector<Plane> fan_bottom = {side0, edge_plane(geometry::edge(column, 1), down), edge_plane(geometry::edge(column, 3), down), side1};
+    const std::vector<Plane> fan_bottom = {corner.sides[0], edge_plane(geometry::edge(column, 1), down), edge_plane(geometry::edge(column, 3), down), corner.sides[1]};
+    const std::array<std::vector<Point>, 3> faces = {column_face(0), column_face(1), column_face(2)};
+    const std::vector<Point> p1 = {faces[0][3], faces[0][2], faces[1][2], faces[2][2]};
 
-    std::vector<Point> p0;
-    std::vector<Point> p1;
     std::vector<Point> p2;
-
-    for (size_t i = 0; i + 1 < fan_top.size(); i++) {
-        p0.push_back(plane_plane_plane(xy0, fan_top[i], fan_top[i + 1]).value());
-        p1.push_back(plane_plane_plane(xy1, fan_top[i], fan_top[i + 1]).value());
-    }
 
     for (size_t i = 0; i + 1 < fan_bottom.size(); i++)
         p2.push_back(plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1]).value());
 
     const Vector quarter = (p2[2] - p2[0]) * 0.25;
     const std::vector<std::vector<Point>> quads = {
-        {p0[0], p0[1], p1[1], p1[0]},
-        {p0[1], p0[2], p1[2], p1[1]},
-        {p0[2], p0[3], p1[3], p1[2]},
+        faces[0],
+        faces[1],
+        faces[2],
         {p1[0], p1[1], p2[1], p2[0]},
         {p1[1], p1[2], p2[1] + quarter, p2[1] - quarter},
         {p1[2], p1[3], p2[2], p2[1]},

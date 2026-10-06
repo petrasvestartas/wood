@@ -151,7 +151,6 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         return {};
 
     clear_features();
-    load_sidecars(elements);
 
     std::vector<std::vector<int>> feature_types(elements.size());
     for (size_t i = 0; i < elements.size(); ++i) {

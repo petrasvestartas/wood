@@ -10,7 +10,8 @@ using namespace wood_floor::geometry;
 const double SCREW_LENGTH = 200.0; // mm, every assembly screw
 const double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band
 const double SEAM_SCREW_OFFSET = 15.0; // mm the screws of the two ribs meeting at a seam sit either side of their axes, so their heads on the seam plane stay apart
-const std::array<double, 2> RIB_BEAM_LEVELS = {0.25, 0.5}; // fractions of the seam depth: the outer rib's lower part at its seam end holds the tie key and its pocket, 138.5 down
+const std::array<double, 2> RIB_BEAM_LEVELS = {0.25, 0.5}; // fractions of the seam depth, or of twice the tie's top less TIE_CLEARANCE when that is shallower: the outer rib's lower part at its seam end holds the tie key and its pocket
+const double TIE_CLEARANCE = 10.0; // mm the lower tied rib screw stays above the tie key
 const double CORNER_LEVELS = 7.0; // an oculus corner's depth in sevenths: six levels, one per screw on each side of the corner
 const std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ
 const std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // the inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross
@@ -85,13 +86,13 @@ static Line along_axis(const std::array<Plane, 2>& butting, const Plane& far_fac
     return Line::from_points(head, head + d * SCREW_LENGTH);
 }
 
-/// A screw at level z along a rib ending on a seam beam that runs through the rib band, offset across the rib: from the beam's seam face, drilled before the wedge goes in, through the beam into the rib end.
+/// A screw at level z along a rib ending on a seam beam that runs through the rib band, its axis offset across the rib: from where that axis meets the beam's seam face, drilled before the wedge goes in, through the beam into the rib end.
 static Line from_seam_face(const std::array<Plane, 2>& rib, const std::array<Plane, 2>& beam, double z, double offset) {
 
     const Line line = axis(rib, z);
-    const Point seam = line_plane(line, beam[0]).value();
-    const Vector along = (line_plane(line, beam[1]).value() - seam).normalized();
-    const Point head = seam + rib[0].z_axis() * offset;
+    const Vector across = rib[0].z_axis() * offset;
+    const Vector along = (line_plane(line, beam[1]).value() - line_plane(line, beam[0]).value()).normalized();
+    const Point head = line_plane(Line::from_points(line.start() + across, line.end() + across), beam[0]).value();
 
     return Line::from_points(head, head + along * SCREW_LENGTH);
 }
@@ -227,12 +228,12 @@ static Relationship rib_beam(const FloorGuide& guide, size_t q, size_t k) {
         return screw_row(guide, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.inner_beams[beam][1], {rib_top[0], rib_top[n - 2], rib_bottom[n - 2], rib_bottom[0]}, screws, q);
     }
 
-    for (double fraction : RIB_BEAM_LEVELS)
-        screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -guide.parameters.static_h() * fraction));
+    const double depth = std::min(guide.parameters.static_h(), 2.0 * (TIE_TOP - TIE_CLEARANCE));
 
-    const Polyline end = Polyline({top[3], top[0], bottom[0], bottom[3]}).closed();
-    const std::vector<Polyline> overlap = Polyline::boolean_op(end, guide.quarter(q).outer_ribs()[k].bottom, cp.outer_ribs[k][1], 0);
-    const std::vector<Point> contact = overlap.empty() ? open_points(end) : open_points(overlap.front());
+    for (double fraction : RIB_BEAM_LEVELS)
+        screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -depth * fraction));
+
+    const std::vector<Point> contact = overlap(Polyline({top[3], top[0], bottom[0], bottom[3]}).closed(), guide.quarter(q).outer_ribs()[k].bottom, cp.outer_ribs[k][1]);
 
     return screw_row(guide, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.outer_ribs[k][1], contact, screws, q);
 }
@@ -269,6 +270,10 @@ static Relationship rib_corner(const FloorGuide& guide, size_t q, size_t k) {
     for (double levels : RIB_CORNER_LEVELS) {
         screws.push_back(along_axis(cp.inner_ribs[k], cp.inner_beams[1][0], faces.rib_body, corner_level(levels, guide.parameters.static_h())));
         through_seam = through_seam || depth(screws.back().start(), faces.beam_end, faces.beam_body) < 0.0;
+        const double from_seam = signed_distance(screws.back().start(), cp.inner_beams[seam][0]);
+
+        if (from_seam < 0.5 * SCREW_SPACING)
+            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
     }
 
     const std::vector<Point> end = above({top[0], top[top.size() - 2], bottom[bottom.size() - 2], bottom[0]}, guide.soffit);

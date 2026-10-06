@@ -571,7 +571,7 @@ static std::vector<Point> box_corners(const std::array<Polyline, 2>& box) {
     return corners;
 }
 
-/// The cross lap: each slot margin wider than the other part's thickness and longer than its height so the cut is through; stored on the connectors as their solid cuts when added; aimed at a then b, hidden, a relation rather than a part.
+/// The cross lap: each slot exactly as wide as the other part's footprint along the slot, so the parts fit tight, and margin beyond the own part's thickness and past its top or bottom so the cut is through; stored on the connectors as their solid cuts when added; aimed at a then b, hidden, a relation rather than a part.
 std::shared_ptr<JointBeam> JointBeam::cross_lap(const JointBeam& a, const JointBeam& b, double share, double margin) {
 
     if (a.parts.size() != 1 || b.parts.size() != 1)

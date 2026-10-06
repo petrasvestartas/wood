@@ -245,6 +245,164 @@ std::vector<wood_floor::Member> outer_ribs(const wood_floor::FloorMembers& membe
     return ribs;
 }
 
+/// Whether a plan point lies inside a convex counter-clockwise polygon, within tolerance mm.
+bool inside_plan(const std::vector<Point>& polygon, const Point& point, double tolerance) {
+
+    for (size_t i = 0; i < polygon.size(); i++) {
+        const Point& a = polygon[i];
+        const Point& b = polygon[(i + 1) % polygon.size()];
+        const Vector edge = (b - a).normalized();
+        if (edge[0] * (point[1] - a[1]) - edge[1] * (point[0] - a[0]) < -tolerance)
+            return false;
+    }
+
+    return true;
+}
+
+/// Short members on small and narrow bays: every rib outline of every quarter stays inside its quarter in plan, so the trim keeps the member and not the extension past it; the column level is the rib bottom, deeper than the seam depth.
+void check_short_members() {
+
+    for (const auto& [half_x, half_y] : std::vector<std::pair<double, double>>{{1200.0, 1200.0}, {3000.0, 1200.0}}) {
+        const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
+
+        for (size_t q = 0; q < 4; q++) {
+            const std::vector<Point>& polygon = guide.geometry[q].polygon;
+            const wood_floor::Quarter quarter = guide.quarter(q);
+
+            for (const std::vector<wood_floor::Outline>& family : {quarter.outer_ribs(), quarter.inner_ribs()})
+                for (const wood_floor::Outline& rib : family)
+                    for (const Polyline* loop : {&rib.top, &rib.bottom})
+                        for (const Point& point : loop->get_points())
+                            check(inside_plan(polygon, point, 1.0), fmt::format("{} x {}: quarter {} rib point ({:.1f}, {:.1f}) inside its quarter", 2 * half_x, 2 * half_y, q, point[0], point[1]));
+
+            check(guide.columns[q].levels[1] < -guide.parameters.static_h(), fmt::format("{} x {}: column {} level {:.1f} below the seam depth", 2 * half_x, 2 * half_y, q, guide.columns[q].levels[1]));
+        }
+    }
+
+    std::cout << "floor_elements: short ribs on 2400 x 2400 and 6000 x 2400 bays stay inside their quarters" << std::endl;
+}
+
+/// The message of the invalid_argument a guide throws, empty when it builds.
+std::string refusal(double half_x, double half_y, const wood_floor::FloorParameters& parameters) {
+
+    try {
+        wood_floor::FloorGuide::rectangle(half_x, half_y, parameters);
+    } catch (const std::invalid_argument& error) {
+        return error.what();
+    }
+
+    return "";
+}
+
+/// Guides that make no floor are refused with a reason: an oculus whose inner beam corners fall inside an outer rib band, and a rise of zero or of the whole height.
+void check_refused_guides() {
+
+    wood_floor::FloorParameters flat;
+    flat.rise = 0.0;
+    wood_floor::FloorParameters deep;
+    deep.rise = deep.height;
+
+    check(refusal(3000.0, 1100.0, {}).find("outer rib band") != std::string::npos, "an oculus 100 mm from the bay edge refused: " + refusal(3000.0, 1100.0, {}));
+    check(refusal(3000.0, 3000.0, flat).find("rise") != std::string::npos, "a rise of 0 refused");
+    check(refusal(3000.0, 3000.0, deep).find("rise") != std::string::npos, "a rise of the whole height refused");
+    check(refusal(3000.0, 1200.0, {}).empty(), "6000 x 2400 still builds");
+    std::cout << "floor_elements: an oculus inside an outer rib band and a rise of 0 or of the height refused with their reasons" << std::endl;
+}
+
+/// A bay that is not a rectangle, corner 2 at 84.3 degrees and seams not square to each other: every contact the design builds is the one the kernel's search finds, the column plates clipped to the column's carved face and the seam wedges to where both seam beams' end faces overlap. On a smaller skewed bay, too small for the corner screws, the bed rows still trim into quad pairs where the end planes cross their layers on different segments.
+void check_skewed_contacts() {
+
+    const wood_floor::FloorGuide guide({Point(0.0, 0.0, 0.0), Point(6000.0, 0.0, 0.0), Point(6600.0, 6000.0, 0.0), Point(0.0, 6000.0, 0.0)});
+    WoodSession scene("skewed");
+    wood_floor::FloorMembers members = wood_floor::add_floor(scene, guide, nullptr);
+    wood_floor::add_columns(scene, guide, members);
+    const wood_floor::ContactCheck contacts = wood_floor::verify_contacts(scene, guide, members);
+    check(contacts.ok(), "skewed bay " + contacts.str());
+
+    const wood_floor::FloorGuide small({Point(0.0, 0.0, 0.0), Point(4000.0, 0.0, 0.0), Point(4400.0, 3000.0, 0.0), Point(0.0, 3000.0, 0.0)});
+    size_t beds = 0;
+
+    for (size_t q = 0; q < 4; q++)
+        for (const std::vector<wood_floor::Outline>& row : small.quarter(q).beds())
+            for (const wood_floor::Outline& bed : row) {
+                check(bed.top.point_count() == 5 && bed.bottom.point_count() == 5, fmt::format("a bed of quarter {} on the 4000 x 3000 skewed bay a quad pair", q));
+                beds++;
+            }
+
+    std::cout << "floor_elements: on a skewed bay " << contacts.str() << "; the bed rows of a 4000 x 3000 skewed bay trimmed alike, " << beds << " quad pairs" << std::endl;
+}
+
+/// The connector and screw calls on a Floor: add_connectors without the columns throws before it adds or cuts anything; connectors added in separate calls get names of their own; check_screws refuses a screw list that is not one connector per screw row; the corner screws refuse a bay too narrow for them; on a skewed bay every seam screw starts on its seam plane; deep tied seams keep the rib screws above the tie key.
+void check_connector_calls() {
+
+    wood_floor::Floor floor(square_guide());
+    floor.add_quarters();
+    floor.add_oculus();
+    const size_t before = floor.objects.elements->size();
+    bool refused = false;
+
+    try {
+        floor.add_connectors();
+    } catch (const std::runtime_error&) {
+        refused = true;
+    }
+
+    check(refused && floor.objects.elements->size() == before, fmt::format("add_connectors without columns refused with nothing added: {} elements, {} before", floor.objects.elements->size(), before));
+
+    floor.add_columns();
+    floor.add_connectors({wood_floor::Relation::seam_wedge});
+    floor.add_connectors({wood_floor::Relation::oculus_wedge});
+    std::set<std::string> names;
+    for (const std::shared_ptr<JointBeam>& connector : floor.connectors)
+        names.insert(connector->name);
+
+    check(names.size() == floor.connectors.size() && names.count("connector_wedge_7"), fmt::format("{} wedges from two calls named apart, up to connector_wedge_7", names.size()));
+
+    floor.add_screws();
+    std::vector<std::shared_ptr<JointBeam>> doubled = floor.screws;
+    doubled.insert(doubled.end(), floor.screws.begin(), floor.screws.end());
+    bool mismatched = false;
+
+    try {
+        wood_floor::check_screws(floor, floor.guide, doubled);
+    } catch (const std::invalid_argument&) {
+        mismatched = true;
+    }
+
+    check(mismatched, "check_screws refuses two screw connectors per row");
+
+    bool narrow = false;
+
+    try {
+        (void)wood_floor::relationships(wood_floor::FloorGuide::rectangle(3000.0, 1700.0));
+    } catch (const std::runtime_error& error) {
+        narrow = std::string(error.what()).find("too narrow") != std::string::npos;
+    }
+
+    check(narrow, "the corner screws of a 6000 x 3400 bay refused, the bay too narrow for them");
+
+    const wood_floor::FloorGuide skewed({Point(-3000.0, -3000.0, 0.0), Point(3000.0, -3000.0, 0.0), Point(2000.0, 3000.0, 0.0), Point(-2000.0, 3000.0, 0.0)});
+    double off = 0.0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(skewed, wood_floor::Relation::screw_rib_beam))
+        for (const Line& screw : row.screws)
+            off = std::max(off, std::abs(std::abs((screw.start() - row.plane.origin()).dot(row.plane.z_axis())) - skewed.parameters.inner_beams));
+
+    check(off <= 1e-6, fmt::format("every seam screw of the skewed bay starts on the seam beam's outer face, {:.3e} mm off", off));
+
+    wood_floor::FloorParameters deep;
+    deep.seam_through_ribs = false;
+    deep.rise = 350.0;
+    double lowest = 0.0;
+
+    for (const wood_floor::Relationship& row : wood_floor::relationships(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, deep), wood_floor::Relation::screw_rib_beam))
+        for (const Line& screw : row.screws)
+            lowest = std::min(lowest, screw.start()[2] - deep.bay_height);
+
+    check(lowest >= -wood_floor::TIE_TOP, fmt::format("the tied rib screws of a {:.0f} deep seam stay above the tie key at {:.1f}, lowest {:.1f}", deep.static_h(), -wood_floor::TIE_TOP, lowest));
+    std::cout << "floor_elements: connectors all or nothing and named apart across calls, the screw list checked, narrow bays refused, skewed seam screws on their seam planes, deep tied screws above the tie" << std::endl;
+}
+
 /// Relationship::area() is the contact polygon's area: a 100 x 50 rectangle tilted out of every axis plane gives 5000, and every contact of the default floor its own area, never the 0.5 a unit Newell vector gave before.
 void check_contact_areas() {
 
@@ -592,7 +750,7 @@ std::array<size_t, 3> subtree_counts(const session_cpp::Session& session, const 
     return counts;
 }
 
-/// One quarter's branch taken out of the guide and out of the whole floor with WoodSession::get_branch: the guide's quarter its 33 drawn curves, the floor's quarter a WoodSession with every element, drill and connector under quarter_0, its connectors read back through get_elements<JointBeam>(), both sessions unchanged.
+/// One quarter's branch taken out of the guide and out of the whole floor with WoodSession::get_branch: the guide's quarter its 33 drawn curves, the floor's quarter a WoodSession with every element, drill and connector under quarter_0, its connectors read back through get_elements<JointBeam>(), the screws of the next quarter that drill its members brought along so every member reads its pre-drill lines, both sessions unchanged.
 void check_extract_quarter() {
 
     const wood_floor::FloorGuide& guide = square_guide();
@@ -622,10 +780,24 @@ void check_extract_quarter() {
     const std::array<size_t, 3> expected = subtree_counts(floor, *floor.tree.get_node_by_name("quarter_0"));
     const std::array<size_t, 3> found = subtree_counts(part, *part.tree.root());
 
-    check(found == expected && expected[1] > 0, fmt::format("the floor's quarter 0: {} of {} elements, {} of {} drills, {} of {} connectors", found[0], expected[0], found[1], expected[1], found[2], expected[2]));
+    const size_t borrowed = found[2] - expected[2];
+    check(found[0] - expected[0] == borrowed && found[1] == expected[1] && expected[1] > 0 && borrowed > 0, fmt::format("the floor's quarter 0: {} of {} elements, {} of {} drills, {} of {} connectors, {} pre-drill connectors from the next quarter", found[0], expected[0], found[1], expected[1], found[2], expected[2], borrowed));
     check(part.get_elements<JointBeam>().size() == found[2] && found[2] > 0 && part.settings.distance == floor.settings.distance, "the branch a WoodSession: its connectors as JointBeam, the floor's settings");
+    size_t lines = 0;
+
+    for (const std::shared_ptr<Element>& element : part.world_elements()) {
+        const std::vector<Line> branch = part.pre_drill_lines(element->guid());
+        const std::vector<Line> whole = floor.pre_drill_lines(element->guid());
+        check(branch.size() == whole.size(), fmt::format("{} reads {} pre-drill lines in the branch, {} in the floor", element->name, branch.size(), whole.size()));
+
+        for (const Line& line : branch)
+            check(std::any_of(whole.begin(), whole.end(), [&line](const Line& other) { return line.start().distance(other.start()) < 1e-9 && line.end().distance(other.end()) < 1e-9; }), element->name + " reads its pre-drill lines in place in the branch");
+
+        lines += branch.size();
+    }
+
     check(floor.lookup.size() == before && guide.lookup.size() == 4 * 63, "the floor and the guide unchanged by the extraction");
-    std::cout << fmt::format("floor_elements: quarter 0's branch from the guide, {} curves, and from the floor, a WoodSession of {} elements with {} drills and {} connectors, both sessions unchanged", drawn.lookup.size(), found[0], found[1], found[2]) << std::endl;
+    std::cout << fmt::format("floor_elements: quarter 0's branch from the guide, {} curves, and from the floor, a WoodSession of {} elements with {} drills and {} connectors, {} of them pre-drill connectors of the next quarter, every member's {} pre-drill lines as in the floor, both sessions unchanged", drawn.lookup.size(), found[0], found[1], found[2], borrowed, lines) << std::endl;
 }
 
 /// The dowels factory on two plates face to face: four Ø8 dowels 30 long at the corners of the 600 x 200 contact inset by 50, 15 deep into both 60 plates, cut as exact bores into both, through a round trip.
@@ -1306,6 +1478,8 @@ int main() {
     check_rib_levels();
     check_column_blocks();
     check_contact_areas();
+    check_short_members();
+    check_refused_guides();
     check_relationships();
     check_beams();
     check_thickness();
@@ -1319,6 +1493,8 @@ int main() {
     check_quarter_dowels();
     check_rectangle_plates();
     check_screws();
+    check_connector_calls();
+    check_skewed_contacts();
 
     return 0;
 }

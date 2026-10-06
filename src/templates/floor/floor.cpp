@@ -385,6 +385,27 @@ static double rib_bottom_level(const Quarter& quarter) {
     return level;
 }
 
+/// Why the oculus is too close to a bay edge, empty when it is not: every quarter's inner beam corners, where the seam beams' far faces meet the oculus beam's back face at the datum, must lie inside the outer rib bands, or the inner ribs end inside the outer ribs.
+static std::string beam_corners_in_bands(const FloorGuide& guide) {
+
+    for (size_t q = 0; q < 4; q++) {
+        const Plane& back = guide.oculus_edges[q].back;
+        const std::array<std::pair<Point, size_t>, 2> corners = {{
+            {plane_plane_plane(level(0.0), guide.seams[q].faces_into(q)[1], back).value(), q},
+            {plane_plane_plane(level(0.0), back, guide.seams[(q + 3) % 4].faces_into(q)[1]).value(), (q + 3) % 4},
+        }};
+
+        for (const auto& [corner, k] : corners) {
+            const double inside = signed_distance(corner, guide.edges[k].band[1]);
+
+            if (inside <= 0.0)
+                return fmt::format("quarter {}'s inner beam corner lies {:.3f} mm inside the outer rib band of edge {}: the oculus is too close to the bay edge", q, -inside, k);
+        }
+    }
+
+    return "";
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
@@ -418,6 +439,11 @@ FloorGuide::FloorGuide(const std::array<Point, 4>& guide_corners, const FloorPar
         oculus_edges[q] = oculus_edge(oculus_corners[q], oculus_corners[(q + 3) % 4], parameters);
         columns[q] = column_corner(*this, q);
     }
+
+    const std::string clash = beam_corners_in_bands(*this);
+
+    if (!clash.empty())
+        throw std::invalid_argument("invalid floor guide: " + clash);
 
     for (size_t q = 0; q < 4; q++) {
         geometry[q].polygon = {corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint};

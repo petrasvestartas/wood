@@ -7,7 +7,6 @@ using namespace session_cpp;
 
 namespace wood_floor {
 
-const double SCREW_SPACING = 8.0; // mm, the closest two screw axes may come
 const double SAMPLE_STEP = 0.25; // mm between the points a screw is sampled at against a pocket
 const double NEAR = 30.0; // mm a solid's box is inflated by before a screw is measured against it
 
@@ -220,9 +219,14 @@ ScrewCheck check_screws(const wood_session::WoodSession& session, const FloorGui
     std::vector<std::pair<std::string, Line>> all;
     collect(session, bores, solids);
     std::vector<std::string> drilled_from;
+    const std::vector<Relationship> rows = relationships(guide);
+    const size_t screwed = static_cast<size_t>(std::count_if(rows.begin(), rows.end(), [](const Relationship& row) { return !row.screws.empty(); }));
 
-    for (const Relationship& row : relationships(guide))
-        if (!row.screws.empty() && drilled_from.size() < screws.size()) {
+    if (screws.size() != screwed)
+        throw std::invalid_argument(fmt::format("check_screws reads one screw connector per screw row in relationship order: {} connectors for {} rows", screws.size(), screwed));
+
+    for (const Relationship& row : rows)
+        if (!row.screws.empty()) {
             check.counts[row.kind] += screws[drilled_from.size()]->drill_lines.size();
             drilled_from.push_back(row.kind == Relation::screw_rib_beam && guide.parameters.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
         }

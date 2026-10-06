@@ -31,10 +31,305 @@ PROTOBUF_CONSTINIT ::google::protobuf::internal::ReflectionData
     file_reflection_data[] = {
         // ::wood_proto::WoodSession
         {&::_pbi::kDescriptorMethods, &::descriptor_table_wood_5fsession_2eproto, /* tracker*/ nullptr,},
+        // ::wood_proto::PlatePair
+        {&::_pbi::kDescriptorMethods, &::descriptor_table_wood_5fsession_2eproto, /* tracker*/ nullptr,},
+        // ::wood_proto::PlateGroup
+        {&::_pbi::kDescriptorMethods, &::descriptor_table_wood_5fsession_2eproto, /* tracker*/ nullptr,},
 };
 }  // namespace
 #endif
 namespace wood_proto {
+class PlatePair::_Internal {
+ public:
+  using HasBits = decltype(::std::declval<PlatePair>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlatePair, _impl_._has_bits_);
+};
+
+constexpr PlatePair::ParseTableT_ PlatePair::InternalGenerateParseTable_(const ::_pbi::ClassData* class_data) {
+  return ParseTableT_{
+    {
+      PROTOBUF_FIELD_OFFSET(PlatePair, _impl_._has_bits_),
+      0, // no _extensions_
+      2, 8,  // max_field_number, fast_idx_mask
+      offsetof(ParseTableT_, field_lookup_table),
+      4294967292,  // skipmap
+      offsetof(ParseTableT_, field_entries),
+      2,  // num_field_entries
+      0,  // num_aux_entries
+      offsetof(ParseTableT_, field_names),  // no aux_entries
+      class_data,
+      nullptr,  // post_loop_handler
+      ::_pbi::TcParser::MpUnknownFields,  // fallback
+      #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+      ::_pbi::TcParser::GetTable<::wood_proto::PlatePair>(),  // to_prefetch
+      #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+    }, {{
+      // int32 second = 2;
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PlatePair, _impl_.second_), 1>(),
+       {16, 1, 0,
+        PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.second_)}},
+      // int32 first = 1;
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(PlatePair, _impl_.first_), 0>(),
+       {8, 0, 0,
+        PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.first_)}},
+    }}, {{
+      65535, 65535
+    }}, {{
+      // int32 first = 1;
+      {PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.first_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      // int32 second = 2;
+      {PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.second_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+    }},
+    // no aux_entries
+    {{
+    }},
+  };
+}
+
+
+inline constexpr PlatePair::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    ::_pbi::ConstantInitialized) noexcept
+      : first_{0},
+        second_{0} {}
+
+template <typename>
+constexpr PlatePair::PlatePair(::_pbi::ConstantInitialized,
+                       const ::_pbi::ClassData* PROTOBUF_NONNULL class_data)
+    : Super_(
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          class_data
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          ),
+      _impl_(internal_visibility(), ::_pbi::ConstantInitialized()) {
+}
+inline void* PROTOBUF_NONNULL PlatePair::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlatePair(arena);
+}
+constexpr auto PlatePair::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::ZeroInit(sizeof(PlatePair), alignof(PlatePair));
+}
+constexpr auto PlatePair::InternalGenerateClassData_(
+    const MessageLite& prototype,
+    const ::google::protobuf::internal::TcParseTableBase* tc_table) {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &prototype,
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+          &_table_.header,
+#else
+          tc_table,
+#endif
+          nullptr,  // IsInitialized
+          &PlatePair::MergeImpl,
+          Super_::GetNewImpl<PlatePair>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlatePair::SharedDtor,
+          Super_::GetClearImpl<PlatePair>(), &PlatePair::ByteSizeLong,
+              &PlatePair::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlatePair, _impl_._cached_size_),
+          false,
+      },
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+      &file_reflection_data[1],
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+      &::_pbi::kDescriptorMethods,
+      &descriptor_table_wood_5fsession_2eproto,
+      nullptr,  // tracker
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  };
+}
+struct PlatePairGlobalsTypeInternal : ::_pbi::MessageGlobalsBase {
+  constexpr PlatePairGlobalsTypeInternal()
+      :
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+        _default(::_pbi::ConstantInitialized{},
+                 PlatePair_class_data_.base())
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+        MessageGlobalsBase(PlatePair::InternalGenerateClassData_(
+            _default, &PlatePair_globals_._table.header)),
+        _default(::_pbi::ConstantInitialized{}, GetClassData()),
+        _table(::_pbi::PrivateAccess::GenerateParseTable<PlatePair>(
+            GetClassData()))
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  {
+  }
+  ~PlatePairGlobalsTypeInternal() {}
+  union {
+    alignas(::_pbi::kMaxMessageAlignment) PlatePair _default;
+  };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  decltype(::_pbi::PrivateAccess::GenerateParseTable<PlatePair>(
+      ::std::declval<const ::_pbi::ClassData*>())) _table;
+#endif
+};
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+static_assert(PROTOBUF_FIELD_OFFSET(PlatePairGlobalsTypeInternal, _default) ==
+              ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PROTOBUF_MESSAGE_GLOBALS_CONST PlatePairGlobalsTypeInternal PlatePair_globals_
+        PROTOBUF_MESSAGE_GLOBALS_SECTION(.data.rel.ro);
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+namespace {
+const ::_pbi::ClassData* PlatePair_get_class_data() {
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  return PlatePair_globals_.GetClassData();
+#else
+  return PlatePair_class_data_.base();
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+}
+}  // namespace
+#endif  // PROTOBUF_CUSTOM_VTABLE
+class PlateGroup::_Internal {
+ public:
+  using HasBits = decltype(::std::declval<PlateGroup>()._impl_._has_bits_);
+  static constexpr ::int32_t kHasBitsOffset =
+      8 * PROTOBUF_FIELD_OFFSET(PlateGroup, _impl_._has_bits_);
+};
+
+constexpr PlateGroup::ParseTableT_ PlateGroup::InternalGenerateParseTable_(const ::_pbi::ClassData* class_data) {
+  return ParseTableT_{
+    {
+      PROTOBUF_FIELD_OFFSET(PlateGroup, _impl_._has_bits_),
+      0, // no _extensions_
+      1, 0,  // max_field_number, fast_idx_mask
+      offsetof(ParseTableT_, field_lookup_table),
+      4294967294,  // skipmap
+      offsetof(ParseTableT_, field_entries),
+      1,  // num_field_entries
+      0,  // num_aux_entries
+      offsetof(ParseTableT_, field_names),  // no aux_entries
+      class_data,
+      nullptr,  // post_loop_handler
+      ::_pbi::TcParser::MpUnknownFields,  // fallback
+      #ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+      ::_pbi::TcParser::GetTable<::wood_proto::PlateGroup>(),  // to_prefetch
+      #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
+    }, {{
+      // repeated int32 values = 1;
+      {::_pbi::TcParser::FastV32P1,
+       {10, 0, 0,
+        PROTOBUF_FIELD_OFFSET(PlateGroup, _impl_.values_)}},
+    }}, {{
+      65535, 65535
+    }}, {{
+      // repeated int32 values = 1;
+      {PROTOBUF_FIELD_OFFSET(PlateGroup, _impl_.values_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedInt32)},
+    }},
+    // no aux_entries
+    {{
+    }},
+  };
+}
+
+
+inline constexpr PlateGroup::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    ::_pbi::ConstantInitialized) noexcept
+      : values_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::PlateGroup,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::PlateGroup, _impl_.values_)>()
+         }
+     {}
+
+template <typename>
+constexpr PlateGroup::PlateGroup(::_pbi::ConstantInitialized,
+                       const ::_pbi::ClassData* PROTOBUF_NONNULL class_data)
+    : Super_(
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          class_data
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          ),
+      _impl_(internal_visibility(), ::_pbi::ConstantInitialized()) {
+}
+inline void* PROTOBUF_NONNULL PlateGroup::PlacementNew_(
+    const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena) {
+  return ::new (mem) PlateGroup(arena);
+}
+constexpr auto PlateGroup::InternalNewImpl_() {
+  return ::google::protobuf::internal::MessageCreator::CopyInit(sizeof(PlateGroup), alignof(PlateGroup));
+}
+constexpr auto PlateGroup::InternalGenerateClassData_(
+    const MessageLite& prototype,
+    const ::google::protobuf::internal::TcParseTableBase* tc_table) {
+  return ::google::protobuf::internal::ClassDataFull{
+      ::google::protobuf::internal::ClassData{
+          &prototype,
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+          &_table_.header,
+#else
+          tc_table,
+#endif
+          nullptr,  // IsInitialized
+          &PlateGroup::MergeImpl,
+          Super_::GetNewImpl<PlateGroup>(),
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+          &PlateGroup::SharedDtor,
+          Super_::GetClearImpl<PlateGroup>(), &PlateGroup::ByteSizeLong,
+              &PlateGroup::_InternalSerialize,
+#endif  // PROTOBUF_CUSTOM_VTABLE
+          PROTOBUF_FIELD_OFFSET(PlateGroup, _impl_._cached_size_),
+          false,
+      },
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+      &file_reflection_data[2],
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+      &::_pbi::kDescriptorMethods,
+      &descriptor_table_wood_5fsession_2eproto,
+      nullptr,  // tracker
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  };
+}
+struct PlateGroupGlobalsTypeInternal : ::_pbi::MessageGlobalsBase {
+  constexpr PlateGroupGlobalsTypeInternal()
+      :
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+        _default(::_pbi::ConstantInitialized{},
+                 PlateGroup_class_data_.base())
+#else   // !PROTOBUF_MESSAGE_GLOBALS
+        MessageGlobalsBase(PlateGroup::InternalGenerateClassData_(
+            _default, &PlateGroup_globals_._table.header)),
+        _default(::_pbi::ConstantInitialized{}, GetClassData()),
+        _table(::_pbi::PrivateAccess::GenerateParseTable<PlateGroup>(
+            GetClassData()))
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+  {
+  }
+  ~PlateGroupGlobalsTypeInternal() {}
+  union {
+    alignas(::_pbi::kMaxMessageAlignment) PlateGroup _default;
+  };
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  decltype(::_pbi::PrivateAccess::GenerateParseTable<PlateGroup>(
+      ::std::declval<const ::_pbi::ClassData*>())) _table;
+#endif
+};
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+static_assert(PROTOBUF_FIELD_OFFSET(PlateGroupGlobalsTypeInternal, _default) ==
+              ::_pbi::MessageGlobalsBase::OffsetToDefault());
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PROTOBUF_MESSAGE_GLOBALS_CONST PlateGroupGlobalsTypeInternal PlateGroup_globals_
+        PROTOBUF_MESSAGE_GLOBALS_SECTION(.data.rel.ro);
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+namespace {
+const ::_pbi::ClassData* PlateGroup_get_class_data() {
+#ifdef PROTOBUF_MESSAGE_GLOBALS
+  return PlateGroup_globals_.GetClassData();
+#else
+  return PlateGroup_class_data_.base();
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+}
+}  // namespace
+#endif  // PROTOBUF_CUSTOM_VTABLE
 class WoodSession::_Internal {
  public:
   using HasBits = decltype(::std::declval<WoodSession>()._impl_._has_bits_);
@@ -47,12 +342,12 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
     {
       PROTOBUF_FIELD_OFFSET(WoodSession, _impl_._has_bits_),
       0, // no _extensions_
-      101, 120,  // max_field_number, fast_idx_mask
+      103, 120,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
       4294966784,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      10,  // num_field_entries
-      8,  // num_aux_entries
+      12,  // num_field_entries
+      10,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -106,7 +401,7 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
       {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       101, 0, 1,
-      65534, 9,
+      65528, 9,
       65535, 65535
     }}, {{
       // string name = 1;
@@ -129,6 +424,10 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.interactions_), _Internal::kHasBitsOffset + 2, 6, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // .wood_proto.Settings settings = 101;
       {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.settings_), _Internal::kHasBitsOffset + 9, 7, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.PlatePair adjacency = 102;
+      {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.adjacency_), _Internal::kHasBitsOffset + 10, 8, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.PlateGroup three_valence = 103;
+      {PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.three_valence_), _Internal::kHasBitsOffset + 11, 9, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -171,6 +470,16 @@ constexpr WoodSession::ParseTableT_ WoodSession::InternalGenerateParseTable_(con
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::Settings_globals_},
         #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::wood_proto::PlatePair>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::PlatePair_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::wood_proto::PlateGroup>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::PlateGroup_globals_},
+        #endif
     }},
     {{
       "\26\4\4\0\0\0\0\0\0\0\0\0\0\0\0\0"
@@ -210,7 +519,17 @@ inline constexpr WoodSession::Impl_::Impl_(
         tree_{nullptr},
         graph_{nullptr},
         definitions_{nullptr},
-        settings_{nullptr} {}
+        settings_{nullptr},
+        adjacency_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::WoodSession,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.adjacency_)>()
+         }
+        ,
+        three_valence_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::WoodSession,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.three_valence_)>()
+         }
+     {}
 
 template <typename>
 constexpr WoodSession::WoodSession(::_pbi::ConstantInitialized,
@@ -314,7 +633,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_._has_bits_),
-        13, // hasbit index offset
+        15, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.name_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.guid_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.objects_),
@@ -325,6 +644,8 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.definitions_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.interactions_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.settings_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.adjacency_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.three_valence_),
         3,
         4,
         5,
@@ -335,22 +656,40 @@ const ::uint32_t
         8,
         2,
         9,
+        10,
+        11,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::wood_proto::PlatePair, _impl_._has_bits_),
+        5, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::wood_proto::PlatePair, _impl_.first_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::PlatePair, _impl_.second_),
+        0,
+        1,
+        0x081, // bitmap
+        PROTOBUF_FIELD_OFFSET(::wood_proto::PlateGroup, _impl_._has_bits_),
+        4, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::wood_proto::PlateGroup, _impl_.values_),
+        0,
 };
 
 static const ::_pbi::MigrationSchema
     schemas[] ABSL_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
         {0, sizeof(::wood_proto::WoodSession)},
+        {27, sizeof(::wood_proto::PlatePair)},
+        {34, sizeof(::wood_proto::PlateGroup)},
 };
 static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
     file_message_globals[] = {
         &::wood_proto::WoodSession_globals_,
+        &::wood_proto::PlatePair_globals_,
+        &::wood_proto::PlateGroup_globals_,
 };
 const char descriptor_table_protodef_wood_5fsession_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\022wood_session.proto\022\nwood_proto\032\robject"
     "s.proto\032\ntree.proto\032\013graph.proto\032\021boundi"
     "ngbox.proto\032\rsession.proto\032\016settings.pro"
-    "to\"\206\003\n\013WoodSession\022\014\n\004name\030\001 \001(\t\022\014\n\004guid"
+    "to\"\337\003\n\013WoodSession\022\014\n\004name\030\001 \001(\t\022\014\n\004guid"
     "\030\002 \001(\t\022\'\n\007objects\030\003 \001(\0132\026.session_proto."
     "Objects\022!\n\004tree\030\004 \001(\0132\023.session_proto.Tr"
     "ee\022#\n\005graph\030\005 \001(\0132\024.session_proto.Graph\022"
@@ -359,8 +698,12 @@ const char descriptor_table_protodef_wood_5fsession_2eproto[] ABSL_ATTRIBUTE_SEC
     "formEntry\022+\n\013definitions\030\010 \001(\0132\026.session"
     "_proto.Objects\0225\n\014interactions\030\t \003(\0132\037.s"
     "ession_proto.InteractionEntry\022&\n\010setting"
-    "s\030e \001(\0132\024.wood_proto.SettingsJ\004\010d\020eb\006pro"
-    "to3"
+    "s\030e \001(\0132\024.wood_proto.Settings\022(\n\tadjacen"
+    "cy\030f \003(\0132\025.wood_proto.PlatePair\022-\n\rthree"
+    "_valence\030g \003(\0132\026.wood_proto.PlateGroupJ\004"
+    "\010d\020e\"*\n\tPlatePair\022\r\n\005first\030\001 \001(\005\022\016\n\006seco"
+    "nd\030\002 \001(\005\"\034\n\nPlateGroup\022\016\n\006values\030\001 \003(\005b\006"
+    "proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_wood_5fsession_2eproto_deps[6] = {
@@ -375,13 +718,13 @@ static ::absl::once_flag descriptor_table_wood_5fsession_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_wood_5fsession_2eproto = {
     false,
     false,
-    523,
+    686,
     descriptor_table_protodef_wood_5fsession_2eproto,
     "wood_session.proto",
     &descriptor_table_wood_5fsession_2eproto_once,
     descriptor_table_wood_5fsession_2eproto_deps,
     6,
-    1,
+    3,
     schemas,
     file_message_globals,
     TableStruct_wood_5fsession_2eproto::offsets,
@@ -467,7 +810,21 @@ PROTOBUF_NDEBUG_INLINE WoodSession::Impl_::Impl_(
         }
         ,
         name_(arena, from.name_),
-        guid_(arena, from.guid_) {}
+        guid_(arena, from.guid_),
+        adjacency_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::WoodSession,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.adjacency_)>()
+          , arena, from.adjacency_
+        }
+        ,
+        three_valence_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::WoodSession,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.three_valence_)>()
+          , arena, from.three_valence_
+        }
+     {}
 
 WoodSession::WoodSession(
     ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
@@ -521,7 +878,17 @@ PROTOBUF_NDEBUG_INLINE WoodSession::Impl_::Impl_(
          }
         ,
         name_(arena),
-        guid_(arena) {}
+        guid_(arena),
+        adjacency_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::WoodSession,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.adjacency_)>()
+         }
+        ,
+        three_valence_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::WoodSession,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::WoodSession, _impl_.three_valence_)>()
+         }
+     {}
 
 inline void WoodSession::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
@@ -615,7 +982,7 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
       this_._impl_.graph_->Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       ABSL_DCHECK(this_._impl_.definitions_ != nullptr);
       this_._impl_.definitions_->Clear();
@@ -623,6 +990,12 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       ABSL_DCHECK(this_._impl_.settings_ != nullptr);
       this_._impl_.settings_->Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      _impl_.adjacency_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+      _impl_.three_valence_.Clear();
     }
   }
   _impl_._has_bits_.Clear();
@@ -739,6 +1112,30 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
         stream);
   }
 
+  // repeated .wood_proto.PlatePair adjacency = 102;
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_adjacency_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_adjacency().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          102, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
+  }
+
+  // repeated .wood_proto.PlateGroup three_valence = 103;
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_three_valence_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_three_valence().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          103, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -814,7 +1211,7 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.graph_);
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
     // .session_proto.Objects definitions = 8;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       total_size += 1 +
@@ -824,6 +1221,20 @@ PROTOBUF_NOINLINE void WoodSession::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       total_size += 2 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.settings_);
+    }
+    // repeated .wood_proto.PlatePair adjacency = 102;
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      total_size += 2UL * this_._internal_adjacency_size();
+      for (const auto& msg : this_._internal_adjacency()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // repeated .wood_proto.PlateGroup three_valence = 103;
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+      total_size += 2UL * this_._internal_three_valence_size();
+      for (const auto& msg : this_._internal_three_valence()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
     }
   }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
@@ -903,7 +1314,7 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00000f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       ABSL_DCHECK(from._impl_.definitions_ != nullptr);
       if (_this->_impl_.definitions_ == nullptr) {
@@ -919,6 +1330,16 @@ void WoodSession::MergeImpl(::google::protobuf::MessageLite& to_msg,
       } else {
         _this->_impl_.settings_->MergeFrom(*from._impl_.settings_);
       }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      _this->_internal_mutable_adjacency()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_adjacency());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+      _this->_internal_mutable_three_valence()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_three_valence());
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -951,9 +1372,450 @@ void WoodSession::InternalSwap(WoodSession* PROTOBUF_RESTRICT PROTOBUF_NONNULL o
       - PROTOBUF_FIELD_OFFSET(WoodSession, _impl_.objects_)>(
           reinterpret_cast<char*>(&_impl_.objects_),
           reinterpret_cast<char*>(&other->_impl_.objects_));
+  _impl_.adjacency_.InternalSwap(&other->_impl_.adjacency_);
+  _impl_.three_valence_.InternalSwap(&other->_impl_.three_valence_);
 }
 
 ::google::protobuf::Metadata WoodSession::GetMetadata() const {
+  return Super_::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+PlatePair::PlatePair(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, PlatePair_get_class_data()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:wood_proto.PlatePair)
+}
+PlatePair::PlatePair(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlatePair& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, PlatePair_get_class_data()),
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena),
+#endif  // PROTOBUF_CUSTOM_VTABLE
+      _impl_(from._impl_) {
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+PROTOBUF_NDEBUG_INLINE PlatePair::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+     {}
+
+inline void PlatePair::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, first_),
+           0,
+           offsetof(Impl_, second_) -
+               offsetof(Impl_, first_) +
+               sizeof(Impl_::second_));
+}
+PlatePair::~PlatePair() {
+  // @@protoc_insertion_point(destructor:wood_proto.PlatePair)
+  SharedDtor(*this);
+}
+inline void PlatePair::SharedDtor(MessageLite& self) {
+  PlatePair& this_ = static_cast<PlatePair&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlatePair_class_data_ =
+        PlatePair::InternalGenerateClassData_(PlatePair_globals_._default);
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlatePair::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlatePair_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlatePair_class_data_.tc_table);
+  return PlatePair_class_data_.base();
+}
+#else
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlatePair::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlatePair_globals_);
+  ::google::protobuf::internal::PrefetchToLocalCache(
+      ::google::protobuf::internal::MessageGlobalsBase::ToParseTableBase(&PlatePair_globals_));
+  return PlatePair_globals_.GetClassData();
+}
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const PlatePair::ParseTableT_
+    PlatePair::_table_ =
+        PlatePair::InternalGenerateParseTable_(PlatePair_class_data_.base());
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_NOINLINE void PlatePair::Clear() {
+  auto& this_ [[maybe_unused]] = *this;
+  // @@protoc_insertion_point(message_clear_start:wood_proto.PlatePair)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    ::memset(&this_._impl_.first_, 0,
+             static_cast<::size_t>(
+                 reinterpret_cast<char*>(&this_._impl_.second_) -
+                 reinterpret_cast<char*>(&this_._impl_.first_)) +
+                 sizeof(_impl_.second_));
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlatePair::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlatePair& this_ = static_cast<const PlatePair&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlatePair::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlatePair& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.PlatePair)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // int32 first = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    if (this_._internal_first() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
+              stream, this_._internal_first(), target);
+    }
+  }
+
+  // int32 second = 2;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    if (this_._internal_second() != 0) {
+      target =
+          ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<2>(
+              stream, this_._internal_second(), target);
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.PlatePair)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlatePair::ByteSizeLong(const MessageLite& base) {
+  const PlatePair& this_ = static_cast<const PlatePair&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlatePair::ByteSizeLong() const {
+  const PlatePair& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:wood_proto.PlatePair)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    // int32 first = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (this_._internal_first() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_first());
+      }
+    }
+    // int32 second = 2;
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (this_._internal_second() != 0) {
+        total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
+            this_._internal_second());
+      }
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlatePair::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                      const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this = static_cast<PlatePair*>(&to_msg);
+  auto& from = static_cast<const PlatePair&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.PlatePair)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      if (from._internal_first() != 0) {
+        _this->_impl_.first_ = from._impl_.first_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      if (from._internal_second() != 0) {
+        _this->_impl_.second_ = from._impl_.second_;
+      }
+    }
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void PlatePair::CopyFrom(const PlatePair& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.PlatePair)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlatePair::InternalSwap(PlatePair* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.second_)
+      + sizeof(PlatePair::_impl_.second_)
+      - PROTOBUF_FIELD_OFFSET(PlatePair, _impl_.first_)>(
+          reinterpret_cast<char*>(&_impl_.first_),
+          reinterpret_cast<char*>(&other->_impl_.first_));
+}
+
+::google::protobuf::Metadata PlatePair::GetMetadata() const {
+  return Super_::GetMetadataImpl(GetClassData()->full());
+}
+// ===================================================================
+
+PlateGroup::PlateGroup(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, PlateGroup_get_class_data()) {
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:wood_proto.PlateGroup)
+}
+PROTOBUF_NDEBUG_INLINE PlateGroup::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+    [[maybe_unused]] const ::wood_proto::PlateGroup& from_msg)
+      : _has_bits_{from._has_bits_},
+        values_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::PlateGroup,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::PlateGroup, _impl_.values_)>()
+          , arena, from.values_
+        }
+     {}
+
+PlateGroup::PlateGroup(
+    ::google::protobuf::Arena* PROTOBUF_NULLABLE arena,
+    const PlateGroup& from)
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+    : Super_(arena, PlateGroup_get_class_data()) {
+
+#else   // PROTOBUF_CUSTOM_VTABLE
+    : Super_(arena) {
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  PlateGroup* const _this = this;
+  (void)_this;
+  _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+  new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+
+  // @@protoc_insertion_point(copy_constructor:wood_proto.PlateGroup)
+}
+PROTOBUF_NDEBUG_INLINE PlateGroup::Impl_::Impl_(
+    [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
+    [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
+      : values_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::PlateGroup,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::PlateGroup, _impl_.values_)>()
+         }
+     {}
+
+inline void PlateGroup::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+}
+PlateGroup::~PlateGroup() {
+  // @@protoc_insertion_point(destructor:wood_proto.PlateGroup)
+  SharedDtor(*this);
+}
+inline void PlateGroup::SharedDtor(MessageLite& self) {
+  PlateGroup& this_ = static_cast<PlateGroup&>(self);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  ABSL_DCHECK(this_.GetArena() == nullptr);
+  this_._impl_.~Impl_();
+}
+
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const
+    ::google::protobuf::internal::ClassDataFull PlateGroup_class_data_ =
+        PlateGroup::InternalGenerateClassData_(PlateGroup_globals_._default);
+
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlateGroup::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlateGroup_class_data_);
+  ::google::protobuf::internal::PrefetchToLocalCache(PlateGroup_class_data_.tc_table);
+  return PlateGroup_class_data_.base();
+}
+#else
+PROTOBUF_ATTRIBUTE_WEAK const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+PlateGroup::GetClassData() const {
+  ::google::protobuf::internal::PrefetchToLocalCache(&PlateGroup_globals_);
+  ::google::protobuf::internal::PrefetchToLocalCache(
+      ::google::protobuf::internal::MessageGlobalsBase::ToParseTableBase(&PlateGroup_globals_));
+  return PlateGroup_globals_.GetClassData();
+}
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_CONSTINIT
+PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 const PlateGroup::ParseTableT_
+    PlateGroup::_table_ =
+        PlateGroup::InternalGenerateParseTable_(PlateGroup_class_data_.base());
+#endif  // !PROTOBUF_MESSAGE_GLOBALS
+PROTOBUF_NOINLINE void PlateGroup::Clear() {
+  auto& this_ [[maybe_unused]] = *this;
+  // @@protoc_insertion_point(message_clear_start:wood_proto.PlateGroup)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _impl_.values_.Clear();
+  }
+  _impl_._has_bits_.Clear();
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::uint8_t* PROTOBUF_NONNULL PlateGroup::_InternalSerialize(
+    const ::google::protobuf::MessageLite& base, ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) {
+  const PlateGroup& this_ = static_cast<const PlateGroup&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::uint8_t* PROTOBUF_NONNULL PlateGroup::_InternalSerialize(
+    ::uint8_t* PROTOBUF_NONNULL target,
+    ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+  const PlateGroup& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    this_.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(serialize_to_array_start:wood_proto.PlateGroup)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = this_._impl_._has_bits_[0];
+  // repeated int32 values = 1;
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    {
+      int byte_size = this_._impl_._values_cached_byte_size_.Get();
+      if (byte_size > 0) {
+        target = stream->WriteInt32Packed(
+            1, this_._internal_values(), byte_size, target);
+      }
+    }
+  }
+
+  if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            this_._internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:wood_proto.PlateGroup)
+  return target;
+}
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+::size_t PlateGroup::ByteSizeLong(const MessageLite& base) {
+  const PlateGroup& this_ = static_cast<const PlateGroup&>(base);
+#else   // PROTOBUF_CUSTOM_VTABLE
+::size_t PlateGroup::ByteSizeLong() const {
+  const PlateGroup& this_ = *this;
+#endif  // PROTOBUF_CUSTOM_VTABLE
+  // @@protoc_insertion_point(message_byte_size_start:wood_proto.PlateGroup)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits [[maybe_unused]] = 0;
+
+  ::_pbi::Prefetch5LinesFrom7Lines(&this_);
+   {
+    // repeated int32 values = 1;
+    cached_has_bits = this_._impl_._has_bits_[0];
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      total_size +=
+          ::_pbi::WireFormatLite::Int32SizeWithPackedTagSize(
+              this_._internal_values(), 1,
+              this_._impl_._values_cached_byte_size_);
+    }
+  }
+  return this_.MaybeComputeUnknownFieldsSize(total_size,
+                                             &this_._impl_._cached_size_);
+}
+
+void PlateGroup::MergeImpl(::google::protobuf::MessageLite& to_msg,
+                      const ::google::protobuf::MessageLite& from_msg) {
+   auto* const _this = static_cast<PlateGroup*>(&to_msg);
+  auto& from = static_cast<const PlateGroup&>(from_msg);
+  if constexpr (::_pbi::DebugHardenCheckHasBitConsistency()) {
+    from.CheckHasBitConsistency();
+  }
+  // @@protoc_insertion_point(class_specific_merge_from_start:wood_proto.PlateGroup)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  cached_has_bits = from._impl_._has_bits_[0];
+  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+    _this->_internal_mutable_values()->MergeFrom(from._internal_values());
+  }
+  _this->_impl_._has_bits_[0] |= cached_has_bits;
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
+      from._internal_metadata_);
+}
+
+void PlateGroup::CopyFrom(const PlateGroup& from) {
+  // @@protoc_insertion_point(class_specific_copy_from_start:wood_proto.PlateGroup)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+
+void PlateGroup::InternalSwap(PlateGroup* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
+  using ::std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
+  _impl_.values_.InternalSwap(&other->_impl_.values_);
+}
+
+::google::protobuf::Metadata PlateGroup::GetMetadata() const {
   return Super_::GetMetadataImpl(GetClassData()->full());
 }
 // @@protoc_insertion_point(namespace_scope)

@@ -88,12 +88,19 @@ static std::shared_ptr<TreeNode> quarter_group(wood_session::WoodSession& sessio
     return group_named(session, floor, fmt::format("quarter_{}", q));
 }
 
-/// Names the connector <prefix>_<i> by its place among the connectors, adds it under the group, colours it and its parts and dowels, and appends it.
-static void add_named(wood_session::WoodSession& session, std::vector<std::shared_ptr<wood_session::JointBeam>>& connectors, const std::shared_ptr<wood_session::JointBeam>& connector, const std::string& prefix, const std::shared_ptr<TreeNode>& group) {
+/// The next free number of a connector name prefix in the session: one past the highest <prefix>_<n> already there, 0 when there is none.
+static size_t next_number(const wood_session::WoodSession& session, const std::string& prefix) {
 
-    connector->name = fmt::format("{}_{}", prefix, connectors.size());
-    paint(session, session.add_connector(connector, group), CONNECTOR_COLOR);
-    connectors.push_back(connector);
+    size_t next = 0;
+
+    for (const std::shared_ptr<Element>& element : *session.objects.elements) {
+        const std::string& name = element->name;
+
+        if (name.size() > prefix.size() + 1 && name.compare(0, prefix.size() + 1, prefix + "_") == 0 && std::all_of(name.begin() + prefix.size() + 1, name.end(), ::isdigit))
+            next = std::max(next, static_cast<size_t>(std::stoul(name.substr(prefix.size() + 1))) + 1);
+    }
+
+    return next;
 }
 
 std::shared_ptr<Element> uncut(const Element& member) {
@@ -103,8 +110,12 @@ std::shared_ptr<Element> uncut(const Element& member) {
     if (wood_session::BeamVariable* beam = dynamic_cast<wood_session::BeamVariable*>(copy.get())) {
         beam->cuts.clear();
         beam->solid_cuts.clear();
-    } else if (wood_session::Plate* plate = dynamic_cast<wood_session::Plate*>(copy.get()))
+    } else if (wood_session::Plate* plate = dynamic_cast<wood_session::Plate*>(copy.get())) {
         plate->solid_cuts.clear();
+    } else if (wood_session::Column* column = dynamic_cast<wood_session::Column*>(copy.get())) {
+        // the head carve stays, only what connectors cut goes
+        std::erase_if(column->solid_cuts, [](const wood_session::SolidCut& cut) { return !cut.joint_guid.empty(); });
+    }
 
     copy->invalidate_geometry();
 
@@ -326,7 +337,7 @@ static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship&
         return wood_session::JointBeam::rectangle_plate(*pair[0], *pair[1], contact, members.thickness(row.b));
 
     if (row.kind == Relation::seam_tie)
-        return wood_session::JointBeam::tie(*pair[0], *pair[1], contact);
+        return wood_session::JointBeam::tie(*pair[0], *pair[1], contact, TIE_TOP);
 
     if (!row.screws.empty()) {
         std::vector<const Element*> passed = {pair[0].get(), pair[1].get()};
@@ -347,10 +358,10 @@ static std::shared_ptr<wood_session::JointBeam> connector_of(const Relationship&
 
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, const std::vector<Relation>& kinds) {
 
-    std::map<std::string, std::vector<std::shared_ptr<wood_session::JointBeam>>> by_prefix;
     std::map<size_t, std::vector<std::shared_ptr<wood_session::JointBeam>>> plates_of_corner;
-    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors;
+    std::vector<std::pair<Relationship, std::shared_ptr<wood_session::JointBeam>>> built;
 
+    // every connector first, so a missing member throws before anything is added or cut
     for (const Relationship& row : relationships(guide)) {
         if (row.kind == Relation::support || std::find(kinds.begin(), kinds.end(), row.kind) == kinds.end())
             continue;
@@ -367,11 +378,24 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_sessio
         } else
             connector = connector_of(row, members);
 
-        add_named(session, by_prefix[connector_prefix(row.kind)], connector, connector_prefix(row.kind), connector_group(session, members, row));
-        connectors.push_back(connector);
+        built.push_back({row, connector});
 
         if (row.kind == Relation::column_plate)
             plates_of_corner[row.seam_or_corner].push_back(connector);
+    }
+
+    std::map<std::string, size_t> numbers;
+    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors;
+
+    for (const auto& [row, connector] : built) {
+        const std::string prefix = connector_prefix(row.kind);
+
+        if (!numbers.count(prefix))
+            numbers[prefix] = next_number(session, prefix);
+
+        connector->name = fmt::format("{}_{}", prefix, numbers[prefix]++);
+        paint(session, session.add_connector(connector, connector_group(session, members, row)), CONNECTOR_COLOR);
+        connectors.push_back(connector);
     }
 
     return connectors;
@@ -419,14 +443,13 @@ void Floor::add_members() {
 
 void Floor::add_connectors(const std::vector<Relation>& kinds) {
 
-    const std::vector<std::shared_ptr<wood_session::JointBeam>> added = wood_floor::add_connectors(*this, guide, members, kinds);
-    connectors.insert(connectors.end(), added.begin(), added.end());
+    for (const std::shared_ptr<wood_session::JointBeam>& connector : wood_floor::add_connectors(*this, guide, members, kinds))
+        (connector->name.starts_with("connector_screws_") ? screws : connectors).push_back(connector);
 }
 
 void Floor::add_screws() {
 
-    const std::vector<std::shared_ptr<wood_session::JointBeam>> added = wood_floor::add_connectors(*this, guide, members, {SCREW_RELATIONS.begin(), SCREW_RELATIONS.end()});
-    screws.insert(screws.end(), added.begin(), added.end());
+    add_connectors({SCREW_RELATIONS.begin(), SCREW_RELATIONS.end()});
 }
 
 }

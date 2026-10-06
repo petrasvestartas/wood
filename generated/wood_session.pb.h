@@ -51,6 +51,22 @@ extern "C" {
 extern const ::google::protobuf::internal::DescriptorTable descriptor_table_wood_5fsession_2eproto;
 }  // extern "C"
 namespace wood_proto {
+class PlateGroup;
+struct PlateGroupGlobalsTypeInternal;
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+extern PlateGroupGlobalsTypeInternal PlateGroup_globals_;
+extern const ::google::protobuf::internal::ClassDataFull PlateGroup_class_data_;
+#else
+extern const PlateGroupGlobalsTypeInternal PlateGroup_globals_;
+#endif  // PROTOBUF_MESSAGE_GLOBALS
+class PlatePair;
+struct PlatePairGlobalsTypeInternal;
+#ifndef PROTOBUF_MESSAGE_GLOBALS
+extern PlatePairGlobalsTypeInternal PlatePair_globals_;
+extern const ::google::protobuf::internal::ClassDataFull PlatePair_class_data_;
+#else
+extern const PlatePairGlobalsTypeInternal PlatePair_globals_;
+#endif  // PROTOBUF_MESSAGE_GLOBALS
 class WoodSession;
 struct WoodSessionGlobalsTypeInternal;
 #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -70,6 +86,430 @@ namespace wood_proto {
 // ===================================================================
 
 
+// -------------------------------------------------------------------
+
+class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED PlatePair final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.PlatePair) */ {
+  using Super_ = ::google::protobuf::Message;
+
+ public:
+  inline PlatePair() : PlatePair(nullptr) {}
+  ~PlatePair() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlatePair* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlatePair));
+  }
+#endif
+
+  template <typename = void>
+  explicit constexpr PlatePair(::google::protobuf::internal::ConstantInitialized,
+                           const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+                               class_data);
+
+  inline PlatePair(const PlatePair& from) : PlatePair(nullptr, from) {}
+  inline PlatePair(PlatePair&& from) noexcept : PlatePair(nullptr, ::std::move(from)) {}
+  inline PlatePair& operator=(const PlatePair& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlatePair& operator=(PlatePair&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  [[nodiscard]] inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  [[nodiscard]] inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL
+  mutable_unknown_fields() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL
+  GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  [[nodiscard]] static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  [[nodiscard]] static const PlatePair& default_instance() {
+    return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<PlatePair>(&PlatePair_globals_);
+  }
+  static constexpr int kIndexInFileMessages = 1;
+  friend void swap(PlatePair& a, PlatePair& b) { a.Swap(&b); }
+  inline void Swap(PlatePair* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlatePair* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  [[nodiscard]] PlatePair* PROTOBUF_NONNULL
+  New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return Super_::DefaultConstruct<PlatePair>(arena);
+  }
+  using Super_::CopyFrom;
+  void CopyFrom(const PlatePair& from);
+  using Super_::MergeFrom;
+  void MergeFrom(const PlatePair& from) { PlatePair::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  [[nodiscard]] bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  [[nodiscard]] static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  [[nodiscard]] static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  [[nodiscard]] ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] ::size_t ByteSizeLong() const final;
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] int GetCachedSize() const {
+    return _impl_._cached_size_.Get();
+  }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlatePair* PROTOBUF_NONNULL other);
+ private:
+  static ::absl::string_view FullMessageName() { return "wood_proto.PlatePair"; }
+
+  explicit PlatePair(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlatePair(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlatePair& from);
+  PlatePair(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlatePair&& from) noexcept
+      : PlatePair(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_(
+      const MessageLite& prototype,
+      const ::google::protobuf::internal::TcParseTableBase* PROTOBUF_NULLABLE tc_table = nullptr);
+
+  [[nodiscard]] ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kFirstFieldNumber = 1,
+    kSecondFieldNumber = 2,
+  };
+  // int32 first = 1;
+  void clear_first() ;
+  [[nodiscard]] ::int32_t first() const;
+  void set_first(::int32_t value);
+
+  private:
+  ::int32_t _internal_first() const;
+  void _internal_set_first(::int32_t value);
+
+  public:
+  // int32 second = 2;
+  void clear_second() ;
+  [[nodiscard]] ::int32_t second() const;
+  void set_second(::int32_t value);
+
+  private:
+  ::int32_t _internal_second() const;
+  void _internal_set_second(::int32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:wood_proto.PlatePair)
+ private:
+  class _Internal;
+  using ParseTableT_ =
+      ::google::protobuf::internal::TcParseTable<1, 2,
+                          0, 0,
+                          2>;
+  static constexpr ParseTableT_ InternalGenerateParseTable_(
+      const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
+  friend class ::google::protobuf::internal::TcParser;
+  #ifndef PROTOBUF_MESSAGE_GLOBALS
+  static const ParseTableT_ _table_;
+  #endif
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  friend ::google::protobuf::internal::PrivateAccess;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                                    ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlatePair& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::int32_t first_;
+    ::int32_t second_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_wood_5fsession_2eproto;
+};
+// -------------------------------------------------------------------
+
+class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED PlateGroup final : public ::google::protobuf::Message
+/* @@protoc_insertion_point(class_definition:wood_proto.PlateGroup) */ {
+  using Super_ = ::google::protobuf::Message;
+
+ public:
+  inline PlateGroup() : PlateGroup(nullptr) {}
+  ~PlateGroup() PROTOBUF_FINAL;
+
+#if defined(PROTOBUF_CUSTOM_VTABLE)
+  void operator delete(PlateGroup* PROTOBUF_NONNULL msg, ::std::destroying_delete_t) {
+    SharedDtor(*msg);
+    ::google::protobuf::internal::SizedDelete(msg, sizeof(PlateGroup));
+  }
+#endif
+
+  template <typename = void>
+  explicit constexpr PlateGroup(::google::protobuf::internal::ConstantInitialized,
+                           const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL
+                               class_data);
+
+  inline PlateGroup(const PlateGroup& from) : PlateGroup(nullptr, from) {}
+  inline PlateGroup(PlateGroup&& from) noexcept : PlateGroup(nullptr, ::std::move(from)) {}
+  inline PlateGroup& operator=(const PlateGroup& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PlateGroup& operator=(PlateGroup&& from) noexcept {
+    if (this == &from) return *this;
+    if (::google::protobuf::internal::CanMoveWithInternalSwap(GetArena(), from.GetArena())) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  [[nodiscard]] inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  [[nodiscard]] inline ::google::protobuf::UnknownFieldSet* PROTOBUF_NONNULL
+  mutable_unknown_fields() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL descriptor() {
+    return GetDescriptor();
+  }
+  [[nodiscard]] static const ::google::protobuf::Descriptor* PROTOBUF_NONNULL
+  GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  [[nodiscard]] static const ::google::protobuf::Reflection* PROTOBUF_NONNULL GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  [[nodiscard]] static const PlateGroup& default_instance() {
+    return *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<PlateGroup>(&PlateGroup_globals_);
+  }
+  static constexpr int kIndexInFileMessages = 2;
+  friend void swap(PlateGroup& a, PlateGroup& b) { a.Swap(&b); }
+  inline void Swap(PlateGroup* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    if (::google::protobuf::internal::CanUseInternalSwap(GetArena(), other->GetArena())) {
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PlateGroup* PROTOBUF_NONNULL other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  [[nodiscard]] PlateGroup* PROTOBUF_NONNULL
+  New(::google::protobuf::Arena* PROTOBUF_NULLABLE arena = nullptr) const {
+    return Super_::DefaultConstruct<PlateGroup>(arena);
+  }
+  using Super_::CopyFrom;
+  void CopyFrom(const PlateGroup& from);
+  using Super_::MergeFrom;
+  void MergeFrom(const PlateGroup& from) { PlateGroup::MergeImpl(*this, from); }
+
+  private:
+  static void MergeImpl(::google::protobuf::MessageLite& to_msg,
+                        const ::google::protobuf::MessageLite& from_msg);
+
+  public:
+  [[nodiscard]] bool IsInitialized() const {
+    return true;
+  }
+  ABSL_ATTRIBUTE_REINITIALIZES void Clear() PROTOBUF_FINAL;
+  #if defined(PROTOBUF_CUSTOM_VTABLE)
+  private:
+  [[nodiscard]] static ::size_t ByteSizeLong(const ::google::protobuf::MessageLite& msg);
+  [[nodiscard]] static ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      const ::google::protobuf::MessageLite& msg, ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream);
+
+  public:
+  [[nodiscard]] ::size_t ByteSizeLong() const { return ByteSizeLong(*this); }
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const {
+    return _InternalSerialize(*this, target, stream);
+  }
+  #else   // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] ::size_t ByteSizeLong() const final;
+  [[nodiscard]] ::uint8_t* PROTOBUF_NONNULL _InternalSerialize(
+      ::uint8_t* PROTOBUF_NONNULL target,
+      ::google::protobuf::io::EpsCopyOutputStream* PROTOBUF_NONNULL stream) const final;
+  #endif  // PROTOBUF_CUSTOM_VTABLE
+  [[nodiscard]] int GetCachedSize() const {
+    return _impl_._cached_size_.Get();
+  }
+
+  private:
+  void SharedCtor(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static void SharedDtor(MessageLite& self);
+  void InternalSwap(PlateGroup* PROTOBUF_NONNULL other);
+ private:
+  static ::absl::string_view FullMessageName() { return "wood_proto.PlateGroup"; }
+
+  explicit PlateGroup(::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  PlateGroup(::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const PlateGroup& from);
+  PlateGroup(
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, PlateGroup&& from) noexcept
+      : PlateGroup(arena) {
+    *this = ::std::move(from);
+  }
+  const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL GetClassData() const PROTOBUF_FINAL;
+  static void* PROTOBUF_NONNULL PlacementNew_(
+      const void* PROTOBUF_NONNULL, void* PROTOBUF_NONNULL mem,
+      ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+  static constexpr auto InternalNewImpl_();
+
+ public:
+  static constexpr auto InternalGenerateClassData_(
+      const MessageLite& prototype,
+      const ::google::protobuf::internal::TcParseTableBase* PROTOBUF_NULLABLE tc_table = nullptr);
+
+  [[nodiscard]] ::google::protobuf::Metadata GetMetadata() const;
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+  enum : int {
+    kValuesFieldNumber = 1,
+  };
+  // repeated int32 values = 1;
+  [[nodiscard]] int values_size() const;
+  private:
+  int _internal_values_size() const;
+
+  public:
+  void clear_values() ;
+  [[nodiscard]] ::int32_t values(int index) const;
+  void set_values(int index, ::int32_t value);
+  void add_values(::int32_t value);
+  [[nodiscard]] const ::google::protobuf::RepeatedField<::int32_t>& values()
+      const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL mutable_values();
+
+  private:
+  const ::google::protobuf::RepeatedField<::int32_t>& _internal_values() const;
+  ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL _internal_mutable_values();
+
+  public:
+  // @@protoc_insertion_point(class_scope:wood_proto.PlateGroup)
+ private:
+  class _Internal;
+  using ParseTableT_ =
+      ::google::protobuf::internal::TcParseTable<0, 1,
+                          0, 0,
+                          2>;
+  static constexpr ParseTableT_ InternalGenerateParseTable_(
+      const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
+  friend class ::google::protobuf::internal::TcParser;
+  #ifndef PROTOBUF_MESSAGE_GLOBALS
+  static const ParseTableT_ _table_;
+  #endif
+
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  friend ::google::protobuf::internal::PrivateAccess;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+    inline explicit constexpr Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                                    ::google::protobuf::internal::ConstantInitialized) noexcept;
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena);
+    inline explicit Impl_(
+        ::google::protobuf::internal::InternalVisibility visibility,
+        ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
+        const PlateGroup& from_msg);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::RepeatedField<::int32_t> values_;
+    ::google::protobuf::internal::CachedSize _values_cached_byte_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_wood_5fsession_2eproto;
+};
 // -------------------------------------------------------------------
 
 class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google::protobuf::Message
@@ -230,6 +670,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
     kGraphFieldNumber = 5,
     kDefinitionsFieldNumber = 8,
     kSettingsFieldNumber = 101,
+    kAdjacencyFieldNumber = 102,
+    kThreeValenceFieldNumber = 103,
   };
   // repeated .session_proto.BoundingBox bvh_boxes = 6;
   [[nodiscard]] int bvh_boxes_size() const;
@@ -396,12 +838,52 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
   ::wood_proto::Settings* PROTOBUF_NONNULL _internal_mutable_settings();
 
   public:
+  // repeated .wood_proto.PlatePair adjacency = 102;
+  [[nodiscard]] int adjacency_size() const;
+  private:
+  int _internal_adjacency_size() const;
+
+  public:
+  void clear_adjacency() ;
+  [[nodiscard]] const ::wood_proto::PlatePair& adjacency(int index) const;
+  [[nodiscard]] ::wood_proto::PlatePair* PROTOBUF_NONNULL mutable_adjacency(int index);
+  ::wood_proto::PlatePair* PROTOBUF_NONNULL add_adjacency();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>&
+  adjacency() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>* PROTOBUF_NONNULL
+  mutable_adjacency();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>& _internal_adjacency() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>* PROTOBUF_NONNULL _internal_mutable_adjacency();
+
+  public:
+  // repeated .wood_proto.PlateGroup three_valence = 103;
+  [[nodiscard]] int three_valence_size() const;
+  private:
+  int _internal_three_valence_size() const;
+
+  public:
+  void clear_three_valence() ;
+  [[nodiscard]] const ::wood_proto::PlateGroup& three_valence(int index) const;
+  [[nodiscard]] ::wood_proto::PlateGroup* PROTOBUF_NONNULL mutable_three_valence(int index);
+  ::wood_proto::PlateGroup* PROTOBUF_NONNULL add_three_valence();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>&
+  three_valence() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>* PROTOBUF_NONNULL
+  mutable_three_valence();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>& _internal_three_valence() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>* PROTOBUF_NONNULL _internal_mutable_three_valence();
+
+  public:
   // @@protoc_insertion_point(class_scope:wood_proto.WoodSession)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<4, 10,
-                          8, 47,
+      ::google::protobuf::internal::TcParseTable<4, 12,
+                          10, 47,
                           7>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -439,6 +921,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED WoodSession final : public ::google
     ::session_proto::Graph* PROTOBUF_NULLABLE graph_;
     ::session_proto::Objects* PROTOBUF_NULLABLE definitions_;
     ::wood_proto::Settings* PROTOBUF_NULLABLE settings_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::PlatePair > adjacency_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::PlateGroup > three_valence_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1202,6 +1686,223 @@ inline void WoodSession::set_allocated_settings(::wood_proto::Settings* PROTOBUF
 
   _impl_.settings_ = reinterpret_cast<::wood_proto::Settings*>(value);
   // @@protoc_insertion_point(field_set_allocated:wood_proto.WoodSession.settings)
+}
+
+// repeated .wood_proto.PlatePair adjacency = 102;
+inline int WoodSession::_internal_adjacency_size() const {
+  return _internal_adjacency().size();
+}
+inline int WoodSession::adjacency_size() const {
+  return _internal_adjacency_size();
+}
+inline void WoodSession::clear_adjacency() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.adjacency_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+}
+inline const ::wood_proto::PlatePair& WoodSession::adjacency(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.WoodSession.adjacency)
+  return _internal_adjacency().Get(index);
+}
+inline ::wood_proto::PlatePair* PROTOBUF_NONNULL WoodSession::mutable_adjacency(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.adjacency)
+  return _internal_mutable_adjacency()->Mutable(index);
+}
+inline ::wood_proto::PlatePair* PROTOBUF_NONNULL WoodSession::add_adjacency()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::PlatePair* _add =
+      _internal_mutable_adjacency()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_add:wood_proto.WoodSession.adjacency)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>& WoodSession::adjacency() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.WoodSession.adjacency)
+  return _internal_adjacency();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>* PROTOBUF_NONNULL
+WoodSession::mutable_adjacency() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.adjacency)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_adjacency();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>&
+WoodSession::_internal_adjacency() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.adjacency_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::PlatePair>* PROTOBUF_NONNULL
+WoodSession::_internal_mutable_adjacency() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.adjacency_;
+}
+
+// repeated .wood_proto.PlateGroup three_valence = 103;
+inline int WoodSession::_internal_three_valence_size() const {
+  return _internal_three_valence().size();
+}
+inline int WoodSession::three_valence_size() const {
+  return _internal_three_valence_size();
+}
+inline void WoodSession::clear_three_valence() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.three_valence_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+}
+inline const ::wood_proto::PlateGroup& WoodSession::three_valence(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.WoodSession.three_valence)
+  return _internal_three_valence().Get(index);
+}
+inline ::wood_proto::PlateGroup* PROTOBUF_NONNULL WoodSession::mutable_three_valence(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.WoodSession.three_valence)
+  return _internal_mutable_three_valence()->Mutable(index);
+}
+inline ::wood_proto::PlateGroup* PROTOBUF_NONNULL WoodSession::add_three_valence()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::PlateGroup* _add =
+      _internal_mutable_three_valence()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  // @@protoc_insertion_point(field_add:wood_proto.WoodSession.three_valence)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>& WoodSession::three_valence() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.WoodSession.three_valence)
+  return _internal_three_valence();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>* PROTOBUF_NONNULL
+WoodSession::mutable_three_valence() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.WoodSession.three_valence)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_three_valence();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>&
+WoodSession::_internal_three_valence() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.three_valence_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::PlateGroup>* PROTOBUF_NONNULL
+WoodSession::_internal_mutable_three_valence() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.three_valence_;
+}
+
+// -------------------------------------------------------------------
+
+// PlatePair
+
+// int32 first = 1;
+inline void PlatePair::clear_first() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+}
+inline ::int32_t PlatePair::first() const {
+  // @@protoc_insertion_point(field_get:wood_proto.PlatePair.first)
+  return _internal_first();
+}
+inline void PlatePair::set_first(::int32_t value) {
+  _internal_set_first(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_set:wood_proto.PlatePair.first)
+}
+inline ::int32_t PlatePair::_internal_first() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.first_;
+}
+inline void PlatePair::_internal_set_first(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.first_ = value;
+}
+
+// int32 second = 2;
+inline void PlatePair::clear_second() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.second_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+}
+inline ::int32_t PlatePair::second() const {
+  // @@protoc_insertion_point(field_get:wood_proto.PlatePair.second)
+  return _internal_second();
+}
+inline void PlatePair::set_second(::int32_t value) {
+  _internal_set_second(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_set:wood_proto.PlatePair.second)
+}
+inline ::int32_t PlatePair::_internal_second() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.second_;
+}
+inline void PlatePair::_internal_set_second(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.second_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// PlateGroup
+
+// repeated int32 values = 1;
+inline int PlateGroup::_internal_values_size() const {
+  return _internal_values().size();
+}
+inline int PlateGroup::values_size() const {
+  return _internal_values_size();
+}
+inline void PlateGroup::clear_values() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.values_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+}
+inline ::int32_t PlateGroup::values(int index) const {
+  // @@protoc_insertion_point(field_get:wood_proto.PlateGroup.values)
+  return _internal_values().Get(index);
+}
+inline void PlateGroup::set_values(int index, ::int32_t value) {
+  _internal_mutable_values()->Set(index, value);
+  // @@protoc_insertion_point(field_set:wood_proto.PlateGroup.values)
+}
+inline void PlateGroup::add_values(::int32_t value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _internal_mutable_values()
+      ->InternalAddWithArena<const ::google::protobuf::MessageLite*>(
+          internal_visibility(), this, value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_add:wood_proto.PlateGroup.values)
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>& PlateGroup::values() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.PlateGroup.values)
+  return _internal_values();
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL PlateGroup::mutable_values()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000001U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.PlateGroup.values)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_values();
+}
+inline const ::google::protobuf::RepeatedField<::int32_t>&
+PlateGroup::_internal_values() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.values_;
+}
+inline ::google::protobuf::RepeatedField<::int32_t>* PROTOBUF_NONNULL
+PlateGroup::_internal_mutable_values() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.values_;
 }
 
 #ifdef __GNUC__

@@ -146,7 +146,7 @@ struct FloorReport {
     std::array<double, 4> closure_residual_mm = {}; // Rule A: rib 0's central trace projected along the ruling against rib 1's.
     std::array<double, 4> end_face_planarity_mm = {}; // The farthest rib end face corner from its end plane, over the four ribs.
     std::array<double, 4> bed_flange_coincidence_mm = {}; // The farthest bed underside corner from the top of the flange beside it, over the three rows and both sides.
-    std::array<std::array<double, 2>, 4> rib_bottom_clearance_mm = {}; // Each outer rib's bottom at its fan plane above the middle cutter level; negative where it runs below the carved face.
+    std::array<std::array<double, 2>, 4> rib_bottom_clearance_mm = {}; // Each outer rib's bottom at its fan plane above the middle cutter level; 0 or more by construction, the level being the deepest of them.
     std::array<double, 4> rib_level_spread_mm = {}; // Per corner, the highest less the lowest of the eight rib face bottoms at the column head: both faces of the two outer and the two inner ribs.
     std::array<std::array<double, 3>, 4> wedge_seat_mm = {}; // The side 0, chamfer and side 1 seats on the head.
     std::array<std::array<double, 2>, 4> column_offset_mm = {}; // Signed, per corner and bay edge (R8).
@@ -250,6 +250,9 @@ struct Quarter {
 
     /// The bed plates in three rows.
     std::vector<std::vector<Outline>> beds() const;
+
+    /// The column's carved face on fan plane i (0 side 0, 1 the chamfer, 2 side 1) between the datum and the middle level: datum corners, then middle-level corners.
+    std::vector<session_cpp::Point> column_face(size_t i) const;
 
     /// The six plates that carve the column head at the quarter's corner.
     std::vector<Outline> column_cutters() const;
@@ -392,7 +395,7 @@ struct FloorMembers {
     std::array<std::shared_ptr<session_cpp::Element>, 2> pair(const Relationship& row) const;
 };
 
-/// The member as it was before any cut, for the contact search: a copy without its plane and solid cuts, so a pocket or a hole on the cut model neither splits nor loses a contact.
+/// The member as it was before any connector cut it, for the contact search: a copy without its plane and solid cuts, a column keeping its head carve, so a pocket or a hole on the cut model neither splits nor loses a contact.
 std::shared_ptr<session_cpp::Element> uncut(const session_cpp::Element& member);
 
 /// A searched contact that does not agree with the constructed one.
@@ -438,12 +441,18 @@ std::vector<Relationship> relationships(const FloorGuide& guide);
 std::vector<Relationship> relationships(const FloorGuide& guide, Relation kind);
 
 /// The colour of every connector node and of every part and dowel node nested under it.
+/// mm below the floor top where every seam tie's key starts; the screws of the tied ribs stay above it.
+const double TIE_TOP = 138.5;
+
+/// mm, the closest two screw axes may come.
+const double SCREW_SPACING = 8.0;
+
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue");
 
 /// The relation kinds of the connectors: the wedges, the column plates and their cross laps, the ties and the block dowels.
 const std::vector<Relation> CONNECTOR_RELATIONS = {Relation::seam_wedge, Relation::oculus_wedge, Relation::column_plate, Relation::cross_lap, Relation::seam_tie, Relation::block_dowels};
 
-/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named within its kind as the examples name them and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR; cross laps need the column plates in the same call.
+/// One connector per relationship of the kinds asked for, through the JointBeam factories on the constructed contacts, named <prefix>_<n> within its kind, numbered on from the connectors of that kind already in the session, and added under its connector_group, its node and every node nested under it in CONNECTOR_COLOR. All are built before any is added, so a member missing from the scene throws with nothing added; cross laps need the column plates in the same call.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession& session, const FloorGuide& guide, const FloorMembers& members, const std::vector<Relation>& kinds = CONNECTOR_RELATIONS);
 
 /// The kernel's contact search on uncut copies of the members against every constructed contact of the kinds asked for: the plane normal, the top edge and the area must agree within the tolerance (mm and radians).

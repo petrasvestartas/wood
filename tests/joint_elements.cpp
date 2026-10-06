@@ -2,6 +2,7 @@
 #include "wood_contact_detection.h"
 #include "wood_element_geometry.h"
 #include <chrono>
+#include <set>
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -19,6 +20,102 @@ static void contact_round_trip(const InteractionContactFace& contact) {
     const auto twice = std::dynamic_pointer_cast<InteractionContactFace>(contact.flipped()->flipped());
     check(twice->face_a == contact.face_a && twice->face_b == contact.face_b, "double flip orientation");
     for (int i = 0; i < 4; ++i) check(twice->volumes[i].get_points() == contact.volumes[i].get_points(), "double flip volume");
+}
+
+/// The drill features of the element whose guid starts with the connector's.
+static size_t drills_of(const Element& element, const std::string& connector) {
+    size_t count = 0;
+    for (const ElementFeature& feature : element.features())
+        if (feature.feature_type == "drill" && feature.guid().starts_with(connector + "/"))
+            ++count;
+    return count;
+}
+
+/// The plate guids of a scene's adjacency pairs, each pair sorted.
+static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSession& scene) {
+    const std::vector<std::shared_ptr<Plate>> plates = scene.world_elements<Plate>();
+    std::set<std::pair<std::string, std::string>> pairs;
+    for (const std::pair<int, int>& pair : scene.adjacency)
+        pairs.insert(std::minmax(plates[pair.first]->guid(), plates[pair.second]->guid()));
+    return pairs;
+}
+
+/// Two 100 x 100 x 40 plates stacked at the origin and the four dowels across their contact, the connector not yet added.
+static std::shared_ptr<JointBeam> stacked_dowels(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<Plate>& upper) {
+    lower = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
+    upper = Plate::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
+    scene.add(lower); scene.add(upper);
+    const auto contact = scene.compute_face_contact(lower, upper);
+    check(contact != nullptr, "stacked plates touch");
+    return JointBeam::dowels(*lower, *upper, *contact, 4.0, 30.0, 20.0, 10.0);
+}
+
+/// The scene calls a user's connectors keep through: compute_features keeps them with their cuts and holes; remove_interaction takes the holes with the cut; holes in a moved target are found and drawn in its own frame; graft renumbers adjacency by plate guid and searches when a side has none; adjacency and three-valence groups go through the protobuf; compute_features reads no dataset's sidecars.
+static void check_scene_calls() {
+
+    WoodSession kept("kept connector");
+    std::shared_ptr<Plate> lower, upper;
+    const std::shared_ptr<JointBeam> dowels = stacked_dowels(kept, lower, upper);
+    kept.add_joint(dowels);
+    const size_t holes = drills_of(*lower, dowels->guid());
+    kept.compute_face_contacts();
+    kept.compute_features(face_to_face);
+    check(kept.get_element<JointBeam>(dowels->guid()) && holes > 0 && drills_of(*lower, dowels->guid()) == holes && lower->solid_cuts.size() == 1, "compute_features keeps the user's dowels, their " + std::to_string(holes) + " holes and their cut");
+    kept.remove_interaction(dowels, lower);
+    check(drills_of(*lower, dowels->guid()) == 0 && lower->solid_cuts.empty() && drills_of(*upper, dowels->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
+
+    WoodSession moved("moved targets");
+    const std::shared_ptr<JointBeam> local = stacked_dowels(moved, lower, upper);
+    const Xform shift = Xform::translation(500, 0, 0);
+    const std::shared_ptr<JointBeam> placed = std::dynamic_pointer_cast<JointBeam>(local->transformed(shift));
+    moved.set_xform(lower->guid(), shift);
+    moved.set_xform(upper->guid(), shift);
+    moved.add_joint(placed);
+    double longest = 0.0, farthest = 0.0;
+    for (const SolidCut& cut : lower->solid_cuts)
+        for (const Line& drill : cut.drills)
+            longest = std::max(longest, drill.length());
+    for (const ElementFeature& feature : lower->Element::features())
+        if (feature.feature_type == "drill")
+            for (const Polyline& circle : feature.outlines)
+                for (const Point& point : circle.get_points())
+                    farthest = std::max(farthest, point[0]);
+    check(std::abs(longest - 40.0) < 1e-6 && farthest < 100.0, "a moved target's holes run past the dowel only where it leaves the target, " + std::to_string(longest) + " long, drawn in its frame up to x " + std::to_string(farthest));
+
+    WoodSession first("first"), second("second"), bare("bare");
+    for (int i = 0; i < 2; ++i)
+        first.add(Plate::from_rectangle({0, 100.0 * i, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+    const std::shared_ptr<TreeNode> group_a = second.add_group("a");
+    const std::shared_ptr<TreeNode> group_b = second.add_group("b");
+    const auto p2 = Plate::from_rectangle({0, 300, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p3 = Plate::from_rectangle({0, 400, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p4 = Plate::from_rectangle({0, 600, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    second.add(p2, group_b); second.add(p3, group_b); second.add(p4, group_a);
+    first.adjacency = {{0, 1}};
+    second.adjacency = {{0, 1}};
+    first.three_valence = {{0}};
+    second.three_valence = {{0}, {0, 1, 0, 1}};
+    WoodSession merged = first;
+    merged.merge(second);
+    check(pair_guids(merged).count(std::minmax(p2->guid(), p3->guid())) && merged.adjacency.size() == 2, "merge renumbers the grafted adjacency by plate guid when the tree reorders the plates");
+    check(merged.three_valence.size() == 2 && merged.world_elements<Plate>()[merged.three_valence[1][0]]->guid() == p2->guid(), "merge renumbers the three-valence groups by plate guid");
+    bare.add(Plate::from_rectangle({0, 900, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+    WoodSession searched = first;
+    searched.merge(bare);
+    check(searched.adjacency.empty(), "merging plates without an adjacency leaves it empty, so every pair is searched");
+
+    const WoodSession restored = WoodSession::pb_loads(merged.pb_dumps());
+    check(restored.adjacency == merged.adjacency && restored.three_valence == merged.three_valence, "adjacency and three-valence groups through the protobuf");
+
+    config::reset_defaults();
+    const WoodSession dataset = WoodSession::yaml_load("vidy_corner");
+    check(!dataset.adjacency.empty(), "vidy_corner has an adjacency sidecar");
+    WoodSession fresh("fresh");
+    stacked_dowels(fresh, lower, upper);
+    fresh.compute_face_contacts();
+    fresh.compute_features(face_to_face);
+    check(fresh.adjacency.empty(), "compute_features after a dataset load does not take that dataset's adjacency");
+    std::cout << "scene calls: user connectors kept, their holes removed with them, moved targets drilled in their frame, adjacency renumbered by guid, stored and never borrowed\n";
 }
 
 int main() {
@@ -136,5 +233,6 @@ int main() {
         std::cout << dataset << ": " << joints.size() << " connections, " << multi << " multi-element joints, "
                   << std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() << " ms including repeat solve and serialization\n";
     }
+    check_scene_calls();
     std::cout << "joint API checks passed\n";
 }

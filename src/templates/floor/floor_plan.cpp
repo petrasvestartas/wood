@@ -111,6 +111,9 @@ std::string invalid(const FloorGuide& guide) {
 
     const std::array<Point, 4>& corners = guide.corners;
 
+    if (guide.parameters.rise <= 0.0 || guide.parameters.rise >= guide.parameters.height)
+        return fmt::format("rise {:.3f} is not between 0 and height {:.3f}: the ribs need a parabola and a depth at the seam", guide.parameters.rise, guide.parameters.height);
+
     for (size_t k = 0; k < 4; k++) {
         const Vector after = corners[(k + 1) % 4] - corners[k];
         const Vector before = corners[(k + 3) % 4] - corners[k];
