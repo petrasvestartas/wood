@@ -50,9 +50,6 @@ private:
     const FloorGuide& guide;
     const Xform lift; // Up from the datum to the floor.
 
-    /// The lines lifted to the floor.
-    std::vector<Line> lifted(const std::vector<Line>& lines) const;
-
     /// A screw at level z through a side member into the member butting on it, along the butting member's axis: the head where that axis leaves the side member's far face, the tip on towards the butting member's body.
     static Line along_axis(const std::array<Plane, 2>& butting, const Plane& far_face, const Point& butting_body, double z);
 
@@ -81,11 +78,14 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
-/// A column in the scene: the support and the column, carved by its six head cuts.
-class ColumnModel {
+/// The session of one column: the support on the slab and the column on it, joined by a support joint, the column carved by the guide's six head cuts at its corner. Floor::add_column grafts a copy of it into the floor.
+class ColumnSession : public WoodSession {
 public:
     std::shared_ptr<Support> support; // support_<q>, on the slab.
     std::shared_ptr<Column> column; // column_<q>, carved by the head cuts.
+
+    /// The column at corner q of the guide, named column_<q>.
+    ColumnSession(const FloorGuide& guide, size_t q);
 };
 
 /// The floor model, a session built step by step from a guide, grouped by quarter: quarter_0 to quarter_3 each with its members, its column, its part of the oculus ring and its connectors and screws, and the oculus with the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions.
@@ -99,7 +99,7 @@ public:
     std::array<QuarterMembers, 4> quarters; // The elements of quarter q.
     std::vector<std::shared_ptr<BeamVariable>> ring; // The four ring beams, oculus_<q>.
     std::vector<std::shared_ptr<Plate>> oculus_plates; // The four bottom wedges oculus_4 to oculus_7 and the central plate oculus_8.
-    std::vector<ColumnModel> columns; // Column q at corner q, empty until the columns are added.
+    std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its ColumnSession, empty until the columns are added.
     std::vector<std::shared_ptr<JointBeam>> connectors; // Every connector added: wedges, plates, cross laps and dowels.
     std::vector<std::shared_ptr<JointBeam>> screws; // Every screw connector added.
 

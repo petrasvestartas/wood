@@ -9,7 +9,13 @@ const bool BREPS = true; // write every cut member, connector part and dowel as 
 /// The square bay with its columns, every connector and the assembly screws.
 int main() {
 
-    wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(3000.0, 3000.0));
+    const wood_floor::FloorGuide guide({
+        Point(-3000.0, -3000.0, 0.0),
+        Point(3000.0, -3000.0, 0.0),
+        Point(3000.0, 3000.0, 0.0),
+        Point(-3000.0, 3000.0, 0.0),
+    });
+    wood_floor::Floor floor(guide);
     floor.add_members();
     floor.add_connectors();
     floor.add_screws();

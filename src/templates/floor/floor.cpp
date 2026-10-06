@@ -31,7 +31,7 @@ std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
     for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
         screws.push_back(from_seam_face(cp.outer_ribs[k], cp.inner_beams[beam], level, k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET));
 
-    return lifted(screws);
+    return transformed_list(screws, lift);
 }
 
 std::vector<Line> ScrewLines::beam_mitre(size_t q, size_t k) const {
@@ -44,7 +44,7 @@ std::vector<Line> ScrewLines::beam_mitre(size_t q, size_t k) const {
     for (double levels : MITRE_LEVELS[k])
         screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body, corner_level(levels)));
 
-    return lifted(screws);
+    return transformed_list(screws, lift);
 }
 
 std::vector<Line> ScrewLines::rib_corner(size_t q, size_t k) const {
@@ -62,7 +62,7 @@ std::vector<Line> ScrewLines::rib_corner(size_t q, size_t k) const {
             throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
     }
 
-    return lifted(screws);
+    return transformed_list(screws, lift);
 }
 
 bool ScrewLines::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
@@ -76,16 +76,6 @@ bool ScrewLines::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& s
             return true;
 
     return false;
-}
-
-std::vector<Line> ScrewLines::lifted(const std::vector<Line>& lines) const {
-
-    std::vector<Line> result;
-
-    for (const Line& line : lines)
-        result.push_back(line.transformed(lift));
-
-    return result;
 }
 
 Line ScrewLines::along_axis(const std::array<Plane, 2>& butting, const Plane& far_face, const Point& butting_body, double z) {
@@ -105,7 +95,7 @@ Line ScrewLines::from_seam_face(const std::array<Plane, 2>& rib, const std::arra
     const Line line = axis(rib, z);
     const Vector across = rib[0].z_axis() * offset;
     const Vector along = (Intersection::line_plane(line, beam[1], false).value() - Intersection::line_plane(line, beam[0], false).value()).normalized();
-    const Point head = Intersection::line_plane(Line::from_points(line.start() + across, line.end() + across), beam[0], false).value();
+    const Point head = Intersection::line_plane(line + across, beam[0], false).value();
 
     return Line::from_points(head, head + along * SCREW_LENGTH);
 }
@@ -114,16 +104,42 @@ Line ScrewLines::axis(const std::array<Plane, 2>& faces, double z) {
 
     const Line line0 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[0]).value();
     const Line line1 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[1]).value();
-    const Vector d = line1.to_direction();
     const Point p0 = line0.start();
-    const Point p1 = line1.start() + d * (p0 - line1.start()).dot(d);
-    const Point middle = p0 + (p1 - p0) * 0.5;
+    const Point p1 = line1.closest_point(p0, false).second;
+    const Point middle = Point::mid_point(p0, p1);
 
     return Line::from_points(middle, middle + line0.to_direction());
 }
 
 double ScrewLines::corner_level(double levels) const {
     return -guide.static_h() * levels / CORNER_LEVELS;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// COLUMN SESSION
+// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+
+ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fmt::format("column_{}", q % 4)) {
+
+    const size_t k = q % 4;
+    support = std::make_shared<Support>(guide.support_plane(k), "support");
+    support->name = fmt::format("support_{}", k);
+    const Point foot = support->column_foot();
+    column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
+    column->name = fmt::format("column_{}", k);
+    add(support);
+    add(column);
+
+    const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
+    add(joint);
+    add_joint(joint);
+
+    for (const SolidCut& cut : guide.column_cuts(k))
+        column->solid_cuts.push_back(cut);
+
+    column->invalidate_geometry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -245,23 +261,9 @@ void Floor::add_column(size_t corner) {
     if (columns.size() < 4)
         columns.resize(4);
 
-    ColumnModel& model = columns[k];
-    model.support = std::make_shared<Support>(guide.support_plane(k), "support");
-    model.support->name = fmt::format("support_{}", k);
-    const Point foot = model.support->column_foot();
-    model.column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
-    model.column->name = fmt::format("column_{}", k);
-    add(model.support, group);
-    add(model.column, group);
-
-    const std::shared_ptr<Joint> joint = Joint::support(*model.support, *model.column);
-    add(joint, group);
-    add_joint(joint);
-
-    for (const SolidCut& cut : guide.column_cuts(k))
-        model.column->solid_cuts.push_back(cut);
-
-    model.column->invalidate_geometry();
+    const ColumnSession column(guide, k);
+    graft(column, group);
+    columns[k] = get_element<Column>(column.column->guid());
 }
 
 std::shared_ptr<TreeNode> Floor::quarter_group(size_t q) {
@@ -299,7 +301,7 @@ std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, c
         sections.push_back(Polyline({low, high, far_high, far_low}).closed());
     }
 
-    const Line axis = Line::from_points(Line::from_points(near[1], far[1]).center(), Line::from_points(near[0], far[0]).center());
+    const Line axis = Line::from_points(Point::mid_point(near[1], far[1]), Point::mid_point(near[0], far[0]));
 
     return std::make_shared<BeamVariable>(axis, sections, name);
 }
@@ -320,7 +322,7 @@ std::shared_ptr<BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, 
 
 void Floor::add_contacts() {
 
-    const bool have_columns = columns.size() == 4 && columns[0].column;
+    const bool have_columns = columns.size() == 4 && columns[0];
 
     for (size_t q = 0; q < 4; q++) {
         const QuarterMembers& members = quarters[q];
@@ -336,7 +338,7 @@ void Floor::add_contacts() {
             add_contact(ContactKind::oculus_wedge, place, members.inner_beams[1], ring[q]);
 
         for (size_t k = 0; k < 2 && have_columns; k++)
-            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), columns[q].column, members.outer_ribs[k]);
+            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), columns[q], members.outer_ribs[k]);
 
         // each column block on the two ribs either side of it
         add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), members.outer_ribs[0], members.wedges[0]);

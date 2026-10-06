@@ -76,9 +76,6 @@ public:
     /// The guide of the corners with the default parameters, computed.
     explicit FloorGuide(const std::array<Point, 4>& corners);
 
-    /// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y), with the default parameters, computed.
-    static FloorGuide rectangle(double half_x, double half_y);
-
     /// Computes everything from the corners and the parameters, quarter by quarter in the order of the methods below, and redraws it; throws naming the failure when the corners are not counter-clockwise and convex at z 0, an oculus point leaves its seam, the rise leaves (0, height), an oculus point lies in an outer rib band or the ring would leave a quarter's oculus beam uncovered.
     void compute();
 

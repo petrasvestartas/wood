@@ -7,10 +7,20 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
+wood_floor::FloorGuide rectangle_guide(double half_x, double half_y) {
+    return wood_floor::FloorGuide({
+        Point(-half_x, -half_y, 0.0),
+        Point(half_x, -half_y, 0.0),
+        Point(half_x, half_y, 0.0),
+        Point(-half_x, half_y, 0.0),
+    });
+}
+
 /// The square floor every check reads, the seams through the ribs by default, built on first use.
 const wood_floor::FloorGuide& square_guide() {
 
-    static const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
+    static const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 3000.0);
 
     return guide;
 }
@@ -251,7 +261,7 @@ bool inside_plan(const std::vector<Point>& polygon, const Point& point, double t
 void check_short_members() {
 
     for (const auto& [half_x, half_y] : std::vector<std::pair<double, double>>{{1200.0, 1200.0}, {3000.0, 1200.0}}) {
-        const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
+        const wood_floor::FloorGuide guide = rectangle_guide(half_x, half_y);
 
         for (size_t q = 0; q < 4; q++) {
             const std::vector<Point>& polygon = guide.quarter_polygon(q);
@@ -273,7 +283,7 @@ void check_short_members() {
 std::string refusal(double half_x, double half_y, std::optional<double> rise = std::nullopt) {
 
     try {
-        wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
+        wood_floor::FloorGuide guide = rectangle_guide(half_x, half_y);
 
         if (rise) {
             guide.rise = *rise;
@@ -289,7 +299,7 @@ std::string refusal(double half_x, double half_y, std::optional<double> rise = s
 /// Guides that make no floor are refused with a reason: an oculus whose inner beam corners fall inside an outer rib band, and a rise of zero or of the whole height.
 void check_refused_guides() {
 
-    const double height = wood_floor::FloorGuide::rectangle(3000.0, 3000.0).height;
+    const double height = rectangle_guide(3000.0, 3000.0).height;
 
     check(refusal(3000.0, 1100.0).find("outer rib band") != std::string::npos, "an oculus 100 mm from the bay edge refused: " + refusal(3000.0, 1100.0));
     check(refusal(3000.0, 3000.0, 0.0).find("rise") != std::string::npos, "a rise of 0 refused");
@@ -345,7 +355,7 @@ void check_connector_calls() {
     bool narrow = false;
 
     try {
-        const wood_floor::FloorGuide narrow_bay = wood_floor::FloorGuide::rectangle(3000.0, 1700.0);
+        const wood_floor::FloorGuide narrow_bay = rectangle_guide(3000.0, 1700.0);
         const wood_floor::ScrewLines lines(narrow_bay);
 
         for (size_t q = 0; q < 4; q++)
@@ -502,7 +512,7 @@ double lowest_on(const Polyline& loop, const Plane& plane) {
 /// The seam beams run through the rib band: every seam beam reaching the bay's outer face, every outer rib ending on its beam's far face, no rib end below the beams' soffit, the seam wedges flush with the outer face between the beams, horizontal screws from the beam's seam face along the rib 20 mm below its top and above its bottom.
 void check_seam_beams() {
 
-    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
+    const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 3000.0);
 
     for (size_t q = 0; q < 4; q++) {
         const wood_floor::ConstructionPlanes& cp = guide.construction_planes(q);
@@ -647,8 +657,8 @@ std::array<size_t, 3> scene_counts(const WoodSession& scene) {
 /// Two floors as two templates in one scene: each a session of its own, grafted under its level, every element, joint, interaction and drill of both kept, the same floor refused a second time, and the scene through a round trip.
 void check_floors_in_scene() {
 
-    wood_floor::Floor square(wood_floor::FloorGuide::rectangle(3000.0, 3000.0), "square");
-    wood_floor::Floor rectangle(wood_floor::FloorGuide::rectangle(3000.0, 2400.0), "rectangle");
+    wood_floor::Floor square(rectangle_guide(3000.0, 3000.0), "square");
+    wood_floor::Floor rectangle(rectangle_guide(3000.0, 2400.0), "rectangle");
 
     for (wood_floor::Floor* floor : {&square, &rectangle}) {
         floor->add_members();
@@ -912,8 +922,8 @@ void check_rectangle_plates() {
     check(laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_7", "four cross laps after the eight plates");
     check_cross_laps(scene, laps);
 
-    for (const wood_floor::ColumnModel& column : scene.columns)
-        check(column.column->model_geometry_brep().is_solid() && count_bores(column.column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
+    for (const std::shared_ptr<Column>& column : scene.columns)
+        check(column->model_geometry_brep().is_solid() && count_bores(column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t slotted = 0;
@@ -1107,7 +1117,7 @@ std::vector<double> rib_bottoms(const wood_floor::FloorGuide& guide, size_t q) {
 /// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower end -689.979, the short rib's run-in solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square keeps the wedge as both run-ins.
 void check_rib_levels() {
 
-    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 2400.0);
+    const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 2400.0);
 
     for (size_t q = 0; q < 4; q++) {
         const double level = guide.column_levels(q)[1];
@@ -1158,7 +1168,7 @@ double far_bottom(const std::array<Polyline, 2>& block) {
 /// The column blocks span their ribs' run-ins: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; 240 / 300 / 240 on the square.
 void check_column_blocks() {
 
-    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 2400.0);
+    const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 2400.0);
 
     for (size_t q = 0; q < 4; q++) {
         const std::array<double, 3> thickness = block_thickness(guide, q);
@@ -1180,7 +1190,7 @@ void check_column_blocks() {
 /// The 3000 x 2400 bay: every member face planar, and the floor builds with every connector.
 void check_rectangle() {
 
-    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 2400.0);
+    const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 2400.0);
     check(floor_flatness(guide) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(guide)));
 
     wood_floor::Floor scene(guide, "rectangle");
@@ -1338,7 +1348,7 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
 void check_screws() {
 
     check_floor_screws(square_guide(), "the square");
-    check_floor_screws(wood_floor::FloorGuide::rectangle(3000.0, 2400.0), "3000 x 2400");
+    check_floor_screws(rectangle_guide(3000.0, 2400.0), "3000 x 2400");
 }
 
 int main() {

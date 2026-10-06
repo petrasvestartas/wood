@@ -9,9 +9,18 @@ int main() {
     std::filesystem::remove_all(dir);
     std::filesystem::create_directories(dir);
 
-
-    const FloorGuide guide = FloorGuide::rectangle(3000.0, 3000.0);
-    const FloorGuide tied = FloorGuide::rectangle(3000.0, 2400.0);
+    const FloorGuide guide({
+        Point(-3000.0, -3000.0, 0.0),
+        Point(3000.0, -3000.0, 0.0),
+        Point(3000.0, 3000.0, 0.0),
+        Point(-3000.0, 3000.0, 0.0),
+    });
+    const FloorGuide tied({
+        Point(-3000.0, -2400.0, 0.0),
+        Point(3000.0, -2400.0, 0.0),
+        Point(3000.0, 2400.0, 0.0),
+        Point(-3000.0, 2400.0, 0.0),
+    });
 
     Floor members(guide);
     members.add_members();

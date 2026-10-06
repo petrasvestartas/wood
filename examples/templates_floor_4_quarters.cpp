@@ -7,7 +7,13 @@ using namespace wood_session;
 /// The four quarters of the square floor.
 int main() {
 
-    wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(3000.0, 3000.0));
+    const wood_floor::FloorGuide guide({
+        Point(-3000.0, -3000.0, 0.0),
+        Point(3000.0, -3000.0, 0.0),
+        Point(3000.0, 3000.0, 0.0),
+        Point(-3000.0, 3000.0, 0.0),
+    });
+    wood_floor::Floor floor(guide);
     floor.add_quarters();
     floor.pb_dump(pb_path("live"));
 

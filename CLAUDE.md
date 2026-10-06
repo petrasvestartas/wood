@@ -46,7 +46,12 @@ using namespace wood_session;
 /// The guide of the square floor, drawn: every quarter's plan, construction quads and parabolas.
 int main() {
 
-    wood_floor::FloorGuide floor = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
+    wood_floor::FloorGuide floor({
+        Point(-3000.0, -3000.0, 0.0),
+        Point(3000.0, -3000.0, 0.0),
+        Point(3000.0, 3000.0, 0.0),
+        Point(-3000.0, 3000.0, 0.0),
+    });
     std::cout << floor << std::endl;
     floor.pb_dump(pb_path("live"));
     return 0;
@@ -56,7 +61,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the timber floor: the guide alone, FloorGuide::rectangle(3000, 3000) with the default parameters, a session that draws its own construction: every quarter's plan polygon and column head with the oculus corners, the plan quad of every member at the floor datum, and the four rib parabolas of every quarter with their two t-section offsets, each kind in its group. No member is built; a Floor builds them from the guide.
+Step 1 of the timber floor: the guide alone, a FloorGuide on the corners of the 6000 x 6000 square with the default parameters, a session that draws its own construction: every quarter's plan polygon and column head with the oculus corners, the plan quad of every member at the floor datum, and the four rib parabolas of every quarter with their two t-section offsets, each kind in its group. No member is built; a Floor builds them from the guide.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
