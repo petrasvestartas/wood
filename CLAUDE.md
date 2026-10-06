@@ -76,6 +76,22 @@ cmake --build build --target templates_floor_1_floorguide --parallel 6 && ./buil
 https://petrasvestartas.github.io/session/
 */
 
+## Elements: example, picture and page
+
+- Every element class in `src/joinery_solver/wood_elements/` has all three, added or updated with
+  every new element or constructor:
+  - `examples/elements/element_<type>.cpp`: minimal like an API, its constructors and static
+    constructors side by side and nothing else, registered as `ADD_EXE(element_<type> ...)`; a
+    case that needs other elements (a column with glued blocks and cuts) shows them through
+    `add_interaction(source, target, InteractionFeatureSolid(mesh, operation))`.
+  - `docs/images/elements/element_<type>.png`: that example's `data/output/pb/live.pb` rendered by
+    session_viewer's selftest with `.claude/skills/wood-film-docs/templates/viewer_render_options.patch`
+    applied (Arctic, opacity 1), cropped to the elements and centred.
+  - `docs/elements/element_<type>.md` (`{#elements_<type>}`): one sentence on what it is, the
+    constructors as a code block, the picture with one line naming what it shows, and the example
+    by `\include{lineno} elements/element_<type>.cpp`; listed in the table and the subpages of
+    `docs/elements.md`.
+
 ## Before push to github
 
 - Run each examples locally, if it is not working fix it and the push it.
