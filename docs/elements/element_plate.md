@@ -26,3 +26,11 @@ Its bottom outline, any closed polygon, and the same outline 40 above; the two o
 Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add_interaction(hole, plate, InteractionFeatureSolid(drills, radius))`, a solid feature of drills alone; written as BReps, the holes are exact cylinders.
 
 \include{lineno} elements/element_plate_holes.cpp
+
+## Lofted between two rails
+
+![Lofted between two rails](elements/element_plate_session.png)
+
+Several plates from two rails, as a bed row of the floor: `wood_floor::PlateSession::between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them as a session.
+
+\include{lineno} elements/element_plate_session.cpp

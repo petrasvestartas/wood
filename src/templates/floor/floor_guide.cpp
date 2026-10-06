@@ -594,23 +594,14 @@ Vector FloorGuide::turned(const Vector& reference, double degrees) {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) const {
+std::vector<std::array<std::array<Polyline, 2>, 2>> FloorGuide::bed_rails(size_t q) const {
 
-    // one row: the lower and upper layer on the panel's two side planes trimmed alike, one quad pair per segment
+    // one row: the lower and upper layer on the panel's two side planes trimmed alike
     const auto bed_row = [](const std::array<Polyline, 2>& lower, const std::array<Polyline, 2>& upper, const Plane& cut_plane0, const Plane& cut_plane1) {
 
         const std::vector<Polyline> layers = Polyline::trimmed_alike({lower[0], lower[1], upper[0], upper[1]}, cut_plane0, cut_plane1, EXTENSION);
-        const std::array<std::vector<Point>, 2> under = {layers[0].get_points(), layers[1].get_points()};
-        const std::array<std::vector<Point>, 2> over = {layers[2].get_points(), layers[3].get_points()};
-        std::vector<std::array<Polyline, 2>> plates;
 
-        for (size_t i = 0; i + 1 < under[0].size(); i++) {
-            const Polyline bottom = Polyline({under[0][i], under[0][i + 1], under[1][i + 1], under[1][i]}).closed();
-            const Polyline top = Polyline({over[0][i], over[0][i + 1], over[1][i + 1], over[1][i]}).closed();
-            plates.push_back({top, bottom});
-        }
-
-        return plates;
+        return std::array<std::array<Polyline, 2>, 2>{{{layers[0], layers[1]}, {layers[2], layers[3]}}};
     };
 
     // an outer row: the parabola's +t and +2t projected along the outer rib normal onto the panel's two side planes
@@ -631,6 +622,25 @@ std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) con
         bed_row({panel.traces[0][1], panel.traces[1][1]}, {panel.traces[0][2], panel.traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0]),
         outer_bed_row(pb[1], cp.inner_ribs[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][0].z_axis(), cp.inner_beams[2][1], cp.wedges[2][0]),
     };
+}
+
+std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) const {
+
+    std::vector<std::vector<std::array<Polyline, 2>>> rows;
+
+    for (const std::array<std::array<Polyline, 2>, 2>& rails : bed_rails(q)) {
+        std::vector<std::array<Polyline, 2>> plates;
+
+        for (size_t i = 0; i + 1 < rails[0][0].point_count(); i++) {
+            const Polyline bottom = Polyline({rails[0][0].get_point(i), rails[0][0].get_point(i + 1), rails[0][1].get_point(i + 1), rails[0][1].get_point(i)}).closed();
+            const Polyline top = Polyline({rails[1][0].get_point(i), rails[1][0].get_point(i + 1), rails[1][1].get_point(i + 1), rails[1][1].get_point(i)}).closed();
+            plates.push_back({top, bottom});
+        }
+
+        rows.push_back(plates);
+    }
+
+    return rows;
 }
 
 std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {

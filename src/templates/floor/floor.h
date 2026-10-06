@@ -78,6 +78,19 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
+/// The session of a row of plates lofted between two rails, as the floor's bed rows: segment i of the bottom rails and of the top rails make plate i, a quad below and one above.
+class PlateSession : public WoodSession {
+public:
+    std::vector<std::shared_ptr<Plate>> plates; // <name>_<i>: one plate per segment of the rails.
+
+    /// The plates between the two bottom rails and the two top rails, one per segment the four have in common, each its bottom quad and its top quad.
+    static PlateSession between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
+
+private:
+    /// An empty plate session named name.
+    explicit PlateSession(const std::string& name);
+};
+
 /// The session of one column: a square shaft, the blocks glued on for its head, each adding to it through an InteractionFeatureSolid, and for the floor its support and the cutter plates taking away the faces the ribs and the column blocks bear on. Floor::add_column grafts a copy of it into the floor.
 class ColumnSession : public WoodSession {
 public:

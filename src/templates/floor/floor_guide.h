@@ -140,6 +140,9 @@ public:
     // Members, each as its two face loops at the datum
     // ═══════════════════════════════════════════════════════════════════════
 
+    /// Quarter q's three bed rows as rails, each row its bottom rails and its top rails: the lower and upper layer on the panel's two side planes trimmed alike, so every segment of the four makes one bed.
+    std::vector<std::array<std::array<Polyline, 2>, 2>> bed_rails(size_t q) const;
+
     /// Quarter q's bed plates in three rows, each row trimmed alike so every plate stays a quad.
     std::vector<std::vector<std::array<Polyline, 2>>> beds(size_t q) const;
 
