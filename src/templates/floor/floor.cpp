@@ -136,10 +136,17 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fm
     add(joint);
     add_joint(joint);
 
-    for (const SolidCut& cut : guide.column_cuts(k))
-        column->solid_cuts.push_back(cut);
+    // the six cutter plates that carve the head, hidden, each cutting the column
+    const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
 
-    column->invalidate_geometry();
+    for (size_t i = 0; i < loops.size(); i++) {
+        const std::shared_ptr<Plate> cutter = std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k));
+        cutter->place(Xform::translation(0.0, 0.0, guide.bay_height));
+        cutter->is_visible = false;
+        add(cutter);
+        cutters.push_back(cutter);
+        add_interaction(cutter, column, std::make_shared<InteractionFeatureCut>(SolidCut::difference(cutter->element_geometry_mesh())));
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

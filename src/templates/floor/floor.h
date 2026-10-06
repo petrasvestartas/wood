@@ -78,11 +78,12 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
-/// The session of one column: the support on the slab and the column on it, joined by a support joint, the column carved by the guide's six head cuts at its corner. Floor::add_column grafts a copy of it into the floor.
+/// The session of one column: the support on the slab and the column on it, joined by a support joint, and the six hidden cutter plates that carve the column head at its corner. Floor::add_column grafts a copy of it into the floor.
 class ColumnSession : public WoodSession {
 public:
     std::shared_ptr<Support> support; // support_<q>, on the slab.
-    std::shared_ptr<Column> column; // column_<q>, carved by the head cuts.
+    std::shared_ptr<Column> column; // column_<q>, carved by the cutters.
+    std::vector<std::shared_ptr<Plate>> cutters; // column_cutters_<i>_<q>, hidden: the six plates that carve the column head, each through an InteractionFeatureCut.
 
     /// The column at corner q of the guide, named column_<q>.
     ColumnSession(const FloorGuide& guide, size_t q);

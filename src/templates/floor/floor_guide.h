@@ -167,9 +167,6 @@ public:
     /// The six plates that carve the column head at corner q: the three fan faces down to the middle level, and three below it down to the head's depth.
     std::vector<std::array<Polyline, 2>> column_cutters(size_t q) const;
 
-    /// The column cutters of corner q lifted to the floor as solid difference cuts of the column.
-    std::vector<SolidCut> column_cuts(size_t q) const;
-
     /// The column's carved face on fan plane i of corner q (0 side 0, 1 the chamfer, 2 side 1) between the datum and the middle level: datum corners, then middle-level corners.
     std::vector<Point> column_face(size_t q, size_t i) const;
 

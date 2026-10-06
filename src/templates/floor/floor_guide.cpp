@@ -831,17 +831,6 @@ std::vector<std::array<Polyline, 2>> FloorGuide::column_cutters(size_t q) const 
     return plates;
 }
 
-std::vector<SolidCut> FloorGuide::column_cuts(size_t q) const {
-
-    const Xform lift = Xform::translation(0.0, 0.0, bay_height);
-    std::vector<SolidCut> cuts;
-
-    for (const std::array<Polyline, 2>& plate : column_cutters(q))
-        cuts.push_back(SolidCut::difference(Plate(plate[1], plate[0], "column_cutter").element_geometry_mesh().transformed(lift)));
-
-    return cuts;
-}
-
 std::vector<Point> FloorGuide::column_face(size_t q, size_t i) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
