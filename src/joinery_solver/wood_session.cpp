@@ -772,7 +772,7 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, con
     }
 
     for (const ElementFeature& feature : target->features())
-        if (feature.feature_type == "drill" && feature.guid().starts_with(source->guid() + "/"))
+        if ((feature.feature_type == "drill" || feature.feature_type == "solid_cut") && feature.guid().starts_with(source->guid() + "/"))
             erased.insert(feature.guid());
 
     drop_host_features(*this, source->guid(), "", erased);
@@ -1250,6 +1250,13 @@ static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, co
 
     cut.joint_guid = source.guid();
     const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
+
+    if (cut.mesh.number_of_faces()) {
+        ElementFeature feature("solid_cut", -1, cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines(), source.name);
+        feature.guid() = source.guid() + "/cut";
+        drop_host_features(scene, target->guid(), "", {feature.guid()});
+        scene.host_feature(target->guid(), std::move(feature));
+    }
 
     if (!local)
         throw std::invalid_argument("Cutter target has a singular placement");

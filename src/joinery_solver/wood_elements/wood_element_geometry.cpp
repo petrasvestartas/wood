@@ -14,7 +14,7 @@ ElementFeature polyline_feature(std::string_view feature_type, const Polyline& p
 }
 
 bool is_session_feature(std::string_view feature_type) {
-    return feature_type == "joint" || feature_type == "contact" || feature_type == "drill";
+    return feature_type == "joint" || feature_type == "contact" || feature_type == "drill" || feature_type == "solid_cut";
 }
 
 std::vector<ElementFeature> session_features(const Element& element) {

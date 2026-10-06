@@ -309,14 +309,17 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_MARKDOWN_SUPPORT YES)
     set(DOXYGEN_TOC_INCLUDE_HEADINGS 3)
     set(DOXYGEN_GENERATE_TREEVIEW YES)
-    set(DOXYGEN_DISABLE_INDEX NO)
+    set(DOXYGEN_TREEVIEW_WIDTH 280)
+    set(DOXYGEN_DISABLE_INDEX YES)
     set(DOXYGEN_FULL_SIDEBAR NO)
+    set(DOXYGEN_PROJECT_LOGO ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/compas_icon_white.png)
     set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
     set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
-    # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/.
+    # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/;
+    # material.css on top of it gives the look of the compas_model MkDocs Material pages.
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-sidebar-only.css)
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/material.css)
     set(DOXYGEN_HTML_EXTRA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js)
     set(DOXYGEN_HTML_COLORSTYLE LIGHT)
     set(DOXYGEN_HTML_DYNAMIC_SECTIONS NO)

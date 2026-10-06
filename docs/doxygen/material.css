@@ -1,0 +1,733 @@
+/* Material for MkDocs, as the compas_model docs wear it (primary blue, accent light blue, slate
+ * when dark), laid over doxygen-awesome: blue top bar, plain side navigation, light headings. */
+
+/* ==================================================================
+ * Colors and sizes
+ * ================================================================== */
+
+html {
+    --md-primary: #2094f3;
+    --md-accent: #0091eb;
+    --md-fg: rgba(0, 0, 0, .87);
+    --md-fg-light: rgba(0, 0, 0, .54);
+    --md-fg-lighter: rgba(0, 0, 0, .32);
+    --md-fg-lightest: rgba(0, 0, 0, .07);
+    --md-bg: #ffffff;
+    --md-code-bg: #f5f5f5;
+    --md-code-fg: #36464e;
+    --md-hl-keyword: #3f6ec6;
+    --md-hl-string: #1c7d4d;
+    --md-hl-function: #a846b9;
+    --md-hl-special: #db1457;
+    --md-footer-bg: #212121;
+    --md-header-height: 48px;
+    --md-shadow: 0 0 4px rgba(0, 0, 0, .1), 0 4px 8px rgba(0, 0, 0, .2);
+}
+
+/* Material's slate scheme, written twice like doxygen-awesome's: once for the system preference,
+ * once for the toggle. */
+@media (prefers-color-scheme: dark) {
+    html:not(.light-mode) {
+        --md-fg: hsla(225, 15%, 90%, .82);
+        --md-fg-light: hsla(225, 15%, 90%, .56);
+        --md-fg-lighter: hsla(225, 15%, 90%, .32);
+        --md-fg-lightest: hsla(225, 15%, 90%, .12);
+        --md-bg: #1e2129;
+        --md-code-bg: #272a35;
+        --md-code-fg: hsla(225, 18%, 86%, .82);
+        --md-hl-keyword: #6c9fff;
+        --md-hl-string: #2fb170;
+        --md-hl-function: #e599f7;
+        --md-hl-special: #ff6b9b;
+    }
+}
+
+html.dark-mode {
+    --md-fg: hsla(225, 15%, 90%, .82);
+    --md-fg-light: hsla(225, 15%, 90%, .56);
+    --md-fg-lighter: hsla(225, 15%, 90%, .32);
+    --md-fg-lightest: hsla(225, 15%, 90%, .12);
+    --md-bg: #1e2129;
+    --md-code-bg: #272a35;
+    --md-code-fg: hsla(225, 18%, 86%, .82);
+    --md-hl-keyword: #6c9fff;
+    --md-hl-string: #2fb170;
+    --md-hl-function: #e599f7;
+    --md-hl-special: #ff6b9b;
+}
+
+/* doxygen-awesome's own variables, mapped onto the palette above; the selector matches the
+ * specificity of doxygen-awesome's dark-mode rules so this one wins in both schemes. */
+html, html.dark-mode, html:not(.dark-mode) {
+    --font-family: Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    --font-family-monospace: "Roboto Mono", SFMono-Regular, Consolas, Menlo, monospace;
+    --page-font-size: 16px;
+    --navigation-font-size: 14px;
+    --toc-font-size: 14px;
+    --code-font-size: 13.6px;
+    --title-font-size: 18px;
+    --content-line-height: 1.6;
+    --content-maxwidth: 960px;
+    --table-line-height: 1.6;
+    --tree-item-height: 28px;
+    --memtitle-font-size: 16px;
+
+    --primary-color: var(--md-primary);
+    --primary-dark-color: var(--md-accent);
+    --primary-light-color: var(--md-primary);
+    --page-background-color: var(--md-bg);
+    --page-foreground-color: var(--md-fg);
+    --page-secondary-foreground-color: var(--md-fg-light);
+    --separator-color: var(--md-fg-lightest);
+    --border-radius-small: 2px;
+    --border-radius-medium: 2px;
+    --border-radius-large: 2px;
+    --box-shadow: var(--md-shadow);
+    --odd-color: transparent;
+    --menu-selected-background: transparent;
+    --side-nav-background: var(--md-bg);
+    --side-nav-foreground: var(--md-fg);
+    --side-nav-arrow-opacity: .54;
+    --side-nav-arrow-hover-opacity: .87;
+    --toc-background: var(--md-bg);
+    --toc-foreground: var(--md-fg);
+    --header-background: var(--md-primary);
+    --header-foreground: #ffffff;
+    --searchbar-background: rgba(0, 0, 0, .26);
+    --searchbar-foreground: #ffffff;
+    --searchbar-height: 36px;
+    --searchbar-width: 234px;
+    --searchbar-border-radius: 2px;
+    --tablehead-background: transparent;
+    --tablehead-foreground: var(--md-fg);
+    --blockquote-background: transparent;
+    --blockquote-foreground: var(--md-fg-light);
+    --code-background: var(--md-code-bg);
+    --code-foreground: var(--md-code-fg);
+    --fragment-background: var(--md-code-bg);
+    --fragment-foreground: var(--md-code-fg);
+    --fragment-keyword: var(--md-hl-keyword);
+    --fragment-keywordtype: var(--md-hl-keyword);
+    --fragment-keywordflow: var(--md-hl-keyword);
+    --fragment-token: var(--md-hl-string);
+    --fragment-comment: var(--md-fg-light);
+    --fragment-link: var(--md-hl-function);
+    --fragment-preprocessor: var(--md-hl-special);
+    --fragment-linenumber-color: var(--md-fg-lighter);
+    --fragment-linenumber-background: var(--md-code-bg);
+    --fragment-linenumber-border: transparent;
+    --note-color: rgba(68, 138, 255, .1);
+    --note-color-dark: #448aff;
+    --note-color-darker: var(--md-fg);
+    --warning-color: rgba(255, 145, 0, .1);
+    --warning-color-dark: #ff9100;
+    --warning-color-darker: var(--md-fg);
+    --bug-color: rgba(255, 82, 82, .1);
+    --bug-color-dark: #ff5252;
+    --bug-color-darker: var(--md-fg);
+    --todo-color: rgba(124, 77, 255, .1);
+    --todo-color-dark: #7c4dff;
+    --todo-color-darker: var(--md-fg);
+    --deprecated-color: rgba(158, 158, 158, .1);
+    --deprecated-color-dark: #9e9e9e;
+    --deprecated-color-darker: var(--md-fg);
+    --invariant-color: rgba(0, 200, 83, .1);
+    --invariant-color-dark: #00c853;
+    --invariant-color-darker: var(--md-fg);
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a, a:visited, .contents a:visited, a.el, a.elRef {
+    color: var(--md-primary);
+}
+
+a:hover, .contents a:hover, a.el:hover {
+    color: var(--md-accent);
+    text-decoration: none;
+}
+
+/* ==================================================================
+ * Header bar
+ * ================================================================== */
+
+#top {
+    background: var(--md-primary);
+    border-bottom: none;
+    box-shadow: var(--md-shadow);
+    position: relative;
+    z-index: 10;
+}
+
+#titlearea {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: var(--md-header-height);
+    padding: 0 16px 0 20px;
+    border-bottom: none;
+    box-sizing: border-box;
+    color: #ffffff;
+}
+
+#projectlogo, #projectlogo img {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+#projectname, #projectname:visited, #projectname:hover {
+    flex: 1;
+    margin: 0;
+    padding-left: 4px;
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: var(--md-header-height);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#searchalign {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+doxygen-awesome-dark-mode-toggle {
+    order: -1;
+    height: 40px;
+    width: 40px;
+    margin: 0;
+    border-radius: 50%;
+}
+
+doxygen-awesome-dark-mode-toggle > svg {
+    fill: #ffffff;
+    transform: none;
+}
+
+doxygen-awesome-dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, .1) !important;
+}
+
+#projectrepo, #projectrepo:visited, #projectrepo:hover {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+    padding-left: 24px;
+    color: #ffffff !important;
+    font-weight: 400;
+    font-size: 13px;
+    opacity: .9;
+}
+
+#projectrepo:hover {
+    opacity: 1;
+}
+
+#projectrepo svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* ==================================================================
+ * Search
+ * ================================================================== */
+
+#MSearchBox {
+    width: var(--searchbar-width);
+    border: none;
+    box-shadow: none;
+    background: var(--searchbar-background);
+    transition: background .25s, width .25s;
+}
+
+#MSearchBox:hover {
+    background: rgba(0, 0, 0, .32);
+}
+
+#MSearchBox.MSearchBoxActive {
+    background: #ffffff;
+    box-shadow: var(--md-shadow);
+}
+
+#MSearchField {
+    width: calc(var(--searchbar-width) - 70px);
+    color: #ffffff;
+    font-size: 16px;
+    font-family: var(--font-family);
+}
+
+#MSearchField::placeholder {
+    color: rgba(255, 255, 255, .7);
+}
+
+#MSearchBox.MSearchBoxActive #MSearchField {
+    color: rgba(0, 0, 0, .87);
+}
+
+#MSearchBox span.left #MSearchSelect, #MSearchBox .left #MSearchSelectExt {
+    filter: brightness(0) invert(1);
+    opacity: .9;
+}
+
+#MSearchBox.MSearchBoxActive span.left #MSearchSelect,
+#MSearchBox.MSearchBoxActive .left #MSearchSelectExt {
+    filter: none;
+    opacity: .54;
+}
+
+#MSearchResults, #MSearchResults a, #MSearchResults span {
+    font-family: var(--font-family);
+}
+
+#MSearchResultsWindow {
+    top: var(--md-header-height) !important;
+    border: none;
+    border-radius: 2px;
+    box-shadow: var(--md-shadow);
+    background: var(--md-bg);
+}
+
+/* ==================================================================
+ * Navigation tree, the left column
+ * ================================================================== */
+
+#side-nav {
+    padding-right: 0;
+}
+
+#nav-tree, #nav-tree-contents {
+    background: var(--md-bg);
+    border-right: none;
+}
+
+#nav-tree-contents {
+    margin-top: 16px;
+}
+
+#nav-tree .label {
+    font-size: 14px;
+    line-height: var(--tree-item-height);
+}
+
+#nav-tree .label a, #nav-tree a {
+    color: var(--md-fg) !important;
+    font-weight: 400;
+}
+
+#nav-tree .item:hover .label a,
+#nav-tree a:hover {
+    color: var(--md-accent) !important;
+}
+
+#nav-tree .selected {
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: none;
+    font-weight: 400;
+}
+
+#nav-tree .selected::after {
+    display: none;
+}
+
+#nav-tree .selected .label a,
+#nav-tree .selected a {
+    color: var(--md-primary) !important;
+    font-weight: 400;
+}
+
+/* the top-level entries read as Material's section titles */
+#nav-tree-contents > ul > li > ul > li > .item .label a {
+    color: var(--md-fg-light) !important;
+    font-weight: 700;
+}
+
+#nav-tree-contents > ul > li > ul > li > .item.selected .label a {
+    color: var(--md-primary) !important;
+}
+
+#nav-tree .arrow {
+    color: var(--md-fg-lighter);
+}
+
+#nav-sync, .ui-resizable-handle, #splitbar {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#nav-sync {
+    display: none;
+}
+
+/* ==================================================================
+ * Page outline, the right column (Material's table of contents)
+ * ================================================================== */
+
+#page-nav {
+    background: var(--md-bg);
+    border-left: none;
+}
+
+#page-nav-resize-handle {
+    background: transparent;
+}
+
+ul.page-outline {
+    margin: 16px 8px 16px 12px;
+}
+
+ul.page-outline div.item {
+    font: 14px var(--font-family);
+    line-height: 26px;
+}
+
+ul.page-outline a, ul.page-outline a:visited {
+    color: var(--md-fg) !important;
+    font-weight: 400;
+}
+
+ul.page-outline a:hover {
+    color: var(--md-accent) !important;
+}
+
+ul.page-outline li.vis {
+    background: none;
+}
+
+ul.page-outline li.vis > div.item a {
+    color: var(--md-primary) !important;
+}
+
+ul.page-outline .arrow {
+    color: var(--md-fg-lighter);
+}
+
+div.toc {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+div.toc h3 {
+    color: var(--md-fg);
+    font-weight: 700;
+    font-size: 14px;
+}
+
+div.toc li a {
+    color: var(--md-fg) !important;
+}
+
+div.toc li a:hover, div.toc li a.active {
+    color: var(--md-primary) !important;
+}
+
+/* ==================================================================
+ * Content
+ * ================================================================== */
+
+#doc-content, div.contents {
+    background: var(--md-bg);
+}
+
+div.header .headertitle {
+    padding: 0;
+}
+
+div.header .title, div.header .summary, div.contents {
+    box-sizing: border-box;
+    max-width: var(--content-maxwidth);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+div.contents {
+    padding-bottom: 40px;
+}
+
+div.contents p, div.contents li, div.contents dd {
+    line-height: 1.6;
+}
+
+div.header {
+    background: none;
+    border-bottom: none;
+}
+
+div.header .title {
+    margin-top: 32px;
+    color: var(--md-fg-light);
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: -.01em;
+    line-height: 1.3;
+}
+
+div.contents h1, div.contents h2, div.contents h3, div.contents h4 {
+    color: var(--md-fg);
+    letter-spacing: -.01em;
+}
+
+div.contents h1 {
+    margin: 1.6em 0 .64em;
+    font-size: 25px;
+    font-weight: 300;
+    line-height: 1.4;
+    border-bottom: none;
+}
+
+div.contents h2 {
+    margin: 1.6em 0 .8em;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.5;
+    border-bottom: none;
+}
+
+div.contents h3, div.contents h4 {
+    margin: 1.25em 0 1em;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+h2.groupheader {
+    color: var(--md-fg);
+    font-size: 25px;
+    font-weight: 300;
+    letter-spacing: -.01em;
+    box-shadow: none !important;
+    border-bottom: 1px solid var(--md-fg-lightest);
+}
+
+hr {
+    border-top: 1px solid var(--md-fg-lightest);
+}
+
+/* inline code and code blocks */
+
+code, .tt, span.tt {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding: 0 .3em;
+    border: none;
+    border-radius: 2px;
+    background: var(--md-code-bg);
+    color: var(--md-code-fg);
+    font-size: .85em;
+}
+
+div.fragment, pre.fragment, div.contents pre {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 2px;
+    background: var(--md-code-bg);
+    color: var(--md-code-fg);
+    font-size: 13.6px;
+    line-height: 1.5;
+}
+
+div.line {
+    min-height: 20px;
+}
+
+/* the Mermaid fences keep their own canvas */
+div.contents pre.mermaid {
+    padding: 0;
+    background: transparent;
+    text-align: center;
+}
+
+/* tables: Material's light rules, no fill */
+
+table.markdownTable, table.doxtable, table.fieldtable {
+    padding: 0;
+    border: 1px solid var(--md-fg-lightest);
+    border-radius: 2px;
+    border-spacing: 0;
+    box-shadow: none;
+}
+
+table.markdownTable tbody, table.doxtable tbody {
+    margin: 0;
+    box-shadow: none;
+}
+
+table.markdownTable td, table.markdownTable th,
+table.doxtable td, table.doxtable th {
+    font-size: 12.8px;
+    line-height: 1.6;
+    text-align: left;
+}
+
+table.markdownTable th, table.doxtable th, table.fieldtable th {
+    background: transparent;
+    color: var(--md-fg);
+    font-weight: 700;
+}
+
+table.markdownTable td, table.markdownTable th,
+table.doxtable td, table.doxtable th,
+table.fieldtable td, table.fieldtable th {
+    padding: 12px 16px;
+    border: none;
+    border-top: 1px solid var(--md-fg-lightest);
+}
+
+table.markdownTable tr:first-child th,
+table.doxtable tr:first-child th {
+    border-top: none;
+}
+
+table.markdownTable tr:hover td, table.doxtable tr:hover td {
+    background: rgba(0, 0, 0, .035);
+    box-shadow: none;
+}
+
+/* member summary and member documentation */
+
+table.memberdecls {
+    border-spacing: 0;
+}
+
+table.memberdecls tr[class^='memitem'] td,
+table.memberdecls tr[class^='memdesc'] td {
+    background: transparent;
+    border-color: var(--md-fg-lightest);
+}
+
+.memtitle {
+    background: var(--md-code-bg);
+    border: none;
+    font-weight: 500;
+}
+
+div.memitem {
+    border: 1px solid var(--md-fg-lightest);
+    border-radius: 2px;
+    box-shadow: none;
+}
+
+div.memproto, h2.memtitle {
+    background: var(--md-code-bg);
+    border: none;
+}
+
+div.memdoc {
+    background: transparent;
+    border-top: 1px solid var(--md-fg-lightest);
+}
+
+/* admonitions: Material's left bar and tinted title */
+
+dl.note, dl.warning, dl.attention, dl.important, dl.todo, dl.bug, dl.deprecated,
+dl.invariant, dl.pre, dl.post, dl.remark, dl.see {
+    border-left: 4px solid;
+    border-radius: 2px;
+    box-shadow: var(--md-shadow);
+}
+
+blockquote {
+    border-left: 4px solid var(--md-fg-lighter);
+    color: var(--md-fg-light);
+}
+
+/* ==================================================================
+ * Footer: none, the empty #nav-path takes no height
+ * ================================================================== */
+
+#nav-path {
+    display: none;
+}
+
+/* ==================================================================
+ * Phones: the navigation tree becomes Material's drawer
+ * ================================================================== */
+
+#navdrawer {
+    display: none;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    margin-left: -8px;
+    padding: 8px;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+}
+
+#navdrawer svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+}
+
+@media screen and (max-width: 767px) {
+    #navdrawer {
+        display: block;
+    }
+
+    #titlearea {
+        gap: 8px;
+        padding: 0 8px 0 12px;
+    }
+
+    #projectlogo {
+        display: none;
+    }
+
+    #projectname {
+        min-width: 0;
+    }
+
+    #MSearchBox {
+        width: 132px;
+    }
+
+    #MSearchField {
+        width: 72px;
+    }
+
+    #projectrepo span {
+        display: none;
+    }
+
+    #projectrepo {
+        min-width: 0;
+        padding: 0 8px;
+    }
+
+    html.nav-open #side-nav {
+        display: block;
+        position: fixed;
+        top: var(--md-header-height);
+        left: 0;
+        z-index: 20;
+        width: 280px !important;
+        height: calc(100vh - var(--md-header-height)) !important;
+        box-shadow: var(--md-shadow);
+    }
+
+    html.nav-open #nav-tree {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    div.header .title, div.header .summary, div.contents {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}
