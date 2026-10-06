@@ -84,11 +84,12 @@ https://petrasvestartas.github.io/session/
     nothing else, registered as `ADD_EXE(element_<type> ...)`; a case that needs other elements (a
     column with glued blocks and cuts, a beam cut by plane elements) is its own example,
     `element_<type>_<case>.cpp`, showing them through `add_interaction(source, target, feature)`.
-  - `docs/images/elements/<example>.png`: drawn by `python3 tools/render_element_docs.py` (listed
-    in its `EXAMPLES`), which runs the example and renders its `live.pb` with session_viewer's
-    selftest (`.claude/skills/wood-film-docs/templates/viewer_render_options.patch` applied): Arctic,
-    opacity 0.75, the element features drawn, cropped, with a layer panel of the scene's elements,
-    their features and the interaction features between them.
+  - `docs/images/elements/<example>.png`: a screenshot of the real viewer by
+    `bash wood/tools/screenshot_element_docs.sh <example> ...`: it publishes the example to the live
+    viewer and opens it with `?cmd=Layers All;Element Features On;Arctic On;View Isometric;View
+    Orthographic;Fit` in a Chrome window on the GPU (`tools/screenshot_viewer.mjs`, which starts
+    Chrome with the radeon Vulkan env of the user's launcher; any other Chrome loses its WebGPU
+    device). The layer panel is expanded, the base plane shows its pink, yellow-green and blue axes.
   - `docs/elements/element_<type>.md` (`{#elements_<type>}`, `[TOC]` under the title): one sentence
     on what it is, a `## Constructors` section with the constructors as a code block, then one `##`
     section per case with its picture, one line naming what it shows and the example by
