@@ -142,6 +142,6 @@ Every member has one name, the same in the guide's drawing, the outline lists an
 
 ## How the pictures are made
 
-Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay. The renderer draws in the viewer's Arctic view, soft contact shading and outlines, so solids read by their form, and every surface at the viewer's opacity of 0.95: the members are solid, and only a member right behind another shows faintly through it.
+Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay. The renderer draws in the viewer's Arctic view, soft contact shading and outlines, so solids read by their form, and every surface fully opaque: what lies behind a member is hidden by it.
 
 Their names are placed by solving the point-feature labelling problem. Every label has candidate plates on rings of growing radius around its point in 24 directions. A candidate is allowed only inside the picture and clear of every other plate and every other labelled point. Among the allowed ones a label takes the cheapest: the leader's length, the drawing the plate covers, read off the rendered picture, and every leader that crosses another leader or plate. A greedy pass places the most crowded labels first, then passes re-place each label against all the others until none moves. A picture was not accepted while a label had no allowed place or two labels named points closer than 14 pixels, so no two names overlap.
