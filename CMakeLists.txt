@@ -104,6 +104,7 @@ set(WOOD_SOURCES
     src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
+    src/templates/floor/floor_guide.cpp
     src/templates/floor/floor.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp

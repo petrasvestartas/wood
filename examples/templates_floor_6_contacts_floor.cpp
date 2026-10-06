@@ -10,7 +10,8 @@ int main() {
     wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(3000.0, 3000.0));
     floor.add_quarters();
     floor.add_oculus();
-    floor.add_connectors({wood_floor::Relation::seam_wedge, wood_floor::Relation::oculus_wedge});
+    floor.add_contacts();
+    floor.add_connectors({wood_floor::ContactKind::seam_wedge, wood_floor::ContactKind::oculus_wedge});
     floor.pb_dump(pb_path("live"));
 
     return 0;
