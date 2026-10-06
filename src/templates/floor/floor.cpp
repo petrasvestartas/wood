@@ -143,7 +143,7 @@ ColumnSession ColumnSession::glued_head(const Line& axis, const Plane& corner, d
         const std::shared_ptr<Block> glued = std::make_shared<Block>(mesh, fmt::format("{}_head_{}", name, session.head.size()));
         session.add(glued);
         session.head.push_back(glued);
-        session.add_interaction(glued, session.column, std::make_shared<InteractionFeatureSolid>(InteractionFeatureSolid::add(mesh)));
+        session.add_interaction(glued, session.column, std::make_shared<InteractionFeatureSolid>(mesh, SolidOperation::add));
     }
 
     return session;
@@ -178,7 +178,7 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q)
         cutter->is_visible = false;
         add(cutter);
         cutters.push_back(cutter);
-        add_interaction(cutter, column, std::make_shared<InteractionFeatureSolid>(InteractionFeatureSolid::subtract(cutter->element_geometry_mesh())));
+        add_interaction(cutter, column, std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract));
     }
 }
 

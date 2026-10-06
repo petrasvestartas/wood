@@ -5,26 +5,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-// ═══════════════════════════════════════════════════════════════════════════
-// InteractionFeatureSolid - Static constructors
-// ═══════════════════════════════════════════════════════════════════════════
-
-InteractionFeatureSolid InteractionFeatureSolid::subtract(const Mesh& mesh) {
-
-    InteractionFeatureSolid feature;
-    feature.mesh = mesh;
-    feature.operation = SolidOperation::subtract;
-
-    return feature;
-}
-
-InteractionFeatureSolid InteractionFeatureSolid::add(const Mesh& mesh) {
-
-    InteractionFeatureSolid feature;
-    feature.mesh = mesh;
-    feature.operation = SolidOperation::add;
-
-    return feature;
+InteractionFeatureSolid::InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation) : mesh(mesh), operation(operation) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

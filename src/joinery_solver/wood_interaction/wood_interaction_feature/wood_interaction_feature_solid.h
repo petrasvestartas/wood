@@ -30,14 +30,14 @@ public:
     double drill_tolerance = 0.05; // Chord tolerance the drills are meshed at.
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Static constructors
+    // Constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A feature that takes the closed mesh away.
-    static InteractionFeatureSolid subtract(const Mesh& mesh);
+    /// An empty feature, filled field by field.
+    InteractionFeatureSolid() = default;
 
-    /// A feature that adds the closed mesh: a glued block.
-    static InteractionFeatureSolid add(const Mesh& mesh);
+    /// A feature of the closed mesh: added, taken away or intersected.
+    InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
