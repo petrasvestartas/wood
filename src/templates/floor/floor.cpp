@@ -80,10 +80,8 @@ const double TIE_CLEARANCE = 10.0; // mm the lower tied rib screw stays above th
 const double CORNER_LEVELS = 7.0; // an oculus corner's depth in sevenths: six levels, one per screw on each side of the corner
 const std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ
 const std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // the inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross
-const std::array<std::array<double, 2>, 2> OCULUS_LEVELS = {{{3.0, 6.0}, {2.0, 5.0}}}; // per end k, the ring into the quarter's oculus beam, apart from that side's mitre and rib end screws
-const std::array<double, 2> RING_LEVELS = {3.0, 6.0}; // the ring corner screws, apart from the oculus screws of the next quarter they cross
 
-ScrewLines::ScrewLines(const FloorGuide& floor_guide) : guide(floor_guide), rings(floor_guide.oculus()), lift(Xform::translation(0.0, 0.0, floor_guide.bay_height)) {
+ScrewLines::ScrewLines(const FloorGuide& floor_guide) : guide(floor_guide), lift(Xform::translation(0.0, 0.0, floor_guide.bay_height)) {
 }
 
 std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
@@ -153,29 +151,6 @@ bool ScrewLines::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& s
     return false;
 }
 
-std::vector<Line> ScrewLines::ring(size_t q) const {
-
-    const size_t next = (q + 1) % 4;
-    const std::array<Plane, 2> faces = {guide.construction_planes(next).inner_beams[1][0], guide.ring_inner(next)};
-    std::vector<Line> screws;
-
-    for (double levels : RING_LEVELS)
-        screws.push_back(along_axis(faces, guide.construction_planes(q).inner_beams[1][0], FloorGuide::body(rings[next]), corner_level(levels)));
-
-    return lifted(screws);
-}
-
-std::vector<Line> ScrewLines::oculus(size_t q, size_t k) const {
-
-    const OculusScrew aimed(guide, rings, q, k);
-    std::vector<Line> screws;
-
-    for (double levels : OCULUS_LEVELS[k])
-        screws.push_back(aimed.at(corner_level(levels)));
-
-    return lifted(screws);
-}
-
 std::vector<Line> ScrewLines::lifted(const std::vector<Line>& lines) const {
 
     std::vector<Line> result;
@@ -223,92 +198,6 @@ Line ScrewLines::axis(const std::array<Plane, 2>& faces, double z) {
 double ScrewLines::corner_level(double levels) const {
     return -guide.static_h() * levels / CORNER_LEVELS;
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// The oculus screws
-// ═══════════════════════════════════════════════════════════════════════════
-
-const double WEDGE_MARGIN = 1.5; // the wedge leaves this many beam thicknesses free at both ends of its contact, add_connectors' margin
-const double COARSE_STEP = 5.0; // mm, the head positions an oculus screw first tries along the ring's inner face
-const double COARSE_ANGLE = 2.0; // degrees, the directions it first tries
-const double SEARCH_STEP = 0.25; // mm, the head positions it then tries around the best
-const double ANGLE_STEP = 0.1; // degrees, the directions it then tries
-
-OculusScrew::OculusScrew(const FloorGuide& guide, const std::vector<Loops>& rings, size_t q, size_t k) {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Loops beam_loops = guide.inner_beams(q)[1];
-    const std::vector<Point> loop = beam_loops[1].get_points();
-    const Point end = k == 0 ? loop[0] : loop[1];
-
-    beam = cp.inner_beams[1];
-    beam_end = cp.inner_beams[k == 0 ? 0 : 2][1];
-    beam_body = FloorGuide::body(beam_loops);
-    inner = guide.ring_inner(q);
-    ring_end = k == 0 ? guide.construction_planes((q + 1) % 4).inner_beams[1][0] : guide.ring_inner((q + 3) % 4);
-    ring_body = FloorGuide::body(rings[q]);
-    along = ((k == 0 ? loop[1] : loop[0]) - end).normalized();
-    wedge_start = end + along * (WEDGE_MARGIN * std::max(FloorGuide::thickness(beam_loops), FloorGuide::thickness(rings[q])));
-    band = 0.5 * guide.size_inner_beams;
-}
-
-Line OculusScrew::at(double z) const {
-
-    const Line trace = Intersection::plane_plane(Plane::xy_plane_at(z), inner).value();
-    const Point start = Intersection::line_plane(trace, beam_end, false).value();
-    Vector across = (beam_body - ring_body).flattened();
-    across = (across - along * across.dot(along)).normalized();
-
-    const Aim coarse = best_aim(start, across, Aim{150.0, 40.0, -1e300}, 150.0, 40.0, COARSE_STEP, COARSE_ANGLE);
-    const Aim fine = best_aim(start, across, Aim{coarse.offset, coarse.angle, -1e300}, COARSE_STEP, COARSE_ANGLE, SEARCH_STEP, ANGLE_STEP);
-    const Point head = start + along * fine.offset;
-    const Vector u = across * std::cos(fine.angle * M_PI / 180.0) - along * std::sin(fine.angle * M_PI / 180.0);
-
-    return Line::from_points(head, head + u * SCREW_LENGTH);
-}
-
-OculusScrew::Aim OculusScrew::best_aim(const Point& start, const Vector& across, const Aim& centre, double offset_span, double angle_span, double offset_step, double angle_step) const {
-
-    Aim best = centre;
-
-    for (double offset = std::max(centre.offset - offset_span, 0.0); offset <= centre.offset + offset_span; offset += offset_step)
-        for (double angle = std::max(centre.angle - angle_span, 0.0); angle <= std::min(centre.angle + angle_span, 80.0); angle += angle_step) {
-            const Point head = start + along * offset;
-            const Vector u = across * std::cos(angle * M_PI / 180.0) - along * std::sin(angle * M_PI / 180.0);
-            const double distance = clearance(head, u);
-
-            if (distance > best.clearance + 1e-9)
-                best = {offset, angle, distance};
-        }
-
-    return best;
-}
-
-double OculusScrew::clearance(const Point& head, const Vector& u) const {
-
-    // the distance of a point from a plane, positive on the side of inside
-    const auto depth = [](const Point& point, const Plane& plane, const Point& inside) {
-        return plane.signed_distance(inside) < 0.0 ? -plane.signed_distance(point) : plane.signed_distance(point);
-    };
-
-    const Plane& contact = beam[0];
-    const Vector n = (ring_body - contact.origin()).dot(contact.z_axis()) < 0.0 ? -contact.z_axis() : contact.z_axis();
-    const double s_head = (head - contact.origin()).dot(n);
-    const double s_rate = u.dot(n);
-
-    if (s_rate >= 0.0)
-        return -1e300;
-
-    const Point band_point = head + u * std::max((s_head - band) / -s_rate, 0.0);
-    const Point crossing = head + u * (s_head / -s_rate);
-    const Point tip = head + u * SCREW_LENGTH;
-    const double wedge = (wedge_start - band_point).dot(along);
-    const double ring_part = std::min(depth(head, ring_end, ring_body), depth(crossing, ring_end, ring_body));
-    const double in_beam = std::min({depth(tip, beam[1], beam_body), depth(tip, beam[0], beam_body), depth(tip, beam_end, beam_body)});
-
-    return std::min({wedge, ring_part, in_beam});
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
@@ -686,13 +575,6 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_screws() {
             built.push_back({q, screws_of(passed, screw_lines)});
         }
     }
-
-    for (size_t q = 0; q < 4; q++)
-        built.push_back({q, screws_of({ring[q].get(), ring[(q + 1) % 4].get()}, lines.ring(q))});
-
-    for (size_t q = 0; q < 4; q++)
-        for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({ring[q].get(), quarters[q].inner_beams[1].get()}, lines.oculus(q, k))});
 
     std::map<std::string, size_t> numbers;
     std::vector<std::shared_ptr<wood_session::JointBeam>> added;

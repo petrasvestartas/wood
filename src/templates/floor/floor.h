@@ -62,15 +62,10 @@ public:
     /// Whether the inner rib screws of quarter q at end k pass the seam beam's end at the beam corner.
     bool passes_seam_beam(size_t q, size_t k, const std::vector<session_cpp::Line>& screws) const;
 
-    /// Ring beam q into ring beam q + 1, along ring beam q + 1 from ring beam q's tilted face.
-    std::vector<session_cpp::Line> ring(size_t q) const;
 
-    /// Ring beam q into the oculus beam of quarter q at its end k, aimed by OculusScrew.
-    std::vector<session_cpp::Line> oculus(size_t q, size_t k) const;
 
 private:
     const FloorGuide& guide;
-    const std::vector<Loops> rings; // The oculus loops, the four ring beams first.
     const session_cpp::Xform lift; // Up from the datum to the floor.
 
     /// The lines lifted to the floor.
@@ -87,41 +82,6 @@ private:
 
     /// The level of a screw in a corner's level set: down from the datum in sevenths of the depth.
     double corner_level(double levels) const;
-};
-
-/// The screws from a ring beam through the oculus wedge's contact into a quarter's oculus beam towards one of its corners, each the 200 mm line with the largest clearance, found on a coarse grid of head offsets and angles and refined around its best.
-class OculusScrew {
-public:
-    /// The screws of ring beam q into quarter q's oculus beam at its end k.
-    OculusScrew(const FloorGuide& guide, const std::vector<Loops>& rings, size_t q, size_t k);
-
-    /// The screw at level z.
-    session_cpp::Line at(double z) const;
-
-private:
-    /// A head offset along the ring's inner face from the corner and an angle off square to the contact, in degrees, with its clearance.
-    class Aim {
-    public:
-        double offset = 0.0;
-        double angle = 0.0;
-        double clearance = -1e300;
-    };
-
-    std::array<session_cpp::Plane, 2> beam; // The oculus beam: the tilted face it shares with the ring, its back face.
-    session_cpp::Plane beam_end; // The seam beam's inner face the oculus beam ends on at this corner.
-    session_cpp::Point beam_body; // A point inside the oculus beam.
-    session_cpp::Plane inner; // The ring beam's inner face, where the heads sit.
-    session_cpp::Plane ring_end; // The ring beam's end plane at this corner.
-    session_cpp::Point ring_body; // A point inside the ring beam.
-    session_cpp::Point wedge_start; // The contact's top edge end at this corner moved along the edge by the wedge's margin.
-    session_cpp::Vector along; // Along the contact's top edge, away from this corner.
-    double band = 0.0; // Half the beam thickness: within it of the contact plane the wedge's pocket lies.
-
-    /// The best aim on a grid of offsets and angles around a centre, each within its range.
-    Aim best_aim(const session_cpp::Point& start, const session_cpp::Vector& across, const Aim& centre, double offset_span, double angle_span, double offset_step, double angle_step) const;
-
-    /// How far a screw from head along u keeps inside: the head and the contact crossing inside the ring's end, the part within the pocket band short of the wedge, the tip inside the oculus beam's back face and the seam beam end.
-    double clearance(const session_cpp::Point& head, const session_cpp::Vector& u) const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

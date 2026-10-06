@@ -739,7 +739,7 @@ std::array<size_t, 3> subtree_counts(const session_cpp::Session& session, const 
     return counts;
 }
 
-/// One quarter's branch taken out of the guide and out of the whole floor with WoodSession::get_branch: the guide's quarter its 33 drawn curves, the floor's quarter a WoodSession with every element, drill and connector under quarter_0, its connectors read back through get_elements<JointBeam>(), the screws of the next quarter that drill its members brought along so every member reads its pre-drill lines, both sessions unchanged.
+/// One quarter's branch taken out of the guide and out of the whole floor with WoodSession::get_branch: the guide's quarter its 33 drawn curves, the floor's quarter a WoodSession with every element, drill and connector under quarter_0, its connectors read back through get_elements<JointBeam>(), no screw of another quarter drilling its members now the oculus has none, every member reading its pre-drill lines, both sessions unchanged.
 void check_extract_quarter() {
 
     const wood_floor::FloorGuide& guide = square_guide();
@@ -770,7 +770,7 @@ void check_extract_quarter() {
     const std::array<size_t, 3> found = subtree_counts(part, *part.tree.root());
 
     const size_t borrowed = found[2] - expected[2];
-    check(found[0] - expected[0] == borrowed && found[1] == expected[1] && expected[1] > 0 && borrowed > 0, fmt::format("the floor's quarter 0: {} of {} elements, {} of {} drills, {} of {} connectors, {} pre-drill connectors from the next quarter", found[0], expected[0], found[1], expected[1], found[2], expected[2], borrowed));
+    check(found[0] - expected[0] == borrowed && found[1] == expected[1] && expected[1] > 0 && borrowed == 0, fmt::format("the floor's quarter 0: {} of {} elements, {} of {} drills, {} of {} connectors, {} pre-drill connectors from the next quarter", found[0], expected[0], found[1], expected[1], found[2], expected[2], borrowed));
     check(part.get_elements<JointBeam>().size() == found[2] && found[2] > 0 && part.settings.distance == floor.settings.distance, "the branch a WoodSession: its connectors as JointBeam, the floor's settings");
     size_t lines = 0;
 
@@ -1337,7 +1337,7 @@ std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, con
     return counts;
 }
 
-/// The screws of one floor: per kind 16, 16, 16, 8 and 16, every connector pre-drilled and naming the two members it joins first, every screw 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it in the connector colour, every connector in the connectors group of its quarter, 20 or 21 per quarter, also after the round trip.
+/// The screws of one floor: per kind 16, 16 and 16, none at the oculus, every connector pre-drilled and naming the two members it joins first, every screw 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it in the connector colour, every connector in the connectors group of its quarter, 20 or 21 per quarter, also after the round trip.
 void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& label) {
 
     wood_floor::Floor scene(guide, "screws");
@@ -1367,13 +1367,6 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
             joined.push_back({"rib_corner", {members.inner_beams[1], members.inner_ribs[k]}});
     }
 
-    for (size_t q = 0; q < 4; q++)
-        joined.push_back({"ring", {scene.ring[q], scene.ring[(q + 1) % 4]}});
-
-    for (size_t q = 0; q < 4; q++)
-        for (size_t k = 0; k < 2; k++)
-            joined.push_back({"oculus", {scene.ring[q], scene.quarters[q].inner_beams[1]}});
-
     check(joined.size() == screws.size(), label + " one screw connector per pair of members");
     std::map<std::string, size_t> counts;
 
@@ -1394,7 +1387,7 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
         }
     }
 
-    check(counts["rib_beam"] == 16 && counts["beam_mitre"] == 16 && counts["rib_corner"] == 16 && counts["ring"] == 8 && counts["oculus"] == 16, label + " screws per kind 16, 16, 16, 8 and 16");
+    check(counts["rib_beam"] == 16 && counts["beam_mitre"] == 16 && counts["rib_corner"] == 16, label + " screws per kind 16, 16 and 16, none at the oculus");
 
     for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
         check(std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <= 1e-9 * volumes.at(beam->guid()), label + " no member cut by the screws: " + beam->name);
@@ -1420,18 +1413,18 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
     std::map<std::string, size_t> expected;
 
     for (size_t q = 0; q < 4; q++)
-        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = guide.seam_through_ribs ? 20 : 21;
+        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = guide.seam_through_ribs ? 17 : 18;
 
-    check(groups == expected, label + " every connector in its quarter, 12 of the quarter, 4 of the oculus, 3 at its column and 1 or 2 on its seam");
+    check(groups == expected, label + " every connector in its quarter, 17 or 18 each");
     check(check_connector_tree(back, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
-    const size_t count = guide.seam_through_ribs ? 80 : 84;
+    const size_t count = guide.seam_through_ribs ? 68 : 72;
     check(connectors.size() == count && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} {} connectors, {} nodes in the connector colour, the same after a round trip", label, count, painted));
     size_t total = 0;
 
     for (const std::pair<const std::string, size_t>& kind : counts)
         total += kind.second;
 
-    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, both members named, 200 x d4, nothing cut, pre-drill lines through a round trip; {} connectors and their {} part and dowel nodes in the connector colour, 12 in each quarter, 16 in the oculus, 3 at each column, 2 on each seam, also after it", total, screws.size(), label, connectors.size(), painted - connectors.size()) << std::endl;
+    std::cout << fmt::format("floor_elements: {} screws in {} connectors on {}, none at the oculus, both members named, 200 x d4, nothing cut, pre-drill lines through a round trip; {} connectors and their {} part and dowel nodes in the connector colour, also after it", total, screws.size(), label, connectors.size(), painted - connectors.size()) << std::endl;
 }
 
 /// The assembly screws on the square and on 3000 x 2400, with the seams through the ribs and tied.

@@ -64,7 +64,6 @@ classDiagram
     }
     class ScrewLines {
         rib_beam, beam_mitre, rib_corner
-        ring, oculus
     }
     FloorGuide --> Floor : loops become elements
     ContactFaces --> Floor : contact interactions

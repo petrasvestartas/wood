@@ -211,16 +211,6 @@ Code: [`add_connectors`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd
 
 Code: [`add_screws`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L191)
 
-### OculusScrew
-
-![OculusScrew](floor/920_oculus_screw.webp)
-
-<span style="color:#2196EA">■ the aimed screws</span> <span style="color:#A3A3A3">■ ring beam and oculus beam</span>
-
-The ring screws are aimed past the oculus wedge by a search over head offsets and angles.
-
-Code: [`OculusScrew`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L93)
-
 ### Floor
 
 ![Floor](floor/921_floor.webp)
