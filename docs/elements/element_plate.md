@@ -18,3 +18,11 @@ static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& 
 Its bottom outline, any closed polygon, and the same outline 40 above; the two outlines are its features.
 
 \include{lineno} elements/element_plate.cpp
+
+## With holes
+
+![With holes](elements/element_plate_holes.png)
+
+Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add_interaction(hole, plate, InteractionFeatureSolid(drills, radius))`, a solid feature of drills alone; written as BReps, the holes are exact cylinders.
+
+\include{lineno} elements/element_plate_holes.cpp

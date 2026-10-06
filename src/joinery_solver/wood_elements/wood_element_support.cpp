@@ -2,6 +2,7 @@
 #include "wood_serialization.h"
 #include "wood_element_support.h"
 #include "wood_element_geometry.h"
+#include "wood_brep_drill.h"
 #include "element_support.pb.h"
 
 namespace wood_session {
@@ -112,6 +113,24 @@ static std::array<std::vector<Polyline>, 2> base_plate(const Support& support) {
     return loops;
 }
 
+/// The base plate as a BRep with its anchor holes exact cylinders: the plain plate drilled along every anchor, from just above it, so each hole runs through; the plate with polygonal holes when the drilling fails.
+static BRep base_plate_brep(const Support& support, const std::array<std::vector<Polyline>, 2>& plate) {
+
+    std::vector<Drill> holes;
+
+    for (const Line& anchor : support.anchors()) {
+        const Vector down = anchor.to_direction();
+        holes.push_back({Line::from_points(anchor.start() - down * 1.0, anchor.end()), support.base_plate_hole_diameter * 0.5});
+    }
+
+    const std::optional<BRep> drilled = drilled_brep(Mesh::loft({plate[0][0]}, {plate[1][0]}, true), holes);
+
+    if (drilled)
+        return *drilled;
+
+    return brep_between_loops(plate[0], plate[1]);
+}
+
 /// The level the coupling nut starts at: under the head plate by the nut's own height.
 static double coupling_level(const Support& support) {
     return support.height - support.head_plate_thickness - support.coupling_nut_height;
@@ -179,7 +198,7 @@ const BRep& Support::element_geometry_brep() const {
         const std::array<Polyline, 2> adjustment = hexagon(*this, adjustment_nut_across_flats, base_plate_thickness, adjustment_nut_top);
         const std::array<Polyline, 2> coupling = hexagon(*this, coupling_nut_across_flats, coupling_level(*this), coupling_level(*this) + coupling_nut_height);
 
-        BRep brep = brep_between_loops(plate[0], plate[1]);
+        BRep brep = base_plate_brep(*this, plate);
         append_brep(brep, brep_between_loops({adjustment[0]}, {adjustment[1]}));
         append_brep(brep, drill_brep(Line::from_points(at(adjustment_nut_top), at(coupling_level(*this))), rod_diameter * 0.5));
         append_brep(brep, brep_between_loops({coupling[0]}, {coupling[1]}));

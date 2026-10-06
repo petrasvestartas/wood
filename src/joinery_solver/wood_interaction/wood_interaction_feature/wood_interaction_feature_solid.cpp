@@ -13,6 +13,9 @@ namespace wood_session {
 InteractionFeatureSolid::InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation) : mesh(mesh), operation(operation) {
 }
 
+InteractionFeatureSolid::InteractionFeatureSolid(const std::vector<Line>& drills, double radius) : drills(drills), drill_radius(radius) {
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureSolid - Geometry
 // ═══════════════════════════════════════════════════════════════════════════

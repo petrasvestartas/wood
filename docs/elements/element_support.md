@@ -16,6 +16,6 @@ static std::shared_ptr<Joint> Joint::support(const Support& support, const Colum
 
 ![On a plane](elements/element_support.png)
 
-A support on the xy plane, written as its exact BRep so the round parts and holes are smooth.
+A support on the xy plane, written as its exact BRep: the round parts and the four anchor holes of the base plate are exact cylinders.
 
 \include{lineno} elements/element_support.cpp

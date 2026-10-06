@@ -39,6 +39,9 @@ public:
     /// A feature of the closed mesh: added, taken away or intersected.
     InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation);
 
+    /// Round holes of radius along every drill axis taken away, exact cylinders in the BRep; where an axis end lies inside the element the hole stops there.
+    InteractionFeatureSolid(const std::vector<Line>& drills, double radius);
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════

@@ -8,7 +8,7 @@ An element is built from its own parameters only. Whatever another element does 
 
 | Element | Header | Examples |
 | --- | --- | --- |
-| [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate` |
+| [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate`, `element_plate_holes` |
 | [Beam](@ref elements_beam) | `wood_element_beam.h` | `element_beam` |
 | [BeamVariable](@ref elements_beam_variable) | `wood_element_beam_variable.h` | `element_beam_variable`, `element_beam_variable_cut` |
 | [Column](@ref elements_column) | `wood_element_column.h` | `element_column`, `element_column_session` |

@@ -273,6 +273,7 @@ ADD_EXE(templates_grid_4_reference         examples/templates_grid_4_reference.c
 ADD_EXE(templates_grid_5_framing           examples/templates_grid_5_framing.cpp)
 ADD_EXE(templates_shells_2_gridshell              examples/templates_shells_2_gridshell.cpp)
 ADD_EXE(element_plate                    examples/elements/element_plate.cpp)
+ADD_EXE(element_plate_holes              examples/elements/element_plate_holes.cpp)
 ADD_EXE(element_beam                     examples/elements/element_beam.cpp)
 ADD_EXE(element_beam_variable            examples/elements/element_beam_variable.cpp)
 ADD_EXE(element_beam_variable_cut        examples/elements/element_beam_variable_cut.cpp)

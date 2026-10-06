@@ -24,6 +24,7 @@ MUTED = (115, 115, 115)
 
 EXAMPLES = {  # every example: the box the camera frames in mm (x0, y0, z0, x1, y1, z1) and whether its features are drawn
     "element_plate": ((-50, -50, 0, 650, 450, 40), True),
+    "element_plate_holes": ((-50, -50, -10, 650, 450, 50), True),
     "element_beam": ((-150, -150, -150, 1150, 450, 150), True),
     "element_beam_variable": ((-100, -100, -750, 3100, 100, 10), True),
     "element_beam_variable_cut": ((-100, -500, -950, 3100, 500, 200), True),
