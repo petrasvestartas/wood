@@ -1,14 +1,12 @@
 # Floor 01: Bay, seams, oculus and column corners {#templates_floor_01_bay}
 
-This chapter covers the part of the `FloorGuide` constructor (`src/templates/floor/floor.cpp:403-425`) that runs before any quarter geometry exists. From the four corners and `FloorParameters` it computes the centre, the oculus corners and the validity gate `geometry::invalid` (`floor_plan.cpp:110-139`). It then builds the shared entities every quarter reads, in one loop over `q`: `edges[q]` (`bay_edge`), `seams[q]` (`seam`), `oculus_edges[q]` (`oculus_edge`) and `columns[q]` (`column_corner`), all in `floor.cpp:69-143`. The chapter ends where the second loop stores each quarter pentagon `geometry[q].polygon` and calls `compute_quarter`. Chapter 2 starts from those polygons and the shared entities. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)`, a 6000 x 6000 mm square with corner 0 at (-3000, -3000).
+This chapter covers the part of the `FloorGuide` constructor (`src/templates/floor/floor.cpp:403-425`) that checks the four corners and builds the shared `edges`, `seams`, `oculus_edges` and `columns` every quarter reads. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)`, a 6000 x 6000 mm square with corner 0 at (-3000, -3000).
 
-Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) builds this default guide and draws quarter 0 of it, the quarter polygon of step 22 with its column head and oculus corner.
+Example: [templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_1_floorguide.cpp) builds this default guide and draws its quarter 0.
 
 ![](floor/film_01_bay.webp)
 
 <span style="color:#2196EA">■ built</span> what the step builds   <span style="color:#E8478B">■ variable</span> the value it introduces or measures   <span style="color:#F2CC0C">■ result</span> a second thing it builds   <span style="color:#737373">■ input</span> what it reads from earlier steps, dashed for a helper   <span style="color:#A3A3A3">■ context</span> everything else
-
-The constructor, in the order it runs, with the frames of this chapter:
 
 ```mermaid
 flowchart TD
@@ -26,28 +24,13 @@ flowchart TD
     J --> K["columns[q].levels[1] = rib_bottom_level, soffit (chapter 5)"]
 ```
 
-Frame 7 shows the helpers `level`, `edge_plane`, `plane_plane_plane` and `line_plane` that the rest of the chapter and every later chapter call.
-
 ## 1. Bay corners
 
 ![](floor/001_bay_corners.webp)
 
 <span style="color:#2196EA">■ built</span> `corners[0..3]`, counter-clockwise   <span style="color:#E8478B">■ variable</span> the spans `2 half_x = 6000`, `2 half_y = 6000`
 
-`FloorGuide::rectangle(half_x, half_y)` builds four <span style="color:#2196EA">corners</span> <span style="color:#2196EA">counter-clockwise</span> at z 0 and passes them to the constructor. <span style="color:#E8478B">`half_x`</span> and <span style="color:#E8478B">`half_y`</span> are half spans, so `rectangle(3000, 3000)` is a 6000 x 6000 bay centred on the origin. The constructor initialises the `WoodSession` base as `WoodSession("floor_guide")` and copies `corners` and `parameters` into const members, so neither can change after construction. Corner `k` starts edge `k`, which runs to corner `k + 1`.
-
-```cpp
-FloorGuide FloorGuide::rectangle(double half_x, double half_y, const FloorParameters& parameters) {
-    return FloorGuide({Point(-half_x, -half_y, 0.0), Point(half_x, -half_y, 0.0), Point(half_x, half_y, 0.0), Point(-half_x, half_y, 0.0)}, parameters);
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `half_x` | 3000 | Half span along x |
-| `half_y` | 3000 | Half span along y |
-| `corners[0..3]` | (-3000, -3000, 0), (3000, -3000, 0), (3000, 3000, 0), (-3000, 3000, 0) | Bay corners, counter-clockwise at z 0 |
-| `parameters` | defaults of `FloorParameters`, `floor.h:40-55` | oculus 1000, column_head 220, column_head_chamfer 120, outer_ribs 100, inner_ribs 60, inner_beams 60, wedge 240, tsections 27, height 650, rise 453, wedge_plane_angle -10, oculus_plane_angle 5, column_head_depth 730, bay_height 3500, middle_wedge_factor 1.25, seam_through_ribs true |
+`FloorGuide::rectangle(half_x, half_y)` builds four corners counter-clockwise at z 0 around the origin, which the constructor stores with `parameters` as const members; corner `k` starts edge `k`.
 
 Code: `FloorGuide::rectangle`, [floor_plan.cpp:22-24](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L22-L24); constructor initialiser, [floor.cpp:424](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L424).
 
@@ -57,22 +40,7 @@ Code: `FloorGuide::rectangle`, [floor_plan.cpp:22-24](https://github.com/petrasv
 
 <span style="color:#2196EA">■ built</span> `centre`   <span style="color:#F2CC0C">■ result</span> `midpoint(0..3)`   <span style="color:#737373">■ input</span> the bimedians, dashed   <span style="color:#A3A3A3">■ context</span> bay edges and diagonals
 
-<span style="color:#2196EA">`centre`</span> is `Point::centroid` of the four corners: the mean of their coordinates, the vertex centroid. It is not the area centroid. For any quadrilateral the vertex centroid is where the two <span style="color:#737373">bimedians</span> (midpoint 0 to midpoint 2, midpoint 1 to midpoint 3) cross and bisect each other. <span style="color:#F2CC0C">`midpoint(k)`</span> is the centre of the line from `corners[k % 4]` to `corners[(k + 1) % 4]`. It is a method recomputed on every call, not stored; `BayEdge` keeps its own copy in step 8. Both run before the validity check.
-
-```cpp
-centre = Point::centroid({corners[0], corners[1], corners[2], corners[3]});
-Point FloorGuide::midpoint(size_t k) const {
-    return Line::from_points(corners[k % 4], corners[(k + 1) % 4]).center();
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `centre` | (0, 0, 0) | Vertex centroid of the four corners; every seam ends here |
-| `midpoint(0)` | (0, -3000, 0) | Middle of edge 0 |
-| `midpoint(1)` | (3000, 0, 0) | Middle of edge 1 |
-| `midpoint(2)` | (0, 3000, 0) | Middle of edge 2 |
-| `midpoint(3)` | (-3000, 0, 0) | Middle of edge 3 |
+`centre` is the vertex centroid of the four corners (not the area centroid), where the bimedians cross, and `midpoint(k)` is the centre of edge `k`, recomputed on every call rather than stored.
 
 Code: `FloorGuide::FloorGuide`, [floor.cpp:426](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L426); `FloorGuide::midpoint`, [floor_plan.cpp:26-28](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L26-L28).
 
@@ -82,20 +50,7 @@ Code: `FloorGuide::FloorGuide`, [floor.cpp:426](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ built</span> `oculus_corners[0..3]`, the diamond   <span style="color:#E8478B">■ variable</span> `oculus = 1000`   <span style="color:#737373">■ input</span> `centre`, `midpoint(q)` and the rays between them, dashed   <span style="color:#A3A3A3">■ context</span> bay edges
 
-For each `q`, the <span style="color:#2196EA">oculus corner</span> is the point at distance <span style="color:#E8478B">`oculus`</span> from the <span style="color:#737373">centre</span> on the <span style="color:#737373">ray</span> towards <span style="color:#737373">`midpoint(q)`</span>: the direction `midpoint(q) - centre` is normalised and scaled by <span style="color:#E8478B">`parameters.oculus`</span>. On a rectangle the four rays are the two half axes in both directions, so the four corners always form a <span style="color:#2196EA">square diamond</span>, whatever the spans. Oculus corner `q` lies on seam `q` (step 10).
-
-```cpp
-for (size_t q = 0; q < 4; q++)
-    oculus_corners[q] = centre + (midpoint(q) - centre).normalized() * parameters.oculus;
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `oculus` | 1000 | Distance of every oculus corner from the centre |
-| `oculus_corners[0]` | (0, -1000, 0) | On seam 0 |
-| `oculus_corners[1]` | (1000, 0, 0) | On seam 1 |
-| `oculus_corners[2]` | (0, 1000, 0) | On seam 2 |
-| `oculus_corners[3]` | (-1000, 0, 0) | On seam 3 |
+Each `oculus_corners[q]` lies `oculus` from `centre` on the ray towards `midpoint(q)`, so on any rectangle the four form a square diamond and oculus corner `q` lies on seam `q`.
 
 Code: `FloorGuide::FloorGuide`, [floor.cpp:428-429](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L428-L429).
 
@@ -105,28 +60,7 @@ Code: `FloorGuide::FloorGuide`, [floor.cpp:428-429](https://github.com/petrasves
 
 <span style="color:#2196EA">■ built</span> `turn` at every corner   <span style="color:#E8478B">■ variable</span> the four `after` vectors and `before` at corner 0   <span style="color:#A3A3A3">■ context</span> bay edges
 
-`geometry::invalid(guide)` returns an empty string for a valid guide or the reason it is not; the constructor throws `std::invalid_argument("invalid floor guide: " + why)` on a non-empty reason. Its first loop computes, per corner `k`, <span style="color:#E8478B">`after = corners[k+1] - corners[k]`</span>, <span style="color:#E8478B">`before = corners[k+3] - corners[k]`</span> and <span style="color:#2196EA">`turn = after.cross(corners[k+2] - corners[k+1])[2]`</span>, the z of the cross product of edge `k` and edge `k + 1`. It fails in this order: `|corners[k][2]| > 0`, then `turn <= 0` (a right turn or a straight corner; the message names corner `(k + 1) % 4`, where the turn is), then a zero-length `after` or `before`. Because the turn test runs first, a repeated corner almost always gives `turn = 0` and is reported as "not counter-clockwise and convex". The "repeats its neighbour" message fires only when `corners[3]` equals `corners[0]` and the turn at corner 1 is positive. In the frame the four edge arrows are the four <span style="color:#E8478B">`after`</span> vectors, each with its <span style="color:#2196EA">turn</span> arc at the corner it ends on, and <span style="color:#E8478B">`before`</span> at corner 0 is the arrow drawn inside the bay, pointing from corner 0 towards corner 3.
-
-```cpp
-const Vector after = corners[(k + 1) % 4] - corners[k];
-const Vector before = corners[(k + 3) % 4] - corners[k];
-const double turn = after.cross(corners[(k + 2) % 4] - corners[(k + 1) % 4])[2];
-if (std::abs(corners[k][2]) > 0.0) return fmt::format("corner {} is not at z 0", k);
-if (turn <= 0.0) return fmt::format("the corners are not counter-clockwise and convex at corner {}", (k + 1) % 4);
-if (after.magnitude() <= 0.0 || before.magnitude() <= 0.0) return fmt::format("corner {} repeats its neighbour", k);
-```
-
-| Check | Fails when | Message |
-|---|---|---|
-| z 0 | `std::abs(corners[k][2]) > 0` | `corner k is not at z 0` |
-| left turn | `turn <= 0` | `the corners are not counter-clockwise and convex at corner (k+1)%4` |
-| no repeat | `after` or `before` has magnitude 0 | `corner k repeats its neighbour` |
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `after` (local) | edge 0: (6000, 0, 0) | Edge vector from corner k to corner k + 1 |
-| `before` (local) | at corner 0: (0, 6000, 0) | Edge vector from corner k to corner k - 1 |
-| `turn` (local) | 6000 x 6000 = 3.6e7 at every corner | z of the cross product of consecutive edges, positive for a left turn |
+`geometry::invalid` returns why a guide is invalid and the constructor then throws `std::invalid_argument`; per corner it fails, in this order, when the corner is off z 0, when `turn` (z of edge `k` cross edge `k + 1`) is `<= 0`, or when `after` or `before` has zero length. Because the turn test runs first, a repeated corner is almost always reported as "not counter-clockwise and convex".
 
 Code: `geometry::invalid`, [floor_plan.cpp:110-129](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L110-L129); thrown in `FloorGuide::FloorGuide`, [floor.cpp:431-434](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L431-L434).
 
@@ -136,18 +70,7 @@ Code: `geometry::invalid`, [floor_plan.cpp:110-129](https://github.com/petrasves
 
 <span style="color:#E8478B">■ variable</span> `along = 1000`   <span style="color:#737373">■ input</span> the open interval `(0, 3000)` from `centre` to `midpoint(0)`, dashed, and `oculus_corners[0]`   <span style="color:#A3A3A3">■ context</span> seam 0
 
-In the same loop, <span style="color:#E8478B">`along`</span> is the projection of `oculus_corners[k] - centre` onto the unit direction from the centre to `midpoint(k)`. The check fails unless <span style="color:#737373">`0 < along < |midpoint(k) - centre|`</span>, an open interval. Because step 3 placed each oculus corner on exactly that ray, `along` equals `oculus` whenever `oculus > 0`; the check therefore says that `oculus` must be positive and shorter than the distance from the centre to every edge midpoint. On the 6000 x 4800 bay of `rectangle(3000, 2400)` that distance is 2400 on edges 0 and 2.
-
-```cpp
-const double along = (guide.oculus_corners[k] - guide.centre).dot((guide.midpoint(k) - guide.centre).normalized());
-if (along <= 0.0 || along >= (guide.midpoint(k) - guide.centre).magnitude())
-    return fmt::format("oculus corner {} is not between the centre and the midpoint of edge {}", k, k);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `along` (local) | 1000 | Distance of the oculus corner from the centre along seam k |
-| `\|midpoint(k) - centre\|` | 3000 | Upper bound of the open interval |
+`along`, the distance of `oculus_corners[k]` from `centre` along seam `k`, must lie strictly between 0 and `|midpoint(k) - centre|`, so `oculus` must be positive and shorter than the distance from the centre to every edge midpoint (2400 on edges 0 and 2 of `rectangle(3000, 2400)`).
 
 Code: `geometry::invalid`, [floor_plan.cpp:131-134](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L131-L134).
 
@@ -157,24 +80,7 @@ Code: `geometry::invalid`, [floor_plan.cpp:131-134](https://github.com/petrasves
 
 <span style="color:#2196EA">■ built</span> `oculus_corner_angle(0) = 90`   <span style="color:#F2CC0C">■ result</span> `oculus_seam_angle(0) = 135`   <span style="color:#737373">■ input</span> `oculus_corners[0]` and the three vectors from it   <span style="color:#A3A3A3">■ context</span> oculus diamond and seam 0
 
-The second loop compares two angles at every oculus corner `k`. <span style="color:#2196EA">`oculus_corner_angle(k)`</span> is the unsigned angle in degrees between <span style="color:#737373">`oculus_corners[k+3] - oculus_corners[k]`</span> and <span style="color:#737373">`oculus_corners[k+1] - oculus_corners[k]`</span>, the interior angle of the diamond. <span style="color:#F2CC0C">`oculus_seam_angle(k)`</span> is the unsigned angle between <span style="color:#737373">`midpoint(k) - centre`</span> (the seam direction, outward) and `oculus_corners[k+1] - oculus_corners[k]`, the oculus edge of quarter `k + 1`. Both use `Vector::angle(other, false)`: no sign, degrees by default. The guide is rejected when `sin(oculus_corner_angle(k)) < sin(oculus_seam_angle(k))` at any `k`; the ring beam would then leave quarter `k + 1`'s oculus beam face uncovered (rule R7, `floor.h:154`). On any rectangle the diamond is a square, so the angles are 90 and 135 and this check always passes. `FloorGuide::check()` measures the same coverage later as `ring_uncovered_mm2` (chapter 11).
-
-```cpp
-double FloorGuide::oculus_corner_angle(size_t k) const {
-    return (oculus_corners[(k + 3) % 4] - oculus_corners[k % 4]).angle(oculus_corners[(k + 1) % 4] - oculus_corners[k % 4], false);
-}
-double FloorGuide::oculus_seam_angle(size_t k) const {
-    return (midpoint(k) - centre).angle(oculus_corners[(k + 1) % 4] - oculus_corners[k % 4], false);
-}
-if (std::sin(guide.oculus_corner_angle(k) * M_PI / 180.0) < std::sin(guide.oculus_seam_angle(k) * M_PI / 180.0))
-    return fmt::format("the ring beam leaves quarter {}'s oculus beam face uncovered at oculus corner {}: ...", (k + 1) % 4, k, ...);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `oculus_corner_angle(k)` | 90 | Interior angle of the oculus diamond at corner k, degrees |
-| `oculus_seam_angle(k)` | 135 | Angle between seam k (outward) and the oculus edge towards corner k + 1, degrees |
-| `sin` comparison | 1.000 >= 0.707 | Passes at every k |
+The guide is rejected when `sin(oculus_corner_angle(k)) < sin(oculus_seam_angle(k))` at any oculus corner, because the ring beam would then leave quarter `k + 1`'s oculus beam face uncovered (rule R7). On any rectangle the angles are 90 and 135, so this check always passes.
 
 Code: `geometry::invalid`, [floor_plan.cpp:137-141](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L137-L141); `oculus_corner_angle`, `oculus_seam_angle`, [floor_plan.cpp:34-40](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L34-L40).
 
@@ -184,28 +90,7 @@ Code: `geometry::invalid`, [floor_plan.cpp:137-141](https://github.com/petrasves
 
 <span style="color:#2196EA">■ built</span> `level(0.0)`, `edge_plane(edges[0].line, -Z)`, `edge_plane(edges[3].line, -Z)`   <span style="color:#F2CC0C">■ result</span> the points `plane_plane_plane` and `line_plane` return   <span style="color:#E8478B">■ variable</span> the edge direction   <span style="color:#737373">■ input</span> `seams[0].line`, `oculus_edges[0].tilted`
 
-Every plane and corner in the floor is made by a few helpers in `floor_geometry.cpp`. `level(z)` is the world xy plane moved up by `z`; <span style="color:#2196EA">`level(0.0)`</span> is the floor datum, where every quarter member is built before the lift. <span style="color:#2196EA">`edge_plane(edge, normal_z)`</span> is the plane through the edge's centre with normal <span style="color:#E8478B">`edge.to_direction()`</span>`.cross(normal_z)`. With `normal_z = -Z` it is vertical and its normal is the left-hand normal of the edge, which points into a counter-clockwise outline. `plane_plane_plane(a, b, c)` returns the one point three planes share through `Intersection::plane_plane_plane`, or `std::nullopt` when its 3 x 3 solve is not rank 3 with a pivot product above 1e-12 (two planes parallel, or all three through one line). `line_plane(line, plane)` intersects the infinite line with the plane and returns `std::nullopt` when `|n . direction| <= TOLERANCE = 1e-9`. `edge(polygon, i)` is the side from point `i` to point `i + 1`, wrapping to the first. In the frame, `plane_plane_plane(level(0.0), edge_plane(edges[0].line, -Z), edge_plane(edges[3].line, -Z))` gives <span style="color:#F2CC0C">`corners[0]`</span>, the rule every plan quad corner follows in chapter 3, and `line_plane(`<span style="color:#737373">`seams[0].line`</span>`, `<span style="color:#737373">`oculus_edges[0].tilted`</span>`)` gives <span style="color:#F2CC0C">`oculus_corners[0]`</span>.
-
-```cpp
-Plane level(double z) { return Plane::xy_plane() + Vector(0.0, 0.0, z); }
-Plane edge_plane(const Line& edge, const Vector& normal_z) {
-    return Plane::from_point_normal(edge.center(), edge.to_direction().cross(normal_z));
-}
-std::optional<Point> line_plane(const Line& line, const Plane& plane) {
-    Point point;
-    if (std::abs(plane.z_axis().dot(line.to_direction())) <= TOLERANCE || !Intersection::line_plane(line, plane, point, false))
-        return std::nullopt;
-    return point;
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `level(0.0)` | z = 0, normal (0, 0, 1) | Floor datum |
-| `TOLERANCE` | 1e-9 | Below this `\|n . d\|` a line counts as parallel to a plane |
-| `edge_plane(edges[0].line, -Z)` | origin (0, -3000, 0), normal (0, 1, 0) | (1, 0, 0) x (0, 0, -1) = (0, 1, 0), into the bay |
-| `plane_plane_plane(...)` in the frame | (-3000, -3000, 0) | `corners[0]` |
-| `line_plane(...)` in the frame | (0, -1000, 0) | `oculus_corners[0]` |
+`level(z)`, `edge_plane`, `plane_plane_plane` and `line_plane` build every plane and corner of the floor; `edge_plane(edge, -Z)` is vertical with its normal pointing into a counter-clockwise outline, and the last two return `std::nullopt` on parallel input.
 
 Code: `level`, `edge_plane`, [floor_geometry.cpp:19-25](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_geometry.cpp#L19-L25); `line_plane`, 41-49; `plane_plane_plane`, 51-59; `edge`, 65-67; `TOLERANCE`, 8.
 
@@ -215,19 +100,7 @@ Code: `level`, `edge_plane`, [floor_geometry.cpp:19-25](https://github.com/petra
 
 <span style="color:#2196EA">■ built</span> `edges[0].line`, `edges[0].midpoint`   <span style="color:#F2CC0C">■ result</span> `edges[0].band[0]`, drawn `height` deep   <span style="color:#A3A3A3">■ context</span> bay edges
 
-The first loop of the constructor builds, for one `q` at a time, `edges[q]`, `seams[q]`, `oculus_edges[q]` and `columns[q]`, then moves to `q + 1`. `bay_edge(guide, k)` sets <span style="color:#2196EA">`edge.line`</span> from `corners[k]` to `corners[(k + 1) % 4]` and <span style="color:#2196EA">`edge.midpoint = guide.midpoint(k)`</span>. <span style="color:#F2CC0C">`band[0]`</span> is `Plane::from_point_normal(midpoint, line.to_direction().cross(-Z))`: the vertical plane on the edge with its origin at the midpoint and the left-hand normal, which points into the bay because the corners are counter-clockwise. It is the same plane `edge_plane(line, -Z)` would give. The two quarters on either side of the midpoint share it; chapter 2 re-origins it per quarter. In the frame the plane is drawn as a sheet `height` deep below the edge.
-
-```cpp
-edge.line = Line::from_points(guide.corners[k], guide.corners[(k + 1) % 4]);
-edge.midpoint = guide.midpoint(k);
-edge.band = pair(Plane::from_point_normal(edge.midpoint, edge.line.to_direction().cross(-Vector::z_axis())), guide.parameters.outer_ribs);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `edges[0].line` | (-3000, -3000, 0) to (3000, -3000, 0) | Bay edge 0, corner 0 to corner 1 |
-| `edges[0].midpoint` | (0, -3000, 0) | Where the two quarters' outer ribs on this edge meet |
-| `edges[k].band[0]` | edge 0: origin (0, -3000, 0), normal (0, 1, 0); edge 1: (3000, 0, 0), (-1, 0, 0); edge 2: (0, 3000, 0), (0, -1, 0); edge 3: (-3000, 0, 0), (1, 0, 0) | Outer face of the outer rib band, normal into the bay |
+`bay_edge` sets `edges[k].line` from `corners[k]` to `corners[k + 1]`, its `midpoint`, and `band[0]`, the vertical plane on the edge at the midpoint with its normal into the bay, shared by the two quarters beside it.
 
 Code: `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L69-L77); loop, [floor.cpp:436-441](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L436-L441).
 
@@ -237,21 +110,7 @@ Code: `bay_edge`, [floor.cpp:69-77](https://github.com/petrasvestartas/wood/blob
 
 <span style="color:#2196EA">■ built</span> `edges[k].band[1]`   <span style="color:#E8478B">■ variable</span> `outer_ribs = 100`, the hatched band   <span style="color:#737373">■ input</span> `edges[k].band[0]`
 
-`pair(plane, distance)` returns `{plane, plane.translate_by_normal(distance)}`. With <span style="color:#E8478B">`distance = outer_ribs`</span> the second plane is <span style="color:#737373">`band[0]`</span> moved <span style="color:#E8478B">100 mm</span> along its normal, into the bay. The two planes bound the outer rib band on edge `k`. In the frame the inner corners of the four bands are `plane_plane_plane(level(0.0), edges[k].band[1], edges[k-1].band[1])`, and the strip between <span style="color:#737373">`band[0]`</span> and <span style="color:#2196EA">`band[1]`</span> is hatched.
-
-```cpp
-static std::array<Plane, 2> pair(const Plane& plane, double distance) {
-    return {plane, plane.translate_by_normal(distance)};
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `outer_ribs` | 100 | Outer rib thickness, the band width |
-| `edges[0].band[1]` | origin (0, -2900, 0), normal (0, 1, 0) | Inner face of the band on edge 0 |
-| `edges[1].band[1]` | x = 2900 | Inner face on edge 1 |
-| `edges[2].band[1]` | y = 2900 | Inner face on edge 2 |
-| `edges[3].band[1]` | x = -2900 | Inner face on edge 3 |
+`band[1]` is `band[0]` moved `outer_ribs` along its normal into the bay, so the two planes bound the outer rib band on edge `k`.
 
 Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L15-L17); used in `bay_edge`, [floor.cpp:74](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L74).
 
@@ -261,22 +120,7 @@ Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/16f
 
 <span style="color:#2196EA">■ built</span> `seams[0..3].line`, solid where the seam beams run, dashed from the oculus corner to the centre   <span style="color:#737373">■ input</span> `seams[k].oculus_corner` = `oculus_corners[k]`   <span style="color:#A3A3A3">■ context</span> bay edges and oculus diamond
 
-`seam(guide, k, centre, oculus_corner)` fills a `Seam`. `index = k` names the quarter on the beam-0 side; quarter `k + 1` is on the beam-2 side. <span style="color:#2196EA">`line`</span> runs from `midpoint(k)` to the centre. <span style="color:#737373">`oculus_corner = oculus_corners[k]`</span> is where both seam beams of this seam end; from there to the centre the line carries no beam (dashed in the frame). `thickness = parameters.inner_beams` is the offset every quarter reads in step 12. `plane` is set last from `plane_into(k)` (step 11).
-
-```cpp
-result.index = k;
-result.line = Line::from_points(guide.midpoint(k), centre);
-result.oculus_corner = oculus_corner;
-result.thickness = guide.parameters.inner_beams;
-result.plane = result.plane_into(k);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `seams[k].index` | k | Quarter on the beam-0 side |
-| `seams[0].line` | (0, -3000, 0) to (0, 0, 0) | Midpoint 0 to the centre |
-| `seams[0].oculus_corner` | (0, -1000, 0) | End of both seam beams |
-| `seams[k].thickness` | 60 (`inner_beams`) | Seam beam thickness |
+`seams[k].line` runs from `midpoint(k)` to the centre, both seam beams end at its `oculus_corner`, `thickness = inner_beams`, and quarter `k` sits on the beam-0 side, quarter `k + 1` on the beam-2 side.
 
 Code: `seam`, [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L80-L90); called [floor.cpp:438](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L438).
 
@@ -286,22 +130,7 @@ Code: `seam`, [floor.cpp:80-90](https://github.com/petrasvestartas/wood/blob/16f
 
 <span style="color:#2196EA">■ built</span> `seams[0].plane` and its origin   <span style="color:#737373">■ input</span> the half seam, `midpoint(0)` to `seams[0].oculus_corner`   <span style="color:#A3A3A3">■ context</span> quarter 0 and oculus diamond
 
-`Seam::plane_into(quarter)` with `quarter % 4 == index` is `edge_plane(Line::from_points(midpoint, oculus_corner), -Z)` where `midpoint = line.start()`. It is vertical through the <span style="color:#737373">half seam</span> from the edge midpoint to the oculus corner, its origin is that half seam's centre, and its normal is the left-hand normal of the direction midpoint to oculus corner, which points into quarter `index`. The result is stored as <span style="color:#2196EA">`seams[k].plane`</span>.
-
-```cpp
-Plane Seam::plane_into(size_t quarter) const {
-    const Point& midpoint = line.start();
-    return quarter % 4 == index ? edge_plane(Line::from_points(midpoint, oculus_corner), -Vector::z_axis())
-                                : edge_plane(Line::from_points(oculus_corner, midpoint), -Vector::z_axis());
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `seams[0].plane` | origin (0, -2000, 0), normal (-1, 0, 0) | Into quarter 0 |
-| `seams[1].plane` | origin (2000, 0, 0), normal (0, -1, 0) | Into quarter 1 |
-| `seams[2].plane` | origin (0, 2000, 0), normal (1, 0, 0) | Into quarter 2 |
-| `seams[3].plane` | origin (-2000, 0, 0), normal (0, 1, 0) | Into quarter 3 |
+`seams[k].plane = plane_into(k)` is the vertical plane through the half seam from the edge midpoint to the oculus corner, with its normal pointing into quarter `k`.
 
 Code: `Seam::plane_into`, [floor.cpp:413-418](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L413-L418); assigned [floor.cpp:87](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L87); `edge_plane`, [floor_geometry.cpp:23-25](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_geometry.cpp#L23-L25).
 
@@ -311,19 +140,7 @@ Code: `Seam::plane_into`, [floor.cpp:413-418](https://github.com/petrasvestartas
 
 <span style="color:#2196EA">■ built</span> `seams[0].faces_into(0)`, quarter 0's beam   <span style="color:#F2CC0C">■ result</span> `seams[0].faces_into(1)`, quarter 1's beam   <span style="color:#737373">■ input</span> the shared seam plane, x = 0
 
-For any `quarter % 4 != index`, `plane_into` reverses the half seam, oculus corner to midpoint. The plane, its origin and its trace are the same and only the normal flips, so it points into that quarter; the code only asks for quarter `index + 1`. `faces_into(quarter) = pair(plane_into(quarter), thickness)`: the seam plane and its copy 60 mm into that quarter, the two faces of that quarter's seam beam. `construction_planes` reads `seams[q].faces_into(q)` as inner beam 0 and `seams[(q + 3) % 4].faces_into(q)` as inner beam 2 (`floor.cpp:191`). The two beams of one seam therefore stand back to back on the <span style="color:#737373">shared seam plane</span>, x in [-60, 0] for <span style="color:#2196EA">quarter 0</span> and [0, 60] for <span style="color:#F2CC0C">quarter 1</span> on seam 0.
-
-```cpp
-std::array<Plane, 2> Seam::faces_into(size_t quarter) const {
-    return pair(plane_into(quarter), thickness);
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `seams[0].faces_into(0)` | {x = 0, normal (-1, 0, 0), origin (0, -2000, 0); x = -60, origin (-60, -2000, 0)} | Quarter 0's beam on seam 0 |
-| `seams[0].faces_into(1)` | {x = 0, normal (1, 0, 0), origin (0, -2000, 0); x = 60, origin (60, -2000, 0)} | Quarter 1's beam on seam 0 |
-| `seams[3].faces_into(0)` | {y = 0, normal (0, -1, 0), origin (-2000, 0, 0); y = -60} | Quarter 0's beam on seam 3 |
+For the other quarter `plane_into` flips only the normal, and `faces_into(quarter)` pairs that plane with its copy `thickness` into the quarter, so the two beams of one seam stand back to back on the shared seam plane.
 
 Code: `Seam::plane_into` else branch, [floor.cpp:417](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L417); `Seam::faces_into`, [floor.cpp:420-422](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L420-L422); read in `construction_planes`, [floor.cpp:191](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L191).
 
@@ -333,17 +150,7 @@ Code: `Seam::plane_into` else branch, [floor.cpp:417](https://github.com/petrasv
 
 <span style="color:#2196EA">■ built</span> `oculus_edges[0].line`   <span style="color:#F2CC0C">■ result</span> `plane` (local) and its origin   <span style="color:#A3A3A3">■ context</span> oculus diamond, quarter 0 and centre
 
-`oculus_edge(corner, previous, parameters)` is called with `oculus_corners[q]` and `oculus_corners[(q + 3) % 4]`, so <span style="color:#2196EA">`edge.line`</span> runs from oculus corner `q` to oculus corner `q - 1`: the third edge of quarter `q`'s pentagon. The local <span style="color:#F2CC0C">`plane = edge_plane(edge.line, -Z)`</span> is vertical through the edge centre. Its normal is the left-hand normal of that direction, which here points away from the centre, into quarter `q`. This plane is not stored; `tilted`, `back` and `ring_inner` are made from it in steps 14 and 15.
-
-```cpp
-edge.line = Line::from_points(corner, previous);
-const Plane plane = edge_plane(edge.line, -Vector::z_axis());
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `oculus_edges[0].line` | (0, -1000, 0) to (-1000, 0, 0), direction (-1, 1, 0)/sqrt 2 | Oculus edge of quarter 0 |
-| `plane` (local) | origin (-500, -500, 0), normal (-1, -1, 0)/sqrt 2 | Vertical plane on the edge, 707.1 from the centre |
+`oculus_edges[q].line` runs from oculus corner `q` to oculus corner `q - 1`, and a local vertical `plane` through it, normal pointing away from the centre into quarter `q`, is the base for `tilted`, `back` and `ring_inner`.
 
 Code: `oculus_edge`, [floor.cpp:93-97](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L93-L97); called [floor.cpp:439](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L439).
 
@@ -353,20 +160,7 @@ Code: `oculus_edge`, [floor.cpp:93-97](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `oculus_edges[0].tilted` and `tilted.z_axis()`   <span style="color:#E8478B">■ variable</span> `oculus_plane_angle = 5` and the offset `height tan 5 = 56.9`   <span style="color:#737373">■ input</span> the vertical `plane`, and the direction toward the centre, dashed
 
-<span style="color:#2196EA">`tilted = rotate(plane, -oculus_plane_angle * pi / 180, line.to_direction(), line.center())`</span>. `rotate` transforms the plane by `Xform::rotation_around_line` about the line through the edge centre along the edge direction, by <span style="color:#E8478B">-5 degrees</span> (right-hand rule about the edge direction). The edge lies on the rotation axis, so the plane's top trace stays on the oculus edge at z 0 and its origin does not move. The normal becomes <span style="color:#2196EA">`n cos 5 - Z sin 5`</span>: it tips downward. A point of the plane at depth `h` below the datum therefore lies <span style="color:#E8478B">`h tan 5 = 0.0875 h`</span> towards the centre, <span style="color:#E8478B">56.9 mm</span> at `h = height = 650` as drawn. The quarter's oculus beam face and the ring beam share this bearing plane (`floor.h:90, 199`). The frame looks along the edge, from oculus corner 0 towards oculus corner 3, with the centre to the right.
-
-```cpp
-edge.tilted = rotate(plane, -parameters.oculus_plane_angle * M_PI / 180.0, edge.line.to_direction(), edge.line.center());
-Plane rotate(const Plane& plane, double radians, const Vector& axis, const Point& point) {
-    return plane.transformed(Xform::rotation_around_line(Line::from_points(point, point + axis), radians));
-}
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `oculus_plane_angle` | 5 | Lean in degrees; negated and converted to radians before rotating |
-| `oculus_edges[0].tilted` | origin (-500, -500, 0), normal (-0.7044, -0.7044, -0.0872) | Oculus bearing plane, leaned 5 degrees about the edge |
-| offset at depth h | h tan 5 = 0.0875 h | Horizontal move of the plane towards the centre |
+`tilted` rotates that plane by `-oculus_plane_angle` about the edge, so its datum trace stays on the oculus edge while its normal tips down and the face leans `h tan 5` towards the centre at depth `h`. The quarter's oculus beam face and the ring beam share this bearing plane.
 
 Code: `oculus_edge`, [floor.cpp:98](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L98); `rotate`, [floor_geometry.cpp:15-17](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_geometry.cpp#L15-L17).
 
@@ -376,18 +170,7 @@ Code: `oculus_edge`, [floor.cpp:98](https://github.com/petrasvestartas/wood/blob
 
 <span style="color:#2196EA">■ built</span> `oculus_edges[0].back` and its normal   <span style="color:#F2CC0C">■ result</span> `oculus_edges[0].ring_inner`   <span style="color:#E8478B">■ variable</span> `inner_beams = 60` offsets   <span style="color:#737373">■ input</span> `oculus_edges[0].line`, tilted's datum trace
 
-<span style="color:#2196EA">`back = plane.translate_by_normal(inner_beams)`</span>: the <span style="color:#737373">vertical edge plane</span> moved <span style="color:#E8478B">60 mm</span> along its normal, into the quarter, away from the centre. It is the back face of the quarter's oculus beam; `construction_planes` uses `{tilted, back}` as inner beam 1. <span style="color:#F2CC0C">`ring_inner = back.translate_by_normal(-inner_beams * 2.0)`</span>: `back` moved 120 mm back, so it sits <span style="color:#E8478B">60 mm</span> inside the edge, towards the centre. Its normal is unchanged and still points away from the centre. The ring beam lies between `tilted` and `ring_inner`, so it is `inner_beams` wide at the datum.
-
-```cpp
-edge.back = plane.translate_by_normal(parameters.inner_beams);
-edge.ring_inner = edge.back.translate_by_normal(-parameters.inner_beams * 2.0);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `inner_beams` | 60 | Offset of both planes from the edge |
-| `oculus_edges[0].back` | origin (-542.43, -542.43, 0), normal (-1, -1, 0)/sqrt 2; 767.1 from the centre | Oculus beam back face |
-| `oculus_edges[0].ring_inner` | origin (-457.57, -457.57, 0), normal (-1, -1, 0)/sqrt 2; 647.1 from the centre | Inner face of the ring beam |
+`back`, the oculus beam's back face, is the vertical edge plane moved `inner_beams` away from the centre, and `ring_inner` sits `inner_beams` inside the edge towards the centre, so the ring beam lies between `tilted` and `ring_inner`.
 
 Code: `oculus_edge`, [floor.cpp:99-100](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L99-L100).
 
@@ -397,21 +180,7 @@ Code: `oculus_edge`, [floor.cpp:99-100](https://github.com/petrasvestartas/wood/
 
 <span style="color:#2196EA">■ built</span> `columns[0].x_axis`   <span style="color:#F2CC0C">■ result</span> `columns[0].y_axis`   <span style="color:#E8478B">■ variable</span> `corner_angle(0) = 90`   <span style="color:#737373">■ input</span> `corners[0]` and the bisector, dashed   <span style="color:#A3A3A3">■ context</span> bay edges 0 and 3
 
-`corner_frame(guide, k)` takes `after = unit(corners[k+1] - corners[k])` and `before = unit(corners[k+3] - corners[k])`. When `|`<span style="color:#E8478B">`corner_angle(k)`</span>` - 90| <= RIGHT_ANGLE`, with `RIGHT_ANGLE = 1e-9` degrees, it returns `{after, before}` unchanged, so a rectangle keeps its exact edge directions. Otherwise it takes <span style="color:#737373">`bisector = unit(after + before)`</span> and returns the bisector rotated about Z by -45 and +45 degrees (`Xform::rotation(Z, -45, true)` and `(Z, 45, true)`): an orthogonal frame symmetric about the bisector, so the square column does not follow a skew corner. At a right corner both branches give the same axes; the frame draws the <span style="color:#737373">bisector</span> dashed. `column_corner` stores the result as <span style="color:#2196EA">`x_axis`</span> and <span style="color:#F2CC0C">`y_axis`</span>.
-
-```cpp
-if (std::abs(guide.corner_angle(k) - 90.0) <= RIGHT_ANGLE)
-    return {after, before};
-const Vector bisector = (after + before).normalized();
-return {bisector.transformed(Xform::rotation(Vector::z_axis(), -45.0, true)), bisector.transformed(Xform::rotation(Vector::z_axis(), 45.0, true))};
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `RIGHT_ANGLE` | 1e-9 | Degrees off 90 within which a corner counts as right |
-| `corner_angle(k)` | 90 | Interior bay angle at corner k |
-| `columns[k].x_axis` | k0 (1, 0, 0); k1 (0, 1, 0); k2 (-1, 0, 0); k3 (0, -1, 0) | Frame x, along the edge after the corner |
-| `columns[k].y_axis` | k0 (0, 1, 0); k1 (-1, 0, 0); k2 (0, -1, 0); k3 (1, 0, 0) | Frame y, along the edge before the corner, reversed |
+At a right corner (within `RIGHT_ANGLE` = 1e-9 degrees) `corner_frame` keeps the two edge directions as `x_axis` and `y_axis`. At a skewed corner it rotates the bisector by -45 and +45 degrees instead, so the square column stays symmetric about the bisector rather than following the skew.
 
 Code: `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L106-L119); `RIGHT_ANGLE`, [floor.cpp:10](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L10); `corner_angle`, [floor_plan.cpp:30-32](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_plan.cpp#L30-L32); stored [floor.cpp:126-128](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L126-L128).
 
@@ -421,19 +190,7 @@ Code: `corner_frame`, [floor.cpp:106-119](https://github.com/petrasvestartas/woo
 
 <span style="color:#2196EA">■ built</span> `columns[0].head`   <span style="color:#F2CC0C">■ result</span> `chamfer_direction`   <span style="color:#E8478B">■ variable</span> `column_head = 220`, `column_head_chamfer = 120`   <span style="color:#A3A3A3">■ context</span> bay edges 0 and 3
 
-`column_corner` builds the <span style="color:#2196EA">head polygon</span> in the corner frame: the corner, `corner + x * column_head`, `corner + x * column_head + y * column_head_chamfer`, `corner + x * column_head_chamfer + y * column_head` and `corner + y * column_head`. That is the <span style="color:#E8478B">220</span> x <span style="color:#E8478B">220</span> shaft square at the corner with its inner corner cut by a chamfer between two points <span style="color:#E8478B">120</span> along the two inner shaft faces: a pentagon at z 0. <span style="color:#F2CC0C">`chamfer_direction = unit(head[3] - head[2])`</span>; `column_seats` reads it in chapter 2, and recomputes the chamfer length 141.42 from `head`. `column_corner` leaves `wedge_fan`, `column_offset` and `wedge_seat` unset; `compute_quarter` fills them later. The `Column` element built in chapter 7 has a capitel ("head") square of `column_head + column_head_chamfer = 340`, `column_head_depth` deep, which is larger than this head polygon.
-
-```cpp
-column.head = {column.corner, column.corner + x * head, column.corner + x * head + y * chamfer, column.corner + x * chamfer + y * head, column.corner + y * head};
-column.chamfer_direction = (column.head[3] - column.head[2]).normalized();
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `column_head` | 220 | Side of the shaft square and of the head polygon |
-| `column_head_chamfer` | 120 | Position of the chamfer vertices along the shaft faces |
-| `columns[0].head` | (-3000, -3000), (-2780, -3000), (-2780, -2880), (-2880, -2780), (-3000, -2780) | Corner, two shaft corners, two chamfer vertices |
-| `columns[0].chamfer_direction` | (-1, 1, 0)/sqrt 2 | Unit vector along the chamfer; the chamfer is 141.42 long |
+`head` is the `column_head` shaft square at the corner with its inner corner chamfered between points `column_head_chamfer` along the two shaft faces, a pentagon at z 0, and `chamfer_direction` is the unit vector from `head[2]` to `head[3]`. The `Column` element of chapter 7 has a larger capitel, `column_head + column_head_chamfer` square.
 
 Code: `column_corner`, [floor.cpp:130-135](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L130-L135); capitel in `to_column`, [floor_elements.cpp:78-91](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_elements.cpp#L78-L91).
 
@@ -443,16 +200,7 @@ Code: `column_corner`, [floor.cpp:130-135](https://github.com/petrasvestartas/wo
 
 <span style="color:#2196EA">■ built</span> `columns[0].sides[0]`, `columns[0].sides[1]`   <span style="color:#737373">■ input</span> `columns[0].head`   <span style="color:#A3A3A3">■ context</span> bay edges 0 and 3
 
-<span style="color:#2196EA">`sides = {edge_plane(edge(head, 0), -Z), edge_plane(edge(head, 4), -Z)}`</span>. `edge(`<span style="color:#737373">`head`</span>`, 0)` is head[0] to head[1], on bay edge `k`; `edge(head, 4)` is head[4] to head[0], the wrap-around side on bay edge `k - 1`. Each plane is vertical through its side's centre with the left-hand normal, which points into the bay. At a right corner they lie in the same planes as `band[0]` of bay edges `k` and `k - 1`, with their origins at the head side centres.
-
-```cpp
-column.sides = {edge_plane(edge(column.head, 0), -Vector::z_axis()), edge_plane(edge(column.head, 4), -Vector::z_axis())};
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `columns[0].sides[0]` | origin (-2890, -3000, 0), normal (0, 1, 0) | Head side on bay edge 0 |
-| `columns[0].sides[1]` | origin (-3000, -2890, 0), normal (1, 0, 0) | Head side on bay edge 3 |
+`sides` are the vertical planes on head sides 0 (on bay edge `k`) and 4 (on bay edge `k - 1`), normals into the bay, which at a right corner lie in the `band[0]` planes of those edges.
 
 Code: `column_corner`, [floor.cpp:136](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L136); `edge`, [floor_geometry.cpp:65-67](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_geometry.cpp#L65-L67).
 
@@ -462,20 +210,7 @@ Code: `column_corner`, [floor.cpp:136](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `columns[0].levels[0..2]`, `levels[1]` dashed   <span style="color:#737373">■ input</span> `columns[0].head` at the datum   <span style="color:#A3A3A3">■ context</span> the carved head down to `column_head_depth`
 
-<span style="color:#2196EA">`levels = {0.0, 0.0, -column_head_depth}`</span>: the datum, a middle level and the bottom of the carved head. The middle level is a placeholder 0 here. After all four `compute_quarter` calls, the constructor overwrites it with `rib_bottom_level(quarter(q))`: the minimum of 0 and the z of point 2 of the top and bottom outlines of both outer ribs, their bottom corners on the fan plane, -694.79 on the default bay (chapter 5). The frame draws <span style="color:#2196EA">`levels[1]`</span> dashed at that final value. The six column cutters of chapter 6 run between these three levels.
-
-```cpp
-column.levels = {0.0, 0.0, -guide.parameters.column_head_depth};
-for (size_t q = 0; q < 4; q++)
-    columns[q].levels[1] = rib_bottom_level(quarter(q));   // after the quarters, floor.cpp:427-428
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `column_head_depth` | 730 | Depth of the carved head |
-| `columns[k].levels[0]` | 0 | The datum |
-| `columns[k].levels[1]` | 0 here; -694.79 after `rib_bottom_level` | Middle cutter level, at the outer rib bottoms |
-| `columns[k].levels[2]` | -730 | Bottom of the carved head |
+`levels = {0, 0, -column_head_depth}` bound the six column cutters; the middle 0 is a placeholder the constructor later overwrites with `rib_bottom_level`, -694.79 on the default bay, drawn dashed.
 
 Code: `column_corner`, [floor.cpp:137](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L137); overwritten [floor.cpp:453-454](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L453-L454); `rib_bottom_level`, [floor.cpp:378-386](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L378-L386).
 
@@ -485,17 +220,7 @@ Code: `column_corner`, [floor.cpp:137](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `columns[0].support_plane` and its axes   <span style="color:#F2CC0C">■ result</span> `columns[0].axis_point`   <span style="color:#E8478B">■ variable</span> `column_head / 2 = 110`   <span style="color:#737373">■ input</span> the 220 shaft square, dashed
 
-<span style="color:#F2CC0C">`axis_point = corner + (x + y) * (column_head * 0.5)`</span>: the centre of the 220 square shaft, <span style="color:#E8478B">half a column head</span> along both frame axes from the corner. <span style="color:#2196EA">`support_plane = Plane::from_frame(axis_point, x, y, Z)`</span>: a horizontal frame at the axis point with the corner frame's axes. `to_support` builds the `Support` element from it without the lift the floor members get, so z 0 of `support_plane` is the slab, not the floor datum; the frame is drawn there, with the <span style="color:#737373">220 shaft square</span> dashed around the axis point. `relationships` also reads it as the plane of the support row, unlifted.
-
-```cpp
-column.axis_point = column.corner + (x + y) * (head * 0.5);
-column.support_plane = Plane::from_frame(column.axis_point, x, y, Vector::z_axis());
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `columns[0].axis_point` | (-2890, -2890, 0) | Column axis at z 0 |
-| `columns[0].support_plane` | origin (-2890, -2890, 0), x (1, 0, 0), y (0, 1, 0), z (0, 0, 1) | Support frame on the slab |
+`axis_point` is the shaft centre, half a `column_head` along both frame axes from the corner, and `support_plane` is a horizontal frame there on the slab, not lifted to the floor datum.
 
 Code: `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L138-L139); `to_support`, [floor_elements.cpp:74-76](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_elements.cpp#L74-L76); [floor_relations.cpp:167](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor_relations.cpp#L167).
 
@@ -505,16 +230,7 @@ Code: `column_corner`, [floor.cpp:138-139](https://github.com/petrasvestartas/wo
 
 <span style="color:#2196EA">■ built</span> `columns[0..3].axis`   <span style="color:#737373">■ input</span> `axis_point` at z 0   <span style="color:#A3A3A3">■ context</span> bay edges and column heads
 
-<span style="color:#2196EA">`axis = Line::from_points(axis_point, axis_point + Z * bay_height)`</span>: the vertical column axis over one storey. Read with the support at the slab, it rises from z 0 to z 3500, the floor datum after the members are lifted by `Xform::translation(0, 0, bay_height)` (`floor_models.cpp:128`). `to_column` does not use this line; it builds its own axis from the support's column foot up to z = `bay_height` (`floor_elements.cpp:83`).
-
-```cpp
-column.axis = Line::from_points(column.axis_point, column.axis_point + Vector::z_axis() * guide.parameters.bay_height);
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `bay_height` | 3500 | Axis length, one storey |
-| `columns[0].axis` | (-2890, -2890, 0) to (-2890, -2890, 3500) | Column axis |
+`axis` is the vertical column axis from `axis_point` up `bay_height` (one storey); `to_column` builds its own axis and does not use it.
 
 Code: `column_corner`, [floor.cpp:140](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L140).
 
@@ -524,25 +240,6 @@ Code: `column_corner`, [floor.cpp:140](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `geometry[0].polygon`   <span style="color:#737373">■ input</span> its vertices `corners[0]`, `edges[0].midpoint`, `oculus_corners[0]`, `oculus_corners[3]`, `edges[3].midpoint`   <span style="color:#A3A3A3">■ context</span> quarters 1 to 3, column heads and bay edges
 
-The second loop of the constructor stores, for each `q`, <span style="color:#2196EA">`geometry[q].polygon`</span>` = {`<span style="color:#737373">`corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint`</span>`}`. This <span style="color:#2196EA">pentagon</span> is bounded by half of bay edge `q`, seam `q`, oculus edge `q`, seam `q - 1` and half of bay edge `q - 1`, counter-clockwise. `compute_quarter(*this, q)` runs right after, in the same iteration, so quarter `q` is complete before quarter `q + 1`'s polygon is stored. `construction_planes` re-origins the outer rib planes at the centres of polygon edges 0 and 4 (chapter 2). `columns[q].levels[1]` and `soffit` are set only after all four quarters.
-
-```cpp
-for (size_t q = 0; q < 4; q++) {
-    geometry[q].polygon = {corners[q], edges[q].midpoint, oculus_corners[q], oculus_corners[(q + 3) % 4], edges[(q + 3) % 4].midpoint};
-    compute_quarter(*this, q);
-}
-```
-
-`compute_quarter` runs nine calls in a fixed order; `construction_quads` runs twice, because `block_planes` replaces the wedges' far faces the first quads were built on:
-
-```mermaid
-flowchart LR
-    P["construction_planes"] --> S["column_seats"] --> Q1["construction_quads"] --> R["run_ins"] --> B["block_planes"] --> Q2["construction_quads again"] --> BP["boundary_parabolas"] --> CP["central_panel"] --> BT["bed_top_planes"]
-```
-
-| Variable | Value | Meaning |
-|---|---|---|
-| `geometry[0].polygon` | (-3000, -3000), (0, -3000), (0, -1000), (-1000, 0), (-3000, 0) | Quarter 0 pentagon, counter-clockwise |
-| `geometry[1].polygon` | (3000, -3000), (3000, 0), (1000, 0), (0, -1000), (0, -3000) | Quarter 1 pentagon |
+The second loop stores each counter-clockwise quarter pentagon `geometry[q].polygon` and runs `compute_quarter(q)` at once, so quarter `q` is complete before quarter `q + 1` starts; `columns[q].levels[1]` and `soffit` are set only after all four.
 
 Code: `FloorGuide::FloorGuide`, [floor.cpp:448-451](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L448-L451); `compute_quarter`, [floor.cpp:360-375](https://github.com/petrasvestartas/wood/blob/16f3ab0a2386bf39ac7f7123c0a20d03e73ab1a5/src/templates/floor/floor.cpp#L360-L375).

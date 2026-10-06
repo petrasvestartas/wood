@@ -1,24 +1,10 @@
 # Floor {#templates_floor}
 
-`src/templates/floor/floor.h` builds the vaulted timber floor bay of compas_tf as a parametric model: a square or rectangular bay on four columns, cut by four seams into four quarters around a central oculus. Each quarter is a vault of parabolic ribs with beams, wedge blocks, t-sections and bed plates, and a ring of beams closes the oculus. The algorithm is 3D modelling with planes: every member is the space between planes the guide computes, cut along curves it draws.
-
-Two classes, both a `WoodSession`, so each draws itself and can be written, merged and grafted like any session:
-
-- `wood_floor::FloorGuide` is the geometry. From the four bay corners and `FloorGuide::Parameters` it computes every plane, quad, parabola and level the members are cut from, chapters 1 to 5.
-- `wood_floor::Floor` is the model built from a guide, step by step: the member outlines and elements, chapters 6 and 7, then the relationships, connectors and screws, chapters 8 to 10.
-
-```cpp
-const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
-wood_floor::Floor floor(guide);
-floor.add_members();
-floor.add_connectors();
-floor.add_screws();
-WoodSession quarter = floor.get_branch("quarter_0");
-```
+`src/templates/floor/floor.h` builds the vaulted timber floor bay of compas_tf: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, wedges, t-sections and beds around a central oculus. Two `WoodSession` classes do it: `wood_floor::FloorGuide` computes the planes, quads and parabolas (chapters 1 to 5), and `wood_floor::Floor` builds the members, connectors and screws from it (chapters 6 to 10).
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-The chapters below take the algorithm one step at a time, in the order the code runs, one picture per step on the default square bay of 6000 x 6000 mm. Each step names the function and lines that perform it and every variable it introduces with its default value. Each chapter opens with a film of its own steps.
+One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay.
 
 1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)
 2. @subpage templates_floor_02_quarter_planes (every member's two faces in quarter 0: outer ribs, seam and oculus beams, inner ribs, the wedge fan and the t-sections)
@@ -32,7 +18,7 @@ The chapters below take the algorithm one step at a time, in the order the code 
 10. @subpage templates_floor_10_screws (the five screw kinds, their levels and aim, and the screw check)
 11. @subpage templates_floor_11_checks (the floor report, the BRep check and the eight examples)
 
-**Reading the pictures.** Every colour names a role, blue from the palette of the Block Research Group (brg.ethz.ch), pink, yellow and greys beside it, and the same colour marks the same role in the picture, in its colour key and in the text:
+**Reading the pictures.** Each colour marks one role, the same in picture, key and text:
 
 | Colour | Role |
 |---|---|
@@ -42,15 +28,15 @@ The chapters below take the algorithm one step at a time, in the order the code 
 | <span style="color:#737373">■ grey</span> `#737373` | what the step reads from earlier steps; dashed, a construction helper |
 | <span style="color:#A3A3A3">■ light grey</span> `#DADADA` | context, solid, with `#B8B8B8` edges |
 
-Pictures that tell the member families apart use the family colours of `FAMILY_COLORS` instead: <span style="color:#E8478B">outer ribs</span>, <span style="color:#F2CC0C">inner ribs</span>, <span style="color:#7C7C7C">inner beams</span>, <span style="color:#A8A8A8">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, with the oculus ring <span style="color:#E06CA0">light pink</span>, the column <span style="color:#6E6E6E">dark grey</span> and the connectors <span style="color:#2196EA">BRG blue</span>. Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner. Each step ends with a link to the lines of code that perform it, at the commit these pages describe.
+Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</span>, <span style="color:#F2CC0C">inner ribs</span>, <span style="color:#7C7C7C">inner beams</span>, <span style="color:#A8A8A8">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, oculus ring <span style="color:#E06CA0">light pink</span>, column <span style="color:#6E6E6E">dark grey</span>, connectors <span style="color:#2196EA">BRG blue</span>. Black plates are code names; quarter 0 stands for all four, since every quarter runs the same code at its own corner.
 
 ## Data structures
 
-Four layers, each built from the one before; only the first two hold geometry of their own, the last two are a scene.
+Parameters make the guide, the guide makes the floor; only the guide and its quarter geometry hold geometry of their own.
 
 ```mermaid
 classDiagram
-    direction LR
+    direction TB
     class FloorParameters {
         oculus, column_head, outer_ribs, inner_ribs
         inner_beams, wedge, tsections, height, rise
@@ -113,7 +99,7 @@ classDiagram
     MemberRef --> FloorMembers : names an element
 ```
 
-Every member has one name, the same in the guide's drawing, the outline lists and the scene; `MemberRef::name()` gives it.
+Each member has one name everywhere, from `MemberRef::name()`.
 
 | Family | Count per quarter | Element | Name |
 |---|---|---|---|
@@ -139,9 +125,3 @@ Every member has one name, the same in the guide's drawing, the outline lists an
 | [templates_floor_6_contacts_floor](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_6_contacts_floor.cpp) | the quarters, the ring and the eight wedge connectors |
 | [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and screw, BReps with exact bores |
 | [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
-
-## How the pictures are made
-
-Every picture was rendered from the model by session_viewer's renderer, not drawn, one scene per step on the default square bay. The renderer draws in the viewer's Arctic view, soft contact shading and outlines, so solids read by their form, and every surface fully opaque: what lies behind a member is hidden by it.
-
-Their names are placed by solving the point-feature labelling problem. Every label has candidate plates on rings of growing radius around its point in 24 directions. A candidate is allowed only inside the picture and clear of every other plate and every other labelled point. Among the allowed ones a label takes the cheapest: the leader's length, the drawing the plate covers, read off the rendered picture, and every leader that crosses another leader or plate. A greedy pass places the most crowded labels first, then passes re-place each label against all the others until none moves. A picture was not accepted while a label had no allowed place or two labels named points closer than 14 pixels, so no two names overlap.

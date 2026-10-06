@@ -16,7 +16,8 @@ $generatedby&#160;<a href="https://www.doxygen.org/index.html"><img class="foote
 <!--END !GENERATE_TREEVIEW-->
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+  // Roboto at 18 px, the diagrams drawn top to bottom in the pages, so they keep their text readable at page width
+  mermaid.initialize({ startOnLoad: false, theme: "neutral", themeVariables: { fontFamily: "Roboto, sans-serif", fontSize: "18px" }, flowchart: { useMaxWidth: true }, class: { useMaxWidth: true } });
   mermaid.run({ querySelector: ".mermaid" });
 </script>
 </body>

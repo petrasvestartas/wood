@@ -1,0 +1,15 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 338867d..a3fd2d2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -298,6 +298,10 @@ ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.
+ ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
+ ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.cpp)
+ 
++# LOCAL ONLY, not committed: the floor documentation film.
++file(GLOB DOCS_FLOOR_MOVIE ${CMAKE_CURRENT_SOURCE_DIR}/docs/floor/*.cpp)
++ADD_EXE(docs_floor_movie ${DOCS_FLOOR_MOVIE})
++
+ # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
+ # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
+ # docs/examples.md, docs/templates.md and a page per template family under docs/templates (their pictures
