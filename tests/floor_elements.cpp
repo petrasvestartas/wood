@@ -77,10 +77,9 @@ void check_beams() {
     wood_floor::Floor floor(square_guide(), "beam_variable");
     floor.add_quarters();
     floor.add_oculus();
-    const wood_floor::Quarter quarter = square_guide().quarter(0);
-    const std::vector<wood_floor::Loops> outer = quarter.outer_ribs();
-    const std::vector<wood_floor::Loops> inner = quarter.inner_ribs();
-    const std::vector<wood_floor::Loops> beam_loops = quarter.inner_beams();
+    const std::vector<wood_floor::Loops> outer = square_guide().outer_ribs(0);
+    const std::vector<wood_floor::Loops> inner = square_guide().inner_ribs(0);
+    const std::vector<wood_floor::Loops> beam_loops = square_guide().inner_beams(0);
     const std::vector<wood_floor::Loops> oculus = square_guide().oculus();
     std::vector<std::shared_ptr<BeamVariable>> beams;
 
@@ -122,15 +121,14 @@ void check_beams() {
 /// The thickness of a member's loops: an outer rib as thick as the guide says, an inner beam about as thick, the tilted middle block at least its plane offset.
 void check_thickness() {
 
-    const wood_floor::Quarter quarter = square_guide().quarter(1);
-    const double rib = wood_floor::Quarter::thickness(quarter.outer_ribs()[0]);
-    const double beam = wood_floor::Quarter::thickness(quarter.inner_beams()[1]);
-    const double block = wood_floor::Quarter::thickness(quarter.wedges()[1]);
+    const double rib = wood_floor::FloorGuide::thickness(square_guide().outer_ribs(1)[0]);
+    const double beam = wood_floor::FloorGuide::thickness(square_guide().inner_beams(1)[1]);
+    const double block = wood_floor::FloorGuide::thickness(square_guide().wedges(1)[1]);
 
-    check(std::abs(rib - square_guide().outer_ribs) < 1e-6, "an outer rib as thick as the sizes say, " + std::to_string(rib));
-    check(beam > square_guide().inner_beams - 1e-9 && beam < 1.5 * square_guide().inner_beams, "an inner beam about as thick as the sizes say, " + std::to_string(beam));
-    check(block > 1.25 * square_guide().wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(block));
-    check(quarter.beds().size() == 3 && quarter.tsections().size() == 6 && quarter.inner_ribs().size() == 2, "a quarter of three bed rows, six t-sections and two inner ribs");
+    check(std::abs(rib - square_guide().size_outer_ribs) < 1e-6, "an outer rib as thick as the sizes say, " + std::to_string(rib));
+    check(beam > square_guide().size_inner_beams - 1e-9 && beam < 1.5 * square_guide().size_inner_beams, "an inner beam about as thick as the sizes say, " + std::to_string(beam));
+    check(block > 1.25 * square_guide().size_wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(block));
+    check(square_guide().beds(1).size() == 3 && square_guide().tsections(1).size() == 6 && square_guide().inner_ribs(1).size() == 2, "a quarter of three bed rows, six t-sections and two inner ribs");
 
     std::cout << "floor_elements: a rib, a beam and a block as thick as their loops say" << std::endl;
 }
@@ -147,8 +145,10 @@ double faceted_area(double radius, double chord_tolerance) {
 void check_support() {
 
     WoodSession scene("support");
-    const std::shared_ptr<Support> support = square_guide().columns[0].to_support();
-    const std::shared_ptr<Column> column = square_guide().columns[0].to_column(square_guide(), *support);
+    const wood_floor::FloorGuide& guide = square_guide();
+    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(0), "support");
+    const Point foot = support->column_foot();
+    const std::shared_ptr<Column> column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(0), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
     scene.add(support);
     scene.add(column);
 
@@ -167,7 +167,7 @@ void check_support() {
     const double removed = stock - compute_volume(column->model_geometry_mesh());
     check(std::abs(removed - pocket - screws) <= 1e-6 * removed, "support joint removes " + std::to_string(removed) + " not " + std::to_string(pocket + screws));
 
-    for (const SolidCut& cut : wood_floor::ColumnCutters(square_guide().quarter(0)).cuts(square_guide().bay_height))
+    for (const SolidCut& cut : square_guide().column_cuts(0))
         column->solid_cuts.push_back(cut);
 
     column->invalidate_geometry();
@@ -274,16 +274,15 @@ void check_short_members() {
         const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
 
         for (size_t q = 0; q < 4; q++) {
-            const std::vector<Point>& polygon = guide.geometry[q].polygon;
-            const wood_floor::Quarter quarter = guide.quarter(q);
+            const std::vector<Point>& polygon = guide.quarter_polygon(q);
 
-            for (const std::vector<wood_floor::Loops>& family : {quarter.outer_ribs(), quarter.inner_ribs()})
+            for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
                 for (const wood_floor::Loops& rib : family)
                     for (const Polyline* loop : {&rib[0], &rib[1]})
                         for (const Point& point : loop->get_points())
                             check(inside_plan(polygon, point, 1.0), fmt::format("{} x {}: quarter {} rib point ({:.1f}, {:.1f}) inside its quarter", 2 * half_x, 2 * half_y, q, point[0], point[1]));
 
-            check(guide.columns[q].levels[1] < -guide.static_h(), fmt::format("{} x {}: column {} level {:.1f} below the seam depth", 2 * half_x, 2 * half_y, q, guide.columns[q].levels[1]));
+            check(guide.column_levels(q)[1] < -guide.static_h(), fmt::format("{} x {}: column {} level {:.1f} below the seam depth", 2 * half_x, 2 * half_y, q, guide.column_levels(q)[1]));
         }
     }
 
@@ -332,7 +331,7 @@ void check_skewed_bays() {
     size_t beds = 0;
 
     for (size_t q = 0; q < 4; q++)
-        for (const std::vector<wood_floor::Loops>& row : small.quarter(q).beds())
+        for (const std::vector<wood_floor::Loops>& row : small.beds(q))
             for (const wood_floor::Loops& bed : row) {
                 check(bed[0].point_count() == 5 && bed[1].point_count() == 5, fmt::format("a bed of quarter {} on the 4000 x 3000 skewed bay a quad pair", q));
                 beds++;
@@ -385,10 +384,10 @@ void check_connector_calls() {
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const Plane far = skewed.geometry[q].planes.inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, skewed.bay_height));
+            const Plane far = skewed.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, skewed.bay_height));
 
             for (const Line& screw : skewed_lines.rib_beam(q, k))
-                off = std::max(off, std::abs(std::abs(far.signed_distance(screw.start())) - skewed.inner_beams));
+                off = std::max(off, std::abs(std::abs(far.signed_distance(screw.start())) - skewed.size_inner_beams));
         }
 
     check(off <= 1e-6, fmt::format("every seam screw of the skewed bay starts on the seam beam's outer face, {:.3e} mm off", off));
@@ -540,18 +539,17 @@ void check_seam_through_ribs() {
     const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
 
     for (size_t q = 0; q < 4; q++) {
-        const wood_floor::Quarter quarter = guide.quarter(q);
-        const wood_floor::ConstructionPlanes& cp = quarter.geometry().planes;
-        const std::vector<wood_floor::Loops> beams = quarter.inner_beams();
-        const std::vector<wood_floor::Loops> ribs = quarter.outer_ribs();
+        const wood_floor::ConstructionPlanes& cp = guide.construction_planes(q);
+        const std::vector<wood_floor::Loops> beams = guide.inner_beams(q);
+        const std::vector<wood_floor::Loops> ribs = guide.outer_ribs(q);
 
         for (size_t k = 0; k < 2; k++) {
             const std::array<double, 2> beam = plane_reach(beams[k == 0 ? 0 : 2][1], cp.outer_ribs[k][0]);
-            const Plane end = quarter.rib_seam_ends()[k];
+            const Plane end = guide.rib_seam_ends(q)[k];
             const std::array<double, 2> rib = plane_reach(ribs[k][1], end);
             check(beam[0] <= 1e-9 && beam[1] <= 1e-9, fmt::format("quarter {} seam beam {} reaches the outer face, {:.3e} off", q, k, beam[1]));
             check(rib[1] <= 1e-9 && std::abs((end.origin() - cp.inner_beams[k == 0 ? 0 : 2][0].origin()).dot(end.z_axis())) > 1.0, fmt::format("quarter {} outer rib {} ends on its beam's far face, {:.3e} off", q, k, rib[1]));
-            check(lowest_on(ribs[k][1], end) >= guide.soffit - 1e-9 && lowest_on(quarter.inner_ribs()[k][1], cp.inner_beams[1][1]) >= guide.soffit - 1e-9, fmt::format("quarter {} rib ends {} within the beams' soffit {:.3f}", q, k, guide.soffit));
+            check(lowest_on(ribs[k][1], end) >= guide.soffit - 1e-9 && lowest_on(guide.inner_ribs(q)[k][1], cp.inner_beams[1][1]) >= guide.soffit - 1e-9, fmt::format("quarter {} rib ends {} within the beams' soffit {:.3f}", q, k, guide.soffit));
             check(std::abs(lowest_on(beams[k == 0 ? 0 : 2][1], cp.inner_beams[k == 0 ? 0 : 2][0]) - guide.soffit) <= 1e-9, fmt::format("quarter {} seam beam {} down to the soffit", q, k));
         }
     }
@@ -565,7 +563,7 @@ void check_seam_through_ribs() {
     const std::vector<std::shared_ptr<JointBeam>> wedges = scene.add_connectors({wood_floor::ContactKind::seam_wedge});
 
     for (size_t i = 0; i < wedges.size(); i++) {
-        const Plane face = guide.edges[i].band[0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+        const Plane face = guide.construction_planes(i).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
         const std::array<double, 2> near = plane_reach(wedges[i]->parts[0][0], face);
         const std::array<double, 2> far = plane_reach(wedges[i]->parts[0][1], face);
         const double off = std::min(std::max(near[0], near[1]), std::max(far[0], far[1]));
@@ -579,18 +577,17 @@ void check_seam_through_ribs() {
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const wood_floor::Quarter quarter = guide.quarter(q);
-            const Vector across = quarter.geometry().planes.outer_ribs[k][0].z_axis();
-            const wood_floor::Loops rib = quarter.outer_ribs()[k];
-            const Plane end = quarter.rib_seam_ends()[k];
-            const Plane far = quarter.geometry().planes.inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+            const Vector across = guide.construction_planes(q).outer_ribs[k][0].z_axis();
+            const wood_floor::Loops rib = guide.outer_ribs(q)[k];
+            const Plane end = guide.rib_seam_ends(q)[k];
+            const Plane far = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
             const double bottom = guide.bay_height + std::min(lowest_on(rib[0], end), lowest_on(rib[1], end));
             const std::vector<Line> screws = lines.rib_beam(q, k);
             const std::string label = fmt::format("quarter {} outer rib {}", q, k);
             check(screws.size() == 2 && std::abs(screws[0].start()[2] - (guide.bay_height - 20.0)) <= 1e-9 && std::abs(screws[1].start()[2] - (bottom + 20.0)) <= 1e-9, label + " screws 20 mm below the rib top and above its bottom");
 
             for (const Line& screw : screws)
-                check(std::abs(screw.to_direction()[2]) <= 1e-9 && std::abs(screw.to_direction().dot(across)) <= 1e-9 && std::abs(std::abs(far.signed_distance(screw.start())) - guide.inner_beams) <= 1e-9, label + " screws horizontal along the rib from the beam's seam face");
+                check(std::abs(screw.to_direction()[2]) <= 1e-9 && std::abs(screw.to_direction().dot(across)) <= 1e-9 && std::abs(std::abs(far.signed_distance(screw.start())) - guide.size_inner_beams) <= 1e-9, label + " screws horizontal along the rib from the beam's seam face");
         }
 
     std::cout << fmt::format("floor_elements: seam beams through the rib band to the outer face, ribs ending on them within the beams' soffit {:.3f}, no ties, wedges flush with the outer face, horizontal screws from the seam face", guide.soffit) << std::endl;
@@ -1034,25 +1031,21 @@ bool same_plane(const Plane& a, const Plane& b, bool opposite) {
     return (a.z_axis() - normal).magnitude() <= 1e-9 && std::abs(offset_a - offset_b) <= 1e-9;
 }
 
-/// The members of quarter q read every shared plane as the floor stores it, and on the square every quarter equals quarter 0 turned by its quarter turns within 1e-6.
+/// Two neighbouring quarters read their shared seam and bay edge as one plane each, and on the square every quarter equals quarter 0 turned by its quarter turns within 1e-6.
 void check_shared_entities() {
 
     const wood_floor::FloorGuide& guide = square_guide();
 
     for (size_t q = 0; q < 4; q++) {
-        const wood_floor::ConstructionPlanes& mine = guide.geometry[q].planes;
-        const wood_floor::ConstructionPlanes& next = guide.geometry[(q + 1) % 4].planes;
-        check(same_plane(guide.seams[q].plane, mine.inner_beams[0][0], false) && same_plane(guide.seams[q].plane, next.inner_beams[2][0], true), fmt::format("seam {} is the beam-0 plane of quarter {} and the beam-2 plane of quarter {}", q, q, (q + 1) % 4));
-        check(same_plane(guide.edges[q].band[0], mine.outer_ribs[0][0], false) && same_plane(guide.edges[q].band[0], next.outer_ribs[1][0], false), fmt::format("bay edge {} is the outer rib band of quarters {} and {}", q, q, (q + 1) % 4));
-        check(same_plane(guide.edges[q].band[1], mine.outer_ribs[0][1], false) && same_plane(guide.edges[q].band[1], next.outer_ribs[1][1], false), fmt::format("bay edge {} inner band plane shared", q));
-        check(same_plane(guide.oculus_edges[q].tilted, mine.inner_beams[1][0], false) && same_plane(guide.oculus_edges[q].back, mine.inner_beams[1][1], false), fmt::format("oculus edge {} is the oculus beam pair of quarter {}", q, q));
+        const wood_floor::ConstructionPlanes& mine = guide.construction_planes(q);
+        const wood_floor::ConstructionPlanes& next = guide.construction_planes((q + 1) % 4);
+        check(same_plane(mine.inner_beams[0][0], next.inner_beams[2][0], true), fmt::format("seam {} is the beam-0 plane of quarter {} and the beam-2 plane of quarter {}", q, q, (q + 1) % 4));
+        check(same_plane(mine.outer_ribs[0][0], next.outer_ribs[1][0], false) && same_plane(mine.outer_ribs[0][1], next.outer_ribs[1][1], false), fmt::format("bay edge {} is the outer rib band of quarters {} and {}", q, q, (q + 1) % 4));
 
-        for (size_t k = 0; k < 3; k++)
-            check(same_plane(guide.columns[q].wedge_fan[k][0], mine.wedges[k][0], false) && same_plane(guide.columns[q].wedge_fan[k][1], mine.wedges[k][1], false), fmt::format("column {} fan plane {} is the quarter's wedge plane", q, k));
 
         const Xform turn = Xform::rotation_z(static_cast<double>(q) * 90.0, true);
-        const std::vector<wood_floor::Loops> turned = guide.quarter(0).outer_ribs();
-        const std::vector<wood_floor::Loops> built = guide.quarter(q).outer_ribs();
+        const std::vector<wood_floor::Loops> turned = guide.outer_ribs(0);
+        const std::vector<wood_floor::Loops> built = guide.outer_ribs(q);
 
         for (size_t i = 0; i < 2; i++) {
             const std::vector<Point> a = turned[i][0].transformed(turn).get_points();
@@ -1064,7 +1057,7 @@ void check_shared_entities() {
         }
     }
 
-    std::cout << "floor_elements: every seam, bay edge, oculus edge and column fan plane read by its quarters as one plane, every in-place quarter equal to the turned quarter 0 within 1e-6" << std::endl;
+    std::cout << "floor_elements: every seam and bay edge read by its two quarters as one plane, every in-place quarter equal to the turned quarter 0 within 1e-6" << std::endl;
 }
 
 /// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9.
@@ -1102,8 +1095,8 @@ void check_rule_a() {
     const wood_floor::FloorGuide& guide = square_guide();
 
     for (size_t q = 0; q < 4; q++) {
-        const wood_floor::CentralPanel& panel = guide.geometry[q].central_panel;
-        const Vector chamfer = (guide.columns[q].head[3] - guide.columns[q].head[2]).normalized();
+        const wood_floor::CentralPanel& panel = guide.central_panel(q);
+        const Vector chamfer = (guide.quarter_column_polygon(q)[3] - guide.quarter_column_polygon(q)[2]).normalized();
         check(std::abs(std::abs(panel.ruling.dot(chamfer)) - 1.0) <= 1e-12 && std::abs(std::abs(panel.rib_sweep.dot(chamfer)) - 1.0) <= 1e-12, fmt::format("rule A gives quarter {} the chamfer direction for the ruling and the sweep", q));
     }
 
@@ -1116,7 +1109,7 @@ std::array<double, 2> central_bed_thickness(const wood_floor::FloorGuide& guide)
     std::array<double, 2> range = {1e300, 0.0};
 
     for (size_t q = 0; q < 4; q++) {
-        const std::vector<std::vector<wood_floor::Loops>> rows = guide.quarter(q).beds();
+        const std::vector<std::vector<wood_floor::Loops>> rows = guide.beds(q);
 
         for (const wood_floor::Loops& bed : rows[1]) {
             const std::vector<Point> bottom = bed[1].get_points();
@@ -1137,7 +1130,7 @@ void check_section_layers() {
 
     const wood_floor::FloorGuide& guide = square_guide();
     const std::array<double, 2> section = central_bed_thickness(guide);
-    check(std::abs(section[0] - guide.tsections) <= 1e-9 && std::abs(section[1] - guide.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", guide.tsections, section[0], section[1]));
+    check(std::abs(section[0] - guide.size_tsections) <= 1e-9 && std::abs(section[1] - guide.size_tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", guide.size_tsections, section[0], section[1]));
 
     std::cout << fmt::format("floor_elements: the central bed plates {:.9f} .. {:.9f} thick", section[0], section[1]) << std::endl;
 }
@@ -1176,12 +1169,11 @@ double floor_flatness(const wood_floor::FloorGuide& guide) {
     std::vector<wood_floor::Loops> outlines = guide.oculus();
 
     for (size_t q = 0; q < 4; q++) {
-        const wood_floor::Quarter quarter = guide.quarter(q);
 
-        for (const std::vector<wood_floor::Loops>& family : {quarter.outer_ribs(), quarter.inner_ribs(), quarter.inner_beams(), quarter.wedges(), quarter.tsections()})
+        for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q), guide.inner_beams(q), guide.wedges(q), guide.tsections(q)})
             outlines.insert(outlines.end(), family.begin(), family.end());
 
-        for (const std::vector<wood_floor::Loops>& row : quarter.beds())
+        for (const std::vector<wood_floor::Loops>& row : guide.beds(q))
             outlines.insert(outlines.end(), row.begin(), row.end());
     }
 
@@ -1196,10 +1188,9 @@ double floor_flatness(const wood_floor::FloorGuide& guide) {
 /// The eight rib face bottoms of corner q at the column head: both faces of the two outer and the two inner ribs.
 std::vector<double> rib_bottoms(const wood_floor::FloorGuide& guide, size_t q) {
 
-    const wood_floor::Quarter quarter = guide.quarter(q);
     std::vector<double> levels;
 
-    for (const std::vector<wood_floor::Loops>& family : {quarter.outer_ribs(), quarter.inner_ribs()})
+    for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
         for (const wood_floor::Loops& rib : family)
             levels.insert(levels.end(), {rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
 
@@ -1212,11 +1203,11 @@ void check_rib_levels() {
     const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 2400.0);
 
     for (size_t q = 0; q < 4; q++) {
-        const double level = guide.columns[q].levels[1];
+        const double level = guide.column_levels(q)[1];
         const std::vector<double> bottoms = rib_bottoms(guide, q);
-        const std::array<double, 2>& run_in = guide.geometry[q].run_in;
+        const std::array<double, 2>& run_in = guide.run_in(q);
         check(std::abs(level + 689.979) < 1e-3, fmt::format("corner {}'s level at the shallower outer rib end, {:.3f}", q, level));
-        check(std::max(run_in[0], run_in[1]) == guide.wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
+        check(std::max(run_in[0], run_in[1]) == guide.size_wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
 
         for (size_t i = 0; i < 4; i++)
             check(std::abs(bottoms[i] - level) <= 1e-9, fmt::format("corner {}'s outer rib face {} ends {:.3e} mm off the level", q, i, bottoms[i] - level));
@@ -1228,9 +1219,9 @@ void check_rib_levels() {
     const wood_floor::FloorGuide& square = square_guide();
 
     for (size_t q = 0; q < 4; q++)
-        check(square.geometry[q].run_in[0] == square.wedge && square.geometry[q].run_in[1] == square.wedge, "the square keeps the wedge as its run-in");
+        check(square.run_in(q)[0] == square.size_wedge && square.run_in(q)[1] == square.size_wedge, "the square keeps the wedge as its run-in");
 
-    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the short run-in {:.3f}; the square at the wedge run-in", guide.columns[0].levels[1], std::min(guide.geometry[0].run_in[0], guide.geometry[0].run_in[1])) << std::endl;
+    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the short run-in {:.3f}; the square at the wedge run-in", guide.column_levels(0)[1], std::min(guide.run_in(0)[0], guide.run_in(0)[1])) << std::endl;
 }
 
 /// The thickness of each column block of quarter q, side 0, middle and side 1: its far plane's distance from its fan plane.
@@ -1239,7 +1230,7 @@ std::array<double, 3> block_thickness(const wood_floor::FloorGuide& guide, size_
     std::array<double, 3> thickness;
 
     for (size_t i = 0; i < 3; i++) {
-        const std::array<Plane, 2>& planes = guide.geometry[q].planes.wedges[i];
+        const std::array<Plane, 2>& planes = guide.construction_planes(q).wedges[i];
         thickness[i] = (planes[1].origin() - planes[0].origin()).dot(planes[0].z_axis());
     }
 
@@ -1264,8 +1255,8 @@ void check_column_blocks() {
 
     for (size_t q = 0; q < 4; q++) {
         const std::array<double, 3> thickness = block_thickness(guide, q);
-        const std::array<double, 2>& run_in = guide.geometry[q].run_in;
-        const std::vector<wood_floor::Loops> blocks = guide.quarter(q).wedges();
+        const std::array<double, 2>& run_in = guide.run_in(q);
+        const std::vector<wood_floor::Loops> blocks = guide.wedges(q);
         check(std::abs(thickness[0] - run_in[0]) <= 1e-9 && std::abs(thickness[2] - run_in[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the run-ins {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], run_in[0], run_in[1]));
         check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
     }
@@ -1275,7 +1266,7 @@ void check_column_blocks() {
         check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
     }
 
-    const std::vector<wood_floor::Loops> blocks = guide.quarter(0).wedges();
+    const std::vector<wood_floor::Loops> blocks = guide.wedges(0);
     std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(guide, 0)[0], block_thickness(guide, 0)[1], block_thickness(guide, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
 }
 

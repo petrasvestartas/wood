@@ -12,6 +12,119 @@ const std::vector<ContactKind> CONNECTOR_CONTACTS = {ContactKind::seam_wedge, Co
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue");
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Contacts and screws
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Where two members of the floor touch, by the rules of the design: each contact a face interaction, named by its kind and place, its polygon read from the members' loops and lifted to the floor.
+class ContactFaces {
+public:
+    /// The contacts of the guide's floor.
+    explicit ContactFaces(const FloorGuide& guide);
+
+    /// Inner beam 0 of quarter q and inner beam 2 of quarter q + 1 on the seam plane, where their end faces overlap.
+    std::shared_ptr<wood_session::InteractionContactFace> seam_wedge(size_t q) const;
+
+    /// Inner beam 1 of quarter q and ring beam q on the tilted plane: the beam's face on it.
+    std::shared_ptr<wood_session::InteractionContactFace> oculus_wedge(size_t q) const;
+
+    /// Column q and outer rib k: the rib's column end face on its fan plane where it meets the column's carved face.
+    std::shared_ptr<wood_session::InteractionContactFace> column_plate(size_t q, size_t k) const;
+
+    /// Outer rib 0 of quarter q and outer rib 1 of quarter q + 1 end to end on the seam plane: rib 0's seam end face.
+    std::shared_ptr<wood_session::InteractionContactFace> seam_tie(size_t q) const;
+
+    /// Column block k of quarter q on one of its two ribs: the block's face on that rib's plane.
+    std::shared_ptr<wood_session::InteractionContactFace> block_dowels(size_t q, size_t k, size_t side) const;
+
+private:
+    const FloorGuide& guide;
+    const session_cpp::Xform lift; // Up from the datum to the floor.
+
+    /// A face interaction of a kind at a place, named <kind>_<place>, its polygon closed and lifted.
+    std::shared_ptr<wood_session::InteractionContactFace> face(ContactKind kind, const std::string& place, wood_session::ContactType type, const session_cpp::Polyline& polygon) const;
+};
+
+/// Where the assembly screws go, as 200 mm lines in world coordinates, between members that butt.
+class ScrewLines {
+public:
+    /// The screws of the guide's floor.
+    explicit ScrewLines(const FloorGuide& guide);
+
+    /// Outer rib k of quarter q into the seam beam it meets: along the beam from the rib's outer face, or, when the seam runs through the rib band, along the rib from the beam's seam face into the rib end, 20 mm below its top and above its bottom and either side of its axis.
+    std::vector<session_cpp::Line> rib_beam(size_t q, size_t k) const;
+
+    /// Seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
+    std::vector<session_cpp::Line> beam_mitre(size_t q, size_t k) const;
+
+    /// The oculus beam of quarter q into inner rib k ending on its back face, along the rib through the beam corner; throws when the bay is too narrow for them.
+    std::vector<session_cpp::Line> rib_corner(size_t q, size_t k) const;
+
+    /// Whether the inner rib screws of quarter q at end k pass the seam beam's end at the beam corner.
+    bool passes_seam_beam(size_t q, size_t k, const std::vector<session_cpp::Line>& screws) const;
+
+    /// Ring beam q into ring beam q + 1, along ring beam q + 1 from ring beam q's tilted face.
+    std::vector<session_cpp::Line> ring(size_t q) const;
+
+    /// Ring beam q into the oculus beam of quarter q at its end k, aimed by OculusScrew.
+    std::vector<session_cpp::Line> oculus(size_t q, size_t k) const;
+
+private:
+    const FloorGuide& guide;
+    const std::vector<Loops> rings; // The oculus loops, the four ring beams first.
+    const session_cpp::Xform lift; // Up from the datum to the floor.
+
+    /// The lines lifted to the floor.
+    std::vector<session_cpp::Line> lifted(const std::vector<session_cpp::Line>& lines) const;
+
+    /// A screw at level z through a side member into the member butting on it, along the butting member's axis: the head where that axis leaves the side member's far face, the tip on towards the butting member's body.
+    static session_cpp::Line along_axis(const std::array<session_cpp::Plane, 2>& butting, const session_cpp::Plane& far_face, const session_cpp::Point& butting_body, double z);
+
+    /// A screw at level z along a rib ending on a seam beam that runs through the rib band, its axis offset across the rib, from the beam's seam face through the beam into the rib end.
+    static session_cpp::Line from_seam_face(const std::array<session_cpp::Plane, 2>& rib, const std::array<session_cpp::Plane, 2>& beam, double z, double offset);
+
+    /// The axis of a member between two faces at level z: the line midway between their traces.
+    static session_cpp::Line axis(const std::array<session_cpp::Plane, 2>& faces, double z);
+
+    /// The level of a screw in a corner's level set: down from the datum in sevenths of the depth.
+    double corner_level(double levels) const;
+};
+
+/// The screws from a ring beam through the oculus wedge's contact into a quarter's oculus beam towards one of its corners, each the 200 mm line with the largest clearance, found on a coarse grid of head offsets and angles and refined around its best.
+class OculusScrew {
+public:
+    /// The screws of ring beam q into quarter q's oculus beam at its end k.
+    OculusScrew(const FloorGuide& guide, const std::vector<Loops>& rings, size_t q, size_t k);
+
+    /// The screw at level z.
+    session_cpp::Line at(double z) const;
+
+private:
+    /// A head offset along the ring's inner face from the corner and an angle off square to the contact, in degrees, with its clearance.
+    class Aim {
+    public:
+        double offset = 0.0;
+        double angle = 0.0;
+        double clearance = -1e300;
+    };
+
+    std::array<session_cpp::Plane, 2> beam; // The oculus beam: the tilted face it shares with the ring, its back face.
+    session_cpp::Plane beam_end; // The seam beam's inner face the oculus beam ends on at this corner.
+    session_cpp::Point beam_body; // A point inside the oculus beam.
+    session_cpp::Plane inner; // The ring beam's inner face, where the heads sit.
+    session_cpp::Plane ring_end; // The ring beam's end plane at this corner.
+    session_cpp::Point ring_body; // A point inside the ring beam.
+    session_cpp::Point wedge_start; // The contact's top edge end at this corner moved along the edge by the wedge's margin.
+    session_cpp::Vector along; // Along the contact's top edge, away from this corner.
+    double band = 0.0; // Half the beam thickness: within it of the contact plane the wedge's pocket lies.
+
+    /// The best aim on a grid of offsets and angles around a centre, each within its range.
+    Aim best_aim(const session_cpp::Point& start, const session_cpp::Vector& across, const Aim& centre, double offset_span, double angle_span, double offset_step, double angle_step) const;
+
+    /// How far a screw from head along u keeps inside: the head and the contact crossing inside the ring's end, the part within the pocket band short of the wedge, the tip inside the oculus beam's back face and the seam beam end.
+    double clearance(const session_cpp::Point& head, const session_cpp::Vector& u) const;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
 
