@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "wood_element_geometry.h"
+#include "wood_brep_drill.h"
 
 namespace wood_session {
 
@@ -14,7 +15,7 @@ ElementFeature polyline_feature(std::string_view feature_type, const Polyline& p
 }
 
 bool is_session_feature(std::string_view feature_type) {
-    return feature_type == "joint" || feature_type == "contact" || feature_type == "drill" || feature_type == "solid_cut";
+    return feature_type == "joint" || feature_type == "contact" || feature_type == "drill" || feature_type == "solid_feature";
 }
 
 std::vector<ElementFeature> session_features(const Element& element) {
@@ -644,6 +645,57 @@ BRep mesh_brep(const Mesh& mesh) {
     }
 
     return BRep::from_polylines(faces, holes);
+}
+
+Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>& cuts, bool drills) {
+
+    std::vector<Mesh> pending;
+
+    for (const InteractionFeatureSolid& cut : cuts) {
+        if (cut.operation != SolidOperation::subtract && !pending.empty()) {
+            mesh = solid_difference(mesh, pending);
+            pending.clear();
+        }
+
+        if (drills)
+            for (const Line& drill : cut.drills)
+                pending.push_back(drill_mesh(drill, cut.drill_radius, cut.drill_tolerance));
+
+        if (!cut.mesh.number_of_faces())
+            continue;
+
+        if (std::optional<Mesh> result = compute_profile_cut(mesh, cut))
+            mesh = std::move(*result);
+        else if (cut.operation == SolidOperation::subtract)
+            pending.push_back(cut.mesh);
+        else
+            mesh = solid_boolean(mesh, cut.mesh, cut.operation, cut.tolerance);
+    }
+
+    if (!pending.empty())
+        mesh = solid_difference(mesh, pending);
+
+    return mesh;
+}
+
+BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
+
+    std::vector<Drill> drills;
+
+    for (const InteractionFeatureSolid& cut : cuts)
+        for (const Line& drill : cut.drills)
+            drills.push_back({drill, cut.drill_radius});
+
+    if (!drills.empty())
+        if (std::optional<BRep> exact = drilled_brep(apply_solid_features(mesh, cuts, false), drills))
+            return *exact;
+
+    const Mesh cut = apply_solid_features(mesh, cuts);
+
+    if (std::optional<BRep> planar = drilled_brep(cut, {}))
+        return *planar;
+
+    return mesh_brep(cut);
 }
 
 }

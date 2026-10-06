@@ -15,9 +15,9 @@ int main() {
     cut_case(scene, "Profile with a hole / intersection", stock(),
              std::make_shared<Joint>(std::vector<Polyline>{rectangle(15, 15, -5, 170, 130), rectangle(65, 55, -5, 70, 50)}, Vector(0, 0, 45)), 260);
     cut_case(scene, "Through slot / two separate pieces", stock(),
-             std::make_shared<Joint>(std::vector<Polyline>{rectangle(85, -10, -5, 30, 180)}, Vector(0, 0, 45), SolidOperation::difference), 520);
+             std::make_shared<Joint>(std::vector<Polyline>{rectangle(85, -10, -5, 30, 180)}, Vector(0, 0, 45), SolidOperation::subtract), 520);
     cut_case(scene, "Concave pocket / solid split", stock(),
-             std::make_shared<Joint>(std::vector<Polyline>{concave.translated({0, 0, 25})}, Vector(0, 0, 30), SolidOperation::difference), 780);
+             std::make_shared<Joint>(std::vector<Polyline>{concave.translated({0, 0, 25})}, Vector(0, 0, 30), SolidOperation::subtract), 780);
     finish(scene, "15_profile_cuts");
 }
 

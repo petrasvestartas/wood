@@ -86,7 +86,7 @@ constexpr Beam::ParseTableT_ Beam::InternalGenerateParseTable_(const ::_pbi::Cla
       {::_pbi::TcParser::FastMtR1,
        {50, 3, 3,
         PROTOBUF_FIELD_OFFSET(Beam, _impl_.profile_)}},
-      // repeated .wood_proto.SolidCut solid_cuts = 7;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 7;
       {::_pbi::TcParser::FastMtR1,
        {58, 4, 4,
         PROTOBUF_FIELD_OFFSET(Beam, _impl_.solid_cuts_)}},
@@ -105,7 +105,7 @@ constexpr Beam::ParseTableT_ Beam::InternalGenerateParseTable_(const ::_pbi::Cla
       {PROTOBUF_FIELD_OFFSET(Beam, _impl_.cuts_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .session_proto.Polyline profile = 6;
       {PROTOBUF_FIELD_OFFSET(Beam, _impl_.profile_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .wood_proto.SolidCut solid_cuts = 7;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 7;
       {PROTOBUF_FIELD_OFFSET(Beam, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 4, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
@@ -130,9 +130,9 @@ constexpr Beam::ParseTableT_ Beam::InternalGenerateParseTable_(const ::_pbi::Cla
         {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
+        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
     }},
     {{
@@ -301,28 +301,29 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 };
 const char descriptor_table_protodef_element_5fbeam_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\022element_beam.proto\022\nwood_proto\032\017solid_"
-    "cut.proto\032\013plane.proto\032\016polyline.proto\032\014"
-    "vector.proto\"\365\001\n\004Beam\022(\n\nsolid_cuts\030\007 \003("
-    "\0132\024.wood_proto.SolidCut\022%\n\004axis\030\001 \001(\0132\027."
-    "session_proto.Polyline\022\r\n\005radii\030\002 \003(\001\022)\n"
-    "\ndirections\030\003 \003(\0132\025.session_proto.Vector"
-    "\022\024\n\014allowed_type\030\004 \001(\005\022\"\n\004cuts\030\005 \003(\0132\024.s"
-    "ession_proto.Plane\022(\n\007profile\030\006 \003(\0132\027.se"
-    "ssion_proto.Polylineb\006proto3"
+    "\n\022element_beam.proto\022\nwood_proto\032\037intera"
+    "ction_feature_solid.proto\032\013plane.proto\032\016"
+    "polyline.proto\032\014vector.proto\"\204\002\n\004Beam\0227\n"
+    "\nsolid_cuts\030\007 \003(\0132#.wood_proto.Interacti"
+    "onFeatureSolid\022%\n\004axis\030\001 \001(\0132\027.session_p"
+    "roto.Polyline\022\r\n\005radii\030\002 \003(\001\022)\n\ndirectio"
+    "ns\030\003 \003(\0132\025.session_proto.Vector\022\024\n\014allow"
+    "ed_type\030\004 \001(\005\022\"\n\004cuts\030\005 \003(\0132\024.session_pr"
+    "oto.Plane\022(\n\007profile\030\006 \003(\0132\027.session_pro"
+    "to.Polylineb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fbeam_2eproto_deps[4] = {
+        &::descriptor_table_interaction_5ffeature_5fsolid_2eproto,
         &::descriptor_table_plane_2eproto,
         &::descriptor_table_polyline_2eproto,
-        &::descriptor_table_solid_5fcut_2eproto,
         &::descriptor_table_vector_2eproto,
 };
 static ::absl::once_flag descriptor_table_element_5fbeam_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fbeam_2eproto = {
     false,
     false,
-    348,
+    379,
     descriptor_table_protodef_element_5fbeam_2eproto,
     "element_beam.proto",
     &descriptor_table_element_5fbeam_2eproto_once,
@@ -625,7 +626,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
     }
   }
 
-  // repeated .wood_proto.SolidCut solid_cuts = 7;
+  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 7;
   if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_cuts_size());
@@ -692,7 +693,7 @@ PROTOBUF_NOINLINE void Beam::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .wood_proto.SolidCut solid_cuts = 7;
+    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 7;
     if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1UL * this_._internal_solid_cuts_size();
       for (const auto& msg : this_._internal_solid_cuts()) {

@@ -169,7 +169,7 @@ Mesh loft_regions(const std::vector<Polyline>& rings, const Plane& plane, const 
 
 }
 
-std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const SolidCut& cut) {
+std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatureSolid& cut) {
 
     if (cut.profile.empty() || cut.extrusion.magnitude_squared() == 0 || mesh.vertex.empty())
         return std::nullopt;
@@ -193,7 +193,7 @@ std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const SolidCut& cut) {
     if (heights[1] - heights[0] <= cut.tolerance || heights[0] < -cut.tolerance || heights[1] > length + cut.tolerance)
         return std::nullopt;
 
-    if (cut.operation == SolidOperation::unite && (std::abs(heights[0]) > cut.tolerance || std::abs(heights[1] - length) > cut.tolerance))
+    if (cut.operation == SolidOperation::add && (std::abs(heights[0]) > cut.tolerance || std::abs(heights[1] - length) > cut.tolerance))
         return std::nullopt;
 
     if (!is_extrusion(mesh, *local, heights, cut.tolerance))

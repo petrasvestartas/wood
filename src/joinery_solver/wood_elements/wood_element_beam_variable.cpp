@@ -46,8 +46,8 @@ std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
     for (const session_proto::Plane& cut : proto.cuts())
         beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
-    for (const wood_proto::SolidCut& cut : proto.solid_cuts())
-        beam->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_cuts())
+        beam->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
 
     return beam;
 }
@@ -93,7 +93,7 @@ std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) cons
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
 
-    for (const SolidCut& cut : solid_cuts)
+    for (const InteractionFeatureSolid& cut : solid_cuts)
         beam->solid_cuts.push_back(cut.transformed(xform));
 
     beam->set_features(transformed_features(_features, xform));
@@ -109,7 +109,7 @@ void BeamVariable::place(const Xform& xform) {
     sections = transformed_list(sections, xform);
     cuts = transformed_list(cuts, xform);
 
-    for (SolidCut& cut : solid_cuts)
+    for (InteractionFeatureSolid& cut : solid_cuts)
         cut = cut.transformed(xform);
 
     _element_geometry_mesh.reset();
@@ -194,7 +194,7 @@ std::string BeamVariable::element_data_dumps() const {
         if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid beam cut");
 
-    for (const SolidCut& cut : solid_cuts)
+    for (const InteractionFeatureSolid& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
 

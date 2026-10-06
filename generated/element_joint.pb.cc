@@ -565,7 +565,7 @@ constexpr Joint::ParseTableT_ Joint::InternalGenerateParseTable_(const ::_pbi::C
       {::_pbi::TcParser::FastF64S2,
        {417, 19, 0,
         PROTOBUF_FIELD_OFFSET(Joint, _impl_.drill_overshoot_)}},
-      // repeated .wood_proto.SolidCut solid_cuts = 21;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
       {::_pbi::TcParser::FastMtR2,
        {426, 8, 10,
         PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_cuts_)}},
@@ -625,7 +625,7 @@ constexpr Joint::ParseTableT_ Joint::InternalGenerateParseTable_(const ::_pbi::C
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.cutters_), _Internal::kHasBitsOffset + 7, 9, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double drill_overshoot = 20;
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.drill_overshoot_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .wood_proto.SolidCut solid_cuts = 21;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 8, 10, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool pre_drill = 23;
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.pre_drill_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
@@ -682,9 +682,9 @@ constexpr Joint::ParseTableT_ Joint::InternalGenerateParseTable_(const ::_pbi::C
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::JointCutter_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
+        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
     }},
     {{
@@ -962,52 +962,53 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     protodesc_cold) = {
     "\n\023element_joint.proto\022\nwood_proto\032\016polyl"
     "ine.proto\032\013plane.proto\032\nline.proto\032\014vect"
-    "or.proto\032\021interaction.proto\032\017solid_cut.p"
-    "roto\"\355\005\n\005Joint\022&\n\005loops\030\001 \003(\0132\027.session_"
-    "proto.Polyline\022\"\n\004cuts\030\002 \003(\0132\024.session_p"
-    "roto.Plane\022\017\n\007targets\030\003 \003(\t\022/\n\013connectio"
-    "ns\030\004 \003(\0132\032.session_proto.Interaction\0220\n\014"
-    "beam_feature\030\005 \001(\0132\032.session_proto.Inter"
-    "action\022\017\n\007variant\030\006 \001(\005\022\031\n\021division_dist"
-    "ance\030\007 \001(\001\022\r\n\005shift\030\010 \001(\001\022\023\n\013line_radius"
-    "\030\t \001(\001\022\021\n\tgenerated\030\n \001(\010\022\014\n\004kind\030\013 \001(\t\022"
-    "\027\n\017chord_tolerance\030\014 \001(\001\022/\n\016cutter_profi"
-    "le\030\r \003(\0132\027.session_proto.Polyline\022/\n\020cut"
-    "ter_extrusion\030\016 \001(\0132\025.session_proto.Vect"
-    "or\022(\n\013drill_lines\030\017 \003(\0132\023.session_proto."
-    "Line\022\026\n\toperation\030\020 \001(\005H\000\210\001\001\022:\n\020plate_pa"
-    "rameters\030\021 \001(\0132 .wood_proto.JointPlatePa"
-    "rameters\022&\n\005parts\030\022 \003(\0132\027.session_proto."
-    "Polyline\022(\n\007cutters\030\023 \003(\0132\027.wood_proto.J"
-    "ointCutter\022\027\n\017drill_overshoot\030\024 \001(\001\022(\n\ns"
-    "olid_cuts\030\025 \003(\0132\024.wood_proto.SolidCut\022\021\n"
-    "\tpre_drill\030\027 \001(\010B\014\n\n_operationJ\004\010\026\020\027\"5\n\013"
-    "JointCutter\022&\n\005loops\030\001 \003(\0132\027.session_pro"
-    "to.Polyline\"\340\002\n\024JointPlateParameters\022\017\n\007"
-    "library\030\001 \001(\t\022\024\n\014contact_type\030\002 \001(\005\022\021\n\td"
-    "ivisions\030\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007chamfer"
-    "\030\005 \001(\010\022\033\n\016modify_outline\030\006 \001(\010H\000\210\001\001\022\t\n\001x"
-    "\030\007 \003(\001\022\t\n\001y\030\010 \003(\001\022\t\n\001z\030\t \003(\001\022\031\n\021disable_"
-    "divisions\030\n \001(\010\022\030\n\020distance_squared\030\013 \001("
-    "\001\022\030\n\020merge_with_joint\030\014 \001(\010\022%\n\004male\030\r \003("
-    "\0132\027.session_proto.Polyline\022\'\n\006female\030\016 \003"
-    "(\0132\027.session_proto.PolylineB\021\n\017_modify_o"
-    "utlineb\006proto3"
+    "or.proto\032\021interaction.proto\032\037interaction"
+    "_feature_solid.proto\"\374\005\n\005Joint\022&\n\005loops\030"
+    "\001 \003(\0132\027.session_proto.Polyline\022\"\n\004cuts\030\002"
+    " \003(\0132\024.session_proto.Plane\022\017\n\007targets\030\003 "
+    "\003(\t\022/\n\013connections\030\004 \003(\0132\032.session_proto"
+    ".Interaction\0220\n\014beam_feature\030\005 \001(\0132\032.ses"
+    "sion_proto.Interaction\022\017\n\007variant\030\006 \001(\005\022"
+    "\031\n\021division_distance\030\007 \001(\001\022\r\n\005shift\030\010 \001("
+    "\001\022\023\n\013line_radius\030\t \001(\001\022\021\n\tgenerated\030\n \001("
+    "\010\022\014\n\004kind\030\013 \001(\t\022\027\n\017chord_tolerance\030\014 \001(\001"
+    "\022/\n\016cutter_profile\030\r \003(\0132\027.session_proto"
+    ".Polyline\022/\n\020cutter_extrusion\030\016 \001(\0132\025.se"
+    "ssion_proto.Vector\022(\n\013drill_lines\030\017 \003(\0132"
+    "\023.session_proto.Line\022\026\n\toperation\030\020 \001(\005H"
+    "\000\210\001\001\022:\n\020plate_parameters\030\021 \001(\0132 .wood_pr"
+    "oto.JointPlateParameters\022&\n\005parts\030\022 \003(\0132"
+    "\027.session_proto.Polyline\022(\n\007cutters\030\023 \003("
+    "\0132\027.wood_proto.JointCutter\022\027\n\017drill_over"
+    "shoot\030\024 \001(\001\0227\n\nsolid_cuts\030\025 \003(\0132#.wood_p"
+    "roto.InteractionFeatureSolid\022\021\n\tpre_dril"
+    "l\030\027 \001(\010B\014\n\n_operationJ\004\010\026\020\027\"5\n\013JointCutt"
+    "er\022&\n\005loops\030\001 \003(\0132\027.session_proto.Polyli"
+    "ne\"\340\002\n\024JointPlateParameters\022\017\n\007library\030\001"
+    " \001(\t\022\024\n\014contact_type\030\002 \001(\005\022\021\n\tdivisions\030"
+    "\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007chamfer\030\005 \001(\010\022\033\n"
+    "\016modify_outline\030\006 \001(\010H\000\210\001\001\022\t\n\001x\030\007 \003(\001\022\t\n"
+    "\001y\030\010 \003(\001\022\t\n\001z\030\t \003(\001\022\031\n\021disable_divisions"
+    "\030\n \001(\010\022\030\n\020distance_squared\030\013 \001(\001\022\030\n\020merg"
+    "e_with_joint\030\014 \001(\010\022%\n\004male\030\r \003(\0132\027.sessi"
+    "on_proto.Polyline\022\'\n\006female\030\016 \003(\0132\027.sess"
+    "ion_proto.PolylineB\021\n\017_modify_outlineb\006p"
+    "roto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fjoint_2eproto_deps[6] = {
         &::descriptor_table_interaction_2eproto,
+        &::descriptor_table_interaction_5ffeature_5fsolid_2eproto,
         &::descriptor_table_line_2eproto,
         &::descriptor_table_plane_2eproto,
         &::descriptor_table_polyline_2eproto,
-        &::descriptor_table_solid_5fcut_2eproto,
         &::descriptor_table_vector_2eproto,
 };
 static ::absl::once_flag descriptor_table_element_5fjoint_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fjoint_2eproto = {
     false,
     false,
-    1294,
+    1325,
     descriptor_table_protodef_element_5fjoint_2eproto,
     "element_joint.proto",
     &descriptor_table_element_5fjoint_2eproto_once,
@@ -1569,7 +1570,7 @@ PROTOBUF_NOINLINE void Joint::Clear() {
     }
   }
 
-  // repeated .wood_proto.SolidCut solid_cuts = 21;
+  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
   if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_cuts_size());
@@ -1674,7 +1675,7 @@ PROTOBUF_NOINLINE void Joint::Clear() {
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
-    // repeated .wood_proto.SolidCut solid_cuts = 21;
+    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       total_size += 2UL * this_._internal_solid_cuts_size();
       for (const auto& msg : this_._internal_solid_cuts()) {

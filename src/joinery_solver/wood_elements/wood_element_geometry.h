@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element_solid_cut.h"
+#include "wood_interaction_feature_solid.h"
 
 using namespace session_cpp;
 
@@ -13,13 +13,13 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter,
 
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it: the offcuts fall away.
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
-std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const SolidCut& cut);
+std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatureSolid& cut);
 
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.
-Mesh apply_solid_cuts(Mesh mesh, const std::vector<SolidCut>& cuts, bool drills = true);
+Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>& cuts, bool drills = true);
 
 /// The mesh with the cuts applied as a BRep: the round holes the cuts carry made exact, cylindrical faces with circle or ellipse loops, where they are clear of every edge and of each other, else the cut mesh's planar faces with their holes as inner loops.
-BRep solid_cuts_brep(const Mesh& mesh, const std::vector<SolidCut>& cuts);
+BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts);
 BRep mesh_brep(const Mesh& mesh);
 void append_mesh(Mesh& target, const Mesh& source);
 void append_brep(BRep& target, BRep source);
@@ -33,7 +33,7 @@ bool is_geometry_feature(std::string_view feature_type);
 /// A feature of one polyline, whole element unless a face is given.
 ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index = -1);
 
-/// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact", the "drill" of every hole a joint makes and the "solid_cut" of every solid another element takes away.
+/// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact", the "drill" of every hole a joint makes and the "solid_feature" of every solid another element takes away.
 bool is_session_feature(std::string_view feature_type);
 
 /// The features the session put on the element, guids and visibility kept; what every compute_geometry_mesh() carries over.

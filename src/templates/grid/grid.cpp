@@ -628,12 +628,12 @@ std::vector<std::shared_ptr<Element>> to_floor(const Level& level, const Context
         const bool flush = is_flush(level.plan, outline.first, context.framing);
 
         // a flush deck hangs under the datum between the members, the heads at its corners cut out of it
-        std::vector<wood_session::SolidCut> heads;
+        std::vector<wood_session::InteractionFeatureSolid> heads;
         for (const size_t vertex : flush ? compute_loop(level.plan, outline.first) : std::vector<size_t>()) {
             if (!context.standing.count(vertex))
                 continue;
 
-            wood_session::SolidCut head;
+            wood_session::InteractionFeatureSolid head;
             head.mesh = compute_pyramid(context, vertex, level.z + compute_head_bottom(context, vertex), level.z + compute_head_top(context, vertex), level.z);
             heads.push_back(head);
         }

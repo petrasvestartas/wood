@@ -1,13 +1,13 @@
 syntax = "proto3";
 
 package wood_proto;
-import "solid_cut.proto";
+import "interaction_feature_solid.proto";
 
 import "polyline.proto";
 
 // The state of a Plate beyond the kernel Element: its two outlines.
 message Plate {
-  repeated SolidCut solid_cuts = 4;
+  repeated InteractionFeatureSolid solid_cuts = 4;
   session_proto.Polyline bottom = 1;  // Bottom outline
   session_proto.Polyline top = 2;     // Top outline
   bool reversed = 3;                  // True when the constructor reversed both outlines

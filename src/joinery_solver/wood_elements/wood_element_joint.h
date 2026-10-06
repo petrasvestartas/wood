@@ -26,7 +26,7 @@ public:
     std::vector<Polyline> cutter_profile;
     Vector cutter_extrusion;
     std::vector<Line> drill_lines;
-    SolidOperation operation = SolidOperation::difference;
+    SolidOperation operation = SolidOperation::subtract;
 
 protected:
     mutable std::optional<Mesh> mesh_;
@@ -38,11 +38,11 @@ public:
     Joint();
     explicit Joint(const std::vector<Polyline>& loops, const std::string& name = "Joint");
     explicit Joint(const Plane& cutter);
-    explicit Joint(const Mesh& cutter, SolidOperation operation = SolidOperation::difference);
+    explicit Joint(const Mesh& cutter, SolidOperation operation = SolidOperation::subtract);
     /// Keep the interior of a closed profile extruded along direction.
     Joint(const Polyline& profile, const Vector& direction);
     Joint(const std::vector<Polyline>& profile, const Vector& direction,
-          SolidOperation operation = SolidOperation::intersection);
+          SolidOperation operation = SolidOperation::intersect);
     static std::shared_ptr<Joint> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
 
     /// The joint of a support and the column standing on it, named "support": the head plate disc let up into the column end by the recess, and the column screws drilled from the head plate underside, so each hole opens into the pocket; aimed at the column.

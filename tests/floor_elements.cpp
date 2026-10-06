@@ -169,9 +169,9 @@ void check_support() {
     size_t inclined = 0;
     size_t drawn = 0;
 
-    for (const SolidCut& feature : carved.column->solid_features) {
-        glued_blocks += feature.operation == SolidOperation::unite;
-        inclined += feature.operation == SolidOperation::difference;
+    for (const InteractionFeatureSolid& feature : carved.column->solid_features) {
+        glued_blocks += feature.operation == SolidOperation::add;
+        inclined += feature.operation == SolidOperation::subtract;
     }
 
     for (const ElementFeature& feature : carved.column->features())
@@ -833,7 +833,7 @@ void check_drilled_members(const WoodSession& scene) {
     size_t drilled = 0;
 
     for (const std::shared_ptr<Element>& element : scene.world_elements()) {
-        const std::vector<SolidCut>* cuts = solid_cuts_of(*element);
+        const std::vector<InteractionFeatureSolid>* cuts = solid_cuts_of(*element);
 
         if (!cuts || cuts->empty())
             continue;
@@ -893,12 +893,12 @@ void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_pt
         const std::shared_ptr<JointBeam> a = scene.get_element<JointBeam>(lap->targets[0]);
         const std::shared_ptr<JointBeam> b = scene.get_element<JointBeam>(lap->targets[1]);
         check(a->solid_cuts.size() == 1 && b->solid_cuts.size() == 1, "each plate carries its slot");
-        const Mesh slotted_a = apply_solid_cuts(a->part_mesh(0), a->solid_cuts, false);
-        const Mesh slotted_b = apply_solid_cuts(b->part_mesh(0), b->solid_cuts, false);
-        const Mesh overlap = solid_boolean(slotted_a, slotted_b, SolidOperation::intersection, 1e-7);
+        const Mesh slotted_a = apply_solid_features(a->part_mesh(0), a->solid_cuts, false);
+        const Mesh slotted_b = apply_solid_features(b->part_mesh(0), b->solid_cuts, false);
+        const Mesh overlap = solid_boolean(slotted_a, slotted_b, SolidOperation::intersect, 1e-7);
         check(!overlap.number_of_faces() || compute_volume(overlap) < 1e-6, "the slotted plates do not overlap");
         const double sum = compute_volume(slotted_a) + compute_volume(slotted_b);
-        check(std::abs(sum - compute_volume(solid_boolean(slotted_a, slotted_b, SolidOperation::unite, 1e-7))) < 1e-9 * sum, "the slotted plates unite to their sum, touching without overlap");
+        check(std::abs(sum - compute_volume(solid_boolean(slotted_a, slotted_b, SolidOperation::add, 1e-7))) < 1e-9 * sum, "the slotted plates unite to their sum, touching without overlap");
         check(std::abs(compute_volume(a->part_mesh(0)) - compute_volume(slotted_a) - 30.0 * 30.0 * 125.0) < 1e-3, "a slot 30 wide and 125 deep out of the first plate");
         check(std::abs(compute_volume(b->part_mesh(0)) - compute_volume(slotted_b) - 30.0 * 30.0 * 125.0) < 1e-3, "a slot 30 wide and 125 deep out of the second plate");
 

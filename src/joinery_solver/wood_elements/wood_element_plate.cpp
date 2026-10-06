@@ -94,7 +94,7 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
     std::optional<Polyline> bottom;
     std::optional<Polyline> top;
     bool reversed = false;
-    std::vector<SolidCut> saved_cuts;
+    std::vector<InteractionFeatureSolid> saved_cuts;
     if (!bytes.empty() && bytes.front() == '{') {
         try {
             const nlohmann::json payload = nlohmann::json::parse(bytes);
@@ -104,7 +104,7 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
                     message_from_json(payload, proto);
                     bottom = Polyline::pb_loads(proto.bottom().SerializeAsString());
                     top = Polyline::pb_loads(proto.top().SerializeAsString());
-                    for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+                    for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
                 } else {
                     bottom = Polyline::jsonload(payload["bottom"]);
                     top = Polyline::jsonload(payload["top"]);
@@ -120,7 +120,7 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
             top = Polyline::pb_loads(proto.top().SerializeAsString());
         }
         reversed = proto.reversed();
-        for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+        for (const auto& cut : proto.solid_cuts()) saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     }
 
     std::shared_ptr<Plate> plate = bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();

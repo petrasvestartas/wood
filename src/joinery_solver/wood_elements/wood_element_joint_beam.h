@@ -20,7 +20,7 @@ public:
     std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the dowels at an end where the dowel leaves the target; a blind hole stops at its dowel.
-    std::vector<SolidCut> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's.
+    std::vector<InteractionFeatureSolid> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of screws: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
 
     JointBeam();
@@ -135,7 +135,7 @@ public:
     Mesh part_mesh(size_t index) const;
 
     /// The cuts into one part: the connector's stored cuts and the bores of its own dowels passing through the part.
-    std::vector<SolidCut> part_cuts(size_t index) const;
+    std::vector<InteractionFeatureSolid> part_cuts(size_t index) const;
 
     /// One part as a BRep with its cuts applied and its dowel bores exact.
     BRep part_brep(size_t index) const;

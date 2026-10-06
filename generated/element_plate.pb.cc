@@ -61,7 +61,7 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
       ::_pbi::TcParser::GetTable<::wood_proto::Plate>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .wood_proto.SolidCut solid_cuts = 4;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
       {::_pbi::TcParser::FastMtR1,
        {34, 0, 2,
         PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_cuts_)}},
@@ -86,7 +86,7 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
       {PROTOBUF_FIELD_OFFSET(Plate, _impl_.top_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool reversed = 3;
       {PROTOBUF_FIELD_OFFSET(Plate, _impl_.reversed_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-      // repeated .wood_proto.SolidCut solid_cuts = 4;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
       {PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 0, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
@@ -101,9 +101,9 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
         {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
+        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
     }},
     {{
@@ -247,23 +247,24 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 };
 const char descriptor_table_protodef_element_5fplate_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\023element_plate.proto\022\nwood_proto\032\017solid"
-    "_cut.proto\032\016polyline.proto\"\222\001\n\005Plate\022(\n\n"
-    "solid_cuts\030\004 \003(\0132\024.wood_proto.SolidCut\022\'"
-    "\n\006bottom\030\001 \001(\0132\027.session_proto.Polyline\022"
-    "$\n\003top\030\002 \001(\0132\027.session_proto.Polyline\022\020\n"
-    "\010reversed\030\003 \001(\010b\006proto3"
+    "\n\023element_plate.proto\022\nwood_proto\032\037inter"
+    "action_feature_solid.proto\032\016polyline.pro"
+    "to\"\241\001\n\005Plate\0227\n\nsolid_cuts\030\004 \003(\0132#.wood_"
+    "proto.InteractionFeatureSolid\022\'\n\006bottom\030"
+    "\001 \001(\0132\027.session_proto.Polyline\022$\n\003top\030\002 "
+    "\001(\0132\027.session_proto.Polyline\022\020\n\010reversed"
+    "\030\003 \001(\010b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fplate_2eproto_deps[2] = {
+        &::descriptor_table_interaction_5ffeature_5fsolid_2eproto,
         &::descriptor_table_polyline_2eproto,
-        &::descriptor_table_solid_5fcut_2eproto,
 };
 static ::absl::once_flag descriptor_table_element_5fplate_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fplate_2eproto = {
     false,
     false,
-    223,
+    254,
     descriptor_table_protodef_element_5fplate_2eproto,
     "element_plate.proto",
     &descriptor_table_element_5fplate_2eproto_once,
@@ -468,7 +469,7 @@ PROTOBUF_NOINLINE void Plate::Clear() {
     }
   }
 
-  // repeated .wood_proto.SolidCut solid_cuts = 4;
+  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_cuts_size());
@@ -504,7 +505,7 @@ PROTOBUF_NOINLINE void Plate::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // repeated .wood_proto.SolidCut solid_cuts = 4;
+    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_solid_cuts_size();
       for (const auto& msg : this_._internal_solid_cuts()) {

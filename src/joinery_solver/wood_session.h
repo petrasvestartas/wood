@@ -29,7 +29,7 @@ using namespace session_cpp;
 namespace wood_session {
 
 /// The solid cuts a plate, beam, column, block or connector carries, in its own frame; null for any other element.
-const std::vector<SolidCut>* solid_cuts_of(const Element& element);
+const std::vector<InteractionFeatureSolid>* solid_cuts_of(const Element& element);
 
 }
 

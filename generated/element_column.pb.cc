@@ -82,7 +82,7 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       {::_pbi::TcParser::FastF64S1,
        {41, 5, 0,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_)}},
-      // repeated .wood_proto.SolidCut solid_cuts = 6;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
       {::_pbi::TcParser::FastMtR1,
        {50, 2, 4,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_)}},
@@ -100,9 +100,9 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double rotation = 5;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .wood_proto.SolidCut solid_cuts = 6;
+      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .wood_proto.SolidCut solid_features = 9;
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_features_), _Internal::kHasBitsOffset + 6, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
@@ -127,14 +127,14 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
         {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
+        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::SolidCut>()},
+        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
         #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::SolidCut_globals_},
+        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
     }},
     {{
@@ -299,30 +299,31 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 };
 const char descriptor_table_protodef_element_5fcolumn_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
-    "\n\024element_column.proto\022\nwood_proto\032\017soli"
-    "d_cut.proto\032\nline.proto\032\013plane.proto\032\016po"
-    "lyline.proto\"\254\002\n\006Column\022(\n\nsolid_cuts\030\006 "
-    "\003(\0132\024.wood_proto.SolidCut\022!\n\004axis\030\001 \001(\0132"
-    "\023.session_proto.Line\022(\n\007section\030\002 \001(\0132\027."
-    "session_proto.Polyline\022\"\n\004cuts\030\003 \003(\0132\024.s"
-    "ession_proto.Plane\022(\n\007profile\030\004 \003(\0132\027.se"
-    "ssion_proto.Polyline\022\020\n\010rotation\030\005 \001(\001\022,"
-    "\n\016solid_features\030\t \003(\0132\024.wood_proto.Soli"
-    "dCutJ\004\010\007\020\010J\004\010\010\020\tR\004headR\013head_heightb\006pro"
-    "to3"
+    "\n\024element_column.proto\022\nwood_proto\032\037inte"
+    "raction_feature_solid.proto\032\nline.proto\032"
+    "\013plane.proto\032\016polyline.proto\"\312\002\n\006Column\022"
+    "7\n\nsolid_cuts\030\006 \003(\0132#.wood_proto.Interac"
+    "tionFeatureSolid\022!\n\004axis\030\001 \001(\0132\023.session"
+    "_proto.Line\022(\n\007section\030\002 \001(\0132\027.session_p"
+    "roto.Polyline\022\"\n\004cuts\030\003 \003(\0132\024.session_pr"
+    "oto.Plane\022(\n\007profile\030\004 \003(\0132\027.session_pro"
+    "to.Polyline\022\020\n\010rotation\030\005 \001(\001\022;\n\016solid_f"
+    "eatures\030\t \003(\0132#.wood_proto.InteractionFe"
+    "atureSolidJ\004\010\007\020\010J\004\010\010\020\tR\004headR\013head_heigh"
+    "tb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fcolumn_2eproto_deps[4] = {
+        &::descriptor_table_interaction_5ffeature_5fsolid_2eproto,
         &::descriptor_table_line_2eproto,
         &::descriptor_table_plane_2eproto,
         &::descriptor_table_polyline_2eproto,
-        &::descriptor_table_solid_5fcut_2eproto,
 };
 static ::absl::once_flag descriptor_table_element_5fcolumn_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fcolumn_2eproto = {
     false,
     false,
-    403,
+    449,
     descriptor_table_protodef_element_5fcolumn_2eproto,
     "element_column.proto",
     &descriptor_table_element_5fcolumn_2eproto_once,
@@ -613,7 +614,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
     }
   }
 
-  // repeated .wood_proto.SolidCut solid_cuts = 6;
+  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_cuts_size());
@@ -625,7 +626,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
     }
   }
 
-  // repeated .wood_proto.SolidCut solid_features = 9;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
   if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_features_size());
@@ -675,7 +676,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .wood_proto.SolidCut solid_cuts = 6;
+    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
       total_size += 1UL * this_._internal_solid_cuts_size();
       for (const auto& msg : this_._internal_solid_cuts()) {
@@ -698,7 +699,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
         total_size += 9;
       }
     }
-    // repeated .wood_proto.SolidCut solid_features = 9;
+    // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
     if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       total_size += 1UL * this_._internal_solid_features_size();
       for (const auto& msg : this_._internal_solid_features()) {

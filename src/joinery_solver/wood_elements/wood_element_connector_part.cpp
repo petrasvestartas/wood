@@ -23,7 +23,7 @@ ConnectorPart::ConnectorPart(const JointBeam& connector, size_t index, const std
 const Mesh& ConnectorPart::element_geometry_mesh() const {
 
     if (!mesh_)
-        mesh_ = apply_solid_cuts(part_mesh(0), solid_cuts);
+        mesh_ = apply_solid_features(part_mesh(0), solid_cuts);
 
     return *mesh_;
 }

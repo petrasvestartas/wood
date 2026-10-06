@@ -381,22 +381,22 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter, SolidOperation operat
         throw std::invalid_argument("Solid tolerance must be positive");
 
     if (!source.number_of_faces())
-        return operation == SolidOperation::unite ? cutter : Mesh();
+        return operation == SolidOperation::add ? cutter : Mesh();
 
     if (!cutter.number_of_faces())
-        return operation == SolidOperation::intersection ? Mesh() : source;
+        return operation == SolidOperation::intersect ? Mesh() : source;
 
     const manifold::Manifold a = to_manifold(source, 0);
     std::vector<manifold::Manifold> bodies = cutter_bodies(cutter, face_id_span(source));
 
-    if (operation == SolidOperation::difference) {
+    if (operation == SolidOperation::subtract) {
         bodies.insert(bodies.begin(), a);
         return from_manifold(manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Subtract));
     }
 
     const manifold::Manifold b = manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Add);
 
-    if (operation == SolidOperation::intersection)
+    if (operation == SolidOperation::intersect)
         return from_manifold(a ^ b);
 
     return from_manifold(a + b, true);

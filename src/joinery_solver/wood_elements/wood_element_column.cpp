@@ -95,8 +95,8 @@ std::shared_ptr<Column> Column::glued_head(const Line& axis, const Plane& corner
         return Mesh::loft({base.translated(under)}, {base.translated(axis.to_vector())}, true);
     };
 
-    column->solid_features.push_back(SolidCut::unite(block(0.0, side, head_side, head_side)));
-    column->solid_features.push_back(SolidCut::unite(block(side, 0.0, head_side, side)));
+    column->solid_features.push_back(InteractionFeatureSolid::add(block(0.0, side, head_side, head_side)));
+    column->solid_features.push_back(InteractionFeatureSolid::add(block(side, 0.0, head_side, side)));
 
     return column;
 }
@@ -140,11 +140,11 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     column->rotation = proto.rotation();
 
-    for (const wood_proto::SolidCut& feature : proto.solid_features())
-        column->solid_features.push_back(SolidCut::pb_loads(feature.SerializeAsString()));
+    for (const wood_proto::InteractionFeatureSolid& feature : proto.solid_features())
+        column->solid_features.push_back(InteractionFeatureSolid::pb_loads(feature.SerializeAsString()));
 
-    for (const wood_proto::SolidCut& cut : proto.solid_cuts())
-        column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_cuts())
+        column->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
 
     return column;
 }
@@ -181,7 +181,7 @@ static Mesh snapped(const Mesh& mesh, const Xform& to_local) {
 
 /// The number of glued blocks among the column's solid features.
 static size_t glued_count(const Column& column) {
-    return std::count_if(column.solid_features.begin(), column.solid_features.end(), [](const SolidCut& feature) { return feature.operation == SolidOperation::unite; });
+    return std::count_if(column.solid_features.begin(), column.solid_features.end(), [](const InteractionFeatureSolid& feature) { return feature.operation == SolidOperation::add; });
 }
 
 /// The swept shaft with the glued blocks united, in the column's own frame on a 1e-6 mm grid, where a block and the shaft meet on exactly one plane; the stock the removals cut.
@@ -198,15 +198,15 @@ static Mesh glued(const Column& column, const Mesh& shaft) {
     if (!to_local)
         return shaft;
 
-    std::vector<SolidCut> blocks;
+    std::vector<InteractionFeatureSolid> blocks;
 
-    for (const SolidCut& feature : column.solid_features)
-        if (feature.operation == SolidOperation::unite) {
+    for (const InteractionFeatureSolid& feature : column.solid_features)
+        if (feature.operation == SolidOperation::add) {
             blocks.push_back(feature);
             blocks.back().mesh = snapped(feature.mesh, *to_local);
         }
 
-    return apply_solid_cuts(snapped(shaft, *to_local), blocks).transformed(to_world);
+    return apply_solid_features(snapped(shaft, *to_local), blocks).transformed(to_world);
 }
 
 const Mesh& Column::element_geometry_mesh() const {
@@ -242,13 +242,13 @@ const BRep& Column::element_geometry_brep() const {
 
 Mesh Column::trimmed_mesh() const {
 
-    std::vector<SolidCut> removals;
+    std::vector<InteractionFeatureSolid> removals;
 
-    for (const SolidCut& feature : solid_features)
-        if (feature.operation != SolidOperation::unite)
+    for (const InteractionFeatureSolid& feature : solid_features)
+        if (feature.operation != SolidOperation::add)
             removals.push_back(feature);
 
-    return apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), removals);
+    return apply_solid_features(cut_mesh(element_geometry_mesh(), cuts), removals);
 }
 
 BRep Column::trimmed_brep() const {
@@ -268,10 +268,10 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
 
-    for (const SolidCut& feature : solid_features)
+    for (const InteractionFeatureSolid& feature : solid_features)
         column->solid_features.push_back(feature.transformed(xform));
 
-    for (const SolidCut& cut : solid_cuts)
+    for (const InteractionFeatureSolid& cut : solid_cuts)
         column->solid_cuts.push_back(cut.transformed(xform));
 
     column->profile = profile;
@@ -290,10 +290,10 @@ void Column::place(const Xform& xform) {
     section.transform(xform);
     cuts = transformed_list(cuts, xform);
 
-    for (SolidCut& feature : solid_features)
+    for (InteractionFeatureSolid& feature : solid_features)
         feature = feature.transformed(xform);
 
-    for (SolidCut& cut : solid_cuts)
+    for (InteractionFeatureSolid& cut : solid_cuts)
         cut = cut.transformed(xform);
 
     if (!profile.empty())
@@ -335,8 +335,8 @@ void Column::compute_geometry_features() {
     if (!trimmed.second.empty() && trimmed.second.front().point_count() > 0)
         next.push_back(polyline_feature("section", trimmed.second.front()));
 
-    for (const SolidCut& feature : solid_features)
-        if (feature.operation == SolidOperation::difference && feature.mesh.number_of_faces() > 0)
+    for (const InteractionFeatureSolid& feature : solid_features)
+        if (feature.operation == SolidOperation::subtract && feature.mesh.number_of_faces() > 0)
             next.push_back(ElementFeature("cut", -1, feature.mesh.face_outlines(), "cut"));
 
     for (ElementFeature& feature : session_features(*this))
@@ -391,11 +391,11 @@ std::string Column::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_rotation(rotation);
 
-    for (const SolidCut& feature : solid_features)
+    for (const InteractionFeatureSolid& feature : solid_features)
         if (!proto.add_solid_features()->ParseFromString(feature.pb_dumps()))
             throw std::runtime_error("Invalid solid feature");
 
-    for (const SolidCut& cut : solid_cuts)
+    for (const InteractionFeatureSolid& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
 

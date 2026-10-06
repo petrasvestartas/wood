@@ -5,7 +5,7 @@ int main() {
     WoodSession scene("17_solid_cuts");
     int row = 0;
     for (const std::pair<SolidOperation, std::string>& design : std::vector<std::pair<SolidOperation, std::string>>{
-             {SolidOperation::difference, "Difference"}, {SolidOperation::intersection, "Intersection"}, {SolidOperation::unite, "Union"}}) {
+             {SolidOperation::subtract, "Difference"}, {SolidOperation::intersect, "Intersection"}, {SolidOperation::add, "Union"}}) {
         const std::shared_ptr<Block> stock = std::make_shared<Block>(std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(30, 15, 100, 140, 130)});
         const std::shared_ptr<Joint> cutter = std::make_shared<Joint>(std::vector<Polyline>{rectangle(90, -20, 20, 130, 190), rectangle(60, -5, 130, 130, 190)});
         cutter->operation = design.first;

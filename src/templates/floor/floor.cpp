@@ -138,7 +138,7 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fm
 
     // the six inclined faces the ribs and the column blocks bear on, taken away from the glued head
     for (const std::array<Polyline, 2>& loops : guide.column_cutters(k))
-        column->solid_features.push_back(SolidCut::difference(Mesh::loft({loops[1]}, {loops[0]}, true).transformed(Xform::translation(0.0, 0.0, guide.bay_height))));
+        column->solid_features.push_back(InteractionFeatureSolid::subtract(Mesh::loft({loops[1]}, {loops[0]}, true).transformed(Xform::translation(0.0, 0.0, guide.bay_height))));
 
     column->invalidate_geometry();
 }

@@ -60,7 +60,7 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
     for (const session_proto::Polyline& ring : proto.profile())
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
-    for (const auto& cut : proto.solid_cuts()) beam->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const auto& cut : proto.solid_cuts()) beam->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     return beam;
 }
 

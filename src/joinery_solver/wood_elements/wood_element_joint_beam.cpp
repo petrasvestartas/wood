@@ -621,11 +621,11 @@ Mesh JointBeam::part_mesh(size_t index) const {
     return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
 }
 
-std::vector<SolidCut> JointBeam::part_cuts(size_t index) const {
+std::vector<InteractionFeatureSolid> JointBeam::part_cuts(size_t index) const {
 
     const Mesh part = part_mesh(index);
-    std::vector<SolidCut> cuts = solid_cuts;
-    SolidCut bores;
+    std::vector<InteractionFeatureSolid> cuts = solid_cuts;
+    InteractionFeatureSolid bores;
 
     for (const Line& dowel : drill_lines)
         if (!inside_stretches(part, dowel).empty())
@@ -642,9 +642,9 @@ std::vector<SolidCut> JointBeam::part_cuts(size_t index) const {
 
 BRep JointBeam::part_brep(size_t index) const {
 
-    const std::vector<SolidCut> cuts = part_cuts(index);
+    const std::vector<InteractionFeatureSolid> cuts = part_cuts(index);
 
-    return cuts.empty() ? brep_between_loops({parts[index][0]}, {parts[index][1]}) : solid_cuts_brep(part_mesh(index), cuts);
+    return cuts.empty() ? brep_between_loops({parts[index][0]}, {parts[index][1]}) : solid_features_brep(part_mesh(index), cuts);
 }
 
 std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
@@ -716,7 +716,7 @@ void JointBeam::place(const Xform& xform) {
         for (std::array<Polyline, 2>& cutter : target)
             cutter = {cutter[0].transformed(xform), cutter[1].transformed(xform)};
 
-    for (SolidCut& cut : solid_cuts)
+    for (InteractionFeatureSolid& cut : solid_cuts)
         cut = cut.transformed(xform);
 }
 
@@ -739,7 +739,7 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
     proto.set_drill_overshoot(drill_overshoot);
     proto.set_pre_drill(pre_drill);
 
-    for (const SolidCut& cut : solid_cuts)
+    for (const InteractionFeatureSolid& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid connector cut");
 
@@ -763,8 +763,8 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
     drill_overshoot = proto.drill_overshoot();
     pre_drill = proto.pre_drill();
 
-    for (const wood_proto::SolidCut& cut : proto.solid_cuts())
-        solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_cuts())
+        solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
 
     for (const wood_proto::JointCutter& cutter : proto.cutters()) {
         cutters.push_back({});

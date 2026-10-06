@@ -1,0 +1,18 @@
+syntax = "proto3";
+package wood_proto;
+import "mesh.proto";
+import "polyline.proto";
+import "vector.proto";
+import "line.proto";
+// One solid feature of an element, added or taken away, in the element's frame.
+message InteractionFeatureSolid {
+  string source = 1;                         // The element that put it there, so its next feature replaces it; empty for the element's own
+  session_proto.Mesh mesh = 2;               // The closed solid; empty for a feature of drills alone
+  repeated session_proto.Polyline profile = 3; // A profile feature's closed loops, extruded along extrusion
+  session_proto.Vector extrusion = 4;        // The profile's extrusion
+  int32 operation = 5;                       // SolidOperation: 0 intersect, 1 add, 2 subtract
+  double tolerance = 6;                      // Boolean tolerance
+  repeated session_proto.Line drills = 7;    // Round holes kept as axes, exact in the BRep
+  double drill_radius = 8;                   // Radius of the drills
+  double drill_tolerance = 9;                // Chord tolerance the drills are meshed at
+}

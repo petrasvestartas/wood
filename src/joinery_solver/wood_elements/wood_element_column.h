@@ -16,7 +16,7 @@ public:
     std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
     std::vector<Polyline> profile; // Section loops in the profile frame the section was placed from, loop 0 the outline, then holes; empty when the section was given.
     double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
-    std::vector<SolidCut> solid_features; // The column's own solid features in order, glued blocks united and faces taken away, applied before the cuts other elements make; call invalidate_geometry() after assigning.
+    std::vector<InteractionFeatureSolid> solid_features; // The column's own solid features in order, glued blocks united and faces taken away, applied before the cuts other elements make; call invalidate_geometry() after assigning.
 
 protected:
     /// The swept section trimmed by its cut planes with its own solid features applied as a Mesh, before the cuts other elements make.

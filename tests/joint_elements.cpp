@@ -72,7 +72,7 @@ static void check_scene_calls() {
     moved.set_xform(upper->guid(), shift);
     moved.add_joint(placed);
     double longest = 0.0, farthest = 0.0;
-    for (const SolidCut& cut : lower->solid_cuts)
+    for (const InteractionFeatureSolid& cut : lower->solid_cuts)
         for (const Line& drill : cut.drills)
             longest = std::max(longest, drill.length());
     for (const ElementFeature& feature : lower->Element::features())

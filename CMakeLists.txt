@@ -98,7 +98,6 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_solid_boolean.cpp
     src/joinery_solver/wood_algorithms/wood_brep_drill.cpp
     src/joinery_solver/wood_algorithms/wood_profile_boolean.cpp
-    src/joinery_solver/wood_elements/wood_element_solid_cut.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
     src/templates/grid/grid_plan.cpp
     src/templates/grid/grid_levels.cpp
@@ -113,7 +112,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_beam.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_beam.cpp
-    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_cut.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_solid.cpp
     src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp

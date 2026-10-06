@@ -30,7 +30,7 @@ bool register_factories() {
     InteractionFeaturePlate::register_type();
     InteractionFeatureBeam::register_type();
     InteractionFeaturePlateBeam::register_type();
-    InteractionFeatureCut::register_type();
+    InteractionFeatureSolid::register_type();
 
     return true;
 }
@@ -41,7 +41,7 @@ void register_types() {
     (void)done;
 }
 
-std::vector<SolidCut>* get_solid_cuts(Element& element) {
+std::vector<InteractionFeatureSolid>* get_solid_cuts(Element& element) {
 
     if (dynamic_cast<Support*>(&element))
         return nullptr;
@@ -55,12 +55,12 @@ std::vector<SolidCut>* get_solid_cuts(Element& element) {
     return nullptr;
 }
 
-bool erase_solid_cut(std::vector<SolidCut>& cuts, const std::string& guid) {
+bool erase_solid_cut(std::vector<InteractionFeatureSolid>& cuts, const std::string& guid) {
 
     const size_t count = cuts.size();
 
     for (auto cut = cuts.begin(); cut != cuts.end();)
-        if (cut->joint_guid == guid)
+        if (cut->source == guid)
             cut = cuts.erase(cut);
         else
             ++cut;
@@ -70,7 +70,7 @@ bool erase_solid_cut(std::vector<SolidCut>& cuts, const std::string& guid) {
 
 }  // namespace
 
-const std::vector<SolidCut>* solid_cuts_of(const Element& element) {
+const std::vector<InteractionFeatureSolid>* solid_cuts_of(const Element& element) {
     return get_solid_cuts(const_cast<Element&>(element));
 }
 
@@ -617,7 +617,7 @@ void WoodSession::set_features_visible(std::string_view feature_type, bool visib
 }
 
 static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& target);
-static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, const std::shared_ptr<Element>& target);
+static void host_cut(WoodSession& scene, const Element& source, InteractionFeatureSolid cut, const std::shared_ptr<Element>& target);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Interactions
@@ -694,13 +694,13 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         return oriented;
     }
 
-    if (const std::shared_ptr<InteractionFeatureCut> cut = std::dynamic_pointer_cast<InteractionFeatureCut>(interaction)) {
+    if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction)) {
 
-        host_cut(*this, *source, cut->cut, target);
+        host_cut(*this, *source, *cut, target);
 
         if (known) {
             std::vector<std::shared_ptr<Interaction>>& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
-            std::erase_if(records, [](const std::shared_ptr<Interaction>& record) { return dynamic_cast<const InteractionFeatureCut*>(record.get()) != nullptr; });
+            std::erase_if(records, [](const std::shared_ptr<Interaction>& record) { return dynamic_cast<const InteractionFeatureSolid*>(record.get()) != nullptr; });
         }
 
         Session::add_interaction(source, target, cut);
@@ -772,12 +772,12 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, con
     }
 
     for (const ElementFeature& feature : target->features())
-        if ((feature.feature_type == "drill" || feature.feature_type == "solid_cut") && feature.guid().starts_with(source->guid() + "/"))
+        if ((feature.feature_type == "drill" || feature.feature_type == "solid_feature") && feature.guid().starts_with(source->guid() + "/"))
             erased.insert(feature.guid());
 
     drop_host_features(*this, source->guid(), "", erased);
     drop_host_features(*this, target->guid(), "", erased);
-    std::vector<SolidCut>* cuts = get_solid_cuts(*target);
+    std::vector<InteractionFeatureSolid>* cuts = get_solid_cuts(*target);
 
     if (cuts && erase_solid_cut(*cuts, source->guid()))
         target->invalidate_geometry();
@@ -1057,7 +1057,7 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-static SolidCut joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills);
+static InteractionFeatureSolid joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills);
 
 /// A connector's holes in one target, in the connector's frame: its dowels, each end run on by the overshoot where the dowel leaves the target there, tested just beyond the dowel's own end in the target's frame, so a blind hole stops at its dowel.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
@@ -1206,7 +1206,7 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
 
         const std::vector<Line> drills = target_drills(scene, *joint, *target);
         scene.Session::remove_interaction(joint, target);
-        scene.add_interaction(joint, target, std::make_shared<InteractionFeatureCut>(joint_cut(*joint, mesh, drills)));
+        scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_cut(*joint, mesh, drills)));
         host_drills(scene, *joint, *target, drills, joint->line_radius);
     }
 }
@@ -1238,9 +1238,9 @@ static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>&
 }
 
 /// Hosts the source's cut on the target in the target's frame, replacing the one the source hosted before, and redraws the target.
-static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, const std::shared_ptr<Element>& target) {
+static void host_cut(WoodSession& scene, const Element& source, InteractionFeatureSolid cut, const std::shared_ptr<Element>& target) {
 
-    std::vector<SolidCut>* cuts = get_solid_cuts(*target);
+    std::vector<InteractionFeatureSolid>* cuts = get_solid_cuts(*target);
 
     if (!cuts)
         throw std::invalid_argument("Solid cutters require a plate, beam, column, block or connector");
@@ -1248,11 +1248,11 @@ static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, co
     if ((cut.drills.empty() || cut.mesh.number_of_faces()) && (!cut.mesh.number_of_faces() || !cut.mesh.is_closed()))
         throw std::invalid_argument("Missing closed cutter solid");
 
-    cut.joint_guid = source.guid();
+    cut.source = source.guid();
     const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
 
     if (cut.mesh.number_of_faces()) {
-        ElementFeature feature("solid_cut", -1, cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines(), source.name);
+        ElementFeature feature("solid_feature", -1, cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines(), source.name);
         feature.guid() = source.guid() + "/cut";
         drop_host_features(scene, target->guid(), "", {feature.guid()});
         scene.host_feature(target->guid(), std::move(feature));
@@ -1264,8 +1264,8 @@ static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, co
     cut = cut.transformed(*local * scene.world_xform(source.guid()));
     bool replaced = false;
 
-    for (SolidCut& stored : *cuts)
-        if (stored.joint_guid == source.guid()) {
+    for (InteractionFeatureSolid& stored : *cuts)
+        if (stored.source == source.guid()) {
             stored = cut;
             replaced = true;
         }
@@ -1277,7 +1277,7 @@ static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, co
 }
 
 /// The drills of a joint on its cut, as axes, so the mesh path and the exact BRep path both make them.
-static void add_drills(const Joint& joint, SolidCut& cut) {
+static void add_drills(const Joint& joint, InteractionFeatureSolid& cut) {
 
     cut.drills = joint.drill_axes();
     cut.drill_radius = joint.line_radius;
@@ -1285,9 +1285,9 @@ static void add_drills(const Joint& joint, SolidCut& cut) {
 }
 
 /// The cut a cutter joint makes: its solid, or its body with its cuts for a drilling joint, its drills, profile and operation, in the joint's frame.
-static SolidCut joint_cut(const Joint& joint) {
+static InteractionFeatureSolid joint_cut(const Joint& joint) {
 
-    SolidCut cut;
+    InteractionFeatureSolid cut;
     cut.mesh = joint.drill_axes().empty() ? joint.model_geometry_mesh() : cut_mesh(joint.body_mesh(), joint.cuts);
     add_drills(joint, cut);
     cut.profile = joint.cutter_profile;
@@ -1298,9 +1298,9 @@ static SolidCut joint_cut(const Joint& joint) {
 }
 
 /// A difference cut of the given solid and drills, for a joint that cuts each target with its own.
-static SolidCut joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills) {
+static InteractionFeatureSolid joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills) {
 
-    SolidCut cut;
+    InteractionFeatureSolid cut;
     cut.mesh = mesh;
     add_drills(joint, cut);
     cut.drills = drills;
@@ -1333,7 +1333,7 @@ static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& j
         scene.Session::remove_interaction(joint, target);
 
         if (!joint->loops.empty() || !joint->drill_axes().empty() || joint->cuts.empty()) {
-            scene.add_interaction(joint, target, std::make_shared<InteractionFeatureCut>(joint_cut(*joint)));
+            scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_cut(*joint)));
 
             if (!joint->drill_axes().empty())
                 host_drills(scene, *joint, *target, joint->drill_axes(), joint->line_radius);

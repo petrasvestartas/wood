@@ -40,7 +40,7 @@ std::shared_ptr<Block> Block::from_element(Element e) {
 
     if (proto.has_source_mesh()) block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
     else if (block->loops.empty() && block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
-    for (const auto& cut : proto.solid_cuts()) block->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
+    for (const auto& cut : proto.solid_cuts()) block->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     return block;
 }
 

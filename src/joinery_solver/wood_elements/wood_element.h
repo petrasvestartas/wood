@@ -10,7 +10,7 @@ namespace wood_session {
 /// A timber element: its solid built from its own parameters, then trimmed by its own shape and cut by the solid cuts the joints put on it. The uncut solid is cached here; the cut one in the kernel's model caches.
 class WoodElement : public Element {
 public:
-    std::vector<SolidCut> solid_cuts; // Solids and drills the joints cut out of it, in the element's frame.
+    std::vector<InteractionFeatureSolid> solid_cuts; // Solids and drills the joints cut out of it, in the element's frame.
 
     using Element::Element;
 
