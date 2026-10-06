@@ -70,6 +70,26 @@ Column::Column(const Line& axis, const std::vector<Polyline>& profile, double ro
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name) {
+
+    // the square of a side from the corner along both frame axes, moved along the frame normal to the axis base
+    const Point origin = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
+    const auto square_of = [&origin, &corner](double length) {
+        const Vector x = corner.x_axis() * length;
+        const Vector y = corner.y_axis() * length;
+        return Polyline({origin, origin + x, origin + x + y, origin + y}).closed();
+    };
+
+    std::shared_ptr<Column> column = std::make_shared<Column>(axis, square_of(side), name);
+
+    if (head_height > 0.0) {
+        column->head = square_of(head_side);
+        column->head_height = head_height;
+    }
+
+    return column;
+}
+
 std::shared_ptr<Column> Column::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

@@ -1322,6 +1322,31 @@ static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& j
     }
 }
 
+size_t WoodSession::next_number(const std::string& prefix) const {
+
+    size_t next = 0;
+
+    for (const std::shared_ptr<Element>& element : *objects.elements) {
+        const std::string& name = element->name;
+
+        if (name.size() > prefix.size() + 1 && name.compare(0, prefix.size() + 1, prefix + "_") == 0 && std::all_of(name.begin() + prefix.size() + 1, name.end(), ::isdigit))
+            next = std::max(next, static_cast<size_t>(std::stoul(name.substr(prefix.size() + 1))) + 1);
+    }
+
+    return next;
+}
+
+void WoodSession::compute_breps() {
+
+    for (const std::shared_ptr<Element>& element : *objects.elements) {
+        // a dowel or a connector part, which a connector draws on its own, or a member its joints cut
+        const bool connector_child = std::dynamic_pointer_cast<Dowel>(element) || std::dynamic_pointer_cast<ConnectorPart>(element);
+
+        if (connector_child || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
+            element->compute_geometry_brep();
+    }
+}
+
 std::shared_ptr<TreeNode> WoodSession::add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group) {
 
     if (!connector)

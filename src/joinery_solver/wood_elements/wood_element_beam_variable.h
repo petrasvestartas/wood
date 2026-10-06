@@ -31,6 +31,9 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// A straight beam between two end sections, its axis from the first section's centroid to the last's; the ends may be slanted.
+    static std::shared_ptr<BeamVariable> between(const session_cpp::Polyline& first, const session_cpp::Polyline& last, const std::string& name = "beam_variable");
+
     /// The beam an Element tagged "BeamVariable" describes, same guid; a missing payload leaves the axis and sections empty.
     static std::shared_ptr<BeamVariable> from_element(session_cpp::Element element);
 

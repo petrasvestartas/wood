@@ -20,6 +20,13 @@ BeamVariable::BeamVariable(const Line& axis, const std::vector<Polyline>& sectio
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+std::shared_ptr<BeamVariable> BeamVariable::between(const Polyline& first, const Polyline& last, const std::string& name) {
+
+    const Line axis = Line::from_points(Point::centroid(first.open_points()), Point::centroid(last.open_points()));
+
+    return std::make_shared<BeamVariable>(axis, std::vector<Polyline>{first, last}, name);
+}
+
 std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

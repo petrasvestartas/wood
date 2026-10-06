@@ -46,6 +46,9 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// A square column on its axis: the shaft the square of side from the corner frame's origin along its x and y axes, at the axis base, and the head the square of head_side over head_height; no head when head_height is 0.
+    static std::shared_ptr<Column> square(const session_cpp::Line& axis, const session_cpp::Plane& corner, double side, double head_side = 0.0, double head_height = 0.0, const std::string& name = "column");
+
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis, section and cuts default.
     static std::shared_ptr<Column> from_element(session_cpp::Element element);
 

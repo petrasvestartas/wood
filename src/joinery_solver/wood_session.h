@@ -264,6 +264,12 @@ public:
     /// Adds a connector under group and cuts it into its targets as add_joint does, so its parts and dowels become child elements of its node; returns that node.
     std::shared_ptr<session_cpp::TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<session_cpp::TreeNode>& group);
 
+    /// One past the highest n of an element named <prefix>_<n>, 0 when there is none: the next free number of a name prefix.
+    size_t next_number(const std::string& prefix) const;
+
+    /// Writes every cut member, connector part and dowel as its BRep instead of its mesh, the bores exact cylinders.
+    void compute_breps();
+
     /// Every Plate, in objects.elements order.
     std::vector<std::shared_ptr<Plate>> plates() const {
         return get_elements<Plate>();

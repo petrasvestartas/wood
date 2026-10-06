@@ -21,7 +21,7 @@ int main() {
     floor.add_screws();
 
     if constexpr (BREPS)
-        wood_floor::compute_breps(floor);
+        floor.compute_breps();
 
     floor.pb_dump(pb_path("live"));
 

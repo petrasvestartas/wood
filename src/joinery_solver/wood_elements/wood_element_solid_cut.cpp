@@ -57,6 +57,15 @@ BRep solid_cuts_brep(const Mesh& mesh, const std::vector<SolidCut>& cuts) {
     return mesh_brep(cut);
 }
 
+SolidCut SolidCut::difference(const Mesh& mesh) {
+
+    SolidCut cut;
+    cut.mesh = mesh;
+    cut.operation = SolidOperation::difference;
+
+    return cut;
+}
+
 SolidCut SolidCut::transformed(const Xform& xform) const {
     SolidCut result = *this;
     result.mesh = mesh.transformed(xform);
