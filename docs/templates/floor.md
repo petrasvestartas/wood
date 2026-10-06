@@ -1,10 +1,10 @@
 # Floor {#templates_floor}
 
-The vaulted timber floor bay of compas_tf: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, column blocks, t-sections and beds around a central oculus. Two `WoodSession` classes build it: `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`, a port of compas_tf's `floor_guide.py`) computes the geometry, and `wood_floor::Floor` (`src/templates/floor/floor.h`) builds the elements, their contacts, the connectors and the screws from it.
+The vaulted timber floor bay: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, column blocks, t-sections and beds around a central oculus. Two `WoodSession` classes build it: `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`) computes the geometry, and `wood_floor::Floor` (`src/templates/floor/floor.h`) builds the elements, their contacts, the connectors and the screws from it.
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with page 0: what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film; their names predate the port.
+One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with page 0: what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film, written before the code took its current classes.
 
 0. @subpage templates_floor_00_vocabulary (FloorGuide and Floor: what the guide computes, step by step, and what the floor builds from it, one picture each)
 1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)

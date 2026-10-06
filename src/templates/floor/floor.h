@@ -112,7 +112,7 @@ public:
     /// Adds the column at one corner: its support, the column, the support joint and the column's six head cuts.
     void add_column(size_t corner);
 
-    /// Searches the contact between every two members the design joins, as compas_tf's examples do, and stores it as their interaction; members not yet in the session are skipped, a contact already there is kept.
+    /// Searches the contact between every two members the design joins and stores it as their interaction; members not yet in the session are skipped, a contact already there is kept.
     void add_contacts();
 
     /// Adds one connector per contact interaction of the kinds asked for, in the order of their names, under connectors_q of its quarter, named `<prefix>_<n>` and numbered on from those already in the session, and returns them; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.

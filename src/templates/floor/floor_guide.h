@@ -1,8 +1,8 @@
 #pragma once
 #include "wood_session.h"
 
-// The geometry of the timber floor, a port of compas_tf's floor_guide.py: FloorGuide computes every
-// member of every quarter as two face loops, in the order the original does; floor.h builds the model from it.
+// The geometry of the timber floor: FloorGuide computes every member of every quarter as two face loops;
+// floor.h builds the model from it.
 
 namespace wood_floor {
 
@@ -63,7 +63,7 @@ const double SCREW_SPACING = 8.0;
 // FloorGuide
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The floor guide, a session ready to draw: the corners and the parameters, and the geometry every member is built from, computed by compute() on construction and again after a parameter changes and drawn into the session itself, grouped by quarter. A port of compas_tf's floor_guide.py, method for method, for any convex four-corner bay: every method takes the quarter q its corner is, where the original computed quarter 0 alone. A Floor builds the model from it.
+/// The floor guide, a session ready to draw: the corners and the parameters, and the geometry every member is built from, computed by compute() on construction and again after a parameter changes and drawn into the session itself, grouped by quarter. It works for any convex four-corner bay: every method takes the quarter q, the quarter at corner q. A Floor builds the model from it.
 class FloorGuide : public wood_session::WoodSession {
 public:
     const std::array<session_cpp::Point, 4> corners; // Counter-clockwise at z 0.
@@ -122,7 +122,7 @@ public:
     /// The column's frame at corner q: origin the corner, x and y the edge directions at a right corner, symmetric about the corner bisector otherwise.
     session_cpp::Plane column_frame(size_t q) const;
 
-    /// The support's plane at corner q, the original's corner_point_column: on the slab under the column axis, half a column head along both frame axes from the corner.
+    /// The support's plane at corner q, on the slab under the column axis, half a column head along both frame axes from the corner.
     session_cpp::Plane support_plane(size_t q) const;
 
     // ═══════════════════════════════════════════════════════════════════════

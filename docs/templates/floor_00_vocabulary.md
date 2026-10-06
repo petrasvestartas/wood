@@ -1,6 +1,6 @@
 # 0. FloorGuide and Floor {#templates_floor_00_vocabulary}
 
-The floor is two classes. **`FloorGuide`** (`floor_guide.h`, a port of compas_tf's `floor_guide.py`, method for method) computes geometry only: planes, quads, parabolas and every member as two face loops. **`Floor`** (`floor.h`) builds the model from it: elements, the contact interactions between them, connectors and screws.
+The floor is two classes. **`FloorGuide`** (`floor_guide.h`) computes geometry only: planes, quads, parabolas and every member as two face loops. **`Floor`** (`floor.h`) builds the model from it: elements, the contact interactions between them, connectors and screws.
 
 ```mermaid
 flowchart TD
@@ -177,7 +177,7 @@ Code: [`add_quarters`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4d
 
 <span style="color:#2196EA">■ contact polygons</span>
 
-For every two members the design joins, the session's contact search (`compute_face_contact`) finds the face they share, as compas_tf's examples do with `compute_contacts`, and `add_interaction` stores it on the session's edge between them as an `InteractionContactFace` named by its kind and place (`seam_wedge_0`, `column_plate_0_1`, `block_dowels_0_1_0` ...).
+For every two members the design joins, the session's contact search (`compute_face_contact`) finds the face they share, and `add_interaction` stores it on the session's edge between them as an `InteractionContactFace` named by its kind and place (`seam_wedge_0`, `column_plate_0_1`, `block_dowels_0_1_0` ...).
 
 Code: [`add_contacts`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L185)
 
