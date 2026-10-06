@@ -141,6 +141,7 @@ ColumnSession ColumnSession::glued_head(const Line& axis, const Plane& corner, d
 
     for (const Mesh& mesh : {block(0.0, side, head_side, head_side), block(side, 0.0, head_side, side)}) {
         const std::shared_ptr<Block> glued = std::make_shared<Block>(mesh, fmt::format("{}_head_{}", name, session.head.size()));
+        glued->is_visible = false;
         session.add(glued);
         session.head.push_back(glued);
         session.add_interaction(glued, session.column, std::make_shared<InteractionFeatureSolid>(mesh, SolidOperation::add));

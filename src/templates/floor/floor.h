@@ -82,7 +82,7 @@ public:
 class ColumnSession : public WoodSession {
 public:
     std::shared_ptr<Column> column; // The square shaft, cut by the features the other elements put on it.
-    std::vector<std::shared_ptr<Block>> head; // <name>_head_<i>: the blocks glued on for the head, each adding to the column.
+    std::vector<std::shared_ptr<Block>> head; // <name>_head_<i>, hidden: the blocks glued on for the head, each adding to the column, which draws them as part of its solid.
     std::shared_ptr<Support> support; // support_<q>, on the slab; empty for a glued_head alone.
     std::vector<std::shared_ptr<Plate>> cutters; // column_cutters_<i>_<q>, hidden: each takes an inclined face away from the column; empty for a glued_head alone.
 
