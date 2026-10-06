@@ -1,7 +1,7 @@
 #pragma once
 #include "wood_session.h"
 #include "src/templates/floor/floor.h"
-#include "src/templates/floor/floor_geometry.h"
+#include "src/templates/floor/floor.h"
 
 /// The documentation film of the floor: every chapter writes its frames, one scene and its notes each, that docs/floor/render.py renders into docs/templates/floor.
 namespace movie {

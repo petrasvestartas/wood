@@ -1,5 +1,7 @@
 # The floor bay as a parametric model
 
+
+> File and line references below are to the floor sources as they were split before 2026-10-06; the floor is now one header, `src/templates/floor/floor.h`, and one source, `src/templates/floor/floor.cpp`.
 Design document, 2026-10-02. Nothing in any repository was changed for it. It is written from the
 compas_tf sources (consumed, never edited), the wood tree at `d15538c` (HEAD: the quarter-turn
 port) and `1b42862` (the reverted corner-frame generalisation), and the probe scripts under the

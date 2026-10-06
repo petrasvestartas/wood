@@ -104,19 +104,7 @@ set(WOOD_SOURCES
     src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
-    src/templates/floor/floor_geometry.cpp
-    src/templates/floor/floor_plan.cpp
     src/templates/floor/floor.cpp
-    src/templates/floor/floor_panel.cpp
-    src/templates/floor/floor_report.cpp
-    src/templates/floor/floor_members.cpp
-    src/templates/floor/floor_elements.cpp
-    src/templates/floor/floor_models.cpp
-    src/templates/floor/floor_relations.cpp
-    src/templates/floor/floor_verify.cpp
-    src/templates/floor/floor_screws.cpp
-    src/templates/floor/floor_screw_check.cpp
-    src/templates/floor/floor_brep_check.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
