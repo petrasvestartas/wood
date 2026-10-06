@@ -4,9 +4,9 @@ The vaulted timber floor bay: a bay on four columns, cut by four seams into four
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with page 0: what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film, written before the code took its current classes.
+One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with "FloorGuide and Floor": what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film, written before the code took its current classes.
 
-0. @subpage templates_floor_00_vocabulary (FloorGuide and Floor: what the guide computes, step by step, and what the floor builds from it, one picture each)
+- @subpage templates_floor_00_vocabulary (FloorGuide and Floor: what the guide computes, step by step, and what the floor builds from it, one picture each)
 1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)
 2. @subpage templates_floor_02_quarter_planes (every member's two faces in quarter 0: outer ribs, seam and oculus beams, inner ribs, the wedge fan and the t-sections)
 3. @subpage templates_floor_03_parabolas (the plan quads, the run-in solve that levels both outer ribs at the column, the final wedge faces and the rib parabolas with their layers)
@@ -15,7 +15,7 @@ One chapter per stage, in code order, one picture per step on the default 6000 x
 6. @subpage templates_floor_06_outlines (every other member's outline, the oculus ring and the six column cutters)
 7. @subpage templates_floor_07_elements (outlines into beams and plates, the lift to the floor, the scene tree, the columns and get_branch)
 8. @subpage templates_floor_08_relationships (what every two members share, by the rules of the design, and the check against the kernel's contact search)
-9. @subpage templates_floor_09_connectors (wedges, column plates, cross laps, ties and dowels, and how each cuts and drills its members)
+9. @subpage templates_floor_09_connectors (wedges, column plates, cross laps and dowels, and how each cuts and drills its members)
 10. @subpage templates_floor_10_screws (the five screw kinds, their levels and aim, and the screw check)
 11. @subpage templates_floor_11_checks (the floor report, the BRep check and the eight examples)
 
@@ -33,7 +33,7 @@ Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</spa
 
 ## Data structures
 
-FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it. Page 0 shows every step in a picture.
+FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it. "FloorGuide and Floor" shows every step in a picture.
 
 ```mermaid
 classDiagram
@@ -89,4 +89,4 @@ Each member has one name everywhere, from `MemberRef::name()`.
 | [templates_floor_5_oculus](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_5_oculus.cpp) | the oculus ring, its bottom wedges and plate |
 | [templates_floor_6_contacts_floor](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_6_contacts_floor.cpp) | the quarters, the ring and the eight wedge connectors |
 | [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and screw, BReps with exact bores |
-| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) | the tied variant on a 6000 x 4800 bay (`seam_through_ribs` false: the outer ribs end on the seam plane and are tied), every connector and screw, BReps |
+| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) | the floor on a 6000 x 4800 bay with every connector and screw, BReps |

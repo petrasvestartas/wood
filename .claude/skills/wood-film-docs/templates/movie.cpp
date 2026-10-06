@@ -33,7 +33,7 @@ static Color tint(const Color& color, float amount) {
 }
 
 Frame::Frame(const std::string& frame_chapter, size_t number, const std::string& slug, const std::string& frame_caption, const std::string& frame_view, const Box& frame_box)
-    : chapter(frame_chapter), name(fmt::format("{:03d}_{}", number, slug)), caption(fmt::format("{}  {}", number, frame_caption)), view(frame_view), box(frame_box), scene(name), bare(name) {}
+    : chapter(frame_chapter), name(fmt::format("{:03d}_{}", number, slug)), caption(frame_caption), view(frame_view), box(frame_box), scene(name), bare(name) {}
 
 void Frame::label(const std::string& text, const Point& at, bool centred) {
     labels.push_back({{"text", text}, {"at", {at[0], at[1], at[2]}}, {"centred", centred}});

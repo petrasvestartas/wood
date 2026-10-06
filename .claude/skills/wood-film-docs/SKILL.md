@@ -90,7 +90,8 @@ viewer as linear light: `movie.cpp`'s `shown()` decodes sRGB first.
 - Pictures render at twice the layout size (`SCALE = 2`, 2560 x 1648, `VIEWER_THICKNESS=2`):
   label placement runs in the 1x layout, everything is drawn at 2x.
 - The caption over the picture states the step in code terms, e.g.
-  `faces_into(q) = pair(plane_into(q), thickness): ...`.
+  `construction_planes(q): a plane pair per member ...`, with no frame number: the number only
+  orders the files.
 
 ## Writing style
 

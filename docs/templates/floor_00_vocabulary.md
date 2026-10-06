@@ -1,4 +1,4 @@
-# 0. FloorGuide and Floor {#templates_floor_00_vocabulary}
+# FloorGuide and Floor {#templates_floor_00_vocabulary}
 
 The floor is two classes. **`FloorGuide`** (`floor_guide.h`) computes geometry only: planes, quads, parabolas and every member as two face loops. **`Floor`** (`floor.h`) builds the model from it: elements, the contact interactions between them, connectors and screws.
 
@@ -197,7 +197,7 @@ Code: [`add_interaction`](https://github.com/petrasvestartas/wood/blob/fb0e0986b
 
 <span style="color:#2196EA">■ connector parts</span> <span style="color:#A3A3A3">■ members</span>
 
-Each contact interaction gets the connector of its kind: seam and oculus wedges, column plates with their cross lap, ties, dowels.
+Each contact interaction gets the connector of its kind: seam and oculus wedges, column plates with their cross lap, dowels.
 
 Code: [`add_connectors`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L188)
 
