@@ -47,14 +47,10 @@ enum class ContactKind {
     seam_wedge, // The two seam beams either side of a seam: a wedge.
     oculus_wedge, // A quarter's oculus beam and its ring beam: a wedge.
     column_plate, // A column and an outer rib: a rectangle plate; the two plates of a corner get a cross lap.
-    seam_tie, // Two outer ribs end to end at a seam, when the seam beams stop at the rib band: a tie.
     block_dowels, // A column block and a rib: dowels.
 };
 
-const std::array<std::string, 5> CONTACT_NAMES = {"seam_wedge", "oculus_wedge", "column_plate", "seam_tie", "block_dowels"}; // The interaction name of each kind, in ContactKind order.
-
-/// mm below the floor top where every seam tie's key starts; the screws of the tied ribs stay above it.
-const double TIE_TOP = 138.5;
+const std::array<std::string, 4> CONTACT_NAMES = {"seam_wedge", "oculus_wedge", "column_plate", "block_dowels"}; // The interaction name of each kind, in ContactKind order.
 
 /// mm, the closest two screw axes may come.
 const double SCREW_SPACING = 8.0;
@@ -84,7 +80,6 @@ public:
     double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
     double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
     double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses.
-    bool seam_through_ribs = true; // Run the two seam beams of every seam on through the outer rib band to the bay's outer face: the outer ribs end on the beams, the rib screws go from the beam's seam face into the rib end, and no ties are made.
 
     // what compute() derives from them
     session_cpp::Point centre; // The vertex centroid, where the bimedians cross and bisect each other.
@@ -154,7 +149,7 @@ public:
     /// The cutter levels at corner q: the datum, the outer rib bottoms, and minus column_head_depth.
     std::array<double, 3> column_levels(size_t q) const;
 
-    /// The plane each outer rib of quarter q ends on at its seam: the seam plane, or the seam beam's far face when the seam runs through the rib band.
+    /// The plane each outer rib of quarter q ends on at its seam: the far face of the seam beam, which runs on through the outer rib band to the bay's outer face.
     std::array<session_cpp::Plane, 2> rib_seam_ends(size_t q) const;
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -251,14 +246,8 @@ private:
     static double bisect(const std::array<session_cpp::Polyline, 2>& shadows, const std::array<session_cpp::Vector, 2>& normals, double thickness, const session_cpp::Vector& reference, double lo, double hi);
     static session_cpp::Vector turned(const session_cpp::Vector& reference, double degrees);
 
-    /// The members' outlines: a rib from its trace, a rib face's loop, a t-section, one beside an outer rib, a bed row, an outer bed row, a stretched cutter quad.
+    /// A rib: its trace trimmed by the two end planes on its first face, and on its second face the trace swept along the rib with its end corners on the end planes; shared by outer_ribs and inner_ribs.
     static Loops rib(const session_cpp::Polyline& trace, const session_cpp::Plane& face1, const session_cpp::Vector& sweep, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1, bool inner);
-    static session_cpp::Polyline rib_loop(const std::vector<session_cpp::Point>& pts, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1, bool inner);
-    static Loops tsection(const session_cpp::Polyline& soffit, const session_cpp::Polyline& layer, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1, const session_cpp::Xform& projection10, const session_cpp::Xform& projection11);
-    static Loops outer_tsection(const std::array<session_cpp::Polyline, 3>& parabola, const std::array<session_cpp::Plane, 2>& faces, const session_cpp::Vector& outer, const session_cpp::Vector& sweep, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1);
-    static std::vector<Loops> bed_row(const std::array<session_cpp::Polyline, 2>& lower, const std::array<session_cpp::Polyline, 2>& upper, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1);
-    static std::vector<Loops> outer_bed_row(const std::array<session_cpp::Polyline, 3>& parabola, const session_cpp::Plane& side0, const session_cpp::Plane& side1, const session_cpp::Vector& normal, const session_cpp::Plane& cut_plane0, const session_cpp::Plane& cut_plane1);
-    static std::vector<session_cpp::Point> stretch(std::vector<session_cpp::Point> quad, bool top);
 
     /// Draws the construction into the session by quarter, under the names the Floor gives the members: quarter_q holds plan_q and a group per family with a group per member, holding its plan quad, its two face planes and for a rib its parabolas.
     void draw();

@@ -6,7 +6,7 @@
 namespace wood_floor {
 
 /// Every contact kind, the connectors add_connectors makes by default.
-const std::vector<ContactKind> CONNECTOR_CONTACTS = {ContactKind::seam_wedge, ContactKind::oculus_wedge, ContactKind::column_plate, ContactKind::seam_tie, ContactKind::block_dowels};
+const std::vector<ContactKind> CONNECTOR_CONTACTS = {ContactKind::seam_wedge, ContactKind::oculus_wedge, ContactKind::column_plate, ContactKind::block_dowels};
 
 /// The colour of every connector node and of every part and dowel node nested under it: the Block Research Group's primary blue.
 const session_cpp::Color CONNECTOR_COLOR = session_cpp::Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue");
@@ -21,7 +21,7 @@ public:
     /// The screws of the guide's floor.
     explicit ScrewLines(const FloorGuide& guide);
 
-    /// Outer rib k of quarter q into the seam beam it meets: along the beam from the rib's outer face, or, when the seam runs through the rib band, along the rib from the beam's seam face into the rib end, 20 mm below its top and above its bottom and either side of its axis.
+    /// Outer rib k of quarter q into the seam beam it meets: two screws along the rib from the beam's seam face into the rib end, 20 mm below its top and above its bottom and either side of its axis.
     std::vector<session_cpp::Line> rib_beam(size_t q, size_t k) const;
 
     /// Seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
@@ -85,7 +85,7 @@ public:
     std::vector<std::shared_ptr<wood_session::BeamVariable>> ring; // The four ring beams, oculus_<q>.
     std::vector<std::shared_ptr<wood_session::Plate>> oculus_plates; // The four bottom wedges oculus_4 to oculus_7 and the central plate oculus_8.
     std::vector<ColumnModel> columns; // Column q at corner q, empty until the columns are added.
-    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors; // Every connector added: wedges, plates, cross laps, ties and dowels.
+    std::vector<std::shared_ptr<wood_session::JointBeam>> connectors; // Every connector added: wedges, plates, cross laps and dowels.
     std::vector<std::shared_ptr<wood_session::JointBeam>> screws; // Every screw connector added.
 
     /// An empty model of the guide, the session named name.
@@ -137,7 +137,7 @@ private:
     /// The contact the session's search finds between two members, stored as their interaction named `<kind>_<place>`; one already there is kept, and a pair that does not touch throws naming it.
     void add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
 
-    /// The connector a contact interaction gets, by its kind and the place its name ends in (quarter, then rib or block index): a wedge sized by the thicker member, a plate by the rib's thickness, a tie, or dowels.
+    /// The connector a contact interaction gets, by its kind and the place its name ends in (quarter, then rib or block index): a wedge sized by the thicker member, a plate by the rib's thickness, or dowels.
     std::shared_ptr<wood_session::JointBeam> connector_of(ContactKind kind, const std::vector<size_t>& place, const session_cpp::Element& a, const session_cpp::Element& b, const wood_session::InteractionContactFace& contact) const;
 
     /// The name prefix of a connector of that kind.

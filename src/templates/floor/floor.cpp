@@ -18,8 +18,6 @@ namespace wood_floor {
 const double SCREW_LENGTH = 200.0; // mm, every assembly screw
 const double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band
 const double SEAM_SCREW_OFFSET = 15.0; // mm the screws of the two ribs meeting at a seam sit either side of their axes, so their heads on the seam plane stay apart
-const std::array<double, 2> RIB_BEAM_LEVELS = {0.25, 0.5}; // fractions of the seam depth, or of twice the tie's top less TIE_CLEARANCE when that is shallower: the outer rib's lower part at its seam end holds the tie key and its pocket
-const double TIE_CLEARANCE = 10.0; // mm the lower tied rib screw stays above the tie key
 const double CORNER_LEVELS = 7.0; // an oculus corner's depth in sevenths: six levels, one per screw on each side of the corner
 const std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ
 const std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // the inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross
@@ -31,21 +29,11 @@ std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const size_t beam = k == 0 ? 0 : 2;
+    const Loops rib = guide.outer_ribs(q)[k];
     std::vector<Line> screws;
 
-    if (guide.seam_through_ribs) {
-        const Loops rib = guide.outer_ribs(q)[k];
-
-        for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
-            screws.push_back(from_seam_face(cp.outer_ribs[k], cp.inner_beams[beam], level, k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET));
-
-        return lifted(screws);
-    }
-
-    const double depth = std::min(guide.static_h(), 2.0 * (TIE_TOP - TIE_CLEARANCE));
-
-    for (double fraction : RIB_BEAM_LEVELS)
-        screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], FloorGuide::body(guide.inner_beams(q)[beam]), -depth * fraction));
+    for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
+        screws.push_back(from_seam_face(cp.outer_ribs[k], cp.inner_beams[beam], level, k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET));
 
     return lifted(screws);
 }
@@ -352,9 +340,6 @@ void Floor::add_contacts() {
         for (size_t k = 0; k < 2 && have_columns; k++)
             add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), columns[q].column, members.outer_ribs[k]);
 
-        if (!guide.seam_through_ribs)
-            add_contact(ContactKind::seam_tie, place, members.outer_ribs[0], next.outer_ribs[1]);
-
         // each column block on the two ribs either side of it
         add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), members.outer_ribs[0], members.wedges[0]);
         add_contact(ContactKind::block_dowels, fmt::format("{}_2_1", q), members.outer_ribs[1], members.wedges[2]);
@@ -450,7 +435,7 @@ std::shared_ptr<wood_session::JointBeam> Floor::connector_of(ContactKind kind, c
 
     if (kind == ContactKind::seam_wedge) {
         const double size = std::max(FloorGuide::thickness(guide.inner_beams(q)[0]), FloorGuide::thickness(guide.inner_beams((q + 1) % 4)[2]));
-        const std::optional<Plane> end = guide.seam_through_ribs ? std::optional<Plane>(guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height))) : std::nullopt;
+        const Plane end = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height)); // the bay's outer face the wedge runs on to
         return wood_session::JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0, end);
     }
 
@@ -461,9 +446,6 @@ std::shared_ptr<wood_session::JointBeam> Floor::connector_of(ContactKind kind, c
 
     if (kind == ContactKind::column_plate)
         return wood_session::JointBeam::rectangle_plate(a, b, contact, FloorGuide::thickness(guide.outer_ribs(q)[place[1]]));
-
-    if (kind == ContactKind::seam_tie)
-        return wood_session::JointBeam::tie(a, b, contact, TIE_TOP);
 
     const std::shared_ptr<wood_session::JointBeam> dowels = wood_session::JointBeam::dowels(a, b, contact);
 
@@ -480,9 +462,6 @@ std::string Floor::connector_prefix(ContactKind kind) {
 
     if (kind == ContactKind::column_plate)
         return "connector";
-
-    if (kind == ContactKind::seam_tie)
-        return "outer_rib_connector";
 
     return "connector_dowels";
 }

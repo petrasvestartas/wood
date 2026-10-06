@@ -4,7 +4,6 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const bool SEAM_THROUGH_RIBS = false; // true, the default, runs the seam beams on through the outer rib band to the bay's outer face; false ties the outer ribs where they meet at every seam
 const bool BREPS = true; // write every cut member, connector part and dowel as its BRep, the dowel and screw bores exact cylinders, instead of its mesh
 const double HALF_X = 3000.0; // half span along x: the bay is 6000 long
 const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
@@ -12,9 +11,7 @@ const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
 /// The rectangular bay with its columns, every connector and the assembly screws.
 int main() {
 
-    wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(HALF_X, HALF_Y);
-    guide.seam_through_ribs = SEAM_THROUGH_RIBS;
-    guide.compute();
+    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(HALF_X, HALF_Y);
     wood_floor::Floor floor(guide);
     floor.add_members();
     floor.add_connectors();
