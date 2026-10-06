@@ -4,8 +4,9 @@
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay.
+One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with the vocabulary: what every class is, in pictures.
 
+0. @subpage templates_floor_00_vocabulary (every class of floor.h, one picture each: the guide and its parts, the quarter and its members, the relationships and the floor)
 1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)
 2. @subpage templates_floor_02_quarter_planes (every member's two faces in quarter 0: outer ribs, seam and oculus beams, inner ribs, the wedge fan and the t-sections)
 3. @subpage templates_floor_03_parabolas (the plan quads, the run-in solve that levels both outer ribs at the column, the final wedge faces and the rib parabolas with their layers)
@@ -32,23 +33,20 @@ Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</spa
 
 ## Data structures
 
-The guide holds the corners, the parameters as its own fields and the geometry they make; the floor is built from it.
+The guide holds the corners, the parameters as its own fields and the geometry they make; the floor is built from it. The vocabulary page shows every class in a picture.
 
 ```mermaid
 classDiagram
     direction TB
     class FloorGuide {
         <<WoodSession>>
-        corners[4]
-        oculus_radius, column_head, outer_ribs, inner_ribs
-        inner_beams, wedge, tsections, height, rise
-        seam_through_ribs
-        edges[4], seams[4], oculus_corners[4]
-        oculus_edges[4], columns[4]
-        geometry[4] QuarterGeometry
+        corners[4], the parameters
+        edges, seams, oculus_edges, columns
+        geometry QuarterGeometry per quarter
         compute()
         quarter(q) Quarter
         oculus() Outline list
+        relationships() Relationship list
     }
     class QuarterGeometry {
         polygon
@@ -59,42 +57,32 @@ classDiagram
     class Quarter {
         guide, index
         outer_ribs() inner_ribs() inner_beams()
-        wedges() tsections() beds() column_cutters()
+        wedges() tsections() beds()
     }
     class Outline {
-        top Polyline
-        bottom Polyline
-    }
-    class Floor {
-        <<WoodSession>>
-        guide
-        members FloorMembers
-        connectors, screws
-        add_members() add_connectors() add_screws()
-    }
-    class FloorMembers {
-        quarters[4] QuarterMembers
-        ring, columns ColumnModel
-        get(MemberRef) Element
+        top, bottom
+        to_rib() to_beam() to_plate()
     }
     class Relationship {
         kind Relation
         a, b MemberRef
         plane, contact, screws
     }
-    class MemberRef {
-        quarter, family, index, row
-        name()
+    class Floor {
+        <<WoodSession>>
+        guide
+        quarters QuarterMembers, ring, columns
+        connectors, screws
+        add_members() add_connectors() add_screws()
+        get(MemberRef) Element
     }
     FloorGuide --> QuarterGeometry : one per quarter
     FloorGuide --> Quarter : view
-    Quarter --> Outline : one per member
+    Quarter --> Outline : Rib, TSection, BedRow
+    FloorGuide --> Relationship : Contacts, Screws
     FloorGuide --> Floor
-    Floor --> FloorMembers
-    FloorMembers --> Outline : to_rib, to_beam, to_plate
-    FloorGuide --> Relationship : relationships(guide)
-    Relationship --> MemberRef
-    MemberRef --> FloorMembers : names an element
+    Floor --> Outline : elements from
+    Floor --> Relationship : connectors on
 ```
 
 Each member has one name everywhere, from `MemberRef::name()`.
