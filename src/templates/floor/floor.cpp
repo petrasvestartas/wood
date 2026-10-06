@@ -15,13 +15,6 @@ namespace wood_floor {
 // Screws
 // ═══════════════════════════════════════════════════════════════════════════
 
-const double SCREW_LENGTH = 200.0; // mm, every assembly screw
-const double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band
-const double SEAM_SCREW_OFFSET = 15.0; // mm the screws of the two ribs meeting at a seam sit either side of their axes, so their heads on the seam plane stay apart
-const double CORNER_LEVELS = 7.0; // an oculus corner's depth in sevenths: six levels, one per screw on each side of the corner
-const std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ
-const std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // the inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross
-
 ScrewLines::ScrewLines(const FloorGuide& floor_guide) : guide(floor_guide), lift(Xform::translation(0.0, 0.0, floor_guide.bay_height)) {
 }
 
@@ -29,7 +22,7 @@ std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const size_t beam = k == 0 ? 0 : 2;
-    const Loops rib = guide.outer_ribs(q)[k];
+    const std::array<Polyline, 2> rib = guide.outer_ribs(q)[k];
     std::vector<Line> screws;
 
     for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
@@ -160,7 +153,7 @@ void Floor::add_quarters() {
         members = QuarterMembers();
 
         const std::shared_ptr<TreeNode> beds = add_group("beds" + suffix, group);
-        const std::vector<std::vector<Loops>> rows = guide.beds(q);
+        const std::vector<std::vector<std::array<Polyline, 2>>> rows = guide.beds(q);
 
         for (size_t row = 0; row < rows.size(); row++) {
             const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}{}", row, suffix), beds);
@@ -173,7 +166,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> tsections = add_group("tsections" + suffix, group);
-        const std::vector<Loops> tsection_loops = guide.tsections(q);
+        const std::vector<std::array<Polyline, 2>> tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
             members.tsections.push_back(std::make_shared<wood_session::Plate>(tsection_loops[i][1], tsection_loops[i][0], "tsections"));
@@ -181,7 +174,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> outer = add_group("outer_ribs" + suffix, group);
-        const std::vector<Loops> outer_loops = guide.outer_ribs(q);
+        const std::vector<std::array<Polyline, 2>> outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
             members.outer_ribs.push_back(rib(outer_loops[i], "outer_ribs"));
@@ -189,7 +182,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> inner = add_group("inner_ribs" + suffix, group);
-        const std::vector<Loops> inner_loops = guide.inner_ribs(q);
+        const std::vector<std::array<Polyline, 2>> inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
             members.inner_ribs.push_back(rib(inner_loops[i], "inner_ribs"));
@@ -197,7 +190,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> wedges = add_group("wedges" + suffix, group);
-        const std::vector<Loops> block_loops = guide.wedges(q);
+        const std::vector<std::array<Polyline, 2>> block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
             members.wedges.push_back(std::make_shared<wood_session::Plate>(block_loops[i][1], block_loops[i][0], "wedges"));
@@ -205,7 +198,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> beams = add_group("inner_beams" + suffix, group);
-        const std::vector<Loops> beam_loops = guide.inner_beams(q);
+        const std::vector<std::array<Polyline, 2>> beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
             members.inner_beams.push_back(beam(beam_loops[i], {0, 3}, {1, 2}, "inner_beams"));
@@ -216,7 +209,7 @@ void Floor::add_quarters() {
 
 void Floor::add_oculus() {
 
-    const std::vector<Loops> loops = guide.oculus();
+    const std::vector<std::array<Polyline, 2>> loops = guide.oculus();
     ring.clear();
     oculus_plates.clear();
 
@@ -277,7 +270,7 @@ void Floor::add_placed(const std::shared_ptr<Element>& element, const std::strin
     add(element, group);
 }
 
-std::shared_ptr<wood_session::BeamVariable> Floor::rib(const Loops& loops, const std::string& name) {
+std::shared_ptr<wood_session::BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -306,7 +299,7 @@ std::shared_ptr<wood_session::BeamVariable> Floor::rib(const Loops& loops, const
     return std::make_shared<wood_session::BeamVariable>(axis, sections, name);
 }
 
-std::shared_ptr<wood_session::BeamVariable> Floor::beam(const Loops& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name) {
+std::shared_ptr<wood_session::BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -393,7 +386,7 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(cons
         }
     }
 
-    std::sort(found.begin(), found.end(), [](const auto& x, const auto& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
+    std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<wood_session::InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<wood_session::InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
 
     // every connector first, so a failing one throws before anything is added or cut
     std::vector<std::tuple<std::string, size_t, std::shared_ptr<wood_session::JointBeam>>> built;

@@ -9,6 +9,8 @@
 #include "wood_interaction_contact_axis.h"
 #include "wood_interaction_contact_cross.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// What detection counted and why it gave up on a pair; filled only when a caller asks for it.
@@ -24,7 +26,7 @@ struct DetectionTrace {
 
 /// Candidate element pairs (i, j) with i < j: inflated OBB per element, a BVH over their AABBs, then an OBB/OBB SAT test; `names` selects by name, empty means everything.
 std::vector<std::pair<int, int>> adjacency_search(
-    const std::vector<std::shared_ptr<session_cpp::Element>>& elements,
+    const std::vector<std::shared_ptr<Element>>& elements,
     double inflate,
     const std::vector<std::string>& names = {});
 
@@ -34,20 +36,20 @@ std::vector<std::pair<int, int>> adjacency_search(
 
 /// True when two faces touch back-to-back: z axes antiparallel within `cos_angle` (cos of config::ANGLE, radians) and each origin within `coplanar_tolerance` (a squared distance) of the other's plane; the z axes need not be unit length.
 bool faces_coplanar(
-    const session_cpp::Plane& face0,
-    const session_cpp::Plane& face1,
+    const Plane& face0,
+    const Plane& face1,
     double cos_angle,
     double coplanar_tolerance);
 
 /// Largest overlap of two coplanar outlines as a closed polygon in `plane0`, via Clipper2 on the `clipper_scale` grid; areas at or below `clipper_area` are none; coplanarity is a precondition, triangles count only when `include_triangles`.
 bool face_overlap_area(
-    const session_cpp::Polyline& outline0,
-    const session_cpp::Polyline& outline1,
-    const session_cpp::Plane& plane0,
+    const Polyline& outline0,
+    const Polyline& outline1,
+    const Plane& plane0,
     bool include_triangles,
     int64_t clipper_scale,
     double clipper_area,
-    session_cpp::Polyline& out_area);
+    Polyline& out_area);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Face contacts - both phases
@@ -55,15 +57,15 @@ bool face_overlap_area(
 
 /// Every contacting face pair between ONE element pair, ordered by face index; a triangular overlap counts unless both elements are plates and one face is a side; `trace`, when given, counts the coplanar and overlapping pairs.
 std::vector<InteractionContactFace> face_contacts_for_pair(
-    session_cpp::Element& ea,
-    session_cpp::Element& eb,
+    Element& ea,
+    Element& eb,
     const Settings& settings,
     DetectionTrace* trace = nullptr,
     bool with_volumes = true);
 
 /// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
 std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
-    const std::vector<std::shared_ptr<session_cpp::Element>>& elements,
+    const std::vector<std::shared_ptr<Element>>& elements,
     const Settings& settings,
     const std::vector<std::string>& names = {});
 
@@ -73,10 +75,10 @@ std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
 
 /// Cross/lap contact detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing. A vertex within sqrt(distance_squared) of the other plate's plane is near-coplanar and rejects the crossing.
 bool plane_to_face(
-    const session_cpp::Polyline& a_bottom, const session_cpp::Polyline& a_top,
-    const session_cpp::Polyline& b_bottom, const session_cpp::Polyline& b_top,
-    const session_cpp::Plane& a_plane_bottom, const session_cpp::Plane& a_plane_top,
-    const session_cpp::Plane& b_plane_bottom, const session_cpp::Plane& b_plane_top,
+    const Polyline& a_bottom, const Polyline& a_top,
+    const Polyline& b_bottom, const Polyline& b_top,
+    const Plane& a_plane_bottom, const Plane& a_plane_top,
+    const Plane& b_plane_bottom, const Plane& b_plane_top,
     double distance_squared,
     InteractionContactCross& result,
     double angle_tol = 5.0,

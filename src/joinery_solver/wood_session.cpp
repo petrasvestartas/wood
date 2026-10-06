@@ -398,7 +398,7 @@ void WoodSession::compute_face_contacts(int level) {
             add_interaction(elements[ia], elements[ib], std::make_shared<InteractionContactFace>(contact));
 }
 
-std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::shared_ptr<session_cpp::Element> source, std::shared_ptr<session_cpp::Element> target){
+std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target){
     if (!source || !target || source->guid() == target->guid()) return nullptr;
     const auto contacts = face_contacts_for_pair(*source, *target, settings);
     return contacts.empty() ? nullptr : std::make_shared<InteractionContactFace>(contacts.front());

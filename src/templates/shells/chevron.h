@@ -19,6 +19,8 @@
 #include <tuple>
 #include <vector>
 
+using namespace session_cpp;
+
 namespace wood_chevron {
 
 /// Full knot vector from unique knot values and their multiplicities, with the first and last knot stripped as OpenNURBS stores it.
@@ -41,7 +43,7 @@ inline std::vector<double> expand_knots(const std::vector<int>& mults,
 /// json_path must point to annen_surfaces.json.
 /// Format per entry: degree_u/v, n_u/v, u_mults/v_mults (multiplicities),
 /// u_nurbsknots/v_nurbsknots (unique values), points[n_u][n_v][xyz].
-inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& json_path) {
+inline std::vector<NurbsSurface> annen_surfaces(const std::string& json_path) {
 
     std::ifstream f(json_path);
     if (!f) {
@@ -51,7 +53,7 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
     nlohmann::json arr;
     f >> arr;
 
-    std::vector<session_cpp::NurbsSurface> surfaces;
+    std::vector<NurbsSurface> surfaces;
     surfaces.reserve(arr.size());
 
     for (nlohmann::json& s : arr) {
@@ -69,7 +71,7 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
         std::vector<double> knots_u = expand_knots(u_mults, u_vals);
         std::vector<double> knots_v = expand_knots(v_mults, v_vals);
 
-        session_cpp::NurbsSurface srf;
+        NurbsSurface srf;
         srf.create_raw(3, false, deg_u + 1, deg_v + 1, n_u, n_v);
 
         for (int i = 0; i < (int)knots_u.size(); i++) {
@@ -82,7 +84,7 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
         const nlohmann::json& pts = s["points"];
         for (int i = 0; i < n_u; i++) {
             for (int j = 0; j < n_v; j++) {
-                srf.set_cv(i, j, session_cpp::Point(
+                srf.set_cv(i, j, Point(
                     pts[i][j][0].get<double>(),
                     pts[i][j][1].get<double>(),
                     pts[i][j][2].get<double>()));
@@ -102,13 +104,13 @@ inline std::vector<session_cpp::NurbsSurface> annen_surfaces(const std::string& 
 /// v_division_dist : target panel height in model units along the long axis.
 /// shift  : fraction of v-step by which the middle peak point is offset.
 /// scale  : growth factor per row (adaptive spacing for curvature change).
-inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
+inline Mesh chevron_mesh(const NurbsSurface& surface,
                                       int    u_divisions    = 4,
                                       double v_division_dist = 900.0,
                                       double shift           = 0.5,
                                       double scale           = 0.05799) {
 
-    session_cpp::NurbsSurface srf = surface;
+    NurbsSurface srf = surface;
 
     srf.transpose();
 
@@ -120,7 +122,7 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
     double totalV    = dv.second - dv.first;
     double baseStepV = v_division_dist;
 
-    std::vector<std::vector<session_cpp::Point>> polygons;
+    std::vector<std::vector<Point>> polygons;
 
     double ctU = du.first;
     for (int j = 0; j < u_divisions; j++) {
@@ -130,8 +132,8 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
         bool   running = true;
         std::vector<double> ListV;
 
-        session_cpp::Point p0, p1, p2, p6, p7, p8;
-        session_cpp::Point savept6, savept7, savept8;
+        Point p0, p1, p2, p6, p7, p8;
+        Point savept6, savept7, savept8;
         int iterations = 0;
 
         while (running && iterations < 1000) {
@@ -211,33 +213,33 @@ inline session_cpp::Mesh chevron_mesh(const session_cpp::NurbsSurface& surface,
         ctU += StepU;
     }
 
-    return session_cpp::Mesh::from_polylines(polygons, 0.01);
+    return Mesh::from_polylines(polygons, 0.01);
 }
 
 /// A plane from an origin and two directions, each normalized on its own, z = x × y; not the kernel constructor, which would re-orthogonalize y.
-inline session_cpp::Plane frame_plane(const session_cpp::Point& origin, const session_cpp::Vector& x_in, const session_cpp::Vector& y_in) {
-    const session_cpp::Vector x = x_in.normalized();
-    const session_cpp::Vector y = y_in.normalized();
-    return session_cpp::Plane::from_frame(origin, x, y, x.cross(y).normalized());
+inline Plane frame_plane(const Point& origin, const Vector& x_in, const Vector& y_in) {
+    const Vector x = x_in.normalized();
+    const Vector y = y_in.normalized();
+    return Plane::from_frame(origin, x, y, x.cross(y).normalized());
 }
 
 /// The plane with x and z flipped, y kept: the same plane seen from the other side.
-inline session_cpp::Plane flipped_x(const session_cpp::Plane& p) {
-    return session_cpp::Plane::from_frame(p.origin(), -p.x_axis(), p.y_axis(), -p.z_axis());
+inline Plane flipped_x(const Plane& p) {
+    return Plane::from_frame(p.origin(), -p.x_axis(), p.y_axis(), -p.z_axis());
 }
 
 /// The plane rotated about its own y axis by angle in radians.
-inline session_cpp::Plane rotated_y(const session_cpp::Plane& p, double angle) {
+inline Plane rotated_y(const Plane& p, double angle) {
     const double c = std::cos(angle);
     const double s = std::sin(angle);
-    const session_cpp::Vector new_x = (p.x_axis() * c + p.z_axis() * -s).normalized();
-    const session_cpp::Vector new_z = (p.x_axis() * s + p.z_axis() * c).normalized();
-    return session_cpp::Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
+    const Vector new_x = (p.x_axis() * c + p.z_axis() * -s).normalized();
+    const Vector new_z = (p.x_axis() * s + p.z_axis() * c).normalized();
+    return Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
 }
 
 /// The plane with z snapped to a world axis and x, y rebuilt; axis: 1 = the dominant one, 2 = X, 3 = Y, 4 = Z.
-inline session_cpp::Plane snapped_to_axis(const session_cpp::Plane& p, int axis) {
-    const session_cpp::Vector z = p.z_axis();
+inline Plane snapped_to_axis(const Plane& p, int axis) {
+    const Vector z = p.z_axis();
     int idx = 0;
     if (axis >= 2 && axis <= 4) {
         idx = axis - 2;
@@ -250,24 +252,24 @@ inline session_cpp::Plane snapped_to_axis(const session_cpp::Plane& p, int axis)
             }
         }
     }
-    session_cpp::Vector new_z(0.0, 0.0, 0.0);
+    Vector new_z(0.0, 0.0, 0.0);
     new_z[idx] = z[idx] >= 0.0 ? 1.0 : -1.0;
-    const session_cpp::Vector ref = idx != 0 ? session_cpp::Vector(1.0, 0.0, 0.0) : session_cpp::Vector(0.0, 1.0, 0.0);
-    const session_cpp::Vector new_x = ref.cross(new_z).normalized();
-    return session_cpp::Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
+    const Vector ref = idx != 0 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
+    const Vector new_x = ref.cross(new_z).normalized();
+    return Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
 }
 
 /// The line two planes meet on, directed along p0.z × p1.z; none when they are parallel.
-inline std::optional<session_cpp::Line> plane_pair_line(const session_cpp::Plane& p0, const session_cpp::Plane& p1) {
-    session_cpp::Line line;
-    if (!session_cpp::Intersection::plane_plane(p1, p0, line))
+inline std::optional<Line> plane_pair_line(const Plane& p0, const Plane& p1) {
+    Line line;
+    if (!Intersection::plane_plane(p1, p0, line))
         return std::nullopt;
     return line;
 }
 
 /// Dihedral bisector plane of two planes, or nullopt when they are parallel or share an origin.
-inline std::optional<session_cpp::Plane> dihedral_plane(const session_cpp::Plane& p0, const session_cpp::Plane& p1) {
-    const std::optional<session_cpp::Line> seam = plane_pair_line(p0, p1);
+inline std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1) {
+    const std::optional<Line> seam = plane_pair_line(p0, p1);
     if (!seam)
         return std::nullopt;
     if (p0.z_axis().dot(p1.z_axis()) > 1.0 - 0.01)
@@ -277,57 +279,57 @@ inline std::optional<session_cpp::Plane> dihedral_plane(const session_cpp::Plane
 
     double t0 = 0.0;
     double t1 = 0.0;
-    const session_cpp::Line axis0 = session_cpp::Line::from_points(p0.origin(), p0.origin() + p0.z_axis());
-    const session_cpp::Line axis1 = session_cpp::Line::from_points(p1.origin(), p1.origin() + p1.z_axis());
-    session_cpp::Point center = p0.origin();
-    if (session_cpp::Intersection::line_line_parameters(axis0, axis1, t0, t1, 0.0, false, false))
+    const Line axis0 = Line::from_points(p0.origin(), p0.origin() + p0.z_axis());
+    const Line axis1 = Line::from_points(p1.origin(), p1.origin() + p1.z_axis());
+    Point center = p0.origin();
+    if (Intersection::line_line_parameters(axis0, axis1, t0, t1, 0.0, false, false))
         center = axis0.point_at(t0);
 
-    const session_cpp::Vector v0 = (p0.origin() - center).normalized();
-    const session_cpp::Vector v1 = (p1.origin() - center).normalized();
-    session_cpp::Vector bis = v0 + v1;
+    const Vector v0 = (p0.origin() - center).normalized();
+    const Vector v1 = (p1.origin() - center).normalized();
+    Vector bis = v0 + v1;
     const double bn = bis.magnitude();
     if (bn < 1e-12)
         return std::nullopt;
     bis = bis * (1.0 / bn);
 
-    const session_cpp::Vector ldir = seam->to_vector().normalized();
-    return session_cpp::Plane::from_frame(seam->start(), ldir, bis, ldir.cross(bis).normalized());
+    const Vector ldir = seam->to_vector().normalized();
+    return Plane::from_frame(seam->start(), ldir, bis, ldir.cross(bis).normalized());
 }
 
 /// Closed polygon from intersecting a base plane with n side planes in a loop; a missed corner falls back to the base origin.
-inline session_cpp::Polyline polygon_from_planes(const session_cpp::Plane& base, const std::vector<session_cpp::Plane>& sides) {
+inline Polyline polygon_from_planes(const Plane& base, const std::vector<Plane>& sides) {
     const int ns = (int)sides.size();
-    std::vector<session_cpp::Point> pts;
+    std::vector<Point> pts;
     pts.reserve(ns + 1);
     for (int i = 0; i < ns; i++) {
-        session_cpp::Point pt;
-        pts.push_back(session_cpp::Intersection::plane_plane_plane(base, sides[i], sides[(i + 1) % ns], pt) ? pt : base.origin());
+        Point pt;
+        pts.push_back(Intersection::plane_plane_plane(base, sides[i], sides[(i + 1) % ns], pt) ? pt : base.origin());
     }
     pts.push_back(pts.front());
-    return session_cpp::Polyline(pts);
+    return Polyline(pts);
 }
 
 /// Position of the mesh vertex with key vk.
-inline session_cpp::Point vertex_position(const session_cpp::Mesh& mesh, size_t vk) {
-    const session_cpp::VertexData& vd = mesh.vertex.at(vk);
-    return session_cpp::Point(vd.x, vd.y, vd.z);
+inline Point vertex_position(const Mesh& mesh, size_t vk) {
+    const VertexData& vd = mesh.vertex.at(vk);
+    return Point(vd.x, vd.y, vd.z);
 }
 
 /// Normal of face fi from its (already-reversed) vertex list, the flipped face normal of mesh.Flip(): for a quad the cross product of its diagonals as OpenNURBS computes it, the best-fit normal of a twisted quad; a plane through three vertices would tilt by the twist; world z when degenerate.
-inline session_cpp::Vector face_normal(const session_cpp::Mesh& mesh, const std::vector<std::vector<size_t>>& face_vertices, int fi) {
+inline Vector face_normal(const Mesh& mesh, const std::vector<std::vector<size_t>>& face_vertices, int fi) {
 
     const std::vector<size_t>& vertices = face_vertices[fi];
     if ((int)vertices.size() < 3)
-        return session_cpp::Vector(0.0, 0.0, 1.0);
+        return Vector(0.0, 0.0, 1.0);
 
-    const session_cpp::Point a = vertex_position(mesh, vertices[0]);
-    const session_cpp::Point b = vertex_position(mesh, vertices[1]);
-    const session_cpp::Point c = vertex_position(mesh, vertices[2]);
+    const Point a = vertex_position(mesh, vertices[0]);
+    const Point b = vertex_position(mesh, vertices[1]);
+    const Point c = vertex_position(mesh, vertices[2]);
     if ((int)vertices.size() < 4)
         return (b - a).cross(c - a).normalized();
 
-    const session_cpp::Point d = vertex_position(mesh, vertices[3]);
+    const Point d = vertex_position(mesh, vertices[3]);
     return (c - a).cross(d - b).normalized();
 }
 
@@ -352,13 +354,13 @@ inline bool faces_share_strip_edge(const std::vector<std::vector<size_t>>& face_
 }
 
 /// Unit direction of the intersection line of a face plane with a corner's bisector plane; zero when the bisector is absent or the planes are parallel.
-inline session_cpp::Vector bisector_direction(const session_cpp::Plane& face_plane, const std::optional<session_cpp::Plane>& bisector_plane) {
+inline Vector bisector_direction(const Plane& face_plane, const std::optional<Plane>& bisector_plane) {
 
     if (!bisector_plane)
-        return session_cpp::Vector(0.0, 0.0, 0.0);
+        return Vector(0.0, 0.0, 0.0);
 
-    const std::optional<session_cpp::Line> seam = plane_pair_line(face_plane, *bisector_plane);
-    return seam ? seam->to_vector().normalized() : session_cpp::Vector(0.0, 0.0, 0.0);
+    const std::optional<Line> seam = plane_pair_line(face_plane, *bisector_plane);
+    return seam ? seam->to_vector().normalized() : Vector(0.0, 0.0, 0.0);
 }
 
 /// Generate top/bottom/side plate polylines for each chevron mesh face.
@@ -375,7 +377,7 @@ inline session_cpp::Vector bisector_direction(const session_cpp::Plane& face_pla
 /// Returns ChevronResult with 8 polylines per face (in f_order) plus
 /// the joinery data needed to drive get_connection_zones().
 inline ChevronResult chevron_plates(
-    const session_cpp::Mesh& mesh,
+    const Mesh& mesh,
     double edge_rotation   = 1.0,
     double edge_offset     = 0.5,
     double box_height      = 760.0,
@@ -476,8 +478,8 @@ inline ChevronResult chevron_plates(
         strip_idx++;
     }
 
-    std::vector<std::vector<session_cpp::Plane>> ep(n, std::vector<session_cpp::Plane>(4));  // edge planes
-    std::vector<session_cpp::Plane>              fp(n);                                    // face planes
+    std::vector<std::vector<Plane>> ep(n, std::vector<Plane>(4));  // edge planes
+    std::vector<Plane>              fp(n);                                    // face planes
 
     for (int fi = 0; fi < n; fi++) {
 
@@ -485,27 +487,27 @@ inline ChevronResult chevron_plates(
             continue;
         }
 
-        const session_cpp::Vector fn = face_normal(mesh, fv, fi);
+        const Vector fn = face_normal(mesh, fv, fi);
 
-        std::vector<session_cpp::Point> corners;
+        std::vector<Point> corners;
         for (size_t vk : fv[fi]) {
             corners.push_back(vertex_position(mesh, vk));
         }
-        const session_cpp::Point fc = session_cpp::Point::centroid(corners);
+        const Point fc = Point::centroid(corners);
 
-        const session_cpp::Vector ref = std::abs(fn[0]) < 0.9 ? session_cpp::Vector(1.0, 0.0, 0.0) : session_cpp::Vector(0.0, 1.0, 0.0);
-        const session_cpp::Vector fx  = ref.cross(fn).normalized();
-        fp[fi] = session_cpp::Plane::from_frame(fc, fx, fn.cross(fx), fn);
+        const Vector ref = std::abs(fn[0]) < 0.9 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
+        const Vector fx  = ref.cross(fn).normalized();
+        fp[fi] = Plane::from_frame(fc, fx, fn.cross(fx), fn);
 
         for (int j = 0; j < 4; j++) {
             size_t vi0 = fv[fi][j], vi1 = fv[fi][(j+1)%4];
-            const session_cpp::Point p0 = vertex_position(mesh, vi0);
-            const session_cpp::Point p1 = vertex_position(mesh, vi1);
-            const session_cpp::Point mid = session_cpp::Point::mid_point(p0, p1);
-            const session_cpp::Vector ex = p0 - p1;
+            const Point p0 = vertex_position(mesh, vi0);
+            const Point p1 = vertex_position(mesh, vi1);
+            const Point mid = Point::mid_point(p0, p1);
+            const Vector ex = p0 - p1;
 
             const std::vector<int>& adj = adjacent_faces(edge_adj, vi0, vi1);
-            session_cpp::Vector avg_n(0.0, 0.0, 0.0);
+            Vector avg_n(0.0, 0.0, 0.0);
             for (int fi2 : adj) {
                 avg_n = avg_n + face_normal(mesh, fv, fi2);
             }
@@ -552,7 +554,7 @@ inline ChevronResult chevron_plates(
         }
     }
 
-    std::vector<std::vector<std::optional<session_cpp::Plane>>> bi(n, std::vector<std::optional<session_cpp::Plane>>(4));
+    std::vector<std::vector<std::optional<Plane>>> bi(n, std::vector<std::optional<Plane>>(4));
     for (int fi = 0; fi < n; fi++) {
         for (int j = 0; j < 4; j++) {
             bi[fi][j] = dihedral_plane(ep[fi][(j+1)%4], ep[fi][j]);
@@ -567,7 +569,7 @@ inline ChevronResult chevron_plates(
     out.plines.reserve(n * 8);
 
     for (int fi : f_order) {
-        std::vector<session_cpp::Plane> ep_local(4);
+        std::vector<Plane> ep_local(4);
         for (int j = 0; j < 4; j++) {
             ep_local[j] = ep[fi][j];
             if (j == f_e[fi][0] || j == f_e[fi][1]) {
@@ -575,7 +577,7 @@ inline ChevronResult chevron_plates(
             }
         }
 
-        const session_cpp::Plane& fplane = fp[fi];
+        const Plane& fplane = fp[fi];
 
         out.plines.push_back(polygon_from_planes(fplane.translate_by_normal( H*0.5 - inp - t*0.5), ep_local));
         out.plines.push_back(polygon_from_planes(fplane.translate_by_normal( H*0.5 - inp + t*0.5), ep_local));
@@ -595,11 +597,11 @@ inline ChevronResult chevron_plates(
             int prev = (curr - 1 + 4) % 4;
             int nxt  = (curr + 1) % 4;
 
-            const session_cpp::Plane s0 = fplane.translate_by_normal( H * 0.5);   // top
-            const session_cpp::Plane s2 = fplane.translate_by_normal(-H * 0.5);   // bottom
+            const Plane s0 = fplane.translate_by_normal( H * 0.5);   // top
+            const Plane s2 = fplane.translate_by_normal(-H * 0.5);   // bottom
 
-            session_cpp::Plane s1;
-            session_cpp::Plane s3;
+            Plane s1;
+            Plane s3;
             if (idx == 0) {
                 s1 = ep[fi][prev];
                 s3 = bi[fi][curr] ? *bi[fi][curr] : ep[fi][nxt];
@@ -608,9 +610,9 @@ inline ChevronResult chevron_plates(
                 s3 = ep[fi][nxt];
             }
 
-            const std::vector<session_cpp::Plane> sides = {s0, s1, s2, s3};
-            const session_cpp::Plane base0 = ep[fi][curr];
-            const session_cpp::Plane base1 = base0.translate_by_normal(t);
+            const std::vector<Plane> sides = {s0, s1, s2, s3};
+            const Plane base0 = ep[fi][curr];
+            const Plane base1 = base0.translate_by_normal(t);
 
             out.plines.push_back(polygon_from_planes(base0, sides));
             out.plines.push_back(polygon_from_planes(base1, sides));
@@ -640,8 +642,8 @@ inline ChevronResult chevron_plates(
             std::swap(e_s[0], e_s[1]);
         }
 
-        const session_cpp::Vector bdir0 = bisector_direction(fp[fi], bi[fi][e_s[0]]);
-        const session_cpp::Vector bdir1 = bisector_direction(fp[fi], bi[fi][(e_s[1] + 1) % 4]);
+        const Vector bdir0 = bisector_direction(fp[fi], bi[fi][e_s[0]]);
+        const Vector bdir1 = bisector_direction(fp[fi], bi[fi][(e_s[1] + 1) % 4]);
         {
             std::array<double,18> ins = {};
             for (int s = 2; s < 6; s++) {
@@ -685,8 +687,8 @@ inline ChevronResult chevron_plates(
             out.three_valence.push_back({counter*4+0, counter*4+2+ei, nei*4+0, counter*4+2+ei});
             out.three_valence.push_back({counter*4+1, counter*4+2+ei, nei*4+1, counter*4+2+ei});
         }
-        const session_cpp::Point ctr = out.plines[counter * 8 + 1].center();
-        out.box_insertion_lines.emplace_back(std::vector<session_cpp::Point>{ctr, ctr + bdir1 * 300.0});
+        const Point ctr = out.plines[counter * 8 + 1].center();
+        out.box_insertion_lines.emplace_back(std::vector<Point>{ctr, ctr + bdir1 * 300.0});
     }
 
     return out;
@@ -694,7 +696,6 @@ inline ChevronResult chevron_plates(
 
 } // namespace wood_chevron
 
-using namespace session_cpp;
 using namespace wood_session;
 
 /// A chevron shell from a NURBS surface with thickness.

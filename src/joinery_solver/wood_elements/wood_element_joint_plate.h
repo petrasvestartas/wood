@@ -5,6 +5,8 @@
 #include "wood_interaction_feature_plate.h"
 #include "wood_settings.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 struct JointPlateParameters {
@@ -20,7 +22,7 @@ struct JointPlateParameters {
     bool disable_divisions = false;                             // Disable divisions on the second linked joint.
     double distance_squared = 0.01;                             // Drill boundary opening tolerance.
     bool merge_with_joint = false;                              // Merge side removal with an existing joint.
-    std::array<std::vector<session_cpp::Polyline>, 2> outlines; // Custom male and female outline pairs.
+    std::array<std::vector<Polyline>, 2> outlines; // Custom male and female outline pairs.
 
     std::string pb_dumps() const;
 
@@ -51,7 +53,7 @@ public:
 
     static std::shared_ptr<JointPlate> ss_e_ip_5(int divisions = 4);
 
-    static std::shared_ptr<JointPlate> ss_e_ip_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female, int divisions = 4);
+    static std::shared_ptr<JointPlate> ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female, int divisions = 4);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ss_e_op
@@ -73,7 +75,7 @@ public:
 
     static std::shared_ptr<JointPlate> ss_e_op_tutorial();
 
-    static std::shared_ptr<JointPlate> ss_e_op_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female);
+    static std::shared_ptr<JointPlate> ss_e_op_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ts_e_p
@@ -89,7 +91,7 @@ public:
 
     static std::shared_ptr<JointPlate> ts_e_p_5(int divisions = 4);
 
-    static std::shared_ptr<JointPlate> ts_e_p_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female);
+    static std::shared_ptr<JointPlate> ts_e_p_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ss_e_r
@@ -103,7 +105,7 @@ public:
 
     static std::shared_ptr<JointPlate> ss_e_r_3(int divisions = 4, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> ss_e_r_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female);
+    static std::shared_ptr<JointPlate> ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // cr_c_ip
@@ -121,7 +123,7 @@ public:
 
     static std::shared_ptr<JointPlate> cr_c_ip_5();
 
-    static std::shared_ptr<JointPlate> cr_c_ip_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female);
+    static std::shared_ptr<JointPlate> cr_c_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // b
@@ -129,7 +131,7 @@ public:
 
     static std::shared_ptr<JointPlate> b_0();
 
-    static std::shared_ptr<JointPlate> b_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female);
+    static std::shared_ptr<JointPlate> b_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // tt_e_p
@@ -178,12 +180,12 @@ public:
     static void build_geometry(std::vector<InteractionFeaturePlate>& connections,
                                std::vector<std::shared_ptr<Plate>>& elements,
                                const std::vector<std::vector<int>>& types, const Settings& settings);
-    void place(const session_cpp::Xform& xform) override;
-    std::vector<session_cpp::Line> drill_axes() const override;
+    void place(const Xform& xform) override;
+    std::vector<Line> drill_axes() const override;
     std::string element_type_name() const override {
         return "JointPlate";
     }
-    std::shared_ptr<session_cpp::Element> clone() const override {
+    std::shared_ptr<Element> clone() const override {
         return std::make_shared<JointPlate>(*this);
     }
 
@@ -201,7 +203,7 @@ private:
     bool compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
 
 protected:
-    std::vector<std::array<session_cpp::Polyline, 2>> bodies() const override;
+    std::vector<std::array<Polyline, 2>> bodies() const override;
     void write_proto(wood_proto::Joint& proto) const override;
     void read_proto(const wood_proto::Joint& proto) override;
 };
@@ -214,7 +216,7 @@ public:
     std::string element_type_name() const override {
         return "JointAnnen";
     }
-    std::shared_ptr<session_cpp::Element> clone() const override {
+    std::shared_ptr<Element> clone() const override {
         return std::make_shared<JointAnnen>(*this);
     }
 };
@@ -227,7 +229,7 @@ public:
     std::string element_type_name() const override {
         return "JointVidy";
     }
-    std::shared_ptr<session_cpp::Element> clone() const override {
+    std::shared_ptr<Element> clone() const override {
         return std::make_shared<JointVidy>(*this);
     }
 };

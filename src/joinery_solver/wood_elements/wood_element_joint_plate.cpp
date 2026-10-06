@@ -949,7 +949,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_ip_5(int divisions) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_ip_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female, int divisions) {
+std::shared_ptr<JointPlate> JointPlate::ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female, int divisions) {
 
     const std::shared_ptr<JointPlate> joint = from_library("ss_e_ip_custom", 12);
     joint->parameters.outlines = {male, female};
@@ -1052,7 +1052,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_tutorial() {
     return from_library("ss_e_op_tutorial", 11);
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_op_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::ss_e_op_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
     const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_custom", 11);
     joint->parameters.outlines = {male, female};
@@ -1130,7 +1130,7 @@ std::shared_ptr<JointPlate> JointPlate::ts_e_p_5(int divisions) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::ts_e_p_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::ts_e_p_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
     const std::shared_ptr<JointPlate> joint = from_library("ts_e_p_custom", 20);
     joint->parameters.outlines = {male, female};
@@ -1287,7 +1287,7 @@ std::shared_ptr<JointPlate> JointPlate::cr_c_ip_5() {
     return from_library("cr_c_ip_5", 30);
 }
 
-std::shared_ptr<JointPlate> JointPlate::cr_c_ip_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::cr_c_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
     const std::shared_ptr<JointPlate> joint = from_library("cr_c_ip_custom", 30);
     joint->parameters.outlines = {male, female};
@@ -1353,7 +1353,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_r_3(int divisions, double shift) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_r_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
     const std::shared_ptr<JointPlate> joint = from_library("ss_e_r_custom", 13);
     joint->parameters.outlines = {male, female};
@@ -1429,7 +1429,7 @@ std::shared_ptr<JointPlate> JointPlate::b_0() {
     return from_library("b_0", 60);
 }
 
-std::shared_ptr<JointPlate> JointPlate::b_custom(const std::vector<session_cpp::Polyline>& male, const std::vector<session_cpp::Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::b_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
     const std::shared_ptr<JointPlate> joint = from_library("b_custom", 60);
     joint->parameters.outlines = {male, female};
@@ -1476,11 +1476,11 @@ std::string JointPlateParameters::pb_dumps() const {
         proto.add_z(z[i]);
     }
 
-    for (const session_cpp::Polyline& outline : outlines[0])
+    for (const Polyline& outline : outlines[0])
         if (!proto.add_male()->ParseFromString(outline.pb_dumps()))
             throw std::runtime_error("Invalid male joint outline");
 
-    for (const session_cpp::Polyline& outline : outlines[1])
+    for (const Polyline& outline : outlines[1])
         if (!proto.add_female()->ParseFromString(outline.pb_dumps()))
             throw std::runtime_error("Invalid female joint outline");
 
@@ -1517,10 +1517,10 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
     }
 
     for (const session_proto::Polyline& outline : proto.male())
-        parameters.outlines[0].push_back(session_cpp::Polyline::pb_loads(outline.SerializeAsString()));
+        parameters.outlines[0].push_back(Polyline::pb_loads(outline.SerializeAsString()));
 
     for (const session_proto::Polyline& outline : proto.female())
-        parameters.outlines[1].push_back(session_cpp::Polyline::pb_loads(outline.SerializeAsString()));
+        parameters.outlines[1].push_back(Polyline::pb_loads(outline.SerializeAsString()));
 
     return parameters;
 }

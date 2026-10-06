@@ -4,6 +4,8 @@
 
 #include "wood_interaction_feature.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// A beam-to-beam joint: the four volume rectangles cut where two axes meet, as Beam::joint_volumes builds them.
@@ -12,7 +14,7 @@ public:
     static constexpr std::string_view INTERACTION_TYPE = "InteractionFeatureBeam"; // The tag the kernel writes and the registry reads.
 
     int end_type = 0; // 0 crossing, 1 side to end, 2 end to end.
-    std::array<session_cpp::Polyline, 4> volumes; // [0] and [1] on the edge's first beam, [2] and [3] on the second.
+    std::array<Polyline, 4> volumes; // [0] and [1] on the edge's first beam, [2] and [3] on the second.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -35,7 +37,7 @@ public:
     static InteractionFeatureBeam interaction_data_loads(const std::string& data);
 
     /// A copy with the same guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Interaction> clone() const override;
+    std::shared_ptr<Interaction> clone() const override;
 
     /// Registers the INTERACTION_TYPE factory with the kernel, so a Session load rebuilds beam joints.
     static void register_type();

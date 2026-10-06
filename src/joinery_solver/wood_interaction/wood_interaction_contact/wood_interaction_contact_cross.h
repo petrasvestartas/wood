@@ -4,6 +4,8 @@
 
 #include "wood_interaction_contact.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// One crossing of two plates: where their side faces pass through each other, as plane_to_face computes it.
@@ -13,9 +15,9 @@ public:
 
     std::array<int, 2> faces_a{-1, -1}; // The two side faces of the first element the crossing involves.
     std::array<int, 2> faces_b{-1, -1}; // The two side faces of the second element the crossing involves.
-    session_cpp::Polyline polygon; // Closed quad on the mid-plane, 5 points.
-    std::array<session_cpp::Polyline, 2> lines; // The two perpendicular centrelines of polygon, 2 points each.
-    std::array<session_cpp::Polyline, 2> volumes; // The two parallel quads bounding the joint volume.
+    Polyline polygon; // Closed quad on the mid-plane, 5 points.
+    std::array<Polyline, 2> lines; // The two perpendicular centrelines of polygon, 2 points each.
+    std::array<Polyline, 2> volumes; // The two parallel quads bounding the joint volume.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -47,7 +49,7 @@ public:
     static InteractionContactCross interaction_data_loads(const std::string& data);
 
     /// A copy with the same guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Interaction> clone() const override;
+    std::shared_ptr<Interaction> clone() const override;
 
     /// Registers the INTERACTION_TYPE factory with the kernel, so a Session load rebuilds cross contacts.
     static void register_type();

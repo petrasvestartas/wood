@@ -40,7 +40,7 @@ void check(bool ok, const std::string& message) {
 }
 
 /// The beam is closed, has the face count, and encloses the volume of the plate lofted from the same outline.
-void check_beam(const BeamVariable& beam, const wood_floor::Loops& outline, size_t faces, const std::string& name) {
+void check_beam(const BeamVariable& beam, const std::array<Polyline, 2>& outline, size_t faces, const std::string& name) {
 
     const Mesh& mesh = beam.element_geometry_mesh();
     const double volume = compute_volume(mesh);
@@ -57,10 +57,10 @@ void check_beams() {
     wood_floor::Floor floor(square_guide(), "beam_variable");
     floor.add_quarters();
     floor.add_oculus();
-    const std::vector<wood_floor::Loops> outer = square_guide().outer_ribs(0);
-    const std::vector<wood_floor::Loops> inner = square_guide().inner_ribs(0);
-    const std::vector<wood_floor::Loops> beam_loops = square_guide().inner_beams(0);
-    const std::vector<wood_floor::Loops> oculus = square_guide().oculus();
+    const std::vector<std::array<Polyline, 2>> outer = square_guide().outer_ribs(0);
+    const std::vector<std::array<Polyline, 2>> inner = square_guide().inner_ribs(0);
+    const std::vector<std::array<Polyline, 2>> beam_loops = square_guide().inner_beams(0);
+    const std::vector<std::array<Polyline, 2>> oculus = square_guide().oculus();
     std::vector<std::shared_ptr<BeamVariable>> beams;
 
     for (size_t i = 0; i < 2; i++) {
@@ -256,8 +256,8 @@ void check_short_members() {
         for (size_t q = 0; q < 4; q++) {
             const std::vector<Point>& polygon = guide.quarter_polygon(q);
 
-            for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
-                for (const wood_floor::Loops& rib : family)
+            for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
+                for (const std::array<Polyline, 2>& rib : family)
                     for (const Polyline* loop : {&rib[0], &rib[1]})
                         for (const Point& point : loop->get_points())
                             check(inside_plan(polygon, point, 1.0), fmt::format("{} x {}: quarter {} rib point ({:.1f}, {:.1f}) inside its quarter", 2 * half_x, 2 * half_y, q, point[0], point[1]));
@@ -311,8 +311,8 @@ void check_skewed_bays() {
     size_t beds = 0;
 
     for (size_t q = 0; q < 4; q++)
-        for (const std::vector<wood_floor::Loops>& row : small.beds(q))
-            for (const wood_floor::Loops& bed : row) {
+        for (const std::vector<std::array<Polyline, 2>>& row : small.beds(q))
+            for (const std::array<Polyline, 2>& bed : row) {
                 check(bed[0].point_count() == 5 && bed[1].point_count() == 5, fmt::format("a bed of quarter {} on the 4000 x 3000 skewed bay a quad pair", q));
                 beds++;
             }
@@ -506,8 +506,8 @@ void check_seam_beams() {
 
     for (size_t q = 0; q < 4; q++) {
         const wood_floor::ConstructionPlanes& cp = guide.construction_planes(q);
-        const std::vector<wood_floor::Loops> beams = guide.inner_beams(q);
-        const std::vector<wood_floor::Loops> ribs = guide.outer_ribs(q);
+        const std::vector<std::array<Polyline, 2>> beams = guide.inner_beams(q);
+        const std::vector<std::array<Polyline, 2>> ribs = guide.outer_ribs(q);
 
         for (size_t k = 0; k < 2; k++) {
             const std::array<double, 2> beam = plane_reach(beams[k == 0 ? 0 : 2][1], cp.outer_ribs[k][0]);
@@ -541,7 +541,7 @@ void check_seam_beams() {
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const Vector across = guide.construction_planes(q).outer_ribs[k][0].z_axis();
-            const wood_floor::Loops rib = guide.outer_ribs(q)[k];
+            const std::array<Polyline, 2> rib = guide.outer_ribs(q)[k];
             const Plane end = guide.rib_seam_ends(q)[k];
             const Plane far = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
             const double bottom = guide.bay_height + std::min(lowest_on(rib[0], end), lowest_on(rib[1], end));
@@ -682,7 +682,7 @@ void check_floors_in_scene() {
 }
 
 /// The elements, drill features and connectors under a node of a session, the node's own descendants alone.
-std::array<size_t, 3> subtree_counts(const session_cpp::Session& session, const TreeNode& node) {
+std::array<size_t, 3> subtree_counts(const Session& session, const TreeNode& node) {
 
     std::array<size_t, 3> counts = {0, 0, 0};
 
@@ -951,8 +951,8 @@ void check_shared_entities() {
 
 
         const Xform turn = Xform::rotation_z(static_cast<double>(q) * 90.0, true);
-        const std::vector<wood_floor::Loops> turned = guide.outer_ribs(0);
-        const std::vector<wood_floor::Loops> built = guide.outer_ribs(q);
+        const std::vector<std::array<Polyline, 2>> turned = guide.outer_ribs(0);
+        const std::vector<std::array<Polyline, 2>> built = guide.outer_ribs(q);
 
         for (size_t i = 0; i < 2; i++) {
             const std::vector<Point> a = turned[i][0].transformed(turn).get_points();
@@ -970,12 +970,12 @@ void check_shared_entities() {
 /// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9.
 void check_ring() {
 
-    const std::vector<wood_floor::Loops> ring = square_guide().oculus();
+    const std::vector<std::array<Polyline, 2>> ring = square_guide().oculus();
     check(ring.size() == 9, "four ring beams, four wedges and the plate");
 
     for (size_t i = 0; i < 8; i++) {
         const Xform turn = Xform::rotation_z(static_cast<double>(i % 4) * 90.0, true);
-        const wood_floor::Loops& first = ring[i < 4 ? 0 : 4];
+        const std::array<Polyline, 2>& first = ring[i < 4 ? 0 : 4];
 
         for (const std::array<const Polyline*, 2>& loops : {std::array<const Polyline*, 2>{&first[0], &ring[i][0]}, std::array<const Polyline*, 2>{&first[1], &ring[i][1]}}) {
             const std::vector<Point> a = loops[0]->transformed(turn).get_points();
@@ -1016,9 +1016,9 @@ std::array<double, 2> central_bed_thickness(const wood_floor::FloorGuide& guide)
     std::array<double, 2> range = {1e300, 0.0};
 
     for (size_t q = 0; q < 4; q++) {
-        const std::vector<std::vector<wood_floor::Loops>> rows = guide.beds(q);
+        const std::vector<std::vector<std::array<Polyline, 2>>> rows = guide.beds(q);
 
-        for (const wood_floor::Loops& bed : rows[1]) {
+        for (const std::array<Polyline, 2>& bed : rows[1]) {
             const std::vector<Point> bottom = bed[1].get_points();
             const Plane plane = Plane::from_point_normal(bottom[0], (bottom[1] - bottom[0]).cross(bottom[3] - bottom[0]).normalized());
 
@@ -1058,7 +1058,7 @@ double loop_flatness(std::vector<Point> points) {
 }
 
 /// The least flat face of a member outline: its two loops and every side quad between them, mm.
-double outline_flatness(const wood_floor::Loops& outline) {
+double outline_flatness(const std::array<Polyline, 2>& outline) {
 
     const std::vector<Point> top = outline[0].get_points();
     const std::vector<Point> bottom = outline[1].get_points();
@@ -1073,20 +1073,20 @@ double outline_flatness(const wood_floor::Loops& outline) {
 /// The least flat face over every member of the floor.
 double floor_flatness(const wood_floor::FloorGuide& guide) {
 
-    std::vector<wood_floor::Loops> outlines = guide.oculus();
+    std::vector<std::array<Polyline, 2>> outlines = guide.oculus();
 
     for (size_t q = 0; q < 4; q++) {
 
-        for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q), guide.inner_beams(q), guide.wedges(q), guide.tsections(q)})
+        for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q), guide.inner_beams(q), guide.wedges(q), guide.tsections(q)})
             outlines.insert(outlines.end(), family.begin(), family.end());
 
-        for (const std::vector<wood_floor::Loops>& row : guide.beds(q))
+        for (const std::vector<std::array<Polyline, 2>>& row : guide.beds(q))
             outlines.insert(outlines.end(), row.begin(), row.end());
     }
 
     double worst = 0.0;
 
-    for (const wood_floor::Loops& outline : outlines)
+    for (const std::array<Polyline, 2>& outline : outlines)
         worst = std::max(worst, outline_flatness(outline));
 
     return worst;
@@ -1097,8 +1097,8 @@ std::vector<double> rib_bottoms(const wood_floor::FloorGuide& guide, size_t q) {
 
     std::vector<double> levels;
 
-    for (const std::vector<wood_floor::Loops>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
-        for (const wood_floor::Loops& rib : family)
+    for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
+        for (const std::array<Polyline, 2>& rib : family)
             levels.insert(levels.end(), {rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
 
     return levels;
@@ -1145,7 +1145,7 @@ std::array<double, 3> block_thickness(const wood_floor::FloorGuide& guide, size_
 }
 
 /// The lowest corner of a column block's far face.
-double far_bottom(const wood_floor::Loops& block) {
+double far_bottom(const std::array<Polyline, 2>& block) {
 
     double lowest = 1e300;
 
@@ -1163,7 +1163,7 @@ void check_column_blocks() {
     for (size_t q = 0; q < 4; q++) {
         const std::array<double, 3> thickness = block_thickness(guide, q);
         const std::array<double, 2>& run_in = guide.run_in(q);
-        const std::vector<wood_floor::Loops> blocks = guide.wedges(q);
+        const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(q);
         check(std::abs(thickness[0] - run_in[0]) <= 1e-9 && std::abs(thickness[2] - run_in[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the run-ins {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], run_in[0], run_in[1]));
         check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
     }
@@ -1173,7 +1173,7 @@ void check_column_blocks() {
         check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
     }
 
-    const std::vector<wood_floor::Loops> blocks = guide.wedges(0);
+    const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(0);
     std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(guide, 0)[0], block_thickness(guide, 0)[1], block_thickness(guide, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
 }
 
@@ -1203,7 +1203,7 @@ size_t matches(const std::vector<Line>& lines, const Line& line) {
 /// Whether the node carries the connector colour.
 bool in_connector_color(const TreeNode& node) {
 
-    const Color& color = wood_floor::CONNECTOR_COLOR;
+    const Color& color = wood_floor::Floor::CONNECTOR_COLOR;
 
     return node.color && node.color->r == color.r && node.color->g == color.g && node.color->b == color.b && node.color->a == color.a;
 }

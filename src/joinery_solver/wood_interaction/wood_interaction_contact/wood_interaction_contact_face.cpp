@@ -13,9 +13,9 @@ InteractionContactFace::InteractionContactFace(
     int face_a,
     int face_b,
     ContactType type,
-    session_cpp::Polyline polygon,
-    std::array<session_cpp::Line, 2> lines,
-    std::array<session_cpp::Polyline, 4> volumes)
+    Polyline polygon,
+    std::array<Line, 2> lines,
+    std::array<Polyline, 4> volumes)
     : face_a(face_a),
       face_b(face_b),
       type(type),

@@ -8,7 +8,7 @@ flowchart TD
         direction TB
         A["corners + parameters"] --> P["quarter_polygon, quarter_column_polygon"]
         P --> CP["construction_planes"] --> CQ["construction_quads"] --> BP["boundary_parabolas, central_panel"]
-        BP --> M["outer_ribs, inner_ribs, inner_beams, wedges, tsections, beds, oculus, column_cutters: Loops"]
+        BP --> M["outer_ribs, inner_ribs, inner_beams, wedges, tsections, beds, oculus, column_cutters: two face loops each"]
     end
     subgraph F["Floor: model"]
         direction TB
@@ -89,15 +89,15 @@ Between the two inner ribs, one ruling crosses the panel and one sweep serves bo
 
 Code: [`central_panel`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L149)
 
-### Loops
+### Two face loops
 
-![Loops](floor/908_loops.webp)
+![Two face loops](floor/908_loops.webp)
 
 <span style="color:#2196EA">■ [0]: top</span> <span style="color:#F2CC0C">■ [1]: bottom</span>
 
-Every member method below returns each member as its two face loops. The guide stops here; the Floor turns loops into elements.
+Every member method below returns each member as `std::array<Polyline, 2>`: its two face loops, lofted by `loft`. The guide stops here; the Floor turns loops into elements.
 
-Code: [`Loops`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L171)
+Code: [`loft`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L198)
 
 ### outer_ribs(q), inner_ribs(q)
 

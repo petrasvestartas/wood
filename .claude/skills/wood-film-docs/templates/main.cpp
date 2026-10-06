@@ -11,9 +11,7 @@ int main() {
 
 
     const FloorGuide guide = FloorGuide::rectangle(3000.0, 3000.0);
-    FloorGuide tied = FloorGuide::rectangle(3000.0, 2400.0);
-    tied.seam_through_ribs = false;
-    tied.compute();
+    const FloorGuide tied = FloorGuide::rectangle(3000.0, 2400.0);
 
     Floor members(guide);
     members.add_members();
@@ -24,17 +22,7 @@ int main() {
     connected.add_screws();
 
     const Context context{guide, tied, members, connected, dir};
-    chapter_01_bay(context);
-    chapter_02_quarter_planes(context);
-    chapter_03_parabolas(context);
-    chapter_04_central_panel(context);
-    chapter_05_rib_outlines(context);
-    chapter_06_outlines(context);
-    chapter_07_elements(context);
-    chapter_08_relationships(context);
-    chapter_09_connectors(context);
-    chapter_10_screws(context);
-    chapter_11_checks(context);
+    chapter_00_vocabulary(context);
 
     return 0;
 }

@@ -4,6 +4,8 @@
 
 #include "wood_interaction_feature.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// A plate-to-beam joint; nothing computed yet, the class and its message are reserved.
@@ -32,7 +34,7 @@ public:
     static InteractionFeaturePlateBeam interaction_data_loads(const std::string& data);
 
     /// A copy with the same guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Interaction> clone() const override;
+    std::shared_ptr<Interaction> clone() const override;
 
     /// Registers the INTERACTION_TYPE factory with the kernel.
     static void register_type();

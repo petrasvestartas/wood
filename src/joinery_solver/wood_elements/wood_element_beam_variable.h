@@ -3,67 +3,69 @@
 #include "pch.h"
 #include "wood_element_geometry.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// A beam whose section changes along it: closed sections, one per station, lofted in order along a straight axis; a rib under a parabola or a beam between two slanted faces.
-class BeamVariable : public session_cpp::Element {
+class BeamVariable : public Element {
 public:
     std::vector<SolidCut> solid_cuts; // Solids and drills the joints cut out of it, in the beam's frame; call invalidate_geometry() after assigning.
     static constexpr std::string_view ELEMENT_TYPE = "BeamVariable"; // The element_type this beam is written under.
-    session_cpp::Line axis; // Straight reference line from the first section to the last; contact detection tells end faces from side faces by it.
-    std::vector<session_cpp::Polyline> sections; // Closed rings with one point count, one per station in axis order.
-    std::vector<session_cpp::Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    Line axis; // Straight reference line from the first section to the last; contact detection tells end faces from side faces by it.
+    std::vector<Polyline> sections; // Closed rings with one point count, one per station in axis order.
+    std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
 
 private:
-    mutable std::optional<session_cpp::Mesh> _element_geometry_mesh; // Cache of the mesh form.
-    mutable std::optional<session_cpp::BRep> _element_geometry_brep; // Cache of the brep form.
-    mutable std::optional<session_cpp::Mesh> _model_geometry_mesh; // Cache of the cut mesh form.
-    mutable std::optional<session_cpp::BRep> _model_geometry_brep; // Cache of the cut brep form.
+    mutable std::optional<Mesh> _element_geometry_mesh; // Cache of the mesh form.
+    mutable std::optional<BRep> _element_geometry_brep; // Cache of the brep form.
+    mutable std::optional<Mesh> _model_geometry_mesh; // Cache of the cut mesh form.
+    mutable std::optional<BRep> _model_geometry_brep; // Cache of the cut brep form.
 
 public:
     /// An empty beam: no axis, no sections.
     BeamVariable();
 
     /// A beam lofted through its sections along the axis; `name` is the type flag face_contacts() filters on.
-    BeamVariable(const session_cpp::Line& axis, const std::vector<session_cpp::Polyline>& sections, const std::string& name = "beam_variable");
+    BeamVariable(const Line& axis, const std::vector<Polyline>& sections, const std::string& name = "beam_variable");
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A straight beam between two end sections, its axis from the first section's centroid to the last's; the ends may be slanted.
-    static std::shared_ptr<BeamVariable> between(const session_cpp::Polyline& first, const session_cpp::Polyline& last, const std::string& name = "beam_variable");
+    static std::shared_ptr<BeamVariable> between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
 
     /// The beam an Element tagged "BeamVariable" describes, same guid; a missing payload leaves the axis and sections empty.
-    static std::shared_ptr<BeamVariable> from_element(session_cpp::Element element);
+    static std::shared_ptr<BeamVariable> from_element(Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The parametric shape alone, before joints or cuts as a Mesh: one face per section cap and one per side strip whose quads share a plane, else a face per quad.
-    const session_cpp::Mesh& element_geometry_mesh() const override;
+    const Mesh& element_geometry_mesh() const override;
 
     /// The parametric shape alone, before joints or cuts as a BRep of planar faces.
-    const session_cpp::BRep& element_geometry_brep() const override;
+    const BRep& element_geometry_brep() const override;
 
     /// The shape with joints or cuts applied as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().
-    const session_cpp::Mesh& model_geometry_mesh() const override;
+    const Mesh& model_geometry_mesh() const override;
 
     /// The shape with joints or cuts applied as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
-    const session_cpp::BRep& model_geometry_brep() const override;
+    const BRep& model_geometry_brep() const override;
 
     /// One plane per face of the model solid with a Newell normal.
-    std::vector<session_cpp::Plane> compute_planes() const override;
+    std::vector<Plane> compute_planes() const override;
 
     /// Drops the cached solids and marks the Element slot stale; call after assigning the axis, sections or cuts by hand.
     void invalidate_geometry() override;
 
     /// A copy moved by xform from the parameters alone, guid and name kept; nullptr for a mirror.
-    std::shared_ptr<BeamVariable> transformed(const session_cpp::Xform& xform) const;
+    std::shared_ptr<BeamVariable> transformed(const Xform& xform) const;
 
     /// Moves the solid, the features and the insertion vectors, then the axis, sections and cuts, and drops the cached solids.
-    void place(const session_cpp::Xform& xform) override;
+    void place(const Xform& xform) override;
 
 protected:
     /// Writes the model mesh and the element features into the session slot; WoodSession::pb_dump calls it for every stale beam.
@@ -77,10 +79,10 @@ protected:
 
 public:
     /// The kernel's cached box of the solid.
-    using session_cpp::Element::aabb;
+    using Element::aabb;
 
     /// The box of the solid, inflated on each side; the sections' box when there is no mesh.
-    session_cpp::AABB aabb(double inflate) const;
+    AABB aabb(double inflate) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON
@@ -102,7 +104,7 @@ public:
     }
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
-    std::shared_ptr<session_cpp::Element> clone() const override {
+    std::shared_ptr<Element> clone() const override {
         return std::make_shared<BeamVariable>(*this);
     }
 

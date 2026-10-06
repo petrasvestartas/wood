@@ -61,7 +61,7 @@ The floor template (`docs/templates/floor*.md`, pictures in `docs/templates/floo
 | dimensions, mesh edges | black `#1A1A1A` |
 
 Never orange, amber, slate, dark blue or green. Member families get their own set
-(`FAMILY_COLORS`: pink, yellow, two neutral greys, pale yellow, pale blue). Colours go to the
+(`FAMILY_COLORS` in `movie.h`: pink, yellow, two neutral greys, pale yellow, pale blue). Colours go to the
 viewer as linear light: `movie.cpp`'s `shown()` decodes sRGB first.
 
 **Lines**

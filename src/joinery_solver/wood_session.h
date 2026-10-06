@@ -20,6 +20,8 @@
 #include "wood_io.h"
 #include "wood_view.h"
 
+using namespace session_cpp;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
@@ -27,7 +29,7 @@
 namespace wood_session {
 
 /// The solid cuts a plate, beam, column, block or connector carries, in its own frame; null for any other element.
-const std::vector<SolidCut>* solid_cuts_of(const session_cpp::Element& element);
+const std::vector<SolidCut>* solid_cuts_of(const Element& element);
 
 }
 
@@ -43,7 +45,7 @@ using io::pb_path;
 
 /// True when the stored element is a T.
 template <class T>
-bool is_type(const session_cpp::Element& element) {
+bool is_type(const Element& element) {
     return dynamic_cast<const T*>(&element) != nullptr;
 }
 
@@ -52,7 +54,7 @@ bool is_type(const session_cpp::Element& element) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each hold a list of interactions in the kernel's `interactions`: contacts, joints, structures, found by the edge's guid; the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh() / element_geometry_brep(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh() / model_geometry_brep(), the plate with its joints cut in, the one to inspect. compute_features() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
-class WoodSession : public session_cpp::Session {
+class WoodSession : public Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
     std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. yaml_load fills it from the adjacency sidecar; pb_dump writes it.
@@ -111,7 +113,7 @@ public:
     void compute_face_contacts(int level = 0);
 
     /// First face contact in face-index order, nullptr when disjoint; plate contacts include joinery volumes.
-    std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<session_cpp::Element> source, std::shared_ptr<session_cpp::Element> target);
+    std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
@@ -127,7 +129,7 @@ public:
     void merge(const WoodSession& other);
 
     /// Session::graft, the adjacency and three-valence groups appended as merge appends them.
-    void graft(const WoodSession& other, std::shared_ptr<session_cpp::TreeNode> parent);
+    void graft(const WoodSession& other, std::shared_ptr<TreeNode> parent);
 
     /// Session::get_branch as a WoodSession: the same settings, the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates, and at its root every pre-drill connector from outside it that drills one of its members, in place, so pre_drill_lines() reads the same holes.
     WoodSession get_branch(const std::string& name) const;
@@ -175,7 +177,7 @@ public:
     std::vector<InteractionFeaturePlate> get_plate_features() const;
 
     /// The joint features the interactions hold for one element: the side of each plate feature whose host it is.
-    std::vector<session_cpp::ElementFeature> get_element_features(const std::string& guid) const;
+    std::vector<ElementFeature> get_element_features(const std::string& guid) const;
 
     /// Shows or hides every feature of one type ("contact", "joint", "outline", ...) on every element.
     void set_features_visible(std::string_view feature_type, bool visible);
@@ -185,20 +187,20 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Session::get_interaction: the pair's interactions in either order.
-    using session_cpp::Session::get_interaction;
+    using Session::get_interaction;
 
     /// Session::has_interaction: the pair has an edge in either order.
-    using session_cpp::Session::has_interaction;
+    using Session::has_interaction;
 
     /// Store the interaction on the undirected edge. Contact and beam-joint geometry belongs to source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. Returns the stored interaction.
-    std::shared_ptr<session_cpp::Interaction> add_interaction(
-        const std::shared_ptr<session_cpp::Element>& source,
-        const std::shared_ptr<session_cpp::Element>& target,
-        std::shared_ptr<session_cpp::Interaction> interaction
+    std::shared_ptr<Interaction> add_interaction(
+        const std::shared_ptr<Element>& source,
+        const std::shared_ptr<Element>& target,
+        std::shared_ptr<Interaction> interaction
     );
 
     /// Session::remove_interaction, and the "contact" and "joint" features its interactions put on the two elements, the solid cut and the "drill" features the one put on the other; already merged geometry is not recomputed.
-    void remove_interaction(const std::shared_ptr<session_cpp::Element>& a, const std::shared_ptr<session_cpp::Element>& b);
+    void remove_interaction(const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
@@ -225,19 +227,19 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Session::add for tree nodes.
-    using session_cpp::Session::add;
+    using Session::add;
 
     /// Session::add_element: the object itself, never a copy, so its guid is the guid on the wire.
-    std::shared_ptr<session_cpp::TreeNode> add(
-        std::shared_ptr<session_cpp::Element> element,
-        std::shared_ptr<session_cpp::TreeNode> parent = nullptr
+    std::shared_ptr<TreeNode> add(
+        std::shared_ptr<Element> element,
+        std::shared_ptr<TreeNode> parent = nullptr
     );
 
     /// The element with this guid as T, or null when the scene does not hold it as that type.
     template <class T>
     std::shared_ptr<T> get_element(const std::string& guid) const {
 
-        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
+        for (const std::shared_ptr<Element>& element : *objects.elements)
             if (element && element->guid() == guid)
                 return std::dynamic_pointer_cast<T>(element);
 
@@ -249,7 +251,7 @@ public:
     std::vector<std::shared_ptr<T>> get_elements() const {
 
         std::vector<std::shared_ptr<T>> out;
-        for (const std::shared_ptr<session_cpp::Element>& element : *objects.elements)
+        for (const std::shared_ptr<Element>& element : *objects.elements)
             if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
                 out.push_back(object);
 
@@ -257,12 +259,12 @@ public:
     }
 
     /// Every live element, in insertion order; the list objects.elements holds, no copy.
-    const session_cpp::Collection<std::shared_ptr<session_cpp::Element>>& elements() const {
+    const Collection<std::shared_ptr<Element>>& elements() const {
         return *objects.elements;
     }
 
     /// Adds a connector under group and cuts it into its targets as add_joint does, so its parts and dowels become child elements of its node; returns that node.
-    std::shared_ptr<session_cpp::TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<session_cpp::TreeNode>& group);
+    std::shared_ptr<TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group);
 
     /// One past the highest n of an element named <prefix>_<n>, 0 when there is none: the next free number of a name prefix.
     size_t next_number(const std::string& prefix) const;
@@ -304,54 +306,54 @@ public:
     std::vector<std::string> element_guids() const;
 
     /// The pre-drilled holes of one element in world coordinates: the drill lines of every pre-drill connector that names it as a target, each stored once on its connector, so both members of a joint read the same lines.
-    std::vector<session_cpp::Line> pre_drill_lines(const std::string& guid) const;
+    std::vector<Line> pre_drill_lines(const std::string& guid) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Instances
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Session::add_definition for any geometry.
-    using session_cpp::Session::add_definition;
+    using Session::add_definition;
 
     /// Session::add_instance for a kernel InstanceRef.
-    using session_cpp::Session::add_instance;
+    using Session::add_instance;
 
     /// Session::add_definition for an element in its own frame under a class key: the guid already stored under key when key was seen, else the new one.
-    std::string add_definition(std::shared_ptr<session_cpp::Element> definition, const std::string& key);
+    std::string add_definition(std::shared_ptr<Element> definition, const std::string& key);
 
     /// A light placement of an element definition with its own guid, named name or else as the definition; nullptr when definition_guid names no element definition or xform mirrors.
-    std::shared_ptr<session_cpp::TreeNode> add_instance(
+    std::shared_ptr<TreeNode> add_instance(
         const std::string& definition_guid,
-        const session_cpp::Xform& xform,
+        const Xform& xform,
         const std::string& name = "",
-        std::shared_ptr<session_cpp::TreeNode> parent = nullptr
+        std::shared_ptr<TreeNode> parent = nullptr
     );
 
     /// A light world copy of the element or instance guid names, placed by world: the stored element's or the definition's parameters, features, outlines and planes moved, an instance's guid, name and features; lofts nothing but a stored solid never lofted yet; nullptr when there is none or world mirrors.
-    std::shared_ptr<session_cpp::Element> world_view(const std::string& guid, const session_cpp::Xform& world) const;
+    std::shared_ptr<Element> world_view(const std::string& guid, const Xform& world) const;
 
     /// Every element and element instance as world geometry for the passes, in list order until the session holds an element definition and in tree order from then on, so no conversion moves an index: an element placed by identity is itself, anything else a world_view; keep, when given, picks by the stored type before any view is built.
-    std::vector<std::shared_ptr<session_cpp::Element>> world_elements(const std::function<bool(const session_cpp::Element&)>& keep = nullptr) const;
+    std::vector<std::shared_ptr<Element>> world_elements(const std::function<bool(const Element&)>& keep = nullptr) const;
 
     /// world_elements() of type T, instances included as views of T.
     template <class T>
     std::vector<std::shared_ptr<T>> world_elements() const {
 
         std::vector<std::shared_ptr<T>> out;
-        for (const std::shared_ptr<session_cpp::Element>& element : world_elements(is_type<T>))
+        for (const std::shared_ptr<Element>& element : world_elements(is_type<T>))
             out.push_back(std::static_pointer_cast<T>(element));
 
         return out;
     }
 
     /// Puts a feature given in world coordinates onto the element or instance guid names, moved into its own frame, guid kept.
-    void host_feature(const std::string& guid, session_cpp::ElementFeature feature);
+    void host_feature(const std::string& guid, ElementFeature feature);
 
     /// Replaces each element key_of finds a class for by an instance of that class's definition, keeping guid, name, tree node, edges with their guids, so every interaction stays found, and its contact and joint features; recorded only inside a transaction the caller opened, so a build-time dedup holds no undo copies; returns the number made.
-    size_t instance_by_key(const std::function<std::optional<std::pair<std::string, session_cpp::Xform>>(const session_cpp::Element&)>& key_of = element_key);
+    size_t instance_by_key(const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of = element_key);
 
     /// Writes a pass's world view back: an instance is exploded, its edges keeping their guids, then the element under its guid replaced by the view moved into its own frame; a stored element passed as its own view stays as it is.
-    void promote(const std::shared_ptr<session_cpp::Element>& view);
+    void promote(const std::shared_ptr<Element>& view);
 
     /// Drops every contact of one kind ("face", "axis", "cross") from every edge and its hosted feature, so a recompute of that kind replaces rather than accumulates; a feature whose contact went forgets it.
     void erase_contacts(std::string_view kind);

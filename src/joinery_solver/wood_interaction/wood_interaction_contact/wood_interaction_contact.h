@@ -2,10 +2,12 @@
 
 #include "pch.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// One place where the edge's two elements touch: a face overlap, a closest segment or a crossing, one derived class each.
-class InteractionContact : public session_cpp::Interaction {
+class InteractionContact : public Interaction {
 public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

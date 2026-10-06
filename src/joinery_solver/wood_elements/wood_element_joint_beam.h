@@ -5,6 +5,8 @@
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 class InteractionContactFace;
@@ -15,8 +17,8 @@ public:
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.
 
     InteractionFeatureBeam feature; // The beam-to-beam feature: the four volume rectangles of the male and female corners; empty for a connector.
-    std::vector<std::array<session_cpp::Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
-    std::vector<std::vector<std::array<session_cpp::Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
+    std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
+    std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the dowels at an end where the dowel leaves the target; a blind hole stops at its dowel.
     std::vector<SolidCut> solid_cuts; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of screws: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
@@ -41,12 +43,12 @@ public:
 
     /// The wedge connector on the face contact of two members: a prism of the profile along the contact's top edge, cut flush with its level, with horizontal dowels, and a pocket in each member; an end plane takes the wedge's nearer end onto it, flush.
     static std::shared_ptr<JointBeam> wedge(
-        const session_cpp::Element& a,
-        const session_cpp::Element& b,
+        const Element& a,
+        const Element& b,
         const InteractionContactFace& contact,
         double length_margin,
         double pocket_depth,
-        const std::optional<session_cpp::Plane>& end = std::nullopt,
+        const std::optional<Plane>& end = std::nullopt,
         double dowel_radius = 10.0,
         double dowel_spacing = 320.0,
         int dowel_sides = 8,
@@ -57,8 +59,8 @@ public:
 
     /// The column-to-rib connector of compas_tf ConnectorElement on their face contact: a plate into both along the contact normal with four dowels across it, cut as its box and the dowel holes out of both.
     static std::shared_ptr<JointBeam> rectangle_plate(
-        const session_cpp::Element& column,
-        const session_cpp::Element& rib,
+        const Element& column,
+        const Element& rib,
         const InteractionContactFace& contact,
         double dowel_length,
         double width = 30.0,
@@ -74,8 +76,8 @@ public:
 
     /// The seam connector of compas_tf OuterRibConnectorElement made parametric: a bow-tie key across the end-to-end contact of two members, with a flat-bottomed pocket in each.
     static std::shared_ptr<JointBeam> tie(
-        const session_cpp::Element& a,
-        const session_cpp::Element& b,
+        const Element& a,
+        const Element& b,
         const InteractionContactFace& contact,
         double top = 138.5,
         double length = 800.0,
@@ -90,8 +92,8 @@ public:
 
     /// Assembly dowels on the face contact of two members: four round dowels at the corners of the contact inset by offset, half into each member; null when the inset leaves nothing.
     static std::shared_ptr<JointBeam> dowels(
-        const session_cpp::Element& a,
-        const session_cpp::Element& b,
+        const Element& a,
+        const Element& b,
         const InteractionContactFace& contact,
         double radius = 4.0,
         double length = 30.0,
@@ -102,9 +104,9 @@ public:
 
     /// Assembly screws across the joint of two members: one drill line per screw from its head along the given line, length long, the pre-drilled holes both targets read through the connector without any cut; null when no line is given.
     static std::shared_ptr<JointBeam> screws(
-        const session_cpp::Element& a,
-        const session_cpp::Element& b,
-        const std::vector<session_cpp::Line>& lines,
+        const Element& a,
+        const Element& b,
+        const std::vector<Line>& lines,
         double radius = 2.0,
         double length = 200.0,
         int sides = 16
@@ -112,8 +114,8 @@ public:
 
     /// The screws across every member they pass, a and b first: the same lines, every member a target that reads them.
     static std::shared_ptr<JointBeam> screws(
-        const std::vector<const session_cpp::Element*>& members,
-        const std::vector<session_cpp::Line>& lines,
+        const std::vector<const Element*>& members,
+        const std::vector<Line>& lines,
         double radius = 2.0,
         double length = 200.0,
         int sides = 16
@@ -130,28 +132,28 @@ public:
     bool is_connector() const;
 
     /// One part as a closed mesh, its loops lofted, before any cut.
-    session_cpp::Mesh part_mesh(size_t index) const;
+    Mesh part_mesh(size_t index) const;
 
     /// The cuts into one part: the connector's stored cuts and the bores of its own dowels passing through the part.
     std::vector<SolidCut> part_cuts(size_t index) const;
 
     /// One part as a BRep with its cuts applied and its dowel bores exact.
-    session_cpp::BRep part_brep(size_t index) const;
+    BRep part_brep(size_t index) const;
 
     /// The connector's parts and dowels as elements to nest under it: a ConnectorPart per part named <name>_part, numbered when there are several, then a Dowel per drill line named <name>_dowel_<i>, or <name>_screw_<i> for pre-drilled screws.
     std::vector<std::shared_ptr<Joint>> children() const;
 
     /// A beam-to-beam joint's feature volumes; a connector draws nothing itself, its children carry its parts and dowels.
-    const session_cpp::Mesh& element_geometry_mesh() const override;
+    const Mesh& element_geometry_mesh() const override;
 
     /// A beam-to-beam joint's feature volumes; a connector draws nothing itself, its children carry its parts and dowels.
-    const session_cpp::BRep& element_geometry_brep() const override;
+    const BRep& element_geometry_brep() const override;
 
     std::string element_type_name() const override {
         return "JointBeam";
     }
 
-    std::shared_ptr<session_cpp::Element> clone() const override {
+    std::shared_ptr<Element> clone() const override {
         return std::make_shared<JointBeam>(*this);
     }
 
@@ -160,14 +162,14 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Moves the joint, its feature volumes, parts, cutters and cuts.
-    void place(const session_cpp::Xform& xform) override;
+    void place(const Xform& xform) override;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
 protected:
-    std::vector<std::array<session_cpp::Polyline, 2>> bodies() const override;
+    std::vector<std::array<Polyline, 2>> bodies() const override;
     void write_proto(wood_proto::Joint& proto) const override;
     void read_proto(const wood_proto::Joint& proto) override;
 };

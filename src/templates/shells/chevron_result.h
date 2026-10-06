@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+using namespace session_cpp;
+
 namespace wood_chevron {
 
 /// Output of chevron_plates() — plate geometry + full joinery solver data.
@@ -18,7 +20,7 @@ namespace wood_chevron {
 ///   role 3 = side plate at chevron edge 1 (plines counter*8+6/7)
 struct ChevronResult {
     /// 8 polylines per face (all faces in f_order, consecutively).
-    std::vector<session_cpp::Polyline> plines;
+    std::vector<Polyline> plines;
 
     /// Insertion vector per plate-pair.  One line = one plate-pair = 6 Vec3
     /// packed as 18 doubles (x0 y0 z0  x1 y1 z1  ...  x5 y5 z5).
@@ -44,7 +46,7 @@ struct ChevronResult {
     std::vector<std::pair<int,int>> adjacency;
 
     /// One 2-point polyline per mesh face (box bisector visualization line).
-    std::vector<session_cpp::Polyline> box_insertion_lines;
+    std::vector<Polyline> box_insertion_lines;
 };
 
 } // namespace wood_chevron

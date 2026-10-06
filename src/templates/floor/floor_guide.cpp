@@ -79,15 +79,15 @@ void FloorGuide::compute() {
     for (size_t q = 0; q < 4; q++) {
         _rib_bottom[q] = 0.0;
 
-        for (const Loops& rib : outer_ribs(q))
+        for (const std::array<Polyline, 2>& rib : outer_ribs(q))
             _rib_bottom[q] = std::min({_rib_bottom[q], rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
     }
 
     soffit = -static_h();
 
     for (size_t q = 0; q < 4; q++) {
-        const std::vector<Loops> outer = outer_ribs(q);
-        const std::vector<Loops> inner = inner_ribs(q);
+        const std::vector<std::array<Polyline, 2>> outer = outer_ribs(q);
+        const std::vector<std::array<Polyline, 2>> inner = inner_ribs(q);
 
         for (size_t k = 0; k < 2; k++)
             soffit = std::min({soffit, end_level(outer[k], rib_seam_ends(q)[k]), end_level(inner[k], _construction_planes[q].inner_beams[1][1])});
@@ -606,7 +606,7 @@ Vector FloorGuide::turned(const Vector& reference, double degrees) {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::vector<Loops>> FloorGuide::beds(size_t q) const {
+std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) const {
 
     // one row: the lower and upper layer on the panel's two side planes trimmed alike, one quad pair per segment
     const auto bed_row = [](const std::array<Polyline, 2>& lower, const std::array<Polyline, 2>& upper, const Plane& cut_plane0, const Plane& cut_plane1) {
@@ -614,7 +614,7 @@ std::vector<std::vector<Loops>> FloorGuide::beds(size_t q) const {
         const std::vector<Polyline> layers = Polyline::trimmed_alike({lower[0], lower[1], upper[0], upper[1]}, cut_plane0, cut_plane1, EXTENSION);
         const std::array<std::vector<Point>, 2> under = {layers[0].get_points(), layers[1].get_points()};
         const std::array<std::vector<Point>, 2> over = {layers[2].get_points(), layers[3].get_points()};
-        std::vector<Loops> plates;
+        std::vector<std::array<Polyline, 2>> plates;
 
         for (size_t i = 0; i + 1 < under[0].size(); i++) {
             const Polyline bottom({under[0][i], under[0][i + 1], under[1][i + 1], under[1][i], under[0][i]});
@@ -645,7 +645,7 @@ std::vector<std::vector<Loops>> FloorGuide::beds(size_t q) const {
     };
 }
 
-std::vector<Loops> FloorGuide::tsections(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {
 
     // a t-section: its soffit and +t traces trimmed on its first face and closed into one loop, the same projected onto its second face
     const auto tsection = [](const Polyline& soffit, const Polyline& layer, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection10, const Xform& projection11) {
@@ -663,7 +663,7 @@ std::vector<Loops> FloorGuide::tsections(size_t q) const {
         bottom.insert(bottom.end(), cut11.rbegin(), cut11.rend());
         bottom.push_back(cut01.front());
 
-        return Loops{Polyline(top), Polyline(bottom)};
+        return std::array<Polyline, 2>{Polyline(top), Polyline(bottom)};
     };
 
     // beside an outer rib face: the parabola and its +t projected along the outer rib normal onto the face, the soffit continued to the far face along the sweep, the +t along the panel
@@ -695,7 +695,7 @@ std::vector<Loops> FloorGuide::tsections(size_t q) const {
     };
 }
 
-std::vector<Loops> FloorGuide::outer_ribs(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::outer_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::vector<std::array<Polyline, 3>>& parabolas = boundary_parabolas(q);
@@ -707,7 +707,7 @@ std::vector<Loops> FloorGuide::outer_ribs(size_t q) const {
     };
 }
 
-std::vector<Loops> FloorGuide::inner_ribs(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::inner_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::vector<std::array<Polyline, 3>>& parabolas = boundary_parabolas(q);
@@ -719,7 +719,7 @@ std::vector<Loops> FloorGuide::inner_ribs(size_t q) const {
     };
 }
 
-std::vector<Loops> FloorGuide::wedges(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::wedges(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::vector<Plane>& beds = bed_top_planes(q);
@@ -730,7 +730,7 @@ std::vector<Loops> FloorGuide::wedges(size_t q) const {
         {cp.inner_ribs[1][0], cp.outer_ribs[1][1]},
     }};
 
-    std::vector<Loops> blocks;
+    std::vector<std::array<Polyline, 2>> blocks;
 
     for (size_t i = 0; i < 3; i++)
         blocks.push_back(loft({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1]));
@@ -738,7 +738,7 @@ std::vector<Loops> FloorGuide::wedges(size_t q) const {
     return blocks;
 }
 
-std::vector<Loops> FloorGuide::inner_beams(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::inner_beams(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const Plane side0 = Plane::xy_plane_at(0.0);
@@ -752,7 +752,7 @@ std::vector<Loops> FloorGuide::inner_beams(size_t q) const {
     };
 }
 
-std::vector<Loops> FloorGuide::oculus() const {
+std::vector<std::array<Polyline, 2>> FloorGuide::oculus() const {
 
     const Plane side0 = Plane::xy_plane_at(0.0);
     const Plane side1 = Plane::xy_plane_at(soffit + size_tsections);
@@ -767,7 +767,7 @@ std::vector<Loops> FloorGuide::oculus() const {
         inner.push_back(ring_inner(q));
     }
 
-    std::vector<Loops> plates;
+    std::vector<std::array<Polyline, 2>> plates;
 
     for (size_t i = 0; i < 4; i++)
         plates.push_back(loft({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
@@ -790,7 +790,7 @@ Plane FloorGuide::ring_inner(size_t q) const {
 // Column cutters
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<Loops> FloorGuide::column_cutters(size_t q) const {
+std::vector<std::array<Polyline, 2>> FloorGuide::column_cutters(size_t q) const {
 
     // a cutter quad stretched in its own plane: its long sides by the margin at both ends, then its short sides inwards, both for a top quad, only the first for a bottom one
     const auto stretch = [](std::vector<Point> quad, bool top) {
@@ -837,7 +837,7 @@ std::vector<Loops> FloorGuide::column_cutters(size_t q) const {
         {p1[2], p1[3], p2[2], p2[1]},
     };
 
-    std::vector<Loops> plates;
+    std::vector<std::array<Polyline, 2>> plates;
 
     for (size_t i = 0; i < quads.size(); i++) {
         const std::vector<Point> quad = stretch(quads[i], i < 3);
@@ -854,7 +854,7 @@ std::vector<wood_session::SolidCut> FloorGuide::column_cuts(size_t q) const {
     const Xform lift = Xform::translation(0.0, 0.0, bay_height);
     std::vector<wood_session::SolidCut> cuts;
 
-    for (const Loops& plate : column_cutters(q))
+    for (const std::array<Polyline, 2>& plate : column_cutters(q))
         cuts.push_back(wood_session::SolidCut::difference(wood_session::Plate(plate[1], plate[0], "column_cutter").element_geometry_mesh().transformed(lift)));
 
     return cuts;
@@ -880,23 +880,23 @@ std::vector<Point> FloorGuide::column_face(size_t q, size_t i) const {
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
 
-Loops FloorGuide::loft(const std::vector<Plane>& sides, const Plane& bottom, const Plane& top, bool flip) {
+std::array<Polyline, 2> FloorGuide::loft(const std::vector<Plane>& sides, const Plane& bottom, const Plane& top, bool flip) {
 
     const Polyline at_bottom = Polyline::from_planes(sides, bottom);
     const Polyline at_top = Polyline::from_planes(sides, top);
 
-    return flip ? Loops{at_bottom, at_top} : Loops{at_top, at_bottom};
+    return flip ? std::array<Polyline, 2>{at_bottom, at_top} : std::array<Polyline, 2>{at_top, at_bottom};
 }
 
-double FloorGuide::thickness(const Loops& loops) {
+double FloorGuide::thickness(const std::array<Polyline, 2>& loops) {
     return (loops[0].area_centroid() - loops[1].area_centroid()).magnitude();
 }
 
-Point FloorGuide::body(const Loops& loops) {
+Point FloorGuide::body(const std::array<Polyline, 2>& loops) {
     return loops[0].area_centroid() + (loops[1].area_centroid() - loops[0].area_centroid()) * 0.5;
 }
 
-double FloorGuide::end_level(const Loops& loops, const Plane& end) {
+double FloorGuide::end_level(const std::array<Polyline, 2>& loops, const Plane& end) {
 
     double level = 0.0;
 
@@ -908,7 +908,7 @@ double FloorGuide::end_level(const Loops& loops, const Plane& end) {
     return level;
 }
 
-Loops FloorGuide::rib(const Polyline& trace, const Plane& face1, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
+std::array<Polyline, 2> FloorGuide::rib(const Polyline& trace, const Plane& face1, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
 
     // a rib face's loop: the trace closed up to z 0 over the end planes; an inner rib also ends its base on the second plane
     const auto rib_loop = [](const std::vector<Point>& pts, const Plane& cut_plane0, const Plane& cut_plane1, bool inner) {
@@ -955,9 +955,10 @@ Loops FloorGuide::rib(const Polyline& trace, const Plane& face1, const Vector& s
 
 void FloorGuide::draw() {
 
-    // one quarter family as it is drawn: its plan quads and face planes in member order and the index of its first rib parabola, -1 for none
+    // one member family as it is drawn: its name, its colour, its plan quads and face planes in member order, and the index of its first rib parabola, -1 for none
     struct DrawnFamily {
-        Family family;
+        std::string name;
+        Color color;
         const std::vector<Polyline>& quads;
         const std::vector<std::array<Plane, 2>>& planes;
         int parabola;
@@ -985,16 +986,16 @@ void FloorGuide::draw() {
         add_point(corner, plan);
 
         const std::array<DrawnFamily, 5> families = {{
-            {Family::outer_ribs, quads.outer_ribs, cp.outer_ribs, 0},
-            {Family::inner_ribs, quads.inner_ribs, cp.inner_ribs, 2},
-            {Family::inner_beams, quads.inner_beams, cp.inner_beams, -1},
-            {Family::wedges, quads.wedges, cp.wedges, -1},
-            {Family::tsections, quads.tsections, cp.tsections, -1},
+            {"outer_ribs", Color(232.0f / 255.0f, 71.0f / 255.0f, 139.0f / 255.0f, 1.0f, "outer_ribs"), quads.outer_ribs, cp.outer_ribs, 0},
+            {"inner_ribs", Color(242.0f / 255.0f, 204.0f / 255.0f, 12.0f / 255.0f, 1.0f, "inner_ribs"), quads.inner_ribs, cp.inner_ribs, 2},
+            {"inner_beams", Color(124.0f / 255.0f, 124.0f / 255.0f, 124.0f / 255.0f, 1.0f, "inner_beams"), quads.inner_beams, cp.inner_beams, -1},
+            {"wedges", Color(168.0f / 255.0f, 168.0f / 255.0f, 168.0f / 255.0f, 1.0f, "wedges"), quads.wedges, cp.wedges, -1},
+            {"tsections", Color(245.0f / 255.0f, 216.0f / 255.0f, 144.0f / 255.0f, 1.0f, "tsections"), quads.tsections, cp.tsections, -1},
         }};
 
         for (const DrawnFamily& family : families) {
-            const std::string& name = FAMILY_NAMES[static_cast<size_t>(family.family)];
-            const Color& color = FAMILY_COLORS[static_cast<size_t>(family.family)];
+            const std::string& name = family.name;
+            const Color& color = family.color;
             const std::shared_ptr<TreeNode> group = add_group(name + suffix, quarter);
 
             for (size_t i = 0; i < family.quads.size(); i++) {

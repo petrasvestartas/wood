@@ -2,6 +2,8 @@
 
 #include "pch.h"
 
+using namespace session_cpp;
+
 /// Which detection pass compute_features runs.
 enum SearchType : int {
     face_to_face = 0, // Coplanar faces: ss_e_ip / ss_e_op / ss_e_r / ts_e_p / tt_e_p.
@@ -28,14 +30,14 @@ struct Settings {
     int64_t clipper_scale = 1000000; // Mm -> int64 scale for the 2D boolean (1e6 = nanometre grid).
     double clipper_area = 0.01; // Overlap areas at or below this (mm²) are not a contact.
     std::vector<double> beams; // Beam datasets (yml `beams`): [radius, allowed joint type, min_distance, volume_length, cross_or_side_to_end, flip_male].
-    std::map<std::string, std::array<std::vector<session_cpp::Polyline>, 2>> custom_joints; // User joint outlines per family ("ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r", "b"): [0] male, [1] female, pairs (face0, face1).
+    std::map<std::string, std::array<std::vector<Polyline>, 2>> custom_joints; // User joint outlines per family ("ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r", "b"): [0] male, [1] female, pairs (face0, face1).
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The male and female user outlines of one family; both empty when none were given.
-    const std::array<std::vector<session_cpp::Polyline>, 2>& custom(const std::string& family) const;
+    const std::array<std::vector<Polyline>, 2>& custom(const std::string& family) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON

@@ -3,81 +3,83 @@
 #include "pch.h"
 #include "wood_element_solid_cut.h"
 
+using namespace session_cpp;
+
 namespace wood_session {
 
 /// Closed polyhedral CSG by Manifold, every piece kept, faces merged back per input face; curved inputs must be meshed to their requested tolerance first.
-session_cpp::Mesh solid_boolean(const session_cpp::Mesh& source, const session_cpp::Mesh& cutter,
+Mesh solid_boolean(const Mesh& source, const Mesh& cutter,
                                SolidOperation operation, double tolerance = 1e-7);
 
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it: the offcuts fall away.
-session_cpp::Mesh solid_difference(const session_cpp::Mesh& source, const std::vector<session_cpp::Mesh>& cutters);
-std::optional<session_cpp::Mesh> compute_profile_cut(const session_cpp::Mesh& mesh, const SolidCut& cut);
+Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
+std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const SolidCut& cut);
 
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.
-session_cpp::Mesh apply_solid_cuts(session_cpp::Mesh mesh, const std::vector<SolidCut>& cuts, bool drills = true);
+Mesh apply_solid_cuts(Mesh mesh, const std::vector<SolidCut>& cuts, bool drills = true);
 
 /// The mesh with the cuts applied as a BRep: the round holes the cuts carry made exact, cylindrical faces with circle or ellipse loops, where they are clear of every edge and of each other, else the cut mesh's planar faces with their holes as inner loops.
-session_cpp::BRep solid_cuts_brep(const session_cpp::Mesh& mesh, const std::vector<SolidCut>& cuts);
-session_cpp::BRep mesh_brep(const session_cpp::Mesh& mesh);
-void append_mesh(session_cpp::Mesh& target, const session_cpp::Mesh& source);
-void append_brep(session_cpp::BRep& target, session_cpp::BRep source);
+BRep solid_cuts_brep(const Mesh& mesh, const std::vector<SolidCut>& cuts);
+BRep mesh_brep(const Mesh& mesh);
+void append_mesh(Mesh& target, const Mesh& source);
+void append_brep(BRep& target, BRep source);
 int circle_segments(double radius, double chord_tolerance);
-session_cpp::Mesh drill_mesh(const session_cpp::Line& axis, double radius, double chord_tolerance);
-session_cpp::BRep drill_brep(const session_cpp::Line& axis, double radius);
+Mesh drill_mesh(const Line& axis, double radius, double chord_tolerance);
+BRep drill_brep(const Line& axis, double radius);
 
 /// The feature_type names an element writes for its own geometry: "outline", "axis", "section"; every other type is joinery. The centroid is not one: `Element::point()` computes and caches it.
 bool is_geometry_feature(std::string_view feature_type);
 
 /// A feature of one polyline, whole element unless a face is given.
-session_cpp::ElementFeature polyline_feature(std::string_view feature_type, const session_cpp::Polyline& polyline, int face_index = -1);
+ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index = -1);
 
 /// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact" and the "drill" of every hole a joint makes.
 bool is_session_feature(std::string_view feature_type);
 
 /// The features the session put on the element, guids and visibility kept; what every compute_geometry_mesh() carries over.
-std::vector<session_cpp::ElementFeature> session_features(const session_cpp::Element& element);
+std::vector<ElementFeature> session_features(const Element& element);
 
 /// A closed square of half-width `radius` centred at `at`, in the plane normal to `direction`, one side along `up` projected into that plane, wound counter-clockwise about `direction` so sweep_sections faces outward.
-session_cpp::Polyline square_section(const session_cpp::Point& at, const session_cpp::Vector& direction, const session_cpp::Vector& up, double radius);
+Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius);
 
 /// The closed solid through consecutive closed sections of the same point count: one quad strip per pair, a cap at each end.
-session_cpp::Mesh sweep_sections(const std::vector<session_cpp::Polyline>& sections);
+Mesh sweep_sections(const std::vector<Polyline>& sections);
 
 /// The closed solid through sections of one point count, wound outwards: both end caps, one face per side strip whose points share a plane, else one per quad; repeated points collapse, so a section equal to its neighbour along part of the ring gives a stepped solid.
-session_cpp::Mesh loft_stations(const std::vector<session_cpp::Polyline>& sections);
+Mesh loft_stations(const std::vector<Polyline>& sections);
 
 /// The same solid as a boundary representation: one quad face per section edge pair, the first and last section as caps.
-session_cpp::BRep brep_sections(const std::vector<session_cpp::Polyline>& sections);
+BRep brep_sections(const std::vector<Polyline>& sections);
 
 /// Unit Newell normal of a planar loop, the closing point ignored: right for a concave loop, where the corner-cross sum of Vector::average_normal can flip.
-session_cpp::Vector compute_newell(const std::vector<session_cpp::Point>& points);
+Vector compute_newell(const std::vector<Point>& points);
 
 /// One plane per face of a mesh, origin at the face centroid, Newell normal along the face ring; what contact detection compares.
-std::vector<session_cpp::Plane> face_planes(const session_cpp::Mesh& mesh);
+std::vector<Plane> face_planes(const Mesh& mesh);
 
 /// The enclosed volume of a closed mesh, a holed cap summed over its face triangulation where the loft or a plane cut left one; Mesh::volume() fans the outer ring alone and counts the hole as solid.
-double compute_volume(const session_cpp::Mesh& mesh);
+double compute_volume(const Mesh& mesh);
 
 /// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
-session_cpp::BRep brep_between_loops(const std::vector<session_cpp::Polyline>& bottom, const std::vector<session_cpp::Polyline>& top);
+BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top);
 
 /// The solid cut by every plane in turn, each keeping the side its normal points to; a mesh stays a mesh, a BRep a BRep.
-session_cpp::Mesh cut_mesh(const session_cpp::Mesh& geometry, const std::vector<session_cpp::Plane>& planes);
-session_cpp::BRep cut_brep(const session_cpp::BRep& geometry, const std::vector<session_cpp::Plane>& planes);
+Mesh cut_mesh(const Mesh& geometry, const std::vector<Plane>& planes);
+BRep cut_brep(const BRep& geometry, const std::vector<Plane>& planes);
 
 /// An axis and its sections (one closed ring per axis point) trimmed to what the cuts leave, each keeping the side its normal points to: the axis clipped to its one kept run, a ring whose point was cut away dropped, every other ring clipped by the cuts, and at a cut end the ring moved along the axis onto that cut and clipped by the others, the member's end face; one ring per trimmed axis point, empty where no face is left, none when the sections do not match the axis.
-std::pair<session_cpp::Polyline, std::vector<session_cpp::Polyline>> trim_to_cuts(
-    const session_cpp::Polyline& axis,
-    const std::vector<session_cpp::Polyline>& sections,
-    const std::vector<session_cpp::Plane>& cuts
+std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(
+    const Polyline& axis,
+    const std::vector<Polyline>& sections,
+    const std::vector<Plane>& cuts
 );
 
 /// True when xform flips handedness, a mirror that turns a wood solid inside out.
-bool is_mirror(const session_cpp::Xform& xform);
+bool is_mirror(const Xform& xform);
 
 /// Every polyline, plane or vector moved by xform, in order.
 template <class T>
-std::vector<T> transformed_list(const std::vector<T>& items, const session_cpp::Xform& xform) {
+std::vector<T> transformed_list(const std::vector<T>& items, const Xform& xform) {
 
     std::vector<T> moved;
     moved.reserve(items.size());
@@ -89,6 +91,6 @@ std::vector<T> transformed_list(const std::vector<T>& items, const session_cpp::
 }
 
 /// A copy of the features with every outline moved by xform, guids and visibility kept.
-std::vector<session_cpp::ElementFeature> transformed_features(const std::vector<session_cpp::ElementFeature>& features, const session_cpp::Xform& xform);
+std::vector<ElementFeature> transformed_features(const std::vector<ElementFeature>& features, const Xform& xform);
 
 } // namespace wood_session

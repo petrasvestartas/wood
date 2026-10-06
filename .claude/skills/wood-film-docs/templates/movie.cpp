@@ -32,7 +32,7 @@ static Color tint(const Color& color, float amount) {
     return Color(color.r + (1.0f - color.r) * amount, color.g + (1.0f - color.g) * amount, color.b + (1.0f - color.b) * amount, color.a, color.name);
 }
 
-Frame::Frame(const std::string& frame_chapter, size_t number, const std::string& slug, const std::string& frame_caption, const std::string& frame_view, const Box& frame_box)
+Frame::Frame(const std::string& frame_chapter, size_t number, const std::string& slug, const std::string& frame_caption, const std::string& frame_view, const std::array<double, 6>& frame_box)
     : chapter(frame_chapter), name(fmt::format("{:03d}_{}", number, slug)), caption(frame_caption), view(frame_view), box(frame_box), scene(name), bare(name) {}
 
 void Frame::label(const std::string& text, const Point& at, bool centred) {
@@ -171,8 +171,8 @@ void Frame::dimension(const Point& a, const Point& b, const Vector& offset, cons
     label(text, Line::from_points(a1, b1).center());
 }
 
-void Frame::solid(const Outline& outline, const Color& color) {
-    element(to_plate({up(outline.top), up(outline.bottom)}, "outline"), color);
+void Frame::solid(const std::array<Polyline, 2>& loops, const Color& color) {
+    element(std::make_shared<Plate>(up(loops[1]), up(loops[0]), "outline"), color);
 }
 
 void Frame::element(const std::shared_ptr<Element>& element, const Color& color) {
@@ -290,81 +290,73 @@ void Frame::write(const std::filesystem::path& dir) {
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
-Point middle(const Outline& outline) {
-    return Point::centroid({area_centroid(outline.top), area_centroid(outline.bottom)});
+Point middle(const std::array<Polyline, 2>& loops) {
+    return FloorGuide::body(loops);
 }
 
-std::vector<Outline> outlines(const Quarter& quarter, Family family) {
+std::vector<std::array<Polyline, 2>> outlines(const FloorGuide& guide, size_t q, Family family) {
 
     if (family == Family::outer_ribs)
-        return quarter.outer_ribs();
+        return guide.outer_ribs(q);
     if (family == Family::inner_ribs)
-        return quarter.inner_ribs();
+        return guide.inner_ribs(q);
     if (family == Family::inner_beams)
-        return quarter.inner_beams();
+        return guide.inner_beams(q);
     if (family == Family::wedges)
-        return quarter.wedges();
+        return guide.wedges(q);
     if (family == Family::tsections)
-        return quarter.tsections();
+        return guide.tsections(q);
 
-    std::vector<Outline> beds;
-    for (const std::vector<Outline>& row : quarter.beds())
+    std::vector<std::array<Polyline, 2>> beds;
+    for (const std::vector<std::array<Polyline, 2>>& row : guide.beds(q))
         beds.insert(beds.end(), row.begin(), row.end());
 
     return beds;
 }
 
-std::vector<Member> members(const QuarterMembers& quarter, Family family) {
+std::vector<std::shared_ptr<Element>> members(const QuarterMembers& quarter, Family family) {
+
+    std::vector<std::shared_ptr<Element>> result;
+    const auto append = [&result](const auto& list) { result.insert(result.end(), list.begin(), list.end()); };
 
     if (family == Family::outer_ribs)
-        return quarter.outer_ribs;
-    if (family == Family::inner_ribs)
-        return quarter.inner_ribs;
-    if (family == Family::inner_beams)
-        return quarter.inner_beams;
-    if (family == Family::wedges)
-        return quarter.wedges;
-    if (family == Family::tsections)
-        return quarter.tsections;
+        append(quarter.outer_ribs);
+    else if (family == Family::inner_ribs)
+        append(quarter.inner_ribs);
+    else if (family == Family::inner_beams)
+        append(quarter.inner_beams);
+    else if (family == Family::wedges)
+        append(quarter.wedges);
+    else if (family == Family::tsections)
+        append(quarter.tsections);
+    else
+        for (const auto& row : quarter.beds)
+            append(row);
 
-    std::vector<Member> beds;
-    for (const std::vector<Member>& row : quarter.beds)
-        beds.insert(beds.end(), row.begin(), row.end());
-
-    return beds;
-}
-
-std::string member_name(Family family, size_t index, size_t q) {
-
-    MemberRef ref;
-    ref.quarter = static_cast<int>(q);
-    ref.family = family;
-    ref.index = index;
-
-    return ref.name();
+    return result;
 }
 
 void plan_context(Frame& frame, const FloorGuide& guide, bool quarters) {
 
-    for (const BayEdge& edge : guide.edges)
-        frame.line(up(edge.line), GREY, 2.0);
+    for (size_t k = 0; k < 4; k++)
+        frame.line(up(Line::from_points(guide.corners[k], guide.corners[(k + 1) % 4])), GREY, 2.0);
 
     if (quarters)
         for (size_t q = 0; q < 4; q++)
-            frame.polyline(up(Polyline(guide.geometry[q].polygon).closed()), GREY, 1.0);
+            frame.polyline(up(Polyline(guide.quarter_polygon(q)).closed()), GREY, 1.0);
 }
 
 void quarter_members(Frame& frame, const Floor& floor, size_t q, const Color& color) {
 
     for (const Family family : FAMILIES)
-        for (const Member& member : members(floor.members.quarters[q], family))
-            frame.element(member.element, color);
+        for (const std::shared_ptr<Element>& member : members(floor.quarters[q], family))
+            frame.element(member, color);
 
-    if (q < floor.members.ring.size())
-        frame.element(floor.members.ring[q].element, color);
+    if (q < floor.ring.size())
+        frame.element(floor.ring[q], color);
 
-    if (q < floor.members.columns.size() && floor.members.columns[q].column)
-        frame.element(floor.members.columns[q].column, color);
+    if (q < floor.columns.size() && floor.columns[q].column)
+        frame.element(floor.columns[q].column, color);
 }
 
 }
