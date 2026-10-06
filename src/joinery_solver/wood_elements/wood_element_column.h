@@ -16,14 +16,13 @@ public:
     std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
     std::vector<Polyline> profile; // Section loops in the profile frame the section was placed from, loop 0 the outline, then holes; empty when the section was given.
     double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
-    Polyline head; // Closed head section at the axis base, as many points as the section and corner i of one facing corner i of the other; empty for no head.
-    double head_height = 0.0; // Length of the head at the axis top, where the head section replaces the section in one solid.
+    std::vector<SolidCut> solid_features; // The column's own solid features in order, glued blocks united and faces taken away, applied before the cuts other elements make; call invalidate_geometry() after assigning.
 
 protected:
-    /// The solid trimmed by its cut planes as a Mesh, before the solid cuts.
+    /// The swept section trimmed by its cut planes with its own solid features applied as a Mesh, before the cuts other elements make.
     Mesh trimmed_mesh() const override;
 
-    /// The solid trimmed by its cut planes as a BRep, before the solid cuts.
+    /// The swept section trimmed by its cut planes with its own solid features applied as a BRep, before the cuts other elements make.
     BRep trimmed_brep() const override;
 
 public:
@@ -48,8 +47,11 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A square column on its axis: the shaft the square of side from the corner frame's origin along its x and y axes, at the axis base, and the head the square of head_side over head_height; no head when head_height is 0.
-    static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, double head_side = 0.0, double head_height = 0.0, const std::string& name = "column");
+    /// A square column on its axis: the square of side from the corner frame's origin along its x and y axes, at the axis base, swept along the axis.
+    static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
+
+    /// A square column with a glued head: the square shaft of side, and over the top head_height two blocks glued on as solid features, a strip of head_side by head_side - side along the corner frame's x beyond the shaft's y side and a block of head_side - side by side beyond its x side, so the head is the square of head_side.
+    static std::shared_ptr<Column> glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name = "column");
 
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis, section and cuts default.
     static std::shared_ptr<Column> from_element(Element element);

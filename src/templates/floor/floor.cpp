@@ -127,7 +127,7 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fm
     support = std::make_shared<Support>(guide.support_plane(k), "support");
     support->name = fmt::format("support_{}", k);
     const Point foot = support->column_foot();
-    column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
+    column = Column::glued_head(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
     column->name = fmt::format("column_{}", k);
     add(support);
     add(column);
@@ -136,17 +136,11 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fm
     add(joint);
     add_joint(joint);
 
-    // the six cutter plates that carve the head, hidden, each cutting the column
-    const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
+    // the six inclined faces the ribs and the column blocks bear on, taken away from the glued head
+    for (const std::array<Polyline, 2>& loops : guide.column_cutters(k))
+        column->solid_features.push_back(SolidCut::difference(Mesh::loft({loops[1]}, {loops[0]}, true).transformed(Xform::translation(0.0, 0.0, guide.bay_height))));
 
-    for (size_t i = 0; i < loops.size(); i++) {
-        const std::shared_ptr<Plate> cutter = std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k));
-        cutter->place(Xform::translation(0.0, 0.0, guide.bay_height));
-        cutter->is_visible = false;
-        add(cutter);
-        cutters.push_back(cutter);
-        add_interaction(cutter, column, std::make_shared<InteractionFeatureCut>(SolidCut::difference(cutter->element_geometry_mesh())));
-    }
+    column->invalidate_geometry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

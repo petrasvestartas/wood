@@ -66,6 +66,15 @@ SolidCut SolidCut::difference(const Mesh& mesh) {
     return cut;
 }
 
+SolidCut SolidCut::unite(const Mesh& mesh) {
+
+    SolidCut cut;
+    cut.mesh = mesh;
+    cut.operation = SolidOperation::unite;
+
+    return cut;
+}
+
 SolidCut SolidCut::transformed(const Xform& xform) const {
     SolidCut result = *this;
     result.mesh = mesh.transformed(xform);

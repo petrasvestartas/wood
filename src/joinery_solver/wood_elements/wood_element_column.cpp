@@ -70,22 +70,33 @@ Column::Column(const Line& axis, const std::vector<Polyline>& profile, double ro
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name) {
+/// The point at (a, b) in the corner frame, moved along the frame normal to the axis base: one expression for the shaft and the glued blocks, so the faces they share coincide exactly.
+static Point corner_point(const Line& axis, const Plane& corner, double a, double b) {
+    return corner.origin() + corner.z_axis() * corner.signed_distance(axis.start()) + corner.x_axis() * a + corner.y_axis() * b;
+}
 
-    // the square of a side from the corner along both frame axes, moved along the frame normal to the axis base
-    const Point origin = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
-    const auto square_of = [&origin, &corner](double length) {
-        const Vector x = corner.x_axis() * length;
-        const Vector y = corner.y_axis() * length;
-        return Polyline({origin, origin + x, origin + x + y, origin + y}).closed();
+/// The closed rectangle from (a0, b0) to (a1, b1) in the corner frame at the axis base.
+static Polyline corner_rectangle(const Line& axis, const Plane& corner, double a0, double b0, double a1, double b1) {
+    return Polyline({corner_point(axis, corner, a0, b0), corner_point(axis, corner, a1, b0), corner_point(axis, corner, a1, b1), corner_point(axis, corner, a0, b1)}).closed();
+}
+
+std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, const std::string& name) {
+    return std::make_shared<Column>(axis, corner_rectangle(axis, corner, 0.0, 0.0, side, side), name);
+}
+
+std::shared_ptr<Column> Column::glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name) {
+
+    std::shared_ptr<Column> column = square(axis, corner, side, name);
+
+    // a block over the top head_height, its top lifted by the same axis vector as the shaft's
+    const Vector under = axis.to_vector() * ((axis.length() - head_height) / axis.length());
+    const auto block = [&axis, &corner, &under](double a0, double b0, double a1, double b1) {
+        const Polyline base = corner_rectangle(axis, corner, a0, b0, a1, b1);
+        return Mesh::loft({base.translated(under)}, {base.translated(axis.to_vector())}, true);
     };
 
-    std::shared_ptr<Column> column = std::make_shared<Column>(axis, square_of(side), name);
-
-    if (head_height > 0.0) {
-        column->head = square_of(head_side);
-        column->head_height = head_height;
-    }
+    column->solid_features.push_back(SolidCut::unite(block(0.0, side, head_side, head_side)));
+    column->solid_features.push_back(SolidCut::unite(block(side, 0.0, head_side, side)));
 
     return column;
 }
@@ -129,10 +140,8 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     column->rotation = proto.rotation();
 
-    if (proto.has_head())
-        column->head = Polyline::pb_loads(proto.head().SerializeAsString());
-
-    column->head_height = proto.head_height();
+    for (const wood_proto::SolidCut& feature : proto.solid_features())
+        column->solid_features.push_back(SolidCut::pb_loads(feature.SerializeAsString()));
 
     for (const wood_proto::SolidCut& cut : proto.solid_cuts())
         column->solid_cuts.push_back(SolidCut::pb_loads(cut.SerializeAsString()));
@@ -159,18 +168,45 @@ static std::vector<Polyline> top_loops(const Column& column, const std::vector<P
     return top;
 }
 
-/// True when the column carries a head of its section's point count over a positive length shorter than the axis.
-static bool has_head(const Column& column) {
-    return column.head_height > 0.0 && column.head_height < column.axis.length() && column.head.point_count() == column.section.point_count();
+/// The mesh in the frame to_local maps into, every coordinate on a 1e-6 mm grid there: the shaft and a block glued to it then share their planes exactly.
+static Mesh snapped(const Mesh& mesh, const Xform& to_local) {
+
+    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.transformed(to_local).to_vertices_and_faces();
+
+    for (Point& point : data.first)
+        point = Point(std::round(point[0] * 1e6) / 1e6, std::round(point[1] * 1e6) / 1e6, std::round(point[2] * 1e6) / 1e6);
+
+    return Mesh::from_vertices_and_faces(data.first, data.second);
 }
 
-/// The four stations of a column with a head: the section at the base and under the head, the head section there and at the top.
-static std::vector<Polyline> stepped_sections(const Column& column) {
+/// The number of glued blocks among the column's solid features.
+static size_t glued_count(const Column& column) {
+    return std::count_if(column.solid_features.begin(), column.solid_features.end(), [](const SolidCut& feature) { return feature.operation == SolidOperation::unite; });
+}
 
-    const Vector along = column.axis.to_vector();
-    const Vector under = along * ((column.axis.length() - column.head_height) / column.axis.length());
+/// The swept shaft with the glued blocks united, in the column's own frame on a 1e-6 mm grid, where a block and the shaft meet on exactly one plane; the stock the removals cut.
+static Mesh glued(const Column& column, const Mesh& shaft) {
 
-    return {column.section, column.section.translated(under), column.head.translated(under), column.head.translated(along)};
+    if (glued_count(column) == 0)
+        return shaft;
+
+    const Vector z = column.axis.to_vector().normalized();
+    const Vector x = (column.section.get_point(1) - column.section.get_point(0)).normalized();
+    const Xform to_world = Xform::frame_to_world(column.section.get_point(0), x, z.cross(x), z);
+    const std::optional<Xform> to_local = to_world.inverse();
+
+    if (!to_local)
+        return shaft;
+
+    std::vector<SolidCut> blocks;
+
+    for (const SolidCut& feature : column.solid_features)
+        if (feature.operation == SolidOperation::unite) {
+            blocks.push_back(feature);
+            blocks.back().mesh = snapped(feature.mesh, *to_local);
+        }
+
+    return apply_solid_cuts(snapped(shaft, *to_local), blocks).transformed(to_world);
 }
 
 const Mesh& Column::element_geometry_mesh() const {
@@ -180,10 +216,8 @@ const Mesh& Column::element_geometry_mesh() const {
 
         if (section.point_count() < 3 || axis.length() <= 0.0)
             _element_geometry_mesh = Mesh();
-        else if (has_head(*this))
-            _element_geometry_mesh = loft_stations(stepped_sections(*this));
         else
-            _element_geometry_mesh = Mesh::loft(bottom, top_loops(*this, bottom), true);
+            _element_geometry_mesh = glued(*this, Mesh::loft(bottom, top_loops(*this, bottom), true));
     }
 
     return *_element_geometry_mesh;
@@ -196,7 +230,7 @@ const BRep& Column::element_geometry_brep() const {
 
         if (section.point_count() < 3 || axis.length() <= 0.0)
             _element_geometry_brep = BRep();
-        else if (has_head(*this))
+        else if (glued_count(*this) > 0)
             _element_geometry_brep = mesh_brep(element_geometry_mesh());
         else
             _element_geometry_brep = brep_between_loops(bottom, top_loops(*this, bottom));
@@ -205,12 +239,20 @@ const BRep& Column::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
+
 Mesh Column::trimmed_mesh() const {
-    return cut_mesh(element_geometry_mesh(), cuts);
+
+    std::vector<SolidCut> removals;
+
+    for (const SolidCut& feature : solid_features)
+        if (feature.operation != SolidOperation::unite)
+            removals.push_back(feature);
+
+    return apply_solid_cuts(cut_mesh(element_geometry_mesh(), cuts), removals);
 }
 
 BRep Column::trimmed_brep() const {
-    return cut_brep(element_geometry_brep(), cuts);
+    return solid_features.size() == glued_count(*this) ? cut_brep(element_geometry_brep(), cuts) : mesh_brep(trimmed_mesh());
 }
 
 std::vector<Plane> Column::compute_planes() const {
@@ -226,13 +268,14 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
 
+    for (const SolidCut& feature : solid_features)
+        column->solid_features.push_back(feature.transformed(xform));
+
     for (const SolidCut& cut : solid_cuts)
         column->solid_cuts.push_back(cut.transformed(xform));
 
     column->profile = profile;
     column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
-    column->head = head.transformed(xform);
-    column->head_height = head_height;
     column->set_features(transformed_features(_features, xform));
     column->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -245,8 +288,10 @@ void Column::place(const Xform& xform) {
     Element::place(xform);
     axis.transform(xform);
     section.transform(xform);
-    head.transform(xform);
     cuts = transformed_list(cuts, xform);
+
+    for (SolidCut& feature : solid_features)
+        feature = feature.transformed(xform);
 
     for (SolidCut& cut : solid_cuts)
         cut = cut.transformed(xform);
@@ -290,9 +335,9 @@ void Column::compute_geometry_features() {
     if (!trimmed.second.empty() && trimmed.second.front().point_count() > 0)
         next.push_back(polyline_feature("section", trimmed.second.front()));
 
-    for (const SolidCut& cut : solid_cuts)
-        if (cut.joint_guid.empty() && cut.mesh.number_of_faces() > 0)
-            next.push_back(ElementFeature("cut", -1, cut.mesh.face_outlines(), "cut"));
+    for (const SolidCut& feature : solid_features)
+        if (feature.operation == SolidOperation::difference && feature.mesh.number_of_faces() > 0)
+            next.push_back(ElementFeature("cut", -1, feature.mesh.face_outlines(), "cut"));
 
     for (ElementFeature& feature : session_features(*this))
         next.push_back(std::move(feature));
@@ -346,11 +391,9 @@ std::string Column::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_rotation(rotation);
 
-    if (head.point_count() > 0)
-        if (!proto.mutable_head()->ParseFromString(head.pb_dumps()))
-            throw std::runtime_error("Invalid column head");
-
-    proto.set_head_height(head_height);
+    for (const SolidCut& feature : solid_features)
+        if (!proto.add_solid_features()->ParseFromString(feature.pb_dumps()))
+            throw std::runtime_error("Invalid solid feature");
 
     for (const SolidCut& cut : solid_cuts)
         if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps()))

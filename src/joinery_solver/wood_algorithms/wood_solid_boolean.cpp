@@ -284,8 +284,8 @@ static void add_region(Mesh& mesh, const manifold::MeshGL64& gl, const std::vect
         mesh.add_face({keys[gl.triVerts[3 * t]], keys[gl.triVerts[3 * t + 1]], keys[gl.triVerts[3 * t + 2]]});
 }
 
-/// The Manifold as a mesh: the triangles that came from one input face merged back into one polygon per connected region.
-static Mesh from_manifold(const manifold::Manifold& solid) {
+/// The Manifold as a mesh: the triangles that came from one input face merged back into one polygon per connected region; for a union the input faces that lie in one plane merge too, so a glued block's face and the face it continues become one.
+static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = false) {
 
     const manifold::MeshGL64 gl = solid.GetMeshGL64();
     Mesh mesh;
@@ -298,6 +298,40 @@ static Mesh from_manifold(const manifold::Manifold& solid) {
 
     for (size_t t = 0; t < gl.NumTri(); t++)
         faces[gl.faceID[t]].push_back(t);
+
+    if (merge_planes) {
+        // every input face's plane from its area-weighted normal; a face joins the first one before it in the same plane
+        const auto vertex = [&gl](uint64_t v) {
+            return Point(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+        };
+        std::vector<std::pair<uint64_t, Plane>> planes;
+        std::map<uint64_t, std::vector<size_t>> grouped;
+
+        for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces) {
+            Vector sum(0.0, 0.0, 0.0);
+            const Point origin = vertex(gl.triVerts[3 * face.second.front()]);
+
+            for (size_t t : face.second)
+                sum += (vertex(gl.triVerts[3 * t + 1]) - vertex(gl.triVerts[3 * t])).cross(vertex(gl.triVerts[3 * t + 2]) - vertex(gl.triVerts[3 * t]));
+
+            const Plane plane = Plane::from_point_normal(origin, sum.normalized());
+            uint64_t into = face.first;
+
+            for (const std::pair<uint64_t, Plane>& other : planes)
+                if (other.second.z_axis().dot(plane.z_axis()) > 1.0 - 1e-9 && std::abs(other.second.signed_distance(origin)) < 1e-6) {
+                    into = other.first;
+                    break;
+                }
+
+            if (into == face.first)
+                planes.push_back({face.first, plane});
+
+            std::vector<size_t>& triangles = grouped[into];
+            triangles.insert(triangles.end(), face.second.begin(), face.second.end());
+        }
+
+        faces = std::move(grouped);
+    }
 
     for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces)
         for (const std::vector<size_t>& region : compute_regions(gl, face.second))
@@ -365,7 +399,7 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter, SolidOperation operat
     if (operation == SolidOperation::intersection)
         return from_manifold(a ^ b);
 
-    return from_manifold(a + b);
+    return from_manifold(a + b, true);
 }
 
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {

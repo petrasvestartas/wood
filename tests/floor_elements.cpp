@@ -131,14 +131,14 @@ double faceted_area(double radius, double chord_tolerance) {
     return 0.5 * n * radius * radius * std::sin(2.0 * M_PI / n);
 }
 
-/// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the screws, the six cutter plates carving the column head through cut interactions, and every dimension through a round trip.
+/// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the screws, the glued head blocks and the six inclined faces the column's own features removing their volume, and every dimension through a round trip.
 void check_support() {
 
     WoodSession scene("support");
     const wood_floor::FloorGuide& guide = square_guide();
     const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(0), "support");
     const Point foot = support->column_foot();
-    const std::shared_ptr<Column> column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(0), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
+    const std::shared_ptr<Column> column = Column::glued_head(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(0), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
     scene.add(support);
     scene.add(column);
 
@@ -147,7 +147,11 @@ void check_support() {
     check(std::abs(compute_volume(base) - EXACT_SUPPORT) <= 1e-3 * EXACT_SUPPORT, "support volume " + std::to_string(compute_volume(base)));
     check(std::abs(column->axis.start()[2] - (support->height - support->head_plate_recess)) <= 1e-9, "column foot on the support");
 
-    const double stock = compute_volume(column->element_geometry_mesh());
+    const double side = guide.size_column_head;
+    const double head_side = side + guide.size_column_head_chamfer;
+    const double stock = compute_volume(column->model_geometry_mesh());
+    const double glued = side * side * (column->axis.length() - guide.column_head_depth) + head_side * head_side * guide.column_head_depth;
+    check(std::abs(stock - glued) <= 1e-9 * glued && column->model_geometry_mesh().is_closed(), fmt::format("the shaft and its two glued blocks one closed solid of {:.6f}, not {:.6f}", stock, glued));
     const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
     scene.add(joint);
     scene.add_joint(joint);
@@ -160,13 +164,20 @@ void check_support() {
     wood_floor::ColumnSession carved(guide, 0);
     const double head = stock - removed - compute_volume(carved.column->model_geometry_mesh());
     check(std::abs(head - HEAD_CUT) <= 1e-6 * HEAD_CUT, fmt::format("head cuts remove {:.6f}", head));
-    size_t edges = 0;
+    carved.column->compute_geometry_mesh();
+    size_t glued_blocks = 0;
+    size_t inclined = 0;
+    size_t drawn = 0;
 
-    for (const std::shared_ptr<Plate>& cutter : carved.cutters)
-        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(cutter, carved.column))
-            edges += std::dynamic_pointer_cast<InteractionFeatureCut>(interaction) != nullptr;
+    for (const SolidCut& feature : carved.column->solid_features) {
+        glued_blocks += feature.operation == SolidOperation::unite;
+        inclined += feature.operation == SolidOperation::difference;
+    }
 
-    check(edges == 6 && carved.cutters.size() == 6 && carved.get_elements<Joint>().size() == 1, fmt::format("the six head cuts come from the six hidden cutter plates through cut interactions: {} cut edges, {} joints", edges, carved.get_elements<Joint>().size()));
+    for (const ElementFeature& feature : carved.column->features())
+        drawn += feature.feature_type == "cut" && feature.outlines.size() >= 6;
+
+    check(glued_blocks == 2 && inclined == 6 && drawn == 6 && carved.get_elements<Joint>().size() == 1, fmt::format("the column's own features: 2 glued blocks then 6 inclined faces, drawn as {} cut features, not {} and {}; one joint", drawn, glued_blocks, inclined));
     check(carved.column->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -174,7 +185,7 @@ void check_support() {
     check(loaded->plane.origin() == support->plane.origin() && loaded->height == support->height && loaded->head_plate_diameter == support->head_plate_diameter, "support round trip");
     check(loaded->screw_count == support->screw_count && loaded->screw_angle == support->screw_angle && loaded->base_plate_hole_spacing == support->base_plate_hole_spacing, "support round trip fasteners");
 
-    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, six cutter plates removing {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
+    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, six inclined faces removing {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
 }
 
 /// The children of a connector in the scene tree: its part and dowel elements, in order.

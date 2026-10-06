@@ -223,9 +223,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
     kSolidCutsFieldNumber = 6,
     kAxisFieldNumber = 1,
     kSectionFieldNumber = 2,
-    kHeadFieldNumber = 7,
     kRotationFieldNumber = 5,
-    kHeadHeightFieldNumber = 8,
+    kSolidFeaturesFieldNumber = 9,
   };
   // repeated .session_proto.Plane cuts = 3;
   [[nodiscard]] int cuts_size() const;
@@ -317,21 +316,6 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_section();
 
   public:
-  // .session_proto.Polyline head = 7;
-  [[nodiscard]] bool has_head() const;
-  void clear_head() ;
-  [[nodiscard]] const ::session_proto::Polyline& head() const;
-  [[nodiscard]] ::session_proto::Polyline* PROTOBUF_NULLABLE release_head();
-  ::session_proto::Polyline* PROTOBUF_NONNULL mutable_head();
-  void set_allocated_head(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  void unsafe_arena_set_allocated_head(::session_proto::Polyline* PROTOBUF_NULLABLE value);
-  ::session_proto::Polyline* PROTOBUF_NULLABLE unsafe_arena_release_head();
-
-  private:
-  const ::session_proto::Polyline& _internal_head() const;
-  ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_head();
-
-  public:
   // double rotation = 5;
   void clear_rotation() ;
   [[nodiscard]] double rotation() const;
@@ -342,21 +326,31 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   void _internal_set_rotation(double value);
 
   public:
-  // double head_height = 8;
-  void clear_head_height() ;
-  [[nodiscard]] double head_height() const;
-  void set_head_height(double value);
+  // repeated .wood_proto.SolidCut solid_features = 9;
+  [[nodiscard]] int solid_features_size() const;
+  private:
+  int _internal_solid_features_size() const;
+
+  public:
+  void clear_solid_features() ;
+  [[nodiscard]] const ::wood_proto::SolidCut& solid_features(int index) const;
+  [[nodiscard]] ::wood_proto::SolidCut* PROTOBUF_NONNULL mutable_solid_features(int index);
+  ::wood_proto::SolidCut* PROTOBUF_NONNULL add_solid_features();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+  solid_features() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+  mutable_solid_features();
 
   private:
-  double _internal_head_height() const;
-  void _internal_set_head_height(double value);
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& _internal_solid_features() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.Column)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 8,
+      ::google::protobuf::internal::TcParseTable<3, 7,
                           6, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -390,9 +384,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
     ::google::protobuf::RepeatedPtrField< ::wood_proto::SolidCut > solid_cuts_;
     ::session_proto::Line* PROTOBUF_NULLABLE axis_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE section_;
-    ::session_proto::Polyline* PROTOBUF_NULLABLE head_;
     double rotation_;
-    double head_height_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::SolidCut > solid_features_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -755,7 +748,7 @@ Column::_internal_mutable_profile() {
 inline void Column::clear_rotation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.rotation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
 }
 inline double Column::rotation() const {
   // @@protoc_insertion_point(field_get:wood_proto.Column.rotation)
@@ -763,7 +756,7 @@ inline double Column::rotation() const {
 }
 inline void Column::set_rotation(double value) {
   _internal_set_rotation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   // @@protoc_insertion_point(field_set:wood_proto.Column.rotation)
 }
 inline double Column::_internal_rotation() const {
@@ -775,121 +768,54 @@ inline void Column::_internal_set_rotation(double value) {
   _impl_.rotation_ = value;
 }
 
-// .session_proto.Polyline head = 7;
-inline bool Column::has_head() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
-  PROTOBUF_ASSUME(!value || _impl_.head_ != nullptr);
-  return value;
+// repeated .wood_proto.SolidCut solid_features = 9;
+inline int Column::_internal_solid_features_size() const {
+  return _internal_solid_features().size();
 }
-inline const ::session_proto::Polyline& Column::_internal_head() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  const ::session_proto::Polyline* p = _impl_.head_;
-  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Polyline>(&::session_proto::Polyline_globals_);
+inline int Column::solid_features_size() const {
+  return _internal_solid_features_size();
 }
-inline const ::session_proto::Polyline& Column::head() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.Column.head)
-  return _internal_head();
-}
-inline void Column::unsafe_arena_set_allocated_head(
-    ::session_proto::Polyline* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (GetArena() == nullptr) {
-    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.head_);
-  }
-  _impl_.head_ = reinterpret_cast<::session_proto::Polyline*>(value);
-  if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Column.head)
-}
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE Column::release_head() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Polyline* released = _impl_.head_;
-  _impl_.head_ = nullptr;
-  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
-    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
-    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
-    if (GetArena() == nullptr) {
-      delete old;
-    }
-  } else {
-    if (GetArena() != nullptr) {
-      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
-    }
-  }
-  return released;
-}
-inline ::session_proto::Polyline* PROTOBUF_NULLABLE Column::unsafe_arena_release_head() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  // @@protoc_insertion_point(field_release:wood_proto.Column.head)
-
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Polyline* temp = _impl_.head_;
-  _impl_.head_ = nullptr;
-  return temp;
-}
-inline ::session_proto::Polyline* PROTOBUF_NONNULL Column::_internal_mutable_head() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (_impl_.head_ == nullptr) {
-    auto* p = Super_::DefaultConstruct<::session_proto::Polyline>(GetArena());
-    _impl_.head_ = reinterpret_cast<::session_proto::Polyline*>(p);
-  }
-  return _impl_.head_;
-}
-inline ::session_proto::Polyline* PROTOBUF_NONNULL Column::mutable_head()
+inline const ::wood_proto::SolidCut& Column::solid_features(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  ::session_proto::Polyline* _msg = _internal_mutable_head();
-  // @@protoc_insertion_point(field_mutable:wood_proto.Column.head)
-  return _msg;
+  // @@protoc_insertion_point(field_get:wood_proto.Column.solid_features)
+  return _internal_solid_features().Get(index);
 }
-inline void Column::set_allocated_head(::session_proto::Polyline* PROTOBUF_NULLABLE value) {
-  ::google::protobuf::Arena* message_arena = GetArena();
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Column::mutable_solid_features(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Column.solid_features)
+  return _internal_mutable_solid_features()->Mutable(index);
+}
+inline ::wood_proto::SolidCut* PROTOBUF_NONNULL Column::add_solid_features()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  if (message_arena == nullptr) {
-    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.head_);
-  }
-
-  if (value != nullptr) {
-    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
-    if (message_arena != submessage_arena) {
-      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
-    }
-    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
-  } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
-  }
-
-  _impl_.head_ = reinterpret_cast<::session_proto::Polyline*>(value);
-  // @@protoc_insertion_point(field_set_allocated:wood_proto.Column.head)
+  ::wood_proto::SolidCut* _add =
+      _internal_mutable_solid_features()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_add:wood_proto.Column.solid_features)
+  return _add;
 }
-
-// double head_height = 8;
-inline void Column::clear_head_height() {
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>& Column::solid_features() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Column.solid_features)
+  return _internal_solid_features();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Column::mutable_solid_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.solid_features)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.head_height_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  return _internal_mutable_solid_features();
 }
-inline double Column::head_height() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Column.head_height)
-  return _internal_head_height();
-}
-inline void Column::set_head_height(double value) {
-  _internal_set_head_height(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
-  // @@protoc_insertion_point(field_set:wood_proto.Column.head_height)
-}
-inline double Column::_internal_head_height() const {
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>&
+Column::_internal_solid_features() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.head_height_;
+  return _impl_.solid_features_;
 }
-inline void Column::_internal_set_head_height(double value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.head_height_ = value;
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::SolidCut>* PROTOBUF_NONNULL
+Column::_internal_mutable_solid_features() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.solid_features_;
 }
 
 #ifdef __GNUC__

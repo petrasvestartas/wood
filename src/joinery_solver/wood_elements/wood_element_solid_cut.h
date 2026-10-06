@@ -24,6 +24,9 @@ struct SolidCut {
     /// A cut that removes the closed mesh from the element.
     static SolidCut difference(const Mesh& mesh);
 
+    /// A feature that adds the closed mesh to the element: a glued block.
+    static SolidCut unite(const Mesh& mesh);
+
     SolidCut transformed(const Xform& xform) const;
     std::string pb_dumps() const;
     static SolidCut pb_loads(const std::string& data);
