@@ -124,7 +124,7 @@ void oculus_corners(const Context& context) {
     }
 
     frame.polyline(up(diamond(guide)), BUILT, 3.0);
-    frame.dimension(up(guide.centre), up(guide.oculus_corners[0]), Vector(180.0, 0.0, 0.0), fmt::format("oculus = {:.0f}", guide.parameters.oculus));
+    frame.dimension(up(guide.centre), up(guide.oculus_corners[0]), Vector(180.0, 0.0, 0.0), fmt::format("oculus_radius = {:.0f}", guide.oculus_radius));
     frame.write(context.dir);
 }
 
@@ -279,7 +279,7 @@ void bay_edge(const Context& context) {
     const FloorGuide& guide = context.guide;
     const BayEdge& edge = guide.edges[0];
     const Plane& band = edge.band[0];
-    const double depth = guide.parameters.height;
+    const double depth = guide.height;
     Frame frame(CHAPTER, 8, "bay_edge_band0", "edges[0]: line and midpoint; band[0] = the vertical plane on it, normal direction x (-Z) into the bay", "iso", {-3300.0, -3400.0, H - 750.0, 3300.0, -1800.0, H + 200.0});
     frame.plane_size = 300.0;
     plan_context(frame, guide, false);
@@ -301,7 +301,7 @@ void bay_edge(const Context& context) {
 void bands(const Context& context) {
 
     const FloorGuide& guide = context.guide;
-    const double thickness = guide.parameters.outer_ribs;
+    const double thickness = guide.outer_ribs;
     Frame frame(CHAPTER, 9, "bands", fmt::format("band[1] = band[0].translate_by_normal(outer_ribs): a {:.0f} mm outer rib band along every bay edge", thickness), "top", BAY);
     std::array<Point, 4> inner;
 
@@ -451,12 +451,12 @@ void tilted(const Context& context) {
     const Point centre = edge.line.center();
     const Vector direction = edge.line.to_direction();
     const Vector inward = -plane.z_axis();
-    const double depth = guide.parameters.height;
+    const double depth = guide.height;
     const Plane section = Plane::from_point_normal(centre, direction);
     const Point vertical_bottom = plane_plane_plane(level(-depth), plane, section).value();
     const Point tilted_bottom = plane_plane_plane(level(-depth), edge.tilted, section).value();
     const double offset = (tilted_bottom - vertical_bottom).magnitude();
-    Frame frame(CHAPTER, 14, "tilted", fmt::format("tilted = rotate(plane, -{:.0f} deg, edge direction, edge centre): its top trace stays on the edge", guide.parameters.oculus_plane_angle), "front", {-900.0, -900.0, H - depth - 100.0, -100.0, -100.0, H + 120.0});
+    Frame frame(CHAPTER, 14, "tilted", fmt::format("tilted = rotate(plane, -{:.0f} deg, edge direction, edge centre): its top trace stays on the edge", guide.oculus_plane_angle), "front", {-900.0, -900.0, H - depth - 100.0, -100.0, -100.0, H + 120.0});
     frame.orbit = fmt::format("{:.2f},0", -Y.angle(direction, true, false) / ORBIT_RADIANS_PER_PIXEL);
     frame.distance = 0.65;
 
@@ -471,7 +471,7 @@ void tilted(const Context& context) {
     frame.label("oculus_edges[0].line, seen end-on", up(centre));
     frame.label("plane, vertical", up(Line::from_points(centre, vertical_bottom).point_at(0.85)));
     frame.label("oculus_edges[0].tilted", up(Line::from_points(centre, tilted_bottom).point_at(0.3)));
-    frame.label(fmt::format("oculus_plane_angle = {:.0f} deg", guide.parameters.oculus_plane_angle), up(arc_middle(lean)));
+    frame.label(fmt::format("oculus_plane_angle = {:.0f} deg", guide.oculus_plane_angle), up(arc_middle(lean)));
     frame.label(fmt::format("height tan(5 deg) = {:.1f} at height = {:.0f}", offset, depth), up(Line::from_points(vertical_bottom, tilted_bottom).center()));
     frame.label("tilted.z_axis()", up(foot + edge.tilted.z_axis() * 150.0));
     frame.label("toward the centre", up(centre + inward * 350.0));
@@ -489,7 +489,7 @@ void back_ring_inner(const Context& context) {
     const Point b = centre + direction * 650.0;
     const Line back = trace(edge.back, a, b);
     const Line ring = trace(edge.ring_inner, a, b);
-    const double thickness = guide.parameters.inner_beams;
+    const double thickness = guide.inner_beams;
     Frame frame(CHAPTER, 15, "back_ring_inner", "back = plane + inner_beams into the quarter; ring_inner = back - 2 inner_beams, inside the edge", "top", {-900.0, -900.0, H - 10.0, -100.0, -100.0, H + 10.0});
     frame.line(up(Line::from_points(a, b)), INPUT, 3.0);
     frame.line(up(back), BUILT, 4.0);
@@ -543,7 +543,7 @@ void head(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const ColumnCorner& column = guide.columns[0];
-    const FloorParameters& parameters = guide.parameters;
+    const FloorGuide& parameters = guide;
     const Line chamfer = Line::from_points(column.head[2], column.head[3]);
     Frame frame(CHAPTER, 17, "head", "columns[0].head: the column_head square at the corner, its inner corner chamfered at column_head_chamfer", "top", CORNER);
     frame.key = true;
@@ -589,7 +589,7 @@ void levels(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const ColumnCorner& column = guide.columns[0];
-    const double bottom = -guide.parameters.column_head_depth;
+    const double bottom = -guide.column_head_depth;
     Frame frame(CHAPTER, 19, "levels", "columns[0].levels = {0, 0, -column_head_depth}; levels[1] is overwritten after the four quarters", "front", {-3200.0, -3050.0, H + bottom - 90.0, -2580.0, -2750.0, H + 60.0});
     const Polyline outline = Polyline(column.head).closed();
     frame.polyline(up(outline), INPUT, 2.0);
@@ -622,7 +622,7 @@ void support_plane(const Context& context) {
     const FloorGuide& guide = context.guide;
     const ColumnCorner& column = guide.columns[0];
     const Plane& support = column.support_plane;
-    const double side = guide.parameters.column_head;
+    const double side = guide.column_head;
     const Point& corner = column.corner;
     Frame frame(CHAPTER, 20, "support_plane", "axis_point = corner + (x_axis + y_axis) * column_head / 2; support_plane: that frame at z 0, the slab", "iso", {-3060.0, -3060.0, -60.0, -2720.0, -2720.0, 160.0});
     frame.plane_size = side * 0.25;
@@ -656,7 +656,7 @@ void support_plane(const Context& context) {
 void column_axes(const Context& context) {
 
     const FloorGuide& guide = context.guide;
-    Frame frame(CHAPTER, 21, "column_axes", fmt::format("columns[k].axis: from axis_point up bay_height = {:.0f}, from the slab to the floor datum", guide.parameters.bay_height), "iso", FLOOR);
+    Frame frame(CHAPTER, 21, "column_axes", fmt::format("columns[k].axis: from axis_point up bay_height = {:.0f}, from the slab to the floor datum", guide.bay_height), "iso", FLOOR);
     frame.distance = 0.9;
     plan_context(frame, guide, false);
 

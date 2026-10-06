@@ -37,7 +37,7 @@ SCALE = 2  # picture pixels per layout pixel: the renderer, its pens, the labels
 BAND = 64
 FOVY_DEG = 60.0  # session_viewer's camera
 PLATE = (24, 24, 24)
-FILM_WIDTH = 1280
+FILM_WIDTH = SIZE[0] * SCALE  # the films at the pictures' full width
 OVERSAMPLE = 4  # the labels are drawn this many times larger, then scaled down
 FILM_MS = 2200
 OPACITY = 1.0  # every surface solid: below 1 the viewer blends all faces and what lies behind shows through
@@ -292,7 +292,7 @@ def annotate(image: Image.Image, notes: dict, project) -> tuple[Image.Image, lis
 
 def save_film(frames: list, path: pathlib.Path) -> None:
     """An animated picture of the frames, each shown FILM_MS."""
-    frames[0].save(path, save_all=True, append_images=frames[1:], duration=FILM_MS, loop=0, quality=80)
+    frames[0].save(path, save_all=True, append_images=frames[1:], duration=FILM_MS, loop=0, quality=90)
     print(f"{path.relative_to(WOOD)}  {len(frames)} frames, {path.stat().st_size // 1024} KB")
 
 
@@ -319,7 +319,7 @@ def main() -> int:
         if problems:
             print(f"{path.stem}: {problems}", file=sys.stderr)
         out = IMAGES / f"{path.stem}.webp"
-        framed.save(out, quality=90)
+        framed.save(out, quality=95)
         small = framed.resize((FILM_WIDTH, FILM_WIDTH * framed.height // framed.width), Image.LANCZOS)
         chapters.setdefault(notes["chapter"], []).append(small)
         if notes.get("key"):

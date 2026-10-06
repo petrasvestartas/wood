@@ -37,7 +37,7 @@ const std::array<Family, 6> FAMILIES = {Family::outer_ribs, Family::inner_ribs, 
 /// A box the camera frames, mm: x0, y0, z0, x1, y1, z1.
 using Box = std::array<double, 6>;
 
-const double H = FloorParameters().bay_height; // The guide is drawn where the floor stands, its datum lifted to this.
+const double H = 3500.0; // The default FloorGuide::bay_height: the guide is drawn where the floor stands, its datum lifted to this.
 const Xform LIFT = Xform::translation(0.0, 0.0, H);
 const Box BAY = {-3300.0, -3300.0, H - 800.0, 3300.0, 3300.0, H + 50.0}; // The whole bay in plan.
 const Box QUARTER = {-3100.0, -3100.0, H - 700.0, 100.0, 100.0, H + 20.0}; // Quarter 0 in 3D.

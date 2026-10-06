@@ -9,10 +9,11 @@ int main() {
     std::filesystem::remove_all(dir);
     std::filesystem::create_directories(dir);
 
-    FloorParameters tied_parameters;
-    tied_parameters.seam_through_ribs = false;
+
     const FloorGuide guide = FloorGuide::rectangle(3000.0, 3000.0);
-    const FloorGuide tied = FloorGuide::rectangle(3000.0, 2400.0, tied_parameters);
+    FloorGuide tied = FloorGuide::rectangle(3000.0, 2400.0);
+    tied.seam_through_ribs = false;
+    tied.compute();
 
     Floor members(guide);
     members.add_members();

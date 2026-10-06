@@ -32,22 +32,21 @@ Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</spa
 
 ## Data structures
 
-Parameters make the guide, the guide makes the floor; only the guide and its quarter geometry hold geometry of their own.
+The guide holds the corners, the parameters as its own fields and the geometry they make; the floor is built from it.
 
 ```mermaid
 classDiagram
     direction TB
-    class FloorParameters {
-        oculus, column_head, outer_ribs, inner_ribs
-        inner_beams, wedge, tsections, height, rise
-        seam_through_ribs
-    }
     class FloorGuide {
         <<WoodSession>>
-        corners[4], parameters
+        corners[4]
+        oculus_radius, column_head, outer_ribs, inner_ribs
+        inner_beams, wedge, tsections, height, rise
+        seam_through_ribs
         edges[4], seams[4], oculus_corners[4]
         oculus_edges[4], columns[4]
         geometry[4] QuarterGeometry
+        compute()
         quarter(q) Quarter
         oculus() Outline list
     }
@@ -87,7 +86,6 @@ classDiagram
         quarter, family, index, row
         name()
     }
-    FloorParameters --> FloorGuide
     FloorGuide --> QuarterGeometry : one per quarter
     FloorGuide --> Quarter : view
     Quarter --> Outline : one per member
