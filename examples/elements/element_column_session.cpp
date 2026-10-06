@@ -9,8 +9,12 @@ int main() {
 
     WoodSession scene("element_column_session");
 
-    // corner 0 of a 6000 square bay: the 220 shaft, two head blocks glued on, the support, six hidden cutter plates
-    const wood_floor::FloorGuide guide({Point(0.0, 0.0, 0.0), Point(6000.0, 0.0, 0.0), Point(6000.0, 6000.0, 0.0), Point(0.0, 6000.0, 0.0)});
+    const wood_floor::FloorGuide guide({
+        Point(0.0, 0.0, 0.0),
+        Point(6000.0, 0.0, 0.0),
+        Point(6000.0, 6000.0, 0.0),
+        Point(0.0, 6000.0, 0.0),
+    });
     scene.graft(wood_floor::ColumnSession(guide, 0), nullptr);
 
     std::cout << scene << std::endl;

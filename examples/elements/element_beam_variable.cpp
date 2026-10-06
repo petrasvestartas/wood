@@ -8,17 +8,16 @@ int main() {
 
     WoodSession scene("element_beam_variable");
 
-    // seven rectangles 120 wide hanging from the axis, 730 deep at the start to 300 at the end
     const double length = 3000.0;
     std::vector<Polyline> sections;
 
     for (size_t i = 0; i < 7; i++) {
         const double x = length * i / 6.0;
         const double depth = 300.0 + 430.0 * (1.0 - x / length) * (1.0 - x / length);
-        sections.push_back(Polyline({Point(x, -60.0, 0.0), Point(x, -60.0, -depth), Point(x, 60.0, -depth), Point(x, 60.0, 0.0)}).closed());
+        sections.push_back(Polyline({{x, -60.0, 0.0}, {x, -60.0, -depth}, {x, 60.0, -depth}, {x, 60.0, 0.0}}).closed());
     }
 
-    scene.add(std::make_shared<BeamVariable>(Line::from_points(Point(0.0, 0.0, 0.0), Point(length, 0.0, 0.0)), sections, "rib"));
+    scene.add(std::make_shared<BeamVariable>(Line::from_points({0.0, 0.0, 0.0}, {length, 0.0, 0.0}), sections, "rib"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

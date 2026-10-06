@@ -72,12 +72,20 @@ Column::Column(const Line& axis, const std::vector<Polyline>& profile, double ro
 
 /// The point at (a, b) in the corner frame, moved along the frame normal to the axis base.
 static Point corner_point(const Line& axis, const Plane& corner, double a, double b) {
-    return corner.origin() + corner.z_axis() * corner.signed_distance(axis.start()) + corner.x_axis() * a + corner.y_axis() * b;
+
+    const Point base = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
+
+    return base + corner.x_axis() * a + corner.y_axis() * b;
 }
 
 /// The closed rectangle from (a0, b0) to (a1, b1) in the corner frame at the axis base.
 static Polyline corner_rectangle(const Line& axis, const Plane& corner, double a0, double b0, double a1, double b1) {
-    return Polyline({corner_point(axis, corner, a0, b0), corner_point(axis, corner, a1, b0), corner_point(axis, corner, a1, b1), corner_point(axis, corner, a0, b1)}).closed();
+    return Polyline({
+        corner_point(axis, corner, a0, b0),
+        corner_point(axis, corner, a1, b0),
+        corner_point(axis, corner, a1, b1),
+        corner_point(axis, corner, a0, b1),
+    }).closed();
 }
 
 std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, const std::string& name) {
@@ -125,6 +133,7 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         column->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
         column->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
 
@@ -178,7 +187,6 @@ const BRep& Column::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-
 Mesh Column::trimmed_mesh() const {
     return cut_mesh(stock_mesh(), cuts);
 }
@@ -213,6 +221,7 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
 
     for (const InteractionFeatureSolid& cut : solid_features)
         column->solid_features.push_back(cut.transformed(xform));
+
     for (const InteractionFeaturePlane& feature : plane_features)
         column->plane_features.push_back(feature.transformed(xform));
 
@@ -234,6 +243,7 @@ void Column::place(const Xform& xform) {
 
     for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
+
     for (InteractionFeaturePlane& feature : plane_features)
         feature = feature.transformed(xform);
 
@@ -331,6 +341,7 @@ std::string Column::element_data_dumps() const {
     for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
+
     for (const InteractionFeaturePlane& feature : plane_features)
         if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
             throw std::runtime_error("Invalid plane feature");

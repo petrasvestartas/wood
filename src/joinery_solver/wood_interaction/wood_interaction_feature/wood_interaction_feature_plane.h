@@ -15,6 +15,10 @@ public:
     std::string source; // The guid of the element that put it there, so its next feature replaces it.
     Plane plane; // The cutting plane; the target keeps the side its normal points to.
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Constructors
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// An empty feature.
     InteractionFeaturePlane() = default;
 

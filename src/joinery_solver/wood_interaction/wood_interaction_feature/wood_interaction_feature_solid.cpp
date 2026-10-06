@@ -1,9 +1,14 @@
 #include "pch.h"
 #include "wood_interaction_feature_solid.h"
 #include "interaction_feature_solid.pb.h"
+
 using namespace session_cpp;
 
 namespace wood_session {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// InteractionFeatureSolid - Constructors
+// ═══════════════════════════════════════════════════════════════════════════
 
 InteractionFeatureSolid::InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation) : mesh(mesh), operation(operation) {
 }
@@ -53,7 +58,10 @@ std::string InteractionFeatureSolid::pb_dumps() const {
     proto.set_operation(static_cast<int>(operation));
     proto.set_tolerance(tolerance);
 
-    if (!proto.mutable_mesh()->ParseFromString(mesh.pb_dumps()) || !proto.mutable_extrusion()->ParseFromString(extrusion.pb_dumps()))
+    if (!proto.mutable_mesh()->ParseFromString(mesh.pb_dumps()))
+        throw std::runtime_error("Cannot serialize the solid feature");
+
+    if (!proto.mutable_extrusion()->ParseFromString(extrusion.pb_dumps()))
         throw std::runtime_error("Cannot serialize the solid feature");
 
     for (const Polyline& ring : profile)
@@ -74,7 +82,10 @@ InteractionFeatureSolid InteractionFeatureSolid::pb_loads(const std::string& dat
 
     wood_proto::InteractionFeatureSolid proto;
 
-    if (!proto.ParseFromString(data) || proto.operation() < 0 || proto.operation() > 2 || !std::isfinite(proto.tolerance()) || proto.tolerance() <= 0)
+    if (!proto.ParseFromString(data))
+        throw std::runtime_error("Invalid solid feature data");
+
+    if (proto.operation() < 0 || proto.operation() > 2 || !std::isfinite(proto.tolerance()) || proto.tolerance() <= 0)
         throw std::runtime_error("Invalid solid feature data");
 
     InteractionFeatureSolid feature;
@@ -113,8 +124,25 @@ void InteractionFeatureSolid::register_type() {
 // InteractionFeatureSolid - String
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The name of a solid operation: add, subtract or intersect.
+static std::string_view operation_name(SolidOperation operation) {
+
+    if (operation == SolidOperation::add)
+        return "add";
+
+    if (operation == SolidOperation::subtract)
+        return "subtract";
+
+    return "intersect";
+}
+
 std::string InteractionFeatureSolid::str() const {
-    return fmt::format("InteractionFeatureSolid(operation={}, faces={}, drills={})", operation == SolidOperation::add ? "add" : operation == SolidOperation::subtract ? "subtract" : "intersect", mesh.number_of_faces(), drills.size());
+    return fmt::format(
+        "InteractionFeatureSolid(operation={}, faces={}, drills={})",
+        operation_name(operation),
+        mesh.number_of_faces(),
+        drills.size()
+    );
 }
 
 } // namespace wood_session

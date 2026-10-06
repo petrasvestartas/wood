@@ -9,7 +9,11 @@ static Mesh snapped(const Mesh& mesh, const Xform& to_local) {
     std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.transformed(to_local).to_vertices_and_faces();
 
     for (Point& point : data.first)
-        point = Point(std::round(point[0] * 1e6) / 1e6, std::round(point[1] * 1e6) / 1e6, std::round(point[2] * 1e6) / 1e6);
+        point = Point(
+            std::round(point[0] * 1e6) / 1e6,
+            std::round(point[1] * 1e6) / 1e6,
+            std::round(point[2] * 1e6) / 1e6
+        );
 
     return Mesh::from_vertices_and_faces(data.first, data.second);
 }
@@ -25,6 +29,10 @@ static std::vector<InteractionFeatureSolid> features_of(const std::vector<Intera
 
     return found;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Geometry
+// ═══════════════════════════════════════════════════════════════════════════
 
 Mesh WoodElement::stock_mesh() const {
 
@@ -55,15 +63,26 @@ std::vector<Plane> WoodElement::feature_planes() const {
 const Mesh& WoodElement::model_geometry_mesh() const {
 
     if (!_model_mesh_cache)
-        _model_mesh_cache = apply_solid_features(cut_mesh(trimmed_mesh(), feature_planes()), features_of(solid_features, false));
+        _model_mesh_cache = apply_solid_features(
+            cut_mesh(trimmed_mesh(), feature_planes()),
+            features_of(solid_features, false)
+        );
 
     return *_model_mesh_cache;
 }
 
 const BRep& WoodElement::model_geometry_brep() const {
 
-    if (!_model_brep_cache)
-        _model_brep_cache = solid_features.empty() ? cut_brep(trimmed_brep(), feature_planes()) : solid_features_brep(cut_mesh(trimmed_mesh(), feature_planes()), features_of(solid_features, false));
+    if (_model_brep_cache)
+        return *_model_brep_cache;
+
+    if (solid_features.empty())
+        _model_brep_cache = cut_brep(trimmed_brep(), feature_planes());
+    else
+        _model_brep_cache = solid_features_brep(
+            cut_mesh(trimmed_mesh(), feature_planes()),
+            features_of(solid_features, false)
+        );
 
     return *_model_brep_cache;
 }
@@ -88,4 +107,4 @@ BRep WoodElement::trimmed_brep() const {
     return element_geometry_brep();
 }
 
-}
+} // namespace wood_session

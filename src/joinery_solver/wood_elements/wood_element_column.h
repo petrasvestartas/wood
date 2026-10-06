@@ -65,7 +65,6 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-
     /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
     std::vector<Plane> compute_planes() const override;
 

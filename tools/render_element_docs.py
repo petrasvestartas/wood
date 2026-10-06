@@ -1,16 +1,5 @@
-"""Renders the pictures of the element pages: each example under examples/elements run, its
-data/output/pb/live.pb drawn by session_viewer's selftest at opacity 0.75 with its features, cropped
-to the elements, and a layer panel beside it listing every element with its features and every
-interaction feature between them, as the viewer's layer panel does.
-
-Run from wood/ after building the examples and session_viewer's selftest with
-.claude/skills/wood-film-docs/templates/viewer_render_options.patch applied:
-
-    python3 tools/render_element_docs.py                 every element picture
-    python3 tools/render_element_docs.py element_column  some
-"""
-
 import collections
+import json
 import os
 import pathlib
 import subprocess
@@ -33,20 +22,17 @@ PANEL = 470  # the panel's width
 INK = (26, 26, 26)
 MUTED = (115, 115, 115)
 
-# every example with the box the camera frames, mm: x0, y0, z0, x1, y1, z1, and whether its features are drawn;
-# the column session's are not, the viewer's feature mode drawing its cutters' outlines in place of its carved head
-EXAMPLES = {
+EXAMPLES = {  # every example: the box the camera frames in mm (x0, y0, z0, x1, y1, z1) and whether its features are drawn
     "element_plate": ((-50, -50, 0, 650, 450, 40), True),
     "element_beam": ((-150, -150, -150, 1150, 450, 150), True),
     "element_beam_variable": ((-100, -100, -750, 3100, 100, 10), True),
     "element_beam_variable_cut": ((-100, -500, -950, 3100, 500, 200), True),
     "element_column": ((-150, -200, 0, 150, 200, 3500), True),
-    "element_column_session": ((-150, -150, 0, 500, 500, 3600), False),
+    "element_column_session": ((-150, -150, 0, 500, 500, 3600), False),  # feature mode would draw the cutters over the carved head
     "element_block": ((-50, -50, 0, 350, 350, 250), True),
     "element_support": ((-250, -250, 0, 250, 250, 300), True),
 }
 
-# the scene's elements, their features and the interaction features between them, read by session_py
 READ = r"""
 import json, sys
 from session_py.session import Session
@@ -60,7 +46,7 @@ for u, v in s.graph.get_edges():
     kinds = [call(i.interaction_type_name) for i in s.interactions.get(call(edge.guid), [])] if hasattr(s, "interactions") else []
     edges.append([names.get(edge.v0, "?"), names.get(edge.v1, "?"), kinds])
 print(json.dumps({"elements": elements, "edges": edges}))
-"""
+"""  # the scene's elements, their features and the interaction features between them, read by session_py
 
 
 def render(pb: pathlib.Path, bounds: tuple, features: bool) -> Image.Image:
@@ -103,7 +89,7 @@ def render(pb: pathlib.Path, bounds: tuple, features: bool) -> Image.Image:
 
 
 def panel_rows(scene: dict) -> list:
-    """The panel's lines: each element with its type and counted features, alike hidden elements on one line, then the interaction features, alike ones on one line."""
+    """The panel's lines: each element with its type and counted features, alike hidden elements on one line, then the interaction features from the element on fewer edges to the one on more, alike ones on one line."""
     rows = [("Layers", BOLD, INK)]
     groups = collections.OrderedDict()
 
@@ -117,7 +103,6 @@ def panel_rows(scene: dict) -> list:
         for feature, count in features:
             rows.append((f"    {feature}" + (f" x{count}" if count > 1 else ""), FONT, MUTED))
 
-    # an edge's stored direction is either way round: the element on most edges is the one the features land on
     degree = collections.Counter(name for a, b, _ in scene["edges"] for name in (a, b))
     counted = collections.Counter()
 
@@ -126,7 +111,6 @@ def panel_rows(scene: dict) -> list:
         for kind in kinds:
             if kind.startswith("InteractionFeature"):
                 counted[(source.rstrip("0123456789_") + "_*" if source[-1:].isdigit() else source, target, kind.replace("InteractionFeature", "").lower())] += 1
-
 
     if counted:
         rows.append(("Interactions", BOLD, INK))
@@ -164,13 +148,13 @@ def compose(picture: Image.Image, rows: list) -> Image.Image:
 
 
 def main(names: list) -> None:
-
+    """Runs each named example, or every one, and saves its picture with its layer panel under docs/images/elements."""
     IMAGES.mkdir(parents=True, exist_ok=True)
     pb = WOOD / "data" / "output" / "pb" / "live.pb"
 
     for name in names or list(EXAMPLES):
         subprocess.run([str(WOOD / "build" / name)], check=True, capture_output=True)
-        scene = __import__("json").loads(
+        scene = json.loads(
             subprocess.run(
                 [str(PYTHON), "-c", READ, str(pb)],
                 check=True,

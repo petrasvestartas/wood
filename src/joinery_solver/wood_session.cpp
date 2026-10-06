@@ -51,6 +51,7 @@ static Mesh stock_of(const Element& element) {
     return element.element_geometry_mesh();
 }
 
+/// The solid features an element hosts: a timber element's or a connector's, none for a support or another element.
 std::vector<InteractionFeatureSolid>* get_solid_features(Element& element) {
 
     if (dynamic_cast<Support*>(&element))
@@ -626,6 +627,36 @@ void WoodSession::set_features_visible(std::string_view feature_type, bool visib
                 feature.visible = visible;
 }
 
+/// Removes the plane feature with that guid from the features.
+static void erase_plane_feature(std::vector<InteractionFeaturePlane>& features, const std::string& guid) {
+
+    for (std::vector<InteractionFeaturePlane>::iterator feature = features.begin(); feature != features.end();)
+        if (feature->guid() == guid)
+            feature = features.erase(feature);
+        else
+            ++feature;
+}
+
+/// Removes the interaction with that guid from the records of an edge.
+static void erase_record(std::vector<std::shared_ptr<Interaction>>& records, const std::string& guid) {
+
+    for (std::vector<std::shared_ptr<Interaction>>::iterator record = records.begin(); record != records.end();)
+        if ((*record)->guid() == guid)
+            record = records.erase(record);
+        else
+            ++record;
+}
+
+/// Removes every solid feature from the records of an edge.
+static void erase_solid_records(std::vector<std::shared_ptr<Interaction>>& records) {
+
+    for (std::vector<std::shared_ptr<Interaction>>::iterator record = records.begin(); record != records.end();)
+        if (dynamic_cast<const InteractionFeatureSolid*>(record->get()))
+            record = records.erase(record);
+        else
+            ++record;
+}
+
 static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& target);
 static void host_solid_feature(WoodSession& scene, const Element& source, InteractionFeatureSolid cut, const std::shared_ptr<Element>& target);
 
@@ -712,17 +743,14 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         if (!member || !local)
             throw std::invalid_argument("A plane feature needs a placed timber element as its target");
 
-        // the target's copy in its own frame, replacing the copy of the same feature
         InteractionFeaturePlane hosted = plane->transformed(*local * world_xform(source->guid()));
         hosted.source = source->guid();
-        std::erase_if(member->plane_features, [&plane](const InteractionFeaturePlane& feature) { return feature.guid() == plane->guid(); });
+        erase_plane_feature(member->plane_features, plane->guid());
         member->plane_features.push_back(hosted);
         target->invalidate_geometry();
 
-        if (known) {
-            std::vector<std::shared_ptr<Interaction>>& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
-            std::erase_if(records, [&plane](const std::shared_ptr<Interaction>& record) { return record->guid() == plane->guid(); });
-        }
+        if (known)
+            erase_record(interactions[graph.edges.at(source->guid()).at(target->guid()).guid()], plane->guid());
 
         Session::add_interaction(source, target, plane);
 
@@ -733,10 +761,8 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
 
         host_solid_feature(*this, *source, *cut, target);
 
-        if (known) {
-            std::vector<std::shared_ptr<Interaction>>& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
-            std::erase_if(records, [](const std::shared_ptr<Interaction>& record) { return dynamic_cast<const InteractionFeatureSolid*>(record.get()) != nullptr; });
-        }
+        if (known)
+            erase_solid_records(interactions[graph.edges.at(source->guid()).at(target->guid()).guid()]);
 
         Session::add_interaction(source, target, cut);
 
@@ -1284,18 +1310,22 @@ static void host_solid_feature(WoodSession& scene, const Element& source, Intera
     if (!cuts)
         throw std::invalid_argument("Solid cutters require a plate, beam, column, block or connector");
 
-    if ((cut.drills.empty() || cut.mesh.number_of_faces()) && (!cut.mesh.number_of_faces() || !cut.mesh.is_closed()))
+    const bool solid = cut.mesh.number_of_faces() > 0;
+
+    if ((solid && !cut.mesh.is_closed()) || (!solid && cut.drills.empty()))
         throw std::invalid_argument("Missing closed cutter solid");
 
     cut.source = source.guid();
-    const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
 
-    if (cut.mesh.number_of_faces()) {
-        ElementFeature feature("solid_feature", -1, cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines(), source.name);
+    if (solid) {
+        const std::vector<Polyline> outlines = cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines();
+        ElementFeature feature("solid_feature", -1, outlines, source.name);
         feature.guid() = source.guid() + "/cut";
         drop_host_features(scene, target->guid(), "", {feature.guid()});
         scene.host_feature(target->guid(), std::move(feature));
     }
+
+    const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
 
     if (!local)
         throw std::invalid_argument("Cutter target has a singular placement");

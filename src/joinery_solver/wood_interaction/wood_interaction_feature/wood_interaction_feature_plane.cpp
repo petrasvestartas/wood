@@ -1,9 +1,14 @@
 #include "pch.h"
 #include "wood_interaction_feature_plane.h"
 #include "interaction_feature_plane.pb.h"
+
 using namespace session_cpp;
 
 namespace wood_session {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// InteractionFeaturePlane - Constructors
+// ═══════════════════════════════════════════════════════════════════════════
 
 InteractionFeaturePlane::InteractionFeaturePlane(const Plane& plane) : plane(plane) {
 }

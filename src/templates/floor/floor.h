@@ -87,7 +87,14 @@ public:
     std::vector<std::shared_ptr<Plate>> cutters; // column_cutters_<i>_<q>, hidden: each takes an inclined face away from the column; empty for a glued_head alone.
 
     /// A square column of side on its axis with a glued head: the shaft from the corner frame's origin along its x and y axes, and over the top head_height a strip of head_side by head_side - side beyond its y side and a block of head_side - side by side beyond its x side, each glued on with an add InteractionFeatureSolid, so the head is the square of head_side.
-    static ColumnSession glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name = "column");
+    static ColumnSession glued_head(
+        const Line& axis,
+        const Plane& corner,
+        double side,
+        double head_side,
+        double head_height,
+        const std::string& name = "column"
+    );
 
     /// The column at corner q of the guide, named column_<q>: its glued head on its support, joined by a support joint, and the six cutter plates of the guide each taking an inclined face away with a subtract InteractionFeatureSolid.
     ColumnSession(const FloorGuide& guide, size_t q);

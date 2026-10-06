@@ -48,10 +48,87 @@ std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
         beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
 
     return beam;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Outlines
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The outline of the face of side k of four-cornered sections: corner k at every station along the beam, corner k + 1 back, both edges cut by every plane keeping the side its normal points to, closed; empty for other sections.
+static Polyline side_outline(const std::vector<Polyline>& sections, size_t k, const std::vector<Plane>& planes) {
+
+    if (sections.size() < 2)
+        return Polyline();
+
+    std::vector<Point> along;
+    std::vector<Point> back;
+
+    for (const Polyline& section : sections) {
+        if (section.point_count() != 5)
+            return Polyline();
+
+        along.push_back(section.get_point(k));
+        back.push_back(section.get_point((k + 1) % 4));
+    }
+
+    Polyline first(along);
+    Polyline second(back);
+
+    for (const Plane& plane : planes) {
+        first = first.cut_by_plane(plane, true);
+        second = second.cut_by_plane(plane, true);
+    }
+
+    std::vector<Point> loop = first.get_points();
+    const std::vector<Point> returning = second.get_points();
+
+    loop.insert(loop.end(), returning.rbegin(), returning.rend());
+
+    return loop.size() < 3 ? Polyline() : Polyline(loop).closed();
+}
+
+/// The height of side k of a four-cornered section: the sum of its two corners' z.
+static double side_height(const Polyline& section, size_t k) {
+    return section.get_point(k)[2] + section.get_point((k + 1) % 4)[2];
+}
+
+/// The side of the first section highest in z, by the midpoint of its two corners.
+static size_t top_side(const std::vector<Polyline>& sections) {
+
+    if (sections.empty() || sections[0].point_count() != 5)
+        return 0;
+
+    size_t top = 0;
+
+    for (size_t k = 1; k < 4; k++)
+        if (side_height(sections[0], k) > side_height(sections[0], top))
+            top = k;
+
+    return top;
+}
+
+/// The planes the beam is cut by: its own and its plane features'.
+static std::vector<Plane> cutting_planes(const BeamVariable& beam) {
+
+    std::vector<Plane> planes = beam.cuts;
+    const std::vector<Plane> features = beam.feature_planes();
+
+    planes.insert(planes.end(), features.begin(), features.end());
+
+    return planes;
+}
+
+Polyline BeamVariable::top() const {
+    return side_outline(sections, top_side(sections), cutting_planes(*this));
+}
+
+Polyline BeamVariable::bottom() const {
+    return side_outline(sections, (top_side(sections) + 2) % 4, cutting_planes(*this));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -97,6 +174,7 @@ std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) cons
 
     for (const InteractionFeatureSolid& cut : solid_features)
         beam->solid_features.push_back(cut.transformed(xform));
+
     for (const InteractionFeaturePlane& feature : plane_features)
         beam->plane_features.push_back(feature.transformed(xform));
 
@@ -115,6 +193,7 @@ void BeamVariable::place(const Xform& xform) {
 
     for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
+
     for (InteractionFeaturePlane& feature : plane_features)
         feature = feature.transformed(xform);
 
@@ -140,86 +219,34 @@ void BeamVariable::compute_geometry_brep_impl() {
     compute_geometry_features();
 }
 
-/// The outline of the face of side k of four-cornered sections: corner k at every station along the beam, corner k + 1 back, both edges cut by every plane keeping the side its normal points to, closed; empty for other sections.
-static Polyline side_outline(const std::vector<Polyline>& sections, size_t k, const std::vector<Plane>& planes) {
-
-    if (sections.size() < 2)
-        return Polyline();
-
-    std::vector<Point> along;
-    std::vector<Point> back;
-
-    for (const Polyline& section : sections) {
-        if (section.point_count() != 5)
-            return Polyline();
-
-        along.push_back(section.get_point(k));
-        back.push_back(section.get_point((k + 1) % 4));
-    }
-
-    Polyline first(along);
-    Polyline second(back);
-
-    for (const Plane& plane : planes) {
-        first = first.cut_by_plane(plane, true);
-        second = second.cut_by_plane(plane, true);
-    }
-
-    std::vector<Point> loop = first.get_points();
-    const std::vector<Point> returning = second.get_points();
-    loop.insert(loop.end(), returning.rbegin(), returning.rend());
-
-    return loop.size() < 3 ? Polyline() : Polyline(loop).closed();
-}
-
-/// The side of the first section highest in z, by the midpoint of its two corners.
-static size_t top_side(const std::vector<Polyline>& sections) {
-
-    size_t top = 0;
-
-    for (size_t k = 1; k < 4 && !sections.empty() && sections[0].point_count() == 5; k++)
-        if (sections[0].get_point(k)[2] + sections[0].get_point((k + 1) % 4)[2] > sections[0].get_point(top)[2] + sections[0].get_point((top + 1) % 4)[2])
-            top = k;
-
-    return top;
-}
-
-/// The planes the beam is cut by: its own and its plane features'.
-static std::vector<Plane> cutting_planes(const BeamVariable& beam) {
-
-    std::vector<Plane> planes = beam.cuts;
-    const std::vector<Plane> features = beam.feature_planes();
-    planes.insert(planes.end(), features.begin(), features.end());
-
-    return planes;
-}
-
-Polyline BeamVariable::top() const {
-    return side_outline(sections, top_side(sections), cutting_planes(*this));
-}
-
-Polyline BeamVariable::bottom() const {
-    return side_outline(sections, (top_side(sections) + 2) % 4, cutting_planes(*this));
-}
-
 void BeamVariable::compute_geometry_features() {
 
-    // the axis through every station and the sections, trimmed to what the planes leave
     std::vector<Point> stations;
 
     for (const Polyline& section : sections)
         stations.push_back(axis.closest_point(section.center(), false).second);
 
-    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(Polyline(stations), sections, cutting_planes(*this));
+    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(
+        Polyline(stations),
+        sections,
+        cutting_planes(*this)
+    );
+
     std::vector<ElementFeature> next;
-    next.push_back(polyline_feature("axis", trimmed.first.point_count() > 1 ? trimmed.first : Polyline({axis.start(), axis.end()})));
+
+    if (trimmed.first.point_count() > 1)
+        next.push_back(polyline_feature("axis", trimmed.first));
+    else
+        next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
 
     for (const Polyline& section : trimmed.second)
         if (section.point_count() > 0)
             next.push_back(polyline_feature("section", section));
 
-    if (top().point_count() > 0) {
-        next.push_back(polyline_feature("top", top()));
+    const Polyline outline = top();
+
+    if (outline.point_count() > 0) {
+        next.push_back(polyline_feature("top", outline));
         next.push_back(polyline_feature("bottom", bottom()));
     }
 
@@ -282,6 +309,7 @@ std::string BeamVariable::element_data_dumps() const {
     for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
+
     for (const InteractionFeaturePlane& feature : plane_features)
         if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
             throw std::runtime_error("Invalid plane feature");

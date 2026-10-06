@@ -3,8 +3,16 @@
 
 namespace wood_session {
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Constructors
+// ═══════════════════════════════════════════════════════════════════════════
+
 CutPlane::CutPlane(const Plane& plane, double size, const std::string& name) : WoodElement(name), plane(plane), size(size) {
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Geometry
+// ═══════════════════════════════════════════════════════════════════════════
 
 std::shared_ptr<InteractionFeaturePlane> CutPlane::feature() const {
     return std::make_shared<InteractionFeaturePlane>(plane);
@@ -16,7 +24,11 @@ const Mesh& CutPlane::element_geometry_mesh() const {
         const Vector x = plane.x_axis() * (0.5 * size);
         const Vector y = plane.y_axis() * (0.5 * size);
         const Point o = plane.origin();
-        _element_geometry_mesh = Mesh::from_vertices_and_faces({o - x - y, o + x - y, o + x + y, o - x + y}, {{0, 1, 2, 3}});
+
+        _element_geometry_mesh = Mesh::from_vertices_and_faces(
+            {o - x - y, o + x - y, o + x + y, o - x + y},
+            {{0, 1, 2, 3}}
+        );
     }
 
     return *_element_geometry_mesh;

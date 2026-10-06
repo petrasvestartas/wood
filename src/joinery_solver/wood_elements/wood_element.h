@@ -15,6 +15,10 @@ public:
 
     using Element::Element;
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// The shape with every add feature united, in frame() on a 1e-6 mm grid so a glued block meets it on exactly one plane; the shape itself without add features.
     Mesh stock_mesh() const;
 
@@ -44,4 +48,4 @@ protected:
     virtual BRep trimmed_brep() const;
 };
 
-}
+} // namespace wood_session

@@ -14,8 +14,16 @@ public:
     Plane plane; // The cutting plane; what it cuts keeps the side its normal points to.
     double size = 1000.0; // The side of the square it is drawn as.
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Constructors
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /// A cutting plane drawn as a square of size.
     explicit CutPlane(const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane");
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Geometry
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// The plane feature it cuts another element by.
     std::shared_ptr<InteractionFeaturePlane> feature() const;
