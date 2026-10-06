@@ -40,6 +40,16 @@ public:
     static std::shared_ptr<BeamVariable> from_element(Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // Outlines
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The top face's outline, as a plate's top: of four-cornered sections, the side highest in z at the first station taken at every station, along the beam and back, cut by its planes and plane features, closed; empty for other sections.
+    Polyline top() const;
+
+    /// The bottom face's outline, the side opposite the top's at every station, cut by its planes and plane features; empty for sections that are not four-cornered.
+    Polyline bottom() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 

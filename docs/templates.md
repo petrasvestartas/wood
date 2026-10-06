@@ -1,5 +1,7 @@
 # Templates {#templates}
 
+[TOC]
+
 Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `cross/`, `reciprocal/`, `grid/`, `floor/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
 
 | Template | Header | Example | Elements |

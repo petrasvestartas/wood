@@ -61,6 +61,8 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
     for (const auto& cut : proto.solid_features()) beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
+        beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
     return beam;
 }
 
@@ -172,6 +174,8 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
     for (const auto& cut : solid_features) beam->solid_features.push_back(cut.transformed(xform));
+    for (const InteractionFeaturePlane& feature : plane_features)
+        beam->plane_features.push_back(feature.transformed(xform));
     beam->profile = profile;
     beam->set_features(transformed_features(_features, xform));
     beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
@@ -186,6 +190,8 @@ void Beam::place(const Xform& xform) {
     axis.transform(xform);
     cuts = transformed_list(cuts, xform);
     for (auto& cut : solid_features) cut = cut.transformed(xform);
+    for (InteractionFeaturePlane& feature : plane_features)
+        feature = feature.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -274,6 +280,9 @@ std::string Beam::element_data_dumps() const {
 
     for (const auto& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+    for (const InteractionFeaturePlane& feature : plane_features)
+        if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
+            throw std::runtime_error("Invalid plane feature");
     return proto.SerializeAsString();
 }
 

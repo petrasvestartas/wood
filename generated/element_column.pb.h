@@ -31,6 +31,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
 #include "interaction_feature_solid.pb.h"
+#include "interaction_feature_plane.pb.h"
 #include "line.pb.h"
 #include "plane.pb.h"
 #include "polyline.pb.h"
@@ -224,6 +225,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
     kAxisFieldNumber = 1,
     kSectionFieldNumber = 2,
     kRotationFieldNumber = 5,
+    kPlaneFeaturesFieldNumber = 10,
   };
   // repeated .session_proto.Plane cuts = 3;
   [[nodiscard]] int cuts_size() const;
@@ -325,12 +327,32 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   void _internal_set_rotation(double value);
 
   public:
+  // repeated .wood_proto.InteractionFeaturePlane plane_features = 10;
+  [[nodiscard]] int plane_features_size() const;
+  private:
+  int _internal_plane_features_size() const;
+
+  public:
+  void clear_plane_features() ;
+  [[nodiscard]] const ::wood_proto::InteractionFeaturePlane& plane_features(int index) const;
+  [[nodiscard]] ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL mutable_plane_features(int index);
+  ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL add_plane_features();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>&
+  plane_features() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+  mutable_plane_features();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>& _internal_plane_features() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL _internal_mutable_plane_features();
+
+  public:
   // @@protoc_insertion_point(class_scope:wood_proto.Column)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 6,
-                          5, 0,
+      ::google::protobuf::internal::TcParseTable<3, 7,
+                          6, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -364,6 +386,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
     ::session_proto::Line* PROTOBUF_NULLABLE axis_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE section_;
     double rotation_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -434,6 +457,56 @@ inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSoli
 Column::_internal_mutable_solid_features() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.solid_features_;
+}
+
+// repeated .wood_proto.InteractionFeaturePlane plane_features = 10;
+inline int Column::_internal_plane_features_size() const {
+  return _internal_plane_features().size();
+}
+inline int Column::plane_features_size() const {
+  return _internal_plane_features_size();
+}
+inline const ::wood_proto::InteractionFeaturePlane& Column::plane_features(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Column.plane_features)
+  return _internal_plane_features().Get(index);
+}
+inline ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL Column::mutable_plane_features(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Column.plane_features)
+  return _internal_mutable_plane_features()->Mutable(index);
+}
+inline ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL Column::add_plane_features()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::InteractionFeaturePlane* _add =
+      _internal_mutable_plane_features()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_add:wood_proto.Column.plane_features)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>& Column::plane_features() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Column.plane_features)
+  return _internal_plane_features();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+Column::mutable_plane_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.plane_features)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_plane_features();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>&
+Column::_internal_plane_features() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.plane_features_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+Column::_internal_mutable_plane_features() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.plane_features_;
 }
 
 // .session_proto.Line axis = 1;

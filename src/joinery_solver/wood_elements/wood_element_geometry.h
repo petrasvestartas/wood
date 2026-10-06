@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "wood_interaction_feature_solid.h"
+#include "wood_interaction_feature_plane.h"
 
 using namespace session_cpp;
 
@@ -27,7 +28,7 @@ int circle_segments(double radius, double chord_tolerance);
 Mesh drill_mesh(const Line& axis, double radius, double chord_tolerance);
 BRep drill_brep(const Line& axis, double radius);
 
-/// The feature_type names an element writes for its own geometry: "outline", "axis", "section"; every other type is joinery. The centroid is not one: `Element::point()` computes and caches it.
+/// The feature_type names an element writes for its own geometry: "outline", "axis", "section", "top", "bottom"; every other type is joinery. The centroid is not one: `Element::point()` computes and caches it.
 bool is_geometry_feature(std::string_view feature_type);
 
 /// A feature of one polyline, whole element unless a face is given.

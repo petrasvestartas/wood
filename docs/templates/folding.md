@@ -1,5 +1,7 @@
 # Folding {#templates_folding}
 
+[TOC]
+
 Folded plate structures: a reflex fold, the chevron strips of an Annen surface, and a diamond mesh. Every picture is the example's `data/output/pb/live.pb` rendered by session_viewer; its code folds open under it.
 
 ## reflex_fold

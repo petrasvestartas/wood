@@ -1,5 +1,7 @@
 # Examples {#examples}
 
+[TOC]
+
 Eighteen short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `buildslot ~/.local/bin/cmake --build build --target <name> --parallel 4` followed by `tools/run_guarded.sh -t 10 -m 4 -- build/<name>` from the `wood` directory. The cutting examples have [generation and publishing instructions](cutting_gallery.md); the earlier examples end with run instructions; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
 
 | Example | Behaviour |

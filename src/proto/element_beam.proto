@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package wood_proto;
 import "interaction_feature_solid.proto";
+import "interaction_feature_plane.proto";
 
 import "plane.proto";
 import "polyline.proto";
@@ -10,6 +11,7 @@ import "vector.proto";
 // The state of a Beam beyond the kernel Element: its axis, section and cuts.
 message Beam {
   repeated InteractionFeatureSolid solid_features = 7;
+  repeated InteractionFeaturePlane plane_features = 8;  // The planes other elements cut it by
   session_proto.Polyline axis = 1;              // Centreline, one segment per span
   repeated double radii = 2;                    // Section half-width per segment
   repeated session_proto.Vector directions = 3; // Section up direction per segment

@@ -1,5 +1,7 @@
 # Shells {#templates_shells}
 
+[TOC]
+
 Plates and boards on a surface: a translation shell swept from two polylines, and a two-layer lamella gridshell on a NURBS surface. Every picture is the example's `data/output/pb/live.pb` rendered by session_viewer; its code folds open under it.
 
 ## translation_shell

@@ -1,5 +1,7 @@
 # Floor 09: Connectors {#templates_floor_09_connectors}
 
+[TOC]
+
 `wood_floor::add_connectors` turns each `Relationship` row of chapter 08 into a `JointBeam` connector and hands it to `WoodSession::add_connector`, which nests its parts and dowels and cuts its members. Chapter 10 checks the screws against these cut members and connectors.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) makes every connector of this chapter on the default square bay, and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) does the same on the 3000 x 2400 bay with `seam_through_ribs` false, which makes the tie keys of sections 184 to 186.

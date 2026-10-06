@@ -7,7 +7,7 @@ namespace wood_session {
 using namespace session_cpp;
 
 bool is_geometry_feature(std::string_view feature_type) {
-    return feature_type == "outline" || feature_type == "axis" || feature_type == "section";
+    return feature_type == "outline" || feature_type == "axis" || feature_type == "section" || feature_type == "top" || feature_type == "bottom";
 }
 
 ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index) {

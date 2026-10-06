@@ -125,6 +125,8 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         column->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
+        column->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
 
     return column;
 }
@@ -211,6 +213,8 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
 
     for (const InteractionFeatureSolid& cut : solid_features)
         column->solid_features.push_back(cut.transformed(xform));
+    for (const InteractionFeaturePlane& feature : plane_features)
+        column->plane_features.push_back(feature.transformed(xform));
 
     column->profile = profile;
     column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
@@ -230,6 +234,8 @@ void Column::place(const Xform& xform) {
 
     for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
+    for (InteractionFeaturePlane& feature : plane_features)
+        feature = feature.transformed(xform);
 
     if (!profile.empty())
         rotation = compute_rotation(axis, x_world);
@@ -325,6 +331,9 @@ std::string Column::element_data_dumps() const {
     for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
+    for (const InteractionFeaturePlane& feature : plane_features)
+        if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
+            throw std::runtime_error("Invalid plane feature");
 
     return proto.SerializeAsString();
 }

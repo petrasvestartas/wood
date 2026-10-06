@@ -83,6 +83,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_io.cpp
     src/joinery_solver/wood_view.cpp
     src/joinery_solver/wood_elements/wood_element.cpp
+    src/joinery_solver/wood_elements/wood_element_cut_plane.cpp
     src/joinery_solver/wood_elements/wood_element_plate.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
@@ -113,6 +114,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_beam.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_beam.cpp
     src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_solid.cpp
+    src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plane.cpp
     src/joinery_solver/wood_algorithms/wood_contact_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection.cpp
     src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp
@@ -273,6 +275,7 @@ ADD_EXE(templates_shells_2_gridshell              examples/templates_shells_2_gr
 ADD_EXE(element_plate                    examples/elements/element_plate.cpp)
 ADD_EXE(element_beam                     examples/elements/element_beam.cpp)
 ADD_EXE(element_beam_variable            examples/elements/element_beam_variable.cpp)
+ADD_EXE(element_beam_variable_cut        examples/elements/element_beam_variable_cut.cpp)
 ADD_EXE(element_column                   examples/elements/element_column.cpp)
 ADD_EXE(element_column_session           examples/elements/element_column_session.cpp)
 ADD_EXE(element_block                    examples/elements/element_block.cpp)

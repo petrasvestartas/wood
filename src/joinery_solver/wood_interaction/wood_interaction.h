@@ -9,4 +9,5 @@
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_feature_plate_beam.h"
 #include "wood_interaction_feature_solid.h"
+#include "wood_interaction_feature_plane.h"
 #include "wood_interaction_structure.h"

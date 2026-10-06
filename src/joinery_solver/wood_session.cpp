@@ -31,6 +31,7 @@ bool register_factories() {
     InteractionFeatureBeam::register_type();
     InteractionFeaturePlateBeam::register_type();
     InteractionFeatureSolid::register_type();
+    InteractionFeaturePlane::register_type();
 
     return true;
 }
@@ -703,6 +704,31 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         return oriented;
     }
 
+    if (const std::shared_ptr<InteractionFeaturePlane> plane = std::dynamic_pointer_cast<InteractionFeaturePlane>(interaction)) {
+
+        WoodElement* member = dynamic_cast<WoodElement*>(target.get());
+        const std::optional<Xform> local = world_xform(target->guid()).inverse();
+
+        if (!member || !local)
+            throw std::invalid_argument("A plane feature needs a placed timber element as its target");
+
+        // the target's copy in its own frame, replacing the copy of the same feature
+        InteractionFeaturePlane hosted = plane->transformed(*local * world_xform(source->guid()));
+        hosted.source = source->guid();
+        std::erase_if(member->plane_features, [&plane](const InteractionFeaturePlane& feature) { return feature.guid() == plane->guid(); });
+        member->plane_features.push_back(hosted);
+        target->invalidate_geometry();
+
+        if (known) {
+            std::vector<std::shared_ptr<Interaction>>& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
+            std::erase_if(records, [&plane](const std::shared_ptr<Interaction>& record) { return record->guid() == plane->guid(); });
+        }
+
+        Session::add_interaction(source, target, plane);
+
+        return plane;
+    }
+
     if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction)) {
 
         host_solid_feature(*this, *source, *cut, target);
@@ -790,6 +816,10 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, con
 
     if (cuts && erase_solid_feature(*cuts, source->guid()))
         target->invalidate_geometry();
+
+    if (WoodElement* member = dynamic_cast<WoodElement*>(target.get()))
+        if (std::erase_if(member->plane_features, [&source](const InteractionFeaturePlane& feature) { return feature.source == source->guid(); }))
+            target->invalidate_geometry();
 
     Session::remove_interaction(source, target);
 }
@@ -1371,10 +1401,10 @@ size_t WoodSession::next_number(const std::string& prefix) const {
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        // a dowel or a connector part, which a connector draws on its own, or a member its joints cut
+        // a dowel or a connector part, which a connector draws on its own, a support with its round parts, or a member its joints cut
         const bool connector_child = std::dynamic_pointer_cast<Dowel>(element) || std::dynamic_pointer_cast<ConnectorPart>(element);
 
-        if (connector_child || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
+        if (connector_child || std::dynamic_pointer_cast<Support>(element) || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
             element->compute_geometry_brep();
     }
 }

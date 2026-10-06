@@ -42,10 +42,20 @@ Mesh WoodElement::stock_mesh() const {
     return apply_solid_features(snapped(element_geometry_mesh(), *to_local), adds).transformed(to_world);
 }
 
+std::vector<Plane> WoodElement::feature_planes() const {
+
+    std::vector<Plane> planes;
+
+    for (const InteractionFeaturePlane& feature : plane_features)
+        planes.push_back(feature.plane);
+
+    return planes;
+}
+
 const Mesh& WoodElement::model_geometry_mesh() const {
 
     if (!_model_mesh_cache)
-        _model_mesh_cache = apply_solid_features(trimmed_mesh(), features_of(solid_features, false));
+        _model_mesh_cache = apply_solid_features(cut_mesh(trimmed_mesh(), feature_planes()), features_of(solid_features, false));
 
     return *_model_mesh_cache;
 }
@@ -53,7 +63,7 @@ const Mesh& WoodElement::model_geometry_mesh() const {
 const BRep& WoodElement::model_geometry_brep() const {
 
     if (!_model_brep_cache)
-        _model_brep_cache = solid_features.empty() ? trimmed_brep() : solid_features_brep(trimmed_mesh(), features_of(solid_features, false));
+        _model_brep_cache = solid_features.empty() ? cut_brep(trimmed_brep(), feature_planes()) : solid_features_brep(cut_mesh(trimmed_mesh(), feature_planes()), features_of(solid_features, false));
 
     return *_model_brep_cache;
 }

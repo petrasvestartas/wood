@@ -11,16 +11,20 @@ namespace wood_session {
 class WoodElement : public Element {
 public:
     std::vector<InteractionFeatureSolid> solid_features; // The solid features other elements put on it, each in the element's frame naming its source: the adds make its stock, the subtracts cut its model.
+    std::vector<InteractionFeaturePlane> plane_features; // The planes other elements cut it by, each in the element's frame naming its source, the element keeping the side the normal points to.
 
     using Element::Element;
 
     /// The shape with every add feature united, in frame() on a 1e-6 mm grid so a glued block meets it on exactly one plane; the shape itself without add features.
     Mesh stock_mesh() const;
 
-    /// The trimmed stock with every subtract feature applied as a Mesh; cached until invalidate_geometry() or place().
+    /// The planes of the plane features.
+    std::vector<Plane> feature_planes() const;
+
+    /// The trimmed stock cut by the plane features, with every subtract feature applied as a Mesh; cached until invalidate_geometry() or place().
     const Mesh& model_geometry_mesh() const override;
 
-    /// The trimmed stock with every subtract feature applied as a BRep, the drills exact cylinders; cached until invalidate_geometry() or place().
+    /// The trimmed stock cut by the plane features, with every subtract feature applied as a BRep, the drills exact cylinders; cached until invalidate_geometry() or place().
     const BRep& model_geometry_brep() const override;
 
     /// Drops the uncut and the cut solids and every other cache.

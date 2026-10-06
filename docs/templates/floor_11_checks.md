@@ -1,5 +1,7 @@
 # Floor 11: Checks and examples {#templates_floor_11_checks}
 
+[TOC]
+
 `FloorGuide::check()` measures the relations the design relies on and returns a `FloorReport`, while `compute_breps` and `check_breps` build exact-bore BReps of a `Floor` and count them against the bores the dowels and screws need. Values are for `FloorGuide::rectangle(3000, 3000)` unless a section says otherwise.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_7_contacts_cantilevers.cpp) and [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_8_rectangle.cpp) build the complete connected floor on the square bay and on the tied 6000 x 4800 bay.

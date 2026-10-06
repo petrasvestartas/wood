@@ -1,5 +1,7 @@
 # Floor {#templates_floor}
 
+[TOC]
+
 The vaulted timber floor bay: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, column blocks, t-sections and beds around a central oculus. Two `WoodSession` classes build it: `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`) computes the geometry, and `wood_floor::Floor` (`src/templates/floor/floor.h`) builds the elements, their contacts, the connectors and the screws from it.
 
 ![The floor in its key steps](floor/floor_film.webp)

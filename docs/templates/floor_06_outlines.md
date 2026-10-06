@@ -1,5 +1,7 @@
 # Floor 06: Beam, wedge, flange, bed, oculus and cutter outlines {#templates_floor_06_outlines}
 
+[TOC]
+
 This chapter builds the outlines of the inner beams, wedges, t-sections, beds, oculus and column cutters with `geometry::loft_planes` and the `Quarter` / `FloorGuide` member functions, each returning `Outline{top, bottom}` pairs at the datum z 0. Chapter 07 turns them into elements with `to_beam` and `to_plate`, and into the column's solid cuts.
 
 Example: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_4_quarters.cpp) builds the four quarters, every inner beam, wedge, t-section and bed made from these outlines, [templates_floor_5_oculus.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_5_oculus.cpp) builds the oculus ring, its bottom wedges and the central plate, and [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/44f9aa85952d32a9264125f4e9940e55b05a4512/examples/templates_floor_2_column_model.cpp) carves column 0's head with quarter 0's six column cutters.

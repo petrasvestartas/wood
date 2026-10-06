@@ -10,6 +10,7 @@
 #include "wood_element_connector_part.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
+#include "wood_element_cut_plane.h"
 #include "wood_element_beam_variable.h"
 #include "wood_element_support.h"
 #include "wood_element_plate.h"
@@ -269,7 +270,7 @@ public:
     /// One past the highest n of an element named <prefix>_<n>, 0 when there is none: the next free number of a name prefix.
     size_t next_number(const std::string& prefix) const;
 
-    /// Writes every cut member, connector part and dowel as its BRep instead of its mesh, the bores exact cylinders.
+    /// Writes every cut member, connector part, dowel and support as its BRep instead of its mesh, the bores and round parts exact.
     void compute_breps();
 
     /// Every Plate, in objects.elements order.

@@ -41,6 +41,8 @@ std::shared_ptr<Block> Block::from_element(Element e) {
     if (proto.has_source_mesh()) block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
     else if (block->loops.empty() && block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
     for (const auto& cut : proto.solid_features()) block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
+        block->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
     return block;
 }
 
@@ -106,6 +108,8 @@ std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
     if (source_mesh) block->source_mesh = source_mesh->transformed(xform);
     block->cuts = transformed_list(cuts, xform);
     for (const auto& cut : solid_features) block->solid_features.push_back(cut.transformed(xform));
+    for (const InteractionFeaturePlane& feature : plane_features)
+        block->plane_features.push_back(feature.transformed(xform));
     block->set_features(transformed_features(_features, xform));
     block->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -119,6 +123,8 @@ void Block::place(const Xform& xform) {
     if (source_mesh) source_mesh = source_mesh->transformed(xform);
     cuts = transformed_list(cuts, xform);
     for (auto& cut : solid_features) cut = cut.transformed(xform);
+    for (InteractionFeaturePlane& feature : plane_features)
+        feature = feature.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -196,6 +202,9 @@ std::string Block::element_data_dumps() const {
 
     for (const auto& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+    for (const InteractionFeaturePlane& feature : plane_features)
+        if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
+            throw std::runtime_error("Invalid plane feature");
     return proto.SerializeAsString();
 }
 

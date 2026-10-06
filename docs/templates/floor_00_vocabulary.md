@@ -1,5 +1,7 @@
 # FloorGuide and Floor {#templates_floor_00_vocabulary}
 
+[TOC]
+
 The floor is two classes. **`FloorGuide`** (`floor_guide.h`) computes geometry only: planes, quads, parabolas and every member as two face loops. **`Floor`** (`floor.h`) builds the model from it: elements, the contact interactions between them, connectors and screws.
 
 ```mermaid

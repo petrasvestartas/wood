@@ -1,0 +1,8 @@
+syntax = "proto3";
+package wood_proto;
+import "plane.proto";
+// A plane an element is cut by, keeping the side its normal points to, in the element's frame.
+message InteractionFeaturePlane {
+  string source = 1;                 // The element that put it there, so its next feature replaces it
+  session_proto.Plane plane = 2;     // The cutting plane; the element keeps the side its normal points to
+}

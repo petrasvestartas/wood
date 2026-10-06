@@ -1,5 +1,7 @@
 # Cross {#templates_cross}
 
+[TOC]
+
 A plate per mesh face with connector plates across every interior edge. Every picture is the example's `data/output/pb/live.pb` rendered by session_viewer; its code folds open under it.
 
 ## vda_mesh

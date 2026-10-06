@@ -9,6 +9,7 @@ int main() {
     WoodSession scene("element_support");
 
     scene.add(std::make_shared<Support>(Plane::xy_plane(), "support"));
+    scene.compute_breps();
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -17,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A support on the xy plane with the manufacturer's dimensions: base plate with anchors, tube, head plate and column screws.
+A support on the xy plane with the manufacturer's dimensions: base plate with anchors, tube, head plate and column screws, written as its exact BRep so the round parts and holes are smooth.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

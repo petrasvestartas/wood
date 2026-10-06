@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package wood_proto;
 import "interaction_feature_solid.proto";
+import "interaction_feature_plane.proto";
 
 import "plane.proto";
 import "mesh.proto";
@@ -11,6 +12,7 @@ import "polyline.proto";
 message Block {
   session_proto.Mesh source_mesh = 4;
   repeated InteractionFeatureSolid solid_features = 3;
+  repeated InteractionFeaturePlane plane_features = 5;  // The planes other elements cut it by
   repeated session_proto.Polyline loops = 1;  // Bottom loop, top loop, then their holes paired in order
   repeated session_proto.Plane cuts = 2;      // Planes the solid is cut by, each keeping the side its normal points to
 }

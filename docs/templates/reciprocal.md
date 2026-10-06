@@ -1,5 +1,7 @@
 # Reciprocal {#templates_reciprocal}
 
+[TOC]
+
 Reciprocal frames: one beam plate per mesh edge, moved or rotated past its neighbours. Every picture is the example's `data/output/pb/live.pb` rendered by session_viewer; its code folds open under it.
 
 ## reciprocal_move

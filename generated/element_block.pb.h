@@ -31,6 +31,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
 #include "interaction_feature_solid.pb.h"
+#include "interaction_feature_plane.pb.h"
 #include "plane.pb.h"
 #include "mesh.pb.h"
 #include "polyline.pb.h"
@@ -221,6 +222,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Block final : public ::google::prot
     kLoopsFieldNumber = 1,
     kCutsFieldNumber = 2,
     kSolidFeaturesFieldNumber = 3,
+    kPlaneFeaturesFieldNumber = 5,
     kSourceMeshFieldNumber = 4,
   };
   // repeated .session_proto.Polyline loops = 1;
@@ -283,6 +285,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Block final : public ::google::prot
   ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
+  // repeated .wood_proto.InteractionFeaturePlane plane_features = 5;
+  [[nodiscard]] int plane_features_size() const;
+  private:
+  int _internal_plane_features_size() const;
+
+  public:
+  void clear_plane_features() ;
+  [[nodiscard]] const ::wood_proto::InteractionFeaturePlane& plane_features(int index) const;
+  [[nodiscard]] ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL mutable_plane_features(int index);
+  ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL add_plane_features();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>&
+  plane_features() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+  mutable_plane_features();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>& _internal_plane_features() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL _internal_mutable_plane_features();
+
+  public:
   // .session_proto.Mesh source_mesh = 4;
   [[nodiscard]] bool has_source_mesh() const;
   void clear_source_mesh() ;
@@ -302,8 +324,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Block final : public ::google::prot
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<2, 4,
-                          4, 0,
+      ::google::protobuf::internal::TcParseTable<3, 5,
+                          5, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -334,6 +356,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Block final : public ::google::prot
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > loops_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
     ::session_proto::Mesh* PROTOBUF_NULLABLE source_mesh_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -359,7 +382,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Block final : public ::google::prot
 
 // .session_proto.Mesh source_mesh = 4;
 inline bool Block::has_source_mesh() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.source_mesh_ != nullptr);
   return value;
 }
@@ -380,16 +403,16 @@ inline void Block::unsafe_arena_set_allocated_source_mesh(
   }
   _impl_.source_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Block.source_mesh)
 }
 inline ::session_proto::Mesh* PROTOBUF_NULLABLE Block::release_source_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* released = _impl_.source_mesh_;
   _impl_.source_mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -409,7 +432,7 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE Block::unsafe_arena_release_sour
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Block.source_mesh)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* temp = _impl_.source_mesh_;
   _impl_.source_mesh_ = nullptr;
   return temp;
@@ -424,7 +447,7 @@ inline ::session_proto::Mesh* PROTOBUF_NONNULL Block::_internal_mutable_source_m
 }
 inline ::session_proto::Mesh* PROTOBUF_NONNULL Block::mutable_source_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* _msg = _internal_mutable_source_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.Block.source_mesh)
   return _msg;
@@ -441,9 +464,9 @@ inline void Block::set_allocated_source_mesh(::session_proto::Mesh* PROTOBUF_NUL
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
   _impl_.source_mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
@@ -498,6 +521,56 @@ inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSoli
 Block::_internal_mutable_solid_features() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.solid_features_;
+}
+
+// repeated .wood_proto.InteractionFeaturePlane plane_features = 5;
+inline int Block::_internal_plane_features_size() const {
+  return _internal_plane_features().size();
+}
+inline int Block::plane_features_size() const {
+  return _internal_plane_features_size();
+}
+inline const ::wood_proto::InteractionFeaturePlane& Block::plane_features(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Block.plane_features)
+  return _internal_plane_features().Get(index);
+}
+inline ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL Block::mutable_plane_features(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Block.plane_features)
+  return _internal_mutable_plane_features()->Mutable(index);
+}
+inline ::wood_proto::InteractionFeaturePlane* PROTOBUF_NONNULL Block::add_plane_features()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::wood_proto::InteractionFeaturePlane* _add =
+      _internal_mutable_plane_features()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_add:wood_proto.Block.plane_features)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>& Block::plane_features() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Block.plane_features)
+  return _internal_plane_features();
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+Block::mutable_plane_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Block.plane_features)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_plane_features();
+}
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>&
+Block::_internal_plane_features() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.plane_features_;
+}
+inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeaturePlane>* PROTOBUF_NONNULL
+Block::_internal_mutable_plane_features() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.plane_features_;
 }
 
 // repeated .session_proto.Polyline loops = 1;

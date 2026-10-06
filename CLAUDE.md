@@ -82,16 +82,18 @@ https://petrasvestartas.github.io/session/
   every new element or constructor:
   - `examples/elements/element_<type>.cpp`: minimal like an API, one instance of the element and
     nothing else, registered as `ADD_EXE(element_<type> ...)`; a case that needs other elements (a
-    column with glued blocks and cuts) is its own example, `element_<type>_<case>.cpp`, showing them
-    through `add_interaction(source, target, InteractionFeatureSolid(mesh, operation))`.
-  - `docs/images/elements/element_<type>.png`: that example's `data/output/pb/live.pb` rendered by
-    session_viewer's selftest with `.claude/skills/wood-film-docs/templates/viewer_render_options.patch`
-    applied (Arctic, opacity 1, `VIEWER_FEATURES=1` so the axis and sections show), cropped to the
-    elements and centred.
-  - `docs/elements/element_<type>.md` (`{#elements_<type>}`): one sentence on what it is, the
-    constructors as a code block, the picture with one line naming what it shows, and the example
-    by `\include{lineno} elements/element_<type>.cpp`; listed in the table and the subpages of
-    `docs/elements.md`.
+    column with glued blocks and cuts, a beam cut by plane elements) is its own example,
+    `element_<type>_<case>.cpp`, showing them through `add_interaction(source, target, feature)`.
+  - `docs/images/elements/<example>.png`: drawn by `python3 tools/render_element_docs.py` (listed
+    in its `EXAMPLES`), which runs the example and renders its `live.pb` with session_viewer's
+    selftest (`.claude/skills/wood-film-docs/templates/viewer_render_options.patch` applied): Arctic,
+    opacity 0.75, the element features drawn, cropped, with a layer panel of the scene's elements,
+    their features and the interaction features between them.
+  - `docs/elements/element_<type>.md` (`{#elements_<type>}`, `[TOC]` under the title): one sentence
+    on what it is, a `## Constructors` section with the constructors as a code block, then one `##`
+    section per case with its picture, one line naming what it shows and the example by
+    `\include{lineno} elements/<example>.cpp`; listed in the table and the subpages of
+    `docs/elements.md`. The sections fill the page outline on the right.
 
 ## Before push to github
 
