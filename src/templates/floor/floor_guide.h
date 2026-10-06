@@ -2,6 +2,7 @@
 #include "wood_session.h"
 
 using namespace session_cpp;
+using namespace wood_session;
 
 // The geometry of the timber floor: FloorGuide computes every member of every quarter as two face loops;
 // floor.h builds the model from it.
@@ -46,9 +47,9 @@ public:
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The floor guide, a session ready to draw: the corners and the parameters, and the geometry every member is built from, computed by compute() on construction and again after a parameter changes and drawn into the session itself, grouped by quarter. It works for any convex four-corner bay: every method takes the quarter q, the quarter at corner q. A Floor builds the model from it.
-class FloorGuide : public wood_session::WoodSession {
+class FloorGuide : public WoodSession {
 public:
-    const std::array<Point, 4> corners; // Counter-clockwise at z 0.
+    std::array<Point, 4> corners; // Counter-clockwise at z 0.
 
     // the parameters, each with its default; after changing one, compute() again
     double size_oculus = 1000.0; // Distance of every oculus point from the centre along its seam: a square diamond on a rectangular bay.
@@ -170,7 +171,7 @@ public:
     std::vector<std::array<Polyline, 2>> column_cutters(size_t q) const;
 
     /// The column cutters of corner q lifted to the floor as solid difference cuts of the column.
-    std::vector<wood_session::SolidCut> column_cuts(size_t q) const;
+    std::vector<SolidCut> column_cuts(size_t q) const;
 
     /// The column's carved face on fan plane i of corner q (0 side 0, 1 the chamfer, 2 side 1) between the datum and the middle level: datum corners, then middle-level corners.
     std::vector<Point> column_face(size_t q, size_t i) const;

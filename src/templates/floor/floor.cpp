@@ -2,6 +2,7 @@
 #include "src/templates/floor/floor.h"
 
 using namespace session_cpp;
+using namespace wood_session;
 
 namespace wood_floor {
 
@@ -15,7 +16,9 @@ namespace wood_floor {
 // Screws
 // ═══════════════════════════════════════════════════════════════════════════
 
-ScrewLines::ScrewLines(const FloorGuide& floor_guide) : guide(floor_guide), lift(Xform::translation(0.0, 0.0, floor_guide.bay_height)) {
+ScrewLines::ScrewLines(const FloorGuide& guide)
+    : guide(guide),
+      lift(Xform::translation(0.0, 0.0, guide.bay_height)) {
 }
 
 std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
@@ -129,7 +132,9 @@ double ScrewLines::corner_level(double levels) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-Floor::Floor(const FloorGuide& floor_guide, const std::string& name) : wood_session::WoodSession(name), guide(floor_guide) {
+Floor::Floor(const FloorGuide& guide, const std::string& name)
+    : WoodSession(name),
+      guide(guide) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -160,7 +165,7 @@ void Floor::add_quarters() {
             members.beds.push_back({});
 
             for (size_t i = 0; i < rows[row].size(); i++) {
-                members.beds.back().push_back(std::make_shared<wood_session::Plate>(rows[row][i][1], rows[row][i][0], "beds"));
+                members.beds.back().push_back(std::make_shared<Plate>(rows[row][i][1], rows[row][i][0], "beds"));
                 add_placed(members.beds.back().back(), fmt::format("beds_{}_{}{}", row, i, suffix), node);
             }
         }
@@ -169,7 +174,7 @@ void Floor::add_quarters() {
         const std::vector<std::array<Polyline, 2>> tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
-            members.tsections.push_back(std::make_shared<wood_session::Plate>(tsection_loops[i][1], tsection_loops[i][0], "tsections"));
+            members.tsections.push_back(std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], "tsections"));
             add_placed(members.tsections.back(), fmt::format("tsections_{}{}", i, suffix), tsections);
         }
 
@@ -193,7 +198,7 @@ void Floor::add_quarters() {
         const std::vector<std::array<Polyline, 2>> block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
-            members.wedges.push_back(std::make_shared<wood_session::Plate>(block_loops[i][1], block_loops[i][0], "wedges"));
+            members.wedges.push_back(std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], "wedges"));
             add_placed(members.wedges.back(), fmt::format("wedges_{}{}", i, suffix), wedges);
         }
 
@@ -220,7 +225,7 @@ void Floor::add_oculus() {
             ring.push_back(beam(loops[i], {1, 0}, {2, 3}, "oculus"));
             add_placed(ring.back(), fmt::format("oculus_{}", i), group);
         } else {
-            oculus_plates.push_back(std::make_shared<wood_session::Plate>(loops[i][1], loops[i][0], "oculus"));
+            oculus_plates.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], "oculus"));
             add_placed(oculus_plates.back(), fmt::format("oculus_{}", i), group);
         }
     }
@@ -241,19 +246,19 @@ void Floor::add_column(size_t corner) {
         columns.resize(4);
 
     ColumnModel& model = columns[k];
-    model.support = std::make_shared<wood_session::Support>(guide.support_plane(k), "support");
+    model.support = std::make_shared<Support>(guide.support_plane(k), "support");
     model.support->name = fmt::format("support_{}", k);
     const Point foot = model.support->column_foot();
-    model.column = wood_session::Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
+    model.column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
     model.column->name = fmt::format("column_{}", k);
     add(model.support, group);
     add(model.column, group);
 
-    const std::shared_ptr<wood_session::Joint> joint = wood_session::Joint::support(*model.support, *model.column);
+    const std::shared_ptr<Joint> joint = Joint::support(*model.support, *model.column);
     add(joint, group);
     add_joint(joint);
 
-    for (const wood_session::SolidCut& cut : guide.column_cuts(k))
+    for (const SolidCut& cut : guide.column_cuts(k))
         model.column->solid_cuts.push_back(cut);
 
     model.column->invalidate_geometry();
@@ -270,7 +275,7 @@ void Floor::add_placed(const std::shared_ptr<Element>& element, const std::strin
     add(element, group);
 }
 
-std::shared_ptr<wood_session::BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
+std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -296,17 +301,17 @@ std::shared_ptr<wood_session::BeamVariable> Floor::rib(const std::array<Polyline
 
     const Line axis = Line::from_points(Line::from_points(near[1], far[1]).center(), Line::from_points(near[0], far[0]).center());
 
-    return std::make_shared<wood_session::BeamVariable>(axis, sections, name);
+    return std::make_shared<BeamVariable>(axis, sections, name);
 }
 
-std::shared_ptr<wood_session::BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name) {
+std::shared_ptr<BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
     const Polyline first = Polyline({near[start[0]], near[start[1]], far[start[1]], far[start[0]]}).closed();
     const Polyline last = Polyline({near[end[0]], near[end[1]], far[end[1]], far[end[0]]}).closed();
 
-    return wood_session::BeamVariable::between(first, last, name);
+    return BeamVariable::between(first, last, name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -351,7 +356,7 @@ void Floor::add_contact(ContactKind kind, const std::string& place, const std::s
         if (existing->name == name)
             return;
 
-    const std::shared_ptr<wood_session::InteractionContactFace> contact = compute_face_contact(a, b);
+    const std::shared_ptr<InteractionContactFace> contact = compute_face_contact(a, b);
 
     if (!contact)
         throw std::runtime_error(fmt::format("no contact {} between {} and {}", name, a->name, b->name));
@@ -364,10 +369,10 @@ void Floor::add_contact(ContactKind kind, const std::string& place, const std::s
 // Connectors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(const std::vector<ContactKind>& kinds) {
+std::vector<std::shared_ptr<JointBeam>> Floor::add_connectors(const std::vector<ContactKind>& kinds) {
 
     // every contact interaction of the kinds asked for, read from the graph with its pair in the order it was added
-    std::vector<std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<wood_session::InteractionContactFace>>> found;
+    std::vector<std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>> found;
 
     for (const auto& [u, w] : graph.get_edges()) {
         const Edge& edge = graph.edges.at(u).at(w);
@@ -378,7 +383,7 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(cons
             continue;
 
         for (const std::shared_ptr<Interaction>& interaction : get_interaction(a, b)) {
-            const std::shared_ptr<wood_session::InteractionContactFace> contact = std::dynamic_pointer_cast<wood_session::InteractionContactFace>(interaction);
+            const std::shared_ptr<InteractionContactFace> contact = std::dynamic_pointer_cast<InteractionContactFace>(interaction);
 
             for (const ContactKind kind : kinds)
                 if (contact && contact->name.starts_with(CONTACT_NAMES[static_cast<size_t>(kind)] + "_"))
@@ -386,11 +391,11 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(cons
         }
     }
 
-    std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<wood_session::InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<wood_session::InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
+    std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
 
     // every connector first, so a failing one throws before anything is added or cut
-    std::vector<std::tuple<std::string, size_t, std::shared_ptr<wood_session::JointBeam>>> built;
-    std::map<size_t, std::vector<std::shared_ptr<wood_session::JointBeam>>> plates_of_corner;
+    std::vector<std::tuple<std::string, size_t, std::shared_ptr<JointBeam>>> built;
+    std::map<size_t, std::vector<std::shared_ptr<JointBeam>>> plates_of_corner;
 
     for (const auto& [kind, name, a, b, contact] : found) {
         // the place the name ends in: the quarter, then a rib or block index and a side
@@ -408,10 +413,10 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(cons
 
     for (const auto& [corner, plates] : plates_of_corner)
         if (plates.size() == 2)
-            built.push_back({"connector_cross_lap", corner, wood_session::JointBeam::cross_lap(*plates[0], *plates[1])});
+            built.push_back({"connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
 
     std::map<std::string, size_t> numbers;
-    std::vector<std::shared_ptr<wood_session::JointBeam>> added;
+    std::vector<std::shared_ptr<JointBeam>> added;
 
     for (const auto& [prefix, q, connector] : built) {
         add_named_connector(connector, prefix, q, numbers);
@@ -422,25 +427,25 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_connectors(cons
     return added;
 }
 
-std::shared_ptr<wood_session::JointBeam> Floor::connector_of(ContactKind kind, const std::vector<size_t>& place, const Element& a, const Element& b, const wood_session::InteractionContactFace& contact) const {
+std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vector<size_t>& place, const Element& a, const Element& b, const InteractionContactFace& contact) const {
 
     const size_t q = place[0];
 
     if (kind == ContactKind::seam_wedge) {
         const double size = std::max(FloorGuide::thickness(guide.inner_beams(q)[0]), FloorGuide::thickness(guide.inner_beams((q + 1) % 4)[2]));
         const Plane end = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height)); // the bay's outer face the wedge runs on to
-        return wood_session::JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0, end);
+        return JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0, end);
     }
 
     if (kind == ContactKind::oculus_wedge) {
         const double size = std::max(FloorGuide::thickness(guide.inner_beams(q)[1]), FloorGuide::thickness(guide.oculus()[q]));
-        return wood_session::JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0);
+        return JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0);
     }
 
     if (kind == ContactKind::column_plate)
-        return wood_session::JointBeam::rectangle_plate(a, b, contact, FloorGuide::thickness(guide.outer_ribs(q)[place[1]]));
+        return JointBeam::rectangle_plate(a, b, contact, FloorGuide::thickness(guide.outer_ribs(q)[place[1]]));
 
-    const std::shared_ptr<wood_session::JointBeam> dowels = wood_session::JointBeam::dowels(a, b, contact);
+    const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(a, b, contact);
 
     if (!dowels)
         throw std::runtime_error("the inset leaves no room for the dowels of " + contact.name);
@@ -459,7 +464,7 @@ std::string Floor::connector_prefix(ContactKind kind) {
     return "connector_dowels";
 }
 
-void Floor::add_named_connector(const std::shared_ptr<wood_session::JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers) {
+void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers) {
 
     if (!numbers.count(prefix))
         numbers[prefix] = next_number(prefix);
@@ -473,10 +478,10 @@ void Floor::add_named_connector(const std::shared_ptr<wood_session::JointBeam>& 
 // Screws
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_screws() {
+std::vector<std::shared_ptr<JointBeam>> Floor::add_screws() {
 
     const ScrewLines lines(guide);
-    std::vector<std::pair<size_t, std::shared_ptr<wood_session::JointBeam>>> built;
+    std::vector<std::pair<size_t, std::shared_ptr<JointBeam>>> built;
 
     // every screw connector first, so a bay too narrow for them throws with nothing added
     for (size_t q = 0; q < 4; q++) {
@@ -500,7 +505,7 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_screws() {
     }
 
     std::map<std::string, size_t> numbers;
-    std::vector<std::shared_ptr<wood_session::JointBeam>> added;
+    std::vector<std::shared_ptr<JointBeam>> added;
 
     for (const auto& [q, connector] : built) {
         add_named_connector(connector, "connector_screws", q, numbers);
@@ -511,13 +516,13 @@ std::vector<std::shared_ptr<wood_session::JointBeam>> Floor::add_screws() {
     return added;
 }
 
-std::shared_ptr<wood_session::JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {
+std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {
 
     for (const Element* member : members)
         if (!member)
             throw std::runtime_error("add_screws needs every member of the floor in the scene first");
 
-    return wood_session::JointBeam::screws(members, lines);
+    return JointBeam::screws(members, lines);
 }
 
 }

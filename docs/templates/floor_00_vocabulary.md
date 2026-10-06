@@ -29,29 +29,29 @@ The guide is made from four corners and the parameters (`size_outer_ribs`, `size
 
 Code: [`FloorGuide`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L67)
 
-### quarter_polygon(q)
+### quarter_polygon
 
-![quarter_polygon(q)](floor/902_quarter_polygon.webp)
+![quarter_polygon](floor/902_quarter_polygon.webp)
 
 <span style="color:#2196EA">■ quarter 0</span> <span style="color:#A3A3A3">■ the other quarters</span>
 
-Quarter q in plan. Its five lines carry every plane of the quarter: the bay edges, the two seams, the oculus edge.
+The bay is split into four quarters; quarter q is the one at `corners[q]`. Every FloorGuide method takes q and computes that quarter alone, so a rectangular bay gets four different quarters; the pictures below show q = 0. The quarter's five lines carry all its planes: the bay edges, the two seams, the oculus edge.
 
 Code: [`quarter_polygon`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L117)
 
-### quarter_column_polygon(q)
+### quarter_column_polygon
 
-![quarter_column_polygon(q)](floor/903_quarter_column_polygon.webp)
+![quarter_column_polygon](floor/903_quarter_column_polygon.webp)
 
-<span style="color:#2196EA">■ the column head</span> <span style="color:#737373">■ column_frame(q)</span>
+<span style="color:#2196EA">■ the column head</span> <span style="color:#737373">■ column_frame</span>
 
-The column head at corner q, where the ribs start; column_frame(q) gives its axes.
+The column head at the quarter's corner, where the ribs start; `column_frame` gives its axes.
 
 Code: [`quarter_column_polygon`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L120)
 
-### construction_planes(q)
+### construction_planes
 
-![construction_planes(q)](floor/904_construction_planes.webp)
+![construction_planes](floor/904_construction_planes.webp)
 
 <span style="color:#2196EA">■ base face</span> <span style="color:#F2CC0C">■ offset face</span> <span style="color:#A3A3A3">■ the member's footprint</span>
 
@@ -59,9 +59,9 @@ A plane pair for every member: its base face on one of the polygon's lines, and 
 
 Code: [`construction_planes`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L133)
 
-### construction_quads(q)
+### construction_quads
 
-![construction_quads(q)](floor/905_construction_quads.webp)
+![construction_quads](floor/905_construction_quads.webp)
 
 family colours
 
@@ -69,9 +69,9 @@ Where each member's four planes meet the floor datum: its footprint in plan.
 
 Code: [`construction_quads`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L136)
 
-### boundary_parabolas(q)
+### boundary_parabolas
 
-![boundary_parabolas(q)](floor/906_boundary_parabolas.webp)
+![boundary_parabolas](floor/906_boundary_parabolas.webp)
 
 <span style="color:#2196EA">■ the parabolas</span> <span style="color:#F2CC0C">■ their +t and +2t layers</span> <span style="color:#737373">■ rib quads</span>
 
@@ -79,9 +79,9 @@ A parabola under each rib axis, from `-height` at the column to `-static_h` at t
 
 Code: [`boundary_parabolas`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L146)
 
-### central_panel(q)
+### central_panel
 
-![central_panel(q)](floor/907_central_panel.webp)
+![central_panel](floor/907_central_panel.webp)
 
 <span style="color:#2196EA">■ soffit traces</span> <span style="color:#F2CC0C">■ layers</span> <span style="color:#E8478B">■ ruling</span>
 
@@ -99,9 +99,9 @@ Every member method below returns each member as `std::array<Polyline, 2>`: its 
 
 Code: [`loft`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L198)
 
-### outer_ribs(q), inner_ribs(q)
+### outer_ribs, inner_ribs
 
-![outer_ribs(q), inner_ribs(q)](floor/909_ribs.webp)
+![outer_ribs, inner_ribs](floor/909_ribs.webp)
 
 <span style="color:#2196EA">■ the ribs</span> <span style="color:#A3A3A3">■ the rest of the quarter</span>
 
@@ -109,9 +109,9 @@ Each rib's parabola trimmed by the planes it ends on, on both of its faces.
 
 Code: [`outer_ribs`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L171)
 
-### tsections(q)
+### tsections
 
-![tsections(q)](floor/910_tsections.webp)
+![tsections](floor/910_tsections.webp)
 
 <span style="color:#2196EA">■ the t-sections</span> <span style="color:#A3A3A3">■ ribs and beams</span>
 
@@ -119,9 +119,9 @@ Flange strips beside the rib faces; the beds rest on them.
 
 Code: [`tsections`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L168)
 
-### beds(q)
+### beds
 
-![beds(q)](floor/911_beds.webp)
+![beds](floor/911_beds.webp)
 
 <span style="color:#2196EA">■ the beds</span>
 
@@ -129,9 +129,9 @@ Three rows of bed plates between the ribs, each row trimmed alike so every plate
 
 Code: [`beds`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L165)
 
-### wedges(q), inner_beams(q)
+### wedges, inner_beams
 
-![wedges(q), inner_beams(q)](floor/912_wedges_and_beams.webp)
+![wedges, inner_beams](floor/912_wedges_and_beams.webp)
 
 <span style="color:#2196EA">■ column blocks and inner beams</span>
 
@@ -149,9 +149,9 @@ Four ring beams around the hole, one per oculus edge, each meeting its quarter's
 
 Code: [`oculus`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor_guide.h#L183)
 
-### column_cutters(q)
+### column_cutters
 
-![column_cutters(q)](floor/914_column_cutters.webp)
+![column_cutters](floor/914_column_cutters.webp)
 
 <span style="color:#2196EA">■ the cutters</span> <span style="color:#A3A3A3">■ the column</span>
 

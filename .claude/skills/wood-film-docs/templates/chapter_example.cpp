@@ -62,7 +62,7 @@ void members_of(const Context& context, size_t number, const std::string& slug, 
         for (const std::array<Polyline, 2>& member : list)
             frame.solid(member, BUILT);
 
-        frame.label(FAMILY_NAMES[static_cast<size_t>(family)] + "(0)", up(middle(list[list.size() / 2])));
+        frame.label(FAMILY_NAMES[static_cast<size_t>(family)], up(middle(list[list.size() / 2])));
     }
 
     (void)name;
@@ -96,13 +96,16 @@ void quarter_polygon(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const std::vector<Point> polygon = guide.quarter_polygon(0);
-    Frame frame(CHAPTER, 902, "quarter_polygon", "quarter_polygon(q): corner, edge midpoint, two oculus points, edge midpoint; its five lines carry every plane of the quarter", "top", BAY);
+    Frame frame(CHAPTER, 902, "quarter_polygon", "quarter_polygon: the quarter q at corners[q]; every FloorGuide method takes q, and the pictures show q = 0", "top", BAY);
     plan_context(frame, guide, true);
     frame.polyline(up(Polyline(polygon).closed()), BUILT);
     const std::array<std::string, 5> lines = {"line 0: bay edge", "line 1: seam", "line 2: oculus edge", "line 3: seam", "line 4: bay edge"};
 
     for (size_t i = 0; i < 5; i++)
         frame.label(lines[i], up(Line::from_points(polygon[i], polygon[(i + 1) % 5]).center()));
+
+    for (size_t q = 0; q < 4; q++)
+        frame.label(fmt::format("q = {}", q), up(Polyline(guide.quarter_polygon(q)).center()));
 
     frame.write(context.dir);
 }
@@ -112,7 +115,7 @@ void column_polygon(const Context& context) {
     const FloorGuide& guide = context.guide;
     const std::vector<Point> head = guide.quarter_column_polygon(0);
     const Plane frame_plane = guide.column_frame(0);
-    Frame frame(CHAPTER, 903, "quarter_column_polygon", "quarter_column_polygon(q): the column head at corner q in its column_frame(q); the ribs start from it", "top", HEAD_FAN);
+    Frame frame(CHAPTER, 903, "quarter_column_polygon", "quarter_column_polygon: the column head at the quarter's corner in its column_frame; the ribs start from it", "top", HEAD_FAN);
     frame.polyline(up(Polyline(head).closed()), BUILT);
     frame.line(up(Line::from_points(frame_plane.origin(), frame_plane.origin() + frame_plane.x_axis() * 200.0)), INPUT, PEN, false, true);
     frame.line(up(Line::from_points(frame_plane.origin(), frame_plane.origin() + frame_plane.y_axis() * 200.0)), INPUT, PEN, false, true);
@@ -129,7 +132,7 @@ void construction_planes(const Context& context) {
     const ConstructionPlanes& cp = guide.construction_planes(0);
     const Point middle_of_rib = guide.construction_quads(0).outer_ribs[0].center();
     const std::array<double, 6> around = {middle_of_rib[0] - 500.0, middle_of_rib[1] - 400.0, H - 300.0, middle_of_rib[0] + 500.0, middle_of_rib[1] + 400.0, H + 300.0};
-    Frame frame(CHAPTER, 904, "construction_planes", "construction_planes(q): a plane pair per member, its base face and the face offset by its size; here outer rib 0", "iso", around);
+    Frame frame(CHAPTER, 904, "construction_planes", "construction_planes: a plane pair per member, its base face and the face offset by its size; here outer rib 0", "iso", around);
     frame.plane_size = 250.0;
     frame.face(up(guide.construction_quads(0).outer_ribs[0].closed()), GREY);
     frame.plane(up(at(cp.outer_ribs[0][0], middle_of_rib)), BUILT);
@@ -143,7 +146,7 @@ void construction_quads(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const ConstructionQuads& quads = guide.construction_quads(0);
-    Frame frame(CHAPTER, 905, "construction_quads", "construction_quads(q): where each member's four planes meet the floor datum, its footprint in plan", "top", QUARTER);
+    Frame frame(CHAPTER, 905, "construction_quads", "construction_quads: where each member's four planes meet the floor datum, its footprint in plan", "top", QUARTER);
     plan_context(frame, guide, true);
 
     const std::array<std::pair<Family, const std::vector<Polyline>*>, 5> families = {{
@@ -168,7 +171,7 @@ void boundary_parabolas(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const std::vector<std::array<Polyline, 3>>& parabolas = guide.boundary_parabolas(0);
-    Frame frame(CHAPTER, 906, "boundary_parabolas", "boundary_parabolas(q): a parabola under each rib axis, from -height at the column to -static_h at the seam, with its two layers", "iso", QUARTER);
+    Frame frame(CHAPTER, 906, "boundary_parabolas", "boundary_parabolas: a parabola under each rib axis, from -height at the column to -static_h at the seam, with its two layers", "iso", QUARTER);
     plan_context(frame, guide, true);
 
     for (const Polyline& quad : guide.construction_quads(0).outer_ribs)
@@ -190,7 +193,7 @@ void central_panel(const Context& context) {
 
     const FloorGuide& guide = context.guide;
     const CentralPanel& panel = guide.central_panel(0);
-    Frame frame(CHAPTER, 907, "central_panel", "central_panel(q): between the two inner ribs one ruling crosses the panel and one sweep serves both ribs (rule A)", "iso", PANEL);
+    Frame frame(CHAPTER, 907, "central_panel", "central_panel: between the two inner ribs one ruling crosses the panel and one sweep serves both ribs (rule A)", "iso", PANEL);
 
     for (const Polyline& quad : guide.construction_quads(0).inner_ribs)
         frame.polyline(up(quad.closed()), GREY);
@@ -238,7 +241,7 @@ void oculus(const Context& context) {
     }
 
     frame.label("ring beam oculus_2", up(middle(ring[2])));
-    frame.label("oculus beam inner_beams(0)[1]", up(middle(guide.inner_beams(0)[1])));
+    frame.label("oculus beam inner_beams[1]", up(middle(guide.inner_beams(0)[1])));
     frame.label("bottom wedges and central plate", up(middle(ring[8])));
     frame.write(context.dir);
 }
@@ -246,13 +249,13 @@ void oculus(const Context& context) {
 void column_cutters(const Context& context) {
 
     const std::vector<std::array<Polyline, 2>> cutters = context.guide.column_cutters(0);
-    Frame frame(CHAPTER, 914, "column_cutters", "column_cutters(q): six plates that carve the column head so the ribs and the column blocks sit on it", "iso", COLUMN_HEAD);
+    Frame frame(CHAPTER, 914, "column_cutters", "column_cutters: six plates that carve the column head so the ribs and the column blocks sit on it", "iso", COLUMN_HEAD);
     frame.element(context.members.columns[0].column, GREY);
 
     for (const std::array<Polyline, 2>& plate : cutters)
         frame.solid(plate, BUILT);
 
-    frame.label("column_cutters(0)", up(middle(cutters[1])));
+    frame.label("column_cutters", up(middle(cutters[1])));
     frame.write(context.dir);
 }
 
@@ -406,10 +409,10 @@ void chapter_00_vocabulary(const Context& context) {
     boundary_parabolas(context);
     central_panel(context);
     loops(context);
-    members_of(context, 909, "ribs", "outer_ribs(q), inner_ribs(q): each rib's parabola trimmed by the planes it ends on, on both of its faces", {Family::outer_ribs, Family::inner_ribs}, "ribs", QUARTER);
-    members_of(context, 910, "tsections", "tsections(q): flange strips beside the rib faces; the beds rest on them", {Family::tsections}, "tsections", QUARTER, {Family::beds, Family::wedges});
-    members_of(context, 911, "beds", "beds(q): three rows of bed plates between the ribs, each row trimmed alike so every plate stays a quad", {Family::beds}, "beds", QUARTER);
-    members_of(context, 912, "wedges_and_beams", "wedges(q), inner_beams(q): the three column blocks at the head, and the three beams on the seams and the oculus edge", {Family::wedges, Family::inner_beams}, "", QUARTER);
+    members_of(context, 909, "ribs", "outer_ribs, inner_ribs: each rib's parabola trimmed by the planes it ends on, on both of its faces", {Family::outer_ribs, Family::inner_ribs}, "ribs", QUARTER);
+    members_of(context, 910, "tsections", "tsections: flange strips beside the rib faces; the beds rest on them", {Family::tsections}, "tsections", QUARTER, {Family::beds, Family::wedges});
+    members_of(context, 911, "beds", "beds: three rows of bed plates between the ribs, each row trimmed alike so every plate stays a quad", {Family::beds}, "beds", QUARTER);
+    members_of(context, 912, "wedges_and_beams", "wedges, inner_beams: the three column blocks at the head, and the three beams on the seams and the oculus edge", {Family::wedges, Family::inner_beams}, "", QUARTER);
     oculus(context);
     column_cutters(context);
     elements(context);

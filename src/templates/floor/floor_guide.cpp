@@ -2,6 +2,7 @@
 #include "src/templates/floor/floor_guide.h"
 
 using namespace session_cpp;
+using namespace wood_session;
 
 namespace wood_floor {
 
@@ -21,7 +22,8 @@ const double CUTTER_MARGIN = 100.0; // how far column cutter quads overshoot and
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-FloorGuide::FloorGuide(const std::array<Point, 4>& guide_corners) : wood_session::WoodSession("floor_guide"), corners(guide_corners) {
+FloorGuide::FloorGuide(const std::array<Point, 4>& corners) {
+    this->corners = corners;
     compute();
 }
 
@@ -37,7 +39,7 @@ FloorGuide FloorGuide::rectangle(double half_x, double half_y) {
 void FloorGuide::compute() {
 
     // a recompute starts from an empty drawing
-    static_cast<wood_session::WoodSession&>(*this) = wood_session::WoodSession("floor_guide");
+    static_cast<WoodSession&>(*this) = WoodSession("floor_guide");
 
     centre = Point::centroid({corners[0], corners[1], corners[2], corners[3]});
 
@@ -849,13 +851,13 @@ std::vector<std::array<Polyline, 2>> FloorGuide::column_cutters(size_t q) const 
     return plates;
 }
 
-std::vector<wood_session::SolidCut> FloorGuide::column_cuts(size_t q) const {
+std::vector<SolidCut> FloorGuide::column_cuts(size_t q) const {
 
     const Xform lift = Xform::translation(0.0, 0.0, bay_height);
-    std::vector<wood_session::SolidCut> cuts;
+    std::vector<SolidCut> cuts;
 
     for (const std::array<Polyline, 2>& plate : column_cutters(q))
-        cuts.push_back(wood_session::SolidCut::difference(wood_session::Plate(plate[1], plate[0], "column_cutter").element_geometry_mesh().transformed(lift)));
+        cuts.push_back(SolidCut::difference(Plate(plate[1], plate[0], "column_cutter").element_geometry_mesh().transformed(lift)));
 
     return cuts;
 }
