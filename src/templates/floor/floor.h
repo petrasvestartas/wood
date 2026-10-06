@@ -302,12 +302,12 @@ enum class Family {
 
 const std::array<std::string, 6> FAMILY_NAMES = {"outer_ribs", "inner_ribs", "inner_beams", "wedges", "tsections", "beds"}; // The group and element name prefix of each quarter family, in Family order; the guide draws each member's construction under the same names.
 
-/// The display colour of each quarter family, in Family order, from the Block Research Group palette (brg.ethz.ch): accent orange, highlight amber, secondary slate and their tints, primary blue kept for the connectors. The guide draws a member's construction in it.
+/// The display colour of each quarter family, in Family order: pink, yellow, two neutral greys and the yellow and blue tints, the Block Research Group's primary blue kept for the connectors. The guide draws a member's construction in it.
 const std::array<session_cpp::Color, 6> FAMILY_COLORS = {
-    session_cpp::Color(235.0f / 255.0f, 119.0f / 255.0f, 33.0f / 255.0f, 1.0f, "outer_ribs"),
-    session_cpp::Color(235.0f / 255.0f, 177.0f / 255.0f, 33.0f / 255.0f, 1.0f, "inner_ribs"),
-    session_cpp::Color(69.0f / 255.0f, 91.0f / 255.0f, 107.0f / 255.0f, 1.0f, "inner_beams"),
-    session_cpp::Color(140.0f / 255.0f, 155.0f / 255.0f, 166.0f / 255.0f, 1.0f, "wedges"),
+    session_cpp::Color(232.0f / 255.0f, 71.0f / 255.0f, 139.0f / 255.0f, 1.0f, "outer_ribs"),
+    session_cpp::Color(242.0f / 255.0f, 204.0f / 255.0f, 12.0f / 255.0f, 1.0f, "inner_ribs"),
+    session_cpp::Color(124.0f / 255.0f, 124.0f / 255.0f, 124.0f / 255.0f, 1.0f, "inner_beams"),
+    session_cpp::Color(168.0f / 255.0f, 168.0f / 255.0f, 168.0f / 255.0f, 1.0f, "wedges"),
     session_cpp::Color(245.0f / 255.0f, 216.0f / 255.0f, 144.0f / 255.0f, 1.0f, "tsections"),
     session_cpp::Color(166.0f / 255.0f, 211.0f / 255.0f, 246.0f / 255.0f, 1.0f, "beds"),
 };

@@ -32,17 +32,17 @@ The chapters below take the algorithm one step at a time, in the order the code 
 10. @subpage templates_floor_10_screws (the five screw kinds, their levels and aim, and the screw check)
 11. @subpage templates_floor_11_checks (the floor report, the BRep check and the eight examples)
 
-**Reading the pictures.** Every colour names a role, in the palette of the Block Research Group (brg.ethz.ch), and the same colour marks the same role in the picture, in its colour key and in the text:
+**Reading the pictures.** Every colour names a role, blue from the palette of the Block Research Group (brg.ethz.ch), pink, yellow and greys beside it, and the same colour marks the same role in the picture, in its colour key and in the text:
 
 | Colour | Role |
 |---|---|
 | <span style="color:#2196EA">■ blue</span> `#2196EA` | what the step builds |
-| <span style="color:#EB7721">■ orange</span> `#EB7721` | the variable or value the step introduces |
-| <span style="color:#EBB121">■ amber</span> `#EBB121` | a second result, set apart from the first |
+| <span style="color:#E8478B">■ pink</span> `#E8478B` | the variable or value the step introduces |
+| <span style="color:#F2CC0C">■ yellow</span> `#F2CC0C` | a second result, set apart from the first |
 | <span style="color:#737373">■ grey</span> `#737373` | what the step reads from earlier steps; dashed, a construction helper |
 | <span style="color:#A3A3A3">■ light grey</span> `#DADADA` | context, solid, with `#B8B8B8` edges |
 
-Pictures that tell the member families apart use the family colours of `FAMILY_COLORS` instead: <span style="color:#EB7721">outer ribs</span>, <span style="color:#EBB121">inner ribs</span>, <span style="color:#455B6B">inner beams</span>, <span style="color:#8C9BA6">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, with the oculus ring <span style="color:#E8955A">light orange</span>, the column <span style="color:#2E3D48">dark slate</span> and the connectors <span style="color:#2196EA">BRG blue</span>. Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner. Each step ends with a link to the lines of code that perform it, at the commit these pages describe.
+Pictures that tell the member families apart use the family colours of `FAMILY_COLORS` instead: <span style="color:#E8478B">outer ribs</span>, <span style="color:#F2CC0C">inner ribs</span>, <span style="color:#7C7C7C">inner beams</span>, <span style="color:#A8A8A8">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, with the oculus ring <span style="color:#E06CA0">light pink</span>, the column <span style="color:#6E6E6E">dark grey</span> and the connectors <span style="color:#2196EA">BRG blue</span>. Black name plates are names in the code; each plate's leader ends in a ring on the point it names. Plans are seen from above at the floor's level, elevations along the x or y axis, and 3D steps look at quarter 0 from its column corner. Quarter 0 stands for all four: every quarter is computed by the same code at its own corner. Each step ends with a link to the lines of code that perform it, at the commit these pages describe.
 
 ## Data structures
 

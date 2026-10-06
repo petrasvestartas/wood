@@ -46,9 +46,9 @@ Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:359-40
 
 ![](floor/171_wedge_sizing.webp)
 
-<span style="color:#EB7721">■ variable</span> `length_margin` at both ends, `pocket_depth`   <span style="color:#737373">■ input</span> `edge`, the contact's top edge   <span style="color:#A3A3A3">■ context</span> `row.contact` of seam 0
+<span style="color:#E8478B">■ variable</span> `length_margin` at both ends, `pocket_depth`   <span style="color:#737373">■ input</span> `edge`, the contact's top edge   <span style="color:#A3A3A3">■ context</span> `row.contact` of seam 0
 
-For a seam_wedge or oculus_wedge row, `connector_of` takes `thickness = max(members.thickness(row.a), members.thickness(row.b))` and calls `JointBeam::wedge(*pair[0], *pair[1], contact, 1.5 * thickness, 2 * thickness / 3, row.end)`. So the wedge stops <span style="color:#EB7721">`length_margin`</span> = 1.5 thicknesses short of each end of <span style="color:#737373">the contact's top edge</span>, and its pockets are <span style="color:#EB7721">`pocket_depth`</span> = two thirds of a thickness deep. Every other wedge argument keeps its default. `members.thickness` is `outline_thickness`, the distance between the area centroids of the member outline's two loops. For a seam beam that is 67.08, not the 60 mm beam thickness, because the two loops' centroids are also offset along the beam. The screw module repeats the 1.5 factor as `WEDGE_MARGIN` (floor_screws.cpp:19).
+For a seam_wedge or oculus_wedge row, `connector_of` takes `thickness = max(members.thickness(row.a), members.thickness(row.b))` and calls `JointBeam::wedge(*pair[0], *pair[1], contact, 1.5 * thickness, 2 * thickness / 3, row.end)`. So the wedge stops <span style="color:#E8478B">`length_margin`</span> = 1.5 thicknesses short of each end of <span style="color:#737373">the contact's top edge</span>, and its pockets are <span style="color:#E8478B">`pocket_depth`</span> = two thirds of a thickness deep. Every other wedge argument keeps its default. `members.thickness` is `outline_thickness`, the distance between the area centroids of the member outline's two loops. For a seam beam that is 67.08, not the 60 mm beam thickness, because the two loops' centroids are also offset along the beam. The screw module repeats the 1.5 factor as `WEDGE_MARGIN` (floor_screws.cpp:19).
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -62,9 +62,9 @@ Code: `connector_of`, [src/templates/floor/floor_models.cpp:331-334](https://git
 
 ![](floor/172_wedge_frame.webp)
 
-<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#EB7721">■ variable</span> `edge = top_edge(points)`   <span style="color:#737373">■ input</span> `row.contact`, the `points`
+<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#E8478B">■ variable</span> `edge = top_edge(points)`   <span style="color:#737373">■ input</span> `row.contact`, the `points`
 
-<span style="color:#737373">`points`</span> = `merge_collinear(contact.polygon)` drops the closing point and every corner collinear with its neighbours. <span style="color:#EB7721">`edge`</span> = `top_edge(points)` is the longest edge whose midpoint is at or above the mean height of the corners, start to end in the polygon's winding; when no edge qualifies it takes the longest edge. `normal` is the Newell normal of `points`. The frame is <span style="color:#2196EA">`x`</span> along the edge, <span style="color:#2196EA">`y = normal - x (normal . x)`</span> normalized, and <span style="color:#2196EA">`z = x cross y`</span>. On seam 0 the contact is inner beam 0's loop on the seam plane x = 0, so the frame is axis-aligned.
+<span style="color:#737373">`points`</span> = `merge_collinear(contact.polygon)` drops the closing point and every corner collinear with its neighbours. <span style="color:#E8478B">`edge`</span> = `top_edge(points)` is the longest edge whose midpoint is at or above the mean height of the corners, start to end in the polygon's winding; when no edge qualifies it takes the longest edge. `normal` is the Newell normal of `points`. The frame is <span style="color:#2196EA">`x`</span> along the edge, <span style="color:#2196EA">`y = normal - x (normal . x)`</span> normalized, and <span style="color:#2196EA">`z = x cross y`</span>. On seam 0 the contact is inner beam 0's loop on the seam plane x = 0, so the frame is axis-aligned.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -78,9 +78,9 @@ Code: `JointBeam::wedge`, `merge_collinear`, `top_edge`, [src/joinery_solver/woo
 
 ![](floor/173_wedge_stations.webp)
 
-<span style="color:#2196EA">■ built</span> `length`, stations[0] to stations[1]   <span style="color:#EBB121">■ result</span> `origin`   <span style="color:#EB7721">■ variable</span> `end = edges[0].band[0]` and the station moved onto it   <span style="color:#737373">■ input</span> the two `length_margin` stations   <span style="color:#A3A3A3">■ context</span> `edge`
+<span style="color:#2196EA">■ built</span> `length`, stations[0] to stations[1]   <span style="color:#F2CC0C">■ result</span> `origin`   <span style="color:#E8478B">■ variable</span> `end = edges[0].band[0]` and the station moved onto it   <span style="color:#737373">■ input</span> the two `length_margin` stations   <span style="color:#A3A3A3">■ context</span> `edge`
 
-The two stations are positions along `x` measured from <span style="color:#A3A3A3">`edge.center()`</span>: <span style="color:#737373">`{-L/2 + length_margin, L/2 - length_margin}`</span> with L the edge length. When an end plane is given, the line from `edge.center()` along `x` is intersected with it (`Intersection::line_plane`), and the station nearer the hit is replaced by it. The seam wedges get <span style="color:#EB7721">`row.end = edges[q].band[0]`</span>, the bay's outer face, because the seam beams run through the rib band; the oculus wedges get no end plane. Then <span style="color:#EBB121">`origin`</span> = `edge.center() + x * mean(stations)`, and <span style="color:#2196EA">`length`</span> = `stations[1] - stations[0]` with an end plane, else `edge.length() - 2 * length_margin`, at least 1e-6 in both cases.
+The two stations are positions along `x` measured from <span style="color:#A3A3A3">`edge.center()`</span>: <span style="color:#737373">`{-L/2 + length_margin, L/2 - length_margin}`</span> with L the edge length. When an end plane is given, the line from `edge.center()` along `x` is intersected with it (`Intersection::line_plane`), and the station nearer the hit is replaced by it. The seam wedges get <span style="color:#E8478B">`row.end = edges[q].band[0]`</span>, the bay's outer face, because the seam beams run through the rib band; the oculus wedges get no end plane. Then <span style="color:#F2CC0C">`origin`</span> = `edge.center() + x * mean(stations)`, and <span style="color:#2196EA">`length`</span> = `stations[1] - stations[0]` with an end plane, else `edge.length() - 2 * length_margin`, at least 1e-6 in both cases.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -95,9 +95,9 @@ Code: `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood_element_joint_b
 
 ![](floor/174_wedge_profile.webp)
 
-<span style="color:#2196EA">■ built</span> `joint->parts[0]`   <span style="color:#EB7721">■ variable</span> the `below_top` cut at the top edge   <span style="color:#737373">■ input</span> `WEDGE_PROFILE`
+<span style="color:#2196EA">■ built</span> `joint->parts[0]`   <span style="color:#E8478B">■ variable</span> the `below_top` cut at the top edge   <span style="color:#737373">■ input</span> `WEDGE_PROFILE`
 
-<span style="color:#737373">`WEDGE_PROFILE`</span> is a triangle in the frame's (y, z) plane: the apex (0, -197) and the top corners (-31.75593, 11.530606) and (31.75593, 11.530606), so its corners stand 11.53 above the top edge. <span style="color:#EB7721">`below_top`</span> measures each corner's height from the origin as `y * axes[1].z + z * axes[2].z`, keeps the corners at or below 0, and adds the point where each side crosses 0. This is a horizontal cut at the level of the top edge, also when the frame is tilted. The two top corners are replaced by the crossings at y = -30 and 30, so the kept triangle is 60 wide at the top. `frame_point` places the kept corners at frame x = -length/2 and +length/2, and <span style="color:#2196EA">the single part</span> is that loop pair: a straight prism.
+<span style="color:#737373">`WEDGE_PROFILE`</span> is a triangle in the frame's (y, z) plane: the apex (0, -197) and the top corners (-31.75593, 11.530606) and (31.75593, 11.530606), so its corners stand 11.53 above the top edge. <span style="color:#E8478B">`below_top`</span> measures each corner's height from the origin as `y * axes[1].z + z * axes[2].z`, keeps the corners at or below 0, and adds the point where each side crosses 0. This is a horizontal cut at the level of the top edge, also when the frame is tilted. The two top corners are replaced by the crossings at y = -30 and 30, so the kept triangle is 60 wide at the top. `frame_point` places the kept corners at frame x = -length/2 and +length/2, and <span style="color:#2196EA">the single part</span> is that loop pair: a straight prism.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -131,9 +131,9 @@ Code: `JointBeam::wedge`, `flush_dowel`, `sides_tolerance`, [src/joinery_solver/
 
 ![](floor/176_wedge_pockets.webp)
 
-<span style="color:#2196EA">■ built</span> `cutters[0]`, inner_beams_0_0's pocket   <span style="color:#EBB121">■ result</span> `cutters[1]`, inner_beams_2_1's pocket   <span style="color:#737373">■ input</span> `joint->parts[0]`   <span style="color:#A3A3A3">■ context</span> the two seam beams
+<span style="color:#2196EA">■ built</span> `cutters[0]`, inner_beams_0_0's pocket   <span style="color:#F2CC0C">■ result</span> `cutters[1]`, inner_beams_2_1's pocket   <span style="color:#737373">■ input</span> `joint->parts[0]`   <span style="color:#A3A3A3">■ context</span> the two seam beams
 
-`wedge_pocket(p0, p1)` takes the unclipped profile side from the apex to one top corner. Its face rectangle spans the wedge length by the side's slant length (210.93). The side's normal is turned away from the profile's middle, and the deep loop is the face moved `pocket_depth` against that normal, toward and past the middle, so the box crosses the contact plane. Because the box uses the unclipped corners, it stands 11.53 above the top. `pockets[0]` lies under apex to `profile[1]`, `pockets[1]` under apex to `profile[2]`. For a and then b, a member whose `model_geometry_mesh()` centroid lies on the positive side of the contact normal gets `pockets[1]`, otherwise `pockets[0]`: one cutter list per target, in `targets` order. On seam 0 the normal is (-1, 0, 0) and a, inner_beams_0_0, lies at x < 0, so a gets `pockets[1]`, its <span style="color:#2196EA">`cutters[0]`</span>, and b gets `pockets[0]`, its <span style="color:#EBB121">`cutters[1]`</span>.
+`wedge_pocket(p0, p1)` takes the unclipped profile side from the apex to one top corner. Its face rectangle spans the wedge length by the side's slant length (210.93). The side's normal is turned away from the profile's middle, and the deep loop is the face moved `pocket_depth` against that normal, toward and past the middle, so the box crosses the contact plane. Because the box uses the unclipped corners, it stands 11.53 above the top. `pockets[0]` lies under apex to `profile[1]`, `pockets[1]` under apex to `profile[2]`. For a and then b, a member whose `model_geometry_mesh()` centroid lies on the positive side of the contact normal gets `pockets[1]`, otherwise `pockets[0]`: one cutter list per target, in `targets` order. On seam 0 the normal is (-1, 0, 0) and a, inner_beams_0_0, lies at x < 0, so a gets `pockets[1]`, its <span style="color:#2196EA">`cutters[0]`</span>, and b gets `pockets[0]`, its <span style="color:#F2CC0C">`cutters[1]`</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -148,9 +148,9 @@ Code: `wedge_pocket`, `JointBeam::wedge`, [src/joinery_solver/wood_elements/wood
 
 ![](floor/177_oculus_wedge.webp)
 
-<span style="color:#2196EA">■ built</span> `connector_wedge_4_part`   <span style="color:#EB7721">■ variable</span> `row.contact` on `oculus_edges[0].tilted`   <span style="color:#A3A3A3">■ context</span> inner_beams_1_0, oculus_0
+<span style="color:#2196EA">■ built</span> `connector_wedge_4_part`   <span style="color:#E8478B">■ variable</span> `row.contact` on `oculus_edges[0].tilted`   <span style="color:#A3A3A3">■ context</span> inner_beams_1_0, oculus_0
 
-For quarter q the oculus_wedge row has a = inner beam 1 of q and b = ring beam q. Its plane is `oculus_edges[q].tilted`, lifted, and <span style="color:#EB7721">its contact</span> is beam 1's bottom loop on that plane, lifted; it has no end plane. The wedge factory runs as in sections 172 to 176. The contact normal leans by `oculus_plane_angle`, so the frame's y and z tilt and the profile turns with them. `below_top` still cuts <span style="color:#2196EA">the wedge</span> horizontally at the top edge's level, flush at 3500, and the apex ends at 3303.75 instead of 3303. The dowels stay horizontal through the `flat` projection. The picture is turned about a vertical axis so the view looks along oculus edge 0. Example 6 (`templates_floor_6_contacts_floor`) adds only these eight wedges; its description says red, but the code paints connectors `CONNECTOR_COLOR`, brg_blue.
+For quarter q the oculus_wedge row has a = inner beam 1 of q and b = ring beam q. Its plane is `oculus_edges[q].tilted`, lifted, and <span style="color:#E8478B">its contact</span> is beam 1's bottom loop on that plane, lifted; it has no end plane. The wedge factory runs as in sections 172 to 176. The contact normal leans by `oculus_plane_angle`, so the frame's y and z tilt and the profile turns with them. `below_top` still cuts <span style="color:#2196EA">the wedge</span> horizontally at the top edge's level, flush at 3500, and the apex ends at 3303.75 instead of 3303. The dowels stay horizontal through the `flat` projection. The picture is turned about a vertical axis so the view looks along oculus edge 0. Example 6 (`templates_floor_6_contacts_floor`) adds only these eight wedges; its description says red, but the code paints connectors `CONNECTOR_COLOR`, brg_blue.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -166,9 +166,9 @@ Code: `oculus_wedge`, [src/templates/floor/floor_relations.cpp:75-88](https://gi
 
 ![](floor/178_plate_frame.webp)
 
-<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#EBB121">■ result</span> `origin = top_origin(points)`   <span style="color:#737373">■ input</span> `row.contact` and its Newell `normal`, dashed
+<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#F2CC0C">■ result</span> `origin = top_origin(points)`   <span style="color:#737373">■ input</span> `row.contact` and its Newell `normal`, dashed
 
-`connector_of` calls `rectangle_plate(column, rib, contact, members.thickness(row.b))`, so the dowel length is the rib's thickness. `rectangle_plate` takes the raw contact points without the closing point, with no `merge_collinear`, and computes their <span style="color:#737373">Newell normal</span>. <span style="color:#2196EA">`x`</span> is that normal with its z set to 0; if that vanishes it is `inward`, the direction from the contact centroid to the rib's mesh centroid with z set to 0. `x` is normalized and flipped if it points away from `inward`. Then <span style="color:#2196EA">`y = Z cross x`</span> and <span style="color:#2196EA">`z`</span> is world Z. <span style="color:#EBB121">The origin</span> is `top_origin(points)`: the centre of the bounding box of the corners within max(1, 0.02 * height) of the contact's top.
+`connector_of` calls `rectangle_plate(column, rib, contact, members.thickness(row.b))`, so the dowel length is the rib's thickness. `rectangle_plate` takes the raw contact points without the closing point, with no `merge_collinear`, and computes their <span style="color:#737373">Newell normal</span>. <span style="color:#2196EA">`x`</span> is that normal with its z set to 0; if that vanishes it is `inward`, the direction from the contact centroid to the rib's mesh centroid with z set to 0. `x` is normalized and flipped if it points away from `inward`. Then <span style="color:#2196EA">`y = Z cross x`</span> and <span style="color:#2196EA">`z`</span> is world Z. <span style="color:#F2CC0C">The origin</span> is `top_origin(points)`: the centre of the bounding box of the corners within max(1, 0.02 * height) of the contact's top.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -182,9 +182,9 @@ Code: `JointBeam::rectangle_plate`, `top_origin`, [src/joinery_solver/wood_eleme
 
 ![](floor/179_plate_part.webp)
 
-<span style="color:#2196EA">■ built</span> `joint->parts[0]`, the plate   <span style="color:#EBB121">■ result</span> `joint->cutters`, the pocket, dashed   <span style="color:#737373">■ input</span> `row.contact`
+<span style="color:#2196EA">■ built</span> `joint->parts[0]`, the plate   <span style="color:#F2CC0C">■ result</span> `joint->cutters`, the pocket, dashed   <span style="color:#737373">■ input</span> `row.contact`
 
-`frame_box(origin, axes, x0, x1, width, z0, z1)` builds a box from x0 to x1 and z0 to z1 in the frame, `width` wide across y, as the loop pair at y = -width/2 and +width/2. <span style="color:#2196EA">The part</span> is `frame_box(-back, front, width, -height, 0)`: back into the column, front into the rib, hanging `height` below the top edge. <span style="color:#EBB121">The cutter</span> is the same box with z1 = `overshoot`, so it rises above the top. Both targets get that one box, `{{pocket}, {pocket}}`, so the column and the rib get identical slots.
+`frame_box(origin, axes, x0, x1, width, z0, z1)` builds a box from x0 to x1 and z0 to z1 in the frame, `width` wide across y, as the loop pair at y = -width/2 and +width/2. <span style="color:#2196EA">The part</span> is `frame_box(-back, front, width, -height, 0)`: back into the column, front into the rib, hanging `height` below the top edge. <span style="color:#F2CC0C">The cutter</span> is the same box with z1 = `overshoot`, so it rises above the top. Both targets get that one box, `{{pocket}, {pocket}}`, so the column and the rib get identical slots.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -203,9 +203,9 @@ Code: `frame_box`, `JointBeam::rectangle_plate`, [src/joinery_solver/wood_elemen
 
 ![](floor/180_plate_dowels.webp)
 
-<span style="color:#2196EA">■ built</span> `joint->drill_lines`, 4 d50 dowels   <span style="color:#EB7721">■ variable</span> `margin_x`, `margin_z` times `dowel_radius`   <span style="color:#737373">■ input</span> `connector_0_part`
+<span style="color:#2196EA">■ built</span> `joint->drill_lines`, 4 d50 dowels   <span style="color:#E8478B">■ variable</span> `margin_x`, `margin_z` times `dowel_radius`   <span style="color:#737373">■ input</span> `connector_0_part`
 
-The dowel stations along x lie <span style="color:#EB7721">`margin_x * dowel_radius`</span> in from the plate ends, `-back + margin_x * dowel_radius` and `front - margin_x * dowel_radius`; the levels lie <span style="color:#EB7721">`margin_z * dowel_radius`</span> in from top and bottom, `-margin_z * dowel_radius` and `-height + margin_z * dowel_radius`. At each of the four combinations a line across frame y from `-dowel_length/2` to `+dowel_length/2` is clipped by `flush_dowel` to the column and the rib. <span style="color:#2196EA">The dowels</span> are numbered station by station: 0 and 1 at the column end, 2 and 3 at the rib end.
+The dowel stations along x lie <span style="color:#E8478B">`margin_x * dowel_radius`</span> in from the plate ends, `-back + margin_x * dowel_radius` and `front - margin_x * dowel_radius`; the levels lie <span style="color:#E8478B">`margin_z * dowel_radius`</span> in from top and bottom, `-margin_z * dowel_radius` and `-height + margin_z * dowel_radius`. At each of the four combinations a line across frame y from `-dowel_length/2` to `+dowel_length/2` is clipped by `flush_dowel` to the column and the rib. <span style="color:#2196EA">The dowels</span> are numbered station by station: 0 and 1 at the column end, 2 and 3 at the rib end.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -222,9 +222,9 @@ Code: `JointBeam::rectangle_plate`, `flush_dowel`, [src/joinery_solver/wood_elem
 
 ![](floor/181_plates_of_corner.webp)
 
-<span style="color:#2196EA">■ built</span> `plates_of_corner[0][0]` = connector_0   <span style="color:#EBB121">■ result</span> `plates_of_corner[0][1]` = connector_1   <span style="color:#A3A3A3">■ context</span> column_0
+<span style="color:#2196EA">■ built</span> `plates_of_corner[0][0]` = connector_0   <span style="color:#F2CC0C">■ result</span> `plates_of_corner[0][1]` = connector_1   <span style="color:#A3A3A3">■ context</span> column_0
 
-In the first pass, each column_plate connector is pushed to `plates_of_corner[row.seam_or_corner]` as soon as it is built. A cross_lap row has a = outer rib 0 and b = outer rib 1 of corner q, the default plane and an empty contact, and it does not go through `connector_of`. `add_connectors` reads `plates_of_corner[q]`, throws unless it holds exactly two plates, and calls `JointBeam::cross_lap(*plates[0], *plates[1])`, <span style="color:#2196EA">`plates[0]`</span> = connector_0 as a and <span style="color:#EBB121">`plates[1]`</span> = connector_1 as b. Its targets are the two plate connectors, not the ribs. `plates_of_corner` is local to one call, so column_plate and cross_lap must be asked for in the same `add_connectors` call; `relationships()` lists the plates before the laps. The lap is built from the plates before either is in the scene, and the second pass adds the plates first, in walk order, then the lap, which cuts its slots into them.
+In the first pass, each column_plate connector is pushed to `plates_of_corner[row.seam_or_corner]` as soon as it is built. A cross_lap row has a = outer rib 0 and b = outer rib 1 of corner q, the default plane and an empty contact, and it does not go through `connector_of`. `add_connectors` reads `plates_of_corner[q]`, throws unless it holds exactly two plates, and calls `JointBeam::cross_lap(*plates[0], *plates[1])`, <span style="color:#2196EA">`plates[0]`</span> = connector_0 as a and <span style="color:#F2CC0C">`plates[1]`</span> = connector_1 as b. Its targets are the two plate connectors, not the ribs. `plates_of_corner` is local to one call, so column_plate and cross_lap must be asked for in the same `add_connectors` call; `relationships()` lists the plates before the laps. The lap is built from the plates before either is in the scene, and the second pass adds the plates first, in walk order, then the lap, which cuts its slots into them.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -236,9 +236,9 @@ Code: `wood_floor::add_connectors`, [src/templates/floor/floor_models.cpp:369-38
 
 ![](floor/182_cross_lap_level.webp)
 
-<span style="color:#2196EA">■ built</span> `lap`   <span style="color:#EB7721">■ variable</span> `low`, `high`, dashed   <span style="color:#737373">■ input</span> connector_0, connector_1 and the `frame_a`, `frame_b` origins
+<span style="color:#2196EA">■ built</span> `lap`   <span style="color:#E8478B">■ variable</span> `low`, `high`, dashed   <span style="color:#737373">■ input</span> connector_0, connector_1 and the `frame_a`, `frame_b` origins
 
-`cross_lap` throws unless each connector has exactly one part. `box_frame(part)` needs two four-corner loops; <span style="color:#737373">its origin</span> is the centroid of the eight corners, x is `near[1] - near[0]`, z is `near[3] - near[0]`, and y runs from the first loop's centroid to the second's. For loops made by `frame_box` these are the plate's own frame axes. `z_a` and `z_b` are the extents of each plate's corners along frame_a's z. <span style="color:#EB7721">`low`</span> is the larger lower end and <span style="color:#EB7721">`high`</span> the smaller upper end; it throws if `high <= low`. <span style="color:#2196EA">`lap`</span> = `low + share * (high - low)`.
+`cross_lap` throws unless each connector has exactly one part. `box_frame(part)` needs two four-corner loops; <span style="color:#737373">its origin</span> is the centroid of the eight corners, x is `near[1] - near[0]`, z is `near[3] - near[0]`, and y runs from the first loop's centroid to the second's. For loops made by `frame_box` these are the plate's own frame axes. `z_a` and `z_b` are the extents of each plate's corners along frame_a's z. <span style="color:#E8478B">`low`</span> is the larger lower end and <span style="color:#E8478B">`high`</span> the smaller upper end; it throws if `high <= low`. <span style="color:#2196EA">`lap`</span> = `low + share * (high - low)`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -254,9 +254,9 @@ Code: `JointBeam::cross_lap`, `box_frame`, `extent`, `box_corners`, [src/joinery
 
 ![](floor/183_cross_lap_slots.webp)
 
-<span style="color:#2196EA">■ built</span> `cutters[0]`, the slot in connector_0   <span style="color:#EBB121">■ result</span> `cutters[1]`, the slot in connector_1   <span style="color:#737373">■ input</span> the two plates
+<span style="color:#2196EA">■ built</span> `cutters[0]`, the slot in connector_0   <span style="color:#F2CC0C">■ result</span> `cutters[1]`, the slot in connector_1   <span style="color:#737373">■ input</span> the two plates
 
-`across_a` is the extent of b's corners along frame_a x, where b passes through a, and `across_b` the reverse. Each slot width is the part's own thickness, twice its largest extent along its own y, plus `2 * margin`. <span style="color:#2196EA">a's cutter</span> is `frame_box(frame_a, across_a, width_a, lap, z_a[1] + margin)`: from the lap level up through the top. <span style="color:#EBB121">b's cutter</span> is `frame_box(frame_b, across_b, width_b, z_b_own[0] - margin, lap_b)`: from below the bottom up to the lap, where `lap_b` is `lap` re-expressed in frame_b. The joint has no parts and no drill lines, and `drill_overshoot` stays 0. `cross_lap` never sets `is_visible`, so it keeps the `Joint()` default, false.
+`across_a` is the extent of b's corners along frame_a x, where b passes through a, and `across_b` the reverse. Each slot width is the part's own thickness, twice its largest extent along its own y, plus `2 * margin`. <span style="color:#2196EA">a's cutter</span> is `frame_box(frame_a, across_a, width_a, lap, z_a[1] + margin)`: from the lap level up through the top. <span style="color:#F2CC0C">b's cutter</span> is `frame_box(frame_b, across_b, width_b, z_b_own[0] - margin, lap_b)`: from below the bottom up to the lap, where `lap_b` is `lap` re-expressed in frame_b. The joint has no parts and no drill lines, and `drill_overshoot` stays 0. `cross_lap` never sets `is_visible`, so it keeps the `Joint()` default, false.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -271,9 +271,9 @@ Code: `JointBeam::cross_lap`, [src/joinery_solver/wood_elements/wood_element_joi
 
 ![](floor/184_tie_frame.webp)
 
-<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#EBB121">■ result</span> `origin = top_origin(points)`   <span style="color:#737373">■ input</span> `row.contact`   <span style="color:#A3A3A3">■ context</span> outer_ribs_0_0, outer_ribs_1_1
+<span style="color:#2196EA">■ built</span> `axes` x, y, z   <span style="color:#F2CC0C">■ result</span> `origin = top_origin(points)`   <span style="color:#737373">■ input</span> `row.contact`   <span style="color:#A3A3A3">■ context</span> outer_ribs_0_0, outer_ribs_1_1
 
-A seam_tie row exists only when `seam_through_ribs` is false: outer rib 0 of q and outer rib 1 of q + 1 then meet end to end on the seam plane. The frames use the tied 3000 x 2400 bay of the film, whose seam 0 meets edge 0 at y = -2400, so its y values are 600 larger than the square-bay values in the tables. `connector_of` calls `tie(a, b, contact)` with every default. `tie` takes <span style="color:#737373">the raw contact points</span> without the closing point. The frame is <span style="color:#2196EA">x</span> = (0, 0, -1), down; <span style="color:#2196EA">y</span> = the contact's Newell normal made horizontal, across the seam; <span style="color:#2196EA">z</span> = x cross y, across the rib. The contact winds counter-clockwise seen from +x, so y = +X, opposite to `row.plane`'s normal. <span style="color:#EBB121">`origin`</span> = `top_origin(points)`, `half = length/2` and `neck = half - head_length`.
+A seam_tie row exists only when `seam_through_ribs` is false: outer rib 0 of q and outer rib 1 of q + 1 then meet end to end on the seam plane. The frames use the tied 3000 x 2400 bay of the film, whose seam 0 meets edge 0 at y = -2400, so its y values are 600 larger than the square-bay values in the tables. `connector_of` calls `tie(a, b, contact)` with every default. `tie` takes <span style="color:#737373">the raw contact points</span> without the closing point. The frame is <span style="color:#2196EA">x</span> = (0, 0, -1), down; <span style="color:#2196EA">y</span> = the contact's Newell normal made horizontal, across the seam; <span style="color:#2196EA">z</span> = x cross y, across the rib. The contact winds counter-clockwise seen from +x, so y = +X, opposite to `row.plane`'s normal. <span style="color:#F2CC0C">`origin`</span> = `top_origin(points)`, `half = length/2` and `neck = half - head_length`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -308,9 +308,9 @@ Code: `tie_section`, `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_el
 
 ![](floor/186_tie_pockets.webp)
 
-<span style="color:#2196EA">■ built</span> `cutters[0]`, outer_ribs_0_0's negative set   <span style="color:#EBB121">■ result</span> `cutters[1]`, outer_ribs_1_1's positive set   <span style="color:#A3A3A3">■ context</span> the two outer ribs
+<span style="color:#2196EA">■ built</span> `cutters[0]`, outer_ribs_0_0's negative set   <span style="color:#F2CC0C">■ result</span> `cutters[1]`, outer_ribs_1_1's positive set   <span style="color:#A3A3A3">■ context</span> the two outer ribs
 
-The pocket floor is `top + pocket_depth`, flat. <span style="color:#2196EA">The negative set</span> is a head box over [-half, -neck] and a neck box over [-neck, +overshoot]; <span style="color:#EBB121">the positive set</span> is [neck, half] and [-overshoot, neck]. All boxes run from `top` down to the floor. A member whose `model_geometry_mesh()` centroid lies on the -y side of the origin gets the negative set, otherwise the positive set. Each neck pocket therefore runs `overshoot` past the seam into the other member's side, and the two neck pockets overlap by `2 * overshoot`.
+The pocket floor is `top + pocket_depth`, flat. <span style="color:#2196EA">The negative set</span> is a head box over [-half, -neck] and a neck box over [-neck, +overshoot]; <span style="color:#F2CC0C">the positive set</span> is [neck, half] and [-overshoot, neck]. All boxes run from `top` down to the floor. A member whose `model_geometry_mesh()` centroid lies on the -y side of the origin gets the negative set, otherwise the positive set. Each neck pocket therefore runs `overshoot` past the seam into the other member's side, and the two neck pockets overlap by `2 * overshoot`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -324,9 +324,9 @@ Code: `JointBeam::tie`, [src/joinery_solver/wood_elements/wood_element_joint_bea
 
 ![](floor/187_dowels_inset.webp)
 
-<span style="color:#2196EA">■ built</span> `ring`, inset by `offset`   <span style="color:#EBB121">■ result</span> `origin`   <span style="color:#737373">■ input</span> `row.contact`
+<span style="color:#2196EA">■ built</span> `ring`, inset by `offset`   <span style="color:#F2CC0C">■ result</span> `origin`   <span style="color:#737373">■ input</span> `row.contact`
 
-A block_dowels row joins a rib (a) and a wedge block (b) on the rib's face plane; <span style="color:#737373">the contact</span> is the block's face on it. `JointBeam::dowels` takes `points = merge_collinear(contact.polygon)` and <span style="color:#EBB121">`origin`</span> = their centroid. The normal is the Newell normal, flipped to point toward b's mesh centroid, the block. x is the `top_edge` direction and y = normal cross x. `inset_polygon` expresses the points in (x, y) on a 1/1000 mm grid, shrinks them by `offset` with Clipper2 `InflatePaths` (miter join) and keeps <span style="color:#2196EA">the largest ring</span>. A ring of fewer than 3 points makes `dowels()` return null, and `connector_of` then throws "the inset leaves no room for the dowels of ...".
+A block_dowels row joins a rib (a) and a wedge block (b) on the rib's face plane; <span style="color:#737373">the contact</span> is the block's face on it. `JointBeam::dowels` takes `points = merge_collinear(contact.polygon)` and <span style="color:#F2CC0C">`origin`</span> = their centroid. The normal is the Newell normal, flipped to point toward b's mesh centroid, the block. x is the `top_edge` direction and y = normal cross x. `inset_polygon` expresses the points in (x, y) on a 1/1000 mm grid, shrinks them by `offset` with Clipper2 `InflatePaths` (miter join) and keeps <span style="color:#2196EA">the largest ring</span>. A ring of fewer than 3 points makes `dowels()` return null, and `connector_of` then throws "the inset leaves no room for the dowels of ...".
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -342,7 +342,7 @@ Code: `JointBeam::dowels`, `inset_polygon`, [src/joinery_solver/wood_elements/wo
 
 <span style="color:#2196EA">■ built</span> `joint->drill_lines`, 4 dowels   <span style="color:#737373">■ input</span> `row.contact`   <span style="color:#A3A3A3">■ context</span> the rib and the block
 
-`extreme_corners` keeps every corner of a ring of 4 or fewer points; for a longer ring it takes, for each diagonal (-,-), (+,-), (+,+), (-,+), the untaken corner that reaches furthest along it. At each corner <span style="color:#2196EA">a dowel line</span> `length` long is centred on <span style="color:#737373">the contact</span> along the normal, so half of it goes into a and half into b. The cutters are `{{}, {}}`: no solid cutter, only holes. In the picture <span style="color:#A3A3A3">the rib and the block</span> are drawn as their outline edges and <span style="color:#737373">the contact</span> in slate, so <span style="color:#2196EA">the dowels</span> show crossing it: each starts in the rib and ends in the block.
+`extreme_corners` keeps every corner of a ring of 4 or fewer points; for a longer ring it takes, for each diagonal (-,-), (+,-), (+,+), (-,+), the untaken corner that reaches furthest along it. At each corner <span style="color:#2196EA">a dowel line</span> `length` long is centred on <span style="color:#737373">the contact</span> along the normal, so half of it goes into a and half into b. The cutters are `{{}, {}}`: no solid cutter, only holes. In the picture <span style="color:#A3A3A3">the rib and the block</span> are drawn as their outline edges and <span style="color:#737373">the contact</span> in grey, so <span style="color:#2196EA">the dowels</span> show crossing it: each starts in the rib and ends in the block.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -358,9 +358,9 @@ Code: `extreme_corners`, `JointBeam::dowels`, [src/joinery_solver/wood_elements/
 
 ![](floor/189_screws_factory.webp)
 
-<span style="color:#2196EA">■ built</span> the screw connector's `drill_lines`   <span style="color:#EB7721">■ variable</span> `row.through`, the seam beam   <span style="color:#737373">■ input</span> `row.a`, `row.b`
+<span style="color:#2196EA">■ built</span> the screw connector's `drill_lines`   <span style="color:#E8478B">■ variable</span> `row.through`, the seam beam   <span style="color:#737373">■ input</span> `row.a`, `row.b`
 
-This branch runs for a row that carries screw axes, which only the `SCREW_RELATIONS` rows that `add_screws()` asks for do; it is checked after the wedge, plate and tie kinds. `connector_of` first resolves `members.pair(row)` and builds an `InteractionContactFace` it does not use here. It passes <span style="color:#737373">a, b</span> and then `members.get(ref)` for every <span style="color:#EB7721">`row.through`</span> member to `JointBeam::screws(passed, row.screws)`. The factory returns null when there are no lines or fewer than 2 members, and `connector_of` does not check for that. Otherwise it makes a `JointBeam` named "screws" with `is_visible` and `pre_drill` true and every passed member a target, and turns each line into <span style="color:#2196EA">a drill line</span> from its start, the head, along its direction, `length` long. There are no parts, no cutters and no `drill_overshoot`. A rib_corner row adds its seam beam to `through` when a screw head lies in the seam beam end, which gives 3 targets at every default corner; the picture shows quarter 0's first one.
+This branch runs for a row that carries screw axes, which only the `SCREW_RELATIONS` rows that `add_screws()` asks for do; it is checked after the wedge, plate and tie kinds. `connector_of` first resolves `members.pair(row)` and builds an `InteractionContactFace` it does not use here. It passes <span style="color:#737373">a, b</span> and then `members.get(ref)` for every <span style="color:#E8478B">`row.through`</span> member to `JointBeam::screws(passed, row.screws)`. The factory returns null when there are no lines or fewer than 2 members, and `connector_of` does not check for that. Otherwise it makes a `JointBeam` named "screws" with `is_visible` and `pre_drill` true and every passed member a target, and turns each line into <span style="color:#2196EA">a drill line</span> from its start, the head, along its direction, `length` long. There are no parts, no cutters and no `drill_overshoot`. A rib_corner row adds its seam beam to `through` when a screw head lies in the seam beam end, which gives 3 targets at every default corner; the picture shows quarter 0's first one.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -449,9 +449,9 @@ Code: `WoodSession::add_connector`, `WoodSession::add_joint`, [src/joinery_solve
 
 ![](floor/193_nest_children.webp)
 
-<span style="color:#2196EA">■ built</span> `connector_wedge_0_part`, the ConnectorPart   <span style="color:#EBB121">■ result</span> `connector_wedge_0_dowel_0 .. 4`, the Dowels, lifted   <span style="color:#737373">■ input</span> the lift from each drill line, dashed
+<span style="color:#2196EA">■ built</span> `connector_wedge_0_part`, the ConnectorPart   <span style="color:#F2CC0C">■ result</span> `connector_wedge_0_dowel_0 .. 4`, the Dowels, lifted   <span style="color:#737373">■ input</span> the lift from each drill line, dashed
 
-`nest_children` runs once per connector node: it returns if the node already has children. `children()` makes <span style="color:#2196EA">one `ConnectorPart` per part</span>, named `<name>_part`, or `<name>_part_<i>` when there are several. Each part copies its loops, `line_radius` and `chord_tolerance`, and gets `solid_cuts = part_cuts(i)`: the connector's stored `solid_cuts` plus one SolidCut of bores holding every drill line that has an inside stretch in that part's lofted mesh. Then <span style="color:#EBB121">one `Dowel` per drill line</span> follows, named `<name>_dowel_<i>`, or `<name>_screw_<i>` when `pre_drill`. All of them are added under the connector node. In the picture the dowels are lifted out of the wedge.
+`nest_children` runs once per connector node: it returns if the node already has children. `children()` makes <span style="color:#2196EA">one `ConnectorPart` per part</span>, named `<name>_part`, or `<name>_part_<i>` when there are several. Each part copies its loops, `line_radius` and `chord_tolerance`, and gets `solid_cuts = part_cuts(i)`: the connector's stored `solid_cuts` plus one SolidCut of bores holding every drill line that has an inside stretch in that part's lofted mesh. Then <span style="color:#F2CC0C">one `Dowel` per drill line</span> follows, named `<name>_dowel_<i>`, or `<name>_screw_<i>` when `pre_drill`. All of them are added under the connector node. In the picture the dowels are lifted out of the wedge.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -463,9 +463,9 @@ Code: `nest_children`, [src/joinery_solver/wood_session.cpp:1106-1115](https://g
 
 ![](floor/194_cutter_solid.webp)
 
-<span style="color:#2196EA">■ built</span> `Mesh::loft(cutters[0][0])`, the cut's mesh   <span style="color:#EBB121">■ result</span> the cut's `drills`, dashed   <span style="color:#A3A3A3">■ context</span> inner_beams_0_0
+<span style="color:#2196EA">■ built</span> `Mesh::loft(cutters[0][0])`, the cut's mesh   <span style="color:#F2CC0C">■ result</span> the cut's `drills`, dashed   <span style="color:#A3A3A3">■ context</span> inner_beams_0_0
 
-For target side s, <span style="color:#2196EA">every loop pair in `cutters[s]`</span> is lofted closed (`Mesh::loft`) and appended into one mesh; a dowels connector has empty cutter lists, so its mesh is empty and it only drills. `add_solid_cut` builds a SolidCut with that mesh; `add_drills` sets the drill radius and tolerance from the joint, and <span style="color:#EBB121">its drills</span> are then replaced by the `target_drills` of section 195. `store_solid_cut` needs a target that holds solid cuts: a Plate, Beam, Column, BeamVariable, Block, or a `JointBeam` connector, which is how a cross lap cuts the plates. It throws "Missing closed cutter solid" when the mesh is empty and there are no drills, or has faces but is not closed. It sets `joint_guid`, transforms the cut by `inverse(world_xform(target)) * world_xform(joint)` into the target's frame, and replaces a cut with the same `joint_guid`, else appends.
+For target side s, <span style="color:#2196EA">every loop pair in `cutters[s]`</span> is lofted closed (`Mesh::loft`) and appended into one mesh; a dowels connector has empty cutter lists, so its mesh is empty and it only drills. `add_solid_cut` builds a SolidCut with that mesh; `add_drills` sets the drill radius and tolerance from the joint, and <span style="color:#F2CC0C">its drills</span> are then replaced by the `target_drills` of section 195. `store_solid_cut` needs a target that holds solid cuts: a Plate, Beam, Column, BeamVariable, Block, or a `JointBeam` connector, which is how a cross lap cuts the plates. It throws "Missing closed cutter solid" when the mesh is empty and there are no drills, or has faces but is not closed. It sets `joint_guid`, transforms the cut by `inverse(world_xform(target)) * world_xform(joint)` into the target's frame, and replaces a cut with the same `joint_guid`, else appends.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -478,9 +478,9 @@ Code: `add_connector_joint`, [src/joinery_solver/wood_session.cpp:1186-1196](htt
 
 ![](floor/195_target_drills.webp)
 
-<span style="color:#2196EA">■ built</span> outer_ribs_0_0's hole   <span style="color:#EBB121">■ result</span> wedges_0_0's hole   <span style="color:#737373">■ input</span> the dowel, `drill_lines[0]`   <span style="color:#A3A3A3">■ context</span> `row.contact`
+<span style="color:#2196EA">■ built</span> outer_ribs_0_0's hole   <span style="color:#F2CC0C">■ result</span> wedges_0_0's hole   <span style="color:#737373">■ input</span> the dowel, `drill_lines[0]`   <span style="color:#A3A3A3">■ context</span> `row.contact`
 
-When `drill_overshoot <= 0` the drill lines are returned unchanged; for the cross lap that is an empty list. Otherwise <span style="color:#737373">each dowel end</span> is tested 1 mm beyond itself with `is_inside` against `planar_faces` of the target's current `element_geometry_mesh()`. The mesh is in the target's own frame and the dowel in the connector's, so the dowel is first moved by `inverse(world_xform(target)) * world_xform(joint)`; the hole that comes back is in the connector's frame again, as `add_solid_cut` and `host_drills` expect it. A floor places every member and connector with its lift baked in, so there both frames are the world, but a connector added to members under a transformed group would otherwise test its dowels in the wrong place. If that point is inside the target, the hole stops at the dowel end, blind; otherwise it runs on by `drill_overshoot`. So each member of a block dowel gets its own hole: <span style="color:#2196EA">the rib's</span> starts blind at the dowel start, inside the rib, and runs on 10 past the dowel's far end, 25 past <span style="color:#A3A3A3">the contact face</span> into the block; <span style="color:#EBB121">the block's</span> mirrors it.
+When `drill_overshoot <= 0` the drill lines are returned unchanged; for the cross lap that is an empty list. Otherwise <span style="color:#737373">each dowel end</span> is tested 1 mm beyond itself with `is_inside` against `planar_faces` of the target's current `element_geometry_mesh()`. The mesh is in the target's own frame and the dowel in the connector's, so the dowel is first moved by `inverse(world_xform(target)) * world_xform(joint)`; the hole that comes back is in the connector's frame again, as `add_solid_cut` and `host_drills` expect it. A floor places every member and connector with its lift baked in, so there both frames are the world, but a connector added to members under a transformed group would otherwise test its dowels in the wrong place. If that point is inside the target, the hole stops at the dowel end, blind; otherwise it runs on by `drill_overshoot`. So each member of a block dowel gets its own hole: <span style="color:#2196EA">the rib's</span> starts blind at the dowel start, inside the rib, and runs on 10 past the dowel's far end, 25 past <span style="color:#A3A3A3">the contact face</span> into the block; <span style="color:#F2CC0C">the block's</span> mirrors it.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -510,9 +510,9 @@ Code: `host_drills`, [src/joinery_solver/wood_session.cpp:13](https://github.com
 
 ![](floor/197_sync_parts.webp)
 
-<span style="color:#2196EA">■ built</span> `connector_0_part`   <span style="color:#EBB121">■ result</span> `connector_1_part`
+<span style="color:#2196EA">■ built</span> `connector_0_part`   <span style="color:#F2CC0C">■ result</span> `connector_1_part`
 
-`refresh_target` invalidates the target's cached geometry. When the target is itself a connector, as the cross lap's plates are, `sync_parts` gives each of its `ConnectorPart` children `part_cuts(index)` again. That is how the slot, stored on connector_0 after its part was nested in section 193, reaches <span style="color:#2196EA">the part that draws it</span>; <span style="color:#EBB121">connector_1_part</span> gets its own the same way. The joint-target edge is then removed and added again as an `InteractionFeaturePlateBeam`. A `pre_drill` connector skips all cutting: `add_pre_drill_joint` nests its screws, sets each edge and hosts drill features from its drill lines unchanged.
+`refresh_target` invalidates the target's cached geometry. When the target is itself a connector, as the cross lap's plates are, `sync_parts` gives each of its `ConnectorPart` children `part_cuts(index)` again. That is how the slot, stored on connector_0 after its part was nested in section 193, reaches <span style="color:#2196EA">the part that draws it</span>; <span style="color:#F2CC0C">connector_1_part</span> gets its own the same way. The joint-target edge is then removed and added again as an `InteractionFeaturePlateBeam`. A `pre_drill` connector skips all cutting: `add_pre_drill_joint` nests its screws, sets each edge and hosts drill features from its drill lines unchanged.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -539,9 +539,9 @@ Code: `paint`, [src/templates/floor/floor_models.cpp:55-61](https://github.com/p
 
 ![](floor/199_empty_node.webp)
 
-<span style="color:#2196EA">■ built</span> `connector_0_part` and `connector_0_dowel_0 .. 3`   <span style="color:#EB7721">■ variable</span> connector_0's own `element_geometry_mesh()`, empty, dashed
+<span style="color:#2196EA">■ built</span> `connector_0_part` and `connector_0_dowel_0 .. 3`   <span style="color:#E8478B">■ variable</span> connector_0's own `element_geometry_mesh()`, empty, dashed
 
-For a connector, `JointBeam::element_geometry_mesh()` and `element_geometry_brep()` return an empty Mesh and an empty BRep, so <span style="color:#EB7721">the connector node itself</span> draws nothing. <span style="color:#2196EA">Each `ConnectorPart`</span> draws `apply_solid_cuts(part_mesh(0), solid_cuts)`: its lofted part minus the bores and any cross-lap slot. Its BRep is `part_brep(0)`: `brep_between_loops` when there are no cuts, else `solid_cuts_brep`. <span style="color:#2196EA">The `Dowel` children</span> draw the drill-line cylinders. The cross lap has no children and shows only through the plates' slots.
+For a connector, `JointBeam::element_geometry_mesh()` and `element_geometry_brep()` return an empty Mesh and an empty BRep, so <span style="color:#E8478B">the connector node itself</span> draws nothing. <span style="color:#2196EA">Each `ConnectorPart`</span> draws `apply_solid_cuts(part_mesh(0), solid_cuts)`: its lofted part minus the bores and any cross-lap slot. Its BRep is `part_brep(0)`: `brep_between_loops` when there are no cuts, else `solid_cuts_brep`. <span style="color:#2196EA">The `Dowel` children</span> draw the drill-line cylinders. The cross lap has no children and shows only through the plates' slots.
 
 | Variable | Value | Meaning |
 |---|---|---|

@@ -6,7 +6,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 ![](floor/film_10_screws.webp)
 
-<span style="color:#2196EA">■ built</span> what the step builds   <span style="color:#EB7721">■ variable</span> the value it introduces or measures   <span style="color:#EBB121">■ result</span> a second result   <span style="color:#737373">■ input</span> what it reads, dashed for a helper   <span style="color:#A3A3A3">■ context</span> the rest; member families in their own colours where a frame tells them apart
+<span style="color:#2196EA">■ built</span> what the step builds   <span style="color:#E8478B">■ variable</span> the value it introduces or measures   <span style="color:#F2CC0C">■ result</span> a second result   <span style="color:#737373">■ input</span> what it reads, dashed for a helper   <span style="color:#A3A3A3">■ context</span> the rest; member families in their own colours where a frame tells them apart
 
 ## 200. add_screws entry
 
@@ -38,9 +38,9 @@ Code: `Floor::add_screws`, [floor_models.cpp:450-453](https://github.com/petrasv
 
 ![](floor/201_row_order.webp)
 
-<span style="color:#EB7721">■ screw_rib_beam</span> along an outer rib   <span style="color:#455B6B">■ screw_beam_mitre</span> along an inner beam   <span style="color:#EBB121">■ screw_rib_corner</span> along an inner rib   <span style="color:#F5BB90">■ screw_ring</span> along the oculus ring   <span style="color:#A6D3F6">■ screw_oculus</span> into the oculus beam   <span style="color:#A3A3A3">■ context</span> bay edges and quarters
+<span style="color:#E8478B">■ screw_rib_beam</span> along an outer rib   <span style="color:#7C7C7C">■ screw_beam_mitre</span> along an inner beam   <span style="color:#F2CC0C">■ screw_rib_corner</span> along an inner rib   <span style="color:#F4A6C8">■ screw_ring</span> along the oculus ring   <span style="color:#A6D3F6">■ screw_oculus</span> into the oculus beam   <span style="color:#A3A3A3">■ context</span> bay edges and quarters
 
-`relationships()` appends the rows of `screw_relationships` after every other row. `screw_relationships` first calls `rings = guide.oculus()`, which returns nine outlines (four ring beams, four bottom wedges, the central plate); only `rings[0..3]` are read. For each quarter `q = 0..3` it appends <span style="color:#EB7721">`rib_beam(q, 0)`</span>, <span style="color:#EB7721">`rib_beam(q, 1)`</span>, <span style="color:#737373">`beam_mitre(q, 0)`</span>, <span style="color:#737373">`beam_mitre(q, 1)`</span>, <span style="color:#EBB121">`rib_corner(q, 0)`</span> and <span style="color:#EBB121">`rib_corner(q, 1)`</span>. Then it appends <span style="color:#F5BB90">`ring(q)`</span> for `q = 0..3` and <span style="color:#A6D3F6">`oculus(q, k)`</span> for `q = 0..3`, `k = 0..1`. The frame colours each screw by its kind and names one row of each kind by its index, `rows[0]`, `rows[2]`, `rows[10]`, `rows[26]` and `rows[34]`, each in a different quarter or corner so the names do not crowd.
+`relationships()` appends the rows of `screw_relationships` after every other row. `screw_relationships` first calls `rings = guide.oculus()`, which returns nine outlines (four ring beams, four bottom wedges, the central plate); only `rings[0..3]` are read. For each quarter `q = 0..3` it appends <span style="color:#E8478B">`rib_beam(q, 0)`</span>, <span style="color:#E8478B">`rib_beam(q, 1)`</span>, <span style="color:#737373">`beam_mitre(q, 0)`</span>, <span style="color:#737373">`beam_mitre(q, 1)`</span>, <span style="color:#F2CC0C">`rib_corner(q, 0)`</span> and <span style="color:#F2CC0C">`rib_corner(q, 1)`</span>. Then it appends <span style="color:#F4A6C8">`ring(q)`</span> for `q = 0..3` and <span style="color:#A6D3F6">`oculus(q, k)`</span> for `q = 0..3`, `k = 0..1`. The frame colours each screw by its kind and names one row of each kind by its index, `rows[0]`, `rows[2]`, `rows[10]`, `rows[26]` and `rows[34]`, each in a different quarter or corner so the names do not crowd.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -56,9 +56,9 @@ Code: `geometry::screw_relationships`, [floor_screws.cpp:326-350](https://github
 
 ![](floor/202_levels.webp)
 
-<span style="color:#2196EA">■ built</span> the screws at oculus corner 0   <span style="color:#EB7721">■ variable</span> `corner_level(1..6, 197)`, the six levels   <span style="color:#737373">■ input</span> `static_h()` = 197, the joint depth
+<span style="color:#2196EA">■ built</span> the screws at oculus corner 0   <span style="color:#E8478B">■ variable</span> `corner_level(1..6, 197)`, the six levels   <span style="color:#737373">■ input</span> `static_h()` = 197, the joint depth
 
-Every screw is built in one horizontal slice `level(z)` with `z` at or below the datum, and lifted later. The joint depth at the seams and the oculus is <span style="color:#737373">`static_h() = height - rise`</span>. <span style="color:#EB7721">`corner_level(levels, depth) = -depth * levels / CORNER_LEVELS`</span> splits it into sevenths, which gives six levels. Each corner kind takes two of them: `MITRE_LEVELS` {2, 5} for k 0 and {3, 6} for k 1, `RIB_CORNER_LEVELS` {1, 4}, `RING_LEVELS` {3, 6}, `OCULUS_LEVELS` {3, 6} for k 0 and {2, 5} for k 1. The constants' comments say these sets keep the screws that cross at one corner apart. The code enforces one case, in `rib_corner` (frame 218); every other spacing only `check_screws` tests, 8 mm between axes. The rib-beam screws use other levels (frames 209 and 213). The frame groups <span style="color:#2196EA">the screws of oculus corner 0</span> by the seventh they sit at and names the kinds on each level.
+Every screw is built in one horizontal slice `level(z)` with `z` at or below the datum, and lifted later. The joint depth at the seams and the oculus is <span style="color:#737373">`static_h() = height - rise`</span>. <span style="color:#E8478B">`corner_level(levels, depth) = -depth * levels / CORNER_LEVELS`</span> splits it into sevenths, which gives six levels. Each corner kind takes two of them: `MITRE_LEVELS` {2, 5} for k 0 and {3, 6} for k 1, `RIB_CORNER_LEVELS` {1, 4}, `RING_LEVELS` {3, 6}, `OCULUS_LEVELS` {3, 6} for k 0 and {2, 5} for k 1. The constants' comments say these sets keep the screws that cross at one corner apart. The code enforces one case, in `rib_corner` (frame 218); every other spacing only `check_screws` tests, 8 mm between axes. The rib-beam screws use other levels (frames 209 and 213). The frame groups <span style="color:#2196EA">the screws of oculus corner 0</span> by the seventh they sit at and names the kinds on each level.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -76,9 +76,9 @@ Code: `FloorParameters::static_h`, [floor_plan.cpp:14-16](https://github.com/pet
 
 ![](floor/203_faces.webp)
 
-<span style="color:#2196EA">■ built</span> `cp.outer_ribs[0]`, `cp.inner_beams[0]`, `cp.inner_beams[1]`   <span style="color:#EBB121">■ result</span> `oculus_edges[0].ring_inner`   <span style="color:#737373">■ input</span> the face normals   <span style="color:#A3A3A3">■ context</span> quarter 0's polygon
+<span style="color:#2196EA">■ built</span> `cp.outer_ribs[0]`, `cp.inner_beams[0]`, `cp.inner_beams[1]`   <span style="color:#F2CC0C">■ result</span> `oculus_edges[0].ring_inner`   <span style="color:#737373">■ input</span> the face normals   <span style="color:#A3A3A3">■ context</span> quarter 0's polygon
 
-Every screw rule reads face pairs from `cp = guide.geometry[q].planes`. `pair(plane, d)` returns the plane and its copy moved `d` along its normal. <span style="color:#2196EA">`cp.outer_ribs[k]`</span> pairs the bay edge's band plane, normal into the bay, with its offset by `outer_ribs`. <span style="color:#2196EA">`cp.inner_beams`</span> is `{seams[q].faces_into(q), {oculus.tilted, oculus.back}, seams[q - 1].faces_into(q)}`: <span style="color:#2196EA">`[0][0]`</span> is the seam plane, <span style="color:#2196EA">`[0][1]`</span> the seam beam's inner face 60 into the quarter, <span style="color:#2196EA">`[1][0]`</span> the tilted oculus face, <span style="color:#2196EA">`[1][1]`</span> the back face. `oculus_edge` leans the edge plane by `oculus_plane_angle` about the edge to get <span style="color:#2196EA">`tilted`</span>, moves the edge plane 60 into the quarter to get <span style="color:#2196EA">`back`</span>, and moves <span style="color:#2196EA">`back`</span> back by 120 to get <span style="color:#EBB121">`ring_inner`</span>. `guide.soffit` is the minimum of `-static_h` and every rib end level on its beam.
+Every screw rule reads face pairs from `cp = guide.geometry[q].planes`. `pair(plane, d)` returns the plane and its copy moved `d` along its normal. <span style="color:#2196EA">`cp.outer_ribs[k]`</span> pairs the bay edge's band plane, normal into the bay, with its offset by `outer_ribs`. <span style="color:#2196EA">`cp.inner_beams`</span> is `{seams[q].faces_into(q), {oculus.tilted, oculus.back}, seams[q - 1].faces_into(q)}`: <span style="color:#2196EA">`[0][0]`</span> is the seam plane, <span style="color:#2196EA">`[0][1]`</span> the seam beam's inner face 60 into the quarter, <span style="color:#2196EA">`[1][0]`</span> the tilted oculus face, <span style="color:#2196EA">`[1][1]`</span> the back face. `oculus_edge` leans the edge plane by `oculus_plane_angle` about the edge to get <span style="color:#2196EA">`tilted`</span>, moves the edge plane 60 into the quarter to get <span style="color:#2196EA">`back`</span>, and moves <span style="color:#2196EA">`back`</span> back by 120 to get <span style="color:#F2CC0C">`ring_inner`</span>. `guide.soffit` is the minimum of `-static_h` and every rib end level on its beam.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -97,9 +97,9 @@ Code: `pair`, [floor.cpp:15-17](https://github.com/petrasvestartas/wood/blob/16f
 
 ![](floor/204_trace_axis.webp)
 
-<span style="color:#2196EA">■ built</span> `axis(faces, z)`   <span style="color:#EBB121">■ result</span> `line0`, `line1` and `p0`, `p1`   <span style="color:#EB7721">■ variable</span> `level(z)`, z = -84.429   <span style="color:#737373">■ input</span> `p0` to `p1`, a helper   <span style="color:#A3A3A3">■ context</span> the oculus beam
+<span style="color:#2196EA">■ built</span> `axis(faces, z)`   <span style="color:#F2CC0C">■ result</span> `line0`, `line1` and `p0`, `p1`   <span style="color:#E8478B">■ variable</span> `level(z)`, z = -84.429   <span style="color:#737373">■ input</span> `p0` to `p1`, a helper   <span style="color:#A3A3A3">■ context</span> the oculus beam
 
-<span style="color:#EBB121">`trace(plane, z)`</span> intersects a member face with <span style="color:#EB7721">`level(z)`</span>, the world XY plane moved to `z`, by `plane_plane`, which orients the line along `cross(n_plane, n_level)`. <span style="color:#2196EA">`axis(faces, z)`</span> traces both faces at `z` into <span style="color:#EBB121">`line0`</span> and <span style="color:#EBB121">`line1`</span>. It takes <span style="color:#EBB121">`p0 = line0.start()`</span>, the start of the line `plane_plane` returns (no chosen point on the face), and projects it onto <span style="color:#EBB121">`line1`</span>: <span style="color:#EBB121">`p1 = line1.start() + d * ((p0 - line1.start()) . d)`</span> with `d` the unit direction of <span style="color:#EBB121">`line1`</span>. It returns the line through the midpoint of <span style="color:#EBB121">`p0`</span> and <span style="color:#EBB121">`p1`</span> with <span style="color:#EBB121">`line0`</span>'s direction, the mid-line of the member's section at that level. On the oculus beam the tilted face moves `|z| tan 5 deg` towards the centre per level, so the axis drifts sideways from level to level; the frame shows the slice at 3/7.
+<span style="color:#F2CC0C">`trace(plane, z)`</span> intersects a member face with <span style="color:#E8478B">`level(z)`</span>, the world XY plane moved to `z`, by `plane_plane`, which orients the line along `cross(n_plane, n_level)`. <span style="color:#2196EA">`axis(faces, z)`</span> traces both faces at `z` into <span style="color:#F2CC0C">`line0`</span> and <span style="color:#F2CC0C">`line1`</span>. It takes <span style="color:#F2CC0C">`p0 = line0.start()`</span>, the start of the line `plane_plane` returns (no chosen point on the face), and projects it onto <span style="color:#F2CC0C">`line1`</span>: <span style="color:#F2CC0C">`p1 = line1.start() + d * ((p0 - line1.start()) . d)`</span> with `d` the unit direction of <span style="color:#F2CC0C">`line1`</span>. It returns the line through the midpoint of <span style="color:#F2CC0C">`p0`</span> and <span style="color:#F2CC0C">`p1`</span> with <span style="color:#F2CC0C">`line0`</span>'s direction, the mid-line of the member's section at that level. On the oculus beam the tilted face moves `|z| tan 5 deg` towards the centre per level, so the axis drifts sideways from level to level; the frame shows the slice at 3/7.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -116,9 +116,9 @@ Code: `trace`, [floor_screws.cpp:40-42](https://github.com/petrasvestartas/wood/
 
 ![](floor/205_body_depth.webp)
 
-<span style="color:#2196EA">■ built</span> `body(outline)`   <span style="color:#EB7721">■ variable</span> `depth` at a point on each side   <span style="color:#737373">■ input</span> the two `area_centroid` points and the back face `inner_beams[1][1]`   <span style="color:#A3A3A3">■ context</span> the oculus beam
+<span style="color:#2196EA">■ built</span> `body(outline)`   <span style="color:#E8478B">■ variable</span> `depth` at a point on each side   <span style="color:#737373">■ input</span> the two `area_centroid` points and the back face `inner_beams[1][1]`   <span style="color:#A3A3A3">■ context</span> the oculus beam
 
-<span style="color:#2196EA">`body(outline)`</span> is the midpoint of the area centroids of the outline's two loops, a point inside the member. <span style="color:#EB7721">`depth(point, plane, inside)`</span> is `signed_distance(point, plane)`, negated when `inside` has a negative signed distance, so a positive value means the point lies on the inside point's side of the face. Every keep-inside test of the screw rules is a `depth` against a body. The frame shows, in plan, the oculus beam's two loop centroids (its tilted-face and back-face loops), its body between them, and the back face with a point on each side.
+<span style="color:#2196EA">`body(outline)`</span> is the midpoint of the area centroids of the outline's two loops, a point inside the member. <span style="color:#E8478B">`depth(point, plane, inside)`</span> is `signed_distance(point, plane)`, negated when `inside` has a negative signed distance, so a positive value means the point lies on the inside point's side of the face. Every keep-inside test of the screw rules is a `depth` against a body. The frame shows, in plan, the oculus beam's two loop centroids (its tilted-face and back-face loops), its body between them, and the back face with a point on each side.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -132,9 +132,9 @@ Code: `body`, [floor_screws.cpp:58-60](https://github.com/petrasvestartas/wood/b
 
 ![](floor/206_along_axis.webp)
 
-<span style="color:#2196EA">■ built</span> the screw `head -> head + d * SCREW_LENGTH` and its `head`   <span style="color:#EB7721">■ variable</span> `far_face` = `inner_beams[0][0]`, the seam plane   <span style="color:#737373">■ input</span> `butting`'s traces, tilted and back, and `axis(butting, z)`, a helper
+<span style="color:#2196EA">■ built</span> the screw `head -> head + d * SCREW_LENGTH` and its `head`   <span style="color:#E8478B">■ variable</span> `far_face` = `inner_beams[0][0]`, the seam plane   <span style="color:#737373">■ input</span> `butting`'s traces, tilted and back, and `axis(butting, z)`, a helper
 
-`along_axis(butting, far_face, butting_body, z)` is used where one member's end butts on the side of another. It takes <span style="color:#737373">`axis(butting, z)`</span>, the butting member's mid-line, and intersects it with <span style="color:#EB7721">`far_face`</span>, the side member's face away from the joint, by `line_plane`: that is the head. The direction `d` is the axis direction, flipped when it points away from `butting_body`. The screw is <span style="color:#2196EA">`head -> head + d * SCREW_LENGTH`</span>: first through the side member, then along the middle of the butting member. The frame shows it at the beam mitre of quarter 0, k 0, at level 2/7, where the oculus beam butts on seam beam 0 and the far face is the seam plane.
+`along_axis(butting, far_face, butting_body, z)` is used where one member's end butts on the side of another. It takes <span style="color:#737373">`axis(butting, z)`</span>, the butting member's mid-line, and intersects it with <span style="color:#E8478B">`far_face`</span>, the side member's face away from the joint, by `line_plane`: that is the head. The direction `d` is the axis direction, flipped when it points away from `butting_body`. The screw is <span style="color:#2196EA">`head -> head + d * SCREW_LENGTH`</span>: first through the side member, then along the middle of the butting member. The frame shows it at the beam mitre of quarter 0, k 0, at level 2/7, where the oculus beam butts on seam beam 0 and the far face is the seam plane.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -151,9 +151,9 @@ Code: `along_axis`, [floor_screws.cpp:77-87](https://github.com/petrasvestartas/
 
 ![](floor/207_from_seam_face.webp)
 
-<span style="color:#2196EA">■ built</span> the screw and its `head`   <span style="color:#EB7721">■ variable</span> `offset` = +15, from `seam` to `head`   <span style="color:#737373">■ input</span> `rib` and `beam` faces, `line = axis(rib, z)`, `seam` and `line_plane(line, beam[1])`
+<span style="color:#2196EA">■ built</span> the screw and its `head`   <span style="color:#E8478B">■ variable</span> `offset` = +15, from `seam` to `head`   <span style="color:#737373">■ input</span> `rib` and `beam` faces, `line = axis(rib, z)`, `seam` and `line_plane(line, beam[1])`
 
-`from_seam_face(rib, beam, z, offset)` takes <span style="color:#737373">`line = axis(rib, z)`</span>. `along` is the unit vector from <span style="color:#737373">`seam = line_plane(line, beam[0])`</span>, the rib axis on the seam plane, to <span style="color:#737373">`line_plane(line, beam[1])`</span>: from the seam plane through the seam beam towards the rib end. The axis is then moved `rib[0].z_axis() * offset` across the rib, and <span style="color:#2196EA">`head`</span> is where the moved axis meets the seam plane `beam[0]`. On the square the rib is square to the seam and this is `seam + rib[0].z_axis() * offset`; on a skewed bay the rib meets the seam at an angle, and moving `seam` straight across the rib would take the head off the seam plane, into the seam beam or out of it. The screw is <span style="color:#2196EA">`head -> head + along * 200`</span>, parallel to the rib axis, drilled from the seam beam's seam face before the wedge goes in. The frame shows outer rib 1 of quarter 0 on seam beam 2 (seam 3, y = 0), where <span style="color:#EB7721">`offset`</span> is +15.
+`from_seam_face(rib, beam, z, offset)` takes <span style="color:#737373">`line = axis(rib, z)`</span>. `along` is the unit vector from <span style="color:#737373">`seam = line_plane(line, beam[0])`</span>, the rib axis on the seam plane, to <span style="color:#737373">`line_plane(line, beam[1])`</span>: from the seam plane through the seam beam towards the rib end. The axis is then moved `rib[0].z_axis() * offset` across the rib, and <span style="color:#2196EA">`head`</span> is where the moved axis meets the seam plane `beam[0]`. On the square the rib is square to the seam and this is `seam + rib[0].z_axis() * offset`; on a skewed bay the rib meets the seam at an angle, and moving `seam` straight across the rib would take the head off the seam plane, into the seam beam or out of it. The screw is <span style="color:#2196EA">`head -> head + along * 200`</span>, parallel to the rib axis, drilled from the seam beam's seam face before the wedge goes in. The frame shows outer rib 1 of quarter 0 on seam beam 2 (seam 3, y = 0), where <span style="color:#E8478B">`offset`</span> is +15.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -172,9 +172,9 @@ Code: `from_seam_face`, [floor_screws.cpp:90-98](https://github.com/petrasvestar
 
 ![](floor/208_rib_beam_beam.webp)
 
-<span style="color:#2196EA">■ built</span> `inner_beams_0_0`, `beam = 0`   <span style="color:#EB7721">■ variable</span> its `top[0..3]` corners   <span style="color:#A3A3A3">■ context</span> outer rib 0
+<span style="color:#2196EA">■ built</span> `inner_beams_0_0`, `beam = 0`   <span style="color:#E8478B">■ variable</span> its `top[0..3]` corners   <span style="color:#A3A3A3">■ context</span> outer rib 0
 
-`rib_beam(guide, q, k)` takes `beam = 0` for `k = 0` and `beam = 2` for `k = 1`: the seam beam on the rib's side. It reads <span style="color:#2196EA">`guide.quarter(q).inner_beams()[beam]`</span> and that outline's top and bottom loops. The seam beam is `loft_planes({cp.outer_ribs[k][face], level(0), cp.inner_beams[1][0], level(soffit)}, bottom = cp.inner_beams[beam][0], top = cp.inner_beams[beam][1])` with `face = 0` when `seam_through_ribs`, else 1. Corner <span style="color:#EB7721">`i`</span> of a loop is `planes[i]`, `planes[i + 1]` and the loop's plane meeting in one point.
+`rib_beam(guide, q, k)` takes `beam = 0` for `k = 0` and `beam = 2` for `k = 1`: the seam beam on the rib's side. It reads <span style="color:#2196EA">`guide.quarter(q).inner_beams()[beam]`</span> and that outline's top and bottom loops. The seam beam is `loft_planes({cp.outer_ribs[k][face], level(0), cp.inner_beams[1][0], level(soffit)}, bottom = cp.inner_beams[beam][0], top = cp.inner_beams[beam][1])` with `face = 0` when `seam_through_ribs`, else 1. Corner <span style="color:#E8478B">`i`</span> of a loop is `planes[i]`, `planes[i + 1]` and the loop's plane meeting in one point.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -189,9 +189,9 @@ Code: `rib_beam`, [floor_screws.cpp:210-218](https://github.com/petrasvestartas/
 
 ![](floor/209_rib_beam_levels.webp)
 
-<span style="color:#EB7721">■ variable</span> the two screw levels, `-RIB_END_MARGIN` and `end_level + RIB_END_MARGIN`   <span style="color:#737373">■ input</span> the rib's end face on `rib_seam_ends()[0]`   <span style="color:#A3A3A3">■ context</span> outer rib 0
+<span style="color:#E8478B">■ variable</span> the two screw levels, `-RIB_END_MARGIN` and `end_level + RIB_END_MARGIN`   <span style="color:#737373">■ input</span> the rib's end face on `rib_seam_ends()[0]`   <span style="color:#A3A3A3">■ context</span> outer rib 0
 
-With `seam_through_ribs`, outer rib `k` ends on <span style="color:#737373">`rib_seam_ends()[k] = cp.inner_beams[beam][1]`</span>, the seam beam's inner face. The upper screw level is <span style="color:#EB7721">`-RIB_END_MARGIN`</span>. The lower one is <span style="color:#EB7721">`end_level(rib, rib_seam_ends()[k]) + RIB_END_MARGIN`</span>, where `end_level` is the lowest `z` among the rib outline's corners that lie on that plane within 1e-6, starting from 0. The frame looks along -x at the rib's end face on x = -60.
+With `seam_through_ribs`, outer rib `k` ends on <span style="color:#737373">`rib_seam_ends()[k] = cp.inner_beams[beam][1]`</span>, the seam beam's inner face. The upper screw level is <span style="color:#E8478B">`-RIB_END_MARGIN`</span>. The lower one is <span style="color:#E8478B">`end_level(rib, rib_seam_ends()[k]) + RIB_END_MARGIN`</span>, where `end_level` is the lowest `z` among the rib outline's corners that lie on that plane within 1e-6, starting from 0. The frame looks along -x at the rib's end face on x = -60.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -205,9 +205,9 @@ Code: `rib_beam`, [floor_screws.cpp:219-225](https://github.com/petrasvestartas/
 
 ![](floor/210_rib_beam_seam_point.webp)
 
-<span style="color:#2196EA">■ built</span> `seam` = (0, -2950)   <span style="color:#EB7721">■ variable</span> `along` = (-1, 0, 0)   <span style="color:#737373">■ input</span> the axis of `cp.outer_ribs[0]`, the faces `cp.inner_beams[0][0]` and `[1]`, the point on `[1]`   <span style="color:#A3A3A3">■ context</span> outer rib 0's faces
+<span style="color:#2196EA">■ built</span> `seam` = (0, -2950)   <span style="color:#E8478B">■ variable</span> `along` = (-1, 0, 0)   <span style="color:#737373">■ input</span> the axis of `cp.outer_ribs[0]`, the faces `cp.inner_beams[0][0]` and `[1]`, the point on `[1]`   <span style="color:#A3A3A3">■ context</span> outer rib 0's faces
 
-At each level `from_seam_face` takes the axis of `cp.outer_ribs[k]`, y = -2950 for outer rib 0 of quarter 0. It intersects that axis with the seam plane <span style="color:#737373">`cp.inner_beams[beam][0]`</span> (x = 0) to get <span style="color:#2196EA">`seam`</span>. It intersects it with the beam's inner face <span style="color:#737373">`[1]`</span> (x = -60), and the unit vector from <span style="color:#2196EA">`seam`</span> to that point is <span style="color:#EB7721">`along`</span>, -x.
+At each level `from_seam_face` takes the axis of `cp.outer_ribs[k]`, y = -2950 for outer rib 0 of quarter 0. It intersects that axis with the seam plane <span style="color:#737373">`cp.inner_beams[beam][0]`</span> (x = 0) to get <span style="color:#2196EA">`seam`</span>. It intersects it with the beam's inner face <span style="color:#737373">`[1]`</span> (x = -60), and the unit vector from <span style="color:#2196EA">`seam`</span> to that point is <span style="color:#E8478B">`along`</span>, -x.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -220,9 +220,9 @@ Code: `rib_beam`, [floor_screws.cpp:225-226](https://github.com/petrasvestartas/
 
 ![](floor/211_rib_beam_heads.webp)
 
-<span style="color:#2196EA">■ built</span> `rows[0]`: quarter 0's rib 0, offset -15   <span style="color:#EBB121">■ result</span> `rows[7]`: quarter 1's rib 1, offset +15, dashed   <span style="color:#EB7721">■ variable</span> the head gap, 30   <span style="color:#737373">■ input</span> the seam plane and the seam beams' inner faces   <span style="color:#A3A3A3">■ context</span> outer rib 0's faces
+<span style="color:#2196EA">■ built</span> `rows[0]`: quarter 0's rib 0, offset -15   <span style="color:#F2CC0C">■ result</span> `rows[7]`: quarter 1's rib 1, offset +15, dashed   <span style="color:#E8478B">■ variable</span> the head gap, 30   <span style="color:#737373">■ input</span> the seam plane and the seam beams' inner faces   <span style="color:#A3A3A3">■ context</span> outer rib 0's faces
 
-`head = seam + rib[0].z_axis() * offset`, with `rib[0] = cp.outer_ribs[k][0]` (normal (0, 1, 0) on the y = -3000 edge) and <span style="color:#2196EA">`offset = -15`</span> for `k = 0`, <span style="color:#EBB121">`+15`</span> for `k = 1`. The screw is `head -> head + along * 200`: 60 mm through the seam beam, then 140 mm into the rib end. The other rib on seam 0 is quarter 1's rib 1, which takes <span style="color:#EBB121">`+15`</span> on the same edge plane, so the two ribs' heads on the shared seam plane <span style="color:#EB7721">are 30 mm apart</span>.
+`head = seam + rib[0].z_axis() * offset`, with `rib[0] = cp.outer_ribs[k][0]` (normal (0, 1, 0) on the y = -3000 edge) and <span style="color:#2196EA">`offset = -15`</span> for `k = 0`, <span style="color:#F2CC0C">`+15`</span> for `k = 1`. The screw is `head -> head + along * 200`: 60 mm through the seam beam, then 140 mm into the rib end. The other rib on seam 0 is quarter 1's rib 1, which takes <span style="color:#F2CC0C">`+15`</span> on the same edge plane, so the two ribs' heads on the shared seam plane <span style="color:#E8478B">are 30 mm apart</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -253,9 +253,9 @@ Code: `rib_beam`, [floor_screws.cpp:220-228](https://github.com/petrasvestartas/
 
 ![](floor/213_rib_beam_tied.webp)
 
-<span style="color:#2196EA">■ built</span> the screws and their `head`   <span style="color:#EBB121">■ result</span> the contact, the beam's end on `outer_ribs[0][1]`   <span style="color:#737373">■ input</span> `axis(inner_beams[0], z)`, a helper   <span style="color:#A3A3A3">■ context</span> outer rib 0 and seam beam 0
+<span style="color:#2196EA">■ built</span> the screws and their `head`   <span style="color:#F2CC0C">■ result</span> the contact, the beam's end on `outer_ribs[0][1]`   <span style="color:#737373">■ input</span> `axis(inner_beams[0], z)`, a helper   <span style="color:#A3A3A3">■ context</span> outer rib 0 and seam beam 0
 
-When `seam_through_ribs` is false the seam beam ends on the rib's inner face. For each fraction in `RIB_BEAM_LEVELS` `rib_beam` calls <span style="color:#2196EA">`along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -depth * fraction)`</span>, with `depth = min(static_h, 2 (TIE_TOP - TIE_CLEARANCE))`. The tie key's top lies `TIE_TOP` = 138.5 below the datum, and the lower screw, at half the depth, stays `TIE_CLEARANCE` = 10 above it however deep the seam is; on the default sizes `depth` is `static_h` = 197. The head is where the seam beam's axis (x = -30) meets the bay edge plane `cp.outer_ribs[k][0]`, and the screw runs 100 mm through the rib and 100 mm into the beam. The contact is the beam's end <span style="color:#EBB121">`{top[3], top[0], bottom[0], bottom[3]}`</span> clipped to the rib's bottom loop on `cp.outer_ribs[k][1]` by `overlap`, the function the seam wedge contact uses (chapter 8). The frame uses the tied 6000 x 4800 bay, where the edge is y = -2400.
+When `seam_through_ribs` is false the seam beam ends on the rib's inner face. For each fraction in `RIB_BEAM_LEVELS` `rib_beam` calls <span style="color:#2196EA">`along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -depth * fraction)`</span>, with `depth = min(static_h, 2 (TIE_TOP - TIE_CLEARANCE))`. The tie key's top lies `TIE_TOP` = 138.5 below the datum, and the lower screw, at half the depth, stays `TIE_CLEARANCE` = 10 above it however deep the seam is; on the default sizes `depth` is `static_h` = 197. The head is where the seam beam's axis (x = -30) meets the bay edge plane `cp.outer_ribs[k][0]`, and the screw runs 100 mm through the rib and 100 mm into the beam. The contact is the beam's end <span style="color:#F2CC0C">`{top[3], top[0], bottom[0], bottom[3]}`</span> clipped to the rib's bottom loop on `cp.outer_ribs[k][1]` by `overlap`, the function the seam wedge contact uses (chapter 8). The frame uses the tied 6000 x 4800 bay, where the edge is y = -2400.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -271,9 +271,9 @@ Code: `rib_beam`, [floor_screws.cpp:231-238](https://github.com/petrasvestartas/
 
 ![](floor/214_lift.webp)
 
-<span style="color:#2196EA">■ built</span> quarter 0's rows lifted, `row.contact` and `row.screws`   <span style="color:#EB7721">■ variable</span> `bay_height` = 3500   <span style="color:#737373">■ input</span> the same rows at the datum, z 0
+<span style="color:#2196EA">■ built</span> quarter 0's rows lifted, `row.contact` and `row.screws`   <span style="color:#E8478B">■ variable</span> `bay_height` = 3500   <span style="color:#737373">■ input</span> the same rows at the datum, z 0
 
-Every screw rule ends in `screw_row`, which builds a `Relationship` with `kind`, `a`, `b` and `seam_or_corner = q`. It moves the plane, the contact and every screw up by <span style="color:#EB7721">`guide.parameters.bay_height`</span> with `lifted()`, so the row sits at the floor top instead of at the datum; the contact becomes a closed polyline. The frame shows <span style="color:#737373">quarter 0's rows at z 0</span> and <span style="color:#2196EA">lifted to the floor</span>.
+Every screw rule ends in `screw_row`, which builds a `Relationship` with `kind`, `a`, `b` and `seam_or_corner = q`. It moves the plane, the contact and every screw up by <span style="color:#E8478B">`guide.parameters.bay_height`</span> with `lifted()`, so the row sits at the floor top instead of at the datum; the contact becomes a closed polyline. The frame shows <span style="color:#737373">quarter 0's rows at z 0</span> and <span style="color:#2196EA">lifted to the floor</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -302,9 +302,9 @@ Code: `beam_mitre`, [floor_screws.cpp:242-249](https://github.com/petrasvestarta
 
 ![](floor/216_mitre_screws.webp)
 
-<span style="color:#2196EA">■ built</span> quarter 0's k 0   <span style="color:#EBB121">■ result</span> quarter 1's k 1, dashed   <span style="color:#A3A3A3">■ context</span> the seam and oculus beam quads
+<span style="color:#2196EA">■ built</span> quarter 0's k 0   <span style="color:#F2CC0C">■ result</span> quarter 1's k 1, dashed   <span style="color:#A3A3A3">■ context</span> the seam and oculus beam quads
 
-For each level in `MITRE_LEVELS[k]` `beam_mitre` calls `along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body(outline), corner_level(levels, static_h))`. The head is where the oculus beam's axis, midway between the tilted and back traces and so drifting with `z`, meets the seam plane. The screw crosses the 60 mm seam beam at 45 deg in plan, 84.85 mm, and runs on into the oculus beam. Quarter 0's k 0 and quarter 1's k 1 meet at oculus corner 0, and their heads would land on one point of the seam plane, so they take different level pairs: in plan the heads are 1.7 mm apart, in height one seventh. The frame draws <span style="color:#2196EA">quarter 0's k 0 solid</span> and <span style="color:#EBB121">quarter 1's k 1 dashed</span>.
+For each level in `MITRE_LEVELS[k]` `beam_mitre` calls `along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body(outline), corner_level(levels, static_h))`. The head is where the oculus beam's axis, midway between the tilted and back traces and so drifting with `z`, meets the seam plane. The screw crosses the 60 mm seam beam at 45 deg in plan, 84.85 mm, and runs on into the oculus beam. Quarter 0's k 0 and quarter 1's k 1 meet at oculus corner 0, and their heads would land on one point of the seam plane, so they take different level pairs: in plan the heads are 1.7 mm apart, in height one seventh. The frame draws <span style="color:#2196EA">quarter 0's k 0 solid</span> and <span style="color:#F2CC0C">quarter 1's k 1 dashed</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -318,9 +318,9 @@ Code: `beam_mitre`, [floor_screws.cpp:252-255](https://github.com/petrasvestarta
 
 ![](floor/217_corner_faces.webp)
 
-<span style="color:#2196EA">■ built</span> `beam` (tilted, back) and `beam_end`   <span style="color:#EBB121">■ result</span> `rib = cp.inner_ribs[0]`   <span style="color:#EB7721">■ variable</span> `beam_body` and the way to `rib_body`
+<span style="color:#2196EA">■ built</span> `beam` (tilted, back) and `beam_end`   <span style="color:#F2CC0C">■ result</span> `rib = cp.inner_ribs[0]`   <span style="color:#E8478B">■ variable</span> `beam_body` and the way to `rib_body`
 
-`corner_faces(guide, q, k)` collects what a corner screw reads at end `k` of quarter `q`. <span style="color:#2196EA">`beam = cp.inner_beams[1]`</span> is the oculus beam's tilted face, which it shares with the ring, and its back face. <span style="color:#2196EA">`beam_end = cp.inner_beams[k == 0 ? 0 : 2][1]`</span> is the seam beam's inner face, where the oculus beam ends. <span style="color:#EBB121">`rib = cp.inner_ribs[k]`</span>. <span style="color:#EB7721">`beam_body`</span> and <span style="color:#EB7721">`rib_body`</span> are `body()` of the oculus beam and of inner rib `k`.
+`corner_faces(guide, q, k)` collects what a corner screw reads at end `k` of quarter `q`. <span style="color:#2196EA">`beam = cp.inner_beams[1]`</span> is the oculus beam's tilted face, which it shares with the ring, and its back face. <span style="color:#2196EA">`beam_end = cp.inner_beams[k == 0 ? 0 : 2][1]`</span> is the seam beam's inner face, where the oculus beam ends. <span style="color:#F2CC0C">`rib = cp.inner_ribs[k]`</span>. <span style="color:#E8478B">`beam_body`</span> and <span style="color:#E8478B">`rib_body`</span> are `body()` of the oculus beam and of inner rib `k`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -352,9 +352,9 @@ Code: `rib_corner`, [floor_screws.cpp:259-286](https://github.com/petrasvestarta
 
 ![](floor/219_rib_corner_through.webp)
 
-<span style="color:#2196EA">■ built</span> `inner_beams_0_0`, pushed to `row.through`   <span style="color:#EB7721">■ variable</span> the heads, `depth(head, beam_end, beam_body)`   <span style="color:#737373">■ input</span> `faces.beam_end`   <span style="color:#A3A3A3">■ context</span> the oculus beam and the screws
+<span style="color:#2196EA">■ built</span> `inner_beams_0_0`, pushed to `row.through`   <span style="color:#E8478B">■ variable</span> the heads, `depth(head, beam_end, beam_body)`   <span style="color:#737373">■ input</span> `faces.beam_end`   <span style="color:#A3A3A3">■ context</span> the oculus beam and the screws
 
-After each screw `rib_corner` tests <span style="color:#EB7721">`depth(head, faces.beam_end, faces.beam_body) < 0`</span>. It is true when the head lies on the far side of the seam beam's inner face from the oculus beam's body, so inside the seam beam's end. If any of the two screws does this, <span style="color:#2196EA">`quarter_member(q, inner_beams, seam)`</span> is pushed to <span style="color:#2196EA">`row.through`</span>, and `connector_of` passes three members to `JointBeam::screws`. At quarter 0, k 0 the heads lie at x = -29.072 and -22.862, inside the seam beam (x 0 to -60), and every default corner is the same by symmetry, so every `rib_corner` connector has three targets, not two.
+After each screw `rib_corner` tests <span style="color:#E8478B">`depth(head, faces.beam_end, faces.beam_body) < 0`</span>. It is true when the head lies on the far side of the seam beam's inner face from the oculus beam's body, so inside the seam beam's end. If any of the two screws does this, <span style="color:#2196EA">`quarter_member(q, inner_beams, seam)`</span> is pushed to <span style="color:#2196EA">`row.through`</span>, and `connector_of` passes three members to `JointBeam::screws`. At quarter 0, k 0 the heads lie at x = -29.072 and -22.862, inside the seam beam (x 0 to -60), and every default corner is the same by symmetry, so every `rib_corner` connector has three targets, not two.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -369,9 +369,9 @@ Code: `rib_corner`, [floor_screws.cpp:268-285](https://github.com/petrasvestarta
 
 ![](floor/220_rib_corner_contact.webp)
 
-<span style="color:#2196EA">■ built</span> the contact, `above(end, guide.soffit)`   <span style="color:#EB7721">■ variable</span> `guide.soffit` = -198.783   <span style="color:#737373">■ input</span> the screws   <span style="color:#A3A3A3">■ context</span> the oculus beam and inner rib 0
+<span style="color:#2196EA">■ built</span> the contact, `above(end, guide.soffit)`   <span style="color:#E8478B">■ variable</span> `guide.soffit` = -198.783   <span style="color:#737373">■ input</span> the screws   <span style="color:#A3A3A3">■ context</span> the oculus beam and inner rib 0
 
-The contact is inner rib `k`'s end face on the back face, <span style="color:#2196EA">`{top[0], top[n - 2], bottom[n - 2], bottom[0]}`</span>, passed through <span style="color:#2196EA">`above(..., guide.soffit)`</span>. `above` keeps the points with <span style="color:#EB7721">`z >= soffit`</span> and inserts the crossing point on every edge that crosses that level. `a` is the oculus beam, `b` inner rib `k`, the plane `cp.inner_beams[1][1]`. On the default bay the soffit equals the rib's end bottom, so `above` clips nothing.
+The contact is inner rib `k`'s end face on the back face, <span style="color:#2196EA">`{top[0], top[n - 2], bottom[n - 2], bottom[0]}`</span>, passed through <span style="color:#2196EA">`above(..., guide.soffit)`</span>. `above` keeps the points with <span style="color:#E8478B">`z >= soffit`</span> and inserts the crossing point on every edge that crosses that level. `a` is the oculus beam, `b` inner rib `k`, the plane `cp.inner_beams[1][1]`. On the default bay the soffit equals the rib's end bottom, so `above` clips nothing.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -385,9 +385,9 @@ Code: `rib_corner`, [floor_screws.cpp:279-280](https://github.com/petrasvestarta
 
 ![](floor/221_ring.webp)
 
-<span style="color:#2196EA">■ built</span> the screws through ring 0 into ring 1   <span style="color:#EBB121">■ result</span> the contact on `oculus_edges[0].ring_inner`   <span style="color:#737373">■ input</span> the far face `oculus_edges[0].tilted` and ring 1's axis, a helper   <span style="color:#A3A3A3">■ context</span> the four ring beams
+<span style="color:#2196EA">■ built</span> the screws through ring 0 into ring 1   <span style="color:#F2CC0C">■ result</span> the contact on `oculus_edges[0].ring_inner`   <span style="color:#737373">■ input</span> the far face `oculus_edges[0].tilted` and ring 1's axis, a helper   <span style="color:#A3A3A3">■ context</span> the four ring beams
 
-Ring beam `i` is lofted with `flip`, so its top lies on `tilted[i]` and its bottom on `ring_inner[i]`. It runs lengthwise from `ring_inner[i - 1]` to `tilted[i + 1]`, so the four ring beams form a pinwheel. At oculus corner `q`, with `next = (q + 1) % 4`, ring beam `next` butts on ring `q`'s inner face `ring_inner[q]`. `ring` calls `along_axis` with ring `next`'s faces <span style="color:#737373">`{oculus_edges[next].tilted, oculus_edges[next].ring_inner}`</span>, far face <span style="color:#737373">`oculus_edges[q].tilted`</span> and `body(oculus[next])`, at `RING_LEVELS`: each screw runs through ring `q` into ring `next`. The contact is <span style="color:#EBB121">`{top[2], top[3], bottom[3], bottom[2]}`</span> of `oculus[next]`, whose corners 2 and 3 lie on `ring_inner[q]`.
+Ring beam `i` is lofted with `flip`, so its top lies on `tilted[i]` and its bottom on `ring_inner[i]`. It runs lengthwise from `ring_inner[i - 1]` to `tilted[i + 1]`, so the four ring beams form a pinwheel. At oculus corner `q`, with `next = (q + 1) % 4`, ring beam `next` butts on ring `q`'s inner face `ring_inner[q]`. `ring` calls `along_axis` with ring `next`'s faces <span style="color:#737373">`{oculus_edges[next].tilted, oculus_edges[next].ring_inner}`</span>, far face <span style="color:#737373">`oculus_edges[q].tilted`</span> and `body(oculus[next])`, at `RING_LEVELS`: each screw runs through ring `q` into ring `next`. The contact is <span style="color:#F2CC0C">`{top[2], top[3], bottom[3], bottom[2]}`</span> of `oculus[next]`, whose corners 2 and 3 lie on `ring_inner[q]`.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -403,9 +403,9 @@ Code: `ring`, [floor_screws.cpp:289-301](https://github.com/petrasvestartas/wood
 
 ![](floor/222_ring_faces.webp)
 
-<span style="color:#2196EA">■ built</span> `ring.inner` and `ring.end`   <span style="color:#EBB121">■ result</span> `ring.wedge_start`   <span style="color:#EB7721">■ variable</span> `WEDGE_MARGIN * thickness` = 103.0 and `ring.band` = 30   <span style="color:#737373">■ input</span> `end = loop[0]`, the loop's edge and `ring.along`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
+<span style="color:#2196EA">■ built</span> `ring.inner` and `ring.end`   <span style="color:#F2CC0C">■ result</span> `ring.wedge_start`   <span style="color:#E8478B">■ variable</span> `WEDGE_MARGIN * thickness` = 103.0 and `ring.band` = 30   <span style="color:#737373">■ input</span> `end = loop[0]`, the loop's edge and `ring.along`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
 
-`oculus(guide, q, k, rings)` takes <span style="color:#737373">`loop = outline.bottom`</span> of the oculus beam, its tilted-face loop. <span style="color:#EB7721">`thickness = max(outline_thickness(oculus beam), outline_thickness(oculus[q]))`</span>, where `outline_thickness` is the distance between the two loop centroids. <span style="color:#2196EA">`ring.inner = oculus_edges[q].ring_inner`</span>; <span style="color:#2196EA">`ring.end`</span> is ring `q`'s end plane at this corner, `oculus_edges[q + 1].tilted` for k 0 and `oculus_edges[q - 1].ring_inner` for k 1; `ring.body = body(oculus[q])`. <span style="color:#737373">`end = loop[0]`</span> for k 0, `loop[1]` for k 1, and <span style="color:#737373">`ring.along`</span> is the unit vector from `end` to the loop's other corner at the datum, away from this corner. <span style="color:#EBB121">`ring.wedge_start = end + along * WEDGE_MARGIN * thickness`</span> marks where the oculus wedge starts, and <span style="color:#EB7721">`ring.band = 0.5 * inner_beams`</span> is the band beside the contact in which the wedge's pocket lies.
+`oculus(guide, q, k, rings)` takes <span style="color:#737373">`loop = outline.bottom`</span> of the oculus beam, its tilted-face loop. <span style="color:#E8478B">`thickness = max(outline_thickness(oculus beam), outline_thickness(oculus[q]))`</span>, where `outline_thickness` is the distance between the two loop centroids. <span style="color:#2196EA">`ring.inner = oculus_edges[q].ring_inner`</span>; <span style="color:#2196EA">`ring.end`</span> is ring `q`'s end plane at this corner, `oculus_edges[q + 1].tilted` for k 0 and `oculus_edges[q - 1].ring_inner` for k 1; `ring.body = body(oculus[q])`. <span style="color:#737373">`end = loop[0]`</span> for k 0, `loop[1]` for k 1, and <span style="color:#737373">`ring.along`</span> is the unit vector from `end` to the loop's other corner at the datum, away from this corner. <span style="color:#F2CC0C">`ring.wedge_start = end + along * WEDGE_MARGIN * thickness`</span> marks where the oculus wedge starts, and <span style="color:#E8478B">`ring.band = 0.5 * inner_beams`</span> is the band beside the contact in which the wedge's pocket lies.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -426,9 +426,9 @@ Code: `RingFaces`, [floor_screws.cpp:101-108](https://github.com/petrasvestartas
 
 ![](floor/223_oculus_start.webp)
 
-<span style="color:#2196EA">■ built</span> `start`   <span style="color:#EBB121">■ result</span> `across`   <span style="color:#737373">■ input</span> `trace(ring.inner, z)`, `faces.beam_end` and `ring.along`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
+<span style="color:#2196EA">■ built</span> `start`   <span style="color:#F2CC0C">■ result</span> `across`   <span style="color:#737373">■ input</span> `trace(ring.inner, z)`, `faces.beam_end` and `ring.along`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
 
-At level `z` `oculus_screw` traces <span style="color:#737373">`ring.inner`</span> and intersects that trace with <span style="color:#737373">`faces.beam_end`</span> to get <span style="color:#2196EA">`start`</span>, the zero of the head offset. <span style="color:#EBB121">`across = beam_body - ring.body`</span>, flattened to z 0, with its component along <span style="color:#737373">`ring.along`</span> removed and normalised: the horizontal direction square to the contact edge, from the ring into the quarter.
+At level `z` `oculus_screw` traces <span style="color:#737373">`ring.inner`</span> and intersects that trace with <span style="color:#737373">`faces.beam_end`</span> to get <span style="color:#2196EA">`start`</span>, the zero of the head offset. <span style="color:#F2CC0C">`across = beam_body - ring.body`</span>, flattened to z 0, with its component along <span style="color:#737373">`ring.along`</span> removed and normalised: the horizontal direction square to the contact edge, from the ring into the quarter.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -443,7 +443,7 @@ Code: `oculus_screw`, [floor_screws.cpp:157-163](https://github.com/petrasvestar
 
 ![](floor/224_aim.webp)
 
-<span style="color:#2196EA">■ built</span> the chosen screw and its `head`   <span style="color:#EB7721">■ variable</span> `offset` = 67.5, from `start` to `head`   <span style="color:#737373">■ input</span> `start` and the rays `u` at 0 to 80 deg, helpers   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
+<span style="color:#2196EA">■ built</span> the chosen screw and its `head`   <span style="color:#E8478B">■ variable</span> `offset` = 67.5, from `start` to `head`   <span style="color:#737373">■ input</span> `start` and the rays `u` at 0 to 80 deg, helpers   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
 
 An `Aim` is `(offset, angle)`. <span style="color:#2196EA">`head = start + ring.along * offset`</span> slides the head along the ring's inner face away from the corner. <span style="color:#737373">`u = across * cos(angle) - ring.along * sin(angle)`</span>: angle 0 is square to the contact, and a positive angle toes the screw back towards the corner. The candidate screw is <span style="color:#737373">`head + u * t`</span> for `t` in [0, 200]. The frame draws the rays from 0 to 80 deg every 10 deg from the chosen head, and <span style="color:#2196EA">the chosen screw</span>.
 
@@ -462,9 +462,9 @@ Code: `Aim`, [floor_screws.cpp:132-136](https://github.com/petrasvestartas/wood/
 
 ![](floor/225_clearance_side.webp)
 
-<span style="color:#2196EA">■ built</span> `crossing`   <span style="color:#EBB121">■ result</span> `n`, towards the ring   <span style="color:#EB7721">■ variable</span> `s_head`, dashed from the head to the contact   <span style="color:#737373">■ input</span> the contact `faces.beam[0]`, the screw `u` and its `head`   <span style="color:#A3A3A3">■ context</span> back and `ring.inner`
+<span style="color:#2196EA">■ built</span> `crossing`   <span style="color:#F2CC0C">■ result</span> `n`, towards the ring   <span style="color:#E8478B">■ variable</span> `s_head`, dashed from the head to the contact   <span style="color:#737373">■ input</span> the contact `faces.beam[0]`, the screw `u` and its `head`   <span style="color:#A3A3A3">■ context</span> back and `ring.inner`
 
-`oculus_clearance(head, u, faces, ring)` scores one aim. The contact is <span style="color:#737373">`faces.beam[0]`</span>, the tilted face; <span style="color:#EBB121">`n`</span> is its normal, flipped if needed so it points towards `ring.body`, the ring side. <span style="color:#EB7721">`s_head = (head - contact.origin()) . n`</span> is the head's height above the contact, and `s_rate = u . n` how fast the screw approaches it. If `s_rate >= 0` the screw does not approach the contact plane and the aim scores -1e300. The frame is a section square to the oculus edge, seen along it (the front view turned 45 deg about z), so the tilted face shows its 5 deg lean; the values of `s_head` and `s_rate` for the chosen screw are in its caption.
+`oculus_clearance(head, u, faces, ring)` scores one aim. The contact is <span style="color:#737373">`faces.beam[0]`</span>, the tilted face; <span style="color:#F2CC0C">`n`</span> is its normal, flipped if needed so it points towards `ring.body`, the ring side. <span style="color:#E8478B">`s_head = (head - contact.origin()) . n`</span> is the head's height above the contact, and `s_rate = u . n` how fast the screw approaches it. If `s_rate >= 0` the screw does not approach the contact plane and the aim scores -1e300. The frame is a section square to the oculus edge, seen along it (the front view turned 45 deg about z), so the tilted face shows its 5 deg lean; the values of `s_head` and `s_rate` for the chosen screw are in its caption.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -500,9 +500,9 @@ Code: `oculus_clearance`, [floor_screws.cpp:121-128](https://github.com/petrasve
 
 ![](floor/227_search.webp)
 
-<span style="color:#2196EA">■ built</span> the four chosen screws   <span style="color:#EB7721">■ variable</span> the 61 coarse heads, offsets 0 to 300 every `COARSE_STEP`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
+<span style="color:#2196EA">■ built</span> the four chosen screws   <span style="color:#E8478B">■ variable</span> the 61 coarse heads, offsets 0 to 300 every `COARSE_STEP`   <span style="color:#A3A3A3">■ context</span> ring beam 0 and the oculus beam
 
-`oculus_screw` searches twice with `best_aim`. The coarse pass starts from `Aim{150, 40, -1e300}` with spans 150 and 40: offsets run from `max(0, 0)` to 300 every <span style="color:#EB7721">`COARSE_STEP`</span> 5 mm, angles from 0 to `min(80, 80)` every `COARSE_ANGLE` 2 deg, 61 x 41 aims. It keeps the aim with the largest clearance; a new aim must beat the best by more than 1e-9, so the first of equal aims stays. The fine pass resets the clearance to -1e300 and searches around the coarse best, offsets +-5 every `SEARCH_STEP` 0.25 and angles +-2 every `ANGLE_STEP` 0.1. Offsets are clamped at 0 and angles to [0, 80]; the fine offsets are not clamped at 300. The winning aim gives `head = start + along * offset` and `u`, and the screw runs from the ring's inner face through the ring and across the contact into the oculus beam, toed back towards the corner. The frame draws <span style="color:#EB7721">the 61 coarse head positions</span> along the ring's inner face at both ends of quarter 0 and <span style="color:#2196EA">the four chosen screws with their offset and angle</span>.
+`oculus_screw` searches twice with `best_aim`. The coarse pass starts from `Aim{150, 40, -1e300}` with spans 150 and 40: offsets run from `max(0, 0)` to 300 every <span style="color:#E8478B">`COARSE_STEP`</span> 5 mm, angles from 0 to `min(80, 80)` every `COARSE_ANGLE` 2 deg, 61 x 41 aims. It keeps the aim with the largest clearance; a new aim must beat the best by more than 1e-9, so the first of equal aims stays. The fine pass resets the clearance to -1e300 and searches around the coarse best, offsets +-5 every `SEARCH_STEP` 0.25 and angles +-2 every `ANGLE_STEP` 0.1. Offsets are clamped at 0 and angles to [0, 80]; the fine offsets are not clamped at 300. The winning aim gives `head = start + along * offset` and `u`, and the screw runs from the ring's inner face through the ring and across the contact into the oculus beam, toed back towards the corner. The frame draws <span style="color:#E8478B">the 61 coarse head positions</span> along the ring's inner face at both ends of quarter 0 and <span style="color:#2196EA">the four chosen screws with their offset and angle</span>.
 
 Two things the code does not check. If every aim is rejected, `best_aim` returns its centre with clearance -1e300, and `oculus_screw` builds the screw from it anyway. And it never tests that the best clearance is positive: a negative maximin still becomes a screw, and only `check_screws` (frames 230 to 233) would report it. The grid is also stepped by repeated addition, so the 0.1 deg angles carry a floating-point drift; the frame's printed angles are rounded.
 
@@ -562,9 +562,9 @@ Code: `JointBeam::screws`, [wood_element_joint_beam.cpp:502-528](https://github.
 
 ![](floor/230_keep_outs.webp)
 
-<span style="color:#2196EA">■ built</span> the parts and cutters, keep-out solids   <span style="color:#EBB121">■ result</span> bores run on by `drill_overshoot`   <span style="color:#737373">■ input</span> the screws at oculus corner 0
+<span style="color:#2196EA">■ built</span> the parts and cutters, keep-out solids   <span style="color:#F2CC0C">■ result</span> bores run on by `drill_overshoot`   <span style="color:#737373">■ input</span> the screws at oculus corner 0
 
-`check_screws` first collects what the screws must avoid. It goes over every `JointBeam` in the session that is neither `pre_drill` nor a `ConnectorPart`. Each drill line is extended at both ends by `drill_overshoot` and kept with `line_radius` as a bore. Each part mesh becomes a keep-out: its triangles, its planar faces and its box inflated by `NEAR`. Each cutter of side `s`, up to the number of targets, is lofted into a keep-out that only counts inside its target's uncut solid (`within`). Every keep-out records its connector's targets. The frame draws <span style="color:#2196EA">the parts and cutters near oculus corner 0</span> as wireframes, <span style="color:#EBB121">any bore there run on by `drill_overshoot`</span>, and <span style="color:#737373">the screws they are checked against</span>.
+`check_screws` first collects what the screws must avoid. It goes over every `JointBeam` in the session that is neither `pre_drill` nor a `ConnectorPart`. Each drill line is extended at both ends by `drill_overshoot` and kept with `line_radius` as a bore. Each part mesh becomes a keep-out: its triangles, its planar faces and its box inflated by `NEAR`. Each cutter of side `s`, up to the number of targets, is lofted into a keep-out that only counts inside its target's uncut solid (`within`). Every keep-out records its connector's targets. The frame draws <span style="color:#2196EA">the parts and cutters near oculus corner 0</span> as wireframes, <span style="color:#F2CC0C">any bore there run on by `drill_overshoot`</span>, and <span style="color:#737373">the screws they are checked against</span>.
 
 | Variable | Value | Meaning |
 |---|---|---|
@@ -611,9 +611,9 @@ Code: `held`, [floor_screw_check.cpp:166-179](https://github.com/petrasvestartas
 
 ![](floor/233_spacing.webp)
 
-<span style="color:#EB7721">■ variable</span> the closest axes, 28.143   <span style="color:#737373">■ input</span> the screws at oculus corner 0   <span style="color:#A3A3A3">■ context</span> the keep-outs
+<span style="color:#E8478B">■ variable</span> the closest axes, 28.143   <span style="color:#737373">■ input</span> the screws at oculus corner 0   <span style="color:#A3A3A3">■ context</span> the keep-outs
 
-Bore clearance is `segment_distance(screw, bore)` minus both radii. Pocket clearance first rejects a solid whose inflated box misses the screw's box, then samples the screw at `ceil(length / SAMPLE_STEP)` steps and takes the distance to the solid's triangles, negated when the point is inside, minus the radius; a cutter only counts the samples inside its target. Any negative value is a misfit. Last, every pair of screws must have axes at least `SCREW_SPACING` apart. The frame finds the closest pair at oculus corner 0 with `Intersection::line_line_parameters`, <span style="color:#EB7721">writes its distance</span> at the middle of that gap and prints what `check_screws` reports over the whole floor in the caption. The reported value equals one seventh of `static_h`, the step between two corner levels.
+Bore clearance is `segment_distance(screw, bore)` minus both radii. Pocket clearance first rejects a solid whose inflated box misses the screw's box, then samples the screw at `ceil(length / SAMPLE_STEP)` steps and takes the distance to the solid's triangles, negated when the point is inside, minus the radius; a cutter only counts the samples inside its target. Any negative value is a misfit. Last, every pair of screws must have axes at least `SCREW_SPACING` apart. The frame finds the closest pair at oculus corner 0 with `Intersection::line_line_parameters`, <span style="color:#E8478B">writes its distance</span> at the middle of that gap and prints what `check_screws` reports over the whole floor in the caption. The reported value equals one seventh of `static_h`, the step between two corner levels.
 
 | Variable | Value | Meaning |
 |---|---|---|
