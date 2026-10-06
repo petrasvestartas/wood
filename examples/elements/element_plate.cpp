@@ -3,14 +3,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The plate element: from its two outlines, and from a rectangle.
+/// A plate from its bottom and top outlines.
 int main() {
 
     WoodSession scene("element_plate");
 
     const Polyline bottom({Point(0.0, 0.0, 0.0), Point(600.0, 0.0, 0.0), Point(500.0, 400.0, 0.0), Point(0.0, 300.0, 0.0), Point(0.0, 0.0, 0.0)});
-    scene.add(std::make_shared<Plate>(bottom, bottom.translated(Vector(0.0, 0.0, 40.0)), "outlines"));
-    scene.add(Plate::from_rectangle(Point(800.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 600.0, 400.0, 40.0, "rectangle"));
+    scene.add(std::make_shared<Plate>(bottom, bottom.translated(Vector(0.0, 0.0, 40.0)), "plate"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -19,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The plate element, two ways: from its bottom outline and the same outline 40 above, any closed polygon, and Plate::from_rectangle, a 600 x 400 rectangle 40 thick from an origin and two axes.
+A plate from two polylines: its bottom outline, any closed polygon, and the same outline 40 above as its top.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

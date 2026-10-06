@@ -137,6 +137,10 @@ void BeamVariable::compute_geometry_brep_impl() {
 void BeamVariable::compute_geometry_features() {
 
     std::vector<ElementFeature> next;
+    next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
+
+    for (const Polyline& section : sections)
+        next.push_back(polyline_feature("section", section));
 
     for (ElementFeature& feature : session_features(*this))
         next.push_back(std::move(feature));

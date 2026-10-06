@@ -9,6 +9,6 @@ Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vect
 
 ![Beam](elements/element_beam.png)
 
-Front: a straight axis with a 60 radius. Back: a two-segment axis swept by a 120 x 200 rectangle.
+A 120 x 200 rectangular profile swept along a two-segment axis.
 
 \include{lineno} elements/element_beam.cpp

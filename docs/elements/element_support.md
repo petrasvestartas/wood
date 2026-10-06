@@ -10,6 +10,6 @@ static std::shared_ptr<Joint> Joint::support(const Support& support, const Colum
 
 ![Support](elements/element_support.png)
 
-A support on the xy plane and a 220 square column 400 high on it, joined by its support joint.
+A support on the xy plane: base plate with anchors, tube, head plate and column screws.
 
 \include{lineno} elements/element_support.cpp

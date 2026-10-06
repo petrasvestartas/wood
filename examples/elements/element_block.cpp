@@ -3,17 +3,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The block element: lofted between loops, and from a closed mesh.
+/// A block lofted between a bottom and a top loop.
 int main() {
 
     WoodSession scene("element_block");
 
     const Polyline bottom = Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 300.0, 300.0);
     const Polyline top = Polyline::rectangle(Point(50.0, 50.0, 250.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 200.0, 200.0);
-    scene.add(std::make_shared<Block>(std::vector<Polyline>{bottom, top}, "loops"));
-
-    const Polyline base = bottom.translated(Vector(500.0, 0.0, 0.0));
-    scene.add(std::make_shared<Block>(Mesh::loft({base}, {base.translated(Vector(0.0, 0.0, 250.0))}, true), "mesh"));
+    scene.add(std::make_shared<Block>(std::vector<Polyline>{bottom, top}, "block"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -22,7 +19,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The block element, two ways: lofted between a 300 square and a 200 square 250 above it, and from a closed mesh, a 300 cube-like box.
+A block lofted between a 300 square and a 200 square 250 above it.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

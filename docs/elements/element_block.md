@@ -9,6 +9,6 @@ explicit Block(const Mesh& mesh, const std::string& name = "block")
 
 ![Block](elements/element_block.png)
 
-Left: lofted between a 300 square and a 200 square 250 above it. Right: from a closed mesh.
+Lofted between a 300 square and a 200 square 250 above it.
 
 \include{lineno} elements/element_block.cpp

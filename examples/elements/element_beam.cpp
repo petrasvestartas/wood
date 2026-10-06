@@ -3,14 +3,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The beam element: a polyline axis with a radius, and with a profile.
+/// A beam: a rectangular profile swept along a polyline axis.
 int main() {
 
     WoodSession scene("element_beam");
 
-    scene.add(std::make_shared<Beam>(Polyline({Point(0.0, 0.0, 0.0), Point(1000.0, 0.0, 0.0)}), 60.0, "radius"));
     const Polyline profile = Polyline::rectangle(Point(-60.0, -100.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), 120.0, 200.0);
-    scene.add(std::make_shared<Beam>(Polyline({Point(0.0, 400.0, 0.0), Point(600.0, 400.0, 0.0), Point(1000.0, 700.0, 0.0)}), std::vector<Polyline>{profile}, std::vector<Vector>{}, "profile"));
+    scene.add(std::make_shared<Beam>(Polyline({Point(0.0, 0.0, 0.0), Point(600.0, 0.0, 0.0), Point(1000.0, 300.0, 0.0)}), std::vector<Polyline>{profile}, std::vector<Vector>{}, "beam"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -19,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The beam element, two ways: a straight axis with a 60 radius, and a two-segment axis swept by a 120 x 200 rectangular profile.
+A beam: a 120 x 200 rectangular profile swept along a two-segment polyline axis.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

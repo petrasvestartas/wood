@@ -9,6 +9,6 @@ static std::shared_ptr<BeamVariable> between(const Polyline& first, const Polyli
 
 ![BeamVariable](elements/element_beam_variable.png)
 
-Both taper from a 120 x 300 section to 120 x 120: with an axis, and `BeamVariable::between` from the two sections alone.
+Like the floor's outer rib: seven 120 wide rectangles hanging from a straight 3000 axis along its top, 730 deep at the start and 300 at the end on a parabola. The lines are its features, the axis and every section.
 
 \include{lineno} elements/element_beam_variable.cpp

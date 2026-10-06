@@ -9,6 +9,6 @@ static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& 
 
 ![Plate](elements/element_plate.png)
 
-Left: a plate from its bottom outline, any closed polygon, and the same outline 40 above. Right: `Plate::from_rectangle`, 600 x 400, 40 thick.
+A plate from two polylines: its bottom outline and the same outline 40 above.
 
 \include{lineno} elements/element_plate.cpp

@@ -80,13 +80,14 @@ https://petrasvestartas.github.io/session/
 
 - Every element class in `src/joinery_solver/wood_elements/` has all three, added or updated with
   every new element or constructor:
-  - `examples/elements/element_<type>.cpp`: minimal like an API, its constructors and static
-    constructors side by side and nothing else, registered as `ADD_EXE(element_<type> ...)`; a
-    case that needs other elements (a column with glued blocks and cuts) shows them through
-    `add_interaction(source, target, InteractionFeatureSolid(mesh, operation))`.
+  - `examples/elements/element_<type>.cpp`: minimal like an API, one instance of the element and
+    nothing else, registered as `ADD_EXE(element_<type> ...)`; a case that needs other elements (a
+    column with glued blocks and cuts) is its own example, `element_<type>_<case>.cpp`, showing them
+    through `add_interaction(source, target, InteractionFeatureSolid(mesh, operation))`.
   - `docs/images/elements/element_<type>.png`: that example's `data/output/pb/live.pb` rendered by
     session_viewer's selftest with `.claude/skills/wood-film-docs/templates/viewer_render_options.patch`
-    applied (Arctic, opacity 1), cropped to the elements and centred.
+    applied (Arctic, opacity 1, `VIEWER_FEATURES=1` so the axis and sections show), cropped to the
+    elements and centred.
   - `docs/elements/element_<type>.md` (`{#elements_<type>}`): one sentence on what it is, the
     constructors as a code block, the picture with one line naming what it shows, and the example
     by `\include{lineno} elements/element_<type>.cpp`; listed in the table and the subpages of

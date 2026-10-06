@@ -3,15 +3,22 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The variable beam element: an axis with a section at each end, and two sections alone.
+/// A variable beam like the floor's outer rib: rectangles along a straight axis, their depth a parabola.
 int main() {
 
     WoodSession scene("element_beam_variable");
 
-    const Polyline start = Polyline::rectangle(Point(0.0, -60.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 120.0, 300.0);
-    const Polyline end = Polyline::rectangle(Point(2000.0, -60.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 120.0, 120.0);
-    scene.add(std::make_shared<BeamVariable>(Line::from_points(Point(0.0, 0.0, 0.0), Point(2000.0, 0.0, 0.0)), std::vector<Polyline>{start, end}, "axis_and_sections"));
-    scene.add(BeamVariable::between(start.translated(Vector(0.0, 600.0, 0.0)), end.translated(Vector(0.0, 600.0, 0.0)), "between"));
+    // seven rectangles 120 wide hanging from the axis, 730 deep at the start to 300 at the end
+    const double length = 3000.0;
+    std::vector<Polyline> sections;
+
+    for (size_t i = 0; i < 7; i++) {
+        const double x = length * i / 6.0;
+        const double depth = 300.0 + 430.0 * (1.0 - x / length) * (1.0 - x / length);
+        sections.push_back(Polyline({Point(x, -60.0, 0.0), Point(x, -60.0, -depth), Point(x, 60.0, -depth), Point(x, 60.0, 0.0)}).closed());
+    }
+
+    scene.add(std::make_shared<BeamVariable>(Line::from_points(Point(0.0, 0.0, 0.0), Point(length, 0.0, 0.0)), sections, "rib"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -20,7 +27,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The variable beam element, two ways: an axis with a 120 x 300 section at its start tapering to 120 x 120 at its end, and BeamVariable::between, the same two sections without an axis.
+A variable beam like the floor's outer rib: a straight 3000 axis along its top and seven 120 wide rectangles hanging from it, 730 deep at the start and 300 at the end on a parabola, lofted from one to the next. The axis and the sections are its features.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

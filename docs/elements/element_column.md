@@ -10,6 +10,14 @@ static wood_floor::ColumnSession wood_floor::ColumnSession::glued_head(const Lin
 
 ![Column](elements/element_column.png)
 
-Left to right: an axis and a 200 x 300 section; `Column::square` with a notch a hidden block takes away (`SolidOperation::subtract`); `ColumnSession::glued_head`, the 220 shaft and two blocks glued on (`SolidOperation::add`) for a 340 head over its top 730; the floor's column, the glued head on its support with six hidden cutter plates taking away the faces the ribs and the column blocks bear on. A column with features is several elements and their interactions, so `glued_head` returns a session, not a column.
+A 200 x 300 rectangle swept along a 3500 axis; the lines are its features, the axis and the section.
 
 \include{lineno} elements/element_column.cpp
+
+## The floor's column as a session
+
+A column with glued blocks and cuts is several elements and the features they put on it, so `ColumnSession::glued_head` and the floor's `ColumnSession(guide, q)` return a session: the 220 shaft, two blocks glued on for the 340 head (`SolidOperation::add`, hidden once glued), the support with its joint's seat and screws, and six hidden cutter plates taking away the faces the ribs and the column blocks bear on (`SolidOperation::subtract`).
+
+![Column session](elements/element_column_session.png)
+
+\include{lineno} elements/element_column_session.cpp

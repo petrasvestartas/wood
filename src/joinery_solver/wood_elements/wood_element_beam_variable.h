@@ -68,7 +68,7 @@ protected:
     /// Writes the model BRep and the element features into the session slot.
     void compute_geometry_brep_impl() override;
 
-    /// Refresh the geometry features while preserving session features.
+    /// The axis and every section as geometry features, the session features kept.
     void compute_geometry_features();
 
 public:
