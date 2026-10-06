@@ -27,7 +27,7 @@ message Joint {
   repeated session_proto.Polyline parts = 18;   // A connector's own solids as bottom, top loop pairs
   repeated JointCutter cutters = 19;            // A connector's cutters, one entry per target in targets order
   double drill_overshoot = 20;                  // How far a connector's holes run past its dowels where they leave a target
-  repeated InteractionFeatureSolid solid_cuts = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
+  repeated InteractionFeatureSolid solid_features = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
   reserved 22;                                  // Was nested; a connector's children in the tree now say it
   bool pre_drill = 23;                          // A connector of screws: its drill lines are pre-drilled holes in its targets, never cut
 }

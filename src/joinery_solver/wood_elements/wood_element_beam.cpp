@@ -60,7 +60,7 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
     for (const session_proto::Polyline& ring : proto.profile())
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
-    for (const auto& cut : proto.solid_cuts()) beam->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    for (const auto& cut : proto.solid_features()) beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     return beam;
 }
 
@@ -140,7 +140,7 @@ const BRep& Beam::element_geometry_brep() const {
 }
 
 Mesh Beam::trimmed_mesh() const {
-    return cut_mesh(element_geometry_mesh(), cuts);
+    return cut_mesh(stock_mesh(), cuts);
 }
 
 BRep Beam::trimmed_brep() const {
@@ -171,7 +171,7 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     std::shared_ptr<Beam> beam = std::make_shared<Beam>(axis.transformed(xform), radii, transformed_directions(directions, axis.segment_count(), xform), allowed_type, name);
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_cuts) beam->solid_cuts.push_back(cut.transformed(xform));
+    for (const auto& cut : solid_features) beam->solid_features.push_back(cut.transformed(xform));
     beam->profile = profile;
     beam->set_features(transformed_features(_features, xform));
     beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
@@ -185,7 +185,7 @@ void Beam::place(const Xform& xform) {
     directions = transformed_directions(directions, axis.segment_count(), xform);
     axis.transform(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
+    for (auto& cut : solid_features) cut = cut.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -272,8 +272,8 @@ std::string Beam::element_data_dumps() const {
         if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
 
-    for (const auto& cut : solid_cuts)
-        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+    for (const auto& cut : solid_features)
+        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

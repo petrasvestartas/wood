@@ -640,7 +640,7 @@ std::vector<std::shared_ptr<Element>> to_floor(const Level& level, const Context
 
         for (const std::shared_ptr<Element>& deck : to_deck(outline.second, flush ? level.z - context.framing.deck : level.z, context.framing.deck, compute_span(level.plan, outline.first, context.framing), context.framing.panel)) {
             std::shared_ptr<wood_session::Plate> plate = std::static_pointer_cast<wood_session::Plate>(deck);
-            plate->solid_cuts = heads;
+            plate->solid_features = heads;
             plate->invalidate_geometry();
             elements.push_back(deck);
         }

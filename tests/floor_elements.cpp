@@ -138,7 +138,7 @@ void check_support() {
     const wood_floor::FloorGuide& guide = square_guide();
     const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(0), "support");
     const Point foot = support->column_foot();
-    const std::shared_ptr<Column> column = Column::glued_head(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(0), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
+    const std::shared_ptr<Column> column = Column::square(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(0), guide.size_column_head);
     scene.add(support);
     scene.add(column);
 
@@ -147,11 +147,7 @@ void check_support() {
     check(std::abs(compute_volume(base) - EXACT_SUPPORT) <= 1e-3 * EXACT_SUPPORT, "support volume " + std::to_string(compute_volume(base)));
     check(std::abs(column->axis.start()[2] - (support->height - support->head_plate_recess)) <= 1e-9, "column foot on the support");
 
-    const double side = guide.size_column_head;
-    const double head_side = side + guide.size_column_head_chamfer;
     const double stock = compute_volume(column->model_geometry_mesh());
-    const double glued = side * side * (column->axis.length() - guide.column_head_depth) + head_side * head_side * guide.column_head_depth;
-    check(std::abs(stock - glued) <= 1e-9 * glued && column->model_geometry_mesh().is_closed(), fmt::format("the shaft and its two glued blocks one closed solid of {:.6f}, not {:.6f}", stock, glued));
     const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
     scene.add(joint);
     scene.add_joint(joint);
@@ -161,23 +157,30 @@ void check_support() {
     const double removed = stock - compute_volume(column->model_geometry_mesh());
     check(std::abs(removed - pocket - screws) <= 1e-6 * removed, "support joint removes " + std::to_string(removed) + " not " + std::to_string(pocket + screws));
 
+    // the floor's column: the shaft, two blocks glued on through add interactions, six cutter plates through subtract ones
     wood_floor::ColumnSession carved(guide, 0);
-    const double head = stock - removed - compute_volume(carved.column->model_geometry_mesh());
+    const double side = guide.size_column_head;
+    const double head_side = side + guide.size_column_head_chamfer;
+    const double glued = side * side * (carved.column->axis.length() - guide.column_head_depth) + head_side * head_side * guide.column_head_depth;
+    const Mesh stock_with_head = carved.column->stock_mesh();
+    check(std::abs(compute_volume(stock_with_head) - glued) <= 1e-9 * glued && stock_with_head.is_closed(), fmt::format("the shaft and its two glued blocks one closed stock of {:.6f}, not {:.6f}", compute_volume(stock_with_head), glued));
+
+    const double head = glued - removed - compute_volume(carved.column->model_geometry_mesh());
     check(std::abs(head - HEAD_CUT) <= 1e-6 * HEAD_CUT, fmt::format("head cuts remove {:.6f}", head));
-    carved.column->compute_geometry_mesh();
-    size_t glued_blocks = 0;
-    size_t inclined = 0;
-    size_t drawn = 0;
+    size_t adds = 0;
+    size_t subtracts = 0;
 
-    for (const InteractionFeatureSolid& feature : carved.column->solid_features) {
-        glued_blocks += feature.operation == SolidOperation::add;
-        inclined += feature.operation == SolidOperation::subtract;
-    }
+    for (const std::shared_ptr<Block>& block : carved.head)
+        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(block, carved.column))
+            if (const std::shared_ptr<InteractionFeatureSolid> feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
+                adds += feature->operation == SolidOperation::add;
 
-    for (const ElementFeature& feature : carved.column->features())
-        drawn += feature.feature_type == "cut" && feature.outlines.size() >= 6;
+    for (const std::shared_ptr<Plate>& cutter : carved.cutters)
+        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(cutter, carved.column))
+            if (const std::shared_ptr<InteractionFeatureSolid> feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
+                subtracts += feature->operation == SolidOperation::subtract;
 
-    check(glued_blocks == 2 && inclined == 6 && drawn == 6 && carved.get_elements<Joint>().size() == 1, fmt::format("the column's own features: 2 glued blocks then 6 inclined faces, drawn as {} cut features, not {} and {}; one joint", drawn, glued_blocks, inclined));
+    check(adds == 2 && subtracts == 6 && carved.column->solid_features.size() == 9 && carved.get_elements<Joint>().size() == 1, fmt::format("two head blocks add and six cutter plates subtract through interactions, the support one more: {} adds, {} subtracts, {} hosted", adds, subtracts, carved.column->solid_features.size()));
     check(carved.column->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -185,7 +188,7 @@ void check_support() {
     check(loaded->plane.origin() == support->plane.origin() && loaded->height == support->height && loaded->head_plate_diameter == support->head_plate_diameter, "support round trip");
     check(loaded->screw_count == support->screw_count && loaded->screw_angle == support->screw_angle && loaded->base_plate_hole_spacing == support->base_plate_hole_spacing, "support round trip fasteners");
 
-    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, six inclined faces removing {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
+    std::cout << fmt::format("floor_elements: support {:.3f} mm3, joint removes {:.3f}, two glued blocks and six cutter plates removing {:.6f}, round trip pass", compute_volume(base), removed, head) << std::endl;
 }
 
 /// The children of a connector in the scene tree: its part and dowel elements, in order.
@@ -480,7 +483,7 @@ void check_wedges() {
         check(std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <= 1e-9 * volumes.at(beam->guid()), "carved beam round trip " + beam->name);
 
     for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables()) {
-        if (beam->solid_cuts.empty())
+        if (beam->solid_features.empty())
             continue;
 
         const BRep& brep = beam->model_geometry_brep();
@@ -573,7 +576,7 @@ void check_seam_beams() {
     std::cout << fmt::format("floor_elements: seam beams through the rib band to the outer face, ribs ending on them within the beams' soffit {:.3f}, wedges flush with the outer face, horizontal screws from the seam face", guide.soffit) << std::endl;
 }
 
-/// The drill features of every member: one per stretch of an attached joint's drill line inside the member's solid, dowels, screws and the support screws alike, each the two circles of its radius where the hole enters and leaves, and every one through a round trip.
+/// The drill features of every member: one per stretch of an attached joint's drill line inside the member's stock, its glued blocks included, dowels, screws and the support screws alike, each the two circles of its radius where the hole enters and leaves, and every one through a round trip.
 void check_drill_features() {
 
     wood_floor::Floor scene(square_guide(), "drills");
@@ -592,7 +595,9 @@ void check_drill_features() {
         names[joint->guid()] = joint->name;
 
         for (const std::string& guid : joint->targets) {
-            const Mesh solid = scene.get_element<Element>(guid)->element_geometry_mesh();
+            const std::shared_ptr<Element> target = scene.get_element<Element>(guid);
+            const std::shared_ptr<WoodElement> member = std::dynamic_pointer_cast<WoodElement>(target);
+            const Mesh solid = member ? member->stock_mesh() : target->element_geometry_mesh();
 
             for (const Line& line : joint->drill_axes())
                 for (const std::array<double, 2>& inside : inside_stretches(solid, line))
@@ -833,7 +838,7 @@ void check_drilled_members(const WoodSession& scene) {
     size_t drilled = 0;
 
     for (const std::shared_ptr<Element>& element : scene.world_elements()) {
-        const std::vector<InteractionFeatureSolid>* cuts = solid_cuts_of(*element);
+        const std::vector<InteractionFeatureSolid>* cuts = solid_features_of(*element);
 
         if (!cuts || cuts->empty())
             continue;
@@ -892,9 +897,9 @@ void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_pt
     for (const std::shared_ptr<JointBeam>& lap : laps) {
         const std::shared_ptr<JointBeam> a = scene.get_element<JointBeam>(lap->targets[0]);
         const std::shared_ptr<JointBeam> b = scene.get_element<JointBeam>(lap->targets[1]);
-        check(a->solid_cuts.size() == 1 && b->solid_cuts.size() == 1, "each plate carries its slot");
-        const Mesh slotted_a = apply_solid_features(a->part_mesh(0), a->solid_cuts, false);
-        const Mesh slotted_b = apply_solid_features(b->part_mesh(0), b->solid_cuts, false);
+        check(a->solid_features.size() == 1 && b->solid_features.size() == 1, "each plate carries its slot");
+        const Mesh slotted_a = apply_solid_features(a->part_mesh(0), a->solid_features, false);
+        const Mesh slotted_b = apply_solid_features(b->part_mesh(0), b->solid_features, false);
         const Mesh overlap = solid_boolean(slotted_a, slotted_b, SolidOperation::intersect, 1e-7);
         check(!overlap.number_of_faces() || compute_volume(overlap) < 1e-6, "the slotted plates do not overlap");
         const double sum = compute_volume(slotted_a) + compute_volume(slotted_b);
@@ -937,7 +942,7 @@ void check_rectangle_plates() {
 
     for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>())
         if (!std::dynamic_pointer_cast<ConnectorPart>(joint))
-            slotted += joint->solid_cuts.size();
+            slotted += joint->solid_features.size();
 
     check(slotted == 8, "the slots round trip on the plates");
     check(back.get_elements<ConnectorPart>().size() == 8 && back.get_elements<Dowel>().size() == 32, "the plate parts and the dowels round trip as children");

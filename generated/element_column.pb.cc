@@ -47,12 +47,12 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
     {
       PROTOBUF_FIELD_OFFSET(Column, _impl_._has_bits_),
       0, // no _extensions_
-      9, 56,  // max_field_number, fast_idx_mask
+      6, 56,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294966976,  // skipmap
+      4294967232,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      7,  // num_field_entries
-      6,  // num_aux_entries
+      6,  // num_field_entries
+      5,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -82,10 +82,10 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       {::_pbi::TcParser::FastF64S1,
        {41, 5, 0,
         PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_)}},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
       {::_pbi::TcParser::FastMtR1,
        {50, 2, 4,
-        PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_)}},
+        PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_features_)}},
       {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
@@ -100,10 +100,8 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.profile_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double rotation = 5;
       {PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
-      {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
-      {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_features_), _Internal::kHasBitsOffset + 6, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
+      {PROTOBUF_FIELD_OFFSET(Column, _impl_.solid_features_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -131,11 +129,6 @@ constexpr Column::ParseTableT_ Column::InternalGenerateParseTable_(const ::_pbi:
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
         #endif
-        #ifndef PROTOBUF_MESSAGE_GLOBALS
-        {::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureSolid>()},
-        #else
-        {::_pbi::FieldAuxMessageGlobals(), &::wood_proto::InteractionFeatureSolid_globals_},
-        #endif
     }},
     {{
     }},
@@ -156,19 +149,14 @@ inline constexpr Column::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.profile_)>()
          }
         ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
-            ::wood_proto::Column,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_cuts_)>()
-         }
-        ,
-        axis_{nullptr},
-        section_{nullptr},
-        rotation_{0},
         solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Column,
             PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_features_)>()
          }
-     {}
+        ,
+        axis_{nullptr},
+        section_{nullptr},
+        rotation_{0} {}
 
 template <typename>
 constexpr Column::Column(::_pbi::ConstantInitialized,
@@ -272,21 +260,19 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_._has_bits_),
-        10, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_cuts_),
+        9, // hasbit index offset
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.axis_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.section_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.cuts_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.profile_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.rotation_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_features_),
         2,
         3,
         4,
         0,
         1,
         5,
-        6,
 };
 
 static const ::_pbi::MigrationSchema
@@ -301,16 +287,14 @@ const char descriptor_table_protodef_element_5fcolumn_2eproto[] ABSL_ATTRIBUTE_S
     protodesc_cold) = {
     "\n\024element_column.proto\022\nwood_proto\032\037inte"
     "raction_feature_solid.proto\032\nline.proto\032"
-    "\013plane.proto\032\016polyline.proto\"\312\002\n\006Column\022"
-    "7\n\nsolid_cuts\030\006 \003(\0132#.wood_proto.Interac"
-    "tionFeatureSolid\022!\n\004axis\030\001 \001(\0132\023.session"
-    "_proto.Line\022(\n\007section\030\002 \001(\0132\027.session_p"
-    "roto.Polyline\022\"\n\004cuts\030\003 \003(\0132\024.session_pr"
-    "oto.Plane\022(\n\007profile\030\004 \003(\0132\027.session_pro"
-    "to.Polyline\022\020\n\010rotation\030\005 \001(\001\022;\n\016solid_f"
-    "eatures\030\t \003(\0132#.wood_proto.InteractionFe"
-    "atureSolidJ\004\010\007\020\010J\004\010\010\020\tR\004headR\013head_heigh"
-    "tb\006proto3"
+    "\013plane.proto\032\016polyline.proto\"\227\002\n\006Column\022"
+    ";\n\016solid_features\030\006 \003(\0132#.wood_proto.Int"
+    "eractionFeatureSolid\022!\n\004axis\030\001 \001(\0132\023.ses"
+    "sion_proto.Line\022(\n\007section\030\002 \001(\0132\027.sessi"
+    "on_proto.Polyline\022\"\n\004cuts\030\003 \003(\0132\024.sessio"
+    "n_proto.Plane\022(\n\007profile\030\004 \003(\0132\027.session"
+    "_proto.Polyline\022\020\n\010rotation\030\005 \001(\001J\004\010\007\020\010J"
+    "\004\010\010\020\tJ\004\010\t\020\nR\004headR\013head_heightb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fcolumn_2eproto_deps[4] = {
@@ -323,7 +307,7 @@ static ::absl::once_flag descriptor_table_element_5fcolumn_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fcolumn_2eproto = {
     false,
     false,
-    449,
+    398,
     descriptor_table_protodef_element_5fcolumn_2eproto,
     "element_column.proto",
     &descriptor_table_element_5fcolumn_2eproto_once,
@@ -339,9 +323,9 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fcolu
 namespace wood_proto {
 // ===================================================================
 
-void Column::clear_solid_cuts() {
+void Column::clear_solid_features() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.solid_cuts_.Clear();
+  _impl_.solid_features_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
 }
 void Column::clear_axis() {
@@ -363,11 +347,6 @@ void Column::clear_profile() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.profile_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
-}
-void Column::clear_solid_features() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.solid_features_.Clear();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
 }
 Column::Column(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -395,13 +374,6 @@ PROTOBUF_NDEBUG_INLINE Column::Impl_::Impl_(
               ::wood_proto::Column,
               PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.profile_)>()
           , arena, from.profile_
-        }
-        ,
-        solid_cuts_ {
-          visibility, ::_pbi::InternalMetadataOffset::Build<
-              ::wood_proto::Column,
-              PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_cuts_)>()
-          , arena, from.solid_cuts_
         }
         ,
         solid_features_ {
@@ -448,11 +420,6 @@ PROTOBUF_NDEBUG_INLINE Column::Impl_::Impl_(
         profile_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Column,
             PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.profile_)>()
-         }
-        ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
-            ::wood_proto::Column,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Column, _impl_.solid_cuts_)>()
          }
         ,
         solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
@@ -527,7 +494,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
       _impl_.profile_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _impl_.solid_cuts_.Clear();
+      _impl_.solid_features_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(this_._impl_.axis_ != nullptr);
@@ -538,12 +505,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
       this_._impl_.section_->Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00000060U)) {
-    this_._impl_.rotation_ = 0;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
-      _impl_.solid_features_.Clear();
-    }
-  }
+  this_._impl_.rotation_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -614,26 +576,14 @@ PROTOBUF_NOINLINE void Column::Clear() {
     }
   }
 
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-    for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_solid_cuts_size());
-         i < n; i++) {
-      const auto& repfield = this_._internal_solid_cuts().Get(i);
-      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-          6, repfield, repfield.GetCachedSize(), target,
-          stream);
-    }
-  }
-
-  // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
-  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
                              this_._internal_solid_features_size());
          i < n; i++) {
       const auto& repfield = this_._internal_solid_features().Get(i);
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
-          9, repfield, repfield.GetCachedSize(), target,
+          6, repfield, repfield.GetCachedSize(), target,
           stream);
     }
   }
@@ -661,7 +611,7 @@ PROTOBUF_NOINLINE void Column::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     // repeated .session_proto.Plane cuts = 3;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_cuts_size();
@@ -676,10 +626,10 @@ PROTOBUF_NOINLINE void Column::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
+    // repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      total_size += 1UL * this_._internal_solid_cuts_size();
-      for (const auto& msg : this_._internal_solid_cuts()) {
+      total_size += 1UL * this_._internal_solid_features_size();
+      for (const auto& msg : this_._internal_solid_features()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -697,13 +647,6 @@ PROTOBUF_NOINLINE void Column::Clear() {
     if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_rotation()) != 0) {
         total_size += 9;
-      }
-    }
-    // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
-      total_size += 1UL * this_._internal_solid_features_size();
-      for (const auto& msg : this_._internal_solid_features()) {
-        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
   }
@@ -725,7 +668,7 @@ void Column::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000007fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_cuts()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
@@ -737,9 +680,9 @@ void Column::MergeImpl(::google::protobuf::MessageLite& to_msg,
           from._internal_profile());
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _this->_internal_mutable_solid_cuts()->InternalMergeFromWithArena(
+      _this->_internal_mutable_solid_features()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_solid_cuts());
+          from._internal_solid_features());
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(from._impl_.axis_ != nullptr);
@@ -762,11 +705,6 @@ void Column::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.rotation_ = from._impl_.rotation_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
-      _this->_internal_mutable_solid_features()->InternalMergeFromWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_solid_features());
-    }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
@@ -787,14 +725,13 @@ void Column::InternalSwap(Column* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.cuts_.InternalSwap(&other->_impl_.cuts_);
   _impl_.profile_.InternalSwap(&other->_impl_.profile_);
-  _impl_.solid_cuts_.InternalSwap(&other->_impl_.solid_cuts_);
+  _impl_.solid_features_.InternalSwap(&other->_impl_.solid_features_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Column, _impl_.rotation_)
       + sizeof(Column::_impl_.rotation_)
       - PROTOBUF_FIELD_OFFSET(Column, _impl_.axis_)>(
           reinterpret_cast<char*>(&_impl_.axis_),
           reinterpret_cast<char*>(&other->_impl_.axis_));
-  _impl_.solid_features_.InternalSwap(&other->_impl_.solid_features_);
 }
 
 ::google::protobuf::Metadata Column::GetMetadata() const {

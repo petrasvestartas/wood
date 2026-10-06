@@ -565,10 +565,10 @@ constexpr Joint::ParseTableT_ Joint::InternalGenerateParseTable_(const ::_pbi::C
       {::_pbi::TcParser::FastF64S2,
        {417, 19, 0,
         PROTOBUF_FIELD_OFFSET(Joint, _impl_.drill_overshoot_)}},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
       {::_pbi::TcParser::FastMtR2,
        {426, 8, 10,
-        PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_cuts_)}},
+        PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_features_)}},
       {::_pbi::TcParser::MiniParse, {}},
       // bool pre_drill = 23;
       {::_pbi::TcParser::FastV8S2,
@@ -625,8 +625,8 @@ constexpr Joint::ParseTableT_ Joint::InternalGenerateParseTable_(const ::_pbi::C
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.cutters_), _Internal::kHasBitsOffset + 7, 9, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double drill_overshoot = 20;
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.drill_overshoot_), _Internal::kHasBitsOffset + 19, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
-      {PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 8, 10, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
+      {PROTOBUF_FIELD_OFFSET(Joint, _impl_.solid_features_), _Internal::kHasBitsOffset + 8, 10, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool pre_drill = 23;
       {PROTOBUF_FIELD_OFFSET(Joint, _impl_.pre_drill_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
     }},
@@ -740,9 +740,9 @@ inline constexpr Joint::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.cutters_)>()
          }
         ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+        solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Joint,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_features_)>()
          }
         ,
         kind_(
@@ -884,7 +884,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.parts_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.cutters_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.drill_overshoot_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_cuts_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.pre_drill_),
         0,
         1,
@@ -963,7 +963,7 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     "\n\023element_joint.proto\022\nwood_proto\032\016polyl"
     "ine.proto\032\013plane.proto\032\nline.proto\032\014vect"
     "or.proto\032\021interaction.proto\032\037interaction"
-    "_feature_solid.proto\"\374\005\n\005Joint\022&\n\005loops\030"
+    "_feature_solid.proto\"\200\006\n\005Joint\022&\n\005loops\030"
     "\001 \003(\0132\027.session_proto.Polyline\022\"\n\004cuts\030\002"
     " \003(\0132\024.session_proto.Plane\022\017\n\007targets\030\003 "
     "\003(\t\022/\n\013connections\030\004 \003(\0132\032.session_proto"
@@ -980,20 +980,20 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     "oto.JointPlateParameters\022&\n\005parts\030\022 \003(\0132"
     "\027.session_proto.Polyline\022(\n\007cutters\030\023 \003("
     "\0132\027.wood_proto.JointCutter\022\027\n\017drill_over"
-    "shoot\030\024 \001(\001\0227\n\nsolid_cuts\030\025 \003(\0132#.wood_p"
-    "roto.InteractionFeatureSolid\022\021\n\tpre_dril"
-    "l\030\027 \001(\010B\014\n\n_operationJ\004\010\026\020\027\"5\n\013JointCutt"
-    "er\022&\n\005loops\030\001 \003(\0132\027.session_proto.Polyli"
-    "ne\"\340\002\n\024JointPlateParameters\022\017\n\007library\030\001"
-    " \001(\t\022\024\n\014contact_type\030\002 \001(\005\022\021\n\tdivisions\030"
-    "\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007chamfer\030\005 \001(\010\022\033\n"
-    "\016modify_outline\030\006 \001(\010H\000\210\001\001\022\t\n\001x\030\007 \003(\001\022\t\n"
-    "\001y\030\010 \003(\001\022\t\n\001z\030\t \003(\001\022\031\n\021disable_divisions"
-    "\030\n \001(\010\022\030\n\020distance_squared\030\013 \001(\001\022\030\n\020merg"
-    "e_with_joint\030\014 \001(\010\022%\n\004male\030\r \003(\0132\027.sessi"
-    "on_proto.Polyline\022\'\n\006female\030\016 \003(\0132\027.sess"
-    "ion_proto.PolylineB\021\n\017_modify_outlineb\006p"
-    "roto3"
+    "shoot\030\024 \001(\001\022;\n\016solid_features\030\025 \003(\0132#.wo"
+    "od_proto.InteractionFeatureSolid\022\021\n\tpre_"
+    "drill\030\027 \001(\010B\014\n\n_operationJ\004\010\026\020\027\"5\n\013Joint"
+    "Cutter\022&\n\005loops\030\001 \003(\0132\027.session_proto.Po"
+    "lyline\"\340\002\n\024JointPlateParameters\022\017\n\007libra"
+    "ry\030\001 \001(\t\022\024\n\014contact_type\030\002 \001(\005\022\021\n\tdivisi"
+    "ons\030\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007chamfer\030\005 \001("
+    "\010\022\033\n\016modify_outline\030\006 \001(\010H\000\210\001\001\022\t\n\001x\030\007 \003("
+    "\001\022\t\n\001y\030\010 \003(\001\022\t\n\001z\030\t \003(\001\022\031\n\021disable_divis"
+    "ions\030\n \001(\010\022\030\n\020distance_squared\030\013 \001(\001\022\030\n\020"
+    "merge_with_joint\030\014 \001(\010\022%\n\004male\030\r \003(\0132\027.s"
+    "ession_proto.Polyline\022\'\n\006female\030\016 \003(\0132\027."
+    "session_proto.PolylineB\021\n\017_modify_outlin"
+    "eb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fjoint_2eproto_deps[6] = {
@@ -1008,7 +1008,7 @@ static ::absl::once_flag descriptor_table_element_5fjoint_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fjoint_2eproto = {
     false,
     false,
-    1325,
+    1329,
     descriptor_table_protodef_element_5fjoint_2eproto,
     "element_joint.proto",
     &descriptor_table_element_5fjoint_2eproto_once,
@@ -1064,9 +1064,9 @@ void Joint::clear_parts() {
   _impl_.parts_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
 }
-void Joint::clear_solid_cuts() {
+void Joint::clear_solid_features() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.solid_cuts_.Clear();
+  _impl_.solid_features_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
 }
 Joint::Joint(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
@@ -1139,11 +1139,11 @@ PROTOBUF_NDEBUG_INLINE Joint::Impl_::Impl_(
           , arena, from.cutters_
         }
         ,
-        solid_cuts_ {
+        solid_features_ {
           visibility, ::_pbi::InternalMetadataOffset::Build<
               ::wood_proto::Joint,
-              PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_cuts_)>()
-          , arena, from.solid_cuts_
+              PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_features_)>()
+          , arena, from.solid_features_
         }
         ,
         kind_(arena, from.kind_) {}
@@ -1225,9 +1225,9 @@ PROTOBUF_NDEBUG_INLINE Joint::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.cutters_)>()
          }
         ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+        solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Joint,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Joint, _impl_.solid_features_)>()
          }
         ,
         kind_(arena) {}
@@ -1320,7 +1320,7 @@ PROTOBUF_NOINLINE void Joint::Clear() {
   }
   if (BatchCheckHasBit(cached_has_bits, 0x00001f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-      _impl_.solid_cuts_.Clear();
+      _impl_.solid_features_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       this_._impl_.kind_.ClearNonDefaultToEmpty();
@@ -1570,12 +1570,12 @@ PROTOBUF_NOINLINE void Joint::Clear() {
     }
   }
 
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
   if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_solid_cuts_size());
+                             this_._internal_solid_features_size());
          i < n; i++) {
-      const auto& repfield = this_._internal_solid_cuts().Get(i);
+      const auto& repfield = this_._internal_solid_features().Get(i);
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
           21, repfield, repfield.GetCachedSize(), target,
           stream);
@@ -1675,10 +1675,10 @@ PROTOBUF_NOINLINE void Joint::Clear() {
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
-    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
+    // repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-      total_size += 2UL * this_._internal_solid_cuts_size();
-      for (const auto& msg : this_._internal_solid_cuts()) {
+      total_size += 2UL * this_._internal_solid_features_size();
+      for (const auto& msg : this_._internal_solid_features()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -1823,9 +1823,9 @@ void Joint::MergeImpl(::google::protobuf::MessageLite& to_msg,
   }
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-      _this->_internal_mutable_solid_cuts()->InternalMergeFromWithArena(
+      _this->_internal_mutable_solid_features()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_solid_cuts());
+          from._internal_solid_features());
     }
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (!from._internal_kind().empty()) {
@@ -1933,7 +1933,7 @@ void Joint::InternalSwap(Joint* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _impl_.drill_lines_.InternalSwap(&other->_impl_.drill_lines_);
   _impl_.parts_.InternalSwap(&other->_impl_.parts_);
   _impl_.cutters_.InternalSwap(&other->_impl_.cutters_);
-  _impl_.solid_cuts_.InternalSwap(&other->_impl_.solid_cuts_);
+  _impl_.solid_features_.InternalSwap(&other->_impl_.solid_features_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.kind_, &other->_impl_.kind_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Joint, _impl_.pre_drill_)

@@ -121,26 +121,65 @@ double ScrewLines::corner_level(double levels) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-ColumnSession::ColumnSession(const FloorGuide& guide, size_t q) : WoodSession(fmt::format("column_{}", q % 4)) {
+ColumnSession::ColumnSession(const std::string& name) : WoodSession(name) {
+}
+
+ColumnSession ColumnSession::glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name) {
+
+    ColumnSession session(name);
+    session.column = Column::square(axis, corner, side, name);
+    session.add(session.column);
+
+    // a block over the top head_height between (a0, b0) and (a1, b1) in the corner frame
+    const Point origin = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
+    const Vector under = axis.to_vector() * ((axis.length() - head_height) / axis.length());
+    const auto block = [&origin, &corner, &under, &axis](double a0, double b0, double a1, double b1) {
+        const auto at = [&origin, &corner](double a, double b) { return origin + corner.x_axis() * a + corner.y_axis() * b; };
+        const Polyline base = Polyline({at(a0, b0), at(a1, b0), at(a1, b1), at(a0, b1)}).closed();
+        return Mesh::loft({base.translated(under)}, {base.translated(axis.to_vector())}, true);
+    };
+
+    for (const Mesh& mesh : {block(0.0, side, head_side, head_side), block(side, 0.0, head_side, side)}) {
+        const std::shared_ptr<Block> glued = std::make_shared<Block>(mesh, fmt::format("{}_head_{}", name, session.head.size()));
+        session.add(glued);
+        session.head.push_back(glued);
+        session.add_interaction(glued, session.column, std::make_shared<InteractionFeatureSolid>(InteractionFeatureSolid::add(mesh)));
+    }
+
+    return session;
+}
+
+/// The axis of the column at corner k: from its support's foot up to the floor.
+static Line column_axis(const FloorGuide& guide, size_t k) {
+
+    const Point foot = Support(guide.support_plane(k), "support").column_foot();
+
+    return Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
+}
+
+ColumnSession::ColumnSession(const FloorGuide& guide, size_t q)
+    : ColumnSession(glued_head(column_axis(guide, q % 4), guide.column_frame(q % 4), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth, fmt::format("column_{}", q % 4))) {
 
     const size_t k = q % 4;
     support = std::make_shared<Support>(guide.support_plane(k), "support");
     support->name = fmt::format("support_{}", k);
-    const Point foot = support->column_foot();
-    column = Column::glued_head(Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height)), guide.column_frame(k), guide.size_column_head, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth);
-    column->name = fmt::format("column_{}", k);
     add(support);
-    add(column);
 
     const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
     add(joint);
     add_joint(joint);
 
-    // the six inclined faces the ribs and the column blocks bear on, taken away from the glued head
-    for (const std::array<Polyline, 2>& loops : guide.column_cutters(k))
-        column->solid_features.push_back(InteractionFeatureSolid::subtract(Mesh::loft({loops[1]}, {loops[0]}, true).transformed(Xform::translation(0.0, 0.0, guide.bay_height))));
+    // the six inclined faces the ribs and the column blocks bear on, each taken away by a hidden cutter plate
+    const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
 
-    column->invalidate_geometry();
+    for (size_t i = 0; i < loops.size(); i++) {
+        const std::shared_ptr<Plate> cutter = std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k));
+        cutter->place(Xform::translation(0.0, 0.0, guide.bay_height));
+        cutter->is_visible = false;
+        add(cutter);
+        cutters.push_back(cutter);
+        add_interaction(cutter, column, std::make_shared<InteractionFeatureSolid>(InteractionFeatureSolid::subtract(cutter->element_geometry_mesh())));
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

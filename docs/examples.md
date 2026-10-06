@@ -19,7 +19,7 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `14_cross_joints` | Cross joints and the search type chosen per solve |
 | `15_profile_cuts` | Concave profiles, holes, disconnected pieces and pockets |
 | `16_drill_solids` | Tolerance-controlled drill meshes, exact cylindrical BReps and a tilted bore |
-| `17_solid_cuts` | Solid difference, intersection, union and an arbitrary mesh cutter |
+| `17_solid_features` | Solid difference, intersection, union and an arbitrary mesh cutter |
 | `18_cutting_gallery` | Loads the three saved cutting scenes into one viewer gallery |
 | `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
 
@@ -123,9 +123,9 @@ See [the cutting gallery](cutting_gallery.md) for the API, geometry limits and C
 
 \include{lineno} 16_drill_solids.cpp
 
-### 17_solid_cuts
+### 17_solid_features
 
-\include{lineno} 17_solid_cuts.cpp
+\include{lineno} 17_solid_features.cpp
 
 ### 18_cutting_gallery
 

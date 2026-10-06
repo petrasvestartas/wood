@@ -4,7 +4,7 @@
 | --- | --- |
 | `15_profile_cuts` | Concave L profile, profile with a hole, a slot producing two separate pieces, concave pocket |
 | `16_drill_solids` | Radius 35 with chord tolerances 2, 0.2 and 0.02; exact cylindrical BReps; a tilted radius 28 drill through a block |
-| `17_solid_cuts` | Difference, intersection and union of sloped solids; arbitrary tetrahedral mesh cutter |
+| `17_solid_features` | Difference, intersection and union of sloped solids; arbitrary tetrahedral mesh cutter |
 | `18_cutting_gallery` | Loads the three saved scenes and places them side by side |
 | `19_plate_joint_library` | Six side-to-top joints created by named library factories |
 
@@ -19,10 +19,10 @@ Run from `wood/`. The combined gallery depends on the three named scene files.
 
 ```bash
 ~/.local/bin/cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts 16_drill_solids 17_solid_cuts 18_cutting_gallery --parallel 4
+buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts 16_drill_solids 17_solid_features 18_cutting_gallery --parallel 4
 tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
 tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
-tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_cuts
+tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_features
 tools/run_guarded.sh -t 10 -m 4 -- build/18_cutting_gallery
 ```
 

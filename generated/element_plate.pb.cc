@@ -61,10 +61,10 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
       ::_pbi::TcParser::GetTable<::wood_proto::Plate>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 4;
       {::_pbi::TcParser::FastMtR1,
        {34, 0, 2,
-        PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_cuts_)}},
+        PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_features_)}},
       // .session_proto.Polyline bottom = 1;
       {::_pbi::TcParser::FastMtS1,
        {10, 1, 0,
@@ -86,8 +86,8 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
       {PROTOBUF_FIELD_OFFSET(Plate, _impl_.top_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // bool reversed = 3;
       {PROTOBUF_FIELD_OFFSET(Plate, _impl_.reversed_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
-      {PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 0, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 4;
+      {PROTOBUF_FIELD_OFFSET(Plate, _impl_.solid_features_), _Internal::kHasBitsOffset + 0, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -115,9 +115,9 @@ constexpr Plate::ParseTableT_ Plate::InternalGenerateParseTable_(const ::_pbi::C
 inline constexpr Plate::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     ::_pbi::ConstantInitialized) noexcept
-      : solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+      : solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Plate,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_features_)>()
          }
         ,
         bottom_{nullptr},
@@ -227,7 +227,7 @@ const ::uint32_t
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_._has_bits_),
         7, // hasbit index offset
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_cuts_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.bottom_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.top_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.reversed_),
@@ -249,11 +249,11 @@ const char descriptor_table_protodef_element_5fplate_2eproto[] ABSL_ATTRIBUTE_SE
     protodesc_cold) = {
     "\n\023element_plate.proto\022\nwood_proto\032\037inter"
     "action_feature_solid.proto\032\016polyline.pro"
-    "to\"\241\001\n\005Plate\0227\n\nsolid_cuts\030\004 \003(\0132#.wood_"
-    "proto.InteractionFeatureSolid\022\'\n\006bottom\030"
-    "\001 \001(\0132\027.session_proto.Polyline\022$\n\003top\030\002 "
-    "\001(\0132\027.session_proto.Polyline\022\020\n\010reversed"
-    "\030\003 \001(\010b\006proto3"
+    "to\"\245\001\n\005Plate\022;\n\016solid_features\030\004 \003(\0132#.w"
+    "ood_proto.InteractionFeatureSolid\022\'\n\006bot"
+    "tom\030\001 \001(\0132\027.session_proto.Polyline\022$\n\003to"
+    "p\030\002 \001(\0132\027.session_proto.Polyline\022\020\n\010reve"
+    "rsed\030\003 \001(\010b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fplate_2eproto_deps[2] = {
@@ -264,7 +264,7 @@ static ::absl::once_flag descriptor_table_element_5fplate_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fplate_2eproto = {
     false,
     false,
-    254,
+    258,
     descriptor_table_protodef_element_5fplate_2eproto,
     "element_plate.proto",
     &descriptor_table_element_5fplate_2eproto_once,
@@ -280,9 +280,9 @@ PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fplat
 namespace wood_proto {
 // ===================================================================
 
-void Plate::clear_solid_cuts() {
+void Plate::clear_solid_features() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.solid_cuts_.Clear();
+  _impl_.solid_features_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
 }
 void Plate::clear_bottom() {
@@ -309,11 +309,11 @@ PROTOBUF_NDEBUG_INLINE Plate::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena, const Impl_& from,
     [[maybe_unused]] const ::wood_proto::Plate& from_msg)
       : _has_bits_{from._has_bits_},
-        solid_cuts_ {
+        solid_features_ {
           visibility, ::_pbi::InternalMetadataOffset::Build<
               ::wood_proto::Plate,
-              PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_cuts_)>()
-          , arena, from.solid_cuts_
+              PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_features_)>()
+          , arena, from.solid_features_
         }
      {}
 
@@ -345,9 +345,9 @@ Plate::Plate(
 PROTOBUF_NDEBUG_INLINE Plate::Impl_::Impl_(
     [[maybe_unused]] ::google::protobuf::internal::InternalVisibility visibility,
     [[maybe_unused]] ::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
-      : solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+      : solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Plate,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Plate, _impl_.solid_features_)>()
          }
      {}
 
@@ -411,7 +411,7 @@ PROTOBUF_NOINLINE void Plate::Clear() {
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      _impl_.solid_cuts_.Clear();
+      _impl_.solid_features_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       ABSL_DCHECK(this_._impl_.bottom_ != nullptr);
@@ -469,12 +469,12 @@ PROTOBUF_NOINLINE void Plate::Clear() {
     }
   }
 
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 4;
   if (CheckHasBit(cached_has_bits, 0x00000001U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_solid_cuts_size());
+                             this_._internal_solid_features_size());
          i < n; i++) {
-      const auto& repfield = this_._internal_solid_cuts().Get(i);
+      const auto& repfield = this_._internal_solid_features().Get(i);
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
           4, repfield, repfield.GetCachedSize(), target,
           stream);
@@ -505,10 +505,10 @@ PROTOBUF_NOINLINE void Plate::Clear() {
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
-    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 4;
+    // repeated .wood_proto.InteractionFeatureSolid solid_features = 4;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      total_size += 1UL * this_._internal_solid_cuts_size();
-      for (const auto& msg : this_._internal_solid_cuts()) {
+      total_size += 1UL * this_._internal_solid_features_size();
+      for (const auto& msg : this_._internal_solid_features()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -549,9 +549,9 @@ void Plate::MergeImpl(::google::protobuf::MessageLite& to_msg,
   cached_has_bits = from._impl_._has_bits_[0];
   if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-      _this->_internal_mutable_solid_cuts()->InternalMergeFromWithArena(
+      _this->_internal_mutable_solid_features()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_solid_cuts());
+          from._internal_solid_features());
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
       ABSL_DCHECK(from._impl_.bottom_ != nullptr);
@@ -592,7 +592,7 @@ void Plate::InternalSwap(Plate* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   using ::std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
-  _impl_.solid_cuts_.InternalSwap(&other->_impl_.solid_cuts_);
+  _impl_.solid_features_.InternalSwap(&other->_impl_.solid_features_);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Plate, _impl_.reversed_)
       + sizeof(Plate::_impl_.reversed_)

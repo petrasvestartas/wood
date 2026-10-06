@@ -60,9 +60,9 @@ static void check_scene_calls() {
     const size_t holes = drills_of(*lower, dowels->guid());
     kept.compute_face_contacts();
     kept.compute_features(face_to_face);
-    check(kept.get_element<JointBeam>(dowels->guid()) && holes > 0 && drills_of(*lower, dowels->guid()) == holes && lower->solid_cuts.size() == 1, "compute_features keeps the user's dowels, their " + std::to_string(holes) + " holes and their cut");
+    check(kept.get_element<JointBeam>(dowels->guid()) && holes > 0 && drills_of(*lower, dowels->guid()) == holes && lower->solid_features.size() == 1, "compute_features keeps the user's dowels, their " + std::to_string(holes) + " holes and their cut");
     kept.remove_interaction(dowels, lower);
-    check(drills_of(*lower, dowels->guid()) == 0 && lower->solid_cuts.empty() && drills_of(*upper, dowels->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
+    check(drills_of(*lower, dowels->guid()) == 0 && lower->solid_features.empty() && drills_of(*upper, dowels->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
 
     WoodSession moved("moved targets");
     const std::shared_ptr<JointBeam> local = stacked_dowels(moved, lower, upper);
@@ -72,7 +72,7 @@ static void check_scene_calls() {
     moved.set_xform(upper->guid(), shift);
     moved.add_joint(placed);
     double longest = 0.0, farthest = 0.0;
-    for (const InteractionFeatureSolid& cut : lower->solid_cuts)
+    for (const InteractionFeatureSolid& cut : lower->solid_features)
         for (const Line& drill : cut.drills)
             longest = std::max(longest, drill.length());
     for (const ElementFeature& feature : lower->Element::features())

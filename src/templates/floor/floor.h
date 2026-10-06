@@ -78,14 +78,23 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
-/// The session of one column: the support on the slab and the column on it, joined by a support joint. The column is a square shaft with two blocks glued on for its head and the six inclined faces the ribs and the column blocks bear on taken away, all its own solid features. Floor::add_column grafts a copy of it into the floor.
+/// The session of one column: a square shaft, the blocks glued on for its head, each adding to it through an InteractionFeatureSolid, and for the floor its support and the cutter plates taking away the faces the ribs and the column blocks bear on. Floor::add_column grafts a copy of it into the floor.
 class ColumnSession : public WoodSession {
 public:
-    std::shared_ptr<Support> support; // support_<q>, on the slab.
-    std::shared_ptr<Column> column; // column_<q>: the shaft with its two glued head blocks and six inclined faces as its own solid features.
+    std::shared_ptr<Column> column; // The square shaft, cut by the features the other elements put on it.
+    std::vector<std::shared_ptr<Block>> head; // <name>_head_<i>: the blocks glued on for the head, each adding to the column.
+    std::shared_ptr<Support> support; // support_<q>, on the slab; empty for a glued_head alone.
+    std::vector<std::shared_ptr<Plate>> cutters; // column_cutters_<i>_<q>, hidden: each takes an inclined face away from the column; empty for a glued_head alone.
 
-    /// The column at corner q of the guide, named column_<q>.
+    /// A square column of side on its axis with a glued head: the shaft from the corner frame's origin along its x and y axes, and over the top head_height a strip of head_side by head_side - side beyond its y side and a block of head_side - side by side beyond its x side, each glued on with add_interaction(block, column, InteractionFeatureSolid::add), so the head is the square of head_side.
+    static ColumnSession glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name = "column");
+
+    /// The column at corner q of the guide, named column_<q>: its glued head on its support, joined by a support joint, and the six cutter plates of the guide each taking an inclined face away with add_interaction(cutter, column, InteractionFeatureSolid::subtract).
     ColumnSession(const FloorGuide& guide, size_t q);
+
+private:
+    /// An empty column session named name.
+    explicit ColumnSession(const std::string& name);
 };
 
 /// The floor model, a session built step by step from a guide, grouped by quarter: quarter_0 to quarter_3 each with its members, its column, its part of the oculus ring and its connectors and screws, and the oculus with the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions.

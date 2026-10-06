@@ -40,7 +40,7 @@ std::shared_ptr<Block> Block::from_element(Element e) {
 
     if (proto.has_source_mesh()) block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
     else if (block->loops.empty() && block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
-    for (const auto& cut : proto.solid_cuts()) block->solid_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    for (const auto& cut : proto.solid_features()) block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     return block;
 }
 
@@ -85,7 +85,7 @@ const BRep& Block::element_geometry_brep() const {
 }
 
 Mesh Block::trimmed_mesh() const {
-    return cut_mesh(element_geometry_mesh(), cuts);
+    return cut_mesh(stock_mesh(), cuts);
 }
 
 BRep Block::trimmed_brep() const {
@@ -105,7 +105,7 @@ std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
     block->guid() = guid();
     if (source_mesh) block->source_mesh = source_mesh->transformed(xform);
     block->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_cuts) block->solid_cuts.push_back(cut.transformed(xform));
+    for (const auto& cut : solid_features) block->solid_features.push_back(cut.transformed(xform));
     block->set_features(transformed_features(_features, xform));
     block->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -118,7 +118,7 @@ void Block::place(const Xform& xform) {
     loops = transformed_list(loops, xform);
     if (source_mesh) source_mesh = source_mesh->transformed(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_cuts) cut = cut.transformed(xform);
+    for (auto& cut : solid_features) cut = cut.transformed(xform);
 
     _element_geometry_mesh.reset();
     _element_geometry_brep.reset();
@@ -194,8 +194,8 @@ std::string Block::element_data_dumps() const {
         if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Failed to parse Plane protobuf data");
 
-    for (const auto& cut : solid_cuts)
-        if (!proto.add_solid_cuts()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+    for (const auto& cut : solid_features)
+        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

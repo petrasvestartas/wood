@@ -16,14 +16,16 @@ public:
     std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
     std::vector<Polyline> profile; // Section loops in the profile frame the section was placed from, loop 0 the outline, then holes; empty when the section was given.
     double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
-    std::vector<InteractionFeatureSolid> solid_features; // The column's own solid features in order, glued blocks united and faces taken away, applied before the cuts other elements make; call invalidate_geometry() after assigning.
 
 protected:
-    /// The swept section trimmed by its cut planes with its own solid features applied as a Mesh, before the cuts other elements make.
+    /// The stock trimmed by its cut planes as a Mesh, before the subtract features.
     Mesh trimmed_mesh() const override;
 
-    /// The swept section trimmed by its cut planes with its own solid features applied as a BRep, before the cuts other elements make.
+    /// The swept section trimmed by its cut planes as a BRep, when it has no solid features.
     BRep trimmed_brep() const override;
+
+    /// The frame at the axis base, x along the section's first side and z along the axis: where the blocks glued to the column are united.
+    Plane frame() const override;
 
 public:
     /// An empty column: no solid, a zero-length axis, no section.
@@ -50,9 +52,6 @@ public:
     /// A square column on its axis: the square of side from the corner frame's origin along its x and y axes, at the axis base, swept along the axis.
     static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
 
-    /// A square column with a glued head: the square shaft of side, and over the top head_height two blocks glued on as solid features, a strip of head_side by head_side - side along the corner frame's x beyond the shaft's y side and a block of head_side - side by side beyond its x side, so the head is the square of head_side.
-    static std::shared_ptr<Column> glued_head(const Line& axis, const Plane& corner, double side, double head_side, double head_height, const std::string& name = "column");
-
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis, section and cuts default.
     static std::shared_ptr<Column> from_element(Element element);
 
@@ -67,10 +66,8 @@ public:
     const BRep& element_geometry_brep() const override;
 
 
-
     /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
     std::vector<Plane> compute_planes() const override;
-
 
     /// A copy moved by xform from the parameters alone, guid and name kept: axis, section, cuts, features and insertion vectors moved, no solid until one is asked for; nullptr for a mirror.
     std::shared_ptr<Column> transformed(const Xform& xform) const;

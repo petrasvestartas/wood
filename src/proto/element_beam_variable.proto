@@ -12,5 +12,5 @@ message BeamVariable {
   session_proto.Line axis = 1;                  // Straight reference line from the first section to the last
   repeated session_proto.Polyline sections = 2; // Closed rings with one point count, one per station in axis order
   repeated session_proto.Plane cuts = 3;        // Planes the solid is cut by, each keeping the side its normal points to
-  repeated InteractionFeatureSolid solid_cuts = 4;             // Solids and drills the joints cut out of it, in the beam's frame
+  repeated InteractionFeatureSolid solid_features = 4;             // Solids and drills the joints cut out of it, in the beam's frame
 }

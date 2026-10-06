@@ -4,7 +4,7 @@ using namespace cutting_gallery;
 int main() {
     WoodSession gallery("18_cutting_gallery");
     int column = 0;
-    for (const std::string file : {"15_profile_cuts", "16_drill_solids", "17_solid_cuts"}) {
+    for (const std::string file : {"15_profile_cuts", "16_drill_solids", "17_solid_features"}) {
         WoodSession scene = WoodSession::pb_load(pb_path(file));
         const Xform offset = Xform::translation(column++ * 1100, 0, 0);
         std::map<std::string, std::shared_ptr<TreeNode>> groups;

@@ -261,7 +261,7 @@ bool face_overlap_area(
 /// A plate's contact faces: its own planes and outlines in the plate convention, then every face its solid cuts made that none of them holds, so a cut corner meets what cut it.
 void add_cut_faces(const Plate& plate, std::vector<Plane>& planes, std::vector<Polyline>& outlines) {
 
-    if (plate.solid_cuts.empty())
+    if (plate.solid_features.empty())
         return;
 
     for (const Polyline& outline : plate.model_geometry_mesh().face_outlines()) {

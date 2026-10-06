@@ -220,11 +220,10 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   enum : int {
     kCutsFieldNumber = 3,
     kProfileFieldNumber = 4,
-    kSolidCutsFieldNumber = 6,
+    kSolidFeaturesFieldNumber = 6,
     kAxisFieldNumber = 1,
     kSectionFieldNumber = 2,
     kRotationFieldNumber = 5,
-    kSolidFeaturesFieldNumber = 9,
   };
   // repeated .session_proto.Plane cuts = 3;
   [[nodiscard]] int cuts_size() const;
@@ -266,24 +265,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_profile();
 
   public:
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
-  [[nodiscard]] int solid_cuts_size() const;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
+  [[nodiscard]] int solid_features_size() const;
   private:
-  int _internal_solid_cuts_size() const;
+  int _internal_solid_features_size() const;
 
   public:
-  void clear_solid_cuts() ;
-  [[nodiscard]] const ::wood_proto::InteractionFeatureSolid& solid_cuts(int index) const;
-  [[nodiscard]] ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL mutable_solid_cuts(int index);
-  ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL add_solid_cuts();
+  void clear_solid_features() ;
+  [[nodiscard]] const ::wood_proto::InteractionFeatureSolid& solid_features(int index) const;
+  [[nodiscard]] ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL mutable_solid_features(int index);
+  ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL add_solid_features();
   [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-  solid_cuts() const;
+  solid_features() const;
   [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-  mutable_solid_cuts();
+  mutable_solid_features();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& _internal_solid_cuts() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_cuts();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& _internal_solid_features() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
   // .session_proto.Line axis = 1;
@@ -326,32 +325,12 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
   void _internal_set_rotation(double value);
 
   public:
-  // repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
-  [[nodiscard]] int solid_features_size() const;
-  private:
-  int _internal_solid_features_size() const;
-
-  public:
-  void clear_solid_features() ;
-  [[nodiscard]] const ::wood_proto::InteractionFeatureSolid& solid_features(int index) const;
-  [[nodiscard]] ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL mutable_solid_features(int index);
-  ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL add_solid_features();
-  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-  solid_features() const;
-  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-  mutable_solid_features();
-
-  private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& _internal_solid_features() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
-
-  public:
   // @@protoc_insertion_point(class_scope:wood_proto.Column)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 7,
-                          6, 0,
+      ::google::protobuf::internal::TcParseTable<3, 6,
+                          5, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -381,11 +360,10 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Plane > cuts_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_cuts_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     ::session_proto::Line* PROTOBUF_NULLABLE axis_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE section_;
     double rotation_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -408,54 +386,54 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Column final : public ::google::pro
 
 // Column
 
-// repeated .wood_proto.InteractionFeatureSolid solid_cuts = 6;
-inline int Column::_internal_solid_cuts_size() const {
-  return _internal_solid_cuts().size();
+// repeated .wood_proto.InteractionFeatureSolid solid_features = 6;
+inline int Column::_internal_solid_features_size() const {
+  return _internal_solid_features().size();
 }
-inline int Column::solid_cuts_size() const {
-  return _internal_solid_cuts_size();
+inline int Column::solid_features_size() const {
+  return _internal_solid_features_size();
 }
-inline const ::wood_proto::InteractionFeatureSolid& Column::solid_cuts(int index) const
+inline const ::wood_proto::InteractionFeatureSolid& Column::solid_features(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.Column.solid_cuts)
-  return _internal_solid_cuts().Get(index);
+  // @@protoc_insertion_point(field_get:wood_proto.Column.solid_features)
+  return _internal_solid_features().Get(index);
 }
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::mutable_solid_cuts(int index)
+inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::mutable_solid_features(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.Column.solid_cuts)
-  return _internal_mutable_solid_cuts()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:wood_proto.Column.solid_features)
+  return _internal_mutable_solid_features()->Mutable(index);
 }
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::add_solid_cuts()
+inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::add_solid_features()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::wood_proto::InteractionFeatureSolid* _add =
-      _internal_mutable_solid_cuts()->InternalAddWithArena(
+      _internal_mutable_solid_features()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_add:wood_proto.Column.solid_cuts)
+  // @@protoc_insertion_point(field_add:wood_proto.Column.solid_features)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& Column::solid_cuts() const
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& Column::solid_features() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.Column.solid_cuts)
-  return _internal_solid_cuts();
+  // @@protoc_insertion_point(field_list:wood_proto.Column.solid_features)
+  return _internal_solid_features();
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Column::mutable_solid_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+Column::mutable_solid_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000004U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.solid_cuts)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.solid_features)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_solid_cuts();
+  return _internal_mutable_solid_features();
 }
 inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-Column::_internal_solid_cuts() const {
+Column::_internal_solid_features() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.solid_cuts_;
+  return _impl_.solid_features_;
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Column::_internal_mutable_solid_cuts() {
+Column::_internal_mutable_solid_features() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.solid_cuts_;
+  return &_impl_.solid_features_;
 }
 
 // .session_proto.Line axis = 1;
@@ -766,56 +744,6 @@ inline double Column::_internal_rotation() const {
 inline void Column::_internal_set_rotation(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.rotation_ = value;
-}
-
-// repeated .wood_proto.InteractionFeatureSolid solid_features = 9;
-inline int Column::_internal_solid_features_size() const {
-  return _internal_solid_features().size();
-}
-inline int Column::solid_features_size() const {
-  return _internal_solid_features_size();
-}
-inline const ::wood_proto::InteractionFeatureSolid& Column::solid_features(int index) const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.Column.solid_features)
-  return _internal_solid_features().Get(index);
-}
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::mutable_solid_features(int index)
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.Column.solid_features)
-  return _internal_mutable_solid_features()->Mutable(index);
-}
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Column::add_solid_features()
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  ::wood_proto::InteractionFeatureSolid* _add =
-      _internal_mutable_solid_features()->InternalAddWithArena(
-          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
-  // @@protoc_insertion_point(field_add:wood_proto.Column.solid_features)
-  return _add;
-}
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& Column::solid_features() const
-    ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.Column.solid_features)
-  return _internal_solid_features();
-}
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Column::mutable_solid_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.Column.solid_features)
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_solid_features();
-}
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-Column::_internal_solid_features() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.solid_features_;
-}
-inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Column::_internal_mutable_solid_features() {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.solid_features_;
 }
 
 #ifdef __GNUC__

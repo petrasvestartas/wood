@@ -865,7 +865,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     kDrillLinesFieldNumber = 15,
     kPartsFieldNumber = 18,
     kCuttersFieldNumber = 19,
-    kSolidCutsFieldNumber = 21,
+    kSolidFeaturesFieldNumber = 21,
     kKindFieldNumber = 11,
     kBeamFeatureFieldNumber = 5,
     kCutterExtrusionFieldNumber = 14,
@@ -1046,24 +1046,24 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   ::google::protobuf::RepeatedPtrField<::wood_proto::JointCutter>* PROTOBUF_NONNULL _internal_mutable_cutters();
 
   public:
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
-  [[nodiscard]] int solid_cuts_size() const;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
+  [[nodiscard]] int solid_features_size() const;
   private:
-  int _internal_solid_cuts_size() const;
+  int _internal_solid_features_size() const;
 
   public:
-  void clear_solid_cuts() ;
-  [[nodiscard]] const ::wood_proto::InteractionFeatureSolid& solid_cuts(int index) const;
-  [[nodiscard]] ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL mutable_solid_cuts(int index);
-  ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL add_solid_cuts();
+  void clear_solid_features() ;
+  [[nodiscard]] const ::wood_proto::InteractionFeatureSolid& solid_features(int index) const;
+  [[nodiscard]] ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL mutable_solid_features(int index);
+  ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL add_solid_features();
   [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-  solid_cuts() const;
+  solid_features() const;
   [[nodiscard]] ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-  mutable_solid_cuts();
+  mutable_solid_features();
 
   private:
-  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& _internal_solid_cuts() const;
-  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_cuts();
+  const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& _internal_solid_features() const;
+  ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
   // string kind = 11;
@@ -1258,7 +1258,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     ::google::protobuf::RepeatedPtrField< ::session_proto::Line > drill_lines_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > parts_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::JointCutter > cutters_;
-    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_cuts_;
+    ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     ::google::protobuf::internal::ArenaStringPtr kind_;
     ::session_proto::Interaction* PROTOBUF_NULLABLE beam_feature_;
     ::session_proto::Vector* PROTOBUF_NULLABLE cutter_extrusion_;
@@ -2265,54 +2265,54 @@ inline void Joint::_internal_set_drill_overshoot(double value) {
   _impl_.drill_overshoot_ = value;
 }
 
-// repeated .wood_proto.InteractionFeatureSolid solid_cuts = 21;
-inline int Joint::_internal_solid_cuts_size() const {
-  return _internal_solid_cuts().size();
+// repeated .wood_proto.InteractionFeatureSolid solid_features = 21;
+inline int Joint::_internal_solid_features_size() const {
+  return _internal_solid_features().size();
 }
-inline int Joint::solid_cuts_size() const {
-  return _internal_solid_cuts_size();
+inline int Joint::solid_features_size() const {
+  return _internal_solid_features_size();
 }
-inline const ::wood_proto::InteractionFeatureSolid& Joint::solid_cuts(int index) const
+inline const ::wood_proto::InteractionFeatureSolid& Joint::solid_features(int index) const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_get:wood_proto.Joint.solid_cuts)
-  return _internal_solid_cuts().Get(index);
+  // @@protoc_insertion_point(field_get:wood_proto.Joint.solid_features)
+  return _internal_solid_features().Get(index);
 }
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Joint::mutable_solid_cuts(int index)
+inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Joint::mutable_solid_features(int index)
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_mutable:wood_proto.Joint.solid_cuts)
-  return _internal_mutable_solid_cuts()->Mutable(index);
+  // @@protoc_insertion_point(field_mutable:wood_proto.Joint.solid_features)
+  return _internal_mutable_solid_features()->Mutable(index);
 }
-inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Joint::add_solid_cuts()
+inline ::wood_proto::InteractionFeatureSolid* PROTOBUF_NONNULL Joint::add_solid_features()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   ::wood_proto::InteractionFeatureSolid* _add =
-      _internal_mutable_solid_cuts()->InternalAddWithArena(
+      _internal_mutable_solid_features()->InternalAddWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), GetArena());
   SetHasBit(_impl_._has_bits_[0], 0x00000100U);
-  // @@protoc_insertion_point(field_add:wood_proto.Joint.solid_cuts)
+  // @@protoc_insertion_point(field_add:wood_proto.Joint.solid_features)
   return _add;
 }
-inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& Joint::solid_cuts() const
+inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>& Joint::solid_features() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  // @@protoc_insertion_point(field_list:wood_proto.Joint.solid_cuts)
-  return _internal_solid_cuts();
+  // @@protoc_insertion_point(field_list:wood_proto.Joint.solid_features)
+  return _internal_solid_features();
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Joint::mutable_solid_cuts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+Joint::mutable_solid_features() ABSL_ATTRIBUTE_LIFETIME_BOUND {
   SetHasBit(_impl_._has_bits_[0], 0x00000100U);
-  // @@protoc_insertion_point(field_mutable_list:wood_proto.Joint.solid_cuts)
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Joint.solid_features)
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  return _internal_mutable_solid_cuts();
+  return _internal_mutable_solid_features();
 }
 inline const ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>&
-Joint::_internal_solid_cuts() const {
+Joint::_internal_solid_features() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.solid_cuts_;
+  return _impl_.solid_features_;
 }
 inline ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL
-Joint::_internal_mutable_solid_cuts() {
+Joint::_internal_mutable_solid_features() {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return &_impl_.solid_cuts_;
+  return &_impl_.solid_features_;
 }
 
 // bool pre_drill = 23;

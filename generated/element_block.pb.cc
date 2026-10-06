@@ -73,10 +73,10 @@ constexpr Block::ParseTableT_ Block::InternalGenerateParseTable_(const ::_pbi::C
       {::_pbi::TcParser::FastMtR1,
        {18, 1, 1,
         PROTOBUF_FIELD_OFFSET(Block, _impl_.cuts_)}},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 3;
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
       {::_pbi::TcParser::FastMtR1,
        {26, 2, 2,
-        PROTOBUF_FIELD_OFFSET(Block, _impl_.solid_cuts_)}},
+        PROTOBUF_FIELD_OFFSET(Block, _impl_.solid_features_)}},
     }}, {{
       65535, 65535
     }}, {{
@@ -84,8 +84,8 @@ constexpr Block::ParseTableT_ Block::InternalGenerateParseTable_(const ::_pbi::C
       {PROTOBUF_FIELD_OFFSET(Block, _impl_.loops_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .session_proto.Plane cuts = 2;
       {PROTOBUF_FIELD_OFFSET(Block, _impl_.cuts_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 3;
-      {PROTOBUF_FIELD_OFFSET(Block, _impl_.solid_cuts_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
+      {PROTOBUF_FIELD_OFFSET(Block, _impl_.solid_features_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // .session_proto.Mesh source_mesh = 4;
       {PROTOBUF_FIELD_OFFSET(Block, _impl_.source_mesh_), _Internal::kHasBitsOffset + 3, 3, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
@@ -130,9 +130,9 @@ inline constexpr Block::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.cuts_)>()
          }
         ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+        solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Block,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_features_)>()
          }
         ,
         source_mesh_{nullptr} {}
@@ -241,7 +241,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_._has_bits_),
         7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.source_mesh_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_cuts_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.loops_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.cuts_),
         3,
@@ -262,12 +262,12 @@ const char descriptor_table_protodef_element_5fblock_2eproto[] ABSL_ATTRIBUTE_SE
     protodesc_cold) = {
     "\n\023element_block.proto\022\nwood_proto\032\037inter"
     "action_feature_solid.proto\032\013plane.proto\032"
-    "\nmesh.proto\032\016polyline.proto\"\266\001\n\005Block\022(\n"
+    "\nmesh.proto\032\016polyline.proto\"\272\001\n\005Block\022(\n"
     "\013source_mesh\030\004 \001(\0132\023.session_proto.Mesh\022"
-    "7\n\nsolid_cuts\030\003 \003(\0132#.wood_proto.Interac"
-    "tionFeatureSolid\022&\n\005loops\030\001 \003(\0132\027.sessio"
-    "n_proto.Polyline\022\"\n\004cuts\030\002 \003(\0132\024.session"
-    "_proto.Planeb\006proto3"
+    ";\n\016solid_features\030\003 \003(\0132#.wood_proto.Int"
+    "eractionFeatureSolid\022&\n\005loops\030\001 \003(\0132\027.se"
+    "ssion_proto.Polyline\022\"\n\004cuts\030\002 \003(\0132\024.ses"
+    "sion_proto.Planeb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fblock_2eproto_deps[4] = {
@@ -280,7 +280,7 @@ static ::absl::once_flag descriptor_table_element_5fblock_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fblock_2eproto = {
     false,
     false,
-    300,
+    304,
     descriptor_table_protodef_element_5fblock_2eproto,
     "element_block.proto",
     &descriptor_table_element_5fblock_2eproto_once,
@@ -301,9 +301,9 @@ void Block::clear_source_mesh() {
   if (_impl_.source_mesh_ != nullptr) _impl_.source_mesh_->Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
 }
-void Block::clear_solid_cuts() {
+void Block::clear_solid_features() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.solid_cuts_.Clear();
+  _impl_.solid_features_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
 }
 void Block::clear_loops() {
@@ -344,11 +344,11 @@ PROTOBUF_NDEBUG_INLINE Block::Impl_::Impl_(
           , arena, from.cuts_
         }
         ,
-        solid_cuts_ {
+        solid_features_ {
           visibility, ::_pbi::InternalMetadataOffset::Build<
               ::wood_proto::Block,
-              PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_cuts_)>()
-          , arena, from.solid_cuts_
+              PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_features_)>()
+          , arena, from.solid_features_
         }
      {}
 
@@ -386,9 +386,9 @@ PROTOBUF_NDEBUG_INLINE Block::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.cuts_)>()
          }
         ,
-        solid_cuts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+        solid_features_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::Block,
-            PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_cuts_)>()
+            PROTOBUF_FIELD_OFFSET(::wood_proto::Block, _impl_.solid_features_)>()
          }
      {}
 
@@ -452,7 +452,7 @@ PROTOBUF_NOINLINE void Block::Clear() {
       _impl_.cuts_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _impl_.solid_cuts_.Clear();
+      _impl_.solid_features_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(this_._impl_.source_mesh_ != nullptr);
@@ -506,12 +506,12 @@ PROTOBUF_NOINLINE void Block::Clear() {
     }
   }
 
-  // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 3;
+  // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
   if (CheckHasBit(cached_has_bits, 0x00000004U)) {
     for (unsigned i = 0, n = static_cast<unsigned>(
-                             this_._internal_solid_cuts_size());
+                             this_._internal_solid_features_size());
          i < n; i++) {
-      const auto& repfield = this_._internal_solid_cuts().Get(i);
+      const auto& repfield = this_._internal_solid_features().Get(i);
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
           3, repfield, repfield.GetCachedSize(), target,
           stream);
@@ -563,10 +563,10 @@ PROTOBUF_NOINLINE void Block::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // repeated .wood_proto.InteractionFeatureSolid solid_cuts = 3;
+    // repeated .wood_proto.InteractionFeatureSolid solid_features = 3;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      total_size += 1UL * this_._internal_solid_cuts_size();
-      for (const auto& msg : this_._internal_solid_cuts()) {
+      total_size += 1UL * this_._internal_solid_features_size();
+      for (const auto& msg : this_._internal_solid_features()) {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
@@ -606,9 +606,9 @@ void Block::MergeImpl(::google::protobuf::MessageLite& to_msg,
           from._internal_cuts());
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      _this->_internal_mutable_solid_cuts()->InternalMergeFromWithArena(
+      _this->_internal_mutable_solid_features()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
-          from._internal_solid_cuts());
+          from._internal_solid_features());
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       ABSL_DCHECK(from._impl_.source_mesh_ != nullptr);
@@ -638,7 +638,7 @@ void Block::InternalSwap(Block* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.loops_.InternalSwap(&other->_impl_.loops_);
   _impl_.cuts_.InternalSwap(&other->_impl_.cuts_);
-  _impl_.solid_cuts_.InternalSwap(&other->_impl_.solid_cuts_);
+  _impl_.solid_features_.InternalSwap(&other->_impl_.solid_features_);
   swap(_impl_.source_mesh_, other->_impl_.source_mesh_);
 }
 
