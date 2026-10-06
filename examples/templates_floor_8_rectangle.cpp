@@ -12,9 +12,10 @@ const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
 /// The rectangular bay with its columns, every connector and the assembly screws.
 int main() {
 
-    wood_floor::FloorGuide::Parameters parameters;
-    parameters.seam_through_ribs = SEAM_THROUGH_RIBS;
-    wood_floor::Floor floor(wood_floor::FloorGuide::rectangle(HALF_X, HALF_Y, parameters));
+    wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(HALF_X, HALF_Y);
+    guide.seam_through_ribs = SEAM_THROUGH_RIBS;
+    guide.compute();
+    wood_floor::Floor floor(guide);
     floor.add_members();
     floor.add_connectors();
     floor.add_screws();

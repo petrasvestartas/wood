@@ -161,7 +161,7 @@ static void measure_quarter(const FloorGuide& guide, size_t q, FloorReport& repo
 
     for (size_t k = 0; k < 2; k++) {
         report.rib_sweep_obliqueness_deg[q][k] = panel.obliqueness[k];
-        report.rib_shear_mm[q][k] = guide.parameters.inner_ribs * std::tan(panel.obliqueness[k] * M_PI / 180.0);
+        report.rib_shear_mm[q][k] = guide.inner_ribs * std::tan(panel.obliqueness[k] * M_PI / 180.0);
         report.rib_bottom_clearance_mm[q][k] = std::min(outer[k].top.get_point(2)[2], outer[k].bottom.get_point(2)[2]) - column.levels[1];
     }
 }

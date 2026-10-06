@@ -136,7 +136,7 @@ std::shared_ptr<TreeNode> add_group(wood_session::WoodSession& session, const st
 
 QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quarter& view, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, view.parameters().bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, view.guide.bay_height);
     const std::string suffix = fmt::format("_{}", view.index);
     const std::vector<std::vector<Outline>> beds = view.beds();
     const std::shared_ptr<TreeNode> bed_group = add_group(session, "beds" + suffix, group);
@@ -164,7 +164,7 @@ QuarterMembers add_quarter_model(wood_session::WoodSession& session, const Quart
 
 std::vector<Member> add_oculus_model(wood_session::WoodSession& session, const FloorGuide& guide, const std::shared_ptr<TreeNode>& group) {
 
-    const Xform lift = Xform::translation(0.0, 0.0, guide.parameters.bay_height);
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::vector<Outline> outlines = guide.oculus();
     std::vector<Member> beams;
 
@@ -190,7 +190,7 @@ ColumnModel add_column_model(wood_session::WoodSession& session, const FloorGuid
     ColumnModel model;
     model.group = group;
     model.support = to_support(guide.columns[corner % 4]);
-    model.column = to_column(guide.columns[corner % 4], guide.parameters, *model.support);
+    model.column = to_column(guide.columns[corner % 4], guide, *model.support);
     add_named(session, model.support, "support" + suffix, group);
     add_named(session, model.column, "column" + suffix, group);
 

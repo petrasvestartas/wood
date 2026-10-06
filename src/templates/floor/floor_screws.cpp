@@ -177,7 +177,7 @@ static Line oculus_screw(const CornerFaces& faces, const RingFaces& ring, double
 /// A screw relationship: the two members, the face the second ends on and its end face there, the screws lifted to the floor.
 static Relationship screw_row(const FloorGuide& guide, Relation kind, const MemberRef& a, const MemberRef& b, const Plane& plane, const std::vector<Point>& contact, const std::vector<Line>& screws, size_t corner) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     Relationship row;
     row.kind = kind;
     row.a = a;
@@ -216,7 +216,7 @@ static Relationship rib_beam(const FloorGuide& guide, size_t q, size_t k) {
     const std::vector<Point> bottom = outline.bottom.get_points();
     std::vector<Line> screws;
 
-    if (guide.parameters.seam_through_ribs) {
+    if (guide.seam_through_ribs) {
         const Outline rib = guide.quarter(q).outer_ribs()[k];
         const std::vector<Point> rib_top = rib.top.get_points();
         const std::vector<Point> rib_bottom = rib.bottom.get_points();
@@ -228,7 +228,7 @@ static Relationship rib_beam(const FloorGuide& guide, size_t q, size_t k) {
         return screw_row(guide, Relation::screw_rib_beam, quarter_member(q, Family::outer_ribs, k), quarter_member(q, Family::inner_beams, beam), cp.inner_beams[beam][1], {rib_top[0], rib_top[n - 2], rib_bottom[n - 2], rib_bottom[0]}, screws, q);
     }
 
-    const double depth = std::min(guide.parameters.static_h(), 2.0 * (TIE_TOP - TIE_CLEARANCE));
+    const double depth = std::min(guide.static_h(), 2.0 * (TIE_TOP - TIE_CLEARANCE));
 
     for (double fraction : RIB_BEAM_LEVELS)
         screws.push_back(along_axis(cp.inner_beams[beam], cp.outer_ribs[k][0], body(outline), -depth * fraction));
@@ -250,7 +250,7 @@ static Relationship beam_mitre(const FloorGuide& guide, size_t q, size_t k) {
     std::vector<Line> screws;
 
     for (double levels : MITRE_LEVELS[k])
-        screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body(outline), corner_level(levels, guide.parameters.static_h())));
+        screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body(outline), corner_level(levels, guide.static_h())));
 
     return screw_row(guide, Relation::screw_beam_mitre, quarter_member(q, Family::inner_beams, seam), quarter_member(q, Family::inner_beams, 1), cp.inner_beams[seam][1], contact, screws, q);
 }
@@ -268,7 +268,7 @@ static Relationship rib_corner(const FloorGuide& guide, size_t q, size_t k) {
     bool through_seam = false;
 
     for (double levels : RIB_CORNER_LEVELS) {
-        screws.push_back(along_axis(cp.inner_ribs[k], cp.inner_beams[1][0], faces.rib_body, corner_level(levels, guide.parameters.static_h())));
+        screws.push_back(along_axis(cp.inner_ribs[k], cp.inner_beams[1][0], faces.rib_body, corner_level(levels, guide.static_h())));
         through_seam = through_seam || depth(screws.back().start(), faces.beam_end, faces.beam_body) < 0.0;
         const double from_seam = signed_distance(screws.back().start(), cp.inner_beams[seam][0]);
 
@@ -295,7 +295,7 @@ static Relationship ring(const FloorGuide& guide, size_t q, const std::vector<Ou
     std::vector<Line> screws;
 
     for (double levels : RING_LEVELS)
-        screws.push_back(along_axis(faces, guide.oculus_edges[q].tilted, body(oculus[next]), corner_level(levels, guide.parameters.static_h())));
+        screws.push_back(along_axis(faces, guide.oculus_edges[q].tilted, body(oculus[next]), corner_level(levels, guide.static_h())));
 
     return screw_row(guide, Relation::screw_ring, MemberRef{-1, Family::ring, q, -1}, MemberRef{-1, Family::ring, next, -1}, guide.oculus_edges[q].ring_inner, {top[2], top[3], bottom[3], bottom[2]}, screws, q);
 }
@@ -314,11 +314,11 @@ static Relationship oculus(const FloorGuide& guide, size_t q, size_t k, const st
     const Point end = k == 0 ? loop[0] : loop[1];
     ring.along = ((k == 0 ? loop[1] : loop[0]) - end).normalized();
     ring.wedge_start = end + ring.along * (WEDGE_MARGIN * thickness);
-    ring.band = 0.5 * guide.parameters.inner_beams;
+    ring.band = 0.5 * guide.inner_beams;
     std::vector<Line> screws;
 
     for (double levels : OCULUS_LEVELS[k])
-        screws.push_back(oculus_screw(faces, ring, corner_level(levels, guide.parameters.static_h())));
+        screws.push_back(oculus_screw(faces, ring, corner_level(levels, guide.static_h())));
 
     return screw_row(guide, Relation::screw_oculus, MemberRef{-1, Family::ring, q, -1}, quarter_member(q, Family::inner_beams, 1), guide.oculus_edges[q].tilted, {loop.begin(), loop.end() - 1}, screws, q);
 }

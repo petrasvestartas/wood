@@ -11,7 +11,7 @@ using namespace wood_floor::geometry;
 // Parameters
 // ═══════════════════════════════════════════════════════════════════════════
 
-double FloorParameters::static_h() const {
+double FloorGuide::static_h() const {
     return height - rise;
 }
 
@@ -19,8 +19,8 @@ double FloorParameters::static_h() const {
 // Guide
 // ═══════════════════════════════════════════════════════════════════════════
 
-FloorGuide FloorGuide::rectangle(double half_x, double half_y, const FloorParameters& parameters) {
-    return FloorGuide({Point(-half_x, -half_y, 0.0), Point(half_x, -half_y, 0.0), Point(half_x, half_y, 0.0), Point(-half_x, half_y, 0.0)}, parameters);
+FloorGuide FloorGuide::rectangle(double half_x, double half_y) {
+    return FloorGuide({Point(-half_x, -half_y, 0.0), Point(half_x, -half_y, 0.0), Point(half_x, half_y, 0.0), Point(-half_x, half_y, 0.0)});
 }
 
 Point FloorGuide::midpoint(size_t k) const {
@@ -111,8 +111,8 @@ std::string invalid(const FloorGuide& guide) {
 
     const std::array<Point, 4>& corners = guide.corners;
 
-    if (guide.parameters.rise <= 0.0 || guide.parameters.rise >= guide.parameters.height)
-        return fmt::format("rise {:.3f} is not between 0 and height {:.3f}: the ribs need a parabola and a depth at the seam", guide.parameters.rise, guide.parameters.height);
+    if (guide.rise <= 0.0 || guide.rise >= guide.height)
+        return fmt::format("rise {:.3f} is not between 0 and height {:.3f}: the ribs need a parabola and a depth at the seam", guide.rise, guide.height);
 
     for (size_t k = 0; k < 4; k++) {
         const Vector after = corners[(k + 1) % 4] - corners[k];

@@ -94,7 +94,7 @@ MemberRef quarter_member(size_t quarter, Family family, size_t index);
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Rule A for one quarter: the inner ribs' one sweep r so that rib 0's central trace projected along one ruling u lands on rib 1's, and the central traces by the layers.
-CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorParameters& parameters);
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<session_cpp::Polyline, 3>>& parabolas, const FloorGuide& guide);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines

@@ -69,7 +69,7 @@ std::vector<Outline> Quarter::outer_ribs() const {
 std::array<Plane, 2> Quarter::rib_seam_ends() const {
 
     const ConstructionPlanes& cp = geometry().planes;
-    const size_t face = parameters().seam_through_ribs ? 1 : 0;
+    const size_t face = guide.seam_through_ribs ? 1 : 0;
 
     return {cp.inner_beams[0][face], cp.inner_beams[2][face]};
 }
@@ -95,7 +95,7 @@ std::vector<Outline> Quarter::inner_beams() const {
     const ConstructionPlanes& cp = geometry().planes;
     const Plane side0 = level(0.0);
     const Plane side1 = level(guide.soffit);
-    const size_t face = parameters().seam_through_ribs ? 0 : 1;
+    const size_t face = guide.seam_through_ribs ? 0 : 1;
 
     return {
         loft_planes({cp.outer_ribs[0][face], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
@@ -232,9 +232,9 @@ std::vector<std::vector<Outline>> Quarter::beds() const {
 std::vector<Outline> FloorGuide::oculus() const {
 
     const Plane side0 = level(0.0);
-    const Plane side1 = level(soffit + parameters.tsections);
+    const Plane side1 = level(soffit + tsections);
     const Plane side2 = level(soffit);
-    const Plane side3 = level(soffit + parameters.tsections * 2.0);
+    const Plane side3 = level(soffit + tsections * 2.0);
 
     std::vector<Plane> tilted;
     std::vector<Plane> inner;
@@ -250,7 +250,7 @@ std::vector<Outline> FloorGuide::oculus() const {
         plates.push_back(loft_planes({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
 
     for (size_t i = 0; i < 4; i++) {
-        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-parameters.tsections), inner[(i + 3) % 4].translate_by_normal(-parameters.tsections)};
+        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-tsections), inner[(i + 3) % 4].translate_by_normal(-tsections)};
         plates.push_back(loft_planes(sides, side2, side1));
     }
 

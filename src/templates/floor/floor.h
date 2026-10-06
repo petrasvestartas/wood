@@ -32,33 +32,6 @@ struct Outline {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Parameters
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Everything about a floor but its corners, each with its default: the oculus, the thicknesses, offsets, depths and angles of the members and the column, and how the seams meet the outer ribs.
-struct FloorParameters {
-    double oculus = 1000.0; // Distance of every oculus corner from the centre along its seam: a square diamond on a rectangular bay.
-    double column_head = 220.0; // Side of the square column shaft and of the head polygon at the corner.
-    double column_head_chamfer = 120.0; // Where the chamfer vertices sit on the shaft faces; also the capitel width.
-    double outer_ribs = 100.0; // Outer rib thickness.
-    double inner_ribs = 60.0; // Inner rib thickness.
-    double inner_beams = 60.0; // Seam and oculus beam thickness; also the ring beam width at the datum.
-    double wedge = 240.0; // Side wedge block thickness; the middle block is middle_wedge_factor times it.
-    double tsections = 27.0; // Flange plane offset and bed layer thickness.
-    double height = 650.0; // Rib depth where the parabola starts, a wedge thickness past the column face.
-    double rise = 453.0; // Parabola rise from there to the seam.
-    double wedge_plane_angle = -10.0; // Degrees the chamfer fan plane leans about its top edge.
-    double oculus_plane_angle = 5.0; // Degrees the oculus bearing plane leans about its top edge.
-    double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
-    double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
-    double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses.
-    bool seam_through_ribs = true; // Run the two seam beams of every seam on through the outer rib band to the bay's outer face: the outer ribs end on the beams, the rib screws go from the beam's seam face into the rib end, and no ties are made.
-
-    /// Depth at every seam and at the oculus: height minus rise.
-    double static_h() const;
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Shared entities
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -160,26 +133,49 @@ struct FloorReport {
     std::string str() const;
 };
 
-/// The floor guide, a session ready to draw: the corners and the parameters, read-only once given, the geometry every member is built from, computed from them once (the bay edges, seams, oculus, columns and every quarter's planes, quads and parabolas), and that construction drawn into the session itself, grouped by quarter; quarter views and the oculus on demand. A Floor builds the model from it.
+/// The floor guide, a session ready to draw: the corners, the parameters as its fields, the geometry every member is built from, computed by compute() on construction and again after a parameter changes (the bay edges, seams, oculus, columns and every quarter's planes, quads and parabolas), and that construction drawn into the session itself, grouped by quarter; quarter views and the oculus on demand. A Floor builds the model from it.
 struct FloorGuide : public wood_session::WoodSession {
-    using Parameters = FloorParameters;
-
     const std::array<session_cpp::Point, 4> corners; // Counter-clockwise at z 0.
-    const FloorParameters parameters; // Everything but the corners.
+
+    // the parameters, each with its default; after changing one, compute() again
+    double oculus_radius = 1000.0; // Distance of every oculus corner from the centre along its seam: a square diamond on a rectangular bay.
+    double column_head = 220.0; // Side of the square column shaft and of the head polygon at the corner.
+    double column_head_chamfer = 120.0; // Where the chamfer vertices sit on the shaft faces; also the capitel width.
+    double outer_ribs = 100.0; // Outer rib thickness.
+    double inner_ribs = 60.0; // Inner rib thickness.
+    double inner_beams = 60.0; // Seam and oculus beam thickness; also the ring beam width at the datum.
+    double wedge = 240.0; // Side wedge block thickness; the middle block is middle_wedge_factor times it.
+    double tsections = 27.0; // Flange plane offset and bed layer thickness.
+    double height = 650.0; // Rib depth where the parabola starts, a wedge thickness past the column face.
+    double rise = 453.0; // Parabola rise from there to the seam.
+    double wedge_plane_angle = -10.0; // Degrees the chamfer fan plane leans about its top edge.
+    double oculus_plane_angle = 5.0; // Degrees the oculus bearing plane leans about its top edge.
+    double column_head_depth = 730.0; // Depth of the carved head and of the capitel.
+    double bay_height = 3500.0; // Storey: the floor top above the slab, the column top.
+    double middle_wedge_factor = 1.25; // The middle block in wedge thicknesses.
+    bool seam_through_ribs = true; // Run the two seam beams of every seam on through the outer rib band to the bay's outer face: the outer ribs end on the beams, the rib screws go from the beam's seam face into the rib end, and no ties are made.
+
+
     session_cpp::Point centre; // The vertex centroid, where the bimedians cross and bisect each other.
     std::array<BayEdge, 4> edges; // Edge q from corner q to corner q + 1.
     std::array<Seam, 4> seams; // Seam q from the midpoint of edge q to the centre.
-    std::array<session_cpp::Point, 4> oculus_corners; // Corner q on seam q, parameters.oculus from the centre.
+    std::array<session_cpp::Point, 4> oculus_corners; // Corner q on seam q, oculus from the centre.
     std::array<OculusEdge, 4> oculus_edges; // Edge q from oculus corner q to oculus corner q - 1.
     std::array<ColumnCorner, 4> columns; // Column q at corner q.
     std::array<QuarterGeometry, 4> geometry; // Quarter q at corner q.
     double soffit = 0.0; // The level of every inner and ring beam's soffit: the deepest end of a rib that ends on one, so every rib end meets its beam in full.
 
-    /// Computes everything from the corners and the parameters; throws naming the failure when the corners are not counter-clockwise and convex at z 0, an oculus corner leaves its seam or the ring would leave a quarter's oculus beam uncovered.
-    explicit FloorGuide(const std::array<session_cpp::Point, 4>& corners, const FloorParameters& parameters = {});
+    /// The guide of the corners with the default parameters, computed.
+    explicit FloorGuide(const std::array<session_cpp::Point, 4>& corners);
 
-    /// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y).
-    static FloorGuide rectangle(double half_x, double half_y, const FloorParameters& parameters = {});
+    /// The guide of the rectangle of half spans half_x and half_y about the origin, corner 0 at (-half_x, -half_y), with the default parameters, computed.
+    static FloorGuide rectangle(double half_x, double half_y);
+
+    /// Computes everything from the corners and the parameters, its drawing redrawn; throws naming the failure when the corners are not counter-clockwise and convex at z 0, an oculus corner leaves its seam, the rise leaves (0, height), an oculus corner lies in an outer rib band or the ring would leave a quarter's oculus beam uncovered.
+    void compute();
+
+    /// Depth at every seam and at the oculus: height minus rise.
+    double static_h() const;
 
     /// The midpoint of edge k, corner k to corner k + 1.
     session_cpp::Point midpoint(size_t k) const;
@@ -214,9 +210,6 @@ struct Quarter {
 
     /// The quarter's geometry.
     const QuarterGeometry& geometry() const;
-
-    /// The parameters of the guide.
-    const FloorParameters& parameters() const;
 
     /// The column corner the quarter starts from.
     const ColumnCorner& column() const;
@@ -275,7 +268,7 @@ std::shared_ptr<wood_session::Plate> to_plate(const Outline& outline, const std:
 std::shared_ptr<wood_session::Support> to_support(const ColumnCorner& corner);
 
 /// The column of a corner: the square shaft in the corner frame from the support's column foot to the floor, with its head a chamfer wider along both axes over the column head depth.
-std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorParameters& parameters, const wood_session::Support& support);
+std::shared_ptr<wood_session::Column> to_column(const ColumnCorner& corner, const FloorGuide& guide, const wood_session::Support& support);
 
 /// The quarter's column cutters lifted to the floor as solid difference cuts of its column: features of the column, not elements of the scene.
 std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter);

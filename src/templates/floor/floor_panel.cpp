@@ -140,7 +140,7 @@ static std::array<std::array<Polyline, 3>, 2> section_layers(const std::array<Po
     return traces;
 }
 
-CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas, const FloorParameters& parameters) {
+CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::array<Polyline, 3>>& parabolas, const FloorGuide& guide) {
 
     const std::array<Plane, 2> faces = {cp.inner_ribs[0][1], cp.inner_ribs[1][1]};
     const std::array<Vector, 2> normals = {faces[0].z_axis(), faces[1].z_axis()};
@@ -148,7 +148,7 @@ CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::
     const Vector reference = flat(normals[0] - normals[1]).normalized();
 
     CentralPanel panel;
-    panel.rib_sweep = rib_sweep(shadows, normals, parameters.inner_ribs, reference);
+    panel.rib_sweep = rib_sweep(shadows, normals, guide.inner_ribs, reference);
     const std::array<Polyline, 2> soffits = {along(shadows[0], faces[0], panel.rib_sweep), along(shadows[1], faces[1], panel.rib_sweep)};
     panel.ruling = flat(soffits[1].get_point(0) - soffits[0].get_point(0)).normalized();
 
@@ -157,7 +157,7 @@ CentralPanel central_panel(const ConstructionPlanes& cp, const std::vector<std::
 
     panel.residual = largest_shift(along(soffits[0], faces[1], panel.ruling), soffits[1]);
 
-    panel.traces = section_layers(soffits, faces, panel.ruling, parameters.tsections);
+    panel.traces = section_layers(soffits, faces, panel.ruling, guide.tsections);
 
     return panel;
 }

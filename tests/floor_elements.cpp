@@ -1,3 +1,4 @@
+#include <optional>
 #include "wood_session.h"
 #include "wood_element_geometry.h"
 #include "wood_brep_drill.h"
@@ -17,10 +18,11 @@ const wood_floor::FloorGuide& square_guide() {
 /// A floor of half spans half_x and half_y with the outer ribs meeting at every seam, tied, instead of the seams through them.
 wood_floor::FloorGuide tied_guide(double half_x, double half_y) {
 
-    wood_floor::FloorGuide::Parameters parameters;
-    parameters.seam_through_ribs = false;
+    wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
+    guide.seam_through_ribs = false;
+    guide.compute();
 
-    return wood_floor::FloorGuide::rectangle(half_x, half_y, parameters);
+    return guide;
 }
 
 /// The tied square floor, built on first use.
@@ -119,9 +121,9 @@ void check_thickness() {
     const std::vector<wood_floor::Outline> outlines = square_guide().quarter(1).outer_ribs();
 
     check(quarter.outer_ribs[0].thickness == wood_floor::outline_thickness(outlines[0]), "a rib keeps its outline's thickness");
-    check(std::abs(quarter.outer_ribs[0].thickness - square_guide().parameters.outer_ribs) < 1e-6, "an outer rib as thick as the sizes say, " + std::to_string(quarter.outer_ribs[0].thickness));
-    check(quarter.inner_beams[1].thickness > square_guide().parameters.inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * square_guide().parameters.inner_beams, "an inner beam about as thick as the sizes say, " + std::to_string(quarter.inner_beams[1].thickness));
-    check(quarter.wedges[1].thickness > 1.25 * square_guide().parameters.wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.wedges[1].thickness));
+    check(std::abs(quarter.outer_ribs[0].thickness - square_guide().outer_ribs) < 1e-6, "an outer rib as thick as the sizes say, " + std::to_string(quarter.outer_ribs[0].thickness));
+    check(quarter.inner_beams[1].thickness > square_guide().inner_beams - 1e-9 && quarter.inner_beams[1].thickness < 1.5 * square_guide().inner_beams, "an inner beam about as thick as the sizes say, " + std::to_string(quarter.inner_beams[1].thickness));
+    check(quarter.wedges[1].thickness > 1.25 * square_guide().wedge - 1e-9, "the tilted middle block at least its plane offset thick, " + std::to_string(quarter.wedges[1].thickness));
     check(quarter.beds.size() == 3 && quarter.tsections.size() == 6 && quarter.inner_ribs.size() == 2, "a quarter of three bed rows, six t-sections and two inner ribs");
 
     std::cout << "floor_elements: every quarter member carries its outline thickness, a rib, a beam and a block checked" << std::endl;
@@ -140,7 +142,7 @@ void check_support() {
 
     WoodSession scene("support");
     const std::shared_ptr<Support> support = wood_floor::to_support(square_guide().columns[0]);
-    const std::shared_ptr<Column> column = wood_floor::to_column(square_guide().columns[0], square_guide().parameters, *support);
+    const std::shared_ptr<Column> column = wood_floor::to_column(square_guide().columns[0], square_guide(), *support);
     scene.add(support);
     scene.add(column);
 
@@ -275,18 +277,23 @@ void check_short_members() {
                         for (const Point& point : loop->get_points())
                             check(inside_plan(polygon, point, 1.0), fmt::format("{} x {}: quarter {} rib point ({:.1f}, {:.1f}) inside its quarter", 2 * half_x, 2 * half_y, q, point[0], point[1]));
 
-            check(guide.columns[q].levels[1] < -guide.parameters.static_h(), fmt::format("{} x {}: column {} level {:.1f} below the seam depth", 2 * half_x, 2 * half_y, q, guide.columns[q].levels[1]));
+            check(guide.columns[q].levels[1] < -guide.static_h(), fmt::format("{} x {}: column {} level {:.1f} below the seam depth", 2 * half_x, 2 * half_y, q, guide.columns[q].levels[1]));
         }
     }
 
     std::cout << "floor_elements: short ribs on 2400 x 2400 and 6000 x 2400 bays stay inside their quarters" << std::endl;
 }
 
-/// The message of the invalid_argument a guide throws, empty when it builds.
-std::string refusal(double half_x, double half_y, const wood_floor::FloorParameters& parameters) {
+/// The message of the invalid_argument a guide throws, with the rise when one is given, empty when it builds.
+std::string refusal(double half_x, double half_y, std::optional<double> rise = std::nullopt) {
 
     try {
-        wood_floor::FloorGuide::rectangle(half_x, half_y, parameters);
+        wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(half_x, half_y);
+
+        if (rise) {
+            guide.rise = *rise;
+            guide.compute();
+        }
     } catch (const std::invalid_argument& error) {
         return error.what();
     }
@@ -297,15 +304,12 @@ std::string refusal(double half_x, double half_y, const wood_floor::FloorParamet
 /// Guides that make no floor are refused with a reason: an oculus whose inner beam corners fall inside an outer rib band, and a rise of zero or of the whole height.
 void check_refused_guides() {
 
-    wood_floor::FloorParameters flat;
-    flat.rise = 0.0;
-    wood_floor::FloorParameters deep;
-    deep.rise = deep.height;
+    const double height = wood_floor::FloorGuide::rectangle(3000.0, 3000.0).height;
 
-    check(refusal(3000.0, 1100.0, {}).find("outer rib band") != std::string::npos, "an oculus 100 mm from the bay edge refused: " + refusal(3000.0, 1100.0, {}));
-    check(refusal(3000.0, 3000.0, flat).find("rise") != std::string::npos, "a rise of 0 refused");
-    check(refusal(3000.0, 3000.0, deep).find("rise") != std::string::npos, "a rise of the whole height refused");
-    check(refusal(3000.0, 1200.0, {}).empty(), "6000 x 2400 still builds");
+    check(refusal(3000.0, 1100.0).find("outer rib band") != std::string::npos, "an oculus 100 mm from the bay edge refused: " + refusal(3000.0, 1100.0));
+    check(refusal(3000.0, 3000.0, 0.0).find("rise") != std::string::npos, "a rise of 0 refused");
+    check(refusal(3000.0, 3000.0, height).find("rise") != std::string::npos, "a rise of the whole height refused");
+    check(refusal(3000.0, 1200.0).empty(), "6000 x 2400 still builds");
     std::cout << "floor_elements: an oculus inside an outer rib band and a rise of 0 or of the height refused with their reasons" << std::endl;
 }
 
@@ -386,16 +390,17 @@ void check_connector_calls() {
 
     for (const wood_floor::Relationship& row : wood_floor::relationships(skewed, wood_floor::Relation::screw_rib_beam))
         for (const Line& screw : row.screws)
-            off = std::max(off, std::abs(std::abs((screw.start() - row.plane.origin()).dot(row.plane.z_axis())) - skewed.parameters.inner_beams));
+            off = std::max(off, std::abs(std::abs((screw.start() - row.plane.origin()).dot(row.plane.z_axis())) - skewed.inner_beams));
 
     check(off <= 1e-6, fmt::format("every seam screw of the skewed bay starts on the seam beam's outer face, {:.3e} mm off", off));
 
-    wood_floor::FloorParameters deep;
+    wood_floor::FloorGuide deep = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
     deep.seam_through_ribs = false;
     deep.rise = 350.0;
+    deep.compute();
     double lowest = 0.0;
 
-    for (const wood_floor::Relationship& row : wood_floor::relationships(wood_floor::FloorGuide::rectangle(3000.0, 3000.0, deep), wood_floor::Relation::screw_rib_beam))
+    for (const wood_floor::Relationship& row : wood_floor::relationships(deep, wood_floor::Relation::screw_rib_beam))
         for (const Line& screw : row.screws)
             lowest = std::min(lowest, screw.start()[2] - deep.bay_height);
 
@@ -475,7 +480,7 @@ void check_wedges() {
             for (const Point& point : loop.get_points())
                 top = std::max(top, point[2]);
 
-        check(std::abs(top - square_guide().parameters.bay_height) <= 1e-9, fmt::format("{} cut flush with the floor top, {:.3e} above it", wedge->name, top - square_guide().parameters.bay_height));
+        check(std::abs(top - square_guide().bay_height) <= 1e-9, fmt::format("{} cut flush with the floor top, {:.3e} above it", wedge->name, top - square_guide().bay_height));
     }
 
     std::map<std::string, double> volumes;
@@ -540,9 +545,7 @@ double lowest_on(const Polyline& loop, const Plane& plane) {
 /// The seam beams run through the rib band: the report holds, no ties, every seam beam reaching the bay's outer face, every outer rib ending on its beam's far face, no rib end below the beams' soffit, the seam wedges flush with the outer face between the beams, horizontal screws from the beam's seam face along the rib 20 mm below its top and above its bottom, every contact found and every screw clear.
 void check_seam_through_ribs() {
 
-    wood_floor::FloorGuide::Parameters parameters;
-    parameters.seam_through_ribs = true;
-    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0, parameters);
+    const wood_floor::FloorGuide guide = wood_floor::FloorGuide::rectangle(3000.0, 3000.0);
     check(guide.check().ok(1e-6), "the report holds with the seam through the ribs:\n" + guide.check().str());
     check(wood_floor::relationships(guide, wood_floor::Relation::seam_tie).empty(), "no ties when the seam runs through the ribs");
 
@@ -592,11 +595,11 @@ void check_seam_through_ribs() {
         const Vector across = quarter.geometry().planes.outer_ribs[row.a.index][0].z_axis();
         const wood_floor::Outline rib = quarter.outer_ribs()[row.a.index];
         const Plane end = quarter.rib_seam_ends()[row.a.index];
-        const double bottom = guide.parameters.bay_height + std::min(lowest_on(rib.top, end), lowest_on(rib.bottom, end));
-        check(row.screws.size() == 2 && std::abs(row.screws[0].start()[2] - (guide.parameters.bay_height - 20.0)) <= 1e-9 && std::abs(row.screws[1].start()[2] - (bottom + 20.0)) <= 1e-9, row.text() + " screws 20 mm below the rib top and above its bottom");
+        const double bottom = guide.bay_height + std::min(lowest_on(rib.top, end), lowest_on(rib.bottom, end));
+        check(row.screws.size() == 2 && std::abs(row.screws[0].start()[2] - (guide.bay_height - 20.0)) <= 1e-9 && std::abs(row.screws[1].start()[2] - (bottom + 20.0)) <= 1e-9, row.text() + " screws 20 mm below the rib top and above its bottom");
 
         for (const Line& screw : row.screws)
-            check(std::abs(screw.to_direction()[2]) <= 1e-9 && std::abs(screw.to_direction().dot(across)) <= 1e-9 && std::abs(std::abs((screw.start() - row.plane.origin()).dot(row.plane.z_axis())) - parameters.inner_beams) <= 1e-9, row.text() + " screws horizontal along the rib from the beam's seam face");
+            check(std::abs(screw.to_direction()[2]) <= 1e-9 && std::abs(screw.to_direction().dot(across)) <= 1e-9 && std::abs(std::abs((screw.start() - row.plane.origin()).dot(row.plane.z_axis())) - guide.inner_beams) <= 1e-9, row.text() + " screws horizontal along the rib from the beam's seam face");
     }
 
     std::cout << fmt::format("floor_elements: seam beams through the rib band to the outer face, ribs ending on them within the beams' soffit {:.3f}, no ties, wedges flush with the outer face, horizontal screws from the seam face, {}, screws {:.3f} mm clear of pockets", guide.soffit, contacts.str(), screws.screw_pocket_mm) << std::endl;
@@ -1149,7 +1152,7 @@ void check_section_layers() {
 
     const wood_floor::FloorGuide& guide = square_guide();
     const std::array<double, 2> section = central_bed_thickness(guide);
-    check(std::abs(section[0] - guide.parameters.tsections) <= 1e-9 && std::abs(section[1] - guide.parameters.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", guide.parameters.tsections, section[0], section[1]));
+    check(std::abs(section[0] - guide.tsections) <= 1e-9 && std::abs(section[1] - guide.tsections) <= 1e-9, fmt::format("every central bed plate {} thick, not {:.12f} .. {:.12f}", guide.tsections, section[0], section[1]));
 
     std::cout << fmt::format("floor_elements: the central bed plates {:.9f} .. {:.9f} thick", section[0], section[1]) << std::endl;
 }
@@ -1229,7 +1232,7 @@ void check_rib_levels() {
         const std::vector<double> bottoms = rib_bottoms(guide, q);
         const std::array<double, 2>& run_in = guide.geometry[q].run_in;
         check(std::abs(level + 689.979) < 1e-3, fmt::format("corner {}'s level at the shallower outer rib end, {:.3f}", q, level));
-        check(std::max(run_in[0], run_in[1]) == guide.parameters.wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
+        check(std::max(run_in[0], run_in[1]) == guide.wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
 
         for (size_t i = 0; i < 4; i++)
             check(std::abs(bottoms[i] - level) <= 1e-9, fmt::format("corner {}'s outer rib face {} ends {:.3e} mm off the level", q, i, bottoms[i] - level));
@@ -1243,7 +1246,7 @@ void check_rib_levels() {
     const wood_floor::FloorGuide& square = square_guide();
 
     for (size_t q = 0; q < 4; q++)
-        check(square.geometry[q].run_in[0] == square.parameters.wedge && square.geometry[q].run_in[1] == square.parameters.wedge && square.check().rib_level_spread_mm[q] <= 1e-9, "the square keeps the wedge as its run-in, every rib at one level");
+        check(square.geometry[q].run_in[0] == square.wedge && square.geometry[q].run_in[1] == square.wedge && square.check().rib_level_spread_mm[q] <= 1e-9, "the square keeps the wedge as its run-in, every rib at one level");
 
     std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the eight rib bottoms span {:.3f} mm, the short run-in {:.3f}; the square at the wedge run-in", guide.columns[0].levels[1], report.rib_level_spread_mm[0], std::min(guide.geometry[0].run_in[0], guide.geometry[0].run_in[1])) << std::endl;
 }
@@ -1445,11 +1448,11 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
     std::map<std::string, size_t> expected;
 
     for (size_t q = 0; q < 4; q++)
-        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = guide.parameters.seam_through_ribs ? 20 : 21;
+        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = guide.seam_through_ribs ? 20 : 21;
 
     check(groups == expected, label + " every connector in its quarter, 12 of the quarter, 4 of the oculus, 3 at its column and 1 or 2 on its seam");
     check(check_connector_tree(back, guide, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
-    const size_t count = guide.parameters.seam_through_ribs ? 80 : 84;
+    const size_t count = guide.seam_through_ribs ? 80 : 84;
     check(connectors.size() == count && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} {} connectors, {} nodes in the connector colour, the same after a round trip", label, count, painted));
     size_t total = 0;
 

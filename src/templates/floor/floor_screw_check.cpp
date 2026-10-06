@@ -228,7 +228,7 @@ ScrewCheck check_screws(const wood_session::WoodSession& session, const FloorGui
     for (const Relationship& row : rows)
         if (!row.screws.empty()) {
             check.counts[row.kind] += screws[drilled_from.size()]->drill_lines.size();
-            drilled_from.push_back(row.kind == Relation::screw_rib_beam && guide.parameters.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
+            drilled_from.push_back(row.kind == Relation::screw_rib_beam && guide.seam_through_ribs ? screws[drilled_from.size()]->targets[1] : "");
         }
 
     for (size_t c = 0; c < screws.size(); c++) {

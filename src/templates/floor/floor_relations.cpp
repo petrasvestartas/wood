@@ -55,7 +55,7 @@ std::string Relationship::text() const {
 /// The seam wedge of seam q: inner beam 0 of q and inner beam 2 of q + 1 on the seam plane, the contact where their end faces on it overlap; run on to the bay's outer face when the beams run through the rib band.
 static Relationship seam_wedge(const FloorGuide& guide, size_t q) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     Relationship row;
     row.kind = Relation::seam_wedge;
     row.a = quarter_member(q, Family::inner_beams, 0);
@@ -65,7 +65,7 @@ static Relationship seam_wedge(const FloorGuide& guide, size_t q) {
     row.type = wood_session::ContactType::side_side;
     row.seam_or_corner = q;
 
-    if (guide.parameters.seam_through_ribs)
+    if (guide.seam_through_ribs)
         row.end = lifted(guide.edges[q].band[0], lift);
 
     return row;
@@ -74,7 +74,7 @@ static Relationship seam_wedge(const FloorGuide& guide, size_t q) {
 /// The oculus wedge of quarter q: inner beam 1 of q and ring beam q on the tilted plane, the contact beam 1's loop on it.
 static Relationship oculus_wedge(const FloorGuide& guide, size_t q) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     Relationship row;
     row.kind = Relation::oculus_wedge;
     row.a = quarter_member(q, Family::inner_beams, 1);
@@ -90,7 +90,7 @@ static Relationship oculus_wedge(const FloorGuide& guide, size_t q) {
 /// The column plate of corner q on outer rib k: the rib's column end face on the fan side plane where it meets the column's carved face, down to the middle cutter level.
 static Relationship column_plate(const FloorGuide& guide, size_t q, size_t k) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     const Outline rib = guide.quarter(q).outer_ribs()[k];
     const std::vector<Point> top = rib.top.get_points();
     const std::vector<Point> bottom = rib.bottom.get_points();
@@ -120,7 +120,7 @@ static Relationship cross_lap(size_t q) {
 /// The tie of seam q: outer rib 0 of q and outer rib 1 of q + 1 meeting end to end on the seam plane, the contact rib 0's seam end face.
 static Relationship seam_tie(const FloorGuide& guide, size_t q) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     const Outline rib = guide.quarter(q).outer_ribs()[0];
     const std::vector<Point> top = rib.top.get_points();
     const std::vector<Point> bottom = rib.bottom.get_points();
@@ -140,7 +140,7 @@ static Relationship seam_tie(const FloorGuide& guide, size_t q) {
 /// The dowels of block k of quarter q on one of its two ribs: the block's face on that rib's plane, corners 3 and 0 of its loops on the first rib plane, 1 and 2 on the second.
 static Relationship block_dowels(const FloorGuide& guide, size_t q, size_t k, size_t side, const MemberRef& rib) {
 
-    const double lift = guide.parameters.bay_height;
+    const double lift = guide.bay_height;
     const Outline block = guide.quarter(q).wedges()[k];
     const std::vector<Point> top = block.top.get_points();
     const std::vector<Point> bottom = block.bottom.get_points();
@@ -187,7 +187,7 @@ std::vector<Relationship> relationships(const FloorGuide& guide) {
     for (size_t q = 0; q < 4; q++)
         rows.push_back(cross_lap(q));
 
-    for (size_t q = 0; q < 4 && !guide.parameters.seam_through_ribs; q++)
+    for (size_t q = 0; q < 4 && !guide.seam_through_ribs; q++)
         rows.push_back(seam_tie(guide, q));
 
     for (size_t q = 0; q < 4; q++) {

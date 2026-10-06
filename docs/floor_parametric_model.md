@@ -81,7 +81,7 @@ exclusive. The rectangle becomes the consistent assembly compas_tf never had.
 
 ## 1. Inputs with physical meaning
 
-### 1.1 The fixed sizes (`FloorParameters` fields with defaults; never a function of the plan geometry)
+### 1.1 The fixed sizes (`FloorGuide` parameter fields with defaults; never a function of the plan geometry)
 
 Values are the example-1 set that the wood port uses
 (`example_model_1_floorguide.py:16-28`); compas_tf's class defaults are in parentheses where they
@@ -100,7 +100,7 @@ cutter level (its section 4, `:145`), so the model's defaults are the example se
 | `wedge` | 240 (100) | `size_wedge` `:39,62` | side wedge block thickness, perpendicular to the tilted fan plane; the middle block is `middle_wedge_factor` times it; also the trim of the parabola axis at the column end | `:313-315`, `:679-680`, `:740` |
 | `tsections` | 27 | `size_tsections` `:40,63` | flange plane offset from the rib faces, and the +t / +2t layer thickness of beds and flanges; the oculus plate levels | `:326-331`, `:693-694`, `:1324-1326` |
 | `height` | 650 | `height` `:41,76` | rib depth at the parabola start, one wedge thickness past the column face | `:686` |
-| `rise` | 453 | `rise` `:42,77` | drop of the rib soffit from the seam to the parabola start; `FloorParameters::static_h() = height - rise` = 197 is the rib depth at every seam and at the oculus; the inner and ring beams go down to `FloorGuide::soffit` (R7) | `:78`, `:687-688`, `:1259`, `:1325` |
+| `rise` | 453 | `rise` `:42,77` | drop of the rib soffit from the seam to the parabola start; `FloorGuide::static_h() = height - rise` = 197 is the rib depth at every seam and at the oculus; the inner and ring beams go down to `FloorGuide::soffit` (R7) | `:78`, `:687-688`, `:1259`, `:1325` |
 | `wedge_plane_angle` | -10 | `wedge_plane_angle` `:44,65-68` | tilt of the chamfer fan plane about its top edge, leaning toward the bay going down; the two side planes are not rotated by it (`:291` is commented out) but lean so that each is parallel to the chamfer plane's crease with the inner rib's central face `[k][1]` (`:293-300`); their own crease with the chamfer plane then runs through the chamfer vertex along the inner rib's OUTER face `[k][0]` (`skeptic_probe.out` A: 0.000 on `[0][0]`, 42.71 mm off `[0][1]`); 8.433 deg on the square | `:290-300` |
 | `oculus_plane_angle` | 5 | default argument of the `construction_planes` property `:220`, used at `:248`; unreachable, hence a constant in compas_tf | tilt of the oculus bearing plane about the oculus edge: the oculus narrows going down (60 -> 42.76 ring width) | `:246-248`, `:1328` |
 | `column_head_depth` | 730 | `column_head_lowest_height = -730` `:79`, `:387`; `capitel_height` `example_model_2:38` | depth of the carved head and of the capitel | cutter level 2 |
@@ -112,7 +112,7 @@ Not a size, hence not in the table: compas_tf's `1.65` (`:386`) fixes the middle
 `-(height + 1.65 t)` = -694.55 as a tuning of a relationship, the carved band's bottom = the outer
 rib's bottom at the fan plane (-694.793 on the square; `outer_ribs_bottom` `:743-750` exists for
 exactly this and is unused). The model sets the level by that relationship (6.2 R8), so the factor
-is not a `FloorParameters` field. The side wedge seat of 20 mm (`chamfer - outer_ribs`) and the parabola span
+is not a `FloorGuide` parameter field. The side wedge seat of 20 mm (`chamfer - outer_ribs`) and the parabola span
 `L = half span - column_head - wedge` hold at right corners only (1.2, R8).
 
 Support and connector dimensions stay where they are: the Sherpa support
@@ -126,7 +126,7 @@ and the cross-lap share 0.5 are wood-only (`floor.h:194,197`).
 | field | meaning | compas_tf |
 |---|---|---|
 | `corners[4]` | the bay corners counter-clockwise at z 0; `FloorGuide::rectangle(hx, hy)` gives (-hx,-hy), (hx,-hy), (hx,hy), (-hx,hy) | `size_grid_x`, `size_grid_y` are half spans: the quarter runs from `-size_grid` to 0 (`:49-50`, `:188-192`); corner 0 is compas_tf's quarter 0 |
-| `oculus` | the oculus half-diagonal: every oculus corner sits `oculus` from the centre along its seam, a square diamond on a rectangle (R3); there are no per-seam distances; compas_tf's `size_oculus * gx/gy`, `* gy/gx` (`:56-57`) is not carried over | `size_oculus` `:43,55`; `:56-57`, `:171-180` |
+| `oculus_radius` | the oculus half-diagonal: every oculus corner sits `oculus` from the centre along its seam, a square diamond on a rectangle (R3); there are no per-seam distances; compas_tf's `size_oculus * gx/gy`, `* gy/gx` (`:56-57`) is not carried over | `size_oculus` `:43,55`; `:56-57`, `:171-180` |
 
 Derived, never input: centre, midpoints, seams, oculus corners, column frames and axis points,
 the chamfer direction, every construction plane, the side fan tilts, the parabola spans L from
@@ -1231,7 +1231,7 @@ superproject `CLAUDE.md`: `buildslot cmake --build build --parallel 6`, every ex
 9. The dead block levels: dropped.
 10. The two kernel changes of `1b42862` (plate pocket through the column, `unbridged()`): not part
     of this model; evaluate only if the rectangle shows faceted members. Not needed: 0 faceted.
-11. The size defaults (the `FloorParameters` fields) = the example set (220 / 120 / 240) instead of compas_tf's class defaults
+11. The size defaults (the `FloorGuide` parameter fields) = the example set (220 / 120 / 240) instead of compas_tf's class defaults
     (250 / 100 / 100, not a working configuration). Recommended: the example set.
 12. The port's documented deviations stay: ribs and beams as variable beams, the parametric tie,
     the column foot sunk 12 mm into the head plate (stock 211,776,800 vs 211,196,000 mm3). Recommended:
