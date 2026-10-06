@@ -8,4 +8,5 @@
 #include "wood_interaction_feature_plate.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_feature_plate_beam.h"
+#include "wood_interaction_feature_cut.h"
 #include "wood_interaction_structure.h"

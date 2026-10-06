@@ -30,6 +30,7 @@ bool register_factories() {
     InteractionFeaturePlate::register_type();
     InteractionFeatureBeam::register_type();
     InteractionFeaturePlateBeam::register_type();
+    InteractionFeatureCut::register_type();
 
     return true;
 }
@@ -615,6 +616,9 @@ void WoodSession::set_features_visible(std::string_view feature_type, bool visib
                 feature.visible = visible;
 }
 
+static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& target);
+static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, const std::shared_ptr<Element>& target);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Interactions
 // ═══════════════════════════════════════════════════════════════════════════
@@ -688,6 +692,20 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         host_source(contact_feature(*contact));
 
         return oriented;
+    }
+
+    if (const std::shared_ptr<InteractionFeatureCut> cut = std::dynamic_pointer_cast<InteractionFeatureCut>(interaction)) {
+
+        host_cut(*this, *source, cut->cut, target);
+
+        if (known) {
+            std::vector<std::shared_ptr<Interaction>>& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
+            std::erase_if(records, [](const std::shared_ptr<Interaction>& record) { return dynamic_cast<const InteractionFeatureCut*>(record.get()) != nullptr; });
+        }
+
+        Session::add_interaction(source, target, cut);
+
+        return cut;
     }
 
     if (InteractionFeaturePlate* plate = dynamic_cast<InteractionFeaturePlate*>(interaction.get())) {
@@ -1039,7 +1057,7 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills, Element& target);
+static SolidCut joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills);
 
 /// A connector's holes in one target, in the connector's frame: its dowels, each end run on by the overshoot where the dowel leaves the target there, tested just beyond the dowel's own end in the target's frame, so a blind hole stops at its dowel.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
@@ -1186,11 +1204,10 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
             for (const std::array<Polyline, 2>& cutter : joint->cutters[side])
                 append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
 
-        add_solid_cut(scene, *joint, mesh, target_drills(scene, *joint, *target), *target);
-        host_drills(scene, *joint, *target, target_drills(scene, *joint, *target), joint->line_radius);
-        refresh_target(scene, target);
+        const std::vector<Line> drills = target_drills(scene, *joint, *target);
         scene.Session::remove_interaction(joint, target);
-        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+        scene.add_interaction(joint, target, std::make_shared<InteractionFeatureCut>(joint_cut(*joint, mesh, drills)));
+        host_drills(scene, *joint, *target, drills, joint->line_radius);
     }
 }
 
@@ -1220,10 +1237,10 @@ static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>&
     }
 }
 
-/// Stores a joint's cut on the target in the target's frame, replacing the one the joint stored before.
-static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut, Element& target) {
+/// Hosts the source's cut on the target in the target's frame, replacing the one the source hosted before, and redraws the target.
+static void host_cut(WoodSession& scene, const Element& source, SolidCut cut, const std::shared_ptr<Element>& target) {
 
-    std::vector<SolidCut>* cuts = get_solid_cuts(target);
+    std::vector<SolidCut>* cuts = get_solid_cuts(*target);
 
     if (!cuts)
         throw std::invalid_argument("Solid cutters require a plate, beam, column, block or connector");
@@ -1231,21 +1248,25 @@ static void store_solid_cut(WoodSession& scene, const Joint& joint, SolidCut cut
     if ((cut.drills.empty() || cut.mesh.number_of_faces()) && (!cut.mesh.number_of_faces() || !cut.mesh.is_closed()))
         throw std::invalid_argument("Missing closed cutter solid");
 
-    cut.joint_guid = joint.guid();
-    const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
+    cut.joint_guid = source.guid();
+    const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
 
     if (!local)
         throw std::invalid_argument("Cutter target has a singular placement");
 
-    cut = cut.transformed(*local * scene.world_xform(joint.guid()));
+    cut = cut.transformed(*local * scene.world_xform(source.guid()));
+    bool replaced = false;
 
     for (SolidCut& stored : *cuts)
-        if (stored.joint_guid == joint.guid()) {
-            stored = std::move(cut);
-            return;
+        if (stored.joint_guid == source.guid()) {
+            stored = cut;
+            replaced = true;
         }
 
-    cuts->push_back(std::move(cut));
+    if (!replaced)
+        cuts->push_back(std::move(cut));
+
+    refresh_target(scene, target);
 }
 
 /// The drills of a joint on its cut, as axes, so the mesh path and the exact BRep path both make them.
@@ -1256,7 +1277,8 @@ static void add_drills(const Joint& joint, SolidCut& cut) {
     cut.drill_tolerance = joint.chord_tolerance;
 }
 
-static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& target) {
+/// The cut a cutter joint makes: its solid, or its body with its cuts for a drilling joint, its drills, profile and operation, in the joint's frame.
+static SolidCut joint_cut(const Joint& joint) {
 
     SolidCut cut;
     cut.mesh = joint.drill_axes().empty() ? joint.model_geometry_mesh() : cut_mesh(joint.body_mesh(), joint.cuts);
@@ -1264,20 +1286,19 @@ static void add_solid_cut(WoodSession& scene, const Joint& joint, Element& targe
     cut.profile = joint.cutter_profile;
     cut.extrusion = joint.cutter_extrusion;
     cut.operation = joint.operation;
-    store_solid_cut(scene, joint, std::move(cut), target);
 
-    if (!joint.drill_axes().empty())
-        host_drills(scene, joint, target, joint.drill_axes(), joint.line_radius);
+    return cut;
 }
 
 /// A difference cut of the given solid and drills, for a joint that cuts each target with its own.
-static void add_solid_cut(WoodSession& scene, const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills, Element& target) {
+static SolidCut joint_cut(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills) {
 
     SolidCut cut;
     cut.mesh = mesh;
     add_drills(joint, cut);
     cut.drills = drills;
-    store_solid_cut(scene, joint, std::move(cut), target);
+
+    return cut;
 }
 
 static void add_plane_cut(const Joint& joint, Element& target) {
@@ -1302,14 +1323,18 @@ static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& j
         if (!target)
             throw std::invalid_argument("Missing cutter target");
 
-        if (!joint->loops.empty() || !joint->drill_axes().empty() || joint->cuts.empty())
-            add_solid_cut(scene, *joint, *target);
-        else
-            add_plane_cut(*joint, *target);
-
-        refresh_target(scene, target);
         scene.Session::remove_interaction(joint, target);
-        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+
+        if (!joint->loops.empty() || !joint->drill_axes().empty() || joint->cuts.empty()) {
+            scene.add_interaction(joint, target, std::make_shared<InteractionFeatureCut>(joint_cut(*joint)));
+
+            if (!joint->drill_axes().empty())
+                host_drills(scene, *joint, *target, joint->drill_axes(), joint->line_radius);
+        } else {
+            add_plane_cut(*joint, *target);
+            refresh_target(scene, target);
+            scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
+        }
     }
 }
 
