@@ -1,0 +1,54 @@
+//! The part every wood class shares: its tag, its payload and its solid over the kernel Element.
+
+use prost::Message;
+use session_rust::{Element, Mesh, Plane};
+
+/// A wood class carried by a kernel Element: `element_type` names it, `element_data` holds its payload.
+pub trait WoodElement: Sized {
+    /// The element_type the class is written under, as the C++ class registers it.
+    const TYPE: &'static str;
+
+    /// An older element_type still read as this class; empty when there is none.
+    const LEGACY_TYPE: &'static str = "";
+
+    /// The payload message element_data holds.
+    type Payload: Message + Default + PartialEq + std::fmt::Debug;
+
+    /// The class from its name and payload; None when the payload cannot describe one.
+    fn from_payload(name: &str, payload: Self::Payload) -> Option<Self>;
+
+    /// The payload message of this instance.
+    fn payload(&self) -> Self::Payload;
+
+    /// The element name.
+    fn name(&self) -> &str;
+
+    /// The plain solid, before cut planes, solid features and joinery.
+    fn solid(&self) -> Mesh;
+
+    /// The plane the element is laid out on, drawn as its attribute; None for none.
+    fn base_plane(&self) -> Option<Plane>;
+
+    /// Downcast: the class an Element tagged TYPE describes; None for another type or an unreadable payload.
+    fn from_element(element: &Element) -> Option<Self> {
+        let tag = element.element_type_name();
+
+        if tag != Self::TYPE && (Self::LEGACY_TYPE.is_empty() || tag != Self::LEGACY_TYPE) {
+            return None;
+        }
+
+        Self::from_payload(
+            &element.name,
+            Self::Payload::decode(element.element_data_dumps()).ok()?,
+        )
+    }
+
+    /// Upcast: a kernel Element named and tagged like the class, its payload and its solid.
+    fn to_element(&self) -> Element {
+        let mut element = Element::new(self.name());
+        element.element_type = Self::TYPE.to_string();
+        element.element_data = self.payload().encode_to_vec();
+        element.set_geometry(self.solid());
+        element
+    }
+}
