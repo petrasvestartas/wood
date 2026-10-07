@@ -6,9 +6,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 for name in "$@"; do
+    view="View Isometric"
+    # a column's head and cuts face the inside of the floor, away from the usual corner
+    case "$name" in element_column*) view="View Isometric Back" ;; esac
     bash bash/publish-scene.sh --target "$name" > /dev/null
     sleep 2
     node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
-        "Layers All" "Element Features On" "Arctic On" "View Isometric" "View Orthographic" "Fit" > /dev/null
+        "Layers All" "Element Features On" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
     echo "$name"
 done

@@ -8,8 +8,8 @@ int main() {
 
     WoodSession scene("element_block");
 
-    const Polyline bottom = Polyline::rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 300.0);
-    const Polyline top = Polyline::rectangle({50.0, 50.0, 250.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 200.0);
+    const Polyline bottom = Polyline::rectangle({50.0, 50.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 200.0);
+    const Polyline top = Polyline::rectangle({0.0, 0.0, 250.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 300.0);
     scene.add(std::make_shared<Block>(std::vector<Polyline>{bottom, top}, "block"));
 
     std::cout << scene << std::endl;
@@ -19,7 +19,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A block lofted between a 300 square and a 200 square 250 above it.
+A block lofted between a 200 square and a 300 square 250 above it, wider at the top.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

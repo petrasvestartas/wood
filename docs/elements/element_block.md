@@ -15,6 +15,6 @@ explicit Block(const Mesh& mesh, const std::string& name = "block")
 
 ![Lofted between two loops](elements/element_block.png)
 
-A 300 square and a 200 square 250 above it.
+A 200 square and a 300 square 250 above it, wider at the top.
 
 \include{lineno} elements/element_block.cpp
