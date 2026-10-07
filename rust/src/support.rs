@@ -3,9 +3,10 @@
 use crate::element::WoodElement;
 use crate::geometry::{
     append_brep, append_mesh, brep_between_loops, circle_segments, drill_brep, drill_mesh,
+    drilled_plate_brep,
 };
 use crate::proto;
-use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline};
+use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Xform};
 use std::f64::consts::PI;
 
 /// An adjustable column base, as wood's Support, with the manufacturer's dimensions by default.
@@ -151,6 +152,27 @@ impl Support {
         [level(0.0), level(self.base_plate_thickness)]
     }
 
+    /// The base plate drilled by its anchors, exact, in place.
+    fn base_plate_brep(&self) -> BRep {
+        let half = self.base_plate_hole_spacing * 0.5;
+        let centres = [[-half, -half], [half, -half], [half, half], [-half, half]];
+        let plane = &self.plane;
+        let place = Xform::frame_to_world(
+            &plane.origin(),
+            &plane.x_axis(),
+            &plane.y_axis(),
+            &plane.z_axis(),
+        );
+
+        drilled_plate_brep(
+            self.base_plate_size * 0.5,
+            self.base_plate_thickness,
+            &centres,
+            self.base_plate_hole_diameter * 0.5,
+        )
+        .transformed(&place)
+    }
+
     /// The level the coupling nut starts at: under the head plate by the nut's own height.
     fn coupling_level(&self) -> f64 {
         self.height - self.head_plate_thickness - self.coupling_nut_height
@@ -261,9 +283,8 @@ impl WoodElement for Support {
         mesh
     }
 
-    /// The plate with polygonal anchor holes, as C++ falls back to when drilling fails; the nuts, the rod and the head plate exact, as C++ writes them.
+    /// All exact: the base plate with its four anchor holes as cylinders, the nuts, the rod and the head plate, as C++ writes them.
     fn brep(&self) -> BRep {
-        let [bottom, top] = self.base_plate();
         let adjustment = self.hexagon(
             self.adjustment_nut_across_flats,
             self.base_plate_thickness,
@@ -283,7 +304,7 @@ impl WoodElement for Support {
             &self.at(self.height),
         );
 
-        let mut brep = brep_between_loops(&bottom, &top);
+        let mut brep = self.base_plate_brep();
         append_brep(
             &mut brep,
             brep_between_loops(&adjustment[..1], &adjustment[1..]),

@@ -1,8 +1,9 @@
 //! Column: a section lofted along a straight axis.
 
-use crate::element::WoodElement;
+use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::brep_between_loops;
 use crate::proto;
+use session_rust::element::ElementFeature;
 use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Tolerance, Vector, Xform};
 
 /// A timber column: a closed section at the axis base, or a profile placed there, as wood's Column.
@@ -149,6 +150,18 @@ impl WoodElement for Column {
             Some((bottom, top)) => brep_between_loops(&bottom, &top),
             None => BRep::new(),
         }
+    }
+
+    /// Its axis and its base section.
+    fn features(&self) -> Vec<ElementFeature> {
+        let axis = Polyline::new(vec![self.axis.start(), self.axis.end()]);
+        let mut features = vec![polyline_feature("axis", &axis, -1)];
+
+        if self.section.point_count() > 0 {
+            features.push(polyline_feature("section", &self.section, -1));
+        }
+
+        features
     }
 
     fn base_plane(&self) -> Option<Plane> {

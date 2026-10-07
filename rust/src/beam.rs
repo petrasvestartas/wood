@@ -1,11 +1,12 @@
 //! Beam: a section swept along a polyline axis, mitred at every interior vertex.
 
-use crate::element::WoodElement;
+use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{
     brep_between_loops, brep_sections, compute_size, frame_along, profile_section, square_section,
     sweep_sections,
 };
 use crate::proto;
+use session_rust::element::ElementFeature;
 use session_rust::{BRep, Mesh, Plane, Polyline, Vector};
 
 /// A timber beam: a radius and an up direction per axis segment, or a profile, as wood's Beam.
@@ -152,6 +153,19 @@ impl WoodElement for Beam {
             Some((bottom, top)) => brep_between_loops(&bottom, &top),
             None => brep_sections(&self.sections()),
         }
+    }
+
+    /// Its axis and a section at every axis vertex.
+    fn features(&self) -> Vec<ElementFeature> {
+        let mut features = vec![polyline_feature("axis", &self.axis, -1)];
+
+        for ring in self.sections() {
+            if ring.point_count() > 0 {
+                features.push(polyline_feature("section", &ring, -1));
+            }
+        }
+
+        features
     }
 
     fn base_plane(&self) -> Option<Plane> {

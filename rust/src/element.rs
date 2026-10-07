@@ -1,7 +1,22 @@
 //! The part every wood class shares: its tag, its payload and its solid over the kernel Element.
 
 use prost::Message;
-use session_rust::{BRep, Element, Mesh, Plane};
+use session_rust::element::ElementFeature;
+use session_rust::{BRep, Element, Mesh, Plane, Polyline};
+
+/// A feature of one polyline named by its type, as C++ polyline_feature; -1 is the whole element.
+pub fn polyline_feature(
+    feature_type: &str,
+    polyline: &Polyline,
+    face_index: i32,
+) -> ElementFeature {
+    ElementFeature::new(
+        feature_type,
+        face_index,
+        vec![polyline.clone()],
+        feature_type,
+    )
+}
 
 /// A wood class carried by a kernel Element: `element_type` names it, `element_data` holds its payload.
 pub trait WoodElement: Sized {
@@ -32,6 +47,11 @@ pub trait WoodElement: Sized {
     /// The plane the element is laid out on, drawn as its attribute; None for none.
     fn base_plane(&self) -> Option<Plane>;
 
+    /// What describes the element beside its solid, its axis, sections or outlines, as C++ compute_geometry_features writes them uncut; none by default.
+    fn features(&self) -> Vec<ElementFeature> {
+        Vec::new()
+    }
+
     /// Downcast: the class an Element tagged TYPE describes; None for another type or an unreadable payload.
     fn from_element(element: &Element) -> Option<Self> {
         let tag = element.element_type_name();
@@ -52,6 +72,7 @@ pub trait WoodElement: Sized {
         element.element_type = Self::TYPE.to_string();
         element.element_data = self.payload().encode_to_vec();
         element.set_brep_geometry(self.brep());
+        element.features = self.features();
         element
     }
 }

@@ -1,6 +1,9 @@
 //! The solid builders the element classes share, ported from wood_element_geometry.cpp and wood_profile.cpp.
 
-use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Tolerance, Vector, Xform};
+use session_rust::{
+    BRep, BRepOrientation, BRepRef, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point, Polyline,
+    Primitives, Tolerance, Vector, Xform,
+};
 
 /// A side strip whose points lie within this of one plane becomes one face; closer points are one.
 const COPLANAR: f64 = 1e-6;
@@ -510,4 +513,216 @@ pub fn drill_brep(axis: &Line, radius: f64) -> BRep {
     );
 
     BRep::create_cylinder(radius, axis.length()).transformed(&place)
+}
+
+/// A planar patch spanned by p00, p10 and p01: u runs to p10, v to p01, the normal u cross v.
+fn quad_patch(p00: &Point, p10: &Point, p01: &Point) -> NurbsSurface {
+    let mut patch = NurbsSurface::new(3, false, 2, 2, 2, 2);
+    let p11 = p10.clone() + (p01.clone() - p00.clone());
+    patch.set_cv(0, 0, p00);
+    patch.set_cv(1, 0, p10);
+    patch.set_cv(0, 1, p01);
+    patch.set_cv(1, 1, &p11);
+    patch
+}
+
+/// The curve's pcurve on a planar patch: the affine image of its control points, weights kept.
+fn on_patch(curve: &NurbsCurve, patch: &NurbsSurface) -> NurbsCurve {
+    let p00 = patch.get_cv(0, 0).unwrap_or_default();
+    let eu = patch.get_cv(1, 0).unwrap_or_default() - p00.clone();
+    let ev = patch.get_cv(0, 1).unwrap_or_default() - p00.clone();
+    let mut uv = NurbsCurve::new(3, curve.is_rational(), curve.order(), curve.cv_count());
+
+    for i in 0..curve.nurbsknot_count() {
+        uv.set_nurbsknot(i, curve.nurbsknot(i).unwrap_or(0.0));
+    }
+
+    for i in 0..curve.cv_count() {
+        let (x, y, z, w) = curve.get_cv_4d(i).unwrap_or((0.0, 0.0, 0.0, 1.0));
+        let d = Point::new(x / w, y / w, z / w) - p00.clone();
+        let (u, v) = (d.dot(&eu) / eu.dot(&eu), d.dot(&ev) / ev.dot(&ev));
+        uv.set_cv_4d(i, u * w, v * w, 0.0, w);
+    }
+
+    uv
+}
+
+/// The edge with its pcurve on the surface, used in the given direction.
+fn edge_use(brep: &mut BRep, edge: usize, surface: usize, forward: bool) -> BRepRef {
+    let curve = brep.m_curves_3d[brep.m_edges[edge].curve_3d_index as usize].clone();
+    let pcurve = brep.add_curve_2d(&on_patch(&curve, &brep.m_surfaces[surface]));
+    brep.add_pcurve(edge, surface, pcurve as i32, -1);
+    let orientation = if forward {
+        BRepOrientation::Forward
+    } else {
+        BRepOrientation::Reversed
+    };
+
+    BRepRef::new(edge as i32, orientation)
+}
+
+/// A straight edge between two vertices of the brep.
+fn line_edge(brep: &mut BRep, from: usize, to: usize) -> usize {
+    let points = [
+        brep.m_vertices[from].point.clone(),
+        brep.m_vertices[to].point.clone(),
+    ];
+    let curve = brep.add_curve_3d(&NurbsCurve::create(false, 1, &points));
+
+    brep.add_edge(curve as i32, from as i32, to as i32)
+}
+
+/// A square plate of half side half and thickness on the xy plane, drilled through by exact circular holes of radius at the centres: planar caps trimmed by the square and the circles, four side faces and one cylinder per hole, as kernel BRep::create_block_with_hole does for one.
+pub fn drilled_plate_brep(half: f64, thickness: f64, centres: &[[f64; 2]], radius: f64) -> BRep {
+    let mut brep = BRep::new();
+    brep.name = "drilled_plate".to_string();
+    let corners = [(-half, -half), (half, -half), (half, half), (-half, half)];
+
+    for z in [0.0, thickness] {
+        for (x, y) in corners {
+            brep.add_vertex(&Point::new(x, y, z), 0.0);
+        }
+    }
+
+    // bottom ring 0-3, top ring 4-7, each corner joined up; rings run counter-clockwise from above
+    let bottom: Vec<usize> = (0..4)
+        .map(|i| line_edge(&mut brep, i, (i + 1) % 4))
+        .collect();
+    let top: Vec<usize> = (0..4)
+        .map(|i| line_edge(&mut brep, 4 + i, 4 + (i + 1) % 4))
+        .collect();
+    let rise: Vec<usize> = (0..4).map(|i| line_edge(&mut brep, i, 4 + i)).collect();
+    let mut faces = Vec::new();
+
+    for i in 0..4 {
+        let j = (i + 1) % 4;
+        let at = |k: usize| brep.m_vertices[k].point.clone();
+        let surface = brep.add_surface(&quad_patch(&at(i), &at(j), &at(4 + i)));
+        let refs = [
+            edge_use(&mut brep, bottom[i], surface, true),
+            edge_use(&mut brep, rise[j], surface, true),
+            edge_use(&mut brep, top[i], surface, false),
+            edge_use(&mut brep, rise[i], surface, false),
+        ];
+        let wire = brep.add_wire(&refs);
+        let face = brep.add_face(
+            surface as i32,
+            &[BRepRef::new(wire as i32, BRepOrientation::Forward)],
+            0.0,
+        );
+        faces.push(BRepRef::new(face as i32, BRepOrientation::Forward));
+    }
+
+    // one closed circle edge per hole at each cap and a straight seam between them
+    let mut rings = Vec::new();
+
+    for &[cx, cy] in centres {
+        let start_bottom = brep.add_vertex(&Point::new(cx + radius, cy, 0.0), 0.0) as i32;
+        let start_top = brep.add_vertex(&Point::new(cx + radius, cy, thickness), 0.0) as i32;
+        let low = brep.add_curve_3d(&Primitives::circle(cx, cy, 0.0, radius)) as i32;
+        let high = brep.add_curve_3d(&Primitives::circle(cx, cy, thickness, radius)) as i32;
+        let seam_points = [
+            Point::new(cx + radius, cy, 0.0),
+            Point::new(cx + radius, cy, thickness),
+        ];
+        let seam = brep.add_curve_3d(&NurbsCurve::create(false, 1, &seam_points)) as i32;
+        let low = brep.add_edge(low, start_bottom, start_bottom);
+        let high = brep.add_edge(high, start_top, start_top);
+        let seam = brep.add_edge(seam, start_bottom, start_top);
+        faces.push(bore_face(
+            &mut brep,
+            cx,
+            cy,
+            radius,
+            thickness,
+            [low, seam, high],
+        ));
+        rings.push((low, high));
+    }
+
+    // the caps: the bottom faces down (u along y, v along x), the top up; a hole wire runs against its outline
+    let at = |brep: &BRep, k: usize| brep.m_vertices[k].point.clone();
+    let caps = [
+        (
+            quad_patch(&at(&brep, 0), &at(&brep, 3), &at(&brep, 1)),
+            false,
+        ),
+        (
+            quad_patch(&at(&brep, 4), &at(&brep, 5), &at(&brep, 7)),
+            true,
+        ),
+    ];
+
+    for (patch, up) in caps {
+        let surface = brep.add_surface(&patch);
+        let outline: Vec<BRepRef> = match up {
+            true => (0..4)
+                .map(|i| edge_use(&mut brep, top[i], surface, true))
+                .collect(),
+            false => (0..4)
+                .rev()
+                .map(|i| edge_use(&mut brep, bottom[i], surface, false))
+                .collect(),
+        };
+        let mut wires = vec![BRepRef::new(
+            brep.add_wire(&outline) as i32,
+            BRepOrientation::Forward,
+        )];
+
+        for &(low, high) in &rings {
+            let hole = edge_use(&mut brep, if up { high } else { low }, surface, !up);
+            wires.push(BRepRef::new(
+                brep.add_wire(&[hole]) as i32,
+                BRepOrientation::Forward,
+            ));
+        }
+
+        let face = brep.add_face(surface as i32, &wires, 0.0);
+        faces.push(BRepRef::new(face as i32, BRepOrientation::Forward));
+    }
+
+    let shell = brep.add_shell(&faces);
+    brep.add_solid(&[BRepRef::new(shell as i32, BRepOrientation::Forward)]);
+    brep
+}
+
+/// The cylinder of one hole, facing into the hole: the bottom circle, the seam both ways and the top circle bound it, as kernel body_face.
+fn bore_face(
+    brep: &mut BRep,
+    cx: f64,
+    cy: f64,
+    radius: f64,
+    height: f64,
+    [low, seam, high]: [usize; 3],
+) -> BRepRef {
+    let surface = brep.add_surface(&Primitives::cylinder_surface(cx, cy, 0.0, radius, height));
+    let (u0, u1) = brep.m_surfaces[surface].domain(0).unwrap_or((0.0, 1.0));
+    let (v0, v1) = brep.m_surfaces[surface].domain(1).unwrap_or((0.0, 1.0));
+    let uv = |a: (f64, f64), b: (f64, f64)| {
+        NurbsCurve::create(
+            false,
+            1,
+            &[Point::new(a.0, a.1, 0.0), Point::new(b.0, b.1, 0.0)],
+        )
+    };
+    let bottom = brep.add_curve_2d(&uv((u0, v0), (u1, v0))) as i32;
+    brep.add_pcurve(low, surface, bottom, -1);
+    let top = brep.add_curve_2d(&uv((u0, v1), (u1, v1))) as i32;
+    brep.add_pcurve(high, surface, top, -1);
+    let right = brep.add_curve_2d(&uv((u1, v0), (u1, v1))) as i32;
+    let left = brep.add_curve_2d(&uv((u0, v0), (u0, v1))) as i32;
+    brep.add_pcurve(seam, surface, right, left);
+    let wire = brep.add_wire(&[
+        BRepRef::new(low as i32, BRepOrientation::Forward),
+        BRepRef::new(seam as i32, BRepOrientation::Forward),
+        BRepRef::new(high as i32, BRepOrientation::Reversed),
+        BRepRef::new(seam as i32, BRepOrientation::Reversed),
+    ]);
+    let face = brep.add_face(
+        surface as i32,
+        &[BRepRef::new(wire as i32, BRepOrientation::Forward)],
+        0.0,
+    );
+
+    BRepRef::new(face as i32, BRepOrientation::Reversed)
 }

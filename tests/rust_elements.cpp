@@ -30,6 +30,14 @@ static bool same_brep(const BRep& a, const BRep& b, double tolerance) {
     return a.face_count() == b.face_count() && std::abs(a.volume() - b.volume()) <= tolerance * std::max(1.0, std::abs(b.volume()));
 }
 
+/// The faces on a rational surface: the cylinders of a wood element.
+static size_t cylinders(const BRep& brep) {
+    size_t count = 0;
+    for (const BRepFace& face : brep.m_faces)
+        count += brep.m_surfaces[face.surface_index].is_rational();
+    return count;
+}
+
 /// Element i of the file comes back as T, its payload unchanged by C++ and its Rust BRep the C++ BRep.
 template <typename T, typename Payload> static void reads_back(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
     const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
@@ -40,11 +48,12 @@ template <typename T, typename Payload> static void reads_back(const WoodSession
     const BRep rust = BRep::pb_loads(stored.geometry_data());
     const BRep& cpp = typed->element_geometry_brep();
 
-    // C++ drills the support's anchor holes exactly, Rust writes them polygonal: the volume within the chord error
+    // the support's cylinders are tessellated by each side's own face order: its volume within 1e-4
+    const double tolerance = std::is_same_v<T, Support> ? 1e-4 : 1e-9;
+    check(same_brep(rust, cpp, tolerance), stored.name() + ": the Rust BRep differs from the C++ one");
+
     if constexpr (std::is_same_v<T, Support>)
-        check(rust.face_count() > 0 && std::abs(rust.volume() - cpp.volume()) <= 2e-3 * std::abs(cpp.volume()), stored.name() + ": the Rust BRep differs from the C++ one");
-    else
-        check(same_brep(rust, cpp, 1e-9), stored.name() + ": the Rust BRep differs from the C++ one");
+        check(cylinders(rust) == 6, stored.name() + ": four exact anchor holes, the rod and the head plate");
 }
 
 int main() {

@@ -75,15 +75,41 @@ fn beam_variable_reads_back() {
 fn support_reads_back() {
     reads_back::<Support>("element_support", &support(), false);
 
-    // the dump holds C++'s exact BRep: the Rust one has polygonal anchor holes, so only the volume is close
+    // both exact: as many faces, six of them cylinders (four anchor holes, the rod, the head plate)
     let cpp = brep_of(&dumped("element_support"));
     let rust = support().brep();
-    assert!(cpp.face_count() > 0 && rust.face_count() > 0);
+    assert_eq!(rust.face_count(), cpp.face_count(), "support faces");
+    assert_eq!(cylinders(&rust), 6, "support cylinders");
     assert!(
-        (rust.volume() - cpp.volume()).abs() <= 2e-3 * cpp.volume().abs(),
+        (rust.volume() - cpp.volume()).abs() <= 1e-4 * cpp.volume().abs(),
         "support volume {} against C++ {}",
         rust.volume(),
         cpp.volume()
+    );
+}
+
+/// The faces on a rational surface: the cylinders of a wood element.
+fn cylinders(brep: &session_rust::BRep) -> usize {
+    brep.m_faces
+        .iter()
+        .filter(|face| brep.m_surfaces[face.surface_index as usize].is_rational())
+        .count()
+}
+
+#[test]
+fn a_drilled_plate_is_exact() {
+    let (half, thickness, radius) = (100.0, 10.0, 7.0);
+    let centres = [[-60.0, -60.0], [60.0, -60.0], [60.0, 60.0], [-60.0, 60.0]];
+    let plate = wood::geometry::drilled_plate_brep(half, thickness, &centres, radius);
+    let volume = (4.0 * half * half - 4.0 * std::f64::consts::PI * radius * radius) * thickness;
+
+    assert_eq!(plate.face_count(), 10, "two caps, four sides, four holes");
+    assert_eq!(cylinders(&plate), 4, "four exact holes");
+    assert!(plate.is_solid());
+    assert!(
+        (plate.volume() - volume).abs() <= 1e-3 * volume,
+        "plate volume {} against {volume}",
+        plate.volume()
     );
 }
 
@@ -93,11 +119,10 @@ fn every_element_is_written_as_a_brep() {
         plate().to_element().geometry(),
         session_rust::element::ElementGeometry::BRep(_)
     ));
-    assert!(support()
-        .brep()
-        .m_surfaces
-        .iter()
-        .any(|surface| surface.is_rational()));
+    assert!(matches!(
+        support().to_element().geometry(),
+        session_rust::element::ElementGeometry::BRep(_)
+    ));
 }
 
 #[test]
