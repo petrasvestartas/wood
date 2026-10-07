@@ -78,8 +78,8 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
-/// A row of plates lofted between two rails as a session, as the floor's bed rows: segment i of the bottom rails and of the top rails make plate <name>_<i>, its bottom quad and its top quad.
-WoodSession plates_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
+/// A row of plates lofted between two rails, as the floor's bed rows: segment i of the bottom rails and of the top rails make plate <name>_<i>, its bottom quad and its top quad.
+std::vector<std::shared_ptr<Plate>> plates_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
 /// A square column of side on its axis with a glued head as a session: the shaft from the corner frame's origin along its x and y axes, and over the top head_height a strip of head_side by head_side - side beyond its y side and a block of head_side - side by side beyond its x side, hidden blocks <name>_head_<i> each glued on with an add InteractionFeatureSolid, so the head is the square of head_side.
 WoodSession glued_head(
