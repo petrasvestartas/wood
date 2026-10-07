@@ -67,7 +67,7 @@ html, html.dark-mode, html:not(.dark-mode) {
     --code-font-size: 13.6px;
     --title-font-size: 18px;
     --content-line-height: 1.6;
-    --content-maxwidth: 960px;
+    --content-maxwidth: 1280px;
     --table-line-height: 1.6;
     --tree-item-height: 28px;
     --memtitle-font-size: 16px;
