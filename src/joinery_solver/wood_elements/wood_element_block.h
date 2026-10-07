@@ -24,6 +24,9 @@ protected:
     BRep trimmed_brep() const override;
 
 public:
+    /// The bottom loop's plane: origin at its first corner, x along its first edge, z toward the top loop; none for a block made from a mesh.
+    std::optional<Plane> base_plane() const override;
+
     /// An empty block: no solid.
     Block();
     explicit Block(const Mesh& mesh, const std::string& name = "block");

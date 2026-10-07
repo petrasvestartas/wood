@@ -210,8 +210,11 @@ public:
     /// pb_dumps() to a file; every stale element computes its geometry as it is written.
     void pb_dump(const std::string& filename);
 
-    /// The scene as wood_proto.WoodSession bytes, every stale element computing its geometry as it is written: the kernel's Session fields, the interactions among them, then the settings at field 101.
+    /// The scene as wood_proto.WoodSession bytes, every stale element computing its geometry as it is written and its attributes drawn: the kernel's Session fields, the interactions among them, then the settings at field 101.
     std::string pb_dumps();
+
+    /// Puts every element's base plane, hidden, in an `attributes` group under the element, beside the `features` group of the elements that cut or glue onto it; a plane already there stays unless the element moved.
+    void sync_attributes();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String

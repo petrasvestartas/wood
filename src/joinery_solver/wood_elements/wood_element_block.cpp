@@ -230,4 +230,18 @@ std::string Block::str() const {
     return os.str();
 }
 
+std::optional<Plane> Block::base_plane() const {
+
+    if (loops.size() < 2 || loops[0].point_count() < 3)
+        return std::nullopt;
+
+    const Polyline& bottom = loops[0];
+    Vector up = bottom.get_plane().z_axis();
+
+    if (up.dot(loops[1].center() - bottom.center()) < 0.0)
+        up = -up;
+
+    return frame_along(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), up);
+}
+
 }  // namespace wood_session

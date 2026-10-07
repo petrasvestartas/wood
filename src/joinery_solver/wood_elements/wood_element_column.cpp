@@ -206,6 +206,14 @@ Plane Column::frame() const {
     return Plane::from_frame(section.get_point(0), x, z.cross(x), z);
 }
 
+std::optional<Plane> Column::base_plane() const {
+
+    if (section.point_count() < 3 || axis.length() <= 0.0)
+        return std::nullopt;
+
+    return frame();
+}
+
 std::vector<Plane> Column::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }

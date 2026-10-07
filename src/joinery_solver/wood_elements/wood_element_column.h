@@ -27,6 +27,9 @@ protected:
     /// The frame at the axis base, x along the section's first side and z along the axis: where the blocks glued to the column are united.
     Plane frame() const override;
 
+    /// Its frame: the section's first corner, x along its first edge, z up the axis.
+    std::optional<Plane> base_plane() const override;
+
 public:
     /// An empty column: no solid, a zero-length axis, no section.
     Column();

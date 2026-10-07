@@ -60,4 +60,8 @@ void CutPlane::compute_geometry_brep_impl() {
     set_features(session_features(*this));
 }
 
+std::optional<Plane> CutPlane::base_plane() const {
+    return plane;
+}
+
 } // namespace wood_session

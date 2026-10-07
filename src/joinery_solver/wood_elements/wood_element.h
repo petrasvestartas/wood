@@ -37,6 +37,9 @@ public:
     /// The frame the add features are united in: the world xy plane unless the element has its own.
     virtual Plane frame() const;
 
+    /// The plane the element is laid out on, drawn as an attribute in the viewer; none unless the element type has one.
+    virtual std::optional<Plane> base_plane() const;
+
 protected:
     mutable std::optional<Mesh> _element_geometry_mesh; // Cache of the uncut mesh.
     mutable std::optional<BRep> _element_geometry_brep; // Cache of the uncut brep.

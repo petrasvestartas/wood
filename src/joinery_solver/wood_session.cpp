@@ -664,8 +664,18 @@ static void host_solid_feature(WoodSession& scene, const Element& source, Intera
 // WoodSession - Interactions
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The child group `name` of an element's node, made when missing: an element keeps its attributes and its features in two such groups.
+static std::shared_ptr<TreeNode> element_group(Session& session, const std::shared_ptr<TreeNode>& node, const std::string& name) {
+
+    for (TreeNode* child : node->children())
+        if (child->name == name && !session.lookup.contains(child->name))
+            return child->shared_from_this();
+
+    return session.add_group(name, node);
+}
+
 /// Graph ordering stays stable; single-owner geometry belongs to this call's source.
-/// Puts the source element's layer under the target's when the two lie side by side in one group, so the elements that put solid or plane features on an element list as its child layers; a source already placed under something else, such as a connector's dowel, stays, and a joint that ties two elements is never moved.
+/// Puts the source element's layer in the `features` group under the target's when the two lie side by side in one group, so the elements that put solid or plane features on an element list as its child layers; a source already placed under something else, such as a connector's dowel, stays, and a joint that ties two elements is never moved.
 static void nest_feature_source(Session& session, const Element& source, const Element& target) {
 
     const std::shared_ptr<TreeNode> child = session.get_node(source.guid());
@@ -673,7 +683,7 @@ static void nest_feature_source(Session& session, const Element& source, const E
     if (!child || !parent || child == parent || child->parent() != parent->parent())
         return;
 
-    session.add(child, parent);
+    session.add(child, element_group(session, parent, "features"));
 }
 
 std::shared_ptr<Interaction> WoodSession::add_interaction(
@@ -875,9 +885,46 @@ void WoodSession::pb_dump(const std::string& filename) {
     file.write(data.data(), data.size());
 }
 
+void WoodSession::sync_attributes() {
+
+    for (const std::shared_ptr<Element>& element : *objects.elements) {
+
+        const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
+        const std::optional<Plane> base = wood ? wood->base_plane() : std::nullopt;
+        const std::shared_ptr<TreeNode> node = base ? get_node(element->guid()) : nullptr;
+
+        if (!node)
+            continue;
+
+        const std::shared_ptr<TreeNode> attributes = element_group(*this, node, "attributes");
+        Plane plane = *base;
+        plane.name = "base_plane";
+        plane.is_visible = false;
+        std::shared_ptr<Plane> drawn;
+
+        for (TreeNode* child : attributes->children())
+            if (const std::shared_ptr<Plane> found = get_object<Plane>(child->name))
+                drawn = found;
+
+        if (drawn) {
+            plane.is_visible = drawn->is_visible;
+            plane.is_locked = drawn->is_locked;
+            plane.linecolor = drawn->linecolor;
+
+            if (*drawn == plane)
+                continue;
+
+            remove_object(drawn->guid());
+        }
+
+        add_plane(std::make_shared<Plane>(plane), attributes);
+    }
+}
+
 /// The kernel's bytes, the interactions among them, parse into the superset message field for field; the settings, the adjacency and the three-valence groups follow.
 std::string WoodSession::pb_dumps() {
 
+    sync_attributes();
     wood_proto::WoodSession proto;
     if (!proto.ParseFromString(Session::pb_dumps()))
         throw std::runtime_error("Failed to parse WoodSession protobuf data");

@@ -78,6 +78,9 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(
 /// True when xform flips handedness, a mirror that turns a wood solid inside out.
 bool is_mirror(const Xform& xform);
 
+/// The frame at origin with z along z and x the part of along across it; none when the two are parallel.
+std::optional<Plane> frame_along(const Point& origin, const Vector& along, const Vector& z);
+
 /// Every polyline, plane or vector moved by xform, in order.
 template <class T>
 std::vector<T> transformed_list(const std::vector<T>& items, const Xform& xform) {

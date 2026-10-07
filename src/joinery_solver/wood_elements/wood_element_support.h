@@ -93,6 +93,9 @@ protected:
     void compute_geometry_brep_impl() override;
 
 public:
+    /// Its plane: the base plate underside centre, z up the column.
+    std::optional<Plane> base_plane() const override;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════

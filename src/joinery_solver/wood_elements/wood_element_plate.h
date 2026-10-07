@@ -33,6 +33,9 @@ protected:
     BRep trimmed_brep() const override;
 
 public:
+    /// The bottom outline's plane: origin at its first corner, x along its first edge, z into the plate.
+    std::optional<Plane> base_plane() const override;
+
     /// An empty plate: no outlines, no planes, nothing to loft.
     Plate();
 

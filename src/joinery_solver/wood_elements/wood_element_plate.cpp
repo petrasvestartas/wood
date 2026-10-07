@@ -397,4 +397,14 @@ std::string Plate::repr() const {
     return os.str();
 }
 
+std::optional<Plane> Plate::base_plane() const {
+
+    if (polylines.size() < 2 || planes.empty() || polylines[0].point_count() < 2)
+        return std::nullopt;
+
+    const Polyline& bottom = polylines[0];
+
+    return frame_along(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), -planes[0].z_axis());
+}
+
 }  // namespace wood_session

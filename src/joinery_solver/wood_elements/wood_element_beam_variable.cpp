@@ -347,4 +347,12 @@ std::string BeamVariable::str() const {
     return os.str();
 }
 
+std::optional<Plane> BeamVariable::base_plane() const {
+
+    if (sections.empty() || sections[0].point_count() < 2)
+        return std::nullopt;
+
+    return frame_along(axis.start(), sections[0].get_point(1) - sections[0].get_point(0), axis.to_vector());
+}
+
 }  // namespace wood_session

@@ -522,6 +522,19 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, co
     return {Polyline(kept), rings};
 }
 
+std::optional<Plane> frame_along(const Point& origin, const Vector& along, const Vector& z) {
+
+    const Vector up = z.normalized();
+    const Vector across = along - up * along.dot(up);
+
+    if (across.magnitude() < Tolerance::ZERO_TOLERANCE || z.magnitude() < Tolerance::ZERO_TOLERANCE)
+        return std::nullopt;
+
+    const Vector x = across.normalized();
+
+    return Plane::from_frame(origin, x, up.cross(x), up);
+}
+
 bool is_mirror(const Xform& xform) {
 
     const Vector x = xform.transform_vector(Vector::x_axis());

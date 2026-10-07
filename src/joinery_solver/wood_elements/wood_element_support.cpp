@@ -326,4 +326,8 @@ std::string Support::str() const {
     return os.str();
 }
 
+std::optional<Plane> Support::base_plane() const {
+    return plane;
+}
+
 }  // namespace wood_session

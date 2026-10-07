@@ -10,6 +10,9 @@ namespace wood_session {
 /// A cutting plane as an element: drawn as a square of size on its plane, it cuts other elements by its feature, add_interaction(cut_plane, element, cut_plane->feature()), the element keeping the side the normal points to.
 class CutPlane : public WoodElement {
 public:
+    /// Its cutting plane.
+    std::optional<Plane> base_plane() const override;
+
     static constexpr std::string_view ELEMENT_TYPE = "CutPlane"; // The element_type this plane is written under.
     Plane plane; // The cutting plane; what it cuts keeps the side its normal points to.
     double size = 1000.0; // The side of the square it is drawn as.

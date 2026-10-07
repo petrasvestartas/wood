@@ -307,4 +307,14 @@ std::string Beam::str() const {
     return os.str();
 }
 
+std::optional<Plane> Beam::base_plane() const {
+
+    const std::vector<Polyline> rings = sections();
+
+    if (axis.point_count() < 2 || rings.empty() || rings[0].point_count() < 2)
+        return std::nullopt;
+
+    return frame_along(axis.get_point(0), rings[0].get_point(1) - rings[0].get_point(0), axis.get_point(1) - axis.get_point(0));
+}
+
 } // namespace wood_session

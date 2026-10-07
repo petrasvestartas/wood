@@ -27,6 +27,9 @@ protected:
     BRep trimmed_brep() const override;
 
 public:
+    /// The axis start: z along the first span, x along the first section's first edge.
+    std::optional<Plane> base_plane() const override;
+
     /// An empty beam: no axis, no radius.
     Beam();
 

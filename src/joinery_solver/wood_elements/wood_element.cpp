@@ -99,6 +99,10 @@ Plane WoodElement::frame() const {
     return Plane::xy_plane();
 }
 
+std::optional<Plane> WoodElement::base_plane() const {
+    return std::nullopt;
+}
+
 Mesh WoodElement::trimmed_mesh() const {
     return stock_mesh();
 }
