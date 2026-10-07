@@ -1,6 +1,6 @@
 //! The solid builders the element classes share, ported from wood_element_geometry.cpp and wood_profile.cpp.
 
-use session_rust::{Line, Mesh, Plane, Point, Polyline, Tolerance, Vector};
+use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Tolerance, Vector, Xform};
 
 /// A side strip whose points lie within this of one plane becomes one face; closer points are one.
 const COPLANAR: f64 = 1e-6;
@@ -357,4 +357,157 @@ pub fn append_mesh(target: &mut Mesh, source: &Mesh) {
             target.set_face_holes(added, rings);
         }
     }
+}
+
+/// A closed quad from segment i of lower to segment i of upper.
+fn side_quad(lower: &Polyline, upper: &Polyline, segment: usize) -> Option<Polyline> {
+    Some(Polyline::new(vec![
+        lower.get_point(segment)?,
+        lower.get_point(segment + 1)?,
+        upper.get_point(segment + 1)?,
+        upper.get_point(segment)?,
+        lower.get_point(segment)?,
+    ]))
+}
+
+/// The solid between bottom and top loops as a BRep, loop 0 the outline, then holes: one planar face per cap and per side quad, as C++ brep_between_loops.
+pub fn brep_between_loops(bottom: &[Polyline], top: &[Polyline]) -> BRep {
+    if bottom.is_empty() || bottom.len() != top.len() {
+        return BRep::new();
+    }
+
+    let mut faces = vec![bottom[0].clone(), top[0].clone()];
+    let mut holes: Vec<Vec<Polyline>> = vec![bottom[1..].to_vec(), top[1..].to_vec()];
+
+    for (lower, upper) in bottom.iter().zip(top) {
+        for segment in 0..lower.point_count().saturating_sub(1) {
+            faces.extend(side_quad(lower, upper, segment));
+            holes.push(Vec::new());
+        }
+    }
+
+    BRep::from_polylines(&faces, &holes)
+}
+
+/// The sweep through sections as a BRep: the end sections and one quad per segment pair, as C++ brep_sections.
+pub fn brep_sections(sections: &[Polyline]) -> BRep {
+    if sections.len() < 2 {
+        return BRep::new();
+    }
+
+    let mut faces = vec![sections[0].clone(), sections[sections.len() - 1].clone()];
+
+    for pair in sections.windows(2) {
+        if pair[0].point_count() != pair[1].point_count() {
+            return BRep::new();
+        }
+
+        for segment in 0..pair[0].point_count().saturating_sub(1) {
+            faces.extend(side_quad(&pair[0], &pair[1], segment));
+        }
+    }
+
+    BRep::from_polylines(&faces, &vec![Vec::new(); faces.len()])
+}
+
+/// A face ring of the mesh as a closed polyline.
+fn face_ring(mesh: &Mesh, indices: &[usize]) -> Polyline {
+    let mut points: Vec<Point> = indices
+        .iter()
+        .map(|vertex| mesh.vertex[vertex].position())
+        .collect();
+    points.extend(points.first().cloned());
+
+    Polyline::new(points)
+}
+
+/// One planar face per mesh face, its holes kept, in face key order, as C++ mesh_brep.
+pub fn mesh_brep(mesh: &Mesh) -> BRep {
+    let mut keys: Vec<&usize> = mesh.face.keys().collect();
+    keys.sort();
+    let mut faces = Vec::new();
+    let mut holes = Vec::new();
+
+    for key in keys {
+        faces.push(face_ring(mesh, &mesh.face[key]));
+        holes.push(
+            mesh.face_holes
+                .get(key)
+                .map(|rings| rings.iter().map(|ring| face_ring(mesh, ring)).collect())
+                .unwrap_or_default(),
+        );
+    }
+
+    BRep::from_polylines(&faces, &holes)
+}
+
+/// The index moved past the target's own entries; -1 stays -1.
+fn offset(index: &mut i32, by: usize) {
+    if *index >= 0 {
+        *index += by as i32;
+    }
+}
+
+/// Every table of source added to target, its indices moved past target's, as C++ append_brep.
+pub fn append_brep(target: &mut BRep, mut source: BRep) {
+    for edge in &mut source.m_edges {
+        offset(&mut edge.curve_3d_index, target.m_curves_3d.len());
+        offset(&mut edge.start_vertex, target.m_vertices.len());
+        offset(&mut edge.end_vertex, target.m_vertices.len());
+
+        for curve in &mut edge.pcurves {
+            offset(&mut curve.surface_index, target.m_surfaces.len());
+            offset(&mut curve.curve_2d_index, target.m_curves_2d.len());
+            offset(&mut curve.curve_2d_index_2, target.m_curves_2d.len());
+        }
+    }
+
+    for wire in &mut source.m_wires {
+        for reference in &mut wire.edges {
+            offset(&mut reference.index, target.m_edges.len());
+        }
+    }
+
+    for face in &mut source.m_faces {
+        offset(&mut face.surface_index, target.m_surfaces.len());
+
+        for reference in &mut face.wires {
+            offset(&mut reference.index, target.m_wires.len());
+        }
+    }
+
+    for shell in &mut source.m_shells {
+        for reference in &mut shell.faces {
+            offset(&mut reference.index, target.m_faces.len());
+        }
+    }
+
+    for solid in &mut source.m_solids {
+        for reference in &mut solid.shells {
+            offset(&mut reference.index, target.m_shells.len());
+        }
+    }
+
+    target.m_surfaces.append(&mut source.m_surfaces);
+    target.m_curves_3d.append(&mut source.m_curves_3d);
+    target.m_curves_2d.append(&mut source.m_curves_2d);
+    target.m_vertices.append(&mut source.m_vertices);
+    target.m_edges.append(&mut source.m_edges);
+    target.m_wires.append(&mut source.m_wires);
+    target.m_faces.append(&mut source.m_faces);
+    target.m_shells.append(&mut source.m_shells);
+    target.m_solids.append(&mut source.m_solids);
+}
+
+/// A drilled hole as an exact cylinder along the axis, as C++ drill_brep.
+pub fn drill_brep(axis: &Line, radius: f64) -> BRep {
+    let frame = Plane::from_point_normal(axis.start(), axis.to_vector(), None);
+    let place = Xform::frame_to_world(
+        &axis.start(),
+        &frame.x_axis(),
+        &frame.y_axis(),
+        &frame.z_axis(),
+    );
+
+    BRep::create_cylinder(radius, axis.length()).transformed(&place)
 }

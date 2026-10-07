@@ -1,7 +1,7 @@
 //! The part every wood class shares: its tag, its payload and its solid over the kernel Element.
 
 use prost::Message;
-use session_rust::{Element, Mesh, Plane};
+use session_rust::{BRep, Element, Mesh, Plane};
 
 /// A wood class carried by a kernel Element: `element_type` names it, `element_data` holds its payload.
 pub trait WoodElement: Sized {
@@ -23,8 +23,11 @@ pub trait WoodElement: Sized {
     /// The element name.
     fn name(&self) -> &str;
 
-    /// The plain solid, before cut planes, solid features and joinery.
+    /// The plain solid as a mesh, before cut planes, solid features and joinery.
     fn solid(&self) -> Mesh;
+
+    /// The plain solid as an exact BRep, as the C++ class writes it.
+    fn brep(&self) -> BRep;
 
     /// The plane the element is laid out on, drawn as its attribute; None for none.
     fn base_plane(&self) -> Option<Plane>;
@@ -43,12 +46,12 @@ pub trait WoodElement: Sized {
         )
     }
 
-    /// Upcast: a kernel Element named and tagged like the class, its payload and its solid.
+    /// Upcast: a kernel Element named and tagged like the class, its payload and its BRep.
     fn to_element(&self) -> Element {
         let mut element = Element::new(self.name());
         element.element_type = Self::TYPE.to_string();
         element.element_data = self.payload().encode_to_vec();
-        element.set_geometry(self.solid());
+        element.set_brep_geometry(self.brep());
         element
     }
 }

@@ -1,9 +1,9 @@
 //! Block: a capped loft between a bottom and a top loop, holes paired in order, or a given mesh.
 
 use crate::element::WoodElement;
-use crate::geometry::frame_along;
+use crate::geometry::{brep_between_loops, frame_along, mesh_brep};
 use crate::proto;
-use session_rust::{Mesh, Plane, Polyline};
+use session_rust::{BRep, Mesh, Plane, Polyline};
 
 /// A solid block, as wood's Block (written under "Solid").
 #[derive(Clone, Debug)]
@@ -82,6 +82,15 @@ impl WoodElement for Block {
         match bottom.is_empty() {
             true => self.source_mesh.clone().unwrap_or_default(),
             false => Mesh::loft(&bottom, &top, true, true),
+        }
+    }
+
+    fn brep(&self) -> BRep {
+        let (bottom, top) = self.split_loops();
+
+        match bottom.is_empty() {
+            true => mesh_brep(&self.solid()),
+            false => brep_between_loops(&bottom, &top),
         }
     }
 

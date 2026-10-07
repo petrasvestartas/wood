@@ -26,9 +26,22 @@ fn reads_back<T: WoodElement>(name: &str, built: &T, solid: bool) {
     );
 
     if solid {
+        let cpp = mesh_of(&element);
         assert!(
-            same_solid(&typed.solid(), &mesh_of(&element), 1e-9),
+            same_solid(&typed.solid(), &cpp, 1e-9),
             "{name}: the Rust solid differs from the C++ one"
+        );
+
+        // the BRep is the planar faces of that solid, one per mesh face
+        let brep = typed.brep();
+        assert_eq!(
+            brep.face_count(),
+            cpp.number_of_faces(),
+            "{name}: BRep faces"
+        );
+        assert!(
+            (brep.volume() - cpp.volume()).abs() <= 1e-9 * cpp.volume().abs().max(1.0),
+            "{name}: the Rust BRep encloses another volume than the C++ solid"
         );
     }
 }
@@ -60,8 +73,31 @@ fn beam_variable_reads_back() {
 
 #[test]
 fn support_reads_back() {
-    // its dump holds the exact BRep, so its mesh is compared in wood/tests/rust_elements.cpp
     reads_back::<Support>("element_support", &support(), false);
+
+    // the dump holds C++'s exact BRep: the Rust one has polygonal anchor holes, so only the volume is close
+    let cpp = brep_of(&dumped("element_support"));
+    let rust = support().brep();
+    assert!(cpp.face_count() > 0 && rust.face_count() > 0);
+    assert!(
+        (rust.volume() - cpp.volume()).abs() <= 2e-3 * cpp.volume().abs(),
+        "support volume {} against C++ {}",
+        rust.volume(),
+        cpp.volume()
+    );
+}
+
+#[test]
+fn every_element_is_written_as_a_brep() {
+    assert!(matches!(
+        plate().to_element().geometry(),
+        session_rust::element::ElementGeometry::BRep(_)
+    ));
+    assert!(support()
+        .brep()
+        .m_surfaces
+        .iter()
+        .any(|surface| surface.is_rational()));
 }
 
 #[test]

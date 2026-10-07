@@ -2,7 +2,7 @@
 #![allow(dead_code)] // each test file uses part of it
 
 use session_rust::element::ElementGeometry;
-use session_rust::{Element, Line, Mesh, Plane, Point, Polyline, Session};
+use session_rust::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Session};
 use wood::geometry::profile_rectangle;
 use wood::{Beam, BeamVariable, Block, Column, Plate, Support};
 
@@ -124,6 +124,37 @@ pub fn mesh_of(element: &Element) -> Mesh {
         ElementGeometry::Mesh(mesh) => mesh.clone(),
         _ => Mesh::new(),
     }
+}
+
+/// The element's BRep; empty for a mesh or none.
+pub fn brep_of(element: &Element) -> BRep {
+    match element.geometry() {
+        ElementGeometry::BRep(brep) => brep.clone(),
+        _ => BRep::new(),
+    }
+}
+
+/// True when the two BReps hold the same faces and vertices and enclose the same volume within tolerance.
+pub fn same_brep(a: &BRep, b: &BRep, tolerance: f64) -> bool {
+    let positions = |brep: &BRep| {
+        let mut points: Vec<[f64; 3]> = brep
+            .m_vertices
+            .iter()
+            .map(|v| [v.point[0], v.point[1], v.point[2]])
+            .collect();
+        points.sort_by(|x, y| x.partial_cmp(y).unwrap());
+        points
+    };
+    let (pa, pb) = (positions(a), positions(b));
+    let scale = a.volume().abs().max(1.0);
+
+    a.face_count() == b.face_count()
+        && pa.len() == pb.len()
+        && pa
+            .iter()
+            .zip(&pb)
+            .all(|(x, y)| (0..3).all(|k| (x[k] - y[k]).abs() <= tolerance))
+        && (a.volume() - b.volume()).abs() <= tolerance * scale
 }
 
 /// The mesh's vertex positions, sorted.

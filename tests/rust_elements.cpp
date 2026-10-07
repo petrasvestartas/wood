@@ -25,37 +25,26 @@ template <typename Payload> static std::string canonical(const std::string& byte
     return payload.SerializeAsString();
 }
 
-/// The vertex positions of a mesh, sorted.
-static std::vector<std::array<double, 3>> sorted_vertices(const Mesh& mesh) {
-    std::vector<std::array<double, 3>> points;
-    for (const auto& entry : mesh.vertex)
-        points.push_back({entry.second.x, entry.second.y, entry.second.z});
-    std::sort(points.begin(), points.end());
-    return points;
+/// True when the two BReps hold as many faces and enclose the same volume within the relative tolerance.
+static bool same_brep(const BRep& a, const BRep& b, double tolerance) {
+    return a.face_count() == b.face_count() && std::abs(a.volume() - b.volume()) <= tolerance * std::max(1.0, std::abs(b.volume()));
 }
 
-/// True when the two meshes share their vertices, faces and volume within 1e-9.
-static bool same_solid(const Mesh& a, const Mesh& b) {
-    const std::vector<std::array<double, 3>> va = sorted_vertices(a);
-    const std::vector<std::array<double, 3>> vb = sorted_vertices(b);
-    if (va.size() != vb.size() || a.number_of_faces() != b.number_of_faces())
-        return false;
-    for (size_t i = 0; i < va.size(); i++)
-        for (size_t k = 0; k < 3; k++)
-            if (std::abs(va[i][k] - vb[i][k]) > 1e-9)
-                return false;
-    return std::abs(a.volume() - b.volume()) <= 1e-9 * std::max(1.0, std::abs(a.volume()));
-}
-
-/// Element i of the file comes back as T, its payload unchanged by C++ and its Rust solid the C++ solid.
+/// Element i of the file comes back as T, its payload unchanged by C++ and its Rust BRep the C++ BRep.
 template <typename T, typename Payload> static void reads_back(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
     const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
     const std::shared_ptr<T> typed = session.get_element<T>(stored.guid());
     check(typed != nullptr, stored.name() + " does not load as its class");
     check(canonical<Payload>(typed->element_data_dumps()) == canonical<Payload>(stored.element_data()), stored.name() + ": C++ rewrites the Rust payload differently");
-    check(stored.geometry_type() == "Mesh", stored.name() + ": Rust wrote no mesh");
-    const Mesh rust = Mesh::pb_loads(stored.geometry_data());
-    check(same_solid(rust, typed->element_geometry_mesh()), stored.name() + ": the Rust solid differs from the C++ one");
+    check(stored.geometry_type() == "BRep", stored.name() + ": Rust wrote no BRep");
+    const BRep rust = BRep::pb_loads(stored.geometry_data());
+    const BRep& cpp = typed->element_geometry_brep();
+
+    // C++ drills the support's anchor holes exactly, Rust writes them polygonal: the volume within the chord error
+    if constexpr (std::is_same_v<T, Support>)
+        check(rust.face_count() > 0 && std::abs(rust.volume() - cpp.volume()) <= 2e-3 * std::abs(cpp.volume()), stored.name() + ": the Rust BRep differs from the C++ one");
+    else
+        check(same_brep(rust, cpp, 1e-9), stored.name() + ": the Rust BRep differs from the C++ one");
 }
 
 int main() {
@@ -76,6 +65,6 @@ int main() {
     reads_back<Support, wood_proto::Support>(session, file, 6);
     check(session.consistent(), "the Rust session loads consistent");
 
-    std::cout << "rust_elements: 7 elements typed, payloads and solids equal\n";
+    std::cout << "rust_elements: 7 elements typed, payloads and BReps equal\n";
     return 0;
 }

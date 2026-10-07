@@ -52,8 +52,8 @@ fn the_golden_session_holds_one_element_per_class() {
             stored.name
         );
         assert!(
-            same_solid(&mesh_of(stored), &mesh_of(built), 1e-9),
-            "{} solid",
+            same_brep(&brep_of(stored), &brep_of(built), 1e-9),
+            "{} BRep",
             stored.name
         );
     }

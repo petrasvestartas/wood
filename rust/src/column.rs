@@ -1,8 +1,9 @@
 //! Column: a section lofted along a straight axis.
 
 use crate::element::WoodElement;
+use crate::geometry::brep_between_loops;
 use crate::proto;
-use session_rust::{Line, Mesh, Plane, Point, Polyline, Tolerance, Vector, Xform};
+use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Tolerance, Vector, Xform};
 
 /// A timber column: a closed section at the axis base, or a profile placed there, as wood's Column.
 #[derive(Clone, Debug)]
@@ -72,6 +73,21 @@ impl Column {
         }
     }
 
+    /// The bottom loops and the same moved along the axis; None without a section or an axis.
+    fn loops(&self) -> Option<(Vec<Polyline>, Vec<Polyline>)> {
+        if self.section.point_count() < 3 || self.axis.length() <= 0.0 {
+            return None;
+        }
+
+        let bottom = self.bottom_loops();
+        let top = bottom
+            .iter()
+            .map(|ring| ring.translated(&self.axis.to_vector()))
+            .collect();
+
+        Some((bottom, top))
+    }
+
     /// The loops the solid starts from: the placed profile when it has holes, else the section.
     fn bottom_loops(&self) -> Vec<Polyline> {
         match self.profile.len() > 1 {
@@ -122,17 +138,17 @@ impl WoodElement for Column {
     }
 
     fn solid(&self) -> Mesh {
-        if self.section.point_count() < 3 || self.axis.length() <= 0.0 {
-            return Mesh::new();
+        match self.loops() {
+            Some((bottom, top)) => Mesh::loft(&bottom, &top, true, true),
+            None => Mesh::new(),
         }
+    }
 
-        let bottom = self.bottom_loops();
-        let top: Vec<Polyline> = bottom
-            .iter()
-            .map(|ring| ring.translated(&self.axis.to_vector()))
-            .collect();
-
-        Mesh::loft(&bottom, &top, true, true)
+    fn brep(&self) -> BRep {
+        match self.loops() {
+            Some((bottom, top)) => brep_between_loops(&bottom, &top),
+            None => BRep::new(),
+        }
     }
 
     fn base_plane(&self) -> Option<Plane> {

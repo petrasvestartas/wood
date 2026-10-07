@@ -1,9 +1,11 @@
 //! Support: a column base of plates, nuts and a rod standing on a plane.
 
 use crate::element::WoodElement;
-use crate::geometry::{append_mesh, circle_segments, drill_mesh};
+use crate::geometry::{
+    append_brep, append_mesh, brep_between_loops, circle_segments, drill_brep, drill_mesh,
+};
 use crate::proto;
-use session_rust::{Line, Mesh, Plane, Point, Polyline};
+use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline};
 use std::f64::consts::PI;
 
 /// An adjustable column base, as wood's Support, with the manufacturer's dimensions by default.
@@ -257,6 +259,42 @@ impl WoodElement for Support {
             &drill_mesh(&head, self.head_plate_diameter * 0.5, self.chord_tolerance),
         );
         mesh
+    }
+
+    /// The plate with polygonal anchor holes, as C++ falls back to when drilling fails; the nuts, the rod and the head plate exact, as C++ writes them.
+    fn brep(&self) -> BRep {
+        let [bottom, top] = self.base_plate();
+        let adjustment = self.hexagon(
+            self.adjustment_nut_across_flats,
+            self.base_plate_thickness,
+            self.adjustment_nut_top,
+        );
+        let coupling = self.hexagon(
+            self.coupling_nut_across_flats,
+            self.coupling_level(),
+            self.coupling_level() + self.coupling_nut_height,
+        );
+        let rod = Line::from_points(
+            &self.at(self.adjustment_nut_top),
+            &self.at(self.coupling_level()),
+        );
+        let head = Line::from_points(
+            &self.at(self.height - self.head_plate_thickness),
+            &self.at(self.height),
+        );
+
+        let mut brep = brep_between_loops(&bottom, &top);
+        append_brep(
+            &mut brep,
+            brep_between_loops(&adjustment[..1], &adjustment[1..]),
+        );
+        append_brep(&mut brep, drill_brep(&rod, self.rod_diameter * 0.5));
+        append_brep(
+            &mut brep,
+            brep_between_loops(&coupling[..1], &coupling[1..]),
+        );
+        append_brep(&mut brep, drill_brep(&head, self.head_plate_diameter * 0.5));
+        brep
     }
 
     fn base_plane(&self) -> Option<Plane> {

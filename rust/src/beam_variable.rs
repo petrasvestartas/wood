@@ -1,9 +1,9 @@
 //! BeamVariable: closed sections of one point count lofted from station to station.
 
 use crate::element::WoodElement;
-use crate::geometry::{frame_along, loft_stations};
+use crate::geometry::{frame_along, loft_stations, mesh_brep};
 use crate::proto;
-use session_rust::{Line, Mesh, Plane, Point, Polyline};
+use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline};
 
 /// A beam whose section changes along a straight axis, as wood's BeamVariable.
 #[derive(Clone, Debug)]
@@ -73,6 +73,10 @@ impl WoodElement for BeamVariable {
 
     fn solid(&self) -> Mesh {
         loft_stations(&self.sections)
+    }
+
+    fn brep(&self) -> BRep {
+        mesh_brep(&self.solid())
     }
 
     fn base_plane(&self) -> Option<Plane> {

@@ -1,9 +1,12 @@
 //! Beam: a section swept along a polyline axis, mitred at every interior vertex.
 
 use crate::element::WoodElement;
-use crate::geometry::{compute_size, frame_along, profile_section, square_section, sweep_sections};
+use crate::geometry::{
+    brep_between_loops, brep_sections, compute_size, frame_along, profile_section, square_section,
+    sweep_sections,
+};
 use crate::proto;
-use session_rust::{Mesh, Plane, Polyline, Vector};
+use session_rust::{BRep, Mesh, Plane, Polyline, Vector};
 
 /// A timber beam: a radius and an up direction per axis segment, or a profile, as wood's Beam.
 #[derive(Clone, Debug)]
@@ -41,6 +44,25 @@ impl Beam {
             .get(segment)
             .cloned()
             .unwrap_or_else(Vector::z_axis)
+    }
+
+    /// The profile's loops at both ends of a one-segment beam with holes, as C++ profile_ends; None otherwise.
+    fn profile_ends(&self) -> Option<(Vec<Polyline>, Vec<Polyline>)> {
+        if self.profile.len() < 2 || self.axis.segment_count() != 1 {
+            return None;
+        }
+
+        let points = self.axis.get_points();
+        let along = points[1].clone() - points[0].clone();
+        let up = self.up(0);
+        let at = |point: &session_rust::Point| -> Vec<Polyline> {
+            self.profile
+                .iter()
+                .map(|ring| profile_section(point, &along, &up, ring))
+                .collect()
+        };
+
+        Some((at(&points[0]), at(&points[1])))
     }
 
     /// One closed outline per axis vertex, along the bisector at an interior vertex; empty without a radius.
@@ -119,27 +141,17 @@ impl WoodElement for Beam {
     }
 
     fn solid(&self) -> Mesh {
-        if self.profile.len() > 1 && self.axis.segment_count() == 1 {
-            let (start, end) = (
-                self.axis.get_points()[0].clone(),
-                self.axis.get_points()[1].clone(),
-            );
-            let along = end.clone() - start.clone();
-            let up = self.up(0);
-            let bottom: Vec<Polyline> = self
-                .profile
-                .iter()
-                .map(|ring| profile_section(&start, &along, &up, ring))
-                .collect();
-            let top: Vec<Polyline> = self
-                .profile
-                .iter()
-                .map(|ring| profile_section(&end, &along, &up, ring))
-                .collect();
-            return Mesh::loft(&bottom, &top, true, true);
+        match self.profile_ends() {
+            Some((bottom, top)) => Mesh::loft(&bottom, &top, true, true),
+            None => sweep_sections(&self.sections()),
         }
+    }
 
-        sweep_sections(&self.sections())
+    fn brep(&self) -> BRep {
+        match self.profile_ends() {
+            Some((bottom, top)) => brep_between_loops(&bottom, &top),
+            None => brep_sections(&self.sections()),
+        }
     }
 
     fn base_plane(&self) -> Option<Plane> {

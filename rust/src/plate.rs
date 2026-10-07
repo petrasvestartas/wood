@@ -1,9 +1,9 @@
 //! Plate: a bottom and a top outline, the solid lofted between them.
 
 use crate::element::WoodElement;
-use crate::geometry::{compute_newell, frame_along};
+use crate::geometry::{brep_between_loops, compute_newell, frame_along};
 use crate::proto;
-use session_rust::{Mesh, Plane, Polyline};
+use session_rust::{BRep, Mesh, Plane, Polyline};
 
 /// A timber plate: a bottom and a top outline of one point count, as wood's Plate.
 #[derive(Clone, Debug)]
@@ -84,6 +84,17 @@ impl WoodElement for Plate {
             std::slice::from_ref(&self.top),
             true,
             true,
+        )
+    }
+
+    fn brep(&self) -> BRep {
+        if self.bottom.point_count() < 3 || self.top.point_count() < self.bottom.point_count() {
+            return BRep::new();
+        }
+
+        brep_between_loops(
+            std::slice::from_ref(&self.bottom),
+            std::slice::from_ref(&self.top),
         )
     }
 
