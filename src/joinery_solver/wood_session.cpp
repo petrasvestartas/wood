@@ -665,6 +665,17 @@ static void host_solid_feature(WoodSession& scene, const Element& source, Intera
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Graph ordering stays stable; single-owner geometry belongs to this call's source.
+/// Puts the source element's layer under the target's when the two lie side by side in one group, so the elements that put solid or plane features on an element list as its child layers; a source already placed under something else, such as a connector's dowel, stays, and a joint that ties two elements is never moved.
+static void nest_feature_source(Session& session, const Element& source, const Element& target) {
+
+    const std::shared_ptr<TreeNode> child = session.get_node(source.guid());
+    const std::shared_ptr<TreeNode> parent = session.get_node(target.guid());
+    if (!child || !parent || child == parent || child->parent() != parent->parent())
+        return;
+
+    session.add(child, parent);
+}
+
 std::shared_ptr<Interaction> WoodSession::add_interaction(
     const std::shared_ptr<Element>& source,
     const std::shared_ptr<Element>& target,
@@ -672,6 +683,10 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
 ) {
 
     if (!source || !target || !interaction) throw std::invalid_argument("An interaction needs two elements and a payload");
+    const bool feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) || std::dynamic_pointer_cast<InteractionFeaturePlane>(interaction);
+    const std::shared_ptr<Joint> tie = std::dynamic_pointer_cast<Joint>(source);
+    if (feature && (!tie || tie->targets.size() < 2))
+        nest_feature_source(*this, *source, *target);
     if (auto joint = std::dynamic_pointer_cast<JointPlate>(source)) {
         auto feature = std::dynamic_pointer_cast<InteractionFeaturePlate>(interaction);
         if (!feature || feature->target_side < 1 || feature->target_side > 2)

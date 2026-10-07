@@ -1,4 +1,5 @@
 // node --experimental-websocket screenshot_viewer.mjs <out.png> [command ...]: opens the hosted viewer in a Chrome window on the GPU with the commands as ?cmd=, waits for the scene, screenshots.
+// SHOT_ZOOM (default 1.6) zooms the page as the browser's zoom does, so the layer panel and its text come out large in the 1600 x 1000 picture.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -33,6 +34,9 @@ const send = (method, params = {}) => new Promise((r) => { const n = ++id; pendi
 
 await send("Runtime.enable");
 await send("Page.enable");
+// browser zoom: a smaller CSS viewport at a higher pixel ratio, the picture the same size
+const zoom = Number(process.env.SHOT_ZOOM ?? 1.6);
+await send("Emulation.setDeviceMetricsOverride", { width: Math.round(1600 / zoom), height: Math.round(1000 / zoom), deviceScaleFactor: zoom, mobile: false });
 await send("Page.navigate", { url: "https://petrasvestartas.github.io/session/" + (commands.length ? "?cmd=" + encodeURIComponent(commands.join(";")) : "") });
 await sleep(15000);
 
