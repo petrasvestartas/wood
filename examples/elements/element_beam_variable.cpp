@@ -26,7 +26,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A variable beam like the floor's outer rib: a straight 3000 axis along its top and seven 120 wide rectangles hanging from it, 730 deep at the start and 300 at the end on a parabola, lofted from one to the next. The axis and the sections are its features.
+A variable beam like the floor's outer rib: a straight 3000 axis along its top and seven 120 wide rectangles hanging from it, 730 deep at the start and 300 at the end on a parabola, lofted from one to the next. The axis and the two end sections are its features.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

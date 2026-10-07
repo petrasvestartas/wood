@@ -239,9 +239,18 @@ void BeamVariable::compute_geometry_features() {
     else
         next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
 
+    // the end sections only; the inner ones would draw lines across the merged faces
+    std::vector<Polyline> ends;
+
     for (const Polyline& section : trimmed.second)
         if (section.point_count() > 0)
-            next.push_back(polyline_feature("section", section));
+            ends.push_back(section);
+
+    if (!ends.empty())
+        next.push_back(polyline_feature("section", ends.front()));
+
+    if (ends.size() > 1)
+        next.push_back(polyline_feature("section", ends.back()));
 
     const Polyline outline = top();
 

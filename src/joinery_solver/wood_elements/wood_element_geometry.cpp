@@ -436,18 +436,35 @@ static Polyline kept_ring(const Polyline& ring, const std::vector<Plane>& cuts, 
     return face;
 }
 
-/// A ring moved along `along` onto cut `index`, then clipped by every other cut: the face that cut leaves on the member.
-static Polyline end_section(const Polyline& ring, const Vector& along, const std::vector<Plane>& cuts, size_t index) {
+/// The face cut `index` leaves on a member lofted through `sections`: every corner's edge from station to station met by the plane, then clipped by every other cut.
+static Polyline end_section(const std::vector<Polyline>& sections, const std::vector<Plane>& cuts, size_t index) {
 
-    const double speed = along.dot(cuts[index].z_axis());
-    if (std::abs(speed) < Tolerance::ZERO_TOLERANCE)
-        return Polyline();
+    const Plane& plane = cuts[index];
+    std::vector<Point> corners;
 
-    std::vector<Point> moved;
-    for (const Point& point : ring.get_points())
-        moved.push_back(point - along * (signed_distance(cuts[index], point) / speed));
+    for (size_t j = 0; j < sections.front().point_count(); j++) {
 
-    return kept_ring(Polyline(moved), cuts, index);
+        // the station pair the corner crosses the plane between; a corner that never crosses extends its nearer end pair
+        size_t i = 0;
+        while (i + 1 < sections.size() - 1 && signed_distance(plane, sections[i].get_point(j)) * signed_distance(plane, sections[i + 1].get_point(j)) > 0.0)
+            i++;
+
+        if (signed_distance(plane, sections[i].get_point(j)) * signed_distance(plane, sections[i + 1].get_point(j)) > 0.0
+            && std::abs(signed_distance(plane, sections.front().get_point(j))) < std::abs(signed_distance(plane, sections.back().get_point(j))))
+            i = 0;
+
+        const Point a = sections[i].get_point(j);
+        const Point b = sections[i + 1].get_point(j);
+        const double da = signed_distance(plane, a);
+        const double db = signed_distance(plane, b);
+
+        if (std::abs(da - db) < Tolerance::ZERO_TOLERANCE)
+            return Polyline();
+
+        corners.push_back(a + (b - a) * (da / (da - db)));
+    }
+
+    return kept_ring(Polyline(corners), cuts, index);
 }
 
 std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, const std::vector<Polyline>& sections, const std::vector<Plane>& cuts) {
@@ -487,7 +504,7 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, co
     std::vector<Polyline> rings;
 
     if (ringed)
-        rings.push_back(start_cut < 0 ? kept_ring(sections[0], cuts, cuts.size()) : end_section(sections[first], points[first + 1] - points[first], cuts, start_cut));
+        rings.push_back(start_cut < 0 ? kept_ring(sections[0], cuts, cuts.size()) : end_section(sections, cuts, start_cut));
 
     for (size_t i = first + 1; i <= last; i++) {
 
@@ -500,7 +517,7 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, co
     kept.push_back(point_at(points, last, end));
 
     if (ringed)
-        rings.push_back(end_cut < 0 ? kept_ring(sections[n], cuts, cuts.size()) : end_section(sections[last + 1], points[last + 1] - points[last], cuts, end_cut));
+        rings.push_back(end_cut < 0 ? kept_ring(sections[n], cuts, cuts.size()) : end_section(sections, cuts, end_cut));
 
     return {Polyline(kept), rings};
 }

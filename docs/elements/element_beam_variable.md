@@ -2,7 +2,7 @@
 
 [TOC]
 
-A beam whose section changes along its axis: one section per station, lofted between them. Its axis, sections, `top()` and `bottom()` outlines are its features, all cut by the planes other elements cut it by.
+A beam whose section changes along its axis: one section per station, lofted between them. Its axis, two end sections, `top()` and `bottom()` outlines are its features, all cut by the planes other elements cut it by.
 
 ## Constructors
 
@@ -25,6 +25,6 @@ Seven 120 wide rectangles hanging from a straight 3000 axis along its top, 730 d
 
 ![Cut by plane elements](elements/element_beam_variable_cut.png)
 
-The same rib cut at both ends by two `CutPlane` elements through `add_interaction(plane, rib, plane->feature())`; the rib, its sections and its top and bottom outlines keep the side the normals point to.
+The same rib cut at both ends by two `CutPlane` elements through `add_interaction(plane, rib, plane->feature())`; the rib, its end sections and its top and bottom outlines keep the side the normals point to.
 
 \include{lineno} elements/element_beam_variable_cut.cpp
