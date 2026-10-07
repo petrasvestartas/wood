@@ -902,6 +902,7 @@ void WoodSession::sync_attributes() {
         Plane plane = *base;
         plane.name = "base_plane";
         plane.is_visible = false;
+        plane.linecolor = Color::black();
         std::shared_ptr<Plane> drawn;
 
         for (TreeNode* child : attributes->children())
@@ -911,7 +912,6 @@ void WoodSession::sync_attributes() {
         if (drawn) {
             plane.is_visible = drawn->is_visible;
             plane.is_locked = drawn->is_locked;
-            plane.linecolor = drawn->linecolor;
 
             if (*drawn == plane)
                 continue;
