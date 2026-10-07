@@ -892,8 +892,10 @@ void WoodSession::sync_attributes() {
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
         const std::optional<Plane> base = wood ? wood->base_plane() : std::nullopt;
         const std::shared_ptr<TreeNode> node = base ? get_node(element->guid()) : nullptr;
+        const std::shared_ptr<TreeNode> parent = node ? node->parent() : nullptr;
 
-        if (!node)
+        // a feature is no element of its own: it has no base plane
+        if (!node || (parent && parent->name == "features" && !lookup.contains(parent->name)))
             continue;
 
         const std::shared_ptr<TreeNode> attributes = element_group(*this, node, "attributes");
