@@ -117,16 +117,13 @@ double ScrewLines::corner_level(double levels) const {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-// COLUMN SESSION
+// PLATES AND COLUMN
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-PlateSession::PlateSession(const std::string& name) : WoodSession(name) {
-}
+WoodSession plates_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
 
-PlateSession PlateSession::between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
-
-    PlateSession session(name);
+    WoodSession session(name);
     const size_t segments = std::min({bottom[0].point_count(), bottom[1].point_count(), top[0].point_count(), top[1].point_count()}) - 1;
 
     for (size_t i = 0; i < segments; i++) {
@@ -134,13 +131,9 @@ PlateSession PlateSession::between(const std::array<Polyline, 2>& bottom, const 
         const Polyline above = Polyline({top[0].get_point(i), top[0].get_point(i + 1), top[1].get_point(i + 1), top[1].get_point(i)}).closed();
         const std::shared_ptr<Plate> plate = std::make_shared<Plate>(below, above, fmt::format("{}_{}", name, i));
         session.add(plate);
-        session.plates.push_back(plate);
     }
 
     return session;
-}
-
-ColumnSession::ColumnSession(const std::string& name) : WoodSession(name) {
 }
 
 /// A block over the top head_height of the axis, from (a0, b0) to (a1, b1) in the corner frame.
@@ -159,7 +152,7 @@ static Mesh head_block(const Line& axis, const Plane& corner, double head_height
     return Mesh::loft({base.translated(under)}, {base.translated(axis.to_vector())}, true);
 }
 
-ColumnSession ColumnSession::glued_head(
+WoodSession glued_head(
     const Line& axis,
     const Plane& corner,
     double side,
@@ -168,21 +161,20 @@ ColumnSession ColumnSession::glued_head(
     const std::string& name
 ) {
 
-    ColumnSession session(name);
-    session.column = Column::square(axis, corner, side, name);
-    session.add(session.column);
+    WoodSession session(name);
+    const std::shared_ptr<Column> column = Column::square(axis, corner, side, name);
+    session.add(column);
 
     const std::vector<Mesh> blocks = {
         head_block(axis, corner, head_height, 0.0, side, head_side, head_side),
         head_block(axis, corner, head_height, side, 0.0, head_side, side),
     };
 
-    for (const Mesh& mesh : blocks) {
-        const std::shared_ptr<Block> glued = std::make_shared<Block>(mesh, fmt::format("{}_head_{}", name, session.head.size()));
+    for (size_t i = 0; i < blocks.size(); i++) {
+        const std::shared_ptr<Block> glued = std::make_shared<Block>(blocks[i], fmt::format("{}_head_{}", name, i));
         glued->is_visible = false;
         session.add(glued);
-        session.head.push_back(glued);
-        session.add_interaction(glued, session.column, std::make_shared<InteractionFeatureSolid>(mesh, SolidOperation::add));
+        session.add_interaction(glued, column, std::make_shared<InteractionFeatureSolid>(blocks[i], SolidOperation::add));
     }
 
     return session;
@@ -196,24 +188,26 @@ static Line column_axis(const FloorGuide& guide, size_t k) {
     return Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
 }
 
-ColumnSession::ColumnSession(const FloorGuide& guide, size_t q)
-    : ColumnSession(glued_head(
-          column_axis(guide, q % 4),
-          guide.column_frame(q % 4),
-          guide.size_column_head,
-          guide.size_column_head + guide.size_column_head_chamfer,
-          guide.column_head_depth,
-          fmt::format("column_{}", q % 4)
-      )) {
+WoodSession column(const FloorGuide& guide, size_t q) {
 
     const size_t k = q % 4;
-    support = std::make_shared<Support>(guide.support_plane(k), "support");
-    support->name = fmt::format("support_{}", k);
-    add(support);
+    WoodSession session = glued_head(
+        column_axis(guide, k),
+        guide.column_frame(k),
+        guide.size_column_head,
+        guide.size_column_head + guide.size_column_head_chamfer,
+        guide.column_head_depth,
+        fmt::format("column_{}", k)
+    );
+    const std::shared_ptr<Column> shaft = session.columns().front();
 
-    const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
-    add(joint);
-    add_joint(joint);
+    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(k), "support");
+    support->name = fmt::format("support_{}", k);
+    session.add(support);
+
+    const std::shared_ptr<Joint> joint = Joint::support(*support, *shaft);
+    session.add(joint);
+    session.add_joint(joint);
 
     const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
 
@@ -221,14 +215,15 @@ ColumnSession::ColumnSession(const FloorGuide& guide, size_t q)
         const std::shared_ptr<Plate> cutter = std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k));
         cutter->place(Xform::translation(0.0, 0.0, guide.bay_height));
         cutter->is_visible = false;
-        add(cutter);
-        cutters.push_back(cutter);
-        add_interaction(
+        session.add(cutter);
+        session.add_interaction(
             cutter,
-            column,
+            shaft,
             std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract)
         );
     }
+
+    return session;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -267,7 +262,7 @@ void Floor::add_quarters() {
 
         for (size_t row = 0; row < rows.size(); row++) {
             const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}{}", row, suffix), beds);
-            members.beds.push_back(PlateSession::between(rows[row][0], rows[row][1], "beds").plates);
+            members.beds.push_back(plates_between(rows[row][0], rows[row][1], "beds").plates());
 
             for (size_t i = 0; i < members.beds.back().size(); i++)
                 add_placed(members.beds.back()[i], fmt::format("beds_{}_{}{}", row, i, suffix), node);
@@ -348,9 +343,9 @@ void Floor::add_column(size_t corner) {
     if (columns.size() < 4)
         columns.resize(4);
 
-    const ColumnSession column(guide, k);
-    graft(column, group);
-    columns[k] = get_element<Column>(column.column->guid());
+    const WoodSession session = column(guide, k);
+    graft(session, group);
+    columns[k] = get_element<Column>(session.columns().front()->guid());
 }
 
 std::shared_ptr<TreeNode> Floor::quarter_group(size_t q) {

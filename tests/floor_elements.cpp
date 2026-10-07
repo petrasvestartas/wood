@@ -158,30 +158,31 @@ void check_support() {
     check(std::abs(removed - pocket - screws) <= 1e-6 * removed, "support joint removes " + std::to_string(removed) + " not " + std::to_string(pocket + screws));
 
     // the floor's column: the shaft, two blocks glued on through add interactions, six cutter plates through subtract ones
-    wood_floor::ColumnSession carved(guide, 0);
+    const WoodSession carved = wood_floor::column(guide, 0);
+    const std::shared_ptr<Column> shaft = carved.columns().front();
     const double side = guide.size_column_head;
     const double head_side = side + guide.size_column_head_chamfer;
-    const double glued = side * side * (carved.column->axis.length() - guide.column_head_depth) + head_side * head_side * guide.column_head_depth;
-    const Mesh stock_with_head = carved.column->stock_mesh();
+    const double glued = side * side * (shaft->axis.length() - guide.column_head_depth) + head_side * head_side * guide.column_head_depth;
+    const Mesh stock_with_head = shaft->stock_mesh();
     check(std::abs(compute_volume(stock_with_head) - glued) <= 1e-9 * glued && stock_with_head.is_closed(), fmt::format("the shaft and its two glued blocks one closed stock of {:.6f}, not {:.6f}", compute_volume(stock_with_head), glued));
 
-    const double head = glued - removed - compute_volume(carved.column->model_geometry_mesh());
+    const double head = glued - removed - compute_volume(shaft->model_geometry_mesh());
     check(std::abs(head - HEAD_CUT) <= 1e-6 * HEAD_CUT, fmt::format("head cuts remove {:.6f}", head));
     size_t adds = 0;
     size_t subtracts = 0;
 
-    for (const std::shared_ptr<Block>& block : carved.head)
-        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(block, carved.column))
+    for (const std::shared_ptr<Block>& block : carved.get_elements<Block>())
+        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(block, shaft))
             if (const std::shared_ptr<InteractionFeatureSolid> feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
                 adds += feature->operation == SolidOperation::add;
 
-    for (const std::shared_ptr<Plate>& cutter : carved.cutters)
-        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(cutter, carved.column))
+    for (const std::shared_ptr<Plate>& cutter : carved.plates())
+        for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(cutter, shaft))
             if (const std::shared_ptr<InteractionFeatureSolid> feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
                 subtracts += feature->operation == SolidOperation::subtract;
 
-    check(adds == 2 && subtracts == 6 && carved.column->solid_features.size() == 9 && carved.get_elements<Joint>().size() == 1, fmt::format("two head blocks add and six cutter plates subtract through interactions, the support one more: {} adds, {} subtracts, {} hosted", adds, subtracts, carved.column->solid_features.size()));
-    check(carved.column->model_geometry_mesh().is_closed(), "carved column closed");
+    check(adds == 2 && subtracts == 6 && shaft->solid_features.size() == 9 && carved.get_elements<Joint>().size() == 1, fmt::format("two head blocks add and six cutter plates subtract through interactions, the support one more: {} adds, {} subtracts, {} hosted", adds, subtracts, shaft->solid_features.size()));
+    check(shaft->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     const std::shared_ptr<Support> loaded = back.supports().front();

@@ -31,6 +31,6 @@ Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add
 
 ![Lofted between two rails](elements/element_plate_session.png)
 
-Several plates from two rails, as a bed row of the floor: `wood_floor::PlateSession::between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them as a session.
+Several plates from two rails, as a bed row of the floor: `wood_floor::plates_between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them as a WoodSession.
 
 \include{lineno} elements/element_plate_session.cpp

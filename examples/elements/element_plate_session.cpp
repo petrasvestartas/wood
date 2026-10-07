@@ -19,7 +19,7 @@ int main() {
 
     const Polyline bottom_near(near);
     const Polyline bottom_far(far);
-    wood_floor::PlateSession scene = wood_floor::PlateSession::between({bottom_near, bottom_far}, {bottom_near.translated({0.0, 0.0, 40.0}), bottom_far.translated({0.0, 0.0, 40.0})}, "bed");
+    WoodSession scene = wood_floor::plates_between({bottom_near, bottom_far}, {bottom_near.translated({0.0, 0.0, 40.0}), bottom_far.translated({0.0, 0.0, 40.0})}, "bed");
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -28,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A row of plates as a session, as a bed row of the floor: two bottom rails 600 apart following a parabola, 400 deep at the start and level at 3000, and the same two rails 40 higher as the top; wood_floor::PlateSession::between lofts one plate per rail segment, six plates, each its bottom quad and its top quad.
+A row of plates as a session, as a bed row of the floor: two bottom rails 600 apart following a parabola, 400 deep at the start and level at 3000, and the same two rails 40 higher as the top; wood_floor::plates_between lofts one plate per rail segment, six plates, each its bottom quad and its top quad.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

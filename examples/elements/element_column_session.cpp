@@ -15,7 +15,7 @@ int main() {
         Point(6000.0, 6000.0, 0.0),
         Point(0.0, 6000.0, 0.0),
     });
-    scene.graft(wood_floor::ColumnSession(guide, 0), nullptr);
+    scene.graft(wood_floor::column(guide, 0), nullptr);
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

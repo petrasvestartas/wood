@@ -78,44 +78,21 @@ public:
     std::vector<std::vector<std::shared_ptr<Plate>>> beds; // beds_<row>_<i>_<q>.
 };
 
-/// The session of a row of plates lofted between two rails, as the floor's bed rows: segment i of the bottom rails and of the top rails make plate i, a quad below and one above.
-class PlateSession : public WoodSession {
-public:
-    std::vector<std::shared_ptr<Plate>> plates; // <name>_<i>: one plate per segment of the rails.
+/// A row of plates lofted between two rails as a session, as the floor's bed rows: segment i of the bottom rails and of the top rails make plate <name>_<i>, its bottom quad and its top quad.
+WoodSession plates_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
-    /// The plates between the two bottom rails and the two top rails, one per segment the four have in common, each its bottom quad and its top quad.
-    static PlateSession between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
+/// A square column of side on its axis with a glued head as a session: the shaft from the corner frame's origin along its x and y axes, and over the top head_height a strip of head_side by head_side - side beyond its y side and a block of head_side - side by side beyond its x side, hidden blocks <name>_head_<i> each glued on with an add InteractionFeatureSolid, so the head is the square of head_side.
+WoodSession glued_head(
+    const Line& axis,
+    const Plane& corner,
+    double side,
+    double head_side,
+    double head_height,
+    const std::string& name = "column"
+);
 
-private:
-    /// An empty plate session named name.
-    explicit PlateSession(const std::string& name);
-};
-
-/// The session of one column: a square shaft, the blocks glued on for its head, each adding to it through an InteractionFeatureSolid, and for the floor its support and the cutter plates taking away the faces the ribs and the column blocks bear on. Floor::add_column grafts a copy of it into the floor.
-class ColumnSession : public WoodSession {
-public:
-    std::shared_ptr<Column> column; // The square shaft, cut by the features the other elements put on it.
-    std::vector<std::shared_ptr<Block>> head; // <name>_head_<i>, hidden: the blocks glued on for the head, each adding to the column, which draws them as part of its solid.
-    std::shared_ptr<Support> support; // support_<q>, on the slab; empty for a glued_head alone.
-    std::vector<std::shared_ptr<Plate>> cutters; // column_cutters_<i>_<q>, hidden: each takes an inclined face away from the column; empty for a glued_head alone.
-
-    /// A square column of side on its axis with a glued head: the shaft from the corner frame's origin along its x and y axes, and over the top head_height a strip of head_side by head_side - side beyond its y side and a block of head_side - side by side beyond its x side, each glued on with an add InteractionFeatureSolid, so the head is the square of head_side.
-    static ColumnSession glued_head(
-        const Line& axis,
-        const Plane& corner,
-        double side,
-        double head_side,
-        double head_height,
-        const std::string& name = "column"
-    );
-
-    /// The column at corner q of the guide, named column_<q>: its glued head on its support, joined by a support joint, and the six cutter plates of the guide each taking an inclined face away with a subtract InteractionFeatureSolid.
-    ColumnSession(const FloorGuide& guide, size_t q);
-
-private:
-    /// An empty column session named name.
-    explicit ColumnSession(const std::string& name);
-};
+/// The column at corner q of the guide as a session, named column_<q>: its glued head on support_<q>, joined by a support joint, and the six hidden cutter plates column_cutters_<i>_<q> of the guide each taking an inclined face away with a subtract InteractionFeatureSolid. Floor::add_column grafts a copy of it into the floor.
+WoodSession column(const FloorGuide& guide, size_t q);
 
 /// The floor model, a session built step by step from a guide, grouped by quarter: quarter_0 to quarter_3 each with its members, its column, its part of the oculus ring and its connectors and screws, and the oculus with the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions.
 class Floor : public WoodSession {
@@ -128,7 +105,7 @@ public:
     std::array<QuarterMembers, 4> quarters; // The elements of quarter q.
     std::vector<std::shared_ptr<BeamVariable>> ring; // The four ring beams, oculus_<q>.
     std::vector<std::shared_ptr<Plate>> oculus_plates; // The four bottom wedges oculus_4 to oculus_7 and the central plate oculus_8.
-    std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its ColumnSession, empty until the columns are added.
+    std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its column session, empty until the columns are added.
     std::vector<std::shared_ptr<JointBeam>> connectors; // Every connector added: wedges, plates, cross laps and dowels.
     std::vector<std::shared_ptr<JointBeam>> screws; // Every screw connector added.
 
