@@ -34,7 +34,7 @@ bool is_geometry_feature(std::string_view feature_type);
 /// A feature of one polyline, whole element unless a face is given.
 ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index = -1);
 
-/// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact", the "drill" of every hole a joint makes and the "solid_feature" of every solid another element takes away.
+/// The feature_type names WoodSession puts on elements as it stores contacts and joints: "joint", "contact", and the "drill" of every hole a joint makes; a solid another element takes away is that element, a child layer of the one it cuts.
 bool is_session_feature(std::string_view feature_type);
 
 /// The features the session put on the element, guids and visibility kept; what every compute_geometry_mesh() carries over.

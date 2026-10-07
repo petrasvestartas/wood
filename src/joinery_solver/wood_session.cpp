@@ -848,7 +848,7 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, con
     }
 
     for (const ElementFeature& feature : target->features())
-        if ((feature.feature_type == "drill" || feature.feature_type == "solid_feature") && feature.guid().starts_with(source->guid() + "/"))
+        if (feature.feature_type == "drill" && feature.guid().starts_with(source->guid() + "/"))
             erased.insert(feature.guid());
 
     drop_host_features(*this, source->guid(), "", erased);
@@ -1331,14 +1331,6 @@ static void host_solid_feature(WoodSession& scene, const Element& source, Intera
         throw std::invalid_argument("Missing closed cutter solid");
 
     cut.source = source.guid();
-
-    if (solid) {
-        const std::vector<Polyline> outlines = cut.mesh.transformed(scene.world_xform(source.guid())).face_outlines();
-        ElementFeature feature("solid_feature", -1, outlines, source.name);
-        feature.guid() = source.guid() + "/cut";
-        drop_host_features(scene, target->guid(), "", {feature.guid()});
-        scene.host_feature(target->guid(), std::move(feature));
-    }
 
     const std::optional<Xform> local = scene.world_xform(target->guid()).inverse();
 
