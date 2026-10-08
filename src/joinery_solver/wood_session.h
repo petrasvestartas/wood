@@ -270,6 +270,15 @@ public:
     /// Adds a connector under group and cuts it into its targets as add_joint does, so its parts and dowels become child elements of its node; returns that node.
     std::shared_ptr<TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group);
 
+    /// Adds a column with its glued head, its support and its cutters: the column, its head_blocks glued on by add interactions when head_side is larger than its section, the support and its support joint when there is one, then every cutter hidden and taken away by a subtract interaction; returns the column.
+    std::shared_ptr<Column> add_column(
+        const std::shared_ptr<Column>& column,
+        double head_side,
+        double head_height,
+        const std::shared_ptr<Support>& support,
+        const std::vector<std::shared_ptr<Plate>>& cutters
+    );
+
     /// One past the highest n of an element named <prefix>_<n>, 0 when there is none: the next free number of a name prefix.
     size_t next_number(const std::string& prefix) const;
 

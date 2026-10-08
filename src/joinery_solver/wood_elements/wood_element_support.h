@@ -57,6 +57,9 @@ public:
     /// Where the column end stands: the head plate top less the recess, on the axis.
     Point column_foot() const;
 
+    /// The axis of the column standing on it: from column_foot() straight up to the level top_z.
+    Line column_axis(double top_z) const;
+
     /// The column screws from the head plate top, spread outwards by half the screw angle.
     std::vector<Line> screws() const;
 

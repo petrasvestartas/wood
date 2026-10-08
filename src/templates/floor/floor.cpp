@@ -12,93 +12,25 @@ namespace wood_floor {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A block over the top head_height of the axis, from (a0, b0) to (a1, b1) in the corner frame.
-static Mesh head_block(const Line& axis, const Plane& corner, double head_height, double a0, double b0, double a1, double b1) {
-
-    const Point origin = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
-    const Vector under = axis.to_vector() * ((axis.length() - head_height) / axis.length());
-
-    const Polyline base = Polyline({
-        origin + corner.x_axis() * a0 + corner.y_axis() * b0,
-        origin + corner.x_axis() * a1 + corner.y_axis() * b0,
-        origin + corner.x_axis() * a1 + corner.y_axis() * b1,
-        origin + corner.x_axis() * a0 + corner.y_axis() * b1,
-    }).closed();
-
-    return Mesh::loft({base.translated(under)}, {base.translated(axis.to_vector())}, true);
-}
-
-WoodSession glued_head(
-    const Line& axis,
-    const Plane& corner,
-    double side,
-    double head_side,
-    double head_height,
-    const std::string& name
-) {
-
-    WoodSession session(name);
-    const std::shared_ptr<Column> column = Column::square(axis, corner, side, name);
-    session.add(column);
-
-    const std::vector<Mesh> blocks = {
-        head_block(axis, corner, head_height, 0.0, side, head_side, head_side),
-        head_block(axis, corner, head_height, side, 0.0, head_side, side),
-    };
-
-    for (size_t i = 0; i < blocks.size(); i++) {
-        const std::shared_ptr<Block> glued = std::make_shared<Block>(blocks[i], fmt::format("{}_head_{}", name, i));
-        glued->is_visible = false;
-        session.add(glued);
-        session.add_interaction(glued, column, std::make_shared<InteractionFeatureSolid>(blocks[i], SolidOperation::add));
-    }
-
-    return session;
-}
-
-/// The axis of the column at corner k: from its support's foot up to the floor.
-static Line column_axis(const FloorGuide& guide, size_t k) {
-
-    const Point foot = Support(guide.support_plane(k), "support").column_foot();
-
-    return Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
-}
-
 WoodSession column(const FloorGuide& guide, size_t q) {
 
     const size_t k = q % 4;
-    WoodSession session = glued_head(
-        column_axis(guide, k),
-        guide.column_frame(k),
-        guide.size_column_head,
-        guide.size_column_head + guide.size_column_head_chamfer,
-        guide.column_head_depth,
-        fmt::format("column_{}", k)
-    );
-    const std::shared_ptr<Column> shaft = session.columns().front();
+    const std::string name = fmt::format("column_{}", k);
 
     const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(k), "support");
     support->name = fmt::format("support_{}", k);
-    session.add(support);
-
-    const std::shared_ptr<Joint> joint = Joint::support(*support, *shaft);
-    session.add(joint);
-    session.add_joint(joint);
+    const std::shared_ptr<Column> shaft = Column::square(support->column_axis(guide.bay_height), guide.column_frame(k), guide.size_column_head, name);
 
     const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
+    std::vector<std::shared_ptr<Plate>> cutters;
 
     for (size_t i = 0; i < loops.size(); i++) {
-        const std::shared_ptr<Plate> cutter = std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k));
-        cutter->place(Xform::translation(0.0, 0.0, guide.bay_height));
-        cutter->is_visible = false;
-        session.add(cutter);
-        session.add_interaction(
-            cutter,
-            shaft,
-            std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract)
-        );
+        cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k)));
+        cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
     }
 
+    WoodSession session(name);
+    session.add_column(shaft, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth, support, cutters);
     return session;
 }
 

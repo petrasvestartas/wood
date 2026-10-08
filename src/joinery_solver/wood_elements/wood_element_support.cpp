@@ -144,6 +144,13 @@ Point Support::column_foot() const {
     return at(height - head_plate_recess);
 }
 
+Line Support::column_axis(double top_z) const {
+
+    const Point foot = column_foot();
+
+    return Line::from_points(foot, Point(foot[0], foot[1], top_z));
+}
+
 std::vector<Line> Support::screws() const {
 
     const double radius = screw_circle_diameter * 0.5;

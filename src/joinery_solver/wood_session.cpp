@@ -1495,6 +1495,38 @@ void WoodSession::compute_breps() {
     }
 }
 
+std::shared_ptr<Column> WoodSession::add_column(
+    const std::shared_ptr<Column>& column,
+    double head_side,
+    double head_height,
+    const std::shared_ptr<Support>& support,
+    const std::vector<std::shared_ptr<Plate>>& cutters
+) {
+
+    add(column);
+
+    if (head_height > 0.0)
+        for (const std::shared_ptr<Block>& block : column->head_blocks(head_side, head_height)) {
+            add(block);
+            add_interaction(block, column, std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add));
+        }
+
+    if (support) {
+        add(support);
+        const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
+        add(joint);
+        add_joint(joint);
+    }
+
+    for (const std::shared_ptr<Plate>& cutter : cutters) {
+        cutter->is_visible = false;
+        add(cutter);
+        add_interaction(cutter, column, std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract));
+    }
+
+    return column;
+}
+
 std::shared_ptr<TreeNode> WoodSession::add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group) {
 
     if (!connector)

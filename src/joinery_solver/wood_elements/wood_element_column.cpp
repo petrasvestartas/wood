@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_serialization.h"
 #include "wood_element_column.h"
+#include "wood_element_block.h"
 #include "wood_element_geometry.h"
 #include "wood_profile.h"
 #include "element_column.pb.h"
@@ -90,6 +91,37 @@ static Polyline corner_rectangle(const Line& axis, const Plane& corner, double a
 
 std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, const std::string& name) {
     return std::make_shared<Column>(axis, corner_rectangle(axis, corner, 0.0, 0.0, side, side), name);
+}
+
+std::vector<std::shared_ptr<Block>> Column::head_blocks(double head_side, double head_height) const {
+
+    const Point origin = section.get_point(0);
+    const Vector x = section.get_point(1) - origin;
+    const Vector y = section.get_point(3) - origin;
+    const double side_x = x.magnitude();
+    const double side_y = y.magnitude();
+    const Vector under = axis.to_vector() * ((axis.length() - head_height) / axis.length());
+
+    const std::array<std::array<double, 4>, 2> spans = {{
+        {0.0, side_y, head_side, head_side},
+        {side_x, 0.0, head_side, side_y},
+    }};
+    std::vector<std::shared_ptr<Block>> blocks;
+
+    for (size_t i = 0; i < spans.size(); i++) {
+        const auto [a0, b0, a1, b1] = spans[i];
+        const Polyline base = Polyline({
+            origin + x.normalized() * a0 + y.normalized() * b0,
+            origin + x.normalized() * a1 + y.normalized() * b0,
+            origin + x.normalized() * a1 + y.normalized() * b1,
+            origin + x.normalized() * a0 + y.normalized() * b1,
+        }).closed();
+        const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{base.translated(under), base.translated(axis.to_vector())}, fmt::format("{}_head_{}", name, i));
+        block->is_visible = false;
+        blocks.push_back(block);
+    }
+
+    return blocks;
 }
 
 std::shared_ptr<Column> Column::from_element(Element e) {
