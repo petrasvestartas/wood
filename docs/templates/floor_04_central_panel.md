@@ -1,6 +1,8 @@
-# Floor 04: Central panel (rule A) and bed tops {#templates_floor_04_central_panel}
+# FloorGuide 4: Central panel (rule A) and bed tops {#templates_floor_04_central_panel}
 
 [TOC]
+
+<em>Step 4 of @ref templates_floor_guide · previous: @ref templates_floor_03_parabolas · next: @ref templates_floor_05_rib_outlines</em>
 
 `central_panel` finds one horizontal direction `rib_sweep` that moves both inner ribs' soffit shadows onto their central faces so one horizontal ruling `u` joins them (rule A), and builds the soffit, +t and +2t traces there; `bed_top_planes` then fits the plane each of the three wedge blocks stands on. Values are for quarter 0 of `FloorGuide::rectangle(3000, 3000)` in guide coordinates.
 

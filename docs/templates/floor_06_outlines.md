@@ -1,6 +1,8 @@
-# Floor 06: Beam, wedge, flange, bed, oculus and cutter outlines {#templates_floor_06_outlines}
+# FloorGuide 6: Beam, wedge, flange, bed, oculus and cutter outlines {#templates_floor_06_outlines}
 
 [TOC]
+
+<em>Step 6 of @ref templates_floor_guide · previous: @ref templates_floor_05_rib_outlines · next: @ref templates_floor_07_elements</em>
 
 This chapter builds the outlines of the inner beams, wedges, t-sections, beds, oculus and column cutters with `geometry::loft_planes` and the `Quarter` / `FloorGuide` member functions, each returning `Outline{top, bottom}` pairs at the datum z 0. Chapter 07 turns them into elements with `to_beam` and `to_plate`, and into the column's solid cuts.
 

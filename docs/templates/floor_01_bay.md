@@ -1,6 +1,8 @@
-# Floor 01: Bay, seams, oculus and column corners {#templates_floor_01_bay}
+# FloorGuide 1: Bay, seams, oculus and column corners {#templates_floor_01_bay}
 
 [TOC]
+
+<em>Step 1 of @ref templates_floor_guide · next: @ref templates_floor_02_quarter_planes</em>
 
 This chapter covers the part of `FloorGuide::compute` that checks the four corners and builds the shared `edges`, `seams`, `oculus_edges` and `columns` every quarter reads. Every value is for the default bay `FloorGuide::rectangle(3000, 3000)`, a 6000 x 6000 mm square with corner 0 at (-3000, -3000).
 

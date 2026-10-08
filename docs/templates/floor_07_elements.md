@@ -1,6 +1,8 @@
-# Floor 07: Elements and the scene {#templates_floor_07_elements}
+# Floor 7: Elements and the scene {#templates_floor_07_elements}
 
 [TOC]
+
+<em>Step 7 of @ref templates_floor_model · previous: @ref templates_floor_06_outlines · next: @ref templates_floor_08_relationships</em>
 
 `Floor::add_members` turns the outlines of chapters 5 and 6 into named elements, lifts them to `bay_height` and groups them in the `Floor`'s own tree, each with the thickness the connectors of chapters 8 to 10 are sized by. The pictures show the default 6000 x 6000 bay, `FloorGuide::rectangle(3000, 3000)`.
 

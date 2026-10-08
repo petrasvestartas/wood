@@ -1,6 +1,8 @@
-# Floor 09: Connectors {#templates_floor_09_connectors}
+# Floor 9: Connectors {#templates_floor_09_connectors}
 
 [TOC]
+
+<em>Step 9 of @ref templates_floor_model · previous: @ref templates_floor_08_relationships · next: @ref templates_floor_10_screws</em>
 
 `wood_floor::add_connectors` turns each `Relationship` row of chapter 08 into a `JointBeam` connector and hands it to `WoodSession::add_connector`, which nests its parts and dowels and cuts its members. Chapter 10 checks the screws against these cut members and connectors.
 

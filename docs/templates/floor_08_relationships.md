@@ -1,6 +1,8 @@
-# Floor 08: Relationships {#templates_floor_08_relationships}
+# Floor 8: Relationships {#templates_floor_08_relationships}
 
 [TOC]
+
+<em>Step 8 of @ref templates_floor_model · previous: @ref templates_floor_07_elements · next: @ref templates_floor_09_connectors</em>
 
 `relationships(guide)` in `src/templates/floor/floor_relations.cpp` lists every pair of members that share something by the rules of the design: the kind, the two `MemberRef`s, the plane they meet on and the contact polygon, read only from the guide lifted to `bay_height`. The next chapter turns each row into a `JointBeam` through `connector_of`.
 

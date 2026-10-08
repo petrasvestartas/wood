@@ -1,6 +1,8 @@
-# Floor 03: Construction quads, run-in and parabolas {#templates_floor_03_parabolas}
+# FloorGuide 3: Construction quads, run-in and parabolas {#templates_floor_03_parabolas}
 
 [TOC]
+
+<em>Step 3 of @ref templates_floor_guide · previous: @ref templates_floor_02_quarter_planes · next: @ref templates_floor_04_central_panel</em>
 
 `compute_quarter` turns chapter 2's planes into the plan quads `geometry.quads`, the run-ins `geometry.run_in`, the final block far faces and the four `geometry.parabolas` that chapter 4 reads. Pictures show quarter 0 of the 6000 x 6000 bay `FloorGuide::rectangle(3000.0, 3000.0)`, except frames 43 and 44, which use the 3000 x 2400 bay `FloorGuide::rectangle(3000.0, 2400.0)` because only there does the run-in solve change anything.
 

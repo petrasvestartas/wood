@@ -6,22 +6,34 @@ The vaulted timber floor bay: a bay on four columns, cut by four seams into four
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-One chapter per stage, in code order, one picture per step on the default 6000 x 6000 mm bay. Start with "FloorGuide and Floor": what FloorGuide computes and what Floor builds, in pictures. Chapters 1 to 11 are the earlier film, written before the code took its current classes.
+The floor is two classes, read in this order:
 
-- @subpage templates_floor_00_vocabulary (FloorGuide and Floor: what the guide computes, step by step, and what the floor builds from it, one picture each)
-1. @subpage templates_floor_01_bay (the corners, the centre, the seams and the oculus, the bay edges with their rib bands, and the four column corners)
-2. @subpage templates_floor_02_quarter_planes (every member's two faces in quarter 0: outer ribs, seam and oculus beams, inner ribs, the wedge fan and the t-sections)
-3. @subpage templates_floor_03_parabolas (the plan quads, the run-in solve that levels both outer ribs at the column, the final wedge faces and the rib parabolas with their layers)
-4. @subpage templates_floor_04_central_panel (the sweep that makes the central bed panel buildable, its traces, and the bed tops the wedges stand on)
-5. @subpage templates_floor_05_rib_outlines (the rib outlines, the middle cutter level, the soffit, and how the guide draws itself)
-6. @subpage templates_floor_06_outlines (every other member's outline, the oculus ring and the six column cutters)
-7. @subpage templates_floor_07_elements (outlines into beams and plates, the lift to the floor, the scene tree, the columns and get_branch)
-8. @subpage templates_floor_08_relationships (what every two members share, by the rules of the design, and the check against the kernel's contact search)
-9. @subpage templates_floor_09_connectors (wedges, column plates, cross laps and dowels, and how each cuts and drills its members)
-10. @subpage templates_floor_10_screws (the five screw kinds, their levels and aim, and the screw check)
-11. @subpage templates_floor_11_checks (the floor report, the BRep check and the eight examples)
+## 1. FloorGuide: the geometry
 
-**Reading the pictures.** Each colour marks one role, the same in picture, key and text:
+Read @subpage templates_floor_guide first. From four corners and the parameters it computes every quarter's planes, plan quads and parabolas, and every member as two face loops: geometry only, no elements; steps 1 to 6.
+
+## 2. Floor: the model
+
+Then @subpage templates_floor_model builds on it. The guide's loops become elements, their contacts become interactions, and the connectors and screws are made from them; steps 7 to 11.
+
+```mermaid
+flowchart TD
+    subgraph G["FloorGuide: geometry"]
+        direction TB
+        A["corners + parameters"] --> P["quarter_polygon, quarter_column_polygon"]
+        P --> CP["construction_planes"] --> CQ["construction_quads"] --> BP["boundary_parabolas, central_panel"]
+        BP --> M["outer_ribs, inner_ribs, inner_beams, wedges, tsections, beds, oculus, column_cutters: two face loops each"]
+    end
+    subgraph F["Floor: model"]
+        direction TB
+        E["add_quarters, add_oculus, add_columns: elements"] --> I["add_contacts: interactions"] --> J["add_connectors"] --> S["add_screws"]
+    end
+    M --> E
+```
+
+## Reading the pictures
+
+Each colour marks one role, the same in picture, key and text:
 
 | Colour | Role |
 |---|---|
@@ -35,7 +47,7 @@ Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</spa
 
 ## Data structures
 
-FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it. "FloorGuide and Floor" shows every step in a picture.
+FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it.
 
 ```mermaid
 classDiagram

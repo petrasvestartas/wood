@@ -1,6 +1,8 @@
-# Floor 02: Quarter planes {#templates_floor_02_quarter_planes}
+# FloorGuide 2: Quarter planes {#templates_floor_02_quarter_planes}
 
 [TOC]
+
+<em>Step 2 of @ref templates_floor_guide · previous: @ref templates_floor_01_bay · next: @ref templates_floor_03_parabolas</em>
 
 `compute_quarter` calls `construction_planes` and `column_seats` to build the member planes `ConstructionPlanes cp` of one quarter and the column seats in `guide.columns[q]`. Every plane except the oculus beam's is a pair `{plane, plane.translate_by_normal(distance)}` (`[0]` base face, `[1]` offset face); values are for quarter 0 of `FloorGuide::rectangle(3000, 3000)`.
 

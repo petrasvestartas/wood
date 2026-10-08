@@ -1,6 +1,8 @@
-# Floor 05: Rib outlines, levels and the guide's drawing {#templates_floor_05_rib_outlines}
+# FloorGuide 5: Rib outlines, levels and the guide's drawing {#templates_floor_05_rib_outlines}
 
 [TOC]
+
+<em>Step 5 of @ref templates_floor_guide · previous: @ref templates_floor_04_central_panel · next: @ref templates_floor_06_outlines</em>
 
 This chapter closes each rib's soffit trace into a member outline with `rib()` and `rib_loop()`, then runs the last three passes of `FloorGuide::compute`: `rib_bottom_level`, the common beam `soffit` and `draw()`. It reads the parabolas, planes and `central_panel.rib_sweep` from chapter 04 and gives the next chapters the rib outlines, `levels[1]` and `soffit`.
 
