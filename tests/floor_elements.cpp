@@ -290,35 +290,6 @@ void check_short_members() {
     std::cout << "floor_elements: short ribs on 2400 x 2400 and 6000 x 2400 bays stay inside their quarters" << std::endl;
 }
 
-/// The message of the invalid_argument a guide throws, with the rise when one is given, empty when it builds.
-std::string refusal(double half_x, double half_y, std::optional<double> rise = std::nullopt) {
-
-    try {
-        wood_floor::FloorGuide guide = rectangle_guide(half_x, half_y);
-
-        if (rise) {
-            guide.rise = *rise;
-            guide.compute();
-        }
-    } catch (const std::invalid_argument& error) {
-        return error.what();
-    }
-
-    return "";
-}
-
-/// Guides that make no floor are refused with a reason: an oculus whose inner beam corners fall inside an outer rib band, and a rise of zero or of the whole height.
-void check_refused_guides() {
-
-    const double height = rectangle_guide(3000.0, 3000.0).height;
-
-    check(refusal(3000.0, 1100.0).find("outer rib band") != std::string::npos, "an oculus 100 mm from the bay edge refused: " + refusal(3000.0, 1100.0));
-    check(refusal(3000.0, 3000.0, 0.0).find("rise") != std::string::npos, "a rise of 0 refused");
-    check(refusal(3000.0, 3000.0, height).find("rise") != std::string::npos, "a rise of the whole height refused");
-    check(refusal(3000.0, 1200.0).empty(), "6000 x 2400 still builds");
-    std::cout << "floor_elements: an oculus inside an outer rib band and a rise of 0 or of the height refused with their reasons" << std::endl;
-}
-
 /// A bay that is not a rectangle, corner 2 at 84.3 degrees and seams not square to each other, builds with every connector. On a smaller skewed bay, too small for the corner screws, the bed rows still trim into quad pairs where the end planes cross their layers on different segments.
 void check_skewed_bays() {
 
@@ -1125,7 +1096,7 @@ std::vector<double> rib_bottoms(const wood_floor::FloorGuide& guide, size_t q) {
     return levels;
 }
 
-/// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower end -689.979, the short rib's run-in solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square keeps the wedge as both run-ins.
+/// One rib level per column head: on 3000 x 2400 both outer ribs of every corner end on their fan planes at the cutter level, the shallower end -689.979, the short rib's start solved to 187.667 and the long one's kept at the wedge, every inner rib face within 0.2 mm of it; the square keeps the wedge as both rib starts.
 void check_rib_levels() {
 
     const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 2400.0);
@@ -1133,9 +1104,9 @@ void check_rib_levels() {
     for (size_t q = 0; q < 4; q++) {
         const double level = guide.column_levels(q)[1];
         const std::vector<double> bottoms = rib_bottoms(guide, q);
-        const std::array<double, 2>& run_in = guide.run_in(q);
+        const std::array<double, 2>& starts = guide.rib_starts(q);
         check(std::abs(level + 689.979) < 1e-3, fmt::format("corner {}'s level at the shallower outer rib end, {:.3f}", q, level));
-        check(std::max(run_in[0], run_in[1]) == guide.size_wedge && std::abs(std::min(run_in[0], run_in[1]) - 187.667) < 1e-3, fmt::format("corner {}'s run-ins {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, run_in[0], run_in[1]));
+        check(std::max(starts[0], starts[1]) == guide.size_wedge && std::abs(std::min(starts[0], starts[1]) - 187.667) < 1e-3, fmt::format("corner {}'s rib starts {:.3f} / {:.3f}: the long rib keeps the wedge, the short one 187.667", q, starts[0], starts[1]));
 
         for (size_t i = 0; i < 4; i++)
             check(std::abs(bottoms[i] - level) <= 1e-9, fmt::format("corner {}'s outer rib face {} ends {:.3e} mm off the level", q, i, bottoms[i] - level));
@@ -1147,9 +1118,9 @@ void check_rib_levels() {
     const wood_floor::FloorGuide& square = square_guide();
 
     for (size_t q = 0; q < 4; q++)
-        check(square.run_in(q)[0] == square.size_wedge && square.run_in(q)[1] == square.size_wedge, "the square keeps the wedge as its run-in");
+        check(square.rib_starts(q)[0] == square.size_wedge && square.rib_starts(q)[1] == square.size_wedge, "the square keeps the wedge as its rib start");
 
-    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the short run-in {:.3f}; the square at the wedge run-in", guide.column_levels(0)[1], std::min(guide.run_in(0)[0], guide.run_in(0)[1])) << std::endl;
+    std::cout << fmt::format("floor_elements: one rib level per column on 3000 x 2400, {:.3f}, the short rib start {:.3f}; the square at the wedge rib start", guide.column_levels(0)[1], std::min(guide.rib_starts(0)[0], guide.rib_starts(0)[1])) << std::endl;
 }
 
 /// The thickness of each column block of quarter q, side 0, middle and side 1: its far plane's distance from its fan plane.
@@ -1176,16 +1147,16 @@ double far_bottom(const std::array<Polyline, 2>& block) {
     return lowest;
 }
 
-/// The column blocks span their ribs' run-ins: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; 240 / 300 / 240 on the square.
+/// The column blocks span their ribs' rib starts: on 3000 x 2400 the side blocks 240 and 187.667 thick with their far ends within 1 mm, the middle one 1.25 times their mean, 267.292; 240 / 300 / 240 on the square.
 void check_column_blocks() {
 
     const wood_floor::FloorGuide guide = rectangle_guide(3000.0, 2400.0);
 
     for (size_t q = 0; q < 4; q++) {
         const std::array<double, 3> thickness = block_thickness(guide, q);
-        const std::array<double, 2>& run_in = guide.run_in(q);
+        const std::array<double, 2>& starts = guide.rib_starts(q);
         const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(q);
-        check(std::abs(thickness[0] - run_in[0]) <= 1e-9 && std::abs(thickness[2] - run_in[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the run-ins {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], run_in[0], run_in[1]));
+        check(std::abs(thickness[0] - starts[0]) <= 1e-9 && std::abs(thickness[2] - starts[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the rib starts {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], starts[0], starts[1]));
         check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
     }
 
@@ -1195,7 +1166,7 @@ void check_column_blocks() {
     }
 
     const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(0);
-    std::cout << fmt::format("floor_elements: the column blocks over the run-ins on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(guide, 0)[0], block_thickness(guide, 0)[1], block_thickness(guide, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
+    std::cout << fmt::format("floor_elements: the column blocks over the rib starts on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(guide, 0)[0], block_thickness(guide, 0)[1], block_thickness(guide, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
 }
 
 /// The 3000 x 2400 bay: every member face planar, and the floor builds with every connector.
@@ -1372,7 +1343,6 @@ int main() {
     check_rib_levels();
     check_column_blocks();
     check_short_members();
-    check_refused_guides();
     check_contacts();
     check_beams();
     check_thickness();

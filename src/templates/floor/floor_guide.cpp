@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "src/templates/floor/floor_guide.h"
 
+#include <span>
+
 using namespace session_cpp;
 using namespace wood_session;
 
@@ -8,8 +10,8 @@ namespace wood_floor {
 
 const double EXTENSION = 1000.0; // how far a trace's ends are pushed out before the planes that end its member trim it
 const double RIGHT_ANGLE = 1e-9; // degrees off 90 within which a corner counts as right, so a rectangle keeps its exact edge directions
-const double RUN_IN_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps the size_wedge as its run-in
-const size_t RUN_IN_STEPS = 50; // secant steps a run-in may take to land its rib's end on the shared level
+const double RIB_START_TOLERANCE = 1e-11; // mm an outer rib's end may sit off its corner's shared level; within it the rib keeps the size_wedge as its start
+const size_t RIB_START_STEPS = 50; // secant steps a rib start may take to land its rib's end on the shared level
 const double SCAN_STEP = 0.5; // degrees between the sweep directions scanned for rule A's root
 const double SCAN_RANGE = 85.0; // degrees either side of n0 - n1 the scan covers: the second root, where both ribs shift alike, lies at 90
 const double GRAZING = 1e-3; // |n . r| below which a sweep runs along a rib face and is skipped
@@ -17,65 +19,87 @@ const size_t BISECTIONS = 200; // halvings of the bracket, far past the last bit
 const double CUTTER_MARGIN = 100.0; // how far column cutter quads overshoot and how thick they are
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
 // THE GUIDE
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
 
-FloorGuide::FloorGuide(const std::array<Point, 4>& corners) {
-    this->corners = corners;
-    compute();
-}
+FloorGuide::FloorGuide(
+    const std::array<Point, 4>& corners,
+    double size_oculus,
+    double size_column_head,
+    double size_column_head_chamfer,
+    double size_outer_ribs,
+    double size_inner_ribs,
+    double size_inner_beams,
+    double size_wedge,
+    double size_tsections,
+    double height,
+    double rise,
+    double wedge_plane_angle,
+    double oculus_plane_angle,
+    double column_head_depth,
+    double bay_height,
+    double middle_wedge_factor)
+    : WoodSession("floor_guide"),
+      corners(corners),
+      size_oculus(size_oculus),
+      size_column_head(size_column_head),
+      size_column_head_chamfer(size_column_head_chamfer),
+      size_outer_ribs(size_outer_ribs),
+      size_inner_ribs(size_inner_ribs),
+      size_inner_beams(size_inner_beams),
+      size_wedge(size_wedge),
+      size_tsections(size_tsections),
+      height(height),
+      rise(rise),
+      wedge_plane_angle(wedge_plane_angle),
+      oculus_plane_angle(oculus_plane_angle),
+      column_head_depth(column_head_depth),
+      bay_height(bay_height),
+      middle_wedge_factor(middle_wedge_factor) {
 
-void FloorGuide::compute() {
-
-    // a recompute starts from an empty drawing
-    static_cast<WoodSession&>(*this) = WoodSession("floor_guide");
-
+    // centre of the floor, the average of the four corners
     centre = Point::centroid({corners[0], corners[1], corners[2], corners[3]});
 
+    // oculus points, size_oculus from the centre towards each edge midpoint
     for (size_t q = 0; q < 4; q++)
         oculus_points[q] = centre + (midpoint(q) - centre).normalized() * size_oculus;
 
-    const std::string why = invalid();
+    // construction planes, a pair per member; each column block as thick as its rib's start, chosen so both outer ribs of a column end at one depth
+    for (size_t q = 0; q < 4; q++) {
+        const ConstructionPlanes planes = compute_construction_planes(q);
+        _construction_planes[q] = planes;
+    }
 
-    if (!why.empty())
-        throw std::invalid_argument("invalid floor guide: " + why);
+    // construction quads, each member's footprint on the floor where four of its planes cross
+    for (size_t q = 0; q < 4; q++) {
+        const ConstructionQuads quads = compute_construction_quads(_construction_planes[q]);
+        _construction_quads[q] = quads;
+    }
 
-    _construction_planes.clear();
+    // boundary parabolas, the curved underside of each rib and its two layers 27 and 54 above
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 3>, 4> parabolas = compute_boundary_parabolas(q);
+        _boundary_parabolas[q] = parabolas;
+    }
 
+    // central panel, the ruled surface between the two inner ribs and its traces on their faces
+    for (size_t q = 0; q < 4; q++) {
+        const CentralPanel panel = compute_central_panel(q);
+        _central_panel[q] = panel;
+    }
+
+    // bed top planes, the underside of each column block where it sits on its bed row: beside rib 0, in the central panel, beside rib 1
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<Plane, 3> bed_planes = compute_bed_top_planes(q);
+        _bed_top_planes[q] = bed_planes;
+    }
+
+    // the middle cutter level, one for every column: the deepest outer rib bottom corner on a fan plane
     for (size_t q = 0; q < 4; q++)
-        _construction_planes.push_back(compute_construction_planes(q));
-
-    const std::string clash = beam_corners_in_bands();
-
-    if (!clash.empty())
-        throw std::invalid_argument("invalid floor guide: " + clash);
-
-    _construction_quads.clear();
-    _run_in.clear();
-    _boundary_parabolas.clear();
-    _central_panel.clear();
-    _bed_top_planes.clear();
-
-    for (size_t q = 0; q < 4; q++) {
-        _construction_quads.push_back(compute_construction_quads(_construction_planes[q]));
-        _run_in.push_back(compute_run_in(q));
-        set_block_planes(q);
-        _construction_quads[q] = compute_construction_quads(_construction_planes[q]);
-        _boundary_parabolas.push_back(compute_boundary_parabolas(q));
-        _central_panel.push_back(compute_central_panel(q));
-        _bed_top_planes.push_back(compute_bed_top_planes(q));
-    }
-
-    // the middle cutter level: the deeper of the two outer ribs' bottom corners on their fan planes
-    for (size_t q = 0; q < 4; q++) {
-        _rib_bottom[q] = 0.0;
-
         for (const std::array<Polyline, 2>& rib : outer_ribs(q))
-            _rib_bottom[q] = std::min({_rib_bottom[q], rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
-    }
+            _rib_bottom = std::min({_rib_bottom, rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
 
+    // soffit, the one level every inner and ring beam's underside sits at: the deepest rib end on a beam, so every rib meets its beam in full
     soffit = -static_h();
 
     for (size_t q = 0; q < 4; q++) {
@@ -99,65 +123,6 @@ Point FloorGuide::midpoint(size_t k) const {
 
 double FloorGuide::corner_angle(size_t k) const {
     return (corners[(k + 1) % 4] - corners[k % 4]).angle(corners[(k + 3) % 4] - corners[k % 4], false);
-}
-
-double FloorGuide::oculus_corner_angle(size_t k) const {
-    return (oculus_points[(k + 3) % 4] - oculus_points[k % 4]).angle(oculus_points[(k + 1) % 4] - oculus_points[k % 4], false);
-}
-
-double FloorGuide::oculus_seam_angle(size_t k) const {
-    return (midpoint(k) - centre).angle(oculus_points[(k + 1) % 4] - oculus_points[k % 4], false);
-}
-
-std::string FloorGuide::invalid() const {
-
-    if (rise <= 0.0 || rise >= height)
-        return fmt::format("rise {:.3f} is not between 0 and height {:.3f}: the ribs need a parabola and a depth at the seam", rise, height);
-
-    for (size_t k = 0; k < 4; k++) {
-        const Vector after = corners[(k + 1) % 4] - corners[k];
-        const Vector before = corners[(k + 3) % 4] - corners[k];
-        if (std::abs(corners[k][2]) > 0.0)
-            return fmt::format("corner {} is not at z 0", k);
-
-        if (!Point::is_ccw(corners[k], corners[(k + 1) % 4], corners[(k + 2) % 4]))
-            return fmt::format("the corners are not counter-clockwise and convex at corner {}", (k + 1) % 4);
-
-        if (after.magnitude() <= 0.0 || before.magnitude() <= 0.0)
-            return fmt::format("corner {} repeats its neighbour", k);
-
-        const double along = (oculus_points[k] - centre).dot((midpoint(k) - centre).normalized());
-
-        if (along <= 0.0 || along >= (midpoint(k) - centre).magnitude())
-            return fmt::format("oculus point {} is not between the centre and the midpoint of edge {}", k, k);
-    }
-
-    for (size_t k = 0; k < 4; k++)
-        if (std::sin(Tolerance::to_radians(oculus_corner_angle(k))) < std::sin(Tolerance::to_radians(oculus_seam_angle(k))))
-            return fmt::format("the ring beam leaves quarter {}'s oculus beam face uncovered at oculus point {}: corner angle {:.3f}, seam angle {:.3f} degrees", (k + 1) % 4, k, oculus_corner_angle(k), oculus_seam_angle(k));
-
-    return "";
-}
-
-std::string FloorGuide::beam_corners_in_bands() const {
-
-    for (size_t q = 0; q < 4; q++) {
-        const ConstructionPlanes& cp = _construction_planes[q];
-        const Plane xy = Plane::xy_plane_at(0.0);
-        const std::array<std::tuple<Point, Plane, size_t>, 2> beam_corners = {{
-            {Intersection::plane_plane_plane(xy, cp.inner_beams[0][1], cp.inner_beams[1][1]).value(), cp.outer_ribs[0][1], q},
-            {Intersection::plane_plane_plane(xy, cp.inner_beams[1][1], cp.inner_beams[2][1]).value(), cp.outer_ribs[1][1], (q + 3) % 4},
-        }};
-
-        for (const auto& [corner, band, k] : beam_corners) {
-            const double inside = band.signed_distance(corner);
-
-            if (inside <= 0.0)
-                return fmt::format("quarter {}'s inner beam corner lies {:.3f} mm inside the outer rib band of edge {}: the oculus is too close to the bay edge", q, -inside, k);
-        }
-    }
-
-    return "";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -264,7 +229,11 @@ ConstructionPlanes FloorGuide::compute_construction_planes(size_t q) const {
     const Line line1 = Intersection::plane_plane(chamfer, cp.inner_ribs[1][1]).value();
     const Plane wedge0 = Plane::from_line(side0, -line0.to_direction());
     const Plane wedge2 = Plane::from_line(side2, line1.to_direction());
-    cp.wedges = {pair(wedge0, size_wedge), pair(chamfer, size_wedge * middle_wedge_factor), pair(wedge2, size_wedge)};
+
+    // the near faces first, as the rib starts read them; each side block then as thick as its rib's start, the middle one middle_wedge_factor times their mean
+    cp.wedges = {pair(wedge0, 0.0), pair(chamfer, 0.0), pair(wedge2, 0.0)};
+    const std::array<double, 2> starts = compute_rib_starts(cp);
+    cp.wedges = {pair(wedge0, starts[0]), pair(chamfer, middle_wedge_factor * (0.5 * (starts[0] + starts[1]))), pair(wedge2, starts[1])};
 
     // 5. t-sections beside the ribs
     cp.tsections = {
@@ -282,42 +251,37 @@ ConstructionPlanes FloorGuide::compute_construction_planes(size_t q) const {
 ConstructionQuads FloorGuide::compute_construction_quads(const ConstructionPlanes& cp) const {
 
     // the four planes of each member's quad, its corners 3-0, 0-1, 1-2 and 2-3 on the datum
-    const auto quads = [](const std::vector<std::array<Plane, 4>>& family) {
-        std::vector<Polyline> result;
-
-        for (const std::array<Plane, 4>& planes : family)
-            result.push_back(Polyline::from_planes({planes[3], planes[0], planes[1], planes[2]}, Plane::xy_plane_at(0.0)));
-
-        return result;
+    const auto quad_of = [](const std::array<Plane, 4>& planes) {
+        return Polyline::from_planes({planes[3], planes[0], planes[1], planes[2]}, Plane::xy_plane_at(0.0));
     };
 
     ConstructionQuads quad;
-    quad.outer_ribs = quads({
-        {cp.outer_ribs[0][0], cp.inner_beams[0][0], cp.outer_ribs[0][1], cp.wedges[0][0]},
-        {cp.outer_ribs[1][0], cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.wedges[2][0]},
-    });
-    quad.inner_beams = quads({
-        {cp.inner_beams[0][0], cp.inner_beams[1][0], cp.inner_beams[0][1], cp.outer_ribs[0][1]},
-        {cp.inner_beams[1][0], cp.inner_beams[2][1], cp.inner_beams[1][1], cp.inner_beams[0][1]},
-        {cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.inner_beams[2][1], cp.inner_beams[1][0]},
-    });
-    quad.inner_ribs = quads({
-        {cp.inner_ribs[0][1], cp.inner_beams[1][1], cp.inner_ribs[0][0], cp.wedges[1][0]},
-        {cp.inner_ribs[1][1], cp.inner_beams[1][1], cp.inner_ribs[1][0], cp.wedges[1][0]},
-    });
-    quad.wedges = quads({
-        {cp.wedges[0][0], cp.outer_ribs[0][1], cp.wedges[0][1], cp.inner_ribs[0][0]},
-        {cp.wedges[1][0], cp.inner_ribs[0][1], cp.wedges[1][1], cp.inner_ribs[1][1]},
-        {cp.wedges[2][0], cp.inner_ribs[1][0], cp.wedges[2][1], cp.outer_ribs[1][1]},
-    });
-    quad.tsections = quads({
-        {cp.tsections[0][0], cp.inner_beams[0][1], cp.tsections[0][1], cp.wedges[0][1]},
-        {cp.tsections[1][0], cp.inner_beams[0][1], cp.tsections[1][1], cp.wedges[0][1]},
-        {cp.tsections[2][0], cp.inner_beams[1][1], cp.tsections[2][1], cp.wedges[1][1]},
-        {cp.tsections[3][0], cp.inner_beams[1][1], cp.tsections[3][1], cp.wedges[1][1]},
-        {cp.tsections[4][0], cp.inner_beams[2][1], cp.tsections[4][1], cp.wedges[2][1]},
-        {cp.tsections[5][0], cp.inner_beams[2][1], cp.tsections[5][1], cp.wedges[2][1]},
-    });
+    quad.outer_ribs = {
+        quad_of({cp.outer_ribs[0][0], cp.inner_beams[0][0], cp.outer_ribs[0][1], cp.wedges[0][0]}),
+        quad_of({cp.outer_ribs[1][0], cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.wedges[2][0]}),
+    };
+    quad.inner_beams = {
+        quad_of({cp.inner_beams[0][0], cp.inner_beams[1][0], cp.inner_beams[0][1], cp.outer_ribs[0][1]}),
+        quad_of({cp.inner_beams[1][0], cp.inner_beams[2][1], cp.inner_beams[1][1], cp.inner_beams[0][1]}),
+        quad_of({cp.inner_beams[2][0], cp.outer_ribs[1][1], cp.inner_beams[2][1], cp.inner_beams[1][0]}),
+    };
+    quad.inner_ribs = {
+        quad_of({cp.inner_ribs[0][1], cp.inner_beams[1][1], cp.inner_ribs[0][0], cp.wedges[1][0]}),
+        quad_of({cp.inner_ribs[1][1], cp.inner_beams[1][1], cp.inner_ribs[1][0], cp.wedges[1][0]}),
+    };
+    quad.wedges = {
+        quad_of({cp.wedges[0][0], cp.outer_ribs[0][1], cp.wedges[0][1], cp.inner_ribs[0][0]}),
+        quad_of({cp.wedges[1][0], cp.inner_ribs[0][1], cp.wedges[1][1], cp.inner_ribs[1][1]}),
+        quad_of({cp.wedges[2][0], cp.inner_ribs[1][0], cp.wedges[2][1], cp.outer_ribs[1][1]}),
+    };
+    quad.tsections = {
+        quad_of({cp.tsections[0][0], cp.inner_beams[0][1], cp.tsections[0][1], cp.wedges[0][1]}),
+        quad_of({cp.tsections[1][0], cp.inner_beams[0][1], cp.tsections[1][1], cp.wedges[0][1]}),
+        quad_of({cp.tsections[2][0], cp.inner_beams[1][1], cp.tsections[2][1], cp.wedges[1][1]}),
+        quad_of({cp.tsections[3][0], cp.inner_beams[1][1], cp.tsections[3][1], cp.wedges[1][1]}),
+        quad_of({cp.tsections[4][0], cp.inner_beams[2][1], cp.tsections[4][1], cp.wedges[2][1]}),
+        quad_of({cp.tsections[5][0], cp.inner_beams[2][1], cp.tsections[5][1], cp.wedges[2][1]}),
+    };
 
     return quad;
 }
@@ -328,11 +292,11 @@ ConstructionQuads FloorGuide::compute_construction_quads(const ConstructionPlane
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::array<double, 2> FloorGuide::run_in(size_t q) const {
-    return _run_in[q % 4];
+std::array<double, 2> FloorGuide::rib_starts(size_t q) const {
+    return compute_rib_starts(_construction_planes[q % 4]);
 }
 
-const std::vector<std::array<Polyline, 3>>& FloorGuide::boundary_parabolas(size_t q) const {
+const std::array<std::array<Polyline, 3>, 4>& FloorGuide::boundary_parabolas(size_t q) const {
     return _boundary_parabolas[q % 4];
 }
 
@@ -340,12 +304,12 @@ const CentralPanel& FloorGuide::central_panel(size_t q) const {
     return _central_panel[q % 4];
 }
 
-const std::vector<Plane>& FloorGuide::bed_top_planes(size_t q) const {
+const std::array<Plane, 3>& FloorGuide::bed_top_planes(size_t q) const {
     return _bed_top_planes[q % 4];
 }
 
 std::array<double, 3> FloorGuide::column_levels(size_t q) const {
-    return {0.0, _rib_bottom[q % 4], -column_head_depth};
+    return {0.0, _rib_bottom, -column_head_depth};
 }
 
 std::array<Plane, 2> FloorGuide::rib_seam_ends(size_t q) const {
@@ -356,63 +320,60 @@ std::array<Plane, 2> FloorGuide::rib_seam_ends(size_t q) const {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Run-ins and the column blocks
+// Rib starts
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::array<double, 2> FloorGuide::compute_run_in(size_t q) const {
+Line FloorGuide::outer_rib_axis(const ConstructionPlanes& cp, size_t k) {
 
-    const ConstructionPlanes& cp = _construction_planes[q];
-    const ConstructionQuads& quads = _construction_quads[q];
+    const Plane xy = Plane::xy_plane_at(0.0);
+    const Plane& face = cp.outer_ribs[k][0];
+
+    return Line::from_points(Intersection::plane_plane_plane(xy, cp.wedges[2 * k][0], face).value(), Intersection::plane_plane_plane(xy, face, cp.inner_beams[2 * k][0]).value());
+}
+
+std::array<double, 2> FloorGuide::compute_rib_starts(const ConstructionPlanes& cp) const {
+
+    const std::array<Line, 2> axes = {outer_rib_axis(cp, 0), outer_rib_axis(cp, 1)};
     const std::array<Plane, 2> fans = {cp.wedges[0][0], cp.wedges[2][0]};
     const std::array<Plane, 2> seams = {cp.inner_beams[0][0], cp.inner_beams[2][0]};
-    const double level = std::max(fan_end(quads.outer_ribs[0], size_wedge, fans[0], seams[0]), fan_end(quads.outer_ribs[1], size_wedge, fans[1], seams[1]));
+    const double level = std::max(fan_end(axes[0], size_wedge, fans[0], seams[0]), fan_end(axes[1], size_wedge, fans[1], seams[1]));
 
-    return {run_in_to_level(quads.outer_ribs[0], fans[0], seams[0], level), run_in_to_level(quads.outer_ribs[1], fans[1], seams[1], level)};
+    return {rib_start_at_level(axes[0], fans[0], seams[0], level), rib_start_at_level(axes[1], fans[1], seams[1], level)};
 }
 
-void FloorGuide::set_block_planes(size_t q) {
+double FloorGuide::rib_start_at_level(const Line& axis, const Plane& fan, const Plane& seam, double level) const {
 
-    // each side block as thick as its own rib's run-in, the middle block middle_wedge_factor times their mean
-    const std::array<double, 2>& run = _run_in[q];
-    const std::array<double, 3> thickness = {run[0], middle_wedge_factor * (0.5 * (run[0] + run[1])), run[1]};
-
-    for (size_t i = 0; i < 3; i++)
-        _construction_planes[q].wedges[i][1] = _construction_planes[q].wedges[i][0].translate_by_normal(thickness[i]);
-}
-
-double FloorGuide::run_in_to_level(const Polyline& quad, const Plane& fan, const Plane& seam, double level) const {
-
-    const double axis = Point::distance(quad.get_point(0), quad.get_point(1));
+    const double length = axis.length();
     double x0 = size_wedge;
-    double f0 = fan_end(quad, x0, fan, seam) - level;
+    double f0 = fan_end(axis, x0, fan, seam) - level;
 
-    if (std::abs(f0) <= RUN_IN_TOLERANCE)
+    if (std::abs(f0) <= RIB_START_TOLERANCE)
         return x0;
 
     double x1 = x0 + 1.0;
-    double f1 = fan_end(quad, x1, fan, seam) - level;
+    double f1 = fan_end(axis, x1, fan, seam) - level;
 
-    for (size_t i = 0; i < RUN_IN_STEPS; i++) {
-        if (std::abs(f1) <= RUN_IN_TOLERANCE)
+    for (size_t i = 0; i < RIB_START_STEPS; i++) {
+        if (std::abs(f1) <= RIB_START_TOLERANCE)
             return x1;
 
         const double x2 = x1 - f1 * (x1 - x0) / (f1 - f0);
 
-        if (x2 <= 0.0 || x2 >= axis)
-            throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} leaves its axis: {:.3f} of {:.3f} mm", level, x2, axis));
+        if (x2 <= 0.0 || x2 >= length)
+            throw std::runtime_error(fmt::format("an outer rib's start for the column level {:.3f} leaves its axis: {:.3f} of {:.3f} mm", level, x2, length));
 
         x0 = x1;
         f0 = f1;
         x1 = x2;
-        f1 = fan_end(quad, x1, fan, seam) - level;
+        f1 = fan_end(axis, x1, fan, seam) - level;
     }
 
-    throw std::runtime_error(fmt::format("an outer rib's run-in to the column level {:.3f} did not converge: {:.3e} mm off", level, f1));
+    throw std::runtime_error(fmt::format("an outer rib's start for the column level {:.3f} did not converge: {:.3e} mm off", level, f1));
 }
 
-double FloorGuide::fan_end(const Polyline& quad, double run_in, const Plane& fan, const Plane& seam) const {
+double FloorGuide::fan_end(const Line& axis, double distance, const Plane& fan, const Plane& seam) const {
 
-    const std::vector<Point> pts = outer_parabola(quad, run_in).trimmed(fan, seam, EXTENSION).get_points();
+    const std::vector<Point> pts = outer_parabola(axis, distance).trimmed(fan, seam, EXTENSION).get_points();
     const double d0 = std::abs(fan.signed_distance(pts.front()));
     const double d1 = std::abs(fan.signed_distance(pts.back()));
 
@@ -423,40 +384,41 @@ double FloorGuide::fan_end(const Polyline& quad, double run_in, const Plane& fan
 // Parabolas and bed planes
 // ═══════════════════════════════════════════════════════════════════════════
 
-Polyline FloorGuide::outer_parabola(const Polyline& quad, double run_in) const {
+Polyline FloorGuide::outer_parabola(const Line& axis, double distance) const {
 
-    const Point start = quad.get_point(0);
-    const Point end = quad.get_point(1);
-    const Point trimmed = start + (end - start).normalized() * run_in;
+    const Point start = axis.start();
+    const Point end = axis.end();
+    const Point trimmed = start + (end - start).normalized() * distance;
     const Point middle = Point::mid_point(trimmed, end);
 
     return Polyline::quadratic_points(trimmed + Vector(0.0, 0.0, -height), middle + Vector(0.0, 0.0, -static_h()), end + Vector(0.0, 0.0, -static_h()));
 }
 
-std::vector<std::array<Polyline, 3>> FloorGuide::compute_boundary_parabolas(size_t q) const {
+std::array<std::array<Polyline, 3>, 4> FloorGuide::compute_boundary_parabolas(size_t q) const {
 
     const ConstructionPlanes& cp = _construction_planes[q];
-    std::vector<std::array<Polyline, 3>> parabolas;
+    const std::array<double, 2> starts = compute_rib_starts(cp);
+    std::array<std::array<Polyline, 3>, 4> parabolas;
 
     for (size_t k = 0; k < 2; k++) {
-        const Polyline parabola = outer_parabola(_construction_quads[q].outer_ribs[k], _run_in[q][k]);
-        parabolas.push_back({parabola, parabola.offset_toward(size_tsections, Vector::z_axis()), parabola.offset_toward(2.0 * size_tsections, Vector::z_axis())});
+        const Polyline parabola = outer_parabola(outer_rib_axis(cp, k), starts[k]);
+        parabolas[k] = {parabola, parabola.offset_toward(size_tsections, Vector::z_axis()), parabola.offset_toward(2.0 * size_tsections, Vector::z_axis())};
     }
 
     // the inner parabolas are projections of the outer ones onto the inner ribs' outer faces
     for (size_t i = 0; i < 2; i++) {
         const Xform projection = Xform::project_to_plane_by_axis(cp.inner_ribs[i][0], cp.outer_ribs[i][0].z_axis());
         const std::array<Polyline, 3>& outer = parabolas[i];
-        parabolas.push_back({outer[0].transformed(projection), outer[1].transformed(projection), outer[2].transformed(projection)});
+        parabolas[2 + i] = {outer[0].transformed(projection), outer[1].transformed(projection), outer[2].transformed(projection)};
     }
 
     return parabolas;
 }
 
-std::vector<Plane> FloorGuide::compute_bed_top_planes(size_t q) const {
+std::array<Plane, 3> FloorGuide::compute_bed_top_planes(size_t q) const {
 
     const ConstructionPlanes& cp = _construction_planes[q];
-    const std::vector<std::array<Polyline, 3>>& parabolas = _boundary_parabolas[q];
+    const std::array<std::array<Polyline, 3>, 4>& parabolas = _boundary_parabolas[q];
     const CentralPanel& panel = _central_panel[q];
 
     // the plane through a panel's deepest quad, its top layer on the two side planes trimmed by the panel planes, normal up
@@ -614,7 +576,7 @@ std::vector<std::array<std::array<Polyline, 2>, 2>> FloorGuide::bed_rails(size_t
     };
 
     const ConstructionPlanes& cp = construction_planes(q);
-    const std::vector<std::array<Polyline, 3>>& pb = boundary_parabolas(q);
+    const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
     const CentralPanel& panel = central_panel(q);
 
     return {
@@ -675,11 +637,11 @@ std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {
     };
 
     const ConstructionPlanes& cp = construction_planes(q);
-    const std::vector<std::array<Polyline, 3>>& pb = boundary_parabolas(q);
+    const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
     const CentralPanel& panel = central_panel(q);
     const Vector outer0 = cp.outer_ribs[0][0].z_axis();
     const Vector outer1 = cp.outer_ribs[1][0].z_axis();
-    const std::vector<std::array<Plane, 2>>& ts = cp.tsections;
+    const std::array<std::array<Plane, 2>, 6>& ts = cp.tsections;
 
     return {
         outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0]),
@@ -694,7 +656,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {
 std::vector<std::array<Polyline, 2>> FloorGuide::outer_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
-    const std::vector<std::array<Polyline, 3>>& parabolas = boundary_parabolas(q);
+    const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
     const std::array<Plane, 2> ends = rib_seam_ends(q);
 
     return {
@@ -706,7 +668,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::outer_ribs(size_t q) const {
 std::vector<std::array<Polyline, 2>> FloorGuide::inner_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
-    const std::vector<std::array<Polyline, 3>>& parabolas = boundary_parabolas(q);
+    const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
     const Vector& sweep = central_panel(q).rib_sweep;
 
     return {
@@ -718,7 +680,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::inner_ribs(size_t q) const {
 std::vector<std::array<Polyline, 2>> FloorGuide::wedges(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
-    const std::vector<Plane>& beds = bed_top_planes(q);
+    const std::array<Plane, 3>& beds = bed_top_planes(q);
     const Plane top = Plane::xy_plane_at(0.0);
     const std::array<std::array<Plane, 2>, 3> ribs = {{
         {cp.outer_ribs[0][1], cp.inner_ribs[0][0]},
@@ -939,8 +901,8 @@ void FloorGuide::draw() {
     struct DrawnFamily {
         std::string name;
         Color color;
-        const std::vector<Polyline>& quads;
-        const std::vector<std::array<Plane, 2>>& planes;
+        std::span<const Polyline> quads; // a family's members, however many
+        std::span<const std::array<Plane, 2>> planes;
         int parabola;
     };
 

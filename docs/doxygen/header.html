@@ -30,9 +30,37 @@ $extrastylesheet
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script type="text/javascript">
+  // Doxygen colours only keywords, strings and the names it links; highlight.js colours every code block
+  // fully, line by line in the block's language, keeping each line's anchor and number in front.
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof hljs === "undefined")
+      return;
+
+    for (const fragment of document.querySelectorAll("div.fragment")) {
+      const lines = [...fragment.querySelectorAll("div.line")];
+      const kept = lines.map(line => [...line.childNodes].filter(node => node.matches && (node.matches("a[id]") || node.matches("span.lineno"))));
+      kept.forEach(nodes => nodes.forEach(node => node.remove()));
+      const language = hljs.highlightAuto(lines.map(line => line.textContent).join("\n"), ["cpp", "bash", "python"]).language || "cpp";
+
+      lines.forEach((line, i) => {
+        line.innerHTML = hljs.highlight(line.textContent, { language, ignoreIllegals: true }).value;
+        line.prepend(...kept[i]);
+      });
+    }
+  });
+</script>
 <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
 <script type="text/javascript">
   DoxygenAwesomeDarkModeToggle.init();
+  // Doxygen saves the panel widths at every window resize, so one narrow window left the tree collapsed for
+  // good: a width under 150 px is neither saved nor restored, the tree opens at 280 px again.
+  if (typeof Cookie !== "undefined") {
+    const read = Cookie.readSetting.bind(Cookie), write = Cookie.writeSetting.bind(Cookie);
+    Cookie.readSetting = (name, fallback) => { const value = read(name, fallback); return name === "width" && parseInt(value) < 150 ? 280 : value; };
+    Cookie.writeSetting = (name, value, days) => { if (name !== "width" || parseInt(value) >= 150) write(name, value, days); };
+  }
 </script>
 </head>
 <body>

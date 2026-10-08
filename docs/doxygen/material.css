@@ -383,6 +383,17 @@ doxygen-awesome-dark-mode-toggle:hover {
     background: transparent;
 }
 
+/* a narrow window gives up the outline on the right first; the tree on the left goes only below 768 px */
+@media screen and (max-width: 1199px) {
+    #page-nav, #page-nav-resize-handle {
+        display: none !important;
+    }
+
+    #container {
+        grid-template-columns: auto !important;
+    }
+}
+
 ul.page-outline {
     margin: 16px 8px 16px 12px;
 }
@@ -541,6 +552,33 @@ div.fragment, pre.fragment, div.contents pre {
 
 div.line {
     min-height: 20px;
+}
+
+/* highlight.js tokens (header.html) in the palette above */
+div.fragment .hljs-keyword,
+div.fragment .hljs-type,
+div.fragment .hljs-built_in,
+div.fragment .hljs-literal {
+    color: var(--md-hl-keyword);
+}
+
+div.fragment .hljs-string {
+    color: var(--md-hl-string);
+}
+
+div.fragment .hljs-number,
+div.fragment .hljs-meta {
+    color: var(--md-hl-special);
+}
+
+div.fragment .hljs-title,
+div.fragment .hljs-function {
+    color: var(--md-hl-function);
+}
+
+div.fragment .hljs-comment {
+    color: var(--md-fg-light);
+    font-style: italic;
 }
 
 /* the Mermaid fences keep their own canvas */

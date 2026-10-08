@@ -5,10 +5,10 @@
 The vaulted timber floor is supported by four columns. The column heads are integrated into the columns and connect the four quarter components. The central oculus interlocks all four components.
 
 Two classes build the floor:
-- `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`) - geometric guidelines - @subpage templates_floor_guide
-- `wood_floor::Floor` (`src/templates/floor/floor.h`) - elements, contacts and connectors - @subpage templates_floor_model
+- @subpage templates_floor_guide - API `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`)
+- @subpage templates_floor_model - API `wood_floor::Floor` (`src/templates/floor/floor.h`)
 
-![The floor in its key steps](floor/floor_film.webp)
+![The finished floor](floor/921_floor.webp)
 
 
 ```mermaid
@@ -26,38 +26,6 @@ flowchart TD
     M --> E
 ```
 
-
-
-## How to read the pictures
-
-Every step picture shows quarter 0 only; the other three quarters are built by the same code at their own corners. Black labels are the names used in the code.
-
-In the **step pictures** (the chapters), colour shows the role of each line:
-
-- <span style="color:#2196EA">■</span> **blue**: what this step creates
-- <span style="color:#E8478B">■</span> **pink**: the new value the step introduces, named in the text
-- <span style="color:#F2CC0C">■</span> **yellow**: a second result of the same step, when there is one
-- <span style="color:#737373">■</span> **dark grey**: what the step takes from earlier steps; dashed lines are construction helpers
-- <span style="color:#DADADA">■</span> **light grey**: the rest of the floor, only for orientation
-
-In the **overview pictures** (whole members), colour shows the member family instead: <span style="color:#E8478B">■</span> outer ribs, <span style="color:#F2CC0C">■</span> inner ribs, <span style="color:#7C7C7C">■</span> inner beams, <span style="color:#A8A8A8">■</span> wedges, <span style="color:#D9B860">■</span> t-sections, <span style="color:#6FA9D8">■</span> beds, <span style="color:#E06CA0">■</span> oculus ring, <span style="color:#6E6E6E">■</span> column, <span style="color:#2196EA">■</span> connectors.
-
-## Data structures
-
-
-Each member has one name everywhere, from `MemberRef::name()`.
-
-| Family | Count per quarter | Element | Name |
-|---|---|---|---|
-| `outer_ribs` | 2 | `BeamVariable` | `outer_ribs_<i>_<q>` |
-| `inner_ribs` | 2 | `BeamVariable` | `inner_ribs_<i>_<q>` |
-| `inner_beams` | 3: seam, oculus edge, seam | `BeamVariable` | `inner_beams_<i>_<q>` |
-| `wedges` | 3 at the column head | `Plate` | `wedges_<i>_<q>` |
-| `tsections` | 6 beside the ribs | `Plate` | `tsections_<i>_<q>` |
-| `beds` | 3 rows | `Plate` | `beds_<row>_<i>_<q>` |
-| ring | 1 beam and 1 bottom wedge | `BeamVariable`, `Plate` | `oculus_<q>`, `oculus_<q + 4>` |
-| column | 1 support, 1 column | `Support`, `Column` | `support_<q>`, `column_<q>` |
-| central plate | 1 for the floor | `Plate` | `oculus_8` |
 
 ## Examples
 
