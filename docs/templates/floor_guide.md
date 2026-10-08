@@ -334,8 +334,6 @@ cp.wedges = {pair(wedge0, starts[0]), pair(chamfer, middle_wedge_factor * (0.5 *
 
 ![Wedges](floor/957_construction_planes_wedges.webp)
 
-![The blocks at their thickness](floor/961_section_block_planes.webp)
-
 </details>
 
 <details>
