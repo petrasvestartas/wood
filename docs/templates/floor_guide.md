@@ -91,13 +91,10 @@ The column head in plan: the head, its chamfer, the wedges, the ribs and the t-s
 
 ![The column head parameters](floor/942_parameters_head.webp)
 
-Outer rib 0 and column 0 in elevation: `bay_height`, `height`, `rise` and `column_head_depth`.
+Outer rib 0 and column 0 in elevation: `bay_height`, `height`, `rise`, `column_head_depth`, and the two leaning planes seen edge-on, `wedge_plane_angle` and `oculus_plane_angle`.
 
 ![The elevation parameters](floor/943_parameters_elevation.webp)
 
-The two leaning planes seen edge-on: the middle wedge's fan plane and the oculus beam's bearing plane.
-
-![The leaning planes](floor/944_parameters_angles.webp)
 
 Every parameter is a constructor argument with its default, kept as a read-only field of `FloorGuide`. Sizes are in mm, angles in degrees.
 
