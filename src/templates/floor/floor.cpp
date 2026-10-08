@@ -8,23 +8,9 @@ namespace wood_floor {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-// PLATES AND COLUMN
+// COLUMN
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::vector<std::shared_ptr<Plate>> plates_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
-
-    std::vector<std::shared_ptr<Plate>> plates;
-    const size_t segments = std::min({bottom[0].point_count(), bottom[1].point_count(), top[0].point_count(), top[1].point_count()}) - 1;
-
-    for (size_t i = 0; i < segments; i++) {
-        const Polyline below = Polyline({bottom[0].get_point(i), bottom[0].get_point(i + 1), bottom[1].get_point(i + 1), bottom[1].get_point(i)}).closed();
-        const Polyline above = Polyline({top[0].get_point(i), top[0].get_point(i + 1), top[1].get_point(i + 1), top[1].get_point(i)}).closed();
-        plates.push_back(std::make_shared<Plate>(below, above, fmt::format("{}_{}", name, i)));
-    }
-
-    return plates;
-}
 
 /// A block over the top head_height of the axis, from (a0, b0) to (a1, b1) in the corner frame.
 static Mesh head_block(const Line& axis, const Plane& corner, double head_height, double a0, double b0, double a1, double b1) {
@@ -152,7 +138,7 @@ void Floor::add_quarters() {
 
         for (size_t row = 0; row < rows.size(); row++) {
             const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}{}", row, suffix), beds);
-            members.beds.push_back(plates_between(rows[row][0], rows[row][1], "beds"));
+            members.beds.push_back(Plate::row_between(rows[row][0], rows[row][1], "beds"));
 
             for (size_t i = 0; i < members.beds.back().size(); i++)
                 add_placed(members.beds.back()[i], fmt::format("beds_{}_{}{}", row, i, suffix), node);

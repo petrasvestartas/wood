@@ -49,6 +49,9 @@ public:
     /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
     static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name = "plate");
 
+    /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate <name>_<i>, its bottom quad and its top quad.
+    static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
+
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
     static std::shared_ptr<Plate> from_element(Element element);
 

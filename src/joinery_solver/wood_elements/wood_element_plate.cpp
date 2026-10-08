@@ -88,6 +88,20 @@ std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& 
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
+std::vector<std::shared_ptr<Plate>> Plate::row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
+
+    std::vector<std::shared_ptr<Plate>> plates;
+    const size_t segments = std::min({bottom[0].point_count(), bottom[1].point_count(), top[0].point_count(), top[1].point_count()}) - 1;
+
+    for (size_t i = 0; i < segments; i++) {
+        const Polyline below = Polyline({bottom[0].get_point(i), bottom[0].get_point(i + 1), bottom[1].get_point(i + 1), bottom[1].get_point(i)}).closed();
+        const Polyline above = Polyline({top[0].get_point(i), top[0].get_point(i + 1), top[1].get_point(i + 1), top[1].get_point(i)}).closed();
+        plates.push_back(std::make_shared<Plate>(below, above, fmt::format("{}_{}", name, i)));
+    }
+
+    return plates;
+}
+
 std::shared_ptr<Plate> Plate::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

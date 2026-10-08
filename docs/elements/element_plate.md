@@ -9,6 +9,7 @@ A timber plate: a bottom and a top outline, one side face per edge. Its joints c
 ```cpp
 Plate(const Polyline& bottom, const Polyline& top, const std::string& name = "plate")
 static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name = "plate")
+static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates")
 ```
 
 ## From two polylines
@@ -31,6 +32,6 @@ Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add
 
 ![Lofted between two rails](elements/element_plate_session.png)
 
-Several plates from two rails, as a bed row of the floor: `wood_floor::plates_between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them; the example adds them to a WoodSession.
+Several plates from two rails, as a bed row of the floor: `Plate::row_between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them; the example adds them to a WoodSession.
 
 \include{lineno} elements/element_plate_session.cpp
