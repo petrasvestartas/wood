@@ -354,8 +354,8 @@ void connectors(const Context& context) {
 void screws(const Context& context) {
 
     const FloorGuide& guide = context.guide;
-    const ScrewLines lines(guide);
-    Frame frame(CHAPTER, 919, "screws", "add_screws: ScrewLines finds the 200 mm screw lines between members that butt; JointBeam::screws pre-drills them", "iso", QUARTER);
+    const Floor floor(guide);
+    Frame frame(CHAPTER, 919, "screws", "add_screws: rib_beam_screws, beam_mitre_screws and rib_corner_screws find the 200 mm screw lines between members that butt; JointBeam::screws pre-drills them", "iso", QUARTER);
     frame.distance = 0.8;
 
     for (const Family family : {Family::outer_ribs, Family::inner_ribs, Family::inner_beams, Family::wedges})
@@ -365,7 +365,7 @@ void screws(const Context& context) {
         }
 
     for (size_t k = 0; k < 2; k++)
-        for (const std::vector<Line>& screw_lines : {lines.rib_beam(0, k), lines.beam_mitre(0, k), lines.rib_corner(0, k)})
+        for (const std::vector<Line>& screw_lines : {floor.rib_beam_screws(0, k), floor.beam_mitre_screws(0, k), floor.rib_corner_screws(0, k)})
             for (const Line& screw : screw_lines)
                 frame.line(screw, BUILT);
 

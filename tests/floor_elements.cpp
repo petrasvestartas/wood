@@ -367,11 +367,11 @@ void check_connector_calls() {
 
     try {
         const wood_floor::FloorGuide narrow_bay = rectangle_guide(3000.0, 1700.0);
-        const wood_floor::ScrewLines lines(narrow_bay);
+        const wood_floor::Floor narrow_floor(narrow_bay);
 
         for (size_t q = 0; q < 4; q++)
             for (size_t k = 0; k < 2; k++)
-                (void)lines.rib_corner(q, k);
+                (void)narrow_floor.rib_corner_screws(q, k);
     } catch (const std::runtime_error& error) {
         narrow = std::string(error.what()).find("too narrow") != std::string::npos;
     }
@@ -381,13 +381,13 @@ void check_connector_calls() {
     const wood_floor::FloorGuide skewed({Point(-3000.0, -3000.0, 0.0), Point(3000.0, -3000.0, 0.0), Point(2000.0, 3000.0, 0.0), Point(-2000.0, 3000.0, 0.0)});
     double off = 0.0;
 
-    const wood_floor::ScrewLines skewed_lines(skewed);
+    const wood_floor::Floor skewed_floor(skewed);
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const Plane far = skewed.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, skewed.bay_height));
 
-            for (const Line& screw : skewed_lines.rib_beam(q, k))
+            for (const Line& screw : skewed_floor.rib_beam_screws(q, k))
                 off = std::max(off, std::abs(std::abs(far.signed_distance(screw.start())) - skewed.size_inner_beams));
         }
 
@@ -557,8 +557,6 @@ void check_seam_beams() {
     scene.add_connectors({wood_floor::ContactKind::oculus_wedge, wood_floor::ContactKind::column_plate, wood_floor::ContactKind::block_dowels});
     scene.add_screws();
 
-    const wood_floor::ScrewLines lines(guide);
-
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const Vector across = guide.construction_planes(q).outer_ribs[k][0].z_axis();
@@ -566,7 +564,7 @@ void check_seam_beams() {
             const Plane end = guide.rib_seam_ends(q)[k];
             const Plane far = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
             const double bottom = guide.bay_height + std::min(lowest_on(rib[0], end), lowest_on(rib[1], end));
-            const std::vector<Line> screws = lines.rib_beam(q, k);
+            const std::vector<Line> screws = scene.rib_beam_screws(q, k);
             const std::string label = fmt::format("quarter {} outer rib {}", q, k);
             check(screws.size() == 2 && std::abs(screws[0].start()[2] - (guide.bay_height - 20.0)) <= 1e-9 && std::abs(screws[1].start()[2] - (bottom + 20.0)) <= 1e-9, label + " screws 20 mm below the rib top and above its bottom");
 

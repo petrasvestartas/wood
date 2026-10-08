@@ -58,12 +58,9 @@ classDiagram
         add_contacts() by contact search
         add_connectors()
         add_screws()
-    }
-    class ScrewLines {
-        rib_beam, beam_mitre, rib_corner
+        rib_beam_screws, beam_mitre_screws, rib_corner_screws
     }
     FloorGuide --> Floor : loops become elements
-    ScrewLines --> Floor : screw lines
 ```
 
 Each member has one name everywhere, from `MemberRef::name()`.

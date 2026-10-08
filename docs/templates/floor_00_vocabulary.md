@@ -209,7 +209,7 @@ Code: [`add_connectors`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd
 
 <span style="color:#2196EA">■ screw lines</span> <span style="color:#A3A3A3">■ member loops</span>
 
-`ScrewLines` finds the 200 mm screw lines between members that butt; `JointBeam::screws` pre-drills them into both members.
+`rib_beam_screws`, `beam_mitre_screws` and `rib_corner_screws` find the 200 mm screw lines between members that butt; `JointBeam::screws` pre-drills them into both members.
 
 Code: [`add_screws`](https://github.com/petrasvestartas/wood/blob/fb0e0986bd4dfdde98bb038926f4f202aac7dadb/src/templates/floor/floor.h#L191)
 

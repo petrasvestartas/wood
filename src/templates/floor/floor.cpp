@@ -8,115 +8,6 @@ namespace wood_floor {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-// CONTACTS AND SCREWS
-// ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Screws
-// ═══════════════════════════════════════════════════════════════════════════
-
-ScrewLines::ScrewLines(const FloorGuide& guide)
-    : guide(guide),
-      lift(Xform::translation(0.0, 0.0, guide.bay_height)) {
-}
-
-std::vector<Line> ScrewLines::rib_beam(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const size_t beam = k == 0 ? 0 : 2;
-    const std::array<Polyline, 2> rib = guide.outer_ribs(q)[k];
-    std::vector<Line> screws;
-
-    for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
-        screws.push_back(from_seam_face(cp.outer_ribs[k], cp.inner_beams[beam], level, k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET));
-
-    return transformed_list(screws, lift);
-}
-
-std::vector<Line> ScrewLines::beam_mitre(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const size_t seam = k == 0 ? 0 : 2;
-    const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
-    std::vector<Line> screws;
-
-    for (double levels : MITRE_LEVELS[k])
-        screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body, corner_level(levels)));
-
-    return transformed_list(screws, lift);
-}
-
-std::vector<Line> ScrewLines::rib_corner(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
-    const size_t seam = k == 0 ? 0 : 2;
-    std::vector<Line> screws;
-
-    for (double levels : RIB_CORNER_LEVELS) {
-        screws.push_back(along_axis(cp.inner_ribs[k], cp.inner_beams[1][0], body, corner_level(levels)));
-        const double from_seam = cp.inner_beams[seam][0].signed_distance(screws.back().start());
-
-        if (from_seam < 0.5 * SCREW_SPACING)
-            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
-    }
-
-    return transformed_list(screws, lift);
-}
-
-bool ScrewLines::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
-
-    const Plane beam_end = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(lift);
-    const Point beam_body = FloorGuide::body(guide.inner_beams(q)[1]).transformed(lift);
-    const double beam_side = beam_end.signed_distance(beam_body) < 0.0 ? -1.0 : 1.0;
-
-    for (const Line& screw : screws)
-        if (beam_side * beam_end.signed_distance(screw.start()) < 0.0)
-            return true;
-
-    return false;
-}
-
-Line ScrewLines::along_axis(const std::array<Plane, 2>& butting, const Plane& far_face, const Point& butting_body, double z) {
-
-    const Line line = axis(butting, z);
-    const Point head = Intersection::line_plane(line, far_face, false).value();
-    Vector d = line.to_direction();
-
-    if (d.dot(butting_body - head) < 0.0)
-        d = -d;
-
-    return Line::from_points(head, head + d * SCREW_LENGTH);
-}
-
-Line ScrewLines::from_seam_face(const std::array<Plane, 2>& rib, const std::array<Plane, 2>& beam, double z, double offset) {
-
-    const Line line = axis(rib, z);
-    const Vector across = rib[0].z_axis() * offset;
-    const Vector along = (Intersection::line_plane(line, beam[1], false).value() - Intersection::line_plane(line, beam[0], false).value()).normalized();
-    const Point head = Intersection::line_plane(line + across, beam[0], false).value();
-
-    return Line::from_points(head, head + along * SCREW_LENGTH);
-}
-
-Line ScrewLines::axis(const std::array<Plane, 2>& faces, double z) {
-
-    const Line line0 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[0]).value();
-    const Line line1 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[1]).value();
-    const Point p0 = line0.start();
-    const Point p1 = line1.closest_point(p0, false).second;
-    const Point middle = Point::mid_point(p0, p1);
-
-    return Line::from_points(middle, middle + line0.to_direction());
-}
-
-double ScrewLines::corner_level(double levels) const {
-    return -guide.static_h() * levels / CORNER_LEVELS;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
 // PLATES AND COLUMN
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
@@ -563,7 +454,6 @@ void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, con
 
 std::vector<std::shared_ptr<JointBeam>> Floor::add_screws() {
 
-    const ScrewLines lines(guide);
     std::vector<std::pair<size_t, std::shared_ptr<JointBeam>>> built;
 
     // every screw connector first, so a bay too narrow for them throws with nothing added
@@ -571,16 +461,16 @@ std::vector<std::shared_ptr<JointBeam>> Floor::add_screws() {
         const QuarterMembers& members = quarters[q];
 
         for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({members.outer_ribs[k].get(), members.inner_beams[k == 0 ? 0 : 2].get()}, lines.rib_beam(q, k))});
+            built.push_back({q, screws_of({members.outer_ribs[k].get(), members.inner_beams[k == 0 ? 0 : 2].get()}, rib_beam_screws(q, k))});
 
         for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({members.inner_beams[k == 0 ? 0 : 2].get(), members.inner_beams[1].get()}, lines.beam_mitre(q, k))});
+            built.push_back({q, screws_of({members.inner_beams[k == 0 ? 0 : 2].get(), members.inner_beams[1].get()}, beam_mitre_screws(q, k))});
 
         for (size_t k = 0; k < 2; k++) {
-            const std::vector<Line> screw_lines = lines.rib_corner(q, k);
+            const std::vector<Line> screw_lines = rib_corner_screws(q, k);
             std::vector<const Element*> passed = {members.inner_beams[1].get(), members.inner_ribs[k].get()};
 
-            if (lines.passes_seam_beam(q, k, screw_lines))
+            if (passes_seam_beam(q, k, screw_lines))
                 passed.push_back(members.inner_beams[k == 0 ? 0 : 2].get());
 
             built.push_back({q, screws_of(passed, screw_lines)});
@@ -605,7 +495,105 @@ std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& m
         if (!member)
             throw std::runtime_error("add_screws needs every member of the floor in the scene first");
 
-    return JointBeam::screws(members, lines);
+    return JointBeam::screws(members, lines, 2.0, SCREW_LENGTH);
+}
+
+std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const size_t beam = k == 0 ? 0 : 2;
+    const std::array<Polyline, 2> rib = guide.outer_ribs(q)[k];
+    std::vector<Line> screws;
+
+    for (double level : {-RIB_END_MARGIN, FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]) + RIB_END_MARGIN})
+        screws.push_back(from_seam_face(cp.outer_ribs[k], cp.inner_beams[beam], level, k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET));
+
+    return lifted(screws);
+}
+
+std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const size_t seam = k == 0 ? 0 : 2;
+    const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
+    std::vector<Line> screws;
+
+    for (double levels : MITRE_LEVELS[k])
+        screws.push_back(along_axis(cp.inner_beams[1], cp.inner_beams[seam][0], body, corner_level(levels)));
+
+    return lifted(screws);
+}
+
+std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
+    const size_t seam = k == 0 ? 0 : 2;
+    std::vector<Line> screws;
+
+    for (double levels : RIB_CORNER_LEVELS) {
+        screws.push_back(along_axis(cp.inner_ribs[k], cp.inner_beams[1][0], body, corner_level(levels)));
+        const double from_seam = cp.inner_beams[seam][0].signed_distance(screws.back().start());
+
+        if (from_seam < 0.5 * SCREW_SPACING)
+            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
+    }
+
+    return lifted(screws);
+}
+
+bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
+
+    const Plane beam_end = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+    const Point beam_body = FloorGuide::body(guide.inner_beams(q)[1]).transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+    const double beam_side = beam_end.signed_distance(beam_body) < 0.0 ? -1.0 : 1.0;
+
+    for (const Line& screw : screws)
+        if (beam_side * beam_end.signed_distance(screw.start()) < 0.0)
+            return true;
+
+    return false;
+}
+
+Line Floor::along_axis(const std::array<Plane, 2>& butting, const Plane& far_face, const Point& butting_body, double z) {
+
+    const Line line = axis(butting, z);
+    const Point head = Intersection::line_plane(line, far_face, false).value();
+    Vector d = line.to_direction();
+
+    if (d.dot(butting_body - head) < 0.0)
+        d = -d;
+
+    return Line::from_points(head, head + d * SCREW_LENGTH);
+}
+
+Line Floor::from_seam_face(const std::array<Plane, 2>& rib, const std::array<Plane, 2>& beam, double z, double offset) {
+
+    const Line line = axis(rib, z);
+    const Vector across = rib[0].z_axis() * offset;
+    const Vector along = (Intersection::line_plane(line, beam[1], false).value() - Intersection::line_plane(line, beam[0], false).value()).normalized();
+    const Point head = Intersection::line_plane(line + across, beam[0], false).value();
+
+    return Line::from_points(head, head + along * SCREW_LENGTH);
+}
+
+Line Floor::axis(const std::array<Plane, 2>& faces, double z) {
+
+    const Line line0 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[0]).value();
+    const Line line1 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[1]).value();
+    const Point p0 = line0.start();
+    const Point p1 = line1.closest_point(p0, false).second;
+    const Point middle = Point::mid_point(p0, p1);
+
+    return Line::from_points(middle, middle + line0.to_direction());
+}
+
+std::vector<Line> Floor::lifted(const std::vector<Line>& screws) const {
+    return transformed_list(screws, Xform::translation(0.0, 0.0, guide.bay_height));
+}
+
+double Floor::corner_level(double levels) const {
+    return -guide.static_h() * levels / CORNER_LEVELS;
 }
 
 }
