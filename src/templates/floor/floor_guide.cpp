@@ -19,7 +19,7 @@ const size_t BISECTIONS = 200; // halvings of the bracket, far past the last bit
 const double CUTTER_MARGIN = 100.0; // how far column cutter quads overshoot and how thick they are
 
 // ═══════════════════════════════════════════════════════════════════════════
-// THE GUIDE
+// The guide
 // ═══════════════════════════════════════════════════════════════════════════
 
 FloorGuide::FloorGuide(
@@ -174,9 +174,7 @@ double FloorGuide::corner_angle(size_t k) const {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// FLOOR PLAN GEOMETRY
-// ═══════════════════════════════════════════════════════════════════════════
+// Floor plan geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::vector<Point> FloorGuide::quarter_polygon(size_t q) const {
@@ -215,9 +213,7 @@ Plane FloorGuide::support_plane(size_t q) const {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// BEAMS: THE PLATE EDGES AS PLANE PAIRS, THEN THEIR PLAN QUADS
-// ═══════════════════════════════════════════════════════════════════════════
+// Beams: the plate edges as plane pairs, then their plan quads
 // ═══════════════════════════════════════════════════════════════════════════
 
 const ConstructionPlanes& FloorGuide::construction_planes(size_t q) const {
@@ -335,9 +331,7 @@ ConstructionQuads FloorGuide::compute_construction_quads(const ConstructionPlane
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// 3D GEOMETRY
-// ═══════════════════════════════════════════════════════════════════════════
+// 3D geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::array<double, 2> FloorGuide::rib_starts(size_t q) const {
@@ -635,9 +629,7 @@ Vector FloorGuide::turned(const Vector& reference, double degrees) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// MEMBERS
-// ═══════════════════════════════════════════════════════════════════════════
+// Members
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::array<std::array<std::array<Polyline, 2>, 2>, 3> FloorGuide::compute_bed_rails(size_t q) const {
@@ -976,9 +968,7 @@ std::array<Polyline, 2> FloorGuide::rib(const Polyline& trace, const Plane& face
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
-// DRAWING
-// ═══════════════════════════════════════════════════════════════════════════
+// Drawing
 // ═══════════════════════════════════════════════════════════════════════════
 
 void FloorGuide::draw() {
