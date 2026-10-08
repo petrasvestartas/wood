@@ -2,19 +2,14 @@
 
 [TOC]
 
-The vaulted timber floor bay: a bay on four columns, cut by four seams into four quarters of parabolic ribs, beams, column blocks, t-sections and beds around a central oculus. Two `WoodSession` classes build it: `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`) computes the geometry, and `wood_floor::Floor` (`src/templates/floor/floor.h`) builds the elements, their contacts, the connectors and the screws from it.
+The vaulted timber floor is supported by four columns. The column heads are integrated into the columns and connect the four quarter components. The central oculus interlocks all four components.
+
+Two classes build the floor:
+- `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`) - geometric guidelines - @subpage templates_floor_guide
+- `wood_floor::Floor` (`src/templates/floor/floor.h`) - elements, contacts and connectors - @subpage templates_floor_model
 
 ![The floor in its key steps](floor/floor_film.webp)
 
-The floor is two classes, read in this order:
-
-## 1. FloorGuide: the geometry
-
-Read @subpage templates_floor_guide first. From four corners and the parameters it computes every quarter's planes, plan quads and parabolas, and every member as two face loops: geometry only, no elements; steps 1 to 6.
-
-## 2. Floor: the model
-
-Then @subpage templates_floor_model builds on it. The guide's loops become elements, their contacts become interactions, and the connectors and screws are made from them; steps 7 to 11.
 
 ```mermaid
 flowchart TD
@@ -31,49 +26,24 @@ flowchart TD
     M --> E
 ```
 
-## Reading the pictures
 
-Each colour marks one role, the same in picture, key and text:
 
-| Colour | Role |
-|---|---|
-| <span style="color:#2196EA">■ blue</span> `#2196EA` | what the step builds |
-| <span style="color:#E8478B">■ pink</span> `#E8478B` | the variable or value the step introduces |
-| <span style="color:#F2CC0C">■ yellow</span> `#F2CC0C` | a second result, set apart from the first |
-| <span style="color:#737373">■ grey</span> `#737373` | what the step reads from earlier steps; dashed, a construction helper |
-| <span style="color:#A3A3A3">■ light grey</span> `#DADADA` | context, solid, with `#B8B8B8` edges |
+## How to read the pictures
 
-Member families use `FAMILY_COLORS`: <span style="color:#E8478B">outer ribs</span>, <span style="color:#F2CC0C">inner ribs</span>, <span style="color:#7C7C7C">inner beams</span>, <span style="color:#A8A8A8">wedges</span>, <span style="color:#D9B860">t-sections</span>, <span style="color:#6FA9D8">beds</span>, oculus ring <span style="color:#E06CA0">light pink</span>, column <span style="color:#6E6E6E">dark grey</span>, connectors <span style="color:#2196EA">BRG blue</span>. Black plates are code names; quarter 0 stands for all four, since every quarter runs the same code at its own corner.
+Every step picture shows quarter 0 only; the other three quarters are built by the same code at their own corners. Black labels are the names used in the code.
+
+In the **step pictures** (the chapters), colour shows the role of each line:
+
+- <span style="color:#2196EA">■</span> **blue**: what this step creates
+- <span style="color:#E8478B">■</span> **pink**: the new value the step introduces, named in the text
+- <span style="color:#F2CC0C">■</span> **yellow**: a second result of the same step, when there is one
+- <span style="color:#737373">■</span> **dark grey**: what the step takes from earlier steps; dashed lines are construction helpers
+- <span style="color:#DADADA">■</span> **light grey**: the rest of the floor, only for orientation
+
+In the **overview pictures** (whole members), colour shows the member family instead: <span style="color:#E8478B">■</span> outer ribs, <span style="color:#F2CC0C">■</span> inner ribs, <span style="color:#7C7C7C">■</span> inner beams, <span style="color:#A8A8A8">■</span> wedges, <span style="color:#D9B860">■</span> t-sections, <span style="color:#6FA9D8">■</span> beds, <span style="color:#E06CA0">■</span> oculus ring, <span style="color:#6E6E6E">■</span> column, <span style="color:#2196EA">■</span> connectors.
 
 ## Data structures
 
-FloorGuide holds the corners, the parameters as its own fields and the geometry they make, every member as two face loops; Floor builds the elements, their contact interactions, the connectors and the screws from it.
-
-```mermaid
-classDiagram
-    direction TB
-    class FloorGuide {
-        <<WoodSession>>
-        corners[4], size_ parameters
-        quarter_polygon(q), quarter_column_polygon(q)
-        construction_planes(q), construction_quads(q)
-        boundary_parabolas(q), central_panel(q)
-        outer_ribs(q), inner_ribs(q), inner_beams(q)
-        wedges(q), tsections(q), beds(q)
-        oculus(), column_cutters(q)
-    }
-    class Floor {
-        <<WoodSession>>
-        guide
-        quarters, ring, columns
-        add_members()
-        add_contacts() by contact search
-        add_connectors()
-        add_screws()
-        rib_beam_screws, beam_mitre_screws, rib_corner_screws
-    }
-    FloorGuide --> Floor : loops become elements
-```
 
 Each member has one name everywhere, from `MemberRef::name()`.
 
