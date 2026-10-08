@@ -21,7 +21,7 @@ WoodSession column(const FloorGuide& guide, size_t q) {
     support->name = fmt::format("support_{}", k);
     const std::shared_ptr<Column> shaft = Column::square(support->column_axis(guide.bay_height), guide.column_frame(k), guide.size_column_head, name);
 
-    const std::vector<std::array<Polyline, 2>> loops = guide.column_cutters(k);
+    const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(k);
     std::vector<std::shared_ptr<Plate>> cutters;
 
     for (size_t i = 0; i < loops.size(); i++) {
@@ -66,7 +66,7 @@ void Floor::add_quarters() {
         members = QuarterMembers();
 
         const std::shared_ptr<TreeNode> beds = add_group("beds" + suffix, group);
-        const std::vector<std::array<std::array<Polyline, 2>, 2>> rows = guide.bed_rails(q);
+        const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& rows = guide.bed_rails(q);
 
         for (size_t row = 0; row < rows.size(); row++) {
             const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}{}", row, suffix), beds);
@@ -77,7 +77,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> tsections = add_group("tsections" + suffix, group);
-        const std::vector<std::array<Polyline, 2>> tsection_loops = guide.tsections(q);
+        const std::array<std::array<Polyline, 2>, 6>& tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
             members.tsections.push_back(std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], "tsections"));
@@ -85,7 +85,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> outer = add_group("outer_ribs" + suffix, group);
-        const std::vector<std::array<Polyline, 2>> outer_loops = guide.outer_ribs(q);
+        const std::array<std::array<Polyline, 2>, 2>& outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
             members.outer_ribs.push_back(rib(outer_loops[i], "outer_ribs"));
@@ -93,7 +93,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> inner = add_group("inner_ribs" + suffix, group);
-        const std::vector<std::array<Polyline, 2>> inner_loops = guide.inner_ribs(q);
+        const std::array<std::array<Polyline, 2>, 2>& inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
             members.inner_ribs.push_back(rib(inner_loops[i], "inner_ribs"));
@@ -101,7 +101,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> wedges = add_group("wedges" + suffix, group);
-        const std::vector<std::array<Polyline, 2>> block_loops = guide.wedges(q);
+        const std::array<std::array<Polyline, 2>, 3>& block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
             members.wedges.push_back(std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], "wedges"));
@@ -109,7 +109,7 @@ void Floor::add_quarters() {
         }
 
         const std::shared_ptr<TreeNode> beams = add_group("inner_beams" + suffix, group);
-        const std::vector<std::array<Polyline, 2>> beam_loops = guide.inner_beams(q);
+        const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
             members.inner_beams.push_back(beam(beam_loops[i], {0, 3}, {1, 2}, "inner_beams"));
@@ -120,7 +120,7 @@ void Floor::add_quarters() {
 
 void Floor::add_oculus() {
 
-    const std::vector<std::array<Polyline, 2>> loops = guide.oculus();
+    const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
     ring.clear();
     oculus_plates.clear();
 

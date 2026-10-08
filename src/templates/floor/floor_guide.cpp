@@ -94,20 +94,68 @@ FloorGuide::FloorGuide(
         _bed_top_planes[q] = bed_planes;
     }
 
+    // outer ribs, each its parabola trimmed by its end planes on its first face and swept to its second
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 2> ribs = compute_outer_ribs(q);
+        _outer_ribs[q] = ribs;
+    }
+
+    // inner ribs, swept along the central panel's rib sweep
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 2> ribs = compute_inner_ribs(q);
+        _inner_ribs[q] = ribs;
+    }
+
     // the middle cutter level, one for every column: the deepest outer rib bottom corner on a fan plane
     for (size_t q = 0; q < 4; q++)
-        for (const std::array<Polyline, 2>& rib : outer_ribs(q))
+        for (const std::array<Polyline, 2>& rib : _outer_ribs[q])
             _rib_bottom = std::min({_rib_bottom, rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
 
     // soffit, the one level every inner and ring beam's underside sits at: the deepest rib end on a beam, so every rib meets its beam in full
     soffit = -static_h();
 
-    for (size_t q = 0; q < 4; q++) {
-        const std::vector<std::array<Polyline, 2>> outer = outer_ribs(q);
-        const std::vector<std::array<Polyline, 2>> inner = inner_ribs(q);
-
+    for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++)
-            soffit = std::min({soffit, end_level(outer[k], rib_seam_ends(q)[k]), end_level(inner[k], _construction_planes[q].inner_beams[1][1])});
+            soffit = std::min({soffit, end_level(_outer_ribs[q][k], rib_seam_ends(q)[k]), end_level(_inner_ribs[q][k], _construction_planes[q].inner_beams[1][1])});
+
+    // t-sections, six flanges beside the rib faces
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 6> flanges = compute_tsections(q);
+        _tsections[q] = flanges;
+    }
+
+    // bed rails, per bed row its lower and upper layer on its two side faces, trimmed alike
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<std::array<Polyline, 2>, 2>, 3> rails = compute_bed_rails(q);
+        _bed_rails[q] = rails;
+    }
+
+    // beds, per row one quad plate for each segment of its rails
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::vector<std::array<Polyline, 2>>, 3> rows = compute_beds(q);
+        _beds[q] = rows;
+    }
+
+    // wedges, the three column blocks between the ribs, standing on the bed top planes
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 3> blocks = compute_wedges(q);
+        _wedges[q] = blocks;
+    }
+
+    // inner beams, the two seam beams and the oculus beam down to the soffit
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 3> beams = compute_inner_beams(q);
+        _inner_beams[q] = beams;
+    }
+
+    // oculus, four ring beams around the hole, four bottom wedges and the inner plate
+    const std::array<std::array<Polyline, 2>, 9> ring = compute_oculus();
+    _oculus = ring;
+
+    // column cutters, six plates per column that carve its head down to the cutter level and the head depth
+    for (size_t q = 0; q < 4; q++) {
+        const std::array<std::array<Polyline, 2>, 6> cutters = compute_column_cutters(q);
+        _column_cutters[q] = cutters;
     }
 
     draw();
@@ -306,6 +354,42 @@ const CentralPanel& FloorGuide::central_panel(size_t q) const {
 
 const std::array<Plane, 3>& FloorGuide::bed_top_planes(size_t q) const {
     return _bed_top_planes[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 2>& FloorGuide::outer_ribs(size_t q) const {
+    return _outer_ribs[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 2>& FloorGuide::inner_ribs(size_t q) const {
+    return _inner_ribs[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 6>& FloorGuide::tsections(size_t q) const {
+    return _tsections[q % 4];
+}
+
+const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& FloorGuide::bed_rails(size_t q) const {
+    return _bed_rails[q % 4];
+}
+
+const std::array<std::vector<std::array<Polyline, 2>>, 3>& FloorGuide::beds(size_t q) const {
+    return _beds[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 3>& FloorGuide::wedges(size_t q) const {
+    return _wedges[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 3>& FloorGuide::inner_beams(size_t q) const {
+    return _inner_beams[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 6>& FloorGuide::column_cutters(size_t q) const {
+    return _column_cutters[q % 4];
+}
+
+const std::array<std::array<Polyline, 2>, 9>& FloorGuide::oculus() const {
+    return _oculus;
 }
 
 std::array<double, 3> FloorGuide::column_levels(size_t q) const {
@@ -556,7 +640,7 @@ Vector FloorGuide::turned(const Vector& reference, double degrees) {
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::array<std::array<Polyline, 2>, 2>> FloorGuide::bed_rails(size_t q) const {
+std::array<std::array<std::array<Polyline, 2>, 2>, 3> FloorGuide::compute_bed_rails(size_t q) const {
 
     // one row: the lower and upper layer on the panel's two side planes trimmed alike
     const auto bed_row = [](const std::array<Polyline, 2>& lower, const std::array<Polyline, 2>& upper, const Plane& cut_plane0, const Plane& cut_plane1) {
@@ -586,11 +670,12 @@ std::vector<std::array<std::array<Polyline, 2>, 2>> FloorGuide::bed_rails(size_t
     };
 }
 
-std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) const {
+std::array<std::vector<std::array<Polyline, 2>>, 3> FloorGuide::compute_beds(size_t q) const {
 
-    std::vector<std::vector<std::array<Polyline, 2>>> rows;
+    std::array<std::vector<std::array<Polyline, 2>>, 3> rows;
 
-    for (const std::array<std::array<Polyline, 2>, 2>& rails : bed_rails(q)) {
+    for (size_t r = 0; r < 3; r++) {
+        const std::array<std::array<Polyline, 2>, 2>& rails = bed_rails(q)[r];
         std::vector<std::array<Polyline, 2>> plates;
 
         for (size_t i = 0; i + 1 < rails[0][0].point_count(); i++) {
@@ -599,13 +684,13 @@ std::vector<std::vector<std::array<Polyline, 2>>> FloorGuide::beds(size_t q) con
             plates.push_back({top, bottom});
         }
 
-        rows.push_back(plates);
+        rows[r] = plates;
     }
 
     return rows;
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {
+std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_tsections(size_t q) const {
 
     // a t-section: its soffit and +t traces trimmed on its first face and closed into one loop, the same projected onto its second face
     const auto tsection = [](const Polyline& soffit, const Polyline& layer, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection10, const Xform& projection11) {
@@ -653,7 +738,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::tsections(size_t q) const {
     };
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::outer_ribs(size_t q) const {
+std::array<std::array<Polyline, 2>, 2> FloorGuide::compute_outer_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
@@ -665,7 +750,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::outer_ribs(size_t q) const {
     };
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::inner_ribs(size_t q) const {
+std::array<std::array<Polyline, 2>, 2> FloorGuide::compute_inner_ribs(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
@@ -677,7 +762,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::inner_ribs(size_t q) const {
     };
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::wedges(size_t q) const {
+std::array<std::array<Polyline, 2>, 3> FloorGuide::compute_wedges(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const std::array<Plane, 3>& beds = bed_top_planes(q);
@@ -688,15 +773,15 @@ std::vector<std::array<Polyline, 2>> FloorGuide::wedges(size_t q) const {
         {cp.inner_ribs[1][0], cp.outer_ribs[1][1]},
     }};
 
-    std::vector<std::array<Polyline, 2>> blocks;
+    std::array<std::array<Polyline, 2>, 3> blocks;
 
     for (size_t i = 0; i < 3; i++)
-        blocks.push_back(loft({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1]));
+        blocks[i] = loft({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1]);
 
     return blocks;
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::inner_beams(size_t q) const {
+std::array<std::array<Polyline, 2>, 3> FloorGuide::compute_inner_beams(size_t q) const {
 
     const ConstructionPlanes& cp = construction_planes(q);
     const Plane side0 = Plane::xy_plane_at(0.0);
@@ -710,7 +795,7 @@ std::vector<std::array<Polyline, 2>> FloorGuide::inner_beams(size_t q) const {
     };
 }
 
-std::vector<std::array<Polyline, 2>> FloorGuide::oculus() const {
+std::array<std::array<Polyline, 2>, 9> FloorGuide::compute_oculus() const {
 
     const Plane side0 = Plane::xy_plane_at(0.0);
     const Plane side1 = Plane::xy_plane_at(soffit + size_tsections);
@@ -725,17 +810,18 @@ std::vector<std::array<Polyline, 2>> FloorGuide::oculus() const {
         inner.push_back(ring_inner(q));
     }
 
-    std::vector<std::array<Polyline, 2>> plates;
+    // four ring beams, four bottom wedges, the inner plate
+    std::array<std::array<Polyline, 2>, 9> plates;
 
     for (size_t i = 0; i < 4; i++)
-        plates.push_back(loft({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true));
+        plates[i] = loft({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true);
 
     for (size_t i = 0; i < 4; i++) {
         const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-size_tsections), inner[(i + 3) % 4].translate_by_normal(-size_tsections)};
-        plates.push_back(loft(sides, side2, side1));
+        plates[4 + i] = loft(sides, side2, side1);
     }
 
-    plates.push_back(loft(inner, side1, side3));
+    plates[8] = loft(inner, side1, side3);
 
     return plates;
 }
@@ -748,7 +834,7 @@ Plane FloorGuide::ring_inner(size_t q) const {
 // Column cutters
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::vector<std::array<Polyline, 2>> FloorGuide::column_cutters(size_t q) const {
+std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_column_cutters(size_t q) const {
 
     // a cutter quad stretched in its own plane: its long sides by the margin at both ends, then its short sides inwards, both for a top quad, only the first for a bottom one
     const auto stretch = [](std::vector<Point> quad, bool top) {
@@ -791,13 +877,13 @@ std::vector<std::array<Polyline, 2>> FloorGuide::column_cutters(size_t q) const 
         {p1[2], p1[3], p2[2], p2[1]},
     };
 
-    std::vector<std::array<Polyline, 2>> plates;
+    std::array<std::array<Polyline, 2>, 6> plates;
 
     for (size_t i = 0; i < quads.size(); i++) {
         const std::vector<Point> quad = stretch(quads[i], i < 3);
         const Vector normal = (quad[2] - quad[1]).cross(quad[1] - quad[0]).normalized() * CUTTER_MARGIN;
         const Polyline top = Polyline(quad).closed();
-        plates.push_back({top, top.translated(normal)});
+        plates[i] = {top, top.translated(normal)};
     }
 
     return plates;

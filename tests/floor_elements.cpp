@@ -67,10 +67,10 @@ void check_beams() {
     wood_floor::Floor floor(square_guide(), "beam_variable");
     floor.add_quarters();
     floor.add_oculus();
-    const std::vector<std::array<Polyline, 2>> outer = square_guide().outer_ribs(0);
-    const std::vector<std::array<Polyline, 2>> inner = square_guide().inner_ribs(0);
-    const std::vector<std::array<Polyline, 2>> beam_loops = square_guide().inner_beams(0);
-    const std::vector<std::array<Polyline, 2>> oculus = square_guide().oculus();
+    const std::span<const std::array<Polyline, 2>> outer = square_guide().outer_ribs(0);
+    const std::span<const std::array<Polyline, 2>> inner = square_guide().inner_ribs(0);
+    const std::span<const std::array<Polyline, 2>> beam_loops = square_guide().inner_beams(0);
+    const std::span<const std::array<Polyline, 2>> oculus = square_guide().oculus();
     std::vector<std::shared_ptr<BeamVariable>> beams;
 
     for (size_t i = 0; i < 2; i++) {
@@ -277,7 +277,7 @@ void check_short_members() {
         for (size_t q = 0; q < 4; q++) {
             const std::vector<Point>& polygon = guide.quarter_polygon(q);
 
-            for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
+            for (std::span<const std::array<Polyline, 2>> family : std::initializer_list<std::span<const std::array<Polyline, 2>>>{guide.outer_ribs(q), guide.inner_ribs(q)})
                 for (const std::array<Polyline, 2>& rib : family)
                     for (const Polyline* loop : {&rib[0], &rib[1]})
                         for (const Point& point : loop->get_points())
@@ -498,8 +498,8 @@ void check_seam_beams() {
 
     for (size_t q = 0; q < 4; q++) {
         const wood_floor::ConstructionPlanes& cp = guide.construction_planes(q);
-        const std::vector<std::array<Polyline, 2>> beams = guide.inner_beams(q);
-        const std::vector<std::array<Polyline, 2>> ribs = guide.outer_ribs(q);
+        const std::span<const std::array<Polyline, 2>> beams = guide.inner_beams(q);
+        const std::span<const std::array<Polyline, 2>> ribs = guide.outer_ribs(q);
 
         for (size_t k = 0; k < 2; k++) {
             const std::array<double, 2> beam = plane_reach(beams[k == 0 ? 0 : 2][1], cp.outer_ribs[k][0]);
@@ -943,8 +943,8 @@ void check_shared_entities() {
 
 
         const Xform turn = Xform::rotation_z(static_cast<double>(q) * 90.0, true);
-        const std::vector<std::array<Polyline, 2>> turned = guide.outer_ribs(0);
-        const std::vector<std::array<Polyline, 2>> built = guide.outer_ribs(q);
+        const std::span<const std::array<Polyline, 2>> turned = guide.outer_ribs(0);
+        const std::span<const std::array<Polyline, 2>> built = guide.outer_ribs(q);
 
         for (size_t i = 0; i < 2; i++) {
             const std::vector<Point> a = turned[i][0].transformed(turn).get_points();
@@ -962,7 +962,7 @@ void check_shared_entities() {
 /// The ring built from the four oculus edges is four-fold symmetric on the square: every ring beam and bottom wedge equals the first turned by its quarter turns, and the plate equals itself turned, within 1e-9.
 void check_ring() {
 
-    const std::vector<std::array<Polyline, 2>> ring = square_guide().oculus();
+    const std::span<const std::array<Polyline, 2>> ring = square_guide().oculus();
     check(ring.size() == 9, "four ring beams, four wedges and the plate");
 
     for (size_t i = 0; i < 8; i++) {
@@ -1008,7 +1008,7 @@ std::array<double, 2> central_bed_thickness(const wood_floor::FloorGuide& guide)
     std::array<double, 2> range = {1e300, 0.0};
 
     for (size_t q = 0; q < 4; q++) {
-        const std::vector<std::vector<std::array<Polyline, 2>>> rows = guide.beds(q);
+        const std::array<std::vector<std::array<Polyline, 2>>, 3>& rows = guide.beds(q);
 
         for (const std::array<Polyline, 2>& bed : rows[1]) {
             const std::vector<Point> bottom = bed[1].get_points();
@@ -1065,11 +1065,11 @@ double outline_flatness(const std::array<Polyline, 2>& outline) {
 /// The least flat face over every member of the floor.
 double floor_flatness(const wood_floor::FloorGuide& guide) {
 
-    std::vector<std::array<Polyline, 2>> outlines = guide.oculus();
+    std::vector<std::array<Polyline, 2>> outlines(guide.oculus().begin(), guide.oculus().end());
 
     for (size_t q = 0; q < 4; q++) {
 
-        for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q), guide.inner_beams(q), guide.wedges(q), guide.tsections(q)})
+        for (std::span<const std::array<Polyline, 2>> family : std::initializer_list<std::span<const std::array<Polyline, 2>>>{guide.outer_ribs(q), guide.inner_ribs(q), guide.inner_beams(q), guide.wedges(q), guide.tsections(q)})
             outlines.insert(outlines.end(), family.begin(), family.end());
 
         for (const std::vector<std::array<Polyline, 2>>& row : guide.beds(q))
@@ -1089,7 +1089,7 @@ std::vector<double> rib_bottoms(const wood_floor::FloorGuide& guide, size_t q) {
 
     std::vector<double> levels;
 
-    for (const std::vector<std::array<Polyline, 2>>& family : {guide.outer_ribs(q), guide.inner_ribs(q)})
+    for (std::span<const std::array<Polyline, 2>> family : std::initializer_list<std::span<const std::array<Polyline, 2>>>{guide.outer_ribs(q), guide.inner_ribs(q)})
         for (const std::array<Polyline, 2>& rib : family)
             levels.insert(levels.end(), {rib[0].get_point(2)[2], rib[1].get_point(2)[2]});
 
@@ -1155,7 +1155,7 @@ void check_column_blocks() {
     for (size_t q = 0; q < 4; q++) {
         const std::array<double, 3> thickness = block_thickness(guide, q);
         const std::array<double, 2>& starts = guide.rib_starts(q);
-        const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(q);
+        const std::span<const std::array<Polyline, 2>> blocks = guide.wedges(q);
         check(std::abs(thickness[0] - starts[0]) <= 1e-9 && std::abs(thickness[2] - starts[1]) <= 1e-9 && std::abs(thickness[1] - 267.292) < 1e-3, fmt::format("quarter {}'s blocks {:.3f} / {:.3f} / {:.3f} thick over the rib starts {:.3f} / {:.3f}", q, thickness[0], thickness[1], thickness[2], starts[0], starts[1]));
         check(std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2])) <= 1.0, fmt::format("quarter {}'s side blocks end {:.3f} mm apart", q, far_bottom(blocks[0]) - far_bottom(blocks[2])));
     }
@@ -1165,7 +1165,7 @@ void check_column_blocks() {
         check(std::abs(thickness[0] - 240.0) <= 1e-9 && std::abs(thickness[1] - 300.0) <= 1e-9 && std::abs(thickness[2] - 240.0) <= 1e-9, fmt::format("the square's blocks 240 / 300 / 240, not {:.12f} / {:.12f} / {:.12f}", thickness[0], thickness[1], thickness[2]));
     }
 
-    const std::vector<std::array<Polyline, 2>> blocks = guide.wedges(0);
+    const std::span<const std::array<Polyline, 2>> blocks = guide.wedges(0);
     std::cout << fmt::format("floor_elements: the column blocks over the rib starts on 3000 x 2400, {:.3f} / {:.3f} / {:.3f} thick, the side ends {:.3f} mm apart; 240 / 300 / 240 on the square", block_thickness(guide, 0)[0], block_thickness(guide, 0)[1], block_thickness(guide, 0)[2], std::abs(far_bottom(blocks[0]) - far_bottom(blocks[2]))) << std::endl;
 }
 

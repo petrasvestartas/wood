@@ -151,34 +151,34 @@ public:
     // ═══════════════════════════════════════════════════════════════════════
 
     /// Quarter q's three bed rows as rails, each row its bottom rails and its top rails: the lower and upper layer on the panel's two side planes trimmed alike, so every segment of the four makes one bed.
-    std::vector<std::array<std::array<Polyline, 2>, 2>> bed_rails(size_t q) const;
+    const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& bed_rails(size_t q) const;
 
     /// Quarter q's bed plates in three rows, each row trimmed alike so every plate stays a quad.
-    std::vector<std::vector<std::array<Polyline, 2>>> beds(size_t q) const;
+    const std::array<std::vector<std::array<Polyline, 2>>, 3>& beds(size_t q) const;
 
     /// Quarter q's six t-sections beside the ribs.
-    std::vector<std::array<Polyline, 2>> tsections(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 6>& tsections(size_t q) const;
 
     /// Quarter q's two outer ribs along the bay edges: each its parabola trimmed by its end planes on its first face, and swept to its second.
-    std::vector<std::array<Polyline, 2>> outer_ribs(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 2>& outer_ribs(size_t q) const;
 
     /// Quarter q's two inner ribs, swept along the central panel's rib sweep.
-    std::vector<std::array<Polyline, 2>> inner_ribs(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 2>& inner_ribs(size_t q) const;
 
     /// Quarter q's three column blocks between the ribs at the column head, standing on the beds.
-    std::vector<std::array<Polyline, 2>> wedges(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 3>& wedges(size_t q) const;
 
     /// Quarter q's three inner beams: seam 0, the oculus edge, seam 1.
-    std::vector<std::array<Polyline, 2>> inner_beams(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 3>& inner_beams(size_t q) const;
 
     /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (a pinwheel), four bottom wedges and the inner plate.
-    std::vector<std::array<Polyline, 2>> oculus() const;
+    const std::array<std::array<Polyline, 2>, 9>& oculus() const;
 
     /// The ring's inner face on oculus edge q: the oculus beam's back face moved back by twice inner_beams.
     Plane ring_inner(size_t q) const;
 
     /// The six plates that carve the column head at corner q: the three fan faces down to the middle level, and three below it down to the head's depth.
-    std::vector<std::array<Polyline, 2>> column_cutters(size_t q) const;
+    const std::array<std::array<Polyline, 2>, 6>& column_cutters(size_t q) const;
 
     /// The column's carved face on fan plane i of corner q (0 side 0, 1 the chamfer, 2 side 1) between the datum and the middle level: datum corners, then middle-level corners.
     std::vector<Point> column_face(size_t q, size_t i) const;
@@ -203,6 +203,16 @@ private:
     std::array<CentralPanel, 4> _central_panel;
     std::array<std::array<Plane, 3>, 4> _bed_top_planes; // Per bed row: beside rib 0, the central panel, beside rib 1.
     double _rib_bottom = 0.0; // The middle cutter level, one for every column.
+    // the members, each as its two face loops, filled by the constructor
+    std::array<std::array<std::array<Polyline, 2>, 2>, 4> _outer_ribs;
+    std::array<std::array<std::array<Polyline, 2>, 2>, 4> _inner_ribs;
+    std::array<std::array<std::array<Polyline, 2>, 6>, 4> _tsections;
+    std::array<std::array<std::array<std::array<Polyline, 2>, 2>, 3>, 4> _bed_rails;
+    std::array<std::array<std::vector<std::array<Polyline, 2>>, 3>, 4> _beds;
+    std::array<std::array<std::array<Polyline, 2>, 3>, 4> _wedges;
+    std::array<std::array<std::array<Polyline, 2>, 3>, 4> _inner_beams;
+    std::array<std::array<std::array<Polyline, 2>, 6>, 4> _column_cutters;
+    std::array<std::array<Polyline, 2>, 9> _oculus; // Four ring beams, four bottom wedges, the inner plate.
 
     /// A member's two faces: the plane and its copy moved by distance along the normal.
     static std::array<Plane, 2> pair(const Plane& plane, double distance);
@@ -214,6 +224,15 @@ private:
     std::array<std::array<Polyline, 3>, 4> compute_boundary_parabolas(size_t q) const;
     CentralPanel compute_central_panel(size_t q) const;
     std::array<Plane, 3> compute_bed_top_planes(size_t q) const;
+    std::array<std::array<Polyline, 2>, 2> compute_outer_ribs(size_t q) const;
+    std::array<std::array<Polyline, 2>, 2> compute_inner_ribs(size_t q) const;
+    std::array<std::array<Polyline, 2>, 6> compute_tsections(size_t q) const;
+    std::array<std::array<std::array<Polyline, 2>, 2>, 3> compute_bed_rails(size_t q) const;
+    std::array<std::vector<std::array<Polyline, 2>>, 3> compute_beds(size_t q) const;
+    std::array<std::array<Polyline, 2>, 3> compute_wedges(size_t q) const;
+    std::array<std::array<Polyline, 2>, 3> compute_inner_beams(size_t q) const;
+    std::array<std::array<Polyline, 2>, 9> compute_oculus() const;
+    std::array<std::array<Polyline, 2>, 6> compute_column_cutters(size_t q) const;
 
     /// Outer rib k's axis on the datum, along its base face from its fan plane to its seam plane; the block far faces do not touch it.
     static Line outer_rib_axis(const ConstructionPlanes& cp, size_t k);

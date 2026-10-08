@@ -3,7 +3,8 @@ name: wood-agent
 description: >
   Specialist agent for the wood C++ timber joinery kernel. Invoke for:
   CGAL dependency mapping and migration planning, joint implementation validation,
-  detection pipeline analysis, session_cpp integration, and build/linking diagnostics.
+  detection pipeline analysis, session_cpp integration, build/linking diagnostics,
+  and documentation pictures (Protocol 5: the illustration rules).
   Use via: Agent tool, subagent_type="wood-agent".
 ---
 
@@ -113,6 +114,40 @@ When asked to analyse why the pipeline produces wrong output:
 4. Check `JOINTS_TYPES` sign on the element faces involved
 5. Trace type assignment: what type was detected, what type was requested
 6. Output: identified step, root cause, specific tolerance or flag to adjust, suggested fix
+
+---
+
+## Protocol 5: Illustrate a Step of the Docs
+
+When asked to make or fix a documentation picture (the floor docs and anything drawn the same way). Frames are
+written by `docs/floor/chapter_00_vocabulary.cpp` (local, the `docs_floor_movie` target) and rendered by
+`python3 docs/floor/render.py <frame numbers>` into `docs/templates/floor/<nnn>_<slug>.webp`.
+
+Page:
+- One picture per concept, placed under a short description line and the code snippet it shows; the snippet stores
+  the call's result in a named, fixed-size variable on its own line before assigning it (`const std::array<Plane, 3>
+  bed_planes = compute_bed_top_planes(q);`).
+- Static images only, never films or composites of several frames; every text in a picture must read at full size.
+- The text lives in the page: frames have an empty caption, so no band.
+
+Style:
+- White background; labels are black text on white plates without outline, leaders end in a solid black dot. Never
+  anchor a label on a line's midpoint (its dot sits on the line): give it free, centred text beside the line.
+- No dashed helper lines. Lines carry no meaning by colour: draw them black (`INK`).
+- The computed result is a thick pink dot (`dot`); inputs are plain points.
+- One arrow per vector, black, never split into stages side by side.
+- A plane has no ends: never draw it as a line. Draw it as a grey shaded square without grid (`plane_glyph`, 150 in a
+  quarter view, 60 at the column head, 75 for small planes) with its axes, x pink, y yellow-green, normal blue; draw
+  both planes of a pair; its floor trace, clipped to the quarter, may be drawn in black.
+- Solids keep black edges; skip the grey quarter outline over them (`quarter_view(frame, guide, false)`).
+
+View:
+- A sequence of plan pictures keeps one scale (the whole bay, `BAY`), so they compare.
+- 3D pictures of a quarter use `quarter_view`: iso, orbit `-60,70`, distance 0.85, and the top-view inset (`inset`),
+  which `render.py` draws at 40 % width in the top-right, white only inside its outline, with the 3D view shifted left.
+  Close-ups (column head) take their own box; a plane's slope reads best nearly in profile (orbit `-60,-90`).
+
+Check: read every rendered picture before reporting, and report the renderer's label problems.
 
 ---
 

@@ -14,6 +14,26 @@ actual names, such as `JointPlate::ts_e_p_3`, with their own parameters.
 Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
 completion accurately. Generated protobuf files follow the generator's format.
 
+## Class constructors
+
+- A class that computes something has one clear constructor, and the constructor is the code flow: it takes the
+  inputs (parameters as arguments with their defaults, kept as const fields) and runs the computation as a chain of
+  short blocks, each one step, each under a one-line comment saying what it makes:
+
+```cpp
+    // construction planes, a pair per member
+    for (size_t q = 0; q < 4; q++) {
+        const ConstructionPlanes planes = compute_construction_planes(q);
+        _construction_planes[q] = planes;
+    }
+```
+
+- Each step's work lives in a private `compute_<result>` function; the constructor only calls them in order, stores
+  each result in a named, fixed-size variable before keeping it, and reads top to bottom as the recipe. No separate
+  `compute()`, no setters that ask for a recompute, no validity checks in between.
+- Public methods only return what the constructor stored. The docs page of the class follows the same blocks, one
+  snippet and one picture per block (`wood-agent`, Protocol 5).
+
 ## Kernel first
 
 - Before writing a geometry or scene helper in wood, search the kernel headers
