@@ -28,11 +28,58 @@ The constructor is the whole computation: it takes the corners and, optionally, 
         _boundary_parabolas[q] = ...;      // the rib curves
         _central_panel[q] = ...;           // the panel between the inner ribs
         _bed_top_planes[q] = ...;          // the column blocks' undersides
+        _outer_ribs[q] = ...;              // the members, each as its two face loops: outer ribs,
+        _inner_ribs[q] = ...;              // inner ribs,
         _rib_bottom = ...;                 // the column cutter level
         soffit = ...;                      // the beam soffit
+        _tsections[q] = ...;               // t-sections,
+        _bed_rails[q] = ...;               // bed rails,
+        _beds[q] = ...;                    // beds,
+        _wedges[q] = ...;                  // column blocks,
+        _inner_beams[q] = ...;             // inner beams,
+        _oculus = ...;                     // the oculus ring,
+        _column_cutters[q] = ...;          // column cutters
         draw();
     }
 ```
+
+<details>
+<summary><b>Tables</b></summary>
+
+What the constructor fills per quarter: a plane pair, a floor quad, and the central panel per member family.
+
+```cpp
+class ConstructionPlanes {
+public:
+    std::array<std::array<Plane, 2>, 2> outer_ribs; // Along the two bay edges, the band offset inwards by outer_ribs.
+    std::array<std::array<Plane, 2>, 3> inner_beams; // Along the two seams and the oculus edge; the oculus one tilted by the oculus plane angle.
+    std::array<std::array<Plane, 2>, 2> inner_ribs; // From the column head chamfer to the inner beam corners.
+    std::array<std::array<Plane, 2>, 3> wedges; // The column head fan: side 0, the middle one tilted by wedge_plane_angle, side 1.
+    std::array<std::array<Plane, 2>, 6> tsections; // Beside the ribs, tsections thick: outer rib 0, inner rib 0 outer and central face, inner rib 1 central and outer face, outer rib 1.
+};
+```
+
+```cpp
+class ConstructionQuads {
+public:
+    std::array<Polyline, 2> outer_ribs;
+    std::array<Polyline, 3> inner_beams; // Seam 0, oculus edge, seam 1.
+    std::array<Polyline, 2> inner_ribs;
+    std::array<Polyline, 3> wedges;
+    std::array<Polyline, 6> tsections;
+};
+```
+
+```cpp
+class CentralPanel {
+public:
+    Vector ruling; // u: the panel's horizontal ruling, along which rib 0's central trace projects onto rib 1's.
+    Vector rib_sweep; // r: the horizontal direction both inner ribs are swept along from their outer to their central face.
+    std::array<std::array<Polyline, 3>, 2> traces; // Per inner rib, its central face's soffit, +t and +2t, offset in the panel's own cross-section.
+};
+```
+
+</details>
 
 ## Parameters
 
@@ -54,25 +101,25 @@ The two leaning planes seen edge-on: the middle wedge's fan plane and the oculus
 
 Every parameter is a constructor argument with its default, kept as a read-only field of `FloorGuide`. Sizes are in mm, angles in degrees.
 
-| Parameter | Default | What it sets |
-|---|---|---|
-| `size_oculus` | 1000 | Distance of every oculus point from the centre along its seam |
-| `size_column_head` | 220 | Side of the square column shaft and of the head polygon at the corner |
-| `size_column_head_chamfer` | 120 | Where the chamfer points sit on the shaft faces; also the capitel width |
-| `size_outer_ribs` | 100 | Outer rib thickness |
-| `size_inner_ribs` | 60 | Inner rib thickness |
-| `size_inner_beams` | 60 | Seam and oculus beam thickness; also the ring beam width at the datum |
-| `size_wedge` | 240 | Side wedge block thickness |
-| `middle_wedge_factor` | 1.25 | The middle wedge block in `size_wedge` thicknesses |
-| `size_tsections` | 27 | Flange plane offset and bed layer thickness |
-| `height` | 650 | Rib depth where the parabola starts |
-| `rise` | 453 | Parabola rise from there to the seam; the seam depth `static_h()` is `height - rise` |
-| `wedge_plane_angle` | -10 | How far the middle wedge's fan plane leans about its top edge |
-| `oculus_plane_angle` | 5 | How far the oculus beam's bearing plane leans about its top edge |
-| `column_head_depth` | 730 | Depth of the carved column head and of the capitel |
-| `bay_height` | 3500 | The storey: floor top above the slab, the column top |
-
-Code: [`FloorGuide` parameters](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L52-L66)
+```cpp
+FloorGuide(
+    const std::array<Point, 4>& corners,
+    double size_oculus = 1000.0,              // Distance of every oculus point from the centre along its seam: a square diamond on a rectangular bay.
+    double size_column_head = 220.0,          // Side of the square column shaft and of the head polygon at the corner.
+    double size_column_head_chamfer = 120.0,  // Where the chamfer vertices sit on the shaft faces; also the capitel width.
+    double size_outer_ribs = 100.0,           // Outer rib thickness.
+    double size_inner_ribs = 60.0,            // Inner rib thickness.
+    double size_inner_beams = 60.0,           // Seam and oculus beam thickness; also the ring beam width at the datum.
+    double size_wedge = 240.0,                // Side wedge block thickness; the middle block is middle_wedge_factor times it.
+    double size_tsections = 27.0,             // Flange plane offset and bed layer thickness.
+    double height = 650.0,                    // Rib depth where the parabola starts, a wedge thickness past the column face.
+    double rise = 453.0,                      // Parabola rise from there to the seam.
+    double wedge_plane_angle = -10.0,         // Degrees the chamfer fan plane leans about its top edge.
+    double oculus_plane_angle = 5.0,          // Degrees the oculus bearing plane leans about its top edge.
+    double column_head_depth = 730.0,         // Depth of the carved head and of the capitel.
+    double bay_height = 3500.0,               // Storey: the floor top above the slab, the column top.
+    double middle_wedge_factor = 1.25);       // The middle block in wedge thicknesses.
+```
 
 ## The constructor, step by step
 
@@ -111,18 +158,6 @@ for (size_t q = 0; q < 4; q++)
 <summary><b>Construction planes</b></summary>
 
 A pair of planes per member, its two faces: 2 outer ribs, 3 inner beams, 2 inner ribs, 3 wedges and 6 t-sections per quarter. `pair(plane, size)` returns the plane and its copy moved by the member's size.
-
-```cpp
-class ConstructionPlanes {
-public:
-    std::array<std::array<Plane, 2>, 2> outer_ribs; // Along the two bay edges, the band offset inwards by outer_ribs.
-    std::array<std::array<Plane, 2>, 3> inner_beams; // Along the two seams and the oculus edge; the oculus one tilted by the oculus plane angle.
-    std::array<std::array<Plane, 2>, 2> inner_ribs; // From the column head chamfer to the inner beam corners.
-    std::array<std::array<Plane, 2>, 3> wedges; // The column head fan: side 0, the middle one tilted by wedge_plane_angle, side 1.
-    std::array<std::array<Plane, 2>, 6> tsections; // Beside the ribs, tsections thick: outer rib 0, inner rib 0 outer and central face, inner rib 1 central and outer face, outer rib 1.
-};
-```
-
 
 ```cpp
 // construction planes, a pair per member; each column block as thick as its rib's start, chosen so both outer ribs of a column end at one depth
@@ -539,6 +574,84 @@ std::array<Plane, 3> FloorGuide::compute_bed_top_planes(size_t q) const {
 </details>
 
 <details>
+<summary><b>Outer ribs</b></summary>
+
+Each outer rib's parabola trimmed by its end planes on its first face, swept to its second: two face loops per rib.
+
+```cpp
+// outer ribs, each its parabola trimmed by its end planes on its first face and swept to its second
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 2> ribs = compute_outer_ribs(q);
+    _outer_ribs[q] = ribs;
+}
+```
+
+![The outer ribs](floor/970_member_outer_ribs.webp)
+
+<details>
+<summary>compute_outer_ribs(q)</summary>
+
+
+
+```cpp
+std::array<std::array<Polyline, 2>, 2> FloorGuide::compute_outer_ribs(size_t q) const {
+
+    const ConstructionPlanes& cp = construction_planes(q);
+    const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
+    const std::array<Plane, 2> ends = rib_seam_ends(q);
+
+    return {
+        rib(parabolas[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][1].z_axis(), cp.wedges[0][0], ends[0], false),
+        rib(parabolas[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][1].z_axis(), cp.wedges[2][0], ends[1], false),
+    };
+}
+```
+
+
+</details>
+
+</details>
+
+<details>
+<summary><b>Inner ribs</b></summary>
+
+The same for the inner ribs, swept along the central panel's sweep.
+
+```cpp
+// inner ribs, swept along the central panel's rib sweep
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 2> ribs = compute_inner_ribs(q);
+    _inner_ribs[q] = ribs;
+}
+```
+
+![The inner ribs](floor/971_member_inner_ribs.webp)
+
+<details>
+<summary>compute_inner_ribs(q)</summary>
+
+
+
+```cpp
+std::array<std::array<Polyline, 2>, 2> FloorGuide::compute_inner_ribs(size_t q) const {
+
+    const ConstructionPlanes& cp = construction_planes(q);
+    const std::array<std::array<Polyline, 3>, 4>& parabolas = boundary_parabolas(q);
+    const Vector& sweep = central_panel(q).rib_sweep;
+
+    return {
+        rib(parabolas[2][0], cp.inner_ribs[0][1], sweep, cp.wedges[1][0], cp.inner_beams[1][1], true),
+        rib(parabolas[3][0], cp.inner_ribs[1][1], sweep, cp.wedges[1][0], cp.inner_beams[1][1], true),
+    };
+}
+```
+
+
+</details>
+
+</details>
+
+<details>
 <summary><b>Column cutter level</b></summary>
 
 One level for every column: the deepest outer rib bottom corner on a fan plane.
@@ -572,196 +685,406 @@ for (size_t q = 0; q < 4; q++)
 
 </details>
 
-## Tables
+<details>
+<summary><b>T-sections</b></summary>
 
-### ConstructionPlanes
+Six flanges beside the rib faces, each its soffit and +t traces closed into a loop.
 
-![ConstructionPlanes](floor/931_table_construction_planes.webp)
+```cpp
+// t-sections, six flanges beside the rib faces
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 6> flanges = compute_tsections(q);
+    _tsections[q] = flanges;
+}
+```
 
-<span style="color:#2196EA">■ [0] base face</span> <span style="color:#F2CC0C">■ [1] offset face</span> <span style="color:#DADADA">■ the member between them</span>
+![The t-sections](floor/972_member_tsections.webp)
 
-One plane pair per member of a quarter, from `construction_planes(q)`: `[0]` is the member's base face, `[1]` the face offset from it by the member's size. The picture shows where each plane meets the floor datum.
+<details>
+<summary>compute_tsections(q)</summary>
 
-| Field | Type | Members | Where |
-|---|---|---|---|
-| `outer_ribs` | `std::array<std::array<Plane, 2>, 2>` | 2 | Along the two bay edges, offset inwards by `size_outer_ribs` |
-| `inner_beams` | `std::array<std::array<Plane, 2>, 3>` | 3 | Seam 0, the oculus edge (tilted by `oculus_plane_angle`), seam 1 |
-| `inner_ribs` | `std::array<std::array<Plane, 2>, 2>` | 2 | From the column head chamfer to the inner beam corners |
-| `wedges` | `std::array<std::array<Plane, 2>, 3>` | 3 | The column head fan: side 0, the middle one tilted by `wedge_plane_angle`, side 1 |
-| `tsections` | `std::array<std::array<Plane, 2>, 6>` | 6 | Beside the ribs, `size_tsections` thick: outer rib 0, inner rib 0 outer and central face, inner rib 1 central and outer face, outer rib 1 |
 
-Code: [`ConstructionPlanes`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L13-L21)
 
-### ConstructionQuads
+```cpp
+std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_tsections(size_t q) const {
 
-![ConstructionQuads](floor/932_table_construction_quads.webp)
+    // a t-section: its soffit and +t traces trimmed on its first face and closed into one loop, the same projected onto its second face
+    const auto tsection = [](const Polyline& soffit, const Polyline& layer, const Plane& cut_plane0, const Plane& cut_plane1, const Xform& projection10, const Xform& projection11) {
 
-<span style="color:#E8478B">■ outer_ribs</span> <span style="color:#7C7C7C">■ inner_beams</span> <span style="color:#F2CC0C">■ inner_ribs</span> <span style="color:#A8A8A8">■ wedges</span> <span style="color:#F5D890">■ tsections</span>
+        const std::vector<Point> cut00 = soffit.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+        const std::vector<Point> cut01 = soffit.transformed(projection10).trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+        const std::vector<Point> cut10 = layer.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+        const std::vector<Point> cut11 = layer.transformed(projection11).trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
 
-One plan quad per member at the floor datum, from `construction_quads(q)`: index `i` is the footprint of member `i` of its family, bounded by its own plane pair and its neighbours' planes.
+        std::vector<Point> top = cut00;
+        top.insert(top.end(), cut10.rbegin(), cut10.rend());
 
-| Field | Type | Quads |
-|---|---|---|
-| `outer_ribs` | `std::array<Polyline, 2>` | 2 |
-| `inner_beams` | `std::array<Polyline, 3>` | 3: seam 0, oculus edge, seam 1 |
-| `inner_ribs` | `std::array<Polyline, 2>` | 2 |
-| `wedges` | `std::array<Polyline, 3>` | 3 |
-| `tsections` | `std::array<Polyline, 6>` | 6 |
+        std::vector<Point> bottom = cut01;
+        bottom.insert(bottom.end(), cut11.rbegin(), cut11.rend());
 
-Code: [`ConstructionQuads`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L23-L31)
+        return std::array<Polyline, 2>{Polyline(top).closed(), Polyline(bottom).closed()};
+    };
 
-### CentralPanel
+    // beside an outer rib face: the parabola and its +t projected along the outer rib normal onto the face, the soffit continued to the far face along the sweep, the +t along the panel
+    const auto outer_tsection = [&tsection](const std::array<Polyline, 3>& parabola, const std::array<Plane, 2>& faces, const Vector& outer, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-![CentralPanel](floor/933_table_central_panel.webp)
+        const Xform projection = Xform::project_to_plane_by_axis(faces[0], outer);
 
-<span style="color:#2196EA">■ soffit traces</span> <span style="color:#F2CC0C">■ +t and +2t traces</span> <span style="color:#E8478B">■ ruling u and rib_sweep r</span> <span style="color:#737373">■ inner rib 0, as its loops</span>
+        return tsection(
+            parabola[0].transformed(projection), parabola[1].transformed(projection), cut_plane0, cut_plane1,
+            Xform::project_to_plane_by_axis(faces[1], sweep),
+            Xform::project_to_plane_by_axis(faces[1], outer)
+        );
+    };
 
-The panel between a quarter's two inner ribs, from `central_panel(q)`, found by rule A: one horizontal ruling joins the two ribs and one sweep serves both, so the central beds stay flat quads.
+    const ConstructionPlanes& cp = construction_planes(q);
+    const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
+    const CentralPanel& panel = central_panel(q);
+    const Vector outer0 = cp.outer_ribs[0][0].z_axis();
+    const Vector outer1 = cp.outer_ribs[1][0].z_axis();
+    const std::array<std::array<Plane, 2>, 6>& ts = cp.tsections;
 
-| Field | Type | What it is |
-|---|---|---|
-| `ruling` | `Vector` | u: the panel's horizontal ruling, along which rib 0's central trace projects onto rib 1's |
-| `rib_sweep` | `Vector` | r: the horizontal direction both inner ribs are swept along from their outer to their central face |
-| `traces` | `std::array<std::array<Polyline, 3>, 2>` | Per inner rib `k`, on its central face: `traces[k][0]` the soffit, `[1]` +t and `[2]` +2t, t being `size_tsections` |
+    return {
+        outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0]),
+        outer_tsection(pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.wedges[0][0]),
+        tsection(panel.traces[0][0], panel.traces[0][1], cp.inner_beams[1][1], cp.wedges[1][0], Xform::project_to_plane_by_axis(ts[2][1], panel.rib_sweep), Xform::project_to_plane_by_axis(ts[2][1], panel.ruling)),
+        tsection(panel.traces[1][0], panel.traces[1][1], cp.inner_beams[1][1], cp.wedges[1][0], Xform::project_to_plane_by_axis(ts[3][1], panel.rib_sweep), Xform::project_to_plane_by_axis(ts[3][1], panel.ruling)),
+        outer_tsection(pb[1], ts[4], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]),
+        outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0]),
+    };
+}
+```
 
-Code: [`CentralPanel`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L33-L39)
 
-### FloorGuide
+</details>
 
-![FloorGuide](floor/901_floor_guide.webp)
+</details>
 
-<span style="color:#2196EA">■ corners, oculus points</span> <span style="color:#737373">■ seams, dashed</span>
+<details>
+<summary><b>Bed rails</b></summary>
 
-The guide is made from four corners and the parameters (`size_outer_ribs`, `size_wedge`, `height`, `rise` ...); the constructor runs every step for each quarter and draws the result.
+Per bed row, its lower and upper layer on its two side faces, trimmed alike so every segment makes one bed.
 
-Code: [`FloorGuide`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L50)
+```cpp
+// bed rails, per bed row its lower and upper layer on its two side faces, trimmed alike
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<std::array<Polyline, 2>, 2>, 3> rails = compute_bed_rails(q);
+    _bed_rails[q] = rails;
+}
+```
 
-### quarter_polygon
+![The bed rails](floor/978_member_bed_rails.webp)
 
-![quarter_polygon](floor/902_quarter_polygon.webp)
+<details>
+<summary>compute_bed_rails(q)</summary>
 
-<span style="color:#2196EA">■ quarter 0</span> <span style="color:#A3A3A3">■ the other quarters</span>
 
-The bay is split into four quarters; quarter q is the one at `corners[q]`. Every FloorGuide method takes q and computes that quarter alone, so a rectangular bay gets four different quarters; the pictures below show q = 0. The quarter's five lines carry all its planes: the bay edges, the two seams, the oculus edge.
 
-Code: [`quarter_polygon`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L96)
+```cpp
+std::array<std::array<std::array<Polyline, 2>, 2>, 3> FloorGuide::compute_bed_rails(size_t q) const {
 
-### quarter_column_polygon
+    // one row: the lower and upper layer on the panel's two side planes trimmed alike
+    const auto bed_row = [](const std::array<Polyline, 2>& lower, const std::array<Polyline, 2>& upper, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-![quarter_column_polygon](floor/903_quarter_column_polygon.webp)
+        const std::vector<Polyline> layers = Polyline::trimmed_alike({lower[0], lower[1], upper[0], upper[1]}, cut_plane0, cut_plane1, EXTENSION);
 
-<span style="color:#2196EA">■ the column head</span> <span style="color:#737373">■ column_frame</span>
+        return std::array<std::array<Polyline, 2>, 2>{{{layers[0], layers[1]}, {layers[2], layers[3]}}};
+    };
 
-The column head at the quarter's corner, where the ribs start; `column_frame` gives its axes.
+    // an outer row: the parabola's +t and +2t projected along the outer rib normal onto the panel's two side planes
+    const auto outer_bed_row = [&bed_row](const std::array<Polyline, 3>& parabola, const Plane& side0, const Plane& side1, const Vector& normal, const Plane& cut_plane0, const Plane& cut_plane1) {
 
-Code: [`quarter_column_polygon`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L99)
+        const Xform projection0 = Xform::project_to_plane_by_axis(side0, normal);
+        const Xform projection1 = Xform::project_to_plane_by_axis(side1, normal);
 
-### construction_planes
+        return bed_row({parabola[1].transformed(projection0), parabola[1].transformed(projection1)}, {parabola[2].transformed(projection0), parabola[2].transformed(projection1)}, cut_plane0, cut_plane1);
+    };
 
-![construction_planes](floor/904_construction_planes.webp)
+    const ConstructionPlanes& cp = construction_planes(q);
+    const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
+    const CentralPanel& panel = central_panel(q);
 
-<span style="color:#2196EA">■ base face</span> <span style="color:#F2CC0C">■ offset face</span> <span style="color:#A3A3A3">■ the member's footprint</span>
+    return {
+        outer_bed_row(pb[0], cp.inner_ribs[0][0], cp.outer_ribs[0][1], cp.outer_ribs[0][0].z_axis(), cp.inner_beams[0][1], cp.wedges[0][0]),
+        bed_row({panel.traces[0][1], panel.traces[1][1]}, {panel.traces[0][2], panel.traces[1][2]}, cp.inner_beams[1][1], cp.wedges[1][0]),
+        outer_bed_row(pb[1], cp.inner_ribs[1][0], cp.outer_ribs[1][1], cp.outer_ribs[1][0].z_axis(), cp.inner_beams[2][1], cp.wedges[2][0]),
+    };
+}
+```
 
-A plane pair for every member: its base face on one of the polygon's lines, and the face offset by the member's size. Every member is cut from these planes.
 
-Code: [`construction_planes`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L112)
+</details>
 
-### construction_quads
+</details>
 
-![construction_quads](floor/905_construction_quads.webp)
+<details>
+<summary><b>Beds</b></summary>
 
-family colours
+One quad plate per rail segment, three rows.
 
-Where each member's four planes meet the floor datum: its footprint in plan.
+```cpp
+// beds, per row one quad plate for each segment of its rails
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::vector<std::array<Polyline, 2>>, 3> rows = compute_beds(q);
+    _beds[q] = rows;
+}
+```
 
-Code: [`construction_quads`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L115)
+![The beds](floor/973_member_beds.webp)
 
-### boundary_parabolas
+<details>
+<summary>compute_beds(q)</summary>
 
-![boundary_parabolas](floor/906_boundary_parabolas.webp)
 
-<span style="color:#2196EA">■ the parabolas</span> <span style="color:#F2CC0C">■ their +t and +2t layers</span> <span style="color:#737373">■ rib quads</span>
 
-A parabola under each rib axis, from `-height` at the column to `-static_h` at the seam. The inner ones are the outer ones projected onto the inner ribs.
+```cpp
+std::array<std::vector<std::array<Polyline, 2>>, 3> FloorGuide::compute_beds(size_t q) const {
 
-Code: [`boundary_parabolas`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L125)
+    std::array<std::vector<std::array<Polyline, 2>>, 3> rows;
 
-### central_panel
+    for (size_t r = 0; r < 3; r++) {
+        const std::array<std::array<Polyline, 2>, 2>& rails = bed_rails(q)[r];
+        std::vector<std::array<Polyline, 2>> plates;
 
-![central_panel](floor/907_central_panel.webp)
+        for (size_t i = 0; i + 1 < rails[0][0].point_count(); i++) {
+            const Polyline bottom = Polyline({rails[0][0].get_point(i), rails[0][0].get_point(i + 1), rails[0][1].get_point(i + 1), rails[0][1].get_point(i)}).closed();
+            const Polyline top = Polyline({rails[1][0].get_point(i), rails[1][0].get_point(i + 1), rails[1][1].get_point(i + 1), rails[1][1].get_point(i)}).closed();
+            plates.push_back({top, bottom});
+        }
 
-<span style="color:#2196EA">■ soffit traces</span> <span style="color:#F2CC0C">■ layers</span> <span style="color:#E8478B">■ ruling</span>
+        rows[r] = plates;
+    }
 
-Between the two inner ribs, one ruling crosses the panel and one sweep serves both ribs (rule A), so the central beds stay flat quads.
+    return rows;
+}
+```
 
-Code: [`central_panel`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L128)
 
-### Two face loops
+</details>
 
-![Two face loops](floor/908_loops.webp)
+</details>
 
-<span style="color:#2196EA">■ [0]: top</span> <span style="color:#F2CC0C">■ [1]: bottom</span>
+<details>
+<summary><b>Wedges</b></summary>
 
-Every member method below returns each member as `std::array<Polyline, 2>`: its two face loops, lofted by `loft`. The guide stops here; the Floor turns loops into elements.
+The three column blocks, each lofted between its rib faces, its bed top plane and the floor top.
 
-Code: [`loft`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L177)
+```cpp
+// wedges, the three column blocks between the ribs, standing on the bed top planes
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 3> blocks = compute_wedges(q);
+    _wedges[q] = blocks;
+}
+```
 
-### outer_ribs, inner_ribs
+![The column blocks](floor/974_member_wedges.webp)
 
-![outer_ribs, inner_ribs](floor/909_ribs.webp)
+<details>
+<summary>compute_wedges(q)</summary>
 
-<span style="color:#2196EA">■ the ribs</span> <span style="color:#A3A3A3">■ the rest of the quarter</span>
 
-Each rib's parabola trimmed by the planes it ends on, on both of its faces.
 
-Code: [`outer_ribs`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L153)
+```cpp
+std::array<std::array<Polyline, 2>, 3> FloorGuide::compute_wedges(size_t q) const {
 
-### tsections
+    const ConstructionPlanes& cp = construction_planes(q);
+    const std::array<Plane, 3>& beds = bed_top_planes(q);
+    const Plane top = Plane::xy_plane_at(0.0);
+    const std::array<std::array<Plane, 2>, 3> ribs = {{
+        {cp.outer_ribs[0][1], cp.inner_ribs[0][0]},
+        {cp.inner_ribs[0][1], cp.inner_ribs[1][1]},
+        {cp.inner_ribs[1][0], cp.outer_ribs[1][1]},
+    }};
 
-![tsections](floor/910_tsections.webp)
+    std::array<std::array<Polyline, 2>, 3> blocks;
 
-<span style="color:#2196EA">■ the t-sections</span> <span style="color:#A3A3A3">■ ribs and beams</span>
+    for (size_t i = 0; i < 3; i++)
+        blocks[i] = loft({ribs[i][0], beds[i], ribs[i][1], top}, cp.wedges[i][0], cp.wedges[i][1]);
 
-Flange strips beside the rib faces; the beds rest on them.
+    return blocks;
+}
+```
 
-Code: [`tsections`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L150)
 
-### beds
+</details>
 
-![beds](floor/911_beds.webp)
+</details>
 
-<span style="color:#2196EA">■ the beds</span>
+<details>
+<summary><b>Inner beams</b></summary>
 
-Three rows of bed plates between the ribs, each row trimmed alike so every plate stays a quad.
+The two seam beams and the oculus beam, from the floor top down to the soffit.
 
-Code: [`beds`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L147)
+```cpp
+// inner beams, the two seam beams and the oculus beam down to the soffit
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 3> beams = compute_inner_beams(q);
+    _inner_beams[q] = beams;
+}
+```
 
-### wedges, inner_beams
+![The inner beams](floor/975_member_inner_beams.webp)
 
-![wedges, inner_beams](floor/912_wedges_and_beams.webp)
+<details>
+<summary>compute_inner_beams(q)</summary>
 
-<span style="color:#2196EA">■ column blocks and inner beams</span>
 
-The three column blocks at the head, and the three beams on the seams and the oculus edge.
 
-Code: [`wedges`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L159)
+```cpp
+std::array<std::array<Polyline, 2>, 3> FloorGuide::compute_inner_beams(size_t q) const {
 
-### oculus()
+    const ConstructionPlanes& cp = construction_planes(q);
+    const Plane side0 = Plane::xy_plane_at(0.0);
+    const Plane side1 = Plane::xy_plane_at(soffit);
 
-![oculus()](floor/913_oculus.webp)
+    // the seam beams run on through the outer rib band to the bay's outer face
+    return {
+        loft({cp.outer_ribs[0][0], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[0][0], cp.inner_beams[0][1]),
+        loft({cp.inner_beams[0][1], side0, cp.inner_beams[2][1], side1}, cp.inner_beams[1][0], cp.inner_beams[1][1]),
+        loft({cp.outer_ribs[1][0], side0, cp.inner_beams[1][0], side1}, cp.inner_beams[2][0], cp.inner_beams[2][1]),
+    };
+}
+```
 
-<span style="color:#2196EA">■ ring beams</span> <span style="color:#F2CC0C">■ the quarters' oculus beams</span> <span style="color:#A3A3A3">■ bottom wedges and central plate</span>
 
-Four ring beams around the hole, one per oculus edge, each meeting its quarter's oculus beam on the tilted plane.
+</details>
 
-Code: [`oculus`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L165)
+</details>
 
-### column_cutters
+<details>
+<summary><b>Oculus</b></summary>
 
-![column_cutters](floor/914_column_cutters.webp)
+Four ring beams around the hole, four bottom wedges and the inner plate.
 
-<span style="color:#2196EA">■ the cutters</span> <span style="color:#A3A3A3">■ the column</span>
+```cpp
+// oculus, four ring beams around the hole, four bottom wedges and the inner plate
+const std::array<std::array<Polyline, 2>, 9> ring = compute_oculus();
+_oculus = ring;
+```
 
-Six plates that carve the column head so the ribs and the column blocks sit on it.
+![The oculus](floor/976_member_oculus.webp)
 
-Code: [`column_cutters`](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.h#L171)
+<details>
+<summary>compute_oculus()</summary>
+
+
+
+```cpp
+std::array<std::array<Polyline, 2>, 9> FloorGuide::compute_oculus() const {
+
+    const Plane side0 = Plane::xy_plane_at(0.0);
+    const Plane side1 = Plane::xy_plane_at(soffit + size_tsections);
+    const Plane side2 = Plane::xy_plane_at(soffit);
+    const Plane side3 = Plane::xy_plane_at(soffit + size_tsections * 2.0);
+
+    std::vector<Plane> tilted;
+    std::vector<Plane> inner;
+
+    for (size_t q = 0; q < 4; q++) {
+        tilted.push_back(construction_planes(q).inner_beams[1][0]);
+        inner.push_back(ring_inner(q));
+    }
+
+    // four ring beams, four bottom wedges, the inner plate
+    std::array<std::array<Polyline, 2>, 9> plates;
+
+    for (size_t i = 0; i < 4; i++)
+        plates[i] = loft({side2, tilted[(i + 1) % 4], side0, inner[(i + 3) % 4]}, tilted[i], inner[i], true);
+
+    for (size_t i = 0; i < 4; i++) {
+        const std::vector<Plane> sides = {inner[i], inner[(i + 1) % 4], inner[i].translate_by_normal(-size_tsections), inner[(i + 3) % 4].translate_by_normal(-size_tsections)};
+        plates[4 + i] = loft(sides, side2, side1);
+    }
+
+    plates[8] = loft(inner, side1, side3);
+
+    return plates;
+}
+```
+
+
+</details>
+
+</details>
+
+<details>
+<summary><b>Column cutters</b></summary>
+
+Six plates per column that carve its head down to the cutter level and the head depth.
+
+```cpp
+// column cutters, six plates per column that carve its head down to the cutter level and the head depth
+for (size_t q = 0; q < 4; q++) {
+    const std::array<std::array<Polyline, 2>, 6> cutters = compute_column_cutters(q);
+    _column_cutters[q] = cutters;
+}
+```
+
+![The column cutters](floor/977_member_column_cutters.webp)
+
+<details>
+<summary>compute_column_cutters(q)</summary>
+
+
+
+```cpp
+std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_column_cutters(size_t q) const {
+
+    // a cutter quad stretched in its own plane: its long sides by the margin at both ends, then its short sides inwards, both for a top quad, only the first for a bottom one
+    const auto stretch = [](std::vector<Point> quad, bool top) {
+
+        Polyline::extend_line_segment(quad[0], quad[1], CUTTER_MARGIN, CUTTER_MARGIN);
+        Polyline::extend_line_segment(quad[2], quad[3], CUTTER_MARGIN, CUTTER_MARGIN);
+
+        const Vector d2 = (quad[2] - quad[1]).normalized() * CUTTER_MARGIN;
+        const Vector d3 = (quad[0] - quad[3]).normalized() * CUTTER_MARGIN;
+        quad[0] = quad[0] - d2;
+        quad[1] = quad[1] - d2;
+
+        if (top) {
+            quad[2] = quad[2] - d3;
+            quad[3] = quad[3] - d3;
+        }
+
+        return quad;
+    };
+
+    const std::vector<Point> head = quarter_column_polygon(q);
+    const Vector down(0.0, 0.0, -1.0);
+    const Plane xy2 = Plane::xy_plane_at(column_levels(q)[2]);
+    const std::vector<Plane> fan_bottom = {Plane::from_line(Line::from_points(head[0], head[1]), -Vector::z_axis()), Plane::from_line(Line::from_points(head[1], head[2]), down), Plane::from_line(Line::from_points(head[3], head[4]), down), Plane::from_line(Line::from_points(head[4], head[0]), -Vector::z_axis())};
+    const std::array<std::vector<Point>, 3> faces = {column_face(q, 0), column_face(q, 1), column_face(q, 2)};
+    const std::vector<Point> p1 = {faces[0][3], faces[0][2], faces[1][2], faces[2][2]};
+
+    std::vector<Point> p2;
+
+    for (size_t i = 0; i + 1 < fan_bottom.size(); i++)
+        p2.push_back(Intersection::plane_plane_plane(xy2, fan_bottom[i], fan_bottom[i + 1]).value());
+
+    const Vector quarter_span = (p2[2] - p2[0]) * 0.25;
+    const std::vector<std::vector<Point>> quads = {
+        faces[0],
+        faces[1],
+        faces[2],
+        {p1[0], p1[1], p2[1], p2[0]},
+        {p1[1], p1[2], p2[1] + quarter_span, p2[1] - quarter_span},
+        {p1[2], p1[3], p2[2], p2[1]},
+    };
+
+    std::array<std::array<Polyline, 2>, 6> plates;
+
+    for (size_t i = 0; i < quads.size(); i++) {
+        const std::vector<Point> quad = stretch(quads[i], i < 3);
+        const Vector normal = (quad[2] - quad[1]).cross(quad[1] - quad[0]).normalized() * CUTTER_MARGIN;
+        const Polyline top = Polyline(quad).closed();
+        plates[i] = {top, top.translated(normal)};
+    }
+
+    return plates;
+}
+```
+
+
+</details>
+
+</details>
