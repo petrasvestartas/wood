@@ -344,6 +344,7 @@ if(DOXYGEN_FOUND)
     doxygen_add_docs(docs
         ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/cutting_gallery.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md

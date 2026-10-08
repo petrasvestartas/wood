@@ -144,7 +144,7 @@ public:
     /// An InteractionFeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over world_elements<Plate>(), in place: adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
+    /// The joinery pipeline over `world_elements<Plate>()`, in place: adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
     std::vector<InteractionFeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
@@ -279,7 +279,7 @@ public:
         const std::vector<std::shared_ptr<Plate>>& cutters
     );
 
-    /// One past the highest n of an element named <prefix>_<n>, 0 when there is none: the next free number of a name prefix.
+    /// One past the highest n of an element named `<prefix>_<n>`, 0 when there is none: the next free number of a name prefix.
     size_t next_number(const std::string& prefix) const;
 
     /// Writes every cut member, connector part, dowel and support as its BRep instead of its mesh, the bores and round parts exact.

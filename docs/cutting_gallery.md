@@ -1,4 +1,4 @@
-# Cutting examples for the viewer
+# Cutting examples for the viewer {#cutting_gallery}
 
 | Target | Cases |
 | --- | --- |

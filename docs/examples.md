@@ -2,11 +2,12 @@
 
 [TOC]
 
-Eighteen short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `buildslot ~/.local/bin/cmake --build build --target <name> --parallel 4` followed by `tools/run_guarded.sh -t 10 -m 4 -- build/<name>` from the `wood` directory. The cutting examples have [generation and publishing instructions](cutting_gallery.md); the earlier examples end with run instructions; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
+Eighteen short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `buildslot ~/.local/bin/cmake --build build --target <name> --parallel 4` followed by `tools/run_guarded.sh -t 10 -m 4 -- build/<name>` from the `wood` directory. The cutting examples have [generation and publishing instructions](@ref cutting_gallery); the earlier examples end with run instructions; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
 
 | Example | Behaviour |
 |---|---|
-| `1_elements` | The four element kinds built in code and added to a scene, one authored interaction record; `get_element` and the typed lists |
+| `1_session_contacts` | Plates, a beam, a column and a block in one scene; face contacts computed by the session, a `JointPlate` oriented to one and its two features added with `add_interaction` |
+| `2_session_hard_coded_contacts` | The same scene with its contacts written by hand as `InteractionContactFace` records instead of computed |
 | `3_elements_tree` | The same bay three times, each under its own tree branch, so `compute_face_contacts(1)` stays inside a branch; `instance_by_key` for one definition per repeated element |
 | `4_datasets` | The three loaders: a dataset yml, an obj alone, a session `.pb` |
 | `5_contacts` | Face, axis and cross contacts on one dataset, each read through the interaction of its edge |
@@ -29,7 +30,7 @@ Elements go under the tree node `add(element, parent)` names, under the root wit
 
 The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
 
-## 1_elements
+## 1_session_contacts
 
 Select a library design by its actual name and parameters:
 
@@ -63,7 +64,11 @@ Exact signatures are declared together in `wood_element_joint_plate.h`.
 `19_plate_joint_library` demonstrates six side-to-top configurations and writes
 `data/output/pb/19_plate_joint_library.pb` for the viewer.
 
-\include{lineno} 1_elements.cpp
+\include{lineno} 1_session_contacts.cpp
+
+## 2_session_hard_coded_contacts
+
+\include{lineno} 2_session_hard_coded_contacts.cpp
 
 ## 3_elements_tree
 
@@ -115,7 +120,7 @@ Exact signatures are declared together in `wood_element_joint_plate.h`.
 
 ## Cutting gallery
 
-See [the cutting gallery](cutting_gallery.md) for the API, geometry limits and Cloudflare command.
+See @subpage cutting_gallery for the API, geometry limits and Cloudflare command.
 
 ### 15_profile_cuts
 

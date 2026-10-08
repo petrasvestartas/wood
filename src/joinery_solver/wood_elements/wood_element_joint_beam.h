@@ -140,7 +140,7 @@ public:
     /// One part as a BRep with its cuts applied and its dowel bores exact.
     BRep part_brep(size_t index) const;
 
-    /// The connector's parts and dowels as elements to nest under it: a ConnectorPart per part named <name>_part, numbered when there are several, then a Dowel per drill line named <name>_dowel_<i>, or <name>_screw_<i> for pre-drilled screws.
+    /// The connector's parts and dowels as elements to nest under it: a ConnectorPart per part named `<name>_part`, numbered when there are several, then a Dowel per drill line named `<name>_dowel_<i>`, or `<name>_screw_<i>` for pre-drilled screws.
     std::vector<std::shared_ptr<Joint>> children() const;
 
     /// A beam-to-beam joint's feature volumes; a connector draws nothing itself, its children carry its parts and dowels.
