@@ -489,7 +489,7 @@ for (size_t q = 0; q < 4; q++) {
 <details>
 <summary>compute_construction_quads(q), the outer ribs shown</summary>
 
-
+Outer rib 0: its two faces, the fan plane it starts on and the seam plane it ends on; their crossings on the floor are its corners.
 
 ```cpp
 ConstructionQuads FloorGuide::compute_construction_quads(size_t q) const {
@@ -510,6 +510,7 @@ ConstructionQuads FloorGuide::compute_construction_quads(size_t q) const {
 }
 ```
 
+![Outer rib 0's quad from its four planes](floor/979_quad_from_planes.webp)
 
 </details>
 
