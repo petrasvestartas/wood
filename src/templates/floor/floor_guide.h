@@ -7,7 +7,7 @@ using namespace wood_session;
 namespace wood_floor {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// The tables FloorGuide computes per quarter
+// Per-quarter tables
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The planes of a quarter in pairs, one pair per member: the first plane is the member's base face, the second the face it is offset to.
@@ -98,9 +98,9 @@ public:
     /// The interior angle at corner k in degrees.
     double corner_angle(size_t k) const;
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
     // Floor plan geometry
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Quarter q in plan: corner q, the midpoint of edge q, oculus point q, oculus point q - 1, the midpoint of edge q - 1. Line 0 runs along edge q, line 1 is seam q, line 2 the oculus edge, line 3 seam q - 1, line 4 along edge q - 1.
     std::vector<Point> quarter_polygon(size_t q) const;
@@ -114,9 +114,9 @@ public:
     /// The support's plane at corner q, on the slab under the column axis, half a column head along both frame axes from the corner.
     Plane support_plane(size_t q) const;
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Beams: the plate edges as plane pairs, then their plan quads
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Construction planes and quads
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Quarter q's plane pairs, one per member: outer ribs on the bay edges, inner beams on the seams and the tilted oculus edge, inner ribs from the column head to the beam corners, the wedge fan, and the t-sections beside the ribs.
     const ConstructionPlanes& construction_planes(size_t q) const;
@@ -124,12 +124,12 @@ public:
     /// Quarter q's member quads where each member's four planes meet the datum.
     const ConstructionQuads& construction_quads(size_t q) const;
 
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
     // 3D geometry
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Per outer rib of quarter q, how far along its axis the parabola starts: the wedge where both ends land level, else solved so they do.
-    std::array<double, 2> rib_starts(size_t q) const;
+    const std::array<double, 2>& rib_starts(size_t q) const;
 
     /// Quarter q's parabolas along the outer and inner rib axes (outer 0, outer 1, inner 0, inner 1), each with its +tsections and +2 tsections offsets.
     const std::array<std::array<Polyline, 3>, 4>& boundary_parabolas(size_t q) const;
@@ -146,9 +146,9 @@ public:
     /// The plane each outer rib of quarter q ends on at its seam: the far face of the seam beam, which runs on through the outer rib band to the bay's outer face.
     std::array<Plane, 2> rib_seam_ends(size_t q) const;
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Members, each as its two face loops at the datum
-    // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Members
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /// Quarter q's three bed rows as rails, each row its bottom rails and its top rails: the lower and upper layer on the panel's two side planes trimmed alike, so every segment of the four makes one bed.
     const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& bed_rails(size_t q) const;
@@ -198,6 +198,7 @@ public:
 private:
     // per quarter, filled by the constructor
     std::array<ConstructionPlanes, 4> _construction_planes;
+    std::array<std::array<double, 2>, 4> _rib_starts;
     std::array<ConstructionQuads, 4> _construction_quads;
     std::array<std::array<std::array<Polyline, 3>, 4>, 4> _boundary_parabolas; // Per rib (outer 0, outer 1, inner 0, inner 1), soffit, +t and +2t.
     std::array<CentralPanel, 4> _central_panel;
@@ -217,13 +218,17 @@ private:
     /// A member's two faces: the plane and its copy moved by distance along the normal.
     static std::array<Plane, 2> pair(const Plane& plane, double distance);
 
-    /// The constructor's steps for quarter q, in order.
+    /// The constructor's steps, in its order; compute_rib_starts also sizes the column blocks inside compute_construction_planes.
     ConstructionPlanes compute_construction_planes(size_t q) const;
-    ConstructionQuads compute_construction_quads(const ConstructionPlanes& cp) const;
+    Point compute_centre() const;
+    std::array<Point, 4> compute_oculus_points() const;
+    ConstructionQuads compute_construction_quads(size_t q) const;
     std::array<double, 2> compute_rib_starts(const ConstructionPlanes& cp) const;
     std::array<std::array<Polyline, 3>, 4> compute_boundary_parabolas(size_t q) const;
     CentralPanel compute_central_panel(size_t q) const;
     std::array<Plane, 3> compute_bed_top_planes(size_t q) const;
+    double compute_rib_bottom() const;
+    double compute_soffit() const;
     std::array<std::array<Polyline, 2>, 2> compute_outer_ribs(size_t q) const;
     std::array<std::array<Polyline, 2>, 2> compute_inner_ribs(size_t q) const;
     std::array<std::array<Polyline, 2>, 6> compute_tsections(size_t q) const;

@@ -320,7 +320,7 @@ std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vect
     const size_t q = place[0];
 
     if (kind == ContactKind::seam_wedge) {
-        const double size = std::max(FloorGuide::thickness(guide.inner_beams(q)[0]), FloorGuide::thickness(guide.inner_beams((q + 1) % 4)[2]));
+        const double size = guide.size_inner_beams;
         const Plane end = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height)); // the bay's outer face the wedge runs on to
         return JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0, end);
     }
@@ -331,7 +331,7 @@ std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vect
     }
 
     if (kind == ContactKind::column_plate)
-        return JointBeam::rectangle_plate(a, b, contact, FloorGuide::thickness(guide.outer_ribs(q)[place[1]]));
+        return JointBeam::rectangle_plate(a, b, contact, guide.size_outer_ribs);
 
     const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(a, b, contact);
 

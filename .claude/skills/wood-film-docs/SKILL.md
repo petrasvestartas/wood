@@ -1,19 +1,21 @@
 ---
 name: wood-film-docs
-description: Explain a complex 3D modelling algorithm in the wood docs as a step-by-step "film" - one rendered picture per step, colour-coded by role, labelled, with a one-sentence page per step linked to the exact code. Use for "document <algorithm> step by step", "explain this 3D script graphically", "make pictures for the docs", "like the floor film", or when redoing or fixing those pictures and pages.
+description: Explain a class that encodes a 3D modelling algorithm in the wood docs step by step - one page that follows its constructor block by block, each block an expandable section with one line of text, its code and a static rendered picture. Use for "document <algorithm> step by step", "explain this 3D script graphically", "make pictures for the docs", "like the floor film", or when redoing or fixing those pictures and pages.
 argument-hint: [<topic> | redo <topic> | fix <frame numbers>]
 ---
 
-# Film documentation for 3D modelling code
+# Step-by-step documentation for 3D modelling code
 
-The floor template (`docs/templates/floor*.md`, pictures in `docs/templates/floor/`) is the reference:
-11 chapter pages, ~230 pictures, every step of the algorithm in the order the code runs.
-`templates/` beside this file holds the generator it was made with. Copy it, never rewrite it.
+`docs/templates/floor_guide.md` (pictures in `docs/templates/floor/`) is the reference: one page that
+follows `FloorGuide`'s constructor block by block (wood `CLAUDE.md`, "Class constructors"). The full
+picture rules are `wood-agent` Protocol 5. `templates/` beside this file holds the generator. Copy it,
+never rewrite it.
 
 ## Process
 
-1. **Read the algorithm** end to end. List every step in the order the code runs: one step = one
-   picture = one `## N. title` section. Group steps into chapters of 10-30.
+1. **Read the constructor** end to end: one constructor block = one expandable section, in its
+   order; each `compute_*` step that builds something distinct = one nested section with its own
+   picture.
 2. **Set up the generator, local only.** It is documentation tooling, never committed:
    - copy `templates/movie.h`, `movie.cpp`, `main.cpp`, `render.py` to `docs/<topic>/`; keep the
      `Look`, `Frame` and `write` parts, replace the floor helpers, `Context` and chapter list;
@@ -24,7 +26,7 @@ The floor template (`docs/templates/floor*.md`, pictures in `docs/templates/floo
    with number, slug, caption, view and box; draw only what the step reads (input/context) and
    what it builds (role colours); label every named thing; `frame.write(context.dir)`.
 4. **Generate and render:** build and run `docs_<topic>_movie`, then
-   `python3 docs/<topic>/render.py` (all frames and the films) or `render.py 023 087` (some).
+   `python3 docs/<topic>/render.py` (all frames) or `render.py 023 087` (some). Static images only.
    Run both under `timeout 10m systemd-run --user --scope -q -p MemoryMax=8G`.
 5. **QA every frame**, not a sample: tile 9 per contact sheet and look at all of them. Machine
    checks: `label problems: 0` from render.py; no green pixels (`g > r+20 and g > b+15`, see
@@ -41,73 +43,28 @@ The floor template (`docs/templates/floor*.md`, pictures in `docs/templates/floo
 
 ## Picture style (each rule came from a rejected picture)
 
-**Viewer**
-- Arctic view (`VIEWER_AO=1`, `VIEWER_OUTLINES=1`), `VIEWER_OPACITY=1`, no grid
-  (`VIEWER_NO_GRID=1`). Below opacity 1 the viewer blends every face and the scene turns
-  see-through; never blend a "bare" render either.
-- Every named view (top, front, right, iso) is orthographic. Hidden lines there needed a viewer
-  fix (session 6f9e4e4e, `sag_terms`); if lines show through solids again, suspect the viewer's
-  hidden-line slack before the drawing.
-
-**Colour = role**, the same in picture, colour key and text:
-
-| Role | Colour |
-|---|---|
-| what the step builds | blue `#2196EA` (Block Research Group primary) |
-| the variable or value it introduces | pink `#E8478B` |
-| a second result | yellow `#F2CC0C` |
-| what it reads from earlier steps; dashed = construction helper | grey `#737373` |
-| context | light grey `#DADADA`, solid |
-| dimensions, mesh edges | black `#1A1A1A` |
-
-Never orange, amber, slate, dark blue or green. Member families get their own set
-(`FAMILY_COLORS` in `movie.h`: pink, yellow, two neutral greys, pale yellow, pale blue). Colours go to the
-viewer as linear light: `movie.cpp`'s `shown()` decodes sRGB first.
-
-**Lines**
-- One pen for every line: `PEN` = 2 px. Colour, not width, tells roles apart.
-- Never two lines on one another: `Frame` cuts a lower-ranked line (context < input < role
-  colours) where a higher one covers it on screen. Never lay a coloured line exactly on another
-  colour's line or face (blue on yellow reads green): leave the shared side out.
-- Dashes: one pattern everywhere, sized by the pen (dash 5 pens, gap 2 pens + 4 px), stretched so
-  a line starts and ends on a full dash. The viewer has only round caps.
-- No hatching. An area between lines is `frame.fill` (pale tint, no edge).
-- Dimensions: `frame.dimension`, black, extension lines, 45-degree ticks, value as its label.
-
-**Solids**
-- Members are solids (`frame.solid`, `frame.element`), never wire loops; loops drawn on a solid
-  only double its edges. Every solid gets black edges; context solids light grey, highlighted
-  ones in their role or family colour, all opaque.
-- A plane is the viewer's plane object: square, x and y axes, headed normal, unfilled (a fill
-  gets an Arctic outline). A plane seen edge-on in a plan or elevation draws only its normal.
-
-**Framing and labels**
-- Plans from above at the working level, elevations along x or y, 3D steps from a fixed corner;
-  one box per frame (`VIEWER_BOUNDS`), the same box for steps that belong together.
-- Labels: black plates with white text in Roboto, a leader to a ring on the point, placed by
-  render.py's cost-based labelling (no overlap, no two labels on one spot), drawn 4x and scaled
-  down so they are smooth. Every name a plate shows is a name in the code.
-- Pictures render at twice the layout size (`SCALE = 2`, 2560 x 1648, `VIEWER_THICKNESS=2`):
-  label placement runs in the 1x layout, everything is drawn at 2x.
-- The caption over the picture states the step in code terms, e.g.
-  `construction_planes(q): a plane pair per member ...`, with no frame number: the number only
-  orders the files.
+- Static images, never films or composites; every text readable at full size; no caption band (the
+  text lives in the page).
+- White background; members grey solids with black edges; lines black: colour carries no meaning,
+  except a plane's axes (x pink, y yellow-green, normal blue) and the thick pink dot of a computed
+  point. No dashed lines.
+- Labels: black text on white plates, solid black leader dot, never anchored on a line's midpoint;
+  every name is a name in the code.
+- A plane is a grey shaded square without grid, with its axes, both planes of a pair; never a line.
+- 3D quarter views: iso, orbit `-60,70`, a plan of the same scene in the top-right (40 %, white only
+  inside its outline), the 3D view shifted left. Close-ups get their own box; slopes read in profile.
+- Plans in one sequence keep one scale.
 
 ## Writing style
 
-- One plain sentence per step; two or three only where a reader would otherwise miss a refusal,
-  a skew rule or a sign. No tables unless the numbers are the point (at most 4 rows), no code
-  blocks (the `Code:` line links the source), at most one mermaid diagram per page.
-- Each step: `## N. title`, the picture, its colour-key line
-  (`<span style="color:#2196EA">■ built</span> ...`), the sentence, the `Code:` line.
-- `Code:` lines link to GitHub at a pinned commit, file and line range: the reader must reach the
-  exact lines from every step.
-- Mermaid diagrams top to bottom (`flowchart TD`, `direction TB`): drawn left to right they are
-  scaled down to the page width until the text is unreadable. The footer sets Roboto 18 px.
-- Doxygen: hex colours and anything with `<...>` in backticks, no bare `@word` or `\word`,
-  `@subpage` lines without a colon in the title text, the `■` character not `&#9632;`.
-- The overview page: what the algorithm makes, the data structures (one mermaid class diagram),
-  a colour table, the member and name table, the examples, then the chapter list.
+- The page follows the constructor: the parameters (one code snippet of the constructor's arguments
+  with their defaults, and as few pictures as show them all), an expandable Tables block with the
+  class definitions as code, then one `<details>` section per constructor block in order.
+- Each section: one line of text, the constructor block's code, its picture; nested `<details>`
+  with the `compute_*` code of each sub-step and its picture. Snippets are cut from the source, so
+  they match it exactly; a result is named and fixed-size on its own line before it is stored.
+- Text extremely short: the code and the picture explain, the sentence only names the step.
+- Doxygen: hex colours and anything with `<...>` in backticks, no bare `@word` or `\word`.
 
 ## Fonts
 
