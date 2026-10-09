@@ -718,7 +718,7 @@ void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, con
 <details>
 <summary><b>Screws</b></summary>
 
-Two 200 mm screws where an outer rib meets a seam beam, a seam beam the oculus beam, and an inner rib the oculus beam.
+Where one member butts into another, two 200 mm screws hold it: they run along the butting member, their heads on the face they start from. Three such joints per side of a quarter, so twelve screw pairs per quarter; each pair is one pre-drilled screw connector, nothing is cut.
 
 ```cpp
 // screws: the assembly screws, after every other connector so nothing before them changes
@@ -726,10 +726,148 @@ const std::array<QuarterScrews, 4> screws = compute_screws();
 add_screws(screws);
 ```
 
-![The screws of quarter 0](floor/985_floor_screws.webp)
+![The screws of quarter 0](floor/946_screws_quarter.webp)
 
 <details>
-<summary>compute_screws()</summary>
+<summary>rib_beam: an outer rib ends on a seam beam</summary>
+
+![The rib on the seam beam](floor/936_rib_beam_joint.webp)
+
+Two screws along the rib from the beam's seam face, 20 below the rib's top and 20 above its bottom, 15 off its axis; the next quarter's rib uses the other side, so the heads on the seam plane stay apart.
+
+![The rib beam screws](floor/937_rib_beam_screws.webp)
+
+```cpp
+std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const Plane& seam_face = cp.inner_beams[SEAM_BEAMS[k]][0];
+    const std::array<Polyline, 2>& rib = guide.outer_ribs(q)[k];
+    const Point body = FloorGuide::body(rib);
+    // the two ribs of a seam on opposite sides of their axes, so the heads on the seam plane stay apart
+    const double offset = k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET;
+    const double bottom = FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]);
+
+    return {
+        screw(cp.outer_ribs[k], seam_face, body, -RIB_END_MARGIN, offset),
+        screw(cp.outer_ribs[k], seam_face, body, bottom + RIB_END_MARGIN, offset),
+    };
+}
+```
+
+</details>
+
+<details>
+<summary>beam_mitre: a seam beam butts into the oculus beam</summary>
+
+![The seam beam on the oculus beam](floor/938_beam_mitre_joint.webp)
+
+Two screws along the oculus beam, their heads on the seam plane; their levels differ from the next quarter's, `MITRE_LEVELS`, so the two quarters' screws never meet.
+
+![The mitre screws](floor/939_beam_mitre_screws.webp)
+
+```cpp
+std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const Plane& seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0];
+    const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
+
+    return {
+        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][0])),
+        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][1])),
+    };
+}
+```
+
+</details>
+
+<details>
+<summary>rib_corner: the oculus beam butts into an inner rib</summary>
+
+![The oculus beam on the inner rib](floor/940_rib_corner_joint.webp)
+
+Two screws along the inner rib, their heads on the oculus beam's back face. Near the seam they run through the seam beam's end too, which then is a third member they hold, `passes_seam_beam`; a head closer than 4 mm to the seam plane throws, the bay too narrow.
+
+![The corner screws](floor/944_rib_corner_screws.webp)
+
+```cpp
+std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
+
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const Plane& back_face = cp.inner_beams[1][0];
+    const Plane seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+    const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
+    std::vector<Line> screws;
+
+    for (double levels : RIB_CORNER_LEVELS) {
+        screws.push_back(screw(cp.inner_ribs[k], back_face, body, corner_level(levels)));
+
+        // the next quarter's screws meet the seam plane from the other side: a head closer than half the spacing would touch them
+        const double from_seam = seam_plane.signed_distance(screws.back().start());
+
+        if (from_seam < 0.5 * SCREW_SPACING)
+            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
+    }
+
+    return screws;
+}
+```
+
+```cpp
+bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
+
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+    const Plane beam_end = guide.construction_planes(q).inner_beams[SEAM_BEAMS[k]][1].transformed(lift);
+    const Point oculus_beam = FloorGuide::body(guide.inner_beams(q)[1]).transformed(lift);
+    const double oculus_side = beam_end.signed_distance(oculus_beam) < 0.0 ? -1.0 : 1.0;
+
+    for (const Line& screw : screws)
+        if (oculus_side * beam_end.signed_distance(screw.start()) < 0.0)
+            return true;
+
+    return false;
+}
+```
+
+</details>
+
+<details>
+<summary>screw: one screw along a member, from a face</summary>
+
+The member's axis at level `z`, moved `offset` across; the head where it meets the face `from`, the screw `SCREW_LENGTH` on towards the member's body, at the floor.
+
+```cpp
+Line Floor::screw(const std::array<Plane, 2>& member, const Plane& from, const Point& toward, double z, double offset) const {
+
+    const Line line = axis(member, z) + member[0].z_axis() * offset;
+    const Point head = Intersection::line_plane(line, from, false).value();
+    Vector along = line.to_direction().normalized();
+
+    if (along.dot(toward - head) < 0.0)
+        along = -along;
+
+    return Line::from_points(head, head + along * SCREW_LENGTH).transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+}
+```
+
+```cpp
+Line Floor::axis(const std::array<Plane, 2>& faces, double z) {
+
+    const Line line0 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[0]).value();
+    const Line line1 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[1]).value();
+    const Point p0 = line0.start();
+    const Point p1 = line1.closest_point(p0, false).second;
+    const Point middle = Point::mid_point(p0, p1);
+
+    return Line::from_points(middle, middle + line0.to_direction());
+}
+```
+
+</details>
+
+<details>
+<summary>compute_screws() and add_screws(screws)</summary>
 
 ```cpp
 std::array<QuarterScrews, 4> Floor::compute_screws() const {
@@ -765,11 +903,6 @@ std::array<QuarterScrews, 4> Floor::compute_screws() const {
 }
 ```
 
-</details>
-
-<details>
-<summary>add_screws(screws)</summary>
-
 ```cpp
 void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
 
@@ -780,128 +913,12 @@ void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
 }
 ```
 
-</details>
-
-<details>
-<summary>rib_beam_screws(q, k)</summary>
-
-```cpp
-std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& seam_face = cp.inner_beams[SEAM_BEAMS[k]][0];
-    const std::array<Polyline, 2>& rib = guide.outer_ribs(q)[k];
-    const Point body = FloorGuide::body(rib);
-    // the two ribs of a seam on opposite sides of their axes, so the heads on the seam plane stay apart
-    const double offset = k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET;
-    const double bottom = FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]);
-
-    return {
-        screw(cp.outer_ribs[k], seam_face, body, -RIB_END_MARGIN, offset),
-        screw(cp.outer_ribs[k], seam_face, body, bottom + RIB_END_MARGIN, offset),
-    };
-}
-```
-
-`screw`: the rib's `axis` on each level, moved `SEAM_SCREW_OFFSET` across, the head where it meets the beam's seam face, `SCREW_LENGTH` along the rib.
-
-![The rib beam screws](floor/931_rib_beam_screws.webp)
-
-</details>
-
-<details>
-<summary>beam_mitre_screws(q, k)</summary>
-
-```cpp
-std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0];
-    const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
-
-    return {
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][0])),
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][1])),
-    };
-}
-```
-
-`screw`: the oculus beam's `axis` on levels `MITRE_LEVELS[k]`, the head where it meets the seam plane, the screw on towards the beam's `body`.
-
-![The beam mitre screws](floor/932_beam_mitre_screws.webp)
-
-</details>
-
-<details>
-<summary>rib_corner_screws(q, k)</summary>
-
-```cpp
-std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& back_face = cp.inner_beams[1][0];
-    const Plane seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
-    const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
-    std::vector<Line> screws;
-
-    for (double levels : RIB_CORNER_LEVELS) {
-        screws.push_back(screw(cp.inner_ribs[k], back_face, body, corner_level(levels)));
-
-        // the next quarter's screws meet the seam plane from the other side: a head closer than half the spacing would touch them
-        const double from_seam = seam_plane.signed_distance(screws.back().start());
-
-        if (from_seam < 0.5 * SCREW_SPACING)
-            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
-    }
-
-    return screws;
-}
-```
-
-`screw`: the inner rib's `axis` on levels `RIB_CORNER_LEVELS`, the head where it leaves the oculus beam's back face; a head nearer the seam plane than `SCREW_SPACING / 2` throws.
-
-![The rib corner screws](floor/933_rib_corner_screws.webp)
-
-</details>
-
-<details>
-<summary>passes_seam_beam(q, k, screws)</summary>
-
-```cpp
-bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
-
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const Plane beam_end = guide.construction_planes(q).inner_beams[SEAM_BEAMS[k]][1].transformed(lift);
-    const Point oculus_beam = FloorGuide::body(guide.inner_beams(q)[1]).transformed(lift);
-    const double oculus_side = beam_end.signed_distance(oculus_beam) < 0.0 ? -1.0 : 1.0;
-
-    for (const Line& screw : screws)
-        if (oculus_side * beam_end.signed_distance(screw.start()) < 0.0)
-            return true;
-
-    return false;
-}
-```
-
-A head beyond `beam_end`, the seam beam's end plane, on the side away from `beam_body`: the screw runs through the seam beam, which becomes a third target.
-
-![Passing the seam beam](floor/934_passes_seam_beam.webp)
-
-</details>
-
-<details>
-<summary>screws_of(members, lines)</summary>
-
 ```cpp
 std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {
 
     return JointBeam::screws(members, lines, 2.0, SCREW_LENGTH);
 }
 ```
-
-`JointBeam::screws`: a pre-drilled connector, one child `connector_screws_n_screw_i` per line, every member it passes a target.
-
-![The screw connector](floor/935_screws_of.webp)
 
 </details>
 
