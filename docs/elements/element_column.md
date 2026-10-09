@@ -12,6 +12,16 @@ static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, dou
 std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const
 ```
 
+## Parameters
+
+| Parameter | Default | What it changes in 3D |
+| --- | --- | --- |
+| `axis` | | base to head, the column's length and lean |
+| `section` | | the closed section swept along the axis |
+| `corner`, `side` (`square`) | | a square section of side `side` with a corner on the plane's origin, along its axes |
+| `rotation` (profile constructor) | 0 | degrees the profile turns about the axis |
+| `head_side`, `head_height` (`head_blocks`) | | the glued head: blocks that widen the top to `head_side` over `head_height` |
+
 ## A rectangle along an axis
 
 ![A rectangle along an axis](elements/element_column.png)

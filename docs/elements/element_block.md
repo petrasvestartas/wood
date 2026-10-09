@@ -11,6 +11,13 @@ explicit Block(const std::vector<Polyline>& loops, const std::string& name = "bl
 explicit Block(const Mesh& mesh, const std::string& name = "block")
 ```
 
+## Parameters
+
+| Parameter | Default | What it changes in 3D |
+| --- | --- | --- |
+| `loops` | | the bottom loop, the top loop, then pairs of hole loops; a wider top makes a tapered block |
+| `mesh` | | any closed mesh taken as the solid |
+
 ## Lofted between two loops
 
 ![Lofted between two loops](elements/element_block.png)

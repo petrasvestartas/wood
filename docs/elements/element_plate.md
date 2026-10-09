@@ -12,6 +12,16 @@ static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& 
 static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates")
 ```
 
+## Parameters
+
+| Parameter | Default | What it changes in 3D |
+| --- | --- | --- |
+| `bottom`, `top` | | the two faces: any closed polygons with one point count; a smaller or shifted top tilts the side faces |
+| `origin`, `x_axis`, `y_axis` | | where `from_rectangle` puts the bottom corner and which way its sides run |
+| `width`, `height` | | the rectangle's sides |
+| `thickness` | | how far the top stands off the bottom, along `x_axis` × `y_axis` |
+| `bottom`, `top` rails (`row_between`) | | two rails per face; one plate per rail segment |
+
 ## From two polylines
 
 ![From two polylines](elements/element_plate.png)

@@ -1,7 +1,9 @@
 import collections
+import fcntl
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -15,6 +17,8 @@ RENDERER = (
 )
 PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
 IMAGES = WOOD / "docs" / "images" / "elements"
+BUILD = pathlib.Path(os.environ.get("WOOD_BUILD", WOOD / "build"))
+LOCK = pathlib.Path(tempfile.gettempdir()) / "wood_live_pb.lock"
 FONT = str(pathlib.Path.home() / ".local/share/fonts/Roboto-Regular.ttf")
 BOLD = str(pathlib.Path.home() / ".local/share/fonts/Roboto-Medium.ttf")
 SIZE = (1500, 750)  # the picture with its panel
@@ -32,6 +36,23 @@ EXAMPLES = {  # every example: the box the camera frames in mm (x0, y0, z0, x1, 
     "element_column_session": ((-150, -150, 0, 500, 500, 3600), False),  # feature mode would draw the cutters over the carved head
     "element_block": ((-50, -50, 0, 350, 350, 250), True),
     "element_support": ((-250, -250, 0, 250, 250, 300), True),
+    "element_joint_plate_ts_e_p": ((-50, -750, 0, 1850, 450, 500), False),
+    "element_joint_plate_ss_e_ip": ((-50, -950, 0, 2550, 450, 40), False),
+    "element_joint_plate_ss_e_op": ((-50, -50, 0, 2300, 450, 400), False),
+    "element_joint_plate_cr_c_ip": ((-50, -950, 0, 1850, 250, 450), False),
+    "element_joint_plate_tt_e_p": ((-50, -750, 0, 1950, 350, 230), False),
+    "element_joint_plate_parameters": ((-50, -750, 0, 1850, 450, 500), False),
+    "element_joint_drill": ((-50, -50, -50, 350, 350, 250), True),
+    "element_joint_cutter": ((-50, -150, 0, 1250, 150, 400), True),
+    "element_joint_beam_from_contact": ((-550, -550, -100, 1950, 650, 100), True),
+    "element_joint_beam_wedge": ((-50, -250, -50, 1650, 550, 350), False),
+    "element_joint_beam_rectangle_plate": ((-150, -150, 0, 1450, 150, 1250), True),
+    "element_joint_beam_tie": ((-50, -150, -50, 2450, 150, 350), False),
+    "element_joint_beam_centred_pins": ((-50, -50, -50, 450, 450, 450), True),
+    "element_joint_beam_headed_pins": ((-50, -100, -50, 2250, 750, 350), True),
+    "element_pin": ((-50, -50, 0, 50, 50, 200), True),
+    "element_connector_part": ((200, -100, 50, 1400, 100, 350), True),
+    "element_profile": ((-350, -50, -200, 4550, 850, 200), True),
 }
 
 READ = r"""
@@ -94,8 +115,11 @@ def panel_rows(scene: dict) -> list:
     rows = [("Layers", BOLD, INK)]
     groups = collections.OrderedDict()
 
+    many = len(scene["elements"]) > 8  # a gallery: alike elements on one line whatever their number
+
     for name, kind, visible, features in scene["elements"]:
-        key = (kind, visible, tuple(sorted(collections.Counter(features).items())), name if visible else name.rstrip("0123456789_"))
+        stem = name.rstrip("0123456789_")
+        key = (kind, visible, tuple(sorted(collections.Counter(features).items())), stem if many or not visible else name)
         groups.setdefault(key, []).append(name)
 
     for (kind, visible, features, _), names in groups.items():
@@ -111,7 +135,8 @@ def panel_rows(scene: dict) -> list:
         source, target = (b, a) if degree[a] > degree[b] else (a, b)
         for kind in kinds:
             if kind.startswith("InteractionFeature"):
-                counted[(source.rstrip("0123456789_") + "_*" if source[-1:].isdigit() else source, target, kind.replace("InteractionFeature", "").lower())] += 1
+                label = target.rstrip("0123456789_") + "_*" if many and target[-1:].isdigit() else target
+                counted[(source.rstrip("0123456789_") + "_*" if source[-1:].isdigit() else source, label, kind.replace("InteractionFeature", "").lower())] += 1
 
     if counted:
         rows.append(("Interactions", BOLD, INK))
@@ -154,19 +179,27 @@ def main(names: list) -> None:
     pb = WOOD / "data" / "output" / "pb" / "live.pb"
 
     for name in names or list(EXAMPLES):
-        subprocess.run([str(WOOD / "build" / name)], check=True, capture_output=True)
-        scene = json.loads(
-            subprocess.run(
-                [str(PYTHON), "-c", READ, str(pb)],
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout
-        )
-        bounds, features = EXAMPLES[name]
-        compose(render(pb, bounds, features), panel_rows(scene)).save(
-            IMAGES / f"{name}.png", optimize=True
-        )
+        with tempfile.TemporaryDirectory() as tmp:
+            scene_pb = pathlib.Path(tmp) / "scene.pb"
+
+            # the run and its live.pb locked, as other runs write the same file
+            with open(LOCK, "w") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                subprocess.run([str(BUILD / name)], check=True, capture_output=True, cwd=WOOD)
+                shutil.copy(pb, scene_pb)
+
+            scene = json.loads(
+                subprocess.run(
+                    [str(PYTHON), "-c", READ, str(scene_pb)],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout
+            )
+            bounds, features = EXAMPLES[name]
+            compose(render(scene_pb, bounds, features), panel_rows(scene)).save(
+                IMAGES / f"{name}.png", optimize=True
+            )
         print(f"{name}.png")
 
 

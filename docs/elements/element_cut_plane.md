@@ -11,6 +11,13 @@ explicit CutPlane(const Plane& plane, double size = 1000.0, const std::string& n
 std::shared_ptr<InteractionFeaturePlane> feature() const
 ```
 
+## Parameters
+
+| Parameter | Default | What it changes in 3D |
+| --- | --- | --- |
+| `plane` | | where it cuts; what it cuts keeps the side its normal points to |
+| `size` | 1000 | the side of the square it is drawn as |
+
 ## Cutting a variable beam
 
 ![Cutting a variable beam](elements/element_beam_variable_cut.png)

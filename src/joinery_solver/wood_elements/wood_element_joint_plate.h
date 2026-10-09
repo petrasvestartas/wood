@@ -9,6 +9,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+/// The parameters a library design of a plate joint is made with.
 struct JointPlateParameters {
     std::string library;                                        // Library constructor name.
     int contact_type = 0;                                       // Required contact family.
@@ -235,6 +236,7 @@ protected:
     void read_proto(const wood_proto::Joint& proto) override;
 };
 
+/// Element that represents the joints of an Annen dataset: plate joints built from its plates, connections and groups.
 class JointAnnen : public JointPlate {
 public:
     JointAnnen() = default;
@@ -248,6 +250,7 @@ public:
     }
 };
 
+/// Element that represents the joints of a Vidy dataset: plate joints built from its plates, connections and groups.
 class JointVidy : public JointPlate {
 public:
     JointVidy() = default;

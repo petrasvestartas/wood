@@ -13,6 +13,14 @@ Polyline top() const
 Polyline bottom() const
 ```
 
+## Parameters
+
+| Parameter | Default | What it changes in 3D |
+| --- | --- | --- |
+| `axis` | | the straight reference line; contacts tell end faces from side faces by it |
+| `sections` | | one closed ring per station, all with one point count, lofted in order: a deeper ring makes the beam deeper there |
+| `first`, `last` (`between`) | | a straight beam lofted between two end sections |
+
 ## Like the outer rib
 
 ![Like the outer rib](elements/element_beam_variable.png)
