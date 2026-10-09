@@ -204,7 +204,7 @@ Code: `Floor::add_oculus`, [floor.cpp:128-136](https://github.com/petrasvestarta
 
 <span style="color:#2196EA">■ built</span> `column_0` and its support   <span style="color:#A3A3A3">■ context</span> the quarters
 
-`add_column(corner)` builds the column as a `WoodSession` of its own with `column(guide, k)`, grafts it into the group `column_k` of `quarter_k` and keeps the grafted column in `columns[k]`.
+`add_column(corner)` adds the column and everything that shapes it straight into the group `column_<corner>` of `quarter_<corner>`; `floor.get_branch("column_0")` reads one column back as a session of its own.
 
 Code: `Floor::add_column`, [floor.cpp:146-157](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L146-L157); `column`, [floor.cpp:15-35](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L15-L35).
 
@@ -254,7 +254,7 @@ Code: `Column::head_blocks`, [wood_element_column.cpp:96-125](https://github.com
 
 <span style="color:#2196EA">■ built</span> `column_0` with its head
 
-`column(guide, k)` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
+`Floor::add_column(corner)` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
 
 Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1498-L1512); `column`, [floor.cpp:32-33](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L32-L33).
 
@@ -262,9 +262,9 @@ Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com
 
 ![](floor/226_support_joint.webp)
 
-<span style="color:#2196EA">■ built</span> the head plate disc of the joint   <span style="color:#E8478B">■ variable</span> `drill_lines`, the three column screws   <span style="color:#A3A3A3">■ context</span> the support
+<span style="color:#2196EA">■ built</span> the head plate disc of the joint   <span style="color:#E8478B">■ variable</span> `drill_lines`, the three column pins   <span style="color:#A3A3A3">■ context</span> the support
 
-`column(guide, k)` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three screws from its underside, which `add_interaction(joint, column, joint->interaction(0))` cuts and drills out of the column.
+`Floor::add_column(corner)` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three pins from its underside, which `add_interaction(joint, column, joint->interaction(0))` cuts and drills out of the column.
 
 Code: `WoodSession::add_column`, [wood_session.cpp:1514-1519](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1514-L1519); `Joint::support`, [wood_element_joint.cpp:78-93](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint.cpp#L78-L93).
 

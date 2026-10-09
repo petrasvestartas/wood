@@ -169,13 +169,13 @@ pub struct Joint {
     /// A connector's cutters, one entry per target in targets order
     #[prost(message, repeated, tag = "19")]
     pub cutters: ::prost::alloc::vec::Vec<JointCutter>,
-    /// How far a connector's holes run past its dowels where they leave a target
+    /// How far a connector's holes run past its pins where they leave a target
     #[prost(double, tag = "20")]
     pub drill_overshoot: f64,
     /// Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
     #[prost(message, repeated, tag = "21")]
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
-    /// A connector of screws: its drill lines are pre-drilled holes in its targets, never cut
+    /// A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
     #[prost(bool, tag = "23")]
     pub pre_drill: bool,
 }
@@ -267,16 +267,16 @@ pub struct Support {
     #[prost(double, tag = "14")]
     pub coupling_nut_height: f64,
     #[prost(int32, tag = "15")]
-    pub screw_count: i32,
+    pub pin_count: i32,
     #[prost(double, tag = "16")]
-    pub screw_diameter: f64,
+    pub pin_diameter: f64,
     #[prost(double, tag = "17")]
-    pub screw_length: f64,
-    /// Degrees between a pair of opposed screws
+    pub pin_length: f64,
+    /// Degrees between a pair of opposed pins
     #[prost(double, tag = "18")]
-    pub screw_angle: f64,
+    pub pin_angle: f64,
     #[prost(double, tag = "19")]
-    pub screw_circle_diameter: f64,
+    pub pin_circle_diameter: f64,
     #[prost(double, tag = "20")]
     pub anchor_diameter: f64,
     #[prost(double, tag = "21")]

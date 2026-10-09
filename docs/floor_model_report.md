@@ -10,9 +10,9 @@ brep_drill, joint_elements and interaction_ownership run under `tools/run_guarde
 `data/output/pb/*.txt` dumps and consoles kept outside the repository. Before step 6 every gate of
 steps 1-5 was re-run on `e448bd7` against it: G1 193 / 0 failing against compas_tf, identical to step 0
 without `oculus/*` (those 0 deviation); G2 145 / 0; G3 example 2's carved column 176866956.467613
-unchanged; G4 33 / 0 (wedge dowel prisms aside, by design); G5 contacts 9 / 0 and ties 9 / 0 against
+unchanged; G4 33 / 0 (wedge pin prisms aside, by design); G5 contacts 9 / 0 and ties 9 / 0 against
 compas_tf, every volume within 1e-9 relative of step 0; 44 / 44 contacts, 0 faceted, 396 / 396 bores.
-One step-5 change surfaced: the wedge dowels are numbered along the contact the way compas_tf numbers
+One step-5 change surfaced: the wedge pins are numbered along the contact the way compas_tf numbers
 them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 
 ## Steps
@@ -27,33 +27,33 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 | R8 | `81969e0` | `RibLevel::shared_column` the default: each outer rib's run-in solved so both outer ribs of a corner end at the shallower compas_tf end | square and parity mode identical on every gate; 3000 x 2400: level -689.979, short run-in 187.667, eight rib bottoms within 0.307 mm, `model_rectangle.txt` re-baselined |
 | R8 | (the column block commit) | the column blocks span their ribs' run-in, the middle one `middle_wedge_factor` x the mean | square and parity mode identical on every gate; 3000 x 2400: blocks 240 / 267.292 / 187.667, side far ends 0.992 mm apart, `model_rectangle.txt` re-baselined |
 
-## Screws (branch `floor-screws`)
+## Pins (branch `floor-pins`)
 
-Pre-drilled assembly screws, 200 x d4, design section 8.1: `JointBeam::screws` (pre-drill lines on one
-connector naming every member they pass, no cut), `WoodSession::pre_drill_lines`, five screw relations
+Pre-drilled assembly pins, 200 x d4, design section 8.1: `JointBeam::headed_pins` (pre-drill lines on one
+connector naming every member they pass, no cut), `WoodSession::pre_drill_lines`, five pin relations
 appended to `relationships()`.
 
 | | square | 3000 x 2400 |
 |---|---|---|
-| `screw_rib_beam` (outer rib into seam beam) | 16 | 16 |
-| `screw_beam_mitre` (red, seam beam into oculus beam) | 16 | 16 |
-| `screw_rib_corner` (blue, inner rib end through the beam corner) | 16 | 16 |
-| `screw_ring` (ring pinwheel corners) | 8 | 8 |
-| `screw_oculus` (ring toe screws into the quarters' oculus beams) | 16 | 16 |
-| screws / connectors | 72 / 36 | 72 / 36 |
-| screw contacts verified by the kernel's search | 36 / 36 | 36 / 36 |
-| closest screw axes | 28.143 mm | 28.143 mm |
-| closest screw to a dowel bore (surfaces, bore run on by its overshoot) | 137.272 mm | 137.272 mm |
-| closest screw to a pocket or connector part (surfaces) | 5.441 mm | 5.441 mm |
-| held by the members named | 200.000 mm, every screw | 200.000 mm, every screw |
+| `pin_rib_beam` (outer rib into seam beam) | 16 | 16 |
+| `pin_beam_mitre` (red, seam beam into oculus beam) | 16 | 16 |
+| `pin_rib_corner` (blue, inner rib end through the beam corner) | 16 | 16 |
+| `pin_ring` (ring pinwheel corners) | 8 | 8 |
+| `pin_oculus` (ring toe pins into the quarters' oculus beams) | 16 | 16 |
+| pins / connectors | 72 / 36 | 72 / 36 |
+| pin contacts verified by the kernel's search | 36 / 36 | 36 / 36 |
+| closest pin axes | 28.143 mm | 28.143 mm |
+| closest pin to a pin bore (surfaces, bore run on by its overshoot) | 137.272 mm | 137.272 mm |
+| closest pin to a pocket or connector part (surfaces) | 5.441 mm | 5.441 mm |
+| held by the members named | 200.000 mm, every pin | 200.000 mm, every pin |
 | misfits | 0 | 0 |
 
-No beam is too shallow (every joint 197 deep takes its two levels) and no screw needed shortening or
-dropping. Reported, not a misfit: the blue screws run along the inner rib's axis through the beam
+No beam is too shallow (every joint 197 deep takes its two levels) and no pin needed shortening or
+dropping. Reported, not a misfit: the blue pins run along the inner rib's axis through the beam
 corner, so they pass three members (the seam beam's end, the oculus beam, at least 24.9 mm of them, and
 the rib) and name all three. Every existing gate unchanged: example 1 byte-identical (193 / 0 against
 compas_tf), examples 2, 4, 5, 6 and 8 dumps and consoles identical, example 9's records unchanged with
-the screw lines added (`model_rectangle.txt` 0 failing), 44 / 44 contacts, 0 faceted, 396 / 396 and
+the pin lines added (`model_rectangle.txt` 0 failing), 44 / 44 contacts, 0 faceted, 396 / 396 and
 384 / 384 bores; the four tests pass.
 
 ## The rectangle, `Floor(FloorPlan::rectangle(3000, 2400))`
@@ -62,13 +62,13 @@ Numbers of 2026-10-02, before the 2026-10-05 changes below.
 
 | | model (default) | `--compas` (compas_tf oculus, parity definitions; removed 2026-10-05) |
 |---|---|---|
-| connectors | 48 of 48: 8 wedges with 28 dowels (3 on short seams, 5 on long, 3 per oculus beam), 8 rectangle plates, 4 cross laps, 4 ties, 24 dowel sets of 96 dowels | 48 of 48, same counts |
+| connectors | 48 of 48: 8 wedges with 28 pins (3 on short seams, 5 on long, 3 per oculus beam), 8 rectangle plates, 4 cross laps, 4 ties, 24 pin sets of 96 pins | 48 of 48, same counts |
 | ties | 4 x 19700 mm2 | 4 x 19700 mm2 |
 | column plate contacts | 69995.051 / 69605.340 mm2, full end faces | 70076.481 / 70148.209 (the probes' numbers) |
 | seam / ring contacts | 258500.873 / 376700.873; ring 4 x 242696.248 | 297515.590 / 328199.359; ring 4 x 253629.409 |
 | contacts verified by the kernel's search | 44 / 44 | 44 / 44 |
 | faceted | 0 | 0 |
-| dowel bores | 384 of 384 stretches exact | 384 of 384 |
+| pin bores | 384 of 384 stretches exact | 384 of 384 |
 | report | ok: closure 4.3e-12, end faces 5.1e-13, beds on flanges 0, ring overlap 1.1e-11 mm2, uncovered 0 | ok |
 | rule A | u 0.839 deg off the chamfer, r 20.703 / 3.338 deg oblique, 22.675 / 3.500 mm shear (r 0.474 deg off the chamfer) | u 16.059 deg, 16.957 / 41.686 deg, 18.295 / 53.432 mm |
 | rib bottoms vs cutter level | 0 / 0 mm, the eight rib bottoms at a head within 0.307 mm (one rib level per column, -689.979) |
@@ -116,9 +116,9 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
 * `FloorPlan::seam_through_ribs` (default false, true since later on 2026-10-05): the two seam beams of every seam run through the
   outer rib band to the bay's outer face, the wedge between them flush with it (`JointBeam::wedge`
   takes an optional end plane); each outer rib ends on its beam's far face
-  (`Quarter::rib_seam_ends()`). `screw_rib_beam` then runs horizontally along the rib, 20 mm below its
+  (`Quarter::rib_seam_ends()`). `pin_rib_beam` then runs horizontally along the rib, 20 mm below its
   top and 20 mm above its bottom at its end, 15 mm either side of its axis, from the beam's seam face
-  through the beam into the rib end, drilled before the wedge goes in; `check_screws` lets it cross
+  through the beam into the rib end, drilled before the wedge goes in; `check_pins` lets it cross
   that wedge. No ties.
 * `Floor::soffit`, the deepest end of a rib that ends on a beam, is the soffit of every inner and
   ring beam (about -198.783 on the square); the oculus bottom wedges and plate sit on it.
@@ -126,10 +126,10 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
   `JointBeam::WEDGE_PROFILE` the shared profile.
 * The column head cutters are solid cuts of the column (`column_cuts(quarter)`), drawn as its "cut"
   element features, no longer joint elements. `Family::cutter` and the 24 cutter relationships
-  removed: `relationships(floor)` has 88 rows, 52 plus 36 screw rows. The carved column volume is
+  removed: `relationships(floor)` has 88 rows, 52 plus 36 pin rows. The carved column volume is
   unchanged.
-* Every member carries a "drill" element feature per hole a joint makes in it (dowels, screws,
-  support screws): the two circles of the hole's radius where it enters and leaves, named by the joint
+* Every member carries a "drill" element feature per hole a joint makes in it (pins,
+  support pins): the two circles of the hole's radius where it enters and leaves, named by the joint
   and the diameter. 476 on the square.
 * Connectors BRG blue, RGB 38 / 149 / 233 (`CONNECTOR_COLOR`).
 * `verify_contacts` returns a `ContactCheck` (count, mismatches, `ok()`, `str()`); `count_bores`

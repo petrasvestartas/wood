@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const bool BREPS = true; // write every cut member, connector part and pin as its BRep, the pin and pin bores exact cylinders, instead of its mesh
+const bool BREPS = true; // write every cut member, connector part and pin as its BRep, the pin bores exact cylinders, instead of its mesh
 
 /// The square bay with its columns, every connector and the assembly pins.
 int main() {

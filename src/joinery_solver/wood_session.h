@@ -284,6 +284,22 @@ public:
         return out;
     }
 
+    /// Every element of type T named `<prefix>_<i>`, `<prefix>_<i>_<j>` and so on, its place indices, in objects.elements order.
+    template <class T>
+    std::vector<std::shared_ptr<T>> get_elements_placed(const std::string& prefix) const {
+
+        std::vector<std::shared_ptr<T>> out;
+        for (const std::shared_ptr<Element>& element : *objects.elements)
+            if (element && placed(element->name, prefix))
+                if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
+                    out.push_back(object);
+
+        return out;
+    }
+
+    /// Whether name is `<prefix>_` followed by numbers joined by underscores.
+    static bool placed(const std::string& name, const std::string& prefix);
+
     /// Whether name is `<prefix>_<n>`, n a number.
     static bool numbered(const std::string& name, const std::string& prefix);
 

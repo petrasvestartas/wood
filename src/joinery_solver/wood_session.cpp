@@ -1513,6 +1513,17 @@ bool WoodSession::numbered(const std::string& name, const std::string& prefix) {
     return name.size() > prefix.size() + 1 && name.compare(0, prefix.size() + 1, prefix + "_") == 0 && std::all_of(name.begin() + prefix.size() + 1, name.end(), ::isdigit);
 }
 
+bool WoodSession::placed(const std::string& name, const std::string& prefix) {
+
+    if (name.size() <= prefix.size() + 1 || name.compare(0, prefix.size() + 1, prefix + "_") != 0)
+        return false;
+
+    const std::string place = name.substr(prefix.size() + 1);
+
+    return std::isdigit(place.front()) && std::isdigit(place.back()) && place.find("__") == std::string::npos
+        && std::all_of(place.begin(), place.end(), [](char c) { return std::isdigit(c) || c == '_'; });
+}
+
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {

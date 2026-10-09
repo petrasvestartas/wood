@@ -2,9 +2,9 @@
 
 [TOC]
 
-<em>Step 11 of @ref templates_floor_model · previous: @ref templates_floor_10_screws</em>
+<em>Step 11 of @ref templates_floor_model · previous: @ref templates_floor_10_pins</em>
 
-A finished floor can be written with exact solids: `compute_breps` turns every cut member and every round part into a BRep. The examples under `examples/` build one column and the whole floor; `tests/floor_elements.cpp` checks what each step must hold, from the contact counts to the screw levels and the bays too narrow for the corner screws.
+A finished floor can be written with exact solids: `compute_breps` turns every cut member and every round part into a BRep. The examples under `examples/` build one column and the whole floor; `tests/floor_elements.cpp` checks what each step must hold, from the contact counts to the pin levels and the bays too narrow for the corner pins.
 
 ## 351. compute_breps
 
@@ -12,7 +12,7 @@ A finished floor can be written with exact solids: `compute_breps` turns every c
 
 <span style="color:#2196EA">■ built</span> `inner_beams_0_0` as a BRep
 
-`WoodSession::compute_breps` writes every cut member, connector part, dowel and support as its BRep instead of its mesh, the bores exact cylinders; here the seam beam with its wedge pocket and its dowel and screw holes.
+`WoodSession::compute_breps` writes every cut member, connector part, pin and support as its BRep instead of its mesh, the bores exact cylinders; here the seam beam with its wedge pocket and its pin holes.
 
 Code: `WoodSession::compute_breps`, [wood_session.cpp:1487-1496](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1487-L1496).
 
@@ -32,7 +32,7 @@ Code: [templates_floor_2_column_model.cpp:8-21](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ built</span> the connector parts   <span style="color:#A3A3A3">■ context</span> the members, cut
 
-[templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp): `add_members`, `add_connectors` and `add_screws` on the 6000 x 6000 bay, then `compute_breps`.
+[templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp): `Floor(guide)` on the 6000 x 6000 bay, its pins among the connectors, then `compute_breps`.
 
 Code: [templates_floor_7_contacts_cantilevers.cpp:10-29](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp#L10-L29).
 

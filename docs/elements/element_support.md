@@ -2,7 +2,7 @@
 
 [TOC]
 
-A steel column base with the manufacturer's dimensions on a plane: base plate, tube, head plate, screws and anchors. `Joint::support` lets its head plate into a column end and drills the column screws, a subtract feature from the joint.
+A steel column base with the manufacturer's dimensions on a plane: base plate, tube, head plate, pins and anchors. `Joint::support` lets its head plate into a column end and drills the column pins, a subtract feature from the joint.
 
 ## Constructors
 

@@ -68,23 +68,23 @@ Once the columns are in the floor, column q and each outer rib k touch on the ca
 
 Code: `Floor::add_contacts`, [floor.cpp:215](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L215), [230-231](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L230-L231).
 
-## 237. block_dowels: the outer ribs
+## 237. block_pins: the outer ribs
 
-![](floor/237_block_dowels_outer.webp)
+![](floor/237_block_pins_outer.webp)
 
 <span style="color:#2196EA">■ built</span> the two contacts   <span style="color:#E8478B">■ variable</span> the outer ribs, by their loops   <span style="color:#A3A3A3">■ context</span> the column blocks
 
-Each outer rib touches the column block beside it: `outer_ribs[0]` and `wedges[0]` make `block_dowels_q_0_0`, `outer_ribs[1]` and `wedges[2]` make `block_dowels_q_2_1`.
+Each outer rib touches the column block beside it: `outer_ribs[0]` and `wedges[0]` make `block_pins_q_0_0`, `outer_ribs[1]` and `wedges[2]` make `block_pins_q_2_1`.
 
 Code: `Floor::add_contacts`, [floor.cpp:233-235](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L233-L235).
 
-## 238. block_dowels: the inner ribs
+## 238. block_pins: the inner ribs
 
-![](floor/238_block_dowels_inner.webp)
+![](floor/238_block_pins_inner.webp)
 
 <span style="color:#2196EA">■ built</span> the four contacts   <span style="color:#E8478B">■ variable</span> the inner ribs, by their loops   <span style="color:#A3A3A3">■ context</span> the column blocks
 
-Each inner rib runs between two blocks and touches both, four more contacts named by block and side, six `block_dowels` per quarter in all.
+Each inner rib runs between two blocks and touches both, four more contacts named by block and side, six `block_pins` per quarter in all.
 
 Code: `Floor::add_contacts`, [floor.cpp:236-239](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L236-L239).
 
@@ -94,6 +94,6 @@ Code: `Floor::add_contacts`, [floor.cpp:236-239](https://github.com/petrasvestar
 
 <span style="color:#2196EA">■ built</span> every contact polygon   <span style="color:#A3A3A3">■ context</span> the columns and the bay edges
 
-The default floor has 40 contacts: 4 `seam_wedge`, 4 `oculus_wedge`, 8 `column_plate` and 24 `block_dowels`.
+The default floor has 40 contacts: 4 `seam_wedge`, 4 `oculus_wedge`, 8 `column_plate` and 24 `block_pins`.
 
 Code: `Floor::add_contacts`, [floor.cpp:213-241](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L213-L241).

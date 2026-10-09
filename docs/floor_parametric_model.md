@@ -71,7 +71,7 @@ is solved so that the first inner rib's central trace projects onto the second r
 right span, and one rib sweep r is solved so the start points match; this reduces exactly to c on
 the square and closes to 1e-13 on every rectangle probed, keeps every face planar and needs no
 kernel change. Connectors are generated from the relationships the Floor states (52 rows: 48
-connectors and 4 supports, then 36 screw rows, 88 in all; the column head cutters are solid cuts of
+connectors and 4 supports, then 36 pin rows, 88 in all; the column head cutters are solid cuts of
 the columns, not relationships), with the contact search kept as a verification pass and a
 `FloorReport` of the relations compas_tf relied on silently. On the square the model is compas_tf's
 floor except the central row (bed row 1, the tops of flanges 2b / 3a, bed plane 1, block 1), which
@@ -120,7 +120,7 @@ is not a `FloorGuide` parameter field. The side wedge seat of 20 mm (`chamfer - 
 Support and connector dimensions stay where they are: the Sherpa support
 (`src/joinery_solver/wood_elements/wood_element_support.h:13,16,60-61`; `support.py:128-133`) and
 the `JointBeam` factory defaults (`wood_element_joint_beam.h:39-100`, from
-`connectors.py:351-358, 801-807, 1076-1118`). The assembly dowels (radius 4, length 30, inset 50)
+`connectors.py:351-358, 801-807, 1076-1118`). The assembly pins (radius 4, length 30, inset 50)
 and the cross-lap share 0.5 are wood-only (`floor.h:194,197`).
 
 ### 1.2 The plan geometry (`FloorGuide::corners`, `oculus`: the only thing that varies)
@@ -462,7 +462,7 @@ A faithful transcription of compas_tf including every square-only assumption:
   two directions (r for the rib sweeps, u for the panel).
 * Connectors are found by search where the construction knows the pairs: 120 ring pairs for 8
   wedges (`floor_models.cpp:163-179`), 32 column x rib pairs for 8 plates (`181-196`), 28 rib pairs
-  for 4 ties (`198-213`), 12 rib x block pairs per quarter on uncut clones for 6 dowel sets
+  for 4 ties (`198-213`), 12 rib x block pairs per quarter on uncut clones for 6 pin sets
   (`215-234`, `uncut()` at `69-82`). A pair that stops touching is silently skipped
   (`if (!contact ...) continue` at `171-172`, `189-190`, `206-207`), so only a count assertion can
   notice a lost connector.
@@ -503,7 +503,7 @@ What the user rejected, point by point (lines are of that commit):
    trapezoid (`check_port.py` CHECK 2); the column became a rhombic prism and the support frame
    was built from non-orthogonal axes (`floor_elements.cpp:16-23, 72, 79-85`), which breaks the
    fixed-column rule. The trapezoid run shows the consequence: 18 faceted members, 32 "a face is
-   not planar", 244 dowel stretches against 228 exact bores (`trap.out`).
+   not planar", 244 pin stretches against 228 exact bores (`trap.out`).
 6. The rectangle broke the hidden diagonal symmetry and nothing noticed: bed row 1's bottom misses
    flange 3a's top on inner rib 1 by 10.8 .. 31.3 mm (`check_port.py` CHECK 1) while the test
    checked counts, closedness and that the long rib is longer (`tests/floor_elements.cpp@1b42862:
@@ -604,7 +604,7 @@ station shift across a 60 mm web is tens of mm against facets of about 420 mm). 
 planar: the end quad lies in the end plane, the top at z 0, each facet strip in its own plane (its
 far-face edge is that strip's own line). It is the same two-corners-per-station loft as today with
 no `BeamVariable::cuts`, so `uncut()` (`floor_models.cpp:69-82`, which clears `cuts` and
-`solid_cuts` wholesale) keeps every end face for the verification and the dowel search, the BRep
+`solid_cuts` wholesale) keeps every end face for the verification and the pin search, the BRep
 path is unchanged and on the square the sections are bit-identical to today's (the far corners
 coincide with the translated ones). Bed and flange outlines are projected onto their face planes
 first and cut there (compas_tf already does this for flanges, `:943-946`; beds cut first,
@@ -696,7 +696,7 @@ planes, the cutters and the head are unchanged (`block_planes`, after the run-in
 `compute_quarter`). Square: 240 / 300 / 240, compas_tf's. 3000 x 2400: 240 / 267.292 /
 187.667; the side blocks' far faces end at -560.767 / -559.776, 0.992 mm apart instead of 21.843 with
 the 240 block on the short rib, the middle one 4.1 to 5.9 mm above them (3.4 on the square, 15.5 with
-300); the short ribs' block dowel contacts 113054.026 mm2.
+300); the short ribs' block pin contacts 113054.026 mm2.
 
 R9 Connectors from relationships (section 8). The contact polygon of a named pair is read off
 the outlines that share the plane; the kernel's `compute_face_contact` (`wood_session.h:102`) runs
@@ -705,7 +705,7 @@ only in `verify_contacts`, and `require_contact` throws naming the relation inst
 R10 Report. `Floor::check()` measures what compas_tf relied on silently and prints it on every
 build; `ok()` asserts the structural relations (closure residual, end-face planarity, bed-flange
 coincidence, seam and oculus identities) and warns on clearances (rib bottom vs cutter level, wedge
-seat widths, column overhang, dowel counts).
+seat widths, column overhang, pin counts).
 
 ### 6.3 API (namespace `wood_floor`, `src/templates/floor/`)
 
@@ -829,15 +829,15 @@ struct Floor {
 
 std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter);       // The six head cutters as solid difference cuts of the column, drawn as its "cut" features.
 
-/// What two members share and the connector that belongs to it; the screw kinds are pre-drilled lines both members read.
-enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_dowels, screw_rib_beam, screw_beam_mitre, screw_rib_corner, screw_ring, screw_oculus };
+/// What two members share and the connector that belongs to it; the pin kinds are pre-drilled lines both members read.
+enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_pins, pin_rib_beam, pin_beam_mitre, pin_rib_corner, pin_ring, pin_oculus };
 /// A member of the floor by quarter (-1 for the ring, the columns and the supports), family and index.
 struct MemberRef { int quarter; Family family; size_t index; int row = -1; std::string name() const; };
 /// One relationship: the two members, the shared plane, the contact polygon read from their outlines, and the seam or corner it belongs to.
 struct Relationship {
     Relation kind; MemberRef a; MemberRef b; session_cpp::Plane plane; session_cpp::Polyline contact; wood_session::ContactType type; size_t seam_or_corner;
-    std::vector<session_cpp::Line> screws;        // A screw row's axes, head to tip.
-    std::vector<MemberRef> through;               // Further members its screws pass.
+    std::vector<session_cpp::Line> pins;        // A pin row's axes, head to tip.
+    std::vector<MemberRef> through;               // Further members its pins pass.
     std::optional<session_cpp::Plane> end;        // The bay's outer face a seam wedge runs on to with seam_through_ribs.
     double area() const; std::string text() const; Place place() const;
 };
@@ -851,7 +851,7 @@ struct FloorMembers {
     std::array<std::shared_ptr<session_cpp::Element>, 2> pair(const Relationship& row) const;
 };
 
-std::vector<Relationship> relationships(const Floor& floor);                    // Section 8, in connector order: 52 rows, then 36 screw rows.
+std::vector<Relationship> relationships(const Floor& floor);                    // Section 8, in connector order: 52 rows, then 36 pin rows.
 std::vector<Relationship> relationships(const Floor& floor, Relation kind);     // The rows of one kind, in the same order.
 
 FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);     // The four quarters and the oculus, lifted by bay_height, built in place.
@@ -867,13 +867,13 @@ struct ContactMismatch { std::string relation; std::string what; };
 struct ContactCheck { size_t count; std::vector<ContactMismatch> mismatches; bool ok() const; std::string str() const; };
 ContactCheck verify_contacts(wood_session::WoodSession&, const Floor&, const FloorMembers&, double tolerance = 1e-6, kinds);   // compute_face_contact on uncut copies against every constructed contact: plane, top edge, area.
 std::shared_ptr<wood_session::InteractionContactFace> require_contact(wood_session::WoodSession&, a, b, wood_session::ContactType expected, const std::string& relation);   // Throws naming the relation.
-ScrewCheck check_screws(const wood_session::WoodSession&, const Floor&, screws);                                                         // Section 8.1.
+PinCheck check_pins(const wood_session::WoodSession&, const Floor&, pins);                                                         // Section 8.1.
 
-/// Exact bores in the cut members and connector parts against the dowel stretches that ask for them; str() lists the counts, then every faceted member.
+/// Exact bores in the cut members and connector parts against the pin stretches that ask for them; str() lists the counts, then every faceted member.
 struct BrepCheck { size_t exact, bores, connectors, part_bores, stretches; double ms; std::vector<std::string> faceted; std::string str() const; };
 size_t count_bores(const session_cpp::BRep& brep);                                                                                       // The exact bores of a BRep: its cylinders.
 BrepCheck check_breps(const wood_session::WoodSession& session);
-void compute_breps(wood_session::WoodSession& session);                                                                                    // Every cut member, part and dowel written as its BRep, the bores exact cylinders.
+void compute_breps(wood_session::WoodSession& session);                                                                                    // Every cut member, part and pin written as its BRep, the bores exact cylinders.
 ```
 
 The Floor stores no view and holds its plan `const`, so it is copied, never assigned: a changed plan
@@ -885,7 +885,7 @@ end sections read their far-face corners from the second outline, R4), `to_beam`
 factories, `floor_geometry.h`. Renamed: the scene struct `Quarter` (`floor.h:163-170`) becomes
 `QuarterMembers`. Removed: `FloorGuide` (the view replaces it), `size_grid_x/y`,
 `corner_point_column(200)`, `oculus_points`, `add_wedges`, `add_rectangle_plates`, `add_ties`,
-`add_quarter_dowels` (their loops survive inside `verify_contacts`), the placement `Xform`
+`add_quarter_pins` (their loops survive inside `verify_contacts`), the placement `Xform`
 parameters.
 
 ### 6.4 What changes in the tree, file by file (HEAD lines)
@@ -952,7 +952,7 @@ deeper at the column (-709.71), 15.16 mm below the carved band (97.864 % of the 
 70148.209 of 71679.331 mm2) while the long ribs' band is notched 2.887 mm below them
 (`guide_3000x2400_mirror.txt:145,149`); the model's run-ins and middle level (R8) end every outer
 rib at its corner's level and carry both end faces fully; the seam wedges get
-`int((edge - 3 thickness) / 320)` dowels (3 x 67.08 = 201 on the square): seam beams of 1300 and
+`int((edge - 3 thickness) / 320)` pins (3 x 67.08 = 201 on the square): seam beams of 1300 and
 1900 with the default oculus give 3 on the short seams and 5 on the long ones, of 1500 and 1650
 with compas_tf's oculus 800 / 1250 give 4 and 4. The connector rules themselves read only the
 contact (top edge, horizontal normal, world up; `connectors.py:395-457, 829-878, 1151-1189`;
@@ -993,7 +993,7 @@ column booleans at non-symmetric fans. Recommended order: rectangle first (open 
 
 The `JointBeam` factories read only the contact polygon and the members' centroids
 (`wood_element_joint_beam.cpp:195, 238-241` wedge; `289-296` rectangle plate; `342, 379` tie;
-`435-439` dowels), `InteractionContactFace` has a public constructor from faces, type and polygon
+`435-439` pins), `InteractionContactFace` has a public constructor from faces, type and polygon
 (`src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.h:31-37`),
 and `add_connector` needs only the joint's targets (`wood_session.cpp:930-951, 1069-1091`). So a
 relationship is (a, b, polygon, type) built from outlines. Outline index facts used: `loft_planes`
@@ -1003,24 +1003,24 @@ corner k lies on planes k and k+1 (`floor_geometry.cpp:163-186`); a rib's top ou
 | relation | pair (a, b), per q = 0..3 | shared plane | contact polygon | type | connector | count | compas_tf source of the pairing |
 |---|---|---|---|---|---|---|---|
 | seam_wedge q | inner beam 0 of q, inner beam 2 of q+1 | `seams[q].plane` | beam 0's loop on `plane_into(q)`: corners (band[1] x z0), (z0 x tilted), (tilted x soffit), (soffit x band[1]), band[0] for band[1] with `seam_through_ribs`; 376700.873 mm2 on the square with the -197 soffit before 2026-10-05, top edge 1900 | side_side | `JointBeam::wedge` (`WEDGE_PROFILE`), margin 1.5 max(thickness), pocket 2/3, cut horizontally flush with the floor top; with `seam_through_ribs` run on to `Relationship::end`, the bay's outer face, and flush with it | 4 | `example_model_6:60-68` found it by search; the model knows it from `:245`, `:249` |
-| oculus_wedge q | inner beam 1 of q, ring beam q | `oculus_edges[q].tilted` | beam 1's loop on the tilted plane, inside ring beam q's outer face when R7's coverage condition holds (always with the model's oculus; `valid()` refuses the rest); 242696.248 mm2 | side_side | `wedge` (`WEDGE_PROFILE`, cut horizontally flush with the floor top although the plane is tilted; dowels flattened horizontal as `connectors.py:497-508`) | 4 | `:1272-1281` and `:1341` share the plane object |
+| oculus_wedge q | inner beam 1 of q, ring beam q | `oculus_edges[q].tilted` | beam 1's loop on the tilted plane, inside ring beam q's outer face when R7's coverage condition holds (always with the model's oculus; `valid()` refuses the rest); 242696.248 mm2 | side_side | `wedge` (`WEDGE_PROFILE`, cut horizontally flush with the floor top although the plane is tilted; pins flattened horizontal as `connectors.py:497-508`) | 4 | `:1272-1281` and `:1341` share the plane object |
 | column_plate (q, 0) | column q, outer rib 0 of q | `columns[q].wedge_fan[0][0]` | the rib's column end face clipped at `levels[1]` (the carved face ends there, `:391-397`): 70214.105 of 70238.715 mm2 on the square | side | `JointBeam::rectangle_plate(column, rib, contact, rib.thickness)`, origin at the top-edge midpoint, e.g. (-2780, -2950, 3500) | 4 | `example_model_8:44-47`; the rib is cut by the plane the cutter is built on (`:1076`, `:393`) |
 | column_plate (q, 1) | column q, outer rib 1 of q | `wedge_fan[2][0]` | idem | side | `rectangle_plate` | 4 | `:1077`, `:395` |
 | cross_lap q | the two plates of corner q | - (their boxes cross in the 30 x 30 x 250 prism inside the column) | - | - | `JointBeam::cross_lap` | 4 | wood only; compas_tf leaves the boxes interpenetrating (`connectors.py:801-804`) |
 | seam_tie q | outer rib 0 of q, outer rib 1 of q+1 | `seams[q].plane` | a's seam end face `{top[0], top[n-2], bottom[n-2], bottom[0]}`: 100 x 197 = 19700 mm2, wound toward q+1 | end_end | `JointBeam::tie` | 4, none with `seam_through_ribs` | `example_model_8:107-112`; compas_tf's male / female OBJ cutters followed the search order there (`connectors.py:1192-1223`); wood's tie has no male side |
-| block_dowels (q, k) | block k with its two ribs: (outer 0, inner 0) for k = 0, (inner 0, inner 1) for k = 1, (inner 1, outer 1) for k = 2 | the rib pair planes `floor_members.cpp:91-95` = `:1204-1208` | the block's face on that plane: `{bottom[3], bottom[0], top[0], top[3]}` on planes[0], `{bottom[1], bottom[2], top[2], top[1]}` on planes[2]; 146247.3 / 186221.6 / 177024.3 mm2 on the square | side | `JointBeam::dowels` on uncut members, r 4, l 30, inset 50 | 24 | `example_model_8_contacts_quarter.py:51-58` (no connector in compas_tf) |
+| block_pins (q, k) | block k with its two ribs: (outer 0, inner 0) for k = 0, (inner 0, inner 1) for k = 1, (inner 1, outer 1) for k = 2 | the rib pair planes `floor_members.cpp:91-95` = `:1204-1208` | the block's face on that plane: `{bottom[3], bottom[0], top[0], top[3]}` on planes[0], `{bottom[1], bottom[2], top[2], top[1]}` on planes[2]; 146247.3 / 186221.6 / 177024.3 mm2 on the square | side | `JointBeam::centred_pins` on uncut members, r 4, l 30, inset 50 | 24 | `example_model_8_contacts_quarter.py:51-58` (no connector in compas_tf) |
 | support q | support q, column q | the column axis | - | - | `Joint::support` | 4 | `example_model_2:48-50`; `support.py:177` |
 
 Totals: 44 contact relationships, 48 connectors (with the 4 cross laps), 52 rows with the supports
-(4 fewer each with `seam_through_ribs`, which makes no ties); then the 36 screw rows of 8.1, 88 in
+(4 fewer each with `seam_through_ribs`, which makes no ties); then the 36 pin rows of 8.1, 88 in
 all. The column head cutters are not relationships: `column_cuts(quarter)` gives the six plates of
 `Quarter::column_cutters()` (`wedge_fan`, `sides`, `levels`; `:338-360`, `example_model_2:46`) as
 solid difference cuts of the column, drawn as its "cut" element features; the carved volume is
 unchanged. `add_connectors` iterates `relationships()` in this order and keeps today's names
-(`connector_wedge_k`, `connector_k`, `outer_rib_connector_k`, `connector_dowels_k`,
+(`connector_wedge_k`, `connector_k`, `outer_rib_connector_k`, `connector_pins_k`,
 `connector_cross_lap_k`), each prefix numbered in that order, every kind in quarter order: the seam
 wedges `connector_wedge_0` to `_3`, the oculus wedges `_4` to `_7`, the ties
-`outer_rib_connector_0` to `_3` (compas_tf's search order is no longer kept). Pockets of wedges, dowels and ties are assigned by the side of the contact
+`outer_rib_connector_0` to `_3` (compas_tf's search order is no longer kept). Pockets of wedges, pins and ties are assigned by the side of the contact
 normal (`wood_element_joint_beam.cpp:239-243`, `379`, `439`), so their geometry is
 order-independent: the tie is four mirror-symmetric pieces (`360`) with two mirror-image pocket
 sets (`369-376`), each member taking the set on its own side (`379`), which is why every tied rib
@@ -1036,31 +1036,31 @@ the constructed contact still exists and the mismatch is reported instead of a c
 vanishing.
 
 Every connector is drawn BRG blue: `add_connectors` sets `CONNECTOR_COLOR` (RGB 38 / 149 / 233) on the
-connector's tree node and on every part and dowel node nested under it (`Session::set_node_color`),
+connector's tree node and on every part and pin node nested under it (`Session::set_node_color`),
 and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
 rather than on a group, because no viewer reads a group's colour for the objects under it.
 
-Every member carries a "drill" element feature per hole a joint makes in it (dowels, screws,
-support screws): the two circles of the hole's radius where it enters and leaves the member, named
+Every member carries a "drill" element feature per hole a joint makes in it (pins,
+support pins): the two circles of the hole's radius where it enters and leaves the member, named
 by the joint and the diameter. 476 on the square.
 
 ### 8.2 The scene tree
 
-Every connector sits, with its nested parts and dowels, in the group of the members it joins, so
+Every connector sits, with its nested parts and pins, in the group of the members it joins, so
 each quarter, the oculus, each column and each seam is one subtree. `Relationship::place()` reads
 the place from the row's kind and `seam_or_corner` holds its index; no name is parsed:
 
 | place | relations | group |
 |---|---|---|
-| quarter q | `block_dowels`, `screw_rib_beam`, `screw_beam_mitre`, `screw_rib_corner` | `quarter_model_q > connectors_q` |
-| oculus | `oculus_wedge`, `screw_ring`, `screw_oculus` | `oculus > connectors_oculus` |
+| quarter q | `block_pins`, `pin_rib_beam`, `pin_beam_mitre`, `pin_rib_corner` | `quarter_model_q > connectors_q` |
+| oculus | `oculus_wedge`, `pin_ring`, `pin_oculus` | `oculus > connectors_oculus` |
 | column q | `column_plate`, `cross_lap` (and `support`, already in `column_model_q`; the head cuts are the column's own features) | `column_model_q > connectors_column_q` |
-| seam k | `seam_wedge`, `seam_tie` (the two quarters' mitre screws at a seam stay in their own quarters) | `floor_model > seams > seam_k` |
+| seam k | `seam_wedge`, `seam_tie` (the two quarters' mitre pins at a seam stay in their own quarters) | `floor_model > seams > seam_k` |
 
 `connector_group(session, members, row)` finds the group among its parent's children or adds it
 after them the first time; the parents are kept in `FloorMembers` (`group`, `oculus`,
 `quarters[q].group`, `columns[q].group`), and `seams` is made with `seam_0` to `seam_3` in order.
-`add_connectors` adds each connector there, and `add_connector` nests its parts and dowels under
+`add_connectors` adds each connector there, and `add_connector` nests its parts and pins under
 its node as before. Names, the connector order and the geometry do not change. Examples 7 and 8:
 
 ```
@@ -1069,17 +1069,17 @@ cantilever_model
     quarters_model
       quarter_model_0
         beds_0, tsections_0, outer_ribs_0, inner_ribs_0, wedges_0, inner_beams_0
-        connectors_0                      6 connector_dowels, 6 connector_screws
-          connector_dowels_0
-            connector_dowels_0_dowel_0 .. _3
-          connector_screws_0
-            connector_screws_0_screw_0, _1
+        connectors_0                      6 connector_pins, 6 connector_pins
+          connector_pins_0
+            connector_pins_0_pin_0 .. _3
+          connector_pins_0
+            connector_pins_0_pin_0, _1
       quarter_model_1 .. 3
     oculus
       oculus_0 .. oculus_8
-      connectors_oculus                   4 oculus wedges, 4 ring and 8 oculus screw connectors
+      connectors_oculus                   4 oculus wedges, 4 ring and 8 oculus pin connectors
         connector_wedge_4
-          connector_wedge_4_part, connector_wedge_4_dowel_0 ..
+          connector_wedge_4_part, connector_wedge_4_pin_0 ..
     seams
       seam_0                              the seam wedge and the tie of seam 0
         connector_wedge_0
@@ -1091,7 +1091,7 @@ cantilever_model
       support_0, column_0 (its six head cuts as "cut" features), the support joint
       connectors_column_0                 2 rectangle plates and their cross lap
         connector_0
-          connector_0_part, connector_0_dowel_0 .. _3
+          connector_0_part, connector_0_pin_0 .. _3
         connector_1
         connector_cross_lap_0
     column_model_1 .. 3
@@ -1099,69 +1099,69 @@ cantilever_model
 
 Counts: 12 connectors per quarter, 16 in the oculus, 3 per column and 2 per seam, 84 in all, on
 the square and on 3000 x 2400 (1 per seam, 80, with `seam_through_ribs`); the pb keeps the tree (`floor_elements` checks both). The mitre
-screws (`screw_beam_mitre`) of two quarters put their heads at one point of a seam plane but join
+pins (`pin_beam_mitre`) of two quarters put their heads at one point of a seam plane but join
 members of one quarter, so they stay in that quarter.
 
-### 8.1 Screws
+### 8.1 Pins
 
-Pre-drilled assembly screws, 200 long, d 4, the user's marks in `docs/floor_screws_marks.webp`.
-They are lines, not cuts: `JointBeam::screws(a, b, lines, radius = 2, length = 200)` makes a
-connector with `pre_drill` set, one drill line per screw from its head, no part, no cutter and no
+Pre-drilled assembly pins, 200 long, d 4, the user's marks in `docs/floor_pins_marks.webp`.
+They are lines, not cuts: `JointBeam::headed_pins(a, b, lines, radius = 2, length = 200)` makes a
+connector with `pre_drill` set, one drill line per pin from its head, no part, no cutter and no
 solid cut, so no member's BRep changes. Each line is stored once, on the connector, which names
 every member it passes as a target; `WoodSession::pre_drill_lines(guid)` gives any member its
 pre-drill lines by reading the connectors that name it, so both members of a joint read the same
 line and nothing can drift. `pre_drill` is field 23 of `wood_proto.Joint`, the lines and targets
 the joint's own fields, and the session graph holds an edge from the connector to every target.
-The viewer draws each screw as a Dowel child of its connector, `<connector>_screw_<i>`, an exact
+The viewer draws each pin as a Pin child of its connector, `<connector>_pin_<i>`, an exact
 cylinder.
 
-`relationships(floor)` appends 36 screw rows after the 52 of the design (none of those changes), 88 rows in all,
-each with its screw axes; `add_connectors` builds them for the kinds asked for, named
-`connector_screws_<i>`; every row has a contact polygon, which `verify_contacts` checks against
-the kernel's search (36 of 36). Every screw location has two screws at two heights of the joint
-depth (`static_h`, 197 at the seams, the oculus and the inner rib ends), horizontal, so screws at
+`relationships(floor)` appends 36 pin rows after the 52 of the design (none of those changes), 88 rows in all,
+each with its pin axes; `add_connectors` builds them for the kinds asked for, named
+`connector_pins_<i>`; every row has a contact polygon, which `verify_contacts` checks against
+the kernel's search (36 of 36). Every pin location has two pins at two heights of the joint
+depth (`static_h`, 197 at the seams, the oculus and the inner rib ends), horizontal, so pins at
 different heights are never closer than the height step:
 
 | kind | per | members (a side member, b the one butting on it) | rule | levels below the datum |
 |---|---|---|---|---|
-| `screw_rib_beam` | quarter, k = 0, 1 | outer rib k, seam beam 0 / 2 | along the seam beam's axis from the rib's outer face: 100 through the rib, 100 into the beam end | h / 4, h / 2 (49.3, 98.5): the rib's lower part at its seam end carries the tie key and its pocket from 138.5 down |
-| `screw_beam_mitre` (red) | quarter, k = 0, 1 | seam beam 0 / 2, oculus beam | along the oculus beam's axis from the seam plane, across the beam end on the seam beam's inner face: 84.9 through the seam beam, 115.1 into the oculus beam, the tip short of the oculus wedge | 2 / 7, 5 / 7 at k = 0; 3 / 7, 6 / 7 at k = 1 (the two quarters' mitres at one seam put their heads at one point of the seam plane) |
-| `screw_rib_corner` (blue) | quarter, k = 0, 1 | oculus beam, inner rib k, through seam beam 0 / 2 | along the inner rib's axis from where it leaves the tilted face: through the beam corner (the seam beam's end and the oculus beam) into the rib end, crossing the red in plan | 1 / 7, 4 / 7 |
-| `screw_ring` | oculus corner q | ring beam q, ring beam q + 1 | the pinwheel butt: along ring beam q + 1's axis from ring beam q's tilted face, through q (45.2 / 52.6 at the two levels, the tilted face leaning) into q + 1 | 3 / 7, 6 / 7 |
-| `screw_oculus` | quarter q, end k | ring beam q, quarter q's oculus beam | toe screws from the ring's inner face (driven from the oculus) through the ring and the oculus wedge contact into the quarter's oculus beam towards the corner; the head and angle the 200 line with the largest clearance (coarse 5 mm / 2 deg grid, refined at 0.25 mm / 0.1 deg) from the ring's end, the oculus beam's back face, tilted face and end, and the wedge, whose band (half the beam thickness either side of the contact) it crosses before the wedge starts, 1.5 beam thicknesses from the contact's end | 3 / 7, 6 / 7 at k = 0; 2 / 7, 5 / 7 at k = 1 |
+| `pin_rib_beam` | quarter, k = 0, 1 | outer rib k, seam beam 0 / 2 | along the seam beam's axis from the rib's outer face: 100 through the rib, 100 into the beam end | h / 4, h / 2 (49.3, 98.5): the rib's lower part at its seam end carries the tie key and its pocket from 138.5 down |
+| `pin_beam_mitre` (red) | quarter, k = 0, 1 | seam beam 0 / 2, oculus beam | along the oculus beam's axis from the seam plane, across the beam end on the seam beam's inner face: 84.9 through the seam beam, 115.1 into the oculus beam, the tip short of the oculus wedge | 2 / 7, 5 / 7 at k = 0; 3 / 7, 6 / 7 at k = 1 (the two quarters' mitres at one seam put their heads at one point of the seam plane) |
+| `pin_rib_corner` (blue) | quarter, k = 0, 1 | oculus beam, inner rib k, through seam beam 0 / 2 | along the inner rib's axis from where it leaves the tilted face: through the beam corner (the seam beam's end and the oculus beam) into the rib end, crossing the red in plan | 1 / 7, 4 / 7 |
+| `pin_ring` | oculus corner q | ring beam q, ring beam q + 1 | the pinwheel butt: along ring beam q + 1's axis from ring beam q's tilted face, through q (45.2 / 52.6 at the two levels, the tilted face leaning) into q + 1 | 3 / 7, 6 / 7 |
+| `pin_oculus` | quarter q, end k | ring beam q, quarter q's oculus beam | toe pins from the ring's inner face (driven from the oculus) through the ring and the oculus wedge contact into the quarter's oculus beam towards the corner; the head and angle the 200 line with the largest clearance (coarse 5 mm / 2 deg grid, refined at 0.25 mm / 0.1 deg) from the ring's end, the oculus beam's back face, tilted face and end, and the wedge, whose band (half the beam thickness either side of the contact) it crosses before the wedge starts, 1.5 beam thicknesses from the contact's end | 3 / 7, 6 / 7 at k = 0; 2 / 7, 5 / 7 at k = 1 |
 
 With `seam_through_ribs` each outer rib ends on its seam beam's far face (`Quarter::rib_seam_ends()`)
-and `screw_rib_beam` turns round: its screws run horizontally along the rib, from the beam's seam
+and `pin_rib_beam` turns round: its pins run horizontally along the rib, from the beam's seam
 face through the beam into the rib end, 20 mm below the rib's top and 20 mm above its bottom at its
 end and 15 mm either side of its axis. They are drilled before the seam wedge goes in, and
-`check_screws` lets them cross that wedge. No ties are made.
+`check_pins` lets them cross that wedge. No ties are made.
 
-The levels are chosen so that screws that cross in plan never share a level: at a quarter's oculus
-corner the mitre, the rib end and the oculus screws of that side take six different sevenths, the
-two quarters' mitres at a seam differ, and the ring screws differ from the next quarter's oculus
-screws they cross.
+The levels are chosen so that pins that cross in plan never share a level: at a quarter's oculus
+corner the mitre, the rib end and the oculus pins of that side take six different sevenths, the
+two quarters' mitres at a seam differ, and the ring pins differ from the next quarter's oculus
+pins they cross.
 
 The oculus rule. The oculus members meet each other only at the four pinwheel corners, where ring
 beam q + 1 starts on ring beam q's inner face: the same end-on-side joint as an outer rib's end on a
-seam beam, so the same rule, screws along the butting member through the side member
-(`screw_ring`). Where the ring meets the quarters' oculus beams the joint is side to side, two 60
-members over the wedge's whole length; a 200 screw does not fit square across 120 and the wedge and
-its pockets fill the middle, so the screws are toe screws in the free ends beyond the wedge, from
+seam beam, so the same rule, pins along the butting member through the side member
+(`pin_ring`). Where the ring meets the quarters' oculus beams the joint is side to side, two 60
+members over the wedge's whole length; a 200 pin does not fit square across 120 and the wedge and
+its pockets fill the middle, so the pins are toe pins in the free ends beyond the wedge, from
 the ring's inner face, which stays reachable from the oculus after the ring is set
-(`screw_oculus`). The four bottom wedges and the inner plate (27 thick layers) take no screw. Every
-screw head on a contact face (the blue heads on the oculus beam's tilted face, the ring screws'
+(`pin_oculus`). The four bottom wedges and the inner plate (27 thick layers) take no pin. Every
+pin head on a contact face (the blue heads on the oculus beam's tilted face, the ring pins'
 heads under a seam beam's end) is driven before that face is closed: the quarter and the ring are
-screwed as two assemblies, then joined, then the oculus screws go in.
+pinned as two assemblies, then joined, then the oculus pins go in.
 
-Counts: 12 per quarter (4 + 4 + 4), 48 in the four quarters, 8 ring and 16 oculus screws, 72 per
+Counts: 12 per quarter (4 + 4 + 4), 48 in the four quarters, 8 ring and 16 oculus pins, 72 per
 floor, the same on the square and on 3000 x 2400 (the square-diamond oculus makes every corner the
-same up to the inner ribs' directions). `check_screws` measures them against each other, every
-other connector's dowel bores (run on by their overshoot), its pockets (within their own target)
+same up to the inner ribs' directions). `check_pins` measures them against each other, every
+other connector's pin bores (run on by their overshoot), its pockets (within their own target)
 and parts, and the members' uncut solids, and the examples print it. Both floors: the closest two
-screw axes 28.143 mm apart, every screw 137.272 mm clear of every dowel bore and 5.441 mm of every
-pocket or part (surfaces), every screw 200.000 mm inside the members it names, no misfit. The
-inner rib screws are the only ones through three members: at least 24.9 mm of them in the oculus
-beam, the rest in the seam beam's end and the rib; every other screw lies in its two members only.
+pin axes 28.143 mm apart, every pin 137.272 mm clear of every pin bore and 5.441 mm of every
+pocket or part (surfaces), every pin 200.000 mm inside the members it names, no misfit. The
+inner rib pins are the only ones through three members: at least 24.9 mm of them in the oculus
+beam, the rest in the seam beam's end and the rib; every other pin lies in its two members only.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -1179,14 +1179,14 @@ superproject `CLAUDE.md`: `buildslot cmake --build build --parallel 6`, every ex
   outer rib bottoms; every central bed exactly `tsections` thick; the rectangle 3000 x 2400
   (`check().ok(1e-9)`, rule A, every member face planar within 1e-9, 44 of 44 contacts); one rib
   level per column and the column blocks over the run-ins on both bays; the relationships, member
-  outlines, supports, wedges, dowels, rectangle plates, cross laps and ties; the screws on both bays.
+  outlines, supports, wedges, pins, rectangle plates, cross laps and ties; the pins on both bays.
   Pinned volumes (`tests/floor_elements.cpp:17-21`): support 500671.261678, head cut 34771221.351479,
   carved outer rib 99598198.606378, tied outer rib 98812970.259836, tie key 1570456.693007.
 * Every floor example prints `check().str()`. Example 6 prints its 8 wedge contacts against the
   kernel's search (`verify_contacts`, 1e-6); examples 7 (the square) and 8 (3000 x 2400) print all
-  44 contacts, `check_breps(session).str()`, the 36 screw contacts and `check_screws`. Expected on
-  both bays: report ok, 48 of 48 connectors, 44 / 44 contacts, 0 faceted, every dowel stretch an
-  exact bore (396 / 396 on the square, 384 / 384 on 3000 x 2400), 72 screws, 36 / 36 screw
+  44 contacts, `check_breps(session).str()`, the 36 pin contacts and `check_pins`. Expected on
+  both bays: report ok, 48 of 48 connectors, 44 / 44 contacts, 0 faceted, every pin stretch an
+  exact bore (396 / 396 on the square, 384 / 384 on 3000 x 2400), 72 pins, 36 / 36 pin
   contacts, no misfit.
 
 ---------------------------------------------------------------------------------------------------
@@ -1227,7 +1227,7 @@ superproject `CLAUDE.md`: `buildslot cmake --build build --parallel 6`, every ex
    column at an obtuse corner, the column face stands outside the bay edge at an acute one, R8) or
    edge-aligned. Recommended: rectangle first; bisector-symmetric when the time comes.
 7. Wedge sizing thickness: compas_tf's centroid distance (67.08 / 68.58, `plate.py:309-320`) or the
-   plane offset 60 (changes lengths and dowel counts). Recommended: keep compas_tf's.
+   plane offset 60 (changes lengths and pin counts). Recommended: keep compas_tf's.
 8. Keep compas_tf's example output in the repository to compare against. Done for the port, then
    removed with the comparison on 2026-10-05.
 9. The dead block levels: dropped.
@@ -1275,7 +1275,7 @@ tilted oculus normal (-0.7044, -0.7044, -0.0872), back face offset 60; inner rib
 (-2677.03, -3000, -694.79). Ring beams between the tilted planes and the vertical planes 647.1 from
 the origin, ring -197 .. -170, plate -170 .. -143. Contacts: seam wedges 376700.873272, oculus
 wedges 242696.248126, column plates 70214.105060, ties 19700, rib / block 146247.3 / 186221.6 /
-177024.3 mm2. Wedge connectors 1698.754410 (5 dowels) / 1038.771407 (3), thickness 67.081863 /
+177024.3 mm2. Wedge connectors 1698.754410 (5 pins) / 1038.771407 (3), thickness 67.081863 /
 68.578843. Tie key 1570456.693007. Head cut 211196000.0 - 176418621.638340. The ring, plate and
 seam contact numbers are those of the -197 beam soffit before 2026-10-05; the inner and ring beams
 now reach `FloorGuide::soffit`, about -198.783 (R7).
@@ -1298,7 +1298,7 @@ entry). Example numbers are those of the time.
   at 1e-9; G2, G4.
 * Step 4, `5a3bfda`: columns per `ColumnCorner`; G3, G5.
 * Step 5, `e448bd7`: `relationships()` (52 rows), `add_connectors`, `verify_contacts` (44 / 44),
-  `require_contact`; G4-G7. Deviation: the wedge dowels are numbered along the contact as compas_tf
+  `require_contact`; G4-G7. Deviation: the wedge pins are numbered along the contact as compas_tf
   numbers them, so `connector_wedge_k_cylinder_j` is the step-0 `_cylinder_{n-1-j}` (the same set).
 * Step 6, `249591d`: rule A (`CentralPanel`: the shared rib sweep r found by a scan and bisection of
   the closure nearest n0 - n1, the ruling u from the start chord; on the square r = u = c, 10.704 deg
@@ -1337,17 +1337,17 @@ entry). Example numbers are those of the time.
   the short run-in 187.667, the eight rib bottoms within 0.307 mm, rule A 0.839 deg / 20.703 / 3.338 deg,
   every face planar within 2.8e-11 mm, beds and layers 27.000, 48 of 48 connectors, 44 of 44 contacts,
   0 faceted, 384 of 384 bores; `model_rectangle.txt` re-baselined (the short ribs' column plates
-  69605.340 mm2, the block dowel contacts of the changed ribs).
+  69605.340 mm2, the block pin contacts of the changed ribs).
 * Column blocks over the run-ins (R8): every square and parity-mode dump byte-identical, the rectangle's
   R1 141 records at 0 in all four views; 3000 x 2400 blocks 240 / 267.292 / 187.667, the side blocks'
   far ends 0.992 mm apart, report ok, 48 of 48 connectors, 44 of 44 contacts, 0 faceted, 384 of 384
-  bores; `model_rectangle.txt` re-baselined (only the 16 block dowel contacts of the changed blocks).
-* Screws (section 8.1): `JointBeam::screws` with `pre_drill` (proto field 23), `WoodSession::pre_drill_lines`,
-  five screw relations (36 rows) appended to `relationships`, `check_screws`, examples 8 and 9 adding them
-  after every other connector; 72 screws on the square and on 3000 x 2400, 36 of 36 screw contacts, the
-  closest screws 28.143 mm apart, 137.272 mm from bores, 5.441 mm from pockets, no misfit; every earlier
-  dump byte-identical, example 9's records unchanged with the screw lines added.
-* Connector colour and tree (sections 8 and 8.2): every connector node and its nested parts and dowels
+  bores; `model_rectangle.txt` re-baselined (only the 16 block pin contacts of the changed blocks).
+* Pins (section 8.1): `JointBeam::headed_pins` with `pre_drill` (proto field 23), `WoodSession::pre_drill_lines`,
+  five pin relations (36 rows) appended to `relationships`, `check_pins`, examples 8 and 9 adding them
+  after every other connector; 72 pins on the square and on 3000 x 2400, 36 of 36 pin contacts, the
+  closest pins 28.143 mm apart, 137.272 mm from bores, 5.441 mm from pockets, no misfit; every earlier
+  dump byte-identical, example 9's records unchanged with the pin lines added.
+* Connector colour and tree (sections 8 and 8.2): every connector node and its nested parts and pins
   red; every connector in the subtree of its place (`Relationship::place()`, `connector_group`), 12 per
   quarter, 16 in the oculus, 3 per column, 2 per seam, kept by the pb; every dump and console of examples
   1-9, with and without `--compas`, byte-identical.
@@ -1367,13 +1367,13 @@ entry). Example numbers are those of the time.
   corner sits `oculus` from the centre along its seam (R3). `FloorGuide::seam_through_ribs` (default
   false): the seam beams run through the outer rib band to the bay's outer face, the wedge between
   them flush with it (`JointBeam::wedge` takes an optional end plane, `Relationship::end`), each outer
-  rib ending on its beam's far face (`Quarter::rib_seam_ends()`), the rib screws along the rib from
+  rib ending on its beam's far face (`Quarter::rib_seam_ends()`), the rib pins along the rib from
   the beam's seam face, no ties (8.1). `FloorGuide::soffit`, the deepest rib end on a beam, the soffit of
   every inner and ring beam (about -198.783 on the square), the oculus bottom wedges and plate on it.
   Every wedge cut horizontally flush with the floor top, the tilted oculus wedges too
   (`JointBeam::WEDGE_PROFILE`). The column head cutters became solid cuts of the column
   (`column_cuts(quarter)`, its "cut" features): `Family::cutter` and the 24 cutter rows removed,
-  `relationships(floor)` 88 rows (52 + 36 screws), the carved volume unchanged. A "drill" feature on
+  `relationships(floor)` 88 rows (52 + 36 pins), the carved volume unchanged. A "drill" feature on
   every member per hole a joint makes in it (476 on the square). Connectors BRG blue, 38 / 149 / 233
   (`CONNECTOR_COLOR`). `verify_contacts` returns a `ContactCheck`; `count_bores` public; wedges and
   ties numbered in quarter order, compas_tf's search order dropped.

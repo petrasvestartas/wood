@@ -124,16 +124,6 @@ public:
         int pin_sides = 16
     );
 
-    /// Headed pins along the given lines, pre-drilled into two members; null when no line is given.
-    static std::shared_ptr<JointBeam> headed_pins(
-        const Element& a,
-        const Element& b,
-        const std::vector<Line>& lines,
-        double radius = 2.0,
-        double length = 200.0,
-        int sides = 16
-    );
-
     /// Headed pins laid out on the face contact, from the far face of through into into, pre-drilled.
     static std::shared_ptr<JointBeam> headed_pins(
         const Element& through,
@@ -143,15 +133,6 @@ public:
         size_t count = 2,
         double offset = 20.0,
         double shift = 0.0,
-        double radius = 2.0,
-        double length = 200.0,
-        int sides = 16
-    );
-
-    /// Headed pins along the given lines, pre-drilled into every member they pass, a and b first.
-    static std::shared_ptr<JointBeam> headed_pins(
-        const std::vector<const Element*>& members,
-        const std::vector<Line>& lines,
         double radius = 2.0,
         double length = 200.0,
         int sides = 16
@@ -172,7 +153,7 @@ public:
     /// Whether this is a connector, with parts, cutters or pre-drilled pins of its own, rather than a beam-to-beam joint.
     bool is_connector() const;
 
-    /// The interaction this joint puts on its target i: a connector's cutters and pins, pin holes, or feature volumes.
+    /// The interaction this joint puts on its target i: a connector's cutters and bores, pre-drilled holes, or feature volumes.
     std::shared_ptr<Interaction> interaction(size_t target) const override;
 
     /// One part as a closed mesh, its loops lofted, before any cut.

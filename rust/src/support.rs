@@ -27,11 +27,11 @@ pub struct Support {
     pub rod_diameter: f64, // Threaded rod from the adjustment nut to the coupling nut.
     pub coupling_nut_across_flats: f64, // Hexagon under the head plate.
     pub coupling_nut_height: f64, // Hexagon under the head plate.
-    pub screw_count: i32, // Screws from the head plate up into the column end.
-    pub screw_diameter: f64, // Column screws.
-    pub screw_length: f64, // Column screws.
-    pub screw_angle: f64, // Degrees between a pair of opposed screws.
-    pub screw_circle_diameter: f64, // Circle the screws start on.
+    pub pin_count: i32, // Pins from the head plate up into the column end.
+    pub pin_diameter: f64, // Column pins.
+    pub pin_length: f64, // Column pins.
+    pub pin_angle: f64, // Degrees between a pair of opposed pins.
+    pub pin_circle_diameter: f64, // Circle the pins start on.
     pub anchor_diameter: f64, // Anchors through the drillings into the slab.
     pub anchor_embedment: f64, // Anchor depth below the plate underside.
     pub chord_tolerance: f64, // Largest deviation of a round part's facets.
@@ -56,11 +56,11 @@ impl Support {
             rod_diameter: 30.0,
             coupling_nut_across_flats: 55.0,
             coupling_nut_height: 30.0,
-            screw_count: 3,
-            screw_diameter: 8.0,
-            screw_length: 180.0,
-            screw_angle: 25.0,
-            screw_circle_diameter: 50.0,
+            pin_count: 3,
+            pin_diameter: 8.0,
+            pin_length: 180.0,
+            pin_angle: 25.0,
+            pin_circle_diameter: 50.0,
             anchor_diameter: 12.0,
             anchor_embedment: 100.0,
             chord_tolerance: 0.05,
@@ -200,11 +200,11 @@ impl WoodElement for Support {
             rod_diameter: p.rod_diameter,
             coupling_nut_across_flats: p.coupling_nut_across_flats,
             coupling_nut_height: p.coupling_nut_height,
-            screw_count: p.screw_count,
-            screw_diameter: p.screw_diameter,
-            screw_length: p.screw_length,
-            screw_angle: p.screw_angle,
-            screw_circle_diameter: p.screw_circle_diameter,
+            pin_count: p.pin_count,
+            pin_diameter: p.pin_diameter,
+            pin_length: p.pin_length,
+            pin_angle: p.pin_angle,
+            pin_circle_diameter: p.pin_circle_diameter,
             anchor_diameter: p.anchor_diameter,
             anchor_embedment: p.anchor_embedment,
             chord_tolerance: p.chord_tolerance,
@@ -227,11 +227,11 @@ impl WoodElement for Support {
             rod_diameter: self.rod_diameter,
             coupling_nut_across_flats: self.coupling_nut_across_flats,
             coupling_nut_height: self.coupling_nut_height,
-            screw_count: self.screw_count,
-            screw_diameter: self.screw_diameter,
-            screw_length: self.screw_length,
-            screw_angle: self.screw_angle,
-            screw_circle_diameter: self.screw_circle_diameter,
+            pin_count: self.pin_count,
+            pin_diameter: self.pin_diameter,
+            pin_length: self.pin_length,
+            pin_angle: self.pin_angle,
+            pin_circle_diameter: self.pin_circle_diameter,
             anchor_diameter: self.anchor_diameter,
             anchor_embedment: self.anchor_embedment,
             chord_tolerance: self.chord_tolerance,

@@ -7,63 +7,6 @@ using namespace wood_session;
 namespace wood_floor {
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Column
-// ═══════════════════════════════════════════════════════════════════════════
-
-WoodSession column(const FloorGuide& guide, size_t q) {
-
-    const size_t k = q % 4;
-    const std::string name = fmt::format("column_{}", k);
-
-    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(k), "support");
-    support->name = fmt::format("support_{}", k);
-    const Line axis = support->column_axis(guide.bay_height);
-    const Plane frame = guide.column_frame(k);
-    const std::shared_ptr<Column> shaft = Column::square(
-        axis,
-        frame,
-        guide.size_column_head,
-        name
-    );
-
-    const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(k);
-    std::vector<std::shared_ptr<Plate>> cutters;
-
-    for (size_t i = 0; i < loops.size(); i++) {
-        cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, k)));
-        cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
-    }
-
-    WoodSession session(name);
-    session.add(shaft);
-
-    // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
-    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
-
-    for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
-        session.add(block);
-        const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
-        session.add_interaction(block, shaft, glue);
-    }
-
-    // the support under it, its joint let into the column end and drilled
-    session.add(support);
-    const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
-    session.add(seat);
-    session.add_interaction(seat, shaft, seat->interaction(0));
-
-    // the six cutters, hidden, take the head's inclined faces away
-    for (const std::shared_ptr<Plate>& cutter : cutters) {
-        cutter->is_visible = false;
-        session.add(cutter);
-        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
-        session.add_interaction(cutter, shaft, cut);
-    }
-
-    return session;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -83,7 +26,7 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
     // contacts: per quarter an interaction between every two members that touch, named by its kind and place
     const std::array<QuarterContacts, 4> contacts = add_contacts();
 
-    // connectors: per quarter its wedges, column plates with their cross lap, pins and pins, all built on uncut members
+    // connectors: per quarter its wedges, column plates with their cross lap, centred and headed pins, all built on uncut members
     const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
     add_connectors(connectors, contacts);
 }
@@ -215,9 +158,52 @@ void Floor::add_columns() {
 
 void Floor::add_column(size_t corner) {
 
-    const size_t k = corner % 4;
-    const std::shared_ptr<TreeNode> group = group_named(fmt::format("column_{}", k), quarter_group(k));
-    graft(column(guide, k), group);
+    const std::string name = fmt::format("column_{}", corner);
+    const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
+
+    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+    support->name = fmt::format("support_{}", corner);
+    const Line axis = support->column_axis(guide.bay_height);
+    const Plane frame = guide.column_frame(corner);
+    const std::shared_ptr<Column> shaft = Column::square(
+        axis,
+        frame,
+        guide.size_column_head,
+        name
+    );
+
+    const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
+    std::vector<std::shared_ptr<Plate>> cutters;
+
+    for (size_t i = 0; i < loops.size(); i++) {
+        cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
+        cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
+    }
+
+    add(shaft, group);
+
+    // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
+    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+
+    for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+        add(block, group);
+        const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
+        add_interaction(block, shaft, glue);
+    }
+
+    // the support under it, its joint let into the column end and drilled
+    add(support, group);
+    const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+    add(seat, group);
+    add_interaction(seat, shaft, seat->interaction(0));
+
+    // the six cutters, hidden, take the head's inclined faces away
+    for (const std::shared_ptr<Plate>& cutter : cutters) {
+        cutter->is_visible = false;
+        add(cutter, group);
+        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
+        add_interaction(cutter, shaft, cut);
+    }
 }
 
 std::shared_ptr<TreeNode> Floor::quarter_group(size_t q) {
@@ -387,6 +373,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         }
 
         quarter_connectors.cross_lap = JointBeam::cross_lap(*quarter_connectors.column_plates[0], *quarter_connectors.column_plates[1]);
+        quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 
         // block pins: pins between each column block and the rib either side
         for (size_t b = 0; b < 3; b++)
@@ -435,27 +422,6 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
 
             if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
                 throw std::runtime_error(fmt::format("quarter {} side {}: a butt joint leaves no room for its pins, the bay is too narrow", q, k));
-        }
-    }
-
-    // the names, numbered kind by kind, quarter by quarter, the order they are added in
-    for (size_t q = 0; q < 4; q++) {
-        QuarterConnectors& quarter_connectors = connectors[q];
-        quarter_connectors.seam_wedge->name = fmt::format("connector_seam_wedge_{}", q);
-        quarter_connectors.oculus_wedge->name = fmt::format("connector_oculus_wedge_{}", q);
-        quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
-
-        for (size_t k = 0; k < 2; k++)
-            quarter_connectors.column_plates[k]->name = fmt::format("connector_column_plate_{}", 2 * q + k);
-
-        for (size_t b = 0; b < 3; b++)
-            for (size_t side = 0; side < 2; side++)
-                quarter_connectors.block_pins[b][side]->name = fmt::format("connector_block_pins_{}", 6 * q + 2 * b + side);
-
-        for (size_t k = 0; k < 2; k++) {
-            quarter_connectors.outer_rib_seam_beam[k]->name = fmt::format("connector_pins_{}", 2 * q + k);
-            quarter_connectors.seam_beam_oculus_beam[k]->name = fmt::format("connector_pins_{}", 8 + 2 * q + k);
-            quarter_connectors.oculus_beam_inner_rib[k]->name = fmt::format("connector_pins_{}", 16 + 2 * q + k);
         }
     }
 

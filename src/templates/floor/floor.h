@@ -48,22 +48,20 @@ struct QuarterContacts {
 /// - `block_pins[3][2]`: pins per block and side.
 /// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: two pins per butt joint.
 struct QuarterConnectors {
-    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<n>.
-    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<n>.
-    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<n>, one per outer rib.
-    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<n>, where the two column plates cross.
-    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<n>, per block and side.
-    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_<n>, seam beam k into the outer rib ending on it.
-    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_<n>, seam beam k into the oculus beam.
-    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_<n>, the oculus beam into inner rib k.
+    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
+    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<q>_<k>, one per outer rib.
+    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<q>, where the two column plates cross.
+    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
+    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
+    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
+    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The column at corner q of the guide as a session named `column_<q>`, with its head, support and cutters.
-WoodSession column(const FloorGuide& guide, size_t q);
 
 /// The floor model, a session built step by step from a guide, grouped by quarter and oculus.
 ///

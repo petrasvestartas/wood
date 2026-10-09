@@ -13,7 +13,9 @@ int main() {
         Point(3000.0, 3000.0, 0.0),
         Point(-3000.0, 3000.0, 0.0),
     });
-    WoodSession column = wood_floor::column(guide, 0);
+    const wood_floor::Floor floor(guide);
+    WoodSession column("column_0");
+    column.graft(floor.get_branch("column_0"), nullptr);
     column.pb_dump(pb_path("live"));
 
     return 0;

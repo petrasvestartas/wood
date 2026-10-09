@@ -79,6 +79,63 @@ completion accurately. Generated protobuf files follow the generator's format.
   an element's own parts nested under it, its attributes (base plane) in its `attributes` group. Read elements back
   by name (`get_element_by_name`, `get_elements_numbered`) rather than keeping lists beside the session.
 
+## Templates: the floor pattern
+
+`src/templates/floor` is the reference; every template that builds a model follows it.
+
+- A template is a `WoodSession` subclass built from a guide (`class Floor : public WoodSession`). The guide holds the
+  geometry (planes, loops, sizes); the template only turns it into elements and joints. Its fields are the guide and
+  `static constexpr` parameters; every element lives in the session, read back by name.
+- The constructor is the recipe: members, then contacts, then connectors, nothing else:
+
+```cpp
+Floor::Floor(const FloorGuide& guide, const std::string& name)
+    : WoodSession(name),
+      guide(guide) {
+
+    // quarters: every quarter's members, lifted to bay_height and grouped by family
+    add_quarters();
+
+    // oculus: the four ring beams, the oculus beams, the bottom wedges and the central plate
+    add_oculus();
+
+    // columns: the column at every corner, its head carved by the guide's cutters
+    add_columns();
+
+    // contacts: per quarter an interaction between every two members that touch, named by its kind and place
+    const std::array<QuarterContacts, 4> contacts = add_contacts();
+
+    // connectors: per quarter its wedges, column plates with their cross lap, centred and headed pins, all built on uncut members
+    const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
+    add_connectors(connectors, contacts);
+}
+```
+
+- **Members**: `add_<part>()` adds every element straight into this session under its group: no free function
+  returning a session to graft, no sub-session. A member shaped by others (the column: glued blocks, the support seat,
+  cutters) is built in its own `add_<part>(i)` with `add` and `add_interaction`. One part alone is read back with
+  `get_branch("<group>")`.
+- **Groups**: by place, then family, then element: `quarter_q` > `outer_ribs_q` > `outer_ribs_<i>_<q>`, with
+  `connectors_q` beside the families. Group functions (`quarter_group(q)`, `connectors_group(q)`) call `group_named`,
+  which makes the group on first use.
+- **Contacts**: `add_contacts()` finds every contact the design needs (`compute_face_contact`), names it
+  `<kind>_<q>_<k>`, stores it with `add_interaction(a, b, face)` and returns them in a fixed-size struct per place
+  (`QuarterContacts`). Each field is a `Contact {a, b, face}` named after its two members (`seam_beam_oculus_beam`).
+  `a` is the source (the member a pin passes through first) and `b` the target.
+- **Connectors**: `compute_connectors(contacts) const` builds each joint element from its contact with a factory of
+  the joint class (`JointBeam::wedge`, `rectangle_plate`, `centred_pins`, `headed_pins`), on uncut members, before any
+  is added. The result struct (`QuarterConnectors`) mirrors the contacts struct field for field. A factory returning
+  null throws, naming the contact. Names are given at the end of the function as `connector_<kind>_<n>`, numbered in
+  the order `add_connectors` adds them, so `get_elements_numbered` reads them back in that order.
+- **Adding**: `add_connectors(connectors, contacts)` has one explicit block per kind (kind by kind, quarter by
+  quarter): `add(joint, group)`, then one `add_interaction(joint, target, joint->interaction(i))` per target, in
+  target order. No loop over a table of kinds. Joints that act on other joints (the cross lap on the column plates)
+  come last.
+- **Names in the code**: a local says what it holds (`quarter_contacts`, `quarter_connectors`, `seam`, `outer`,
+  `pins`), never `c`, `made`, `tmp` or `result`.
+- **Tests**: read elements back by name and check measured numbers in the message (`20 mm below the rib top`, with a
+  tolerance), never through lists kept beside the session.
+
 ## Kernel first
 
 - Before writing a geometry or scene helper in wood, search the kernel headers

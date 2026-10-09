@@ -270,6 +270,11 @@ static std::array<Polyline, 2> wedge_pocket(
     return {Polyline(face).closed(), Polyline(deep).closed()};
 }
 
+/// A connector's name: connector_<contact name>, or the fallback when the contact has none.
+static std::string connector_name(const InteractionContactFace& contact, const std::string& fallback) {
+    return contact.name.empty() ? fallback : "connector_" + contact.name;
+}
+
 /// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, pins every pin_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
 std::shared_ptr<JointBeam> JointBeam::wedge(
     const Element& a,
@@ -312,7 +317,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
     const double length = std::max(end ? stations[1] - stations[0] : edge.length() - 2.0 * length_margin, 1e-6);
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "wedge";
+    joint->name = connector_name(contact, "wedge");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
 
@@ -519,7 +524,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Point origin = top_origin(points);
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "rectangle_plate";
+    joint->name = connector_name(contact, "rectangle_plate");
     joint->is_visible = true;
     joint->targets = {column.guid(), rib.guid()};
     joint->parts = {
@@ -651,7 +656,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(
     const double neck = half - head_length;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "tie";
+    joint->name = connector_name(contact, "tie");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
 
@@ -862,7 +867,7 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
         return nullptr;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "pins";
+    joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
     joint->cutters = {{}, {}};
@@ -875,54 +880,6 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
     joint->line_radius = radius;
     joint->chord_tolerance = sides_tolerance(radius, pin_sides);
     joint->drill_overshoot = overshoot;
-
-    return joint;
-}
-
-/// The pins: each line's start is a head, the pin length long along the line from there; no cutter and no cut, the lines are the pre-drilled holes of both members; aimed at a then b.
-std::shared_ptr<JointBeam> JointBeam::headed_pins(
-    const Element& a,
-    const Element& b,
-    const std::vector<Line>& lines,
-    double radius,
-    double length,
-    int sides
-) {
-    return headed_pins(
-        std::vector<const Element*>{&a, &b},
-        lines,
-        radius,
-        length,
-        sides
-    );
-}
-
-std::shared_ptr<JointBeam> JointBeam::headed_pins(
-    const std::vector<const Element*>& members,
-    const std::vector<Line>& lines,
-    double radius,
-    double length,
-    int sides
-) {
-
-    if (lines.empty() || members.size() < 2)
-        return nullptr;
-
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "pins";
-    joint->is_visible = true;
-    joint->pre_drill = true;
-
-    for (const Element* member : members)
-        joint->targets.push_back(member->guid());
-
-    for (const Line& line : lines) {
-        const Point head = line.start();
-        joint->drill_lines.push_back(Line::from_points(head, head + line.to_vector().normalized() * length));
-    }
-
-    joint->line_radius = radius;
-    joint->chord_tolerance = sides_tolerance(radius, sides);
 
     return joint;
 }
@@ -1014,9 +971,13 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
             stations.push_back({x_min + (x_max - x_min) * t, shift});
     }
 
-    // each pin from its head on the far face of `through`, length long into `into`
-    std::vector<Line> lines;
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = connector_name(contact, "pins");
+    joint->is_visible = true;
+    joint->pre_drill = true;
+    joint->targets = {through.guid(), into.guid()};
 
+    // each pin from its head on the far face of `through`, length long into `into`
     for (const std::array<double, 2>& station : stations) {
         const Point point = origin + x * station[0] + y * station[1];
         const Point head = pin_head(
@@ -1025,16 +986,13 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
             normal,
             length
         );
-        lines.push_back(Line::from_points(head, head + normal * length));
+        joint->drill_lines.push_back(Line::from_points(head, head + normal * length));
     }
 
-    return headed_pins(
-        std::vector<const Element*>{&through, &into},
-        lines,
-        radius,
-        length,
-        sides
-    );
+    joint->line_radius = radius;
+    joint->chord_tolerance = sides_tolerance(radius, sides);
+
+    return joint;
 }
 
 /// The frame of a box part: origin at its centre, x along the first side of its first loop, z along the last, y from the first loop to the second; the loops frame_box makes.

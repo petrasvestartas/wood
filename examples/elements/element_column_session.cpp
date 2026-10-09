@@ -15,7 +15,8 @@ int main() {
         Point(6000.0, 6000.0, 0.0),
         Point(0.0, 6000.0, 0.0),
     });
-    scene.graft(wood_floor::column(guide, 0), nullptr);
+    const wood_floor::Floor floor(guide);
+    scene.graft(floor.get_branch("column_0"), nullptr);
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
