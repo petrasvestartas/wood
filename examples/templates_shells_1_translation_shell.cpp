@@ -4,26 +4,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Builds the translation shell with its default cross section and profile and writes the mesh and its plates to live.
+/// The translation shell with its default cross section and profile: curves, sections, mesh and plates, each in its group.
 int main() {
 
-    const TranslationShell shell;
-
-    WoodSession wood_session("translation_shell");
-    wood_session.add_mesh(std::make_shared<Mesh>(shell.mesh));
-    for (const std::shared_ptr<Plate>& plate : shell.elements)
-        wood_session.add(plate);
-
-    std::cout << fmt::format("translation shell: {} plates\n", shell.elements.size());
-
-    wood_session.pb_dump(pb_path("live"));
-
+    TranslationShell shell;
+    const std::vector<std::shared_ptr<Plate>> plates = shell.get_elements_numbered<Plate>("plate");
+    std::cout << fmt::format("translation shell: {} plates\n", plates.size());
+    shell.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-The translation shell template: a cross section swept along a profile, one chamfered plate per strip, written to live for the viewer.
+The translation shell template: a cross section swept along a profile, one quad per two neighbouring sections, one mitred and chamfered plate per quad, each step in its group.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -32,17 +25,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_shells_1_translation_shell --parallel 4 && ./build/templates_shells_1_translation_shell && ../bash/publish-scene.sh --target templates_shells_1_translation_shell
-
-|||||||| WORKFLOW ||||||||
-examples/templates_shells_1_translation_shell.cpp
- |
- |-- TranslationShell(cross_section, profile, thickness, chamfer, chamfer_angle)                       src/templates/shells/translation_shell.h
- |    |-- sweep(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per strip in `elements`
- |
- |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
- '-- pb_dump(pb_path("live"))                    Mesh::loft once per stale plate, Session::pb_dump
-                                                 -> data/output/pb/live.pb, the file the viewer watches
+cmake --build build --target templates_shells_1_translation_shell --parallel 6 && ./build/templates_shells_1_translation_shell && ../bash/publish-scene.sh --target templates_shells_1_translation_shell
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

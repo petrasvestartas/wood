@@ -106,17 +106,15 @@ int main() {
             item.pattern.transformed(shift),
             cores
         );
-        const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
-        for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
-            for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))
-                wood_session.add(element, group);
+        const wood_grid::Grid grid(building, item.framing, item.name);
+        wood_session.graft(grid, wood_session.add_group(item.name));
         offset += extent.second - extent.first + GAP;
     }
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_face_contacts(1);
+    std::cout << wood_session << std::endl;
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -124,7 +122,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Workflow B, a footprint and a pattern, nine buildings side by side over three storeys, one group each: an L with uneven bays, purlins on girders and facade walls; a grid whose y lines lean 30 degrees with flush columns; a radial plan with girders on the rays; triangular cells and hexagonal cells with every line a beam resting on the sloped sides of the pyramid heads at the nodes; five hand-drawn axes clipped to a five-sided footprint; a courtyard ring with columns through the levels; Branch3D's pentagon with girders hung 8 in and purlins at 10 ft; its institutional U with two cores as pinwheel walls. compute_face_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+Workflow B, a footprint and a pattern, nine buildings side by side over three storeys, one group each: an L with uneven bays, purlins on girders and facade walls; a grid whose y lines lean 30 degrees with flush columns; a radial plan with girders on the rays; triangular cells and hexagonal cells with every line a beam resting on the sloped sides of the pyramid heads at the nodes; five hand-drawn axes clipped to a five-sided footprint; a courtyard ring with columns through the levels; Branch3D's pentagon with girders hung 8 in and purlins at 10 ft; its institutional U with two cores as pinwheel walls. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -133,7 +131,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_grid_1_footprint --parallel 4 && ./build/templates_grid_1_footprint && ../bash/publish-scene.sh --target templates_grid_1_footprint
+cmake --build build --target templates_grid_1_footprint --parallel 6 && ./build/templates_grid_1_footprint && ../bash/publish-scene.sh --target templates_grid_1_footprint
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

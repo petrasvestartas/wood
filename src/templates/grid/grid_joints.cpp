@@ -11,7 +11,7 @@ using namespace wood_grid::plan;
 // Roles
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The role of a plan edge from the framing and its family: girders on the span family, beams on free lines and under span -1, purlins on the cross lines under system 2, beams on perimeter cross lines under system 1, nothing under system 0.
+/// The role of a plan edge from the framing and its family.
 int compute_role(const Mesh& plan, std::pair<size_t, size_t> edge, const Framing& framing) {
 
     const int family = static_cast<int>(plan.edge_attribute(edge, "family").value_or(-1.0));
@@ -109,7 +109,7 @@ bool is_sharing_height(const Member& a, const Member& b, double tolerance) {
     return std::min(a.top, b.top) - std::max(a.bottom, b.bottom) > tolerance;
 }
 
-/// The member that continues index straight on within 45 degrees, the straightest; of the same rank only when equal is true; none otherwise.
+/// The member that continues index straight on within 45 degrees, the straightest.
 std::optional<size_t> compute_continuation(const std::vector<Member>& members, size_t index, bool equal) {
 
     std::optional<size_t> straight;
@@ -125,7 +125,7 @@ std::optional<size_t> compute_continuation(const std::vector<Member>& members, s
     return straight;
 }
 
-/// Order of a member for the through choice: the highest rank, then one with a straight continuation of its rank, then one with any straight continuation, then the smallest angle from x as a line.
+/// Order of a member for the through choice.
 std::tuple<int, int, int, double> compute_priority(const std::vector<Member>& members, size_t index) {
 
     const double angle = std::atan2(members[index].direction[1], members[index].direction[0]);
@@ -176,7 +176,7 @@ void add_exit(
         add_plane(planes, *plane);
 }
 
-/// How far the open end of the through member index runs past its vertex, negative outwards: to the farthest end-face corner of the members butting into it, the column's far face under node 0 when nothing butts, the vertex itself when a lower member continues it collinearly.
+/// How far the open end of the through member index runs past its vertex, negative outwards.
 double compute_open(
     const Context& context,
     size_t vertex,
@@ -624,7 +624,7 @@ Plane compute_wall_face(
     return Plane::from_point_normal(at, along.cross(Vector(0.0, 0.0, 1.0)));
 }
 
-/// The cut plane of a station end at the side of a face loop it lands on: the face of the member there when the heights overlap, none otherwise.
+/// The cut plane of a station end at the side of a face loop it lands on.
 void add_station_cut(
     std::vector<Plane>& cuts,
     const Context& context,

@@ -41,7 +41,7 @@ Point compute_rhombic(double side, double i, double j) {
 // Plans
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The family of a plan edge: its pattern line's, else that of a pattern line parallel to it within a degree, else -1.
+/// The family of a plan edge.
 int compute_family(const Mesh& plan, std::pair<size_t, size_t> edge, const Pattern& pattern) {
 
     const double id = plan.edge_attribute(edge, "line").value_or(-1.0);
@@ -56,7 +56,7 @@ int compute_family(const Mesh& plan, std::pair<size_t, size_t> edge, const Patte
     return -1;
 }
 
-/// The plan of one level: the pattern clipped to the rings and every ring's edges arranged into faces; faces outside the rings removed, with no rings the cells one family alone bounds; then family, boundary, column and floor attributes.
+/// The plan of one level.
 Mesh compute_plan(
     const Pattern& pattern,
     const std::vector<Polyline>& rings,
@@ -230,7 +230,7 @@ struct Drawn {
     std::vector<std::pair<Line, double>> walls; // The top edge of every vertical surface ending there, with 2 for a core, 1 otherwise.
 };
 
-/// The lines of level k as drawn: the horizontal lines there, the edges of the floors there and the top edges of the walls ending there, with the floors and walls beside.
+/// The lines of level k as drawn.
 Drawn compute_drawn(
     const std::vector<Line>& lines,
     const std::vector<Polyline>& surfaces,
@@ -291,7 +291,7 @@ Drawn compute_drawn(
     return drawn;
 }
 
-/// The plan of level k as drawn: floor 1 inside a drawn floor, family -1, boundary where fewer than two floors meet, role 0 on floor and wall edges nobody drew a line on, wall 1 under a drawn wall (2 when named core), column 1 under every end of a vertical line.
+/// The plan of level k as drawn.
 Mesh compute_drawn_plan(
     const std::vector<Line>& lines,
     const std::vector<Polyline>& surfaces,

@@ -21,7 +21,7 @@ std::vector<std::pair<size_t, size_t>> compute_star(const Mesh& plan, size_t ver
     return edges;
 }
 
-/// The turn of the column profile at a plan vertex: the mean direction of the first pattern family's edges there, x where none passes.
+/// The turn of the column profile at a plan vertex.
 double compute_turn(const Mesh& plan, size_t vertex) {
 
     const std::optional<Vector> axis = compute_family_direction(plan, compute_star(plan, vertex), 0);
@@ -29,7 +29,7 @@ double compute_turn(const Mesh& plan, size_t vertex) {
     return axis ? std::atan2((*axis)[1], (*axis)[0]) : 0.0;
 }
 
-/// The plan section of the column at a vertex, counter-clockwise at z 0: the column profile centred there, its x axis along the first pattern family.
+/// The plan section of the column at a vertex, counter-clockwise at z 0.
 std::vector<Point> compute_column_polygon(const Mesh& plan, size_t vertex, const Framing& framing) {
 
     const double turn = compute_turn(plan, vertex);
@@ -66,20 +66,12 @@ void compute_clearance(Level& level, const Framing& framing) {
     }
 }
 
-/// A column of a storey: its foot on the lower level and its head on the upper one.
-struct Stack {
-    size_t lower = 0; // Vertex in the lower plan.
-    size_t upper = 0; // Vertex in the upper plan.
-    Point foot; // Plan point of the foot at z 0.
-    Point head; // Plan point of the head at z 0.
-};
-
 /// The two arrangement line ids that made a plan vertex, the identity used across levels.
 std::pair<double, double> compute_identity(const Mesh& plan, size_t vertex) {
     return {plan.vertex_attribute(vertex, "line_a").value_or(-1.0), plan.vertex_attribute(vertex, "line_b").value_or(-1.0)};
 }
 
-/// How well a lower vertex carries an upper one, the lower the better: its plan distance by identity within lean, plus 1 at the same point within tolerance, plus lean + 2 on the same line or the section within lean; infinite otherwise.
+/// How well a lower vertex carries an upper one, the lower the better.
 double compute_carry(
     const Mesh& lower,
     size_t other,
@@ -105,7 +97,7 @@ double compute_carry(
     return std::numeric_limits<double>::max();
 }
 
-/// Columns between levels k and k + 1: every upper vertex with column 1 matched to the lower column vertex with the best compute_carry; an upper vertex with no match is written column 2.
+/// Columns between levels k and k + 1.
 std::vector<Stack> compute_columns(Building& building, size_t k, const Framing& framing) {
 
     const Mesh& lower = building.levels[k].plan;
@@ -147,7 +139,7 @@ std::vector<Stack> compute_columns(Building& building, size_t k, const Framing& 
 // Heads
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The side of a direction polygon that vanishes or turns back between its neighbours, none when every side stands: the diagonal side at the corner of a square column.
+/// The side of a direction polygon that vanishes or turns back between its neighbours, none when every side stands.
 std::optional<size_t> compute_degenerate(const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances) {
 
     const std::vector<Point> corners = to_loop(compute_polygon(directions, centre, distances));
@@ -158,7 +150,7 @@ std::optional<size_t> compute_degenerate(const std::vector<Vector>& directions, 
     return std::nullopt;
 }
 
-/// The polygons of a head that carries the deck at a vertex, bottom, middle, top: the direction polygon circumscribing the column, halfway to reach and at reach; a direction whose side would not stand is left out.
+/// The polygons of a head that carries the deck at a vertex, bottom, middle, top.
 std::vector<std::vector<Point>> compute_head(const Mesh& plan, size_t vertex, const Framing& framing) {
 
     const double turn = compute_turn(plan, vertex);
@@ -183,7 +175,12 @@ std::vector<std::vector<Point>> compute_head(const Mesh& plan, size_t vertex, co
     for (const double distance : distances)
         middle.push_back((distance + framing.reach) / 2.0);
 
-    return {to_loop(compute_polygon(directions, centre, distances)), to_loop(compute_polygon(directions, centre, middle)), to_loop(compute_polygon(directions, centre, std::vector<double>(directions.size(), framing.reach)))};
+    const std::vector<double> reach(directions.size(), framing.reach);
+    const Polyline bottom = compute_polygon(directions, centre, distances);
+    const Polyline half = compute_polygon(directions, centre, middle);
+    const Polyline top = compute_polygon(directions, centre, reach);
+
+    return {to_loop(bottom), to_loop(half), to_loop(top)};
 }
 
 /// The outer face of every core wall the head top at a vertex would reach into, keeping the head's side.
@@ -212,7 +209,7 @@ std::vector<Plane> compute_head_cuts(
     return cuts;
 }
 
-/// Where a head stops at the deck edge on the perimeter: the side of every perimeter edge of a floor face at the vertex as a vertical plane keeping the inside; at a re-entrant corner one plane through the corner of the two sides, square to their bisector.
+/// Where a head stops at the deck edge on the perimeter.
 std::vector<Plane> compute_edge_cuts(const Context& context, size_t vertex) {
 
     const Point centre = compute_lift(*context.plan.vertex_point(vertex), 0.0);
@@ -278,7 +275,7 @@ Mesh compute_loft(const std::vector<Point>& bottom, const std::vector<Point>& to
     return Mesh::from_polylines(kept, tolerance);
 }
 
-/// The head at a vertex where members arrive as a closed convex mesh between z_bottom and z_top, the datum at z: a pyramid frustum with one side per plan direction there, the side under a member its sloped end face, every other side standing on the column face, and a sloped chamfer between every two neighbouring members that seats the deck corner.
+/// The head at a vertex where members arrive as a closed convex mesh between z_bottom and z_top, the datum at z.
 Mesh compute_pyramid(
     const Context& context,
     size_t vertex,
@@ -313,7 +310,7 @@ Mesh compute_pyramid(
         solid = solid.cut_by_plane(lifted_side);
     }
 
-    // a chamfer between every two neighbouring members, as compas_grid: from the line joining their sides' far ends at the bottom up to the corner they meet at on top
+    // a chamfer between every two neighbouring members, as compas_grid
     for (size_t k = 0; k < members.size() && members.size() > 1; k++) {
         const Member& member = members[k];
         const Member& next = members[(k + 1) % members.size()];
@@ -354,14 +351,16 @@ std::shared_ptr<Element> to_block(
     const std::string& name
 ) {
 
-    std::shared_ptr<wood_session::Block> block = std::make_shared<wood_session::Block>(std::vector<Polyline>{compute_lifted(to_polyline(bottom), z_bottom), compute_lifted(to_polyline(top), z_top)}, name);
+    const Polyline lower = compute_lifted(to_polyline(bottom), z_bottom);
+    const Polyline upper = compute_lifted(to_polyline(top), z_top);
+    std::shared_ptr<wood_session::Block> block = std::make_shared<wood_session::Block>(std::vector<Polyline>{lower, upper}, name);
     block->cuts = cuts;
     block->invalidate_geometry();
 
     return block;
 }
 
-/// The head at a vertex under node 0: where members arrive a pyramid frustum as tall as they are deep, each member resting on its sloped side; under the deck alone a frustum from the column to reach (capital 0) or a capital to halfway under a drop panel at reach (capital 1); cut back at the core walls, the frustum also at the deck edge.
+/// The head at a vertex under node 0.
 std::vector<std::shared_ptr<Element>> to_head(
     const Context& context,
     const Level& level,
@@ -464,7 +463,7 @@ double compute_kept(const Point& start, const Point& end, const std::vector<Plan
     return high - low;
 }
 
-/// Beams of a profile along an axis at height z with cuts: one, or two side by side for a double profile; none when the cuts leave less than least.
+/// Beams of a profile along an axis at height z with cuts.
 std::vector<std::shared_ptr<Element>> to_member(
     const Point& start,
     const Point& end,
@@ -500,7 +499,7 @@ std::vector<std::shared_ptr<Element>> to_member(
     return beams;
 }
 
-/// The member on a plan edge of the level at z: its role's profile, its top at the datum less its drop, its ends from compute_cuts at both vertices, split where it crosses a core and cut at the wall faces; a stub shorter than its width is dropped unless it bears at both ends.
+/// The member on a plan edge of the level at z.
 std::vector<std::shared_ptr<Element>> to_beam(
     const Context& context,
     std::pair<size_t, size_t> edge,
@@ -568,7 +567,7 @@ std::shared_ptr<Element> to_column(
     return std::make_shared<wood_session::Column>(axis, to_polyline(section), "column");
 }
 
-/// The deck plates of a face at z: loop 0 of the outline, holes and notches as features, one plate per panel strip.
+/// The deck plates of a face at z.
 std::vector<std::shared_ptr<Element>> to_deck(
     const std::vector<Polyline>& outline,
     double z,
@@ -579,7 +578,9 @@ std::vector<std::shared_ptr<Element>> to_deck(
 
     std::vector<std::shared_ptr<Element>> decks;
     for (const std::vector<Polyline>& loops : compute_panels(outline, span, panel)) {
-        std::shared_ptr<wood_session::Plate> deck = std::make_shared<wood_session::Plate>(compute_lifted(loops[0], z), compute_lifted(loops[0], z + thickness), "deck");
+        const Polyline bottom = compute_lifted(loops[0], z);
+        const Polyline top = compute_lifted(loops[0], z + thickness);
+        std::shared_ptr<wood_session::Plate> deck = std::make_shared<wood_session::Plate>(bottom, top, "deck");
         for (const Polyline& ring : loops) {
             deck->features.bottom.push_back(compute_lifted(ring, z));
             deck->features.top.push_back(compute_lifted(ring, z + thickness));
@@ -591,7 +592,7 @@ std::vector<std::shared_ptr<Element>> to_deck(
     return decks;
 }
 
-/// The side of a facade wall at a vertex, bottom up: on the column face from foot to top, under the sloped side of the member along the wall or the faces of a head that carries the deck; inward is +1 at the start of the wall line and -1 at its end.
+/// The side of a facade wall at a vertex, bottom up.
 std::vector<Point> compute_wall_side(
     const Context& context,
     size_t vertex,
@@ -642,7 +643,7 @@ std::vector<Point> compute_wall_side(
     return points;
 }
 
-/// The facade wall under a perimeter edge over a storey: between the column faces, chamfered along the head faces under node 0, from foot to the member bottom or the datum, thickness centred on the line.
+/// The facade wall under a perimeter edge over a storey.
 std::shared_ptr<Element> to_wall(
     const Context& context,
     std::pair<size_t, size_t> edge,
@@ -682,7 +683,7 @@ std::shared_ptr<Element> to_wall(
     return std::make_shared<wood_session::Plate>(back_face, front_face, name);
 }
 
-/// Deck thickness over the datum at a level vertex: the framing's deck under a floor face there that is not flush in its bay, 0 otherwise.
+/// Deck thickness over the datum at a level vertex.
 double compute_floor(const Mesh& plan, size_t vertex, const Framing& framing) {
 
     for (const size_t face : plan.vertex_faces(vertex).value_or(std::vector<size_t>()))
@@ -692,7 +693,7 @@ double compute_floor(const Mesh& plan, size_t vertex, const Framing& framing) {
     return 0.0;
 }
 
-/// A brace of a storey: the brace profile along the line, cut by the column faces at both ends, the deck top at the foot and the members or the deck at the head.
+/// A brace of a storey.
 std::vector<std::shared_ptr<Element>> to_brace(
     const Line& line,
     const Context& lower,
@@ -773,37 +774,214 @@ std::map<size_t, std::vector<Point>> compute_sections(
     return sections;
 }
 
-/// The columns, core walls, facade walls and heads of a storey, in that order: columns from the deck top below (the datum under node 2) to the head bottom or the datum.
-std::vector<std::shared_ptr<Element>> to_uprights(
-    const Building& building,
+} // namespace wood_grid::build
+
+namespace wood_grid {
+
+using namespace wood_grid::plan;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Grid
+// ═══════════════════════════════════════════════════════════════════════════
+
+Grid::Grid(
+    const Building& guide,
+    const Framing& framing,
+    const std::string& name
+)
+    : WoodSession(name),
+      framing(compute_framing(framing)),
+      guide(compute_guide(guide, this->framing)) {
+
+    // plans: every level's member lines and column points at its datum
+    add_plans();
+
+    // storeys: the columns, walls, heads, members, purlins, decks and braces of every storey, under the level it caps
+    for (size_t storey = 0; storey + 1 < this->guide.levels.size(); storey++)
+        add_storey(storey);
+
+    // contacts: an interaction between every two elements that touch, across the levels
+    compute_face_contacts(0);
+}
+
+Framing Grid::compute_framing(const Framing& framing) {
+
+    Framing built = framing;
+    if (built.system == 0 && built.node == 2)
+        built.node = 1;
+
+    return built;
+}
+
+Building Grid::compute_guide(const Building& guide, const Framing& framing) {
+
+    Building filled = guide;
+    for (Level& level : filled.levels) {
+        build::compute_roles(level.plan, framing);
+        build::compute_clearance(level, framing);
+    }
+
+    return filled;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Plans
+// ═══════════════════════════════════════════════════════════════════════════
+
+void Grid::add_plans() {
+
+    for (size_t l = 0; l < guide.levels.size(); l++) {
+        const Level& level = guide.levels[l];
+        const std::shared_ptr<TreeNode> plan = add_group(fmt::format("plan_{}", l), level_group(l));
+
+        for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
+            const Point start = compute_lift(*level.plan.vertex_point(edge.first), level.z);
+            const Point end = compute_lift(*level.plan.vertex_point(edge.second), level.z);
+            add_line(Line::from_points(start, end), plan);
+        }
+
+        for (const size_t vertex : level.plan.vertices())
+            if (level.plan.vertex_attribute(vertex, "column").value_or(0.0) > 0.0)
+                add_point(compute_lift(*level.plan.vertex_point(vertex), level.z), plan);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Storeys
+// ═══════════════════════════════════════════════════════════════════════════
+
+void Grid::add_storey(size_t storey) {
+
+    // stacks: the columns of this storey and of the next, matched on a working copy as the joint rules read them
+    Building working = guide;
+    const std::vector<build::Stack> stacks = build::compute_columns(working, storey, framing);
+    std::vector<build::Stack> next;
+    if (storey + 2 < working.levels.size())
+        next = build::compute_columns(working, storey + 1, framing);
+
+    // sections: the columns standing under the level, rising from it and their feet on the level below
+    const Level& lower = working.levels[storey];
+    const Level& level = working.levels[storey + 1];
+    const std::map<size_t, std::vector<Point>> standing = build::compute_sections(
+        level.plan,
+        stacks,
+        framing,
+        false
+    );
+    std::map<size_t, std::vector<Point>> rising;
+    if (!next.empty())
+        rising = build::compute_sections(
+            working.levels[storey + 2].plan,
+            next,
+            framing,
+            true
+        );
+    const std::map<size_t, std::vector<Point>> feet = build::compute_sections(
+        level.plan,
+        stacks,
+        framing,
+        true
+    );
+    const std::map<size_t, std::vector<Point>> none;
+    const build::Context upper{level.plan, framing, guide.tolerance, standing, rising};
+    const build::Context ground{lower.plan, framing, guide.tolerance, none, feet};
+
+    // outlines: the deck loops of every floor face of the level, largest first
+    const std::map<size_t, std::vector<Polyline>> outlines = build::compute_outlines(upper, level.cores);
+
+    // columns: column_<i>_<level>, from the deck top below to the head bottom or the datum
+    add_columns(
+        working,
+        storey,
+        stacks,
+        upper
+    );
+
+    // walls: core_wall_<i>_<level> in a pinwheel round every core, wall_<i>_<level> under the facade members
+    add_walls(working, storey, upper);
+
+    // heads: head_<i>_<level> on every column under node 0, a drop_panel over a stepped capital
+    const std::map<size_t, std::shared_ptr<Element>> heads = add_heads(
+        level,
+        stacks,
+        upper,
+        storey + 1
+    );
+
+    // members: girder_, beam_ and purlin_<i>_<level> at the datum, their ends cut by the joint rules
+    add_members(
+        level,
+        upper,
+        outlines,
+        storey + 1
+    );
+
+    // decks: deck_<i>_<level>, a flush deck cut by the heads at its corners; the ground decks with the first storey
+    add_decks(
+        level,
+        upper,
+        outlines,
+        heads,
+        storey + 1
+    );
+    if (storey == 0)
+        add_decks(
+            lower,
+            ground,
+            build::compute_outlines(ground, lower.cores),
+            {},
+            0
+        );
+
+    // braces: brace_<i>_<level>, every drawn brace standing in the storey
+    add_braces(storey, ground, upper);
+}
+
+void Grid::add_columns(
+    const Building& working,
     size_t storey,
-    const std::vector<Stack>& stacks,
-    const Context& upper
+    const std::vector<build::Stack>& stacks,
+    const build::Context& upper
 ) {
 
-    const Level& lower = building.levels[storey];
-    const Level& level = building.levels[storey + 1];
-    const Framing& framing = upper.framing;
+    const Level& lower = working.levels[storey];
+    const Level& level = working.levels[storey + 1];
 
-    std::vector<std::shared_ptr<Element>> elements;
-    for (const Stack& stack : stacks) {
-        const double foot = lower.z + (framing.node == 2 ? 0.0 : compute_floor(lower.plan, stack.lower, framing));
-        const double top = level.z + (framing.node == 0 ? compute_head_bottom(upper, stack.upper) : 0.0);
-        elements.push_back(
-            to_column(
+    std::vector<std::shared_ptr<Element>> columns;
+    for (const build::Stack& stack : stacks) {
+        const double foot = lower.z + (framing.node == 2 ? 0.0 : build::compute_floor(lower.plan, stack.lower, framing));
+        const double top = level.z + (framing.node == 0 ? build::compute_head_bottom(upper, stack.upper) : 0.0);
+        const std::vector<Point>& section = upper.standing.at(stack.upper);
+        columns.push_back(
+            build::to_column(
                 stack,
-                upper.standing.at(stack.upper),
+                section,
                 foot,
                 top
             )
         );
     }
 
+    add_numbered(columns, storey + 1);
+}
+
+void Grid::add_walls(
+    const Building& working,
+    size_t storey,
+    const build::Context& upper
+) {
+
+    const Level& lower = working.levels[storey];
+    const Level& level = working.levels[storey + 1];
+
+    std::vector<std::shared_ptr<Element>> walls;
     for (const Polyline& core : level.cores) {
         const double bottom = lower.z + (storey == 0 ? 0.0 : framing.deck);
-        for (const std::vector<Point>& quad : compute_core_quads(core, framing.wall)) {
+        for (const std::vector<Point>& quad : build::compute_core_quads(core, framing.wall)) {
             const Polyline outline = to_polyline(quad);
-            elements.push_back(std::make_shared<wood_session::Plate>(compute_lifted(outline, bottom), compute_lifted(outline, level.z + framing.deck), "core_wall"));
+            const Polyline base = compute_lifted(outline, bottom);
+            const Polyline cap = compute_lifted(outline, level.z + framing.deck);
+            walls.push_back(std::make_shared<wood_session::Plate>(base, cap, "core_wall"));
         }
     }
 
@@ -812,11 +990,11 @@ std::vector<std::shared_ptr<Element>> to_uprights(
         if (wall == 0.0)
             continue;
 
-        const double first_floor = compute_floor(lower.plan, edge.first, framing);
-        const double second_floor = compute_floor(lower.plan, edge.second, framing);
+        const double first_floor = build::compute_floor(lower.plan, edge.first, framing);
+        const double second_floor = build::compute_floor(lower.plan, edge.second, framing);
         const double bottom = lower.z + std::max(first_floor, second_floor);
-        elements.push_back(
-            to_wall(
+        walls.push_back(
+            build::to_wall(
                 upper,
                 edge,
                 bottom,
@@ -826,186 +1004,183 @@ std::vector<std::shared_ptr<Element>> to_uprights(
         );
     }
 
-    for (const Stack& stack : stacks) {
-        const double bottom = level.z + compute_head_bottom(upper, stack.upper);
-        const double top = level.z + compute_head_top(upper, stack.upper);
-        for (const std::shared_ptr<Element>& head : framing.node == 0 ? to_head(
+    add_numbered(walls, storey + 1);
+}
+
+std::map<size_t, std::shared_ptr<Element>> Grid::add_heads(
+    const Level& level,
+    const std::vector<build::Stack>& stacks,
+    const build::Context& upper,
+    size_t place
+) {
+
+    std::map<size_t, std::shared_ptr<Element>> heads;
+    if (framing.node != 0)
+        return heads;
+
+    std::vector<std::shared_ptr<Element>> blocks;
+    for (const build::Stack& stack : stacks) {
+        const double bottom = level.z + build::compute_head_bottom(upper, stack.upper);
+        const double top = level.z + build::compute_head_top(upper, stack.upper);
+        const std::vector<std::shared_ptr<Element>> head = build::to_head(
             upper,
             level,
             stack.upper,
             bottom,
             top
-        ) : std::vector<std::shared_ptr<Element>>())
-            elements.push_back(head);
+        );
+        heads[stack.upper] = head[0];
+        blocks.insert(blocks.end(), head.begin(), head.end());
     }
 
-    return elements;
+    add_numbered(blocks, place);
+
+    return heads;
 }
 
-/// The members, purlin stations and decks of a level; the decks alone when members is false.
-std::vector<std::shared_ptr<Element>> to_floor(
+void Grid::add_members(
     const Level& level,
-    const Context& context,
+    const build::Context& upper,
     const std::map<size_t, std::vector<Polyline>>& outlines,
-    bool members
+    size_t place
 ) {
 
     std::vector<Polyline> outer;
     for (const Polyline& core : level.cores)
-        outer.push_back(compute_wall_ring(core, context.framing.wall));
+        outer.push_back(compute_wall_ring(core, framing.wall));
 
-    std::vector<std::shared_ptr<Element>> elements;
-    for (const std::pair<size_t, size_t>& edge : level.plan.edges())
-        if (members && level.plan.edge_attribute(edge, "role").value_or(0.0) > 0.0)
-            for (const std::shared_ptr<Element>& beam : to_beam(
-                context,
-                edge,
-                level.z,
-                outer
-            ))
-                elements.push_back(beam);
-
-    for (const size_t face : level.plan.faces()) {
-        if (!members || !outlines.count(face) || static_cast<int>(level.plan.face_attribute(face, "system").value_or(context.framing.system)) != 2)
+    // girders and beams on every plan edge with a role
+    std::vector<std::shared_ptr<Element>> members;
+    for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
+        if (level.plan.edge_attribute(edge, "role").value_or(0.0) <= 0.0)
             continue;
 
-        const std::pair<double, double> size = wood_session::compute_size(compute_profile(3, context.framing));
-        for (const Station& station : compute_stations(context, face, level.cores))
-            for (const std::shared_ptr<Element>& purlin : to_member(
+        const std::vector<std::shared_ptr<Element>> beams = build::to_beam(
+            upper,
+            edge,
+            level.z,
+            outer
+        );
+        members.insert(members.end(), beams.begin(), beams.end());
+    }
+
+    // purlins at every station of a system 2 bay, their tops at the datum
+    const std::vector<Polyline> profile = build::compute_profile(3, framing);
+    const std::pair<double, double> size = wood_session::compute_size(profile);
+    for (const size_t face : level.plan.faces()) {
+        const int system = static_cast<int>(level.plan.face_attribute(face, "system").value_or(framing.system));
+        if (!outlines.count(face) || system != 2)
+            continue;
+
+        for (const build::Station& station : build::compute_stations(upper, face, level.cores)) {
+            const std::vector<std::shared_ptr<Element>> purlins = build::to_member(
                 station.line.start(),
                 station.line.end(),
                 level.z - size.second / 2.0,
-                compute_profile(3, context.framing),
+                profile,
                 station.cuts,
                 "purlin",
                 size.first
-            ))
-                elements.push_back(purlin);
+            );
+            members.insert(members.end(), purlins.begin(), purlins.end());
+        }
     }
+
+    add_numbered(members, place);
+}
+
+void Grid::add_decks(
+    const Level& level,
+    const build::Context& context,
+    const std::map<size_t, std::vector<Polyline>>& outlines,
+    const std::map<size_t, std::shared_ptr<Element>>& heads,
+    size_t place
+) {
 
     for (const std::pair<const size_t, std::vector<Polyline>>& outline : outlines) {
-        const bool flush = is_flush(level.plan, outline.first, context.framing);
+        const bool flush = build::is_flush(level.plan, outline.first, framing);
+        const double deck_z = flush ? level.z - framing.deck : level.z;
+        const Vector span = build::compute_span(level.plan, outline.first, framing);
+        const std::vector<std::shared_ptr<Element>> decks = build::to_deck(
+            outline.second,
+            deck_z,
+            framing.deck,
+            span,
+            framing.panel
+        );
+        add_numbered(decks, place);
 
-        // a flush deck hangs under the datum between the members, the heads at its corners cut out of it
-        std::vector<wood_session::InteractionFeatureSolid> heads;
-        for (const size_t vertex : flush ? compute_loop(level.plan, outline.first) : std::vector<size_t>()) {
-            if (!context.standing.count(vertex))
+        // a flush deck hangs between the members, the head at each corner cut out of it
+        if (!flush)
+            continue;
+
+        for (const size_t vertex : build::compute_loop(level.plan, outline.first)) {
+            if (!heads.count(vertex))
                 continue;
 
-            wood_session::InteractionFeatureSolid head;
-            const double bottom = level.z + compute_head_bottom(context, vertex);
-            const double top = level.z + compute_head_top(context, vertex);
-            head.mesh = compute_pyramid(context, vertex,
+            const double bottom = level.z + build::compute_head_bottom(context, vertex);
+            const double top = level.z + build::compute_head_top(context, vertex);
+            const Mesh pyramid = build::compute_pyramid(
+                context,
+                vertex,
                 bottom,
-                top, level.z);
-            heads.push_back(head);
-        }
-
-        const double deck_z = flush ? level.z - context.framing.deck : level.z;
-        const Vector span = compute_span(level.plan, outline.first, context.framing);
-        for (const std::shared_ptr<Element>& deck : to_deck(outline.second,
-            deck_z, context.framing.deck,
-            span, context.framing.panel)) {
-            std::shared_ptr<wood_session::Plate> plate = std::static_pointer_cast<wood_session::Plate>(deck);
-            plate->solid_features = heads;
-            plate->invalidate_geometry();
-            elements.push_back(deck);
-        }
-    }
-
-    return elements;
-}
-
-} // namespace wood_grid::build
-
-namespace wood_grid {
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Elements
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::vector<std::shared_ptr<Element>> Building::to_elements(const Framing& given, size_t storey) const {
-
-    Framing framing = given;
-    if (framing.system == 0 && framing.node == 2)
-        framing.node = 1;
-
-    Building working = *this;
-    for (Level& level : working.levels) {
-        build::compute_roles(level.plan, framing);
-        build::compute_clearance(level, framing);
-    }
-
-    const std::vector<build::Stack> stacks = build::compute_columns(working, storey, framing);
-    const std::vector<build::Stack> next = storey + 2 < working.levels.size() ? build::compute_columns(working, storey + 1, framing) : std::vector<build::Stack>();
-    const Level& lower = working.levels[storey];
-    const Level& level = working.levels[storey + 1];
-    const std::map<size_t, std::vector<Point>> standing = build::compute_sections(
-        level.plan,
-        stacks,
-        framing,
-        false
-    );
-    const std::map<size_t, std::vector<Point>> rising = next.empty() ? std::map<size_t, std::vector<Point>>() : build::compute_sections(
-        working.levels[storey + 2].plan,
-        next,
-        framing,
-        true
-    );
-    const std::map<size_t, std::vector<Point>> feet = build::compute_sections(
-        level.plan,
-        stacks,
-        framing,
-        true
-    );
-    const std::map<size_t, std::vector<Point>> none;
-    const build::Context upper{level.plan, framing, tolerance, standing, rising};
-    const build::Context ground{lower.plan, framing, tolerance, none, feet};
-    const std::map<size_t, std::vector<Polyline>> outlines = build::compute_outlines(upper, level.cores);
-
-    std::vector<std::shared_ptr<Element>> elements = build::to_uprights(
-        working,
-        storey,
-        stacks,
-        upper
-    );
-    for (const std::shared_ptr<Element>& element : build::to_floor(
-        level,
-        upper,
-        outlines,
-        true
-    ))
-        elements.push_back(element);
-    if (storey == 0)
-        for (const std::shared_ptr<Element>& element : build::to_floor(
-            lower,
-            ground,
-            build::compute_outlines(ground, lower.cores),
-            false
-        ))
-            elements.push_back(element);
-
-    for (const Line& line : braces)
-        if (std::min(line.start()[2], line.end()[2]) >= lower.z - tolerance && std::max(line.start()[2], line.end()[2]) <= level.z + tolerance)
-            for (const std::shared_ptr<Element>& brace : build::to_brace(
-                line,
-                ground,
-                upper,
-                lower.z,
+                top,
                 level.z
-            ))
-                elements.push_back(brace);
-
-    return elements;
+            );
+            for (const std::shared_ptr<Element>& deck : decks) {
+                const std::shared_ptr<wood_session::InteractionFeatureSolid> cut = std::make_shared<wood_session::InteractionFeatureSolid>(pyramid, wood_session::SolidOperation::subtract);
+                add_interaction(heads.at(vertex), deck, cut);
+            }
+        }
+    }
 }
 
-void Building::to_session(wood_session::WoodSession& session, const Framing& framing) const {
+void Grid::add_braces(
+    size_t storey,
+    const build::Context& ground,
+    const build::Context& upper
+) {
 
-    for (size_t storey = 0; storey + 1 < levels.size(); storey++) {
-        const std::shared_ptr<TreeNode> group = session.add_group(fmt::format("storey_{}", storey));
-        for (const std::shared_ptr<Element>& element : to_elements(framing, storey))
-            session.add(element, group);
+    const double z_lower = guide.levels[storey].z;
+    const double z_upper = guide.levels[storey + 1].z;
+
+    std::vector<std::shared_ptr<Element>> braces;
+    for (const Line& line : guide.braces) {
+        const double low = std::min(line.start()[2], line.end()[2]);
+        const double high = std::max(line.start()[2], line.end()[2]);
+        if (low < z_lower - guide.tolerance || high > z_upper + guide.tolerance)
+            continue;
+
+        const std::vector<std::shared_ptr<Element>> brace = build::to_brace(
+            line,
+            ground,
+            upper,
+            z_lower,
+            z_upper
+        );
+        braces.insert(braces.end(), brace.begin(), brace.end());
     }
+
+    add_numbered(braces, storey + 1);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Groups
+// ═══════════════════════════════════════════════════════════════════════════
+
+void Grid::add_numbered(const std::vector<std::shared_ptr<Element>>& elements, size_t place) {
+
+    for (const std::shared_ptr<Element>& element : elements) {
+        const std::string kind = element->name;
+        const std::shared_ptr<TreeNode> family = group_named(fmt::format("{}s_{}", kind, place), level_group(place));
+        const size_t count = family->children().size();
+        element->name = fmt::format("{}_{}_{}", kind, count, place);
+        add(element, family);
+    }
+}
+
+std::shared_ptr<TreeNode> Grid::level_group(size_t place) {
+    return group_named(fmt::format("level_{}", place));
 }
 
 } // namespace wood_grid

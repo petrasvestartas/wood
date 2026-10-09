@@ -172,17 +172,14 @@ int main() {
 
     for (const Case& item : CASES) {
         const wood_grid::Building building = wood_grid::Building::from_footprint({}, ELEVATIONS, item.pattern.transformed(Xform::translation(offset, 0.0, 0.0)));
-        const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
-        for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
-            for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))
-                wood_session.add(element, group);
+        const wood_grid::Grid grid(building, item.framing, item.name);
+        wood_session.graft(grid, wood_session.add_group(item.name));
         offset += item.pattern.lines.front().length() + GAP;
     }
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_face_contacts(1);
     wood_session.pb_dump(pb_path("live"));
 
     const double clash = compute_clash(wood_session);
@@ -193,7 +190,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The joints and sections of the grid template, fifteen bays side by side over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then the seven profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, double as two members with the same cuts, slab band and T. After the contacts the example cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+The joints and sections of the grid template, fifteen bays side by side over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then the seven profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, double as two members with the same cuts, slab band and T. Every bay is a Grid, its contacts found inside it, grafted under its own group. The example then cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -202,7 +199,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_grid_5_framing --parallel 4 && ./build/templates_grid_5_framing && ../bash/publish-scene.sh --target templates_grid_5_framing
+cmake --build build --target templates_grid_5_framing --parallel 6 && ./build/templates_grid_5_framing && ../bash/publish-scene.sh --target templates_grid_5_framing
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

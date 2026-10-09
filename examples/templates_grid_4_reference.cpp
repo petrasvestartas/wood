@@ -142,17 +142,15 @@ int main() {
             item.pattern.transformed(shift),
             cores
         );
-        const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
-        for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
-            for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))
-                wood_session.add(element, group);
+        const wood_grid::Grid grid(building, item.framing, item.name);
+        wood_session.graft(grid, wood_session.add_group(item.name));
         offset += extent.second - extent.first + GAP;
     }
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_face_contacts(1);
+    std::cout << wood_session << std::endl;
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -160,7 +158,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The reference configurations side by side, one group each: Branch3D's 60 ft square in its three structural methods, plate on columns with stepped heads under CLT strips, post and beam with girders on the x lines, purlin on girder with the girders running y hung 8 in and purlin rows at 10 ft, the columns through the levels with the decks notched round them; Branch3D's residential L over 30 ft bays with its core as pinwheel walls, every girder and purlin reaching it cut at the wall face; the four FAST+EPP timber bay variants with the datum at the framing top, columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides and CLT strips over the outer column faces. compute_face_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+The reference configurations side by side, one group each: Branch3D's 60 ft square in its three structural methods, plate on columns with stepped heads under CLT strips, post and beam with girders on the x lines, purlin on girder with the girders running y hung 8 in and purlin rows at 10 ft, the columns through the levels with the decks notched round them; Branch3D's residential L over 30 ft bays with its core as pinwheel walls, every girder and purlin reaching it cut at the wall face; the four FAST+EPP timber bay variants with the datum at the framing top, columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides and CLT strips over the outer column faces. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -169,7 +167,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_grid_4_reference --parallel 4 && ./build/templates_grid_4_reference && ../bash/publish-scene.sh --target templates_grid_4_reference
+cmake --build build --target templates_grid_4_reference --parallel 6 && ./build/templates_grid_4_reference && ../bash/publish-scene.sh --target templates_grid_4_reference
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

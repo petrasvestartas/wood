@@ -107,17 +107,15 @@ int main() {
         const std::pair<double, double> extent = compute_extent(item.massing);
         const Xform shift = Xform::translation(offset - extent.first, 0.0, 0.0);
         const wood_grid::Building building = wood_grid::Building::from_solid(item.massing.transformed(shift), item.elevations, item.pattern.transformed(shift));
-        const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
-        for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
-            for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))
-                wood_session.add(element, group);
+        const wood_grid::Grid grid(building, item.framing, item.name);
+        wood_session.graft(grid, wood_session.add_group(item.name));
         offset += extent.second - extent.first + GAP;
     }
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();
 
-    wood_session.compute_face_contacts(1);
+    std::cout << wood_session << std::endl;
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -125,7 +123,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Workflow A, a massing sliced at its levels, six buildings side by side, one group each: a box whose every section is the same rectangle; a pentagonal prism whose diagonal side cuts every girder, purlin and deck obliquely; a tapered loft whose perimeter columns lean to follow the moving section; a podium with a tower, the tower ring added to the roof plan so every tower column stands on a podium column or girder; a block with an atrium through every level, the pattern crossing in the hole getting no column; a cylinder whose facet corners fall on the sixteen rays. compute_face_contacts(1) pairs elements inside each building only. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+Workflow A, a massing sliced at its levels, six buildings side by side, one group each: a box whose every section is the same rectangle; a pentagonal prism whose diagonal side cuts every girder, purlin and deck obliquely; a tapered loft whose perimeter columns lean to follow the moving section; a podium with a tower, the tower ring added to the roof plan so every tower column stands on a podium column or girder; a block with an atrium through every level, the pattern crossing in the hole getting no column; a cylinder whose facet corners fall on the sixteen rays. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -134,7 +132,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_grid_2_solid --parallel 4 && ./build/templates_grid_2_solid && ../bash/publish-scene.sh --target templates_grid_2_solid
+cmake --build build --target templates_grid_2_solid --parallel 6 && ./build/templates_grid_2_solid && ../bash/publish-scene.sh --target templates_grid_2_solid
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

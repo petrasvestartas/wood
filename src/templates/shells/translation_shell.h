@@ -1,217 +1,157 @@
 #pragma once
-#include "session.h"
 #include "wood_session.h"
-
-#include <cmath>
-#include <limits>
-#include <stdexcept>
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A translation shell from two polylines with thickness.
+// ═══════════════════════════════════════════════════════════════════════════
+// TranslationShell
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A shell of mitred plates, a cross section swept along a profile.
 ///
-/// Sweeps a cross_section curve along a profile by accumulating the
-/// displacement steps of the profile, producing a quad mesh. Each quad face
-/// is then offset into a top/bottom plate pair (Plate) using miter chamfers.
-///
-/// chamfer_angle controls which corners are chamfered (interior angle < chamfer_angle
-/// in degrees). The same mask is applied to both top and bottom contours so that
-/// both always have the same number of points regardless of geometry.
-///
-/// Usage:
-///   TranslationShell ts;
-///   TranslationShell ts(my_cross_section, my_profile, 15.0, 2.0, 8.0, 90.0);
-class TranslationShell {
+/// Fields: the two input curves and the plate sizes; every plate is in the session as `plate_<i>`.
+class TranslationShell : public WoodSession {
 public:
-    Mesh mesh;
-    std::vector<std::shared_ptr<Plate>> elements;
+    const Polyline cross_section; // The curve that is swept.
+    const Polyline profile; // The path it is swept along.
+    const double thickness; // Plate thickness.
+    const double chamfer; // How far a sharp corner is cut back.
+    const double chamfer_angle; // Corners sharper than this, in degrees, are chamfered.
 
-    TranslationShell(const Polyline& cross_section = default_cross_section(),
-                     const Polyline& profile        = default_profile(),
-                     double thickness      = 10.0,
-                     double chamfer        = 1.0,
-                     double chamfer_angle  = 180.0)
-    {
+    /// The shell of cross_section swept along profile, as the session named name.
+    explicit TranslationShell(
+        const Polyline& cross_section = default_cross_section(),
+        const Polyline& profile = default_profile(),
+        double thickness = 10.0,
+        double chamfer = 1.0,
+        double chamfer_angle = 180.0,
+        const std::string& name = "translation_shell"
+    );
 
-        if (cross_section.point_count() < 2) {
-            throw std::invalid_argument("TranslationShell: cross_section must have at least 2 points");
-        }
+    /// The arch the default shell is swept from, in the xz plane.
+    static Polyline default_cross_section();
 
-        if (profile.point_count() < 2) {
-            throw std::invalid_argument("TranslationShell: profile must have at least 2 points");
-        }
-
-        if (thickness == 0.0) {
-            throw std::invalid_argument("TranslationShell: thickness must not be zero");
-        }
-
-        mesh = sweep(cross_section, profile);
-
-        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
-                Mesh::miter_contours(
-                    mesh,
-                    thickness,
-                    0.0,
-                    0.0,
-                    false
-                )) {
-            const std::vector<Point>& top_raw = std::get<2>(plate);
-            const std::vector<Point>& bot_raw = std::get<3>(plate);
-
-            if (top_raw.empty() || bot_raw.empty()) {
-                continue;
-            }
-
-            std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
-            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer, mask);
-            std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer, mask);
-
-            if (!bot_ch.empty()) {
-                bot_ch.push_back(bot_ch[0]);
-            }
-
-            if (!top_ch.empty()) {
-                top_ch.push_back(top_ch[0]);
-            }
-
-            elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
-        }
-    }
-
-    static Polyline default_cross_section() {
-        return Polyline(std::vector<Point>{
-            Point(1343.472686,   0.0,   0.0      ),
-            Point(1237.791431,   0.0, 121.964275 ),
-            Point(1117.698859,   0.0, 229.686024 ),
-            Point( 981.901426,   0.0, 316.618767 ),
-            Point( 831.471484,   0.0, 374.347649 ),
-            Point( 671.736343,   0.0, 394.768581 ),
-            Point( 512.001202,   0.0, 374.347649 ),
-            Point( 361.571259,   0.0, 316.618767 ),
-            Point( 225.773829,   0.0, 229.686026 ),
-            Point( 105.681255,   0.0, 121.964275 ),
-            Point(   0.0,        0.0,   0.0      ),
-        });
-    }
-
-    static Polyline default_profile() {
-        return Polyline(std::vector<Point>{
-            Point(0.0,    0.0,          0.0       ),
-            Point(0.0, -154.339980,   121.873175  ),
-            Point(0.0, -321.617334,   225.228387  ),
-            Point(0.0, -500.643329,   306.496555  ),
-            Point(0.0, -689.070490,   362.559337  ),
-            Point(0.0, -883.558001,   391.165838  ),
-            Point(0.0, -1080.134636,  391.165838  ),
-            Point(0.0, -1274.622136,  362.559339  ),
-            Point(0.0, -1463.049306,  306.496555  ),
-            Point(0.0, -1642.075299,  225.228388  ),
-            Point(0.0, -1809.352653,  121.873177  ),
-            Point(0.0, -1963.692636,    0.0       ),
-        });
-    }
+    /// The arch the default shell is swept along, in the yz plane.
+    static Polyline default_profile();
 
 private:
-    /// Returns a mask where mask[i]=true if the interior angle at corner i
-    /// is less than max_angle_deg (i.e. the corner is sharp enough to chamfer).
-    static std::vector<bool> chamfer_mask(const std::vector<Point>& pts, double max_angle_deg) {
+    /// The cross section moved to every profile point.
+    std::vector<Polyline> compute_sections() const;
 
-        size_t n = pts.size();
-        std::vector<bool> mask(n, false);
-        constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
-
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
-            double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
-
-            if (lp < 1e-12 || ln < 1e-12) {
-                continue;
-            }
-
-            double cosA = std::max(-1.0, std::min(1.0, (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
-            mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
-        }
-
-        return mask;
-    }
-
-    /// Applies a chamfer of distance s at each masked corner, inserting two
-    /// points per chamfered corner and one point per un-chamfered corner.
-    static std::vector<Point> chamfer_apply(const std::vector<Point>& pts, double s,
-                                             const std::vector<bool>& mask) {
-
-        size_t n = pts.size();
-        if (s <= 0.0) {
-            return pts;
-        }
-
-        double min_edge = std::numeric_limits<double>::max();
-        for (size_t i = 0; i < n; ++i) {
-            size_t j = (i + 1) % n;
-            double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
-            min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
-        }
-
-        double sc = std::min(s, min_edge / 3.0);
-        std::vector<Point> result;
-        result.reserve(2 * n);
-
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
-            double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
-
-            if (mask[i]) {
-                double sp = (lp > 1e-12) ? sc/lp : 0.0;
-                double sn = (ln > 1e-12) ? sc/ln : 0.0;
-                result.push_back(Point(pts[i][0]+dpx*sp, pts[i][1]+dpy*sp, pts[i][2]+dpz*sp));
-                result.push_back(Point(pts[i][0]+dnx*sn, pts[i][1]+dny*sn, pts[i][2]+dnz*sn));
-            } else {
-                result.push_back(pts[i]);
-            }
-        }
-
-        return result;
-    }
-
-    static Mesh sweep(const Polyline& cross_section, const Polyline& profile) {
-
-        size_t nC = cross_section.point_count();
-        size_t nP = profile.point_count();
-
-        std::vector<Point> all_pts;
-        all_pts.reserve(nC * nP);
-        for (size_t j = 0; j < nC; ++j) {
-            all_pts.push_back(cross_section[j]);
-        }
-
-        std::vector<std::vector<size_t>> faces;
-        for (size_t i = 1; i < nP; ++i) {
-            Vector off(profile[i][0]-profile[0][0],
-                       profile[i][1]-profile[0][1],
-                       profile[i][2]-profile[0][2]);
-
-            size_t row = all_pts.size();
-            for (size_t j = 0; j < nC; ++j) {
-                const Point& base = all_pts[j];
-                all_pts.push_back(Point(base[0]+off[0], base[1]+off[1], base[2]+off[2]));
-            }
-
-            for (size_t j = 0; j + 1 < nC; ++j) {
-                size_t new_j  = row + j;
-                size_t old_j  = row - nC + j;
-                faces.push_back({new_j, old_j, old_j+1, new_j+1});
-            }
-        }
-
-        return Mesh::from_vertices_and_faces(all_pts, faces);
-    }
+    /// One quad between every two neighbouring points of two neighbouring sections.
+    static Mesh compute_mesh(const std::vector<Polyline>& sections);
 };
+
+inline TranslationShell::TranslationShell(
+    const Polyline& cross_section,
+    const Polyline& profile,
+    double thickness,
+    double chamfer,
+    double chamfer_angle,
+    const std::string& name
+)
+    : WoodSession(name),
+      cross_section(cross_section),
+      profile(profile),
+      thickness(thickness),
+      chamfer(chamfer),
+      chamfer_angle(chamfer_angle) {
+
+    // curves: the cross section and the profile it is swept along
+    const std::shared_ptr<TreeNode> curves = add_group("curves");
+    add_polyline(cross_section, curves);
+    add_polyline(profile, curves);
+
+    // sections: the cross section moved to every profile point
+    const std::vector<Polyline> sections = compute_sections();
+    const std::shared_ptr<TreeNode> sections_group = add_group("sections");
+
+    for (const Polyline& section : sections)
+        add_polyline(section, sections_group);
+
+    // mesh: a quad between every two neighbouring sections
+    const Mesh mesh = compute_mesh(sections);
+    add_mesh(mesh, add_group("mesh"));
+
+    // plates: one mitred plate per quad, thickness deep, its sharp corners chamfered
+    const std::vector<std::shared_ptr<Plate>> plates = mitred_plates(
+        mesh,
+        thickness,
+        chamfer,
+        chamfer,
+        chamfer_angle
+    );
+    const std::shared_ptr<TreeNode> plates_group = add_group("plates");
+
+    for (const std::shared_ptr<Plate>& plate : plates)
+        add(plate, plates_group);
+}
+
+inline std::vector<Polyline> TranslationShell::compute_sections() const {
+
+    std::vector<Polyline> sections;
+
+    for (size_t i = 0; i < profile.point_count(); i++) {
+        const Vector step = profile[i] - profile[0];
+        sections.push_back(cross_section.translated(step));
+    }
+
+    return sections;
+}
+
+inline Mesh TranslationShell::compute_mesh(const std::vector<Polyline>& sections) {
+
+    const size_t count = sections[0].point_count();
+    std::vector<Point> points;
+    std::vector<std::vector<size_t>> faces;
+
+    for (const Polyline& section : sections)
+        for (size_t j = 0; j < count; j++)
+            points.push_back(section[j]);
+
+    for (size_t i = 1; i < sections.size(); i++)
+        for (size_t j = 0; j + 1 < count; j++) {
+            const size_t row = i * count + j;
+            const size_t previous = row - count;
+            faces.push_back({row, previous, previous + 1, row + 1});
+        }
+
+    return Mesh::from_vertices_and_faces(points, faces);
+}
+
+inline Polyline TranslationShell::default_cross_section() {
+
+    return Polyline(std::vector<Point>{
+        {1343.472686, 0.0, 0.0},
+        {1237.791431, 0.0, 121.964275},
+        {1117.698859, 0.0, 229.686024},
+        {981.901426, 0.0, 316.618767},
+        {831.471484, 0.0, 374.347649},
+        {671.736343, 0.0, 394.768581},
+        {512.001202, 0.0, 374.347649},
+        {361.571259, 0.0, 316.618767},
+        {225.773829, 0.0, 229.686026},
+        {105.681255, 0.0, 121.964275},
+        {0.0, 0.0, 0.0},
+    });
+}
+
+inline Polyline TranslationShell::default_profile() {
+
+    return Polyline(std::vector<Point>{
+        {0.0, 0.0, 0.0},
+        {0.0, -154.339980, 121.873175},
+        {0.0, -321.617334, 225.228387},
+        {0.0, -500.643329, 306.496555},
+        {0.0, -689.070490, 362.559337},
+        {0.0, -883.558001, 391.165838},
+        {0.0, -1080.134636, 391.165838},
+        {0.0, -1274.622136, 362.559339},
+        {0.0, -1463.049306, 306.496555},
+        {0.0, -1642.075299, 225.228388},
+        {0.0, -1809.352653, 121.873177},
+        {0.0, -1963.692636, 0.0},
+    });
+}
