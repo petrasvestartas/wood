@@ -25,12 +25,12 @@ struct Contact {
 
 /// The contacts of one quarter, by the connector each gets.
 ///
-/// - `seam_wedge`: seam beam 0 beside the next quarter's seam beam 1.
+/// - `seam_wedge`: seam beam 0 beside the next quarter's seam beam 2.
 /// - `oculus_wedge`: the oculus beam on its ring beam.
 /// - `column_plates[2]`: the column against outer rib k.
 /// - `block_dowels[3][2]`: column block b against the rib on its side 0 or 1.
 struct QuarterContacts {
-    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 1: a wedge.
+    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
     Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
     std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
     std::array<std::array<Contact, 2>, 3> block_dowels; // Column block b against the rib either side: dowels.
@@ -68,10 +68,10 @@ struct QuarterScrews {
 /// The column at corner q of the guide as a session, named `column_<q>`: the guide's sizes, `support_<q>` and its six cutter plates `column_cutters_<i>_<q>` handed to WoodSession::add_column, which glues the head on, joins the support and takes the inclined faces away. Floor::add_column grafts a copy of it into the floor.
 WoodSession column(const FloorGuide& guide, size_t q);
 
-/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the ring beam, oculus beam and bottom wedge of every quarter (`oculus_q`) and the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
+/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the four ring beams, the bottom wedges and the central plate. The oculus beam of a quarter is its inner beam along the oculus edge, `inner_beams_1_q`. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
 ///
 /// Fields: `guide`, the FloorGuide it is built from, and the constants `SCREW_LENGTH`, `SCREW_SPACING`, `RIB_END_MARGIN`, `SEAM_SCREW_OFFSET`, `CORNER_LEVELS`, `SEAM_BEAM_OCULUS_BEAM_LEVELS`, `OCULUS_BEAM_INNER_RIB_LEVELS`, `SEAM_BEAMS`, `CONNECTOR_COLOR`.
-/// Everything it builds is in the session, by name: `outer_ribs_<i>_<q>`, `inner_ribs_<i>_<q>`, `inner_beams_<i>_<q>`, `wedges_<i>_<q>`, `tsections_<i>_<q>`, `beds_<row>_<i>_<q>`, `oculus_<n>`, `oculus_beam_<q>`, `column_<q>`, `support_<q>`, `connector_<kind>_<n>`, `connector_screws_<n>`.
+/// Everything it builds is in the session, by name: `outer_ribs_<i>_<q>`, `inner_ribs_<i>_<q>`, `inner_beams_<i>_<q>`, `wedges_<i>_<q>`, `tsections_<i>_<q>`, `beds_<row>_<i>_<q>`, `oculus_<n>`, `column_<q>`, `support_<q>`, `connector_<kind>_<n>`, `connector_screws_<n>`.
 class Floor : public WoodSession {
 public:
     static constexpr double SCREW_LENGTH = 200.0; // mm, every assembly screw.
@@ -81,7 +81,7 @@ public:
     static constexpr double CORNER_LEVELS = 7.0; // An oculus corner's depth in sevenths: six levels, one per screw on each side of the corner.
     static constexpr std::array<std::array<double, 2>, 2> SEAM_BEAM_OCULUS_BEAM_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // Per side k, the levels of the two screws of the seam beam into the oculus beam; the two quarters' screws at a seam put their heads on the seam plane at one point, so their levels differ.
     static constexpr std::array<double, 2> OCULUS_BEAM_INNER_RIB_LEVELS = {1.0, 4.0}; // The levels of the two screws of the oculus beam into an inner rib, apart from the seam beam's screws they cross at that corner.
-    static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The guide's inner beams on seam 0 and seam 1, k 0 and 1; between them, 1, the oculus beam.
+    static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The inner beams on seam 0 and seam 1, k 0 and 1; between them inner beam 1, along the oculus edge, the oculus beam.
     static inline const Color CONNECTOR_COLOR = Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"); // Every connector node and every part and dowel node under it: the Block Research Group's primary blue.
 
     const FloorGuide guide; // The geometry the model is built from; every element is in the session.
@@ -108,7 +108,7 @@ private:
     /// Adds the four quarters, each lifted to bay_height and grouped by family.
     void add_quarters();
 
-    /// Adds the oculus lifted to bay_height, grouped by family under oculus: ring_beams, oculus_beams, bottom_wedges and central_plate.
+    /// Adds the oculus lifted to bay_height, grouped by family under oculus: ring_beams, bottom_wedges and central_plate.
     void add_oculus();
 
     /// Adds the column at every corner.

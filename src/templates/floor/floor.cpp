@@ -142,14 +142,13 @@ void Floor::add_quarters() {
             add(block, wedges);
         }
 
-        // inner_beams: BeamVariable, the two seam beams, inner_beams_<i>_<q>; the guide's oculus edge beam between them goes with the oculus
+        // inner_beams: BeamVariable, seam beam 0, the beam along the oculus edge and seam beam 1, inner_beams_<i>_<q>
         const std::shared_ptr<TreeNode> beams = add_group(fmt::format("inner_beams_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
-        const std::array<size_t, 2> seams = {0, 2};
 
-        for (size_t i = 0; i < seams.size(); i++) {
+        for (size_t i = 0; i < beam_loops.size(); i++) {
             const std::shared_ptr<BeamVariable> inner_beam = beam(
-                beam_loops[seams[i]],
+                beam_loops[i],
                 {0, 3},
                 {1, 2},
                 fmt::format("inner_beams_{}_{}", i, q)
@@ -178,21 +177,6 @@ void Floor::add_oculus() {
         );
         ring_beam->place(lift);
         add(ring_beam, ring_beams);
-    }
-
-    // oculus_beams: BeamVariable, the inner beam along oculus edge q, oculus_beam_<q>
-    const std::shared_ptr<TreeNode> oculus_beams = add_group("oculus_beams", group);
-
-    for (size_t q = 0; q < 4; q++) {
-        const std::array<Polyline, 2>& loops = guide.inner_beams(q)[1];
-        const std::shared_ptr<BeamVariable> oculus_beam = beam(
-            loops,
-            {0, 3},
-            {1, 2},
-            fmt::format("oculus_beam_{}", q)
-        );
-        oculus_beam->place(lift);
-        add(oculus_beam, oculus_beams);
     }
 
     // bottom_wedges: Plate, the plate under ring beam q, oculus_<4 + q>
@@ -294,11 +278,11 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
         const size_t next = (q + 1) % 4;
 
         // seam: this quarter's seam beam 0 beside the next quarter's seam beam 1
-        const Contact seam = add_contact(fmt::format("seam_wedge_{}", q), fmt::format("inner_beams_0_{}", q), fmt::format("inner_beams_1_{}", next));
+        const Contact seam = add_contact(fmt::format("seam_wedge_{}", q), fmt::format("inner_beams_0_{}", q), fmt::format("inner_beams_2_{}", next));
         contacts[q].seam_wedge = seam;
 
         // oculus: the oculus beam's back face on its ring beam
-        const Contact oculus = add_contact(fmt::format("oculus_wedge_{}", q), fmt::format("oculus_beam_{}", q), fmt::format("oculus_{}", q));
+        const Contact oculus = add_contact(fmt::format("oculus_wedge_{}", q), fmt::format("inner_beams_1_{}", q), fmt::format("oculus_{}", q));
         contacts[q].oculus_wedge = oculus;
 
         // column head: the column against each of its two outer ribs
@@ -448,21 +432,21 @@ std::array<QuarterScrews, 4> Floor::compute_screws() const {
         const auto member = [this, q](const std::string& family, size_t i) {
             return get_element_by_name<Element>(fmt::format("{}_{}_{}", family, i, q)).get();
         };
-        const Element* oculus_beam = get_element_by_name<Element>(fmt::format("oculus_beam_{}", q)).get();
+        const Element* oculus_beam = member("inner_beams", 1);
 
         for (size_t k = 0; k < 2; k++) {
             // outer_rib_seam_beam: the outer rib into the seam beam it ends on
-            screws[q].outer_rib_seam_beam[k] = screws_of({member("outer_ribs", k), member("inner_beams", k)}, outer_rib_seam_beam_screws(q, k));
+            screws[q].outer_rib_seam_beam[k] = screws_of({member("outer_ribs", k), member("inner_beams", SEAM_BEAMS[k])}, outer_rib_seam_beam_screws(q, k));
 
             // seam_beam_oculus_beam: the seam beam into the oculus beam ending on it
-            screws[q].seam_beam_oculus_beam[k] = screws_of({member("inner_beams", k), oculus_beam}, seam_beam_oculus_beam_screws(q, k));
+            screws[q].seam_beam_oculus_beam[k] = screws_of({member("inner_beams", SEAM_BEAMS[k]), oculus_beam}, seam_beam_oculus_beam_screws(q, k));
 
             // oculus_beam_inner_rib: the oculus beam into the inner rib ending on its back face, through the seam beam too when the screws pass it
             const std::vector<Line> lines = oculus_beam_inner_rib_screws(q, k);
             std::vector<const Element*> passed = {oculus_beam, member("inner_ribs", k)};
 
             if (passes_seam_beam(q, k, lines))
-                passed.push_back(member("inner_beams", k));
+                passed.push_back(member("inner_beams", SEAM_BEAMS[k]));
 
             screws[q].oculus_beam_inner_rib[k] = screws_of(passed, lines);
         }

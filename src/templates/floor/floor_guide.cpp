@@ -1342,17 +1342,6 @@ void FloorGuide::draw() {
         add_polyline(polyline, group);
     };
 
-    // a member's name as the floor names its element: the inner beam along the oculus edge is the oculus beam, the seam beams either side inner beams 0 and 1
-    const auto member_name = [](const std::string& family, size_t i, const std::string& suffix) {
-        if (family == "inner_beams" && i == 1)
-            return "oculus_beam" + suffix;
-
-        if (family == "inner_beams" && i == 2)
-            return "inner_beams_1" + suffix;
-
-        return fmt::format("{}_{}{}", family, i, suffix);
-    };
-
     for (size_t q = 0; q < 4; q++) {
         const std::string suffix = fmt::format("_{}", q);
         const ConstructionPlanes& cp = construction_planes(q);
@@ -1428,7 +1417,7 @@ void FloorGuide::draw() {
             const std::shared_ptr<TreeNode> group = add_group(name + suffix, quarter);
 
             for (size_t i = 0; i < family.quads.size(); i++) {
-                const std::shared_ptr<TreeNode> member = add_group(member_name(name, i, suffix), group);
+                const std::shared_ptr<TreeNode> member = add_group(fmt::format("{}_{}{}", name, i, suffix), group);
                 line(
                     family.quads[i].closed(),
                     "quad",
