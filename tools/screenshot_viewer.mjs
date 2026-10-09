@@ -1,5 +1,6 @@
 // node --experimental-websocket screenshot_viewer.mjs <out.png> [command ...]: opens the hosted viewer in a Chrome window on the GPU with the commands as ?cmd=, waits for the scene, screenshots.
-// SHOT_ZOOM (default 1.6) zooms the page as the browser's zoom does, so the layer panel and its text come out large in the 1600 x 1000 picture.
+// SHOT_ZOOM (default 1.6) zooms the page as the browser's zoom does, so the layer panel and its text come out large in the 1600 x 1000 picture; SHOT_SCALE=2 writes it at 3200 x 2000.
+// SHOT_QUERY adds viewer settings to the URL: SHOT_QUERY=thickness=0.5 draws the mesh edges thin under the Arctic outlines.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -36,8 +37,11 @@ await send("Runtime.enable");
 await send("Page.enable");
 // browser zoom: a smaller CSS viewport at a higher pixel ratio, the picture the same size
 const zoom = Number(process.env.SHOT_ZOOM ?? 1.6);
-await send("Emulation.setDeviceMetricsOverride", { width: Math.round(1600 / zoom), height: Math.round(1000 / zoom), deviceScaleFactor: zoom, mobile: false });
-await send("Page.navigate", { url: "https://petrasvestartas.github.io/session/" + (commands.length ? "?cmd=" + encodeURIComponent(commands.join(";")) : "") });
+// SHOT_SCALE (default 1) multiplies the pixel ratio alone: the same view, the picture that many times wider and higher
+const scale = Number(process.env.SHOT_SCALE ?? 1);
+await send("Emulation.setDeviceMetricsOverride", { width: Math.round(1600 / zoom), height: Math.round(1000 / zoom), deviceScaleFactor: zoom * scale, mobile: false });
+const query = [commands.length ? "cmd=" + encodeURIComponent(commands.join(";")) : "", process.env.SHOT_QUERY ?? ""].filter(Boolean).join("&");
+await send("Page.navigate", { url: "https://petrasvestartas.github.io/session/" + (query ? "?" + query : "") });
 await sleep(15000);
 
 await sleep(2000);

@@ -20,16 +20,6 @@ enum class ContactKind {
     block_dowels, // A column block and a rib: dowels.
 };
 
-/// The steps the Floor constructor runs, in order; it stops after the one asked for.
-enum class FloorStep {
-    quarters, // Every quarter's members.
-    oculus, // The ring beams, the bottom wedges and the central plate.
-    columns, // The column at every corner.
-    contacts, // A contact interaction between every two members that touch.
-    connectors, // A connector per contact: wedges, column plates with their cross laps, dowels.
-    screws, // The assembly screws.
-};
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
@@ -52,7 +42,6 @@ WoodSession column(const FloorGuide& guide, size_t q);
 class Floor : public WoodSession {
 public:
     static inline const std::array<std::string, 4> CONTACT_NAMES = {"seam_wedge", "oculus_wedge", "column_plate", "block_dowels"}; // The interaction name of each kind, in ContactKind order.
-    static inline const std::vector<ContactKind> CONNECTOR_CONTACTS = {ContactKind::seam_wedge, ContactKind::oculus_wedge, ContactKind::column_plate, ContactKind::block_dowels}; // Every contact kind, the connectors add_connectors makes by default.
     static constexpr double SCREW_LENGTH = 200.0; // mm, every assembly screw.
     static constexpr double SCREW_SPACING = 8.0; // mm, the closest two screw axes may come.
     static constexpr double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band.
@@ -66,13 +55,13 @@ public:
     std::array<QuarterMembers, 4> quarters; // The elements of quarter q.
     std::vector<std::shared_ptr<BeamVariable>> ring; // The four ring beams, oculus_<q>.
     std::vector<std::shared_ptr<Plate>> oculus_plates; // The four bottom wedges oculus_4 to oculus_7 and the central plate oculus_8.
-    std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its column session, empty until the columns are added.
-    std::vector<std::shared_ptr<JointBeam>> connectors; // Every connector added: wedges, plates, cross laps and dowels.
-    std::vector<std::shared_ptr<JointBeam>> screws; // Every screw connector added.
+    std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its column session.
+    std::vector<std::shared_ptr<JointBeam>> connectors; // Every connector: wedges, plates, cross laps and dowels.
+    std::vector<std::shared_ptr<JointBeam>> screws; // Every screw connector.
     std::array<std::vector<std::shared_ptr<JointBeam>>, 4> connectors_by_kind; // The connectors per ContactKind; a corner's cross lap counts as a column plate.
 
-    /// The model of the guide, the session named name: every step up to last, the whole floor by default.
-    explicit Floor(const FloorGuide& guide, FloorStep last = FloorStep::screws, const std::string& name = "floor");
+    /// The model of the guide, the session named name: the quarters, the oculus, the columns, their contacts, the connectors and the screws.
+    explicit Floor(const FloorGuide& guide, const std::string& name = "floor");
 
     /// Not copied: the members name this session's own objects.
     Floor(const Floor&) = delete;
@@ -102,14 +91,14 @@ private:
     /// Adds the column at one corner: its support, the column, the support joint and the column's six head cuts.
     void add_column(size_t corner);
 
-    /// Searches the contact between every two members the design joins and stores it as their interaction; members not yet in the session are skipped, a contact already there is kept.
+    /// Searches the contact between every two members the design joins and stores it as their interaction.
     void add_contacts();
 
-    /// Adds one connector per contact interaction of the kinds asked for, in the order of their names, under connectors_q of its quarter, named `<prefix>_<n>` and numbered on from those already in the session, and returns them; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
-    std::vector<std::shared_ptr<JointBeam>> add_connectors(const std::vector<ContactKind>& kinds = CONNECTOR_CONTACTS);
+    /// Adds one connector per contact interaction, by kind and then name, under connectors_q of its quarter, named `<prefix>_<n>`; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
+    void add_connectors();
 
-    /// Adds the assembly screws on the members they join, after every other connector so nothing before them changes, and returns them.
-    std::vector<std::shared_ptr<JointBeam>> add_screws();
+    /// Adds the assembly screws on the members they join, after every other connector so nothing before them changes.
+    void add_screws();
 
     /// The quarter's group, made the first time.
     std::shared_ptr<TreeNode> quarter_group(size_t q);
@@ -123,7 +112,7 @@ private:
     /// A four-corner member as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.
     static std::shared_ptr<BeamVariable> beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name);
 
-    /// The contact the session's search finds between two members, stored as their interaction named `<kind>_<place>`; one already there is kept, and a pair that does not touch throws naming it.
+    /// The contact the session's search finds between two members, stored as their interaction named `<kind>_<place>`; a pair that does not touch throws naming it.
     void add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b);
 
     /// The connector a contact interaction gets, by its kind and the place its name ends in (quarter, then rib or block index): a wedge sized by the thicker member, a plate by the rib's thickness, or dowels.

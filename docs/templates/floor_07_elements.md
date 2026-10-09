@@ -6,7 +6,7 @@
 
 `Floor::add_members` turns the guide's face loops into elements: `add_quarters` makes the six member families of every quarter, `add_oculus` the ring around the hole, `add_columns` a column on its support at every corner, then `add_contacts` (chapter 8) finds where they touch. Every member is built at the guide's datum and lifted to `bay_height`. The pictures show quarter 0 of the default 6000 x 6000 bay.
 
-Examples: [templates_floor_4_quarters.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_4_quarters.cpp) runs `add_quarters`, [templates_floor_5_oculus.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_5_oculus.cpp) `add_oculus` and [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_2_column_model.cpp) `add_column(0)`.
+Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_2_column_model.cpp) builds one column on its support; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) the whole floor.
 
 ## 201. Floor(guide)
 

@@ -6,7 +6,7 @@
 
 `Floor::add_contacts`, the last call of `add_members`, finds where the members the design joins touch: for each pair it asks the session's contact search for the face they share and stores it as a contact interaction on the session's edge between them, named by its `ContactKind` and its place. Chapter 9 makes a connector from each of these interactions.
 
-Example: [templates_floor_6_contacts_floor.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_6_contacts_floor.cpp) adds the quarters, the oculus and their contacts.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor, its contacts among it.
 
 ## 231. add_contacts
 

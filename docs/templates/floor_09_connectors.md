@@ -4,9 +4,9 @@
 
 <em>Step 9 of @ref templates_floor_model · previous: @ref templates_floor_08_contacts · next: @ref templates_floor_10_screws</em>
 
-`Floor::add_connectors(kinds)` makes one `JointBeam` connector per contact interaction of the kinds asked for: a wedge on every seam and oculus contact, a rectangle plate on every column-to-rib contact with a cross lap between the two plates of a column, and four dowels on every block-to-rib contact. Each is added by `add_connector`, which nests its parts and dowels under it and cuts its pockets and holes out of both members.
+`Floor::add_connectors` makes one `JointBeam` connector per contact interaction: a wedge on every seam and oculus contact, a rectangle plate on every column-to-rib contact with a cross lap between the two plates of a column, and four dowels on every block-to-rib contact. Each is added by `add_connector`, which nests its parts and dowels under it and cuts its pockets and holes out of both members.
 
-Example: [templates_floor_6_contacts_floor.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_6_contacts_floor.cpp) adds only the wedges, [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) every connector.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) builds every connector.
 
 ## 251. add_connectors
 
@@ -14,7 +14,7 @@ Example: [templates_floor_6_contacts_floor.cpp](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ seam_wedge, block_dowels</span>   <span style="color:#F2CC0C">■ oculus_wedge</span>   <span style="color:#E8478B">■ column_plate</span>   <span style="color:#A3A3A3">■ context</span> quarter 0's members, by their loops
 
-`add_connectors` reads every contact interaction of the kinds asked for from the session's edges, sorts them by kind and name, and builds every connector before it adds any, so a contact that cannot take one throws with nothing added; the place in a contact's name, `block_dowels_0_1_0` for one, gives the quarter and the indices `connector_of` reads.
+`add_connectors` reads every contact interaction from the session's edges, sorts them by kind and name, and builds every connector before it adds any, so a contact that cannot take one throws with nothing added; the place in a contact's name, `block_dowels_0_1_0` for one, gives the quarter and the indices `connector_of` reads.
 
 Code: `Floor::add_connectors`, [floor.cpp:264-304](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L264-L304).
 
