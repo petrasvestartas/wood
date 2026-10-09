@@ -76,7 +76,7 @@ public:
     static constexpr double PIN_LENGTH = 200.0; // mm, every assembly pin.
     static constexpr double PIN_RADIUS = 2.0; // mm, every assembly pin.
     static constexpr double PIN_INSET = 20.0; // mm the pins stand in from the contact's edges.
-    static constexpr double PIN_SHIFT = 15.0; // mm the pins of the two quarters at a seam stand either side, so their heads stay apart.
+    static constexpr double PIN_SHIFT = 15.0; // mm the seam pins stand off the contact's middle, so the two quarters' heads at a seam stay 30 apart.
     static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The inner beams on seam 0 and seam 1, k 0 and 1; between them inner beam 1, along the oculus edge, the oculus beam.
 
     const FloorGuide guide; // The geometry the model is built from; every element is in the session.

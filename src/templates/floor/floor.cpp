@@ -401,9 +401,8 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 quarter_connectors.block_pins[b][side] = pins;
             }
 
-        // pins: two in a column across each butt joint, along the member that ends on it; the two quarters' pins at a seam either side of its middle
+        // pins: two in a column across each butt joint, along the member that ends on it; the two quarters' contacts at a seam face opposite ways, so one shift along each puts their pins either side of its middle
         for (size_t k = 0; k < 2; k++) {
-            const double shift = k == 0 ? -PIN_SHIFT : PIN_SHIFT;
             const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
             const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
             const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
@@ -414,7 +413,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 PinLayout::vertical,
                 2,
                 PIN_INSET,
-                shift,
+                PIN_SHIFT,
                 PIN_RADIUS,
                 PIN_LENGTH
             );
@@ -425,7 +424,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 PinLayout::vertical,
                 2,
                 PIN_INSET,
-                shift,
+                PIN_SHIFT,
                 PIN_RADIUS,
                 PIN_LENGTH
             );
