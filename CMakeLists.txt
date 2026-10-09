@@ -261,6 +261,12 @@ ADD_EXE(floor_elements                   tests/floor_elements.cpp)
 ADD_EXE(brep_drill                       tests/brep_drill.cpp)
 ADD_EXE(rust_elements                    tests/rust_elements.cpp)
 target_compile_definitions(rust_elements PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+# The geometry oracle: every plate joint design measured on a joined pair, goldens under tests/golden/joint_library.
+ADD_EXE(joint_library                    tests/joint_library.cpp)
+target_compile_definitions(joint_library PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+# The scoreboard: every dataset against the 2025 solver's merged outlines in tests/golden/reference_2025 (tools/reference_2025.py).
+ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
+target_compile_definitions(reference_datasets PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 ADD_EXE(templates_shells_1_translation_shell      examples/templates_shells_1_translation_shell.cpp)
 ADD_EXE(templates_folding_1_reflex_fold            examples/templates_folding_1_reflex_fold.cpp)
 ADD_EXE(templates_folding_2_chevron                examples/templates_folding_2_chevron.cpp)
