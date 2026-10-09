@@ -8,7 +8,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 
 ```cpp
 // the library designs, each by its own name and parameters
-static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0)   // 0 divisions: one every 300 mm of the joint line
+static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_5(int divisions = 8, bool disable_divisions = false)
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 4, double shift = 0.5)
@@ -41,7 +41,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 | Family | Contact | Plates |
 | --- | --- | --- |
-| `ss_e_ip` | side to side, in plane | two plates edge to edge in one plane |
+| [`ss_e_ip`](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge in one plane, their fingers interlocking along the normal, a loose key on the key designs |
 | `ss_e_op` | side to side, out of plane | two plates at an angle on a shared side face |
 | `ts_e_p` | top to side | a plate standing on another's face |
 | `ss_e_r` | side to side, rotated | two side faces whose edges cross |
@@ -59,11 +59,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## ss_e_ip: in plane
 
-![ss_e_ip](elements/element_joint_plate_ss_e_ip.png)
-
-`ss_e_ip_0` to `ss_e_ip_5` on two plates edge to edge, the right plate moved off to show both edges.
-
-\include{lineno} elements/element_joint_plate_ss_e_ip.cpp
+`ss_e_ip_0` to `ss_e_ip_5` and `ss_e_ip_custom` on two plates edge to edge in one plane, each design with its own example and picture on the [ss_e_ip page](@ref elements_joint_plate_ss_e_ip): the finger designs `ss_e_ip_0` and `ss_e_ip_1`, the key designs `ss_e_ip_2` (butterflies) and `ss_e_ip_5` (reversed teeth), whose keys the joint owns, the milled grooves with drills `ss_e_ip_3` and `ss_e_ip_4`, and the custom outlines.
 
 ## ss_e_op: out of plane
 
