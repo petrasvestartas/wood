@@ -38,7 +38,9 @@ Select a library design by its actual name and parameters:
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(plate0, plate1);
 const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
 joint->orient(contact, {plate0, plate1}, scene.settings);
-scene.add_joint(joint);
+scene.add(joint);
+scene.add_interaction(joint, plate0, joint->interaction(0));
+scene.add_interaction(joint, plate1, joint->interaction(1));
 ```
 
 `ContactType` describes the touching faces: `side_side`, `side_top`, `top_top`,

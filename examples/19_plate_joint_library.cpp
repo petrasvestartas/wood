@@ -39,7 +39,8 @@ int main() {
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(bottom, upright);
         joints[i]->orient(contact, {bottom, upright});
         scene.add(joints[i], group);
-        scene.add_joint(joints[i]);
+        scene.add_interaction(joints[i], bottom, joints[i]->interaction(0));
+        scene.add_interaction(joints[i], upright, joints[i]->interaction(1));
     }
 
     scene.pb_dump(pb_path("19_plate_joint_library"));

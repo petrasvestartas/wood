@@ -135,9 +135,6 @@ public:
     /// Session::get_branch as a WoodSession: the same settings, the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates, and at its root every pre-drill connector from outside it that drills one of its members, in place, so pre_drill_lines() reads the same holes.
     WoodSession get_branch(const std::string& name) const;
 
-    /// Adds the joint to the scene when it is not yet in it and cuts it into its targets: a plate joint merges its features, a beam joint hosts its feature volumes, a connector nests its parts and dowels as child elements of its node and stores its cutters and drills as solid cuts, any other joint its own solid or planes.
-    void add_joint(const std::shared_ptr<Joint>& joint, bool merge = true);
-
     /// The closest axis segments of every two beams within `min_distance`, an InteractionContactAxis per beam pair.
     void compute_axis_contacts(double min_distance);
 
@@ -193,7 +190,7 @@ public:
     /// Session::has_interaction: the pair has an edge in either order.
     using Session::has_interaction;
 
-    /// Store the interaction on the undirected edge. A contact belongs to the target, the element the source acts on, and beam-joint geometry to the source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. Returns the stored interaction.
+    /// Store the interaction on the undirected edge. A contact belongs to the target, the element the source acts on, and beam-joint geometry to the source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. A joint as source does to that one target what its kind does, given joint->interaction(i): a connector nests its parts and dowels under it, blue, and cuts and drills the target; screws drill their holes; a beam joint hosts its volumes; a cutter takes its solid or its planes away. Returns the stored interaction.
     std::shared_ptr<Interaction> add_interaction(
         const std::shared_ptr<Element>& source,
         const std::shared_ptr<Element>& target,
@@ -295,18 +292,6 @@ public:
         return *objects.elements;
     }
 
-    /// Adds a connector under group and cuts it into its targets as add_joint does, so its parts and dowels become child elements of its node; returns that node.
-    std::shared_ptr<TreeNode> add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group);
-
-    /// Adds a column with its glued head, its support and its cutters: the column, its head_blocks glued on by add interactions when head_side is larger than its section, the support and its support joint when there is one, then every cutter hidden and taken away by a subtract interaction; returns the column.
-    std::shared_ptr<Column> add_column(
-        const std::shared_ptr<Column>& column,
-        double head_side,
-        double head_height,
-        const std::shared_ptr<Support>& support,
-        const std::vector<std::shared_ptr<Plate>>& cutters
-    );
-
     /// One past the highest n of an element named `<prefix>_<n>`, 0 when there is none: the next free number of a name prefix.
     size_t next_number(const std::string& prefix) const;
 
@@ -398,6 +383,16 @@ public:
 
     /// Drops every contact of one kind ("face", "axis", "cross") from every edge and its hosted feature, so a recompute of that kind replaces rather than accumulates; a feature whose contact went forgets it.
     void erase_contacts(std::string_view kind);
+
+private:
+    /// Every target of the joint through add_interaction, the joint added first when it is not in the session; a plate joint merges its plates once at the end when merge. For the joints the session makes itself.
+    void apply_joint(const std::shared_ptr<Joint>& joint, bool merge);
+
+    /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.
+    std::shared_ptr<Interaction> add_joint_interaction(const std::shared_ptr<Joint>& joint, const std::shared_ptr<Element>& target, std::shared_ptr<Interaction> interaction);
+
+    /// Hosts a solid cut on the target, replacing the source's earlier one, and stores it on their edge.
+    std::shared_ptr<Interaction> add_solid_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<InteractionFeatureSolid>& cut);
 };
 
 } // namespace wood_session

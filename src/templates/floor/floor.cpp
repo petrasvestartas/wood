@@ -34,16 +34,32 @@ WoodSession column(const FloorGuide& guide, size_t q) {
         cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
     }
 
-    // the head glued on as wide as the chamfer reaches, as deep as the carved head
-    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
     WoodSession session(name);
-    session.add_column(
-        shaft,
-        head_width,
-        guide.column_head_depth,
-        support,
-        cutters
-    );
+    session.add(shaft);
+
+    // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
+    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+
+    for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+        session.add(block);
+        const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
+        session.add_interaction(block, shaft, glue);
+    }
+
+    // the support under it, its joint let into the column end and drilled
+    session.add(support);
+    const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+    session.add(seat);
+    session.add_interaction(seat, shaft, seat->interaction(0));
+
+    // the six cutters, hidden, take the head's inclined faces away
+    for (const std::shared_ptr<Plate>& cutter : cutters) {
+        cutter->is_visible = false;
+        session.add(cutter);
+        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
+        session.add_interaction(cutter, shaft, cut);
+    }
+
     return session;
 }
 
@@ -69,7 +85,7 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 
     // connectors: per quarter its wedges, column plates with their cross lap and dowels, all built on uncut members
     const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
-    add_connectors(connectors);
+    add_connectors(connectors, contacts);
 
     // screws: the assembly screws, after every other connector so nothing before them changes
     const std::array<QuarterScrews, 4> screws = compute_screws();
@@ -163,7 +179,7 @@ void Floor::add_oculus() {
 
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
-    const std::shared_ptr<TreeNode> group = oculus_group();
+    const std::shared_ptr<TreeNode> group = group_named("oculus");
 
     // ring_beams: BeamVariable, the four ring beams, oculus_<q>
     const std::shared_ptr<TreeNode> ring_beams = add_group("ring_beams", group);
@@ -210,10 +226,6 @@ void Floor::add_column(size_t corner) {
 
 std::shared_ptr<TreeNode> Floor::quarter_group(size_t q) {
     return group_named(fmt::format("quarter_{}", q));
-}
-
-std::shared_ptr<TreeNode> Floor::oculus_group() {
-    return group_named("oculus");
 }
 
 std::shared_ptr<TreeNode> Floor::connectors_group(size_t q) {
@@ -384,39 +396,73 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             }
     }
 
+    // the names, numbered kind by kind, quarter by quarter, the order they are added in
+    for (size_t q = 0; q < 4; q++) {
+        QuarterConnectors& made = connectors[q];
+        made.seam_wedge->name = fmt::format("connector_seam_wedge_{}", q);
+        made.oculus_wedge->name = fmt::format("connector_oculus_wedge_{}", q);
+        made.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
+
+        for (size_t k = 0; k < 2; k++)
+            made.column_plates[k]->name = fmt::format("connector_column_plate_{}", 2 * q + k);
+
+        for (size_t b = 0; b < 3; b++)
+            for (size_t side = 0; side < 2; side++)
+                made.block_dowels[b][side]->name = fmt::format("connector_block_dowels_{}", 6 * q + 2 * b + side);
+    }
+
     return connectors;
 }
 
-void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors) {
+void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, const std::array<QuarterContacts, 4>& contacts) {
 
-    // seam wedges
+    // seam wedges: each wedge added, then into the two seam beams it joins
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<JointBeam>& wedge = connectors[q].seam_wedge;
+        const Contact& seam = contacts[q].seam_wedge;
+        add(wedge, connectors_group(q));
+        add_interaction(wedge, seam.a, wedge->interaction(0));
+        add_interaction(wedge, seam.b, wedge->interaction(1));
+    }
+
+    // oculus wedges: into the oculus beam and its ring beam
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<JointBeam>& wedge = connectors[q].oculus_wedge;
+        const Contact& oculus = contacts[q].oculus_wedge;
+        add(wedge, group_named("connectors", group_named("oculus")));
+        add_interaction(wedge, oculus.a, wedge->interaction(0));
+        add_interaction(wedge, oculus.b, wedge->interaction(1));
+    }
+
+    // column plates: into the column and the outer rib
     for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].seam_wedge, "connector_seam_wedge", connectors_group(q));
+        for (size_t k = 0; k < 2; k++) {
+            const std::shared_ptr<JointBeam>& plate = connectors[q].column_plates[k];
+            const Contact& column = contacts[q].column_plates[k];
+            add(plate, connectors_group(q));
+            add_interaction(plate, column.a, plate->interaction(0));
+            add_interaction(plate, column.b, plate->interaction(1));
+        }
 
-    // oculus wedges
+    // block dowels: into the rib and the column block
     for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].oculus_wedge, "connector_oculus_wedge", group_named("connectors", oculus_group()));
+        for (size_t b = 0; b < 3; b++)
+            for (size_t side = 0; side < 2; side++) {
+                const std::shared_ptr<JointBeam>& dowels = connectors[q].block_dowels[b][side];
+                const Contact& block = contacts[q].block_dowels[b][side];
+                add(dowels, connectors_group(q));
+                add_interaction(dowels, block.a, dowels->interaction(0));
+                add_interaction(dowels, block.b, dowels->interaction(1));
+            }
 
-    // column plates
-    for (size_t q = 0; q < 4; q++)
-        for (const std::shared_ptr<JointBeam>& plate : connectors[q].column_plates)
-            add_named_connector(plate, "connector_column_plate", connectors_group(q));
-
-    // block dowels
-    for (size_t q = 0; q < 4; q++)
-        for (const std::array<std::shared_ptr<JointBeam>, 2>& block : connectors[q].block_dowels)
-            for (const std::shared_ptr<JointBeam>& dowels : block)
-                add_named_connector(dowels, "connector_block_dowels", connectors_group(q));
-
-    // cross laps, last, over the plates they join
-    for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].cross_lap, "connector_cross_lap", connectors_group(q));
-}
-
-void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, const std::shared_ptr<TreeNode>& group) {
-
-    connector->name = fmt::format("{}_{}", prefix, next_number(prefix));
-    set_node_color(add_connector(connector, group), CONNECTOR_COLOR, true);
+    // cross laps, last: a slot into each of the two column plates they join
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<JointBeam>& lap = connectors[q].cross_lap;
+        const std::array<std::shared_ptr<JointBeam>, 2>& plates = connectors[q].column_plates;
+        add(lap, connectors_group(q));
+        add_interaction(lap, plates[0], lap->interaction(0));
+        add_interaction(lap, plates[1], lap->interaction(1));
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -452,6 +498,14 @@ std::array<QuarterScrews, 4> Floor::compute_screws() const {
         }
     }
 
+    // the names, six per quarter in the order they are added
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            screws[q].outer_rib_seam_beam[k]->name = fmt::format("connector_screws_{}", 6 * q + k);
+            screws[q].seam_beam_oculus_beam[k]->name = fmt::format("connector_screws_{}", 6 * q + 2 + k);
+            screws[q].oculus_beam_inner_rib[k]->name = fmt::format("connector_screws_{}", 6 * q + 4 + k);
+        }
+
     return screws;
 }
 
@@ -459,8 +513,14 @@ void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
 
     for (size_t q = 0; q < 4; q++)
         for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].outer_rib_seam_beam, screws[q].seam_beam_oculus_beam, screws[q].oculus_beam_inner_rib})
-            for (const std::shared_ptr<JointBeam>& screw : pair)
-                add_named_connector(screw, "connector_screws", connectors_group(q));
+            for (const std::shared_ptr<JointBeam>& screw : pair) {
+                // added, then pre-drilled into every member it passes, two or three
+                add(screw, connectors_group(q));
+                const std::vector<std::string> members = screw->targets;
+
+                for (size_t i = 0; i < members.size(); i++)
+                    add_interaction(screw, get_element<Element>(members[i]), screw->interaction(i));
+            }
 }
 
 std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {

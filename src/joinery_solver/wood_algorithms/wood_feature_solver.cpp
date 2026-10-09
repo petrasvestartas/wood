@@ -251,7 +251,7 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
             continue;
         element->name = indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
-        add_joint(element, false);
+        apply_joint(element, false);
     }
 
     return joints;

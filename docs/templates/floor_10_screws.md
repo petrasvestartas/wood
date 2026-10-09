@@ -134,6 +134,6 @@ Code: `Floor::screws_of`, [floor.cpp:410-417](https://github.com/petrasvestartas
 
 <span style="color:#2196EA">■ built</span> every screw   <span style="color:#A3A3A3">■ context</span> the bay, the seams and the oculus in plan
 
-`add_named_connector` names them `connector_screws_n` in `connectors_q` of their quarter: 24 screw connectors with 48 screws on the default floor, none at the oculus ring.
+`compute_screws` names them `connector_screws_n` and `add_screws` adds them in `connectors_q` of their quarter, each pre-drilled into its members with `add_interaction`: 24 screw connectors with 48 screws on the default floor, none at the oculus ring.
 
 Code: `Floor::add_screws`, [floor.cpp:398-407](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L398-L407).

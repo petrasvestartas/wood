@@ -6,6 +6,10 @@
 overrides that reviewer's default exclusion of wood. Kernel parity and kernel CI
 steps apply only when changing the kernels; wood remains a C++ consumer.
 
+- No function that does not earn its place: a helper exists only when it is used in more than one place or names a
+  real step of the computation. Never one that only renames or wraps a single call, one called once that a reader
+  would follow faster inline, or one kept "for later"; write the code where it is used instead.
+
 - Use explicit types, one concept per file, normal multiline function bodies, short
 functions and the standard section banners. Keep one header/source pair for Joint, JointPlate and JointBeam. Plate factories,
 parameters, Annen and Vidy stay in the JointPlate pair; use sections and small
@@ -33,6 +37,31 @@ completion accurately. Generated protobuf files follow the generator's format.
   `compute()`, no setters that ask for a recompute, no validity checks in between.
 - Public methods only return what the constructor stored. The docs page of the class follows the same blocks, one
   snippet and one picture per block (`wood-agent`, Protocol 5).
+
+## Using the session
+
+- A model is built with two calls: `add(element, group)` puts an element in the tree, and
+  `add_interaction(source, target, interaction)` puts what the source does to the target on their edge: a contact,
+  a glued block, a cut, a joint, a connector, screws. No wrapper adds an element and its effects in one call (no
+  `add_joint`, `add_connector`, `add_column`-style helpers): the code shows every element and every effect.
+- A joint, connector or screw set says what it does to its target i with `interaction(i)`, so it goes on each target
+  in its own line, in the joint's target order:
+
+```cpp
+    add(wedge, connectors_group(q));
+    add_interaction(wedge, seam.a, wedge->interaction(0));
+    add_interaction(wedge, seam.b, wedge->interaction(1));
+```
+
+- An interaction belongs to its target, the element the source acts on: the target hosts the contact, the cut, the
+  holes; the source keeps only what it is.
+- An element is named where it is made, by its place (`connector_seam_wedge_<q>`, `inner_beams_<i>_<q>`), never
+  numbered from the session afterwards.
+- Colour and look belong to the element class (a connector and its parts and dowels are
+  `JointBeam::CONNECTOR_COLOR`); a template does not paint nodes.
+- The tree is the model's structure: groups by place and family (`quarter_q` > `outer_ribs_q` > `outer_ribs_<i>_<q>`),
+  an element's own parts nested under it, its attributes (base plane) in its `attributes` group. Read elements back
+  by name (`get_element_by_name`, `get_elements_numbered`) rather than keeping lists beside the session.
 
 ## Kernel first
 

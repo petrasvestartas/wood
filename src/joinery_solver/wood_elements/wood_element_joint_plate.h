@@ -196,6 +196,9 @@ public:
                    std::vector<std::shared_ptr<Plate>> elements = {});
     void construct(InteractionFeaturePlate connection, const std::function<void(InteractionFeaturePlate&)>& builder);
     std::shared_ptr<InteractionFeaturePlate> interaction_feature(int side, size_t connection = 0) const;
+
+    /// The interaction this joint puts on its target i, side i of its first connection: interaction_feature(i, 0).
+    std::shared_ptr<Interaction> interaction(size_t target) const override;
     static void build_geometry(std::vector<InteractionFeaturePlate>& connections,
                                std::vector<std::shared_ptr<Plate>>& elements,
                                const std::vector<std::vector<int>>& types, const Settings& settings);

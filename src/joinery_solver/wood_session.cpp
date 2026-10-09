@@ -496,7 +496,7 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
             if (!joint)
                 continue;
             joint->generated = true;
-            add_joint(joint, false);
+            apply_joint(joint, false);
         }
     }
 }
@@ -757,6 +757,14 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
 
     if (!source || !target || !interaction)
         throw std::invalid_argument("An interaction needs two elements and a payload");
+
+    // a joint on one of its targets: what that kind of joint does there
+    const std::shared_ptr<Joint> joint_source = std::dynamic_pointer_cast<Joint>(source);
+    const bool joint_payload = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) || std::dynamic_pointer_cast<InteractionFeatureBeam>(interaction) || std::dynamic_pointer_cast<InteractionFeaturePlateBeam>(interaction);
+
+    if (joint_source && !std::dynamic_pointer_cast<JointPlate>(joint_source) && joint_payload)
+        return add_joint_interaction(joint_source, target, interaction);
+
     const bool feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) || std::dynamic_pointer_cast<InteractionFeaturePlane>(interaction);
     const std::shared_ptr<Joint> tie = std::dynamic_pointer_cast<Joint>(source);
     if (feature && (!tie || tie->targets.size() < 2))
@@ -867,22 +875,8 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         return plane;
     }
 
-    if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction)) {
-
-        host_solid_feature(
-            *this,
-            *source,
-            *cut,
-            target
-        );
-
-        if (known)
-            erase_solid_records(interactions[graph.edges.at(source->guid()).at(target->guid()).guid()]);
-
-        Session::add_interaction(source, target, cut);
-
-        return cut;
-    }
+    if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
+        return add_solid_interaction(source, target, cut);
 
     if (InteractionFeaturePlate* plate = dynamic_cast<InteractionFeaturePlate*>(interaction.get())) {
 
@@ -1316,8 +1310,6 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-static InteractionFeatureSolid joint_feature(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills);
-
 /// A connector's holes in one target, in the connector's frame: its dowels, each end run on by the overshoot where the dowel leaves the target there, tested just beyond the dowel's own end in the target's frame, so a blind hole stops at its dowel.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
 
@@ -1382,6 +1374,8 @@ static void nest_children(WoodSession& scene, const JointBeam& connector) {
 
     for (const std::shared_ptr<Joint>& child : connector.children())
         scene.add(child, node);
+
+    scene.set_node_color(node, JointBeam::CONNECTOR_COLOR, true);
 }
 
 /// The holes a joint's lines make in a target as drill features in the target's frame: per stretch of a line inside the target's solid, the circles of the radius where the hole enters and leaves it, named by the joint and the diameter; each feature's guid starts with the joint's, so hosting them again replaces them.
@@ -1450,95 +1444,6 @@ static void host_drills(
     }
 }
 
-/// A pre-drill connector on its targets: its screws nested as dowels and each pair on the graph, no cut, since its drill lines are holes the targets read through pre_drill_lines.
-static void add_pre_drill_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
-
-    nest_children(scene, *joint);
-
-    for (const std::string& guid : joint->targets) {
-        const std::shared_ptr<Element> target = scene.get_element<Element>(guid);
-
-        if (!target)
-            throw std::invalid_argument("Missing connector target");
-
-        scene.Session::remove_interaction(joint, target);
-        scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
-        host_drills(
-            scene,
-            *joint,
-            *target,
-            joint->drill_lines,
-            joint->line_radius
-        );
-    }
-}
-
-/// A connector's cuts: per target its own cutters and every drill line kept as an axis, one solid cut each, the edge marked like a cutter joint's.
-static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
-
-    if (joint->pre_drill) {
-        add_pre_drill_joint(scene, joint);
-        return;
-    }
-
-    nest_children(scene, *joint);
-
-    for (size_t side = 0; side < joint->targets.size(); ++side) {
-        const std::shared_ptr<Element> target = scene.get_element<Element>(joint->targets[side]);
-
-        if (!target)
-            throw std::invalid_argument("Missing connector target");
-
-        Mesh mesh;
-
-        if (side < joint->cutters.size())
-            for (const std::array<Polyline, 2>& cutter : joint->cutters[side])
-                append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
-
-        const std::vector<Line> drills = target_drills(scene, *joint, *target);
-        scene.Session::remove_interaction(joint, target);
-        scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_feature(*joint, mesh, drills)));
-        host_drills(
-            scene,
-            *joint,
-            *target,
-            drills,
-            joint->line_radius
-        );
-    }
-}
-
-static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>& joint) {
-
-    for (size_t side = 0; side < joint->targets.size(); ++side) {
-        const std::shared_ptr<Element> target = scene.get_element<Element>(joint->targets[side]);
-
-        if (!target)
-            throw std::invalid_argument("Missing beam joint target");
-
-        if (scene.has_interaction(joint, target))
-            scene.remove_interaction(joint, target);
-
-        const std::shared_ptr<InteractionFeatureBeam> feature = std::make_shared<InteractionFeatureBeam>(joint->feature);
-        feature->guid() = ::guid();
-
-        if (side == 1) {
-            std::swap(feature->volumes[0], feature->volumes[2]);
-            std::swap(feature->volumes[1], feature->volumes[3]);
-        }
-
-        scene.Session::add_interaction(joint, target, feature);
-        ElementFeature hosted(
-            "joint",
-            -1,
-            {feature->volumes[0], feature->volumes[1]},
-            joint->name
-        );
-        hosted.guid() = feature->guid();
-        scene.host_feature(target->guid(), std::move(hosted));
-    }
-}
-
 /// Hosts the source's cut on the target in the target's frame, replacing the one the source hosted before, and redraws the target.
 static void host_solid_feature(
     WoodSession& scene,
@@ -1579,38 +1484,6 @@ static void host_solid_feature(
     refresh_target(scene, target);
 }
 
-/// The drills of a joint on its cut, as axes, so the mesh path and the exact BRep path both make them.
-static void add_drills(const Joint& joint, InteractionFeatureSolid& cut) {
-
-    cut.drills = joint.drill_axes();
-    cut.drill_radius = joint.line_radius;
-    cut.drill_tolerance = joint.chord_tolerance;
-}
-
-/// The cut a cutter joint makes: its solid, or its body with its cuts for a drilling joint, its drills, profile and operation, in the joint's frame.
-static InteractionFeatureSolid joint_feature(const Joint& joint) {
-
-    InteractionFeatureSolid cut;
-    cut.mesh = joint.drill_axes().empty() ? joint.model_geometry_mesh() : cut_mesh(joint.body_mesh(), joint.cuts);
-    add_drills(joint, cut);
-    cut.profile = joint.cutter_profile;
-    cut.extrusion = joint.cutter_extrusion;
-    cut.operation = joint.operation;
-
-    return cut;
-}
-
-/// A difference cut of the given solid and drills, for a joint that cuts each target with its own.
-static InteractionFeatureSolid joint_feature(const Joint& joint, const Mesh& mesh, const std::vector<Line>& drills) {
-
-    InteractionFeatureSolid cut;
-    cut.mesh = mesh;
-    add_drills(joint, cut);
-    cut.drills = drills;
-
-    return cut;
-}
-
 static void add_plane_cut(const Joint& joint, Element& target) {
 
     if (Beam* beam = dynamic_cast<Beam*>(&target))
@@ -1623,35 +1496,6 @@ static void add_plane_cut(const Joint& joint, Element& target) {
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else
         throw std::invalid_argument("Plane cutters require a beam, column or block");
-}
-
-static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& joint) {
-
-    for (const std::string& id : joint->targets) {
-        const std::shared_ptr<Element> target = scene.get_element<Element>(id);
-
-        if (!target)
-            throw std::invalid_argument("Missing cutter target");
-
-        scene.Session::remove_interaction(joint, target);
-
-        if (!joint->loops.empty() || !joint->drill_axes().empty() || joint->cuts.empty()) {
-            scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_feature(*joint)));
-
-            if (!joint->drill_axes().empty())
-                host_drills(
-                    scene,
-                    *joint,
-                    *target,
-                    joint->drill_axes(),
-                    joint->line_radius
-                );
-        } else {
-            add_plane_cut(*joint, *target);
-            refresh_target(scene, target);
-            scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
-        }
-    }
 }
 
 size_t WoodSession::next_number(const std::string& prefix) const {
@@ -1680,50 +1524,124 @@ void WoodSession::compute_breps() {
     }
 }
 
-std::shared_ptr<Column> WoodSession::add_column(
-    const std::shared_ptr<Column>& column,
-    double head_side,
-    double head_height,
-    const std::shared_ptr<Support>& support,
-    const std::vector<std::shared_ptr<Plate>>& cutters
-) {
+std::shared_ptr<Interaction> WoodSession::add_solid_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<InteractionFeatureSolid>& cut) {
 
-    add(column);
+    const bool known = graph.has_edge({source->guid(), target->guid()});
+    host_solid_feature(
+        *this,
+        *source,
+        *cut,
+        target
+    );
 
-    if (head_height > 0.0)
-        for (const std::shared_ptr<Block>& block : column->head_blocks(head_side, head_height)) {
-            add(block);
-            add_interaction(block, column, std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add));
+    if (known)
+        erase_solid_records(interactions[graph.edges.at(source->guid()).at(target->guid()).guid()]);
+
+    Session::add_interaction(source, target, cut);
+
+    return cut;
+}
+
+std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::shared_ptr<Joint>& joint, const std::shared_ptr<Element>& target, std::shared_ptr<Interaction> interaction) {
+
+    // the target among the joint's, joining them when the caller names a new one
+    if (std::find(joint->targets.begin(), joint->targets.end(), target->guid()) == joint->targets.end())
+        joint->targets.push_back(target->guid());
+
+    const std::shared_ptr<JointBeam> beam_joint = std::dynamic_pointer_cast<JointBeam>(joint);
+    const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
+
+    // a connector: its parts and dowels nest under it once; screws drill their holes, nothing cut, which the targets read through pre_drill_lines
+    if (beam_joint && beam_joint->is_connector()) {
+        nest_children(*this, *beam_joint);
+        Session::remove_interaction(joint, target);
+
+        if (beam_joint->pre_drill) {
+            Session::add_interaction(joint, target, interaction);
+            host_drills(
+                *this,
+                *joint,
+                *target,
+                joint->drill_lines,
+                joint->line_radius
+            );
+
+            return interaction;
         }
 
-    if (support) {
-        add(support);
-        const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
-        add(joint);
-        add_joint(joint);
+        // its cutters and every dowel as a hole, run on past the target where the dowel leaves it
+        if (!cut)
+            throw std::invalid_argument("A connector's interaction is its InteractionFeatureSolid");
+
+        cut->drills = target_drills(*this, *beam_joint, *target);
+
+        if (joint->targets.size() < 2)
+            nest_feature_source(*this, *joint, *target);
+
+        add_solid_interaction(joint, target, cut);
+        host_drills(
+            *this,
+            *joint,
+            *target,
+            cut->drills,
+            joint->line_radius
+        );
+
+        return cut;
     }
 
-    for (const std::shared_ptr<Plate>& cutter : cutters) {
-        cutter->is_visible = false;
-        add(cutter);
-        add_interaction(cutter, column, std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract));
+    // a beam-to-beam joint: its volumes on the edge, hosted on the target as a joint feature
+    if (beam_joint) {
+        const std::shared_ptr<InteractionFeatureBeam> volumes = std::dynamic_pointer_cast<InteractionFeatureBeam>(interaction);
+
+        if (!volumes)
+            throw std::invalid_argument("A beam joint's interaction is its InteractionFeatureBeam");
+
+        if (has_interaction(joint, target))
+            remove_interaction(joint, target);
+
+        Session::add_interaction(joint, target, volumes);
+        ElementFeature hosted(
+            "joint",
+            -1,
+            {volumes->volumes[0], volumes->volumes[1]},
+            joint->name
+        );
+        hosted.guid() = volumes->guid();
+        host_feature(target->guid(), std::move(hosted));
+
+        return volumes;
     }
 
-    return column;
+    // a cutter: its solid with its drills, or only its planes, which the target takes in itself
+    Session::remove_interaction(joint, target);
+
+    if (cut) {
+        if (joint->targets.size() < 2)
+            nest_feature_source(*this, *joint, *target);
+
+        add_solid_interaction(joint, target, cut);
+
+        if (!joint->drill_axes().empty())
+            host_drills(
+                *this,
+                *joint,
+                *target,
+                joint->drill_axes(),
+                joint->line_radius
+            );
+
+        return cut;
+    }
+
+    add_plane_cut(*joint, *target);
+    refresh_target(*this, target);
+    Session::add_interaction(joint, target, interaction);
+
+    return interaction;
 }
 
-std::shared_ptr<TreeNode> WoodSession::add_connector(const std::shared_ptr<JointBeam>& connector, const std::shared_ptr<TreeNode>& group) {
-
-    if (!connector)
-        throw std::invalid_argument("Missing connector");
-
-    const std::shared_ptr<TreeNode> node = add(connector, group);
-    add_joint(connector);
-
-    return node;
-}
-
-void WoodSession::add_joint(const std::shared_ptr<Joint>& joint, bool merge) {
+void WoodSession::apply_joint(const std::shared_ptr<Joint>& joint, bool merge) {
 
     if (!joint)
         throw std::invalid_argument("Missing joint");
@@ -1731,12 +1649,22 @@ void WoodSession::add_joint(const std::shared_ptr<Joint>& joint, bool merge) {
     if (!get_element<Joint>(joint->guid()))
         add(joint);
 
-    if (const std::shared_ptr<JointPlate> plate = std::dynamic_pointer_cast<JointPlate>(joint))
+    if (const std::shared_ptr<JointPlate> plate = std::dynamic_pointer_cast<JointPlate>(joint)) {
         add_plate_joint(*this, plate, merge);
-    else if (const std::shared_ptr<JointBeam> beam = std::dynamic_pointer_cast<JointBeam>(joint))
-        beam->is_connector() ? add_connector_joint(*this, beam) : add_beam_joint(*this, beam);
-    else
-        add_cutter_joint(*this, joint);
+        return;
+    }
+
+    // every target in order, as the caller would one by one
+    const std::vector<std::string> targets = joint->targets;
+
+    for (size_t i = 0; i < targets.size(); i++) {
+        const std::shared_ptr<Element> target = get_element<Element>(targets[i]);
+
+        if (!target)
+            throw std::invalid_argument("Missing joint target");
+
+        add_interaction(joint, target, joint->interaction(i));
+    }
 }
 
 }

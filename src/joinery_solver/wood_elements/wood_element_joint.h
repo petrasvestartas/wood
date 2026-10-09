@@ -49,6 +49,10 @@ public:
     /// The joint of a support and the column standing on it, named "support": the head plate disc let up into the column end by the recess, and the column screws drilled from the head plate underside, so each hole opens into the pocket; aimed at the column.
     static std::shared_ptr<Joint> support(const Support& support, const Column& column);
     virtual std::vector<Line> drill_axes() const;
+
+    /// The interaction this joint puts on its target i, for WoodSession::add_interaction(joint, target, joint->interaction(i)): its solid, drills, profile and operation as an InteractionFeatureSolid, or an empty InteractionFeaturePlateBeam when it only cuts by its planes.
+    virtual std::shared_ptr<Interaction> interaction(size_t target) const;
+
     static std::shared_ptr<Joint> from_element(Element element);
     static void register_type();
 

@@ -211,7 +211,7 @@ void check_support() {
     const double stock = compute_volume(column->model_geometry_mesh());
     const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
     scene.add(joint);
-    scene.add_joint(joint);
+    scene.add_interaction(joint, column, joint->interaction(0));
 
     const double pocket = faceted_area(support->head_plate_diameter * 0.5, support->chord_tolerance) * support->head_plate_recess;
     const double screws = faceted_area(support->screw_diameter * 0.5, support->chord_tolerance) * support->screw_length * support->screw_count;
@@ -855,7 +855,9 @@ void check_dowels() {
 
     check(corners == std::set<std::pair<int, int>>{{50, 50}, {550, 50}, {550, 150}, {50, 150}}, "the dowels 50 in from the contact's corners");
 
-    scene.add_connector(joint, nullptr);
+    scene.add(joint);
+    scene.add_interaction(joint, lower, joint->interaction(0));
+    scene.add_interaction(joint, upper, joint->interaction(1));
     check_nested(
         scene,
         *joint,
@@ -1304,7 +1306,7 @@ void check_rectangle() {
 /// Whether the node carries the connector colour.
 bool in_connector_color(const TreeNode& node) {
 
-    const Color& color = wood_floor::Floor::CONNECTOR_COLOR;
+    const Color& color = JointBeam::CONNECTOR_COLOR;
 
     return node.color && node.color->r == color.r && node.color->g == color.g && node.color->b == color.b && node.color->a == color.a;
 }

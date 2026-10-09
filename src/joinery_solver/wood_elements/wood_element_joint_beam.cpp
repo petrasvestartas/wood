@@ -1042,6 +1042,41 @@ bool JointBeam::is_connector() const {
     return !parts.empty() || !cutters.empty() || pre_drill;
 }
 
+std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
+
+    // screws: their holes are pre-drilled lines the targets read, nothing is cut
+    if (pre_drill)
+        return std::make_shared<InteractionFeaturePlateBeam>();
+
+    // a connector: the cutters for this target lofted into one solid, and its dowels
+    if (is_connector()) {
+        Mesh mesh;
+
+        if (target < cutters.size())
+            for (const std::array<Polyline, 2>& cutter : cutters[target])
+                append_mesh(mesh, Mesh::loft({cutter[0]}, {cutter[1]}, true));
+
+        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>();
+        cut->mesh = mesh;
+        cut->drills = drill_lines;
+        cut->drill_radius = line_radius;
+        cut->drill_tolerance = chord_tolerance;
+
+        return cut;
+    }
+
+    // a beam-to-beam joint: its four volumes, male and female corners swapped for the second target
+    const std::shared_ptr<InteractionFeatureBeam> volumes = std::make_shared<InteractionFeatureBeam>(feature);
+    volumes->guid() = ::guid();
+
+    if (target == 1) {
+        std::swap(volumes->volumes[0], volumes->volumes[2]);
+        std::swap(volumes->volumes[1], volumes->volumes[3]);
+    }
+
+    return volumes;
+}
+
 Mesh JointBeam::part_mesh(size_t index) const {
     return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
 }

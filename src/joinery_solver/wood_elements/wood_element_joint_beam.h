@@ -14,6 +14,7 @@ class InteractionContactFace;
 /// Element that represents a joint between beams: either a beam-to-beam joint carrying the feature volumes detection found, or a connector, a part of its own with cutters per target and dowels, nested in the tree as one child element per part and per dowel.
 class JointBeam : public Joint {
 public:
+    static inline const Color CONNECTOR_COLOR = Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"); // A connector's node and every part and dowel node under it: the Block Research Group's primary blue.
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.
 
     InteractionFeatureBeam feature; // The beam-to-beam feature: the four volume rectangles of the male and female corners; empty for a connector.
@@ -149,6 +150,9 @@ public:
 
     /// Whether this is a connector, with parts, cutters or pre-drilled screws of its own, rather than a beam-to-beam joint.
     bool is_connector() const;
+
+    /// The interaction this joint puts on its target i: a connector's cutters for that target and its dowels as an InteractionFeatureSolid; pre-drilled screws an empty InteractionFeaturePlateBeam, their holes read through pre_drill_lines; a beam-to-beam joint its feature volumes, the second target's corners swapped.
+    std::shared_ptr<Interaction> interaction(size_t target) const override;
 
     /// One part as a closed mesh, its loops lofted, before any cut.
     Mesh part_mesh(size_t index) const;

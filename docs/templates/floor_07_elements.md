@@ -254,7 +254,7 @@ Code: `Column::head_blocks`, [wood_element_column.cpp:96-125](https://github.com
 
 <span style="color:#2196EA">■ built</span> `column_0` with its head
 
-`WoodSession::add_column` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
+`column(guide, k)` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
 
 Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1498-L1512); `column`, [floor.cpp:32-33](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L32-L33).
 
@@ -264,7 +264,7 @@ Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com
 
 <span style="color:#2196EA">■ built</span> the head plate disc of the joint   <span style="color:#E8478B">■ variable</span> `drill_lines`, the three column screws   <span style="color:#A3A3A3">■ context</span> the support
 
-`add_column` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three screws from its underside, which `add_joint` cuts and drills out of the column.
+`column(guide, k)` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three screws from its underside, which `add_interaction(joint, column, joint->interaction(0))` cuts and drills out of the column.
 
 Code: `WoodSession::add_column`, [wood_session.cpp:1514-1519](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1514-L1519); `Joint::support`, [wood_element_joint.cpp:78-93](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint.cpp#L78-L93).
 

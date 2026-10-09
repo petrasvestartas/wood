@@ -756,6 +756,10 @@ std::shared_ptr<InteractionFeaturePlate> JointPlate::interaction_feature(int sid
     return feature;
 }
 
+std::shared_ptr<Interaction> JointPlate::interaction(size_t target) const {
+    return interaction_feature(static_cast<int>(target), 0);
+}
+
 std::vector<std::array<Polyline, 2>> JointPlate::bodies() const {
     std::vector<std::array<Polyline, 2>> result;
     for (const InteractionFeaturePlate& connection : connections) {

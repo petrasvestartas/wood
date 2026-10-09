@@ -50,8 +50,8 @@ auto profile = std::make_shared<Joint>(
 auto drill = Joint::drill(axis, radius, chord_tolerance);
 auto solid = std::make_shared<Joint>(closed_mesh, SolidOperation::difference);
 auto stock = std::make_shared<Block>(stock_mesh);
-profile->targets = {plate->guid()};
-scene.add_joint(profile);
+scene.add(profile);
+scene.add_interaction(profile, plate, profile->interaction(0));
 ```
 
 The two-argument `Joint(profile, extrusion)` keeps the profile's interior.

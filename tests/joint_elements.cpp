@@ -80,7 +80,9 @@ static void check_scene_calls() {
     WoodSession kept("kept connector");
     std::shared_ptr<Plate> lower, upper;
     const std::shared_ptr<JointBeam> dowels = stacked_dowels(kept, lower, upper);
-    kept.add_joint(dowels);
+    kept.add(dowels);
+    kept.add_interaction(dowels, lower, dowels->interaction(0));
+    kept.add_interaction(dowels, upper, dowels->interaction(1));
     const size_t holes = drills_of(*lower, dowels->guid());
     kept.compute_face_contacts();
     kept.compute_features(face_to_face);
@@ -94,7 +96,9 @@ static void check_scene_calls() {
     const std::shared_ptr<JointBeam> placed = std::dynamic_pointer_cast<JointBeam>(local->transformed(shift));
     moved.set_xform(lower->guid(), shift);
     moved.set_xform(upper->guid(), shift);
-    moved.add_joint(placed);
+    moved.add(placed);
+    moved.add_interaction(placed, lower, placed->interaction(0));
+    moved.add_interaction(placed, upper, placed->interaction(1));
     double longest = 0.0, farthest = 0.0;
     for (const InteractionFeatureSolid& cut : lower->solid_features)
         for (const Line& drill : cut.drills)
@@ -255,7 +259,8 @@ int main() {
     const auto cutter = std::make_shared<Joint>(Plane::from_point_normal({700, 0, 0}, {-1, 0, 0}));
     cutter->targets = {beam->guid()};
     const double uncut = compute_volume(beam->model_geometry_mesh());
-    scene.add_joint(cutter);
+    scene.add(cutter);
+    scene.add_interaction(cutter, beam, cutter->interaction(0));
     check(compute_volume(beam->model_geometry_mesh()) < uncut, "plane cutter modifies beam");
     const auto cut_scene = WoodSession::pb_loads(scene.pb_dumps());
     check(cut_scene.get_element<Joint>(cutter->guid())->cuts.size() == 1, "plane cutter round trip");
@@ -270,7 +275,8 @@ int main() {
     const auto profile = std::make_shared<Joint>(profile_outline, Vector(200, 0, 0));
     profile->targets = {beam->guid()};
     const double before_profile = compute_volume(beam->model_geometry_mesh());
-    scene.add_joint(profile);
+    scene.add(profile);
+    scene.add_interaction(profile, beam, profile->interaction(0));
     check(compute_volume(beam->model_geometry_mesh()) < before_profile, "profile cutter modifies beam");
     check(profile->element_geometry_brep().is_valid(), "profile cutter solid");
 
@@ -322,7 +328,9 @@ int main() {
         6
     );
     drill->line_radius = 2.0;
-    drilling.add_joint(drill);
+    drilling.add(drill);
+    drilling.add_interaction(drill, lower, drill->interaction(0));
+    drilling.add_interaction(drill, upper, drill->interaction(1));
     check(drill->element_geometry_mesh().number_of_faces() > 0, "line joint has a solid mesh");
     check(drill->element_geometry_brep().is_valid() && drill->element_geometry_brep().is_solid(), "line joint has brep solids");
     auto moved = drill->transformed(Xform::translation(100, 0, 0));

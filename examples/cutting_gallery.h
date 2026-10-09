@@ -50,7 +50,7 @@ inline void cut_case(WoodSession& scene, const std::string& name, const std::sha
     scene.add(stock, group);
     scene.add(cutter, group);
     cutter->targets = {stock->guid()};
-    scene.add_joint(cutter);
+    scene.add_interaction(cutter, stock, cutter->interaction(0));
     stock->name = "Result";
     stock->compute_geometry_mesh();
     const Mesh& result = stock->model_geometry_mesh();

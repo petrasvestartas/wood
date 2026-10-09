@@ -92,6 +92,25 @@ std::shared_ptr<Joint> Joint::support(const Support& support, const Column& colu
     return joint;
 }
 
+std::shared_ptr<Interaction> Joint::interaction(size_t) const {
+
+    // only cutting planes: the target takes the planes themselves, the edge keeps an empty record
+    if (loops.empty() && drill_axes().empty() && !cuts.empty())
+        return std::make_shared<InteractionFeaturePlateBeam>();
+
+    // its solid, or its body with its cuts for a drilling joint, its drills, profile and operation, in the joint's frame
+    const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>();
+    cut->mesh = drill_axes().empty() ? model_geometry_mesh() : cut_mesh(body_mesh(), cuts);
+    cut->drills = drill_axes();
+    cut->drill_radius = line_radius;
+    cut->drill_tolerance = chord_tolerance;
+    cut->profile = cutter_profile;
+    cut->extrusion = cutter_extrusion;
+    cut->operation = operation;
+
+    return cut;
+}
+
 std::vector<std::array<Polyline, 2>> Joint::bodies() const {
     return {};
 }
