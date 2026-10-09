@@ -9,7 +9,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 ```cpp
 // the library designs, each by its own name and parameters
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
-static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0)   // 0 divisions: one every 450 mm of the joint line, shift 0.64
+static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5), ss_e_r_1(int type = 1)   // 0 divisions: one every 300 mm of the joint line
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
@@ -42,7 +42,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 | Family | Contact | Plates |
 | --- | --- | --- |
 | [`ss_e_ip`](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge in one plane, their fingers interlocking along the normal, a loose key on the key designs |
-| `ss_e_op` | side to side, out of plane | two plates at an angle on a shared side face |
+| [`ss_e_op`](@ref elements_joint_plate_ss_e_op) | side to side, out of plane | two plates at an angle on a shared side face, a floor and a wall at a corner, fingers on both edges or the wall's tenons through the floor's mortises |
 | `ts_e_p` | top to side | a plate standing on another's face |
 | `ss_e_r` | side to side, rotated | two side faces whose edges cross, or any side-to-side pair under `settings.all_treated_as_rotated` |
 | `cr_c_ip` | cross | two plates passing through each other (`compute_cross_contact`) |
@@ -63,11 +63,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## ss_e_op: out of plane
 
-![ss_e_op](elements/element_joint_plate_ss_e_op.png)
-
-`ss_e_op_3` to `ss_e_op_5` on a floor and a wall mitred at a right angle, the wall moved off to show the fingers of both.
-
-\include{lineno} elements/element_joint_plate_ss_e_op.cpp
+`ss_e_op_0` to `ss_e_op_6`, `ss_e_op_17`, `ss_e_op_tutorial` and `ss_e_op_custom` on a floor and a wall mitred at a right angle, each design with its own example and pictures on the [ss_e_op page](@ref elements_joint_plate_ss_e_op): the finger designs `ss_e_op_0`, `ss_e_op_1`, `ss_e_op_2` and `ss_e_op_17`, the one-notch `ss_e_op_tutorial`, the tenon and mortise designs `ss_e_op_3`, `ss_e_op_4`, `ss_e_op_5` and `ss_e_op_6`, whose tenons on the wall pass through mortises in the floor, and the custom outlines.
 
 ## cr_c_ip: cross
 
@@ -106,7 +102,6 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## Not shown
 
-- `ss_e_op_0`, `ss_e_op_1` and `ss_e_op_2` on a mitred right-angle corner merge an outline that leaves the plate's plane, so the faces draw wrong; they are left out until the library merges them right.
 - `ss_e_r_*` need a rotated contact: `element_joint_plate_ss_e_r_3` shows the family on the in-plane pair with `settings.all_treated_as_rotated` on; the others and `side_removal_ss_e_r_1` are shown through the solver's datasets.
 - `side_removal` on the same corner removes the whole wall instead of its side; it is meant for the solver, where it merges with the joint on that edge.
 - `b_0` (boundary) has no face contact to orient on: the solver places it.
