@@ -134,7 +134,7 @@ Style:
 - White background; labels are black text on white plates without outline, leaders end in a solid black dot. Never
   anchor a label on a line's midpoint (its dot sits on the line): give it free, centred text beside the line.
 - No dashed helper lines. Lines carry no meaning by colour: draw them black (`INK`).
-- The computed result is a thick pink dot (`dot`); inputs are plain points.
+- The computed result is a thick pink dot (`dot`, `dot_at`): a point drawn on screen, `DOT_PX` wide, round from any view, never rings or a disc in a plane, which turn into ellipses in 3D; inputs are plain points.
 - One arrow per vector, black, never split into stages side by side.
 - A plane has no ends: never draw it as a line. Draw it as a grey shaded square without grid (`plane_glyph`, 150 in a
   quarter view, 60 at the column head, 75 for small planes) with its axes, x pink, y yellow-green, normal blue; draw
