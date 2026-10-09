@@ -49,6 +49,13 @@ The constructor is the whole computation, one block per result:
 Per quarter: a plane pair and a floor quad per member, and the central panel.
 
 ```cpp
+/// The planes of a quarter in pairs, one pair per member: the first plane is the member's base face, the second the face it is offset to.
+///
+/// - `outer_ribs[2]`: along the two bay edges.
+/// - `inner_beams[3]`: seam 0, the oculus edge, seam 1.
+/// - `inner_ribs[2]`: from the column head chamfer to the inner beam corners.
+/// - `wedges[3]`: the column head fan, side 0, middle, side 1.
+/// - `tsections[6]`: the flanges beside the ribs, outer rib 0 to outer rib 1.
 class ConstructionPlanes {
 public:
     std::array<std::array<Plane, 2>, 2> outer_ribs; // Along the two bay edges, the band offset inwards by outer_ribs.
@@ -60,6 +67,9 @@ public:
 ```
 
 ```cpp
+/// One plan quad per member at the floor datum, index i the footprint of member i of that family.
+///
+/// - `outer_ribs[2]`, `inner_beams[3]` (seam 0, oculus edge, seam 1), `inner_ribs[2]`, `wedges[3]`, `tsections[6]`: a closed quad each.
 class ConstructionQuads {
 public:
     std::array<Polyline, 2> outer_ribs;
@@ -71,6 +81,11 @@ public:
 ```
 
 ```cpp
+/// The central panel of one quarter by rule A: its ruling, the one sweep of both inner ribs, and the soffit, +t and +2t traces on the two inner ribs' central faces.
+///
+/// - `ruling`: the panel's horizontal ruling direction.
+/// - `rib_sweep`: the direction both inner ribs are swept along, outer face to central face.
+/// - `traces[2][3]`: per inner rib, its central face's soffit, +t and +2t.
 class CentralPanel {
 public:
     Vector ruling; // u: the panel's horizontal ruling, along which rib 0's central trace projects onto rib 1's.

@@ -389,7 +389,7 @@ void check_connector_calls() {
         for (size_t k = 0; k < 2; k++) {
             const Plane far = skewed.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, skewed.bay_height));
 
-            for (const Line& screw : skewed_floor.rib_beam_screws(q, k))
+            for (const Line& screw : skewed_floor.outer_rib_seam_beam_screws(q, k))
                 off = std::max(off, std::abs(std::abs(far.signed_distance(screw.start())) - skewed.size_inner_beams));
         }
 
@@ -558,7 +558,7 @@ void check_seam_beams() {
             const Plane end = guide.rib_seam_ends(q)[k];
             const Plane far = guide.construction_planes(q).inner_beams[k == 0 ? 0 : 2][1].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
             const double bottom = guide.bay_height + std::min(lowest_on(rib[0], end), lowest_on(rib[1], end));
-            const std::vector<Line> screws = scene.rib_beam_screws(q, k);
+            const std::vector<Line> screws = scene.outer_rib_seam_beam_screws(q, k);
             const std::string label = fmt::format("quarter {} outer rib {}", q, k);
             check(screws.size() == 2 && std::abs(screws[0].start()[2] - (guide.bay_height - 20.0)) <= 1e-9 && std::abs(screws[1].start()[2] - (bottom + 20.0)) <= 1e-9, label + " screws 20 mm below the rib top and above its bottom");
 
@@ -1218,7 +1218,7 @@ size_t check_connector_colors(const WoodSession& scene, const std::vector<std::s
     return nodes;
 }
 
-/// Every connector sits in connectors_q under quarter_q, the one quarter it belongs to; returns the connectors per group as parent/group.
+/// Every connector sits in connectors_q under quarter_q, the one quarter it belongs to, or in connectors under oculus; returns the connectors per group as parent/group.
 std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& connectors, const std::string& label) {
 
     std::map<std::string, size_t> counts;
@@ -1228,14 +1228,15 @@ std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, con
         const std::shared_ptr<TreeNode> group = node ? node->parent() : nullptr;
         const std::shared_ptr<TreeNode> parent = group ? group->parent() : nullptr;
         const std::string path = parent ? parent->name + "/" + group->name : "";
-        check(path.starts_with("quarter_") && path.substr(path.find('/') + 1) == "connectors_" + path.substr(8, path.find('/') - 8), fmt::format("{} {} under connectors_q of its quarter_q, not {}", label, connector->name, path));
+        const bool quarter = path.starts_with("quarter_") && path.substr(path.find('/') + 1) == "connectors_" + path.substr(8, path.find('/') - 8);
+        check(quarter || path == "oculus/connectors", fmt::format("{} {} under connectors_q of its quarter_q or connectors of oculus, not {}", label, connector->name, path));
         counts[path]++;
     }
 
     return counts;
 }
 
-/// The screws of one floor: per kind 16, 16 and 16, none at the oculus, every connector pre-drilled and naming the two members it joins first, every screw 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it in the connector colour, every connector in the connectors group of its quarter, 20 or 21 per quarter, also after the round trip.
+/// The screws of one floor: per kind 16, 16 and 16, none at the oculus, every connector pre-drilled and naming the two members it joins first, every screw 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and dowel nested under it in the connector colour, every connector in the connectors group of its quarter, 16 per quarter, the four oculus wedges in the connectors group of the oculus, also after the round trip.
 void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& label) {
 
     wood_floor::Floor scene(guide, "screws");
@@ -1251,13 +1252,13 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
         const std::shared_ptr<Element> oculus_beam = named<Element>(scene, fmt::format("oculus_beam_{}", q));
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"rib_beam", {named<Element>(scene, fmt::format("outer_ribs_{}_{}", k, q)), seam_beams[k]}});
+            joined.push_back({"outer_rib_seam_beam", {named<Element>(scene, fmt::format("outer_ribs_{}_{}", k, q)), seam_beams[k]}});
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"beam_mitre", {seam_beams[k], oculus_beam}});
+            joined.push_back({"seam_beam_oculus_beam", {seam_beams[k], oculus_beam}});
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"rib_corner", {oculus_beam, named<Element>(scene, fmt::format("inner_ribs_{}_{}", k, q))}});
+            joined.push_back({"oculus_beam_inner_rib", {oculus_beam, named<Element>(scene, fmt::format("inner_ribs_{}_{}", k, q))}});
     }
 
     check(joined.size() == screws.size(), label + " one screw connector per pair of members");
@@ -1280,7 +1281,7 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
         }
     }
 
-    check(counts["rib_beam"] == 16 && counts["beam_mitre"] == 16 && counts["rib_corner"] == 16, label + " screws per kind 16, 16 and 16, none at the oculus");
+    check(counts["outer_rib_seam_beam"] == 16 && counts["seam_beam_oculus_beam"] == 16 && counts["oculus_beam_inner_rib"] == 16, label + " screws per kind 16, 16 and 16, none at the oculus");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
@@ -1303,9 +1304,10 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
     std::map<std::string, size_t> expected;
 
     for (size_t q = 0; q < 4; q++)
-        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = 17;
+        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = 16;
 
-    check(groups == expected, label + " every connector in its quarter, 17 each");
+    expected["oculus/connectors"] = 4;
+    check(groups == expected, label + " every connector in its quarter, 16 each, the four oculus wedges in the oculus");
     check(check_connector_tree(back, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
     const size_t count = 68;
     check(connectors.size() == count && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} {} connectors, {} nodes in the connector colour, the same after a round trip", label, count, painted));

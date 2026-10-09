@@ -53,14 +53,21 @@ floor
 │   ├── column_0                   Column column_0 on Support support_0
 │   └── connectors_0               JointBeam connector_<kind>_<n>, connector_cross_lap_<n>, connector_screws_<n>
 └── oculus
-    ├── oculus_0                   BeamVariable oculus_0, the ring beam; BeamVariable oculus_beam_0, the inner beam on the oculus edge; Plate oculus_4, the bottom wedge; oculus_1 .. oculus_3 alike
-    └── oculus_8                   Plate, the central plate
+    ├── ring_beams                 BeamVariable oculus_<q>, four
+    ├── oculus_beams               BeamVariable oculus_beam_<q>, the inner beam on oculus edge q, four
+    ├── bottom_wedges              Plate oculus_<4 + q>, under ring beam q, four
+    ├── central_plate              Plate oculus_8
+    └── connectors                 JointBeam connector_oculus_wedge_<n>, four
 ```
 
 Each quarter's contacts, connectors and screws are fixed arrays, so every count is in the type:
 
 ```cpp
-/// A contact the floor's design puts between two members: the two members, a the interaction's source, and the face they share.
+/// A contact the floor's design puts between two members.
+///
+/// - `a`: the source member.
+/// - `b`: the target member, which hosts the contact.
+/// - `face`: the face they share, stored as their interaction.
 struct Contact {
     std::shared_ptr<Element> a; // The source member.
     std::shared_ptr<Element> b; // The target member, which hosts the contact.
@@ -68,14 +75,24 @@ struct Contact {
 };
 
 /// The contacts of one quarter, by the connector each gets.
+///
+/// - `seam_wedge`: seam beam 0 beside the next quarter's seam beam 1.
+/// - `oculus_wedge`: the oculus beam on its ring beam.
+/// - `column_plates[2]`: the column against outer rib k.
+/// - `block_dowels[3][2]`: column block b against the rib on its side 0 or 1.
 struct QuarterContacts {
-    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
+    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 1: a wedge.
     Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
     std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
     std::array<std::array<Contact, 2>, 3> block_dowels; // Column block b against the rib either side: dowels.
 };
 
 /// The connectors of one quarter, every one built from its contact before any is added.
+///
+/// - `seam_wedge`, `oculus_wedge`: a wedge each.
+/// - `column_plates[2]`: a plate into outer rib k.
+/// - `cross_lap`: the slots where the two plates cross.
+/// - `block_dowels[3][2]`: dowels per block and side.
 struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<n>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<n>.
@@ -84,11 +101,15 @@ struct QuarterConnectors {
     std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_dowels; // connector_block_dowels_<n>, per block and side.
 };
 
-/// The assembly screws of one quarter, each pair along k = 0 and 1.
+/// The assembly screws of one quarter, one screw connector per joint and side k = 0, 1, named by the member that butts, then the one it butts into.
+///
+/// - `outer_rib_seam_beam[2]`: outer rib k into the seam beam it ends on.
+/// - `seam_beam_oculus_beam[2]`: seam beam k into the oculus beam.
+/// - `oculus_beam_inner_rib[2]`: the oculus beam into inner rib k, through the seam beam when the screws pass it.
 struct QuarterScrews {
-    std::array<std::shared_ptr<JointBeam>, 2> rib_beam; // Each outer rib into the seam beam it ends on.
-    std::array<std::shared_ptr<JointBeam>, 2> beam_mitre; // Each seam beam into the oculus beam ending on it.
-    std::array<std::shared_ptr<JointBeam>, 2> rib_corner; // The oculus beam into each inner rib, through the seam beam when the screws pass it.
+    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // Each outer rib into the seam beam it ends on.
+    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // Each seam beam into the oculus beam ending on it.
+    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // The oculus beam into each inner rib, through the seam beam when the screws pass it.
 };
 ```
 
@@ -109,8 +130,8 @@ static constexpr double SCREW_SPACING = 8.0; // mm, the closest two screw axes m
 static constexpr double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band.
 static constexpr double SEAM_SCREW_OFFSET = 15.0; // mm the screws of the two ribs meeting at a seam sit either side of their axes, so their heads on the seam plane stay apart.
 static constexpr double CORNER_LEVELS = 7.0; // An oculus corner's depth in sevenths: six levels, one per screw on each side of the corner.
-static constexpr std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // Per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ.
-static constexpr std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // The inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross.
+static constexpr std::array<std::array<double, 2>, 2> SEAM_BEAM_OCULUS_BEAM_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // Per side k, the levels of the two screws of the seam beam into the oculus beam; the two quarters' screws at a seam put their heads on the seam plane at one point, so their levels differ.
+static constexpr std::array<double, 2> OCULUS_BEAM_INNER_RIB_LEVELS = {1.0, 4.0}; // The levels of the two screws of the oculus beam into an inner rib, apart from the seam beam's screws they cross at that corner.
 static inline const Color CONNECTOR_COLOR = Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"); // Every connector node and every part and dowel node under it: the Block Research Group's primary blue.
 ```
 
@@ -122,7 +143,7 @@ At the rib end, one screw `RIB_END_MARGIN` below the rib top and one above the e
 
 ![The rib end in elevation](floor/991_parameters_rib_end.webp)
 
-At an oculus corner, `static_h` in `CORNER_LEVELS` sevenths: `MITRE_LEVELS` and `RIB_CORNER_LEVELS` give every screw its own level.
+At an oculus corner, `static_h` in `CORNER_LEVELS` sevenths: `SEAM_BEAM_OCULUS_BEAM_LEVELS` and `OCULUS_BEAM_INNER_RIB_LEVELS` give every screw its own level.
 
 ![The oculus corner levels](floor/992_parameters_corner.webp)
 
@@ -729,16 +750,16 @@ add_screws(screws);
 ![The screws of quarter 0](floor/946_screws_quarter.webp)
 
 <details>
-<summary>rib_beam: an outer rib ends on a seam beam</summary>
+<summary>outer_rib_seam_beam: an outer rib ends on a seam beam</summary>
 
-![The rib on the seam beam](floor/936_rib_beam_joint.webp)
+![The rib on the seam beam](floor/936_outer_rib_seam_beam_joint.webp)
 
 Two screws along the rib from the beam's seam face, 20 below the rib's top and 20 above its bottom, 15 off its axis; the next quarter's rib uses the other side, so the heads on the seam plane stay apart.
 
-![The rib beam screws](floor/937_rib_beam_screws.webp)
+![The rib beam screws](floor/937_outer_rib_seam_beam_screws.webp)
 
 ```cpp
-std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
+std::vector<Line> Floor::outer_rib_seam_beam_screws(size_t q, size_t k) const {
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const Plane& seam_face = cp.inner_beams[SEAM_BEAMS[k]][0];
@@ -758,24 +779,24 @@ std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
 </details>
 
 <details>
-<summary>beam_mitre: a seam beam butts into the oculus beam</summary>
+<summary>seam_beam_oculus_beam: a seam beam butts into the oculus beam</summary>
 
-![The seam beam on the oculus beam](floor/938_beam_mitre_joint.webp)
+![The seam beam on the oculus beam](floor/938_seam_beam_oculus_beam_joint.webp)
 
-Two screws along the oculus beam, their heads on the seam plane; their levels differ from the next quarter's, `MITRE_LEVELS`, so the two quarters' screws never meet.
+Two screws along the oculus beam, their heads on the seam plane; their levels differ from the next quarter's, `SEAM_BEAM_OCULUS_BEAM_LEVELS`, so the two quarters' screws never meet.
 
-![The mitre screws](floor/939_beam_mitre_screws.webp)
+![The seam beam screws](floor/939_seam_beam_oculus_beam_screws.webp)
 
 ```cpp
-std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
+std::vector<Line> Floor::seam_beam_oculus_beam_screws(size_t q, size_t k) const {
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const Plane& seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0];
     const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
 
     return {
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][0])),
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(MITRE_LEVELS[k][1])),
+        screw(cp.inner_beams[1], seam_plane, body, corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][0])),
+        screw(cp.inner_beams[1], seam_plane, body, corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][1])),
     };
 }
 ```
@@ -783,16 +804,16 @@ std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
 </details>
 
 <details>
-<summary>rib_corner: the oculus beam butts into an inner rib</summary>
+<summary>oculus_beam_inner_rib: the oculus beam butts into an inner rib</summary>
 
-![The oculus beam on the inner rib](floor/940_rib_corner_joint.webp)
+![The oculus beam on the inner rib](floor/940_oculus_beam_inner_rib_joint.webp)
 
 Two screws along the inner rib, their heads on the oculus beam's back face. Near the seam they run through the seam beam's end too, which then is a third member they hold, `passes_seam_beam`; a head closer than 4 mm to the seam plane throws, the bay too narrow.
 
-![The corner screws](floor/944_rib_corner_screws.webp)
+![The corner screws](floor/944_oculus_beam_inner_rib_screws.webp)
 
 ```cpp
-std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
+std::vector<Line> Floor::oculus_beam_inner_rib_screws(size_t q, size_t k) const {
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const Plane& back_face = cp.inner_beams[1][0];
@@ -800,7 +821,7 @@ std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
     const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
     std::vector<Line> screws;
 
-    for (double levels : RIB_CORNER_LEVELS) {
+    for (double levels : OCULUS_BEAM_INNER_RIB_LEVELS) {
         screws.push_back(screw(cp.inner_ribs[k], back_face, body, corner_level(levels)));
 
         // the next quarter's screws meet the seam plane from the other side: a head closer than half the spacing would touch them
@@ -882,20 +903,20 @@ std::array<QuarterScrews, 4> Floor::compute_screws() const {
         const Element* oculus_beam = get_element_by_name<Element>(fmt::format("oculus_beam_{}", q)).get();
 
         for (size_t k = 0; k < 2; k++) {
-            // rib_beam: the outer rib into the seam beam it ends on
-            screws[q].rib_beam[k] = screws_of({member("outer_ribs", k), member("inner_beams", k)}, rib_beam_screws(q, k));
+            // outer_rib_seam_beam: the outer rib into the seam beam it ends on
+            screws[q].outer_rib_seam_beam[k] = screws_of({member("outer_ribs", k), member("inner_beams", k)}, outer_rib_seam_beam_screws(q, k));
 
-            // beam_mitre: the seam beam into the oculus beam ending on it
-            screws[q].beam_mitre[k] = screws_of({member("inner_beams", k), oculus_beam}, beam_mitre_screws(q, k));
+            // seam_beam_oculus_beam: the seam beam into the oculus beam ending on it
+            screws[q].seam_beam_oculus_beam[k] = screws_of({member("inner_beams", k), oculus_beam}, seam_beam_oculus_beam_screws(q, k));
 
-            // rib_corner: the oculus beam into the inner rib ending on its back face, through the seam beam too when the screws pass it
-            const std::vector<Line> lines = rib_corner_screws(q, k);
+            // oculus_beam_inner_rib: the oculus beam into the inner rib ending on its back face, through the seam beam too when the screws pass it
+            const std::vector<Line> lines = oculus_beam_inner_rib_screws(q, k);
             std::vector<const Element*> passed = {oculus_beam, member("inner_ribs", k)};
 
             if (passes_seam_beam(q, k, lines))
                 passed.push_back(member("inner_beams", k));
 
-            screws[q].rib_corner[k] = screws_of(passed, lines);
+            screws[q].oculus_beam_inner_rib[k] = screws_of(passed, lines);
         }
     }
 
@@ -907,7 +928,7 @@ std::array<QuarterScrews, 4> Floor::compute_screws() const {
 void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
 
     for (size_t q = 0; q < 4; q++)
-        for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].rib_beam, screws[q].beam_mitre, screws[q].rib_corner})
+        for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].outer_rib_seam_beam, screws[q].seam_beam_oculus_beam, screws[q].oculus_beam_inner_rib})
             for (const std::shared_ptr<JointBeam>& screw : pair)
                 add_named_connector(screw, "connector_screws", q);
 }
