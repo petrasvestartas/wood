@@ -174,7 +174,7 @@ Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ built</span> `oculus_0` to `oculus_3`   <span style="color:#A3A3A3">■ context</span> the quarters' inner beams and ribs
 
-`guide.oculus()` gives nine loop pairs; the first four become ring beams by `beam(loops, {1, 0}, {2, 3})`, each named `oculus_q` in the group `oculus_q` under `oculus`, and kept in `ring`.
+`guide.oculus()` gives nine loop pairs; the first four become ring beams by `beam(loops, {1, 0}, {2, 3})`, each named `oculus_q` in the group `ring_beams` under `oculus`.
 
 Code: `Floor::add_oculus`, [floor.cpp:121-132](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L121-L132); `FloorGuide::oculus`, [floor_guide.cpp:751-779](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L751-L779).
 
@@ -184,7 +184,7 @@ Code: `Floor::add_oculus`, [floor.cpp:121-132](https://github.com/petrasvestarta
 
 <span style="color:#2196EA">■ built</span> `oculus_4` to `oculus_7`   <span style="color:#A3A3A3">■ context</span> the ring and the quarters' members, seen from below
 
-Loops 4 to 7 are the bottom wedges the ring beams sit on, plates in the same quarter groups, kept in `oculus_plates`.
+Loops 4 to 7 are the bottom wedges the ring beams sit on, plates named `oculus_4` to `oculus_7` in the group `bottom_wedges` under `oculus`.
 
 Code: `Floor::add_oculus`, [floor.cpp:133-136](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L133-L136).
 
@@ -194,7 +194,7 @@ Code: `Floor::add_oculus`, [floor.cpp:133-136](https://github.com/petrasvestarta
 
 <span style="color:#2196EA">■ built</span> `oculus_8`   <span style="color:#A3A3A3">■ context</span> the ring and the quarters' members
 
-Loop 8 is the central plate `oculus_8`, the only member in the group `oculus` at the top of the tree.
+Loop 8 is the central plate `oculus_8`, in the group `central_plate` under `oculus`.
 
 Code: `Floor::add_oculus`, [floor.cpp:128-136](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L128-L136).
 

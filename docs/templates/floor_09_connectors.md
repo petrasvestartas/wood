@@ -144,7 +144,7 @@ Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:340-345]
 
 <span style="color:#2196EA">■ built</span> quarter 0's connector parts and dowels   <span style="color:#A3A3A3">■ context</span> quarter 0's members
 
-`add_named_connector` names each connector by its prefix, `connector_<kind>` (`connector_seam_wedge`, `connector_oculus_wedge`, `connector_column_plate`, `connector_block_dowels`) or `connector_cross_lap`, and a number counted on from `next_number`, so connectors from later calls never repeat a name, and adds it in `connectors_q` of `quarter_q` in `CONNECTOR_COLOR`.
+`add_named_connector` names each connector by its prefix, `connector_<kind>` (`connector_seam_wedge`, `connector_oculus_wedge`, `connector_column_plate`, `connector_block_dowels`) or `connector_cross_lap`, and a number counted on from `next_number`, so connectors from later calls never repeat a name, and adds it in `connectors_q` of `quarter_q`, the oculus wedges in `connectors` of `oculus`, in `CONNECTOR_COLOR`.
 
 Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L359-L367); `Floor::connector_prefix`, [floor.cpp:348-357](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L348-L357); `WoodSession::next_number`, [wood_session.cpp:1473-1485](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1473-L1485).
 
