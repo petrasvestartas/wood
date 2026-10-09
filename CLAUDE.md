@@ -40,6 +40,18 @@ completion accurately. Generated protobuf files follow the generator's format.
 
 ## Using the session
 
+- **The key pattern: a joint is an element, and what it does is an interaction.** Every connection between members
+  is made the same way: a joint element class computes itself from the contact of the members it joins (a wedge, a
+  plate, dowels, screws, a cross lap: where its parts and its dowels or screws go is the class's job, distributed over
+  the contact, never computed in a template), it is added, and it is passed to each member with `add_interaction`:
+
+```cpp
+    const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(*contact.a, *contact.b, *contact.face);
+    add(dowels, group);
+    add_interaction(dowels, contact.a, dowels->interaction(0));
+    add_interaction(dowels, contact.b, dowels->interaction(1));
+```
+
 - A model is built with two calls: `add(element, group)` puts an element in the tree, and
   `add_interaction(source, target, interaction)` puts what the source does to the target on their edge: a contact,
   a glued block, a cut, a joint, a connector, screws. No wrapper adds an element and its effects in one call (no
