@@ -30,6 +30,7 @@ struct Contact {
 /// - `column_plates[2]`: the column against outer rib k.
 /// - `block_pins[3][2]`: column block b against the rib on its side 0 or 1.
 /// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: the butt joints held by pins, through member first.
+/// - `ring_corner`: ring beam q against ring beam q + 1, held by pins.
 struct QuarterContacts {
     Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
     Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
@@ -38,6 +39,7 @@ struct QuarterContacts {
     std::array<Contact, 2> outer_rib_seam_beam; // Seam beam k against the outer rib ending on it: pins.
     std::array<Contact, 2> seam_beam_oculus_beam; // Seam beam k against the oculus beam: pins.
     std::array<Contact, 2> oculus_beam_inner_rib; // The oculus beam against inner rib k: pins.
+    Contact ring_corner; // Ring beam q against ring beam q + 1 at their corner: pins.
 };
 
 /// The connectors of one quarter, every one built from its contact before any is added.
@@ -46,7 +48,7 @@ struct QuarterContacts {
 /// - `column_plates[2]`, `column_plate_pins[2]`: a plate on outer rib k and the pocket and pins that let it in.
 /// - `cross_lap`: the half lap where the two plates cross.
 /// - `block_pins[3][2]`: pins per block and side.
-/// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: two pins per butt joint.
+/// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`, `ring_corner`: two pins per butt joint.
 struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
@@ -57,6 +59,7 @@ struct QuarterConnectors {
     std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
     std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
     std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
+    std::shared_ptr<JointBeam> ring_corner; // connector_pins_ring_corner_<q>, ring beam q and ring beam q + 1 at their corner.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

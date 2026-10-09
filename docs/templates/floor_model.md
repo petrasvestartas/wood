@@ -499,6 +499,10 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
             contacts[q].seam_beam_oculus_beam[k] = add_contact(fmt::format("pins_seam_beam_{}_{}", q, k), seam_beam, oculus_beam);
             contacts[q].oculus_beam_inner_rib[k] = add_contact(fmt::format("pins_inner_rib_{}_{}", q, k), oculus_beam, fmt::format("inner_ribs_{}_{}", k, q));
         }
+
+        // ring corner: ring beam q against the next, at the oculus corner they share
+        const Contact ring_corner = add_contact(fmt::format("pins_ring_corner_{}", q), fmt::format("oculus_{}", q), fmt::format("oculus_{}", (q + 1) % 4));
+        contacts[q].ring_corner = ring_corner;
     }
 
     return contacts;
@@ -776,6 +780,20 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
                 throw std::runtime_error(fmt::format("quarter {} side {}: a butt joint leaves no room for its pins, the bay is too narrow", q, k));
         }
+
+        // ring corner pins: two in a column across the corner of ring beam q and the next
+        const Contact& ring = quarter_contacts.ring_corner;
+        quarter_connectors.ring_corner = JointBeam::headed_pins(
+            *ring.a,
+            *ring.b,
+            *ring.face,
+            PinLayout::vertical,
+            2,
+            PIN_INSET
+        );
+
+        if (!quarter_connectors.ring_corner)
+            throw std::runtime_error("the inset leaves no room for the pins of " + ring.face->name);
     }
 
     return connectors;
@@ -861,6 +879,15 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
             add_interaction(pins, joint.a, pins->interaction(0));
             add_interaction(pins, joint.b, pins->interaction(1));
         }
+
+    // pins: ring beam q into the next at their corner
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<JointBeam>& pins = connectors[q].ring_corner;
+        const Contact& joint = contacts[q].ring_corner;
+        add(pins, group_named("connectors", group_named("oculus")));
+        add_interaction(pins, joint.a, pins->interaction(0));
+        add_interaction(pins, joint.b, pins->interaction(1));
+    }
 
     // cross laps, last: the half lap merged into the outlines of the two column plates
     for (size_t q = 0; q < 4; q++) {
@@ -951,20 +978,20 @@ for (size_t k = 0; k < 2; k++) {
 </details>
 
 <details>
-<summary>JointBeam::headed_pins(through, into, contact, layout, ...)</summary>
+<summary>JointBeam::headed_pins(a, b, contact, layout, ...)</summary>
 
-Square to the contact, x level and y up; the stations on the inset ring by the layout; each pin from its head where it leaves `through`'s stock, `length` long into `into`.
+The member that ends on the contact, its level axis the more square to it, takes the pins along that axis; the head sits where the line leaves the other member's stock, the pin 200 long from there. The stations lie on the contact inset by `offset`, x level and y up. Both members are targets and read the same drill lines.
 
 ```cpp
 /// Where a pin line leaves the far face of the member it passes through: the start of the line's stretch inside it that ends at the contact.
 static Point pin_head(
     const Element& through,
     const Point& station,
-    const Vector& normal,
+    const Vector& direction,
     double reach
 ) {
 
-    const Line back = Line::from_points(station - normal * reach, station);
+    const Line back = Line::from_points(station - direction * reach, station);
     const std::vector<std::array<double, 2>> inside = inside_stretches(through.element_geometry_mesh(), back);
     double start = reach;
     double end = -1.0;
@@ -976,12 +1003,30 @@ static Point pin_head(
             start = stretch[0];
         }
 
-    return back.start() + normal * start;
+    return back.start() + direction * start;
+}
+
+/// A beam's axis made level and unit, empty for an element without an axis or a vertical one.
+static std::optional<Vector> level_axis(const Element& element) {
+
+    Vector axis;
+
+    if (const BeamVariable* beam = dynamic_cast<const BeamVariable*>(&element))
+        axis = beam->axis.to_vector();
+    else if (const Beam* straight = dynamic_cast<const Beam*>(&element); straight && straight->axis.point_count() > 1)
+        axis = straight->axis.get_point(straight->axis.point_count() - 1) - straight->axis.get_point(0);
+
+    axis = Vector(axis[0], axis[1], 0.0);
+
+    if (axis.magnitude() < 1e-9)
+        return std::nullopt;
+
+    return axis.normalized();
 }
 
 std::shared_ptr<JointBeam> JointBeam::headed_pins(
-    const Element& through,
-    const Element& into,
+    const Element& a,
+    const Element& b,
     const InteractionContactFace& contact,
     PinLayout layout,
     size_t count,
@@ -996,9 +1041,22 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     const Point origin = Point::centroid(points);
     Vector normal = compute_newell(points).normalized();
 
-    // the pins run square to the contact, into the member they join
+    // the member that ends on the contact, its level axis the more square to it, takes the pins along that axis from the far face of the other; neither, a into b square to the contact
+    const std::optional<Vector> axis_a = level_axis(a);
+    const std::optional<Vector> axis_b = level_axis(b);
+    const double end_a = axis_a ? std::abs(axis_a->dot(normal)) : 0.0;
+    const double end_b = axis_b ? std::abs(axis_b->dot(normal)) : 0.0;
+    const bool a_ends = end_a > end_b && end_a > 0.5;
+    const Element& through = a_ends ? b : a;
+    const Element& into = a_ends ? a : b;
+    const double end = a_ends ? end_a : end_b;
+    Vector direction = end > 0.5 ? (a_ends ? *axis_a : *axis_b) : normal;
+
     if ((into.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
         normal = -normal;
+
+    if (direction.dot(normal) < 0.0)
+        direction = -direction;
 
     // x level in the contact and y up it, so a column stands across the height; a level contact takes its top edge
     const Vector level = Vector::z_axis().cross(normal);
@@ -1043,27 +1101,28 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
             stations.push_back({x_min + (x_max - x_min) * t, shift});
     }
 
-    // each pin from its head on the far face of `through`, length long into `into`
-    std::vector<Line> lines;
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = connector_name(contact, "pins");
+    joint->is_visible = true;
+    joint->pre_drill = true;
+    joint->targets = {a.guid(), b.guid()};
 
+    // each pin through its station on the contact, from its head on the far face of `through`, length long into `into`
     for (const std::array<double, 2>& station : stations) {
         const Point point = origin + x * station[0] + y * station[1];
         const Point head = pin_head(
             through,
             point,
-            normal,
+            direction,
             length
         );
-        lines.push_back(Line::from_points(head, head + normal * length));
+        joint->drill_lines.push_back(Line::from_points(head, head + direction * length));
     }
 
-    return headed_pins(
-        std::vector<const Element*>{&through, &into},
-        lines,
-        radius,
-        length,
-        sides
-    );
+    joint->line_radius = radius;
+    joint->chord_tolerance = sides_tolerance(radius, sides);
+
+    return joint;
 }
 ```
 

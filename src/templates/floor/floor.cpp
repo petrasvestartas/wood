@@ -302,6 +302,10 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
             contacts[q].seam_beam_oculus_beam[k] = add_contact(fmt::format("pins_seam_beam_{}_{}", q, k), seam_beam, oculus_beam);
             contacts[q].oculus_beam_inner_rib[k] = add_contact(fmt::format("pins_inner_rib_{}_{}", q, k), oculus_beam, fmt::format("inner_ribs_{}_{}", k, q));
         }
+
+        // ring corner: ring beam q against the next, at the oculus corner they share
+        const Contact ring_corner = add_contact(fmt::format("pins_ring_corner_{}", q), fmt::format("oculus_{}", q), fmt::format("oculus_{}", (q + 1) % 4));
+        contacts[q].ring_corner = ring_corner;
     }
 
     return contacts;
@@ -433,6 +437,20 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
                 throw std::runtime_error(fmt::format("quarter {} side {}: a butt joint leaves no room for its pins, the bay is too narrow", q, k));
         }
+
+        // ring corner pins: two in a column across the corner of ring beam q and the next
+        const Contact& ring = quarter_contacts.ring_corner;
+        quarter_connectors.ring_corner = JointBeam::headed_pins(
+            *ring.a,
+            *ring.b,
+            *ring.face,
+            PinLayout::vertical,
+            2,
+            PIN_INSET
+        );
+
+        if (!quarter_connectors.ring_corner)
+            throw std::runtime_error("the inset leaves no room for the pins of " + ring.face->name);
     }
 
     return connectors;
@@ -511,6 +529,15 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
             add_interaction(pins, joint.a, pins->interaction(0));
             add_interaction(pins, joint.b, pins->interaction(1));
         }
+
+    // pins: ring beam q into the next at their corner
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<JointBeam>& pins = connectors[q].ring_corner;
+        const Contact& joint = contacts[q].ring_corner;
+        add(pins, group_named("connectors", group_named("oculus")));
+        add_interaction(pins, joint.a, pins->interaction(0));
+        add_interaction(pins, joint.b, pins->interaction(1));
+    }
 
     // cross laps, last: the half lap merged into the outlines of the two column plates
     for (size_t q = 0; q < 4; q++) {

@@ -4,7 +4,7 @@
 
 <em>Step 10 of @ref templates_floor_model · previous: @ref templates_floor_09_connectors · next: @ref templates_floor_11_examples</em>
 
-Where one member butts into another, `Floor::compute_connectors` lays two pins across their contact with `JointBeam::headed_pins` and `add_connectors` pre-drills them into both members: per side of a quarter the outer rib on its seam beam, the seam beam on the oculus beam and the oculus beam on the inner rib. Every pin is a `Pin`, a 200 mm cylinder from its head. The oculus ring has none.
+Where one member butts into another, `Floor::compute_connectors` lays two pins across their contact with `JointBeam::headed_pins` and `add_connectors` pre-drills them into both members: per side of a quarter the outer rib on its seam beam, the seam beam on the oculus beam and the oculus beam on the inner rib, and at each of the four ring corners ring beam q on the next. Every pin is a `Pin`, a 200 mm cylinder from its head, level along the axis of the member that ends on the contact, and both members read the same drill lines.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the floor with its pins.
 
@@ -36,7 +36,7 @@ x runs level along the contact (z cross the normal) and y up it, so vertical mea
 
 ![](floor/305_pin_head.webp)
 
-`pin_head` goes back from the station square to the contact and puts the head where the line leaves the seam beam's stock; the pin runs 200 from there into the rib.
+`pin_head` goes back from the station along the pin's direction, the level axis of the member that ends on the contact, and puts the head where the line leaves the other member's stock; the pin runs 200 from there into the member that ends.
 
 ## 306. Two quarters at a seam
 
@@ -60,4 +60,4 @@ A pin connector nests one `Pin` per line, named `connector_pins_outer_rib_0_0_pi
 
 ![](floor/309_every_pin.webp)
 
-24 pin connectors `connector_pins_<joint>_<q>_<k>` with 48 pins, each in `connectors_q` of its quarter.
+28 pin connectors `connector_pins_<joint>_<place>` with 56 pins, the butt joints in `connectors_q` of their quarter, the four ring corners in the oculus.

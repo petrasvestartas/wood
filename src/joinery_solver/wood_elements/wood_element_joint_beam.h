@@ -132,10 +132,10 @@ public:
         int pin_sides = 16
     );
 
-    /// Headed pins laid out on the face contact, from the far face of through into into, pre-drilled.
+    /// Headed pins laid out on the face contact of a and b, pre-drilled into both: level along the axis of the member that ends on the contact, from the far face of the other.
     static std::shared_ptr<JointBeam> headed_pins(
-        const Element& through,
-        const Element& into,
+        const Element& a,
+        const Element& b,
         const InteractionContactFace& contact,
         PinLayout layout,
         size_t count = 2,

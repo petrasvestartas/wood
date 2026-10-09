@@ -113,7 +113,7 @@ public:
     /// Coplanar face-overlap detection: an InteractionContactFace per touching face pair within tree depth `level`.
     void compute_face_contacts(int level = 0);
 
-    /// First face contact in face-index order, nullptr when disjoint; plate contacts include joinery volumes.
+    /// The largest face contact of the pair, nullptr when disjoint; plate contacts include joinery volumes.
     std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.

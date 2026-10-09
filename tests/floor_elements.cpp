@@ -65,12 +65,12 @@ std::vector<std::shared_ptr<JointBeam>> connectors_of(const WoodSession& scene, 
     return scene.get_elements_placed<JointBeam>("connector_" + kind);
 }
 
-/// Every pin connector of the floor: the outer rib, seam beam and inner rib butt joints.
+/// Every pin connector of the floor: the outer rib, seam beam and inner rib butt joints and the ring corners.
 std::vector<std::shared_ptr<JointBeam>> pins_of(const WoodSession& scene) {
 
     std::vector<std::shared_ptr<JointBeam>> pins;
 
-    for (const std::string kind : {"pins_outer_rib", "pins_seam_beam", "pins_inner_rib"})
+    for (const std::string kind : {"pins_outer_rib", "pins_seam_beam", "pins_inner_rib", "pins_ring_corner"})
         for (const std::shared_ptr<JointBeam>& connector : connectors_of(scene, kind))
             pins.push_back(connector);
 
@@ -424,7 +424,7 @@ void check_connector_calls() {
     for (const std::shared_ptr<JointBeam>& pins : narrow_pins)
         lines += pins->drill_lines.size();
 
-    check(narrow_pins.size() == 24 && lines == 48, fmt::format("the floor on a 6000 x 3400 bay with {} pin sets, {} pins, each inside its contact", narrow_pins.size(), lines));
+    check(narrow_pins.size() == 28 && lines == 56, fmt::format("the floor on a 6000 x 3400 bay with {} pin sets, {} pins, each inside its contact", narrow_pins.size(), lines));
 
     const wood_floor::FloorGuide skewed({Point(-3000.0, -3000.0, 0.0), Point(3000.0, -3000.0, 0.0), Point(2000.0, 3000.0, 0.0), Point(-2000.0, 3000.0, 0.0)});
     double off = 0.0;
@@ -1360,8 +1360,13 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
             joined.push_back({"oculus_beam_inner_rib", {oculus_beam, named<Element>(scene, fmt::format("inner_ribs_{}_{}", k, q))}});
         }
 
+    for (size_t q = 0; q < 4; q++) {
+        pins.push_back(named<JointBeam>(scene, fmt::format("connector_pins_ring_corner_{}", q)));
+        joined.push_back({"ring_corner", {named<Element>(scene, fmt::format("oculus_{}", q)), named<Element>(scene, fmt::format("oculus_{}", (q + 1) % 4))}});
+    }
+
     connectors.insert(connectors.end(), pins.begin(), pins.end());
-    check(pins_of(scene).size() == pins.size(), label + " no pin connector beyond the butt joints");
+    check(pins_of(scene).size() == pins.size(), label + " no pin connector beyond the butt joints and the ring corners");
 
     std::map<std::string, size_t> counts;
 
@@ -1381,13 +1386,24 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
 
         for (const Line& line : connector.drill_lines) {
             check(std::abs(line.length() - 200.0) <= 1e-9, label + " " + connector.name + " pins 200 long");
+            const Vector along = line.to_direction().normalized();
+            bool on_axis = false;
+
+            for (const std::shared_ptr<Element>& member : pair)
+                if (const std::shared_ptr<BeamVariable> beam = std::dynamic_pointer_cast<BeamVariable>(member)) {
+                    const Vector axis = beam->axis.to_vector();
+                    const Vector level = Vector(axis[0], axis[1], 0.0).normalized();
+                    on_axis = on_axis || std::abs(std::abs(along.dot(level)) - 1.0) <= 1e-9;
+                }
+
+            check(std::abs(along[2]) <= 1e-9 && on_axis, label + " " + connector.name + " pins level along the axis of the member that ends on the contact");
 
             for (const std::string& guid : connector.targets)
                 check(matches(scene.pre_drill_lines(guid), line) == 1, label + " " + connector.name + " every member reads each pin once");
         }
     }
 
-    check(counts["outer_rib_seam_beam"] == 16 && counts["seam_beam_oculus_beam"] == 16 && counts["oculus_beam_inner_rib"] == 16, label + " pins per kind 16, 16 and 16, none at the oculus");
+    check(counts["outer_rib_seam_beam"] == 16 && counts["seam_beam_oculus_beam"] == 16 && counts["oculus_beam_inner_rib"] == 16 && counts["ring_corner"] == 8, label + " pins per kind 16, 16, 16 and two at each of the four ring corners");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
@@ -1417,10 +1433,10 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
     for (size_t q = 0; q < 4; q++)
         expected[fmt::format("quarter_{}/connectors_{}", q, q)] = 15;
 
-    expected["oculus/connectors"] = 4;
-    check(groups == expected, label + " every connector in its quarter, 15 each, the four oculus wedges in the oculus");
+    expected["oculus/connectors"] = 8;
+    check(groups == expected, label + " every connector in its quarter, 15 each, the four oculus wedges and the four ring corners in the oculus");
     check(check_connector_tree(back, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
-    const size_t count = 64;
+    const size_t count = 68;
     check(connectors.size() == count && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} {} connectors, {} nodes in the connector colour, the same after a round trip", label, count, painted));
     size_t total = 0;
 

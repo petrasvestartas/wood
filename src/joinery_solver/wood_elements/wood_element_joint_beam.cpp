@@ -915,11 +915,11 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
 static Point pin_head(
     const Element& through,
     const Point& station,
-    const Vector& normal,
+    const Vector& direction,
     double reach
 ) {
 
-    const Line back = Line::from_points(station - normal * reach, station);
+    const Line back = Line::from_points(station - direction * reach, station);
     const std::vector<std::array<double, 2>> inside = inside_stretches(through.element_geometry_mesh(), back);
     double start = reach;
     double end = -1.0;
@@ -931,12 +931,30 @@ static Point pin_head(
             start = stretch[0];
         }
 
-    return back.start() + normal * start;
+    return back.start() + direction * start;
+}
+
+/// A beam's axis made level and unit, empty for an element without an axis or a vertical one.
+static std::optional<Vector> level_axis(const Element& element) {
+
+    Vector axis;
+
+    if (const BeamVariable* beam = dynamic_cast<const BeamVariable*>(&element))
+        axis = beam->axis.to_vector();
+    else if (const Beam* straight = dynamic_cast<const Beam*>(&element); straight && straight->axis.point_count() > 1)
+        axis = straight->axis.get_point(straight->axis.point_count() - 1) - straight->axis.get_point(0);
+
+    axis = Vector(axis[0], axis[1], 0.0);
+
+    if (axis.magnitude() < 1e-9)
+        return std::nullopt;
+
+    return axis.normalized();
 }
 
 std::shared_ptr<JointBeam> JointBeam::headed_pins(
-    const Element& through,
-    const Element& into,
+    const Element& a,
+    const Element& b,
     const InteractionContactFace& contact,
     PinLayout layout,
     size_t count,
@@ -951,9 +969,22 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     const Point origin = Point::centroid(points);
     Vector normal = compute_newell(points).normalized();
 
-    // the pins run square to the contact, into the member they join
+    // the member that ends on the contact, its level axis the more square to it, takes the pins along that axis from the far face of the other; neither, a into b square to the contact
+    const std::optional<Vector> axis_a = level_axis(a);
+    const std::optional<Vector> axis_b = level_axis(b);
+    const double end_a = axis_a ? std::abs(axis_a->dot(normal)) : 0.0;
+    const double end_b = axis_b ? std::abs(axis_b->dot(normal)) : 0.0;
+    const bool a_ends = end_a > end_b && end_a > 0.5;
+    const Element& through = a_ends ? b : a;
+    const Element& into = a_ends ? a : b;
+    const double end = a_ends ? end_a : end_b;
+    Vector direction = end > 0.5 ? (a_ends ? *axis_a : *axis_b) : normal;
+
     if ((into.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
         normal = -normal;
+
+    if (direction.dot(normal) < 0.0)
+        direction = -direction;
 
     // x level in the contact and y up it, so a column stands across the height; a level contact takes its top edge
     const Vector level = Vector::z_axis().cross(normal);
@@ -1002,18 +1033,18 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->pre_drill = true;
-    joint->targets = {through.guid(), into.guid()};
+    joint->targets = {a.guid(), b.guid()};
 
-    // each pin from its head on the far face of `through`, length long into `into`
+    // each pin through its station on the contact, from its head on the far face of `through`, length long into `into`
     for (const std::array<double, 2>& station : stations) {
         const Point point = origin + x * station[0] + y * station[1];
         const Point head = pin_head(
             through,
             point,
-            normal,
+            direction,
             length
         );
-        joint->drill_lines.push_back(Line::from_points(head, head + normal * length));
+        joint->drill_lines.push_back(Line::from_points(head, head + direction * length));
     }
 
     joint->line_radius = radius;

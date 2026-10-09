@@ -415,8 +415,15 @@ void WoodSession::compute_face_contacts(int level) {
 std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target){
     if (!source || !target || source->guid() == target->guid())
         return nullptr;
-    const auto contacts = face_contacts_for_pair(*source, *target, settings);
-    return contacts.empty() ? nullptr : std::make_shared<InteractionContactFace>(contacts.front());
+    const std::vector<InteractionContactFace> contacts = face_contacts_for_pair(*source, *target, settings);
+
+    if (contacts.empty())
+        return nullptr;
+
+    // the largest: a triangulated face meets its neighbour in many pieces, the face itself the biggest
+    const auto largest = std::max_element(contacts.begin(), contacts.end(), [](const InteractionContactFace& x, const InteractionContactFace& y) { return x.polygon.area() < y.polygon.area(); });
+
+    return std::make_shared<InteractionContactFace>(*largest);
 }
 
 void WoodSession::compute_axis_contacts(double min_distance) {
