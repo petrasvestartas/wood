@@ -70,14 +70,14 @@ A wedge between two beams side by side, pinned across, the right beam moved off 
 
 ![Let-in plate](elements/element_joint_beam_rectangle_plate.png)
 
-A steel plate let into a column and the rib ending on it, four pins through all three.
+A plate let into a column and the rib ending on it, two pins in each, each through its member and the plate.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
 | `width` | 30 | the plate's thickness |
 | `back`, `front` | 220, 265 | how far the plate runs into the column and into the rib |
 | `height` | 250 | how far the plate runs down from the contact's top edge |
-| `pin_length`, `pin_radius` | , 25 | the four pins through column, rib and plate |
+| `pin_length`, `pin_radius` | , 25 | the two pins in the column and the two in the rib, each through the plate too |
 | `margin_x`, `margin_z` | 6.05, 3 | the pocket's clearance around the plate |
 | `overshoot`, `pin_sides` | 25, 16 | how far the holes run past the pins, their facets |
 

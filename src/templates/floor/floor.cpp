@@ -365,7 +365,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             2.0 * thicker / 3.0
         );
 
-        // column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
+        // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
         for (size_t k = 0; k < 2; k++) {
             const Contact& column = quarter_contacts.column_plates[k];
             quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
