@@ -230,10 +230,6 @@ ElementFeature contact_feature(const InteractionContact& contact) {
         outline = Polyline({axis->segment.start(), axis->segment.end()});
     }
 
-    // the interaction's own name when it has one, e.g. seam_wedge_0, so the target lists it by that name
-    if (!contact.name.empty())
-        name = contact.name;
-
     ElementFeature feature("contact", face, {outline}, name);
     feature.guid() = contact.guid();
 
