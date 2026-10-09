@@ -761,11 +761,16 @@ std::shared_ptr<Interaction> JointPlate::interaction(size_t target) const {
     return interaction_feature(static_cast<int>(target), 0);
 }
 
-/// The signed offsets of a run's points across its seam marker within its face: zero on the seam, one sign per side of it.
-static std::vector<double> seam_offsets(const std::vector<Point>& points, const Polyline& marker) {
+/// The direction across a seam within a run's face, the run's normal crossed with the seam: taken from one run of a design, it measures every run of it on one scale.
+static Vector seam_across(const Polyline& run, const Polyline& marker) {
 
     const Vector along = (marker[1] - marker[0]).normalized();
-    const Vector across = compute_newell(points).cross(along);
+    return compute_newell(run.get_points()).cross(along);
+}
+
+/// The signed offsets of a run's points from its seam marker along a direction across it: zero on the seam, one sign per side of it.
+static std::vector<double> seam_offsets(const std::vector<Point>& points, const Polyline& marker, const Vector& across) {
+
     std::vector<double> offsets;
     offsets.reserve(points.size());
 
@@ -775,11 +780,9 @@ static std::vector<double> seam_offsets(const std::vector<Point>& points, const 
     return offsets;
 }
 
-/// The pockets of a run that keeps to one side of its seam, one closed loop per stretch between two touches of the seam: a tiled key touches it between its teeth, and one loop around them all would run back along the seam over its own edges. Empty for a run that crosses the seam, the fingers of a plate.
-static std::vector<Polyline> seam_pockets(const Polyline& run, const Polyline& marker) {
+/// The side of the seam a run keeps to, the sign of its farthest offset: zero for a run that crosses the seam or lies on it.
+static int seam_side(const std::vector<double>& offsets) {
 
-    const std::vector<Point> points = run.get_points();
-    const std::vector<double> offsets = seam_offsets(points, marker);
     double lowest = 0.0;
     double highest = 0.0;
 
@@ -789,6 +792,21 @@ static std::vector<Polyline> seam_pockets(const Polyline& run, const Polyline& m
     }
 
     if (lowest < -Tolerance::APPROXIMATION && highest > Tolerance::APPROXIMATION)
+        return 0;
+    if (highest > Tolerance::APPROXIMATION)
+        return 1;
+    if (lowest < -Tolerance::APPROXIMATION)
+        return -1;
+    return 0;
+}
+
+/// The pockets of a run that keeps to one side of its seam, one closed loop per stretch between two touches of the seam: a tiled key touches it between its teeth, and one loop around them all would run back along the seam over its own edges. Empty for a run that crosses the seam, the fingers of a plate.
+static std::vector<Polyline> seam_pockets(const Polyline& run, const Polyline& marker) {
+
+    const std::vector<Point> points = run.get_points();
+    const std::vector<double> offsets = seam_offsets(points, marker, seam_across(run, marker));
+
+    if (seam_side(offsets) == 0)
         return {};
 
     std::vector<Polyline> pockets;
@@ -840,7 +858,7 @@ static std::vector<std::array<Polyline, 2>> side_pockets(const std::array<std::v
     return pairs;
 }
 
-/// The keys: an in-plane design whose male and female runs both stay on their own side of the seam leaves pockets in each plate that neither fills, so the joint is those loose pieces, every pocket closed along the seam. Fingers, tenons and holes belong to the plates, the solid cuts and drills to the session; none is drawn here.
+/// The keys: an in-plane design whose male and female runs each stay on their own side of the seam leaves pockets in each plate that neither fills, so the joint is those loose pieces, every pocket closed along the seam. Two runs on the same side are one plate's tongue in the other's notch, no loose piece; fingers, tenons and holes belong to the plates, the solid cuts and drills to the session; none is drawn here.
 std::vector<std::array<Polyline, 2>> JointPlate::bodies() const {
 
     std::vector<std::array<Polyline, 2>> result;
@@ -853,6 +871,16 @@ std::vector<std::array<Polyline, 2>> JointPlate::bodies() const {
         const std::vector<std::array<Polyline, 2>> female = side_pockets(connection.female_outlines, connection.female_fabrication_types);
 
         if (male.empty() || female.empty())
+            continue;
+
+        // both bottom runs on the male run's scale: a key's pockets lie on opposite sides of the seam
+        const Polyline& male_run = connection.male_outlines[0][0];
+        const Polyline& female_run = connection.female_outlines[0][0];
+        const Vector across = seam_across(male_run, connection.male_outlines[0][1]);
+        const int male_side = seam_side(seam_offsets(male_run.get_points(), connection.male_outlines[0][1], across));
+        const int female_side = seam_side(seam_offsets(female_run.get_points(), connection.female_outlines[0][1], across));
+
+        if (male_side == female_side)
             continue;
 
         result.insert(result.end(), male.begin(), male.end());

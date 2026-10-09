@@ -582,10 +582,13 @@ static void check_fit(const Built& built, Row& row) {
         return;
     }
 
+    // a member reaches into the other: what one lost the other fills, and no loose piece is left for the joint to own
     if (std::abs(taken_a - filled_by_b) > tolerance_a)
         fail(row, "C6", fmt::format("{} lost {:.6g} mm3, {} fills {:.6g} of it", a.name, taken_a, b.name, filled_by_b));
     if (std::abs(taken_b - filled_by_a) > tolerance_b)
         fail(row, "C6", fmt::format("{} lost {:.6g} mm3, {} fills {:.6g} of it", b.name, taken_b, a.name, filled_by_a));
+    if (row.own > tolerance_a + tolerance_b)
+        fail(row, "C6", fmt::format("the members fill each other, yet the joint owns a solid of {:.6g} mm3", row.own));
 }
 
 /// C7: a pin joint declares axes, and each member is bored along the axes inside it: a drill feature and a cylinder per axis, the hole volume pi r^2 L.
