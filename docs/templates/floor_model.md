@@ -512,7 +512,15 @@ The face polygon `compute_face_contact` finds between the two seam beams, stored
 <details>
 <summary><b>Connectors</b></summary>
 
-Each contact gets its connector: seam and oculus wedges, column plates with their cross lap, dowels; all built before any is added, so each sees uncut members.
+A connector is an element of its own, a `JointBeam`, built on one contact between two members, `a` and `b`. It holds three things: its own solids, the pockets it cuts into each member, and its dowels.
+
+```cpp
+std::vector<std::array<Polyline, 2>> parts;                // its own solids, blue in the viewer
+std::vector<std::vector<std::array<Polyline, 2>>> cutters; // per member, the pockets it cuts
+std::vector<Line> drill_lines;                             // its dowels, drilled through every member
+```
+
+`compute_connectors` builds every one from the contacts before any is added, so each sees uncut members; `add_connectors` then adds them, which cuts the pockets and drills the holes.
 
 ```cpp
 // connectors: per quarter its wedges, column plates with their cross lap and dowels, all built on uncut members
@@ -520,7 +528,98 @@ const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts)
 add_connectors(connectors);
 ```
 
-![The connectors of quarter 0](floor/984_floor_connectors.webp)
+![The connectors of quarter 0](floor/913_connectors_quarter.webp)
+
+<details>
+<summary>Seam wedge: a wedge sunk into two beams side by side</summary>
+
+```cpp
+connectors[q].seam_wedge = JointBeam::wedge(*c.seam_wedge.a, *c.seam_wedge.b, *c.seam_wedge.face, 1.5 * beam, 2.0 * beam / 3.0, outer_face);
+```
+
+It starts from the contact: the face the two seam beams share. Seen along the seam from the oculus end.
+
+![The contact](floor/900_connector_contact.webp)
+
+The part: one solid along the contact's top edge, a V in section, half in each beam; it stops `1.5 * size` short of the oculus end.
+
+![The wedge](floor/901_connector_wedge_part.webp)
+
+At the bay's outer face it runs flush.
+
+![The whole wedge](floor/914_connector_wedge_whole.webp)
+
+The dowels: across the contact, through the wedge into both beams.
+
+![The wedge's dowels](floor/902_connector_wedge_dowels.webp)
+
+Added, it cuts its pocket, half into each beam, and drills a hole per dowel.
+
+![The beams after the wedge](floor/903_connector_wedge_cuts.webp)
+
+</details>
+
+<details>
+<summary>Oculus wedge: the same between the oculus beam and its ring beam</summary>
+
+```cpp
+connectors[q].oculus_wedge = JointBeam::wedge(*c.oculus_wedge.a, *c.oculus_wedge.b, *c.oculus_wedge.face, 1.5 * thicker, 2.0 * thicker / 3.0);
+```
+
+![The contact](floor/904_connector_oculus_contact.webp)
+
+No end plane, so it stops `1.5 * size` short at both ends; `size` is the thicker of the two beams.
+
+![The oculus wedge](floor/905_connector_oculus_wedge.webp)
+
+</details>
+
+<details>
+<summary>Column plates: a plate from the column into each outer rib, crossing in the head</summary>
+
+```cpp
+connectors[q].column_plates[k] = JointBeam::rectangle_plate(*c.column_plates[k].a, *c.column_plates[k].b, *c.column_plates[k].face, guide.size_outer_ribs);
+connectors[q].cross_lap = JointBeam::cross_lap(*connectors[q].column_plates[0], *connectors[q].column_plates[1]);
+```
+
+The contact between the column head and the outer rib.
+
+![The contact](floor/906_connector_plate_contact.webp)
+
+A plate along the contact's normal, into both, with four dowels as long as the rib is thick.
+
+![The plate and its dowels](floor/907_connector_plate.webp)
+
+The rib after it: the plate's slot and the dowel holes.
+
+![The rib after the plate](floor/908_connector_plate_cuts.webp)
+
+The corner's two plates cross inside the head.
+
+![The two plates](floor/909_connector_plates_cross.webp)
+
+So `cross_lap` cuts a slot in each: the first from half their height up, the second from the bottom up to there.
+
+![The cross lap](floor/910_connector_cross_lap_slots.webp)
+
+</details>
+
+<details>
+<summary>Block dowels: dowels only, no part</summary>
+
+```cpp
+const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(*contact.a, *contact.b, *contact.face);
+```
+
+A column block against the rib beside it.
+
+![The contact](floor/911_connector_dowels_contact.webp)
+
+Four dowels at the corners of the contact inset by 50, half into each.
+
+![The dowels](floor/912_connector_dowels.webp)
+
+</details>
 
 <details>
 <summary>compute_connectors(contacts)</summary>
@@ -564,26 +663,6 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
     return connectors;
 }
 ```
-
-Seam wedge: `JointBeam::wedge` along the contact's top edge, `1.5 * size` in from the oculus end, flush with `outer_face`, the bay's outer face; a dowel per 320 mm and a pocket in each beam.
-
-![The seam wedge](floor/926_connector_seam_wedge.webp)
-
-Oculus wedge: the same on the oculus beam and its ring beam, no end plane, so both ends stop `1.5 * size` short.
-
-![The oculus wedge](floor/927_connector_oculus_wedge.webp)
-
-Column plate: `JointBeam::rectangle_plate` along the contact's horizontal normal, four dowels `size_outer_ribs` long, its box the pocket in both.
-
-![The column plate](floor/928_connector_column_plate.webp)
-
-The two plates of a corner cross: `JointBeam::cross_lap(a, b)` slots `a` from half their common height up and `b` from the bottom up to there.
-
-![The cross lap](floor/930_connector_cross_lap.webp)
-
-Block dowels: `JointBeam::dowels`, the contact inset by 50, a dowel at each of its four extreme corners, half into each member.
-
-![The block dowels](floor/929_connector_block_dowels.webp)
 
 </details>
 
