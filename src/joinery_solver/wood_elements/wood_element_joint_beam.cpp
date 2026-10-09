@@ -483,22 +483,8 @@ static std::array<Polyline, 2> frame_box(
     return loops;
 }
 
-/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four pins across it margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with the members; it cuts its box, raised by overshoot, and the pin holes out of both; aimed at the column then the rib.
-std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
-    const Element& column,
-    const Element& rib,
-    const InteractionContactFace& contact,
-    double pin_length,
-    double width,
-    double back,
-    double front,
-    double height,
-    double pin_radius,
-    double margin_x,
-    double margin_z,
-    double overshoot,
-    int pin_sides
-) {
+/// The frame of a plate let into two members: origin on the contact's top edge, x along the horizontal contact normal toward the rib, y across, z up.
+static std::pair<Point, std::array<Vector, 3>> plate_frame(const Element& rib, const InteractionContactFace& contact) {
 
     std::vector<Point> points = contact.polygon.get_points();
 
@@ -520,40 +506,81 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
         x = -x;
 
     const Vector z(0.0, 0.0, 1.0);
-    const std::array<Vector, 3> axes = {x, z.cross(x).normalized(), z};
-    const Point origin = top_origin(points);
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = connector_name(contact, "rectangle_plate");
-    joint->is_visible = true;
-    joint->targets = {column.guid(), rib.guid()};
-    joint->parts = {
-        frame_box(
-            origin,
-            axes,
-            -back,
-            front,
-            width,
-            -height,
-            0.0
-        )
-    };
+    return {top_origin(points), {x, z.cross(x).normalized(), z}};
+}
 
-    const std::array<Polyline, 2> pocket = frame_box(
+/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge; named after the contact.
+std::shared_ptr<Plate> JointBeam::let_in_plate(
+    const Element& rib,
+    const InteractionContactFace& contact,
+    double width,
+    double back,
+    double front,
+    double height
+) {
+
+    const auto [origin, axes] = plate_frame(rib, contact);
+    const std::array<Polyline, 2> loops = frame_box(
         origin,
         axes,
         -back,
         front,
         width,
         -height,
-        overshoot
+        0.0
     );
-    joint->cutters = {{pocket}, {pocket}};
+    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[0], loops[1], contact.name.empty() ? "let_in_plate" : contact.name);
+
+    return plate;
+}
+
+/// The plate let into the column and the rib: its box raised by overshoot cut out of both, four pins across it margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with the members, bored through all three; aimed at the column, the rib, then the plate.
+std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
+    const Element& column,
+    const Element& rib,
+    const Plate& plate,
+    const InteractionContactFace& contact,
+    double pin_length,
+    double pin_radius,
+    double margin_x,
+    double margin_z,
+    double overshoot,
+    int pin_sides
+) {
+
+    // the plate's extent in the frame
+    const auto [origin, axes] = plate_frame(rib, contact);
+    std::array<double, 3> low = {1e300, 1e300, 1e300};
+    std::array<double, 3> high = {-1e300, -1e300, -1e300};
+
+    for (const Polyline& loop : {plate.polylines[0], plate.polylines[1]})
+        for (const Point& point : loop.get_points())
+            for (size_t i = 0; i < 3; i++) {
+                low[i] = std::min(low[i], (point - origin).dot(axes[i]));
+                high[i] = std::max(high[i], (point - origin).dot(axes[i]));
+            }
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = connector_name(contact, "rectangle_plate");
+    joint->is_visible = true;
+    joint->targets = {column.guid(), rib.guid(), plate.guid()};
+
+    const std::array<Polyline, 2> pocket = frame_box(
+        origin,
+        axes,
+        low[0],
+        high[0],
+        high[1] - low[1],
+        low[2],
+        high[2] + overshoot
+    );
+    joint->cutters = {{pocket}, {pocket}, {}};
 
     const double half = 0.5 * pin_length;
 
-    for (const double station : {-back + margin_x * pin_radius, front - margin_x * pin_radius})
-        for (const double level : {-margin_z * pin_radius, -height + margin_z * pin_radius})
+    for (const double station : {low[0] + margin_x * pin_radius, high[0] - margin_x * pin_radius})
+        for (const double level : {high[2] - margin_z * pin_radius, low[2] + margin_z * pin_radius})
             joint->drill_lines.push_back(
                 flush_pin(
                     Line::from_points(
@@ -991,113 +1018,6 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
 
     joint->line_radius = radius;
     joint->chord_tolerance = sides_tolerance(radius, sides);
-
-    return joint;
-}
-
-/// The frame of a box part: origin at its centre, x along the first side of its first loop, z along the last, y from the first loop to the second; the loops frame_box makes.
-static std::pair<Point, std::array<Vector, 3>> box_frame(const std::array<Polyline, 2>& box) {
-
-    if (box[0].point_count() != 5 || box[1].point_count() != 5)
-        throw std::invalid_argument("A cross lap needs box parts of four corners");
-
-    std::vector<Point> near = box[0].get_points();
-    near.pop_back();
-    std::vector<Point> far = box[1].get_points();
-    far.pop_back();
-    std::vector<Point> corners = near;
-    corners.insert(corners.end(), far.begin(), far.end());
-
-    const Vector x = (near[1] - near[0]).normalized();
-    const Vector z = (near[3] - near[0]).normalized();
-    const Vector y = (Point::centroid(far) - Point::centroid(near)).normalized();
-
-    return {Point::centroid(corners), {x, y, z}};
-}
-
-/// The extent of the points along the frame's axis: lowest and highest coordinate.
-static std::array<double, 2> extent(const std::vector<Point>& points, const Point& origin, const Vector& axis) {
-
-    std::array<double, 2> range = {1e300, -1e300};
-
-    for (const Point& point : points) {
-        range[0] = std::min(range[0], (point - origin).dot(axis));
-        range[1] = std::max(range[1], (point - origin).dot(axis));
-    }
-
-    return range;
-}
-
-/// The eight corners of a box part.
-static std::vector<Point> box_corners(const std::array<Polyline, 2>& box) {
-
-    std::vector<Point> corners = box[0].get_points();
-    corners.pop_back();
-    const std::vector<Point> far = box[1].get_points();
-    corners.insert(corners.end(), far.begin(), far.end() - 1);
-
-    return corners;
-}
-
-/// The cross lap: each slot exactly as wide as the other part's footprint along the slot, so the parts fit tight, and margin beyond the own part's thickness and past its top or bottom so the cut is through; stored on the connectors as their solid cuts when added; aimed at a then b, hidden, a relation rather than a part.
-std::shared_ptr<JointBeam> JointBeam::cross_lap(
-    const JointBeam& a,
-    const JointBeam& b,
-    double share,
-    double margin
-) {
-
-    if (a.parts.size() != 1 || b.parts.size() != 1)
-        throw std::invalid_argument("A cross lap joins two connectors of one box part each");
-
-    const std::pair<Point, std::array<Vector, 3>> frame_a = box_frame(a.parts[0]);
-    const std::pair<Point, std::array<Vector, 3>> frame_b = box_frame(b.parts[0]);
-    const std::vector<Point> corners_a = box_corners(a.parts[0]);
-    const std::vector<Point> corners_b = box_corners(b.parts[0]);
-
-    const std::array<double, 2> z_a = extent(corners_a, frame_a.first, frame_a.second[2]);
-    const std::array<double, 2> z_b = extent(corners_b, frame_a.first, frame_a.second[2]);
-    const double low = std::max(z_a[0], z_b[0]);
-    const double high = std::min(z_a[1], z_b[1]);
-
-    if (high - low <= 0.0)
-        throw std::invalid_argument("Cross lap parts do not overlap in height");
-
-    const double lap = low + share * (high - low);
-    const std::array<double, 2> across_a = extent(corners_b, frame_a.first, frame_a.second[0]);
-    const std::array<double, 2> across_b = extent(corners_a, frame_b.first, frame_b.second[0]);
-    const double width_a = extent(corners_a, frame_a.first, frame_a.second[1])[1] * 2.0 + 2.0 * margin;
-    const double width_b = extent(corners_b, frame_b.first, frame_b.second[1])[1] * 2.0 + 2.0 * margin;
-    const double lap_b = (frame_a.first - frame_b.first).dot(frame_b.second[2]) + lap;
-    const std::array<double, 2> z_b_own = extent(corners_b, frame_b.first, frame_b.second[2]);
-
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "cross_lap";
-    joint->targets = {a.guid(), b.guid()};
-    joint->cutters = {
-        {
-            frame_box(
-                frame_a.first,
-                frame_a.second,
-                across_a[0],
-                across_a[1],
-                width_a,
-                lap,
-                z_a[1] + margin
-            )
-        },
-        {
-            frame_box(
-                frame_b.first,
-                frame_b.second,
-                across_b[0],
-                across_b[1],
-                width_b,
-                z_b_own[0] - margin,
-                lap_b
-            )
-        },
-    };
 
     return joint;
 }

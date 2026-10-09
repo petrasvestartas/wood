@@ -49,7 +49,8 @@ floor
 │   ├── wedges_0                   Plate wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              BeamVariable inner_beams_<i>_0: seam 0, the oculus edge, seam 1
 │   ├── column_0                   Column column_0 on Support support_0
-│   └── connectors_0               JointBeam connector_<contact name>, connector_cross_lap_0
+│   └── connectors_0               JointBeam connector_<contact name>, Plate column_plate_0_<k>,
+│                                  JointPlate connector_cross_lap_0
 └── oculus
     ├── ring_beams                 BeamVariable oculus_<q>, four
     ├── bottom_wedges              Plate oculus_<4 + q>, under ring beam q, four
@@ -91,19 +92,20 @@ struct QuarterContacts {
 /// The connectors of one quarter, every one built from its contact before any is added.
 ///
 /// - `seam_wedge`, `oculus_wedge`: a wedge each.
-/// - `column_plates[2]`: a plate into outer rib k.
-/// - `cross_lap`: the slots where the two plates cross.
+/// - `column_plates[2]`, `column_plate_pins[2]`: a plate on outer rib k and the pocket and pins that let it in.
+/// - `cross_lap`: the half lap where the two plates cross.
 /// - `block_pins[3][2]`: pins per block and side.
 /// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: two pins per butt joint.
 struct QuarterConnectors {
-    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<n>.
-    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<n>.
-    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<n>, one per outer rib.
-    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<n>, where the two column plates cross.
-    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<n>, per block and side.
-    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_<n>, seam beam k into the outer rib ending on it.
-    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_<n>, seam beam k into the oculus beam.
-    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_<n>, the oculus beam into inner rib k.
+    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
+    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
+    std::array<std::shared_ptr<Plate>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib and its four pins.
+    std::shared_ptr<JointPlate> cross_lap; // connector_cross_lap_<q>, the cr_c_ip half lap where the two column plates cross.
+    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
+    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
+    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
+    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
 };
 ```
 
@@ -137,7 +139,7 @@ The wedge end on: `WEDGE_PROFILE` between the two beams, a pocket `2 * size / 3`
 
 ![The wedge end on](floor/994_parameters_wedge_section.webp)
 
-A column plate's pins are `size_outer_ribs` long, through the rib; the two plates of a corner cross in their `cross_lap`.
+A column plate is a `Plate`; its four pins are `size_outer_ribs` long, through the rib. The two plates of a corner cross in a `cr_c_ip` half lap, `cross_lap`.
 
 ![The column plates in plan](floor/995_parameters_plate.webp)
 
@@ -601,19 +603,40 @@ No end plane, so it stops `1.5 * size` short at both ends; `size` is the thicker
 <summary>Column plates: a plate from the column into each outer rib, crossing in the head</summary>
 
 ```cpp
-connectors[q].column_plates[k] = JointBeam::rectangle_plate(*c.column_plates[k].a, *c.column_plates[k].b, *c.column_plates[k].face, guide.size_outer_ribs);
-connectors[q].cross_lap = JointBeam::cross_lap(*connectors[q].column_plates[0], *connectors[q].column_plates[1]);
+// column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
+for (size_t k = 0; k < 2; k++) {
+    const Contact& column = quarter_contacts.column_plates[k];
+    quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
+    quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
+        *column.a,
+        *column.b,
+        *quarter_connectors.column_plates[k],
+        *column.face,
+        guide.size_outer_ribs
+    );
+}
+
+// cross lap: the half lap where the two column plates cross, a plate joint merged into both outlines
+const std::array<std::shared_ptr<Plate>, 2>& plates = quarter_connectors.column_plates;
+const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[0], plates[1]);
+
+if (!crossing)
+    throw std::runtime_error(fmt::format("quarter {}: the two column plates do not cross", q));
+
+quarter_connectors.cross_lap = JointPlate::cr_c_ip_0();
+quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
+quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 ```
 
 The contact between the column head and the outer rib.
 
 ![The contact](floor/906_connector_plate_contact.webp)
 
-A plate along the contact's normal, into both, with four pins as long as the rib is thick.
+`JointBeam::let_in_plate` makes the plate, a `Plate` named after its contact. `JointBeam::rectangle_plate` lets it into the column and the rib: a pocket in both and four pins as long as the rib is thick, bored through all three.
 
 ![The plate and its pins](floor/907_connector_plate.webp)
 
-The rib after it: the plate's slot and the pin holes.
+The rib after it: the plate's pocket and the pin holes.
 
 ![The rib after the plate](floor/908_connector_plate_cuts.webp)
 
@@ -621,9 +644,7 @@ The corner's two plates cross inside the head.
 
 ![The two plates](floor/909_connector_plates_cross.webp)
 
-So `cross_lap` cuts a slot in each: the first from half their height up, the second from the bottom up to there.
-
-![The cross lap](floor/910_connector_cross_lap_slots.webp)
+`compute_cross_contact` finds where they cross. `JointPlate::cr_c_ip_0` is the half lap there, merged into both plates' outlines when it is added.
 
 </details>
 
@@ -683,18 +704,29 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             2.0 * thicker / 3.0
         );
 
-        // column plates: a rectangle plate as wide as the outer rib on each, and the cross lap where the two cross
+        // column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
         for (size_t k = 0; k < 2; k++) {
-            const Contact& plate = quarter_contacts.column_plates[k];
-            quarter_connectors.column_plates[k] = JointBeam::rectangle_plate(
-                *plate.a,
-                *plate.b,
-                *plate.face,
+            const Contact& column = quarter_contacts.column_plates[k];
+            quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
+            quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
+                *column.a,
+                *column.b,
+                *quarter_connectors.column_plates[k],
+                *column.face,
                 guide.size_outer_ribs
             );
         }
 
-        quarter_connectors.cross_lap = JointBeam::cross_lap(*quarter_connectors.column_plates[0], *quarter_connectors.column_plates[1]);
+        // cross lap: the half lap where the two column plates cross, a plate joint merged into both outlines
+        const std::array<std::shared_ptr<Plate>, 2>& plates = quarter_connectors.column_plates;
+        const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[0], plates[1]);
+
+        if (!crossing)
+            throw std::runtime_error(fmt::format("quarter {}: the two column plates do not cross", q));
+
+        quarter_connectors.cross_lap = JointPlate::cr_c_ip_0();
+        quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
+        quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 
         // block pins: pins between each column block and the rib either side
         for (size_t b = 0; b < 3; b++)
@@ -746,27 +778,6 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         }
     }
 
-    // the names, numbered kind by kind, quarter by quarter, the order they are added in
-    for (size_t q = 0; q < 4; q++) {
-        QuarterConnectors& quarter_connectors = connectors[q];
-        quarter_connectors.seam_wedge->name = fmt::format("connector_seam_wedge_{}", q);
-        quarter_connectors.oculus_wedge->name = fmt::format("connector_oculus_wedge_{}", q);
-        quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
-
-        for (size_t k = 0; k < 2; k++)
-            quarter_connectors.column_plates[k]->name = fmt::format("connector_column_plate_{}", 2 * q + k);
-
-        for (size_t b = 0; b < 3; b++)
-            for (size_t side = 0; side < 2; side++)
-                quarter_connectors.block_pins[b][side]->name = fmt::format("connector_block_pins_{}", 6 * q + 2 * b + side);
-
-        for (size_t k = 0; k < 2; k++) {
-            quarter_connectors.outer_rib_seam_beam[k]->name = fmt::format("connector_pins_{}", 2 * q + k);
-            quarter_connectors.seam_beam_oculus_beam[k]->name = fmt::format("connector_pins_{}", 8 + 2 * q + k);
-            quarter_connectors.oculus_beam_inner_rib[k]->name = fmt::format("connector_pins_{}", 16 + 2 * q + k);
-        }
-    }
-
     return connectors;
 }
 ```
@@ -797,14 +808,17 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
         add_interaction(wedge, oculus.b, wedge->interaction(1));
     }
 
-    // column plates: into the column and the outer rib
+    // column plates: each plate added, then let into the column and the outer rib, the pins bored through it too
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<JointBeam>& plate = connectors[q].column_plates[k];
+            const std::shared_ptr<Plate>& plate = connectors[q].column_plates[k];
+            const std::shared_ptr<JointBeam>& pins = connectors[q].column_plate_pins[k];
             const Contact& column = contacts[q].column_plates[k];
             add(plate, connectors_group(q));
-            add_interaction(plate, column.a, plate->interaction(0));
-            add_interaction(plate, column.b, plate->interaction(1));
+            add(pins, connectors_group(q));
+            add_interaction(pins, column.a, pins->interaction(0));
+            add_interaction(pins, column.b, pins->interaction(1));
+            add_interaction(pins, plate, pins->interaction(2));
         }
 
     // block pins: into the rib and the column block
@@ -848,10 +862,10 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
             add_interaction(pins, joint.b, pins->interaction(1));
         }
 
-    // cross laps, last: a slot into each of the two column plates they join
+    // cross laps, last: the half lap merged into the outlines of the two column plates
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointBeam>& lap = connectors[q].cross_lap;
-        const std::array<std::shared_ptr<JointBeam>, 2>& plates = connectors[q].column_plates;
+        const std::shared_ptr<JointPlate>& lap = connectors[q].cross_lap;
+        const std::array<std::shared_ptr<Plate>, 2>& plates = connectors[q].column_plates;
         add(lap, connectors_group(q));
         add_interaction(lap, plates[0], lap->interaction(0));
         add_interaction(lap, plates[1], lap->interaction(1));

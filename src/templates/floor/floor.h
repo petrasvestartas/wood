@@ -43,15 +43,16 @@ struct QuarterContacts {
 /// The connectors of one quarter, every one built from its contact before any is added.
 ///
 /// - `seam_wedge`, `oculus_wedge`: a wedge each.
-/// - `column_plates[2]`: a plate into outer rib k.
-/// - `cross_lap`: the slots where the two plates cross.
+/// - `column_plates[2]`, `column_plate_pins[2]`: a plate on outer rib k and the pocket and pins that let it in.
+/// - `cross_lap`: the half lap where the two plates cross.
 /// - `block_pins[3][2]`: pins per block and side.
 /// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: two pins per butt joint.
 struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
-    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<q>_<k>, one per outer rib.
-    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<q>, where the two column plates cross.
+    std::array<std::shared_ptr<Plate>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib and its four pins.
+    std::shared_ptr<JointPlate> cross_lap; // connector_cross_lap_<q>, the cr_c_ip half lap where the two column plates cross.
     std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
     std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
     std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.

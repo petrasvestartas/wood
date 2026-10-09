@@ -119,6 +119,9 @@ public:
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
 
+    /// The crossing of two plates that pass through each other, nullptr when they do not cross within angle_tol degrees.
+    std::shared_ptr<InteractionContactCross> compute_cross_contact(const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol = 30.0) const;
+
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
     void compute_lines_contacts(double tolerance = -1.0) { compute_line_contacts(tolerance); }

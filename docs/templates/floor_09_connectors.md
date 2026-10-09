@@ -94,19 +94,19 @@ Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:332-335]
 
 <span style="color:#2196EA">■ built</span> `column_plate_0_0`   <span style="color:#E8478B">■ variable</span> the frame's `x` and `z`   <span style="color:#A3A3A3">■ context</span> the column   <span style="color:#737373">■ input</span> the outer rib's loops
 
-The column plate block calls `JointBeam::rectangle_plate(column, rib, contact, pin_length)` with the rib's thickness as the pin length; its frame sits at the middle of the contact's top, x the contact normal made horizontal and turned towards the rib, z up.
+The column plate's frame sits at the middle of the contact's top: x the contact normal made horizontal and turned towards the rib, z up. `JointBeam::let_in_plate` and `JointBeam::rectangle_plate` both build on it.
 
-Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:337-338](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L337-L338); `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:321-344](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L321-L344); `top_origin`, [wood_element_joint_beam.cpp:283-305](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L283-L305).
+Code: `Floor::compute_connectors`, `JointBeam::let_in_plate`, `plate_frame` and `top_origin` in `wood_element_joint_beam.cpp`.
 
 ## 260. The plate
 
 ![](floor/260_plate_box.webp)
 
-<span style="color:#2196EA">■ built</span> `parts[0]`   <span style="color:#737373">■ input</span> the outer rib's loops
+<span style="color:#2196EA">■ built</span> `column_plate_0_0`   <span style="color:#737373">■ input</span> the outer rib's loops
 
-The plate is a box 220 back into the column and 265 forward into the rib, 30 wide and 250 down from the top.
+`JointBeam::let_in_plate(rib, contact)` makes the plate, a `Plate` named after its contact: 220 back into the column, 265 forward into the rib, 30 wide and 250 down from the top.
 
-Code: `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:346-350](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L346-L350); `frame_box`, [wood_element_joint_beam.cpp:308-318](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L308-L318).
+Code: `JointBeam::let_in_plate` and `frame_box` in `wood_element_joint_beam.cpp`.
 
 ## 261. The plate's pins and pocket
 
@@ -114,19 +114,19 @@ Code: `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:346-350](https:
 
 <span style="color:#2196EA">■ built</span> `drill_lines`   <span style="color:#F2CC0C">■ result</span> `cutters[0]`, the pocket   <span style="color:#737373">■ input</span> the outer rib's loops
 
-Four pins of radius 25 cross the plate near its corners, flush with column and rib, and the plate's box raised 25 above the top is the pocket cut out of both.
+`JointBeam::rectangle_plate(column, rib, plate, contact, pin_length)` lets the plate in: the plate's box raised 25 above its top is the pocket cut out of column and rib. Four pins of radius 25 cross near its corners, flush with column and rib, bored through all three.
 
-Code: `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:352-363](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L352-L363).
+Code: `JointBeam::rectangle_plate` in `wood_element_joint_beam.cpp`; `Floor::add_connectors` adds it with one `add_interaction` per target: the column, the rib, the plate.
 
 ## 262. The cross lap
 
 ![](floor/262_cross_lap.webp)
 
-<span style="color:#E8478B">■ a</span> `connector_0_part`   <span style="color:#F2CC0C">■ b</span> `connector_1_part`   <span style="color:#A3A3A3">■ context</span> the column
+<span style="color:#E8478B">■ a</span> `column_plate_0_0`   <span style="color:#F2CC0C">■ b</span> `column_plate_0_1`   <span style="color:#A3A3A3">■ context</span> the column
 
-The two plates of a column cross inside its head, so `add_connectors` adds `JointBeam::cross_lap(a, b)`, which slots a from the top down and b from the bottom up, each half way, and cuts the slots out of the plate parts.
+The two plates of a column cross inside its head. `compute_cross_contact(plates[0], plates[1])` finds the crossing; `JointPlate::cr_c_ip_0()`, oriented on it, is the half lap. `add_connectors` adds it last, and each `add_interaction(lap, plate, lap->interaction(i))` merges the lap into that plate's outlines.
 
-Code: `Floor::add_connectors`, [floor.cpp:302-308](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L302-L308); `JointBeam::cross_lap`, [wood_element_joint_beam.cpp:575-610](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L575-L610).
+Code: `Floor::compute_connectors`, `Floor::add_connectors`, `WoodSession::compute_cross_contact`.
 
 ## 263. The block pins
 

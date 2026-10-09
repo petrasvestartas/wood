@@ -28,6 +28,7 @@ const wood_floor::FloorGuide& square_guide() {
 const double EXACT_SUPPORT = 500671.261678; // the support's exact BRep volume, cylinders and hexagons
 const double CARVED_OUTER_RIB = 98407909.203913; // an outer rib of the square carved by every connector of the floor: its rectangle plate pocket and pins, and the block pins
 const double HEAD_CUT = 34771221.351479; // what the six head cuts take from the column
+const double PLATE_POCKETS = 3888727.411870; // what the two column plates' pockets and pin bores take from the column in the floor
 
 /// The exact bores of a BRep: its rational surfaces, cylinders.
 size_t count_bores(const BRep& brep) {
@@ -58,16 +59,10 @@ std::shared_ptr<T> named(const WoodSession& scene, const std::string& name) {
     return element;
 }
 
-/// The connectors of one kind, `connector_<kind>_<place>`; the column plates' also the corners' cross laps after the plates.
+/// The connectors of one kind, `connector_<kind>_<place>`.
 std::vector<std::shared_ptr<JointBeam>> connectors_of(const WoodSession& scene, const std::string& kind) {
 
-    std::vector<std::shared_ptr<JointBeam>> connectors = scene.get_elements_placed<JointBeam>("connector_" + kind);
-
-    if (kind == "column_plate")
-        for (const std::shared_ptr<JointBeam>& lap : scene.get_elements_placed<JointBeam>("connector_cross_lap"))
-            connectors.push_back(lap);
-
-    return connectors;
+    return scene.get_elements_placed<JointBeam>("connector_" + kind);
 }
 
 /// Every pin connector of the floor: the outer rib, seam beam and inner rib butt joints.
@@ -242,7 +237,7 @@ void check_support() {
     check(std::abs(compute_volume(stock_with_head) - glued) <= 1e-9 * glued && stock_with_head.is_closed(), fmt::format("the shaft and its two glued blocks one closed stock of {:.6f}, not {:.6f}", compute_volume(stock_with_head), glued));
 
     const double head = glued - removed - compute_volume(shaft->model_geometry_mesh());
-    check(std::abs(head - HEAD_CUT) <= 1e-6 * HEAD_CUT, fmt::format("head cuts remove {:.6f}", head));
+    check(std::abs(head - HEAD_CUT - PLATE_POCKETS) <= 1e-6 * HEAD_CUT, fmt::format("head cuts and plate pockets remove {:.6f}", head));
     size_t adds = 0;
     size_t subtracts = 0;
 
@@ -256,7 +251,7 @@ void check_support() {
             if (const std::shared_ptr<InteractionFeatureSolid> feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
                 subtracts += feature->operation == SolidOperation::subtract;
 
-    check(adds == 2 && subtracts == 6 && shaft->solid_features.size() == 9 && carved.get_elements<Joint>().size() == 1, fmt::format("two head blocks add and six cutter plates subtract through interactions, the support one more: {} adds, {} subtracts, {} hosted", adds, subtracts, shaft->solid_features.size()));
+    check(adds == 2 && subtracts == 6 && shaft->solid_features.size() == 11 && carved.get_elements<Joint>().size() == 1, fmt::format("two head blocks add and six cutter plates subtract through interactions, the support and the two plate pockets three more: {} adds, {} subtracts, {} hosted", adds, subtracts, shaft->solid_features.size()));
     check(shaft->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -395,7 +390,7 @@ void check_skewed_bays() {
     const wood_floor::FloorGuide guide({Point(0.0, 0.0, 0.0), Point(6000.0, 0.0, 0.0), Point(6600.0, 6000.0, 0.0), Point(0.0, 6000.0, 0.0)});
     const wood_floor::Floor scene(guide, "skewed");
     const size_t connectors = all_connectors(scene).size();
-    check(connectors == 44, "the skewed bay's 44 connectors, not " + std::to_string(connectors));
+    check(connectors == 40, "the skewed bay's 40 connectors, not " + std::to_string(connectors));
 
     const wood_floor::FloorGuide small({Point(0.0, 0.0, 0.0), Point(4000.0, 0.0, 0.0), Point(4400.0, 3000.0, 0.0), Point(0.0, 3000.0, 0.0)});
     size_t beds = 0;
@@ -414,7 +409,7 @@ void check_skewed_bays() {
 void check_connector_calls() {
 
     const wood_floor::Floor floor(square_guide());
-    check(connectors_of(floor, "column_plate").size() == 12, "the columns' plates and cross laps");
+    check(connectors_of(floor, "column_plate").size() == 8 && floor.get_elements_placed<JointPlate>("connector_cross_lap").size() == 4, "the columns' eight plate joints and four cross laps");
 
     const std::vector<std::shared_ptr<JointBeam>> connectors = all_connectors(floor);
     std::set<std::string> names;
@@ -981,46 +976,25 @@ void check_quarter_pins() {
     std::cout << fmt::format("floor_elements: {} pin sets of {} pins on the wedge blocks of the quarters, every pin half in each member, every drilled member exact, round trip pass", sets.size(), pins) << std::endl;
 }
 
-/// The two plates of every column half-lapped by a cross lap: each slotted part an exact solid with its four pin bores, the two touching without overlap.
-void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& laps) {
+/// The two plates of every column half-lapped by a cr_c_ip cross lap merged into their outlines: each plate closed, the two touching without overlap, the same volume taken out of both.
+void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_ptr<JointPlate>>& laps) {
 
-    for (const std::shared_ptr<JointBeam>& lap : laps) {
-        const std::shared_ptr<JointBeam> a = scene.get_element<JointBeam>(lap->targets[0]);
-        const std::shared_ptr<JointBeam> b = scene.get_element<JointBeam>(lap->targets[1]);
-        check(a->solid_features.size() == 1 && b->solid_features.size() == 1, "each plate carries its slot");
-        const Mesh slotted_a = apply_solid_features(a->part_mesh(0), a->solid_features, false);
-        const Mesh slotted_b = apply_solid_features(b->part_mesh(0), b->solid_features, false);
+    for (const std::shared_ptr<JointPlate>& lap : laps) {
+        const std::shared_ptr<Plate> a = scene.get_element<Plate>(lap->targets[0]);
+        const std::shared_ptr<Plate> b = scene.get_element<Plate>(lap->targets[1]);
+        const Mesh& lapped_a = a->model_geometry_mesh();
+        const Mesh& lapped_b = b->model_geometry_mesh();
+        check(lapped_a.is_closed() && lapped_b.is_closed(), lap->name + " both plates closed");
         const Mesh overlap = solid_boolean(
-            slotted_a,
-            slotted_b,
+            lapped_a,
+            lapped_b,
             SolidOperation::intersect,
             1e-7
         );
-        check(!overlap.number_of_faces() || compute_volume(overlap) < 1e-6, "the slotted plates do not overlap");
-        const double sum = compute_volume(slotted_a) + compute_volume(slotted_b);
-        const Mesh united = solid_boolean(
-            slotted_a,
-            slotted_b,
-            SolidOperation::add,
-            1e-7
-        );
-        check(std::abs(sum - compute_volume(united)) < 1e-9 * sum, "the slotted plates unite to their sum, touching without overlap");
-        check(std::abs(compute_volume(a->part_mesh(0)) - compute_volume(slotted_a) - 30.0 * 30.0 * 125.0) < 1e-3, "a slot 30 wide and 125 deep out of the first plate");
-        check(std::abs(compute_volume(b->part_mesh(0)) - compute_volume(slotted_b) - 30.0 * 30.0 * 125.0) < 1e-3, "a slot 30 wide and 125 deep out of the second plate");
-
-        for (const std::shared_ptr<JointBeam>& plate : {a, b}) {
-            const BRep part = plate->part_brep(0);
-            check(part.is_solid() && count_bores(part) == 4, "a slotted plate exact with four pin bores");
-            check_nested(
-                scene,
-                *plate,
-                1,
-                4
-            );
-            const std::shared_ptr<Joint> child = children_of(scene, *plate).front();
-            const BRep& carved = child->model_geometry_brep();
-            check(carved.is_solid() && count_bores(carved) == 4 && std::abs(carved.volume() - part.volume()) < 1e-6 * part.volume(), "the plate child carries the slot and the four bores");
-        }
+        check(!overlap.number_of_faces() || std::abs(compute_volume(overlap)) < 1e-2, lap->name + " the lapped plates do not overlap");
+        const double taken_a = compute_volume(a->element_geometry_mesh()) - compute_volume(lapped_a);
+        const double taken_b = compute_volume(b->element_geometry_mesh()) - compute_volume(lapped_b);
+        check(taken_a > 0.0 && std::abs(taken_a - taken_b) < 1e-6 * taken_a, fmt::format("{} the same {:.3f} out of both plates", lap->name, taken_a));
     }
 }
 
@@ -1029,33 +1003,33 @@ void check_rectangle_plates() {
 
     wood_floor::Floor scene(square_guide(), "rectangle_plates");
     const std::vector<std::shared_ptr<BeamVariable>> ribs = outer_ribs(scene);
-    const std::vector<std::shared_ptr<JointBeam>> joints = connectors_of(scene, "column_plate");
-    check(joints.size() == 12, "eight rectangle plates and four cross laps, not " + std::to_string(joints.size()));
-    const std::vector<std::shared_ptr<JointBeam>> plates(joints.begin(), joints.begin() + 8);
-    const std::vector<std::shared_ptr<JointBeam>> laps(joints.begin() + 8, joints.end());
+    const std::vector<std::shared_ptr<JointBeam>> plates = connectors_of(scene, "column_plate");
+    const std::vector<std::shared_ptr<JointPlate>> laps = scene.get_elements_placed<JointPlate>("connector_cross_lap");
 
     for (const std::shared_ptr<BeamVariable>& rib : ribs)
         check(std::abs(compute_volume(rib->model_geometry_mesh()) - CARVED_OUTER_RIB) <= 1e-9 * CARVED_OUTER_RIB, fmt::format("carved outer rib {} {:.6f}", rib->name, compute_volume(rib->model_geometry_mesh())));
 
-    check(laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_column_plate_3_1", "four cross laps after the eight plates");
+    check(plates.size() == 8 && laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_column_plate_3_1", "eight plate joints and four cross laps");
     check_cross_laps(scene, laps);
 
     for (const std::shared_ptr<Column>& column : scene.columns())
         check(column->model_geometry_brep().is_solid() && count_bores(column->model_geometry_brep()) == 11, "the column exact with its eight pin and three pin bores");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
-    size_t slotted = 0;
 
-    for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>())
-        if (!std::dynamic_pointer_cast<ConnectorPart>(joint))
-            slotted += joint->solid_features.size();
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            const std::string name = fmt::format("column_plate_{}_{}", q, k);
+            const double before = compute_volume(named<Plate>(scene, name)->model_geometry_mesh());
+            const double after = compute_volume(named<Plate>(back, name)->model_geometry_mesh());
+            check(std::abs(before - after) < 1e-6 * before, name + " lapped and bored the same after a round trip");
+        }
 
-    check(slotted == 8, "the slots round trip on the plates");
     const size_t parts = scene.get_elements<ConnectorPart>().size();
     const size_t pins = scene.get_elements<Pin>().size();
-    check(parts >= 8 && pins >= 32 && back.get_elements<ConnectorPart>().size() == parts && back.get_elements<Pin>().size() == pins, "the plate parts and the pins, among every connector's, round trip as children");
+    check(pins >= 32 && back.get_elements<ConnectorPart>().size() == parts && back.get_elements<Pin>().size() == pins, "the plate parts and the pins, among every connector's, round trip as children");
 
-    std::cout << "floor_elements: " << plates.size() << " rectangle plates half-lapped by " << laps.size() << " cross laps, drilled and exact, carved outer ribs at their pinned volume, round trip pass" << std::endl;
+    std::cout << "floor_elements: " << plates.size() << " column plates let in and half-lapped by " << laps.size() << " cross laps, drilled and exact, carved outer ribs at their pinned volume, round trip pass" << std::endl;
 }
 
 /// Whether two planes are one plane: unit normals parallel or opposite as flip says, the same offset, within 1e-9.
@@ -1315,8 +1289,8 @@ void check_rectangle() {
     check(floor_flatness(guide) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(guide)));
 
     const wood_floor::Floor scene(guide, "rectangle");
-    check(all_connectors(scene).size() == 44, "the rectangle's 44 connectors");
-    std::cout << fmt::format("floor_elements: 3000 x 2400 faces planar within {:.1e}, 44 connectors", floor_flatness(guide)) << std::endl;
+    check(all_connectors(scene).size() == 40, "the rectangle's 40 connectors");
+    std::cout << fmt::format("floor_elements: 3000 x 2400 faces planar within {:.1e}, 40 connectors", floor_flatness(guide)) << std::endl;
 }
 
 /// Whether the node carries the connector colour.
@@ -1364,7 +1338,7 @@ std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, con
     return counts;
 }
 
-/// The pins of one floor: per kind 16, 16 and 16, none at the oculus, every connector pre-drilled and naming the two members it joins first, every pin 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and pin nested under it in the connector colour, every connector in the connectors group of its quarter, 16 per quarter, the four oculus wedges in the connectors group of the oculus, also after the round trip.
+/// The pins of one floor: per kind 16, 16 and 16, none at the oculus, every connector pre-drilled and naming the two members it joins first, every pin 200 long, radius 2; no member cut by them, every member reading its pre-drill lines from the one connector, and both through a round trip; every connector of the floor and every part and pin nested under it in the connector colour, every connector in the connectors group of its quarter, 15 per quarter, the four oculus wedges in the connectors group of the oculus, also after the round trip.
 void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& label) {
 
     wood_floor::Floor scene(guide, "pins");
@@ -1441,12 +1415,12 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
     std::map<std::string, size_t> expected;
 
     for (size_t q = 0; q < 4; q++)
-        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = 16;
+        expected[fmt::format("quarter_{}/connectors_{}", q, q)] = 15;
 
     expected["oculus/connectors"] = 4;
-    check(groups == expected, label + " every connector in its quarter, 16 each, the four oculus wedges in the oculus");
+    check(groups == expected, label + " every connector in its quarter, 15 each, the four oculus wedges in the oculus");
     check(check_connector_tree(back, connectors, label + " round trip") == expected, label + " the connector tree through a round trip");
-    const size_t count = 68;
+    const size_t count = 64;
     check(connectors.size() == count && check_connector_colors(back, connectors, label + " round trip") == painted, fmt::format("{} {} connectors, {} nodes in the connector colour, the same after a round trip", label, count, painted));
     size_t total = 0;
 

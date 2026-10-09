@@ -361,18 +361,28 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             2.0 * thicker / 3.0
         );
 
-        // column plates: a rectangle plate as wide as the outer rib on each, and the cross lap where the two cross
+        // column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
         for (size_t k = 0; k < 2; k++) {
-            const Contact& plate = quarter_contacts.column_plates[k];
-            quarter_connectors.column_plates[k] = JointBeam::rectangle_plate(
-                *plate.a,
-                *plate.b,
-                *plate.face,
+            const Contact& column = quarter_contacts.column_plates[k];
+            quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
+            quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
+                *column.a,
+                *column.b,
+                *quarter_connectors.column_plates[k],
+                *column.face,
                 guide.size_outer_ribs
             );
         }
 
-        quarter_connectors.cross_lap = JointBeam::cross_lap(*quarter_connectors.column_plates[0], *quarter_connectors.column_plates[1]);
+        // cross lap: the half lap where the two column plates cross, a plate joint merged into both outlines
+        const std::array<std::shared_ptr<Plate>, 2>& plates = quarter_connectors.column_plates;
+        const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[0], plates[1]);
+
+        if (!crossing)
+            throw std::runtime_error(fmt::format("quarter {}: the two column plates do not cross", q));
+
+        quarter_connectors.cross_lap = JointPlate::cr_c_ip_0();
+        quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
         quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 
         // block pins: pins between each column block and the rib either side
@@ -448,14 +458,17 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
         add_interaction(wedge, oculus.b, wedge->interaction(1));
     }
 
-    // column plates: into the column and the outer rib
+    // column plates: each plate added, then let into the column and the outer rib, the pins bored through it too
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<JointBeam>& plate = connectors[q].column_plates[k];
+            const std::shared_ptr<Plate>& plate = connectors[q].column_plates[k];
+            const std::shared_ptr<JointBeam>& pins = connectors[q].column_plate_pins[k];
             const Contact& column = contacts[q].column_plates[k];
             add(plate, connectors_group(q));
-            add_interaction(plate, column.a, plate->interaction(0));
-            add_interaction(plate, column.b, plate->interaction(1));
+            add(pins, connectors_group(q));
+            add_interaction(pins, column.a, pins->interaction(0));
+            add_interaction(pins, column.b, pins->interaction(1));
+            add_interaction(pins, plate, pins->interaction(2));
         }
 
     // block pins: into the rib and the column block
@@ -499,10 +512,10 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
             add_interaction(pins, joint.b, pins->interaction(1));
         }
 
-    // cross laps, last: a slot into each of the two column plates they join
+    // cross laps, last: the half lap merged into the outlines of the two column plates
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointBeam>& lap = connectors[q].cross_lap;
-        const std::array<std::shared_ptr<JointBeam>, 2>& plates = connectors[q].column_plates;
+        const std::shared_ptr<JointPlate>& lap = connectors[q].cross_lap;
+        const std::array<std::shared_ptr<Plate>, 2>& plates = connectors[q].column_plates;
         add(lap, connectors_group(q));
         add_interaction(lap, plates[0], lap->interaction(0));
         add_interaction(lap, plates[1], lap->interaction(1));

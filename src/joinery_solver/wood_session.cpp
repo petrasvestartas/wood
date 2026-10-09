@@ -507,17 +507,32 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
 
     const std::vector<std::shared_ptr<Plate>> plates = world_elements<Plate>();
     const auto pairs = adjacency_search(std::vector<std::shared_ptr<Element>>(plates.begin(), plates.end()), settings.distance);
-    for (const auto& [i, j] : pairs) {
-        if (plates[i]->polylines.size() < 2 || plates[i]->planes.size() < 2 ||
-            plates[j]->polylines.size() < 2 || plates[j]->planes.size() < 2) continue;
-        InteractionContactCross crossing;
-        if (plane_to_face(plates[i]->polylines[0], plates[i]->polylines[1],
-                          plates[j]->polylines[0], plates[j]->polylines[1],
-                          plates[i]->planes[0], plates[i]->planes[1],
-                          plates[j]->planes[0], plates[j]->planes[1],
-                          settings.distance_squared, crossing, angle_tol))
-            add_interaction(plates[i], plates[j], std::make_shared<InteractionContactCross>(crossing));
-    }
+    for (const auto& [i, j] : pairs)
+        if (const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[i], plates[j], angle_tol))
+            add_interaction(plates[i], plates[j], crossing);
+}
+
+std::shared_ptr<InteractionContactCross> WoodSession::compute_cross_contact(const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol) const {
+
+    if (a->polylines.size() < 2 || a->planes.size() < 2 || b->polylines.size() < 2 || b->planes.size() < 2)
+        return nullptr;
+
+    InteractionContactCross crossing;
+    const bool crosses = plane_to_face(
+        a->polylines[0],
+        a->polylines[1],
+        b->polylines[0],
+        b->polylines[1],
+        a->planes[0],
+        a->planes[1],
+        b->planes[0],
+        b->planes[1],
+        settings.distance_squared,
+        crossing,
+        angle_tol
+    );
+
+    return crosses ? std::make_shared<InteractionContactCross>(crossing) : nullptr;
 }
 
 void WoodSession::compute_line_contacts(double tolerance) {

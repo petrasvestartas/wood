@@ -2,6 +2,7 @@
 
 #include "wood_element_joint.h"
 #include "wood_element_beam.h"
+#include "wood_element_plate.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
 
@@ -28,7 +29,7 @@ public:
     std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the pins at an end where the pin leaves the target; a blind hole stops at its pin.
-    std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, a cross lap's slot say, in the connector's frame like an element's.
+    std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
 
     JointBeam();
@@ -79,16 +80,23 @@ public:
         const std::array<double, 2>& pin_offset = {80.0, -100.0}
     );
 
-    /// The column-to-rib connector on the face contact of two members: a plate into both with four pins across it.
-    static std::shared_ptr<JointBeam> rectangle_plate(
-        const Element& column,
+    /// A plate on the face contact of a column and a rib: width thick, back into the column, front into the rib, height down from the contact's top edge.
+    static std::shared_ptr<Plate> let_in_plate(
         const Element& rib,
         const InteractionContactFace& contact,
-        double pin_length,
         double width = 30.0,
         double back = 220.0,
         double front = 265.0,
-        double height = 250.0,
+        double height = 250.0
+    );
+
+    /// The joint that lets a plate into a column and a rib: a pocket in both and four pins through all three.
+    static std::shared_ptr<JointBeam> rectangle_plate(
+        const Element& column,
+        const Element& rib,
+        const Plate& plate,
+        const InteractionContactFace& contact,
+        double pin_length,
         double pin_radius = 25.0,
         double margin_x = 6.05,
         double margin_z = 3.0,
@@ -136,14 +144,6 @@ public:
         double radius = 2.0,
         double length = 200.0,
         int sides = 16
-    );
-
-    /// The half-lap cross joint of two connectors whose box parts cross: a slot through each where the other passes.
-    static std::shared_ptr<JointBeam> cross_lap(
-        const JointBeam& a,
-        const JointBeam& b,
-        double share = 0.5,
-        double margin = 1.0
     );
 
     // ═══════════════════════════════════════════════════════════════════════════
