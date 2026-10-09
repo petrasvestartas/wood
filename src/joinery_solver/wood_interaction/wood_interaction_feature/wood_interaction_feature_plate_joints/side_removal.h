@@ -1,20 +1,17 @@
-/// The outlines 2024's side_removal and side_removal_ss_e_r_1 both begin with: the male and female swapped, each side face
-/// widened at its convex corners by scale[0] and up and down by scale[1], the female's pushed scale[2] + 2 along its normal, the
-/// male's scale[2] and, with the shift on under a merge, scale[2] + 2 + shift as well: two mill_project pairs per side, four on the
-/// shifted male; no orient. Nothing when a plate or a face is missing, as the 2024 try block left it.
+/// The outlines 2024's side_removal and side_removal_ss_e_r_1 both begin with: each side face widened at its convex corners by
+/// scale[0] and up and down by scale[1], the male's outlines the female's side face pushed scale[2] into the male and, with the shift
+/// on under a merge, scale[2] + 2 + shift as well, the female's the male's side face pushed scale[2] + 2 into the female: two
+/// mill_project pairs per side, four on the shifted male; no orient. 2024 swapped v0 and v1 and then built m from v0, while the
+/// first plate kept its male flag: so the male keeps element_a and reads the neighbour's face, v0 here is element_b. Nothing when a
+/// plate or a face is missing, as the 2024 try block left it.
 static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint) {
 
     joint.no_orient = true;
 
-    std::swap(joint.element_a, joint.element_b);
-    std::swap(joint.contact.face_a, joint.contact.face_b);
-    std::swap(joint.cross_faces[0], joint.cross_faces[1]);
-    std::swap(joint.joint_lines[0], joint.joint_lines[1]);
-
-    const int v0 = index_of_plate(elements, joint.element_a);
-    const int v1 = index_of_plate(elements, joint.element_b);
-    const int f0_0 = joint.contact.face_a;
-    const int f1_0 = joint.contact.face_b;
+    const int v0 = index_of_plate(elements, joint.element_b);
+    const int v1 = index_of_plate(elements, joint.element_a);
+    const int f0_0 = joint.contact.face_b;
+    const int f1_0 = joint.contact.face_a;
 
     if (v0 < 0 || v1 < 0)
         return;
@@ -88,16 +85,16 @@ static void side_removal(InteractionFeaturePlate& joint, const std::vector<std::
     side_removal_outlines(joint, elements, merge_with_joint);
 }
 
-/// The two 20 x 20 rectangles the ss_e_r_1 tile is oriented on, 10 either way along the averaged joint line from its midpoint:
-/// their x axis across the plates' mean half thickness, the end farther from the male side's first edge first, their z the male
-/// side normal scaled by scale[2] over the 10, as 2024 placed them.
+/// The two 20 x 20 rectangles the ss_e_r_1 tile is oriented on, 10 either way along the averaged joint line from its midpoint, the
+/// female's line first as 2024 had them after its swap: their x axis across the plates' mean half thickness, the end farther from
+/// the first edge of the female's side face first, their z that face's normal scaled by scale[2] over the 10, as 2024 placed them.
 static std::array<Polyline, 2> side_removal_tile_rectangles(const InteractionFeaturePlate& joint, const Plate& male, const Plate& female, const Polyline& side, const Vector& n0) {
 
     const double half_dist = 10.0;
     const Vector z_axis = n0.normalized() * (joint.scale[2] / half_dist);
 
-    Line average_line = joint.joint_lines[0];
-    joint.joint_lines[0].overlap_average(joint.joint_lines[1], average_line);
+    Line average_line = joint.joint_lines[1];
+    joint.joint_lines[1].overlap_average(joint.joint_lines[0], average_line);
 
     const double half_thickness = (male.thickness + female.thickness) / 4.0;
     const Vector x_axis = z_axis.cross(average_line.to_vector()).normalized();
@@ -127,7 +124,7 @@ static std::array<Polyline, 2> side_removal_tile_rectangles(const InteractionFea
 }
 
 /// side_removal_ss_e_r_1: side_removal and, under merge_with_joint, the ss_e_r_1 tile oriented on two 20 x 20 rectangles at
-/// the joint line's middle with the unit scale on, its male outlines offset in the male side face by the 2024 conic allowance
+/// the joint line's middle with the unit scale on, its male outlines offset in that side face by the 2024 conic allowance
 /// (0.8440 less the 15 degree draft over the distance between the two moved outlines, added back), the third male outline cut
 /// by the tile's first on each face, the tile's male outlines appended as conic, its female outlines appended twice, once as
 /// mill and once as conic_reverse, and the male and female lists swapped along with the second fabrication type of each.
@@ -139,13 +136,13 @@ static void side_removal_ss_e_r_1(InteractionFeaturePlate& joint, const std::vec
     if (!merge_with_joint)
         return;
 
-    const int v0 = index_of_plate(elements, joint.element_a);
-    const int v1 = index_of_plate(elements, joint.element_b);
+    const int v0 = index_of_plate(elements, joint.element_b);
+    const int v1 = index_of_plate(elements, joint.element_a);
     if (v0 < 0 || v1 < 0 || joint.male_outlines[0].size() < 3)
         return;
 
-    // the tile oriented between the two rectangles
-    const Vector n0 = elements[v0]->planes[joint.contact.face_a].z_axis();
+    // the tile oriented between the two rectangles, in the female's side face as 2024's v0
+    const Vector n0 = elements[v0]->planes[joint.contact.face_b].z_axis();
     const std::array<Polyline, 2> rectangles = side_removal_tile_rectangles(joint, *elements[v0], *elements[v1], joint.male_outlines[0][2], n0);
     InteractionFeaturePlate tile;
     ss_e_r_1(tile);
@@ -153,7 +150,7 @@ static void side_removal_ss_e_r_1(InteractionFeaturePlate& joint, const std::vec
     tile.joint_volumes = {rectangles[0], rectangles[1], rectangles[0], rectangles[1]};
     joint_orient_to_connection_area(tile);
 
-    // the conic allowance in the male side face
+    // the conic allowance in that side face
     const Plane plane_0_0 = Plane::from_point_normal(joint.male_outlines[0][0].get_point(0), n0);
     const Plane plane_0_1 = Plane::from_point_normal(joint.male_outlines[0][2].get_point(0), n0);
     const double dist_two_outlines = std::abs(plane_0_1.signed_distance(joint.male_outlines[0][0].get_point(0)));

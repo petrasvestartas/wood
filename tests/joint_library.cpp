@@ -339,10 +339,6 @@ static Built build_variant(const std::string& id, const Xform& xform) {
     built.fixture = make_fixture(built.family, *built.scene, xform);
     built.joint = make_variant(parts);
 
-    // the rotated side removal swaps its sides and, oriented on its own family, is not turned first: its first side is the second plate
-    if (built.library == "side_removal_ss_e_r_1")
-        std::swap(built.fixture.target0, built.fixture.target1);
-
     const Fixture& f = built.fixture;
     if (f.cross)
         built.joint->orient(f.cross, {f.a, f.b}, built.scene->settings);

@@ -653,9 +653,37 @@ void JointPlate::construct(InteractionFeaturePlate connection, const std::functi
     connections = {std::move(connection)};
     invalidate_geometry();
 }
-/// Resolves the library family from the selected joint and checks the contact topology.
-static int plate_contact_family(const JointPlate& joint, ContactType type) {
+/// The side-side family the detector gives a pair, for a joint of no family of its own: 13 rotated when the scene reads every
+/// side-side contact so or the two alignment lines are not parallel within settings.angle, else by the dihedral angle between the
+/// plates at their averaged line, 11 out of plane up to settings.dihedral_angle, 12 in plane beyond it; 11 without the plates.
+static int side_side_family(const InteractionContactFace& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
 
+    if (settings.all_treated_as_rotated)
+        return 13;
+
+    const Vector v0 = contact.lines[0].to_vector();
+    const Vector v1 = contact.lines[1].to_vector();
+    const double lengths = v0.magnitude() * v1.magnitude();
+    if (lengths <= 0.0 || std::abs(v0.dot(v1)) / lengths < std::cos(settings.angle))
+        return 13;
+
+    if (elements.size() != 2)
+        return 11;
+
+    Line average = contact.lines[0];
+    contact.lines[0].overlap_average(contact.lines[1], average);
+    const Point centre_0 = Point::mid_point(elements[0]->polylines[0].center(), elements[0]->polylines[1].center());
+    const Point centre_1 = Point::mid_point(elements[1]->polylines[0].center(), elements[1]->polylines[1].center());
+    const double dihedral = Point::dihedral_angle_deg(average.start(), average.end(), centre_0, centre_1);
+
+    return dihedral <= settings.dihedral_angle ? 11 : 12;
+}
+
+/// Resolves the library family from the selected joint and checks the contact topology; a joint of no family on a side-side
+/// contact takes the family the detector would give the pair.
+static int plate_contact_family(const JointPlate& joint, const InteractionContactFace& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
+
+    const ContactType type = contact.type;
     int family = joint.parameters.contact_type;
     if (family == 0 && joint.parameters.library.empty()) {
         const int index = family_of(joint.variant);
@@ -665,7 +693,7 @@ static int plate_contact_family(const JointPlate& joint, ContactType type) {
     }
     if (family == 0) {
         if (type == ContactType::side_side)
-            family = 11;
+            family = side_side_family(contact, elements, settings);
         else if (type == ContactType::side_top)
             family = 20;
         else if (type == ContactType::top_top)
@@ -693,7 +721,7 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactFace>& contact, 
         throw std::invalid_argument("A face joint needs two plates in contact order");
 
     // the male is the plate the detector designates: the second of an out-of-plane pair, the side-face one of a side-top pair, else the first
-    const int family = plate_contact_family(*this, contact->type);
+    const int family = plate_contact_family(*this, *contact, elements, settings);
     const bool reverse = family == 11 || (contact->type == ContactType::side_top && contact->face_a < 2);
     InteractionFeaturePlate connection;
     connection.contact = reverse ? *std::dynamic_pointer_cast<InteractionContactFace>(contact->flipped()) : *contact;

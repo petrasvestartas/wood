@@ -18,8 +18,8 @@ Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
 /// True when Manifold takes the mesh as a solid: closed, every edge on two faces, no face through another; what every cutter must be.
 bool manifold_solid(const Mesh& mesh);
 
-/// The union of closed solids in one Manifold batch, one solid with the input faces where they survive; what a cutter made of touching and overlapping pieces is.
-Mesh solid_union(const std::vector<Mesh>& pieces);
+/// Several closed meshes as one, every shell with its own vertices and faces: what a cutter of touching, overlapping or nested pieces is, since a boolean takes a cutter's bodies apart and unites them inside Manifold, where a union made first and read back loses to its own coincident faces.
+Mesh shells_side_by_side(const std::vector<Mesh>& pieces);
 std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatureSolid& cut);
 
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.

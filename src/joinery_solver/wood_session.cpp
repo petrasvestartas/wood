@@ -1519,12 +1519,23 @@ static void host_solid_feature(
     refresh_target(scene, target);
 }
 
-/// The solid one side of a plate joint takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill, cut, conic) lofted into one cutter and every drill line as an axis, a pair its builder repeats counted once, a pair whose loft Manifold does not take as a solid left out. Empty for a side that only merges into the outline.
+/// True when the pair k of the side's outlines equals an earlier pair point for point: the second copy a builder pushes, as the 2024 library doubled every pair and side_removal_ss_e_r_1 lists the tile once to mill and once as a reverse conic.
+static bool outline_pair_repeated(const std::array<std::vector<Polyline>, 2>& outlines, size_t k) {
+
+    for (size_t j = 0; j < k; j++)
+        if (outlines[0][k].get_points() == outlines[0][j].get_points() && outlines[1][k].get_points() == outlines[1][j].get_points())
+            return true;
+
+    return false;
+}
+
+/// The solid one side of a plate joint takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill, cut, conic) lofted into a piece and every drill line as an axis, a pair its builder repeats counted once, a pair whose loft Manifold does not take as a solid or that takes nothing out of the stock left out. Empty for a side that only merges into the outline.
 static InteractionFeatureSolid plate_joint_cutter(
     const InteractionFeaturePlate& connection,
     int side,
     double radius,
-    double chord_tolerance
+    double chord_tolerance,
+    const Mesh& stock
 ) {
 
     const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
@@ -1537,9 +1548,7 @@ static InteractionFeatureSolid plate_joint_cutter(
     for (size_t k = 0; k < std::min({outlines[0].size(), outlines[1].size(), types[0].size()}); k++) {
         const Polyline& bottom = outlines[0][k];
         const Polyline& top = outlines[1][k];
-        const bool repeated = k > 0 && bottom.get_points() == outlines[0][k - 1].get_points() && top.get_points() == outlines[1][k - 1].get_points();
-
-        if (repeated)
+        if (outline_pair_repeated(outlines, k))
             continue;
 
         if (types[0][k] == FabricationType::drill) {
@@ -1556,12 +1565,18 @@ static InteractionFeatureSolid plate_joint_cutter(
 
         const Mesh piece = loft_stations({bottom.closed(), top.closed()});
 
-        if (manifold_solid(piece) && compute_volume(piece) > 0.0)
+        if (!manifold_solid(piece) || !(compute_volume(piece) > 0.0))
+            continue;
+
+        // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would only trouble the boolean
+        const Mesh taken = solid_boolean(stock, piece, SolidOperation::intersect);
+
+        if (taken.number_of_faces() > 0 && compute_volume(taken) > 1e-9 * compute_volume(piece))
             pieces.push_back(piece);
     }
 
-    // the pieces of one design touch and overlap, so the cutter is their union, one solid, not their shells side by side
-    cut.mesh = solid_union(pieces);
+    // the pieces of one design touch, overlap and nest; the boolean unites their bodies itself, and does so exactly, where a union read back first does not
+    cut.mesh = shells_side_by_side(pieces);
 
     return cut;
 }
@@ -1589,11 +1604,17 @@ static void host_plate_joint_side(
     scene.Session::add_interaction(joint, plate, feature);
     scene.host_feature(plate->guid(), connection.to_features()[side]);
 
+    const std::optional<Xform> to_joint = scene.world_xform(joint->guid()).inverse();
+
+    if (!to_joint)
+        throw std::invalid_argument("Cutter source has a singular placement");
+
     InteractionFeatureSolid cut = plate_joint_cutter(
         connection,
         side,
         joint->line_radius,
-        joint->chord_tolerance
+        joint->chord_tolerance,
+        plate->element_geometry_mesh().transformed(*to_joint * scene.world_xform(plate->guid()))
     );
     const std::vector<Line> drills = cut.drills;
 
