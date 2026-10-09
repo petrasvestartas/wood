@@ -104,7 +104,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ## 239. The pin contacts
 
-![](floor/239_every_contact.webp)
+![](floor/239_pin_contacts.webp)
 
 <span style="color:#2196EA">■ built</span> the butt-joint and ring corner contacts   <span style="color:#A3A3A3">■ context</span> the columns and the bay edges
 
@@ -134,7 +134,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ## 240. Every contact
 
-![](floor/239_every_contact.webp)
+![](floor/240_every_contact.webp)
 
 <span style="color:#2196EA">■ built</span> every contact polygon   <span style="color:#A3A3A3">■ context</span> the columns and the bay edges
 
