@@ -375,24 +375,14 @@ void Floor::add_oculus() {
 <details>
 <summary><b>Columns</b></summary>
 
-A column stands at every corner of the bay. `add_columns` calls `add_column(corner)` for each corner, and `add_column` puts one column into the group `quarter_<q>` > `column_<q>`:
-
-| Element | Type | What it does to the shaft |
-|---|---|---|
-| `column_<q>` | `Column` | the 220 square shaft on the support's axis, up to the floor top |
-| `column_<q>_head_0`, `_1` | `Block`, hidden | glued on, `SolidOperation::add`: the head widened to 340 over its top 730 |
-| `support_<q>` | `Support` | stands on the slab under the column |
-| `support` | `Joint::support` | lets the head plate into the column end and drills its three pins |
-| `column_cutters_<i>_<q>` | `Plate`, hidden, six | cut away, `SolidOperation::subtract`: the inclined faces the ribs and column blocks bear on |
-
-Each part is added with `add` and put on the shaft with `add_interaction`, so the shaft hosts every cut and the tree shows them under its features. The column plates that tie the column to its outer ribs come later, with the connectors. `floor.get_branch("column_0")` reads one column back as a session of its own.
+A column stands at every corner of the bay: `add_columns` calls `add_column(corner)` for each, and `add_column` builds one column in its own group from the shaft, two glued head blocks, the support with its seat and six cutters.
 
 ```cpp
 // columns: the column at every corner, its head carved by the guide's cutters
 add_columns();
 ```
 
-![The columns](floor/982_floor_columns.webp)
+![The four columns](floor/229_add_columns.webp)
 
 <details>
 <summary>add_columns()</summary>
@@ -408,63 +398,102 @@ void Floor::add_columns() {
 </details>
 
 <details>
-<summary>add_column(corner)</summary>
+<summary>add_column(corner), block by block</summary>
+
+**The group.** `add_column(corner)` makes the group `column_<corner>` under `quarter_<corner>`; everything below goes in it.
 
 ```cpp
-void Floor::add_column(size_t corner) {
+const std::string name = fmt::format("column_{}", corner);
+const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
+```
 
-    const std::string name = fmt::format("column_{}", corner);
-    const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
+![The group](floor/220_add_column.webp)
 
-    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
-    support->name = fmt::format("support_{}", corner);
-    const Line axis = support->column_axis(guide.bay_height);
-    const Plane frame = guide.column_frame(corner);
-    const std::shared_ptr<Column> shaft = Column::square(
-        axis,
-        frame,
-        guide.size_column_head,
-        name
-    );
+**The support.** The support stands on the guide's support plane under the column.
 
-    const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
-    std::vector<std::shared_ptr<Plate>> cutters;
+```cpp
+const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+support->name = fmt::format("support_{}", corner);
+```
 
-    for (size_t i = 0; i < loops.size(); i++) {
-        cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
-        cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
-    }
+![The support](floor/221_support.webp)
 
-    add(shaft, group);
+**The axis.** The column's axis runs from the support's head plate up to the floor top, `bay_height`.
 
-    // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
-    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+```cpp
+const Line axis = support->column_axis(guide.bay_height);
+```
 
-    for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
-        add(block, group);
-        const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
-        add_interaction(block, shaft, glue);
-    }
+![The axis](floor/222_column_axis.webp)
 
-    // the support under it, its joint let into the column end and drilled
-    add(support, group);
-    const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
-    add(seat, group);
-    add_interaction(seat, shaft, seat->interaction(0));
+**The shaft.** The shaft is a 220 square, `size_column_head`, swept up the axis in the corner's frame.
 
-    // the six cutters, hidden, take the head's inclined faces away
-    for (const std::shared_ptr<Plate>& cutter : cutters) {
-        cutter->is_visible = false;
-        add(cutter, group);
-        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
-        add_interaction(cutter, shaft, cut);
-    }
+```cpp
+const Plane frame = guide.column_frame(corner);
+const std::shared_ptr<Column> shaft = Column::square(
+    axis,
+    frame,
+    guide.size_column_head,
+    name
+);
+```
+
+![The shaft](floor/223_column_square.webp)
+
+**The cutter plates.** The guide's six cutter loop pairs become plates lifted to `bay_height`.
+
+```cpp
+const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
+std::vector<std::shared_ptr<Plate>> cutters;
+
+for (size_t i = 0; i < loops.size(); i++) {
+    cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
+    cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
 }
 ```
 
-The shaft first, then the head blocks glued on, the support and its seat, and last the six cutters: the order the shaft's features are applied in.
+![The cutter plates](floor/227_cutters.webp)
 
-![One column with its head, support and cutters](floor/924_column.webp)
+**The head glued on.** The shaft is added, then two head blocks widen the head to 340 over its top 730, each glued on with a `SolidOperation::add` interaction.
+
+```cpp
+add(shaft, group);
+
+// the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
+const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+
+for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+    add(block, group);
+    const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
+    add_interaction(block, shaft, glue);
+}
+```
+
+![The head glued on](floor/225_glued.webp)
+
+**The seat.** The support is added, and its seat lets the head plate into the column end and drills its three pins.
+
+```cpp
+add(support, group);
+const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+add(seat, group);
+add_interaction(seat, shaft, seat->interaction(0));
+```
+
+![The seat](floor/226_support_joint.webp)
+
+**The head carved.** Each cutter is added hidden and takes the inclined faces away with a `SolidOperation::subtract` interaction.
+
+```cpp
+for (const std::shared_ptr<Plate>& cutter : cutters) {
+    cutter->is_visible = false;
+    add(cutter, group);
+    const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
+    add_interaction(cutter, shaft, cut);
+}
+```
+
+![The head carved](floor/228_carved.webp)
 
 </details>
 
