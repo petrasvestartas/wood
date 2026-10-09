@@ -83,13 +83,9 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
     // contacts: per quarter an interaction between every two members that touch, named by its kind and place
     const std::array<QuarterContacts, 4> contacts = add_contacts();
 
-    // connectors: per quarter its wedges, column plates with their cross lap and dowels, all built on uncut members
+    // connectors: per quarter its wedges, column plates with their cross lap, pins and pins, all built on uncut members
     const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
     add_connectors(connectors, contacts);
-
-    // screws: the assembly screws, after every other connector so nothing before them changes
-    const std::array<QuarterScrews, 4> screws = compute_screws();
-    add_screws(screws);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -308,9 +304,18 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
 
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
-                const Contact dowels = add_contact(fmt::format("block_dowels_{}_{}_{}", q, b, side), ribs[b + side], fmt::format("wedges_{}_{}", b, q));
-                contacts[q].block_dowels[b][side] = dowels;
+                const Contact pins = add_contact(fmt::format("block_pins_{}_{}_{}", q, b, side), ribs[b + side], fmt::format("wedges_{}_{}", b, q));
+                contacts[q].block_pins[b][side] = pins;
             }
+
+        // butt joints held by pins, the member the pins pass through first: the outer rib ending on its seam beam, the seam beam on the oculus beam, the oculus beam on the inner rib
+        for (size_t k = 0; k < 2; k++) {
+            const std::string seam_beam = fmt::format("inner_beams_{}_{}", SEAM_BEAMS[k], q);
+            const std::string oculus_beam = fmt::format("inner_beams_1_{}", q);
+            contacts[q].outer_rib_seam_beam[k] = add_contact(fmt::format("pins_outer_rib_{}_{}", q, k), seam_beam, fmt::format("outer_ribs_{}_{}", k, q));
+            contacts[q].seam_beam_oculus_beam[k] = add_contact(fmt::format("pins_seam_beam_{}_{}", q, k), seam_beam, oculus_beam);
+            contacts[q].oculus_beam_inner_rib[k] = add_contact(fmt::format("pins_inner_rib_{}_{}", q, k), oculus_beam, fmt::format("inner_ribs_{}_{}", k, q));
+        }
     }
 
     return contacts;
@@ -341,14 +346,14 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
 
     for (size_t q = 0; q < 4; q++) {
-        const QuarterContacts& c = contacts[q];
-        QuarterConnectors& made = connectors[q];
+        const QuarterContacts& quarter_contacts = contacts[q];
+        QuarterConnectors& quarter_connectors = connectors[q];
 
         // seam wedge: sized by the inner beams, running on to the bay's outer face
-        const Contact& seam = c.seam_wedge;
+        const Contact& seam = quarter_contacts.seam_wedge;
         const double beam = guide.size_inner_beams;
         const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(lift);
-        made.seam_wedge = JointBeam::wedge(
+        quarter_connectors.seam_wedge = JointBeam::wedge(
             *seam.a,
             *seam.b,
             *seam.face,
@@ -358,11 +363,11 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         );
 
         // oculus wedge: sized by the thicker of the oculus beam and its ring beam
-        const Contact& oculus = c.oculus_wedge;
+        const Contact& oculus = quarter_contacts.oculus_wedge;
         const double oculus_beam = FloorGuide::thickness(guide.inner_beams(q)[1]);
         const double ring_beam = FloorGuide::thickness(guide.oculus()[q]);
         const double thicker = std::max(oculus_beam, ring_beam);
-        made.oculus_wedge = JointBeam::wedge(
+        quarter_connectors.oculus_wedge = JointBeam::wedge(
             *oculus.a,
             *oculus.b,
             *oculus.face,
@@ -372,8 +377,8 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
 
         // column plates: a rectangle plate as wide as the outer rib on each, and the cross lap where the two cross
         for (size_t k = 0; k < 2; k++) {
-            const Contact& plate = c.column_plates[k];
-            made.column_plates[k] = JointBeam::rectangle_plate(
+            const Contact& plate = quarter_contacts.column_plates[k];
+            quarter_connectors.column_plates[k] = JointBeam::rectangle_plate(
                 *plate.a,
                 *plate.b,
                 *plate.face,
@@ -381,34 +386,77 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             );
         }
 
-        made.cross_lap = JointBeam::cross_lap(*made.column_plates[0], *made.column_plates[1]);
+        quarter_connectors.cross_lap = JointBeam::cross_lap(*quarter_connectors.column_plates[0], *quarter_connectors.column_plates[1]);
 
-        // block dowels: dowels between each column block and the rib either side
+        // block pins: pins between each column block and the rib either side
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
-                const Contact& contact = c.block_dowels[b][side];
-                const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(*contact.a, *contact.b, *contact.face);
+                const Contact& contact = quarter_contacts.block_pins[b][side];
+                const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
 
-                if (!dowels)
-                    throw std::runtime_error("the inset leaves no room for the dowels of " + contact.face->name);
+                if (!pins)
+                    throw std::runtime_error("the inset leaves no room for the pins of " + contact.face->name);
 
-                made.block_dowels[b][side] = dowels;
+                quarter_connectors.block_pins[b][side] = pins;
             }
+
+        // pins: two in a column across each butt joint, through the first member into the second; the two quarters' pins at a seam either side of its middle
+        for (size_t k = 0; k < 2; k++) {
+            const double shift = k == 0 ? -PIN_SHIFT : PIN_SHIFT;
+            const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
+            const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
+            const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
+            quarter_connectors.outer_rib_seam_beam[k] = JointBeam::headed_pins(
+                *outer.a,
+                *outer.b,
+                *outer.face,
+                PinLayout::vertical,
+                2,
+                PIN_INSET,
+                shift
+            );
+            quarter_connectors.seam_beam_oculus_beam[k] = JointBeam::headed_pins(
+                *seam.a,
+                *seam.b,
+                *seam.face,
+                PinLayout::vertical,
+                2,
+                PIN_INSET,
+                shift
+            );
+            quarter_connectors.oculus_beam_inner_rib[k] = JointBeam::headed_pins(
+                *inner.a,
+                *inner.b,
+                *inner.face,
+                PinLayout::vertical,
+                2,
+                PIN_INSET
+            );
+
+            if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
+                throw std::runtime_error(fmt::format("quarter {} side {}: a butt joint leaves no room for its pins, the bay is too narrow", q, k));
+        }
     }
 
     // the names, numbered kind by kind, quarter by quarter, the order they are added in
     for (size_t q = 0; q < 4; q++) {
-        QuarterConnectors& made = connectors[q];
-        made.seam_wedge->name = fmt::format("connector_seam_wedge_{}", q);
-        made.oculus_wedge->name = fmt::format("connector_oculus_wedge_{}", q);
-        made.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
+        QuarterConnectors& quarter_connectors = connectors[q];
+        quarter_connectors.seam_wedge->name = fmt::format("connector_seam_wedge_{}", q);
+        quarter_connectors.oculus_wedge->name = fmt::format("connector_oculus_wedge_{}", q);
+        quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 
         for (size_t k = 0; k < 2; k++)
-            made.column_plates[k]->name = fmt::format("connector_column_plate_{}", 2 * q + k);
+            quarter_connectors.column_plates[k]->name = fmt::format("connector_column_plate_{}", 2 * q + k);
 
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++)
-                made.block_dowels[b][side]->name = fmt::format("connector_block_dowels_{}", 6 * q + 2 * b + side);
+                quarter_connectors.block_pins[b][side]->name = fmt::format("connector_block_pins_{}", 6 * q + 2 * b + side);
+
+        for (size_t k = 0; k < 2; k++) {
+            quarter_connectors.outer_rib_seam_beam[k]->name = fmt::format("connector_pins_{}", 2 * q + k);
+            quarter_connectors.seam_beam_oculus_beam[k]->name = fmt::format("connector_pins_{}", 8 + 2 * q + k);
+            quarter_connectors.oculus_beam_inner_rib[k]->name = fmt::format("connector_pins_{}", 16 + 2 * q + k);
+        }
     }
 
     return connectors;
@@ -444,16 +492,46 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
             add_interaction(plate, column.b, plate->interaction(1));
         }
 
-    // block dowels: into the rib and the column block
+    // block pins: into the rib and the column block
     for (size_t q = 0; q < 4; q++)
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
-                const std::shared_ptr<JointBeam>& dowels = connectors[q].block_dowels[b][side];
-                const Contact& block = contacts[q].block_dowels[b][side];
-                add(dowels, connectors_group(q));
-                add_interaction(dowels, block.a, dowels->interaction(0));
-                add_interaction(dowels, block.b, dowels->interaction(1));
+                const std::shared_ptr<JointBeam>& pins = connectors[q].block_pins[b][side];
+                const Contact& block = contacts[q].block_pins[b][side];
+                add(pins, connectors_group(q));
+                add_interaction(pins, block.a, pins->interaction(0));
+                add_interaction(pins, block.b, pins->interaction(1));
             }
+
+    // pins: seam beam into the outer rib ending on it
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            const std::shared_ptr<JointBeam>& pins = connectors[q].outer_rib_seam_beam[k];
+            const Contact& joint = contacts[q].outer_rib_seam_beam[k];
+            add(pins, connectors_group(q));
+            add_interaction(pins, joint.a, pins->interaction(0));
+            add_interaction(pins, joint.b, pins->interaction(1));
+        }
+
+    // pins: seam beam into the oculus beam
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            const std::shared_ptr<JointBeam>& pins = connectors[q].seam_beam_oculus_beam[k];
+            const Contact& joint = contacts[q].seam_beam_oculus_beam[k];
+            add(pins, connectors_group(q));
+            add_interaction(pins, joint.a, pins->interaction(0));
+            add_interaction(pins, joint.b, pins->interaction(1));
+        }
+
+    // pins: oculus beam into the inner rib
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            const std::shared_ptr<JointBeam>& pins = connectors[q].oculus_beam_inner_rib[k];
+            const Contact& joint = contacts[q].oculus_beam_inner_rib[k];
+            add(pins, connectors_group(q));
+            add_interaction(pins, joint.a, pins->interaction(0));
+            add_interaction(pins, joint.b, pins->interaction(1));
+        }
 
     // cross laps, last: a slot into each of the two column plates they join
     for (size_t q = 0; q < 4; q++) {
@@ -463,204 +541,6 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, c
         add_interaction(lap, plates[0], lap->interaction(0));
         add_interaction(lap, plates[1], lap->interaction(1));
     }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Screws
-// ═══════════════════════════════════════════════════════════════════════════
-
-std::array<QuarterScrews, 4> Floor::compute_screws() const {
-
-    std::array<QuarterScrews, 4> screws;
-
-    for (size_t q = 0; q < 4; q++) {
-        // the members the screws join, by name: the seam beams either side, the oculus beam between them, the outer and inner ribs
-        const auto member = [this, q](const std::string& family, size_t i) {
-            return get_element_by_name<Element>(fmt::format("{}_{}_{}", family, i, q)).get();
-        };
-        const Element* oculus_beam = member("inner_beams", 1);
-
-        for (size_t k = 0; k < 2; k++) {
-            // outer_rib_seam_beam: the outer rib into the seam beam it ends on
-            screws[q].outer_rib_seam_beam[k] = screws_of({member("outer_ribs", k), member("inner_beams", SEAM_BEAMS[k])}, outer_rib_seam_beam_screws(q, k));
-
-            // seam_beam_oculus_beam: the seam beam into the oculus beam ending on it
-            screws[q].seam_beam_oculus_beam[k] = screws_of({member("inner_beams", SEAM_BEAMS[k]), oculus_beam}, seam_beam_oculus_beam_screws(q, k));
-
-            // oculus_beam_inner_rib: the oculus beam into the inner rib ending on its back face, through the seam beam too when the screws pass it
-            const std::vector<Line> lines = oculus_beam_inner_rib_screws(q, k);
-            std::vector<const Element*> passed = {oculus_beam, member("inner_ribs", k)};
-
-            if (passes_seam_beam(q, k, lines))
-                passed.push_back(member("inner_beams", SEAM_BEAMS[k]));
-
-            screws[q].oculus_beam_inner_rib[k] = screws_of(passed, lines);
-        }
-    }
-
-    // the names, six per quarter in the order they are added
-    for (size_t q = 0; q < 4; q++)
-        for (size_t k = 0; k < 2; k++) {
-            screws[q].outer_rib_seam_beam[k]->name = fmt::format("connector_screws_{}", 6 * q + k);
-            screws[q].seam_beam_oculus_beam[k]->name = fmt::format("connector_screws_{}", 6 * q + 2 + k);
-            screws[q].oculus_beam_inner_rib[k]->name = fmt::format("connector_screws_{}", 6 * q + 4 + k);
-        }
-
-    return screws;
-}
-
-void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
-
-    for (size_t q = 0; q < 4; q++)
-        for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].outer_rib_seam_beam, screws[q].seam_beam_oculus_beam, screws[q].oculus_beam_inner_rib})
-            for (const std::shared_ptr<JointBeam>& screw : pair) {
-                // added, then pre-drilled into every member it passes, two or three
-                add(screw, connectors_group(q));
-                const std::vector<std::string> members = screw->targets;
-
-                for (size_t i = 0; i < members.size(); i++)
-                    add_interaction(screw, get_element<Element>(members[i]), screw->interaction(i));
-            }
-}
-
-std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {
-
-    return JointBeam::screws(
-        members,
-        lines,
-        2.0,
-        SCREW_LENGTH
-    );
-}
-
-std::vector<Line> Floor::outer_rib_seam_beam_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& seam_face = cp.inner_beams[SEAM_BEAMS[k]][0];
-    const std::array<Polyline, 2>& rib = guide.outer_ribs(q)[k];
-    const Point body = FloorGuide::body(rib);
-    // the two ribs of a seam on opposite sides of their axes, so the heads on the seam plane stay apart
-    const double offset = k == 0 ? -SEAM_SCREW_OFFSET : SEAM_SCREW_OFFSET;
-    const double bottom = FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]);
-
-    return {
-        screw(
-            cp.outer_ribs[k],
-            seam_face,
-            body,
-            -RIB_END_MARGIN,
-            offset
-        ),
-        screw(
-            cp.outer_ribs[k],
-            seam_face,
-            body,
-            bottom + RIB_END_MARGIN,
-            offset
-        ),
-    };
-}
-
-std::vector<Line> Floor::seam_beam_oculus_beam_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0];
-    const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
-
-    return {
-        screw(
-            cp.inner_beams[1],
-            seam_plane,
-            body,
-            corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][0])
-        ),
-        screw(
-            cp.inner_beams[1],
-            seam_plane,
-            body,
-            corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][1])
-        ),
-    };
-}
-
-std::vector<Line> Floor::oculus_beam_inner_rib_screws(size_t q, size_t k) const {
-
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane& back_face = cp.inner_beams[1][0];
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const Plane seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0].transformed(lift);
-    const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
-    std::vector<Line> screws;
-
-    for (double levels : OCULUS_BEAM_INNER_RIB_LEVELS) {
-        screws.push_back(
-            screw(
-                cp.inner_ribs[k],
-                back_face,
-                body,
-                corner_level(levels)
-            )
-        );
-
-        // the next quarter's screws meet the seam plane from the other side: a head closer than half the spacing would touch them
-        const double from_seam = seam_plane.signed_distance(screws.back().start());
-
-        if (from_seam < 0.5 * SCREW_SPACING)
-            throw std::runtime_error(fmt::format("quarter {}'s inner rib {} screw starts {:.3f} mm from the seam plane, less than half the screw spacing, where the next quarter's meets it: the bay is too narrow for the corner screws", q, k, from_seam));
-    }
-
-    return screws;
-}
-
-bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
-
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const ConstructionPlanes& cp = guide.construction_planes(q);
-    const Plane beam_end = cp.inner_beams[SEAM_BEAMS[k]][1].transformed(lift);
-    const Point oculus_beam = FloorGuide::body(guide.inner_beams(q)[1]).transformed(lift);
-    const double oculus_side = beam_end.signed_distance(oculus_beam) < 0.0 ? -1.0 : 1.0;
-
-    for (const Line& screw : screws)
-        if (oculus_side * beam_end.signed_distance(screw.start()) < 0.0)
-            return true;
-
-    return false;
-}
-
-Line Floor::screw(
-    const std::array<Plane, 2>& member,
-    const Plane& from,
-    const Point& toward,
-    double z,
-    double offset
-) const {
-
-    const Line line = axis(member, z) + member[0].z_axis() * offset;
-    const Point head = Intersection::line_plane(line, from, false).value();
-    Vector along = line.to_direction().normalized();
-
-    if (along.dot(toward - head) < 0.0)
-        along = -along;
-
-    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const Line at_datum = Line::from_points(head, head + along * SCREW_LENGTH);
-
-    return at_datum.transformed(lift);
-}
-
-Line Floor::axis(const std::array<Plane, 2>& faces, double z) {
-
-    const Line line0 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[0]).value();
-    const Line line1 = Intersection::plane_plane(Plane::xy_plane_at(z), faces[1]).value();
-    const Point p0 = line0.start();
-    const Point p1 = line1.closest_point(p0, false).second;
-    const Point middle = Point::mid_point(p0, p1);
-
-    return Line::from_points(middle, middle + line0.to_direction());
-}
-
-double Floor::corner_level(double levels) const {
-    return -guide.static_h() * levels / CORNER_LEVELS;
 }
 
 }

@@ -10,7 +10,7 @@ namespace wood_floor {
 // Per-quarter tables
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The planes of a quarter in pairs, one pair per member: the first plane is the member's base face, the second the face it is offset to.
+/// The planes of a quarter, a base face and offset face pair per member.
 ///
 /// - `outer_ribs[2]`: along the two bay edges.
 /// - `inner_beams[3]`: seam 0, the oculus edge, seam 1.
@@ -28,7 +28,7 @@ public:
 
 /// One plan quad per member at the floor datum, index i the footprint of member i of that family.
 ///
-/// - `outer_ribs[2]`, `inner_beams[3]` (seam 0, oculus edge, seam 1), `inner_ribs[2]`, `wedges[3]`, `tsections[6]`: a closed quad each.
+/// - `outer_ribs[2]`, `inner_beams[3]`, `inner_ribs[2]`, `wedges[3]`, `tsections[6]`: a closed quad each.
 class ConstructionQuads {
 public:
     std::array<Polyline, 2> outer_ribs;
@@ -38,10 +38,10 @@ public:
     std::array<Polyline, 6> tsections;
 };
 
-/// The central panel of one quarter by rule A: its ruling, the one sweep of both inner ribs, and the soffit, +t and +2t traces on the two inner ribs' central faces.
+/// The central panel of one quarter by rule A: its ruling, rib sweep and face traces.
 ///
 /// - `ruling`: the panel's horizontal ruling direction.
-/// - `rib_sweep`: the direction both inner ribs are swept along, outer face to central face.
+/// - `rib_sweep`: the inner ribs' sweep direction.
 /// - `traces[2][3]`: per inner rib, its central face's soffit, +t and +2t.
 class CentralPanel {
 public:
@@ -55,17 +55,17 @@ public:
 // FloorGuide
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The floor guide, a session ready to draw: the corners and the parameters, and the geometry every member is built from, computed once on construction and drawn into the session itself, grouped by quarter. It works for any convex four-corner bay: every method takes the quarter q, the quarter at corner q. A Floor builds the model from it.
+/// The floor guide, a session holding the geometry every member of a convex four-corner bay is built from.
 ///
 /// Public fields:
-/// - `corners[4]`, and the parameters `size_oculus`, `size_column_head`, `size_column_head_chamfer`, `size_outer_ribs`, `size_inner_ribs`, `size_inner_beams`, `size_wedge`, `size_tsections`, `height`, `rise`, `wedge_plane_angle`, `oculus_plane_angle`, `column_head_depth`, `bay_height`, `middle_wedge_factor`.
+/// - `corners[4]` and the bay's size, height and angle parameters.
 /// - `centre`, `oculus_points[4]`, `soffit`: what the constructor derives first.
 ///
 /// Per quarter q, read through its method:
 /// - `construction_planes(q)`: a ConstructionPlanes, a plane pair per member.
 /// - `construction_quads(q)`: a ConstructionQuads, a plan quad per member.
 /// - `rib_starts(q)[2]`, `boundary_parabolas(q)[4][3]`, `central_panel(q)`, `bed_top_planes(q)[3]`.
-/// - the members as two face loops each: `outer_ribs(q)[2]`, `inner_ribs(q)[2]`, `inner_beams(q)[3]`, `wedges(q)[3]`, `tsections(q)[6]`, `bed_rails(q)[3][2]`, `beds(q)[3][n]`, `column_cutters(q)[6]`.
+/// - the members as two face loops each, one method per family.
 /// - `oculus()[9]`: four ring beams, four bottom wedges, the central plate.
 class FloorGuide : public WoodSession {
 public:
@@ -93,7 +93,7 @@ public:
     std::array<Point, 4> oculus_points; // Point q on seam q, size_oculus from the centre.
     double soffit = 0.0; // The level of every inner and ring beam's soffit: the deepest end of a rib that ends on one, so every rib end meets its beam in full.
 
-    /// The guide of the corners, counter-clockwise and convex at z 0, and the parameters: computes every table, step by step, and draws them.
+    /// The guide of the corners and parameters: computes every table and draws it.
     explicit FloorGuide(
         const std::array<Point, 4>& corners,
         double size_oculus = 1000.0,
@@ -125,13 +125,13 @@ public:
     // Floor plan geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Quarter q in plan: corner q, the midpoint of edge q, oculus point q, oculus point q - 1, the midpoint of edge q - 1. Line 0 runs along edge q, line 1 is seam q, line 2 the oculus edge, line 3 seam q - 1, line 4 along edge q - 1.
+    /// Quarter q in plan: corner q, edge q midpoint, oculus points q and q - 1, edge q - 1 midpoint.
     std::vector<Point> quarter_polygon(size_t q) const;
 
     /// The column head polygon at corner q, the ribs start from it: the corner, two shaft corners and the two chamfer points, in the column's frame.
     std::vector<Point> quarter_column_polygon(size_t q) const;
 
-    /// The column's frame at corner q: origin the corner, x and y the edge directions at a right corner, symmetric about the corner bisector otherwise.
+    /// The column's frame at corner q, origin the corner, symmetric about the corner bisector.
     Plane column_frame(size_t q) const;
 
     /// The support's plane at corner q, on the slab under the column axis, half a column head along both frame axes from the corner.
@@ -141,7 +141,7 @@ public:
     // Construction planes and quads
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Quarter q's plane pairs, one per member: outer ribs on the bay edges, inner beams on the seams and the tilted oculus edge, inner ribs from the column head to the beam corners, the wedge fan, and the t-sections beside the ribs.
+    /// Quarter q's plane pairs, one per member.
     const ConstructionPlanes& construction_planes(size_t q) const;
 
     /// Quarter q's member quads where each member's four planes meet the datum.
@@ -151,10 +151,10 @@ public:
     // 3D geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Per outer rib of quarter q, how far along its axis the parabola starts: the wedge where both ends land level, else solved so they do.
+    /// Per outer rib of quarter q, how far along its axis the parabola starts.
     const std::array<double, 2>& rib_starts(size_t q) const;
 
-    /// Quarter q's parabolas along the outer and inner rib axes (outer 0, outer 1, inner 0, inner 1), each with its +tsections and +2 tsections offsets.
+    /// Quarter q's parabolas along the outer and inner rib axes, each with its two offsets.
     const std::array<std::array<Polyline, 3>, 4>& boundary_parabolas(size_t q) const;
 
     /// Quarter q's central panel between the inner ribs.
@@ -166,14 +166,14 @@ public:
     /// The cutter levels at corner q: the datum, the outer rib bottoms, and minus column_head_depth.
     std::array<double, 3> column_levels(size_t q) const;
 
-    /// The plane each outer rib of quarter q ends on at its seam: the far face of the seam beam, which runs on through the outer rib band to the bay's outer face.
+    /// The plane each outer rib of quarter q ends on at its seam: the seam beam's far face.
     std::array<Plane, 2> rib_seam_ends(size_t q) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Members
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Quarter q's three bed rows as rails, each row its bottom rails and its top rails: the lower and upper layer on the panel's two side planes trimmed alike, so every segment of the four makes one bed.
+    /// Quarter q's three bed rows as rails, bottom and top per row.
     const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& bed_rails(size_t q) const;
 
     /// Quarter q's bed plates in three rows, each row trimmed alike so every plate stays a quad.
@@ -182,7 +182,7 @@ public:
     /// Quarter q's six t-sections beside the ribs.
     const std::array<std::array<Polyline, 2>, 6>& tsections(size_t q) const;
 
-    /// Quarter q's two outer ribs along the bay edges: each its parabola trimmed by its end planes on its first face, and swept to its second.
+    /// Quarter q's two outer ribs along the bay edges.
     const std::array<std::array<Polyline, 2>, 2>& outer_ribs(size_t q) const;
 
     /// Quarter q's two inner ribs, swept along the central panel's rib sweep.
@@ -194,19 +194,19 @@ public:
     /// Quarter q's three inner beams: seam 0, the oculus edge, seam 1.
     const std::array<std::array<Polyline, 2>, 3>& inner_beams(size_t q) const;
 
-    /// The oculus: four ring beams, each between its edge's tilted plane and ring inner plane from the previous beam's inner plane to the next beam's tilted plane (a pinwheel), four bottom wedges and the inner plate.
+    /// The oculus: four ring beams in a pinwheel, four bottom wedges and the inner plate.
     const std::array<std::array<Polyline, 2>, 9>& oculus() const;
 
     /// The ring's inner face on oculus edge q: the oculus beam's back face moved back by twice inner_beams.
     Plane ring_inner(size_t q) const;
 
-    /// The six plates that carve the column head at corner q: the three fan faces down to the middle level, and three below it down to the head's depth.
+    /// The six plates that carve the column head at corner q.
     const std::array<std::array<Polyline, 2>, 6>& column_cutters(size_t q) const;
 
-    /// The column's carved face on fan plane i of corner q (0 side 0, 1 the chamfer, 2 side 1) between the datum and the middle level: datum corners, then middle-level corners.
+    /// The column's carved face on fan plane i of corner q, between the datum and the middle level.
     std::vector<Point> column_face(size_t q, size_t i) const;
 
-    /// A member bounded by a ring of side planes between a bottom and a top plane: corner i of each loop where sides i and i + 1 meet its plane; flip swaps the two loops.
+    /// A member bounded by a ring of side planes between a bottom and a top plane; flip swaps the two loops.
     static std::array<Polyline, 2> loft(
         const std::vector<Plane>& sides,
         const Plane& bottom,
@@ -267,7 +267,7 @@ private:
     std::array<std::array<Polyline, 2>, 9> compute_oculus() const;
     std::array<std::array<Polyline, 2>, 6> compute_column_cutters(size_t q) const;
 
-    /// Outer rib k's axis on the datum, along its base face from its fan plane to its seam plane; the block far faces do not touch it.
+    /// Outer rib k's axis on the datum, from its fan plane to its seam plane.
     static Line outer_rib_axis(const ConstructionPlanes& cp, size_t k);
 
     /// The outer parabola over a rib axis: from -height at distance along it, controlled at its midpoint at -static_h, to the seam at -static_h.
@@ -287,7 +287,7 @@ private:
         double level
     ) const;
 
-    /// Rule A: the root of the closure nearest the reference, scanned without crossing a rib face and refined by bisection; the closure for one sweep; which side of each rib face a sweep crosses; the bisection; the sweep at degrees from the reference.
+    /// Rule A: the closure root nearest the reference and its helpers.
     static Vector rib_sweep(
         const std::array<Polyline, 2>& shadows,
         const std::array<Vector, 2>& normals,
@@ -316,7 +316,7 @@ private:
     );
     static Vector turned(const Vector& reference, double degrees);
 
-    /// A rib: its trace trimmed by the two end planes on its first face, and on its second face the trace swept along the rib with its end corners on the end planes; shared by outer_ribs and inner_ribs.
+    /// A rib: its trace trimmed by its end planes and swept along it; shared by outer_ribs and inner_ribs.
     static std::array<Polyline, 2> rib(
         const Polyline& trace,
         const Plane& face1,
@@ -326,7 +326,7 @@ private:
         bool inner
     );
 
-    /// Draws the construction into the session by quarter, under the names the Floor gives the members: quarter_q holds plan_q and a group per family with a group per member, holding its plan quad, its two face planes and for a rib its parabolas.
+    /// Draws the construction into the session by quarter, under the Floor's member names.
     void draw();
 };
 

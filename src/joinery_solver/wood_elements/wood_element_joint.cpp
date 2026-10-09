@@ -80,12 +80,12 @@ std::shared_ptr<Joint> Joint::support(const Support& support, const Column& colu
     const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
     const std::shared_ptr<Joint> joint = std::make_shared<Joint>(std::vector<Polyline>{head_circle(support, bottom), head_circle(support, support.height)}, "support");
 
-    for (const Line& screw : support.screws()) {
-        const Vector back = screw.to_vector().normalized() * support.head_plate_thickness;
-        joint->drill_lines.push_back(Line::from_points(screw.start() - back, screw.end()));
+    for (const Line& pin : support.pins()) {
+        const Vector back = pin.to_vector().normalized() * support.head_plate_thickness;
+        joint->drill_lines.push_back(Line::from_points(pin.start() - back, pin.end()));
     }
 
-    joint->line_radius = support.screw_diameter * 0.5;
+    joint->line_radius = support.pin_diameter * 0.5;
     joint->chord_tolerance = support.chord_tolerance;
     joint->targets = {column.guid()};
 
@@ -293,8 +293,8 @@ std::shared_ptr<Joint> Joint::from_element(Element element) {
         result = std::make_shared<JointBeam>();
     else if (proto.kind() == "ConnectorPart")
         result = std::make_shared<ConnectorPart>();
-    else if (proto.kind() == "Dowel")
-        result = std::make_shared<Dowel>();
+    else if (proto.kind() == "Pin" || proto.kind() == "Pin")
+        result = std::make_shared<Pin>();
     else
         result = std::make_shared<Joint>();
     static_cast<Element&>(*result) = std::move(element);
@@ -325,7 +325,7 @@ void Joint::read_proto(const wood_proto::Joint& proto) {
 }
 
 void Joint::register_type() {
-    for (const std::string kind : {"Joint", "JointPlate", "JointBeam", "JointAnnen", "JointVidy", "JointElement", "ConnectorPart", "Dowel"})
+    for (const std::string kind : {"Joint", "JointPlate", "JointBeam", "JointAnnen", "JointVidy", "JointElement", "ConnectorPart", "Pin", "Pin"})
         Element::register_type(kind, [](const std::string& data) { return Joint::from_element(Element::pb_loads(data)); });
 }
 

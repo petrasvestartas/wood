@@ -25,11 +25,11 @@ public:
     double rod_diameter = 30.0; // Threaded rod from the adjustment nut to the coupling nut.
     double coupling_nut_across_flats = 55.0; // Hexagon under the head plate.
     double coupling_nut_height = 30.0; // Hexagon under the head plate.
-    int screw_count = 3; // Screws from the head plate up into the column end.
-    double screw_diameter = 8.0; // Column screws.
-    double screw_length = 180.0; // Column screws.
-    double screw_angle = 25.0; // Degrees between a pair of opposed screws, half of it each off the axis.
-    double screw_circle_diameter = 50.0; // Circle the screws start on, on the head plate top.
+    int pin_count = 3; // Pins from the head plate up into the column end.
+    double pin_diameter = 8.0; // Column pins.
+    double pin_length = 180.0; // Column pins.
+    double pin_angle = 25.0; // Degrees between a pair of opposed pins, half of it each off the axis.
+    double pin_circle_diameter = 50.0; // Circle the pins start on, on the head plate top.
     double anchor_diameter = 12.0; // Anchors through the drillings into the slab.
     double anchor_embedment = 100.0; // Anchor depth below the plate underside.
     double chord_tolerance = 0.05; // Largest deviation of a round part's facets.
@@ -60,8 +60,8 @@ public:
     /// The axis of the column standing on it: from column_foot() straight up to the level top_z.
     Line column_axis(double top_z) const;
 
-    /// The column screws from the head plate top, spread outwards by half the screw angle.
-    std::vector<Line> screws() const;
+    /// The column pins from the head plate top, spread outwards by half the pin angle.
+    std::vector<Line> pins() const;
 
     /// The anchors from the base plate top down into the slab, one per drilling.
     std::vector<Line> anchors() const;

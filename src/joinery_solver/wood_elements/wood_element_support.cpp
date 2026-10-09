@@ -46,11 +46,11 @@ std::shared_ptr<Support> Support::from_element(Element e) {
     support->rod_diameter = proto.rod_diameter();
     support->coupling_nut_across_flats = proto.coupling_nut_across_flats();
     support->coupling_nut_height = proto.coupling_nut_height();
-    support->screw_count = proto.screw_count();
-    support->screw_diameter = proto.screw_diameter();
-    support->screw_length = proto.screw_length();
-    support->screw_angle = proto.screw_angle();
-    support->screw_circle_diameter = proto.screw_circle_diameter();
+    support->pin_count = proto.pin_count();
+    support->pin_diameter = proto.pin_diameter();
+    support->pin_length = proto.pin_length();
+    support->pin_angle = proto.pin_angle();
+    support->pin_circle_diameter = proto.pin_circle_diameter();
     support->anchor_diameter = proto.anchor_diameter();
     support->anchor_embedment = proto.anchor_embedment();
     support->chord_tolerance = proto.chord_tolerance();
@@ -246,18 +246,18 @@ Line Support::column_axis(double top_z) const {
     return Line::from_points(foot, Point(foot[0], foot[1], top_z));
 }
 
-std::vector<Line> Support::screws() const {
+std::vector<Line> Support::pins() const {
 
-    const double radius = screw_circle_diameter * 0.5;
-    const double tilt = screw_angle * 0.5 * M_PI / 180.0;
+    const double radius = pin_circle_diameter * 0.5;
+    const double tilt = pin_angle * 0.5 * M_PI / 180.0;
     std::vector<Line> lines;
 
-    for (int i = 0; i < screw_count; i++) {
-        const double angle = 2.0 * M_PI * i / screw_count;
+    for (int i = 0; i < pin_count; i++) {
+        const double angle = 2.0 * M_PI * i / pin_count;
         const Vector outward = plane.x_axis() * std::cos(angle) + plane.y_axis() * std::sin(angle);
         const Point start = at(height) + outward * radius;
         const Vector direction = outward * std::sin(tilt) + plane.z_axis() * std::cos(tilt);
-        lines.push_back(Line::from_points(start, start + direction * screw_length));
+        lines.push_back(Line::from_points(start, start + direction * pin_length));
     }
 
     return lines;
@@ -428,11 +428,11 @@ std::string Support::element_data_dumps() const {
     proto.set_rod_diameter(rod_diameter);
     proto.set_coupling_nut_across_flats(coupling_nut_across_flats);
     proto.set_coupling_nut_height(coupling_nut_height);
-    proto.set_screw_count(screw_count);
-    proto.set_screw_diameter(screw_diameter);
-    proto.set_screw_length(screw_length);
-    proto.set_screw_angle(screw_angle);
-    proto.set_screw_circle_diameter(screw_circle_diameter);
+    proto.set_pin_count(pin_count);
+    proto.set_pin_diameter(pin_diameter);
+    proto.set_pin_length(pin_length);
+    proto.set_pin_angle(pin_angle);
+    proto.set_pin_circle_diameter(pin_circle_diameter);
     proto.set_anchor_diameter(anchor_diameter);
     proto.set_anchor_embedment(anchor_embedment);
     proto.set_chord_tolerance(chord_tolerance);

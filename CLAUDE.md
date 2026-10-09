@@ -42,21 +42,21 @@ completion accurately. Generated protobuf files follow the generator's format.
 
 - **The key pattern: a joint is an element, and what it does is an interaction.** Every connection between members
   is made the same way: a joint element class computes itself from the contact of the members it joins (a wedge, a
-  plate, dowels, screws, a cross lap: where its parts and its dowels or screws go is the class's job, distributed over
+  plate, pins, a cross lap: where its parts and its pins go is the class's job, distributed over
   the contact, never computed in a template), it is added, and it is passed to each member with `add_interaction`:
 
 ```cpp
-    const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(*contact.a, *contact.b, *contact.face);
-    add(dowels, group);
-    add_interaction(dowels, contact.a, dowels->interaction(0));
-    add_interaction(dowels, contact.b, dowels->interaction(1));
+    const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
+    add(pins, group);
+    add_interaction(pins, contact.a, pins->interaction(0));
+    add_interaction(pins, contact.b, pins->interaction(1));
 ```
 
 - A model is built with two calls: `add(element, group)` puts an element in the tree, and
   `add_interaction(source, target, interaction)` puts what the source does to the target on their edge: a contact,
-  a glued block, a cut, a joint, a connector, screws. No wrapper adds an element and its effects in one call (no
+  a glued block, a cut, a joint, a connector, pins. No wrapper adds an element and its effects in one call (no
   `add_joint`, `add_connector`, `add_column`-style helpers): the code shows every element and every effect.
-- A joint, connector or screw set says what it does to its target i with `interaction(i)`, so it goes on each target
+- A joint, connector or pin set says what it does to its target i with `interaction(i)`, so it goes on each target
   in its own line, in the joint's target order:
 
 ```cpp
@@ -65,11 +65,15 @@ completion accurately. Generated protobuf files follow the generator's format.
     add_interaction(wedge, seam.b, wedge->interaction(1));
 ```
 
+- Every screw, dowel or pin is a `Pin`: one cylinder along its axis, a child of its connector. No class, factory,
+  field or element name says screw or dowel; they say pin. A connector of pins is a `JointBeam` made by
+  `JointBeam::centred_pins` (centred across the contact, bored into both members) or `JointBeam::headed_pins`
+  (from a head on the far face of the first member, pre-drilled), its pins laid out on the contact by `PinLayout`.
 - An interaction belongs to its target, the element the source acts on: the target hosts the contact, the cut, the
   holes; the source keeps only what it is.
 - An element is named where it is made, by its place (`connector_seam_wedge_<q>`, `inner_beams_<i>_<q>`), never
   numbered from the session afterwards.
-- Colour and look belong to the element class (a connector and its parts and dowels are
+- Colour and look belong to the element class (a connector and its parts and pins are
   `JointBeam::CONNECTOR_COLOR`); a template does not paint nodes.
 - The tree is the model's structure: groups by place and family (`quarter_q` > `outer_ribs_q` > `outer_ribs_<i>_<q>`),
   an element's own parts nested under it, its attributes (base plane) in its `attributes` group. Read elements back

@@ -229,14 +229,14 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Support final : public ::google::pr
     kRodDiameterFieldNumber = 12,
     kCouplingNutAcrossFlatsFieldNumber = 13,
     kCouplingNutHeightFieldNumber = 14,
-    kScrewDiameterFieldNumber = 16,
-    kScrewLengthFieldNumber = 17,
-    kScrewAngleFieldNumber = 18,
-    kScrewCircleDiameterFieldNumber = 19,
+    kPinDiameterFieldNumber = 16,
+    kPinLengthFieldNumber = 17,
+    kPinAngleFieldNumber = 18,
+    kPinCircleDiameterFieldNumber = 19,
     kAnchorDiameterFieldNumber = 20,
     kAnchorEmbedmentFieldNumber = 21,
     kChordToleranceFieldNumber = 22,
-    kScrewCountFieldNumber = 15,
+    kPinCountFieldNumber = 15,
   };
   // .session_proto.Plane plane = 1;
   [[nodiscard]] bool has_plane() const;
@@ -383,44 +383,44 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Support final : public ::google::pr
   void _internal_set_coupling_nut_height(double value);
 
   public:
-  // double screw_diameter = 16;
-  void clear_screw_diameter() ;
-  [[nodiscard]] double screw_diameter() const;
-  void set_screw_diameter(double value);
+  // double pin_diameter = 16;
+  void clear_pin_diameter() ;
+  [[nodiscard]] double pin_diameter() const;
+  void set_pin_diameter(double value);
 
   private:
-  double _internal_screw_diameter() const;
-  void _internal_set_screw_diameter(double value);
+  double _internal_pin_diameter() const;
+  void _internal_set_pin_diameter(double value);
 
   public:
-  // double screw_length = 17;
-  void clear_screw_length() ;
-  [[nodiscard]] double screw_length() const;
-  void set_screw_length(double value);
+  // double pin_length = 17;
+  void clear_pin_length() ;
+  [[nodiscard]] double pin_length() const;
+  void set_pin_length(double value);
 
   private:
-  double _internal_screw_length() const;
-  void _internal_set_screw_length(double value);
+  double _internal_pin_length() const;
+  void _internal_set_pin_length(double value);
 
   public:
-  // double screw_angle = 18;
-  void clear_screw_angle() ;
-  [[nodiscard]] double screw_angle() const;
-  void set_screw_angle(double value);
+  // double pin_angle = 18;
+  void clear_pin_angle() ;
+  [[nodiscard]] double pin_angle() const;
+  void set_pin_angle(double value);
 
   private:
-  double _internal_screw_angle() const;
-  void _internal_set_screw_angle(double value);
+  double _internal_pin_angle() const;
+  void _internal_set_pin_angle(double value);
 
   public:
-  // double screw_circle_diameter = 19;
-  void clear_screw_circle_diameter() ;
-  [[nodiscard]] double screw_circle_diameter() const;
-  void set_screw_circle_diameter(double value);
+  // double pin_circle_diameter = 19;
+  void clear_pin_circle_diameter() ;
+  [[nodiscard]] double pin_circle_diameter() const;
+  void set_pin_circle_diameter(double value);
 
   private:
-  double _internal_screw_circle_diameter() const;
-  void _internal_set_screw_circle_diameter(double value);
+  double _internal_pin_circle_diameter() const;
+  void _internal_set_pin_circle_diameter(double value);
 
   public:
   // double anchor_diameter = 20;
@@ -453,14 +453,14 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Support final : public ::google::pr
   void _internal_set_chord_tolerance(double value);
 
   public:
-  // int32 screw_count = 15;
-  void clear_screw_count() ;
-  [[nodiscard]] ::int32_t screw_count() const;
-  void set_screw_count(::int32_t value);
+  // int32 pin_count = 15;
+  void clear_pin_count() ;
+  [[nodiscard]] ::int32_t pin_count() const;
+  void set_pin_count(::int32_t value);
 
   private:
-  ::int32_t _internal_screw_count() const;
-  void _internal_set_screw_count(::int32_t value);
+  ::int32_t _internal_pin_count() const;
+  void _internal_set_pin_count(::int32_t value);
 
   public:
   // @@protoc_insertion_point(class_scope:wood_proto.Support)
@@ -510,14 +510,14 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Support final : public ::google::pr
     double rod_diameter_;
     double coupling_nut_across_flats_;
     double coupling_nut_height_;
-    double screw_diameter_;
-    double screw_length_;
-    double screw_angle_;
-    double screw_circle_diameter_;
+    double pin_diameter_;
+    double pin_length_;
+    double pin_angle_;
+    double pin_circle_diameter_;
     double anchor_diameter_;
     double anchor_embedment_;
     double chord_tolerance_;
-    ::int32_t screw_count_;
+    ::int32_t pin_count_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -945,124 +945,124 @@ inline void Support::_internal_set_coupling_nut_height(double value) {
   _impl_.coupling_nut_height_ = value;
 }
 
-// int32 screw_count = 15;
-inline void Support::clear_screw_count() {
+// int32 pin_count = 15;
+inline void Support::clear_pin_count() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_count_ = 0;
+  _impl_.pin_count_ = 0;
   ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
 }
-inline ::int32_t Support::screw_count() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Support.screw_count)
-  return _internal_screw_count();
+inline ::int32_t Support::pin_count() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Support.pin_count)
+  return _internal_pin_count();
 }
-inline void Support::set_screw_count(::int32_t value) {
-  _internal_set_screw_count(value);
+inline void Support::set_pin_count(::int32_t value) {
+  _internal_set_pin_count(value);
   SetHasBit(_impl_._has_bits_[0], 0x00200000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Support.screw_count)
+  // @@protoc_insertion_point(field_set:wood_proto.Support.pin_count)
 }
-inline ::int32_t Support::_internal_screw_count() const {
+inline ::int32_t Support::_internal_pin_count() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.screw_count_;
+  return _impl_.pin_count_;
 }
-inline void Support::_internal_set_screw_count(::int32_t value) {
+inline void Support::_internal_set_pin_count(::int32_t value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_count_ = value;
+  _impl_.pin_count_ = value;
 }
 
-// double screw_diameter = 16;
-inline void Support::clear_screw_diameter() {
+// double pin_diameter = 16;
+inline void Support::clear_pin_diameter() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_diameter_ = 0;
+  _impl_.pin_diameter_ = 0;
   ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
 }
-inline double Support::screw_diameter() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Support.screw_diameter)
-  return _internal_screw_diameter();
+inline double Support::pin_diameter() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Support.pin_diameter)
+  return _internal_pin_diameter();
 }
-inline void Support::set_screw_diameter(double value) {
-  _internal_set_screw_diameter(value);
+inline void Support::set_pin_diameter(double value) {
+  _internal_set_pin_diameter(value);
   SetHasBit(_impl_._has_bits_[0], 0x00004000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Support.screw_diameter)
+  // @@protoc_insertion_point(field_set:wood_proto.Support.pin_diameter)
 }
-inline double Support::_internal_screw_diameter() const {
+inline double Support::_internal_pin_diameter() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.screw_diameter_;
+  return _impl_.pin_diameter_;
 }
-inline void Support::_internal_set_screw_diameter(double value) {
+inline void Support::_internal_set_pin_diameter(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_diameter_ = value;
+  _impl_.pin_diameter_ = value;
 }
 
-// double screw_length = 17;
-inline void Support::clear_screw_length() {
+// double pin_length = 17;
+inline void Support::clear_pin_length() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_length_ = 0;
+  _impl_.pin_length_ = 0;
   ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
 }
-inline double Support::screw_length() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Support.screw_length)
-  return _internal_screw_length();
+inline double Support::pin_length() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Support.pin_length)
+  return _internal_pin_length();
 }
-inline void Support::set_screw_length(double value) {
-  _internal_set_screw_length(value);
+inline void Support::set_pin_length(double value) {
+  _internal_set_pin_length(value);
   SetHasBit(_impl_._has_bits_[0], 0x00008000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Support.screw_length)
+  // @@protoc_insertion_point(field_set:wood_proto.Support.pin_length)
 }
-inline double Support::_internal_screw_length() const {
+inline double Support::_internal_pin_length() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.screw_length_;
+  return _impl_.pin_length_;
 }
-inline void Support::_internal_set_screw_length(double value) {
+inline void Support::_internal_set_pin_length(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_length_ = value;
+  _impl_.pin_length_ = value;
 }
 
-// double screw_angle = 18;
-inline void Support::clear_screw_angle() {
+// double pin_angle = 18;
+inline void Support::clear_pin_angle() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_angle_ = 0;
+  _impl_.pin_angle_ = 0;
   ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
 }
-inline double Support::screw_angle() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Support.screw_angle)
-  return _internal_screw_angle();
+inline double Support::pin_angle() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Support.pin_angle)
+  return _internal_pin_angle();
 }
-inline void Support::set_screw_angle(double value) {
-  _internal_set_screw_angle(value);
+inline void Support::set_pin_angle(double value) {
+  _internal_set_pin_angle(value);
   SetHasBit(_impl_._has_bits_[0], 0x00010000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Support.screw_angle)
+  // @@protoc_insertion_point(field_set:wood_proto.Support.pin_angle)
 }
-inline double Support::_internal_screw_angle() const {
+inline double Support::_internal_pin_angle() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.screw_angle_;
+  return _impl_.pin_angle_;
 }
-inline void Support::_internal_set_screw_angle(double value) {
+inline void Support::_internal_set_pin_angle(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_angle_ = value;
+  _impl_.pin_angle_ = value;
 }
 
-// double screw_circle_diameter = 19;
-inline void Support::clear_screw_circle_diameter() {
+// double pin_circle_diameter = 19;
+inline void Support::clear_pin_circle_diameter() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_circle_diameter_ = 0;
+  _impl_.pin_circle_diameter_ = 0;
   ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
 }
-inline double Support::screw_circle_diameter() const {
-  // @@protoc_insertion_point(field_get:wood_proto.Support.screw_circle_diameter)
-  return _internal_screw_circle_diameter();
+inline double Support::pin_circle_diameter() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Support.pin_circle_diameter)
+  return _internal_pin_circle_diameter();
 }
-inline void Support::set_screw_circle_diameter(double value) {
-  _internal_set_screw_circle_diameter(value);
+inline void Support::set_pin_circle_diameter(double value) {
+  _internal_set_pin_circle_diameter(value);
   SetHasBit(_impl_._has_bits_[0], 0x00020000U);
-  // @@protoc_insertion_point(field_set:wood_proto.Support.screw_circle_diameter)
+  // @@protoc_insertion_point(field_set:wood_proto.Support.pin_circle_diameter)
 }
-inline double Support::_internal_screw_circle_diameter() const {
+inline double Support::_internal_pin_circle_diameter() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.screw_circle_diameter_;
+  return _impl_.pin_circle_diameter_;
 }
-inline void Support::_internal_set_screw_circle_diameter(double value) {
+inline void Support::_internal_set_pin_circle_diameter(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.screw_circle_diameter_ = value;
+  _impl_.pin_circle_diameter_ = value;
 }
 
 // double anchor_diameter = 20;

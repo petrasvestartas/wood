@@ -6,7 +6,7 @@
 #include "wood_element_joint.h"
 #include "wood_element_joint_plate.h"
 #include "wood_element_joint_beam.h"
-#include "wood_element_dowel.h"
+#include "wood_element_pin.h"
 #include "wood_element_connector_part.h"
 #include "wood_element_block.h"
 #include "wood_element_column.h"
@@ -34,7 +34,7 @@ const std::vector<InteractionFeatureSolid>* solid_features_of(const Element& ele
 
 }
 
-/// WoodSession::compute_features over loose plates, for callers without a scene: the plates are solved in place with `settings`, the sidecars the config names apply, and every detected joint is returned.
+/// WoodSession::compute_features over loose plates, solved in place with `settings`; returns every detected joint.
 std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
         std::vector<std::shared_ptr<wood_session::Plate>>& elements,
         const wood_session::Settings& settings = wood_session::Settings(),
@@ -54,7 +54,7 @@ bool is_type(const Element& element) {
 // WoodSession - a Session whose elements are plates, columns and blocks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A Session whose elements are plates, beams, columns and blocks, and whose graph edges each hold a list of interactions in the kernel's `interactions`: contacts, joints, structures, found by the edge's guid; the edge itself is the only place the pair is stored. Session has no virtual method, so never delete one through a Session*. Every plate holds two geometries: element_geometry_mesh() / element_geometry_brep(), the plate alone, the loft of its two outlines, never cut; and model_geometry_mesh() / model_geometry_brep(), the plate with its joints cut in, the one to inspect. compute_features() fills the joints and the merged outlines but lofts nothing; pb_dump() lofts every plate that is not yet lofted, so the file carries the model geometry the viewer draws.
+/// A Session whose elements are plates, beams, columns and blocks, joined by interactions on its graph edges.
 class WoodSession : public Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
@@ -78,10 +78,10 @@ public:
     /// A scene from wood_proto.WoodSession bytes, which any Session reader also opens.
     static WoodSession pb_loads(const std::string& data);
 
-    /// A dataset name (`data/<name>.obj`) or an .obj path: one Plate per consecutive outline pair, even bottom, odd top; duplicate_pts_tol > 0 removes consecutive duplicate points.
+    /// A dataset name (`data/<name>.obj`) or an .obj path: one Plate per consecutive outline pair.
     static WoodSession obj_load(const std::filesystem::path& path, double duplicate_pts_tol = 0.0);
 
-    /// A dataset name (`data/<name>.yml`) or a .yml path: its solver keys become the scene's settings, the obj it names its plates, its sidecars the adjacency, three-valence groups, insertion vectors and joint types.
+    /// A dataset name (`data/<name>.yml`) or a .yml path, with its settings, plates and sidecars.
     static WoodSession yaml_load(const std::filesystem::path& path);
 
     /// Session::jsonload, the elements and interactions as their wood types.
@@ -107,10 +107,10 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Removes the joints compute_features and compute_beam_features generated, with every feature on the edges and every "joint" feature the elements host, but those of the joints the user added; the contacts and the user's joints, their cuts and drills stay.
+    /// Removes the joints compute_features and compute_beam_features generated; contacts and user joints stay.
     void clear_features();
 
-    /// Coplanar face-overlap detection: an InteractionContactFace per touching face pair, onto the pair's edge; only elements under the same tree node at depth `level` are paired, 0 the root and so every element, 1 each branch of the root on its own.
+    /// Coplanar face-overlap detection: an InteractionContactFace per touching face pair within tree depth `level`.
     void compute_face_contacts(int level = 0);
 
     /// First face contact in face-index order, nullptr when disjoint; plate contacts include joinery volumes.
@@ -126,28 +126,28 @@ public:
     using Session::merge;
     using Session::graft;
 
-    /// Session::merge, and both sessions' plate adjacency and three-valence groups renumbered by plate guid to the merged plate order; when either side has plates but no adjacency, the merged adjacency stays empty so compute_features searches every pair.
+    /// Session::merge, with both sides' plate adjacency and three-valence groups renumbered to the merged order.
     void merge(const WoodSession& other);
 
     /// Session::graft, the adjacency and three-valence groups appended as merge appends them.
     void graft(const WoodSession& other, std::shared_ptr<TreeNode> parent);
 
-    /// Session::get_branch as a WoodSession: the same settings, the adjacency and three-valence groups whose plates all lie in the branch, renumbered to the branch's plates, and at its root every pre-drill connector from outside it that drills one of its members, in place, so pre_drill_lines() reads the same holes.
+    /// Session::get_branch as a WoodSession, with its settings, adjacency and the pre-drill connectors drilling its members.
     WoodSession get_branch(const std::string& name) const;
 
     /// The closest axis segments of every two beams within `min_distance`, an InteractionContactAxis per beam pair.
     void compute_axis_contacts(double min_distance);
 
-    /// An InteractionFeatureBeam for every axis contact between two beams: four volume rectangles of `volume_length`, `cross_or_side_to_end` separating a crossing from an end contact, `flip_male` rotating the male corners; earlier beam features are replaced.
+    /// An InteractionFeatureBeam for every axis contact between two beams, replacing earlier beam features.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over `world_elements<Plate>()`, in place: adjacent_pairs, detect_features, the three-valence links, build_feature_geometry, merge_features; every jointed instance promoted, contacts onto plate-pair edges, JointPlate/JointAnnen/JointVidy elements with directed feature edges to their hosts, the merged outlines onto each plate, and the joints returned in detection order. No plate is lofted, model_geometry_mesh() / model_geometry_brep() or pb_dump() does that on demand.
+    /// The joinery pipeline over `world_elements<Plate>()`, in place, returning the joints in detection order.
     std::vector<InteractionFeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
     std::vector<InteractionFeaturePlate> compute_features(SearchType search_type);
 
-    /// The four sidecars of the dataset config::load_yaml read last onto the scene, called by yaml_load only: adjacency and three_valence when the scene has none, insertion vectors and joint types onto every plate of elements, by position, that carries none.
+    /// The four sidecars of the dataset config::load_yaml read last onto the scene, called by yaml_load only.
     void load_sidecars(const std::vector<std::shared_ptr<Plate>>& elements);
 
     /// Candidate pairs by position in elements: `adjacency` when the scene has one, else the OBB and BVH search within config::DISTANCE.
@@ -156,7 +156,7 @@ public:
     /// face_to_face_wood on every pair of elements, joints in pair order; a plate whose faces detection swapped is swapped in place.
     std::vector<InteractionFeaturePlate> detect_features(const std::vector<std::shared_ptr<Plate>>& elements, const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
 
-    /// Unit joinery geometry and its orientation for every joint, in order; feature_types is the per-plate per-face id table, empty rows let the solver decide.
+    /// Unit joinery geometry and its orientation for every joint, in order.
     void build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types);
 
     /// Merges every joint's cut outlines into its two plates' features.
@@ -190,14 +190,14 @@ public:
     /// Session::has_interaction: the pair has an edge in either order.
     using Session::has_interaction;
 
-    /// Store the interaction on the undirected edge. A contact belongs to the target, the element the source acts on, and beam-joint geometry to the source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. A joint as source does to that one target what its kind does, given joint->interaction(i): a connector nests its parts and dowels under it, blue, and cuts and drills the target; screws drill their holes; a beam joint hosts its volumes; a cutter takes its solid or its planes away. Returns the stored interaction.
+    /// Stores the interaction on the undirected edge and applies what its kind does to the target.
     std::shared_ptr<Interaction> add_interaction(
         const std::shared_ptr<Element>& source,
         const std::shared_ptr<Element>& target,
         std::shared_ptr<Interaction> interaction
     );
 
-    /// Session::remove_interaction, and the "contact" and "joint" features its interactions put on the two elements, the solid cut and the "drill" features the one put on the other; already merged geometry is not recomputed.
+    /// Session::remove_interaction, and the features its interactions put on the two elements.
     void remove_interaction(const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b);
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -207,10 +207,10 @@ public:
     /// pb_dumps() to a file; every stale element computes its geometry as it is written.
     void pb_dump(const std::string& filename);
 
-    /// The scene as wood_proto.WoodSession bytes, every stale element computing its geometry as it is written and its attributes drawn: the kernel's Session fields, the interactions among them, then the settings at field 101.
+    /// The scene as wood_proto.WoodSession bytes: the Session fields, the interactions, then the settings at field 101.
     std::string pb_dumps();
 
-    /// Puts every element's base plane, hidden, in an `attributes` group under the element, beside the `features` group of the elements that cut or glue onto it, which have none; a plane already there stays unless the element moved.
+    /// Puts every element's base plane, hidden, in an `attributes` group under the element.
     void sync_attributes();
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -292,10 +292,10 @@ public:
         return *objects.elements;
     }
 
-    /// One past the highest n of an element named `<prefix>_<n>`, 0 when there is none: the next free number of a name prefix.
+    /// One past the highest n of an element named `<prefix>_<n>`, 0 when there is none.
     size_t next_number(const std::string& prefix) const;
 
-    /// Writes every cut member, connector part, dowel and support as its BRep instead of its mesh, the bores and round parts exact.
+    /// Writes every cut member, connector part, pin and support as its BRep instead of its mesh, the bores and round parts exact.
     void compute_breps();
 
     /// Every Plate, in objects.elements order.
@@ -331,7 +331,7 @@ public:
     /// The guids of world_elements(), in order: the index space detection works in.
     std::vector<std::string> element_guids() const;
 
-    /// The pre-drilled holes of one element in world coordinates: the drill lines of every pre-drill connector that names it as a target, each stored once on its connector, so both members of a joint read the same lines.
+    /// The pre-drilled holes of one element in world coordinates, from every pre-drill connector targeting it.
     std::vector<Line> pre_drill_lines(const std::string& guid) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -344,10 +344,10 @@ public:
     /// Session::add_instance for a kernel InstanceRef.
     using Session::add_instance;
 
-    /// Session::add_definition for an element in its own frame under a class key: the guid already stored under key when key was seen, else the new one.
+    /// Session::add_definition for an element in its own frame under a class key, reused when key was seen.
     std::string add_definition(std::shared_ptr<Element> definition, const std::string& key);
 
-    /// A light placement of an element definition with its own guid, named name or else as the definition; nullptr when definition_guid names no element definition or xform mirrors.
+    /// A light placement of an element definition with its own guid; nullptr when there is none or xform mirrors.
     std::shared_ptr<TreeNode> add_instance(
         const std::string& definition_guid,
         const Xform& xform,
@@ -355,10 +355,10 @@ public:
         std::shared_ptr<TreeNode> parent = nullptr
     );
 
-    /// A light world copy of the element or instance guid names, placed by world: the stored element's or the definition's parameters, features, outlines and planes moved, an instance's guid, name and features; lofts nothing but a stored solid never lofted yet; nullptr when there is none or world mirrors.
+    /// A light world copy of the element or instance guid names, placed by world; nullptr when there is none or world mirrors.
     std::shared_ptr<Element> world_view(const std::string& guid, const Xform& world) const;
 
-    /// Every element and element instance as world geometry for the passes, in list order until the session holds an element definition and in tree order from then on, so no conversion moves an index: an element placed by identity is itself, anything else a world_view; keep, when given, picks by the stored type before any view is built.
+    /// Every element and element instance as world geometry for the passes, in a stable order.
     std::vector<std::shared_ptr<Element>> world_elements(const std::function<bool(const Element&)>& keep = nullptr) const;
 
     /// world_elements() of type T, instances included as views of T.
@@ -375,17 +375,17 @@ public:
     /// Puts a feature given in world coordinates onto the element or instance guid names, moved into its own frame, guid kept.
     void host_feature(const std::string& guid, ElementFeature feature);
 
-    /// Replaces each element key_of finds a class for by an instance of that class's definition, keeping guid, name, tree node, edges with their guids, so every interaction stays found, and its contact and joint features; recorded only inside a transaction the caller opened, so a build-time dedup holds no undo copies; returns the number made.
+    /// Replaces each element key_of finds a class for by an instance of that class's definition; returns the number made.
     size_t instance_by_key(const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of = element_key);
 
-    /// Writes a pass's world view back: an instance is exploded, its edges keeping their guids, then the element under its guid replaced by the view moved into its own frame; a stored element passed as its own view stays as it is.
+    /// Writes a pass's world view back onto the element or instance under its guid.
     void promote(const std::shared_ptr<Element>& view);
 
-    /// Drops every contact of one kind ("face", "axis", "cross") from every edge and its hosted feature, so a recompute of that kind replaces rather than accumulates; a feature whose contact went forgets it.
+    /// Drops every contact of one kind ("face", "axis", "cross") from every edge and its hosted feature.
     void erase_contacts(std::string_view kind);
 
 private:
-    /// Every target of the joint through add_interaction, the joint added first when it is not in the session; a plate joint merges its plates once at the end when merge. For the joints the session makes itself.
+    /// Adds every target of the joint through add_interaction, adding the joint first when it is not in the session.
     void apply_joint(const std::shared_ptr<Joint>& joint, bool merge);
 
     /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.

@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A support on the xy plane with the manufacturer's dimensions: base plate with anchors, tube, head plate and column screws, written as its exact BRep so the round parts and holes are smooth.
+A support on the xy plane with the manufacturer's dimensions: base plate with anchors, tube, head plate and column pins, written as its exact BRep so the round parts and holes are smooth.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

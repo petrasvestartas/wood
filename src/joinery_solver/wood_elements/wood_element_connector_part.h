@@ -6,12 +6,12 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// One solid of a connector, its plate, wedge or key, with the connector's cuts into it and the exact bores of the dowels passing through it; a child of the connector in the tree, carrying no relation and no dowel of its own.
+/// One solid of a connector, its plate, wedge or key, with the connector's cuts into it and the exact bores of the pins passing through it; a child of the connector in the tree, carrying no relation and no pin of its own.
 class ConnectorPart : public JointBeam {
 public:
     ConnectorPart();
 
-    /// Part index of the connector, with the connector's cuts and the bores of its dowels through it; visible, named name.
+    /// Part index of the connector, with the connector's cuts and the bores of its pins through it; visible, named name.
     ConnectorPart(const JointBeam& connector, size_t index, const std::string& name);
 
     /// The part with its cuts applied.

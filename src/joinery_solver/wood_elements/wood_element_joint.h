@@ -14,7 +14,7 @@ namespace wood_session {
 class Support;
 class Column;
 
-/// Element that represents a joint: what it does to the elements it targets, cut loops, cutting planes, a cutter profile with its extrusion and drill lines, applied by WoodSession; the base of JointBeam, JointPlate and Dowel.
+/// Element that represents a joint: what it cuts and drills in its targets; the base of JointBeam, JointPlate and Pin.
 class Joint : public Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Joint";
@@ -46,11 +46,11 @@ public:
           SolidOperation operation = SolidOperation::intersect);
     static std::shared_ptr<Joint> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
 
-    /// The joint of a support and the column standing on it, named "support": the head plate disc let up into the column end by the recess, and the column screws drilled from the head plate underside, so each hole opens into the pocket; aimed at the column.
+    /// The joint of a support and the column standing on it, named "support": a head plate let into the column end and pinned.
     static std::shared_ptr<Joint> support(const Support& support, const Column& column);
     virtual std::vector<Line> drill_axes() const;
 
-    /// The interaction this joint puts on its target i, for WoodSession::add_interaction(joint, target, joint->interaction(i)): its solid, drills, profile and operation as an InteractionFeatureSolid, or an empty InteractionFeaturePlateBeam when it only cuts by its planes.
+    /// The interaction this joint puts on its target i, for WoodSession::add_interaction.
     virtual std::shared_ptr<Interaction> interaction(size_t target) const;
 
     static std::shared_ptr<Joint> from_element(Element element);

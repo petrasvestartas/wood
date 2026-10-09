@@ -1,21 +1,21 @@
 #include "pch.h"
-#include "wood_element_dowel.h"
+#include "wood_element_pin.h"
 
 namespace wood_session {
 
 using namespace session_cpp;
 
-Dowel::Dowel() {
-    name = "dowel";
+Pin::Pin() {
+    name = "pin";
     is_visible = true;
 }
 
-Dowel::Dowel(const Line& axis, double radius, double chord_tolerance) {
+Pin::Pin(const Line& axis, double radius, double chord_tolerance) {
 
     if (axis.length() <= 0.0 || radius <= 0.0)
-        throw std::invalid_argument("A dowel needs a positive length and radius");
+        throw std::invalid_argument("A pin needs a positive length and radius");
 
-    name = "dowel";
+    name = "pin";
     is_visible = true;
     drill_lines = {axis};
     line_radius = radius;

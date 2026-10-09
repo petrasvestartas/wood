@@ -118,26 +118,26 @@ constexpr Support::ParseTableT_ Support::InternalGenerateParseTable_(const ::_pb
       {::_pbi::TcParser::FastF64S1,
        {113, 13, 0,
         PROTOBUF_FIELD_OFFSET(Support, _impl_.coupling_nut_height_)}},
-      // int32 screw_count = 15;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Support, _impl_.screw_count_), 21>(),
+      // int32 pin_count = 15;
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Support, _impl_.pin_count_), 21>(),
        {120, 21, 0,
-        PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_count_)}},
-      // double screw_diameter = 16;
+        PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_count_)}},
+      // double pin_diameter = 16;
       {::_pbi::TcParser::FastF64S2,
        {385, 14, 0,
-        PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_diameter_)}},
-      // double screw_length = 17;
+        PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_diameter_)}},
+      // double pin_length = 17;
       {::_pbi::TcParser::FastF64S2,
        {393, 15, 0,
-        PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_length_)}},
-      // double screw_angle = 18;
+        PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_length_)}},
+      // double pin_angle = 18;
       {::_pbi::TcParser::FastF64S2,
        {401, 16, 0,
-        PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_angle_)}},
-      // double screw_circle_diameter = 19;
+        PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_angle_)}},
+      // double pin_circle_diameter = 19;
       {::_pbi::TcParser::FastF64S2,
        {409, 17, 0,
-        PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_circle_diameter_)}},
+        PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_circle_diameter_)}},
       // double anchor_diameter = 20;
       {::_pbi::TcParser::FastF64S2,
        {417, 18, 0,
@@ -190,16 +190,16 @@ constexpr Support::ParseTableT_ Support::InternalGenerateParseTable_(const ::_pb
       {PROTOBUF_FIELD_OFFSET(Support, _impl_.coupling_nut_across_flats_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // double coupling_nut_height = 14;
       {PROTOBUF_FIELD_OFFSET(Support, _impl_.coupling_nut_height_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // int32 screw_count = 15;
-      {PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_count_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
-      // double screw_diameter = 16;
-      {PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_diameter_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // double screw_length = 17;
-      {PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_length_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // double screw_angle = 18;
-      {PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_angle_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
-      // double screw_circle_diameter = 19;
-      {PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_circle_diameter_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // int32 pin_count = 15;
+      {PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_count_), _Internal::kHasBitsOffset + 21, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      // double pin_diameter = 16;
+      {PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_diameter_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // double pin_length = 17;
+      {PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_length_), _Internal::kHasBitsOffset + 15, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // double pin_angle = 18;
+      {PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_angle_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // double pin_circle_diameter = 19;
+      {PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_circle_diameter_), _Internal::kHasBitsOffset + 17, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // double anchor_diameter = 20;
       {PROTOBUF_FIELD_OFFSET(Support, _impl_.anchor_diameter_), _Internal::kHasBitsOffset + 18, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // double anchor_embedment = 21;
@@ -237,14 +237,14 @@ inline constexpr Support::Impl_::Impl_(
         rod_diameter_{0},
         coupling_nut_across_flats_{0},
         coupling_nut_height_{0},
-        screw_diameter_{0},
-        screw_length_{0},
-        screw_angle_{0},
-        screw_circle_diameter_{0},
+        pin_diameter_{0},
+        pin_length_{0},
+        pin_angle_{0},
+        pin_circle_diameter_{0},
         anchor_diameter_{0},
         anchor_embedment_{0},
         chord_tolerance_{0},
-        screw_count_{0} {}
+        pin_count_{0} {}
 
 template <typename>
 constexpr Support::Support(::_pbi::ConstantInitialized,
@@ -363,11 +363,11 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.rod_diameter_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.coupling_nut_across_flats_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.coupling_nut_height_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.screw_count_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.screw_diameter_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.screw_length_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.screw_angle_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.screw_circle_diameter_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.pin_count_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.pin_diameter_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.pin_length_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.pin_angle_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.pin_circle_diameter_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.anchor_diameter_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.anchor_embedment_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Support, _impl_.chord_tolerance_),
@@ -406,7 +406,7 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_element_5fsupport_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\025element_support.proto\022\nwood_proto\032\013pla"
-    "ne.proto\"\350\004\n\007Support\022#\n\005plane\030\001 \001(\0132\024.se"
+    "ne.proto\"\336\004\n\007Support\022#\n\005plane\030\001 \001(\0132\024.se"
     "ssion_proto.Plane\022\016\n\006height\030\002 \001(\001\022\033\n\023hea"
     "d_plate_diameter\030\003 \001(\001\022\034\n\024head_plate_thi"
     "ckness\030\004 \001(\001\022\031\n\021head_plate_recess\030\005 \001(\001\022"
@@ -416,12 +416,12 @@ const char descriptor_table_protodef_element_5fsupport_2eproto[] ABSL_ATTRIBUTE_
     "\001\022#\n\033adjustment_nut_across_flats\030\n \001(\001\022\032"
     "\n\022adjustment_nut_top\030\013 \001(\001\022\024\n\014rod_diamet"
     "er\030\014 \001(\001\022!\n\031coupling_nut_across_flats\030\r "
-    "\001(\001\022\033\n\023coupling_nut_height\030\016 \001(\001\022\023\n\013scre"
-    "w_count\030\017 \001(\005\022\026\n\016screw_diameter\030\020 \001(\001\022\024\n"
-    "\014screw_length\030\021 \001(\001\022\023\n\013screw_angle\030\022 \001(\001"
-    "\022\035\n\025screw_circle_diameter\030\023 \001(\001\022\027\n\017ancho"
-    "r_diameter\030\024 \001(\001\022\030\n\020anchor_embedment\030\025 \001"
-    "(\001\022\027\n\017chord_tolerance\030\026 \001(\001b\006proto3"
+    "\001(\001\022\033\n\023coupling_nut_height\030\016 \001(\001\022\021\n\tpin_"
+    "count\030\017 \001(\005\022\024\n\014pin_diameter\030\020 \001(\001\022\022\n\npin"
+    "_length\030\021 \001(\001\022\021\n\tpin_angle\030\022 \001(\001\022\033\n\023pin_"
+    "circle_diameter\030\023 \001(\001\022\027\n\017anchor_diameter"
+    "\030\024 \001(\001\022\030\n\020anchor_embedment\030\025 \001(\001\022\027\n\017chor"
+    "d_tolerance\030\026 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fsupport_2eproto_deps[1] = {
@@ -431,7 +431,7 @@ static ::absl::once_flag descriptor_table_element_5fsupport_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fsupport_2eproto = {
     false,
     false,
-    675,
+    665,
     descriptor_table_protodef_element_5fsupport_2eproto,
     "element_support.proto",
     &descriptor_table_element_5fsupport_2eproto_once,
@@ -489,9 +489,9 @@ Support::Support(
                offsetof(Impl_, height_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, height_),
-           offsetof(Impl_, screw_count_) -
+           offsetof(Impl_, pin_count_) -
                offsetof(Impl_, height_) +
-               sizeof(Impl_::screw_count_));
+               sizeof(Impl_::pin_count_));
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.Support)
 }
@@ -505,9 +505,9 @@ inline void Support::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, plane_),
            0,
-           offsetof(Impl_, screw_count_) -
+           offsetof(Impl_, pin_count_) -
                offsetof(Impl_, plane_) +
-               sizeof(Impl_::screw_count_));
+               sizeof(Impl_::pin_count_));
 }
 Support::~Support() {
   // @@protoc_insertion_point(destructor:wood_proto.Support)
@@ -571,16 +571,16 @@ PROTOBUF_NOINLINE void Support::Clear() {
   if (BatchCheckHasBit(cached_has_bits, 0x0000ff00U)) {
     ::memset(&this_._impl_.base_plate_hole_spacing_, 0,
              static_cast<::size_t>(
-                 reinterpret_cast<char*>(&this_._impl_.screw_length_) -
+                 reinterpret_cast<char*>(&this_._impl_.pin_length_) -
                  reinterpret_cast<char*>(&this_._impl_.base_plate_hole_spacing_)) +
-                 sizeof(_impl_.screw_length_));
+                 sizeof(_impl_.pin_length_));
   }
   if (BatchCheckHasBit(cached_has_bits, 0x003f0000U)) {
-    ::memset(&this_._impl_.screw_angle_, 0,
+    ::memset(&this_._impl_.pin_angle_, 0,
              static_cast<::size_t>(
-                 reinterpret_cast<char*>(&this_._impl_.screw_count_) -
-                 reinterpret_cast<char*>(&this_._impl_.screw_angle_)) +
-                 sizeof(_impl_.screw_count_));
+                 reinterpret_cast<char*>(&this_._impl_.pin_count_) -
+                 reinterpret_cast<char*>(&this_._impl_.pin_angle_)) +
+                 sizeof(_impl_.pin_count_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -729,48 +729,48 @@ PROTOBUF_NOINLINE void Support::Clear() {
     }
   }
 
-  // int32 screw_count = 15;
+  // int32 pin_count = 15;
   if (CheckHasBit(cached_has_bits, 0x00200000U)) {
-    if (this_._internal_screw_count() != 0) {
+    if (this_._internal_pin_count() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<15>(
-              stream, this_._internal_screw_count(), target);
+              stream, this_._internal_pin_count(), target);
     }
   }
 
-  // double screw_diameter = 16;
+  // double pin_diameter = 16;
   if (CheckHasBit(cached_has_bits, 0x00004000U)) {
-    if (::absl::bit_cast<::uint64_t>(this_._internal_screw_diameter()) != 0) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_pin_diameter()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-          16, this_._internal_screw_diameter(), target);
+          16, this_._internal_pin_diameter(), target);
     }
   }
 
-  // double screw_length = 17;
+  // double pin_length = 17;
   if (CheckHasBit(cached_has_bits, 0x00008000U)) {
-    if (::absl::bit_cast<::uint64_t>(this_._internal_screw_length()) != 0) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_pin_length()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-          17, this_._internal_screw_length(), target);
+          17, this_._internal_pin_length(), target);
     }
   }
 
-  // double screw_angle = 18;
+  // double pin_angle = 18;
   if (CheckHasBit(cached_has_bits, 0x00010000U)) {
-    if (::absl::bit_cast<::uint64_t>(this_._internal_screw_angle()) != 0) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_pin_angle()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-          18, this_._internal_screw_angle(), target);
+          18, this_._internal_pin_angle(), target);
     }
   }
 
-  // double screw_circle_diameter = 19;
+  // double pin_circle_diameter = 19;
   if (CheckHasBit(cached_has_bits, 0x00020000U)) {
-    if (::absl::bit_cast<::uint64_t>(this_._internal_screw_circle_diameter()) != 0) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_pin_circle_diameter()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
-          19, this_._internal_screw_circle_diameter(), target);
+          19, this_._internal_pin_circle_diameter(), target);
     }
   }
 
@@ -910,29 +910,29 @@ PROTOBUF_NOINLINE void Support::Clear() {
         total_size += 9;
       }
     }
-    // double screw_diameter = 16;
+    // double pin_diameter = 16;
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_screw_diameter()) != 0) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_pin_diameter()) != 0) {
         total_size += 10;
       }
     }
-    // double screw_length = 17;
+    // double pin_length = 17;
     if (CheckHasBit(cached_has_bits, 0x00008000U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_screw_length()) != 0) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_pin_length()) != 0) {
         total_size += 10;
       }
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x003f0000U)) {
-    // double screw_angle = 18;
+    // double pin_angle = 18;
     if (CheckHasBit(cached_has_bits, 0x00010000U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_screw_angle()) != 0) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_pin_angle()) != 0) {
         total_size += 10;
       }
     }
-    // double screw_circle_diameter = 19;
+    // double pin_circle_diameter = 19;
     if (CheckHasBit(cached_has_bits, 0x00020000U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_screw_circle_diameter()) != 0) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_pin_circle_diameter()) != 0) {
         total_size += 10;
       }
     }
@@ -954,11 +954,11 @@ PROTOBUF_NOINLINE void Support::Clear() {
         total_size += 10;
       }
     }
-    // int32 screw_count = 15;
+    // int32 pin_count = 15;
     if (CheckHasBit(cached_has_bits, 0x00200000U)) {
-      if (this_._internal_screw_count() != 0) {
+      if (this_._internal_pin_count() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
-            this_._internal_screw_count());
+            this_._internal_pin_count());
       }
     }
   }
@@ -1057,25 +1057,25 @@ void Support::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00004000U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_screw_diameter()) != 0) {
-        _this->_impl_.screw_diameter_ = from._impl_.screw_diameter_;
+      if (::absl::bit_cast<::uint64_t>(from._internal_pin_diameter()) != 0) {
+        _this->_impl_.pin_diameter_ = from._impl_.pin_diameter_;
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00008000U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_screw_length()) != 0) {
-        _this->_impl_.screw_length_ = from._impl_.screw_length_;
+      if (::absl::bit_cast<::uint64_t>(from._internal_pin_length()) != 0) {
+        _this->_impl_.pin_length_ = from._impl_.pin_length_;
       }
     }
   }
   if (BatchCheckHasBit(cached_has_bits, 0x003f0000U)) {
     if (CheckHasBit(cached_has_bits, 0x00010000U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_screw_angle()) != 0) {
-        _this->_impl_.screw_angle_ = from._impl_.screw_angle_;
+      if (::absl::bit_cast<::uint64_t>(from._internal_pin_angle()) != 0) {
+        _this->_impl_.pin_angle_ = from._impl_.pin_angle_;
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00020000U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_screw_circle_diameter()) != 0) {
-        _this->_impl_.screw_circle_diameter_ = from._impl_.screw_circle_diameter_;
+      if (::absl::bit_cast<::uint64_t>(from._internal_pin_circle_diameter()) != 0) {
+        _this->_impl_.pin_circle_diameter_ = from._impl_.pin_circle_diameter_;
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00040000U)) {
@@ -1094,8 +1094,8 @@ void Support::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00200000U)) {
-      if (from._internal_screw_count() != 0) {
-        _this->_impl_.screw_count_ = from._impl_.screw_count_;
+      if (from._internal_pin_count() != 0) {
+        _this->_impl_.pin_count_ = from._impl_.pin_count_;
       }
     }
   }
@@ -1117,8 +1117,8 @@ void Support::InternalSwap(Support* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Support, _impl_.screw_count_)
-      + sizeof(Support::_impl_.screw_count_)
+      PROTOBUF_FIELD_OFFSET(Support, _impl_.pin_count_)
+      + sizeof(Support::_impl_.pin_count_)
       - PROTOBUF_FIELD_OFFSET(Support, _impl_.plane_)>(
           reinterpret_cast<char*>(&_impl_.plane_),
           reinterpret_cast<char*>(&other->_impl_.plane_));

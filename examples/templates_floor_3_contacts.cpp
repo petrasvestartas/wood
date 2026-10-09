@@ -21,7 +21,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber floor: Floor(guide) on the 6000 x 6000 square, viewed for its contacts. Floor::add_contacts stores, for every two members the design joins, the face they share as a named contact interaction; the viewer draws every contact as a red fill on its faces, so View Xray shows them through the members: per quarter seam_wedge_q (the two seam beams of a seam), oculus_wedge_q (the oculus beam on its ring beam), column_plate_q_k (the column on each outer rib) and six block_dowels_q_b_s (each column block on the rib either side), 40 in all.
+Step 3 of the timber floor: Floor(guide) on the 6000 x 6000 square, viewed for its contacts. Floor::add_contacts stores, for every two members the design joins, the face they share as a named contact interaction; the viewer draws every contact as a red fill on its faces, so View Xray shows them through the members: per quarter seam_wedge_q (the two seam beams of a seam), oculus_wedge_q (the oculus beam on its ring beam), column_plate_q_k (the column on each outer rib) and six block_pins_q_b_s (each column block on the rib either side), 40 in all.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

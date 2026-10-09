@@ -24,7 +24,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The floor's column at corner 0 as a session of elements and the features they put on the column through add_interaction: the 220 square shaft, two blocks glued on for the 340 head over its top 730 (InteractionFeatureSolid add, hidden once glued), the support under it with its joint's seat and screws, and six hidden cutter plates of the floor guide each taking away an inclined face the ribs and the column blocks bear on (InteractionFeatureSolid subtract).
+The floor's column at corner 0 as a session of elements and the features they put on the column through add_interaction: the 220 square shaft, two blocks glued on for the 340 head over its top 730 (InteractionFeatureSolid add, hidden once glued), the support under it with its joint's seat and pins, and six hidden cutter plates of the floor guide each taking away an inclined face the ribs and the column blocks bear on (InteractionFeatureSolid subtract).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

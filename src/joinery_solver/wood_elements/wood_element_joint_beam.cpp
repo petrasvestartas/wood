@@ -3,7 +3,7 @@
 #include "wood_session.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
-#include "wood_element_dowel.h"
+#include "wood_element_pin.h"
 #include "wood_element_connector_part.h"
 #include "../src/clipper2/clipper.h"
 
@@ -168,24 +168,24 @@ static double sides_tolerance(double radius, int sides) {
     return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
 }
 
-/// The dowel clipped flush to the members it passes through: from where its axis first enters one of them to where it last leaves one, an end that lies inside a member kept as it is; unchanged when it meets none.
-static Line flush_dowel(const Line& dowel, const std::vector<const Element*>& members) {
+/// The pin clipped flush to the members it passes through: from where its axis first enters one of them to where it last leaves one, an end that lies inside a member kept as it is; unchanged when it meets none.
+static Line flush_pin(const Line& pin, const std::vector<const Element*>& members) {
 
-    const double length = dowel.length();
-    const Vector d = dowel.to_vector().normalized();
+    const double length = pin.length();
+    const Vector d = pin.to_vector().normalized();
     double low = 1e300;
     double high = -1e300;
 
     for (const Element* member : members)
-        for (const std::array<double, 2>& stretch : inside_stretches(member->element_geometry_mesh(), dowel)) {
+        for (const std::array<double, 2>& stretch : inside_stretches(member->element_geometry_mesh(), pin)) {
             low = std::min(low, stretch[0]);
             high = std::max(high, stretch[1]);
         }
 
     if (std::min(high, length) - std::max(low, 0.0) < 1e-9)
-        return dowel;
+        return pin;
 
-    return Line::from_points(low > 0.0 ? dowel.start() + d * low : dowel.start(), high < length ? dowel.start() + d * high : dowel.end());
+    return Line::from_points(low > 0.0 ? pin.start() + d * low : pin.start(), high < length ? pin.start() + d * high : pin.end());
 }
 
 /// The profile cut horizontally at the frame's origin: its corners at or below that level and where its sides cross it, so a profile turned with a tilted frame still ends flush with the level of the contact's top edge.
@@ -270,7 +270,7 @@ static std::array<Polyline, 2> wedge_pocket(
     return {Polyline(face).closed(), Polyline(deep).closed()};
 }
 
-/// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, dowels every dowel_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
+/// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, pins every pin_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
 std::shared_ptr<JointBeam> JointBeam::wedge(
     const Element& a,
     const Element& b,
@@ -278,12 +278,12 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
     double length_margin,
     double pocket_depth,
     const std::optional<Plane>& end,
-    double dowel_radius,
-    double dowel_spacing,
-    int dowel_sides,
+    double pin_radius,
+    double pin_spacing,
+    int pin_sides,
     double overshoot,
     const std::array<std::array<double, 2>, 3>& profile,
-    const std::array<double, 2>& dowel_offset
+    const std::array<double, 2>& pin_offset
 ) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
@@ -341,7 +341,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
 
     joint->parts = {{Polyline(ends[0]).closed(), Polyline(ends[1]).closed()}};
 
-    const int count = dowel_spacing > 0.0 ? std::max(static_cast<int>(length / dowel_spacing), 1) : 1;
+    const int count = pin_spacing > 0.0 ? std::max(static_cast<int>(length / pin_spacing), 1) : 1;
 
     for (int i = 0; i < count; i++) {
         const double station = -0.5 * length + (i + 0.5) * (length / count);
@@ -349,24 +349,24 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
             origin,
             axes,
             station,
-            -dowel_offset[0],
-            dowel_offset[1]
+            -pin_offset[0],
+            pin_offset[1]
         );
         const Point end = frame_point(
             origin,
             axes,
             station,
-            dowel_offset[0],
-            dowel_offset[1]
+            pin_offset[0],
+            pin_offset[1]
         );
         const Vector flat = Vector(end[0] - start[0], end[1] - start[1], 0.0).normalized();
         const Point centre = start + (end - start) * 0.5;
-        const Line dowel = Line::from_points(centre - flat * dowel_offset[0], centre + flat * dowel_offset[0]);
-        joint->drill_lines.push_back(flush_dowel(dowel, {&a, &b}));
+        const Line pin = Line::from_points(centre - flat * pin_offset[0], centre + flat * pin_offset[0]);
+        joint->drill_lines.push_back(flush_pin(pin, {&a, &b}));
     }
 
-    joint->line_radius = dowel_radius;
-    joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
+    joint->line_radius = pin_radius;
+    joint->chord_tolerance = sides_tolerance(pin_radius, pin_sides);
     joint->drill_overshoot = overshoot;
 
     const std::array<double, 2> middle = {(profile[0][0] + profile[1][0] + profile[2][0]) / 3.0, (profile[0][1] + profile[1][1] + profile[2][1]) / 3.0};
@@ -478,21 +478,21 @@ static std::array<Polyline, 2> frame_box(
     return loops;
 }
 
-/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four dowels across it margin_x and margin_z radii in from its ends and its top and bottom, dowel_length long but flush with the members; it cuts its box, raised by overshoot, and the dowel holes out of both; aimed at the column then the rib.
+/// The plate: width thick, back into the column and front into the rib along the horizontal contact normal, height down from the contact's top edge, four pins across it margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with the members; it cuts its box, raised by overshoot, and the pin holes out of both; aimed at the column then the rib.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Element& column,
     const Element& rib,
     const InteractionContactFace& contact,
-    double dowel_length,
+    double pin_length,
     double width,
     double back,
     double front,
     double height,
-    double dowel_radius,
+    double pin_radius,
     double margin_x,
     double margin_z,
     double overshoot,
-    int dowel_sides
+    int pin_sides
 ) {
 
     std::vector<Point> points = contact.polygon.get_points();
@@ -545,12 +545,12 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     );
     joint->cutters = {{pocket}, {pocket}};
 
-    const double half = 0.5 * dowel_length;
+    const double half = 0.5 * pin_length;
 
-    for (const double station : {-back + margin_x * dowel_radius, front - margin_x * dowel_radius})
-        for (const double level : {-margin_z * dowel_radius, -height + margin_z * dowel_radius})
+    for (const double station : {-back + margin_x * pin_radius, front - margin_x * pin_radius})
+        for (const double level : {-margin_z * pin_radius, -height + margin_z * pin_radius})
             joint->drill_lines.push_back(
-                flush_dowel(
+                flush_pin(
                     Line::from_points(
                         frame_point(
                             origin,
@@ -571,8 +571,8 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
                 )
             );
 
-    joint->line_radius = dowel_radius;
-    joint->chord_tolerance = sides_tolerance(dowel_radius, dowel_sides);
+    joint->line_radius = pin_radius;
+    joint->chord_tolerance = sides_tolerance(pin_radius, pin_sides);
     joint->drill_overshoot = overshoot;
 
     return joint;
@@ -806,7 +806,7 @@ static std::vector<std::array<double, 2>> inset_polygon(
     return result;
 }
 
-/// The ring's corners for the dowels: all of them for a quad or less, else four distinct ones, each the corner not yet taken that reaches furthest towards one of the frame's four diagonal directions, the extreme corners of a longer polygon.
+/// The ring's corners for the pins: all of them for a quad or less, else four distinct ones, each the corner not yet taken that reaches furthest towards one of the frame's four diagonal directions, the extreme corners of a longer polygon.
 static std::vector<std::array<double, 2>> extreme_corners(const std::vector<std::array<double, 2>>& ring) {
 
     if (ring.size() <= 4)
@@ -829,8 +829,8 @@ static std::vector<std::array<double, 2>> extreme_corners(const std::vector<std:
     return corners;
 }
 
-/// The dowels: centred on the contact along its normal, one at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; they cut their holes out of both, overshoot past every face a dowel leaves; aimed at a then b.
-std::shared_ptr<JointBeam> JointBeam::dowels(
+/// The pins: centred on the contact along its normal, one at every corner of the contact polygon inset by offset, the four extreme corners of a longer inset; they cut their holes out of both, overshoot past every face a pin leaves; aimed at a then b.
+std::shared_ptr<JointBeam> JointBeam::centred_pins(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -838,7 +838,7 @@ std::shared_ptr<JointBeam> JointBeam::dowels(
     double length,
     double offset,
     double overshoot,
-    int dowel_sides
+    int pin_sides
 ) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
@@ -862,7 +862,7 @@ std::shared_ptr<JointBeam> JointBeam::dowels(
         return nullptr;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "dowels";
+    joint->name = "pins";
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
     joint->cutters = {{}, {}};
@@ -873,14 +873,14 @@ std::shared_ptr<JointBeam> JointBeam::dowels(
     }
 
     joint->line_radius = radius;
-    joint->chord_tolerance = sides_tolerance(radius, dowel_sides);
+    joint->chord_tolerance = sides_tolerance(radius, pin_sides);
     joint->drill_overshoot = overshoot;
 
     return joint;
 }
 
-/// The screws: each line's start is a head, the screw length long along the line from there; no cutter and no cut, the lines are the pre-drilled holes of both members; aimed at a then b.
-std::shared_ptr<JointBeam> JointBeam::screws(
+/// The pins: each line's start is a head, the pin length long along the line from there; no cutter and no cut, the lines are the pre-drilled holes of both members; aimed at a then b.
+std::shared_ptr<JointBeam> JointBeam::headed_pins(
     const Element& a,
     const Element& b,
     const std::vector<Line>& lines,
@@ -888,7 +888,7 @@ std::shared_ptr<JointBeam> JointBeam::screws(
     double length,
     int sides
 ) {
-    return screws(
+    return headed_pins(
         std::vector<const Element*>{&a, &b},
         lines,
         radius,
@@ -897,7 +897,7 @@ std::shared_ptr<JointBeam> JointBeam::screws(
     );
 }
 
-std::shared_ptr<JointBeam> JointBeam::screws(
+std::shared_ptr<JointBeam> JointBeam::headed_pins(
     const std::vector<const Element*>& members,
     const std::vector<Line>& lines,
     double radius,
@@ -909,7 +909,7 @@ std::shared_ptr<JointBeam> JointBeam::screws(
         return nullptr;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "screws";
+    joint->name = "pins";
     joint->is_visible = true;
     joint->pre_drill = true;
 
@@ -925,6 +925,116 @@ std::shared_ptr<JointBeam> JointBeam::screws(
     joint->chord_tolerance = sides_tolerance(radius, sides);
 
     return joint;
+}
+
+/// Where a pin line leaves the far face of the member it passes through: the start of the line's stretch inside it that ends at the contact.
+static Point pin_head(
+    const Element& through,
+    const Point& station,
+    const Vector& normal,
+    double reach
+) {
+
+    const Line back = Line::from_points(station - normal * reach, station);
+    const std::vector<std::array<double, 2>> inside = inside_stretches(through.element_geometry_mesh(), back);
+    double start = reach;
+    double end = -1.0;
+
+    // the stretch that ends last, at the contact
+    for (const std::array<double, 2>& stretch : inside)
+        if (stretch[1] > end) {
+            end = stretch[1];
+            start = stretch[0];
+        }
+
+    return back.start() + normal * start;
+}
+
+std::shared_ptr<JointBeam> JointBeam::headed_pins(
+    const Element& through,
+    const Element& into,
+    const InteractionContactFace& contact,
+    PinLayout layout,
+    size_t count,
+    double offset,
+    double shift,
+    double radius,
+    double length,
+    int sides
+) {
+
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    const Point origin = Point::centroid(points);
+    Vector normal = compute_newell(points).normalized();
+
+    // the pins run square to the contact, into the member they join
+    if ((into.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
+        normal = -normal;
+
+    // x level in the contact and y up it, so a column stands across the height; a level contact takes its top edge
+    const Vector level = Vector::z_axis().cross(normal);
+    const Vector x = level.magnitude() > 1e-9 ? level.normalized() : top_edge(points).to_vector().normalized();
+    const Vector y = normal.cross(x).normalized();
+    const std::vector<std::array<double, 2>> ring = inset_polygon(
+        points,
+        origin,
+        x,
+        y,
+        offset
+    );
+
+    if (ring.size() < 3)
+        return nullptr;
+
+    // the inset contact's extent along x and y
+    double x_min = ring[0][0];
+    double x_max = ring[0][0];
+    double y_min = ring[0][1];
+    double y_max = ring[0][1];
+
+    for (const std::array<double, 2>& corner : ring) {
+        x_min = std::min(x_min, corner[0]);
+        x_max = std::max(x_max, corner[0]);
+        y_min = std::min(y_min, corner[1]);
+        y_max = std::max(y_max, corner[1]);
+    }
+
+    // the stations on the contact: its inset corners, a column across its height or a row along it, moved by shift
+    std::vector<std::array<double, 2>> stations;
+
+    if (layout == PinLayout::corners)
+        stations = extreme_corners(ring);
+
+    for (size_t i = 0; layout != PinLayout::corners && i < count; i++) {
+        const double t = count == 1 ? 0.5 : static_cast<double>(i) / static_cast<double>(count - 1);
+
+        if (layout == PinLayout::vertical)
+            stations.push_back({shift, y_min + (y_max - y_min) * t});
+        else
+            stations.push_back({x_min + (x_max - x_min) * t, shift});
+    }
+
+    // each pin from its head on the far face of `through`, length long into `into`
+    std::vector<Line> lines;
+
+    for (const std::array<double, 2>& station : stations) {
+        const Point point = origin + x * station[0] + y * station[1];
+        const Point head = pin_head(
+            through,
+            point,
+            normal,
+            length
+        );
+        lines.push_back(Line::from_points(head, head + normal * length));
+    }
+
+    return headed_pins(
+        std::vector<const Element*>{&through, &into},
+        lines,
+        radius,
+        length,
+        sides
+    );
 }
 
 /// The frame of a box part: origin at its centre, x along the first side of its first loop, z along the last, y from the first loop to the second; the loops frame_box makes.
@@ -1044,11 +1154,11 @@ bool JointBeam::is_connector() const {
 
 std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
 
-    // screws: their holes are pre-drilled lines the targets read, nothing is cut
+    // pins: their holes are pre-drilled lines the targets read, nothing is cut
     if (pre_drill)
         return std::make_shared<InteractionFeaturePlateBeam>();
 
-    // a connector: the cutters for this target lofted into one solid, and its dowels
+    // a connector: the cutters for this target lofted into one solid, and its pins
     if (is_connector()) {
         Mesh mesh;
 
@@ -1087,9 +1197,9 @@ std::vector<InteractionFeatureSolid> JointBeam::part_features(size_t index) cons
     std::vector<InteractionFeatureSolid> cuts = solid_features;
     InteractionFeatureSolid bores;
 
-    for (const Line& dowel : drill_lines)
-        if (!inside_stretches(part, dowel).empty())
-            bores.drills.push_back(dowel);
+    for (const Line& pin : drill_lines)
+        if (!inside_stretches(part, pin).empty())
+            bores.drills.push_back(pin);
 
     if (!bores.drills.empty()) {
         bores.drill_radius = line_radius;
@@ -1115,8 +1225,8 @@ std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
         result.push_back(std::make_shared<ConnectorPart>(*this, i, parts.size() == 1 ? name + "_part" : fmt::format("{}_part_{}", name, i)));
 
     for (size_t i = 0; i < drill_lines.size(); i++) {
-        result.push_back(std::make_shared<Dowel>(drill_lines[i], line_radius, chord_tolerance));
-        result.back()->name = fmt::format("{}_{}_{}", name, pre_drill ? "screw" : "dowel", i);
+        result.push_back(std::make_shared<Pin>(drill_lines[i], line_radius, chord_tolerance));
+        result.back()->name = fmt::format("{}_pin_{}", name, i);
     }
 
     return result;

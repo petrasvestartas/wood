@@ -21,7 +21,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the timber floor: the support of corner 0, a Sherpa Power Base L 140 C from its datasheet, and the 220 square column standing on it from the support's head plate to the floor at 3500, with the head 120 wider on the two bay sides over the top 730. The support joint lets the head plate into the column end and drills the three column screws; the six column cutters of quarter 0 carve the head down to the outer rib bottoms.
+Step 2 of the timber floor: the support of corner 0, a Sherpa Power Base L 140 C from its datasheet, and the 220 square column standing on it from the support's head plate to the floor at 3500, with the head 120 wider on the two bay sides over the top 730. The support joint lets the head plate into the column end and drills the three column pins; the six column cutters of quarter 0 carve the head down to the outer rib bottoms.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

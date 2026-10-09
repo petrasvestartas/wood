@@ -29,7 +29,7 @@ struct JointPlateParameters {
     static JointPlateParameters pb_loads(const std::string& data);
 };
 
-/// Element that represents a joint between plates: a parametric joint from the joint library (ts_e_p, ss_e_ip, ss_e_op, cr_c_ip ...), its parameters and the plate connections it is placed on.
+/// Element that represents a joint between plates: a parametric joint from the joint library placed on plate connections.
 class JointPlate : public Joint {
 public:
     JointPlateParameters parameters;

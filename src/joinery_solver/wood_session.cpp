@@ -738,7 +738,7 @@ static std::shared_ptr<TreeNode> element_group(Session& session, const std::shar
 }
 
 /// Graph ordering stays stable; single-owner geometry belongs to this call's source.
-/// Puts the source element's layer in the `features` group under the target's when the two lie side by side in one group, so the elements that put solid or plane features on an element list as its child layers; a source already placed under something else, such as a connector's dowel, stays, and a joint that ties two elements is never moved.
+/// Puts the source element's layer in the `features` group under the target's when the two lie side by side in one group, so the elements that put solid or plane features on an element list as its child layers; a source already placed under something else, such as a connector's pin, stays, and a joint that ties two elements is never moved.
 static void nest_feature_source(Session& session, const Element& source, const Element& target) {
 
     const std::shared_ptr<TreeNode> child = session.get_node(source.guid());
@@ -1310,7 +1310,7 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-/// A connector's holes in one target, in the connector's frame: its dowels, each end run on by the overshoot where the dowel leaves the target there, tested just beyond the dowel's own end in the target's frame, so a blind hole stops at its dowel.
+/// A connector's holes in one target, in the connector's frame: its pins, each end run on by the overshoot where the pin leaves the target there, tested just beyond the pin's own end in the target's frame, so a blind hole stops at its pin.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
 
     if (joint.drill_overshoot <= 0.0)
@@ -1325,14 +1325,14 @@ static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam
     const std::vector<PlanarFace> solid = planar_faces(stock_of(target));
     std::vector<Line> drills;
 
-    for (const Line& dowel : joint.drill_lines) {
-        const Vector d = dowel.to_vector().normalized();
-        const Line placed = dowel.transformed(to_target);
+    for (const Line& pin : joint.drill_lines) {
+        const Vector d = pin.to_vector().normalized();
+        const Line placed = pin.transformed(to_target);
         const Vector e = placed.to_vector().normalized();
         const bool blind_start = is_inside(solid, placed.start() - e * 1.0);
         const bool blind_end = is_inside(solid, placed.end() + e * 1.0);
-        const Point start = blind_start ? dowel.start() : dowel.start() - d * joint.drill_overshoot;
-        const Point end = blind_end ? dowel.end() : dowel.end() + d * joint.drill_overshoot;
+        const Point start = blind_start ? pin.start() : pin.start() - d * joint.drill_overshoot;
+        const Point end = blind_end ? pin.end() : pin.end() + d * joint.drill_overshoot;
         drills.push_back(Line::from_points(start, end));
     }
 
@@ -1364,7 +1364,7 @@ static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& t
         sync_parts(scene, *connector);
 }
 
-/// Nests a connector's parts and dowels under its node as child elements, once.
+/// Nests a connector's parts and pins under its node as child elements, once.
 static void nest_children(WoodSession& scene, const JointBeam& connector) {
 
     const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector.guid());
@@ -1516,8 +1516,8 @@ bool WoodSession::numbered(const std::string& name, const std::string& prefix) {
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        // a dowel or a connector part, which a connector draws on its own, a support with its round parts, or a member its joints cut
-        const bool connector_child = std::dynamic_pointer_cast<Dowel>(element) || std::dynamic_pointer_cast<ConnectorPart>(element);
+        // a pin or a connector part, which a connector draws on its own, a support with its round parts, or a member its joints cut
+        const bool connector_child = std::dynamic_pointer_cast<Pin>(element) || std::dynamic_pointer_cast<ConnectorPart>(element);
 
         if (connector_child || std::dynamic_pointer_cast<Support>(element) || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
             element->compute_geometry_brep();
@@ -1551,7 +1551,7 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
     const std::shared_ptr<JointBeam> beam_joint = std::dynamic_pointer_cast<JointBeam>(joint);
     const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
 
-    // a connector: its parts and dowels nest under it once; screws drill their holes, nothing cut, which the targets read through pre_drill_lines
+    // a connector: its parts and pins nest under it once; pins drill their holes, nothing cut, which the targets read through pre_drill_lines
     if (beam_joint && beam_joint->is_connector()) {
         nest_children(*this, *beam_joint);
         Session::remove_interaction(joint, target);
@@ -1569,7 +1569,7 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
             return interaction;
         }
 
-        // its cutters and every dowel as a hole, run on past the target where the dowel leaves it
+        // its cutters and every pin as a hole, run on past the target where the pin leaves it
         if (!cut)
             throw std::invalid_argument("A connector's interaction is its InteractionFeatureSolid");
 

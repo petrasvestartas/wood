@@ -20,11 +20,11 @@ message Support {
   double rod_diameter = 12;
   double coupling_nut_across_flats = 13;
   double coupling_nut_height = 14;
-  int32 screw_count = 15;
-  double screw_diameter = 16;
-  double screw_length = 17;
-  double screw_angle = 18;                  // Degrees between a pair of opposed screws
-  double screw_circle_diameter = 19;
+  int32 pin_count = 15;
+  double pin_diameter = 16;
+  double pin_length = 17;
+  double pin_angle = 18;                  // Degrees between a pair of opposed pins
+  double pin_circle_diameter = 19;
   double anchor_diameter = 20;
   double anchor_embedment = 21;
   double chord_tolerance = 22;

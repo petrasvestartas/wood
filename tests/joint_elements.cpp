@@ -42,8 +42,8 @@ static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSessio
     return pairs;
 }
 
-/// Two 100 x 100 x 40 plates stacked at the origin and the four dowels across their contact, the connector not yet added.
-static std::shared_ptr<JointBeam> stacked_dowels(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<Plate>& upper) {
+/// Two 100 x 100 x 40 plates stacked at the origin and the four pins across their contact, the connector not yet added.
+static std::shared_ptr<JointBeam> stacked_pins(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<Plate>& upper) {
     lower = Plate::from_rectangle(
         {0, 0, 0},
         {1, 0, 0},
@@ -63,7 +63,7 @@ static std::shared_ptr<JointBeam> stacked_dowels(WoodSession& scene, std::shared
     scene.add(lower); scene.add(upper);
     const auto contact = scene.compute_face_contact(lower, upper);
     check(contact != nullptr, "stacked plates touch");
-    return JointBeam::dowels(
+    return JointBeam::centred_pins(
         *lower,
         *upper,
         *contact,
@@ -79,19 +79,19 @@ static void check_scene_calls() {
 
     WoodSession kept("kept connector");
     std::shared_ptr<Plate> lower, upper;
-    const std::shared_ptr<JointBeam> dowels = stacked_dowels(kept, lower, upper);
-    kept.add(dowels);
-    kept.add_interaction(dowels, lower, dowels->interaction(0));
-    kept.add_interaction(dowels, upper, dowels->interaction(1));
-    const size_t holes = drills_of(*lower, dowels->guid());
+    const std::shared_ptr<JointBeam> pins = stacked_pins(kept, lower, upper);
+    kept.add(pins);
+    kept.add_interaction(pins, lower, pins->interaction(0));
+    kept.add_interaction(pins, upper, pins->interaction(1));
+    const size_t holes = drills_of(*lower, pins->guid());
     kept.compute_face_contacts();
     kept.compute_features(face_to_face);
-    check(kept.get_element<JointBeam>(dowels->guid()) && holes > 0 && drills_of(*lower, dowels->guid()) == holes && lower->solid_features.size() == 1, "compute_features keeps the user's dowels, their " + std::to_string(holes) + " holes and their cut");
-    kept.remove_interaction(dowels, lower);
-    check(drills_of(*lower, dowels->guid()) == 0 && lower->solid_features.empty() && drills_of(*upper, dowels->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
+    check(kept.get_element<JointBeam>(pins->guid()) && holes > 0 && drills_of(*lower, pins->guid()) == holes && lower->solid_features.size() == 1, "compute_features keeps the user's pins, their " + std::to_string(holes) + " holes and their cut");
+    kept.remove_interaction(pins, lower);
+    check(drills_of(*lower, pins->guid()) == 0 && lower->solid_features.empty() && drills_of(*upper, pins->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
 
     WoodSession moved("moved targets");
-    const std::shared_ptr<JointBeam> local = stacked_dowels(moved, lower, upper);
+    const std::shared_ptr<JointBeam> local = stacked_pins(moved, lower, upper);
     const Xform shift = Xform::translation(500, 0, 0);
     const std::shared_ptr<JointBeam> placed = std::dynamic_pointer_cast<JointBeam>(local->transformed(shift));
     moved.set_xform(lower->guid(), shift);
@@ -108,7 +108,7 @@ static void check_scene_calls() {
             for (const Polyline& circle : feature.outlines)
                 for (const Point& point : circle.get_points())
                     farthest = std::max(farthest, point[0]);
-    check(std::abs(longest - 40.0) < 1e-6 && farthest < 100.0, "a moved target's holes run past the dowel only where it leaves the target, " + std::to_string(longest) + " long, drawn in its frame up to x " + std::to_string(farthest));
+    check(std::abs(longest - 40.0) < 1e-6 && farthest < 100.0, "a moved target's holes run past the pin only where it leaves the target, " + std::to_string(longest) + " long, drawn in its frame up to x " + std::to_string(farthest));
 
     WoodSession first("first"), second("second"), bare("bare");
     for (int i = 0; i < 2; ++i)
@@ -178,7 +178,7 @@ static void check_scene_calls() {
     const WoodSession dataset = WoodSession::yaml_load("vidy_corner");
     check(!dataset.adjacency.empty(), "vidy_corner has an adjacency sidecar");
     WoodSession fresh("fresh");
-    stacked_dowels(fresh, lower, upper);
+    stacked_pins(fresh, lower, upper);
     fresh.compute_face_contacts();
     fresh.compute_features(face_to_face);
     check(fresh.adjacency.empty(), "compute_features after a dataset load does not take that dataset's adjacency");
