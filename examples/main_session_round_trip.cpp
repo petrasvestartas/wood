@@ -49,6 +49,8 @@ int main() {
     const int vertices_before = a.graph.number_of_vertices();
     a.compute_face_contacts();
     a.compute_features();
+    // counted before writing: writing adds each element's base plane, an object and so a vertex of its own
+    const int vertices_after = a.graph.number_of_vertices();
 
     const std::filesystem::path path = std::filesystem::temp_directory_path() / "wood_session_round_trip.pb";
     a.pb_dump(path.string());
@@ -81,7 +83,7 @@ int main() {
     for (const auto& element : *a.objects.elements)
         if (std::dynamic_pointer_cast<Joint>(element))
             ++joint_elements;
-    check(static_cast<size_t>(a.graph.number_of_vertices()) == static_cast<size_t>(vertices_before) + joint_elements, "joints are graph elements, contacts remain edge records");
+    check(static_cast<size_t>(vertices_after) == static_cast<size_t>(vertices_before) + joint_elements, fmt::format("joints are graph elements, contacts remain edge records: {} vertices, {} before and {} joints", vertices_after, vertices_before, joint_elements));
     check(a.graph.number_of_edges() == b.graph.number_of_edges(), fmt::format("edge count ({})", a.graph.number_of_edges()));
 
     check(kernel.objects.elements->size() == a.objects.elements->size() && kernel.graph.number_of_edges() == a.graph.number_of_edges() && tree_nodes(kernel) == tree_nodes(a),

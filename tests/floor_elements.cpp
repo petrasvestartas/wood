@@ -110,9 +110,12 @@ void check_beams() {
         beams.insert(beams.end(), {named<BeamVariable>(floor, fmt::format("outer_ribs_{}_0", i)), named<BeamVariable>(floor, fmt::format("inner_ribs_{}_0", i))});
     }
 
+    // the seam beams are the guide's inner beams 0 and 2; its inner beam 1, along the oculus edge, is the oculus beam
+    const std::array<std::string, 3> beam_names = {"inner_beams_0_0", "oculus_beam_0", "inner_beams_1_0"};
+
     for (size_t i = 0; i < 3; i++) {
-        check_beam(*named<BeamVariable>(floor, fmt::format("inner_beams_{}_0", i)), beam_loops[i], 6, "inner beam " + std::to_string(i));
-        beams.push_back(named<BeamVariable>(floor, fmt::format("inner_beams_{}_0", i)));
+        check_beam(*named<BeamVariable>(floor, beam_names[i]), beam_loops[i], 6, beam_names[i]);
+        beams.push_back(named<BeamVariable>(floor, beam_names[i]));
     }
 
     for (size_t i = 0; i < 4; i++) {
@@ -1244,8 +1247,8 @@ void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& 
     std::vector<std::pair<std::string, std::array<std::shared_ptr<Element>, 2>>> joined;
 
     for (size_t q = 0; q < 4; q++) {
-        const std::array<std::shared_ptr<Element>, 2> seam_beams = {named<Element>(scene, fmt::format("inner_beams_0_{}", q)), named<Element>(scene, fmt::format("inner_beams_2_{}", q))};
-        const std::shared_ptr<Element> oculus_beam = named<Element>(scene, fmt::format("inner_beams_1_{}", q));
+        const std::array<std::shared_ptr<Element>, 2> seam_beams = {named<Element>(scene, fmt::format("inner_beams_0_{}", q)), named<Element>(scene, fmt::format("inner_beams_1_{}", q))};
+        const std::shared_ptr<Element> oculus_beam = named<Element>(scene, fmt::format("oculus_beam_{}", q));
 
         for (size_t k = 0; k < 2; k++)
             joined.push_back({"rib_beam", {named<Element>(scene, fmt::format("outer_ribs_{}_{}", k, q)), seam_beams[k]}});

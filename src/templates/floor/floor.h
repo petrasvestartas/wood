@@ -21,7 +21,7 @@ struct Contact {
 
 /// The contacts of one quarter, by the connector each gets.
 struct QuarterContacts {
-    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
+    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 1: a wedge.
     Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
     std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
     std::array<std::array<Contact, 2>, 3> block_dowels; // Column block b against the rib either side: dowels.
@@ -50,7 +50,7 @@ struct QuarterScrews {
 /// The column at corner q of the guide as a session, named `column_<q>`: the guide's sizes, `support_<q>` and its six cutter plates `column_cutters_<i>_<q>` handed to WoodSession::add_column, which glues the head on, joins the support and takes the inclined faces away. Floor::add_column grafts a copy of it into the floor.
 WoodSession column(const FloorGuide& guide, size_t q);
 
-/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the ring beam and bottom wedge of every quarter (`oculus_q`) and the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
+/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the ring beam, oculus beam and bottom wedge of every quarter (`oculus_q`) and the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
 class Floor : public WoodSession {
 public:
     static constexpr double SCREW_LENGTH = 200.0; // mm, every assembly screw.
@@ -86,7 +86,7 @@ private:
     /// Adds the four quarters, each lifted to bay_height and grouped by family.
     void add_quarters();
 
-    /// Adds the oculus lifted to bay_height: ring beam q and bottom wedge q in oculus_q, and the central plate, all in oculus.
+    /// Adds the oculus lifted to bay_height: ring beam q, oculus beam q and bottom wedge q in oculus_q, and the central plate, all in oculus.
     void add_oculus();
 
     /// Adds the column at every corner.
