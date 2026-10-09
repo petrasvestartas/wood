@@ -193,7 +193,7 @@ public:
     /// Session::has_interaction: the pair has an edge in either order.
     using Session::has_interaction;
 
-    /// Store the interaction on the undirected edge. Contact and beam-joint geometry belongs to source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. Returns the stored interaction.
+    /// Store the interaction on the undirected edge. A contact belongs to the target, the element the source acts on, and beam-joint geometry to the source, even on an existing edge; reusing one moves its feature. Plate joints keep one feature on each named plate. Returns the stored interaction.
     std::shared_ptr<Interaction> add_interaction(
         const std::shared_ptr<Element>& source,
         const std::shared_ptr<Element>& target,

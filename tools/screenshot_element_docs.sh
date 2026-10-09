@@ -12,6 +12,6 @@ for name in "$@"; do
     bash bash/publish-scene.sh --target "$name" > /dev/null
     sleep 2
     node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
-        "Layers All" "Element Features On" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
+        "Layers All" "Element Interactions On" "Element Attributes On" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
     echo "$name"
 done

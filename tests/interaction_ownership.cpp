@@ -27,12 +27,13 @@ int main() {
         2, 4, ContactType::side_side,
         Polyline::rectangle({45, -5, 0}, {1, 0, 0}, {0, 1, 0}, 10, 10));
     scene.add_interaction(beam, column, contact);
-    check(feature(*beam, contact->guid()), "first contact belongs to source");
+    const ElementFeature* hosted_contact = feature(*column, contact->guid());
+    check(hosted_contact && hosted_contact->face_index == 4 && !feature(*beam, contact->guid()), "a contact belongs to its target, face relative to it");
 
     scene.add_interaction(column, beam, contact->flipped());
-    check(!feature(*beam, contact->guid()), "old contact host must be cleared");
-    const ElementFeature* moved_contact = feature(*column, contact->guid());
-    check(moved_contact && moved_contact->face_index == 4, "contact face is relative to its new host");
+    check(!feature(*column, contact->guid()), "old contact host must be cleared");
+    const ElementFeature* moved_contact = feature(*beam, contact->guid());
+    check(moved_contact && moved_contact->face_index == 2, "contact face is relative to its new host");
     check(scene.get_interaction(beam, column).size() == 1, "contact is not duplicated");
 
     const auto joint = std::make_shared<InteractionFeatureBeam>();
@@ -57,5 +58,5 @@ int main() {
     scene.compute_beam_features(20, 0.5, 0);
     check(!feature(*beam, joint->guid()) && !feature(*column, joint->guid()), "recomputation removes old features from either host");
     scene.remove_interaction(column, beam);
-    check(!feature(*beam, joint->guid()) && !feature(*column, contact->guid()), "removing the edge clears its features");
+    check(!feature(*beam, joint->guid()) && !feature(*beam, contact->guid()), "removing the edge clears its features");
 }

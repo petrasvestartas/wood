@@ -230,6 +230,10 @@ ElementFeature contact_feature(const InteractionContact& contact) {
         outline = Polyline({axis->segment.start(), axis->segment.end()});
     }
 
+    // the interaction's own name when it has one, e.g. seam_wedge_0, so the target lists it by that name
+    if (!contact.name.empty())
+        name = contact.name;
+
     ElementFeature feature("contact", face, {outline}, name);
     feature.guid() = contact.guid();
 
@@ -731,11 +735,14 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
     const std::string first = known ? graph.edges.at(source->guid()).at(target->guid()).v0 : source->guid();
     const bool reversed = first != source->guid();
 
-    const auto host_source = [&](ElementFeature feature) {
+    const auto host_on = [&](const std::string& host, ElementFeature feature) {
         const std::unordered_set<std::string> ids{feature.guid()};
         drop_host_features(*this, source->guid(), "", ids);
         drop_host_features(*this, target->guid(), "", ids);
-        host_feature(source->guid(), std::move(feature));
+        host_feature(host, std::move(feature));
+    };
+    const auto host_source = [&](ElementFeature feature) {
+        host_on(source->guid(), std::move(feature));
     };
 
     if (const InteractionContact* contact = dynamic_cast<const InteractionContact*>(interaction.get())) {
@@ -748,14 +755,15 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
             const InteractionContact* other = dynamic_cast<const InteractionContact*>(stored.get());
 
             if (other && other->coincides(placed)) {
-                host_source(contact_feature(reversed ? *other->flipped() : *other));
+                // a contact is what the source does to the target, so the target hosts it, its face index the target's
+                host_on(target->guid(), contact_feature(reversed ? *other : *other->flipped()));
                 revision++;
                 return stored;
             }
         }
 
         Session::add_interaction(source, target, oriented);
-        host_source(contact_feature(*contact));
+        host_on(target->guid(), contact_feature(*contact->flipped()));
 
         return oriented;
     }
