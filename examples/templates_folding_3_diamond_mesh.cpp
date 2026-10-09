@@ -4,36 +4,27 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int U_DIVISIONS = 8;
-const int V_DIVISIONS = 4;
-const double THICKNESS = 40.0;
-const double CHAMFER = 10.0;
-const double CHAMFER_ANGLE = 180.0; // corners sharper than this are chamfered, 180 every corner
-
+/// The diamond mesh on its default arch: the surface, the rhombus mesh and one 40 mm plate per triangle.
 int main() {
 
-    const DiamondMesh shell(
+    DiamondMesh diamond(
         DiamondMesh::default_surface(),
-        U_DIVISIONS,
-        V_DIVISIONS,
-        THICKNESS,
-        CHAMFER,
-        CHAMFER_ANGLE
+        8,
+        4,
+        40.0,
+        10.0,
+        180.0
     );
-
-    WoodSession wood_session("diamond_mesh");
-    wood_session.add_mesh(std::make_shared<Mesh>(shell.mesh));
-    for (const std::shared_ptr<Plate>& plate : shell.elements)
-        wood_session.add(plate);
-
-    wood_session.pb_dump(pb_path("live"));
-
+    const std::vector<std::shared_ptr<Plate>> plates = diamond.get_elements_numbered<Plate>("plate");
+    std::cout << diamond << std::endl;
+    std::cout << fmt::format("diamond mesh: {} plates\n", plates.size());
+    diamond.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-The diamond mesh template on its default arch surface: the NURBS surface split into a rhombus pattern of triangles, one chamfered plate per triangle, written to live for the viewer.
+The diamond mesh template on its default arch, 3000 by 5000 with a rise of 1500: 8 by 4 cells split into rhombi between the cell centres, two triangles each, one 40 mm plate per triangle with 10 mm chamfers, each step in its own group (surface, mesh, plates).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -42,17 +33,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_folding_3_diamond_mesh --parallel 4 && ./build/templates_folding_3_diamond_mesh && ../bash/publish-scene.sh --target templates_folding_3_diamond_mesh
-
-|||||||| WORKFLOW ||||||||
-examples/templates_folding_3_diamond_mesh.cpp
- |
- |-- DiamondMesh(surface, u_div, v_div, thickness, chamfer, chamfer_angle)                       src/templates/folding/diamond_mesh.h
- |    |-- triangle pairs on the surface -> mesh; Mesh::miter_contours, chamfer_mask, chamfer_apply -> one Plate(bottom, top) per triangle in `elements`
- |
- |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
- '-- pb_dump(pb_path("live"))                    Mesh::loft once per stale plate, Session::pb_dump
-                                                 -> data/output/pb/live.pb, the file the viewer watches
+cmake --build build --target templates_folding_3_diamond_mesh --parallel 6 && ./build/templates_folding_3_diamond_mesh && ../bash/publish-scene.sh --target templates_folding_3_diamond_mesh
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

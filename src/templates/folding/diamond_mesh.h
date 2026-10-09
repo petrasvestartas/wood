@@ -1,293 +1,172 @@
 #pragma once
-#include "session.h"
-#include "nurbssurface.h"
 #include "wood_session.h"
-
-#include <cmath>
-#include <limits>
-#include <stdexcept>
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Diamond-pattern triangular mesh from a NURBS surface, with plate elements.
+/// A diamond shell: a NURBS surface split into rhombi of two triangles each, one plate per triangle.
 ///
-/// Subdivides a NURBS surface into a diamond (rhombus) pattern by
-/// placing triangle pairs that share alternating edge-midpoint vertices.
-/// Each cell produces 6 triangles (first row) or 4 triangles (other rows).
-/// Result mesh is welded to merge coincident vertices.
-/// After building the mesh, miter_contours generates a Plate (bottom +
-/// top polyline) for every triangular face. Chamfer is applied to any corner
-/// whose edge-vector angle is less than chamfer_angle degrees.
-///
-/// Usage:
-///   DiamondMesh dm;                                       // defaults
-///   DiamondMesh dm(my_surface, 8, 4, 15.0, 2.0, 90.0);  // custom
-class DiamondMesh {
+/// Fields: the surface, its divisions and the plate sizes; the surface, the mesh and the plates are in the session.
+class DiamondMesh : public WoodSession {
 public:
-    Mesh mesh;
-    std::vector<std::shared_ptr<Plate>> elements;
+    const NurbsSurface surface; // The surface the pattern is laid on.
+    const int u_divisions; // Cells across u.
+    const int v_divisions; // Cells along v.
+    const double thickness; // mm, every plate.
+    const double chamfer; // mm cut back at the corners of both outlines.
+    const double chamfer_angle; // Degrees, corners sharper than this are chamfered.
 
-    DiamondMesh(NurbsSurface surface = default_surface(),
-                int u_div = 8,
-                int v_div = 4,
-                double thickness     = 10.0,
-                double chamfer       = 1.0,
-                double chamfer_angle = 180.0)
-    {
+    /// The diamond pattern on surface as the session named name.
+    explicit DiamondMesh(
+        const NurbsSurface& surface = default_surface(),
+        int u_divisions = 8,
+        int v_divisions = 4,
+        double thickness = 10.0,
+        double chamfer = 1.0,
+        double chamfer_angle = 180.0,
+        const std::string& name = "diamond_mesh"
+    );
 
-        if (u_div < 1) {
-            u_div = 1;
-        }
+    /// Not copied, as a session is not.
+    DiamondMesh(const DiamondMesh&) = delete;
 
-        if (v_div < 1) {
-            v_div = 1;
-        }
+    /// Not assigned, as it is not copied.
+    DiamondMesh& operator=(const DiamondMesh&) = delete;
 
-        std::pair<double,double> dom_u = surface.domain(0);
-        double u0 = dom_u.first, u1 = dom_u.second;
-        std::pair<double,double> dom_v = surface.domain(1);
-        double v0 = dom_v.first, v1 = dom_v.second;
-        double su = (u1 - u0) / u_div;
-        double sv = (v1 - v0) / v_div;
+    /// The welded triangle mesh, one face per plate.
+    const Mesh& mesh() const;
 
-        std::vector<Point> pts;
-        std::vector<std::vector<size_t>> faces;
-        size_t idx = 0;
-
-        for (int i = 0; i < u_div; i++) {
-            double u = u0 + i * su;
-            for (int j = 0; j < v_div; j++) {
-                double v = v0 + j * sv;
-                Point p0 = surface.point_at(u,          v);
-                Point p1 = surface.point_at(u + su,     v);
-                Point p2 = surface.point_at(u,          v + sv);
-                Point p3 = surface.point_at(u + su,     v + sv);
-                Point p5 = surface.point_at(u + su*0.5, v + sv*0.5);
-                Point p4 = (j != v_div - 1)
-                    ? surface.point_at(u + su*0.5, v + sv*1.5)
-                    : Point(0, 0, 0);   // unused on the last row
-                Point p7 = surface.point_at(u + su*0.5, v0);
-                Point p8 = surface.point_at(u + su*0.5, v1);
-
-                if (j == 0) {
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p1,
-                        p5,
-                        p7
-                    );
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p7,
-                        p5,
-                        p0
-                    );
-                }
-
-                add_triangle(
-                    pts,
-                    faces,
-                    idx,
-                    p1,
-                    p3,
-                    p5
-                );
-                add_triangle(
-                    pts,
-                    faces,
-                    idx,
-                    p0,
-                    p5,
-                    p2
-                );
-
-                if (j != v_div - 1) {
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p3,
-                        p4,
-                        p5
-                    );
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p4,
-                        p2,
-                        p5
-                    );
-                } else {
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p3,
-                        p8,
-                        p5
-                    );
-                    add_triangle(
-                        pts,
-                        faces,
-                        idx,
-                        p8,
-                        p2,
-                        p5
-                    );
-                }
-            }
-        }
-
-        mesh = Mesh::from_vertices_and_faces(pts, faces).weld(0.01);
-
-        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
-                Mesh::miter_contours(
-                    mesh,
-                    thickness,
-                    0.0,
-                    0.0,
-                    false
-                )) {
-            const std::vector<Point>& top_raw = std::get<2>(plate);
-            const std::vector<Point>& bot_raw = std::get<3>(plate);
-
-            if (top_raw.empty() || bot_raw.empty()) {
-                continue;
-            }
-
-            std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
-            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer, mask);
-            std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer, mask);
-
-            if (!bot_ch.empty()) {
-                bot_ch.push_back(bot_ch[0]);
-            }
-
-            if (!top_ch.empty()) {
-                top_ch.push_back(top_ch[0]);
-            }
-
-            elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
-        }
-    }
-
-    /// Degree-3 bicubic arch surface: 3000×5000 mm, height 1500 mm (arc extrusion).
-    static NurbsSurface default_surface() {
-
-        const double W = 3000.0, L = 5000.0, H = 1500.0;
-        NurbsSurface srf;
-        srf.create_raw(
-            3,
-            false,
-            4,
-            4,
-            4,
-            4
-        );
-
-        const double ku[] = {0.0, 0.0, 0.0, W, W, W};
-        const double kv[] = {0.0, 0.0, 0.0, L, L, L};
-
-        for (int i = 0; i < 6; i++) {
-            srf.set_nurbsknot(0, i, ku[i]);
-            srf.set_nurbsknot(1, i, kv[i]);
-        }
-
-        const double us[] = {0.0, W/3.0, 2.0*W/3.0, W};
-        const double zs[] = {0.0, H*4.0/3.0, H*4.0/3.0, 0.0};
-        const double vs[] = {0.0, L/3.0, 2.0*L/3.0, L};
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                srf.set_cv(i, j, Point(us[i], vs[j], zs[i]));
-            }
-        }
-
-        srf.transpose();   // arch along V so u_div runs across the long span
-
-        return srf;
-    }
+    /// A bicubic arch, 3000 across, 5000 along v and 1500 high.
+    static NurbsSurface default_surface();
 
 private:
-    /// Appends one triangle a, b, c as three fresh vertices and one face, advancing idx by three.
-    static void add_triangle(std::vector<Point>& pts, std::vector<std::vector<size_t>>& faces, size_t& idx,
-                             const Point& a, const Point& b, const Point& c) {
-        pts.push_back(a); pts.push_back(b); pts.push_back(c);
-        faces.push_back({idx, idx + 1, idx + 2});
-        idx += 3;
-    }
+    Mesh _mesh;
 
-    static std::vector<bool> chamfer_mask(const std::vector<Point>& pts,
-                                           double max_angle_deg) {
-
-        size_t n = pts.size();
-        std::vector<bool> mask(n, false);
-        constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
-
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
-            double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
-
-            if (lp < 1e-12 || ln < 1e-12) {
-                continue;
-            }
-
-            double cosA = std::max(-1.0, std::min(1.0,
-                (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
-            mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
-        }
-
-        return mask;
-    }
-
-    static std::vector<Point> chamfer_apply(const std::vector<Point>& pts,
-                                             double s,
-                                             const std::vector<bool>& mask) {
-
-        size_t n = pts.size();
-        if (s <= 0.0) {
-            return pts;
-        }
-
-        double min_edge = std::numeric_limits<double>::max();
-        for (size_t i = 0; i < n; ++i) {
-            size_t j = (i + 1) % n;
-            double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
-            min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
-        }
-
-        double sc = std::min(s, min_edge / 3.0);
-        std::vector<Point> result;
-        result.reserve(2 * n);
-
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
-            double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
-
-            if (mask[i]) {
-                double sp = (lp > 1e-12) ? sc/lp : 0.0;
-                double sn = (ln > 1e-12) ? sc/ln : 0.0;
-                result.push_back(Point(pts[i][0]+dpx*sp, pts[i][1]+dpy*sp, pts[i][2]+dpz*sp));
-                result.push_back(Point(pts[i][0]+dnx*sn, pts[i][1]+dny*sn, pts[i][2]+dnz*sn));
-            } else {
-                result.push_back(pts[i]);
-            }
-        }
-
-        return result;
-    }
+    /// Per cell four triangles around its centre to the next cell's centre, six on the first row, welded.
+    Mesh compute_mesh() const;
 };
+
+inline DiamondMesh::DiamondMesh(
+    const NurbsSurface& surface,
+    int u_divisions,
+    int v_divisions,
+    double thickness,
+    double chamfer,
+    double chamfer_angle,
+    const std::string& name
+)
+    : WoodSession(name),
+      surface(surface),
+      u_divisions(std::max(u_divisions, 1)),
+      v_divisions(std::max(v_divisions, 1)),
+      thickness(thickness),
+      chamfer(chamfer),
+      chamfer_angle(chamfer_angle) {
+
+    // surface: the NURBS surface the pattern is laid on
+    add_nurbssurface(surface, add_group("surface"));
+
+    // mesh: the surface's cells split into rhombi between cell centres, two triangles each
+    _mesh = compute_mesh();
+    add_mesh(_mesh, add_group("mesh"));
+
+    // plates: one plate per triangle, mitred at the folds, its corners chamfered
+    const std::shared_ptr<TreeNode> plates = add_group("plates");
+    const std::vector<std::shared_ptr<Plate>> triangles = mitred_plates(
+        _mesh,
+        thickness,
+        chamfer,
+        chamfer,
+        chamfer_angle
+    );
+
+    for (const std::shared_ptr<Plate>& plate : triangles)
+        add(plate, plates);
+}
+
+inline const Mesh& DiamondMesh::mesh() const {
+    return _mesh;
+}
+
+inline NurbsSurface DiamondMesh::default_surface() {
+
+    const double width = 3000.0;
+    const double length = 5000.0;
+    const double height = 1500.0;
+    std::vector<Point> points;
+
+    for (int i = 0; i < 4; i++) {
+        const double z = (i == 1 || i == 2) ? height * 4.0 / 3.0 : 0.0;
+
+        for (int j = 0; j < 4; j++)
+            points.push_back({width * i / 3.0, length * j / 3.0, z});
+    }
+
+    NurbsSurface arch = NurbsSurface::create(
+        false,
+        false,
+        3,
+        3,
+        4,
+        4,
+        points
+    );
+    arch.set_domain(0, 0.0, width);
+    arch.set_domain(1, 0.0, length);
+    arch.transpose();
+    return arch;
+}
+
+inline Mesh DiamondMesh::compute_mesh() const {
+
+    const std::pair<double, double> domain_u = surface.domain(0);
+    const std::pair<double, double> domain_v = surface.domain(1);
+    const double step_u = (domain_u.second - domain_u.first) / u_divisions;
+    const double step_v = (domain_v.second - domain_v.first) / v_divisions;
+    std::vector<Point> points;
+    std::vector<std::vector<size_t>> faces;
+
+    for (int i = 0; i < u_divisions; i++) {
+        const double u = domain_u.first + i * step_u;
+        const double middle = u + step_u * 0.5;
+
+        for (int j = 0; j < v_divisions; j++) {
+            const double v = domain_v.first + j * step_v;
+            const Point a = surface.point_at(u, v);
+            const Point b = surface.point_at(u + step_u, v);
+            const Point c = surface.point_at(u, v + step_v);
+            const Point d = surface.point_at(u + step_u, v + step_v);
+            const Point centre = surface.point_at(middle, v + step_v * 0.5);
+            std::vector<std::array<Point, 3>> triangles;
+
+            if (j == 0) {
+                const Point start = surface.point_at(middle, domain_v.first);
+                triangles.push_back({b, centre, start});
+                triangles.push_back({start, centre, a});
+            }
+
+            triangles.push_back({b, d, centre});
+            triangles.push_back({a, centre, c});
+
+            if (j + 1 < v_divisions) {
+                const Point next = surface.point_at(middle, v + step_v * 1.5);
+                triangles.push_back({d, next, centre});
+                triangles.push_back({next, c, centre});
+            } else {
+                const Point end = surface.point_at(middle, domain_v.second);
+                triangles.push_back({d, end, centre});
+                triangles.push_back({end, c, centre});
+            }
+
+            for (const std::array<Point, 3>& triangle : triangles) {
+                const size_t start = points.size();
+                faces.push_back({start, start + 1, start + 2});
+                points.insert(points.end(), triangle.begin(), triangle.end());
+            }
+        }
+    }
+
+    const Mesh triangles = Mesh::from_vertices_and_faces(points, faces);
+    return triangles.weld(0.01);
+}

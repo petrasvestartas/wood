@@ -4,26 +4,20 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Builds the reflex fold with its default cross section and profile and writes the mesh and its plates to live.
+/// The reflex fold on its default arch and zigzag: the curves, the fold planes, the folded mesh and one plate per fold.
 int main() {
 
-    const ReflexFold shell;
-
-    WoodSession wood_session("reflex_fold");
-    wood_session.add_mesh(std::make_shared<Mesh>(shell.mesh));
-    for (const std::shared_ptr<Plate>& plate : shell.elements)
-        wood_session.add(plate);
-
-    std::cout << fmt::format("reflex fold: {} plates\n", shell.elements.size());
-
-    wood_session.pb_dump(pb_path("live"));
-
+    ReflexFold fold;
+    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
+    std::cout << fold << std::endl;
+    std::cout << fmt::format("reflex fold: {} plates\n", plates.size());
+    fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-The reflex fold template: a folded cross section along a profile, one plate per fold, written to live for the viewer.
+The reflex fold template: a zigzag profile carried along an arch, folded onto the plane that halves the arch's angle at every point, one 10 mm plate per quad with 20 mm chamfers, each step in its own group (curves, fold_planes, mesh, plates).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -32,17 +26,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_folding_1_reflex_fold --parallel 4 && ./build/templates_folding_1_reflex_fold && ../bash/publish-scene.sh --target templates_folding_1_reflex_fold
-
-|||||||| WORKFLOW ||||||||
-examples/templates_folding_1_reflex_fold.cpp
- |
- |-- ReflexFold(cross_section, profile, thickness, chamfer_bot, chamfer_top, chamfer_angle)                       src/templates/folding/reflex_fold.h
- |    |-- reflex_fold(cross_section, profile) -> mesh; chamfer_mask, chamfer_apply -> one Plate(bottom, top) per fold in `elements`
- |
- |-- WoodSession, add_mesh(mesh), add(plate)      src/joinery_solver/wood_session.cpp -> Session::add_element
- '-- pb_dump(pb_path("live"))                    Mesh::loft once per stale plate, Session::pb_dump
-                                                 -> data/output/pb/live.pb, the file the viewer watches
+cmake --build build --target templates_folding_1_reflex_fold --parallel 6 && ./build/templates_folding_1_reflex_fold && ../bash/publish-scene.sh --target templates_folding_1_reflex_fold
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

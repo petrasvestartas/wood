@@ -1,245 +1,188 @@
 #pragma once
-#include "session.h"
 #include "wood_session.h"
-
-#include <cmath>
-#include <stdexcept>
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A reflex-fold shell from two polylines with thickness.
+/// A folded plate shell: a profile carried along a cross section, folded at every cross-section point, one plate per fold.
 ///
-/// Folds a profile along a cross_section by projecting each profile row
-/// onto the perpendicular bisector plane at each cross-section point,
-/// producing a quad mesh. Each quad face is then offset into a top/bottom
-/// plate pair (Plate) using miter offsets.
-///
-/// chamfer_bot / chamfer_top  — miter offset distances on the two faces.
-/// chamfer_angle              — corners with interior angle < this (degrees)
-///                              receive the miter offset; others are kept sharp.
-///
-/// Usage:
-///   ReflexFold rf;
-///   ReflexFold rf(my_cross_section, my_profile, 10.0, 20.0, 20.0, 45.0);
-class ReflexFold {
+/// Fields: the two input polylines and the plate sizes; the curves, the mesh and the plates are in the session.
+class ReflexFold : public WoodSession {
 public:
-    Mesh mesh;
-    std::vector<std::shared_ptr<Plate>> elements;
+    const Polyline cross_section; // The polyline the profile is carried along.
+    const Polyline profile; // The polyline folded at every cross-section point.
+    const double thickness; // mm, every plate.
+    const double chamfer_bottom; // mm cut back at the bottom outline's corners.
+    const double chamfer_top; // mm cut back at the top outline's corners.
+    const double chamfer_angle; // Degrees, corners sharper than this are chamfered.
 
-    ReflexFold(const Polyline& cross_section = default_cross_section(),
-               const Polyline& profile       = default_profile(),
-               double thickness     = 10.0,
-               double chamfer_bot   = 20.0,
-               double chamfer_top   = 20.0,
-               double chamfer_angle = 180.0)
-    {
+    /// The fold of profile along cross_section as the session named name.
+    explicit ReflexFold(
+        const Polyline& cross_section = default_cross_section(),
+        const Polyline& profile = default_profile(),
+        double thickness = 10.0,
+        double chamfer_bottom = 20.0,
+        double chamfer_top = 20.0,
+        double chamfer_angle = 180.0,
+        const std::string& name = "reflex_fold"
+    );
 
-        if (cross_section.point_count() < 2) {
-            throw std::invalid_argument("ReflexFold: cross_section must have at least 2 points");
-        }
+    /// Not copied, as a session is not.
+    ReflexFold(const ReflexFold&) = delete;
 
-        if (profile.point_count() < 2) {
-            throw std::invalid_argument("ReflexFold: profile must have at least 2 points");
-        }
+    /// Not assigned, as it is not copied.
+    ReflexFold& operator=(const ReflexFold&) = delete;
 
-        if (thickness == 0.0) {
-            throw std::invalid_argument("ReflexFold: thickness must not be zero");
-        }
+    /// The folded quad mesh, one face per plate.
+    const Mesh& mesh() const;
 
-        mesh = reflex_fold(cross_section, profile);
-        for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
-                Mesh::miter_contours(
-                    mesh,
-                    thickness,
-                    0.0,
-                    0.0,
-                    false
-                )) {
-            const std::vector<Point>& top_raw = std::get<2>(plate);
-            const std::vector<Point>& bot_raw = std::get<3>(plate);
+    /// A 2 m arch of five points in the xz plane.
+    static Polyline default_cross_section();
 
-            if (top_raw.empty() || bot_raw.empty()) {
-                continue;
-            }
-
-            std::vector<bool>  mask   = chamfer_mask(bot_raw, chamfer_angle);
-            std::vector<Point> top_ch = chamfer_apply(top_raw, chamfer_top, mask);
-            std::vector<Point> bot_ch = chamfer_apply(bot_raw, chamfer_bot, mask);
-
-            if (!bot_ch.empty()) {
-                bot_ch.push_back(bot_ch[0]);
-            }
-
-            if (!top_ch.empty()) {
-                top_ch.push_back(top_ch[0]);
-            }
-
-            elements.push_back(std::make_shared<Plate>(Polyline(bot_ch), Polyline(top_ch)));
-        }
-    }
-
-    static Polyline default_cross_section() {
-        return Polyline(std::vector<Point>{
-            Point(   0.0,        0.0, 0.0        ),
-            Point( 232.466867,   0.0, 578.230273 ),
-            Point( 966.431048,   0.0, 738.362403 ),
-            Point(1714.771039,   0.0, 604.197646 ),
-            Point(2037.199246,   0.0,   4.784134 ),
-        });
-    }
-
-    static Polyline default_profile() {
-        return Polyline(std::vector<Point>{
-            Point(   0.0,         0.0,          0.0),
-            Point( -77.091582,  -89.779688,     0.0),
-            Point( -19.195901, -179.559376,     0.0),
-            Point( -89.503039, -269.339064,     0.0),
-            Point( -25.912208, -359.118752,     0.0),
-            Point( -89.664508, -448.898440,     0.0),
-            Point( -19.472054, -538.678128,     0.0),
-            Point( -77.485143, -628.457816,     0.0),
-            Point(  -0.817868, -718.237504,     0.0),
-            Point( -54.785307, -808.017192,     0.0),
-            Point(  26.377605, -897.796881,     0.0),
-            Point( -25.921340, -987.576569,     0.0),
-            Point(  55.558217,-1077.356257,     0.0),
-            Point(   1.964204,-1167.135945,     0.0),
-            Point(  79.167116,-1256.915633,     0.0),
-            Point(  21.364954,-1346.695321,     0.0),
-            Point(  91.462653,-1436.475009,     0.0),
-            Point(  27.192231,-1526.254697,     0.0),
-            Point(  89.830774,-1616.034385,     0.0),
-        });
-    }
+    /// A 1.6 m zigzag along -y in the xy plane.
+    static Polyline default_profile();
 
 private:
-    static std::vector<bool> chamfer_mask(const std::vector<Point>& pts, double max_angle_deg) {
+    Mesh _mesh;
 
-        size_t n = pts.size();
-        std::vector<bool> mask(n, false);
-        constexpr double TO_DEG = 180.0 / 3.14159265358979323846;
+    /// The bisector plane at every cross-section point, the end planes normal to z.
+    std::vector<Plane> compute_fold_planes() const;
 
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx + dpy*dpy + dpz*dpz);
-            double ln = std::sqrt(dnx*dnx + dny*dny + dnz*dnz);
-
-            if (lp < 1e-12 || ln < 1e-12) {
-                continue;
-            }
-
-            double cosA = std::max(-1.0, std::min(1.0, (dpx*dnx+dpy*dny+dpz*dnz)/(lp*ln)));
-            mask[i] = (std::acos(cosA) * TO_DEG < max_angle_deg);
-        }
-
-        return mask;
-    }
-
-    static std::vector<Point> chamfer_apply(const std::vector<Point>& pts, double s,
-                                             const std::vector<bool>& mask) {
-
-        size_t n = pts.size();
-        if (s <= 0.0) {
-            return pts;
-        }
-
-        double min_edge = std::numeric_limits<double>::max();
-        for (size_t i = 0; i < n; ++i) {
-            size_t j = (i + 1) % n;
-            double dx = pts[j][0]-pts[i][0], dy = pts[j][1]-pts[i][1], dz = pts[j][2]-pts[i][2];
-            min_edge = std::min(min_edge, std::sqrt(dx*dx+dy*dy+dz*dz));
-        }
-
-        double sc = std::min(s, min_edge / 3.0);
-        std::vector<Point> result;
-        result.reserve(2 * n);
-
-        for (size_t i = 0; i < n; ++i) {
-            size_t prev = (i + n - 1) % n;
-            size_t next = (i + 1) % n;
-            double dpx = pts[prev][0]-pts[i][0], dpy = pts[prev][1]-pts[i][1], dpz = pts[prev][2]-pts[i][2];
-            double dnx = pts[next][0]-pts[i][0], dny = pts[next][1]-pts[i][1], dnz = pts[next][2]-pts[i][2];
-            double lp = std::sqrt(dpx*dpx+dpy*dpy+dpz*dpz);
-            double ln = std::sqrt(dnx*dnx+dny*dny+dnz*dnz);
-
-            if (mask[i]) {
-                double sp = (lp > 1e-12) ? sc/lp : 0.0;
-                double sn = (ln > 1e-12) ? sc/ln : 0.0;
-                result.push_back(Point(pts[i][0]+dpx*sp, pts[i][1]+dpy*sp, pts[i][2]+dpz*sp));
-                result.push_back(Point(pts[i][0]+dnx*sn, pts[i][1]+dny*sn, pts[i][2]+dnz*sn));
-            } else {
-                result.push_back(pts[i]);
-            }
-        }
-
-        return result;
-    }
-
-    /// Projects each profile row onto the bisector plane at each cross-section
-    /// point and accumulates a quad mesh.
-    ///
-    /// Ported from session_cpp Mesh::reflex_fold (mesh.cpp).
-    static Mesh reflex_fold(const Polyline& cross_section, const Polyline& profile) {
-
-        size_t nCS = cross_section.point_count();
-        size_t nP  = profile.point_count();
-
-        std::vector<Plane> planes;
-        planes.reserve(nCS);
-        for (size_t i = 0; i < nCS; ++i) {
-            Vector normal(0, 0, 1);
-            if (i > 0 && i < nCS - 1) {
-                Point ci = cross_section[i];
-                Point cp = cross_section[i - 1];
-                Point cn = cross_section[i + 1];
-                Vector v1(cp[0]-ci[0], cp[1]-ci[1], cp[2]-ci[2]);
-                Vector v2(cn[0]-ci[0], cn[1]-ci[1], cn[2]-ci[2]);
-                v1 = v1.normalized();
-                v2 = v2.normalized();
-                normal = Vector(v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2]);
-                if (!normal.normalize_self()) {
-                    normal = Vector(cn[0]-cp[0], cn[1]-cp[1], cn[2]-cp[2]);
-                    normal.normalize_self();
-                }
-            }
-
-            Point origin = cross_section[i];
-            planes.push_back(Plane::from_point_normal(origin, normal));
-        }
-
-        std::vector<Point> all_pts;
-        all_pts.reserve(nCS * nP);
-        for (size_t j = 0; j < nP; ++j) {
-            all_pts.push_back(profile[j]);
-        }
-
-        std::vector<std::vector<size_t>> faces;
-        for (size_t i = 1; i < nCS; ++i) {
-            const Point& po = planes[i].origin();
-            const Point& pp = planes[i - 1].origin();
-            Vector n1(po[0]-pp[0], po[1]-pp[1], po[2]-pp[2]);
-            const Vector& n2 = planes[i].z_axis();
-
-            size_t row_start = all_pts.size();
-            for (size_t j = 0; j < nP; ++j) {
-                const Point& pvrt = all_pts[row_start - nP + j];
-                Vector diff(po[0]-pvrt[0], po[1]-pvrt[1], po[2]-pvrt[2]);
-                double denom = n2.dot(n1);
-                double t = (std::abs(denom) > 1e-12) ? n2.dot(diff) / denom : 0.0;
-                all_pts.push_back(Point(pvrt[0]+n1[0]*t, pvrt[1]+n1[1]*t, pvrt[2]+n1[2]*t));
-            }
-
-            for (size_t j = 0; j + 1 < nP; ++j) {
-                size_t new_j = row_start + j;
-                size_t old_j = row_start - nP + j;
-                faces.push_back({new_j, old_j, old_j+1, new_j+1});
-            }
-        }
-
-        return Mesh::from_vertices_and_faces(all_pts, faces);
-    }
+    /// Each profile row moved along the cross section onto the next fold plane, the rows joined by quads.
+    Mesh compute_mesh(const std::vector<Plane>& fold_planes) const;
 };
+
+inline ReflexFold::ReflexFold(
+    const Polyline& cross_section,
+    const Polyline& profile,
+    double thickness,
+    double chamfer_bottom,
+    double chamfer_top,
+    double chamfer_angle,
+    const std::string& name
+)
+    : WoodSession(name),
+      cross_section(cross_section),
+      profile(profile),
+      thickness(thickness),
+      chamfer_bottom(chamfer_bottom),
+      chamfer_top(chamfer_top),
+      chamfer_angle(chamfer_angle) {
+
+    // curves: the cross section and the profile
+    const std::shared_ptr<TreeNode> curves = add_group("curves");
+    add_polyline(cross_section, curves);
+    add_polyline(profile, curves);
+
+    // fold_planes: the plane that halves the cross section's angle at every point
+    const std::vector<Plane> fold_planes = compute_fold_planes();
+    const std::shared_ptr<TreeNode> planes = add_group("fold_planes");
+
+    for (const Plane& plane : fold_planes)
+        add_plane(plane, planes);
+
+    // mesh: the profile carried from fold plane to fold plane, one quad strip per segment
+    _mesh = compute_mesh(fold_planes);
+    add_mesh(_mesh, add_group("mesh"));
+
+    // plates: one plate per quad, mitred at the folds, its corners chamfered
+    const std::shared_ptr<TreeNode> plates = add_group("plates");
+    const std::vector<std::shared_ptr<Plate>> folds = mitred_plates(
+        _mesh,
+        thickness,
+        chamfer_bottom,
+        chamfer_top,
+        chamfer_angle
+    );
+
+    for (const std::shared_ptr<Plate>& plate : folds)
+        add(plate, plates);
+}
+
+inline const Mesh& ReflexFold::mesh() const {
+    return _mesh;
+}
+
+inline Polyline ReflexFold::default_cross_section() {
+    return Polyline({
+        {0.0, 0.0, 0.0},
+        {232.466867, 0.0, 578.230273},
+        {966.431048, 0.0, 738.362403},
+        {1714.771039, 0.0, 604.197646},
+        {2037.199246, 0.0, 4.784134},
+    });
+}
+
+inline Polyline ReflexFold::default_profile() {
+    return Polyline({
+        {0.0, 0.0, 0.0},
+        {-77.091582, -89.779688, 0.0},
+        {-19.195901, -179.559376, 0.0},
+        {-89.503039, -269.339064, 0.0},
+        {-25.912208, -359.118752, 0.0},
+        {-89.664508, -448.898440, 0.0},
+        {-19.472054, -538.678128, 0.0},
+        {-77.485143, -628.457816, 0.0},
+        {-0.817868, -718.237504, 0.0},
+        {-54.785307, -808.017192, 0.0},
+        {26.377605, -897.796881, 0.0},
+        {-25.921340, -987.576569, 0.0},
+        {55.558217, -1077.356257, 0.0},
+        {1.964204, -1167.135945, 0.0},
+        {79.167116, -1256.915633, 0.0},
+        {21.364954, -1346.695321, 0.0},
+        {91.462653, -1436.475009, 0.0},
+        {27.192231, -1526.254697, 0.0},
+        {89.830774, -1616.034385, 0.0},
+    });
+}
+
+inline std::vector<Plane> ReflexFold::compute_fold_planes() const {
+
+    const size_t count = cross_section.point_count();
+    std::vector<Plane> planes;
+
+    for (size_t i = 0; i < count; i++) {
+        Vector normal(0.0, 0.0, 1.0);
+
+        if (i > 0 && i + 1 < count) {
+            const Vector previous = (cross_section[i - 1] - cross_section[i]).normalized();
+            const Vector next = (cross_section[i + 1] - cross_section[i]).normalized();
+            normal = previous + next;
+
+            if (!normal.normalize_self()) {
+                normal = cross_section[i + 1] - cross_section[i - 1];
+                normal.normalize_self();
+            }
+        }
+
+        planes.push_back(Plane::from_point_normal(cross_section[i], normal));
+    }
+
+    return planes;
+}
+
+inline Mesh ReflexFold::compute_mesh(const std::vector<Plane>& fold_planes) const {
+
+    const size_t row = profile.point_count();
+    std::vector<Point> points = profile.get_points();
+    std::vector<std::vector<size_t>> faces;
+
+    for (size_t i = 1; i < fold_planes.size(); i++) {
+        const Vector step = fold_planes[i].origin() - fold_planes[i - 1].origin();
+        const size_t start = points.size();
+
+        for (size_t j = 0; j < row; j++) {
+            const Point previous = points[start - row + j];
+            const Line along = Line::from_points(previous, previous + step);
+            const std::optional<Point> moved = Intersection::line_plane(along, fold_planes[i], false);
+            points.push_back(moved.value_or(previous));
+        }
+
+        for (size_t j = 0; j + 1 < row; j++)
+            faces.push_back({start + j, start - row + j, start - row + j + 1, start + j + 1});
+    }
+
+    return Mesh::from_vertices_and_faces(points, faces);
+}
