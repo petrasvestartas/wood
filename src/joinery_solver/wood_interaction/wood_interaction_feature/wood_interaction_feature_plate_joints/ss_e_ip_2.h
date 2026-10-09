@@ -17,22 +17,16 @@ static std::vector<Point> tile_tooth_along_z(
     return out;
 }
 
-/// ss_e_ip_2: butterfly (X-fix) joint - `divisions` copies of a four-point tooth tiled along z; unit_scale.
-static void ss_e_ip_2(InteractionFeaturePlate& joint) {
+/// ss_e_ip_2: butterfly (X-fix) joint - `divisions` copies of a four-point tooth tiled along z; unit_scale pinned to the
+/// male plate's thickness, the tooth pitch the joint line's length (times scale z) over the divisions, in thicknesses.
+static void ss_e_ip_2(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "ss_e_ip_2";
+    joint.unit_scale_distance = unit_scale_distance(joint, elements);
 
-    double edge_length = 1000.0;
-    {
-        const double d = Point::distance(joint.joint_lines[0].start(), joint.joint_lines[0].end());
-        if (d > 1e-9)
-            edge_length = d;
-    }
-
-    const int divisions = std::max(1, std::min(100, joint.divisions));
-    const double joint_volume_edge_length =
-        (joint.unit_scale_distance > 0.0) ? joint.unit_scale_distance : 40.0;
-    edge_length *= joint.scale[2];
+    const double edge_length = joint.joint_lines[0].length() * joint.scale[2];
+    const int divisions = joint.divisions;
+    const double joint_volume_edge_length = joint.unit_scale_distance;
     const double move_length_scaled = edge_length / (divisions * joint_volume_edge_length);
     const double total_length_scaled = edge_length / joint_volume_edge_length;
     const double mv_end  = (total_length_scaled * 0.5) - (move_length_scaled * 0.5);

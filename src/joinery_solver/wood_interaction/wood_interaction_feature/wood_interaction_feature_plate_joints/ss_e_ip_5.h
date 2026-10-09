@@ -1,26 +1,13 @@
-/// ss_e_ip_5: reversed-tooth in-plane joint - `divisions` copies of an eight-point tooth along z, each reversed; unit_scale.
+/// ss_e_ip_5: reversed-tooth in-plane joint - `divisions` copies of an eight-point tooth along z, each reversed; unit_scale
+/// pinned to the male plate's thickness, the tooth pitch as ss_e_ip_2.
 static void ss_e_ip_5(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "ss_e_ip_5";
+    joint.unit_scale_distance = unit_scale_distance(joint, elements);
 
-    const int v0 = index_of_plate(elements, joint.element_a);
-    if (v0 < 0 || v0 >= (int)elements.size())
-        return;
-
-    joint.unit_scale_distance = elements[v0]->thickness;
-
-    double edge_length = 1000.0;
-    {
-        const double d = Point::distance(joint.joint_lines[0].start(), joint.joint_lines[0].end());
-        if (d > 1e-9)
-            edge_length = d;
-    }
-
-    const int divisions = std::max(1, std::min(100, joint.divisions));
-    const double joint_volume_edge_length =
-        (joint.unit_scale_distance > 0.0) ? joint.unit_scale_distance : 40.0;
-
-    edge_length *= joint.scale[2];
+    const double edge_length = joint.joint_lines[0].length() * joint.scale[2];
+    const int divisions = joint.divisions;
+    const double joint_volume_edge_length = joint.unit_scale_distance;
     const double move_length_scaled = edge_length / (divisions * joint_volume_edge_length);
     const double total_length_scaled = edge_length / joint_volume_edge_length;
     const double dz_start = (total_length_scaled * 0.5) - (move_length_scaled * 0.5);

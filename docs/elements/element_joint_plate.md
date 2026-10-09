@@ -8,7 +8,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 
 ```cpp
 // the library designs, each by its own name and parameters
-static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 4)
+static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0)   // 0 divisions: one every 300 mm of the joint line
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_5(int divisions = 8, bool disable_divisions = false)
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 4, double shift = 0.5)

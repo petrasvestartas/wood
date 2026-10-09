@@ -1,102 +1,28 @@
-/// One face of the custom tooth tiled `divisions` times along z: pair i % n_pairs of the source list, face0 or face1, shifted by mv_end + mv_step * i.
-static void tile_custom_face(
-    const std::vector<Polyline>& source,
-    bool pick_face0,
-    int divisions,
-    double mv_end,
-    double mv_step,
-    std::vector<Point>& out
-) {
-
-    const size_t n_pairs = source.size() / 2;
-    out.reserve(divisions * 8);
-    for (int i = 0; i < divisions; ++i) {
-        const double dz = mv_end + mv_step * i;
-        const Polyline& base = pick_face0 ? source[2 * (i % n_pairs)] : source[2 * (i % n_pairs) + 1];
-        for (size_t k = 0; k < base.point_count(); k++) {
-            const Point p = base.get_point(k);
-            out.emplace_back(p[0], p[1], p[2] + dz);
-        }
-    }
-}
-
-/// ss_e_ip_custom: each user pair (face0, face1) from settings.custom("ss_e_ip") is one tooth,
-/// tiled `divisions` times along z like ss_e_ip_2 and concatenated into one outline per face; unit_scale.
+/// ss_e_ip_custom: the user's outlines as 2024 kept them - every pair (face0, face1) of the male and of the female list
+/// is its own polyline on each face, written twice so the copy stands where a library design keeps its endpoint marker,
+/// with the fabrication type nothing; no divisions and no unit scale, the unit box is mapped onto the full contact.
 static void ss_e_ip_custom(InteractionFeaturePlate& joint, const Settings& settings) {
 
     joint.name = "ss_e_ip_custom";
 
     const std::vector<Polyline>& cm = settings.custom("ss_e_ip")[0];
     const std::vector<Polyline>& cf = settings.custom("ss_e_ip")[1];
-    if (cm.size() < 2 || cf.size() < 2)
-        return;
 
-    double edge_length = 1000.0;
-    {
-        const double d = Point::distance(joint.joint_lines[0].start(), joint.joint_lines[0].end());
-        if (d > 1e-9)
-            edge_length = d;
+    for (size_t i = 0; i + 1 < cm.size(); i += 2) {
+        joint.male_outlines[0].push_back(cm[i]);
+        joint.male_outlines[0].push_back(cm[i]);
+        joint.male_outlines[1].push_back(cm[i + 1]);
+        joint.male_outlines[1].push_back(cm[i + 1]);
+        joint.male_fabrication_types[0].insert(joint.male_fabrication_types[0].end(), {FabricationType::nothing, FabricationType::nothing});
+        joint.male_fabrication_types[1].insert(joint.male_fabrication_types[1].end(), {FabricationType::nothing, FabricationType::nothing});
     }
 
-    const int divisions = std::max(1, std::min(100, joint.divisions));
-    const double joint_volume_edge_length =
-        (joint.unit_scale_distance > 0.0) ? joint.unit_scale_distance : 40.0;
-    edge_length *= joint.scale[2];
-    const double move_length_scaled = edge_length / (divisions * joint_volume_edge_length);
-    const double total_length_scaled = edge_length / joint_volume_edge_length;
-    const double mv_end  = (total_length_scaled * 0.5) - (move_length_scaled * 0.5);
-    const double mv_step = -move_length_scaled;
-
-    std::vector<Point> m0;
-    std::vector<Point> m1;
-    std::vector<Point> f0;
-    std::vector<Point> f1;
-    tile_custom_face(
-        cm,
-        true,
-        divisions,
-        mv_end,
-        mv_step,
-        m0
-    );
-    tile_custom_face(
-        cm,
-        false,
-        divisions,
-        mv_end,
-        mv_step,
-        m1
-    );
-    tile_custom_face(
-        cf,
-        true,
-        divisions,
-        mv_end,
-        mv_step,
-        f0
-    );
-    tile_custom_face(
-        cf,
-        false,
-        divisions,
-        mv_end,
-        mv_step,
-        f1
-    );
-
-    if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
-        return;
-
-    joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
-    joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
-
-    joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
-    joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
-
-    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-
-    joint.unit_scale = true;
+    for (size_t i = 0; i + 1 < cf.size(); i += 2) {
+        joint.female_outlines[0].push_back(cf[i]);
+        joint.female_outlines[0].push_back(cf[i]);
+        joint.female_outlines[1].push_back(cf[i + 1]);
+        joint.female_outlines[1].push_back(cf[i + 1]);
+        joint.female_fabrication_types[0].insert(joint.female_fabrication_types[0].end(), {FabricationType::nothing, FabricationType::nothing});
+        joint.female_fabrication_types[1].insert(joint.female_fabrication_types[1].end(), {FabricationType::nothing, FabricationType::nothing});
+    }
 }

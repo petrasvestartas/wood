@@ -21,8 +21,9 @@ static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/gol
 
 /// Every design of the library with its default and a non-default parameter set: "family/library/parameters...".
 static const std::vector<std::string> VARIANTS = {
-    "ip/ss_e_ip_0", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2/4", "ip/ss_e_ip_2/2",
-    "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom", "ip/side_removal/0/0.5",
+    "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
+    "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
+    "ip/side_removal/0/0.5",
     "op/ss_e_op_0", "op/ss_e_op_1/8/0.5", "op/ss_e_op_1/6/0.0", "op/ss_e_op_2/8/0.5", "op/ss_e_op_2/12/1.0", "op/ss_e_op_3",
     "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0/0/0", "op/ss_e_op_5/8/0", "op/ss_e_op_5/8/1",
     "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
@@ -274,12 +275,12 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     const std::array<std::vector<Polyline>, 2> custom = custom_outlines(family);
 
     if (library == "ss_e_ip_0") return JointPlate::ss_e_ip_0();
-    if (library == "ss_e_ip_1") return JointPlate::ss_e_ip_1(integer(parts, 2, 8), number(parts, 3, 0.5));
-    if (library == "ss_e_ip_2") return JointPlate::ss_e_ip_2(integer(parts, 2, 4));
+    if (library == "ss_e_ip_1") return JointPlate::ss_e_ip_1(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "ss_e_ip_2") return JointPlate::ss_e_ip_2(integer(parts, 2, 0));
     if (library == "ss_e_ip_3") return JointPlate::ss_e_ip_3();
     if (library == "ss_e_ip_4") return JointPlate::ss_e_ip_4();
-    if (library == "ss_e_ip_5") return JointPlate::ss_e_ip_5(integer(parts, 2, 4));
-    if (library == "ss_e_ip_custom") return JointPlate::ss_e_ip_custom(custom[0], custom[1], integer(parts, 2, 4));
+    if (library == "ss_e_ip_5") return JointPlate::ss_e_ip_5(integer(parts, 2, 0));
+    if (library == "ss_e_ip_custom") return JointPlate::ss_e_ip_custom(custom[0], custom[1]);
 
     if (library == "ss_e_op_0") return JointPlate::ss_e_op_0();
     if (library == "ss_e_op_1") return JointPlate::ss_e_op_1(integer(parts, 2, 8), number(parts, 3, 0.5));

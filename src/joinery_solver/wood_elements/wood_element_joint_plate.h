@@ -43,19 +43,23 @@ public:
     // ss_e_ip
     // ═══════════════════════════════════════════════════════════════════════════
 
+    // Side-to-side in plane, contact 12, ids 1-9 as 2024 numbered them: 1 ss_e_ip_1 (the family default), 2 ss_e_ip_0,
+    // 3 ss_e_ip_2, 4 ss_e_ip_3, 5 ss_e_ip_4, 6 ss_e_ip_5, 8 side_removal, 9 ss_e_ip_custom. A zero division count takes
+    // the geometric count, the joint line's length over the family's 300 mm; the shift default is the family's 0.5.
+
     static std::shared_ptr<JointPlate> ss_e_ip_0();
 
-    static std::shared_ptr<JointPlate> ss_e_ip_1(int divisions = 8, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ss_e_ip_1(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> ss_e_ip_2(int divisions = 4);
+    static std::shared_ptr<JointPlate> ss_e_ip_2(int divisions = 0);
 
     static std::shared_ptr<JointPlate> ss_e_ip_3();
 
     static std::shared_ptr<JointPlate> ss_e_ip_4();
 
-    static std::shared_ptr<JointPlate> ss_e_ip_5(int divisions = 4);
+    static std::shared_ptr<JointPlate> ss_e_ip_5(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female, int divisions = 4);
+    static std::shared_ptr<JointPlate> ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ss_e_op
@@ -214,6 +218,7 @@ public:
 
 private:
     static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
+    static std::shared_ptr<JointPlate> ss_e_ip(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<Plate>>& elements,

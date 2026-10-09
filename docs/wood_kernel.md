@@ -278,8 +278,9 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 ### Custom joints at runtime
 
 The `*_custom` constructors read `config::CUSTOM_JOINTS_<FAMILY>_MALE` / `_FEMALE`
-(`wood_config.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) of one base tooth,
-tiled `divisions` times along z (`ss_e_ip_custom.h` documents the tiling). Fill the vectors in
+(`wood_config.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) in the unit box, each
+kept as its own polyline on its face, written twice, fabrication type nothing, as 2024 did
+(`ss_e_ip_custom.h`): no tiling, no unit scale, the box is mapped onto the contact. Fill the vectors in
 C++ (the yml loader skips them), then select the family's custom id (9, 19, 29, 39, 59, 69).
 `reset_defaults()` clears them.
 

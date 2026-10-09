@@ -9,6 +9,7 @@ using namespace wood_session;
 
 /// Every wood_interaction_feature_plate_joints/*.h once, into the including TU's anonymous namespace; the consumer includes wood_session.h itself, before this file.
 #include "wood_interaction_feature_plate_joints/custom_outlines.h"
+#include "wood_interaction_feature_plate_joints/unit_scale_distance.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ss_e_ip: side-side in-plane, type 12

@@ -70,7 +70,7 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
         ss_e_ip_0(joint);
         return true;
     case 3:
-        ss_e_ip_2(joint);
+        ss_e_ip_2(joint, context.elements);
         return true;
     case 4:
         ss_e_ip_3(joint);
@@ -1051,14 +1051,24 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// An in-plane design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
+std::shared_ptr<JointPlate> JointPlate::ss_e_ip(const std::string& library) {
+
+    const std::shared_ptr<JointPlate> joint = from_library(library, 12);
+    joint->division_distance = 300.0;
+    joint->shift = 0.5;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_0() {
 
-    return from_library("ss_e_ip_0", 12);
+    return ss_e_ip("ss_e_ip_0");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_1(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_ip_1", 12);
+    const std::shared_ptr<JointPlate> joint = ss_e_ip("ss_e_ip_1");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1067,7 +1077,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_ip_1(int divisions, double shift) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_2(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_ip_2", 12);
+    const std::shared_ptr<JointPlate> joint = ss_e_ip("ss_e_ip_2");
     joint->parameters.divisions = divisions;
 
     return joint;
@@ -1075,27 +1085,26 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_ip_2(int divisions) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_3() {
 
-    return from_library("ss_e_ip_3", 12);
+    return ss_e_ip("ss_e_ip_3");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_4() {
 
-    return from_library("ss_e_ip_4", 12);
+    return ss_e_ip("ss_e_ip_4");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_ip_5(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_ip_5", 12);
+    const std::shared_ptr<JointPlate> joint = ss_e_ip("ss_e_ip_5");
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female, int divisions) {
+std::shared_ptr<JointPlate> JointPlate::ss_e_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_ip_custom", 12);
+    const std::shared_ptr<JointPlate> joint = ss_e_ip("ss_e_ip_custom");
     joint->parameters.outlines = {male, female};
-    joint->parameters.divisions = divisions;
 
     return joint;
 }
@@ -1111,7 +1120,7 @@ bool JointPlate::compute_ss_e_ip(InteractionFeaturePlate& connection, const std:
     else if (parameters.library == "ss_e_ip_1")
         ::ss_e_ip_1(connection);
     else if (parameters.library == "ss_e_ip_2")
-        ::ss_e_ip_2(connection);
+        ::ss_e_ip_2(connection, elements);
     else if (parameters.library == "ss_e_ip_3")
         ::ss_e_ip_3(connection);
     else if (parameters.library == "ss_e_ip_4")
