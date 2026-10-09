@@ -10,7 +10,6 @@ namespace {
 using namespace wood_session;
 
 #include "wood_interaction_feature_plate_joints.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_1.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint library
@@ -218,10 +217,10 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 54:
-        ss_e_r_3(joint);
+        ss_e_r_3(joint, context.elements);
         return true;
     case 55:
-        ss_e_r_2(joint);
+        ss_e_r_2(joint, context.elements);
         return true;
     case 56:
         ss_e_r_0(joint);
@@ -230,7 +229,7 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
         side_removal(joint, context.elements);
         return true;
     case 58:
-        side_removal_ss_e_r_1_port(joint, context.elements);
+        side_removal(joint, context.elements, true);
         return true;
     case 59:
         ss_e_r_custom(joint, context.settings);
@@ -276,8 +275,8 @@ bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& con
     }
 }
 
-/// The builder a family falls back to for an id it has no entry for; tt_e_p has none.
-void build_family_default(const int family, InteractionFeaturePlate& joint) {
+/// The builder a family falls back to for an id it has no entry for, as 2024 fell back; tt_e_p has none.
+void build_family_default(const int family, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (family) {
     case 0:
         ss_e_ip_1(joint);
@@ -292,7 +291,7 @@ void build_family_default(const int family, InteractionFeaturePlate& joint) {
         cr_c_ip_0(joint);
         return;
     case 5:
-        ss_e_r_0(joint);
+        side_removal(joint, context.elements);
         return;
     case 6:
         b_0(joint);
@@ -334,7 +333,7 @@ void joint_create_geometry(
         return;
     }
 
-    build_family_default(family, joint);
+    build_family_default(family, joint, context);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -666,7 +665,7 @@ static int plate_contact_family(const JointPlate& joint, ContactType type) {
     }
     if (family == 0) {
         if (type == ContactType::side_side)
-            family = joint.parameters.library == "side_removal_ss_e_r_1_port" ? 13 : 11;
+            family = 11;
         else if (type == ContactType::side_top)
             family = 20;
         else if (type == ContactType::top_top)
@@ -1020,7 +1019,7 @@ void JointPlate::compute_library(
         if (compute_tt_e_p(connection, elements))
             return;
     } else if (parameters.library.starts_with("ss_e_r_")) {
-        if (compute_ss_e_r(connection, settings))
+        if (compute_ss_e_r(connection, elements, settings))
             return;
     } else if (parameters.library.starts_with("cr_c_ip_")) {
         if (compute_cr_c_ip(connection, settings))
@@ -1550,19 +1549,32 @@ bool JointPlate::compute_cr_c_ip(InteractionFeaturePlate& connection, const Sett
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_r_0() {
+/// A rotated design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
+std::shared_ptr<JointPlate> JointPlate::ss_e_r(const std::string& library) {
 
-    return from_library("ss_e_r_0", 13);
+    const std::shared_ptr<JointPlate> joint = from_library(library, 13);
+    joint->division_distance = 300.0;
+    joint->shift = 0.5;
+
+    return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_r_1() {
+std::shared_ptr<JointPlate> JointPlate::ss_e_r_0() {
 
-    return from_library("ss_e_r_1", 13);
+    return ss_e_r("ss_e_r_0");
+}
+
+std::shared_ptr<JointPlate> JointPlate::ss_e_r_1(int type) {
+
+    const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_1");
+    joint->parameters.type = type;
+
+    return joint;
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_r_2(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_r_2", 13);
+    const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_2");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1571,7 +1583,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_r_2(int divisions, double shift) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_r_3(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_r_3", 13);
+    const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_3");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1580,7 +1592,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_r_3(int divisions, double shift) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_r_custom", 13);
+    const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1590,16 +1602,16 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_r_custom(const std::vector<Polyline
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_ss_e_r(InteractionFeaturePlate& connection, const Settings& settings) const {
+bool JointPlate::compute_ss_e_r(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
 
     if (parameters.library == "ss_e_r_0")
         ::ss_e_r_0(connection);
     else if (parameters.library == "ss_e_r_1")
-        ::ss_e_r_1(connection);
+        ::ss_e_r_1(connection, parameters.type);
     else if (parameters.library == "ss_e_r_2")
-        ::ss_e_r_2(connection);
+        ::ss_e_r_2(connection, elements);
     else if (parameters.library == "ss_e_r_3")
-        ::ss_e_r_3(connection);
+        ::ss_e_r_3(connection, elements);
     else if (parameters.library == "ss_e_r_custom")
         ::ss_e_r_custom(connection, settings);
     else
@@ -1621,9 +1633,10 @@ std::shared_ptr<JointPlate> JointPlate::side_removal(bool merge_with_joint, doub
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::side_removal_ss_e_r_1_port(double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_removal_ss_e_r_1(bool merge_with_joint, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("side_removal_ss_e_r_1_port", 0);
+    const std::shared_ptr<JointPlate> joint = from_library("side_removal_ss_e_r_1", 13);
+    joint->parameters.merge_with_joint = merge_with_joint;
     joint->shift = shift;
 
     return joint;
@@ -1637,8 +1650,8 @@ bool JointPlate::compute_side_removal(InteractionFeaturePlate& connection, const
 
     if (parameters.library == "side_removal")
         ::side_removal(connection, elements, parameters.merge_with_joint);
-    else if (parameters.library == "side_removal_ss_e_r_1_port")
-        ::side_removal_ss_e_r_1_port(connection, elements);
+    else if (parameters.library == "side_removal_ss_e_r_1")
+        ::side_removal_ss_e_r_1(connection, elements, parameters.merge_with_joint);
     else
         return false;
 
@@ -1694,6 +1707,7 @@ std::string JointPlateParameters::pb_dumps() const {
     proto.set_disable_divisions(disable_divisions);
     proto.set_distance_squared(distance_squared);
     proto.set_merge_with_joint(merge_with_joint);
+    proto.set_type(type);
 
     for (int i = 0; i < 2; ++i) {
         proto.add_x(x[i]);
@@ -1731,6 +1745,8 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
 
     if (proto.has_modify_outline())
         parameters.modify_outline = proto.modify_outline();
+    if (proto.has_type())
+        parameters.type = proto.type();
 
     if (proto.x_size() != 2 || proto.y_size() != 2 || proto.z_size() != 2)
         throw std::runtime_error("Invalid finger extents");

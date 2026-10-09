@@ -23,6 +23,7 @@ struct JointPlateParameters {
     bool disable_divisions = false;                             // Disable divisions on the second linked joint.
     double distance_squared = 0.01;                             // Drill boundary opening tolerance.
     bool merge_with_joint = false;                              // Merge side removal with an existing joint.
+    int type = 1;                                               // ss_e_r_1 profile: 1 the 15-point arc, else the 39-point.
     std::array<std::vector<Polyline>, 2> outlines; // Custom male and female outline pairs.
 
     std::string pb_dumps() const;
@@ -119,13 +120,19 @@ public:
     // ss_e_r
     // ═══════════════════════════════════════════════════════════════════════════
 
+    // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 ss_e_r_3, 55 ss_e_r_2, 56 ss_e_r_0,
+    // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 ss_e_r_custom; an id without
+    // an entry takes side_removal. A zero division count takes the geometric count, the joint line's length over the
+    // family's 300 mm; the shift default is the family's 0.5. ss_e_r_1 is the tile side_removal_ss_e_r_1 merges,
+    // reached by name only, as 2024 kept it.
+
     static std::shared_ptr<JointPlate> ss_e_r_0();
 
-    static std::shared_ptr<JointPlate> ss_e_r_1();
+    static std::shared_ptr<JointPlate> ss_e_r_1(int type = 1);
 
-    static std::shared_ptr<JointPlate> ss_e_r_2(int divisions = 4, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ss_e_r_2(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> ss_e_r_3(int divisions = 4, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ss_e_r_3(int divisions = 0, double shift = 0.5);
 
     static std::shared_ptr<JointPlate> ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
@@ -185,9 +192,12 @@ public:
     // side_removal
     // ═══════════════════════════════════════════════════════════════════════════
 
+    // The side faces of a pair milled off by the joint scale, on every side-side, side-top and cross family (ids x8);
+    // side_removal_ss_e_r_1 is the rotated family's, merging the ss_e_r_1 tile into the male side under merge_with_joint.
+
     static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> side_removal_ss_e_r_1_port(double shift = 0.5);
+    static std::shared_ptr<JointPlate> side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors
@@ -228,6 +238,7 @@ private:
     static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
     static std::shared_ptr<JointPlate> ss_e_ip(const std::string& library);
     static std::shared_ptr<JointPlate> ss_e_op(const std::string& library);
+    static std::shared_ptr<JointPlate> ss_e_r(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<Plate>>& elements,
@@ -238,7 +249,7 @@ private:
     bool compute_ss_e_ip(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_ss_e_op(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;
     bool compute_ts_e_p(InteractionFeaturePlate& connection, const Settings& settings) const;
-    bool compute_ss_e_r(InteractionFeaturePlate& connection, const Settings& settings) const;
+    bool compute_ss_e_r(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_cr_c_ip(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_b(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;

@@ -10,7 +10,7 @@ static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_o
 }
 
 /// ss_e_r_2/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
-/// every joint volume rebuilt as a 120*shift square. unit_scale_distance must already hold the element thickness.
+/// every joint volume rebuilt as a 120*shift square. The caller has set unit_scale_distance to the male plate's thickness.
 static void ss_e_r_core(
     InteractionFeaturePlate& joint,
     const double m0[][3], int m0n,
@@ -21,7 +21,7 @@ static void ss_e_r_core(
 
     const int divisions = std::max(1, joint.divisions);
     const double edge_length = joint.length * joint.scale[2];
-    const double jv_len = (joint.unit_scale_distance > 0) ? joint.unit_scale_distance : 40.0;
+    const double jv_len = joint.unit_scale_distance;
     const double step = edge_length / (divisions * jv_len);
     const double total = edge_length / jv_len;
     const double z0 = total * 0.5 - step * 0.5;

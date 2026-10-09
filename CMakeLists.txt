@@ -304,6 +304,7 @@ ADD_EXE(element_joint_plate_ss_e_op      examples/elements/element_joint_plate_s
 ADD_EXE(element_joint_plate_cr_c_ip      examples/elements/element_joint_plate_cr_c_ip.cpp)
 ADD_EXE(element_joint_plate_tt_e_p       examples/elements/element_joint_plate_tt_e_p.cpp)
 ADD_EXE(element_joint_plate_parameters   examples/elements/element_joint_plate_parameters.cpp)
+ADD_EXE(element_joint_plate_ss_e_r_3     examples/elements/element_joint_plate_ss_e_r_3.cpp)
 ADD_EXE(element_joint_drill                  examples/elements/element_joint_drill.cpp)
 ADD_EXE(element_joint_cutter                 examples/elements/element_joint_cutter.cpp)
 ADD_EXE(element_joint_beam_from_contact      examples/elements/element_joint_beam_from_contact.cpp)

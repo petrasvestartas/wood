@@ -1,7 +1,8 @@
-/// ss_e_r_3: diamond-profile tenon, tiled along z by ss_e_r_core; the caller sets unit_scale_distance to the thickness.
-static void ss_e_r_3(InteractionFeaturePlate& joint) {
+/// ss_e_r_3: diamond-profile tenon, tiled along z by ss_e_r_core on the male plate's thickness.
+static void ss_e_r_3(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "ss_e_r_3";
+    joint.unit_scale_distance = unit_scale_distance(joint, elements);
 
     static const double m0[][3] = {
         {0.40237, 0.6, 0}, {-0.502961, 0.6, 0.375},

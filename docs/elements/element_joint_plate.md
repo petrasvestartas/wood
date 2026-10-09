@@ -11,11 +11,11 @@ A joint between two plates: a design of the joint library, oriented on the plate
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0)   // 0 divisions: one every 450 mm of the joint line, shift 0.64
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
-static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 4, double shift = 0.5)
+static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5), ss_e_r_1(int type = 1)   // 0 divisions: one every 300 mm of the joint line
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) .. tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05)
 static std::shared_ptr<JointPlate> b_0()
-static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5)
+static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5)
 static std::shared_ptr<JointPlate> <family>_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female)
 
 // placed on a contact, then passed to each plate
@@ -44,7 +44,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 | [`ss_e_ip`](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge in one plane, their fingers interlocking along the normal, a loose key on the key designs |
 | `ss_e_op` | side to side, out of plane | two plates at an angle on a shared side face |
 | `ts_e_p` | top to side | a plate standing on another's face |
-| `ss_e_r` | side to side, rotated | two side faces whose edges cross |
+| `ss_e_r` | side to side, rotated | two side faces whose edges cross, or any side-to-side pair under `settings.all_treated_as_rotated` |
 | `cr_c_ip` | cross | two plates passing through each other (`compute_cross_contact`) |
 | `tt_e_p` | top to top | two plates stacked face on face |
 | `b` | boundary | found by the solver only |
@@ -107,7 +107,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 ## Not shown
 
 - `ss_e_op_0`, `ss_e_op_1` and `ss_e_op_2` on a mitred right-angle corner merge an outline that leaves the plate's plane, so the faces draw wrong; they are left out until the library merges them right.
-- `ss_e_r_*` need two side faces whose edges cross; on a flat board butting an upright one the contact is not read as rotated and nothing is cut, so the family is shown only through the solver's datasets.
+- `ss_e_r_*` need a rotated contact: `element_joint_plate_ss_e_r_3` shows the family on the in-plane pair with `settings.all_treated_as_rotated` on; the others and `side_removal_ss_e_r_1` are shown through the solver's datasets.
 - `side_removal` on the same corner removes the whole wall instead of its side; it is meant for the solver, where it merges with the joint on that edge.
 - `b_0` (boundary) has no face contact to orient on: the solver places it.
 - `JointAnnen` and `JointVidy` are built from a whole dataset's plates, connections and groups, not from one contact.
