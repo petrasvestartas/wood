@@ -124,15 +124,16 @@ void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elem
         features.top.clear();
         features.bottom.clear();
 
+        // the bottom of every pair is the loop on the side of polylines[0], as Plate names its faces
         if (merged.size() >= 2) {
             const size_t hole_count = merged.size() - 2;
             features.top.reserve(1 + hole_count / 2);
             features.bottom.reserve(1 + hole_count / 2);
-            features.top.push_back(std::move(merged[merged.size() - 2]));
-            features.bottom.push_back(std::move(merged[merged.size() - 1]));
+            features.bottom.push_back(std::move(merged[merged.size() - 2]));
+            features.top.push_back(std::move(merged[merged.size() - 1]));
             for (size_t hole_index = 0; hole_index + 2 <= hole_count; hole_index += 2) {
-                features.top.push_back(std::move(merged[hole_index]));
-                features.bottom.push_back(std::move(merged[hole_index + 1]));
+                features.bottom.push_back(std::move(merged[hole_index]));
+                features.top.push_back(std::move(merged[hole_index + 1]));
             }
         }
 

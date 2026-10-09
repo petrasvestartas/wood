@@ -86,9 +86,15 @@ static void check_scene_calls() {
     const size_t holes = drills_of(*lower, pins->guid());
     kept.compute_face_contacts();
     kept.compute_features(face_to_face);
-    check(kept.get_element<JointBeam>(pins->guid()) && holes > 0 && drills_of(*lower, pins->guid()) == holes && lower->solid_features.size() == 1, "compute_features keeps the user's pins, their " + std::to_string(holes) + " holes and their cut");
+    size_t user_cuts = 0;
+    for (const InteractionFeatureSolid& cut : lower->solid_features)
+        user_cuts += cut.source == pins->guid();
+    check(kept.get_element<JointBeam>(pins->guid()) && holes > 0 && drills_of(*lower, pins->guid()) == holes && user_cuts == 1, "compute_features keeps the user's pins, their " + std::to_string(holes) + " holes and their cut");
     kept.remove_interaction(pins, lower);
-    check(drills_of(*lower, pins->guid()) == 0 && lower->solid_features.empty() && drills_of(*upper, pins->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
+    user_cuts = 0;
+    for (const InteractionFeatureSolid& cut : lower->solid_features)
+        user_cuts += cut.source == pins->guid();
+    check(drills_of(*lower, pins->guid()) == 0 && user_cuts == 0 && drills_of(*upper, pins->guid()) == holes, "remove_interaction drops the holes with the cut, the other target keeps its own");
 
     WoodSession moved("moved targets");
     const std::shared_ptr<JointBeam> local = stacked_pins(moved, lower, upper);
@@ -223,8 +229,9 @@ int main() {
     check(scene.get_interaction(joint, a).size() == 1, "joint side attachment is idempotent");
     check(scene.consistent(), "directed joint edges");
     check(!a->features.top.empty() && !b->features.top.empty(), "manual joint merges both plates");
-    check(joint->element_geometry_mesh().number_of_faces() > 0 && joint->element_geometry_mesh().is_closed(), "closed joint mesh");
-    check(joint->element_geometry_brep().is_valid() && joint->element_geometry_brep().is_solid(), "joint brep solids");
+    // the tenons belong to the upright: a joint with no key and no pins has no solid of its own, and one that has must be closed
+    check(joint->element_geometry_mesh().number_of_faces() == 0 || joint->element_geometry_mesh().is_closed(), "closed joint mesh");
+    check(joint->element_geometry_mesh().number_of_faces() == 0 || (joint->element_geometry_brep().is_valid() && joint->element_geometry_brep().is_solid()), "joint brep solids");
     const auto restored = WoodSession::pb_loads(scene.pb_dumps());
     const auto restored_joint = restored.get_element<JointPlate>(joint->guid());
     check(restored_joint && restored_joint->connections.size() == 1 && restored.consistent(), "joint element round trip");

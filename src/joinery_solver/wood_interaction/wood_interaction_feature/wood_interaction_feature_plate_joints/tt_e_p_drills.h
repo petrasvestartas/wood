@@ -35,7 +35,7 @@ static void drill_axes(
     dir1 = dir1 * t1;
 }
 
-/// One two-point drill line per point on every face, twice per face as the merge expects.
+/// One two-point drill line per point on every face, twice per face as the merge expects: the male's runs from the contact into the male along dir0, the female's into the female along dir1, each side's hole in its own plate.
 static void emit_drills(
     InteractionFeaturePlate& joint,
     const std::vector<Point>& points,
@@ -58,10 +58,10 @@ static void emit_drills(
         const Polyline line0({pt, pt + dir0});
         const Polyline line1({pt, pt + dir1});
         for (int f = 0; f < 2; f++) {
-            joint.female_outlines[f].push_back(line0);
-            joint.female_outlines[f].push_back(line0);
-            joint.male_outlines[f].push_back(line1);
-            joint.male_outlines[f].push_back(line1);
+            joint.male_outlines[f].push_back(line0);
+            joint.male_outlines[f].push_back(line0);
+            joint.female_outlines[f].push_back(line1);
+            joint.female_outlines[f].push_back(line1);
             joint.male_fabrication_types[f].push_back(FabricationType::drill);
             joint.male_fabrication_types[f].push_back(FabricationType::drill);
             joint.female_fabrication_types[f].push_back(FabricationType::drill);

@@ -139,8 +139,8 @@ static void orient_shells(manifold::MeshGL64& gl) {
             std::swap(gl.triVerts[3 * t + 1], gl.triVerts[3 * t + 2]);
 }
 
-/// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean; throws unless the mesh is a closed manifold.
-static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
+/// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean, its status telling whether the mesh is a closed manifold.
+static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
 
     manifold::MeshGL64 gl;
     std::unordered_map<size_t, uint64_t> index;
@@ -158,12 +158,23 @@ static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
         }
 
     orient_shells(gl);
-    const manifold::Manifold solid(gl);
+
+    return manifold::Manifold(gl);
+}
+
+/// The mesh as a Manifold; throws unless the mesh is a closed manifold.
+static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
+
+    const manifold::Manifold solid = build_manifold(mesh, first_id);
 
     if (solid.Status() != manifold::Manifold::Error::NoError)
         throw std::invalid_argument("Solid booleans require closed meshes: Manifold status " + std::to_string(static_cast<int>(solid.Status())));
 
     return solid;
+}
+
+bool manifold_solid(const Mesh& mesh) {
+    return mesh.number_of_faces() > 0 && build_manifold(mesh, 0).Status() == manifold::Manifold::Error::NoError;
 }
 
 /// One past the largest face key, the id offset the next mesh's faces start from.
@@ -421,6 +432,25 @@ Mesh solid_boolean(
         return from_manifold(a ^ b);
 
     return from_manifold(a + b, true);
+}
+
+Mesh solid_union(const std::vector<Mesh>& pieces) {
+
+    std::vector<manifold::Manifold> bodies;
+    uint64_t first_id = 0;
+
+    for (const Mesh& piece : pieces) {
+        if (!piece.number_of_faces())
+            continue;
+
+        bodies.push_back(to_manifold(piece, first_id));
+        first_id += face_id_span(piece);
+    }
+
+    if (bodies.empty())
+        return Mesh();
+
+    return from_manifold(manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Add));
 }
 
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {

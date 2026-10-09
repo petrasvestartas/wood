@@ -696,8 +696,9 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactFace>& contact, 
     if (!elements.empty() && (elements.size() != 2 || !elements[0] || !elements[1]))
         throw std::invalid_argument("A face joint needs two plates in contact order");
 
+    // the male is the plate the detector designates: the second of an out-of-plane pair, the side-face one of a side-top pair, else the first
     const int family = plate_contact_family(*this, contact->type);
-    const bool reverse = contact->type == ContactType::side_top && contact->face_a < 2;
+    const bool reverse = family == 11 || (contact->type == ContactType::side_top && contact->face_a < 2);
     InteractionFeaturePlate connection;
     connection.contact = reverse ? *std::dynamic_pointer_cast<InteractionContactFace>(contact->flipped()) : *contact;
     connection.joint_type = family;
@@ -760,20 +761,104 @@ std::shared_ptr<Interaction> JointPlate::interaction(size_t target) const {
     return interaction_feature(static_cast<int>(target), 0);
 }
 
-std::vector<std::array<Polyline, 2>> JointPlate::bodies() const {
-    std::vector<std::array<Polyline, 2>> result;
-    for (const InteractionFeaturePlate& connection : connections) {
-        for (int side = 0; side < 2; ++side) {
-            const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
-            for (size_t i = 0; i < std::min(outlines[0].size(), outlines[1].size()); ++i) {
-                const Polyline& a = outlines[0][i];
-                const Polyline& b = outlines[1][i];
-                if (a.point_count() >= 3 && b.point_count() == a.point_count()) {
-                    result.push_back({a.closed(), b.closed()});
-                }
-            }
+/// The signed offsets of a run's points across its seam marker within its face: zero on the seam, one sign per side of it.
+static std::vector<double> seam_offsets(const std::vector<Point>& points, const Polyline& marker) {
+
+    const Vector along = (marker[1] - marker[0]).normalized();
+    const Vector across = compute_newell(points).cross(along);
+    std::vector<double> offsets;
+    offsets.reserve(points.size());
+
+    for (const Point& point : points)
+        offsets.push_back((point - marker[0]).dot(across));
+
+    return offsets;
+}
+
+/// The pockets of a run that keeps to one side of its seam, one closed loop per stretch between two touches of the seam: a tiled key touches it between its teeth, and one loop around them all would run back along the seam over its own edges. Empty for a run that crosses the seam, the fingers of a plate.
+static std::vector<Polyline> seam_pockets(const Polyline& run, const Polyline& marker) {
+
+    const std::vector<Point> points = run.get_points();
+    const std::vector<double> offsets = seam_offsets(points, marker);
+    double lowest = 0.0;
+    double highest = 0.0;
+
+    for (const double offset : offsets) {
+        lowest = std::min(lowest, offset);
+        highest = std::max(highest, offset);
+    }
+
+    if (lowest < -Tolerance::APPROXIMATION && highest > Tolerance::APPROXIMATION)
+        return {};
+
+    std::vector<Polyline> pockets;
+    std::vector<Point> group;
+    bool along_seam = true;
+
+    for (size_t i = 0; i < points.size(); i++) {
+        const bool on_seam = std::abs(offsets[i]) < Tolerance::APPROXIMATION;
+
+        if (on_seam && along_seam) {
+            group = {points[i]};
+            continue;
+        }
+
+        group.push_back(points[i]);
+        along_seam = false;
+
+        if (on_seam && group.size() >= 3) {
+            pockets.push_back(Polyline(group).closed());
+            group = {points[i]};
+            along_seam = true;
         }
     }
+
+    return pockets;
+}
+
+/// The pocket pairs, bottom and top, of one side of an in-plane design: its edge insertion run on both faces split at the seam; empty when the side is not a key pocket, its run crossing the seam or the two faces not pairing up.
+static std::vector<std::array<Polyline, 2>> side_pockets(const std::array<std::vector<Polyline>, 2>& outlines, const std::array<std::vector<int>, 2>& types) {
+
+    if (types[0].empty() || (types[0][0] != FabricationType::edge_insertion && types[0][0] != FabricationType::insert_between_multiple_edges))
+        return {};
+
+    for (int face = 0; face < 2; face++)
+        if (outlines[face].size() < 2 || outlines[face][0].point_count() < 3 || outlines[face][1].point_count() != 2)
+            return {};
+
+    const std::vector<Polyline> bottom = seam_pockets(outlines[0][0], outlines[0][1]);
+    const std::vector<Polyline> top = seam_pockets(outlines[1][0], outlines[1][1]);
+
+    if (bottom.empty() || bottom.size() != top.size())
+        return {};
+
+    std::vector<std::array<Polyline, 2>> pairs;
+
+    for (size_t i = 0; i < bottom.size(); i++)
+        pairs.push_back({bottom[i], top[i]});
+
+    return pairs;
+}
+
+/// The keys: an in-plane design whose male and female runs both stay on their own side of the seam leaves pockets in each plate that neither fills, so the joint is those loose pieces, every pocket closed along the seam. Fingers, tenons and holes belong to the plates, the solid cuts and drills to the session; none is drawn here.
+std::vector<std::array<Polyline, 2>> JointPlate::bodies() const {
+
+    std::vector<std::array<Polyline, 2>> result;
+    for (const InteractionFeaturePlate& connection : connections) {
+
+        if (connection.joint_type != 12 && connection.joint_type != 13)
+            continue;
+
+        const std::vector<std::array<Polyline, 2>> male = side_pockets(connection.male_outlines, connection.male_fabrication_types);
+        const std::vector<std::array<Polyline, 2>> female = side_pockets(connection.female_outlines, connection.female_fabrication_types);
+
+        if (male.empty() || female.empty())
+            continue;
+
+        result.insert(result.end(), male.begin(), male.end());
+        result.insert(result.end(), female.begin(), female.end());
+    }
+
     return result;
 }
 std::vector<Line> JointPlate::drill_axes() const {

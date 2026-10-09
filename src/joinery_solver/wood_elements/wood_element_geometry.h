@@ -14,6 +14,12 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter,
 
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it: the offcuts fall away.
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
+
+/// True when Manifold takes the mesh as a solid: closed, every edge on two faces, no face through another; what every cutter must be.
+bool manifold_solid(const Mesh& mesh);
+
+/// The union of closed solids in one Manifold batch, one solid with the input faces where they survive; what a cutter made of touching and overlapping pieces is.
+Mesh solid_union(const std::vector<Mesh>& pieces);
 std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatureSolid& cut);
 
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.

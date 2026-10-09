@@ -66,7 +66,7 @@ struct Row {
     double volume_b = 0.0;
     double lost = 0.0;
     double overlap = 0.0;
-    size_t pieces = 0;
+    double own = 0.0; // The volume of the joint's own solid: a key, else zero.
     size_t drills = 0;
     double ms = 0.0;
     std::vector<std::string> failures;
@@ -118,7 +118,7 @@ static Fixture pair_in_plane(WoodSession& scene, const Xform& xform) {
     return f;
 }
 
-/// A floor and a wall meeting at a right angle, their side faces mitred on one plane: ss_e_op.
+/// A floor and a wall meeting at a right angle, their side faces mitred on one plane: ss_e_op; the joint's first side is the wall, the male of an out-of-plane pair being the second plate of the contact.
 static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform) {
 
     const Polyline floor_bottom({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}});
@@ -134,8 +134,8 @@ static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform) {
     scene.add(f.a);
     scene.add(f.b);
     f.face = scene.compute_face_contact(f.a, f.b);
-    f.target0 = f.a;
-    f.target1 = f.b;
+    f.target0 = f.b;
+    f.target1 = f.a;
 
     return f;
 }
@@ -355,25 +355,6 @@ static Built build_variant(const std::string& id, const Xform& xform) {
 // Measurements shared by the checks
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The solid pieces a joint makes: every male and female outline pair with three or more points lofted, as JointPlate::bodies does.
-static std::vector<Mesh> joint_pieces(const JointPlate& joint) {
-
-    std::vector<Mesh> pieces;
-    for (const InteractionFeaturePlate& connection : joint.connections) {
-        for (int side = 0; side < 2; side++) {
-            const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
-            for (size_t i = 0; i < std::min(outlines[0].size(), outlines[1].size()); i++) {
-                const Polyline& a = outlines[0][i];
-                const Polyline& b = outlines[1][i];
-                if (a.point_count() >= 3 && b.point_count() == a.point_count())
-                    pieces.push_back(Mesh::loft({a.closed()}, {b.closed()}, true));
-            }
-        }
-    }
-
-    return pieces;
-}
-
 /// The faces of a BRep on a rational surface: its cylinders.
 static size_t cylinders(const BRep& brep) {
 
@@ -489,7 +470,7 @@ static void check_outlines(const Built& built, Row& row) {
     }
 }
 
-/// C2: both members and the joint are closed single solids as mesh and as BRep, the two agreeing in volume; every piece the joint makes is a closed solid.
+/// C2: both members are closed single solids as mesh and as BRep, the two agreeing in volume; the joint's own solid, when it has one (a key, its pins), is closed too, and a design whose every piece belongs to a member has none.
 static void check_solids(const Built& built, Row& row) {
 
     for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
@@ -514,20 +495,20 @@ static void check_solids(const Built& built, Row& row) {
     }
 
     const Mesh& joint_mesh = built.joint->element_geometry_mesh();
-    if (joint_mesh.number_of_faces() == 0 || !joint_mesh.is_closed())
-        fail(row, "C2", fmt::format("the joint's own mesh has {} faces, closed {}", joint_mesh.number_of_faces(), joint_mesh.is_closed()));
+    if (joint_mesh.number_of_faces() == 0)
+        return;
+    if (!joint_mesh.is_closed())
+        fail(row, "C2", fmt::format("the joint's own mesh is open, {} naked edges", joint_mesh.naked_edges().size()));
     const BRep& joint_brep = built.joint->element_geometry_brep();
     if (!joint_brep.is_valid() || !joint_brep.is_solid())
         fail(row, "C2", fmt::format("the joint's own BRep valid {} solid {}", joint_brep.is_valid(), joint_brep.is_solid()));
 
-    const std::vector<Mesh> pieces = joint_pieces(*built.joint);
-    row.pieces = pieces.size();
-    for (size_t i = 0; i < pieces.size(); i++) {
-        if (!pieces[i].is_closed())
-            fail(row, "C2", fmt::format("piece {} is not closed", i));
-        else if (!(compute_volume(pieces[i]) > 0.0))
-            fail(row, "C2", fmt::format("piece {} has volume {:.6g}", i, compute_volume(pieces[i])));
-    }
+    const Mesh body = built.joint->body_mesh();
+    if (body.number_of_faces() == 0)
+        return;
+    row.own = compute_volume(body);
+    if (!body.is_closed() || !(row.own > 0.0))
+        fail(row, "C2", fmt::format("the joint's own solid is closed {} with volume {:.6g}", body.is_closed(), row.own));
 }
 
 /// C3: the members do not overlap after the joint; a cross pair overlapped before it, so the check is not empty.
@@ -847,12 +828,12 @@ int main(int argc, char** argv) {
 
     // the table
     std::cout << std::left << std::setw(34) << "variant" << std::right << std::setw(12) << "V_a" << std::setw(12) << "V_b" << std::setw(12) << "lost"
-              << std::setw(11) << "overlap" << std::setw(7) << "pieces" << std::setw(7) << "drills" << std::setw(7) << "ms" << "  status\n";
+              << std::setw(11) << "overlap" << std::setw(12) << "own" << std::setw(7) << "drills" << std::setw(7) << "ms" << "  status\n";
     size_t failed = 0;
     for (const Row& row : rows) {
         failed += !row.failures.empty();
         std::cout << std::left << std::setw(34) << row.id << std::right << std::fixed << std::setprecision(0) << std::setw(12) << row.volume_a << std::setw(12) << row.volume_b
-                  << std::setprecision(1) << std::setw(12) << row.lost << std::setprecision(3) << std::setw(11) << row.overlap << std::setw(7) << row.pieces << std::setw(7) << row.drills
+                  << std::setprecision(1) << std::setw(12) << row.lost << std::setprecision(3) << std::setw(11) << row.overlap << std::setprecision(0) << std::setw(12) << row.own << std::setw(7) << row.drills
                   << std::setprecision(0) << std::setw(7) << row.ms << "  " << (row.failures.empty() ? "ok" : fmt::format("{} failures", row.failures.size())) << "\n";
     }
     for (const std::string& skipped : SKIPPED)

@@ -744,6 +744,14 @@ static void host_solid_feature(
     InteractionFeatureSolid cut,
     const std::shared_ptr<Element>& target
 );
+static void host_plate_joint_side(
+    WoodSession& scene,
+    const std::shared_ptr<JointPlate>& joint,
+    const InteractionFeaturePlate& connection,
+    int side,
+    const std::shared_ptr<Plate>& plate,
+    const std::shared_ptr<InteractionFeaturePlate>& feature
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Interactions
@@ -799,31 +807,34 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         auto plate = std::dynamic_pointer_cast<Plate>(target);
         if (!plate)
             throw std::invalid_argument("A plate joint requires a plate target");
-        auto found = std::find_if(joint->connections.begin(), joint->connections.end(), [&](const auto& c) {
-            return c.feature_guid(side) == feature->guid();
-        });
+        std::vector<InteractionFeaturePlate>::iterator found = joint->connections.end();
+        for (std::vector<InteractionFeaturePlate>::iterator connection = joint->connections.begin(); connection != joint->connections.end(); ++connection)
+            if (connection->feature_guid(side) == feature->guid())
+                found = connection;
         if (found == joint->connections.end())
             throw std::invalid_argument("Feature does not belong to the joint");
-        (side == 0 ? found->element_a : found->element_b) = target->guid();
+
+        // the side's plate is the one orient designated from the contact; a joint oriented without its plates takes the first target it is given
+        std::string& designated = side == 0 ? found->element_a : found->element_b;
+        if (designated.empty())
+            designated = target->guid();
+        else if (designated != target->guid())
+            throw std::invalid_argument(fmt::format("interaction({}) of {} is what it does to its {} plate, not to {}", side, joint->name, side == 0 ? "male" : "female", target->name));
+
         if (std::find(joint->targets.begin(), joint->targets.end(), target->guid()) == joint->targets.end())
             joint->targets.push_back(target->guid());
         *feature = *found;
         feature->target_side = side + 1;
         feature->guid() = found->feature_guid(side);
-        const std::unordered_set<std::string> replaced{feature->guid()};
-        drop_host_features(
+        host_plate_joint_side(
             *this,
-            target->guid(),
-            "",
-            replaced
+            joint,
+            *found,
+            side,
+            plate,
+            feature
         );
-        if (graph.has_edge({source->guid(), target->guid()})) {
-            auto& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
-            std::erase_if(records, [&](const auto& record) { return record->guid() == feature->guid(); });
-        }
-        Session::add_interaction(source, target, feature);
-        host_feature(target->guid(), found->to_features()[side]);
-        auto joints = get_plate_features();
+        std::vector<InteractionFeaturePlate> joints = get_plate_features();
         merge_features({plate}, joints);
         return feature;
     }
@@ -1303,26 +1314,14 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
             if (seen.insert(id).second)
                 plates.push_back(plate);
 
-            const std::shared_ptr<InteractionFeaturePlate> feature = joint->interaction_feature(side, i);
-            drop_host_features(
+            host_plate_joint_side(
                 scene,
-                id,
-                "",
-                {feature->guid()}
+                joint,
+                connection,
+                side,
+                plate,
+                joint->interaction_feature(side, i)
             );
-
-            if (scene.graph.has_edge({joint->guid(), id})) {
-                std::vector<std::shared_ptr<Interaction>>& records = scene.interactions[scene.graph.edges.at(joint->guid()).at(id).guid()];
-
-                for (auto record = records.begin(); record != records.end();)
-                    if ((*record)->guid() == feature->guid())
-                        record = records.erase(record);
-                    else
-                        ++record;
-            }
-
-            scene.Session::add_interaction(joint, plate, feature);
-            scene.host_feature(id, connection.to_features()[side]);
         }
     }
 
@@ -1518,6 +1517,105 @@ static void host_solid_feature(
         cuts->push_back(std::move(cut));
 
     refresh_target(scene, target);
+}
+
+/// The solid one side of a plate joint takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill, cut, conic) lofted into one cutter and every drill line as an axis, a pair its builder repeats counted once, a pair whose loft Manifold does not take as a solid left out. Empty for a side that only merges into the outline.
+static InteractionFeatureSolid plate_joint_cutter(
+    const InteractionFeaturePlate& connection,
+    int side,
+    double radius,
+    double chord_tolerance
+) {
+
+    const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
+    const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
+    InteractionFeatureSolid cut;
+    cut.drill_radius = radius;
+    cut.drill_tolerance = chord_tolerance;
+    std::vector<Mesh> pieces;
+
+    for (size_t k = 0; k < std::min({outlines[0].size(), outlines[1].size(), types[0].size()}); k++) {
+        const Polyline& bottom = outlines[0][k];
+        const Polyline& top = outlines[1][k];
+        const bool repeated = k > 0 && bottom.get_points() == outlines[0][k - 1].get_points() && top.get_points() == outlines[1][k - 1].get_points();
+
+        if (repeated)
+            continue;
+
+        if (types[0][k] == FabricationType::drill) {
+            if (bottom.point_count() == 2 && (bottom[1] - bottom[0]).magnitude_squared() > 1e-12)
+                cut.drills.push_back(Line::from_points(bottom[0], bottom[1]));
+            continue;
+        }
+
+        // the solid types are the contiguous run from slice to conic_reverse; the plate types merge into the outline instead
+        const bool solid = types[0][k] >= FabricationType::slice && types[0][k] <= FabricationType::conic_reverse;
+
+        if (!solid || bottom.point_count() < 3 || bottom.point_count() != top.point_count())
+            continue;
+
+        const Mesh piece = loft_stations({bottom.closed(), top.closed()});
+
+        if (manifold_solid(piece) && compute_volume(piece) > 0.0)
+            pieces.push_back(piece);
+    }
+
+    // the pieces of one design touch and overlap, so the cutter is their union, one solid, not their shells side by side
+    cut.mesh = solid_union(pieces);
+
+    return cut;
+}
+
+/// Hosts one side of a plate joint on its plate: the side's feature on the edge and on the plate, replacing the one hosted before, then what the side takes out as a solid, its slice, mill, cut and conic pairs with its drills as the joint's solid feature on the plate and a drill feature per hole, or nothing where an earlier one was.
+static void host_plate_joint_side(
+    WoodSession& scene,
+    const std::shared_ptr<JointPlate>& joint,
+    const InteractionFeaturePlate& connection,
+    int side,
+    const std::shared_ptr<Plate>& plate,
+    const std::shared_ptr<InteractionFeaturePlate>& feature
+) {
+
+    drop_host_features(
+        scene,
+        plate->guid(),
+        "",
+        {feature->guid()}
+    );
+
+    if (scene.graph.has_edge({joint->guid(), plate->guid()}))
+        erase_record(scene.interactions[scene.graph.edges.at(joint->guid()).at(plate->guid()).guid()], feature->guid());
+
+    scene.Session::add_interaction(joint, plate, feature);
+    scene.host_feature(plate->guid(), connection.to_features()[side]);
+
+    InteractionFeatureSolid cut = plate_joint_cutter(
+        connection,
+        side,
+        joint->line_radius,
+        joint->chord_tolerance
+    );
+    const std::vector<Line> drills = cut.drills;
+
+    if (cut.mesh.number_of_faces() == 0 && drills.empty()) {
+        if (erase_solid_feature(plate->solid_features, joint->guid()))
+            plate->invalidate_geometry();
+    } else {
+        host_solid_feature(
+            scene,
+            *joint,
+            std::move(cut),
+            plate
+        );
+    }
+
+    host_drills(
+        scene,
+        *joint,
+        *plate,
+        drills,
+        joint->line_radius
+    );
 }
 
 static void add_plane_cut(const Joint& joint, Element& target) {

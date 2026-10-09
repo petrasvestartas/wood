@@ -37,7 +37,7 @@ scene.add_interaction(joint, upright, joint->interaction(0));
 scene.add_interaction(joint, base, joint->interaction(1));
 ```
 
-The target order is the joint's, not the contact's: `orient` turns a side-to-top contact so target 0 is the plate standing on the other (its tenons) and target 1 the plate it stands on (its mortises); every other family keeps the contact's order. Each design belongs to one contact family, by the first letters of its name:
+The target order is the joint's, not the contact's: `orient` turns a side-to-top contact so target 0 is the plate standing on the other (its tenons) and target 1 the plate it stands on (its mortises), and an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male (the wall of a floor and wall corner); every other family keeps the contact's order. `add_interaction` refuses a side handed to the other plate, so the order cannot swap the cuts between them. What a side merges into its plate's outline (edge insertions, holes) and what it takes out as a solid (mills, slices, cuts, conics, drills) is decided by each outline's `FabricationType`. Each design belongs to one contact family, by the first letters of its name:
 
 | Family | Contact | Plates |
 | --- | --- | --- |
