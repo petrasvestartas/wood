@@ -13,8 +13,7 @@ int main() {
         Point(3000.0, 3000.0, 0.0),
         Point(-3000.0, 3000.0, 0.0),
     });
-    wood_floor::Floor floor(guide);
-    floor.add_quarters();
+    wood_floor::Floor floor(guide, wood_floor::FloorStep::quarters);
     floor.pb_dump(pb_path("live"));
 
     return 0;

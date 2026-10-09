@@ -13,11 +13,7 @@ int main() {
         Point(3000.0, 3000.0, 0.0),
         Point(-3000.0, 3000.0, 0.0),
     });
-    wood_floor::Floor floor(guide);
-    floor.add_quarters();
-    floor.add_oculus();
-    floor.add_contacts();
-    floor.add_connectors({wood_floor::ContactKind::seam_wedge, wood_floor::ContactKind::oculus_wedge});
+    wood_floor::Floor floor(guide, wood_floor::FloorStep::connectors);
     floor.pb_dump(pb_path("live"));
 
     return 0;
@@ -25,7 +21,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 6 of the timber floor: the four quarters and the oculus with a wedge connector on each seam and oculus contact: a triangular wedge along the contact's top edge with horizontal dowels, a box pocket under the wedge in each beam and the dowel holes. Every contact is read from the members' outlines. The connectors are red and sit in the tree by the members they join: oculus > connectors_oculus, floor_model > seams > seam_k.
+Step 6 of the timber floor: Floor(guide, FloorStep::connectors), every member with its connectors and no screws; on each seam and oculus contact a wedge connector: a triangular wedge along the contact's top edge with horizontal dowels, a box pocket under the wedge in each beam and the dowel holes. Every contact is read from the members' outlines. The connectors are red and sit in the tree by the members they join: oculus > connectors_oculus, floor_model > seams > seam_k.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

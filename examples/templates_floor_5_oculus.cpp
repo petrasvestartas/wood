@@ -13,8 +13,7 @@ int main() {
         Point(3000.0, 3000.0, 0.0),
         Point(-3000.0, 3000.0, 0.0),
     });
-    wood_floor::Floor floor(guide);
-    floor.add_oculus();
+    wood_floor::Floor floor(guide, wood_floor::FloorStep::oculus);
     floor.pb_dump(pb_path("live"));
 
     return 0;
@@ -22,7 +21,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the timber floor: the oculus ring built from the four quarters' oculus edges as a pinwheel, each ring beam between its edge's tilted bearing plane and the ring's inner plane, lifted to the floor at 3500: four ring beams as variable beams, four bottom wedges and the inner plate as plates.
+Step 5 of the timber floor: Floor(guide, FloorStep::oculus), the quarters and the oculus ring built from the four quarters' oculus edges as a pinwheel, each ring beam between its edge's tilted bearing plane and the ring's inner plane, lifted to the floor at 3500: four ring beams as variable beams, four bottom wedges and the inner plate as plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -18,9 +18,6 @@ int main() {
         Point(-HALF_X, HALF_Y, 0.0),
     });
     wood_floor::Floor floor(guide);
-    floor.add_members();
-    floor.add_connectors();
-    floor.add_screws();
 
     if constexpr (BREPS)
         floor.compute_breps();

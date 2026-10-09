@@ -36,22 +36,47 @@ WoodSession column(const FloorGuide& guide, size_t q) {
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
 
-Floor::Floor(const FloorGuide& guide, const std::string& name)
+Floor::Floor(const FloorGuide& guide, FloorStep last, const std::string& name)
     : WoodSession(name),
       guide(guide) {
+
+    // quarters: every quarter's members, lifted to bay_height and grouped by family
+    add_quarters();
+
+    if (last == FloorStep::quarters)
+        return;
+
+    // oculus: the four ring beams, the bottom wedges and the central plate
+    add_oculus();
+
+    if (last == FloorStep::oculus)
+        return;
+
+    // columns: the column at every corner, its head carved by the guide's cutters
+    add_columns();
+
+    if (last == FloorStep::columns)
+        return;
+
+    // contacts: an interaction between every two members that touch, named by its kind and place
+    add_contacts();
+
+    if (last == FloorStep::contacts)
+        return;
+
+    // connectors: one per contact, wedges, column plates with their cross laps, dowels
+    const std::vector<std::shared_ptr<JointBeam>> joints = add_connectors(CONNECTOR_CONTACTS);
+
+    if (last == FloorStep::connectors)
+        return;
+
+    // screws: the assembly screws, after every other connector so nothing before them changes
+    const std::vector<std::shared_ptr<JointBeam>> lines = add_screws();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Members
 // ═══════════════════════════════════════════════════════════════════════════
-
-void Floor::add_members() {
-
-    add_quarters();
-    add_oculus();
-    add_columns();
-    add_contacts();
-}
 
 void Floor::add_quarters() {
 
@@ -282,7 +307,7 @@ std::vector<std::shared_ptr<JointBeam>> Floor::add_connectors(const std::vector<
     std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
 
     // every connector first, so a failing one throws before anything is added or cut
-    std::vector<std::tuple<std::string, size_t, std::shared_ptr<JointBeam>>> built;
+    std::vector<std::tuple<ContactKind, std::string, size_t, std::shared_ptr<JointBeam>>> built;
     std::map<size_t, std::vector<std::shared_ptr<JointBeam>>> plates_of_corner;
 
     for (const auto& [kind, name, a, b, contact] : found) {
@@ -293,22 +318,23 @@ std::vector<std::shared_ptr<JointBeam>> Floor::add_connectors(const std::vector<
         for (std::string index; std::getline(indices, index, '_');)
             place.push_back(static_cast<size_t>(std::stoul(index)));
 
-        built.push_back({connector_prefix(kind), place[0], connector_of(kind, place, *a, *b, *contact)});
+        built.push_back({kind, connector_prefix(kind), place[0], connector_of(kind, place, *a, *b, *contact)});
 
         if (kind == ContactKind::column_plate)
-            plates_of_corner[place[0]].push_back(std::get<2>(built.back()));
+            plates_of_corner[place[0]].push_back(std::get<3>(built.back()));
     }
 
     for (const auto& [corner, plates] : plates_of_corner)
         if (plates.size() == 2)
-            built.push_back({"connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
+            built.push_back({ContactKind::column_plate, "connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
 
     std::map<std::string, size_t> numbers;
     std::vector<std::shared_ptr<JointBeam>> added;
 
-    for (const auto& [prefix, q, connector] : built) {
+    for (const auto& [kind, prefix, q, connector] : built) {
         add_named_connector(connector, prefix, q, numbers);
         connectors.push_back(connector);
+        connectors_by_kind[static_cast<size_t>(kind)].push_back(connector);
         added.push_back(connector);
     }
 

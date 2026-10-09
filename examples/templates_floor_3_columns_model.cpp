@@ -13,8 +13,7 @@ int main() {
         Point(3000.0, 3000.0, 0.0),
         Point(-3000.0, 3000.0, 0.0),
     });
-    wood_floor::Floor floor(guide);
-    floor.add_columns();
+    wood_floor::Floor floor(guide, wood_floor::FloorStep::columns);
     floor.pb_dump(pb_path("live"));
 
     return 0;
@@ -22,7 +21,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber floor: the column model of step 2 built in place at each of the four bay corners, one group per column with its index on every name.
+Step 3 of the timber floor: Floor(guide, FloorStep::columns), the floor up to its columns: the quarters, the oculus, and the column model of step 2 built in place at each of the four bay corners, one group per column with its index on every name.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

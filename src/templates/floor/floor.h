@@ -20,6 +20,16 @@ enum class ContactKind {
     block_dowels, // A column block and a rib: dowels.
 };
 
+/// The steps the Floor constructor runs, in order; it stops after the one asked for.
+enum class FloorStep {
+    quarters, // Every quarter's members.
+    oculus, // The ring beams, the bottom wedges and the central plate.
+    columns, // The column at every corner.
+    contacts, // A contact interaction between every two members that touch.
+    connectors, // A connector per contact: wedges, column plates with their cross laps, dowels.
+    screws, // The assembly screws.
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
@@ -59,9 +69,10 @@ public:
     std::vector<std::shared_ptr<Column>> columns; // column_<q> at corner q, grafted from its column session, empty until the columns are added.
     std::vector<std::shared_ptr<JointBeam>> connectors; // Every connector added: wedges, plates, cross laps and dowels.
     std::vector<std::shared_ptr<JointBeam>> screws; // Every screw connector added.
+    std::array<std::vector<std::shared_ptr<JointBeam>>, 4> connectors_by_kind; // The connectors per ContactKind; a corner's cross lap counts as a column plate.
 
-    /// An empty model of the guide, the session named name.
-    explicit Floor(const FloorGuide& guide, const std::string& name = "floor");
+    /// The model of the guide, the session named name: every step up to last, the whole floor by default.
+    explicit Floor(const FloorGuide& guide, FloorStep last = FloorStep::screws, const std::string& name = "floor");
 
     /// Not copied: the members name this session's own objects.
     Floor(const Floor&) = delete;
@@ -69,9 +80,16 @@ public:
     /// Not assigned, as it is not copied.
     Floor& operator=(const Floor&) = delete;
 
-    /// Adds the quarters, the oculus and the columns, then the contacts between them: every member of the floor.
-    void add_members();
+    /// The screw lines of outer rib k of quarter q into the seam beam it meets: two along the rib from the beam's seam face into the rib end, RIB_END_MARGIN below its top and above its bottom and either side of its axis.
+    std::vector<Line> rib_beam_screws(size_t q, size_t k) const;
 
+    /// The screw lines of seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
+    std::vector<Line> beam_mitre_screws(size_t q, size_t k) const;
+
+    /// The screw lines of the oculus beam of quarter q into inner rib k ending on its back face, along the rib through the beam corner; throws when the bay is too narrow for them.
+    std::vector<Line> rib_corner_screws(size_t q, size_t k) const;
+
+private:
     /// Adds the four quarters, each lifted to bay_height and grouped by family.
     void add_quarters();
 
@@ -93,16 +111,6 @@ public:
     /// Adds the assembly screws on the members they join, after every other connector so nothing before them changes, and returns them.
     std::vector<std::shared_ptr<JointBeam>> add_screws();
 
-    /// The screw lines of outer rib k of quarter q into the seam beam it meets: two along the rib from the beam's seam face into the rib end, RIB_END_MARGIN below its top and above its bottom and either side of its axis.
-    std::vector<Line> rib_beam_screws(size_t q, size_t k) const;
-
-    /// The screw lines of seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
-    std::vector<Line> beam_mitre_screws(size_t q, size_t k) const;
-
-    /// The screw lines of the oculus beam of quarter q into inner rib k ending on its back face, along the rib through the beam corner; throws when the bay is too narrow for them.
-    std::vector<Line> rib_corner_screws(size_t q, size_t k) const;
-
-private:
     /// The quarter's group, made the first time.
     std::shared_ptr<TreeNode> quarter_group(size_t q);
 
