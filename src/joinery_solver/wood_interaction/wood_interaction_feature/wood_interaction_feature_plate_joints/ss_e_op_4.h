@@ -1,8 +1,8 @@
-/// ss_e_op_4: parametric finger joint with `divisions` tenons; the defaults are what ss_e_op_5 passes.
+/// ss_e_op_4: parametric finger joint with `divisions` tenons; the defaults are the 2024 ones, chamfered fingers in the unit box.
 static void ss_e_op_4(
     InteractionFeaturePlate& joint,
     double t = 0.0,
-    bool chamfer = false,
+    bool chamfer = true,
     bool female_modify_outline = true,
     double x0 = -0.5,
     double x1 = 0.5,

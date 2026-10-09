@@ -65,25 +65,33 @@ public:
     // ss_e_op
     // ═══════════════════════════════════════════════════════════════════════════
 
+    // Side-to-side out of plane, contact 11, ids 10-19 as 2024 numbered them: 10 ss_e_op_1, 11 ss_e_op_2, 12 ss_e_op_0,
+    // 13 ss_e_op_3, 14 ss_e_op_4, 15 ss_e_op_5 (the family default id), 16 ss_e_op_6, 18 side_removal, 19 ss_e_op_custom;
+    // an id without an entry, such as 17, takes ss_e_op_1. A zero division count takes the geometric count, the joint
+    // line's length over the family's 450 mm; the shift default is the family's 0.64. ss_e_op_17 and ss_e_op_tutorial
+    // are designs of this port, reached by name only.
+
     static std::shared_ptr<JointPlate> ss_e_op_0();
 
-    static std::shared_ptr<JointPlate> ss_e_op_1(int divisions = 8, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ss_e_op_1(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate> ss_e_op_2(int divisions = 8, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ss_e_op_2(int divisions = 0, double shift = 0.64);
 
     static std::shared_ptr<JointPlate> ss_e_op_3();
 
     static std::shared_ptr<JointPlate> ss_e_op_4(
-        int divisions = 8,
+        int divisions = 0,
         double taper = 0.0,
-        bool chamfer = false,
+        bool chamfer = true,
         bool modify_outline = true,
         const std::array<double, 2>& x = {-0.5, 0.5},
         const std::array<double, 2>& y = {-0.5, 0.5},
         const std::array<double, 2>& z = {-0.5, 0.5}
     );
 
-    static std::shared_ptr<JointPlate> ss_e_op_5(int divisions = 8, bool disable_divisions = false);
+    static std::shared_ptr<JointPlate> ss_e_op_5(int divisions = 0, bool disable_divisions = false);
+
+    static std::shared_ptr<JointPlate> ss_e_op_6(int divisions = 0);
 
     static std::shared_ptr<JointPlate> ss_e_op_17(int divisions = 4);
 
@@ -219,6 +227,7 @@ public:
 private:
     static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
     static std::shared_ptr<JointPlate> ss_e_ip(const std::string& library);
+    static std::shared_ptr<JointPlate> ss_e_op(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<Plate>>& elements,

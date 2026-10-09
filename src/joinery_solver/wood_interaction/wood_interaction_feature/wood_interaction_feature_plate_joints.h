@@ -9,6 +9,7 @@ using namespace wood_session;
 
 /// Every wood_interaction_feature_plate_joints/*.h once, into the including TU's anonymous namespace; the consumer includes wood_session.h itself, before this file.
 #include "wood_interaction_feature_plate_joints/custom_outlines.h"
+#include "wood_interaction_feature_plate_joints/custom_pairs.h"
 #include "wood_interaction_feature_plate_joints/unit_scale_distance.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -24,7 +25,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ss_e_ip_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_op: side-side out-of-plane, type 11 (ss_e_op_5 calls ss_e_op_4)
+// ss_e_op: side-side out-of-plane, type 11 (ss_e_op_5 calls ss_e_op_4, ss_e_op_6 calls ss_e_op_5)
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "wood_interaction_feature_plate_joints/ss_e_op_0.h"
@@ -33,6 +34,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ss_e_op_3.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_4.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_5.h"
+#include "wood_interaction_feature_plate_joints/ss_e_op_6.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_17.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_custom.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_tutorial.h"

@@ -55,7 +55,7 @@ and supply the elements in reversed order when orienting or adding the interacti
 | Library family | Named factories | Parameters vary by design |
 | --- | --- | --- |
 | Side-side in plane | `ss_e_ip_0` through `ss_e_ip_5`, `ss_e_ip_custom` | Divisions, shift, custom outlines |
-| Side-side out of plane | `ss_e_op_0` through `ss_e_op_5`, `ss_e_op_17`, `ss_e_op_tutorial`, `ss_e_op_custom` | Divisions, taper, chamfer, outline modification and bounds |
+| Side-side out of plane | `ss_e_op_0` through `ss_e_op_6`, `ss_e_op_17`, `ss_e_op_tutorial`, `ss_e_op_custom` | Divisions, taper, chamfer, outline modification and bounds |
 | Side-to-top | `ts_e_p_0`, `ts_e_p_1`, `ts_e_p_2`, `ts_e_p_3`, `ts_e_p_5`, `ts_e_p_custom` | Divisions and shift on parametric designs |
 | Rotated side-side | `ss_e_r_0` through `ss_e_r_3`, `ss_e_r_custom` | Design-specific dimensions and outlines |
 | Cross | `cr_c_ip_0` through `cr_c_ip_5`, `cr_c_ip_custom` | Design-specific dimensions and outlines |

@@ -215,7 +215,7 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
 8. **Orient.** `joint_orient_to_connection_area` (`wood_algorithms/wood_feature_construction.cpp`): `apply_unit_scale` (moves
    the two volume quads to `unit_scale_distance` apart when `unit_scale`), then
    `Xform::from_change_of_basis(vols[0], vols[1])` for male and `(vols[2], vols[3])` for
-   female outlines. Ids 15/16 (ss_e_op_5) orient their shadow joints and call
+   female outlines. Ids 15/16 (ss_e_op_5, ss_e_op_6) orient their shadow joints and call
    `merge_linked_joints`. `no_orient` skips this.
 9. **Merge.** Build `j_mf[element][face] = [(joint_idx, is_male)]` (extra last slot for shadow
    joints), call `merge_joints_for_element` (`wood_merge.cpp`) per plate, and de-interleave
@@ -239,7 +239,7 @@ and `side_removal*` constructors take the plate vector too and have their own he
 | joint_type | group | id range | prefix | ids wired in `joint_create_geometry` |
 |---|---|---|---|---|
 | 12 | 0 | 1-9 | `ss_e_ip` | 1→ss_e_ip_1, 2→_0, 3→_2, 4→_3, 5→_4, 6→_5, 8→side_removal, 9→ss_e_ip_custom |
-| 11 | 1 | 10-19 | `ss_e_op` | 10→_1, 11→_2, 12→_0, 13→_3, 14→_4, 15/16→_5 (with/without divisions), 17→_17, 18→_tutorial, 19→_custom |
+| 11 | 1 | 10-19 | `ss_e_op` | 10→_1, 11→_2, 12→_0, 13→_3, 14→_4, 15→_5, 16→_6 (ss_e_op_5 without the second link's divisions), 18→side_removal, 19→_custom; 17 takes the family default _1 (ss_e_op_17 and ss_e_op_tutorial by name only) |
 | 20 | 2 | 20-29 | `ts_e_p` | 20/22→_3, 21→_2, 23→_0, 25→_5, 28→side_removal, 29→_custom |
 | 30 | 3 | 30-39 | `cr_c_ip` | 30-35→_0.._5, 38→side_removal, 39→_custom |
 | 40 | 4 | 40-49 | `tt_e_p` | 40-45→_0.._5 (no custom slot wired) |

@@ -108,19 +108,16 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
         ss_e_op_3(joint);
         return true;
     case 14:
-        ss_e_op_4(joint, 0.0, true);
+        ss_e_op_4(joint);
         return true;
     case 15:
         ss_e_op_5(joint, context.all_joints, false);
         return true;
     case 16:
-        ss_e_op_5(joint, context.all_joints, true);
-        return true;
-    case 17:
-        ss_e_op_17(joint);
+        ss_e_op_6(joint, context.all_joints);
         return true;
     case 18:
-        ss_e_op_tutorial(joint);
+        side_removal(joint, context.elements);
         return true;
     case 19:
         ss_e_op_custom(joint, context.settings);
@@ -1065,7 +1062,7 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
         if (!connection.no_orient)
             joint_orient_to_connection_area(connection);
 
-    if (parameters.library == "ss_e_op_5")
+    if (parameters.library == "ss_e_op_5" || parameters.library == "ss_e_op_6")
         for (InteractionFeaturePlate& connection : joints)
             if (!connection.linked_joints.empty())
                 merge_linked_joints(connection, joints);
@@ -1167,14 +1164,24 @@ bool JointPlate::compute_ss_e_ip(InteractionFeaturePlate& connection, const std:
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// An out-of-plane design on its 2024 family defaults: geometric divisions every 450 mm of the joint line, shift 0.64.
+std::shared_ptr<JointPlate> JointPlate::ss_e_op(const std::string& library) {
+
+    const std::shared_ptr<JointPlate> joint = from_library(library, 11);
+    joint->division_distance = 450.0;
+    joint->shift = 0.64;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_0() {
 
-    return from_library("ss_e_op_0", 11);
+    return ss_e_op("ss_e_op_0");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_1(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_1", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_1");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1183,7 +1190,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_1(int divisions, double shift) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_2(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_2", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_2");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1192,7 +1199,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_2(int divisions, double shift) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_3() {
 
-    return from_library("ss_e_op_3", 11);
+    return ss_e_op("ss_e_op_3");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_4(
@@ -1205,7 +1212,7 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_4(
     const std::array<double, 2>& z
 ) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_4", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_4");
     joint->parameters.divisions = divisions;
     joint->parameters.taper = taper;
     joint->parameters.chamfer = chamfer;
@@ -1219,16 +1226,24 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_4(
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_5(int divisions, bool disable_divisions) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_5", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_5");
     joint->parameters.divisions = divisions;
     joint->parameters.disable_divisions = disable_divisions;
 
     return joint;
 }
 
+std::shared_ptr<JointPlate> JointPlate::ss_e_op_6(int divisions) {
+
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_6");
+    joint->parameters.divisions = divisions;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_17(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_17", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_17");
     joint->parameters.divisions = divisions;
 
     return joint;
@@ -1236,12 +1251,12 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_17(int divisions) {
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_tutorial() {
 
-    return from_library("ss_e_op_tutorial", 11);
+    return ss_e_op("ss_e_op_tutorial");
 }
 
 std::shared_ptr<JointPlate> JointPlate::ss_e_op_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_custom", 11);
+    const std::shared_ptr<JointPlate> joint = ss_e_op("ss_e_op_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1276,6 +1291,8 @@ bool JointPlate::compute_ss_e_op(InteractionFeaturePlate& connection, std::vecto
         );
     else if (parameters.library == "ss_e_op_5")
         ::ss_e_op_5(connection, connections, parameters.disable_divisions);
+    else if (parameters.library == "ss_e_op_6")
+        ::ss_e_op_6(connection, connections);
     else if (parameters.library == "ss_e_op_17")
         ::ss_e_op_17(connection);
     else if (parameters.library == "ss_e_op_tutorial")

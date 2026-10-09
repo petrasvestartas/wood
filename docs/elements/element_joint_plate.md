@@ -9,7 +9,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 ```cpp
 // the library designs, each by its own name and parameters
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
-static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_5(int divisions = 8, bool disable_divisions = false)
+static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0)   // 0 divisions: one every 450 mm of the joint line, shift 0.64
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 4, double shift = 0.5)
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
@@ -98,7 +98,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 | `radius` (`tt_e_p`) | 1.0 | the radius of every pin hole |
 | `spacing` (`tt_e_p_3..5`) | 30 | the distance between pins in the grid |
 | `count`, `circle_radius` (`tt_e_p_2`) | 6, 20 | how many pins stand on a ring, and its radius |
-| `taper`, `chamfer`, `x`, `y`, `z` (`ss_e_op_4`) | 0, false, ±0.5 | the finger taper, chamfered finger ends, the finger box in the joint's unit frame |
+| `taper`, `chamfer`, `x`, `y`, `z` (`ss_e_op_4`) | 0, true, ±0.5 | the finger taper, chamfered finger ends, the finger box in the joint's unit frame |
 | `merge_with_joint` (`side_removal`) | false | the side removal merged into a joint already on that edge |
 | `male`, `female` (`*_custom`) | | your own outlines in the joint's unit frame |
 
