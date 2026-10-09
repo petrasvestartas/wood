@@ -118,7 +118,8 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
                     message_from_json(payload, proto);
                     bottom = Polyline::pb_loads(proto.bottom().SerializeAsString());
                     top = Polyline::pb_loads(proto.top().SerializeAsString());
-                    for (const auto& cut : proto.solid_features()) saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+                    for (const auto& cut : proto.solid_features())
+                        saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
                 } else {
                     bottom = Polyline::jsonload(payload["bottom"]);
                     top = Polyline::jsonload(payload["top"]);
@@ -134,7 +135,8 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
             top = Polyline::pb_loads(proto.top().SerializeAsString());
         }
         reversed = proto.reversed();
-        for (const auto& cut : proto.solid_features()) saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+        for (const auto& cut : proto.solid_features())
+            saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     }
 
     std::shared_ptr<Plate> plate = bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();
@@ -221,7 +223,8 @@ std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
     plate->name = name;
     plate->guid() = guid();
     plate->polylines = transformed_list(polylines, xform);
-    for (const auto& cut : solid_features) plate->solid_features.push_back(cut.transformed(xform));
+    for (const auto& cut : solid_features)
+        plate->solid_features.push_back(cut.transformed(xform));
     plate->planes = transformed_list(planes, xform);
     plate->thickness = thickness;
     plate->reversed = reversed;
@@ -237,7 +240,8 @@ void Plate::place(const Xform& xform) {
 
     Element::place(xform);
     polylines = transformed_list(polylines, xform);
-    for (auto& cut : solid_features) cut = cut.transformed(xform);
+    for (auto& cut : solid_features)
+        cut = cut.transformed(xform);
     planes = transformed_list(planes, xform);
     features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
 
@@ -375,7 +379,8 @@ std::string Plate::element_data_dumps() const {
     proto.set_reversed(reversed);
 
     for (const auto& cut : solid_features)
-        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();
 }
 

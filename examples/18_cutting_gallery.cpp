@@ -12,7 +12,8 @@ int main() {
             const std::shared_ptr<TreeNode> node = scene.get_node(element->guid());
             const std::shared_ptr<TreeNode> parent = node ? node->parent() : nullptr;
             const std::string label = file + " / " + (parent ? parent->name : "Drill tolerances");
-            if (!groups.count(label)) groups[label] = gallery.add_group(label);
+            if (!groups.count(label))
+                groups[label] = gallery.add_group(label);
             element->place(offset);
             if (element->name == "Result" || element->name.starts_with("Cutter")) {
                 element->compute_geometry_mesh();
@@ -26,9 +27,11 @@ int main() {
         for (const std::pair<const std::string, std::map<std::string, Edge>>& source : scene.graph.edges)
             for (const std::pair<const std::string, Edge>& target : source.second) {
                 const Edge& edge = target.second;
-                if (!copied.insert(edge.guid()).second) continue;
+                if (!copied.insert(edge.guid()).second)
+                    continue;
                 const auto records = scene.interactions.find(edge.guid());
-                if (records == scene.interactions.end()) continue;
+                if (records == scene.interactions.end())
+                    continue;
                 for (const std::shared_ptr<Interaction>& record : records->second)
                     gallery.Session::add_interaction(gallery.get_element<Element>(source.first), gallery.get_element<Element>(target.first), record);
             }

@@ -4,7 +4,7 @@
 
 <em>Step 8 of @ref templates_floor_model · previous: @ref templates_floor_07_elements · next: @ref templates_floor_09_connectors</em>
 
-`Floor::add_contacts`, the last call of `add_members`, finds where the members the design joins touch: for each pair it asks the session's contact search for the face they share and stores it as a contact interaction on the session's edge between them, named by its `ContactKind` and its place. Chapter 9 makes a connector from each of these interactions.
+`Floor::add_contacts`, the last call of `add_members`, finds where the members the design joins touch: for each pair it asks the session's contact search for the face they share and stores it as a contact interaction on the session's edge between them, named by its kind and place, and returns them per quarter as `QuarterContacts`, a fixed array per kind. Chapter 9 makes a connector from each of these contacts.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor, its contacts among it.
 
@@ -16,7 +16,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 `add_contacts` goes quarter by quarter, joining members inside quarter q and with the next quarter, `(q + 1) % 4`; a quarter not yet built is skipped.
 
-Code: `Floor::add_contacts`, [floor.cpp:213-223](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L213-L223); `ContactKind`, [floor.h:15-21](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.h#L15-L21).
+Code: `Floor::add_contacts`, [floor.cpp:213-223](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L213-L223).
 
 ## 232. seam_wedge: the pair
 
@@ -44,9 +44,9 @@ Code: `Floor::add_contact`, [floor.cpp:251-254](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ built</span> the session's edge between the two members   <span style="color:#A3A3A3">■ context</span> the two seam beams
 
-The contact is named `CONTACT_NAMES[kind]` and its place, here `seam_wedge_0`, and stored by `add_interaction(a, b, contact)` on the edge between the two; a contact of that name already on the edge is kept, so calling `add_contacts` again adds nothing.
+The contact is named by its kind and place, here `seam_wedge_0`, and stored by `add_interaction(a, b, contact)` on the edge between the two; a contact of that name already on the edge is kept, so calling `add_contacts` again adds nothing.
 
-Code: `Floor::add_contact`, [floor.cpp:243-258](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L243-L258); `WoodSession::add_interaction`, [wood_session.cpp:689-844](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L689-L844); `CONTACT_NAMES`, [floor.h:44](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.h#L44).
+Code: `Floor::add_contact`, [floor.cpp:243-258](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L243-L258); `WoodSession::add_interaction`, [wood_session.cpp:689-844](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L689-L844).
 
 ## 235. oculus_wedge
 

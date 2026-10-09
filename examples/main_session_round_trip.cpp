@@ -79,7 +79,8 @@ int main() {
     check(a.graph.number_of_vertices() == b.graph.number_of_vertices(), "graph vertex count");
     size_t joint_elements = 0;
     for (const auto& element : *a.objects.elements)
-        if (std::dynamic_pointer_cast<Joint>(element)) ++joint_elements;
+        if (std::dynamic_pointer_cast<Joint>(element))
+            ++joint_elements;
     check(static_cast<size_t>(a.graph.number_of_vertices()) == static_cast<size_t>(vertices_before) + joint_elements, "joints are graph elements, contacts remain edge records");
     check(a.graph.number_of_edges() == b.graph.number_of_edges(), fmt::format("edge count ({})", a.graph.number_of_edges()));
 

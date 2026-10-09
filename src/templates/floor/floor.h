@@ -12,12 +12,35 @@ namespace wood_floor {
 // Contacts
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The kinds of contact the floor's design puts between two members; each is the name of the contact interaction between them, and decides the connector that goes there.
-enum class ContactKind {
-    seam_wedge, // The two seam beams either side of a seam: a wedge.
-    oculus_wedge, // A quarter's oculus beam and its ring beam: a wedge.
-    column_plate, // A column and an outer rib: a rectangle plate; the two plates of a corner get a cross lap.
-    block_dowels, // A column block and a rib: dowels.
+/// A contact the floor's design puts between two members: the two members, a the interaction's source, and the face they share.
+struct Contact {
+    std::shared_ptr<Element> a; // The source member.
+    std::shared_ptr<Element> b; // The target member, which hosts the contact.
+    std::shared_ptr<InteractionContactFace> face; // The face they share, stored as their interaction.
+};
+
+/// The contacts of one quarter, by the connector each gets.
+struct QuarterContacts {
+    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
+    Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
+    std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
+    std::array<std::array<Contact, 2>, 3> block_dowels; // Column block b against the rib either side: dowels.
+};
+
+/// The connectors of one quarter, every one built from its contact before any is added.
+struct QuarterConnectors {
+    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<n>.
+    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<n>.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<n>, one per outer rib.
+    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<n>, where the two column plates cross.
+    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_dowels; // connector_block_dowels_<n>, per block and side.
+};
+
+/// The assembly screws of one quarter, each pair along k = 0 and 1.
+struct QuarterScrews {
+    std::array<std::shared_ptr<JointBeam>, 2> rib_beam; // Each outer rib into the seam beam it ends on.
+    std::array<std::shared_ptr<JointBeam>, 2> beam_mitre; // Each seam beam into the oculus beam ending on it.
+    std::array<std::shared_ptr<JointBeam>, 2> rib_corner; // The oculus beam into each inner rib, through the seam beam when the screws pass it.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -27,10 +50,9 @@ enum class ContactKind {
 /// The column at corner q of the guide as a session, named `column_<q>`: the guide's sizes, `support_<q>` and its six cutter plates `column_cutters_<i>_<q>` handed to WoodSession::add_column, which glues the head on, joins the support and takes the inclined faces away. Floor::add_column grafts a copy of it into the floor.
 WoodSession column(const FloorGuide& guide, size_t q);
 
-/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its ring beam and bottom wedge (`oculus_q`), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
+/// The floor model, a session built step by step from a guide. The session holds every element and its tree the grouping: quarter_0 to quarter_3 each with its member families (`outer_ribs_q` > `outer_ribs_<i>_<q>` ...), its column (`column_q`) and its connectors and screws (`connectors_q`), and `oculus` with the ring beam and bottom wedge of every quarter (`oculus_q`) and the central plate. Every two members that touch hold a contact interaction, named by its kind and place; the connectors are made from those interactions and named `connector_<kind>_<n>`, the cross laps `connector_cross_lap_<n>`, the screws `connector_screws_<n>`. Find any of them by name with get_element_by_name or get_elements_numbered.
 class Floor : public WoodSession {
 public:
-    static inline const std::array<std::string, 4> CONTACT_NAMES = {"seam_wedge", "oculus_wedge", "column_plate", "block_dowels"}; // The interaction name of each kind, in ContactKind order.
     static constexpr double SCREW_LENGTH = 200.0; // mm, every assembly screw.
     static constexpr double SCREW_SPACING = 8.0; // mm, the closest two screw axes may come.
     static constexpr double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band.
@@ -64,7 +86,7 @@ private:
     /// Adds the four quarters, each lifted to bay_height and grouped by family.
     void add_quarters();
 
-    /// Adds the oculus lifted to bay_height: ring beam q and bottom wedge q in oculus_q of quarter q, the central plate in oculus.
+    /// Adds the oculus lifted to bay_height: ring beam q and bottom wedge q in oculus_q, and the central plate, all in oculus.
     void add_oculus();
 
     /// Adds the column at every corner.
@@ -73,14 +95,20 @@ private:
     /// Adds the column at one corner: its support, the column, the support joint and the column's six head cuts.
     void add_column(size_t corner);
 
-    /// Searches the contact between every two members the design joins and stores it as their interaction.
-    void add_contacts();
+    /// Searches the contact between every two members the design joins, stores it as their interaction and returns it per quarter.
+    std::array<QuarterContacts, 4> add_contacts();
 
-    /// Adds one connector per contact interaction, by kind and then name, under connectors_q of its quarter, named `<prefix>_<n>`; the two column plates of a corner get their cross lap. All are built before any is added, so a pair without its contact throws with nothing added.
-    void add_connectors();
+    /// The connector of every contact: a wedge on each seam and oculus contact, a plate on each column contact with the cross lap of the two, dowels on each block contact; none is added yet, so each is built on uncut members.
+    std::array<QuarterConnectors, 4> compute_connectors(const std::array<QuarterContacts, 4>& contacts) const;
 
-    /// Adds the assembly screws on the members they join, after every other connector so nothing before them changes.
-    void add_screws();
+    /// Adds the connectors kind by kind, quarter by quarter, under connectors_q, named `connector_<kind>_<n>`; the cross laps last.
+    void add_connectors(const std::array<QuarterConnectors, 4>& connectors);
+
+    /// The assembly screws of every quarter, built before any is added; throws when a bay is too narrow for them.
+    std::array<QuarterScrews, 4> compute_screws() const;
+
+    /// Adds the screws quarter by quarter under connectors_q, named `connector_screws_<n>`.
+    void add_screws(const std::array<QuarterScrews, 4>& screws);
 
     /// The quarter's group, made the first time.
     std::shared_ptr<TreeNode> quarter_group(size_t q);
@@ -91,29 +119,11 @@ private:
     /// A four-corner member as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.
     static std::shared_ptr<BeamVariable> beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name);
 
-    /// The contact the session's search finds between two members, stored as their interaction named `<kind>_<place>`; a pair that does not touch throws naming it.
-    void add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b);
+    /// The contact the session's search finds between the members named a_name and b_name, stored as their interaction named name, `<kind>_<place>`; a pair that does not touch throws naming it.
+    Contact add_contact(const std::string& name, const std::string& a_name, const std::string& b_name);
 
-    /// The connector a contact interaction gets, by its kind and the place its name ends in (quarter, then rib or block index): a wedge sized by the thicker member, a plate by the rib's thickness, or dowels.
-    std::shared_ptr<JointBeam> connector_of(ContactKind kind, const std::vector<size_t>& place, const Element& a, const Element& b, const InteractionContactFace& contact) const;
-
-    /// The name prefix of a connector of that kind: `connector_<kind>`.
-    static std::string connector_prefix(ContactKind kind);
-
-    /// The element named name as T; throws naming it when the session holds none.
-    template <class T>
-    std::shared_ptr<T> member(const std::string& name) const {
-
-        const std::shared_ptr<T> element = get_element_by_name<T>(name);
-
-        if (!element)
-            throw std::runtime_error("the floor has no element named " + name);
-
-        return element;
-    }
-
-    /// Names a connector `<prefix>_<n>`, numbered on from the session, and adds it under connectors_q of quarter q in CONNECTOR_COLOR.
-    void add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers);
+    /// Names a connector `<prefix>_<n>`, the next number free in the session, and adds it under connectors_q of quarter q in CONNECTOR_COLOR.
+    void add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q);
 
     /// The screw connector of lines through the members, the first two the joint's.
     std::shared_ptr<JointBeam> screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const;

@@ -8,7 +8,8 @@ using namespace session_cpp;
 using namespace wood_session;
 
 static void check(bool ok, const std::string& message) {
-    if (!ok) throw std::runtime_error(message);
+    if (!ok)
+        throw std::runtime_error(message);
 }
 
 static void contact_round_trip(const InteractionContactFace& contact) {
@@ -19,7 +20,8 @@ static void contact_round_trip(const InteractionContactFace& contact) {
         check(restored.volumes[i].get_points() == contact.volumes[i].get_points(), "contact volume serialization");
     const auto twice = std::dynamic_pointer_cast<InteractionContactFace>(contact.flipped()->flipped());
     check(twice->face_a == contact.face_a && twice->face_b == contact.face_b, "double flip orientation");
-    for (int i = 0; i < 4; ++i) check(twice->volumes[i].get_points() == contact.volumes[i].get_points(), "double flip volume");
+    for (int i = 0; i < 4; ++i)
+        check(twice->volumes[i].get_points() == contact.volumes[i].get_points(), "double flip volume");
 }
 
 /// The drill features of the element whose guid starts with the connector's.
@@ -217,8 +219,10 @@ int main() {
         auto model = WoodSession::yaml_load(dataset);
         check(!model.plates().empty(), "missing dataset " + dataset);
         auto start = std::chrono::steady_clock::now();
-        if (dataset == "cross_corners") model.compute_cross_contacts();
-        else model.compute_face_contacts();
+        if (dataset == "cross_corners")
+            model.compute_cross_contacts();
+        else
+            model.compute_face_contacts();
         const auto joints = model.compute_features(dataset == "cross_corners" ? cross_joint : face_to_face);
         check(!joints.empty() && model.consistent(), "dataset joints " + dataset);
         const auto count = model.objects.elements->size();
@@ -228,8 +232,10 @@ int main() {
         check(reloaded.get_plate_features().size() == joints.size() && reloaded.consistent(), "dataset serialization " + dataset);
         int multi = 0;
         for (const auto& e : *model.objects.elements)
-            if (auto j = std::dynamic_pointer_cast<JointPlate>(e); j && j->targets.size() > 2) ++multi;
-        if (dataset == "annen_box_pair" || dataset == "vidy_corner") check(multi > 0, "multi-element joints " + dataset);
+            if (auto j = std::dynamic_pointer_cast<JointPlate>(e); j && j->targets.size() > 2)
+                ++multi;
+        if (dataset == "annen_box_pair" || dataset == "vidy_corner")
+            check(multi > 0, "multi-element joints " + dataset);
         std::cout << dataset << ": " << joints.size() << " connections, " << multi << " multi-element joints, "
                   << std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() << " ms including repeat solve and serialization\n";
     }

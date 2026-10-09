@@ -14,7 +14,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 <span style="color:#2196EA">■ seam_wedge, block_dowels</span>   <span style="color:#F2CC0C">■ oculus_wedge</span>   <span style="color:#E8478B">■ column_plate</span>   <span style="color:#A3A3A3">■ context</span> quarter 0's members, by their loops
 
-`add_connectors` reads every contact interaction from the session's edges, sorts them by kind and name, and builds every connector before it adds any, so a contact that cannot take one throws with nothing added; the place in a contact's name, `block_dowels_0_1_0` for one, gives the quarter and the indices `connector_of` reads.
+`compute_connectors` builds every quarter's connectors from its `QuarterContacts`, one block per kind, before `add_connectors` adds any, so each is built on uncut members; `add_connectors` then adds them kind by kind, quarter by quarter.
 
 Code: `Floor::add_connectors`, [floor.cpp:264-304](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L264-L304).
 
@@ -24,9 +24,9 @@ Code: `Floor::add_connectors`, [floor.cpp:264-304](https://github.com/petrasvest
 
 <span style="color:#E8478B">■ variable</span> `end`, the bay's outer face   <span style="color:#A3A3A3">■ context</span> the two seam beams
 
-`connector_of(seam_wedge)` sizes the wedge by the thicker of the two seam beams, `size` (67), and gives it the bay's outer face, `construction_planes(q).outer_ribs[0][0]` lifted to the floor, as its end plane.
+The seam wedge block of `compute_connectors` sizes the wedge by the thicker of the two seam beams, `size` (67), and gives it the bay's outer face, `construction_planes(q).outer_ribs[0][0]` lifted to the floor, as its end plane.
 
-Code: `Floor::connector_of`, [floor.cpp:326-330](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L326-L330); `FloorGuide::thickness`, [floor_guide.cpp:872-874](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L872-L874).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:326-330](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L326-L330); `FloorGuide::thickness`, [floor_guide.cpp:872-874](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L872-L874).
 
 ## 253. The wedge's frame and length
 
@@ -84,9 +84,9 @@ Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petra
 
 <span style="color:#2196EA">■ built</span> the wedge part and dowels   <span style="color:#A3A3A3">■ context</span> the oculus beam and the ring beam
 
-`connector_of(oculus_wedge)` puts the same wedge on the oculus beam and its ring beam, sized by the thicker of the two, with no end plane, so both ends stop 1.5 size short.
+The oculus wedge block puts the same wedge on the oculus beam and its ring beam, sized by the thicker of the two, with no end plane, so both ends stop 1.5 size short.
 
-Code: `Floor::connector_of`, [floor.cpp:332-335](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L332-L335).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:332-335](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L332-L335).
 
 ## 259. The column plate's frame
 
@@ -94,9 +94,9 @@ Code: `Floor::connector_of`, [floor.cpp:332-335](https://github.com/petrasvestar
 
 <span style="color:#2196EA">■ built</span> `column_plate_0_0`   <span style="color:#E8478B">■ variable</span> the frame's `x` and `z`   <span style="color:#A3A3A3">■ context</span> the column   <span style="color:#737373">■ input</span> the outer rib's loops
 
-`connector_of(column_plate)` calls `JointBeam::rectangle_plate(column, rib, contact, dowel_length)` with the rib's thickness as the dowel length; its frame sits at the middle of the contact's top, x the contact normal made horizontal and turned towards the rib, z up.
+The column plate block calls `JointBeam::rectangle_plate(column, rib, contact, dowel_length)` with the rib's thickness as the dowel length; its frame sits at the middle of the contact's top, x the contact normal made horizontal and turned towards the rib, z up.
 
-Code: `Floor::connector_of`, [floor.cpp:337-338](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L337-L338); `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:321-344](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L321-L344); `top_origin`, [wood_element_joint_beam.cpp:283-305](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L283-L305).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:337-338](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L337-L338); `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp:321-344](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L321-L344); `top_origin`, [wood_element_joint_beam.cpp:283-305](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L283-L305).
 
 ## 260. The plate
 
@@ -134,9 +134,9 @@ Code: `Floor::add_connectors`, [floor.cpp:302-308](https://github.com/petrasvest
 
 <span style="color:#2196EA">■ built</span> `drill_lines`   <span style="color:#737373">■ input</span> the contact `block_dowels_0_1_0`   <span style="color:#A3A3A3">■ context</span> the middle column block
 
-`connector_of(block_dowels)` calls `JointBeam::dowels`: the contact polygon inset by 50, a dowel of radius 4 and length 30 across the contact at each of the inset's four extreme corners; an inset with nothing left throws.
+The block dowels block calls `JointBeam::dowels`: the contact polygon inset by 50, a dowel of radius 4 and length 30 across the contact at each of the inset's four extreme corners; an inset with nothing left throws.
 
-Code: `Floor::connector_of`, [floor.cpp:340-345](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L340-L345); `JointBeam::dowels`, [wood_element_joint_beam.cpp:467-499](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L467-L499); `inset_polygon`, `extreme_corners`, [wood_element_joint_beam.cpp:419-464](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L419-L464).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:340-345](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L340-L345); `JointBeam::dowels`, [wood_element_joint_beam.cpp:467-499](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L467-L499); `inset_polygon`, `extreme_corners`, [wood_element_joint_beam.cpp:419-464](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L419-L464).
 
 ## 264. Names and groups
 
@@ -144,7 +144,7 @@ Code: `Floor::connector_of`, [floor.cpp:340-345](https://github.com/petrasvestar
 
 <span style="color:#2196EA">■ built</span> quarter 0's connector parts and dowels   <span style="color:#A3A3A3">■ context</span> quarter 0's members
 
-`add_named_connector` names each connector by its `connector_prefix`, `connector_<kind>` (`connector_seam_wedge`, `connector_oculus_wedge`, `connector_column_plate`, `connector_block_dowels`) or `connector_cross_lap`, and a number counted on from `next_number`, so connectors from later calls never repeat a name, and adds it in `connectors_q` of `quarter_q` in `CONNECTOR_COLOR`.
+`add_named_connector` names each connector by its prefix, `connector_<kind>` (`connector_seam_wedge`, `connector_oculus_wedge`, `connector_column_plate`, `connector_block_dowels`) or `connector_cross_lap`, and a number counted on from `next_number`, so connectors from later calls never repeat a name, and adds it in `connectors_q` of `quarter_q` in `CONNECTOR_COLOR`.
 
 Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L359-L367); `Floor::connector_prefix`, [floor.cpp:348-357](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L348-L357); `WoodSession::next_number`, [wood_session.cpp:1473-1485](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1473-L1485).
 

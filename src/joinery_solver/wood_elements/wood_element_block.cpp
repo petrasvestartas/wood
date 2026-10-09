@@ -29,7 +29,8 @@ std::shared_ptr<Block> Block::from_element(Element e) {
 
     wood_proto::Block proto;
     if (!proto.ParseFromString(bytes)) {
-        if (block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
+        if (block->_geometry_mesh)
+            block->source_mesh = *block->_geometry_mesh;
         return block;
     }
 
@@ -38,9 +39,12 @@ std::shared_ptr<Block> Block::from_element(Element e) {
     for (const session_proto::Plane& cut : proto.cuts())
         block->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
 
-    if (proto.has_source_mesh()) block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
-    else if (block->loops.empty() && block->_geometry_mesh) block->source_mesh = *block->_geometry_mesh;
-    for (const auto& cut : proto.solid_features()) block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+    if (proto.has_source_mesh())
+        block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
+    else if (block->loops.empty() && block->_geometry_mesh)
+        block->source_mesh = *block->_geometry_mesh;
+    for (const auto& cut : proto.solid_features())
+        block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
         block->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
     return block;
@@ -105,9 +109,11 @@ std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
 
     std::shared_ptr<Block> block = std::make_shared<Block>(transformed_list(loops, xform), name);
     block->guid() = guid();
-    if (source_mesh) block->source_mesh = source_mesh->transformed(xform);
+    if (source_mesh)
+        block->source_mesh = source_mesh->transformed(xform);
     block->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_features) block->solid_features.push_back(cut.transformed(xform));
+    for (const auto& cut : solid_features)
+        block->solid_features.push_back(cut.transformed(xform));
     for (const InteractionFeaturePlane& feature : plane_features)
         block->plane_features.push_back(feature.transformed(xform));
     block->set_features(transformed_features(_features, xform));
@@ -120,9 +126,11 @@ void Block::place(const Xform& xform) {
 
     Element::place(xform);
     loops = transformed_list(loops, xform);
-    if (source_mesh) source_mesh = source_mesh->transformed(xform);
+    if (source_mesh)
+        source_mesh = source_mesh->transformed(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_features) cut = cut.transformed(xform);
+    for (auto& cut : solid_features)
+        cut = cut.transformed(xform);
     for (InteractionFeaturePlane& feature : plane_features)
         feature = feature.transformed(xform);
 
@@ -192,7 +200,8 @@ nlohmann::ordered_json Block::element_data_jsondump() const {
 std::string Block::element_data_dumps() const {
 
     wood_proto::Block proto;
-    if (source_mesh && !proto.mutable_source_mesh()->ParseFromString(source_mesh->pb_dumps())) throw std::runtime_error("Invalid block source mesh");
+    if (source_mesh && !proto.mutable_source_mesh()->ParseFromString(source_mesh->pb_dumps()))
+        throw std::runtime_error("Invalid block source mesh");
     for (const Polyline& loop : loops)
         if (!proto.add_loops()->ParseFromString(loop.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
@@ -201,7 +210,8 @@ std::string Block::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Plane protobuf data");
 
     for (const auto& cut : solid_features)
-        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps())) throw std::runtime_error("Invalid solid cut");
+        if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
+            throw std::runtime_error("Invalid solid cut");
     for (const InteractionFeaturePlane& feature : plane_features)
         if (!proto.add_plane_features()->ParseFromString(feature.pb_dumps()))
             throw std::runtime_error("Invalid plane feature");

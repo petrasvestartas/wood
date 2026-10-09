@@ -384,7 +384,8 @@ void WoodSession::compute_face_contacts(int level) {
 
     std::map<const TreeNode*, std::vector<std::shared_ptr<Element>>> branches;
     for (const std::shared_ptr<Element>& element : world_elements()) {
-        if (std::dynamic_pointer_cast<Joint>(element)) continue;
+        if (std::dynamic_pointer_cast<Joint>(element))
+            continue;
 
         const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found = nodes.find(element->guid());
         const TreeNode* branch = nullptr;
@@ -402,7 +403,8 @@ void WoodSession::compute_face_contacts(int level) {
 }
 
 std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target){
-    if (!source || !target || source->guid() == target->guid()) return nullptr;
+    if (!source || !target || source->guid() == target->guid())
+        return nullptr;
     const auto contacts = face_contacts_for_pair(*source, *target, settings);
     return contacts.empty() ? nullptr : std::make_shared<InteractionContactFace>(contacts.front());
 }
@@ -421,10 +423,12 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
 
     std::vector<std::shared_ptr<JointBeam>> previous;
     for (const auto& element : *objects.elements)
-        if (auto joint = std::dynamic_pointer_cast<JointBeam>(element); joint && joint->generated) previous.push_back(joint);
+        if (auto joint = std::dynamic_pointer_cast<JointBeam>(element); joint && joint->generated)
+            previous.push_back(joint);
     for (const auto& joint : previous) {
         for (const auto& id : joint->targets)
-            if (auto target = get_element<Element>(id)) remove_interaction(joint, target);
+            if (auto target = get_element<Element>(id))
+                remove_interaction(joint, target);
         remove_object(joint->guid());
     }
 
@@ -459,9 +463,11 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
         for (const std::shared_ptr<Interaction>& interaction : kept) {
 
             const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(interaction.get());
-            if (!axis) continue;
+            if (!axis)
+                continue;
             auto joint = JointBeam::from_contact(*beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male);
-            if (!joint) continue;
+            if (!joint)
+                continue;
             joint->generated = true;
             add_joint(joint, false);
         }
@@ -526,14 +532,17 @@ bool WoodSession::consistent() const {
     for (const auto& pair : graph.get_edges()) {
         const Edge& edge = graph.edges.at(std::get<0>(pair)).at(std::get<1>(pair));
         const auto found = interactions.find(edge.guid());
-        if (found == interactions.end()) continue;
+        if (found == interactions.end())
+            continue;
         for (const auto& interaction : found->second) {
             const auto* feature = dynamic_cast<const InteractionFeaturePlate*>(interaction.get());
-            if (!feature) continue;
+            if (!feature)
+                continue;
             if (feature->target_side) {
                 const std::string& target = feature->target_side == 1 ? feature->element_a : feature->element_b;
                 const std::string source = edge.v0 == target ? edge.v1 : edge.v0;
-                if ((edge.v0 != target && edge.v1 != target) || !get_element<Joint>(source)) return false;
+                if ((edge.v0 != target && edge.v1 != target) || !get_element<Joint>(source))
+                    return false;
             } else if (!((feature->element_a == edge.v0 && feature->element_b == edge.v1) ||
                          (feature->element_a == edge.v1 && feature->element_b == edge.v0))) return false;
         }
@@ -572,11 +581,13 @@ std::vector<InteractionFeaturePlate> WoodSession::get_plate_features() const {
     for (const auto& element : *objects.elements)
         if (const auto joint = std::dynamic_pointer_cast<JointPlate>(element))
             for (const auto& connection : joint->connections)
-                if (seen.insert(connection.guid()).second) out.push_back(connection);
+                if (seen.insert(connection.guid()).second)
+                    out.push_back(connection);
     for (const auto& entry : interactions)
         for (const auto& interaction : entry.second)
             if (const auto* plate = dynamic_cast<const InteractionFeaturePlate*>(interaction.get()))
-                if (!plate->target_side && seen.insert(plate->guid()).second) out.push_back(*plate);
+                if (!plate->target_side && seen.insert(plate->guid()).second)
+                    out.push_back(*plate);
 
     return out;
 }
@@ -692,7 +703,8 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
     std::shared_ptr<Interaction> interaction
 ) {
 
-    if (!source || !target || !interaction) throw std::invalid_argument("An interaction needs two elements and a payload");
+    if (!source || !target || !interaction)
+        throw std::invalid_argument("An interaction needs two elements and a payload");
     const bool feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) || std::dynamic_pointer_cast<InteractionFeaturePlane>(interaction);
     const std::shared_ptr<Joint> tie = std::dynamic_pointer_cast<Joint>(source);
     if (feature && (!tie || tie->targets.size() < 2))
@@ -703,11 +715,13 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
             throw std::invalid_argument("A plate joint interaction must select its target side");
         const int side = feature->target_side - 1;
         auto plate = std::dynamic_pointer_cast<Plate>(target);
-        if (!plate) throw std::invalid_argument("A plate joint requires a plate target");
+        if (!plate)
+            throw std::invalid_argument("A plate joint requires a plate target");
         auto found = std::find_if(joint->connections.begin(), joint->connections.end(), [&](const auto& c) {
             return c.feature_guid(side) == feature->guid();
         });
-        if (found == joint->connections.end()) throw std::invalid_argument("Feature does not belong to the joint");
+        if (found == joint->connections.end())
+            throw std::invalid_argument("Feature does not belong to the joint");
         (side == 0 ? found->element_a : found->element_b) = target->guid();
         if (std::find(joint->targets.begin(), joint->targets.end(), target->guid()) == joint->targets.end())
             joint->targets.push_back(target->guid());

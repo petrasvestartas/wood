@@ -68,22 +68,26 @@ ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j,
     auto is_end = [](const Element& element, const Plane& plane) {
             Vector axis;
             if (const auto* beam = dynamic_cast<const Beam*>(&element)) {
-                if (beam->axis.point_count() < 2) return false;
+                if (beam->axis.point_count() < 2)
+                    return false;
                 axis = beam->axis[beam->axis.point_count() - 1] - beam->axis[0];
             } else if (const auto* variable = dynamic_cast<const BeamVariable*>(&element)) {
                 axis = variable->axis.to_vector();
-            } else axis = static_cast<const Column&>(element).axis.to_vector();
+            } else
+                axis = static_cast<const Column&>(element).axis.to_vector();
             return std::abs(plane.z_axis().dot(axis.normalized())) > 1e-6;
     };
     if (linear_a && linear_b) {
         const bool end_a = is_end(a, pa), end_b = is_end(b, pb);
-        if (end_a != end_b) return ContactType::end_side;
+        if (end_a != end_b)
+            return ContactType::end_side;
         return end_a ? ContactType::end_end : ContactType::side_side;
     }
     if ((linear_a && is_plate(b)) || (linear_b && is_plate(a))) {
         const bool end = linear_a ? is_end(a, pa) : is_end(b, pb);
         const bool top = linear_a ? j < 2 : i < 2;
-        if (end) return top ? ContactType::end_top : ContactType::end_side;
+        if (end)
+            return top ? ContactType::end_top : ContactType::end_side;
         return top ? ContactType::side_top : ContactType::side_side;
     }
     if (!is_plate(a) || !is_plate(b))

@@ -174,7 +174,7 @@ Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestart
 
 <span style="color:#2196EA">■ built</span> `oculus_0` to `oculus_3`   <span style="color:#A3A3A3">■ context</span> the quarters' inner beams and ribs
 
-`guide.oculus()` gives nine loop pairs; the first four become ring beams by `beam(loops, {1, 0}, {2, 3})`, each named `oculus_q` in the group `oculus_q` of its quarter and kept in `ring`.
+`guide.oculus()` gives nine loop pairs; the first four become ring beams by `beam(loops, {1, 0}, {2, 3})`, each named `oculus_q` in the group `oculus_q` under `oculus`, and kept in `ring`.
 
 Code: `Floor::add_oculus`, [floor.cpp:121-132](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L121-L132); `FloorGuide::oculus`, [floor_guide.cpp:751-779](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L751-L779).
 

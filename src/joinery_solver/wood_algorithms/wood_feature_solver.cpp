@@ -178,42 +178,53 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
             promote(plate);
 
     std::vector<int> parent(joints.size());
-    for (size_t i = 0; i < parent.size(); ++i) parent[i] = static_cast<int>(i);
+    for (size_t i = 0; i < parent.size(); ++i)
+        parent[i] = static_cast<int>(i);
     auto root = [&](int i) { while (parent[i] != i) i = parent[i]; return i; };
     auto unite = [&](int a, int b) { if (a >= 0 && b >= 0) parent[root(b)] = root(a); };
     std::unordered_map<std::string, int> joint_indices;
-    for (size_t i = 0; i < joints.size(); ++i) joint_indices[joints[i].guid()] = static_cast<int>(i);
+    for (size_t i = 0; i < joints.size(); ++i)
+        joint_indices[joints[i].guid()] = static_cast<int>(i);
     for (size_t i = 0; i < joints.size(); ++i)
         for (const auto& linked : joints[i].linked_joints)
-            if (joint_indices.count(linked)) unite(static_cast<int>(i), joint_indices.at(linked));
+            if (joint_indices.count(linked))
+                unite(static_cast<int>(i), joint_indices.at(linked));
     const bool annen = three_valence.size() > 1 && (three_valence[0].empty() || three_valence[0][0] == 0);
     if (annen) {
         const auto pairs = joints_by_element_pair(elements, joints);
         for (size_t i = 1; i < three_valence.size(); ++i) {
             const auto& group = three_valence[i];
-            if (group.size() < 4) continue;
+            if (group.size() < 4)
+                continue;
             const auto a = pairs.find(pair_key(group[0], group[1]));
             const auto b = pairs.find(pair_key(group[2], group[3]));
-            if (a != pairs.end() && b != pairs.end()) unite(a->second, b->second);
+            if (a != pairs.end() && b != pairs.end())
+                unite(a->second, b->second);
         }
     }
     std::map<int, std::vector<int>> groups;
-    for (size_t i = 0; i < joints.size(); ++i) groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
+    for (size_t i = 0; i < joints.size(); ++i)
+        groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
     for (const auto& [id, indices] : groups) {
         std::shared_ptr<JointPlate> element;
-        if (indices.size() > 1 && annen) element = std::make_shared<JointAnnen>();
-        else if (indices.size() > 1) element = std::make_shared<JointVidy>();
-        else element = std::make_shared<JointPlate>();
+        if (indices.size() > 1 && annen)
+            element = std::make_shared<JointAnnen>();
+        else if (indices.size() > 1)
+            element = std::make_shared<JointVidy>();
+        else
+            element = std::make_shared<JointPlate>();
         for (int index : indices) {
             auto& joint = joints[index];
             joint.sync_features();
             const auto male = get_element<Element>(joint.element_a);
             const auto female = get_element<Element>(joint.element_b);
-            if (!male || !female) continue;
+            if (!male || !female)
+                continue;
             add_interaction(male, female, joint.to_contact());
             element->connections.push_back(joint);
         }
-        if (element->connections.empty()) continue;
+        if (element->connections.empty())
+            continue;
         element->name = indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
         add_joint(element, false);

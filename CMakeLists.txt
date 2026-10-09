@@ -286,6 +286,7 @@ ADD_EXE(element_block                    examples/elements/element_block.cpp)
 ADD_EXE(element_support                  examples/elements/element_support.cpp)
 ADD_EXE(templates_floor_1_floorguide     examples/templates_floor_1_floorguide.cpp)
 ADD_EXE(templates_floor_2_column_model   examples/templates_floor_2_column_model.cpp)
+ADD_EXE(templates_floor_3_contacts       examples/templates_floor_3_contacts.cpp)
 ADD_EXE(templates_floor_7_contacts_cantilevers examples/templates_floor_7_contacts_cantilevers.cpp)
 ADD_EXE(templates_floor_8_rectangle      examples/templates_floor_8_rectangle.cpp)
 

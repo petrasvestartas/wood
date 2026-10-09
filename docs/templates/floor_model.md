@@ -24,12 +24,14 @@ The constructor is the whole computation, one block per step:
     Floor::Floor(const FloorGuide& guide, const std::string& name = "floor")
         : WoodSession(name), guide(guide) {
 
-        add_quarters();    // every quarter's members
-        add_oculus();      // the ring around the hole
-        add_columns();     // a column at every corner
-        add_contacts();    // where two members touch
-        add_connectors();  // a connector per contact
-        add_screws();      // the assembly screws
+        add_quarters();                                    // every quarter's members
+        add_oculus();                                      // the ring around the hole
+        add_columns();                                     // a column at every corner
+        const auto contacts = add_contacts();              // where two members touch, per quarter
+        const auto connectors = compute_connectors(contacts);
+        add_connectors(connectors);                        // a connector per contact
+        const auto screws = compute_screws();
+        add_screws(screws);                                // the assembly screws
     }
 ```
 
@@ -48,20 +50,45 @@ floor
 │   ├── inner_ribs_0               BeamVariable inner_ribs_<i>_0, two
 │   ├── wedges_0                   Plate wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              BeamVariable inner_beams_<i>_0: seam 0, oculus edge, seam 1
-│   ├── oculus_0                   BeamVariable oculus_0, the ring beam; Plate oculus_4, its bottom wedge
 │   ├── column_0                   Column column_0 on Support support_0
 │   └── connectors_0               JointBeam connector_<kind>_<n>, connector_cross_lap_<n>, connector_screws_<n>
-└── oculus                         Plate oculus_8, the central plate
+└── oculus
+    ├── oculus_0                   BeamVariable oculus_0, the ring beam; Plate oculus_4, its bottom wedge; oculus_1 .. oculus_3 alike
+    └── oculus_8                   Plate, the central plate
 ```
 
-Each contact is named by its kind and place, and its connector by its kind:
+Each quarter's contacts, connectors and screws are fixed arrays, so every count is in the type:
 
 ```cpp
-enum class ContactKind {
-    seam_wedge, // The two seam beams either side of a seam: a wedge.
-    oculus_wedge, // A quarter's oculus beam and its ring beam: a wedge.
-    column_plate, // A column and an outer rib: a rectangle plate; the two plates of a corner get a cross lap.
-    block_dowels, // A column block and a rib: dowels.
+/// A contact the floor's design puts between two members: the two members, a the interaction's source, and the face they share.
+struct Contact {
+    std::shared_ptr<Element> a; // The source member.
+    std::shared_ptr<Element> b; // The target member, which hosts the contact.
+    std::shared_ptr<InteractionContactFace> face; // The face they share, stored as their interaction.
+};
+
+/// The contacts of one quarter, by the connector each gets.
+struct QuarterContacts {
+    Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
+    Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
+    std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
+    std::array<std::array<Contact, 2>, 3> block_dowels; // Column block b against the rib either side: dowels.
+};
+
+/// The connectors of one quarter, every one built from its contact before any is added.
+struct QuarterConnectors {
+    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<n>.
+    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<n>.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plates; // connector_column_plate_<n>, one per outer rib.
+    std::shared_ptr<JointBeam> cross_lap; // connector_cross_lap_<n>, where the two column plates cross.
+    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_dowels; // connector_block_dowels_<n>, per block and side.
+};
+
+/// The assembly screws of one quarter, each pair along k = 0 and 1.
+struct QuarterScrews {
+    std::array<std::shared_ptr<JointBeam>, 2> rib_beam; // Each outer rib into the seam beam it ends on.
+    std::array<std::shared_ptr<JointBeam>, 2> beam_mitre; // Each seam beam into the oculus beam ending on it.
+    std::array<std::shared_ptr<JointBeam>, 2> rib_corner; // The oculus beam into each inner rib, through the seam beam when the screws pass it.
 };
 ```
 
@@ -77,7 +104,6 @@ explicit Floor(const FloorGuide& guide, const std::string& name = "floor");
 ```
 
 ```cpp
-static inline const std::array<std::string, 4> CONTACT_NAMES = {"seam_wedge", "oculus_wedge", "column_plate", "block_dowels"}; // The interaction name of each kind, in ContactKind order.
 static constexpr double SCREW_LENGTH = 200.0; // mm, every assembly screw.
 static constexpr double SCREW_SPACING = 8.0; // mm, the closest two screw axes may come.
 static constexpr double RIB_END_MARGIN = 20.0; // mm a seam screw sits below the rib's top and above its bottom at its end when the seam runs through the rib band.
@@ -87,6 +113,30 @@ static constexpr std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0
 static constexpr std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // The inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross.
 static inline const Color CONNECTOR_COLOR = Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"); // Every connector node and every part and dowel node under it: the Block Research Group's primary blue.
 ```
+
+At a seam, each rib's screws sit `SEAM_SCREW_OFFSET` off its axis, the two ribs on opposite sides, and run `SCREW_LENGTH` from the beam's seam face.
+
+![The seam screws in plan](floor/990_parameters_seam.webp)
+
+At the rib end, one screw `RIB_END_MARGIN` below the rib top and one above the end's bottom, `end_level`.
+
+![The rib end in elevation](floor/991_parameters_rib_end.webp)
+
+At an oculus corner, `static_h` in `CORNER_LEVELS` sevenths: `MITRE_LEVELS` and `RIB_CORNER_LEVELS` give every screw its own level.
+
+![The oculus corner levels](floor/992_parameters_corner.webp)
+
+`compute_connectors`: a wedge stops `1.5 * size` short of its contact's top edge, `size` the thicker member.
+
+![The wedge margins in plan](floor/993_parameters_wedges.webp)
+
+The wedge end on: `WEDGE_PROFILE` between the two beams, a pocket `2 * size / 3` deep under each slanted face.
+
+![The wedge end on](floor/994_parameters_wedge_section.webp)
+
+A column plate's dowels are `size_outer_ribs` long, through the rib; the two plates of a corner cross in their `cross_lap`.
+
+![The column plates in plan](floor/995_parameters_plate.webp)
 
 ## The constructor, step by step
 
@@ -219,6 +269,10 @@ std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, c
 }
 ```
 
+Each soffit point `low` and its `far_low` on the second loop, with their top corners, make one section; the end sections take the loops' own top corners, so they lie in the end planes.
+
+![The rib's sections](floor/922_rib_stations.webp)
+
 </details>
 
 <details>
@@ -235,6 +289,10 @@ std::shared_ptr<BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, 
     return BeamVariable::between(first, last, name);
 }
 ```
+
+The section over corners `start` and over corners `end`, both loops; `BeamVariable::between` runs the axis between their centroids.
+
+![The beam's end sections](floor/923_beam_sections.webp)
 
 </details>
 
@@ -261,24 +319,26 @@ void Floor::add_oculus() {
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
 
-    // ring beams: BeamVariable, oculus_<q> in oculus_<q> of quarter q
+    const std::shared_ptr<TreeNode> oculus = group_named("oculus");
+
+    // ring beams: BeamVariable, oculus_<q> in oculus_<q> of oculus
     for (size_t q = 0; q < 4; q++) {
         const std::shared_ptr<BeamVariable> ring_beam = beam(loops[q], {1, 0}, {2, 3}, fmt::format("oculus_{}", q));
         ring_beam->place(lift);
-        add(ring_beam, group_named(fmt::format("oculus_{}", q), quarter_group(q)));
+        add(ring_beam, group_named(fmt::format("oculus_{}", q), oculus));
     }
 
     // bottom wedges: Plate, oculus_<4 + q> under ring beam q, in the same group
     for (size_t q = 0; q < 4; q++) {
         const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
         bottom_wedge->place(lift);
-        add(bottom_wedge, group_named(fmt::format("oculus_{}", q), quarter_group(q)));
+        add(bottom_wedge, group_named(fmt::format("oculus_{}", q), oculus));
     }
 
     // central plate: Plate, oculus_8 in oculus
     const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
     plate->place(lift);
-    add(plate, group_named("oculus"));
+    add(plate, oculus);
 }
 ```
 
@@ -352,6 +412,10 @@ WoodSession column(const FloorGuide& guide, size_t q) {
 }
 ```
 
+The square shaft on the support's axis, the two head blocks glued on to widen the head, and the six cutters that carve it.
+
+![The column session](floor/924_column.webp)
+
 </details>
 
 </details>
@@ -362,8 +426,8 @@ WoodSession column(const FloorGuide& guide, size_t q) {
 The face every two members the design joins share, stored as a named contact interaction.
 
 ```cpp
-// contacts: an interaction between every two members that touch, named by its kind and place
-add_contacts();
+// contacts: per quarter an interaction between every two members that touch, named by its kind and place
+const std::array<QuarterContacts, 4> contacts = add_contacts();
 ```
 
 ![The contacts of quarter 0](floor/983_floor_contacts.webp)
@@ -372,47 +436,66 @@ add_contacts();
 <summary>add_contacts()</summary>
 
 ```cpp
-void Floor::add_contacts() {
+std::array<QuarterContacts, 4> Floor::add_contacts() {
+
+    std::array<QuarterContacts, 4> contacts;
 
     for (size_t q = 0; q < 4; q++) {
-        const std::string place = std::to_string(q);
-        const auto named = [this, q](const std::string& family, size_t i) { return member<Element>(fmt::format("{}_{}_{}", family, i, q)); };
+        const size_t next = (q + 1) % 4;
 
-        add_contact(ContactKind::seam_wedge, place, named("inner_beams", 0), member<Element>(fmt::format("inner_beams_2_{}", (q + 1) % 4)));
-        add_contact(ContactKind::oculus_wedge, place, named("inner_beams", 1), member<Element>(fmt::format("oculus_{}", q)));
+        // seam: this quarter's seam beam 0 beside the next quarter's seam beam 2
+        const Contact seam = add_contact(fmt::format("seam_wedge_{}", q), fmt::format("inner_beams_0_{}", q), fmt::format("inner_beams_2_{}", next));
+        contacts[q].seam_wedge = seam;
 
-        for (size_t k = 0; k < 2; k++)
-            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), member<Element>(fmt::format("column_{}", q)), named("outer_ribs", k));
+        // oculus: the oculus beam's back face on its ring beam
+        const Contact oculus = add_contact(fmt::format("oculus_wedge_{}", q), fmt::format("inner_beams_1_{}", q), fmt::format("oculus_{}", q));
+        contacts[q].oculus_wedge = oculus;
 
-        // each column block on the two ribs either side of it
-        add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), named("outer_ribs", 0), named("wedges", 0));
-        add_contact(ContactKind::block_dowels, fmt::format("{}_2_1", q), named("outer_ribs", 1), named("wedges", 2));
-        add_contact(ContactKind::block_dowels, fmt::format("{}_0_1", q), named("inner_ribs", 0), named("wedges", 0));
-        add_contact(ContactKind::block_dowels, fmt::format("{}_1_0", q), named("inner_ribs", 0), named("wedges", 1));
-        add_contact(ContactKind::block_dowels, fmt::format("{}_1_1", q), named("inner_ribs", 1), named("wedges", 1));
-        add_contact(ContactKind::block_dowels, fmt::format("{}_2_0", q), named("inner_ribs", 1), named("wedges", 2));
+        // column head: the column against each of its two outer ribs
+        for (size_t k = 0; k < 2; k++) {
+            const Contact plate = add_contact(fmt::format("column_plate_{}_{}", q, k), fmt::format("column_{}", q), fmt::format("outer_ribs_{}_{}", k, q));
+            contacts[q].column_plates[k] = plate;
+        }
+
+        // column blocks: outer_rib 0 | block 0 | inner_rib 0 | block 1 | inner_rib 1 | block 2 | outer_rib 1, each block on the rib either side
+        const std::array<std::string, 4> ribs = {fmt::format("outer_ribs_0_{}", q), fmt::format("inner_ribs_0_{}", q), fmt::format("inner_ribs_1_{}", q), fmt::format("outer_ribs_1_{}", q)};
+
+        for (size_t b = 0; b < 3; b++)
+            for (size_t side = 0; side < 2; side++) {
+                const Contact dowels = add_contact(fmt::format("block_dowels_{}_{}_{}", q, b, side), ribs[b + side], fmt::format("wedges_{}_{}", b, q));
+                contacts[q].block_dowels[b][side] = dowels;
+            }
     }
+
+    return contacts;
 }
 ```
 
 </details>
 
 <details>
-<summary>add_contact(kind, place, a, b)</summary>
+<summary>add_contact(name, a_name, b_name)</summary>
 
 ```cpp
-void Floor::add_contact(ContactKind kind, const std::string& place, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
+Contact Floor::add_contact(const std::string& name, const std::string& a_name, const std::string& b_name) {
 
-    const std::string name = CONTACT_NAMES[static_cast<size_t>(kind)] + "_" + place;
-    const std::shared_ptr<InteractionContactFace> contact = compute_face_contact(a, b);
+    const std::shared_ptr<Element> a = get_element_by_name<Element>(a_name);
+    const std::shared_ptr<Element> b = get_element_by_name<Element>(b_name);
+    const std::shared_ptr<InteractionContactFace> face = compute_face_contact(a, b);
 
-    if (!contact)
-        throw std::runtime_error(fmt::format("no contact {} between {} and {}", name, a->name, b->name));
+    if (!face)
+        throw std::runtime_error(fmt::format("no contact {} between {} and {}", name, a_name, b_name));
 
-    contact->name = name;
-    add_interaction(a, b, contact);
+    face->name = name;
+    add_interaction(a, b, face);
+
+    return {a, b, face};
 }
 ```
+
+The face polygon `compute_face_contact` finds between the two seam beams, stored on their edge as `seam_wedge_0`.
+
+![A contact](floor/925_add_contact.webp)
 
 </details>
 
@@ -421,113 +504,109 @@ void Floor::add_contact(ContactKind kind, const std::string& place, const std::s
 <details>
 <summary><b>Connectors</b></summary>
 
-One connector per contact: seam and oculus wedges, column plates with their cross lap, dowels.
+Each contact gets its connector: seam and oculus wedges, column plates with their cross lap, dowels; all built before any is added, so each sees uncut members.
 
 ```cpp
-// connectors: one per contact, wedges, column plates with their cross laps, dowels
-add_connectors();
+// connectors: per quarter its wedges, column plates with their cross lap and dowels, all built on uncut members
+const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
+add_connectors(connectors);
 ```
 
 ![The connectors of quarter 0](floor/984_floor_connectors.webp)
 
 <details>
-<summary>add_connectors()</summary>
+<summary>compute_connectors(contacts)</summary>
 
 ```cpp
-void Floor::add_connectors() {
+std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const {
 
-    // every contact interaction, read from the graph with its pair in the order it was added
-    std::vector<std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>> found;
+    std::array<QuarterConnectors, 4> connectors;
 
-    for (const auto& [u, w] : graph.get_edges()) {
-        const Edge& edge = graph.edges.at(u).at(w);
-        const std::shared_ptr<Element> a = get_element<Element>(edge.v0);
-        const std::shared_ptr<Element> b = get_element<Element>(edge.v1);
+    for (size_t q = 0; q < 4; q++) {
+        const QuarterContacts& c = contacts[q];
 
-        if (!a || !b)
-            continue;
+        // seam wedge: sized by the inner beams, running on to the bay's outer face
+        const double beam = guide.size_inner_beams;
+        const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+        connectors[q].seam_wedge = JointBeam::wedge(*c.seam_wedge.a, *c.seam_wedge.b, *c.seam_wedge.face, 1.5 * beam, 2.0 * beam / 3.0, outer_face);
 
-        for (const std::shared_ptr<Interaction>& interaction : get_interaction(a, b)) {
-            const std::shared_ptr<InteractionContactFace> contact = std::dynamic_pointer_cast<InteractionContactFace>(interaction);
+        // oculus wedge: sized by the thicker of the oculus beam and its ring beam
+        const double thicker = std::max(FloorGuide::thickness(guide.inner_beams(q)[1]), FloorGuide::thickness(guide.oculus()[q]));
+        connectors[q].oculus_wedge = JointBeam::wedge(*c.oculus_wedge.a, *c.oculus_wedge.b, *c.oculus_wedge.face, 1.5 * thicker, 2.0 * thicker / 3.0);
 
-            for (size_t k = 0; k < CONTACT_NAMES.size(); k++)
-                if (contact && contact->name.starts_with(CONTACT_NAMES[k] + "_"))
-                    found.push_back({static_cast<ContactKind>(k), contact->name, a, b, contact});
-        }
+        // column plates: a rectangle plate as wide as the outer rib on each, and the cross lap where the two cross
+        for (size_t k = 0; k < 2; k++)
+            connectors[q].column_plates[k] = JointBeam::rectangle_plate(*c.column_plates[k].a, *c.column_plates[k].b, *c.column_plates[k].face, guide.size_outer_ribs);
+
+        connectors[q].cross_lap = JointBeam::cross_lap(*connectors[q].column_plates[0], *connectors[q].column_plates[1]);
+
+        // block dowels: dowels between each column block and the rib either side
+        for (size_t b = 0; b < 3; b++)
+            for (size_t side = 0; side < 2; side++) {
+                const Contact& contact = c.block_dowels[b][side];
+                const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(*contact.a, *contact.b, *contact.face);
+
+                if (!dowels)
+                    throw std::runtime_error("the inset leaves no room for the dowels of " + contact.face->name);
+
+                connectors[q].block_dowels[b][side] = dowels;
+            }
     }
 
-    std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
-
-    // every connector first, so a failing one throws before anything is added or cut
-    std::vector<std::tuple<std::string, size_t, std::shared_ptr<JointBeam>>> built;
-    std::map<size_t, std::vector<std::shared_ptr<JointBeam>>> plates_of_corner;
-
-    for (const auto& [kind, name, a, b, contact] : found) {
-        // the place the name ends in: the quarter, then a rib or block index and a side
-        std::vector<size_t> place;
-        std::stringstream indices(name.substr(CONTACT_NAMES[static_cast<size_t>(kind)].size() + 1));
-
-        for (std::string index; std::getline(indices, index, '_');)
-            place.push_back(static_cast<size_t>(std::stoul(index)));
-
-        built.push_back({connector_prefix(kind), place[0], connector_of(kind, place, *a, *b, *contact)});
-
-        if (kind == ContactKind::column_plate)
-            plates_of_corner[place[0]].push_back(std::get<2>(built.back()));
-    }
-
-    for (const auto& [corner, plates] : plates_of_corner)
-        if (plates.size() == 2)
-            built.push_back({"connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
-
-    std::map<std::string, size_t> numbers;
-
-    for (const auto& [prefix, q, connector] : built)
-        add_named_connector(connector, prefix, q, numbers);
+    return connectors;
 }
 ```
+
+Seam wedge: `JointBeam::wedge` along the contact's top edge, `1.5 * size` in from the oculus end, flush with `outer_face`, the bay's outer face; a dowel per 320 mm and a pocket in each beam.
+
+![The seam wedge](floor/926_connector_seam_wedge.webp)
+
+Oculus wedge: the same on the oculus beam and its ring beam, no end plane, so both ends stop `1.5 * size` short.
+
+![The oculus wedge](floor/927_connector_oculus_wedge.webp)
+
+Column plate: `JointBeam::rectangle_plate` along the contact's horizontal normal, four dowels `size_outer_ribs` long, its box the pocket in both.
+
+![The column plate](floor/928_connector_column_plate.webp)
+
+The two plates of a corner cross: `JointBeam::cross_lap(a, b)` slots `a` from half their common height up and `b` from the bottom up to there.
+
+![The cross lap](floor/930_connector_cross_lap.webp)
+
+Block dowels: `JointBeam::dowels`, the contact inset by 50, a dowel at each of its four extreme corners, half into each member.
+
+![The block dowels](floor/929_connector_block_dowels.webp)
 
 </details>
 
 <details>
-<summary>connector_of(kind, place, a, b, contact)</summary>
+<summary>add_connectors(connectors)</summary>
 
 ```cpp
-std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vector<size_t>& place, const Element& a, const Element& b, const InteractionContactFace& contact) const {
+void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors) {
 
-    const size_t q = place[0];
+    // seam wedges
+    for (size_t q = 0; q < 4; q++)
+        add_named_connector(connectors[q].seam_wedge, "connector_seam_wedge", q);
 
-    if (kind == ContactKind::seam_wedge) {
-        const double size = guide.size_inner_beams;
-        const Plane end = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height)); // the bay's outer face the wedge runs on to
-        return JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0, end);
-    }
+    // oculus wedges
+    for (size_t q = 0; q < 4; q++)
+        add_named_connector(connectors[q].oculus_wedge, "connector_oculus_wedge", q);
 
-    if (kind == ContactKind::oculus_wedge) {
-        const double size = std::max(FloorGuide::thickness(guide.inner_beams(q)[1]), FloorGuide::thickness(guide.oculus()[q]));
-        return JointBeam::wedge(a, b, contact, 1.5 * size, 2.0 * size / 3.0);
-    }
+    // column plates
+    for (size_t q = 0; q < 4; q++)
+        for (const std::shared_ptr<JointBeam>& plate : connectors[q].column_plates)
+            add_named_connector(plate, "connector_column_plate", q);
 
-    if (kind == ContactKind::column_plate)
-        return JointBeam::rectangle_plate(a, b, contact, guide.size_outer_ribs);
+    // block dowels
+    for (size_t q = 0; q < 4; q++)
+        for (const std::array<std::shared_ptr<JointBeam>, 2>& block : connectors[q].block_dowels)
+            for (const std::shared_ptr<JointBeam>& dowels : block)
+                add_named_connector(dowels, "connector_block_dowels", q);
 
-    const std::shared_ptr<JointBeam> dowels = JointBeam::dowels(a, b, contact);
-
-    if (!dowels)
-        throw std::runtime_error("the inset leaves no room for the dowels of " + contact.name);
-
-    return dowels;
-}
-```
-
-</details>
-
-<details>
-<summary>connector_prefix(kind)</summary>
-
-```cpp
-std::string Floor::connector_prefix(ContactKind kind) {
-    return "connector_" + CONTACT_NAMES[static_cast<size_t>(kind)];
+    // cross laps, last, over the plates they join
+    for (size_t q = 0; q < 4; q++)
+        add_named_connector(connectors[q].cross_lap, "connector_cross_lap", q);
 }
 ```
 
@@ -537,12 +616,9 @@ std::string Floor::connector_prefix(ContactKind kind) {
 <summary>add_named_connector</summary>
 
 ```cpp
-void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers) {
+void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q) {
 
-    if (!numbers.count(prefix))
-        numbers[prefix] = next_number(prefix);
-
-    connector->name = fmt::format("{}_{}", prefix, numbers[prefix]++);
+    connector->name = fmt::format("{}_{}", prefix, next_number(prefix));
     const std::shared_ptr<TreeNode> group = group_named(fmt::format("connectors_{}", q), quarter_group(q));
     set_node_color(add_connector(connector, group), CONNECTOR_COLOR, true);
 }
@@ -559,44 +635,61 @@ Two 200 mm screws where an outer rib meets a seam beam, a seam beam the oculus b
 
 ```cpp
 // screws: the assembly screws, after every other connector so nothing before them changes
-add_screws();
+const std::array<QuarterScrews, 4> screws = compute_screws();
+add_screws(screws);
 ```
 
 ![The screws of quarter 0](floor/985_floor_screws.webp)
 
 <details>
-<summary>add_screws()</summary>
+<summary>compute_screws()</summary>
 
 ```cpp
-void Floor::add_screws() {
+std::array<QuarterScrews, 4> Floor::compute_screws() const {
 
-    std::vector<std::pair<size_t, std::shared_ptr<JointBeam>>> built;
+    std::array<QuarterScrews, 4> screws;
 
-    // every screw connector first, so a bay too narrow for them throws with nothing added
     for (size_t q = 0; q < 4; q++) {
-        const auto named = [this, q](const std::string& family, size_t i) { return member<Element>(fmt::format("{}_{}_{}", family, i, q)).get(); };
-
-        for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({named("outer_ribs", k), named("inner_beams", k == 0 ? 0 : 2)}, rib_beam_screws(q, k))});
-
-        for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({named("inner_beams", k == 0 ? 0 : 2), named("inner_beams", 1)}, beam_mitre_screws(q, k))});
+        // the members the screws join: seam beams 0 and 2 either side, the oculus beam between them, the outer and inner ribs
+        const std::array<const Element*, 2> seam_beams = {get_element_by_name<Element>(fmt::format("inner_beams_0_{}", q)).get(), get_element_by_name<Element>(fmt::format("inner_beams_2_{}", q)).get()};
+        const Element* oculus_beam = get_element_by_name<Element>(fmt::format("inner_beams_1_{}", q)).get();
+        const std::array<const Element*, 2> outer_ribs = {get_element_by_name<Element>(fmt::format("outer_ribs_0_{}", q)).get(), get_element_by_name<Element>(fmt::format("outer_ribs_1_{}", q)).get()};
+        const std::array<const Element*, 2> inner_ribs = {get_element_by_name<Element>(fmt::format("inner_ribs_0_{}", q)).get(), get_element_by_name<Element>(fmt::format("inner_ribs_1_{}", q)).get()};
 
         for (size_t k = 0; k < 2; k++) {
-            const std::vector<Line> screw_lines = rib_corner_screws(q, k);
-            std::vector<const Element*> passed = {named("inner_beams", 1), named("inner_ribs", k)};
+            // rib_beam: the outer rib into the seam beam it ends on
+            screws[q].rib_beam[k] = screws_of({outer_ribs[k], seam_beams[k]}, rib_beam_screws(q, k));
 
-            if (passes_seam_beam(q, k, screw_lines))
-                passed.push_back(named("inner_beams", k == 0 ? 0 : 2));
+            // beam_mitre: the seam beam into the oculus beam ending on it
+            screws[q].beam_mitre[k] = screws_of({seam_beams[k], oculus_beam}, beam_mitre_screws(q, k));
 
-            built.push_back({q, screws_of(passed, screw_lines)});
+            // rib_corner: the oculus beam into the inner rib ending on its back face, through the seam beam too when the screws pass it
+            const std::vector<Line> lines = rib_corner_screws(q, k);
+            std::vector<const Element*> passed = {oculus_beam, inner_ribs[k]};
+
+            if (passes_seam_beam(q, k, lines))
+                passed.push_back(seam_beams[k]);
+
+            screws[q].rib_corner[k] = screws_of(passed, lines);
         }
     }
 
-    std::map<std::string, size_t> numbers;
+    return screws;
+}
+```
 
-    for (const auto& [q, connector] : built)
-        add_named_connector(connector, "connector_screws", q, numbers);
+</details>
+
+<details>
+<summary>add_screws(screws)</summary>
+
+```cpp
+void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
+
+    for (size_t q = 0; q < 4; q++)
+        for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].rib_beam, screws[q].beam_mitre, screws[q].rib_corner})
+            for (const std::shared_ptr<JointBeam>& screw : pair)
+                add_named_connector(screw, "connector_screws", q);
 }
 ```
 
@@ -620,6 +713,10 @@ std::vector<Line> Floor::rib_beam_screws(size_t q, size_t k) const {
 }
 ```
 
+`from_seam_face`: the rib's `axis` on each level, moved `SEAM_SCREW_OFFSET` across, the head where it meets the beam's seam face, `SCREW_LENGTH` along the rib.
+
+![The rib beam screws](floor/931_rib_beam_screws.webp)
+
 </details>
 
 <details>
@@ -639,6 +736,10 @@ std::vector<Line> Floor::beam_mitre_screws(size_t q, size_t k) const {
     return lifted(screws);
 }
 ```
+
+`along_axis`: the oculus beam's `axis` on levels `MITRE_LEVELS[k]`, the head where it leaves the seam plane `far_face`, the screw on towards the beam's `body`.
+
+![The beam mitre screws](floor/932_beam_mitre_screws.webp)
 
 </details>
 
@@ -665,6 +766,10 @@ std::vector<Line> Floor::rib_corner_screws(size_t q, size_t k) const {
 }
 ```
 
+`along_axis`: the inner rib's `axis` on levels `RIB_CORNER_LEVELS`, the head where it leaves the oculus beam's back face; a head nearer the seam plane than `SCREW_SPACING / 2` throws.
+
+![The rib corner screws](floor/933_rib_corner_screws.webp)
+
 </details>
 
 <details>
@@ -685,6 +790,10 @@ bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws
 }
 ```
 
+A head beyond `beam_end`, the seam beam's end plane, on the side away from `beam_body`: the screw runs through the seam beam, which becomes a third target.
+
+![Passing the seam beam](floor/934_passes_seam_beam.webp)
+
 </details>
 
 <details>
@@ -696,6 +805,10 @@ std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& m
     return JointBeam::screws(members, lines, 2.0, SCREW_LENGTH);
 }
 ```
+
+`JointBeam::screws`: a pre-drilled connector, one child `connector_screws_n_screw_i` per line, every member it passes a target.
+
+![The screw connector](floor/935_screws_of.webp)
 
 </details>
 
