@@ -60,6 +60,7 @@ public:
     static constexpr double CORNER_LEVELS = 7.0; // An oculus corner's depth in sevenths: six levels, one per screw on each side of the corner.
     static constexpr std::array<std::array<double, 2>, 2> MITRE_LEVELS = {{{2.0, 5.0}, {3.0, 6.0}}}; // Per mitre k, the levels of its two screws; the two quarters' mitres at a seam put their heads on the seam plane at one point, so they differ.
     static constexpr std::array<double, 2> RIB_CORNER_LEVELS = {1.0, 4.0}; // The inner rib end screws at both corners, apart from that corner's mitre and oculus screws they cross.
+    static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The guide's inner beams on seam 0 and seam 1, k 0 and 1; between them, 1, the oculus beam.
     static inline const Color CONNECTOR_COLOR = Color(33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"); // Every connector node and every part and dowel node under it: the Block Research Group's primary blue.
 
     const FloorGuide guide; // The geometry the model is built from; every element is in the session.
@@ -76,7 +77,7 @@ public:
     /// The screw lines of outer rib k of quarter q into the seam beam it meets: two along the rib from the beam's seam face into the rib end, RIB_END_MARGIN below its top and above its bottom and either side of its axis.
     std::vector<Line> rib_beam_screws(size_t q, size_t k) const;
 
-    /// The screw lines of seam beam 0 (k 0) or 2 (k 1) of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
+    /// The screw lines of seam beam k of quarter q into the oculus beam ending on it, along the oculus beam from the seam plane.
     std::vector<Line> beam_mitre_screws(size_t q, size_t k) const;
 
     /// The screw lines of the oculus beam of quarter q into inner rib k ending on its back face, along the rib through the beam corner; throws when the bay is too narrow for them.
@@ -128,20 +129,14 @@ private:
     /// The screw connector of lines through the members, the first two the joint's.
     std::shared_ptr<JointBeam> screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const;
 
-    /// Whether the inner rib screws of quarter q at end k pass the seam beam's end at the beam corner.
+    /// Whether the inner rib screws of quarter q at end k pass the seam beam's end: a head beyond the end plane, away from the oculus beam.
     bool passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const;
-
-    /// Lifts screw lines from the datum up to the floor.
-    std::vector<Line> lifted(const std::vector<Line>& screws) const;
 
     /// The level of a screw in a corner's level set: down from the datum in sevenths of the depth.
     double corner_level(double levels) const;
 
-    /// A screw at level z through a side member into the member butting on it, along the butting member's axis: the head where that axis leaves the side member's far face, the tip on towards the butting member's body.
-    static Line along_axis(const std::array<Plane, 2>& butting, const Plane& far_face, const Point& butting_body, double z);
-
-    /// A screw at level z along a rib ending on a seam beam that runs through the rib band, its axis offset across the rib, from the beam's seam face through the beam into the rib end.
-    static Line from_seam_face(const std::array<Plane, 2>& rib, const std::array<Plane, 2>& beam, double z, double offset);
+    /// A screw of a member butting on another, at the floor: along the member's axis at level z, moved offset across it, its head where that line meets the face from, SCREW_LENGTH on towards the member's body.
+    Line screw(const std::array<Plane, 2>& member, const Plane& from, const Point& toward, double z, double offset = 0.0) const;
 
     /// The axis of a member between two faces at level z: the line midway between their traces.
     static Line axis(const std::array<Plane, 2>& faces, double z);
