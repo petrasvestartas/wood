@@ -136,6 +136,16 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 - **Tests**: read elements back by name and check measured numbers in the message (`20 mm below the rib top`, with a
   tolerance), never through lists kept beside the session.
 
+## Round means BRep
+
+- Every pin, bore, drill and round cut is shown as an exact BRep, never a mesh: a mesh makes them polygons. This
+  mistake was made again and again in October 2026 (published scenes, docs pictures, element screenshots); it is the
+  first thing to check.
+- Scenes: `WoodSession::pb_dump` runs `compute_breps` first; never write or publish a scene any other way.
+- Docs pictures: draw members with `Frame::element` or `Frame::brep` (the exact BRep); `Frame::mesh` only for something
+  that has no BRep.
+- Before calling a picture, a screenshot or a published scene done, look at it: a pin or hole with flat facets is a bug.
+
 ## Kernel first
 
 - Before writing a geometry or scene helper in wood, search the kernel headers
