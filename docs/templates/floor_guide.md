@@ -789,7 +789,7 @@ std::array<Plane, 3> FloorGuide::compute_bed_top_planes(size_t q) const {
 <details>
 <summary><b>Outer ribs</b></summary>
 
-Each rib's trace trimmed on one face, swept to the other.
+Two face loops: the trace trimmed on the first face, projected onto the second.
 
 ```cpp
 // outer ribs, each its parabola trimmed by its end planes on its first face and swept to its second
@@ -876,7 +876,7 @@ std::array<Polyline, 2> FloorGuide::rib(const Polyline& trace, const Plane& face
 <details>
 <summary><b>Inner ribs</b></summary>
 
-The same, swept along the central panel's sweep.
+The same two loops, projected along the central panel's sweep.
 
 ```cpp
 // inner ribs, swept along the central panel's rib sweep
