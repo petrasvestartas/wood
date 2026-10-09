@@ -67,7 +67,7 @@ public:
         const std::string& name = "column"
     );
 
-    /// The two hidden blocks that widen a rectangular column's top head_height to a head_side square, from the section's first corner along its first and last edges: one beyond its far y side, one beyond its far x side, named `<name>_head_<i>`; WoodSession::add_column glues them on.
+    /// The two hidden blocks that widen a rectangular column's top head_height to a head_side square, from the section's first corner along its first and last edges: one beyond its far y side, one beyond its far x side, named `<name>_head_<i>`; Floor::add_column glues them on.
     std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const;
 
     /// The column an Element tagged "Column" describes, same guid; a missing payload leaves axis, section and cuts default.
