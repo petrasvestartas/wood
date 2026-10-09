@@ -100,7 +100,7 @@ struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
     std::array<std::shared_ptr<Plate>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
-    std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib and its four pins.
+    std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
     std::shared_ptr<JointPlate> cross_lap; // connector_cross_lap_<q>, the cr_c_ip half lap where the two column plates cross.
     std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
     std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
@@ -139,7 +139,7 @@ The wedge end on: `WEDGE_PROFILE` between the two beams, a pocket `2 * size / 3`
 
 ![The wedge end on](floor/994_parameters_wedge_section.webp)
 
-A column plate is a `Plate`; its four pins are `size_outer_ribs` long, through the rib. The two plates of a corner cross in a `cr_c_ip` half lap, `cross_lap`.
+A column plate is a `Plate` let into the column and its outer rib: two pins in the column and two in the rib, each `size_outer_ribs` long and bored through its member and the plate. The two plates of a corner cross in a `cr_c_ip` half lap, `cross_lap`.
 
 ![The column plates in plan](floor/995_parameters_plate.webp)
 
@@ -375,7 +375,17 @@ void Floor::add_oculus() {
 <details>
 <summary><b>Columns</b></summary>
 
-A column on its support at every corner, its head glued on and carved by the guide's six cutters.
+A column stands at every corner of the bay. `add_columns` calls `add_column(corner)` for each corner, and `add_column` puts one column into the group `quarter_<q>` > `column_<q>`:
+
+| Element | Type | What it does to the shaft |
+|---|---|---|
+| `column_<q>` | `Column` | the 220 square shaft on the support's axis, up to the floor top |
+| `column_<q>_head_0`, `_1` | `Block`, hidden | glued on, `SolidOperation::add`: the head widened to 340 over its top 730 |
+| `support_<q>` | `Support` | stands on the slab under the column |
+| `support` | `Joint::support` | lets the head plate into the column end and drills its three pins |
+| `column_cutters_<i>_<q>` | `Plate`, hidden, six | cut away, `SolidOperation::subtract`: the inclined faces the ribs and column blocks bear on |
+
+Each part is added with `add` and put on the shaft with `add_interaction`, so the shaft hosts every cut and the tree shows them under its features. The column plates that tie the column to its outer ribs come later, with the connectors. `floor.get_branch("column_0")` reads one column back as a session of its own.
 
 ```cpp
 // columns: the column at every corner, its head carved by the guide's cutters
@@ -398,7 +408,7 @@ void Floor::add_columns() {
 </details>
 
 <details>
-<summary>add_column(corner): the column, its head, support and cutters</summary>
+<summary>add_column(corner)</summary>
 
 ```cpp
 void Floor::add_column(size_t corner) {
@@ -450,6 +460,21 @@ void Floor::add_column(size_t corner) {
         add_interaction(cutter, shaft, cut);
     }
 }
+```
+
+The shaft first, then the head blocks glued on, the support and its seat, and last the six cutters: the order the shaft's features are applied in.
+
+![One column with its head, support and cutters](floor/924_column.webp)
+
+</details>
+
+</details>
+
+<details>
+<summary><b>Contacts</b></summary>
+
+The face every two members the design joins share, stored as a named contact interaction.
+
 ```cpp
 // contacts: per quarter an interaction between every two members that touch, named by its kind and place
 const std::array<QuarterContacts, 4> contacts = add_contacts();
@@ -607,7 +632,7 @@ No end plane, so it stops `1.5 * size` short at both ends; `size` is the thicker
 <summary>Column plates: a plate from the column into each outer rib, crossing in the head</summary>
 
 ```cpp
-// column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
+// column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
 for (size_t k = 0; k < 2; k++) {
     const Contact& column = quarter_contacts.column_plates[k];
     quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
@@ -636,7 +661,7 @@ The contact between the column head and the outer rib.
 
 ![The contact](floor/906_connector_plate_contact.webp)
 
-`JointBeam::let_in_plate` makes the plate, a `Plate` named after its contact. `JointBeam::rectangle_plate` lets it into the column and the rib: a pocket in both and four pins as long as the rib is thick, bored through all three.
+`JointBeam::let_in_plate` makes the plate, a `Plate` named after its contact. `JointBeam::rectangle_plate` lets it into the column and the rib: a pocket in both and two pins in each, as long as the rib is thick, each bored through its member and the plate.
 
 ![The plate and its pins](floor/907_connector_plate.webp)
 
@@ -708,7 +733,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             2.0 * thicker / 3.0
         );
 
-        // column plates: a plate on each outer rib, let into the column and the rib by a pocket and four pins through all three
+        // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
         for (size_t k = 0; k < 2; k++) {
             const Contact& column = quarter_contacts.column_plates[k];
             quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
