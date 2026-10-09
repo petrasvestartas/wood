@@ -65,82 +65,101 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 
 void Floor::add_quarters() {
 
-    for (size_t q = 0; q < 4; q++) {
-        const std::string suffix = fmt::format("_{}", q);
-        const std::shared_ptr<TreeNode> group = quarter_group(q);
-        QuarterMembers& members = quarters[q];
-        members = QuarterMembers();
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
 
-        const std::shared_ptr<TreeNode> beds = add_group("beds" + suffix, group);
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<TreeNode> group = quarter_group(q);
+
+        // beds: Plate, three rows of plates between the bed rails, beds_<row>_<i>_<q> under beds_<row>_<q>
+        const std::shared_ptr<TreeNode> beds = add_group(fmt::format("beds_{}", q), group);
         const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& rows = guide.bed_rails(q);
 
         for (size_t row = 0; row < rows.size(); row++) {
-            const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}{}", row, suffix), beds);
-            members.beds.push_back(Plate::row_between(rows[row][0], rows[row][1], "beds"));
+            const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}_{}", row, q), beds);
+            const std::vector<std::shared_ptr<Plate>> plates = Plate::row_between(rows[row][0], rows[row][1]);
 
-            for (size_t i = 0; i < members.beds.back().size(); i++)
-                add_placed(members.beds.back()[i], fmt::format("beds_{}_{}{}", row, i, suffix), node);
+            for (size_t i = 0; i < plates.size(); i++) {
+                plates[i]->name = fmt::format("beds_{}_{}_{}", row, i, q);
+                plates[i]->place(lift);
+                add(plates[i], node);
+            }
         }
 
-        const std::shared_ptr<TreeNode> tsections = add_group("tsections" + suffix, group);
+        // tsections: Plate, the flanges beside the ribs, tsections_<i>_<q>
+        const std::shared_ptr<TreeNode> tsections = add_group(fmt::format("tsections_{}", q), group);
         const std::array<std::array<Polyline, 2>, 6>& tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
-            members.tsections.push_back(std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], "tsections"));
-            add_placed(members.tsections.back(), fmt::format("tsections_{}{}", i, suffix), tsections);
+            const std::shared_ptr<Plate> tsection = std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], fmt::format("tsections_{}_{}", i, q));
+            tsection->place(lift);
+            add(tsection, tsections);
         }
 
-        const std::shared_ptr<TreeNode> outer = add_group("outer_ribs" + suffix, group);
+        // outer_ribs: BeamVariable, the two ribs along the bay edges, outer_ribs_<i>_<q>
+        const std::shared_ptr<TreeNode> outer = add_group(fmt::format("outer_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
-            members.outer_ribs.push_back(rib(outer_loops[i], "outer_ribs"));
-            add_placed(members.outer_ribs.back(), fmt::format("outer_ribs_{}{}", i, suffix), outer);
+            const std::shared_ptr<BeamVariable> outer_rib = rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
+            outer_rib->place(lift);
+            add(outer_rib, outer);
         }
 
-        const std::shared_ptr<TreeNode> inner = add_group("inner_ribs" + suffix, group);
+        // inner_ribs: BeamVariable, the two ribs from the column head to the inner beam corners, inner_ribs_<i>_<q>
+        const std::shared_ptr<TreeNode> inner = add_group(fmt::format("inner_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
-            members.inner_ribs.push_back(rib(inner_loops[i], "inner_ribs"));
-            add_placed(members.inner_ribs.back(), fmt::format("inner_ribs_{}{}", i, suffix), inner);
+            const std::shared_ptr<BeamVariable> inner_rib = rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
+            inner_rib->place(lift);
+            add(inner_rib, inner);
         }
 
-        const std::shared_ptr<TreeNode> wedges = add_group("wedges" + suffix, group);
+        // wedges: Plate, the three column blocks of the column head fan, wedges_<i>_<q>
+        const std::shared_ptr<TreeNode> wedges = add_group(fmt::format("wedges_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
-            members.wedges.push_back(std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], "wedges"));
-            add_placed(members.wedges.back(), fmt::format("wedges_{}{}", i, suffix), wedges);
+            const std::shared_ptr<Plate> block = std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], fmt::format("wedges_{}_{}", i, q));
+            block->place(lift);
+            add(block, wedges);
         }
 
-        const std::shared_ptr<TreeNode> beams = add_group("inner_beams" + suffix, group);
+        // inner_beams: BeamVariable, seam beam 0, the oculus beam and seam beam 1, inner_beams_<i>_<q>
+        const std::shared_ptr<TreeNode> beams = add_group(fmt::format("inner_beams_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
-            members.inner_beams.push_back(beam(beam_loops[i], {0, 3}, {1, 2}, "inner_beams"));
-            add_placed(members.inner_beams.back(), fmt::format("inner_beams_{}{}", i, suffix), beams);
+            const std::shared_ptr<BeamVariable> inner_beam = beam(beam_loops[i], {0, 3}, {1, 2}, fmt::format("inner_beams_{}_{}", i, q));
+            inner_beam->place(lift);
+            add(inner_beam, beams);
         }
     }
 }
 
 void Floor::add_oculus() {
 
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
-    ring.clear();
-    oculus_plates.clear();
 
-    for (size_t i = 0; i < loops.size(); i++) {
-        const std::shared_ptr<TreeNode> group = i < 8 ? group_named(fmt::format("oculus_{}", i % 4), quarter_group(i % 4)) : group_named("oculus");
-
-        if (i < 4) {
-            ring.push_back(beam(loops[i], {1, 0}, {2, 3}, "oculus"));
-            add_placed(ring.back(), fmt::format("oculus_{}", i), group);
-        } else {
-            oculus_plates.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], "oculus"));
-            add_placed(oculus_plates.back(), fmt::format("oculus_{}", i), group);
-        }
+    // ring beams: BeamVariable, oculus_<q> in oculus_<q> of quarter q
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<BeamVariable> ring_beam = beam(loops[q], {1, 0}, {2, 3}, fmt::format("oculus_{}", q));
+        ring_beam->place(lift);
+        add(ring_beam, group_named(fmt::format("oculus_{}", q), quarter_group(q)));
     }
+
+    // bottom wedges: Plate, oculus_<4 + q> under ring beam q, in the same group
+    for (size_t q = 0; q < 4; q++) {
+        const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
+        bottom_wedge->place(lift);
+        add(bottom_wedge, group_named(fmt::format("oculus_{}", q), quarter_group(q)));
+    }
+
+    // central plate: Plate, oculus_8 in oculus
+    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
+    plate->place(lift);
+    add(plate, group_named("oculus"));
 }
 
 void Floor::add_columns() {
@@ -153,24 +172,11 @@ void Floor::add_column(size_t corner) {
 
     const size_t k = corner % 4;
     const std::shared_ptr<TreeNode> group = group_named(fmt::format("column_{}", k), quarter_group(k));
-
-    if (columns.size() < 4)
-        columns.resize(4);
-
-    const WoodSession session = column(guide, k);
-    graft(session, group);
-    columns[k] = get_element<Column>(session.columns().front()->guid());
+    graft(column(guide, k), group);
 }
 
 std::shared_ptr<TreeNode> Floor::quarter_group(size_t q) {
     return group_named(fmt::format("quarter_{}", q));
-}
-
-void Floor::add_placed(const std::shared_ptr<Element>& element, const std::string& name, const std::shared_ptr<TreeNode>& group) {
-
-    element->place(Xform::translation(0.0, 0.0, guide.bay_height));
-    element->name = name;
-    add(element, group);
 }
 
 std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
@@ -219,23 +225,22 @@ std::shared_ptr<BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, 
 void Floor::add_contacts() {
 
     for (size_t q = 0; q < 4; q++) {
-        const QuarterMembers& members = quarters[q];
-        const QuarterMembers& next = quarters[(q + 1) % 4];
         const std::string place = std::to_string(q);
+        const auto named = [this, q](const std::string& family, size_t i) { return member<Element>(fmt::format("{}_{}_{}", family, i, q)); };
 
-        add_contact(ContactKind::seam_wedge, place, members.inner_beams[0], next.inner_beams[2]);
-        add_contact(ContactKind::oculus_wedge, place, members.inner_beams[1], ring[q]);
+        add_contact(ContactKind::seam_wedge, place, named("inner_beams", 0), member<Element>(fmt::format("inner_beams_2_{}", (q + 1) % 4)));
+        add_contact(ContactKind::oculus_wedge, place, named("inner_beams", 1), member<Element>(fmt::format("oculus_{}", q)));
 
         for (size_t k = 0; k < 2; k++)
-            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), columns[q], members.outer_ribs[k]);
+            add_contact(ContactKind::column_plate, fmt::format("{}_{}", q, k), member<Element>(fmt::format("column_{}", q)), named("outer_ribs", k));
 
         // each column block on the two ribs either side of it
-        add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), members.outer_ribs[0], members.wedges[0]);
-        add_contact(ContactKind::block_dowels, fmt::format("{}_2_1", q), members.outer_ribs[1], members.wedges[2]);
-        add_contact(ContactKind::block_dowels, fmt::format("{}_0_1", q), members.inner_ribs[0], members.wedges[0]);
-        add_contact(ContactKind::block_dowels, fmt::format("{}_1_0", q), members.inner_ribs[0], members.wedges[1]);
-        add_contact(ContactKind::block_dowels, fmt::format("{}_1_1", q), members.inner_ribs[1], members.wedges[1]);
-        add_contact(ContactKind::block_dowels, fmt::format("{}_2_0", q), members.inner_ribs[1], members.wedges[2]);
+        add_contact(ContactKind::block_dowels, fmt::format("{}_0_0", q), named("outer_ribs", 0), named("wedges", 0));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_2_1", q), named("outer_ribs", 1), named("wedges", 2));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_0_1", q), named("inner_ribs", 0), named("wedges", 0));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_1_0", q), named("inner_ribs", 0), named("wedges", 1));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_1_1", q), named("inner_ribs", 1), named("wedges", 1));
+        add_contact(ContactKind::block_dowels, fmt::format("{}_2_0", q), named("inner_ribs", 1), named("wedges", 2));
     }
 }
 
@@ -280,7 +285,7 @@ void Floor::add_connectors() {
     std::sort(found.begin(), found.end(), [](const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& x, const std::tuple<ContactKind, std::string, std::shared_ptr<Element>, std::shared_ptr<Element>, std::shared_ptr<InteractionContactFace>>& y) { return std::make_pair(std::get<0>(x), std::get<1>(x)) < std::make_pair(std::get<0>(y), std::get<1>(y)); });
 
     // every connector first, so a failing one throws before anything is added or cut
-    std::vector<std::tuple<ContactKind, std::string, size_t, std::shared_ptr<JointBeam>>> built;
+    std::vector<std::tuple<std::string, size_t, std::shared_ptr<JointBeam>>> built;
     std::map<size_t, std::vector<std::shared_ptr<JointBeam>>> plates_of_corner;
 
     for (const auto& [kind, name, a, b, contact] : found) {
@@ -291,23 +296,20 @@ void Floor::add_connectors() {
         for (std::string index; std::getline(indices, index, '_');)
             place.push_back(static_cast<size_t>(std::stoul(index)));
 
-        built.push_back({kind, connector_prefix(kind), place[0], connector_of(kind, place, *a, *b, *contact)});
+        built.push_back({connector_prefix(kind), place[0], connector_of(kind, place, *a, *b, *contact)});
 
         if (kind == ContactKind::column_plate)
-            plates_of_corner[place[0]].push_back(std::get<3>(built.back()));
+            plates_of_corner[place[0]].push_back(std::get<2>(built.back()));
     }
 
     for (const auto& [corner, plates] : plates_of_corner)
         if (plates.size() == 2)
-            built.push_back({ContactKind::column_plate, "connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
+            built.push_back({"connector_cross_lap", corner, JointBeam::cross_lap(*plates[0], *plates[1])});
 
     std::map<std::string, size_t> numbers;
 
-    for (const auto& [kind, prefix, q, connector] : built) {
+    for (const auto& [prefix, q, connector] : built)
         add_named_connector(connector, prefix, q, numbers);
-        connectors.push_back(connector);
-        connectors_by_kind[static_cast<size_t>(kind)].push_back(connector);
-    }
 }
 
 std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vector<size_t>& place, const Element& a, const Element& b, const InteractionContactFace& contact) const {
@@ -337,14 +339,7 @@ std::shared_ptr<JointBeam> Floor::connector_of(ContactKind kind, const std::vect
 }
 
 std::string Floor::connector_prefix(ContactKind kind) {
-
-    if (kind == ContactKind::seam_wedge || kind == ContactKind::oculus_wedge)
-        return "connector_wedge";
-
-    if (kind == ContactKind::column_plate)
-        return "connector";
-
-    return "connector_dowels";
+    return "connector_" + CONTACT_NAMES[static_cast<size_t>(kind)];
 }
 
 void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q, std::map<std::string, size_t>& numbers) {
@@ -367,20 +362,20 @@ void Floor::add_screws() {
 
     // every screw connector first, so a bay too narrow for them throws with nothing added
     for (size_t q = 0; q < 4; q++) {
-        const QuarterMembers& members = quarters[q];
+        const auto named = [this, q](const std::string& family, size_t i) { return member<Element>(fmt::format("{}_{}_{}", family, i, q)).get(); };
 
         for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({members.outer_ribs[k].get(), members.inner_beams[k == 0 ? 0 : 2].get()}, rib_beam_screws(q, k))});
+            built.push_back({q, screws_of({named("outer_ribs", k), named("inner_beams", k == 0 ? 0 : 2)}, rib_beam_screws(q, k))});
 
         for (size_t k = 0; k < 2; k++)
-            built.push_back({q, screws_of({members.inner_beams[k == 0 ? 0 : 2].get(), members.inner_beams[1].get()}, beam_mitre_screws(q, k))});
+            built.push_back({q, screws_of({named("inner_beams", k == 0 ? 0 : 2), named("inner_beams", 1)}, beam_mitre_screws(q, k))});
 
         for (size_t k = 0; k < 2; k++) {
             const std::vector<Line> screw_lines = rib_corner_screws(q, k);
-            std::vector<const Element*> passed = {members.inner_beams[1].get(), members.inner_ribs[k].get()};
+            std::vector<const Element*> passed = {named("inner_beams", 1), named("inner_ribs", k)};
 
             if (passes_seam_beam(q, k, screw_lines))
-                passed.push_back(members.inner_beams[k == 0 ? 0 : 2].get());
+                passed.push_back(named("inner_beams", k == 0 ? 0 : 2));
 
             built.push_back({q, screws_of(passed, screw_lines)});
         }
@@ -388,10 +383,8 @@ void Floor::add_screws() {
 
     std::map<std::string, size_t> numbers;
 
-    for (const auto& [q, connector] : built) {
+    for (const auto& [q, connector] : built)
         add_named_connector(connector, "connector_screws", q, numbers);
-        screws.push_back(connector);
-    }
 }
 
 std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {

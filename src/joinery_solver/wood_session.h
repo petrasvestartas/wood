@@ -262,6 +262,34 @@ public:
         return out;
     }
 
+    /// The element named name as T, or null when the scene holds none of that name and type.
+    template <class T>
+    std::shared_ptr<T> get_element_by_name(const std::string& name) const {
+
+        for (const std::shared_ptr<Element>& element : *objects.elements)
+            if (element && element->name == name)
+                if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
+                    return object;
+
+        return nullptr;
+    }
+
+    /// Every element of type T named `<prefix>_<n>`, n a number, in objects.elements order.
+    template <class T>
+    std::vector<std::shared_ptr<T>> get_elements_numbered(const std::string& prefix) const {
+
+        std::vector<std::shared_ptr<T>> out;
+        for (const std::shared_ptr<Element>& element : *objects.elements)
+            if (element && numbered(element->name, prefix))
+                if (const std::shared_ptr<T> object = std::dynamic_pointer_cast<T>(element))
+                    out.push_back(object);
+
+        return out;
+    }
+
+    /// Whether name is `<prefix>_<n>`, n a number.
+    static bool numbered(const std::string& name, const std::string& prefix);
+
     /// Every live element, in insertion order; the list objects.elements holds, no copy.
     const Collection<std::shared_ptr<Element>>& elements() const {
         return *objects.elements;

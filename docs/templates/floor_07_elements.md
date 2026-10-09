@@ -38,15 +38,15 @@ Code: `Floor::add_members`, [floor.cpp:52-58](https://github.com/petrasvestartas
 
 Code: `Floor::quarter_group`, [floor.cpp:159-161](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L159-L161); `Session::group_named`, [session_cpp session.cpp:1145-1155](https://github.com/petrasvestartas/session_cpp/blob/22aba8a5262db321692f89d27f73c334772c9c5d/src/session.cpp#L1145-L1155).
 
-## 204. add_placed
+## 204. The lift to the floor
 
 ![](floor/204_add_placed.webp)
 
 <span style="color:#2196EA">■ built</span> `outer_ribs_0_0` at the floor   <span style="color:#737373">■ input</span> its loops at the datum, dashed
 
-`add_placed` moves each new element up by `bay_height` (3500), names it and adds it under its group; the guide's loops all lie at the datum z 0.
+Each new element is made with its name, moved up by `bay_height` (3500) with `place(lift)` and added under its group; the guide's loops all lie at the datum z 0.
 
-Code: `Floor::add_placed`, [floor.cpp:163-168](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L163-L168).
+Code: `Floor::add_quarters`.
 
 ## 205. A bed row
 
@@ -166,7 +166,7 @@ Code: `Floor::add_quarters`, [floor.cpp:111-117](https://github.com/petrasvestar
 
 `add_quarters` runs the same code for every quarter at its own corner, the families in the order beds, tsections, outer_ribs, inner_ribs, wedges, inner_beams, each in its group under `quarter_q`; `quarters[q]` keeps them by family.
 
-Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L60-L119); `QuarterMembers`, [floor.h:27-36](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.h#L27-L36).
+Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L60-L119).
 
 ## 217. add_oculus: the ring beams
 

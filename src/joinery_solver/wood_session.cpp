@@ -1474,14 +1474,15 @@ size_t WoodSession::next_number(const std::string& prefix) const {
 
     size_t next = 0;
 
-    for (const std::shared_ptr<Element>& element : *objects.elements) {
-        const std::string& name = element->name;
-
-        if (name.size() > prefix.size() + 1 && name.compare(0, prefix.size() + 1, prefix + "_") == 0 && std::all_of(name.begin() + prefix.size() + 1, name.end(), ::isdigit))
-            next = std::max(next, static_cast<size_t>(std::stoul(name.substr(prefix.size() + 1))) + 1);
-    }
+    for (const std::shared_ptr<Element>& element : *objects.elements)
+        if (numbered(element->name, prefix))
+            next = std::max(next, static_cast<size_t>(std::stoul(element->name.substr(prefix.size() + 1))) + 1);
 
     return next;
+}
+
+bool WoodSession::numbered(const std::string& name, const std::string& prefix) {
+    return name.size() > prefix.size() + 1 && name.compare(0, prefix.size() + 1, prefix + "_") == 0 && std::all_of(name.begin() + prefix.size() + 1, name.end(), ::isdigit);
 }
 
 void WoodSession::compute_breps() {

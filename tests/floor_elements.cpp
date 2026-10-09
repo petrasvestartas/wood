@@ -49,6 +49,39 @@ void check(bool ok, const std::string& message) {
     }
 }
 
+/// The element of the floor named name as T; fails naming it when there is none.
+template <class T>
+std::shared_ptr<T> named(const WoodSession& scene, const std::string& name) {
+
+    const std::shared_ptr<T> element = scene.get_element_by_name<T>(name);
+    check(element != nullptr, "an element named " + name);
+    return element;
+}
+
+/// The connectors of one contact kind, `connector_<kind>_<n>`; a column plate's also the corners' cross laps after the plates.
+std::vector<std::shared_ptr<JointBeam>> connectors_of(const WoodSession& scene, wood_floor::ContactKind kind) {
+
+    std::vector<std::shared_ptr<JointBeam>> connectors = scene.get_elements_numbered<JointBeam>("connector_" + wood_floor::Floor::CONTACT_NAMES[static_cast<size_t>(kind)]);
+
+    if (kind == wood_floor::ContactKind::column_plate)
+        for (const std::shared_ptr<JointBeam>& lap : scene.get_elements_numbered<JointBeam>("connector_cross_lap"))
+            connectors.push_back(lap);
+
+    return connectors;
+}
+
+/// Every connector of the floor but the screws: each kind's, then the cross laps.
+std::vector<std::shared_ptr<JointBeam>> all_connectors(const WoodSession& scene) {
+
+    std::vector<std::shared_ptr<JointBeam>> connectors;
+
+    for (const wood_floor::ContactKind kind : {wood_floor::ContactKind::seam_wedge, wood_floor::ContactKind::oculus_wedge, wood_floor::ContactKind::column_plate, wood_floor::ContactKind::block_dowels})
+        for (const std::shared_ptr<JointBeam>& connector : connectors_of(scene, kind))
+            connectors.push_back(connector);
+
+    return connectors;
+}
+
 /// The beam is closed, has the face count, and encloses the volume of the plate lofted from the same outline.
 void check_beam(const BeamVariable& beam, const std::array<Polyline, 2>& outline, size_t faces, const std::string& name) {
 
@@ -72,19 +105,19 @@ void check_beams() {
     std::vector<std::shared_ptr<BeamVariable>> beams;
 
     for (size_t i = 0; i < 2; i++) {
-        check_beam(*floor.quarters[0].outer_ribs[i], outer[i], 11, "outer rib " + std::to_string(i));
-        check_beam(*floor.quarters[0].inner_ribs[i], inner[i], 11, "inner rib " + std::to_string(i));
-        beams.insert(beams.end(), {floor.quarters[0].outer_ribs[i], floor.quarters[0].inner_ribs[i]});
+        check_beam(*named<BeamVariable>(floor, fmt::format("outer_ribs_{}_0", i)), outer[i], 11, "outer rib " + std::to_string(i));
+        check_beam(*named<BeamVariable>(floor, fmt::format("inner_ribs_{}_0", i)), inner[i], 11, "inner rib " + std::to_string(i));
+        beams.insert(beams.end(), {named<BeamVariable>(floor, fmt::format("outer_ribs_{}_0", i)), named<BeamVariable>(floor, fmt::format("inner_ribs_{}_0", i))});
     }
 
     for (size_t i = 0; i < 3; i++) {
-        check_beam(*floor.quarters[0].inner_beams[i], beam_loops[i], 6, "inner beam " + std::to_string(i));
-        beams.push_back(floor.quarters[0].inner_beams[i]);
+        check_beam(*named<BeamVariable>(floor, fmt::format("inner_beams_{}_0", i)), beam_loops[i], 6, "inner beam " + std::to_string(i));
+        beams.push_back(named<BeamVariable>(floor, fmt::format("inner_beams_{}_0", i)));
     }
 
     for (size_t i = 0; i < 4; i++) {
-        check_beam(*floor.ring[i], oculus[i], 6, "ring beam " + std::to_string(i));
-        beams.push_back(floor.ring[i]);
+        check_beam(*named<BeamVariable>(floor, fmt::format("oculus_{}", i)), oculus[i], 6, "ring beam " + std::to_string(i));
+        beams.push_back(named<BeamVariable>(floor, fmt::format("oculus_{}", i)));
     }
 
     const WoodSession back = WoodSession::pb_loads(floor.pb_dumps());
@@ -246,8 +279,9 @@ std::vector<std::shared_ptr<BeamVariable>> outer_ribs(const wood_floor::Floor& f
 
     std::vector<std::shared_ptr<BeamVariable>> ribs;
 
-    for (const wood_floor::QuarterMembers& quarter : floor.quarters)
-        ribs.insert(ribs.end(), quarter.outer_ribs.begin(), quarter.outer_ribs.end());
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++)
+            ribs.push_back(named<BeamVariable>(floor, fmt::format("outer_ribs_{}_{}", k, q)));
 
     return ribs;
 }
@@ -293,7 +327,7 @@ void check_skewed_bays() {
 
     const wood_floor::FloorGuide guide({Point(0.0, 0.0, 0.0), Point(6000.0, 0.0, 0.0), Point(6600.0, 6000.0, 0.0), Point(0.0, 6000.0, 0.0)});
     const wood_floor::Floor scene(guide, "skewed");
-    const size_t connectors = scene.connectors.size();
+    const size_t connectors = all_connectors(scene).size();
     check(connectors == 44, "the skewed bay's 44 connectors, not " + std::to_string(connectors));
 
     const wood_floor::FloorGuide small({Point(0.0, 0.0, 0.0), Point(4000.0, 0.0, 0.0), Point(4400.0, 3000.0, 0.0), Point(0.0, 3000.0, 0.0)});
@@ -313,13 +347,14 @@ void check_skewed_bays() {
 void check_connector_calls() {
 
     const wood_floor::Floor floor(square_guide());
-    check(floor.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::column_plate)].size() == 12, "the columns' plates and cross laps");
+    check(connectors_of(floor, wood_floor::ContactKind::column_plate).size() == 12, "the columns' plates and cross laps");
 
+    const std::vector<std::shared_ptr<JointBeam>> connectors = all_connectors(floor);
     std::set<std::string> names;
-    for (const std::shared_ptr<JointBeam>& connector : floor.connectors)
+    for (const std::shared_ptr<JointBeam>& connector : connectors)
         names.insert(connector->name);
 
-    check(names.size() == floor.connectors.size() && names.count("connector_wedge_7"), fmt::format("{} connectors named apart, up to connector_wedge_7", names.size()));
+    check(names.size() == connectors.size() && names.count("connector_oculus_wedge_3"), fmt::format("{} connectors named apart, up to connector_oculus_wedge_3", names.size()));
 
     bool narrow = false;
 
@@ -391,8 +426,8 @@ void check_contacts() {
 void check_wedges() {
 
     wood_floor::Floor scene(square_guide(), "wedges");
-    std::vector<std::shared_ptr<JointBeam>> wedges = scene.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::seam_wedge)];
-    const std::vector<std::shared_ptr<JointBeam>>& oculus_wedges = scene.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::oculus_wedge)];
+    std::vector<std::shared_ptr<JointBeam>> wedges = connectors_of(scene, wood_floor::ContactKind::seam_wedge);
+    const std::vector<std::shared_ptr<JointBeam>> oculus_wedges = connectors_of(scene, wood_floor::ContactKind::oculus_wedge);
     wedges.insert(wedges.end(), oculus_wedges.begin(), oculus_wedges.end());
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
 
@@ -419,7 +454,7 @@ void check_wedges() {
     size_t loaded = 0;
 
     for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>()) {
-        if (std::dynamic_pointer_cast<ConnectorPart>(joint) || !joint->name.starts_with("connector_wedge"))
+        if (std::dynamic_pointer_cast<ConnectorPart>(joint) || !(joint->name.starts_with("connector_seam_wedge") || joint->name.starts_with("connector_oculus_wedge")))
             continue;
 
         check(joint->parts.size() == 1 && joint->cutters.size() == 2 && !joint->drill_lines.empty(), "wedge round trip");
@@ -491,7 +526,7 @@ void check_seam_beams() {
     }
 
     wood_floor::Floor scene(guide, "seam_beams");
-    const std::vector<std::shared_ptr<JointBeam>>& wedges = scene.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::seam_wedge)];
+    const std::vector<std::shared_ptr<JointBeam>> wedges = connectors_of(scene, wood_floor::ContactKind::seam_wedge);
 
     for (size_t i = 0; i < wedges.size(); i++) {
         const Plane face = guide.construction_planes(i).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
@@ -749,10 +784,11 @@ void check_dowels() {
 }
 
 /// Every inner rib is exact, bored once per dowel of the sets that join it.
-void check_inner_rib_bores(const std::array<wood_floor::QuarterMembers, 4>& quarters, const std::vector<std::shared_ptr<JointBeam>>& sets) {
+void check_inner_rib_bores(const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& sets) {
 
-    for (const wood_floor::QuarterMembers& quarter : quarters)
-        for (const std::shared_ptr<BeamVariable>& rib : quarter.inner_ribs) {
+    for (size_t q = 0; q < 4; q++)
+        for (size_t k = 0; k < 2; k++) {
+            const std::shared_ptr<BeamVariable> rib = named<BeamVariable>(scene, fmt::format("inner_ribs_{}_{}", k, q));
             size_t crossing = 0;
 
             for (const std::shared_ptr<JointBeam>& set : sets)
@@ -787,7 +823,7 @@ void check_drilled_members(const WoodSession& scene) {
 void check_quarter_dowels() {
 
     wood_floor::Floor scene(square_guide(), "quarter_dowels");
-    const std::vector<std::shared_ptr<JointBeam>>& sets = scene.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::block_dowels)];
+    const std::vector<std::shared_ptr<JointBeam>> sets = connectors_of(scene, wood_floor::ContactKind::block_dowels);
     size_t dowels = 0;
 
     for (const std::shared_ptr<JointBeam>& set : sets) {
@@ -806,14 +842,14 @@ void check_quarter_dowels() {
     }
 
     check(sets.size() == 24, "six rib-to-block dowel sets per quarter, not " + std::to_string(sets.size()));
-    check_inner_rib_bores(scene.quarters, sets);
+    check_inner_rib_bores(scene, sets);
     check_drilled_members(scene);
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
 
     for (const std::shared_ptr<JointBeam>& set : back.get_elements<JointBeam>())
-        if (!std::dynamic_pointer_cast<ConnectorPart>(set) && set->name.starts_with("connector_dowels"))
+        if (!std::dynamic_pointer_cast<ConnectorPart>(set) && set->name.starts_with("connector_block_dowels"))
             loaded += set->drill_lines.size();
 
     check(loaded == dowels, "quarter dowels round trip");
@@ -852,7 +888,7 @@ void check_rectangle_plates() {
 
     wood_floor::Floor scene(square_guide(), "rectangle_plates");
     const std::vector<std::shared_ptr<BeamVariable>> ribs = outer_ribs(scene);
-    const std::vector<std::shared_ptr<JointBeam>>& joints = scene.connectors_by_kind[static_cast<size_t>(wood_floor::ContactKind::column_plate)];
+    const std::vector<std::shared_ptr<JointBeam>> joints = connectors_of(scene, wood_floor::ContactKind::column_plate);
     check(joints.size() == 12, "eight rectangle plates and four cross laps, not " + std::to_string(joints.size()));
     const std::vector<std::shared_ptr<JointBeam>> plates(joints.begin(), joints.begin() + 8);
     const std::vector<std::shared_ptr<JointBeam>> laps(joints.begin() + 8, joints.end());
@@ -860,10 +896,10 @@ void check_rectangle_plates() {
     for (const std::shared_ptr<BeamVariable>& rib : ribs)
         check(std::abs(compute_volume(rib->model_geometry_mesh()) - CARVED_OUTER_RIB) <= 1e-9 * CARVED_OUTER_RIB, fmt::format("carved outer rib {} {:.6f}", rib->name, compute_volume(rib->model_geometry_mesh())));
 
-    check(laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_7", "four cross laps after the eight plates");
+    check(laps.size() == 4 && laps[0]->name == "connector_cross_lap_0" && plates[7]->name == "connector_column_plate_7", "four cross laps after the eight plates");
     check_cross_laps(scene, laps);
 
-    for (const std::shared_ptr<Column>& column : scene.columns)
+    for (const std::shared_ptr<Column>& column : scene.columns())
         check(column->model_geometry_brep().is_solid() && count_bores(column->model_geometry_brep()) == 11, "the column exact with its eight dowel and three screw bores");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -1137,7 +1173,7 @@ void check_rectangle() {
     check(floor_flatness(guide) <= 1e-9, fmt::format("every member face planar, {:.3e} off", floor_flatness(guide)));
 
     const wood_floor::Floor scene(guide, "rectangle");
-    check(scene.connectors.size() == 44, "the rectangle's 44 connectors");
+    check(all_connectors(scene).size() == 44, "the rectangle's 44 connectors");
     std::cout << fmt::format("floor_elements: 3000 x 2400 faces planar within {:.1e}, 44 connectors", floor_flatness(guide)) << std::endl;
 }
 
@@ -1200,24 +1236,24 @@ std::map<std::string, size_t> check_connector_tree(const WoodSession& scene, con
 void check_floor_screws(const wood_floor::FloorGuide& guide, const std::string& label) {
 
     wood_floor::Floor scene(guide, "screws");
-    const std::vector<std::shared_ptr<JointBeam>>& screws = scene.screws;
-    std::vector<std::shared_ptr<JointBeam>> connectors = scene.connectors;
+    const std::vector<std::shared_ptr<JointBeam>> screws = scene.get_elements_numbered<JointBeam>("connector_screws");
+    std::vector<std::shared_ptr<JointBeam>> connectors = all_connectors(scene);
     connectors.insert(connectors.end(), screws.begin(), screws.end());
 
     // the two members each screw connector joins, in the order add_screws makes them
     std::vector<std::pair<std::string, std::array<std::shared_ptr<Element>, 2>>> joined;
 
     for (size_t q = 0; q < 4; q++) {
-        const wood_floor::QuarterMembers& members = scene.quarters[q];
+        const auto member = [&scene, q](const std::string& family, size_t i) { return named<Element>(scene, fmt::format("{}_{}_{}", family, i, q)); };
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"rib_beam", {members.outer_ribs[k], members.inner_beams[k == 0 ? 0 : 2]}});
+            joined.push_back({"rib_beam", {member("outer_ribs", k), member("inner_beams", k == 0 ? 0 : 2)}});
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"beam_mitre", {members.inner_beams[k == 0 ? 0 : 2], members.inner_beams[1]}});
+            joined.push_back({"beam_mitre", {member("inner_beams", k == 0 ? 0 : 2), member("inner_beams", 1)}});
 
         for (size_t k = 0; k < 2; k++)
-            joined.push_back({"rib_corner", {members.inner_beams[1], members.inner_ribs[k]}});
+            joined.push_back({"rib_corner", {member("inner_beams", 1), member("inner_ribs", k)}});
     }
 
     check(joined.size() == screws.size(), label + " one screw connector per pair of members");
