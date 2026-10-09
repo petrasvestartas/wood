@@ -13,10 +13,21 @@ Beam::Beam() : WoodElement("beam") {}
 Beam::Beam(const Polyline& axis, double radius, const std::string& name)
     : WoodElement(name), axis(axis), radii(axis.segment_count(), radius) {}
 
-Beam::Beam(const Polyline& axis, const std::vector<double>& radii, const std::vector<Vector>& directions, int allowed_type, const std::string& name)
+Beam::Beam(
+    const Polyline& axis,
+    const std::vector<double>& radii,
+    const std::vector<Vector>& directions,
+    int allowed_type,
+    const std::string& name
+)
     : WoodElement(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
 
-Beam::Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vector<Vector>& directions, const std::string& name)
+Beam::Beam(
+    const Polyline& axis,
+    const std::vector<Polyline>& profile,
+    const std::vector<Vector>& directions,
+    const std::string& name
+)
     : WoodElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0), directions(directions), profile(profile) {}
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -95,7 +106,21 @@ std::vector<Polyline> Beam::sections() const {
             along = along.normalized() + (points[i] - points[i - 1]).normalized();
 
         const Vector up = has_direction(segment) ? directions[segment] : Vector::z_axis();
-        sections.push_back(profile.empty() ? square_section(points[i], along, up, radius(segment)) : profile_section(points[i], along, up, profile[0]));
+        // a square of the segment's radius, or the profile's outer loop
+        if (profile.empty())
+            sections.push_back(square_section(
+                points[i],
+                along,
+                up,
+                radius(segment)
+            ));
+        else
+            sections.push_back(profile_section(
+                points[i],
+                along,
+                up,
+                profile[0]
+            ));
     }
 
     return sections;
@@ -109,8 +134,22 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
 
     std::pair<std::vector<Polyline>, std::vector<Polyline>> ends;
     for (const Polyline& ring : beam.profile) {
-        ends.first.push_back(profile_section(beam.axis.get_point(0), along, up, ring));
-        ends.second.push_back(profile_section(beam.axis.get_point(1), along, up, ring));
+        ends.first.push_back(
+            profile_section(
+                beam.axis.get_point(0),
+                along,
+                up,
+                ring
+            )
+        );
+        ends.second.push_back(
+            profile_section(
+                beam.axis.get_point(1),
+                along,
+                up,
+                ring
+            )
+        );
     }
 
     return ends;
@@ -171,7 +210,13 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<Beam> beam = std::make_shared<Beam>(axis.transformed(xform), radii, transformed_directions(directions, axis.segment_count(), xform), allowed_type, name);
+    std::shared_ptr<Beam> beam = std::make_shared<Beam>(
+        axis.transformed(xform),
+        radii,
+        transformed_directions(directions, axis.segment_count(), xform),
+        allowed_type,
+        name
+    );
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
     for (const auto& cut : solid_features)
@@ -318,7 +363,10 @@ std::optional<Plane> Beam::base_plane() const {
     if (axis.point_count() < 2 || rings.empty() || rings[0].point_count() < 2)
         return std::nullopt;
 
-    return frame_along(axis.get_point(0), rings[0].get_point(1) - rings[0].get_point(0), axis.get_point(1) - axis.get_point(0));
+    const Polyline& first_ring = rings[0];
+    const Vector ring_edge = first_ring.get_point(1) - first_ring.get_point(0);
+    const Vector axis_direction = axis.get_point(1) - axis.get_point(0);
+    return frame_along(axis.get_point(0), ring_edge, axis_direction);
 }
 
 } // namespace wood_session

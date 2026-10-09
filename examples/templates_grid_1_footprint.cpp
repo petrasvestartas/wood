@@ -25,9 +25,45 @@ const std::vector<Case> CASES = {
     {"triangular", {}, wood_grid::Pattern::triangular(6000.0, 4, 3), {}, wood_grid::Framing{.system = 1, .span = -1, .node = 0}},
     {"hexagonal", {}, wood_grid::Pattern::hexagonal(4000.0, 3, 2), {}, wood_grid::Framing{.system = 1, .span = -1, .node = 0, .profiles = {.column = profile_rectangle(240.0, 240.0), .girder = profile_rectangle(240.0, 400.0)}}},
     {"irregular", {Polyline({Point(0.0, 0.0, 0.0), Point(28000.0, 1500.0, 0.0), Point(30000.0, 14000.0, 0.0), Point(15000.0, 19000.0, 0.0), Point(-1000.0, 12000.0, 0.0), Point(0.0, 0.0, 0.0)})}, wood_grid::Pattern::from_lines({Line::from_points(Point(-2000.0, 5000.0, 0.0), Point(32000.0, 7000.0, 0.0)), Line::from_points(Point(-2000.0, 11000.0, 0.0), Point(32000.0, 12500.0, 0.0)), Line::from_points(Point(7000.0, -2000.0, 0.0), Point(5000.0, 21000.0, 0.0)), Line::from_points(Point(15000.0, -2000.0, 0.0), Point(16000.0, 21000.0, 0.0)), Line::from_points(Point(22000.0, -2000.0, 0.0), Point(24000.0, 21000.0, 0.0))}), {}, wood_grid::Framing{.system = 1, .span = -1, .node = 0}},
-    {"courtyard", {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 36576.0, 27432.0), Polyline({Point(12192.0, 9144.0, 0.0), Point(12192.0, 18288.0, 0.0), Point(24384.0, 18288.0, 0.0), Point(24384.0, 9144.0, 0.0), Point(12192.0, 9144.0, 0.0)})}, wood_grid::Pattern::orthogonal(wood_grid::compute_bays(36576.0, 9144.0), wood_grid::compute_bays(27432.0, 9144.0)), {}, wood_grid::Framing{.system = 1, .span = 0, .node = 2, .facade = true}},
+    {
+        "courtyard",
+        {
+            Polyline::rectangle(
+                Point(0.0, 0.0, 0.0),
+                X,
+                Y,
+                36576.0,
+                27432.0
+            ),
+            Polyline({Point(12192.0, 9144.0, 0.0), Point(12192.0, 18288.0, 0.0), Point(24384.0, 18288.0, 0.0), Point(24384.0, 9144.0, 0.0), Point(12192.0, 9144.0, 0.0)})
+        },
+        wood_grid::Pattern::orthogonal(wood_grid::compute_bays(36576.0, 9144.0), wood_grid::compute_bays(27432.0, 9144.0)),
+        {},
+        wood_grid::Framing{.system = 1, .span = 0, .node = 2, .facade = true}
+    },
     {"pentagon", {Polyline({Point(0.0, 0.0, 0.0), Point(13716.0, 13716.0, 0.0), Point(36576.0, 13716.0, 0.0), Point(36576.0, 27432.0, 0.0), Point(0.0, 27432.0, 0.0), Point(0.0, 0.0, 0.0)})}, wood_grid::Pattern::orthogonal(wood_grid::compute_bays(36576.0, 9144.0), wood_grid::compute_bays(27432.0, 9144.0)), {}, wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .profiles = GLULAM}},
-    {"cores", {Polyline({Point(0.0, 0.0, 0.0), Point(45720.0, 0.0, 0.0), Point(45720.0, 21336.0, 0.0), Point(18288.0, 21336.0, 0.0), Point(18288.0, 48768.0, 0.0), Point(45720.0, 48768.0, 0.0), Point(45720.0, 70104.0, 0.0), Point(0.0, 70104.0, 0.0), Point(0.0, 0.0, 0.0)})}, wood_grid::Pattern::orthogonal(wood_grid::compute_bays(45720.0, 9144.0), wood_grid::compute_bays(70104.0, 9144.0)), {Polyline::rectangle(Point(12192.0, 48768.0, 0.0), X, Y, 6096.0, 9144.0), Polyline::rectangle(Point(15240.0, 15240.0, 0.0), X, Y, 3048.0, 6096.0)}, wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .wall = 250.0, .profiles = GLULAM}},
+    {
+        "cores",
+        {Polyline({Point(0.0, 0.0, 0.0), Point(45720.0, 0.0, 0.0), Point(45720.0, 21336.0, 0.0), Point(18288.0, 21336.0, 0.0), Point(18288.0, 48768.0, 0.0), Point(45720.0, 48768.0, 0.0), Point(45720.0, 70104.0, 0.0), Point(0.0, 70104.0, 0.0), Point(0.0, 0.0, 0.0)})},
+        wood_grid::Pattern::orthogonal(wood_grid::compute_bays(45720.0, 9144.0), wood_grid::compute_bays(70104.0, 9144.0)),
+        {
+            Polyline::rectangle(
+                Point(12192.0, 48768.0, 0.0),
+                X,
+                Y,
+                6096.0,
+                9144.0
+            ),
+            Polyline::rectangle(
+                Point(15240.0, 15240.0, 0.0),
+                X,
+                Y,
+                3048.0,
+                6096.0
+            )
+        },
+        wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .wall = 250.0, .profiles = GLULAM}
+    },
 }; // an L with uneven bays and a facade, a skewed grid, radial, triangular and hexagonal cells, hand-drawn axes, a courtyard, Branch3D's pentagon and its institutional U with two cores
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
@@ -64,7 +100,12 @@ int main() {
         for (const Polyline& ring : item.cores)
             cores.push_back(ring.transformed(shift));
 
-        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, ELEVATIONS, item.pattern.transformed(shift), cores);
+        const wood_grid::Building building = wood_grid::Building::from_footprint(
+            footprint,
+            ELEVATIONS,
+            item.pattern.transformed(shift),
+            cores
+        );
         const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
         for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
             for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))

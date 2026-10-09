@@ -75,8 +75,26 @@ public:
         if (nx < 1 || ny < 1)
             throw std::invalid_argument("ReciprocalMove: nx and ny must be >= 1");
 
-        dome_mesh = _make_dome(nx, ny, W, D, h);
-        _build(dome_mesh, shift, beam_w, beam_h, extend_factor, cut_offset_factor, boundary_twist, boundary_ups, beam_up, corner_joint, through_priority);
+        dome_mesh = _make_dome(
+            nx,
+            ny,
+            W,
+            D,
+            h
+        );
+        _build(
+            dome_mesh,
+            shift,
+            beam_w,
+            beam_h,
+            extend_factor,
+            cut_offset_factor,
+            boundary_twist,
+            boundary_ups,
+            beam_up,
+            corner_joint,
+            through_priority
+        );
     }
 
     /// External mesh constructor — use any mesh as the base.
@@ -93,12 +111,30 @@ public:
                        const std::map<std::pair<size_t, size_t>, int>& through_priority = {})
     {
         dome_mesh = std::move(ext_mesh);
-        _build(dome_mesh, shift, beam_w, beam_h, extend_factor, cut_offset_factor, boundary_twist, boundary_ups, beam_up, corner_joint, through_priority);
+        _build(
+            dome_mesh,
+            shift,
+            beam_w,
+            beam_h,
+            extend_factor,
+            cut_offset_factor,
+            boundary_twist,
+            boundary_ups,
+            beam_up,
+            corner_joint,
+            through_priority
+        );
     }
 
 private:
 
-    static Mesh _make_dome(int nx, int ny, double W, double D, double h)
+    static Mesh _make_dome(
+        int nx,
+        int ny,
+        double W,
+        double D,
+        double h
+    )
     {
 
         std::vector<Point> pts;
@@ -265,14 +301,29 @@ private:
             int n = (int)faces[i].size();
             for (int j = 0; j < n; j++) {
                 int id = FEFlat[i][j];
-                std::optional<std::pair<int,int>> opp = opposite_face(faces, edge_to_fe, i, j);
+                std::optional<std::pair<int,int>> opp = opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    j
+                );
                 if (!opp)
                     continue;
 
                 he_adj[id].push_back(FEFlat[opp->first][opp->second]);
-                if (opposite_face(faces, edge_to_fe, i, (j+1)%n))
+                if (opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j+1)%n
+                ))
                     he_adj[id].push_back(FEFlat[i][(j+1)%n]);
-                if (opposite_face(faces, edge_to_fe, i, (j-1+n)%n))
+                if (opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j-1+n)%n
+                ))
                     he_adj[id].push_back(FEFlat[i][(j-1+n)%n]);
             }
         }
@@ -354,15 +405,35 @@ private:
 
                 const FELine cur = EF[i][j];  // local copy before in-place modification
 
-                std::optional<std::pair<int,int>> opp_next = opposite_face(faces, edge_to_fe, i, (j+1)%n);
+                std::optional<std::pair<int,int>> opp_next = opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j+1)%n
+                );
                 int tni = opp_next ? opp_next->first  : i;
                 int tnj = opp_next ? opp_next->second : (j+1)%n;
-                EF[i][j].to = _lcp1(cur.from, cur.dir, EF[tni][tnj].from, EF[tni][tnj].dir);
+                EF[i][j].to = _lcp1(
+                    cur.from,
+                    cur.dir,
+                    EF[tni][tnj].from,
+                    EF[tni][tnj].dir
+                );
 
-                std::optional<std::pair<int,int>> opp_prev = opposite_face(faces, edge_to_fe, i, (j-1+n)%n);
+                std::optional<std::pair<int,int>> opp_prev = opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j-1+n)%n
+                );
                 int tpi = opp_prev ? opp_prev->first  : i;
                 int tpj = opp_prev ? opp_prev->second : (j-1+n)%n;
-                EF[i][j].from = _lcp1(cur.from, cur.dir, EF[tpi][tpj].from, EF[tpi][tpj].dir);
+                EF[i][j].from = _lcp1(
+                    cur.from,
+                    cur.dir,
+                    EF[tpi][tpj].from,
+                    EF[tpi][tpj].dir
+                );
             }
         }
         std::vector<Vector> face_norms(nf);
@@ -379,8 +450,8 @@ private:
                 continue;
 
             for (int j = 0; j < n; j++) {
-                Vector sum(0, 0, 0);
-                for (const auto& [fi, fj] : edge_to_fe.at(wood_reciprocal::edge_key(faces[i][j], faces[i][(j + 1) % n])))
+                Vector sum(0, 0, 0);const std::pair<size_t, size_t> key = wood_reciprocal::edge_key(faces[i][j], faces[i][(j + 1) % n]);
+                for (const auto& [fi, fj] : edge_to_fe.at(key))
                     sum += upward_norms[fi];
 
                 if (!sum.is_zero())
@@ -392,7 +463,18 @@ private:
         for (size_t v = 0; v < pts.size(); v++)
             vertex_points.emplace(v, pts[v]);
 
-        wood_reciprocal::BoundaryFrame frame = wood_reciprocal::boundary_frame(faces, edge_to_fe, vertex_points, upward_norms, beam_w, beam_h, boundary_twist, boundary_ups, corner_joint, through_priority);
+        wood_reciprocal::BoundaryFrame frame = wood_reciprocal::boundary_frame(
+            faces,
+            edge_to_fe,
+            vertex_points,
+            upward_norms,
+            beam_w,
+            beam_h,
+            boundary_twist,
+            boundary_ups,
+            corner_joint,
+            through_priority
+        );
         for (size_t k = 0; k < frame.naked.size(); k++) {
             const Vector& dir = frame.directions[k];
             if (dir.is_zero())
@@ -400,8 +482,19 @@ private:
 
             const Point& pu = pts[wood_reciprocal::half_edge_start(faces, frame.naked[k])];
             const Point& pv = pts[wood_reciprocal::half_edge_end(faces, frame.naked[k])];
-            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h, wood_reciprocal::unbounded(frame.cut_from[k]), wood_reciprocal::unbounded(frame.cut_to[k]));
-            wood_reciprocal::store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
+            const std::vector<wood_reciprocal::CutFace> cuts_from = wood_reciprocal::unbounded(frame.cut_from[k]);
+            const std::vector<wood_reciprocal::CutFace> cuts_to = wood_reciprocal::unbounded(frame.cut_to[k]);
+            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h,
+                cuts_from,
+                cuts_to);
+            wood_reciprocal::store_beam(
+                bg,
+                boundary_beams,
+                boundary_side0,
+                boundary_side1,
+                boundary_beam_bottom,
+                boundary_beam_top
+            );
         }
         for (int i = 0; i < nf; i++) {
             int n = (int)faces[i].size();
@@ -413,11 +506,26 @@ private:
 
                 const Vector& up = half_edge_ups[i][j];
 
-                if (!opposite_face(faces, edge_to_fe, i, j))
+                if (!opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    j
+                ))
                     continue;
 
-                std::optional<std::pair<int,int>> op_to   = opposite_face(faces, edge_to_fe, i, (j + 1) % n);
-                std::optional<std::pair<int,int>> op_from = opposite_face(faces, edge_to_fe, i, (j - 1 + n) % n);
+                std::optional<std::pair<int,int>> op_to   = opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j + 1) % n
+                );
+                std::optional<std::pair<int,int>> op_from = opposite_face(
+                    faces,
+                    edge_to_fe,
+                    i,
+                    (j - 1 + n) % n
+                );
 
                 Point our_center = Point::mid_point(EF[i][j].from, EF[i][j].to);
                 const Vector& bdir = EF[i][j].dir;
@@ -425,16 +533,42 @@ private:
                 std::vector<wood_reciprocal::CutFace> cuts_to = op_to
                     ? wood_reciprocal::unbounded(cut_plane(EF, half_edge_ups, i, bdir, our_center, beam_w, cut_offset_factor,
                                                            op_to->first, op_to->second, EF[i][j].to))
-                    : wood_reciprocal::boundary_cuts_or(frame, faces[i][(j + 1) % n], bdir, Plane::from_point_normal(EF[i][j].to, bdir));
+                    : wood_reciprocal::boundary_cuts_or(
+                        frame,
+                        faces[i][(j + 1) % n],
+                        bdir,
+                        Plane::from_point_normal(EF[i][j].to, bdir)
+                    );
                 std::vector<wood_reciprocal::CutFace> cuts_from = op_from
                     ? wood_reciprocal::unbounded(cut_plane(EF, half_edge_ups, i, bdir, our_center, beam_w, cut_offset_factor,
                                                            op_from->first, op_from->second, EF[i][j].from))
-                    : wood_reciprocal::boundary_cuts_or(frame, faces[i][j], bdir, Plane::from_point_normal(EF[i][j].from, bdir));
-                wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(EF[i][j].from, EF[i][j].to, bdir, up, beam_w, beam_h, cuts_from, cuts_to);
+                    : wood_reciprocal::boundary_cuts_or(
+                        frame,
+                        faces[i][j],
+                        bdir,
+                        Plane::from_point_normal(EF[i][j].from, bdir)
+                    );
+                wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(
+                    EF[i][j].from,
+                    EF[i][j].to,
+                    bdir,
+                    up,
+                    beam_w,
+                    beam_h,
+                    cuts_from,
+                    cuts_to
+                );
                 if (bg.mesh.number_of_vertices() == 0)
                     continue;
 
-                wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
+                wood_reciprocal::store_beam(
+                    bg,
+                    beams,
+                    side0,
+                    side1,
+                    beam_bottom,
+                    beam_top
+                );
                 beam_dirs.push_back({bdir[0], bdir[1], bdir[2]});
                 beam_ups.push_back({up[0], up[1], up[2]});
             }

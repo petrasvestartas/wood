@@ -48,7 +48,9 @@ static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_
 
     for (std::array<size_t, 3>& triangle : triangles) {
         const Point a = mesh.vertex_point(triangle[0]).value();
-        const Vector side = (mesh.vertex_point(triangle[1]).value() - a).cross(mesh.vertex_point(triangle[2]).value() - a);
+        const Point b = mesh.vertex_point(triangle[1]).value();
+        const Point c = mesh.vertex_point(triangle[2]).value();
+        const Vector side = (b - a).cross(c - a);
 
         if (side.dot(normal) < 0.0)
             std::swap(triangle[1], triangle[2]);
@@ -256,7 +258,12 @@ static std::vector<uint64_t> compute_loop(const manifold::MeshGL64& gl, const st
 }
 
 /// Adds one region: a polygon face carrying its triangles when it has a single boundary loop, else a face per triangle.
-static void add_region(Mesh& mesh, const manifold::MeshGL64& gl, const std::vector<size_t>& keys, const std::vector<size_t>& triangles) {
+static void add_region(
+    Mesh& mesh,
+    const manifold::MeshGL64& gl,
+    const std::vector<size_t>& keys,
+    const std::vector<size_t>& triangles
+) {
 
     const std::vector<uint64_t> loop = compute_loop(gl, triangles);
 
@@ -311,8 +318,12 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
             Vector sum(0.0, 0.0, 0.0);
             const Point origin = vertex(gl.triVerts[3 * face.second.front()]);
 
-            for (size_t t : face.second)
-                sum += (vertex(gl.triVerts[3 * t + 1]) - vertex(gl.triVerts[3 * t])).cross(vertex(gl.triVerts[3 * t + 2]) - vertex(gl.triVerts[3 * t]));
+            for (size_t t : face.second) {
+                const Point a= vertex (gl.triVerts[3 * t]);
+                const Point b = vertex(gl.triVerts[3 * t + 1]);
+                const Point c = vertex(gl.triVerts[3 * t + 2]);
+                sum += (b - a).cross(c - a);
+            }
 
             const Plane plane = Plane::from_point_normal(origin, sum.normalized());
             uint64_t into = face.first;
@@ -335,7 +346,12 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
 
     for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces)
         for (const std::vector<size_t>& region : compute_regions(gl, face.second))
-            add_region(mesh, gl, keys, region);
+            add_region(
+                mesh,
+                gl,
+                keys,
+                region
+            );
 
     return mesh;
 }
@@ -375,7 +391,12 @@ static std::vector<manifold::Manifold> cutter_bodies(const Mesh& cutter, uint64_
     return to_manifold(cutter, first_id).Decompose();
 }
 
-Mesh solid_boolean(const Mesh& source, const Mesh& cutter, SolidOperation operation, double tolerance) {
+Mesh solid_boolean(
+    const Mesh& source,
+    const Mesh& cutter,
+    SolidOperation operation,
+    double tolerance
+) {
 
     if (!std::isfinite(tolerance) || tolerance <= 0)
         throw std::invalid_argument("Solid tolerance must be positive");

@@ -16,7 +16,16 @@ const bool CLOSED = true; // a closing ring at both ends
 int main() {
 
     WoodSession wood_session("vault_barrel_staggered");
-    for (const std::shared_ptr<Element>& element : wood_vault::barrel(SPAN, RISE, THICKNESS, LENGTH, COURSES, RINGS, STAGGER, CLOSED))
+    for (const std::shared_ptr<Element>& element : wood_vault::barrel(
+        SPAN,
+        RISE,
+        THICKNESS,
+        LENGTH,
+        COURSES,
+        RINGS,
+        STAGGER,
+        CLOSED
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

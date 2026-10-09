@@ -66,7 +66,8 @@ std::vector<Point> compute_flat(const Mesh& mesh, const std::vector<size_t>& rin
 
 Point compute_interior(const std::vector<Point>& points) {
 
-    const Vector inward = Vector(0.0, 0.0, 1.0).cross(compute_direction(points[0], points[1])) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
+    const Vector along = compute_direction(points[0], points[1]);
+    const Vector inward = Vector(0.0, 0.0, 1.0).cross(along) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
 
     return compute_lift(points[0] + (points[1] - points[0]) * 0.5 + inward, 0.0);
 }
@@ -74,9 +75,12 @@ Point compute_interior(const std::vector<Point>& points) {
 bool is_convex(const std::vector<Point>& points) {
 
     const size_t count = points.size();
-    for (size_t i = 0; i < count; i++)
-        if (compute_direction(points[i], points[(i + 1) % count]).cross(compute_direction(points[(i + 1) % count], points[(i + 2) % count]))[2] < -1e-9)
+    for (size_t i = 0; i < count; i++) {
+        const Vector along = compute_direction(points[i], points[(i + 1) % count]);
+        const Vector next = compute_direction(points[(i + 1) % count], points[(i + 2) % count]);
+        if (along.cross(next)[2] < -1e-9)
             return false;
+    }
 
     return true;
 }
@@ -103,7 +107,13 @@ Polyline compute_wall_ring(const Polyline& core, double wall) {
     return ring;
 }
 
-Point compute_corner(const Point& corner, const Vector& before, double a, const Vector& after, double b) {
+Point compute_corner(
+    const Point& corner,
+    const Vector& before,
+    double a,
+    const Vector& after,
+    double b
+) {
 
     const double cosine = before.dot(after);
     if (1.0 - cosine * cosine < 1e-9)
@@ -124,7 +134,12 @@ bool is_before(const Crossing& a, const Crossing& b) {
     return a.t < b.t;
 }
 
-std::vector<Piece> compute_pieces(const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance) {
+std::vector<Piece> compute_pieces(
+    const Line& line,
+    const std::vector<Polyline>& rings,
+    bool inside,
+    double tolerance
+) {
 
     if (rings.empty())
         return {Piece{line}};
@@ -136,7 +151,15 @@ std::vector<Piece> compute_pieces(const Line& line, const std::vector<Polyline>&
             double t = 0.0;
             double s = 0.0;
             const Line side = Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
-            if (Intersection::line_line_parameters(line, side, t, s, tolerance, true, false) && line.point_at(t).distance(side.point_at(s)) <= tolerance)
+            if (Intersection::line_line_parameters(
+                line,
+                side,
+                t,
+                s,
+                tolerance,
+                true,
+                false
+            ) && line.point_at(t).distance(side.point_at(s)) <= tolerance)
                 crossings.push_back({t, static_cast<int>(r), static_cast<int>(i)});
         }
     }
@@ -144,8 +167,10 @@ std::vector<Piece> compute_pieces(const Line& line, const std::vector<Polyline>&
 
     std::vector<Piece> pieces;
     for (size_t k = 0; k + 1 < crossings.size(); k++)
-        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance && is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) == inside)
-            pieces.push_back({Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t)), {crossings[k].ring, crossings[k + 1].ring}, {crossings[k].side, crossings[k + 1].side}});
+        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance && is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) == inside){
+            const Line part = Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t));
+            pieces.push_back({part, {crossings[k].ring, crossings[k + 1].ring}, {crossings[k].side, crossings[k + 1].side}});
+        }
 
     return pieces;
 }
@@ -162,9 +187,20 @@ bool is_ring(double id) {
     return id >= 1000000.0;
 }
 
-Mesh compute_arrangement(const std::vector<Line>& lines, const std::vector<Line>& rings, const std::vector<double>& ids, double tolerance, double merge) {
+Mesh compute_arrangement(
+    const std::vector<Line>& lines,
+    const std::vector<Line>& rings,
+    const std::vector<double>& ids,
+    double tolerance,
+    double merge
+) {
 
-    Mesh plan = Mesh::from_arrangement(lines, rings, tolerance, merge);
+    Mesh plan = Mesh::from_arrangement(
+        lines,
+        rings,
+        tolerance,
+        merge
+    );
     std::map<size_t, std::set<double>> meeting;
     for (const std::pair<size_t, size_t>& edge : plan.edges()) {
         const double source = *plan.edge_attribute(edge, "line");
@@ -238,7 +274,15 @@ Polyline compute_polygon(const std::vector<Vector>& directions, const Point& cen
 
     std::vector<Point> points;
     for (size_t j = 0; j < directions.size(); j++)
-        points.push_back(compute_corner(centre, directions[j], distances[j], directions[(j + 1) % directions.size()], distances[(j + 1) % directions.size()]));
+        points.push_back(
+            compute_corner(
+                centre,
+                directions[j],
+                distances[j],
+                directions[(j + 1) % directions.size()],
+                distances[(j + 1) % directions.size()]
+            )
+        );
 
     return to_polyline(points);
 }

@@ -22,7 +22,14 @@ bool type_allowed(const int sum, const int allowed) {
 }
 
 /// Two crossing beams: both volume pairs trimmed by the bisector plane at the midpoint, each keeping its own side; false when a trim fails.
-bool trim_crossing(std::array<Polyline, 4>& beam_vol, const Point& p0, const Point& p1, const Vector& v0, const Vector& v1, bool is_parallel) {
+bool trim_crossing(
+    std::array<Polyline, 4>& beam_vol,
+    const Point& p0,
+    const Point& p1,
+    const Vector& v0,
+    const Vector& v1,
+    bool is_parallel
+) {
 
     const Point pm = Point::mid_point(p0, p1);
     const Vector bisector = is_parallel ? v0 : v0 - v1;
@@ -44,7 +51,14 @@ bool trim_crossing(std::array<Polyline, 4>& beam_vol, const Point& p0, const Poi
 }
 
 /// A beam ending on the side of another: the side beam's volume pair trimmed by the end beam's nearer rectangle, facing the farther one; false when the trim fails.
-bool trim_side_to_end(std::array<Polyline, 4>& beam_vol, bool type0, const Point& p0, const Point& p1, const Vector& v0, const Vector& v1) {
+bool trim_side_to_end(
+    std::array<Polyline, 4>& beam_vol,
+    bool type0,
+    const Point& p0,
+    const Point& p1,
+    const Vector& v0,
+    const Vector& v1
+) {
 
     int closer_rect;
     int farrer_rect;
@@ -75,7 +89,15 @@ bool trim_side_to_end(std::array<Polyline, 4>& beam_vol, bool type0, const Point
 
 }  // namespace
 
-bool beam_to_beam(const Beam& beam0, const Beam& beam1, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male, InteractionFeatureBeam& out) {
+bool beam_to_beam(
+    const Beam& beam0,
+    const Beam& beam1,
+    const InteractionContactAxis& contact,
+    double volume_length,
+    double cross_or_side_to_end,
+    int flip_male,
+    InteractionFeatureBeam& out
+) {
 
     const Polyline& pa_pts = beam0.axis;
     const Polyline& pb_pts = beam1.axis;
@@ -123,12 +145,46 @@ bool beam_to_beam(const Beam& beam0, const Beam& beam1, const InteractionContact
     }
 
     std::array<Polyline, 4> beam_vol;
-    Polyline::two_rects_from_frame(p0, v0, sn0, type0 == 1, r0, volume_length, flip_male, beam_vol[0], beam_vol[1]);
-    Polyline::two_rects_from_frame(p1, v1, sn1, type1 == 1, r1, volume_length, flip_male, beam_vol[2], beam_vol[3]);
+    Polyline::two_rects_from_frame(
+        p0,
+        v0,
+        sn0,
+        type0 == 1,
+        r0,
+        volume_length,
+        flip_male,
+        beam_vol[0],
+        beam_vol[1]
+    );
+    Polyline::two_rects_from_frame(
+        p1,
+        v1,
+        sn1,
+        type1 == 1,
+        r1,
+        volume_length,
+        flip_male,
+        beam_vol[2],
+        beam_vol[3]
+    );
 
-    if (sum == 0 && !trim_crossing(beam_vol, p0, p1, v0, v1, is_parallel))
+    if (sum == 0 && !trim_crossing(
+        beam_vol,
+        p0,
+        p1,
+        v0,
+        v1,
+        is_parallel
+    ))
         return false;
-    if (sum == 1 && !trim_side_to_end(beam_vol, type0, p0, p1, v0, v1))
+    if (sum == 1 && !trim_side_to_end(
+        beam_vol,
+        type0,
+        p0,
+        p1,
+        v0,
+        v1
+    ))
         return false;
 
     out.end_type = sum;

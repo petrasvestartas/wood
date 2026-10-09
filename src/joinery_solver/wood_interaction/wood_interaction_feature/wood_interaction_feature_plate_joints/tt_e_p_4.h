@@ -4,5 +4,10 @@ static void tt_e_p_4(InteractionFeaturePlate& joint, const std::vector<std::shar
     joint.name = "tt_e_p_4";
     joint.no_orient = true;
 
-    boundary_drill(joint, elements, joint.division_length, 0.01);
+    boundary_drill(
+        joint,
+        elements,
+        joint.division_length,
+        0.01
+    );
 }

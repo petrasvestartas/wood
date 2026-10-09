@@ -40,7 +40,12 @@ public:
     Column(const Line& axis, const Polyline& section, const std::string& name = "column");
 
     /// A column from its axis and a profile placed at the axis base in the plane perpendicular to it, x along world x projected then turned by rotation degrees; holes make it hollow.
-    Column(const Line& axis, const std::vector<Polyline>& profile, double rotation = 0.0, const std::string& name = "column");
+    Column(
+        const Line& axis,
+        const std::vector<Polyline>& profile,
+        double rotation = 0.0,
+        const std::string& name = "column"
+    );
 
     /// A column from its solid, its axis and its section; the solid stays as given while the section is empty, else it is rebuilt from the section. `name` is the type flag face_contacts() filters on.
     Column(
@@ -55,7 +60,12 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A square column on its axis: the square of side from the corner frame's origin along its x and y axes, at the axis base, swept along the axis.
-    static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
+    static std::shared_ptr<Column> square(
+        const Line& axis,
+        const Plane& corner,
+        double side,
+        const std::string& name = "column"
+    );
 
     /// The two hidden blocks that widen a rectangular column's top head_height to a head_side square, from the section's first corner along its first and last edges: one beyond its far y side, one beyond its far x side, named `<name>_head_<i>`; WoodSession::add_column glues them on.
     std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const;

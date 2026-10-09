@@ -12,7 +12,14 @@ const double CHAMFER_ANGLE = 180.0; // corners sharper than this are chamfered, 
 
 int main() {
 
-    const DiamondMesh shell(DiamondMesh::default_surface(), U_DIVISIONS, V_DIVISIONS, THICKNESS, CHAMFER, CHAMFER_ANGLE);
+    const DiamondMesh shell(
+        DiamondMesh::default_surface(),
+        U_DIVISIONS,
+        V_DIVISIONS,
+        THICKNESS,
+        CHAMFER,
+        CHAMFER_ANGLE
+    );
 
     WoodSession wood_session("diamond_mesh");
     wood_session.add_mesh(std::make_shared<Mesh>(shell.mesh));

@@ -1,5 +1,12 @@
 /// One face of the custom tooth tiled `divisions` times along z: pair i % n_pairs of the source list, face0 or face1, shifted by mv_end + mv_step * i.
-static void tile_custom_face(const std::vector<Polyline>& source, bool pick_face0, int divisions, double mv_end, double mv_step, std::vector<Point>& out) {
+static void tile_custom_face(
+    const std::vector<Polyline>& source,
+    bool pick_face0,
+    int divisions,
+    double mv_end,
+    double mv_step,
+    std::vector<Point>& out
+) {
 
     const size_t n_pairs = source.size() / 2;
     out.reserve(divisions * 8);
@@ -44,10 +51,38 @@ static void ss_e_ip_custom(InteractionFeaturePlate& joint, const Settings& setti
     std::vector<Point> m1;
     std::vector<Point> f0;
     std::vector<Point> f1;
-    tile_custom_face(cm, true, divisions, mv_end, mv_step, m0);
-    tile_custom_face(cm, false, divisions, mv_end, mv_step, m1);
-    tile_custom_face(cf, true, divisions, mv_end, mv_step, f0);
-    tile_custom_face(cf, false, divisions, mv_end, mv_step, f1);
+    tile_custom_face(
+        cm,
+        true,
+        divisions,
+        mv_end,
+        mv_step,
+        m0
+    );
+    tile_custom_face(
+        cm,
+        false,
+        divisions,
+        mv_end,
+        mv_step,
+        m1
+    );
+    tile_custom_face(
+        cf,
+        true,
+        divisions,
+        mv_end,
+        mv_step,
+        f0
+    );
+    tile_custom_face(
+        cf,
+        false,
+        divisions,
+        mv_end,
+        mv_step,
+        f1
+    );
 
     if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
         return;

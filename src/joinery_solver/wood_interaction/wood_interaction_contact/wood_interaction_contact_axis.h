@@ -29,7 +29,15 @@ public:
     InteractionContactAxis() = default;
 
     /// A contact from its closest segment and where the ends sit.
-    InteractionContactAxis(Line segment, double t_a, double t_b, int polyline_a, int segment_a, int polyline_b, int segment_b);
+    InteractionContactAxis(
+        Line segment,
+        double t_a,
+        double t_b,
+        int polyline_a,
+        int segment_a,
+        int polyline_b,
+        int segment_b
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

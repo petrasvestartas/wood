@@ -86,13 +86,32 @@ struct Building {
     double tolerance = 1.0; // Weld distance and coplanarity tolerance the plans were built with.
 
     /// A. A closed massing sliced at elevations: sections just below and just above each, their union filled with the pattern, cores on every level; columns follow the sections within taper. A BRep goes in as its mesh().
-    static Building from_solid(const Mesh& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
+    static Building from_solid(
+        const Mesh& massing,
+        const std::vector<double>& elevations,
+        const Pattern& pattern,
+        const std::vector<Polyline>& cores = {},
+        double tolerance = 1.0,
+        double merge = 1000.0
+    );
 
     /// B. Footprint rings (outer counter-clockwise, holes clockwise, every ring crossing a pattern line; empty means every bounded cell of the pattern that more than one family bounds) at the level elevations, the first the ground, the same plan on every level.
-    static Building from_footprint(const std::vector<Polyline>& footprint, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores = {}, double tolerance = 1.0, double merge = 1000.0);
+    static Building from_footprint(
+        const std::vector<Polyline>& footprint,
+        const std::vector<double>& elevations,
+        const Pattern& pattern,
+        const std::vector<Polyline>& cores = {},
+        double tolerance = 1.0,
+        double merge = 1000.0
+    );
 
     /// C. Members and surfaces as drawn: horizontal lines and floors make the plan of their level, vertical lines its column points, vertical surfaces its walls (core walls when named core), tilted lines braces, each within angle degrees; lines split at every node and crossing.
-    static Building from_lines(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, double tolerance = 1.0, double angle = 10.0);
+    static Building from_lines(
+        const std::vector<Line>& lines,
+        const std::vector<Polyline>& surfaces,
+        double tolerance = 1.0,
+        double angle = 10.0
+    );
 
     /// Every element of storey k with its joints resolved, world space, in plan order so instance_by_key() dedups them: the columns and walls standing in the storey, the heads, members, purlins and decks of the level that caps it, then its braces.
     std::vector<std::shared_ptr<Element>> to_elements(const Framing& framing, size_t storey) const;

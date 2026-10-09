@@ -306,7 +306,13 @@ void build_family_default(const int family, InteractionFeaturePlate& joint) {
 }
 
 /// Unit joinery geometry for `id`: the library entry, else the family default; a negative id in the out-of-plane family is the linked variant. Nothing for id 0 or an id outside the detected type's family.
-void joint_create_geometry(InteractionFeaturePlate& joint, const double division_distance, const double shift_param, const int id, BuildContext& context) {
+void joint_create_geometry(
+    InteractionFeaturePlate& joint,
+    const double division_distance,
+    const double shift_param,
+    const int id,
+    BuildContext& context
+) {
 
     joint_get_divisions(joint, division_distance);
     joint.shift = shift_param;
@@ -507,7 +513,13 @@ void reuse_or_create_geometry(
 
     const auto cache_entry = use_cache ? unique_joints_cache.find(cache_key) : unique_joints_cache.end();
     if (!use_cache) {
-        joint_create_geometry(joint, family.division_distance, family.shift, family.id, context);
+        joint_create_geometry(
+            joint,
+            family.division_distance,
+            family.shift,
+            family.id,
+            context
+        );
     } else if (cache_entry != unique_joints_cache.end()) {
         const CachedJointGeometry& cached = cache_entry->second;
         joint.name = cached.name;
@@ -518,7 +530,13 @@ void reuse_or_create_geometry(
         joint.unit_scale = cached.unit_scale;
         joint.unit_scale_distance = cached.unit_scale_distance;
     } else {
-        joint_create_geometry(joint, family.division_distance, family.shift, family.id, context);
+        joint_create_geometry(
+            joint,
+            family.division_distance,
+            family.shift,
+            family.id,
+            context
+        );
 
         CachedJointGeometry cached;
         cached.name = joint.name;
@@ -551,7 +569,12 @@ void build_feature_geometry(
 
     joint_get_divisions(joint, family.division_distance);
     joint.shift = family.shift;
-    reuse_or_create_geometry(joint, family, context, unique_joints_cache);
+    reuse_or_create_geometry(
+        joint,
+        family,
+        context,
+        unique_joints_cache
+    );
 
     if (!joint.no_orient) {
         joint_orient_to_connection_area(joint);
@@ -585,7 +608,12 @@ void build_features_geometry(
         if (joint.link)
             continue;
 
-        build_feature_geometry(joint, family, context, unique_joints_cache);
+        build_feature_geometry(
+            joint,
+            family,
+            context,
+            unique_joints_cache
+        );
     }
 }
 
@@ -692,7 +720,12 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactCross>& contact,
     if (!contact)
         throw std::invalid_argument("JointPlate needs a cross contact");
     InteractionFeaturePlate connection;
-    connection.contact = InteractionContactFace(contact->faces_a[0], contact->faces_b[0], ContactType::unknown, contact->polygon);
+    connection.contact = InteractionContactFace(
+        contact->faces_a[0],
+        contact->faces_b[0],
+        ContactType::unknown,
+        contact->polygon
+    );
     connection.cross_faces = {contact->faces_a[1], contact->faces_b[1]};
     connection.joint_type = 30;
     for (int k = 0; k < 2; ++k) {
@@ -781,7 +814,12 @@ void JointPlate::place(const Xform& xform) {
 void JointPlate::build_geometry(std::vector<InteractionFeaturePlate>& connections,
                                 std::vector<std::shared_ptr<Plate>>& elements,
                                 const std::vector<std::vector<int>>& types, const Settings& settings) {
-    build_features_geometry(connections, elements, types, settings);
+    build_features_geometry(
+        connections,
+        elements,
+        types,
+        settings
+    );
 }
 void JointPlate::construct(InteractionFeaturePlate connection, const Settings& settings, std::vector<std::shared_ptr<Plate>> elements) {
 
@@ -797,7 +835,12 @@ void JointPlate::construct(InteractionFeaturePlate connection, const Settings& s
     std::vector<InteractionFeaturePlate> joints{std::move(connection)};
     BuildContext context{settings, elements, joints};
     std::map<std::string, CachedJointGeometry> cache;
-    ::build_feature_geometry(joints[0], FamilyParameters{variant, division_distance, shift}, context, cache);
+    ::build_feature_geometry(
+        joints[0],
+        FamilyParameters{variant, division_distance, shift},
+        context,
+        cache
+    );
     connections = std::move(joints);
     name = connections[0].name;
     invalidate_geometry();
@@ -840,7 +883,12 @@ void JointPlate::compute_parameters(InteractionFeaturePlate& connection, const s
         connection.unit_scale_distance = elements[index]->thickness;
 }
 
-void JointPlate::compute_library(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const {
+void JointPlate::compute_library(
+    InteractionFeaturePlate& connection,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<InteractionFeaturePlate>& connections,
+    const Settings& settings
+) const {
 
     if (parameters.library.starts_with("ss_e_ip_")) {
         if (compute_ss_e_ip(connection, elements, settings))
@@ -889,7 +937,12 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
 
     for (InteractionFeaturePlate& connection : joints)
         if (!connection.link)
-            compute_library(connection, elements, joints, configuration);
+            compute_library(
+                connection,
+                elements,
+                joints,
+                configuration
+            );
 
     for (InteractionFeaturePlate& connection : joints)
         if (!connection.no_orient)
@@ -1016,7 +1069,15 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_op_3() {
     return from_library("ss_e_op_3", 11);
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_op_4(int divisions, double taper, bool chamfer, bool modify_outline, const std::array<double, 2>& x, const std::array<double, 2>& y, const std::array<double, 2>& z) {
+std::shared_ptr<JointPlate> JointPlate::ss_e_op_4(
+    int divisions,
+    double taper,
+    bool chamfer,
+    bool modify_outline,
+    const std::array<double, 2>& x,
+    const std::array<double, 2>& y,
+    const std::array<double, 2>& z
+) {
 
     const std::shared_ptr<JointPlate> joint = from_library("ss_e_op_4", 11);
     joint->parameters.divisions = divisions;
@@ -1075,7 +1136,18 @@ bool JointPlate::compute_ss_e_op(InteractionFeaturePlate& connection, std::vecto
     else if (parameters.library == "ss_e_op_3")
         ::ss_e_op_3(connection);
     else if (parameters.library == "ss_e_op_4")
-        ::ss_e_op_4(connection, parameters.taper, parameters.chamfer, parameters.modify_outline, parameters.x[0], parameters.x[1], parameters.y[0], parameters.y[1], parameters.z[0], parameters.z[1]);
+        ::ss_e_op_4(
+            connection,
+            parameters.taper,
+            parameters.chamfer,
+            parameters.modify_outline,
+            parameters.x[0],
+            parameters.x[1],
+            parameters.y[0],
+            parameters.y[1],
+            parameters.z[0],
+            parameters.z[1]
+        );
     else if (parameters.library == "ss_e_op_5")
         ::ss_e_op_5(connection, connections, parameters.disable_divisions);
     else if (parameters.library == "ss_e_op_17")
@@ -1184,7 +1256,12 @@ std::shared_ptr<JointPlate> JointPlate::tt_e_p_1(double radius, double chord_tol
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_2(int count, double circle_radius, double radius, double chord_tolerance) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_2(
+    int count,
+    double circle_radius,
+    double radius,
+    double chord_tolerance
+) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_2", 40);
     joint->line_radius = radius;
@@ -1195,7 +1272,12 @@ std::shared_ptr<JointPlate> JointPlate::tt_e_p_2(int count, double circle_radius
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_3(double spacing, double radius, double chord_tolerance, double distance_squared) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_3(
+    double spacing,
+    double radius,
+    double chord_tolerance,
+    double distance_squared
+) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_3", 40);
     joint->line_radius = radius;
@@ -1528,7 +1610,12 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
 JointAnnen::JointAnnen(std::vector<std::shared_ptr<Plate>> elements, std::vector<InteractionFeaturePlate> joints,
                        const std::vector<std::vector<int>>& groups, const Settings& settings) {
     align_annen_joints(groups, elements, joints);
-    build_geometry(joints, elements, {}, settings);
+    build_geometry(
+        joints,
+        elements,
+        {},
+        settings
+    );
     connections = std::move(joints);
     name = "JointAnnen";
 }
@@ -1536,8 +1623,19 @@ JointAnnen::JointAnnen(std::vector<std::shared_ptr<Plate>> elements, std::vector
 JointVidy::JointVidy(std::vector<std::shared_ptr<Plate>> elements, std::vector<InteractionFeaturePlate> joints,
                      const std::vector<std::vector<int>>& groups, const Settings& settings) {
     std::unordered_map<uint64_t, int> map = joints_by_element_pair(elements, joints);
-    add_vidy_shadow_joints(groups, elements, joints, map, settings.angle);
-    build_geometry(joints, elements, {}, settings);
+    add_vidy_shadow_joints(
+        groups,
+        elements,
+        joints,
+        map,
+        settings.angle
+    );
+    build_geometry(
+        joints,
+        elements,
+        {},
+        settings
+    );
     connections = std::move(joints);
     name = "JointVidy";
 }

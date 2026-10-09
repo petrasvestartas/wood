@@ -71,19 +71,75 @@ public:
                 Point p8 = surface.point_at(u + su*0.5, v1);
 
                 if (j == 0) {
-                    add_triangle(pts, faces, idx, p1, p5, p7);
-                    add_triangle(pts, faces, idx, p7, p5, p0);
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p1,
+                        p5,
+                        p7
+                    );
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p7,
+                        p5,
+                        p0
+                    );
                 }
 
-                add_triangle(pts, faces, idx, p1, p3, p5);
-                add_triangle(pts, faces, idx, p0, p5, p2);
+                add_triangle(
+                    pts,
+                    faces,
+                    idx,
+                    p1,
+                    p3,
+                    p5
+                );
+                add_triangle(
+                    pts,
+                    faces,
+                    idx,
+                    p0,
+                    p5,
+                    p2
+                );
 
                 if (j != v_div - 1) {
-                    add_triangle(pts, faces, idx, p3, p4, p5);
-                    add_triangle(pts, faces, idx, p4, p2, p5);
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p3,
+                        p4,
+                        p5
+                    );
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p4,
+                        p2,
+                        p5
+                    );
                 } else {
-                    add_triangle(pts, faces, idx, p3, p8, p5);
-                    add_triangle(pts, faces, idx, p8, p2, p5);
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p3,
+                        p8,
+                        p5
+                    );
+                    add_triangle(
+                        pts,
+                        faces,
+                        idx,
+                        p8,
+                        p2,
+                        p5
+                    );
                 }
             }
         }
@@ -91,7 +147,13 @@ public:
         mesh = Mesh::from_vertices_and_faces(pts, faces).weld(0.01);
 
         for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
-                Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
+                Mesh::miter_contours(
+                    mesh,
+                    thickness,
+                    0.0,
+                    0.0,
+                    false
+                )) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
 
@@ -120,7 +182,14 @@ public:
 
         const double W = 3000.0, L = 5000.0, H = 1500.0;
         NurbsSurface srf;
-        srf.create_raw(3, false, 4, 4, 4, 4);
+        srf.create_raw(
+            3,
+            false,
+            4,
+            4,
+            4,
+            4
+        );
 
         const double ku[] = {0.0, 0.0, 0.0, W, W, W};
         const double kv[] = {0.0, 0.0, 0.0, L, L, L};

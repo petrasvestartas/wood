@@ -6,17 +6,70 @@ int main() {
     int row = 0;
     for (const std::pair<SolidOperation, std::string>& design : std::vector<std::pair<SolidOperation, std::string>>{
              {SolidOperation::subtract, "Difference"}, {SolidOperation::intersect, "Intersection"}, {SolidOperation::add, "Union"}}) {
-        const std::shared_ptr<Block> stock = std::make_shared<Block>(std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(30, 15, 100, 140, 130)});
-        const std::shared_ptr<Joint> cutter = std::make_shared<Joint>(std::vector<Polyline>{rectangle(90, -20, 20, 130, 190), rectangle(60, -5, 130, 130, 190)});
+        const std::shared_ptr<Block> stock = std::make_shared<Block>(
+            std::vector<Polyline>{
+                rectangle(
+                    0,
+                    0,
+                    0,
+                    200,
+                    160
+                ),
+                rectangle(
+                    30,
+                    15,
+                    100,
+                    140,
+                    130
+                )
+            }
+        );
+        const std::shared_ptr<Joint> cutter = std::make_shared<Joint>(
+            std::vector<Polyline>{
+                rectangle(
+                    90,
+                    -20,
+                    20,
+                    130,
+                    190
+                ),
+                rectangle(
+                    60,
+                    -5,
+                    130,
+                    130,
+                    190
+                )
+            }
+        );
         cutter->operation = design.first;
-        cut_case(scene, design.second + " / sloped solids", stock, cutter, row++ * 280);
+        cut_case(
+            scene,
+            design.second + " / sloped solids",
+            stock,
+            cutter,
+            row++ * 280
+        );
     }
     const Mesh tetrahedron = Mesh::from_vertices_and_faces(
         {{40, 30, -10}, {190, 30, -10}, {115, 150, -10}, {115, 80, 130}},
         {{0, 2, 1}, {0, 1, 3}, {1, 2, 3}, {2, 0, 3}});
-    cut_case(scene, "Custom mesh cutter / tetrahedron", std::make_shared<Block>(
-                 Mesh::loft({rectangle(0, 0, 0, 200, 160)}, {rectangle(0, 0, 80, 200, 160)})),
-             std::make_shared<Joint>(tetrahedron), row * 280);
+    const Polyline block_bottom = rectangle(
+        0,
+        0,
+        0,
+        200,
+        160
+    );
+    const Polyline block_top = rectangle(
+        0,
+        0,
+        80,
+        200,
+        160
+    );
+    const std::shared_ptr<Block> block = std::make_shared<Block>(Mesh::loft({block_bottom}, {block_top}));
+    cut_case(scene, "Custom mesh cutter / tetrahedron", block, std::make_shared<Joint>(tetrahedron), row * 280);
     finish(scene, "17_solid_features");
 }
 

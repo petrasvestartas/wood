@@ -130,8 +130,12 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
             throw std::runtime_error("Failed to parse Line protobuf data");
         rings_pb(male_outlines[k], proto.add_male_outlines());
         rings_pb(female_outlines[k], proto.add_female_outlines());
-        proto.add_male_fabrication_types()->mutable_values()->Add(male_fabrication_types[k].begin(), male_fabrication_types[k].end());
-        proto.add_female_fabrication_types()->mutable_values()->Add(female_fabrication_types[k].begin(), female_fabrication_types[k].end());
+        wood_proto::IntList* male_types =
+        proto.add_male_fabrication_types();
+        male_types->mutable_values()->Add(male_fabrication_types[k].begin(), male_fabrication_types[k].end());
+        wood_proto::IntList* female_types =
+        proto.add_female_fabrication_types();
+        female_types->mutable_values()->Add(female_fabrication_types[k].begin(), female_fabrication_types[k].end());
     }
 
     for (const std::optional<Polyline>& volume : joint_volumes) {
@@ -202,11 +206,15 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
         if (k < proto.female_outlines_size())
             j.female_outlines[k] = rings_from_pb(proto.female_outlines(k));
 
-        if (k < proto.male_fabrication_types_size())
-            j.male_fabrication_types[k].assign(proto.male_fabrication_types(k).values().begin(), proto.male_fabrication_types(k).values().end());
+        if (k < proto.male_fabrication_types_size()) {
+            const wood_proto::IntList& male_types = proto.male_fabrication_types(k);
+            j.male_fabrication_types[k].assign(male_types.values().begin(), male_types.values().end());
+        }
 
-        if (k < proto.female_fabrication_types_size())
-            j.female_fabrication_types[k].assign(proto.female_fabrication_types(k).values().begin(), proto.female_fabrication_types(k).values().end());
+        if (k < proto.female_fabrication_types_size()) {
+            const wood_proto::IntList& female_types = proto.female_fabrication_types(k);
+            j.female_fabrication_types[k].assign(female_types.values().begin(), female_types.values().end());
+        }
     }
 
     for (int k = 0; k < 4 && k < proto.joint_volumes_size(); ++k)

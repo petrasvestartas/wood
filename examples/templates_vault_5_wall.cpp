@@ -14,7 +14,14 @@ const double STAGGER = 0.5; // running bond
 int main() {
 
     WoodSession wood_session("vault_wall");
-    for (const std::shared_ptr<Element>& element : wood_vault::wall(LENGTH, HEIGHT, THICKNESS, BRICK, COURSE, STAGGER))
+    for (const std::shared_ptr<Element>& element : wood_vault::wall(
+        LENGTH,
+        HEIGHT,
+        THICKNESS,
+        BRICK,
+        COURSE,
+        STAGGER
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

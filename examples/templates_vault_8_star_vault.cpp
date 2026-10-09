@@ -14,7 +14,14 @@ const int SUBDIVISIONS = 8; // sail control net and samples per rib
 int main() {
 
     WoodSession wood_session("vault_star_vault");
-    for (const std::shared_ptr<Element>& element : wood_vault::star_vault(SPAN, RISE, THICKNESS, STAR, RIB, SUBDIVISIONS))
+    for (const std::shared_ptr<Element>& element : wood_vault::star_vault(
+        SPAN,
+        RISE,
+        THICKNESS,
+        STAR,
+        RIB,
+        SUBDIVISIONS
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

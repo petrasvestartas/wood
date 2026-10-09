@@ -49,7 +49,13 @@ public:
         mesh = sweep(cross_section, profile);
 
         for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& plate :
-                Mesh::miter_contours(mesh, thickness, 0.0, 0.0, false)) {
+                Mesh::miter_contours(
+                    mesh,
+                    thickness,
+                    0.0,
+                    0.0,
+                    false
+                )) {
             const std::vector<Point>& top_raw = std::get<2>(plate);
             const std::vector<Point>& bot_raw = std::get<3>(plate);
 

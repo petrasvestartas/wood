@@ -70,12 +70,22 @@ inline std::vector<Line> Reciprocal::get_lines(
             int next = fe[fi][(j + 1) % n];
             Point p0, p1;
 
-            if (Intersection::line_plane(moved[cur], lp[prev], p0, false)) {
+            if (Intersection::line_plane(
+                moved[cur],
+                lp[prev],
+                p0,
+                false
+            )) {
                 pts[cur].push_back(p0);
                 pid[cur].push_back(prev);
             }
 
-            if (Intersection::line_plane(moved[cur], lp[next], p1, false)) {
+            if (Intersection::line_plane(
+                moved[cur],
+                lp[next],
+                p1,
+                false
+            )) {
                 pts[cur].push_back(p1);
                 pid[cur].push_back(next);
             }
@@ -220,10 +230,28 @@ inline Reciprocal::Result Reciprocal::from_mesh(
 
     Result result;
     result.lineplanes = lp;
-    result.center = get_lines(lines, lp, fe, result.endplanes, 0.0);
+    result.center = get_lines(
+        lines,
+        lp,
+        fe,
+        result.endplanes,
+        0.0
+    );
     std::vector<std::array<Plane,2>> dummy;
-    result.top    = get_lines(lines, lp, fe, dummy,  height);
-    result.bottom = get_lines(lines, lp, fe, dummy, -height);
+    result.top    = get_lines(
+        lines,
+        lp,
+        fe,
+        dummy,
+        height
+    );
+    result.bottom = get_lines(
+        lines,
+        lp,
+        fe,
+        dummy,
+        -height
+    );
 
     return result;
 }

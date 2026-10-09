@@ -72,7 +72,14 @@ inline std::vector<NurbsSurface> annen_surfaces(const std::string& json_path) {
         std::vector<double> knots_v = expand_knots(v_mults, v_vals);
 
         NurbsSurface srf;
-        srf.create_raw(3, false, deg_u + 1, deg_v + 1, n_u, n_v);
+        srf.create_raw(
+            3,
+            false,
+            deg_u + 1,
+            deg_v + 1,
+            n_u,
+            n_v
+        );
 
         for (int i = 0; i < (int)knots_u.size(); i++) {
             srf.set_nurbsknot(0, i, knots_u[i]);
@@ -220,12 +227,22 @@ inline Mesh chevron_mesh(const NurbsSurface& surface,
 inline Plane frame_plane(const Point& origin, const Vector& x_in, const Vector& y_in) {
     const Vector x = x_in.normalized();
     const Vector y = y_in.normalized();
-    return Plane::from_frame(origin, x, y, x.cross(y).normalized());
+    return Plane::from_frame(
+        origin,
+        x,
+        y,
+        x.cross(y).normalized()
+    );
 }
 
 /// The plane with x and z flipped, y kept: the same plane seen from the other side.
 inline Plane flipped_x(const Plane& p) {
-    return Plane::from_frame(p.origin(), -p.x_axis(), p.y_axis(), -p.z_axis());
+    return Plane::from_frame(
+        p.origin(),
+        -p.x_axis(),
+        p.y_axis(),
+        -p.z_axis()
+    );
 }
 
 /// The plane rotated about its own y axis by angle in radians.
@@ -234,7 +251,12 @@ inline Plane rotated_y(const Plane& p, double angle) {
     const double s = std::sin(angle);
     const Vector new_x = (p.x_axis() * c + p.z_axis() * -s).normalized();
     const Vector new_z = (p.x_axis() * s + p.z_axis() * c).normalized();
-    return Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
+    return Plane::from_frame(
+        p.origin(),
+        new_x,
+        new_z.cross(new_x),
+        new_z
+    );
 }
 
 /// The plane with z snapped to a world axis and x, y rebuilt; axis: 1 = the dominant one, 2 = X, 3 = Y, 4 = Z.
@@ -256,7 +278,12 @@ inline Plane snapped_to_axis(const Plane& p, int axis) {
     new_z[idx] = z[idx] >= 0.0 ? 1.0 : -1.0;
     const Vector ref = idx != 0 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
     const Vector new_x = ref.cross(new_z).normalized();
-    return Plane::from_frame(p.origin(), new_x, new_z.cross(new_x), new_z);
+    return Plane::from_frame(
+        p.origin(),
+        new_x,
+        new_z.cross(new_x),
+        new_z
+    );
 }
 
 /// The line two planes meet on, directed along p0.z × p1.z; none when they are parallel.
@@ -282,7 +309,15 @@ inline std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1) {
     const Line axis0 = Line::from_points(p0.origin(), p0.origin() + p0.z_axis());
     const Line axis1 = Line::from_points(p1.origin(), p1.origin() + p1.z_axis());
     Point center = p0.origin();
-    if (Intersection::line_line_parameters(axis0, axis1, t0, t1, 0.0, false, false))
+    if (Intersection::line_line_parameters(
+        axis0,
+        axis1,
+        t0,
+        t1,
+        0.0,
+        false,
+        false
+    ))
         center = axis0.point_at(t0);
 
     const Vector v0 = (p0.origin() - center).normalized();
@@ -294,7 +329,12 @@ inline std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1) {
     bis = bis * (1.0 / bn);
 
     const Vector ldir = seam->to_vector().normalized();
-    return Plane::from_frame(seam->start(), ldir, bis, ldir.cross(bis).normalized());
+    return Plane::from_frame(
+        seam->start(),
+        ldir,
+        bis,
+        ldir.cross(bis).normalized()
+    );
 }
 
 /// Closed polygon from intersecting a base plane with n side planes in a loop; a missed corner falls back to the base origin.
@@ -304,7 +344,14 @@ inline Polyline polygon_from_planes(const Plane& base, const std::vector<Plane>&
     pts.reserve(ns + 1);
     for (int i = 0; i < ns; i++) {
         Point pt;
-        pts.push_back(Intersection::plane_plane_plane(base, sides[i], sides[(i + 1) % ns], pt) ? pt : base.origin());
+        pts.push_back(
+            Intersection::plane_plane_plane(
+                base,
+                sides[i],
+                sides[(i + 1) % ns],
+                pt
+            ) ? pt : base.origin()
+        );
     }
     pts.push_back(pts.front());
     return Polyline(pts);
@@ -497,7 +544,12 @@ inline ChevronResult chevron_plates(
 
         const Vector ref = std::abs(fn[0]) < 0.9 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
         const Vector fx  = ref.cross(fn).normalized();
-        fp[fi] = Plane::from_frame(fc, fx, fn.cross(fx), fn);
+        fp[fi] = Plane::from_frame(
+            fc,
+            fx,
+            fn.cross(fx),
+            fn
+        );
 
         for (int j = 0; j < 4; j++) {
             size_t vi0 = fv[fi][j], vi1 = fv[fi][(j+1)%4];
@@ -764,7 +816,14 @@ public:
         const double hu = 1500.0, hv = 2500.0;
 
         NurbsSurface srf;
-        srf.create_raw(3, false, 4, 4, 4, 4);
+        srf.create_raw(
+            3,
+            false,
+            4,
+            4,
+            4,
+            4
+        );
 
         const double ku[] = {-hu, -hu, -hu, hu, hu, hu};
         const double kv[] = {-hv, -hv, -hv, hv, hv, hv};

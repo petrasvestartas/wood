@@ -38,7 +38,12 @@ Mesh WoodElement::stock_mesh() const {
 
     std::vector<InteractionFeatureSolid> adds = features_of(solid_features, true);
     const Plane plane = frame();
-    const Xform to_world = Xform::frame_to_world(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis());
+    const Xform to_world = Xform::frame_to_world(
+        plane.origin(),
+        plane.x_axis(),
+        plane.y_axis(),
+        plane.z_axis()
+    );
     const std::optional<Xform> to_local = to_world.inverse();
 
     if (adds.empty() || !to_local)

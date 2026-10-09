@@ -25,7 +25,13 @@ int main() {
 
     const auto contact = std::make_shared<InteractionContactFace>(
         2, 4, ContactType::side_side,
-        Polyline::rectangle({45, -5, 0}, {1, 0, 0}, {0, 1, 0}, 10, 10));
+        Polyline::rectangle(
+            {45, -5, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            10,
+            10
+        ));
     scene.add_interaction(beam, column, contact);
     const ElementFeature* hosted_contact = feature(*column, contact->guid());
     check(hosted_contact && hosted_contact->face_index == 4 && !feature(*beam, contact->guid()), "a contact belongs to its target, face relative to it");
@@ -38,7 +44,13 @@ int main() {
 
     const auto joint = std::make_shared<InteractionFeatureBeam>();
     for (int i = 0; i < 4; ++i)
-        joint->volumes[i] = Polyline::rectangle({double(i), 0, 0}, {1, 0, 0}, {0, 1, 0}, 2, 3);
+        joint->volumes[i] = Polyline::rectangle(
+            {double(i), 0, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            2,
+            3
+        );
 
     const auto stored = std::dynamic_pointer_cast<InteractionFeatureBeam>(scene.add_interaction(column, beam, joint));
     check(!feature(*beam, joint->guid()), "existing edge's first endpoint must not own the joint");

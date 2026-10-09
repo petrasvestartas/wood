@@ -97,33 +97,119 @@ std::vector<std::pair<double, double>> compute_pieces(double length, double ring
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A point of an arch section at angle from the crown, radius from the centre, along y.
-Point compute_section(const Arc& arc, double radius, double angle, double along) {
+Point compute_section(
+    const Arc& arc,
+    double radius,
+    double angle,
+    double along
+) {
     return Point(radius * std::sin(angle), along, arc.centre + radius * std::cos(angle));
 }
 
 /// The voussoir of an arch section between two angles and two stations along y.
-std::shared_ptr<Element> to_ring(const Arc& arc, double thickness, double from, double to, double near, double far) {
+std::shared_ptr<Element> to_ring(
+    const Arc& arc,
+    double thickness,
+    double from,
+    double to,
+    double near,
+    double far
+) {
 
     const double outer = arc.radius + thickness;
-    const std::vector<Point> intrados = {compute_section(arc, arc.radius, from, near), compute_section(arc, arc.radius, to, near), compute_section(arc, arc.radius, to, far), compute_section(arc, arc.radius, from, far)};
-    const std::vector<Point> extrados = {compute_section(arc, outer, from, near), compute_section(arc, outer, to, near), compute_section(arc, outer, to, far), compute_section(arc, outer, from, far)};
+    const std::vector<Point> intrados = {
+        compute_section(
+            arc,
+            arc.radius,
+            from,
+            near
+        ),
+        compute_section(
+            arc,
+            arc.radius,
+            to,
+            near
+        ),
+        compute_section(
+            arc,
+            arc.radius,
+            to,
+            far
+        ),
+        compute_section(
+            arc,
+            arc.radius,
+            from,
+            far
+        )
+    };
+    const std::vector<Point> extrados = {
+        compute_section(
+            arc,
+            outer,
+            from,
+            near
+        ),
+        compute_section(
+            arc,
+            outer,
+            to,
+            near
+        ),
+        compute_section(
+            arc,
+            outer,
+            to,
+            far
+        ),
+        compute_section(
+            arc,
+            outer,
+            from,
+            far
+        )
+    };
 
     return to_voussoir(intrados, extrados, "voussoir");
 }
 
-std::vector<std::shared_ptr<Element>> arch(double span, double rise, double thickness, double depth, int voussoirs) {
+std::vector<std::shared_ptr<Element>> arch(
+    double span,
+    double rise,
+    double thickness,
+    double depth,
+    int voussoirs
+) {
 
     const Arc arc = compute_arc(span, rise);
     const double step = 2.0 * arc.sector / voussoirs;
 
     std::vector<std::shared_ptr<Element>> blocks;
     for (int k = 0; k < voussoirs; k++)
-        blocks.push_back(to_ring(arc, thickness, -arc.sector + k * step, -arc.sector + (k + 1) * step, 0.0, depth));
+        blocks.push_back(
+            to_ring(
+                arc,
+                thickness,
+                -arc.sector + k * step,
+                -arc.sector + (k + 1) * step,
+                0.0,
+                depth
+            )
+        );
 
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>> barrel(double span, double rise, double thickness, double length, int courses, int rings, double stagger, bool closed) {
+std::vector<std::shared_ptr<Element>> barrel(
+    double span,
+    double rise,
+    double thickness,
+    double length,
+    int courses,
+    int rings,
+    double stagger,
+    bool closed
+) {
 
     const Arc arc = compute_arc(span, rise);
     const double step = 2.0 * arc.sector / courses;
@@ -138,7 +224,16 @@ std::vector<std::shared_ptr<Element>> barrel(double span, double rise, double th
         }
 
         for (const std::pair<double, double>& piece : pieces)
-            blocks.push_back(to_ring(arc, thickness, -arc.sector + k * step, -arc.sector + (k + 1) * step, piece.first, piece.second));
+            blocks.push_back(
+                to_ring(
+                    arc,
+                    thickness,
+                    -arc.sector + k * step,
+                    -arc.sector + (k + 1) * step,
+                    piece.first,
+                    piece.second
+                )
+            );
     }
 
     return blocks;
@@ -149,11 +244,24 @@ std::vector<std::shared_ptr<Element>> barrel(double span, double rise, double th
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A point of a sphere about the origin at radius, theta from the zenith and phi around, lowered by drop.
-Point compute_sphere(double radius, double theta, double phi, double drop) {
+Point compute_sphere(
+    double radius,
+    double theta,
+    double phi,
+    double drop
+) {
     return Point(radius * std::sin(theta) * std::cos(phi), radius * std::sin(theta) * std::sin(phi), radius * std::cos(theta) - drop);
 }
 
-std::vector<std::shared_ptr<Element>> dome(double radius, double bottom, double top, int meridians, int hoops, double oculus, double springing) {
+std::vector<std::shared_ptr<Element>> dome(
+    double radius,
+    double bottom,
+    double top,
+    int meridians,
+    int hoops,
+    double oculus,
+    double springing
+) {
 
     const double first = oculus * Tolerance::TO_RADIANS;
     const double last = springing * Tolerance::TO_RADIANS;
@@ -176,12 +284,40 @@ std::vector<std::shared_ptr<Element>> dome(double radius, double bottom, double 
             std::vector<Point> intrados;
             std::vector<Point> extrados;
             for (const double phi : phis) {
-                intrados.push_back(compute_sphere(radius, upper, phi, drop));
-                extrados.push_back(compute_sphere(outer_upper, upper, phi, drop));
+                intrados.push_back(
+                    compute_sphere(
+                        radius,
+                        upper,
+                        phi,
+                        drop
+                    )
+                );
+                extrados.push_back(
+                    compute_sphere(
+                        outer_upper,
+                        upper,
+                        phi,
+                        drop
+                    )
+                );
             }
             for (auto phi = phis.rbegin(); phi != phis.rend(); ++phi) {
-                intrados.push_back(compute_sphere(radius, lower, *phi, drop));
-                extrados.push_back(compute_sphere(outer_lower, lower, *phi, drop));
+                intrados.push_back(
+                    compute_sphere(
+                        radius,
+                        lower,
+                        *phi,
+                        drop
+                    )
+                );
+                extrados.push_back(
+                    compute_sphere(
+                        outer_lower,
+                        lower,
+                        *phi,
+                        drop
+                    )
+                );
             }
             blocks.push_back(to_voussoir(intrados, extrados, "voussoir"));
         }
@@ -190,13 +326,21 @@ std::vector<std::shared_ptr<Element>> dome(double radius, double bottom, double 
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>> wall(double length, double height, double thickness, double brick, double course, double stagger) {
+std::vector<std::shared_ptr<Element>> wall(
+    double length,
+    double height,
+    double thickness,
+    double brick,
+    double course,
+    double stagger
+) {
 
     std::vector<std::shared_ptr<Element>> blocks;
     const std::vector<std::pair<double, double>> rows = compute_pieces(height, course, 0.0);
     for (size_t row = 0; row < rows.size(); row++) {
         for (const std::pair<double, double>& piece : compute_pieces(length, brick, row % 2 == 1 ? stagger * brick : 0.0)) {
-            const std::vector<Point> base = {Point(piece.first, 0.0, rows[row].first), Point(piece.second, 0.0, rows[row].first), Point(piece.second, thickness, rows[row].first), Point(piece.first, thickness, rows[row].first)};
+            const double bottom = rows[row].first;
+            const std::vector<Point> base = {Point(piece.first, 0.0, bottom), Point(piece.second, 0.0, bottom), Point(piece.second, thickness, bottom), Point(piece.first, thickness, bottom)};
             std::vector<Point> lid;
             for (const Point& point : base)
                 lid.push_back(Point(point[0], point[1], rows[row].second));
@@ -212,12 +356,22 @@ std::vector<std::shared_ptr<Element>> wall(double length, double height, double 
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The voussoirs of the web of a square bay towards side outward: under groin its barrel crosses the side, courses across the arch and rings out from the centre; otherwise it runs along the side, courses from the crown down to the wall and rings along it; cut on the diagonals to the quarter of the bay towards the side, slivers dropped.
-std::vector<std::shared_ptr<Element>> to_web(const Arc& arc, double span, double thickness, int courses, int rings, const Vector& outward, bool groin) {
+std::vector<std::shared_ptr<Element>> to_web(
+    const Arc& arc,
+    double span,
+    double thickness,
+    int courses,
+    int rings,
+    const Vector& outward,
+    bool groin
+) {
 
     const Vector across = Vector(0.0, 0.0, 1.0).cross(outward);
     const double half = span / 2.0;
     const double outer = arc.radius + thickness;
-    const std::vector<Plane> diagonals = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), (outward - across).normalized()), Plane::from_point_normal(Point(0.0, 0.0, 0.0), (outward + across).normalized())};
+    const Plane diagonal_back = Plane::from_point_normal(Point(0.0, 0.0, 0.0), (outward - across).normalized());
+    const Plane diagonal_front = Plane::from_point_normal(Point(0.0, 0.0, 0.0), (outward + across).normalized());
+    const std::vector<Plane> diagonals = {diagonal_back, diagonal_front};
 
     // a point of the web at an arch angle and a station along its barrel axis
     const auto place = [&](double radius, double angle, double station) {
@@ -239,7 +393,9 @@ std::vector<std::shared_ptr<Element>> to_web(const Arc& arc, double span, double
             const double b = a + step;
             const double near = start + j * ring;
             const double far = near + ring;
-            std::shared_ptr<wood_session::Block> block = to_voussoir({place(arc.radius, a, near), place(arc.radius, b, near), place(arc.radius, b, far), place(arc.radius, a, far)}, {place(outer, a, near), place(outer, b, near), place(outer, b, far), place(outer, a, far)}, "voussoir");
+            const std::vector<Point> intrados ={place(arc.radius, a, near), place(arc.radius, b, near), place(arc.radius, b, far), place(arc.radius, a, far)};
+            const std::vector<Point> extrados = {place(outer, a, near), place(outer, b, near), place(outer, b, far), place(outer, a, far)};
+            std::shared_ptr<wood_session::Block> block = to_voussoir(intrados, extrados, "voussoir");
             const double whole = std::abs(block->element_geometry_mesh().volume());
             block->cuts = diagonals;
             block->invalidate_geometry();
@@ -252,26 +408,54 @@ std::vector<std::shared_ptr<Element>> to_web(const Arc& arc, double span, double
 }
 
 /// The four webs of a square bay, one towards each side.
-std::vector<std::shared_ptr<Element>> to_bay(double span, double rise, double thickness, int courses, int rings, bool groin) {
+std::vector<std::shared_ptr<Element>> to_bay(
+    double span,
+    double rise,
+    double thickness,
+    int courses,
+    int rings,
+    bool groin
+) {
 
     const Arc arc = compute_arc(span, rise);
     std::vector<std::shared_ptr<Element>> blocks;
     for (const Vector& outward : {Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, -1.0, 0.0)})
-        for (const std::shared_ptr<Element>& block : to_web(arc, span, thickness, courses, rings, outward, groin))
+        for (const std::shared_ptr<Element>& block : to_web(
+            arc,
+            span,
+            thickness,
+            courses,
+            rings,
+            outward,
+            groin
+        ))
             blocks.push_back(block);
 
     return blocks;
 }
 
 /// A point of a cross vault web along outward at an arch angle from the crown, positive towards across, radius from the arch centre, station out from the bay centre.
-Point compute_web(const Arc& arc, const Vector& outward, const Vector& across, double radius, double angle, double station) {
+Point compute_web(
+    const Arc& arc,
+    const Vector& outward,
+    const Vector& across,
+    double radius,
+    double angle,
+    double station
+) {
 
     const Vector plan = outward * station + across * (radius * std::sin(angle));
 
     return Point(plan[0], plan[1], arc.centre + radius * std::cos(angle));
 }
 
-std::vector<std::shared_ptr<Element>> cross_vault(double span, double rise, double thickness, int courses, int rings) {
+std::vector<std::shared_ptr<Element>> cross_vault(
+    double span,
+    double rise,
+    double thickness,
+    int courses,
+    int rings
+) {
 
     const Arc arc = compute_arc(span, rise);
     const double outer = arc.radius + thickness;
@@ -311,7 +495,56 @@ std::vector<std::shared_ptr<Element>> cross_vault(double span, double rise, doub
                 const double low = radius * std::sin(down);
                 const double high = radius * std::sin(up);
                 std::vector<Point>& loop = radius == arc.radius ? intrados : extrados;
-                loop = {compute_web(arc, outward, across, radius, down, groin), compute_web(arc, outward, across, radius, down, low), compute_web(arc, across, back, radius, -down, groin), compute_web(arc, across, back, radius, -up, groin), compute_web(arc, outward, across, radius, up, high), compute_web(arc, outward, across, radius, up, groin)};
+                loop = {
+                    compute_web(
+                        arc,
+                        outward,
+                        across,
+                        radius,
+                        down,
+                        groin
+                    ),
+                    compute_web(
+                        arc,
+                        outward,
+                        across,
+                        radius,
+                        down,
+                        low
+                    ),
+                    compute_web(
+                        arc,
+                        across,
+                        back,
+                        radius,
+                        -down,
+                        groin
+                    ),
+                    compute_web(
+                        arc,
+                        across,
+                        back,
+                        radius,
+                        -up,
+                        groin
+                    ),
+                    compute_web(
+                        arc,
+                        outward,
+                        across,
+                        radius,
+                        up,
+                        high
+                    ),
+                    compute_web(
+                        arc,
+                        outward,
+                        across,
+                        radius,
+                        up,
+                        groin
+                    )
+                };
             }
             blocks.push_back(to_stone(intrados, extrados, "groin"));
 
@@ -325,7 +558,40 @@ std::vector<std::shared_ptr<Element>> cross_vault(double span, double rise, doub
                     std::vector<Point> outside;
                     for (const double radius : {arc.radius, outer}) {
                         std::vector<Point>& loop = radius == arc.radius ? inner : outside;
-                        loop = {compute_web(arc, outward, across, radius, sign * down, joints[j]), compute_web(arc, outward, across, radius, sign * down, joints[j + 1]), compute_web(arc, outward, across, radius, sign * up, joints[j + 1]), compute_web(arc, outward, across, radius, sign * up, joints[j])};
+                        loop = {
+                            compute_web(
+                                arc,
+                                outward,
+                                across,
+                                radius,
+                                sign * down,
+                                joints[j]
+                            ),
+                            compute_web(
+                                arc,
+                                outward,
+                                across,
+                                radius,
+                                sign * down,
+                                joints[j + 1]
+                            ),
+                            compute_web(
+                                arc,
+                                outward,
+                                across,
+                                radius,
+                                sign * up,
+                                joints[j + 1]
+                            ),
+                            compute_web(
+                                arc,
+                                outward,
+                                across,
+                                radius,
+                                sign * up,
+                                joints[j]
+                            )
+                        };
                     }
                     blocks.push_back(to_voussoir(inner, outside, "voussoir"));
                 }
@@ -335,8 +601,21 @@ std::vector<std::shared_ptr<Element>> cross_vault(double span, double rise, doub
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>> cloister_vault(double span, double rise, double thickness, int courses, int rings) {
-    return to_bay(span, rise, thickness, courses, rings, false);
+std::vector<std::shared_ptr<Element>> cloister_vault(
+    double span,
+    double rise,
+    double thickness,
+    int courses,
+    int rings
+) {
+    return to_bay(
+        span,
+        rise,
+        thickness,
+        courses,
+        rings,
+        false
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -369,7 +648,14 @@ Point compute_on_sail(const Sail& sail, const Point& plan, double offset) {
 /// The sail intrados as one cubic NURBS surface whose parameters are the plan coordinates over the bay: its control points stand over the Greville abscissae, so a plan line is a straight line in its parameters, and its normal points up.
 NurbsSurface compute_sail_surface(const Sail& sail, double half, int count) {
 
-    NurbsSurface surface(3, false, 4, 4, count, count);
+    NurbsSurface surface(
+        3,
+        false,
+        4,
+        4,
+        count,
+        count
+    );
     for (int dir = 0; dir < 2; dir++)
         for (int k = 0; k < count + 2; k++)
             surface.set_nurbsknot(dir, k, std::clamp(static_cast<double>(k - 2), 0.0, static_cast<double>(count - 3)));
@@ -399,7 +685,14 @@ NurbsCurve to_uv_line(const Point& a, const Point& b) {
 }
 
 /// The web over a counter-clockwise plan triangle as a BRep solid: its intrados the sail surface trimmed by the three rib lines, its extrados that surface moved out from the sphere centre by thickness, its sides ruled between the two, so neighbouring webs share them.
-std::shared_ptr<Element> to_shell(const Sail& sail, const NurbsSurface& surface, double half, const std::vector<Point>& corners, double thickness, int subdivisions) {
+std::shared_ptr<Element> to_shell(
+    const Sail& sail,
+    const NurbsSurface& surface,
+    double half,
+    const std::vector<Point>& corners,
+    double thickness,
+    int subdivisions
+) {
 
     const Point centre(0.0, 0.0, sail.centre);
     const double scale = (sail.radius + thickness) / sail.radius;
@@ -437,9 +730,13 @@ std::shared_ptr<Element> to_shell(const Sail& sail, const NurbsSurface& surface,
             samples.push_back(surface.point_at(uv[0], uv[1]));
         }
         curves.push_back(Primitives::create_interpolated(samples));
-        e_inner.push_back(brep.add_edge(brep.add_curve_3d(curves.back()), inner[k], inner[next]));
-        e_outer.push_back(brep.add_edge(brep.add_curve_3d(curves.back().transformed(out)), outer[k], outer[next]));
-        e_rise.push_back(brep.add_edge(brep.add_curve_3d(NurbsCurve::create(false, 1, {brep.m_vertices[inner[k]].point, brep.m_vertices[outer[k]].point})), inner[k], outer[k]));
+        const int inner_curve = brep.add_curve_3d(curves.back());
+        e_inner.push_back(brep.add_edge(inner_curve, inner[k], inner[next]));
+        const int outer_curve = brep.add_curve_3d(curves.back().transformed(out));
+        e_outer.push_back(brep.add_edge(outer_curve, outer[k], outer[next]));
+        const NurbsCurve rise = NurbsCurve::create(false, 1, {brep.m_vertices[inner[k]].point, brep.m_vertices[outer[k]].point});
+        const int rise_curve = brep.add_curve_3d(rise);
+        e_rise.push_back(brep.add_edge(rise_curve, inner[k], outer[k]));
     }
 
     std::vector<BRepRef> faces;
@@ -447,29 +744,43 @@ std::shared_ptr<Element> to_shell(const Sail& sail, const NurbsSurface& surface,
     std::vector<BRepRef> wire_above;
     for (size_t k = 0; k < 3; k++) {
         const size_t next = (k + 1) % 3;
-        brep.add_pcurve(e_inner[k], s_below, brep.add_curve_2d(to_uv_line(Point(uvs[k][1], uvs[k][0], 0.0), Point(uvs[next][1], uvs[next][0], 0.0))));
+        const int below_uv = brep.add_curve_2d(to_uv_line(Point(uvs[k][1], uvs[k][0], 0.0), Point(uvs[next][1], uvs[next][0], 0.0)));
+        brep.add_pcurve(e_inner[k], s_below, below_uv);
         brep.add_pcurve(e_outer[k], s_above, brep.add_curve_2d(to_uv_line(uvs[k], uvs[next])));
         wire_above.push_back({e_outer[k], BRepOrientation::Forward});
         wire_below.insert(wire_below.begin(), {e_inner[k], BRepOrientation::Reversed});
 
         // the ruled side, intrados curve to extrados curve, counter-clockwise in its own parameters
-        const int s_side = brep.add_surface(Primitives::create_ruled(curves[k], curves[k].transformed(out)));
-        brep.add_pcurve(e_inner[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0))));
-        brep.add_pcurve(e_outer[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0))));
-        brep.add_pcurve(e_rise[k], s_side, brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0))));
-        brep.add_pcurve(e_rise[next], s_side, brep.add_curve_2d(to_uv_line(Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0))));
+        const NurbsSurface side = Primitives::create_ruled(curves[k], curves[k].transformed(out));
+        const int s_side = brep.add_surface(side);
+        const int side_bottom_uv = brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)));
+        brep.add_pcurve(e_inner[k], s_side, side_bottom_uv);
+        const int side_top_uv = brep.add_curve_2d(to_uv_line(Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0)));
+        brep.add_pcurve(e_outer[k], s_side, side_top_uv);
+        const int side_start_uv = brep.add_curve_2d(to_uv_line(Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)));
+        brep.add_pcurve(e_rise[k], s_side, side_start_uv);
+        const int side_end_uv = brep.add_curve_2d(to_uv_line(Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)));
+        brep.add_pcurve(e_rise[next], s_side, side_end_uv);
         const int wire = brep.add_wire({{e_inner[k], BRepOrientation::Forward}, {e_rise[next], BRepOrientation::Forward}, {e_outer[k], BRepOrientation::Reversed}, {e_rise[k], BRepOrientation::Reversed}});
         faces.push_back({brep.add_face(s_side, {{wire, BRepOrientation::Forward}}), BRepOrientation::Forward});
     }
-    faces.push_back({brep.add_face(s_below, {{brep.add_wire(wire_below), BRepOrientation::Forward}}), BRepOrientation::Forward});
-    faces.push_back({brep.add_face(s_above, {{brep.add_wire(wire_above), BRepOrientation::Forward}}), BRepOrientation::Forward});
+    const int below_wire = brep.add_wire(wire_below);
+    faces.push_back({brep.add_face(s_below, {{below_wire, BRepOrientation::Forward}}), BRepOrientation::Forward});
+    const int above_wire = brep.add_wire(wire_above);
+    faces.push_back({brep.add_face(s_above, {{above_wire, BRepOrientation::Forward}}), BRepOrientation::Forward});
     brep.add_solid({{brep.add_shell(faces), BRepOrientation::Forward}});
 
     return std::make_shared<Element>(brep, "web");
 }
 
 /// A rib along a plan segment under the sail: a square section of rib with its top on the intrados, sampled at subdivisions.
-std::shared_ptr<Element> to_rib(const Sail& sail, const Point& start, const Point& end, double rib, int subdivisions) {
+std::shared_ptr<Element> to_rib(
+    const Sail& sail,
+    const Point& start,
+    const Point& end,
+    double rib,
+    int subdivisions
+) {
 
     std::vector<Point> axis;
     std::vector<Vector> ups;
@@ -478,10 +789,22 @@ std::shared_ptr<Element> to_rib(const Sail& sail, const Point& start, const Poin
     for (int k = 0; k < subdivisions; k++)
         ups.push_back((Point::centroid({axis[k], axis[k + 1]}) - Point(0.0, 0.0, sail.centre)).normalized());
 
-    return std::make_shared<wood_session::Beam>(Polyline(axis), wood_session::profile_rectangle(rib, rib), ups, "rib");
+    return std::make_shared<wood_session::Beam>(
+        Polyline(axis),
+        wood_session::profile_rectangle(rib, rib),
+        ups,
+        "rib"
+    );
 }
 
-std::vector<std::shared_ptr<Element>> star_vault(double span, double rise, double thickness, double star, double rib, int subdivisions) {
+std::vector<std::shared_ptr<Element>> star_vault(
+    double span,
+    double rise,
+    double thickness,
+    double star,
+    double rib,
+    int subdivisions
+) {
 
     const Sail sail = compute_sail(span, rise);
     const double half = span / 2.0;
@@ -495,19 +818,86 @@ std::vector<std::shared_ptr<Element>> star_vault(double span, double rise, doubl
     for (size_t i = 0; i < 4; i++) {
         const size_t next = (i + 1) % 4;
         const size_t before = (i + 3) % 4;
-        elements.push_back(to_shell(sail, surface, half, {corners[i], corners[next], stars[i]}, thickness, subdivisions));
-        elements.push_back(to_shell(sail, surface, half, {crown, stars[before], corners[i]}, thickness, subdivisions));
-        elements.push_back(to_shell(sail, surface, half, {crown, corners[i], stars[i]}, thickness, subdivisions));
+        elements.push_back(
+            to_shell(
+                sail,
+                surface,
+                half,
+                {corners[i], corners[next], stars[i]},
+                thickness,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_shell(
+                sail,
+                surface,
+                half,
+                {crown, stars[before], corners[i]},
+                thickness,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_shell(
+                sail,
+                surface,
+                half,
+                {crown, corners[i], stars[i]},
+                thickness,
+                subdivisions
+            )
+        );
     }
 
     // twenty ribs: the diagonals, the tiercerons, the liernes and the wall arches
     for (size_t i = 0; i < 4; i++) {
         const size_t next = (i + 1) % 4;
-        elements.push_back(to_rib(sail, crown, corners[i], rib, subdivisions));
-        elements.push_back(to_rib(sail, corners[i], stars[i], rib, subdivisions));
-        elements.push_back(to_rib(sail, corners[next], stars[i], rib, subdivisions));
-        elements.push_back(to_rib(sail, stars[i], crown, rib, subdivisions));
-        elements.push_back(to_rib(sail, corners[i], corners[next], rib, subdivisions));
+        elements.push_back(
+            to_rib(
+                sail,
+                crown,
+                corners[i],
+                rib,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_rib(
+                sail,
+                corners[i],
+                stars[i],
+                rib,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_rib(
+                sail,
+                corners[next],
+                stars[i],
+                rib,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_rib(
+                sail,
+                stars[i],
+                crown,
+                rib,
+                subdivisions
+            )
+        );
+        elements.push_back(
+            to_rib(
+                sail,
+                corners[i],
+                corners[next],
+                rib,
+                subdivisions
+            )
+        );
     }
 
     return elements;

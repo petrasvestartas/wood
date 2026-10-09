@@ -117,7 +117,12 @@ std::vector<std::string> yaml_string_list(TINY_YAML::Yaml& y, const std::string&
 }
 
 /// A file key resolved relative to the yaml into out; naming a file that is not there is an error.
-void yaml_file(TINY_YAML::Yaml& y, const std::filesystem::path& path, const std::string& key, std::string& out) {
+void yaml_file(
+    TINY_YAML::Yaml& y,
+    const std::filesystem::path& path,
+    const std::string& key,
+    std::string& out
+) {
 
     if (!y.has(key))
         return;
@@ -238,11 +243,36 @@ Settings load_yaml(const std::string& dataset_name) {
     read_joint_keys(y, settings);
     read_solver_keys(y, settings);
 
-    yaml_file(y, path, "obj", DATA_SET_OBJ);
-    yaml_file(y, path, "adjacency", DATA_SET_ADJACENCY);
-    yaml_file(y, path, "three_valence", DATA_SET_THREE_VALENCE);
-    yaml_file(y, path, "insertion_vectors", DATA_SET_INSERTION_VECTORS);
-    yaml_file(y, path, "joints_types", DATA_SET_JOINTS_TYPES);
+    yaml_file(
+        y,
+        path,
+        "obj",
+        DATA_SET_OBJ
+    );
+    yaml_file(
+        y,
+        path,
+        "adjacency",
+        DATA_SET_ADJACENCY
+    );
+    yaml_file(
+        y,
+        path,
+        "three_valence",
+        DATA_SET_THREE_VALENCE
+    );
+    yaml_file(
+        y,
+        path,
+        "insertion_vectors",
+        DATA_SET_INSERTION_VECTORS
+    );
+    yaml_file(
+        y,
+        path,
+        "joints_types",
+        DATA_SET_JOINTS_TYPES
+    );
 
     DATA_SET_INPUT_NAME = path.stem().string();
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";

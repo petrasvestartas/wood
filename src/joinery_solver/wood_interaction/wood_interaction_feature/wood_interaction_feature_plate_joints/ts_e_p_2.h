@@ -7,15 +7,41 @@ static void ts_e_p_2(InteractionFeaturePlate& joint) {
     div += div % 2;
     const int size = div / 2 + 1;
 
-    std::vector<Point> arr0 = Point::interpolate(Point(-0.5,-0.5,-0.5), Point(-0.5,-0.5, 0.5), div, 0);
-    std::vector<Point> arr1 = Point::interpolate(Point(-0.5, 0.5,-0.5), Point(-0.5, 0.5, 0.5), div, 0);
-    std::vector<Point> arr2 = Point::interpolate(Point( 0.5, 0.5,-0.5), Point( 0.5, 0.5, 0.5), div, 0);
-    std::vector<Point> arr3 = Point::interpolate(Point( 0.5,-0.5,-0.5), Point( 0.5,-0.5, 0.5), div, 0);
+    std::vector<Point> arr0 = Point::interpolate(
+        Point(-0.5,-0.5,-0.5),
+        Point(-0.5,-0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr1 = Point::interpolate(
+        Point(-0.5, 0.5,-0.5),
+        Point(-0.5, 0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr2 = Point::interpolate(
+        Point( 0.5, 0.5,-0.5),
+        Point( 0.5, 0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr3 = Point::interpolate(
+        Point( 0.5,-0.5,-0.5),
+        Point( 0.5,-0.5, 0.5),
+        div,
+        0
+    );
     std::vector<Point>* arrays[4] = {&arr0, &arr1, &arr2, &arr3};
 
     const double vz = (joint.shift == 0)
         ? 0.0
-        : Intersection::remap(joint.shift, 0, 1.0, -0.5, 0.5) / (div + 1);
+        : Intersection::remap(
+            joint.shift,
+            0,
+            1.0,
+            -0.5,
+            0.5
+        ) / (div + 1);
     const Vector v(0, 0, vz);
     for (int i = 0; i < 4; i++) {
         std::vector<Point>& a = *arrays[i];

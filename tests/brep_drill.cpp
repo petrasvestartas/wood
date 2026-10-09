@@ -58,7 +58,14 @@ void check_shared_edges(const BRep& brep, const std::string& name) {
 }
 
 /// The drilled block: a closed solid with faces planar faces plus cylinders cylindrical ones, every edge shared, at the volume of the block less the holes.
-void check_drilled(const Mesh& solid, const std::vector<Drill>& drills, size_t faces, size_t cylinders, double removed, const std::string& name) {
+void check_drilled(
+    const Mesh& solid,
+    const std::vector<Drill>& drills,
+    size_t faces,
+    size_t cylinders,
+    double removed,
+    const std::string& name
+) {
 
     const std::optional<BRep> brep = drilled_brep(solid, drills);
     check(brep.has_value(), name + ": no exact solid");
@@ -84,23 +91,72 @@ int main() {
     const double r = 5.0;
     const double area = M_PI * r * r;
 
-    check_drilled(block(), {{Line::from_points(Point(50, 50, -10), Point(50, 50, 60)), r}}, 7, 1, area * 50.0, "drill_through");
+    check_drilled(
+        block(),
+        {{Line::from_points(Point(50, 50, -10), Point(50, 50, 60)), r}},
+        7,
+        1,
+        area * 50.0,
+        "drill_through"
+    );
 
     const double tilt = 20.0 * M_PI / 180.0;
     const Vector d(std::sin(tilt), 0.0, std::cos(tilt));
-    check_drilled(block(), {{Line::from_points(Point(50, 50, 25) - d * 40.0, Point(50, 50, 25) + d * 40.0), r}}, 7, 1, area * 50.0 / std::cos(tilt), "drill_tilted");
+    check_drilled(
+        block(),
+        {{Line::from_points(Point(50, 50, 25) - d * 40.0, Point(50, 50, 25) + d * 40.0), r}},
+        7,
+        1,
+        area * 50.0 / std::cos(tilt),
+        "drill_tilted"
+    );
 
-    check_drilled(block(), {{Line::from_points(Point(30, 30, 60), Point(30, 30, 30)), r}}, 8, 1, area * 20.0, "drill_blind");
+    check_drilled(
+        block(),
+        {{Line::from_points(Point(30, 30, 60), Point(30, 30, 30)), r}},
+        8,
+        1,
+        area * 20.0,
+        "drill_blind"
+    );
 
-    check_drilled(block(), {{Line::from_points(Point(30, 30, -10), Point(30, 30, 60)), r}, {Line::from_points(Point(70, 70, 60), Point(70, 70, 20)), 4.0}}, 9, 2, area * 50.0 + M_PI * 16.0 * 30.0, "drill_two");
+    check_drilled(
+        block(),
+        {{Line::from_points(Point(30, 30, -10), Point(30, 30, 60)), r}, {Line::from_points(Point(70, 70, 60), Point(70, 70, 20)), 4.0}},
+        9,
+        2,
+        area * 50.0 + M_PI * 16.0 * 30.0,
+        "drill_two"
+    );
 
     check(!drilled_brep(block(), {{Line::from_points(Point(3, 50, -10), Point(3, 50, 60)), r}}).has_value(), "a drill across an edge must fall back");
     check(!drilled_brep(block(), {{Line::from_points(Point(50, 50, -10), Point(50, 50, 60)), r}, {Line::from_points(Point(56, 50, -10), Point(56, 50, 60)), r}}).has_value(), "touching drills must fall back");
 
-    check_drilled(split_block(), {}, 6, 0, 0.0, "split_planar");
-    check_drilled(split_block(), {{Line::from_points(Point(25, 50, -10), Point(25, 50, 60)), r}}, 7, 1, area * 50.0, "split_drilled");
+    check_drilled(
+        split_block(),
+        {},
+        6,
+        0,
+        0.0,
+        "split_planar"
+    );
+    check_drilled(
+        split_block(),
+        {{Line::from_points(Point(25, 50, -10), Point(25, 50, 60)), r}},
+        7,
+        1,
+        area * 50.0,
+        "split_drilled"
+    );
 
-    check_drilled(block(), {{Line::from_points(Point(50, 50, 60), Point(50, 50, 25)), r}, {Line::from_points(Point(50, 50, -10), Point(50, 50, 25)), r}}, 7, 1, area * 50.0, "drill_meeting");
+    check_drilled(
+        block(),
+        {{Line::from_points(Point(50, 50, 60), Point(50, 50, 25)), r}, {Line::from_points(Point(50, 50, -10), Point(50, 50, 25)), r}},
+        7,
+        1,
+        area * 50.0,
+        "drill_meeting"
+    );
     check(merged_drills({{Line::from_points(Point(0, 0, 0), Point(0, 0, 10)), r}, {Line::from_points(Point(0, 0, 10), Point(0, 0, 30)), r}, {Line::from_points(Point(3, 0, 10), Point(3, 0, 30)), r}}).size() == 2, "two drills meeting on one axis merge, an offset one stays");
 
     const std::vector<std::array<double, 2>> through = inside_stretches(block(), Line::from_points(Point(50, 50, -10), Point(50, 50, 60)));

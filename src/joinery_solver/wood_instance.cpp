@@ -73,7 +73,12 @@ std::optional<Xform> compute_frame(const Point& origin, const Vector& direction,
     if (z.is_zero() || x.magnitude() < Tolerance::RELATIVE)
         return std::nullopt;
 
-    return Xform::frame_to_world(origin, x, z.cross(x), z);
+    return Xform::frame_to_world(
+        origin,
+        x,
+        z.cross(x),
+        z
+    );
 }
 
 /// Origin at the axis start, z along the axis, x from the first section edge.
@@ -82,7 +87,8 @@ std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
     if (column.section.point_count() < 2)
         return std::nullopt;
 
-    const std::optional<Xform> frame = compute_frame(column.axis.start(), column.section.get_point(1) - column.section.get_point(0), column.axis.to_vector());
+    const Vector width = column.section.get_point(1) - column.section.get_point(0);
+    const std::optional<Xform> frame = compute_frame(column.axis.start(), width, column.axis.to_vector());
 
     if (!frame)
         return std::nullopt;
@@ -135,7 +141,8 @@ std::optional<std::pair<std::string, Xform>> block_key(const Block& block) {
         return std::nullopt;
 
     const Polyline& bottom = block.loops[0];
-    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), Vector::average_normal(bottom));
+    const Vector first_edge = bottom.get_point(1) - bottom.get_point(0);
+    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), first_edge, Vector::average_normal(bottom));
 
     if (!frame)
         return std::nullopt;
@@ -155,7 +162,8 @@ std::optional<std::pair<std::string, Xform>> plate_key(const Plate& plate) {
         return std::nullopt;
 
     const Polyline& bottom = plate.polylines[0];
-    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), plate.planes[0].z_axis());
+    const Vector first_edge = bottom.get_point(1) - bottom.get_point(0);
+    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), first_edge, plate.planes[0].z_axis());
 
     if (!frame)
         return std::nullopt;
@@ -291,7 +299,12 @@ std::string WoodSession::add_definition(std::shared_ptr<Element> definition, con
     return guid;
 }
 
-std::shared_ptr<TreeNode> WoodSession::add_instance(const std::string& definition_guid, const Xform& xform, const std::string& name, std::shared_ptr<TreeNode> parent) {
+std::shared_ptr<TreeNode> WoodSession::add_instance(
+    const std::string& definition_guid,
+    const Xform& xform,
+    const std::string& name,
+    std::shared_ptr<TreeNode> parent
+) {
 
     const std::shared_ptr<Element> definition = element_of(definition_lookup, definition_guid);
 

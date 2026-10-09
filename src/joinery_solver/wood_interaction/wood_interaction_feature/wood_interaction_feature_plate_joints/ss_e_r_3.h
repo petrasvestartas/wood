@@ -24,5 +24,15 @@ static void ss_e_r_3(InteractionFeaturePlate& joint) {
         {0.502961, -0.6, 0.375}, {-0.40237, -0.6, 0},
     };
 
-    ss_e_r_core(joint, m0, 6, m1, 6, f0, 6, f1, 6);
+    ss_e_r_core(
+        joint,
+        m0,
+        6,
+        m1,
+        6,
+        f0,
+        6,
+        f1,
+        6
+    );
 }

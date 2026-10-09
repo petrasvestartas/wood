@@ -13,7 +13,13 @@ const int VOUSSOIRS = 25;
 int main() {
 
     WoodSession wood_session("vault_arch");
-    for (const std::shared_ptr<Element>& element : wood_vault::arch(SPAN, RISE, THICKNESS, DEPTH, VOUSSOIRS))
+    for (const std::shared_ptr<Element>& element : wood_vault::arch(
+        SPAN,
+        RISE,
+        THICKNESS,
+        DEPTH,
+        VOUSSOIRS
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

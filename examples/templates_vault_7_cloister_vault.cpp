@@ -13,7 +13,13 @@ const int RINGS = 12; // along each wall
 int main() {
 
     WoodSession wood_session("vault_cloister_vault");
-    for (const std::shared_ptr<Element>& element : wood_vault::cloister_vault(SPAN, RISE, THICKNESS, COURSES, RINGS))
+    for (const std::shared_ptr<Element>& element : wood_vault::cloister_vault(
+        SPAN,
+        RISE,
+        THICKNESS,
+        COURSES,
+        RINGS
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

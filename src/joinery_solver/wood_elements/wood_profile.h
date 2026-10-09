@@ -17,7 +17,12 @@ std::vector<Polyline> profile_rectangle(double width, double depth);
 std::vector<Polyline> profile_round(double diameter, int segments = 16);
 
 /// An I: two flanges of thickness flange joined by a web of thickness web.
-std::vector<Polyline> profile_w(double width, double depth, double flange, double web);
+std::vector<Polyline> profile_w(
+    double width,
+    double depth,
+    double flange,
+    double web
+);
 
 /// A hollow rectangle of wall thickness.
 std::vector<Polyline> profile_hss(double width, double depth, double thickness);
@@ -29,7 +34,12 @@ std::vector<Polyline> profile_double(double width, double depth, double gap);
 std::vector<Polyline> profile_slab_band(double width, double depth);
 
 /// A T: a flange of thickness flange on top of a web of thickness web.
-std::vector<Polyline> profile_t(double width, double depth, double web, double flange);
+std::vector<Polyline> profile_t(
+    double width,
+    double depth,
+    double web,
+    double flange
+);
 
 /// Width and depth of a profile from the bounding box of all its loops, so a double profile spans both members.
 std::pair<double, double> compute_size(const std::vector<Polyline>& profile);
@@ -41,6 +51,11 @@ double compute_support(const std::vector<Polyline>& profile, const Vector& direc
 std::vector<Polyline> compute_scaled(const std::vector<Polyline>& profile, double width, double depth);
 
 /// A loop placed at a point of an axis: x along the side, y along the rise, both from the direction and up as square_section builds them.
-Polyline profile_section(const Point& at, const Vector& direction, const Vector& up, const Polyline& loop);
+Polyline profile_section(
+    const Point& at,
+    const Vector& direction,
+    const Vector& up,
+    const Polyline& loop
+);
 
 } // namespace wood_session

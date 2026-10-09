@@ -20,7 +20,13 @@ static bool drill_ready(
 }
 
 /// dir0: the first volume's [1]->[2] edge, unit, times plate v0's thickness; dir1: the reverse times v1's.
-static void drill_axes(const InteractionFeaturePlate& joint, double t0, double t1, Vector& dir0, Vector& dir1) {
+static void drill_axes(
+    const InteractionFeaturePlate& joint,
+    double t0,
+    double t1,
+    Vector& dir0,
+    Vector& dir1
+) {
     const Polyline& jv0 = *joint.joint_volumes[0];
     dir0 = jv0.get_point(1) - jv0.get_point(2);
     dir0.normalize_self();
@@ -30,7 +36,12 @@ static void drill_axes(const InteractionFeaturePlate& joint, double t0, double t
 }
 
 /// One two-point drill line per point on every face, twice per face as the merge expects.
-static void emit_drills(InteractionFeaturePlate& joint, const std::vector<Point>& points, const Vector& dir0, const Vector& dir1) {
+static void emit_drills(
+    InteractionFeaturePlate& joint,
+    const std::vector<Point>& points,
+    const Vector& dir0,
+    const Vector& dir1
+) {
 
     for (int f = 0; f < 2; f++) {
         joint.male_outlines[f].clear();
@@ -78,7 +89,12 @@ static std::vector<Point> offset_boundary_points(
     for (size_t i = 0; i + 1 < poly.point_count(); i++) {
         const double seg_len = Point::distance(poly[i], poly[i + 1]);
         const int divisions = (int)std::min(100.0, seg_len / division_distance);
-        const std::vector<Point> dp = Polyline::interpolate_points(poly[i], poly[i + 1], divisions, 2);
+        const std::vector<Point> dp = Polyline::interpolate_points(
+            poly[i],
+            poly[i + 1],
+            divisions,
+            2
+        );
         points.insert(points.end(), dp.begin(), dp.end());
     }
 
@@ -96,13 +112,30 @@ static void centroid_drill(InteractionFeaturePlate& joint, const std::vector<std
 
     int v0;
     int v1;
-    if (!drill_ready(joint, elements, v0, v1, 3))
+    if (!drill_ready(
+        joint,
+        elements,
+        v0,
+        v1,
+        3
+    ))
         return;
 
     Vector dir0;
     Vector dir1;
-    drill_axes(joint, elements[v0]->thickness, elements[v1]->thickness, dir0, dir1);
-    emit_drills(joint, {joint.contact.polygon.center()}, dir0, dir1);
+    drill_axes(
+        joint,
+        elements[v0]->thickness,
+        elements[v1]->thickness,
+        dir0,
+        dir1
+    );
+    emit_drills(
+        joint,
+        {joint.contact.polygon.center()},
+        dir0,
+        dir1
+    );
 }
 
 /// Drills along the offset area boundary.
@@ -115,15 +148,37 @@ static void boundary_drill(
 
     int v0;
     int v1;
-    if (!drill_ready(joint, elements, v0, v1, 4))
+    if (!drill_ready(
+        joint,
+        elements,
+        v0,
+        v1,
+        4
+    ))
         return;
     if (division_distance <= 0.0)
         return;
 
-    const std::vector<Point> points = offset_boundary_points(joint.contact.polygon, joint.shift, division_distance, open_tolerance);
+    const std::vector<Point> points = offset_boundary_points(
+        joint.contact.polygon,
+        joint.shift,
+        division_distance,
+        open_tolerance
+    );
     Vector dir0;
     Vector dir1;
-    drill_axes(joint, elements[v0]->thickness, elements[v1]->thickness, dir0, dir1);
-    emit_drills(joint, points, dir0, dir1);
+    drill_axes(
+        joint,
+        elements[v0]->thickness,
+        elements[v1]->thickness,
+        dir0,
+        dir1
+    );
+    emit_drills(
+        joint,
+        points,
+        dir0,
+        dir1
+    );
 }
 

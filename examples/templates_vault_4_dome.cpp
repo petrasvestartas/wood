@@ -15,7 +15,15 @@ const double SPRINGING = 90.0; // degrees from the zenith: a hemisphere
 int main() {
 
     WoodSession wood_session("vault_dome");
-    for (const std::shared_ptr<Element>& element : wood_vault::dome(RADIUS, BOTTOM, TOP, MERIDIANS, HOOPS, OCULUS, SPRINGING))
+    for (const std::shared_ptr<Element>& element : wood_vault::dome(
+        RADIUS,
+        BOTTOM,
+        TOP,
+        MERIDIANS,
+        HOOPS,
+        OCULUS,
+        SPRINGING
+    ))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);

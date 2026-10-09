@@ -6,10 +6,30 @@ static void ss_e_op_1(InteractionFeaturePlate& joint) {
     int div = std::max(2, std::min(20, joint.divisions));
     div += div % 2;
 
-    std::vector<Point> arr0 = Point::interpolate(Point(-0.5, 0.5,-0.5), Point(-0.5, 0.5, 0.5), div, 0);
-    std::vector<Point> arr1 = Point::interpolate(Point( 0.5, 0.5,-0.5), Point( 0.5, 0.5, 0.5), div, 0);
-    std::vector<Point> arr2 = Point::interpolate(Point( 0.5,-0.5,-0.5), Point( 0.5,-0.5, 0.5), div, 0);
-    std::vector<Point> arr3 = Point::interpolate(Point(-0.5,-0.5,-0.5), Point(-0.5,-0.5, 0.5), div, 0);
+    std::vector<Point> arr0 = Point::interpolate(
+        Point(-0.5, 0.5,-0.5),
+        Point(-0.5, 0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr1 = Point::interpolate(
+        Point( 0.5, 0.5,-0.5),
+        Point( 0.5, 0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr2 = Point::interpolate(
+        Point( 0.5,-0.5,-0.5),
+        Point( 0.5,-0.5, 0.5),
+        div,
+        0
+    );
+    std::vector<Point> arr3 = Point::interpolate(
+        Point(-0.5,-0.5,-0.5),
+        Point(-0.5,-0.5, 0.5),
+        div,
+        0
+    );
     std::vector<Point>* arrays[4] = {&arr0, &arr1, &arr2, &arr3};
 
     const double vz = (joint.shift == 0) ? 0.0 : (joint.shift * 1.0 - 0.5) / (div + 1);

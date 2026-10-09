@@ -8,7 +8,13 @@ int main() {
 
     WoodSession scene("element_column");
 
-    const Polyline section = Polyline::rectangle({-100.0, -150.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
+    const Polyline section = Polyline::rectangle(
+        {-100.0, -150.0, 0.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        200.0,
+        300.0
+    );
     scene.add(std::make_shared<Column>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 3500.0}), section, "column"));
 
     std::cout << scene << std::endl;

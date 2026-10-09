@@ -76,7 +76,12 @@ static bool inside(const PlanarFace& face, const Point& point) {
     return true;
 }
 
-double segment_distance(const Point& p0, const Point& p1, const Point& q0, const Point& q1) {
+double segment_distance(
+    const Point& p0,
+    const Point& p1,
+    const Point& q0,
+    const Point& q1
+) {
 
     const Vector d1 = p1 - p0;
     const Vector d2 = q1 - q0;
@@ -330,7 +335,12 @@ static PlanarFace framed_face(const std::vector<Point>& points, const std::vecto
 }
 
 /// The faces of one coplanar region: one face with its outer loop and holes when its boundary has exactly one loop winding with the normal, else every mesh face of the region on its own.
-static std::vector<PlanarFace> region_faces(const Mesh& mesh, const std::vector<FacePlane>& planes, const Vector& normal, const std::vector<size_t>& region) {
+static std::vector<PlanarFace> region_faces(
+    const Mesh& mesh,
+    const std::vector<FacePlane>& planes,
+    const Vector& normal,
+    const std::vector<size_t>& region
+) {
 
     std::vector<std::vector<size_t>> members;
 
@@ -386,7 +396,12 @@ std::vector<PlanarFace> planar_faces(const Mesh& mesh) {
         return faces;
 
     for (const std::pair<size_t, std::vector<size_t>>& region : coplanar_regions(planes)) {
-        const std::vector<PlanarFace> found = region_faces(mesh, planes, planes[region.first].normal, region.second);
+        const std::vector<PlanarFace> found = region_faces(
+            mesh,
+            planes,
+            planes[region.first].normal,
+            region.second
+        );
         faces.insert(faces.end(), found.begin(), found.end());
     }
 
@@ -449,7 +464,12 @@ static std::vector<Stretch> compute_stretches(const std::vector<PlanarFace>& fac
 }
 
 /// The axis point of a stretch end on the face's plane, or the axis point at t for a bottom.
-static Point end_centre(const PlanarFace* face, const Point& start, const Vector& d, double t) {
+static Point end_centre(
+    const PlanarFace* face,
+    const Point& start,
+    const Vector& d,
+    double t
+) {
 
     if (!face)
         return start + d * t;
@@ -458,7 +478,12 @@ static Point end_centre(const PlanarFace* face, const Point& start, const Vector
 }
 
 /// True when every face edge and every stretch of another drill keeps clear of the stretch's cylinder and every crossing is steep enough.
-static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Drill>& drills, const std::vector<Stretch>& stretches, size_t s) {
+static bool is_clear(
+    const std::vector<PlanarFace>& faces,
+    const std::vector<Drill>& drills,
+    const std::vector<Stretch>& stretches,
+    size_t s
+) {
 
     const Stretch& stretch = stretches[s];
     const Drill& drill = drills[stretch.drill];
@@ -489,12 +514,21 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
             loops.push_back(&hole);
 
         for (const std::vector<Point>* loop : loops)
-            for (size_t i = 0; i < loop->size(); i++)
-                if (segment_distance(a, b, (*loop)[i], (*loop)[(i + 1) % loop->size()]) < drill.radius + CLEARANCE) {
+            for (size_t i = 0; i < loop->size(); i++) {
+                const Point& corner = (*loop)[i];
+                const Point& next_corner = (*loop)[(i + 1) % loop->size()];
+                const double distance = segment_distance(
+                    a,
+                    b,
+                    corner,
+                    next_corner);
+
+                if (distance < drill.radius + CLEARANCE) {
                     if constexpr (TRACE)
-                        std::cout << fmt::format("drill {} within {:.3f} of an edge of a face of {} corners at ({:.1f} {:.1f} {:.1f})", stretch.drill, segment_distance(a, b, (*loop)[i], (*loop)[(i + 1) % loop->size()]), loop->size(), (*loop)[i][0], (*loop)[i][1], (*loop)[i][2]) << std::endl;
+                        std::cout << fmt::format("drill {} within {:.3f} of an edge of a face of {} corners at ({:.1f} {:.1f} {:.1f})", stretch.drill, distance, loop->size(), corner[0], corner[1], corner[2]) << std::endl;
 
                     return false;
+                }
                 }
     }
 
@@ -507,9 +541,15 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
         const Point c = other.axis.start() + e * stretches[o].t0;
         const Point f = other.axis.start() + e * stretches[o].t1;
 
-        if (segment_distance(drill.axis.start() + d * stretch.t0, drill.axis.start() + d * stretch.t1, c, f) < drill.radius + other.radius + CLEARANCE) {
+        const Point stretch_start = drill.axis.start() + d * stretch.t0;
+        const Point stretch_end = drill.axis.start() + d * stretch.t1;
+        const double distance = segment_distance(
+            stretch_start,
+            stretch_end, c, f);
+
+        if (distance < drill.radius + other.radius + CLEARANCE) {
             if constexpr (TRACE)
-                std::cout << fmt::format("drill {} within {:.3f} of drill {}", stretch.drill, segment_distance(drill.axis.start() + d * stretch.t0, drill.axis.start() + d * stretch.t1, c, f), stretches[o].drill) << std::endl;
+                std::cout << fmt::format("drill {} within {:.3f} of drill {}", stretch.drill, distance, stretches[o].drill) << std::endl;
 
             return false;
         }
@@ -523,25 +563,47 @@ static bool is_clear(const std::vector<PlanarFace>& faces, const std::vector<Dri
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The circle or ellipse where a drill of radius meets a plane, as the unit circle mapped by the drill's axes lifted onto the plane along the axis, so its parameter runs with the cylinder's and starts on its seam.
-static NurbsCurve hole_loop(const Point& centre, const Vector& e, const Vector& f, const Vector& d, const Vector& normal, double radius) {
+static NurbsCurve hole_loop(
+    const Point& centre,
+    const Vector& e,
+    const Vector& f,
+    const Vector& d,
+    const Vector& normal,
+    double radius
+) {
 
     const Vector a = (e - d * (e.dot(normal) / d.dot(normal))) * radius;
     const Vector b = (f - d * (f.dot(normal) / d.dot(normal))) * radius;
     Xform map;
     map.m = {a[0], a[1], a[2], 0.0, b[0], b[1], b[2], 0.0, d[0], d[1], d[2], 0.0, centre[0], centre[1], centre[2], 1.0};
 
-    return Primitives::circle(0.0, 0.0, 0.0, 1.0).transformed(map);
+    return Primitives::circle(
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    ).transformed(map);
 }
 
 /// The straight 2D curve between two parameter points.
-static NurbsCurve uv_line(double u0, double v0, double u1, double v1) {
+static NurbsCurve uv_line(
+    double u0,
+    double v0,
+    double u1,
+    double v1
+) {
     return NurbsCurve::create(false, 1, {Point(u0, v0, 0.0), Point(u1, v1, 0.0)});
 }
 
 /// A 3D curve on a flat patch as its exact pcurve: every control point mapped into the patch parameters, weights kept.
 static NurbsCurve on_patch(const NurbsCurve& curve, const Patch& patch) {
 
-    NurbsCurve uv(3, curve.is_rational(), curve.order(), curve.cv_count());
+    NurbsCurve uv(
+        3,
+        curve.is_rational(),
+        curve.order(),
+        curve.cv_count()
+    );
 
     for (int i = 0; i < curve.nurbsknot_count(); i++)
         uv.set_nurbsknot(i, curve.nurbsknot(i));
@@ -552,7 +614,13 @@ static NurbsCurve on_patch(const NurbsCurve& curve, const Patch& patch) {
         const Vector p = Point(std::get<0>(cv) / w, std::get<1>(cv) / w, std::get<2>(cv) / w) - patch.origin;
         const double u = patch.du.first + p.dot(patch.eu) / patch.eu.dot(patch.eu) * (patch.du.second - patch.du.first);
         const double v = patch.dv.first + p.dot(patch.ev) / patch.ev.dot(patch.ev) * (patch.dv.second - patch.dv.first);
-        uv.set_cv_4d(i, u * w, v * w, 0.0, w);
+        uv.set_cv_4d(
+            i,
+            u * w,
+            v * w,
+            0.0,
+            w
+        );
     }
 
     return uv;
@@ -609,14 +677,22 @@ struct Builder {
 
         const std::pair<int, int> key = {std::min(a, b), std::max(a, b)};
 
-        if (!lines.count(key))
-            lines[key] = brep.add_edge(brep.add_curve_3d(NurbsCurve::create(false, 1, {vertices[key.first], vertices[key.second]})), key.first, key.second);
+        if (!lines.count(key)) {
+            const NurbsCurve segment = NurbsCurve::create(false, 1, {vertices[key.first], vertices[key.second]});
+            const int curve = brep.add_curve_3d(segment);
+            lines[key] = brep.add_edge(curve, key.first, key.second);
+        }
 
         return {lines[key], a != key.first};
     }
 
     /// A flat patch over the points in the face's frame, a little larger than they reach.
-    Patch patch(const std::vector<Point>& points, const Point& origin, const Vector& x, const Vector& y) {
+    Patch patch(
+        const std::vector<Point>& points,
+        const Point& origin,
+        const Vector& x,
+        const Vector& y
+    ) {
 
         double umin = 1e300;
         double umax = -1e300;
@@ -668,7 +744,8 @@ static int polygon_wire(Builder& builder, const std::vector<Point>& loop, const 
 
         const std::pair<int, bool> edge = builder.line(a, b);
         const NurbsCurve line = NurbsCurve::create(false, 1, {builder.vertices[std::min(a, b)], builder.vertices[std::max(a, b)]});
-        builder.brep.add_pcurve(edge.first, patch.surface, builder.brep.add_curve_2d(on_patch(line, patch)));
+        const int pcurve = builder.brep.add_curve_2d(on_patch(line, patch));
+        builder.brep.add_pcurve(edge.first, patch.surface, pcurve);
         edges.push_back({edge.first, edge.second ? BRepOrientation::Reversed : BRepOrientation::Forward});
     }
 
@@ -685,7 +762,12 @@ static int add_planar_face(Builder& builder, const PlanarFace& face, const std::
         span.insert(span.end(), points.begin(), points.end());
     }
 
-    const Patch patch = builder.patch(span, face.points[0], face.x, face.y);
+    const Patch patch = builder.patch(
+        span,
+        face.points[0],
+        face.x,
+        face.y
+    );
     std::vector<BRepRef> wires = {{polygon_wire(builder, face.points, patch), BRepOrientation::Forward}};
 
     for (const std::vector<Point>& hole : face.holes)
@@ -701,10 +783,21 @@ static int add_planar_face(Builder& builder, const PlanarFace& face, const std::
 }
 
 /// Adds the flat bottom of a hole ending inside the solid: its loop as the outer wire of a disc facing out of the solid.
-static int add_bottom_face(Builder& builder, const Loop& loop, const Point& centre, const Vector& e, const Vector& outward) {
+static int add_bottom_face(
+    Builder& builder,
+    const Loop& loop,
+    const Point& centre,
+    const Vector& e,
+    const Vector& outward
+) {
 
     const std::vector<Point> span = sample_curve(loop.curve, 16);
-    const Patch patch = builder.patch(span, centre, e, outward.cross(e).normalized());
+    const Patch patch = builder.patch(
+        span,
+        centre,
+        e,
+        outward.cross(e).normalized()
+    );
     const NurbsCurve uv = on_patch(loop.curve, patch);
     builder.brep.add_pcurve(loop.edge, patch.surface, builder.brep.add_curve_2d(uv));
     const int wire = builder.brep.add_wire({{loop.edge, uv_area(uv) > 0.0 ? BRepOrientation::Forward : BRepOrientation::Reversed}});
@@ -713,7 +806,14 @@ static int add_bottom_face(Builder& builder, const Loop& loop, const Point& cent
 }
 
 /// The pcurve of a loop on its cylinder, exact: the loop is the unit circle mapped affinely, so around the cylinder its parameter is the circle's own and along it the height is linear in the circle's coordinates; each quadratic circle span becomes a cubic rational span of (t, v(t)).
-static NurbsCurve on_cylinder(const NurbsCurve& circle, const Loop& loop, const Point& origin, const Vector& d, double height, const std::pair<double, double>& dv) {
+static NurbsCurve on_cylinder(
+    const NurbsCurve& circle,
+    const Loop& loop,
+    const Point& origin,
+    const Vector& d,
+    double height,
+    const std::pair<double, double>& dv
+) {
 
     const int spans = (circle.cv_count() - 1) / 2;
     std::vector<double> heights(circle.cv_count());
@@ -727,7 +827,12 @@ static NurbsCurve on_cylinder(const NurbsCurve& circle, const Loop& loop, const 
         heights[i] = dv.first + (p - origin).dot(d) / height * (dv.second - dv.first);
     }
 
-    NurbsCurve uv(3, true, 4, 3 * spans + 1);
+    NurbsCurve uv(
+        3,
+        true,
+        4,
+        3 * spans + 1
+    );
 
     for (int i = 0; i < uv.nurbsknot_count(); i++)
         uv.set_nurbsknot(i, circle.nurbsknot(0) + static_cast<double>(i / 3));
@@ -745,7 +850,13 @@ static NurbsCurve on_cylinder(const NurbsCurve& circle, const Loop& loop, const 
         const std::array<double, 4> v = {n0, (n0 + 2.0 * n1) / 3.0, (2.0 * n1 + n2) / 3.0, n2};
 
         for (int c = 0; c < 4; c++)
-            uv.set_cv_4d(3 * j + c, u[c], v[c], 0.0, w[c]);
+            uv.set_cv_4d(
+                3 * j + c,
+                u[c],
+                v[c],
+                0.0,
+                w[c]
+            );
     }
 
     return uv;
@@ -810,7 +921,15 @@ struct Drilling {
 };
 
 /// The two hole loops of a stretch, on the faces it crosses or square to the drill at a bottom, each a closed edge from the vertex on its seam.
-static void add_hole_loops(Drilling& drilling, const std::vector<PlanarFace>& faces, const Drill& drill, const Stretch& stretch, size_t s, const Vector& e, const Vector& f) {
+static void add_hole_loops(
+    Drilling& drilling,
+    const std::vector<PlanarFace>& faces,
+    const Drill& drill,
+    const Stretch& stretch,
+    size_t s,
+    const Vector& e,
+    const Vector& f
+) {
 
     const Point start = drill.axis.start();
     const Vector d = drill.axis.to_vector().normalized();
@@ -818,11 +937,24 @@ static void add_hole_loops(Drilling& drilling, const std::vector<PlanarFace>& fa
     for (size_t end = 0; end < 2; end++) {
         const int face = end == 0 ? stretch.face0 : stretch.face1;
         const PlanarFace* plane = face >= 0 ? &faces[face] : nullptr;
-        const Point centre = end_centre(plane, start, d, end == 0 ? stretch.t0 : stretch.t1);
+        const Point centre = end_centre(
+            plane,
+            start,
+            d,
+            end == 0 ? stretch.t0 : stretch.t1
+        );
         Loop& loop = drilling.loops[s][end];
-        loop.curve = hole_loop(centre, e, f, d, plane ? plane->normal : d, drill.radius);
+        loop.curve = hole_loop(
+            centre,
+            e,
+            f,
+            d,
+            plane ? plane->normal : d,
+            drill.radius
+        );
         const int vertex = drilling.builder.vertex(loop.curve.point_at(loop.curve.domain().first));
-        loop.edge = drilling.builder.brep.add_edge(drilling.builder.brep.add_curve_3d(loop.curve), vertex, vertex);
+        const int curve = drilling.builder.brep.add_curve_3d(loop.curve);
+        loop.edge = drilling.builder.brep.add_edge(curve, vertex, vertex);
     }
 }
 
@@ -841,7 +973,14 @@ static std::array<std::array<double, 2>, 2> loop_reach(const std::array<Loop, 2>
 }
 
 /// Adds the exact bore of one stretch: its two hole loops, the cylinder between them with its seam, and a flat disc at an end inside the solid, the loops on the faces crossed kept for those faces; false when the kernel circle does not match the cylinder's parameter.
-static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, const Drill& drill, const Stretch& stretch, size_t s, const NurbsCurve& circle) {
+static bool add_bore(
+    Drilling& drilling,
+    const std::vector<PlanarFace>& faces,
+    const Drill& drill,
+    const Stretch& stretch,
+    size_t s,
+    const NurbsCurve& circle
+) {
 
     const Point start = drill.axis.start();
     const Vector d = drill.axis.to_vector().normalized();
@@ -850,7 +989,15 @@ static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, c
     Builder& builder = drilling.builder;
     std::array<Loop, 2>& loops = drilling.loops[s];
 
-    add_hole_loops(drilling, faces, drill, stretch, s, e, f);
+    add_hole_loops(
+        drilling,
+        faces,
+        drill,
+        stretch,
+        s,
+        e,
+        f
+    );
 
     const std::array<std::array<double, 2>, 2> reach = loop_reach(loops, start, d);
     const double low = std::min(reach[0][0], reach[1][0]);
@@ -861,7 +1008,13 @@ static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, c
     const double height = high - low + pad_low + pad_high;
     Xform frame;
     frame.m = {e[0], e[1], e[2], 0.0, f[0], f[1], f[2], 0.0, d[0], d[1], d[2], 0.0, origin[0], origin[1], origin[2], 1.0};
-    const NurbsSurface bore = Primitives::cylinder_surface(0.0, 0.0, 0.0, drill.radius, height).transformed(frame);
+    const NurbsSurface bore = Primitives::cylinder_surface(
+        0.0,
+        0.0,
+        0.0,
+        drill.radius,
+        height
+    ).transformed(frame);
     const int surface = builder.brep.add_surface(bore);
     const std::pair<double, double> du = bore.domain(0);
     const std::pair<double, double> dv = bore.domain(1);
@@ -870,17 +1023,46 @@ static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, c
         return false;
 
     for (Loop& loop : loops) {
-        const NurbsCurve uv = on_cylinder(circle, loop, origin, d, height, dv);
+        const NurbsCurve uv = on_cylinder(
+            circle,
+            loop,
+            origin,
+            d,
+            height,
+            dv
+        );
         loop.v = uv.point_at(uv.domain().first)[1];
         builder.brep.add_pcurve(loop.edge, surface, builder.brep.add_curve_2d(uv));
     }
 
     const int bottom = builder.vertex(loops[0].curve.point_at(du.first));
     const int top = builder.vertex(loops[1].curve.point_at(du.first));
-    const int seam = builder.brep.add_edge(builder.brep.add_curve_3d(NurbsCurve::create(false, 1, {builder.vertices[bottom], builder.vertices[top]})), bottom, top);
-    builder.brep.add_pcurve(seam, surface, builder.brep.add_curve_2d(uv_line(du.second, loops[0].v, du.second, loops[1].v)), builder.brep.add_curve_2d(uv_line(du.first, loops[0].v, du.first, loops[1].v)));
+    const NurbsCurve seam_line = NurbsCurve::create(false, 1, {builder.vertices[bottom], builder.vertices[top]});
+    const int seam_curve = builder.brep.add_curve_3d(seam_line);
+    const int seam = builder.brep.add_edge(seam_curve, bottom, top);
+    builder.brep.add_pcurve(
+        seam,
+        surface,
+        builder.brep.add_curve_2d(
+            uv_line(
+                du.second,
+                loops[0].v,
+                du.second,
+                loops[1].v
+            )
+        ),
+        builder.brep.add_curve_2d(
+            uv_line(
+                du.first,
+                loops[0].v,
+                du.first,
+                loops[1].v
+            )
+        )
+    );
     const int wire = builder.brep.add_wire({{loops[0].edge, BRepOrientation::Forward}, {seam, BRepOrientation::Forward}, {loops[1].edge, BRepOrientation::Reversed}, {seam, BRepOrientation::Reversed}});
-    drilling.shell.push_back({builder.brep.add_face(surface, {{wire, BRepOrientation::Forward}}), BRepOrientation::Reversed});
+    const int bore_face = builder.brep.add_face(surface, {{wire, BRepOrientation::Forward}});
+    drilling.shell.push_back({bore_face, BRepOrientation::Reversed});
 
     for (size_t end = 0; end < 2; end++) {
         const int face = end == 0 ? stretch.face0 : stretch.face1;
@@ -889,18 +1071,45 @@ static bool add_bore(Drilling& drilling, const std::vector<PlanarFace>& faces, c
         if (face >= 0)
             drilling.holes[face].push_back(&loops[end]);
         else
-            drilling.shell.push_back({add_bottom_face(builder, loops[end], centre, e, end == 0 ? d : -d), BRepOrientation::Forward});
+            drilling.shell.push_back(
+                {
+                    add_bottom_face(
+                        builder,
+                        loops[end],
+                        centre,
+                        e,
+                        end == 0 ? d : -d
+                    ),
+                    BRepOrientation::Forward
+                }
+            );
     }
 
-    const Point c0 = end_centre(stretch.face0 >= 0 ? &faces[stretch.face0] : nullptr, start, d, stretch.t0);
-    const Point c1 = end_centre(stretch.face1 >= 0 ? &faces[stretch.face1] : nullptr, start, d, stretch.t1);
+    const Point c0 = end_centre(
+        stretch.face0 >= 0 ? &faces[stretch.face0] : nullptr,
+        start,
+        d,
+        stretch.t0
+    );
+    const Point c1 = end_centre(
+        stretch.face1 >= 0 ? &faces[stretch.face1] : nullptr,
+        start,
+        d,
+        stretch.t1
+    );
     drilling.removed += M_PI * drill.radius * drill.radius * (c1 - c0).magnitude();
 
     return true;
 }
 
 /// Whether the built solid closes and holds the mesh's volume less the bores, within VOLUME and the kernel's tessellation slack on the bores.
-static bool check_volume(const BRep& brep, const Mesh& mesh, double removed, const std::vector<Drill>& drills, const std::vector<Stretch>& stretches) {
+static bool check_volume(
+    const BRep& brep,
+    const Mesh& mesh,
+    double removed,
+    const std::vector<Drill>& drills,
+    const std::vector<Stretch>& stretches
+) {
 
     const double expected = compute_volume(mesh) - removed;
 
@@ -946,7 +1155,12 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
 
     split_sides(faces);
 
-    const NurbsCurve circle = Primitives::circle(0.0, 0.0, 0.0, 1.0);
+    const NurbsCurve circle = Primitives::circle(
+        0.0,
+        0.0,
+        0.0,
+        1.0
+    );
     std::vector<Stretch> stretches;
 
     for (size_t i = 0; i < drills.size(); i++) {
@@ -955,7 +1169,12 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     }
 
     for (size_t s = 0; s < stretches.size(); s++)
-        if (!is_clear(faces, drills, stretches, s))
+        if (!is_clear(
+            faces,
+            drills,
+            stretches,
+            s
+        ))
             return std::nullopt;
 
     Drilling drilling;
@@ -963,7 +1182,14 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     drilling.loops.resize(stretches.size());
 
     for (size_t s = 0; s < stretches.size(); s++)
-        if (!add_bore(drilling, faces, drills[stretches[s].drill], stretches[s], s, circle))
+        if (!add_bore(
+            drilling,
+            faces,
+            drills[stretches[s].drill],
+            stretches[s],
+            s,
+            circle
+        ))
             return std::nullopt;
 
     for (size_t i = 0; i < faces.size(); i++)
@@ -972,7 +1198,13 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     BRep& brep = drilling.builder.brep;
     brep.add_solid({{brep.add_shell(drilling.shell), BRepOrientation::Forward}});
 
-    if (!check_volume(brep, mesh, drilling.removed, drills, stretches))
+    if (!check_volume(
+        brep,
+        mesh,
+        drilling.removed,
+        drills,
+        stretches
+    ))
         return std::nullopt;
 
     if constexpr (TRACE)

@@ -52,7 +52,12 @@ bool outer_face(const Element& e, size_t i) {
 }
 
 /// Whether a triangular overlap of faces i and j is a contact: always when either element is not a plate, since a cut member end bears on a triangle; between two plates only outer to outer.
-bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
+bool triangle_contact(
+    const Element& a,
+    size_t i,
+    const Element& b,
+    size_t j
+) {
 
     if (!is_plate(a) || !is_plate(b))
         return true;
@@ -61,7 +66,14 @@ bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
 }
 
 /// Topology class of a face pair; unknown unless both sides follow the plate convention.
-ContactType contact_type(const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb) {
+ContactType contact_type(
+    const Element& a,
+    size_t i,
+    const Element& b,
+    size_t j,
+    const Plane& pa,
+    const Plane& pb
+) {
 
     const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a) || dynamic_cast<const BeamVariable*>(&a);
     const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b) || dynamic_cast<const BeamVariable*>(&b);
@@ -185,7 +197,13 @@ bool faces_coplanar(
 }
 
 /// An outline as a Clipper path in the plane's 2D frame, scaled to integers and without its closing vertex.
-static Clipper2Lib::Path64 outline_to_clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, double scale) {
+static Clipper2Lib::Path64 outline_to_clipper_path(
+    const Polyline& outline,
+    const Point& origin,
+    const Vector& x_axis,
+    const Vector& y_axis,
+    double scale
+) {
 
     Clipper2Lib::Path64 path;
     const size_t n = outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
@@ -220,8 +238,24 @@ bool face_overlap_area(
     const Vector yax = plane0.base2();
     const double scale = static_cast<double>(clipper_scale);
 
-    const Clipper2Lib::Paths64 subject{outline_to_clipper_path(outline0, origin, xax, yax, scale)};
-    const Clipper2Lib::Paths64 clip{outline_to_clipper_path(outline1, origin, xax, yax, scale)};
+    const Clipper2Lib::Paths64 subject{
+        outline_to_clipper_path(
+            outline0,
+            origin,
+            xax,
+            yax,
+            scale
+        )
+    };
+    const Clipper2Lib::Paths64 clip{
+        outline_to_clipper_path(
+            outline1,
+            origin,
+            xax,
+            yax,
+            scale
+        )
+    };
     const Clipper2Lib::Paths64 solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero);
 
     if (solution.empty())
@@ -310,15 +344,33 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     for (size_t i = 0; i < std::min(planes_a.size(), outlines_a.size()); ++i) {
         for (size_t j = 0; j < std::min(planes_b.size(), outlines_b.size()); ++j) {
 
-            if (!faces_coplanar(planes_a[i], planes_b[j], cos_angle, settings.distance_squared))
+            if (!faces_coplanar(
+                planes_a[i],
+                planes_b[j],
+                cos_angle,
+                settings.distance_squared
+            ))
                 continue;
 
             if (trace)
                 trace->coplanar++;
 
             Polyline polygon;
-            const bool triangles = triangle_contact(ea, i, eb, j);
-            if (!face_overlap_area(outlines_a[i], outlines_b[j], planes_a[i], triangles, settings.clipper_scale, settings.clipper_area, polygon)) {
+            const bool triangles = triangle_contact(
+                ea,
+                i,
+                eb,
+                j
+            );
+            if (!face_overlap_area(
+                outlines_a[i],
+                outlines_b[j],
+                planes_a[i],
+                triangles,
+                settings.clipper_scale,
+                settings.clipper_area,
+                polygon
+            )) {
                 if (TRACE && trace)
                     trace->fail_reason = fmt::format("bool_empty f({},{})", i, j);
                 continue;
@@ -327,7 +379,19 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
             if (trace)
                 trace->overlapping++;
 
-            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), contact_type(ea, i, eb, j, planes_a[i], planes_b[j]), std::move(polygon));
+            contacts.emplace_back(
+                static_cast<int>(i),
+                static_cast<int>(j),
+                contact_type(
+                    ea,
+                    i,
+                    eb,
+                    j,
+                    planes_a[i],
+                    planes_b[j]
+                ),
+                std::move(polygon)
+            );
         }
     }
 
@@ -372,19 +436,40 @@ std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
 namespace {
 
 /// Polyline-plane crossings, none when any vertex lies within sqrt(distance_squared) of the plane; exactly two are a chord.
-bool polyline_plane_chord(const Polyline& polyline, const Plane& plane, double distance_squared, std::vector<Point>& points, std::vector<int>& edge_ids) {
+bool polyline_plane_chord(
+    const Polyline& polyline,
+    const Plane& plane,
+    double distance_squared,
+    std::vector<Point>& points,
+    std::vector<int>& edge_ids
+) {
 
     for (size_t i = 0; i < polyline.point_count(); i++)
         if (plane.squared_distance(polyline.get_point(i)) < distance_squared)
             return false;
 
-    return Intersection::polyline_plane(polyline, plane, points, edge_ids) && points.size() == 2;
+    return Intersection::polyline_plane(
+        polyline,
+        plane,
+        points,
+        edge_ids
+    ) && points.size() == 2;
 }
 
 /// Positions of the test points inside or on the polygon in its plane; their count out.
-int points_inside(const Polyline& polygon, const Plane& plane, const std::vector<Point>& test_points, std::vector<int>& inside) {
+int points_inside(
+    const Polyline& polygon,
+    const Plane& plane,
+    const std::vector<Point>& test_points,
+    std::vector<int>& inside
+) {
 
-    const Xform to_xy = Xform::world_to_frame(plane.origin(), plane.base1(), plane.base2(), plane.z_axis());
+    const Xform to_xy = Xform::world_to_frame(
+        plane.origin(),
+        plane.base1(),
+        plane.base2(),
+        plane.z_axis()
+    );
     const Polyline flat = polygon.transformed(to_xy);
     for (size_t i = 0; i < test_points.size(); i++) {
 
@@ -403,29 +488,64 @@ int points_inside(const Polyline& polygon, const Plane& plane, const std::vector
 double parameter_on(const Point& point, const Point& start, const Point& end) {
 
     double t = 0.0;
-    Polyline::closest_point_to_line(point, start, end, t);
+    Polyline::closest_point_to_line(
+        point,
+        start,
+        end,
+        t
+    );
 
     return t;
 }
 
 /// Cross-joint chord between two polylines via reciprocal polyline-plane intersections; (edge in c0, edge in c1) pair out.
-bool polyline_plane_cross_joint(const Polyline& c0, const Polyline& c1, const Plane& p0, const Plane& p1, double distance_squared, Line& contact, std::pair<int, int>& edges) {
+bool polyline_plane_cross_joint(
+    const Polyline& c0,
+    const Polyline& c1,
+    const Plane& p0,
+    const Plane& p1,
+    double distance_squared,
+    Line& contact,
+    std::pair<int, int>& edges
+) {
 
     std::vector<Point> pts0;
     std::vector<int> edge_ids_0;
-    if (!polyline_plane_chord(c0, p1, distance_squared, pts0, edge_ids_0))
+    if (!polyline_plane_chord(
+        c0,
+        p1,
+        distance_squared,
+        pts0,
+        edge_ids_0
+    ))
         return false;
 
     std::vector<Point> pts1;
     std::vector<int> edge_ids_1;
-    if (!polyline_plane_chord(c1, p0, distance_squared, pts1, edge_ids_1))
+    if (!polyline_plane_chord(
+        c1,
+        p0,
+        distance_squared,
+        pts1,
+        edge_ids_1
+    ))
         return false;
 
     std::vector<int> ID1;
-    const int count0 = points_inside(c0, p0, pts1, ID1);
+    const int count0 = points_inside(
+        c0,
+        p0,
+        pts1,
+        ID1
+    );
 
     std::vector<int> ID0;
-    const int count1 = points_inside(c1, p1, pts0, ID0);
+    const int count1 = points_inside(
+        c1,
+        p1,
+        pts0,
+        ID0
+    );
 
     if (count0 == 0 && count1 == 0)
         return false;
@@ -519,22 +639,54 @@ bool plane_to_face(
 
     Line cx0_py0__cy0_px0;
     std::pair<int, int> e0_0__e1_0;
-    if (!polyline_plane_cross_joint(cx0, cy0, px0, py0, distance_squared, cx0_py0__cy0_px0, e0_0__e1_0))
+    if (!polyline_plane_cross_joint(
+        cx0,
+        cy0,
+        px0,
+        py0,
+        distance_squared,
+        cx0_py0__cy0_px0,
+        e0_0__e1_0
+    ))
         return false;
 
     Line cx0_py1__cy1_px0;
     std::pair<int, int> e0_0__e1_1;
-    if (!polyline_plane_cross_joint(cx0, cy1, px0, py1, distance_squared, cx0_py1__cy1_px0, e0_0__e1_1))
+    if (!polyline_plane_cross_joint(
+        cx0,
+        cy1,
+        px0,
+        py1,
+        distance_squared,
+        cx0_py1__cy1_px0,
+        e0_0__e1_1
+    ))
         return false;
 
     Line cx1_py0__cy0_px1;
     std::pair<int, int> e0_1__e1_0;
-    if (!polyline_plane_cross_joint(cx1, cy0, px1, py0, distance_squared, cx1_py0__cy0_px1, e0_1__e1_0))
+    if (!polyline_plane_cross_joint(
+        cx1,
+        cy0,
+        px1,
+        py0,
+        distance_squared,
+        cx1_py0__cy0_px1,
+        e0_1__e1_0
+    ))
         return false;
 
     Line cx1_py1__cy1_px1;
     std::pair<int, int> e0_1__e1_1;
-    if (!polyline_plane_cross_joint(cx1, cy1, px1, py1, distance_squared, cx1_py1__cy1_px1, e0_1__e1_1))
+    if (!polyline_plane_cross_joint(
+        cx1,
+        cy1,
+        px1,
+        py1,
+        distance_squared,
+        cx1_py1__cy1_px1,
+        e0_1__e1_1
+    ))
         return false;
 
     result.faces_a[0] = e0_0__e1_0.first + 2;
@@ -597,7 +749,12 @@ bool plane_to_face(
     const Plane midPlane(lMin_mid, mid_x, mid_y);
 
     Point midPlane_lMax;
-    if (!Intersection::line_plane(lMax, midPlane, midPlane_lMax, false))
+    if (!Intersection::line_plane(
+        lMax,
+        midPlane,
+        midPlane_lMax,
+        false
+    ))
         return false;
 
     const Point lMax_a = lMax.start();
@@ -632,10 +789,34 @@ bool plane_to_face(
     if (extension[0] != 0.0 || extension[1] != 0.0) {
         for (int k = 0; k < 2; k++) {
             Polyline& pl = result.volumes[k];
-            pl.extend_segment(0, extension[0], extension[0], 0.0, 0.0);
-            pl.extend_segment(2, extension[0], extension[0], 0.0, 0.0);
-            pl.extend_segment(1, extension[1], extension[1], 0.0, 0.0);
-            pl.extend_segment(3, extension[1], extension[1], 0.0, 0.0);
+            pl.extend_segment(
+                0,
+                extension[0],
+                extension[0],
+                0.0,
+                0.0
+            );
+            pl.extend_segment(
+                2,
+                extension[0],
+                extension[0],
+                0.0,
+                0.0
+            );
+            pl.extend_segment(
+                1,
+                extension[1],
+                extension[1],
+                0.0,
+                0.0
+            );
+            pl.extend_segment(
+                3,
+                extension[1],
+                extension[1],
+                0.0,
+                0.0
+            );
         }
     }
 
@@ -679,7 +860,15 @@ std::map<uint64_t, Closest> closest_pairs(const std::vector<std::vector<Line>>& 
 
                     double t0;
                     double t1;
-                    if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
+                    if (!Intersection::line_line_parameters(
+                        la,
+                        lb,
+                        t0,
+                        t1,
+                        0.0,
+                        true,
+                        true
+                    ))
                         continue;
                     if (!std::isfinite(t0) || !std::isfinite(t1))
                         continue;
@@ -715,7 +904,12 @@ std::vector<std::tuple<int, int, InteractionContactAxis>> axis_contacts(const st
     for (const auto& [key, c] : closest_pairs(lines, min_distance)) {
         const Line& s0 = lines[c.pid0][c.sid0];
         const Line& s1 = lines[c.pid1][c.sid1];
-        contacts.emplace_back(c.pid0, c.pid1, InteractionContactAxis(Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1)), c.t0, c.t1, 0, c.sid0, 0, c.sid1));
+        const Line closest = Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1));
+        contacts.emplace_back(
+            c.pid0,
+            c.pid1,
+            InteractionContactAxis(
+                closest, c.t0, c.t1, 0, c.sid0, 0, c.sid1));
     }
 
     return contacts;

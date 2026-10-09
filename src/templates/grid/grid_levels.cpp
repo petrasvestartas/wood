@@ -57,12 +57,24 @@ int compute_family(const Mesh& plan, std::pair<size_t, size_t> edge, const Patte
 }
 
 /// The plan of one level: the pattern clipped to the rings and every ring's edges arranged into faces; faces outside the rings removed, with no rings the cells one family alone bounds; then family, boundary, column and floor attributes.
-Mesh compute_plan(const Pattern& pattern, const std::vector<Polyline>& rings, const std::vector<Polyline>& extras, double tolerance, double merge, bool floor) {
+Mesh compute_plan(
+    const Pattern& pattern,
+    const std::vector<Polyline>& rings,
+    const std::vector<Polyline>& extras,
+    double tolerance,
+    double merge,
+    bool floor
+) {
 
     std::vector<Line> lines;
     std::vector<double> ids;
     for (size_t i = 0; i < pattern.lines.size(); i++)
-        for (const Piece& piece : compute_pieces(pattern.lines[i], rings, true, tolerance)) {
+        for (const Piece& piece : compute_pieces(
+            pattern.lines[i],
+            rings,
+            true,
+            tolerance
+        )) {
             lines.push_back(piece.line);
             ids.push_back(static_cast<double>(i));
         }
@@ -78,7 +90,13 @@ Mesh compute_plan(const Pattern& pattern, const std::vector<Polyline>& rings, co
         }
     }
 
-    Mesh plan = compute_arrangement(lines, sides, ids, tolerance, merge);
+    Mesh plan = compute_arrangement(
+        lines,
+        sides,
+        ids,
+        tolerance,
+        merge
+    );
     for (const size_t face : plan.faces()) {
         const std::vector<size_t> loop = *plan.face_vertices(face);
         std::set<int> families;
@@ -115,7 +133,16 @@ std::vector<Polyline> compute_section(const Mesh& solid, double z) {
 }
 
 /// A level from its section rings and the cores inside them, every ring counter-clockwise at z 0, its plan computed with column 0 inside a core.
-Level compute_level(double z, const std::vector<Polyline>& rings, const std::vector<Polyline>& cores, const std::vector<Polyline>& extras, const Pattern& pattern, double tolerance, double merge, bool floor) {
+Level compute_level(
+    double z,
+    const std::vector<Polyline>& rings,
+    const std::vector<Polyline>& cores,
+    const std::vector<Polyline>& extras,
+    const Pattern& pattern,
+    double tolerance,
+    double merge,
+    bool floor
+) {
 
     Level level;
     level.z = z;
@@ -127,7 +154,14 @@ Level compute_level(double z, const std::vector<Polyline>& rings, const std::vec
             level.cores.push_back(to_polyline(corners));
     }
 
-    level.plan = compute_plan(pattern, rings, extras, tolerance, merge, floor);
+    level.plan = compute_plan(
+        pattern,
+        rings,
+        extras,
+        tolerance,
+        merge,
+        floor
+    );
     for (const size_t vertex : level.plan.vertices())
         if (is_inside(level.cores, *level.plan.vertex_point(vertex)))
             level.plan.set_vertex_attribute(vertex, "column", 0.0);
@@ -179,7 +213,12 @@ std::vector<double> compute_elevations(const std::vector<Line>& lines, const std
 }
 
 /// True when z lies at elevation k within tolerance.
-bool is_at(const std::vector<double>& elevations, size_t k, double z, double tolerance) {
+bool is_at(
+    const std::vector<double>& elevations,
+    size_t k,
+    double z,
+    double tolerance
+) {
     return std::abs(elevations[k] - z) <= tolerance;
 }
 
@@ -192,11 +231,23 @@ struct Drawn {
 };
 
 /// The lines of level k as drawn: the horizontal lines there, the edges of the floors there and the top edges of the walls ending there, with the floors and walls beside.
-Drawn compute_drawn(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, const std::vector<double>& elevations, size_t k, double tolerance, double angle) {
+Drawn compute_drawn(
+    const std::vector<Line>& lines,
+    const std::vector<Polyline>& surfaces,
+    const std::vector<double>& elevations,
+    size_t k,
+    double tolerance,
+    double angle
+) {
 
     Drawn drawn;
     for (const Line& line : lines)
-        if (compute_tilt(line) <= angle && is_at(elevations, k, line.start()[2], tolerance)) {
+        if (compute_tilt(line) <= angle && is_at(
+            elevations,
+            k,
+            line.start()[2],
+            tolerance
+        )) {
             drawn.lines.push_back(Line::from_points(compute_lift(line.start(), 0.0), compute_lift(line.end(), 0.0)));
             drawn.ids.push_back(static_cast<double>(drawn.lines.size() - 1));
         }
@@ -204,7 +255,12 @@ Drawn compute_drawn(const std::vector<Line>& lines, const std::vector<Polyline>&
     for (const Polyline& surface : surfaces) {
         const std::pair<double, double> range = compute_z_range(surface);
         const bool level = std::abs(wood_session::compute_newell(surface.get_points())[2]) > std::cos(angle * Tolerance::TO_RADIANS);
-        if (level && is_at(elevations, k, range.first, tolerance)) {
+        if (level && is_at(
+            elevations,
+            k,
+            range.first,
+            tolerance
+        )) {
             std::vector<Point> corners = to_loop(compute_lifted(surface, 0.0));
             if (compute_area(corners) < 0.0)
                 std::reverse(corners.begin(), corners.end());
@@ -219,7 +275,12 @@ Drawn compute_drawn(const std::vector<Line>& lines, const std::vector<Polyline>&
         for (const Point& point : to_loop(surface))
             if (std::abs(point[2] - range.second) <= tolerance)
                 top.push_back(compute_lift(point, 0.0));
-        if (level || !is_at(elevations, k, range.second, tolerance) || top.size() < 2 || range.second - range.first <= tolerance)
+        if (level || !is_at(
+            elevations,
+            k,
+            range.second,
+            tolerance
+        ) || top.size() < 2 || range.second - range.first <= tolerance)
             continue;
 
         drawn.walls.emplace_back(Line::from_points(top.front(), top.back()), surface.name.find("core") != std::string::npos ? 2.0 : 1.0);
@@ -231,15 +292,39 @@ Drawn compute_drawn(const std::vector<Line>& lines, const std::vector<Polyline>&
 }
 
 /// The plan of level k as drawn: floor 1 inside a drawn floor, family -1, boundary where fewer than two floors meet, role 0 on floor and wall edges nobody drew a line on, wall 1 under a drawn wall (2 when named core), column 1 under every end of a vertical line.
-Mesh compute_drawn_plan(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, const std::vector<double>& elevations, size_t k, double tolerance, double angle) {
+Mesh compute_drawn_plan(
+    const std::vector<Line>& lines,
+    const std::vector<Polyline>& surfaces,
+    const std::vector<double>& elevations,
+    size_t k,
+    double tolerance,
+    double angle
+) {
 
-    const Drawn drawn = compute_drawn(lines, surfaces, elevations, k, tolerance, angle);
-    Mesh plan = compute_arrangement(drawn.lines, {}, drawn.ids, tolerance, tolerance);
-    for (const size_t face : plan.faces())
-        plan.set_face_attribute(face, "floor", is_inside(drawn.floors, compute_interior(to_loop(*plan.face_polygon(face)))) ? 1.0 : 0.0);
+    const Drawn drawn = compute_drawn(
+        lines,
+        surfaces,
+        elevations,
+        k,
+        tolerance,
+        angle
+    );
+    Mesh plan = compute_arrangement(
+        drawn.lines,
+        {},
+        drawn.ids,
+        tolerance,
+        tolerance
+    );
+    for (const size_t face : plan.faces()) {
+        const Point interior = compute_interior(to_loop(*plan.face_polygon(face)));
+        plan.set_face_attribute(face, "floor", is_inside(drawn.floors, interior) ? 1.0 : 0.0);
+    }
 
     for (const std::pair<size_t, size_t>& edge : plan.edges()) {
-        const Point middle = compute_lift(*plan.vertex_point(edge.first), 0.0) + (compute_lift(*plan.vertex_point(edge.second), 0.0) - compute_lift(*plan.vertex_point(edge.first), 0.0)) * 0.5;
+        const Point from = compute_lift(*plan.vertex_point(edge.first), 0.0);
+        const Point to = compute_lift(*plan.vertex_point(edge.second), 0.0);
+        const Point middle = from + (to - from) * 0.5;
         int floored = 0;
         for (const size_t face : plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>()))
             floored += plan.face_attribute(face, "floor").value_or(0.0) == 1.0 ? 1 : 0;
@@ -255,7 +340,12 @@ Mesh compute_drawn_plan(const std::vector<Line>& lines, const std::vector<Polyli
 
     for (const Line& line : lines)
         for (const Point& end : {line.start(), line.end()}) {
-            if (compute_tilt(line) < 90.0 - angle || !is_at(elevations, k, end[2], tolerance))
+            if (compute_tilt(line) < 90.0 - angle || !is_at(
+                elevations,
+                k,
+                end[2],
+                tolerance
+            ))
                 continue;
 
             std::optional<size_t> found;
@@ -351,8 +441,11 @@ Pattern Pattern::hexagonal(double side, int nx, int ny) {
     for (int j = 0; j < ny; j++)
         for (int i = 0; i < nx; i++) {
             const Point centre(std::sqrt(3.0) * side * (i + 0.5 * (j % 2)), 1.5 * side * j, 0.0);
-            for (int k = 0; k < 6; k++)
-                lines.push_back(Line::from_points(centre + (levels::compute_polar(side, 30.0 + 60.0 * k) - Point(0.0, 0.0, 0.0)), centre + (levels::compute_polar(side, 90.0 + 60.0 * k) - Point(0.0, 0.0, 0.0))));
+            for (int k = 0; k < 6; k++) {
+                const Vector start_offset = levels::compute_polar(side, 30.0 + 60.0 * k) - Point(0.0, 0.0, 0.0);
+                const Vector end_offset = levels::compute_polar(side, 90.0 + 60.0 * k) - Point(0.0, 0.0, 0.0);
+                lines.push_back(Line::from_points(centre + start_offset, centre + end_offset));
+            }
         }
 
     return from_lines(lines);
@@ -380,7 +473,14 @@ Pattern Pattern::transformed(const Xform& xform) const {
 // Building constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-Building Building::from_footprint(const std::vector<Polyline>& footprint, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores, double tolerance, double merge) {
+Building Building::from_footprint(
+    const std::vector<Polyline>& footprint,
+    const std::vector<double>& elevations,
+    const Pattern& pattern,
+    const std::vector<Polyline>& cores,
+    double tolerance,
+    double merge
+) {
 
     std::vector<Polyline> rings;
     for (const Polyline& ring : footprint)
@@ -388,7 +488,18 @@ Building Building::from_footprint(const std::vector<Polyline>& footprint, const 
 
     Building building;
     building.tolerance = tolerance;
-    building.levels.push_back(levels::compute_level(elevations[0], rings, cores, {}, pattern, tolerance, merge, false));
+    building.levels.push_back(
+        levels::compute_level(
+            elevations[0],
+            rings,
+            cores,
+            {},
+            pattern,
+            tolerance,
+            merge,
+            false
+        )
+    );
     for (size_t k = 1; k < elevations.size(); k++) {
         building.levels.push_back(building.levels[0]);
         building.levels.back().z = elevations[k];
@@ -399,7 +510,14 @@ Building Building::from_footprint(const std::vector<Polyline>& footprint, const 
     return building;
 }
 
-Building Building::from_solid(const Mesh& massing, const std::vector<double>& elevations, const Pattern& pattern, const std::vector<Polyline>& cores, double tolerance, double merge) {
+Building Building::from_solid(
+    const Mesh& massing,
+    const std::vector<double>& elevations,
+    const Pattern& pattern,
+    const std::vector<Polyline>& cores,
+    double tolerance,
+    double merge
+) {
 
     Mesh solid = massing;
     solid.orient_outward();
@@ -424,13 +542,29 @@ Building Building::from_solid(const Mesh& massing, const std::vector<double>& el
                 if (plan::compute_area(plan::to_loop(ring)) > 0.0)
                     extras.push_back(ring);
 
-        building.levels.push_back(levels::compute_level(elevations[k], rings, cores, extras, pattern, tolerance, merge, k > 0));
+        building.levels.push_back(
+            levels::compute_level(
+                elevations[k],
+                rings,
+                cores,
+                extras,
+                pattern,
+                tolerance,
+                merge,
+                k > 0
+            )
+        );
     }
 
     return building;
 }
 
-Building Building::from_lines(const std::vector<Line>& lines, const std::vector<Polyline>& surfaces, double tolerance, double angle) {
+Building Building::from_lines(
+    const std::vector<Line>& lines,
+    const std::vector<Polyline>& surfaces,
+    double tolerance,
+    double angle
+) {
 
     const std::vector<double> elevations = levels::compute_elevations(lines, surfaces, tolerance);
 
@@ -439,7 +573,14 @@ Building Building::from_lines(const std::vector<Line>& lines, const std::vector<
     for (size_t k = 0; k < elevations.size(); k++) {
         Level level;
         level.z = elevations[k];
-        level.plan = levels::compute_drawn_plan(lines, surfaces, elevations, k, tolerance, angle);
+        level.plan = levels::compute_drawn_plan(
+            lines,
+            surfaces,
+            elevations,
+            k,
+            tolerance,
+            angle
+        );
         building.levels.push_back(level);
     }
 

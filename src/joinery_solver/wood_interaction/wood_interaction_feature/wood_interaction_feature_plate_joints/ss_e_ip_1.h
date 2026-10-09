@@ -6,9 +6,20 @@ static void ss_e_ip_1(InteractionFeaturePlate& joint) {
     int div = std::max(2, std::min(100, joint.divisions));
     div += div % 2;
 
-    const std::vector<Point> pts0 = Point::interpolate(Point(0, -0.5, 0.5), Point(0, -0.5, -0.5), div, 0);
+    const std::vector<Point> pts0 = Point::interpolate(
+        Point(0, -0.5, 0.5),
+        Point(0, -0.5, -0.5),
+        div,
+        0
+    );
     const Vector v(0.5, 0, 0);
-    const double shift_ = Intersection::remap(joint.shift, 0, 1.0, -0.5, 0.5);
+    const double shift_ = Intersection::remap(
+        joint.shift,
+        0,
+        1.0,
+        -0.5,
+        0.5
+    );
     const Vector v_d(0, 0, -(1.0 / ((div + 1) * 2)) * shift_);
 
     std::vector<Point> pline0;

@@ -49,7 +49,13 @@ bool is_inside(const std::vector<Polyline>& rings, const Point& point);
 Polyline compute_wall_ring(const Polyline& core, double wall);
 
 /// Where the lines of two sides through a corner meet once each is moved out along its outward normal by its distance: the mitre; along the first normal by the larger distance when the sides are parallel.
-Point compute_corner(const Point& corner, const Vector& before, double a, const Vector& after, double b);
+Point compute_corner(
+    const Point& corner,
+    const Vector& before,
+    double a,
+    const Vector& after,
+    double b
+);
 
 /// A piece of a line between its crossings with rings, and the ring and side each end stops on, -1 at the line's own ends.
 struct Piece {
@@ -59,7 +65,12 @@ struct Piece {
 };
 
 /// A line cut where it crosses the rings: the pieces whose midpoints lie inside, or outside when inside is false; the whole line when there are no rings.
-std::vector<Piece> compute_pieces(const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance);
+std::vector<Piece> compute_pieces(
+    const Line& line,
+    const std::vector<Polyline>& rings,
+    bool inside,
+    double tolerance
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Arrangement
@@ -72,7 +83,13 @@ double compute_ring_id(size_t ring, size_t edge);
 bool is_ring(double id);
 
 /// Mesh::from_arrangement of lines inside the ring edges, edge attribute line the id of the line an edge lies on (ids for lines, then for ring edges) and vertex attributes line_a, line_b the two lowest ids meeting there.
-Mesh compute_arrangement(const std::vector<Line>& lines, const std::vector<Line>& rings, const std::vector<double>& ids, double tolerance, double merge);
+Mesh compute_arrangement(
+    const std::vector<Line>& lines,
+    const std::vector<Line>& rings,
+    const std::vector<double>& ids,
+    double tolerance,
+    double merge
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes
@@ -160,7 +177,12 @@ std::vector<Member> compute_members(const Context& context, size_t vertex);
 void add_plane(std::vector<Plane>& planes, const Plane& plane);
 
 /// Adds the exit face of a plan polygon for the ray from origin along direction, when the ray leaves it.
-void add_exit(std::vector<Plane>& planes, const std::vector<Point>& polygon, const Point& origin, const Vector& direction);
+void add_exit(
+    std::vector<Plane>& planes,
+    const std::vector<Point>& polygon,
+    const Point& origin,
+    const Vector& direction
+);
 
 /// Cut planes of the member on the edge from vertex to other at its vertex end: the column face there, then the through member's side, the mitre with an equal neighbour, or its own open end.
 End compute_cuts(const Context& context, size_t vertex, size_t other);
@@ -181,7 +203,12 @@ double compute_slope_start(const Context& context, size_t vertex, const Member& 
 Plane compute_slope_face(const Context& context, size_t vertex, const Member& member);
 
 /// Plan intersection of two lines given by a point and a direction.
-Point compute_meet(const Point& p, const Vector& d, const Point& q, const Vector& e);
+Point compute_meet(
+    const Point& p,
+    const Vector& d,
+    const Point& q,
+    const Vector& e
+);
 
 /// Farthest corner of any column section at a vertex along a plan direction, 0 without a column.
 double compute_column_reach(const Context& context, size_t vertex, const Vector& direction);
@@ -214,7 +241,12 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
 std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& loops, const Vector& span, double panel);
 
 /// The vertical plane of a side of the wall band round a core, normal away from the core, through at.
-Plane compute_wall_face(const std::vector<Polyline>& outer, int ring, int side, const Point& at);
+Plane compute_wall_face(
+    const std::vector<Polyline>& outer,
+    int ring,
+    int side,
+    const Point& at
+);
 
 /// Purlin stations of a system 2 face: parallel to its cross-family edges (else across its girders) at ceil(width / spacing) intervals, clipped to the face and outside the cores, each end cut on the member or wall it lands on.
 std::vector<Station> compute_stations(const Context& context, size_t face, const std::vector<Polyline>& cores);

@@ -9,8 +9,21 @@ int main() {
     WoodSession scene("element_beam");
 
     const Polyline axis({{0.0, 0.0, 0.0}, {600.0, 0.0, 0.0}, {1000.0, 300.0, 0.0}});
-    const Polyline profile = Polyline::rectangle({-60.0, -100.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 120.0, 200.0);
-    scene.add(std::make_shared<Beam>(axis, std::vector<Polyline>{profile}, std::vector<Vector>{}, "beam"));
+    const Polyline profile = Polyline::rectangle(
+        {-60.0, -100.0, 0.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        120.0,
+        200.0
+    );
+    scene.add(
+        std::make_shared<Beam>(
+            axis,
+            std::vector<Polyline>{profile},
+            std::vector<Vector>{},
+            "beam"
+        )
+    );
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

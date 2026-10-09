@@ -4,7 +4,12 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-static int nearest_slot(const Plate& plate, const Point& point, double threshold, bool faces) {
+static int nearest_slot(
+    const Plate& plate,
+    const Point& point,
+    double threshold,
+    bool faces
+) {
 
     if (plate.polylines.size() < 2)
         return -1;
@@ -64,7 +69,12 @@ static size_t slot_count(const Plate& plate) {
     return 2 + (n > 0 ? n - 1 : 0);
 }
 
-void assign_feature_types(const std::vector<std::shared_ptr<Plate>>& plates, const Settings& settings, const std::vector<Point>& points, const std::vector<int>& types) {
+void assign_feature_types(
+    const std::vector<std::shared_ptr<Plate>>& plates,
+    const Settings& settings,
+    const std::vector<Point>& points,
+    const std::vector<int>& types
+) {
 
     const double threshold = settings.distance_squared * 100.0;
     const double radius = std::max(settings.distance, std::sqrt(threshold));
@@ -80,7 +90,12 @@ void assign_feature_types(const std::vector<std::shared_ptr<Plate>>& plates, con
         const Point& point = points[i];
         const int type = types[i];
         for (const int index : plates_near(rtree, point, radius)) {
-            const int slot = nearest_slot(*plates[index], point, threshold, type < 0);
+            const int slot = nearest_slot(
+                *plates[index],
+                point,
+                threshold,
+                type < 0
+            );
             if (slot >= 0 && slot < static_cast<int>(plates[index]->feature_types.size()))
                 plates[index]->feature_types[slot] = std::abs(type);
         }
@@ -103,7 +118,12 @@ void assign_insertion_vectors(const std::vector<std::shared_ptr<Plate>>& plates,
         const Point point = line.start();
         const Vector direction = line.to_vector();
         for (const int index : plates_near(rtree, point, radius)) {
-            const int slot = nearest_slot(*plates[index], point, threshold, false);
+            const int slot = nearest_slot(
+                *plates[index],
+                point,
+                threshold,
+                false
+            );
             if (slot >= 0 && slot < static_cast<int>(plates[index]->insertion_vectors().size()))
                 plates[index]->insertion_vectors()[slot] = direction;
         }

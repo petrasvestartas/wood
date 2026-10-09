@@ -17,10 +17,28 @@ const Vector X(1.0, 0.0, 0.0);
 const Vector Y(0.0, 1.0, 0.0);
 const double GAP = 8000.0; // clear distance between the buildings
 const Polyline PENTAGON({Point(0.0, 0.0, 0.0), Point(13716.0, 13716.0, 0.0), Point(36576.0, 13716.0, 0.0), Point(36576.0, 27432.0, 0.0), Point(0.0, 27432.0, 0.0), Point(0.0, 0.0, 0.0)});
-const Polyline PODIUM = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 40000.0, 30000.0);
+const Polyline PODIUM = Polyline::rectangle(
+    Point(0.0, 0.0, 0.0),
+    X,
+    Y,
+    40000.0,
+    30000.0
+);
 const Polyline TOWER = Polyline::rectangle(Point(10000.0, 5000.0, 8000.0), X, Y, 20000.0, 20000.0); // stands on the podium roof, its sides on the pattern lines
-const Polyline OUTER = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 36000.0, 36000.0);
-const Polyline ATRIUM = Polyline::rectangle(Point(12000.0, 12000.0, 0.0), X, Y, 12000.0, 12000.0);
+const Polyline OUTER = Polyline::rectangle(
+    Point(0.0, 0.0, 0.0),
+    X,
+    Y,
+    36000.0,
+    36000.0
+);
+const Polyline ATRIUM = Polyline::rectangle(
+    Point(12000.0, 12000.0, 0.0),
+    X,
+    Y,
+    12000.0,
+    12000.0
+);
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
 /// A closed shell through the faces of several open lofts and their caps.
@@ -37,7 +55,32 @@ Mesh compute_shell(const std::vector<Mesh>& parts, const std::vector<Polyline>& 
 const std::vector<Case> CASES = {
     {"box", Mesh::create_box(30000.0, 18000.0, 12000.0).transformed(Xform::translation(15000.0, 9000.0, 6000.0)), wood_grid::Pattern::orthogonal(wood_grid::compute_bays(30000.0, 6000.0), wood_grid::compute_bays(18000.0, 6000.0)), {0.0, 4000.0, 8000.0, 12000.0}, wood_grid::Framing{.system = 1, .span = 1, .node = 1}},
     {"prism", Mesh::loft({PENTAGON}, {PENTAGON.transformed(Xform::translation(0.0, 0.0, 10972.8))}), wood_grid::Pattern::orthogonal(wood_grid::compute_bays(36576.0, 9144.0), wood_grid::compute_bays(27432.0, 9144.0)), {0.0, 3657.6, 7315.2, 10972.8}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3048.0, .node = 0}},
-    {"taper", Mesh::loft({Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 30000.0, 20000.0)}, {Polyline::rectangle(Point(1500.0, 1500.0, 14400.0), X, Y, 27000.0, 17000.0)}), wood_grid::Pattern::orthogonal(wood_grid::compute_bays(30000.0, 6000.0), wood_grid::compute_bays(20000.0, 5000.0)), {0.0, 3600.0, 7200.0, 10800.0, 14400.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 0, .taper = 30.0}},
+    {
+        "taper",
+        Mesh::loft(
+            {
+                Polyline::rectangle(
+                    Point(0.0, 0.0, 0.0),
+                    X,
+                    Y,
+                    30000.0,
+                    20000.0
+                )
+            },
+            {
+                Polyline::rectangle(
+                    Point(1500.0, 1500.0, 14400.0),
+                    X,
+                    Y,
+                    27000.0,
+                    17000.0
+                )
+            }
+        ),
+        wood_grid::Pattern::orthogonal(wood_grid::compute_bays(30000.0, 6000.0), wood_grid::compute_bays(20000.0, 5000.0)),
+        {0.0, 3600.0, 7200.0, 10800.0, 14400.0},
+        wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 0, .taper = 30.0}
+    },
     {"setback", compute_shell({Mesh::loft({PODIUM}, {PODIUM.transformed(Xform::translation(0.0, 0.0, 8000.0))}, false), Mesh::loft({PODIUM.transformed(Xform::translation(0.0, 0.0, 8000.0))}, {TOWER}, false), Mesh::loft({TOWER}, {TOWER.transformed(Xform::translation(0.0, 0.0, 14400.0))}, false)}, {PODIUM, TOWER.transformed(Xform::translation(0.0, 0.0, 14400.0))}), wood_grid::Pattern::orthogonal(wood_grid::compute_bays(40000.0, 5000.0), wood_grid::compute_bays(30000.0, 5000.0)), {0.0, 4000.0, 8000.0, 11600.0, 15200.0, 18800.0, 22400.0}, wood_grid::Framing{.system = 1, .span = 1, .node = 1}},
     {"atrium", Mesh::loft({OUTER, ATRIUM}, {OUTER.transformed(Xform::translation(0.0, 0.0, 20000.0)), ATRIUM.transformed(Xform::translation(0.0, 0.0, 20000.0))}), wood_grid::Pattern::orthogonal(wood_grid::compute_bays(36000.0, 6000.0), wood_grid::compute_bays(36000.0, 6000.0)), {0.0, 4000.0, 8000.0, 12000.0, 16000.0, 20000.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 2}},
     {"curved", BRep::create_cylinder(15000.0, 15200.0).mesh(), wood_grid::Pattern::radial({5000.0, 10000.0, 15000.0}, 16), {0.0, 3800.0, 7600.0, 11400.0, 15200.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2500.0, .node = 0}},

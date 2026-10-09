@@ -230,7 +230,12 @@ ElementFeature contact_feature(const InteractionContact& contact) {
         outline = Polyline({axis->segment.start(), axis->segment.end()});
     }
 
-    ElementFeature feature("contact", face, {outline}, name);
+    ElementFeature feature(
+        "contact",
+        face,
+        {outline},
+        name
+    );
     feature.guid() = contact.guid();
 
     return feature;
@@ -274,7 +279,12 @@ void drop_instance_features(const std::shared_ptr<InstanceRef>& instance, std::s
 }
 
 /// drop_features on the one element or instance guid names.
-void drop_host_features(WoodSession& session, const std::string& guid, std::string_view type, const std::unordered_set<std::string>& guids) {
+void drop_host_features(
+    WoodSession& session,
+    const std::string& guid,
+    std::string_view type,
+    const std::unordered_set<std::string>& guids
+) {
 
     const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = session.instance_lookup.find(guid);
 
@@ -457,15 +467,32 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
                 kept.push_back(interaction);
 
         found->second = kept;
-        drop_host_features(*this, edge.v0, "", erased);
-        drop_host_features(*this, edge.v1, "", erased);
+        drop_host_features(
+            *this,
+            edge.v0,
+            "",
+            erased
+        );
+        drop_host_features(
+            *this,
+            edge.v1,
+            "",
+            erased
+        );
 
         for (const std::shared_ptr<Interaction>& interaction : kept) {
 
             const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(interaction.get());
             if (!axis)
                 continue;
-            auto joint = JointBeam::from_contact(*beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male);
+            auto joint = JointBeam::from_contact(
+                *beam_a,
+                *beam_b,
+                *axis,
+                volume_length,
+                cross_or_side_to_end,
+                flip_male
+            );
             if (!joint)
                 continue;
             joint->generated = true;
@@ -516,7 +543,15 @@ void WoodSession::compute_line_contacts(double tolerance) {
 
                             double t0 = 0.0;
                             double t1 = 0.0;
-                            if (!Intersection::line_line_parameters(lines[source][la][sa], lines[target][lb][sb], t0, t1, 0.0, true, true))
+                            if (!Intersection::line_line_parameters(
+                                lines[source][la][sa],
+                                lines[target][lb][sb],
+                                t0,
+                                t1,
+                                0.0,
+                                true,
+                                true
+                            ))
                                 continue;
 
                             const Point q0 = lines[source][la][sa].point_at(t0);
@@ -524,7 +559,19 @@ void WoodSession::compute_line_contacts(double tolerance) {
                             if ((q0 - q1).magnitude_squared() > tol_squared)
                                 continue;
 
-                            add_interaction(elements[source], elements[target], std::make_shared<InteractionContactAxis>(Line::from_points(q0, q1), t0, t1, (int)la, (int)sa, (int)lb, (int)sb));
+                            add_interaction(
+                                elements[source],
+                                elements[target],
+                                std::make_shared<InteractionContactAxis>(
+                                    Line::from_points(q0, q1),
+                                    t0,
+                                    t1,
+                                    (int)la,
+                                    (int)sa,
+                                    (int)lb,
+                                    (int)sb
+                                )
+                            );
                         }
 }
 
@@ -669,7 +716,12 @@ static void erase_solid_records(std::vector<std::shared_ptr<Interaction>>& recor
 }
 
 static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& target);
-static void host_solid_feature(WoodSession& scene, const Element& source, InteractionFeatureSolid cut, const std::shared_ptr<Element>& target);
+static void host_solid_feature(
+    WoodSession& scene,
+    const Element& source,
+    InteractionFeatureSolid cut,
+    const std::shared_ptr<Element>& target
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Interactions
@@ -729,7 +781,12 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         feature->target_side = side + 1;
         feature->guid() = found->feature_guid(side);
         const std::unordered_set<std::string> replaced{feature->guid()};
-        drop_host_features(*this, target->guid(), "", replaced);
+        drop_host_features(
+            *this,
+            target->guid(),
+            "",
+            replaced
+        );
         if (graph.has_edge({source->guid(), target->guid()})) {
             auto& records = interactions[graph.edges.at(source->guid()).at(target->guid()).guid()];
             std::erase_if(records, [&](const auto& record) { return record->guid() == feature->guid(); });
@@ -747,8 +804,18 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
 
     const auto host_on = [&](const std::string& host, ElementFeature feature) {
         const std::unordered_set<std::string> ids{feature.guid()};
-        drop_host_features(*this, source->guid(), "", ids);
-        drop_host_features(*this, target->guid(), "", ids);
+        drop_host_features(
+            *this,
+            source->guid(),
+            "",
+            ids
+        );
+        drop_host_features(
+            *this,
+            target->guid(),
+            "",
+            ids
+        );
         host_feature(host, std::move(feature));
     };
     const auto host_source = [&](ElementFeature feature) {
@@ -802,7 +869,12 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
 
     if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction)) {
 
-        host_solid_feature(*this, *source, *cut, target);
+        host_solid_feature(
+            *this,
+            *source,
+            *cut,
+            target
+        );
 
         if (known)
             erase_solid_records(interactions[graph.edges.at(source->guid()).at(target->guid()).guid()]);
@@ -851,7 +923,12 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         }
 
         const InteractionFeatureBeam& beam = *dynamic_cast<const InteractionFeatureBeam*>(oriented.get());
-        ElementFeature side("joint", -1, std::vector<Polyline>(beam.volumes.begin(), beam.volumes.end()), fmt::format("beam_{}", beam.end_type));
+        ElementFeature side(
+            "joint",
+            -1,
+            std::vector<Polyline>(beam.volumes.begin(), beam.volumes.end()),
+            fmt::format("beam_{}", beam.end_type)
+        );
         side.guid() = beam.guid();
         host_source(std::move(side));
 
@@ -879,8 +956,18 @@ void WoodSession::remove_interaction(const std::shared_ptr<Element>& source, con
         if (feature.feature_type == "drill" && feature.guid().starts_with(source->guid() + "/"))
             erased.insert(feature.guid());
 
-    drop_host_features(*this, source->guid(), "", erased);
-    drop_host_features(*this, target->guid(), "", erased);
+    drop_host_features(
+        *this,
+        source->guid(),
+        "",
+        erased
+    );
+    drop_host_features(
+        *this,
+        target->guid(),
+        "",
+        erased
+    );
     std::vector<InteractionFeatureSolid>* cuts = get_solid_features(*target);
 
     if (cuts && erase_solid_feature(*cuts, source->guid()))
@@ -1069,7 +1156,12 @@ static std::vector<std::string> plate_guids(const WoodSession& scene) {
 }
 
 /// Appends the pairs and three-valence groups of source whose plates all lie in target, renumbered from source's plate order to target's; the instruction row comes first when target has none.
-static void append_plate_lists(WoodSession& target, const std::vector<std::string>& before, const std::vector<std::pair<int, int>>& adjacency, const std::vector<std::vector<int>>& three_valence) {
+static void append_plate_lists(
+    WoodSession& target,
+    const std::vector<std::string>& before,
+    const std::vector<std::pair<int, int>>& adjacency,
+    const std::vector<std::vector<int>>& three_valence
+) {
 
     const std::vector<std::string> after = plate_guids(target);
     std::vector<int> moved(before.size(), -1);
@@ -1114,8 +1206,18 @@ void WoodSession::graft(const WoodSession& other, std::shared_ptr<TreeNode> pare
     Session::graft(other, parent);
     adjacency.clear();
     three_valence.clear();
-    append_plate_lists(*this, mine, pairs, groups);
-    append_plate_lists(*this, theirs, other.adjacency, other.three_valence);
+    append_plate_lists(
+        *this,
+        mine,
+        pairs,
+        groups
+    );
+    append_plate_lists(
+        *this,
+        theirs,
+        other.adjacency,
+        other.three_valence
+    );
 
     if (search)
         adjacency.clear();
@@ -1126,7 +1228,12 @@ WoodSession WoodSession::get_branch(const std::string& name) const {
     WoodSession part;
     static_cast<Session&>(part) = Session::get_branch(name);
     part.settings = settings;
-    append_plate_lists(part, plate_guids(*this), adjacency, three_valence);
+    append_plate_lists(
+        part,
+        plate_guids(*this),
+        adjacency,
+        three_valence
+    );
 
     // a pre-drill connector grouped elsewhere that drills one of the branch's members comes along at the root, so pre_drill_lines reads its holes in the branch too
     for (const std::shared_ptr<JointBeam>& connector : get_elements<JointBeam>())
@@ -1179,7 +1286,12 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
                 plates.push_back(plate);
 
             const std::shared_ptr<InteractionFeaturePlate> feature = joint->interaction_feature(side, i);
-            drop_host_features(scene, id, "", {feature->guid()});
+            drop_host_features(
+                scene,
+                id,
+                "",
+                {feature->guid()}
+            );
 
             if (scene.graph.has_edge({joint->guid(), id})) {
                 std::vector<std::shared_ptr<Interaction>>& records = scene.interactions[scene.graph.edges.at(joint->guid()).at(id).guid()];
@@ -1227,7 +1339,9 @@ static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam
         const Vector e = placed.to_vector().normalized();
         const bool blind_start = is_inside(solid, placed.start() - e * 1.0);
         const bool blind_end = is_inside(solid, placed.end() + e * 1.0);
-        drills.push_back(Line::from_points(blind_start ? dowel.start() : dowel.start() - d * joint.drill_overshoot, blind_end ? dowel.end() : dowel.end() + d * joint.drill_overshoot));
+        const Point start = blind_start ? dowel.start() : dowel.start() - d * joint.drill_overshoot;
+        const Point end = blind_end ? dowel.end() : dowel.end() + d * joint.drill_overshoot;
+        drills.push_back(Line::from_points(start, end));
     }
 
     return drills;
@@ -1271,7 +1385,13 @@ static void nest_children(WoodSession& scene, const JointBeam& connector) {
 }
 
 /// The holes a joint's lines make in a target as drill features in the target's frame: per stretch of a line inside the target's solid, the circles of the radius where the hole enters and leaves it, named by the joint and the diameter; each feature's guid starts with the joint's, so hosting them again replaces them.
-static void host_drills(WoodSession& scene, const Joint& joint, const Element& target, const std::vector<Line>& lines, double radius) {
+static void host_drills(
+    WoodSession& scene,
+    const Joint& joint,
+    const Element& target,
+    const std::vector<Line>& lines,
+    double radius
+) {
 
     std::unordered_set<std::string> old;
 
@@ -1279,7 +1399,12 @@ static void host_drills(WoodSession& scene, const Joint& joint, const Element& t
         if (feature.feature_type == "drill" && feature.guid().starts_with(joint.guid()))
             old.insert(feature.guid());
 
-    drop_host_features(scene, target.guid(), "", old);
+    drop_host_features(
+        scene,
+        target.guid(),
+        "",
+        old
+    );
     const Xform world = scene.world_xform(joint.guid());
     const Mesh solid = stock_of(target).transformed(scene.world_xform(target.guid()));
     const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
@@ -1302,10 +1427,23 @@ static void host_drills(WoodSession& scene, const Joint& joint, const Element& t
 
             std::vector<Polyline> circles;
 
-            for (double t : {a, b})
-                circles.push_back(Polyline::from_sides(DRILL_SIDES, radius, true).transformed(*local * Xform::frame_to_world(line.start() + d * t, frame.x_axis(), frame.y_axis(), d)));
+            for (double t : {a, b}) {
+                const Polyline circle = Polyline::from_sides(DRILL_SIDES, radius, true);
+                const Xform placement = Xform::frame_to_world(
+                    line.start() + d * t,
+                    frame.x_axis(),
+                    frame.y_axis(),
+                    d
+                );
+                circles.push_back(circle.transformed(*local * placement));
+            }
 
-            ElementFeature feature("drill", -1, circles, fmt::format("{} d{:g}", joint.name, 2.0 * radius));
+            ElementFeature feature(
+                "drill",
+                -1,
+                circles,
+                fmt::format("{} d{:g}", joint.name, 2.0 * radius)
+            );
             feature.guid() = fmt::format("{}/{}/{}", joint.guid(), i, stretch++);
             scene.host_feature(target.guid(), std::move(feature));
         }
@@ -1325,7 +1463,13 @@ static void add_pre_drill_joint(WoodSession& scene, const std::shared_ptr<JointB
 
         scene.Session::remove_interaction(joint, target);
         scene.Session::add_interaction(joint, target, std::make_shared<InteractionFeaturePlateBeam>());
-        host_drills(scene, *joint, *target, joint->drill_lines, joint->line_radius);
+        host_drills(
+            scene,
+            *joint,
+            *target,
+            joint->drill_lines,
+            joint->line_radius
+        );
     }
 }
 
@@ -1354,7 +1498,13 @@ static void add_connector_joint(WoodSession& scene, const std::shared_ptr<JointB
         const std::vector<Line> drills = target_drills(scene, *joint, *target);
         scene.Session::remove_interaction(joint, target);
         scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_feature(*joint, mesh, drills)));
-        host_drills(scene, *joint, *target, drills, joint->line_radius);
+        host_drills(
+            scene,
+            *joint,
+            *target,
+            drills,
+            joint->line_radius
+        );
     }
 }
 
@@ -1378,14 +1528,24 @@ static void add_beam_joint(WoodSession& scene, const std::shared_ptr<JointBeam>&
         }
 
         scene.Session::add_interaction(joint, target, feature);
-        ElementFeature hosted("joint", -1, {feature->volumes[0], feature->volumes[1]}, joint->name);
+        ElementFeature hosted(
+            "joint",
+            -1,
+            {feature->volumes[0], feature->volumes[1]},
+            joint->name
+        );
         hosted.guid() = feature->guid();
         scene.host_feature(target->guid(), std::move(hosted));
     }
 }
 
 /// Hosts the source's cut on the target in the target's frame, replacing the one the source hosted before, and redraws the target.
-static void host_solid_feature(WoodSession& scene, const Element& source, InteractionFeatureSolid cut, const std::shared_ptr<Element>& target) {
+static void host_solid_feature(
+    WoodSession& scene,
+    const Element& source,
+    InteractionFeatureSolid cut,
+    const std::shared_ptr<Element>& target
+) {
 
     std::vector<InteractionFeatureSolid>* cuts = get_solid_features(*target);
 
@@ -1479,7 +1639,13 @@ static void add_cutter_joint(WoodSession& scene, const std::shared_ptr<Joint>& j
             scene.add_interaction(joint, target, std::make_shared<InteractionFeatureSolid>(joint_feature(*joint)));
 
             if (!joint->drill_axes().empty())
-                host_drills(scene, *joint, *target, joint->drill_axes(), joint->line_radius);
+                host_drills(
+                    scene,
+                    *joint,
+                    *target,
+                    joint->drill_axes(),
+                    joint->line_radius
+                );
         } else {
             add_plane_cut(*joint, *target);
             refresh_target(scene, target);

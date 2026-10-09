@@ -13,7 +13,24 @@ int main() {
         scene.add(std::make_shared<Element>(exact, "Exact cylindrical BRep"));
         ++row;
     }
-    const std::shared_ptr<Block> stock = std::make_shared<Block>(std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(0, 0, 80, 200, 160)});
+    const std::shared_ptr<Block> stock = std::make_shared<Block>(
+        std::vector<Polyline>{
+            rectangle(
+                0,
+                0,
+                0,
+                200,
+                160
+            ),
+            rectangle(
+                0,
+                0,
+                80,
+                200,
+                160
+            )
+        }
+    );
     cut_case(scene, "Tilted drill through block", stock,
              Joint::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2), 640);
     finish(scene, "16_drill_solids");

@@ -29,11 +29,56 @@ const std::vector<Case> CASES = {
     {"purlin_stacked", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 1, .drop = 640.0, .profiles = {.column = profile_rectangle(360.0, 360.0), .girder = profile_rectangle(320.0, 800.0), .purlin = profile_rectangle(260.0, 640.0)}}},
     {"profile_rectangle", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_rectangle(265.0, 608.0), .purlin = profile_rectangle(215.0, 456.0)}}},
     {"profile_round", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_round(360.0), .girder = profile_round(300.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"profile_w", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_w(206.0, 210.0, 14.2, 10.2), .girder = profile_w(250.0, 250.0, 15.0, 10.0), .purlin = profile_rectangle(215.0, 456.0)}}},
+    {
+        "profile_w",
+        ONE,
+        wood_grid::Framing{
+            .system = 2,
+            .span = 0,
+            .spacing = 2000.0,
+            .node = 1,
+            .deck = 87.0,
+            .profiles = {
+                .column = profile_w(
+                    206.0,
+                    210.0,
+                    14.2,
+                    10.2
+                ),
+                .girder = profile_w(
+                    250.0,
+                    250.0,
+                    15.0,
+                    10.0
+                ),
+                .purlin = profile_rectangle(215.0, 456.0)
+            }
+        }
+    },
     {"profile_hss", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_hss(178.0, 178.0, 12.7), .girder = profile_hss(250.0, 250.0, 10.0), .purlin = profile_rectangle(215.0, 456.0)}}},
     {"profile_double", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_double(120.0, 600.0, 60.0), .purlin = profile_rectangle(215.0, 456.0)}}},
     {"profile_slab_band", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_slab_band(1200.0, 300.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"profile_t", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_t(300.0, 500.0, 100.0, 80.0), .purlin = profile_rectangle(215.0, 456.0)}}},
+    {
+        "profile_t",
+        ONE,
+        wood_grid::Framing{
+            .system = 2,
+            .span = 0,
+            .spacing = 2000.0,
+            .node = 1,
+            .deck = 87.0,
+            .profiles = {
+                .column = profile_rectangle(315.0, 342.0),
+                .girder = profile_t(
+                    300.0,
+                    500.0,
+                    100.0,
+                    80.0
+                ),
+                .purlin = profile_rectangle(215.0, 456.0)
+            }
+        }
+    },
 }; // heads: pyramids the girders rest on, conical and stepped under a point supported deck; nodes flush and through; purlins flush, hung and stacked on their girders; the seven profiles
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 

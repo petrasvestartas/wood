@@ -24,7 +24,13 @@ using namespace session_cpp;
 namespace wood_reciprocal {
 
 /// The sinusoidal dome the reciprocal templates were written on: an nx by ny quad grid over width by depth, lifted by height times the product of two half sine waves.
-inline Mesh sinusoidal_dome_mesh(int nx, int ny, double width, double depth, double height)
+inline Mesh sinusoidal_dome_mesh(
+    int nx,
+    int ny,
+    double width,
+    double depth,
+    double height
+)
 {
 
     std::vector<Point> points;
@@ -52,7 +58,14 @@ inline NurbsSurface hypar_surface(double width, double depth, double rise)
 {
 
     NurbsSurface surface;
-    surface.create_raw(3, false, 2, 2, 2, 2);
+    surface.create_raw(
+        3,
+        false,
+        2,
+        2,
+        2,
+        2
+    );
     surface.set_nurbsknot(0, 0, 0.0);
     surface.set_nurbsknot(0, 1, width);
     surface.set_nurbsknot(1, 0, 0.0);
@@ -72,11 +85,23 @@ inline double bicubic_inner_height(double rise)
 }
 
 /// A bicubic dome over a pillow: the rectangle's corners kept, the boundary control points between them pushed outwards by bulge so each side bows out in a cubic arc and the corners stay proper corners, the inner control points lifted so the centre reaches rise.
-inline NurbsSurface pillow_dome_surface(double width, double depth, double rise, double bulge)
+inline NurbsSurface pillow_dome_surface(
+    double width,
+    double depth,
+    double rise,
+    double bulge
+)
 {
 
     NurbsSurface surface;
-    surface.create_raw(3, false, 4, 4, 4, 4);
+    surface.create_raw(
+        3,
+        false,
+        4,
+        4,
+        4,
+        4
+    );
     const double us[4] = {0.0, width / 3.0, 2.0 * width / 3.0, width};
     const double vs[4] = {0.0, depth / 3.0, 2.0 * depth / 3.0, depth};
     const double inner = bicubic_inner_height(rise);
@@ -136,7 +161,14 @@ inline NurbsSurface disc_dome_surface(double radius, double rise)
 
     const double inner = bicubic_inner_height(rise);
     NurbsSurface surface;
-    surface.create_raw(3, false, 4, 4, 4, 4);
+    surface.create_raw(
+        3,
+        false,
+        4,
+        4,
+        4,
+        4
+    );
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++) {
             bool is_inner = i > 0 && i < 3 && j > 0 && j < 3;
@@ -147,10 +179,16 @@ inline NurbsSurface disc_dome_surface(double radius, double rise)
 }
 
 /// The plan point lifted onto the surface: where the vertical through it meets the surface, the closest surface point when it misses.
-inline Point lifted_onto(const NurbsSurface& surface, const Point& plan, double z_low, double z_high)
+inline Point lifted_onto(
+    const NurbsSurface& surface,
+    const Point& plan,
+    double z_low,
+    double z_high
+)
 {
 
-    std::vector<Point> hits = surface.intersections_with_line(Line::from_points(Point(plan[0], plan[1], z_low), Point(plan[0], plan[1], z_high)));
+    const Line vertical = Line::from_points(Point(plan[0], plan[1], z_low), Point(plan[0], plan[1], z_high));
+    std::vector<Point> hits = surface.intersections_with_line(vertical);
     if (!hits.empty())
         return hits.front();
 
@@ -164,7 +202,12 @@ inline Point quarter_turned(const Point& p, int quarters)
 }
 
 /// A quad mesh over the disc of the given radius with five patches: a central square of half side square_ratio times the radius and four patches between its sides and the circle, so every boundary vertex belongs to two faces and no face has two boundary edges; the cells are about target_edge long and the mesh is lifted onto the dome surface.
-inline Mesh disc_quad_mesh(const NurbsSurface& dome, double radius, double target_edge, double square_ratio = 0.5)
+inline Mesh disc_quad_mesh(
+    const NurbsSurface& dome,
+    double radius,
+    double target_edge,
+    double square_ratio = 0.5
+)
 {
 
     const double half = radius * square_ratio;
@@ -198,19 +241,38 @@ inline Mesh disc_quad_mesh(const NurbsSurface& dome, double radius, double targe
 
     for (std::vector<Point>& polygon : polygons)
         for (Point& point : polygon)
-            point = lifted_onto(dome, point, z_low, z_high);
+            point = lifted_onto(
+                dome,
+                point,
+                z_low,
+                z_high
+            );
 
     return Mesh::from_polylines(polygons, 1e-6);
 }
 
 /// A Scherk-like saddle: a bicubic patch with six by six control points on z = height * ln(cos v / cos u), u and v over [-reach, reach], on a plan whose four sides bow outwards by bulge, so every boundary curve bends both in plan and in elevation. The two low sides dip to -height; with flat_low_edges their control rows are pinned there, so those two edges lie level on the ground, still bowed in plan.
-inline NurbsSurface scherk_surface(double width, double depth, double height, double bulge, bool flat_low_edges = true, double reach = 1.2)
+inline NurbsSurface scherk_surface(
+    double width,
+    double depth,
+    double height,
+    double bulge,
+    bool flat_low_edges = true,
+    double reach = 1.2
+)
 {
 
     const int count = 6;
     const double scale = 1.0 / std::log(std::cos(reach));  // ln(cos reach) is negative: z = height at (u, v) = (0, reach)
     NurbsSurface surface;
-    surface.create_raw(3, false, 4, 4, count, count);
+    surface.create_raw(
+        3,
+        false,
+        4,
+        4,
+        count,
+        count
+    );
     for (int i = 0; i < count; i++)
         for (int j = 0; j < count; j++) {
             double s = (double)i / (count - 1);
@@ -267,11 +329,14 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_average_boundary_ups(con
         face_normals[fi] = mesh.face_normal(fkeys[fi]).value_or(Vector(0, 0, 1));
     }
 
-    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(wood_reciprocal::edge_owners(faces), face_normals);
+    const std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>> owners = wood_reciprocal::edge_owners(faces);
+    std::map<std::pair<size_t, size_t>, Vector> edge_normals = wood_reciprocal::owner_normal_ups(owners, face_normals);
     std::array<Vector, 4> sums = {Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)};
     std::map<std::pair<size_t, size_t>, int> side_of;
     for (const auto& [key, normal] : edge_normals) {
-        Point mid = Point::mid_point(mesh.vertex_point(key.first).value(), mesh.vertex_point(key.second).value());
+        const Point start = mesh.vertex_point(key.first).value();
+        const Point end = mesh.vertex_point(key.second).value();
+        Point mid = Point::mid_point(start, end);
         std::pair<double, double> uv = surface.closest_parameters(mid);
         int side = nearest_domain_side(surface, uv.first, uv.second);
         side_of[key] = side;
@@ -301,7 +366,8 @@ inline std::array<std::vector<size_t>, 4> boundary_vertices_by_side(const Mesh& 
 
     std::array<std::vector<size_t>, 4> sides;
     for (size_t vertex : boundary) {
-        std::pair<double, double> uv = surface.closest_parameters(mesh.vertex_point(vertex).value());
+        const Point point = mesh.vertex_point(vertex).value();
+        std::pair<double, double> uv = surface.closest_parameters(point);
         std::array<double, 4> distances = {(uv.first - du.first) / span_u, (du.second - uv.first) / span_u, (uv.second - dv.first) / span_v, (dv.second - uv.second) / span_v};
         int nearest = (int)(std::min_element(distances.begin(), distances.end()) - distances.begin());
         for (int side = 0; side < 4; side++)
@@ -389,8 +455,9 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_plane_boundary_ups(const
         if (edges_by_side[side].empty())
             continue;
 
-        Vector average = averages[side].is_zero() ? planes[side].z_axis() : averages[side].normalized();
-        Vector flat = planes[side].z_axis().dot(average) < 0.0 ? -planes[side].z_axis() : planes[side].z_axis();
+        const Vector& side_normal = planes[side].z_axis();
+        Vector average = averages[side].is_zero() ? side_normal : averages[side].normalized();
+        Vector flat = side_normal.dot(average) < 0.0 ? -side_normal : side_normal;
         double flat_score = std::abs(flat.dot(average));
         double standing_score = 0.0;
         for (const auto& [key, dir] : edges_by_side[side])
@@ -500,7 +567,8 @@ inline NurbsSurface flatten_surface_sides(const NurbsSurface& surface)
 
             Point point = surface.get_cv(i, j);
             if (onto.size() == 1) {
-                point = point - onto[0].z_axis() * (point - onto[0].origin()).dot(onto[0].z_axis());
+                const Vector& normal = onto[0].z_axis();
+                point = point - normal * (point - onto[0].origin()).dot(normal);
             } else {
                 Line crease;
                 if (Intersection::plane_plane(onto[0], onto[1], crease))
@@ -545,8 +613,9 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(const 
         if (edges_by_side[side].empty())
             continue;
 
-        Vector average = averages[side].is_zero() ? planes[side].z_axis() : averages[side].normalized();
-        Vector n = planes[side].z_axis().dot(average) < 0.0 ? -planes[side].z_axis() : planes[side].z_axis();
+        const Vector& side_normal = planes[side].z_axis();
+        Vector average = averages[side].is_zero() ? side_normal : averages[side].normalized();
+        Vector n = side_normal.dot(average) < 0.0 ? -side_normal : side_normal;
 
         double sin_sum = 0.0, cos_sum = 0.0;
         for (const SideEdge& edge : edges_by_side[side]) {
@@ -649,7 +718,8 @@ inline Mesh dual_hex_mesh(const Mesh& quads)
             for (size_t other : naked->second) {
                 Point mid = Point::mid_point(centre, quads.vertex_point(other).value());
                 Vector d = mid - centre;
-                around.push_back({std::atan2(d.dot(y_axis), d.dot(x_axis)), {"e" + std::to_string(std::min(vk, other)) + "_" + std::to_string(std::max(vk, other)), mid}});
+                const std::string edge_name = "e" + std::to_string(std::min(vk, other)) + "_" + std::to_string(std::max(vk, other));
+                around.push_back({std::atan2(d.dot(y_axis), d.dot(x_axis)), {edge_name, mid}});
             }
 
         std::sort(around.begin(), around.end(), angle_less);
@@ -707,7 +777,12 @@ inline NurbsSurface annen_surface(const std::string& json_path, size_t index)
 }
 
 /// The length of the iso-curve at parameter constant in the other direction, as a polyline of `samples` segments over the domain of dir.
-inline double iso_curve_length(const NurbsSurface& surface, int dir, double constant, int samples)
+inline double iso_curve_length(
+    const NurbsSurface& surface,
+    int dir,
+    double constant,
+    int samples
+)
 {
 
     std::pair<double, double> domain = surface.domain(dir);
@@ -732,7 +807,20 @@ inline std::pair<double, double> mid_iso_curve_lengths(const NurbsSurface& surfa
     double mid_u = (du.first + du.second) * 0.5;
     double mid_v = (dv.first + dv.second) * 0.5;
 
-    return {iso_curve_length(surface, 0, mid_v, samples), iso_curve_length(surface, 1, mid_u, samples)};
+    return {
+        iso_curve_length(
+            surface,
+            0,
+            mid_v,
+            samples
+        ),
+        iso_curve_length(
+            surface,
+            1,
+            mid_u,
+            samples
+        )
+    };
 }
 
 /// The cumulative length along one mid iso-curve of a surface, so that parameters can be picked at equal spacing on the surface instead of in the parameter, which stretches cells wherever the parametrisation speeds up.
@@ -798,8 +886,11 @@ inline Mesh quad_mesh_from_surface(const NurbsSurface& surface, int nu, int nv)
     std::vector<Point> points;
     points.reserve((nu + 1) * (nv + 1));
     for (int i = 0; i <= nu; i++)
-        for (int j = 0; j <= nv; j++)
-            points.push_back(surface.point_at(along_u.parameter_at(along_u.total * i / nu), along_v.parameter_at(along_v.total * j / nv)));
+        for (int j = 0; j <= nv; j++) {
+            const double u = along_u.parameter_at(along_u.total * i / nu);
+            const double v = along_v.parameter_at(along_v.total * j / nv);
+            points.push_back(surface.point_at(u, v));
+        }
 
     bool reversed = faces_reversed_on(surface);
     std::vector<std::vector<size_t>> faces;
@@ -829,7 +920,12 @@ inline Mesh quad_mesh_from_surface(const NurbsSurface& surface, double target_ed
 }
 
 /// A convex polygon clipped to one side of an axis-aligned line: the part with coordinate axis at or above limit when keep_above, at or below it otherwise.
-inline std::vector<std::pair<double, double>> clip_polygon(const std::vector<std::pair<double, double>>& polygon, int axis, double limit, bool keep_above)
+inline std::vector<std::pair<double, double>> clip_polygon(
+    const std::vector<std::pair<double, double>>& polygon,
+    int axis,
+    double limit,
+    bool keep_above
+)
 {
 
     std::vector<std::pair<double, double>> kept;
@@ -874,10 +970,30 @@ inline std::vector<std::vector<std::pair<double, double>>> clipped_hex_lattice(d
                 polygon.emplace_back(cx + pitch * 0.5 * std::cos(angle) / std::cos(Tolerance::PI / 6.0), cy + edge * std::sin(angle));
             }
 
-            polygon = clip_polygon(polygon, 0, 0.0, true);
-            polygon = clip_polygon(polygon, 0, width, false);
-            polygon = clip_polygon(polygon, 1, 0.0, true);
-            polygon = clip_polygon(polygon, 1, depth, false);
+            polygon = clip_polygon(
+                polygon,
+                0,
+                0.0,
+                true
+            );
+            polygon = clip_polygon(
+                polygon,
+                0,
+                width,
+                false
+            );
+            polygon = clip_polygon(
+                polygon,
+                1,
+                0.0,
+                true
+            );
+            polygon = clip_polygon(
+                polygon,
+                1,
+                depth,
+                false
+            );
             std::vector<std::pair<double, double>> cleaned;
             for (const std::pair<double, double>& q : polygon)
                 if (cleaned.empty() || std::hypot(q.first - cleaned.back().first, q.second - cleaned.back().second) > 1e-6)
@@ -951,7 +1067,9 @@ inline Mesh hex_mesh_from_surface(const NurbsSurface& surface, double target_edg
 {
 
     SurfaceLift lift{surface, ArcLengthMap::of(surface, 0), ArcLengthMap::of(surface, 1)};
-    return lifted_cells_mesh(clipped_hex_lattice(lift.along_u.total, lift.along_v.total, target_edge), faces_reversed_on(surface), lift);
+    const std::vector<std::vector<std::pair<double, double>>> cells = clipped_hex_lattice(lift.along_u.total, lift.along_v.total, target_edge);
+    const bool reversed = faces_reversed_on(surface);
+    return lifted_cells_mesh(cells, reversed, lift);
 }
 
 /// Lifts a plan point onto the sinusoidal dome.
@@ -965,7 +1083,12 @@ struct SinusoidalDomeLift {
 };
 
 /// The sinusoidal dome as a hexagonal mesh: the clipped lattice over its plan, lifted by the dome's height function.
-inline Mesh sinusoidal_dome_hex_mesh(double width, double depth, double height, double target_edge)
+inline Mesh sinusoidal_dome_hex_mesh(
+    double width,
+    double depth,
+    double height,
+    double target_edge
+)
 {
     return lifted_cells_mesh(clipped_hex_lattice(width, depth, target_edge), false, SinusoidalDomeLift{width, depth, height});
 }

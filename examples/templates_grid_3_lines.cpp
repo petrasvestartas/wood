@@ -17,7 +17,12 @@ const wood_grid::Framing BRACED{.span = -1, .node = 1, .profiles = {.column = pr
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
 /// Every element of a building under one group.
-void add_building(WoodSession& session, const wood_grid::Building& building, const wood_grid::Framing& framing, const std::string& name) {
+void add_building(
+    WoodSession& session,
+    const wood_grid::Building& building,
+    const wood_grid::Framing& framing,
+    const std::string& name
+) {
 
     const std::shared_ptr<TreeNode> group = session.add_group(name);
     for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
@@ -44,7 +49,12 @@ int main() {
             }
 
     WoodSession wood_session("templates_grid_3_lines");
-    add_building(wood_session, wood_grid::Building::from_lines(lines, surfaces), CREA, INPUT);
+    add_building(
+        wood_session,
+        wood_grid::Building::from_lines(lines, surfaces),
+        CREA,
+        INPUT
+    );
 
     std::vector<Line> frame;
     std::vector<Polyline> floors;
@@ -59,11 +69,24 @@ int main() {
                 if (k < STOREYS)
                     frame.push_back(Line::from_points(node, node + Vector(0.0, 0.0, STOREY)));
                 if (k > 0 && i < BAYS && j < BAYS)
-                    floors.push_back(Polyline::rectangle(node, X, Y, BAY, BAY));
+                    floors.push_back(
+                        Polyline::rectangle(
+                            node,
+                            X,
+                            Y,
+                            BAY,
+                            BAY
+                        )
+                    );
                 if (k < STOREYS && j < BAYS && (i == 0 || i == BAYS))
                     frame.push_back(Line::from_points(node, node + Y * BAY + Vector(0.0, 0.0, STOREY)));
             }
-    add_building(wood_session, wood_grid::Building::from_lines(frame, floors), BRACED, "braced");
+    add_building(
+        wood_session,
+        wood_grid::Building::from_lines(frame, floors),
+        BRACED,
+        "braced"
+    );
 
     if constexpr (INSTANCES)
         wood_session.instance_by_key();

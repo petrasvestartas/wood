@@ -339,7 +339,14 @@ BRep drill_brep(const Line& axis, double radius) {
     if (axis.length() <= 0 || radius <= 0)
         throw std::invalid_argument("Invalid drill dimensions");
     const Plane frame = Plane::from_point_normal(axis.start(), axis.to_vector());
-    return BRep::create_cylinder(radius, axis.length()).transformed(Xform::frame_to_world(axis.start(), frame.x_axis(), frame.y_axis(), frame.z_axis()));
+    const Xform to_world = Xform::frame_to_world(
+        axis.start(),
+        frame.x_axis(),
+        frame.y_axis(),
+        frame.z_axis()
+    );
+    const BRep cylinder = BRep::create_cylinder(radius, axis.length());
+    return cylinder.transformed(to_world);
 }
 
 }

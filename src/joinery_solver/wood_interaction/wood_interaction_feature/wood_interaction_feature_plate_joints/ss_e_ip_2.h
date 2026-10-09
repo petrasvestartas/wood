@@ -1,5 +1,10 @@
 /// A tooth tiled `divisions` times along z, copy i shifted by mv_end + mv_step * i.
-static std::vector<Point> tile_tooth_along_z(const std::vector<Point>& base, int divisions, double mv_end, double mv_step) {
+static std::vector<Point> tile_tooth_along_z(
+    const std::vector<Point>& base,
+    int divisions,
+    double mv_end,
+    double mv_step
+) {
 
     std::vector<Point> out;
     out.reserve(base.size() * divisions);
@@ -58,10 +63,30 @@ static void ss_e_ip_2(InteractionFeaturePlate& joint) {
         Point( 0.0,  0.5, -0.1166666667),
     };
 
-    const std::vector<Point> m0 = tile_tooth_along_z(base_m0, divisions, mv_end, mv_step);
-    const std::vector<Point> m1 = tile_tooth_along_z(base_m1, divisions, mv_end, mv_step);
-    const std::vector<Point> f0 = tile_tooth_along_z(base_f0, divisions, mv_end, mv_step);
-    const std::vector<Point> f1 = tile_tooth_along_z(base_f1, divisions, mv_end, mv_step);
+    const std::vector<Point> m0 = tile_tooth_along_z(
+        base_m0,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> m1 = tile_tooth_along_z(
+        base_m1,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> f0 = tile_tooth_along_z(
+        base_f0,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> f1 = tile_tooth_along_z(
+        base_f1,
+        divisions,
+        mv_end,
+        mv_step
+    );
 
     joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
     joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };

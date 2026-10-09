@@ -14,7 +14,17 @@ const double CONNECTOR_THICKNESS = 40.0;
 int main() {
 
     const Mesh mesh = VdaMesh::default_mesh();
-    const VdaMesh vda(mesh, FACE_THICKNESS, FACE_POSITIONS, EDGE_DIVISIONS, {}, {}, CONNECTOR_WIDTH, CONNECTOR_HEIGHT, CONNECTOR_THICKNESS);
+    const VdaMesh vda(
+        mesh,
+        FACE_THICKNESS,
+        FACE_POSITIONS,
+        EDGE_DIVISIONS,
+        {},
+        {},
+        CONNECTOR_WIDTH,
+        CONNECTOR_HEIGHT,
+        CONNECTOR_THICKNESS
+    );
 
     WoodSession wood_session("vda_mesh");
     wood_session.add_mesh(std::make_shared<Mesh>(mesh));

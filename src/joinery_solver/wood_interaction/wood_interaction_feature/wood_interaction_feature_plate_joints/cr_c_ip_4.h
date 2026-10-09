@@ -13,5 +13,14 @@ static void cr_c_ip_4(InteractionFeaturePlate& joint) {
         FabricationType::drill, FabricationType::drill,
     };
 
-    cr_c_ip_core(joint, drills, 0.15, 0.6, 1.0, 1.0, 1, ct);
+    cr_c_ip_core(
+        joint,
+        drills,
+        0.15,
+        0.6,
+        1.0,
+        1.0,
+        1,
+        ct
+    );
 }

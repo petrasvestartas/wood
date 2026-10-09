@@ -230,7 +230,12 @@ private:
         }
 
         Point center_dihedral;
-        if (!Intersection::line_plane(line, p0, center_dihedral, false)) {
+        if (!Intersection::line_plane(
+            line,
+            p0,
+            center_dihedral,
+            false
+        )) {
             center_dihedral = line.center();
         }
 
@@ -329,7 +334,12 @@ private:
                 continue;
             }
 
-            if (!Intersection::line_plane(line, base_plane, pt, /*is_finite=*/false)) {
+            if (!Intersection::line_plane(
+                line,
+                base_plane,
+                pt,
+                /*is_finite=*/false
+            )) {
                 continue;
             }
 
@@ -532,8 +542,22 @@ private:
                              pl.x_axis(), pl.y_axis());
 
                 const Vector to_corner = pl.x_axis() * (-rect_width * 0.5) + pl.y_axis() * (-rect_height * 0.5);
-                e_polylines[ei][j * 2 + 0] = Polyline::rectangle(pl_bot.origin() + to_corner, pl_bot.x_axis(), pl_bot.y_axis(), rect_width, rect_height, true);
-                e_polylines[ei][j * 2 + 1] = Polyline::rectangle(pl_top.origin() + to_corner, pl_top.x_axis(), pl_top.y_axis(), rect_width, rect_height, true);
+                e_polylines[ei][j * 2 + 0] = Polyline::rectangle(
+                    pl_bot.origin() + to_corner,
+                    pl_bot.x_axis(),
+                    pl_bot.y_axis(),
+                    rect_width,
+                    rect_height,
+                    true
+                );
+                e_polylines[ei][j * 2 + 1] = Polyline::rectangle(
+                    pl_top.origin() + to_corner,
+                    pl_top.x_axis(),
+                    pl_top.y_axis(),
+                    rect_width,
+                    rect_height,
+                    true
+                );
                 e_polylines_planes[ei][j]   = pl_top;
 
                 std::string label;

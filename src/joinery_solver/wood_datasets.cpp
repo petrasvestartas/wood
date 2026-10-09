@@ -208,7 +208,14 @@ bool type_beams_name_phanomema_node() {
         WoodSession scene("WoodF2F");
         scene.settings = settings;
         for (const Polyline& axis : io::load_obj("phanomema_node"))
-            scene.add(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), beams[0]), std::vector<Vector>{}, static_cast<int>(beams[1])));
+            scene.add(
+                std::make_shared<Beam>(
+                    axis,
+                    std::vector<double>(axis.segment_count(), beams[0]),
+                    std::vector<Vector>{},
+                    static_cast<int>(beams[1])
+                )
+            );
 
         scene.compute_axis_contacts(beams[2]);
         scene.compute_beam_features(beams[3], beams[4], static_cast<int>(beams[5]));

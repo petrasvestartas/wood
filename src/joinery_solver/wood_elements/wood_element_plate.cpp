@@ -83,8 +83,22 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<Plate> Plate::from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name) {
-    const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
+std::shared_ptr<Plate> Plate::from_rectangle(
+    const Point& origin,
+    const Vector& x_axis,
+    const Vector& y_axis,
+    double width,
+    double height,
+    double thickness,
+    const std::string& name
+) {
+    const Polyline bottom = Polyline::rectangle(
+        origin,
+        x_axis,
+        y_axis,
+        width,
+        height
+    );
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
@@ -333,7 +347,12 @@ std::vector<ElementFeature> Plate::face_features() const {
             continue;
 
         const std::string feature_type = type >= 0 ? "joint_type_" + std::to_string(type) : "cut";
-        out.emplace_back(feature_type, static_cast<int>(face), outlines, "face_" + std::to_string(face));
+        out.emplace_back(
+            feature_type,
+            static_cast<int>(face),
+            outlines,
+            "face_" + std::to_string(face)
+        );
     }
 
     return out;

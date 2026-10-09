@@ -25,11 +25,86 @@ const std::vector<Case> CASES = {
     {"branch_plate", SQUARE, SQUARE_BAYS, {}, BRANCH, wood_grid::Framing{.system = 0, .node = 0, .deck = 365.1, .head = 300.0, .reach = 600.0, .capital = 1, .panel = 3505.2}},
     {"branch_post_and_beam", SQUARE, SQUARE_BAYS, {}, BRANCH, wood_grid::Framing{.system = 1, .span = 0, .node = 2, .deck = 189.8, .profiles = {.girder = profile_rectangle(220.0, 520.0)}}},
     {"branch_purlin_on_girder", SQUARE, SQUARE_BAYS, {}, BRANCH, wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .deck = 189.8, .profiles = {.girder = profile_rectangle(220.0, 520.0), .purlin = profile_rectangle(220.0, 400.0)}}},
-    {"branch_residential", {Polyline({Point(0.0, 0.0, 0.0), Point(21945.6, 0.0, 0.0), Point(21945.6, 45720.0, 0.0), Point(43891.2, 45720.0, 0.0), Point(43891.2, 67056.0, 0.0), Point(0.0, 67056.0, 0.0), Point(0.0, 0.0, 0.0)})}, wood_grid::Pattern::orthogonal(wood_grid::compute_bays(43891.2, 9144.0), wood_grid::compute_bays(67056.0, 9144.0)), {Polyline::rectangle(Point(7467.6, 19354.8, 0.0), X, Y, 7010.4, 7010.4)}, BRANCH, wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .deck = 189.8, .wall = 250.0, .profiles = GLULAM}},
-    {"fastepp_v1", {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 9000.0, 9000.0)}, wood_grid::Pattern::orthogonal({9000.0}, {9000.0}), {}, {0.0, 4500.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2250.0, .node = 1, .deck = 87.0, .panel = 3114.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_rectangle(265.0, 608.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"fastepp_v2", {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 6000.0, 12000.0)}, wood_grid::Pattern::orthogonal({6000.0}, {12000.0}), {}, {0.0, 4500.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 1500.0, .node = 1, .deck = 87.0, .panel = 3095.0, .profiles = {.column = profile_rectangle(265.0, 380.0), .girder = profile_rectangle(265.0, 532.0), .purlin = profile_rectangle(215.0, 532.0)}}},
-    {"fastepp_v3", {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 6000.0, 9000.0)}, wood_grid::Pattern::orthogonal({6000.0}, {9000.0}), {}, {0.0, 4500.0}, wood_grid::Framing{.system = 1, .span = 1, .node = 1, .deck = 243.0, .panel = 3126.67, .profiles = {.column = profile_rectangle(265.0, 380.0), .girder = profile_rectangle(265.0, 836.0), .beam = profile_rectangle(215.0, 836.0)}}},
-    {"fastepp_v4", {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 8000.0, 12000.0)}, wood_grid::Pattern::orthogonal({8000.0}, {12000.0}), {}, {0.0, 4500.0}, wood_grid::Framing{.system = 2, .span = 0, .spacing = 8000.0 / 6.0, .node = 1, .deck = 87.0, .panel = 3104.5, .profiles = {.column = profile_rectangle(365.0, 418.0), .girder = profile_rectangle(265.0, 684.0), .purlin = profile_rectangle(215.0, 494.0)}}},
+    {
+        "branch_residential",
+        {Polyline({Point(0.0, 0.0, 0.0), Point(21945.6, 0.0, 0.0), Point(21945.6, 45720.0, 0.0), Point(43891.2, 45720.0, 0.0), Point(43891.2, 67056.0, 0.0), Point(0.0, 67056.0, 0.0), Point(0.0, 0.0, 0.0)})},
+        wood_grid::Pattern::orthogonal(wood_grid::compute_bays(43891.2, 9144.0), wood_grid::compute_bays(67056.0, 9144.0)),
+        {
+            Polyline::rectangle(
+                Point(7467.6, 19354.8, 0.0),
+                X,
+                Y,
+                7010.4,
+                7010.4
+            )
+        },
+        BRANCH,
+        wood_grid::Framing{.system = 2, .span = 1, .spacing = 3048.0, .node = 2, .drop = 203.2, .deck = 189.8, .wall = 250.0, .profiles = GLULAM}
+    },
+    {
+        "fastepp_v1",
+        {
+            Polyline::rectangle(
+                Point(0.0, 0.0, 0.0),
+                X,
+                Y,
+                9000.0,
+                9000.0
+            )
+        },
+        wood_grid::Pattern::orthogonal({9000.0}, {9000.0}),
+        {},
+        {0.0, 4500.0},
+        wood_grid::Framing{.system = 2, .span = 0, .spacing = 2250.0, .node = 1, .deck = 87.0, .panel = 3114.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_rectangle(265.0, 608.0), .purlin = profile_rectangle(215.0, 456.0)}}
+    },
+    {
+        "fastepp_v2",
+        {
+            Polyline::rectangle(
+                Point(0.0, 0.0, 0.0),
+                X,
+                Y,
+                6000.0,
+                12000.0
+            )
+        },
+        wood_grid::Pattern::orthogonal({6000.0}, {12000.0}),
+        {},
+        {0.0, 4500.0},
+        wood_grid::Framing{.system = 2, .span = 0, .spacing = 1500.0, .node = 1, .deck = 87.0, .panel = 3095.0, .profiles = {.column = profile_rectangle(265.0, 380.0), .girder = profile_rectangle(265.0, 532.0), .purlin = profile_rectangle(215.0, 532.0)}}
+    },
+    {
+        "fastepp_v3",
+        {
+            Polyline::rectangle(
+                Point(0.0, 0.0, 0.0),
+                X,
+                Y,
+                6000.0,
+                9000.0
+            )
+        },
+        wood_grid::Pattern::orthogonal({6000.0}, {9000.0}),
+        {},
+        {0.0, 4500.0},
+        wood_grid::Framing{.system = 1, .span = 1, .node = 1, .deck = 243.0, .panel = 3126.67, .profiles = {.column = profile_rectangle(265.0, 380.0), .girder = profile_rectangle(265.0, 836.0), .beam = profile_rectangle(215.0, 836.0)}}
+    },
+    {
+        "fastepp_v4",
+        {
+            Polyline::rectangle(
+                Point(0.0, 0.0, 0.0),
+                X,
+                Y,
+                8000.0,
+                12000.0
+            )
+        },
+        wood_grid::Pattern::orthogonal({8000.0}, {12000.0}),
+        {},
+        {0.0, 4500.0},
+        wood_grid::Framing{.system = 2, .span = 0, .spacing = 8000.0 / 6.0, .node = 1, .deck = 87.0, .panel = 3104.5, .profiles = {.column = profile_rectangle(365.0, 418.0), .girder = profile_rectangle(265.0, 684.0), .purlin = profile_rectangle(215.0, 494.0)}}
+    },
 }; // Branch3D's square in its three structural methods and its residential L with a core, then the four FAST+EPP timber bays at the tool's sections and spacings
 const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
 
@@ -61,7 +136,12 @@ int main() {
         for (const Polyline& ring : item.cores)
             cores.push_back(ring.transformed(shift));
 
-        const wood_grid::Building building = wood_grid::Building::from_footprint(footprint, item.elevations, item.pattern.transformed(shift), cores);
+        const wood_grid::Building building = wood_grid::Building::from_footprint(
+            footprint,
+            item.elevations,
+            item.pattern.transformed(shift),
+            cores
+        );
         const std::shared_ptr<TreeNode> group = wood_session.add_group(item.name);
         for (size_t storey = 0; storey + 1 < building.levels.size(); storey++)
             for (const std::shared_ptr<Element>& element : building.to_elements(item.framing, storey))

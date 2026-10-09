@@ -15,8 +15,26 @@ static Polyline tooth(const double y, const double depth) {
 int main() {
 
     WoodSession wood_session("custom_joint");
-    wood_session.add(Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40));
-    wood_session.add(Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40));
+    wood_session.add(
+        Plate::from_rectangle(
+            Point(0, 0, 0),
+            Vector(1, 0, 0),
+            Vector(0, 1, 0),
+            1000,
+            500,
+            40
+        )
+    );
+    wood_session.add(
+        Plate::from_rectangle(
+            Point(1000, 0, 0),
+            Vector(1, 0, 0),
+            Vector(0, 1, 0),
+            1000,
+            500,
+            40
+        )
+    );
 
     wood_session.settings.joint_parameters[0 * 3 + 2] = 9;   // ss_e_ip id 9: the custom variant
     wood_session.settings.custom_joints["ss_e_ip"] = {

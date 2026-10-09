@@ -67,7 +67,15 @@ public:
 
     static std::shared_ptr<JointPlate> ss_e_op_3();
 
-    static std::shared_ptr<JointPlate> ss_e_op_4(int divisions = 8, double taper = 0.0, bool chamfer = false, bool modify_outline = true, const std::array<double, 2>& x = {-0.5, 0.5}, const std::array<double, 2>& y = {-0.5, 0.5}, const std::array<double, 2>& z = {-0.5, 0.5});
+    static std::shared_ptr<JointPlate> ss_e_op_4(
+        int divisions = 8,
+        double taper = 0.0,
+        bool chamfer = false,
+        bool modify_outline = true,
+        const std::array<double, 2>& x = {-0.5, 0.5},
+        const std::array<double, 2>& y = {-0.5, 0.5},
+        const std::array<double, 2>& z = {-0.5, 0.5}
+    );
 
     static std::shared_ptr<JointPlate> ss_e_op_5(int divisions = 8, bool disable_divisions = false);
 
@@ -141,9 +149,19 @@ public:
 
     static std::shared_ptr<JointPlate> tt_e_p_1(double radius = 1.0, double chord_tolerance = 0.05);
 
-    static std::shared_ptr<JointPlate> tt_e_p_2(int count = 6, double circle_radius = 20.0, double radius = 1.0, double chord_tolerance = 0.05);
+    static std::shared_ptr<JointPlate> tt_e_p_2(
+        int count = 6,
+        double circle_radius = 20.0,
+        double radius = 1.0,
+        double chord_tolerance = 0.05
+    );
 
-    static std::shared_ptr<JointPlate> tt_e_p_3(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05, double distance_squared = 0.01);
+    static std::shared_ptr<JointPlate> tt_e_p_3(
+        double spacing = 30.0,
+        double radius = 1.0,
+        double chord_tolerance = 0.05,
+        double distance_squared = 0.01
+    );
 
     static std::shared_ptr<JointPlate> tt_e_p_4(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05);
 
@@ -191,7 +209,12 @@ public:
 
 private:
     static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
-    void compute_library(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;
+    void compute_library(
+        InteractionFeaturePlate& connection,
+        const std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<InteractionFeaturePlate>& connections,
+        const Settings& settings
+    ) const;
     void compute_parameters(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_ss_e_ip(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_ss_e_op(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;

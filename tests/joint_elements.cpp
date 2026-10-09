@@ -44,12 +44,34 @@ static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSessio
 
 /// Two 100 x 100 x 40 plates stacked at the origin and the four dowels across their contact, the connector not yet added.
 static std::shared_ptr<JointBeam> stacked_dowels(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<Plate>& upper) {
-    lower = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
-    upper = Plate::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
+    lower = Plate::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        40
+    );
+    upper = Plate::from_rectangle(
+        {0, 0, 40},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        40
+    );
     scene.add(lower); scene.add(upper);
     const auto contact = scene.compute_face_contact(lower, upper);
     check(contact != nullptr, "stacked plates touch");
-    return JointBeam::dowels(*lower, *upper, *contact, 4.0, 30.0, 20.0, 10.0);
+    return JointBeam::dowels(
+        *lower,
+        *upper,
+        *contact,
+        4.0,
+        30.0,
+        20.0,
+        10.0
+    );
 }
 
 /// The scene calls a user's connectors keep through: compute_features keeps them with their cuts and holes; remove_interaction takes the holes with the cut; holes in a moved target are found and drawn in its own frame; graft renumbers adjacency by plate guid and searches when a side has none; adjacency and three-valence groups go through the protobuf; compute_features reads no dataset's sidecars.
@@ -86,12 +108,42 @@ static void check_scene_calls() {
 
     WoodSession first("first"), second("second"), bare("bare");
     for (int i = 0; i < 2; ++i)
-        first.add(Plate::from_rectangle({0, 100.0 * i, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+        first.add(
+            Plate::from_rectangle(
+                {0, 100.0 * i, 0},
+                {1, 0, 0},
+                {0, 1, 0},
+                100,
+                100,
+                10
+            )
+        );
     const std::shared_ptr<TreeNode> group_a = second.add_group("a");
     const std::shared_ptr<TreeNode> group_b = second.add_group("b");
-    const auto p2 = Plate::from_rectangle({0, 300, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p3 = Plate::from_rectangle({0, 400, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p4 = Plate::from_rectangle({0, 600, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p2 = Plate::from_rectangle(
+        {0, 300, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    const auto p3 = Plate::from_rectangle(
+        {0, 400, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    const auto p4 = Plate::from_rectangle(
+        {0, 600, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
     second.add(p2, group_b); second.add(p3, group_b); second.add(p4, group_a);
     first.adjacency = {{0, 1}};
     second.adjacency = {{0, 1}};
@@ -101,7 +153,16 @@ static void check_scene_calls() {
     merged.merge(second);
     check(pair_guids(merged).count(std::minmax(p2->guid(), p3->guid())) && merged.adjacency.size() == 2, "merge renumbers the grafted adjacency by plate guid when the tree reorders the plates");
     check(merged.three_valence.size() == 2 && merged.world_elements<Plate>()[merged.three_valence[1][0]]->guid() == p2->guid(), "merge renumbers the three-valence groups by plate guid");
-    bare.add(Plate::from_rectangle({0, 900, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+    bare.add(
+        Plate::from_rectangle(
+            {0, 900, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            100,
+            100,
+            10
+        )
+    );
     WoodSession searched = first;
     searched.merge(bare);
     check(searched.adjacency.empty(), "merging plates without an adjacency leaves it empty, so every pair is searched");
@@ -122,8 +183,22 @@ static void check_scene_calls() {
 
 int main() {
     WoodSession scene("joint API checks");
-    const auto a = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const auto b = Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
+    const auto a = Plate::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        400,
+        300,
+        40
+    );
+    const auto b = Plate::from_rectangle(
+        {150, 0, 40},
+        {0, 1, 0},
+        {0, 0, 1},
+        300,
+        400,
+        40
+    );
     scene.add(a); scene.add(b);
     const auto contact = scene.compute_face_contact(a, b);
     check(contact && contact->face_a == 1 && contact->face_b == 5, "plate contact faces");
@@ -153,13 +228,26 @@ int main() {
 
     const auto beam = std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
     const auto column = std::make_shared<Column>(Line::from_points({950, 50, 0}, {950, 50, 950}),
-        Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100));
+        Polyline::rectangle(
+            {900, 0, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            100,
+            100
+        ));
     scene.add(beam); scene.add(column);
     const auto linear = scene.compute_face_contact(column, beam);
     check(linear && linear->face_a == 5 && linear->face_b == 5 && linear->type == ContactType::end_side, "linear contact");
     check(linear->volumes[0].point_count() == 0, "linear contact has no plate volume");
     check(!scene.compute_face_contact(a, beam), "disjoint contact");
-    auto support = Plate::from_rectangle({500, 0, 810}, {1, 0, 0}, {0, 1, 0}, 400, 100, 40);
+    auto support = Plate::from_rectangle(
+        {500, 0, 810},
+        {1, 0, 0},
+        {0, 1, 0},
+        400,
+        100,
+        40
+    );
     auto mixed = scene.compute_face_contact(support, beam);
     check(mixed && mixed->type == ContactType::side_top && mixed->volumes[0].point_count() == 0, "mixed plate/beam contact");
     contact_round_trip(*linear);
@@ -172,8 +260,14 @@ int main() {
     const auto cut_scene = WoodSession::pb_loads(scene.pb_dumps());
     check(cut_scene.get_element<Joint>(cutter->guid())->cuts.size() == 1, "plane cutter round trip");
 
-    const auto profile = std::make_shared<Joint>(
-        Polyline::rectangle({500, 25, 875}, {0, 1, 0}, {0, 0, 1}, 50, 50), Vector(200, 0, 0));
+    const Polyline profile_outline = Polyline::rectangle(
+        {500, 25, 875},
+        {0, 1, 0},
+        {0, 0, 1},
+        50,
+        50
+    );
+    const auto profile = std::make_shared<Joint>(profile_outline, Vector(200, 0, 0));
     profile->targets = {beam->guid()};
     const double before_profile = compute_volume(beam->model_geometry_mesh());
     scene.add_joint(profile);
@@ -201,12 +295,32 @@ int main() {
     check(beam_joints == 1, "beam joint type round trip");
 
     WoodSession drilling("drill joint");
-    auto lower = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    auto upper = Plate::from_rectangle({0, 0, 10}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    auto lower = Plate::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    auto upper = Plate::from_rectangle(
+        {0, 0, 10},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
     drilling.add(lower); drilling.add(upper);
     auto drill_contact = drilling.compute_face_contact(lower, upper);
     check(drill_contact && drill_contact->type == ContactType::top_top, "top-top contact");
-    auto drill = std::make_shared<JointPlate>(lower, upper, *drill_contact, 40, 6);
+    auto drill = std::make_shared<JointPlate>(
+        lower,
+        upper,
+        *drill_contact,
+        40,
+        6
+    );
     drill->line_radius = 2.0;
     drilling.add_joint(drill);
     check(drill->element_geometry_mesh().number_of_faces() > 0, "line joint has a solid mesh");

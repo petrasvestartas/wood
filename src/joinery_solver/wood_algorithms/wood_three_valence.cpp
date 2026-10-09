@@ -40,8 +40,22 @@ void clip_joint_volumes(InteractionFeaturePlate& joint, const Point& a, const Po
         const Line edge2 = Line::from_points(volume0.get_point(2), volume1.get_point(2));
         const Line edge3 = Line::from_points(volume0.get_point(3), volume1.get_point(3));
 
-        Intersection::plane_4lines(plane_a, edge0, edge1, edge2, edge3, volume0);
-        Intersection::plane_4lines(plane_b, edge0, edge1, edge2, edge3, volume1);
+        Intersection::plane_4lines(
+            plane_a,
+            edge0,
+            edge1,
+            edge2,
+            edge3,
+            volume0
+        );
+        Intersection::plane_4lines(
+            plane_b,
+            edge0,
+            edge1,
+            edge2,
+            edge3,
+            volume1
+        );
     }
 }
 
@@ -116,7 +130,13 @@ static std::pair<Plane, Plane> far_near_planes(const Plate& glued, const Plate& 
 }
 
 /// A linked shadow of source between side and glued, its lines and first two volumes translated onto the glued plate.
-static InteractionFeaturePlate shadow_joint(const InteractionFeaturePlate& source, const Plate& side, const Plate& glued, const std::array<Line, 2>& lines, const std::array<Polyline, 4>& volumes) {
+static InteractionFeaturePlate shadow_joint(
+    const InteractionFeaturePlate& source,
+    const Plate& side,
+    const Plate& glued,
+    const std::array<Line, 2>& lines,
+    const std::array<Polyline, 4>& volumes
+) {
 
     InteractionFeaturePlate shadow;
     shadow.guid() = ::guid();
@@ -207,20 +227,40 @@ void add_vidy_shadow_joints(
         Point far_point1;
         Point near_point1;
 
-        if (!Intersection::line_plane(ordered_lines[0], far_plane0, far_point0, false))
+        if (!Intersection::line_plane(
+            ordered_lines[0],
+            far_plane0,
+            far_point0,
+            false
+        ))
             continue;
 
-        if (!Intersection::line_plane(ordered_lines[0], near_plane0, near_point0, false))
+        if (!Intersection::line_plane(
+            ordered_lines[0],
+            near_plane0,
+            near_point0,
+            false
+        ))
             continue;
 
         if (glued0 == glued1) {
             far_point1 = far_point0;
             near_point1 = near_point0;
         } else {
-            if (!Intersection::line_plane(ordered_lines[1], far_plane1, far_point1, false))
+            if (!Intersection::line_plane(
+                ordered_lines[1],
+                far_plane1,
+                far_point1,
+                false
+            ))
                 continue;
 
-            if (!Intersection::line_plane(ordered_lines[1], near_plane1, near_point1, false))
+            if (!Intersection::line_plane(
+                ordered_lines[1],
+                near_plane1,
+                near_point1,
+                false
+            ))
                 continue;
         }
 
@@ -263,13 +303,29 @@ void add_vidy_shadow_joints(
         }
 
         const int shadow0_index = (int)joints.size();
-        joints.push_back(shadow_joint(joints[joint_index], *elements[side0], *elements[glued0], joint_lines0, volumes0));
+        joints.push_back(
+            shadow_joint(
+                joints[joint_index],
+                *elements[side0],
+                *elements[glued0],
+                joint_lines0,
+                volumes0
+            )
+        );
         joints_map[pair_key(side0, glued0)] = shadow0_index;
 
         int shadow1_index = -1;
         if (glued0 != glued1) {
             shadow1_index = (int)joints.size();
-            joints.push_back(shadow_joint(joints[joint_index], *elements[side1], *elements[glued1], joint_lines1, volumes1));
+            joints.push_back(
+                shadow_joint(
+                    joints[joint_index],
+                    *elements[side1],
+                    *elements[glued1],
+                    joint_lines1,
+                    volumes1
+                )
+            );
             joints_map[pair_key(side1, glued1)] = shadow1_index;
         }
 
@@ -362,7 +418,13 @@ void link_three_valence_joints(
 
         if (instruction == 1) {
             const size_t before_vidy = all_joints.size();
-            add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map, angle);
+            add_vidy_shadow_joints(
+                three_valence_groups,
+                elements,
+                all_joints,
+                joints_map,
+                angle
+            );
             if (TRACE)
                 std::cout << fmt::format("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
         } else {

@@ -9,11 +9,51 @@ int main() {
     // WoodSession:
     WoodSession wood_session("elements");
 
-    const std::shared_ptr<Plate> plate0 = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const std::shared_ptr<Plate> plate1 = Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
+    const std::shared_ptr<Plate> plate0 = Plate::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        400,
+        300,
+        40
+    );
+    const std::shared_ptr<Plate> plate1 = Plate::from_rectangle(
+        {150, 0, 40},
+        {0, 1, 0},
+        {0, 0, 1},
+        300,
+        400,
+        40
+    );
     const std::shared_ptr<Beam> beam = std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
-    const std::shared_ptr<Column> column = std::make_shared<Column>(Line::from_points({950, 50, 0}, {950, 50, 950}), Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100));
-    const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400), Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)});
+    const std::shared_ptr<Column> column = std::make_shared<Column>(
+        Line::from_points({950, 50, 0}, {950, 50, 950}),
+        Polyline::rectangle(
+            {900, 0, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            100,
+            100
+        )
+    );
+    const std::shared_ptr<Block> block = std::make_shared<Block>(
+        std::vector<Polyline>{
+            Polyline::rectangle(
+                {1200, 0, 0},
+                {1, 0, 0},
+                {0, 1, 0},
+                200,
+                400
+            ),
+            Polyline::rectangle(
+                {1170, 0, 250},
+                {1, 0, 0},
+                {0, 1, 0},
+                260,
+                400
+            )
+        }
+    );
     const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
     joint->is_visible = false; // joints start hidden, the viewer lists them with the lamp off; true draws it
     plate0->is_locked = true; // the viewer opens it with the lock on: it cannot be selected or moved

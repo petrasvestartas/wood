@@ -38,7 +38,15 @@ NurbsSurface compute_saddle(double size, double x) {
             points.emplace_back(x + (across + 1.0) * size / 2.0, along * size / 2.0, RISE * size / 2.0 * (across * across * (1.0 + SKEW * across) - along * along));
         }
 
-    return NurbsSurface::create(false, false, 3, 3, 4, 4, points);
+    return NurbsSurface::create(
+        false,
+        false,
+        3,
+        3,
+        4,
+        4,
+        points
+    );
 }
 
 /// Convex pieces of an element: one loft per board segment, a stud whole.
@@ -149,8 +157,11 @@ double compute_deviation(const wood_gridshell::Gridshell& gridshell) {
         double heading = 0.0;
         for (size_t k = 0; k + 1 < frames.size(); k++) {
             const Vector after = frames[k + 1].origin() - frames[k].origin();
-            if (k > 0)
-                heading += std::asin(std::clamp((after.normalized() - (frames[k].origin() - frames[k - 1].origin()).normalized()).dot(frames[k].z_axis()), -1.0, 1.0));
+            if (k > 0) {
+                const Vector before= (frames[k].origin() - frames[k - 1].origin()).normalized();
+                const double turn = (after.normalized() - before).dot(frames[k].z_axis());
+                heading += std::asin(std::clamp(turn, -1.0, 1.0));
+            }
 
             flat.push_back(flat.back() + Vector(std::cos(heading), std::sin(heading), 0.0) * after.magnitude());
         }
@@ -188,7 +199,15 @@ int main() {
     double offset = 0.0;
 
     for (const Shell& shell : SHELLS) {
-        gridshells.push_back(wood_gridshell::Gridshell::from_surface(compute_saddle(shell.size, offset), shell.curves, shell.count, shell.count, LAMELLA));
+        gridshells.push_back(
+            wood_gridshell::Gridshell::from_surface(
+                compute_saddle(shell.size, offset),
+                shell.curves,
+                shell.count,
+                shell.count,
+                LAMELLA
+            )
+        );
         offset += shell.size + GAP;
 
         const std::shared_ptr<TreeNode> top = wood_session.add_group(shell.name + "_top");

@@ -22,7 +22,12 @@ struct Drill {
 };
 
 /// The shortest distance between two segments.
-double segment_distance(const Point& p0, const Point& p1, const Point& q0, const Point& q1);
+double segment_distance(
+    const Point& p0,
+    const Point& p1,
+    const Point& q0,
+    const Point& q1
+);
 
 /// The drills with every two of one radius on one axis whose spans meet or overlap joined into one, so two blind holes meeting in the middle make one through bore.
 std::vector<Drill> merged_drills(std::vector<Drill> drills);

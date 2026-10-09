@@ -9,7 +9,15 @@ namespace wood_session {
 // InteractionContactAxis - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-InteractionContactAxis::InteractionContactAxis(Line segment, double t_a, double t_b, int polyline_a, int segment_a, int polyline_b, int segment_b)
+InteractionContactAxis::InteractionContactAxis(
+    Line segment,
+    double t_a,
+    double t_b,
+    int polyline_a,
+    int segment_a,
+    int polyline_b,
+    int segment_b
+)
     : segment(std::move(segment)), t_a(t_a), t_b(t_b), polyline_a(polyline_a), segment_a(segment_a), polyline_b(polyline_b), segment_b(segment_b) {}
 
 // ═══════════════════════════════════════════════════════════════════════════

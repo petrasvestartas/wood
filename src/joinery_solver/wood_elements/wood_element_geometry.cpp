@@ -11,7 +11,12 @@ bool is_geometry_feature(std::string_view feature_type) {
 }
 
 ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index) {
-    return ElementFeature(std::string(feature_type), face_index, {polyline}, std::string(feature_type));
+    return ElementFeature(
+        std::string(feature_type),
+        face_index,
+        {polyline},
+        std::string(feature_type)
+    );
 }
 
 bool is_session_feature(std::string_view feature_type) {
@@ -34,7 +39,12 @@ std::vector<ElementFeature> session_features(const Element& element) {
     return kept;
 }
 
-Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius) {
+Polyline square_section(
+    const Point& at,
+    const Vector& direction,
+    const Vector& up,
+    double radius
+) {
 
     const Vector along = direction.normalized();
     Vector rise = up.is_parallel_to(along) == 0 ? up : Vector::z_axis();
@@ -74,7 +84,12 @@ std::vector<Plane> face_planes(const Mesh& mesh) {
 }
 
 /// The signed flux of one triangle of vertex keys about the origin, six times its tetrahedron volume.
-static double compute_flux(const Mesh& mesh, size_t a, size_t b, size_t c) {
+static double compute_flux(
+    const Mesh& mesh,
+    size_t a,
+    size_t b,
+    size_t c
+) {
 
     const Point p0 = *mesh.vertex_point(a);
     const Point p1 = *mesh.vertex_point(b);
@@ -89,13 +104,23 @@ double compute_volume(const Mesh& mesh) {
     for (const size_t face : mesh.faces()) {
         if (mesh.get_triangulation().count(face)) {
             for (const std::array<size_t, 3>& triangle : mesh.get_triangulation().at(face))
-                total += compute_flux(mesh, triangle[0], triangle[1], triangle[2]);
+                total += compute_flux(
+                    mesh,
+                    triangle[0],
+                    triangle[1],
+                    triangle[2]
+                );
             continue;
         }
 
         const std::vector<size_t> ring = *mesh.face_vertices(face);
         for (size_t i = 1; i + 1 < ring.size(); i++)
-            total += compute_flux(mesh, ring[0], ring[i], ring[i + 1]);
+            total += compute_flux(
+                mesh,
+                ring[0],
+                ring[i],
+                ring[i + 1]
+            );
     }
 
     return std::abs(total) / 6.0;
@@ -153,7 +178,13 @@ static double compute_signed_volume(const std::vector<Point>& vertices, const st
 }
 
 /// The side faces of the strip under ring side j: one polygon when the strip is planar, else one quad per station pair.
-static void add_strip(const std::vector<Point>& vertices, size_t stations, size_t count, size_t j, std::vector<std::vector<size_t>>& faces) {
+static void add_strip(
+    const std::vector<Point>& vertices,
+    size_t stations,
+    size_t count,
+    size_t j,
+    std::vector<std::vector<size_t>>& faces
+) {
 
     const size_t k = (j + 1) % count;
     std::vector<size_t> strip = {j};
@@ -213,7 +244,13 @@ Mesh loft_stations(const std::vector<Polyline>& sections) {
     std::vector<std::vector<size_t>> faces;
 
     for (size_t j = 0; j < count; j++)
-        add_strip(vertices, stations, count, j, faces);
+        add_strip(
+            vertices,
+            stations,
+            count,
+            j,
+            faces
+        );
 
     std::vector<size_t> start(count);
     std::vector<size_t> end(count);
@@ -532,7 +569,12 @@ std::optional<Plane> frame_along(const Point& origin, const Vector& along, const
 
     const Vector x = across.normalized();
 
-    return Plane::from_frame(origin, x, up.cross(x), up);
+    return Plane::from_frame(
+        origin,
+        x,
+        up.cross(x),
+        up
+    );
 }
 
 bool is_mirror(const Xform& xform) {
@@ -699,7 +741,12 @@ Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>&
         else if (cut.operation == SolidOperation::subtract)
             pending.push_back(cut.mesh);
         else
-            mesh = solid_boolean(mesh, cut.mesh, cut.operation, cut.tolerance);
+            mesh = solid_boolean(
+                mesh,
+                cut.mesh,
+                cut.operation,
+                cut.tolerance
+            );
     }
 
     if (!pending.empty())

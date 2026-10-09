@@ -68,7 +68,8 @@ inline std::vector<std::pair<int, int>> naked_half_edges(const std::vector<std::
             ordered.push_back(naked[current]);
 
             const auto& [fi, fj] = naked[current];
-            std::map<size_t, size_t>::const_iterator next = leaving_vertex.find(faces[fi][(fj + 1) % faces[fi].size()]);
+            const std::vector<size_t>& face = faces[fi];
+            std::map<size_t, size_t>::const_iterator next = leaving_vertex.find(face[(fj + 1) % face.size()]);
             if (next == leaving_vertex.end())
                 break;
 
@@ -155,7 +156,10 @@ inline std::vector<Vector> boundary_up_directions(const std::vector<std::pair<in
         size_t count = loop_end - loop_start;
         std::vector<Vector> directions(count);
         for (size_t k = 0; k < count; k++) {
-            Vector edge = vertex_points.at(half_edge_end(faces, naked[loop_start + k])) - vertex_points.at(half_edge_start(faces, naked[loop_start + k]));
+            const std::pair<int, int>& half_edge = naked[loop_start + k];
+            const Point& start = vertex_points.at(half_edge_start(faces, half_edge));
+            const Point& end = vertex_points.at(half_edge_end(faces, half_edge));
+            Vector edge = end - start;
             directions[k] = edge.is_zero() ? (k > 0 ? directions[k - 1] : Vector(1, 0, 0)) : edge.normalized();
         }
 
@@ -173,7 +177,8 @@ inline std::vector<Vector> boundary_up_directions(const std::vector<std::pair<in
             if (mirror.is_zero())
                 mirror = directions[k];
 
-            transported[k + 1] = perpendicular_part(transported[k].reflect(mirror.normalized()), directions[k + 1]);
+            const Vector reflected = transported[k].reflect(mirror.normalized());
+            transported[k + 1] = perpendicular_part(reflected, directions[k + 1]);
         }
 
         bool closed = count > 1 && half_edge_end(faces, naked[loop_end - 1]) == half_edge_start(faces, naked[loop_start]);
@@ -183,7 +188,10 @@ inline std::vector<Vector> boundary_up_directions(const std::vector<std::pair<in
             if (mirror.is_zero())
                 mirror = directions[count - 1];
 
-            Vector returned = perpendicular_part(transported[count - 1].reflect(mirror.normalized()), directions[0]);
+            const
+
+            Vector reflected = transported[count - 1].reflect(mirror.normalized());
+            Vector returned = perpendicular_part(reflected, directions[0]);
             closure = signed_angle_about(transported[0], returned, directions[0]);
         }
 
@@ -280,7 +288,14 @@ enum class CornerJoint {
 };
 
 /// The face plane of a beam on the axis through vertex along dir with the given up and section, the one of its four long faces whose normal points most along towards.
-inline Plane beam_face_towards(const Point& vertex, const Vector& dir, const Vector& up, double beam_w, double beam_h, const Vector& towards)
+inline Plane beam_face_towards(
+    const Point& vertex,
+    const Vector& dir,
+    const Vector& up,
+    double beam_w,
+    double beam_h,
+    const Vector& towards
+)
 {
 
     Vector side = up.cross(dir).normalized();
@@ -342,7 +357,10 @@ inline std::map<std::pair<size_t, size_t>, Vector> vertex_normal_boundary_ups(co
 
     std::map<std::pair<size_t, size_t>, Vector> ups;
     for (const auto& [u, v] : mesh.edges_on_boundary()) {
-        Vector sum = mesh.vertex_normal(u).value_or(Vector(0, 0, 0)) + mesh.vertex_normal(v).value_or(Vector(0, 0, 0));
+        const
+        Vector normal_u = mesh.vertex_normal(u).value_or(Vector(0, 0, 0));
+        const Vector normal_v = mesh.vertex_normal(v).value_or(Vector(0, 0, 0));
+        Vector sum = normal_u + normal_v;
         if (sum.is_zero())
             continue;
 
@@ -372,7 +390,13 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
     for (const auto& [fi, fj] : frame.naked)
         owner_normals.push_back(face_normals[fi]);
 
-    frame.ups = boundary_up_directions(frame.naked, faces, vertex_points, owner_normals, boundary_twist);
+    frame.ups = boundary_up_directions(
+        frame.naked,
+        faces,
+        vertex_points,
+        owner_normals,
+        boundary_twist
+    );
     for (size_t k = 0; k < frame.naked.size(); k++) {
         size_t u = half_edge_start(faces, frame.naked[k]), v = half_edge_end(faces, frame.naked[k]);
         std::map<std::pair<size_t, size_t>, Vector>::const_iterator given = boundary_ups.find(edge_key(u, v));
@@ -418,8 +442,13 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
                 if ((k + 1 == loop_end && !closed) || frame.directions[k].is_zero() || frame.directions[next].is_zero())
                     continue;
 
-                std::map<std::pair<size_t, size_t>, int>::const_iterator pk = through_priority.find(edge_key(half_edge_start(faces, frame.naked[k]), half_edge_end(faces, frame.naked[k])));
-                std::map<std::pair<size_t, size_t>, int>::const_iterator pn = through_priority.find(edge_key(half_edge_start(faces, frame.naked[next]), half_edge_end(faces, frame.naked[next])));
+                const size_t start_k = half_edge_start(faces, frame.naked[k]);
+                const size_t end_k = half_edge_end(faces, frame.naked[k]);
+                const size_t start_next = half_edge_start(faces, frame.naked[next]);
+                const size_t end_next = half_edge_end(faces, frame.naked[next]);
+
+                std::map<std::pair<size_t, size_t>, int>::const_iterator pk = through_priority.find(edge_key(start_k, end_k));
+                std::map<std::pair<size_t, size_t>, int>::const_iterator pn = through_priority.find(edge_key(start_next, end_next));
                 int priority_k = pk == through_priority.end() ? 0 : pk->second;
                 int priority_next = pn == through_priority.end() ? 0 : pn->second;
                 bool side_change = pk != through_priority.end() && pn != through_priority.end() && priority_k != priority_next;  // consecutive sides alternate priority, so a change marks a corner
@@ -430,13 +459,41 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
 
                 const Point& corner = vertex_points.at(half_edge_end(faces, frame.naked[k]));
                 if (priority_next > priority_k) {
-                    frame.cut_from[next] = beam_face_towards(corner, frame.directions[k], frame.ups[k], beam_w, beam_h, -frame.directions[next]);
-                    frame.cut_to[k] = beam_face_towards(corner, frame.directions[next], frame.ups[next], beam_w, beam_h, -frame.directions[k]);
+                    frame.cut_from[next] = beam_face_towards(
+                        corner,
+                        frame.directions[k],
+                        frame.ups[k],
+                        beam_w,
+                        beam_h,
+                        -frame.directions[next]
+                    );
+                    frame.cut_to[k] = beam_face_towards(
+                        corner,
+                        frame.directions[next],
+                        frame.ups[next],
+                        beam_w,
+                        beam_h,
+                        -frame.directions[k]
+                    );
                     continue;
                 }
 
-                frame.cut_to[k] = beam_face_towards(corner, frame.directions[next], frame.ups[next], beam_w, beam_h, frame.directions[k]);
-                frame.cut_from[next] = beam_face_towards(corner, frame.directions[k], frame.ups[k], beam_w, beam_h, frame.directions[next]);
+                frame.cut_to[k] = beam_face_towards(
+                    corner,
+                    frame.directions[next],
+                    frame.ups[next],
+                    beam_w,
+                    beam_h,
+                    frame.directions[k]
+                );
+                frame.cut_from[next] = beam_face_towards(
+                    corner,
+                    frame.directions[k],
+                    frame.ups[k],
+                    beam_w,
+                    beam_h,
+                    frame.directions[next]
+                );
             }
         }
 
@@ -449,7 +506,16 @@ inline BoundaryFrame boundary_frame(const std::vector<std::vector<size_t>>& face
         const Point& pu = vertex_points.at(u);
         const Point& pv = vertex_points.at(v);
         Point mid = Point::mid_point(pu, pv);
-        CutFace inner{boundary_inner_plane(pu, pv, dir, frame.ups[k], owner_normals[k], beam_w, beam_h), {facing(frame.cut_from[k], mid), facing(frame.cut_to[k], mid)}};
+        const Plane inner_plane = boundary_inner_plane(
+            pu,
+            pv,
+            dir,
+            frame.ups[k],
+            owner_normals[k],
+            beam_w,
+            beam_h
+        );
+        CutFace inner{inner_plane, {facing(frame.cut_from[k], mid), facing(frame.cut_to[k], mid)}};
         frame.inner_faces_at_vertex[u].push_back(inner);
         frame.inner_faces_at_vertex[v].push_back(inner);
     }
@@ -491,7 +557,8 @@ struct MeshBoundary {
             boundary.ends.push_back(points.at(v));
             Vector edge = points.at(v) - points.at(u);
             boundary.directions.push_back(edge.is_zero() ? Vector(1, 0, 0) : edge.normalized());
-            boundary.normals.push_back(face_normals[fi][2] < 0.0 ? -face_normals[fi] : face_normals[fi]);
+            const Vector& face_normal = face_normals[fi];
+            boundary.normals.push_back(face_normal[2] < 0.0 ? -face_normal : face_normal);
         }
 
         const double corner_cos = std::cos(corner_angle * Tolerance::TO_RADIANS);
@@ -608,7 +675,12 @@ inline std::map<std::pair<size_t, size_t>, int> through_side_priority(const Mesh
 }
 
 /// The frame's inner faces at the vertex that a beam along dir can be cut by, or the fallback alone when there is none or every one is nearly parallel to the beam, where a cut would run away along it.
-inline std::vector<CutFace> boundary_cuts_or(const BoundaryFrame& frame, size_t vertex, const Vector& dir, const Plane& fallback)
+inline std::vector<CutFace> boundary_cuts_or(
+    const BoundaryFrame& frame,
+    size_t vertex,
+    const Vector& dir,
+    const Plane& fallback
+)
 {
 
     constexpr double FLAT_CAP_ALIGNMENT_THRESHOLD = 0.15;  // cos of the angle between the plane normal and the beam below which the plane is skipped
@@ -748,7 +820,12 @@ inline EndCorners end_corners(const Point& left, const Point& right, const Vecto
     }
 
     Point crease;
-    if (!Intersection::plane_plane_plane(a, b, face_plane, crease)) {
+    if (!Intersection::plane_plane_plane(
+        a,
+        b,
+        face_plane,
+        crease
+    )) {
         end.right_plane = end.left_plane;
         return end;
     }
@@ -795,19 +872,75 @@ inline BeamGeom cut_beam(const Point& from_ref, const Point& to_ref, const Vecto
     Plane bottom_plane = Plane::from_point_normal(inside - rise, face_normal);
     Plane top_plane    = Plane::from_point_normal(inside + rise, face_normal);
 
-    EndCorners start_bottom = end_corners(from_ref - right - rise, from_ref + right - rise, -dir, from_planes, bottom_plane, true);
-    EndCorners start_top    = end_corners(from_ref - right + rise, from_ref + right + rise, -dir, from_planes, top_plane, true);
-    EndCorners end_bottom   = end_corners(to_ref - right - rise, to_ref + right - rise, dir, to_planes, bottom_plane, true);
-    EndCorners end_top      = end_corners(to_ref - right + rise, to_ref + right + rise, dir, to_planes, top_plane, true);
+    EndCorners start_bottom = end_corners(
+        from_ref - right - rise,
+        from_ref + right - rise,
+        -dir,
+        from_planes,
+        bottom_plane,
+        true
+    );
+    EndCorners start_top    = end_corners(
+        from_ref - right + rise,
+        from_ref + right + rise,
+        -dir,
+        from_planes,
+        top_plane,
+        true
+    );
+    EndCorners end_bottom   = end_corners(
+        to_ref - right - rise,
+        to_ref + right - rise,
+        dir,
+        to_planes,
+        bottom_plane,
+        true
+    );
+    EndCorners end_top      = end_corners(
+        to_ref - right + rise,
+        to_ref + right + rise,
+        dir,
+        to_planes,
+        top_plane,
+        true
+    );
 
     if (!same_planes(start_bottom, start_top)) {
-        start_bottom = end_corners(from_ref - right - rise, from_ref + right - rise, -dir, from_planes, bottom_plane, false);
-        start_top    = end_corners(from_ref - right + rise, from_ref + right + rise, -dir, from_planes, top_plane, false);
+        start_bottom = end_corners(
+            from_ref - right - rise,
+            from_ref + right - rise,
+            -dir,
+            from_planes,
+            bottom_plane,
+            false
+        );
+        start_top    = end_corners(
+            from_ref - right + rise,
+            from_ref + right + rise,
+            -dir,
+            from_planes,
+            top_plane,
+            false
+        );
     }
 
     if (!same_planes(end_bottom, end_top)) {
-        end_bottom = end_corners(to_ref - right - rise, to_ref + right - rise, dir, to_planes, bottom_plane, false);
-        end_top    = end_corners(to_ref - right + rise, to_ref + right + rise, dir, to_planes, top_plane, false);
+        end_bottom = end_corners(
+            to_ref - right - rise,
+            to_ref + right - rise,
+            dir,
+            to_planes,
+            bottom_plane,
+            false
+        );
+        end_top    = end_corners(
+            to_ref - right + rise,
+            to_ref + right + rise,
+            dir,
+            to_planes,
+            top_plane,
+            false
+        );
     }
 
     BeamGeom bg;

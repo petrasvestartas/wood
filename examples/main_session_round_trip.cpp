@@ -143,8 +143,10 @@ int main() {
     bool copied = copy.interactions.size() == a.interactions.size();
 
     for (const std::pair<const std::string, std::vector<std::shared_ptr<Interaction>>>& entry : a.interactions)
-        for (size_t k = 0; copied && k < entry.second.size(); ++k)
-            copied = copy.interactions.at(entry.first)[k] != entry.second[k] && *copy.interactions.at(entry.first)[k] == *entry.second[k];
+        for (size_t k = 0; copied && k < entry.second.size(); ++k) {
+            const std::shared_ptr<Interaction>& copied_interaction = copy.interactions.at(entry.first)[k];
+            copied = copied_interaction != entry.second[k] && *copied_interaction == *entry.second[k];
+        }
 
     check(copied, "a copy holds its own interactions, equal and of the same type");
 

@@ -22,10 +22,20 @@ static std::optional<NurbsSurface> case_surface() {
     std::optional<NurbsSurface> nurbs;
     switch (SURFACE) {
         case 1: nurbs = wood_reciprocal::hypar_surface(12000.0, 10000.0, 3000.0); break;
-        case 2: nurbs = wood_reciprocal::pillow_dome_surface(12000.0, 10000.0, 3000.0, 1200.0); break;
+        case 2: nurbs = wood_reciprocal::pillow_dome_surface(
+            12000.0,
+            10000.0,
+            3000.0,
+            1200.0
+        ); break;
         case 3: return wood_reciprocal::disc_dome_surface(8000.0, 3000.0);
         case 4: nurbs = wood_reciprocal::annen_surface(annen, 0); break;
-        case 5: nurbs = wood_reciprocal::scherk_surface(12000.0, 10000.0, 2500.0, 1200.0); break;
+        case 5: nurbs = wood_reciprocal::scherk_surface(
+            12000.0,
+            10000.0,
+            2500.0,
+            1200.0
+        ); break;
         default: return std::nullopt;
     }
 
@@ -36,8 +46,19 @@ static std::optional<NurbsSurface> case_surface() {
 static Mesh case_mesh(const std::optional<NurbsSurface>& nurbs) {
 
     if (!nurbs) {
-        Mesh quads = wood_reciprocal::sinusoidal_dome_mesh(12, 10, 12000.0, 10000.0, 3000.0);
-        return GRID == 1 ? wood_reciprocal::sinusoidal_dome_hex_mesh(12000.0, 10000.0, 3000.0, CELL)
+        Mesh quads = wood_reciprocal::sinusoidal_dome_mesh(
+            12,
+            10,
+            12000.0,
+            10000.0,
+            3000.0
+        );
+        return GRID == 1 ? wood_reciprocal::sinusoidal_dome_hex_mesh(
+            12000.0,
+            10000.0,
+            3000.0,
+            CELL
+        )
              : GRID == 2 ? wood_reciprocal::dual_hex_mesh(quads) : quads;
     }
 

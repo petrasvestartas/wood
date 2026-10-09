@@ -46,7 +46,12 @@ public:
     );
 
     /// A beam of one profile along its whole axis, the radii its half-width; a direction per segment when given.
-    Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vector<Vector>& directions = {}, const std::string& name = "beam");
+    Beam(
+        const Polyline& axis,
+        const std::vector<Polyline>& profile,
+        const std::vector<Vector>& directions = {},
+        const std::string& name = "beam"
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors

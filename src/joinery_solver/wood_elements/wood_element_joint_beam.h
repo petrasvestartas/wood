@@ -32,14 +32,28 @@ public:
     JointBeam(InteractionFeatureBeam feature, const std::function<void(InteractionFeatureBeam&)>& builder);
 
     /// A beam-to-beam joint on the axis contact of two beams; throws when none fits.
-    JointBeam(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0);
+    JointBeam(
+        const Beam& source,
+        const Beam& target,
+        const InteractionContactAxis& contact,
+        double volume_length,
+        double cross_or_side_to_end,
+        int flip_male = 0
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A beam-to-beam joint on the axis contact of two beams; null when none fits.
-    static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0);
+    static std::shared_ptr<JointBeam> from_contact(
+        const Beam& source,
+        const Beam& target,
+        const InteractionContactAxis& contact,
+        double volume_length,
+        double cross_or_side_to_end,
+        int flip_male = 0
+    );
 
     /// The wedge connector on the face contact of two members: a prism of the profile along the contact's top edge, cut flush with its level, with horizontal dowels, and a pocket in each member; an end plane takes the wedge's nearer end onto it, flush.
     static std::shared_ptr<JointBeam> wedge(
@@ -122,7 +136,12 @@ public:
     );
 
     /// The half-lap cross joint of two connectors whose box parts cross: a slot through each where the other passes, a's from share of their common height up, b's from the bottom up to there.
-    static std::shared_ptr<JointBeam> cross_lap(const JointBeam& a, const JointBeam& b, double share = 0.5, double margin = 1.0);
+    static std::shared_ptr<JointBeam> cross_lap(
+        const JointBeam& a,
+        const JointBeam& b,
+        double share = 0.5,
+        double margin = 1.0
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

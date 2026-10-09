@@ -61,8 +61,27 @@ public:
             throw std::invalid_argument("ReciprocalRotation: nx and ny must be >= 1");
         }
 
-        dome_mesh = make_dome(nx, ny, W, D, h);
-        _build(dome_mesh, nx, angle, scale, beam_w, beam_h, extend_factor, cut_offset_factor, boundary_twist, boundary_ups, corner_joint, through_priority);
+        dome_mesh = make_dome(
+            nx,
+            ny,
+            W,
+            D,
+            h
+        );
+        _build(
+            dome_mesh,
+            nx,
+            angle,
+            scale,
+            beam_w,
+            beam_h,
+            extend_factor,
+            cut_offset_factor,
+            boundary_twist,
+            boundary_ups,
+            corner_joint,
+            through_priority
+        );
     }
 
     /// External mesh constructor — use any quad mesh as the base.
@@ -80,7 +99,20 @@ public:
                        const std::map<std::pair<size_t, size_t>, int>& through_priority = {})
     {
         dome_mesh = std::move(ext_mesh);
-        _build(dome_mesh, -1, angle, scale, beam_w, beam_h, extend_factor, cut_offset_factor, boundary_twist, boundary_ups, corner_joint, through_priority);
+        _build(
+            dome_mesh,
+            -1,
+            angle,
+            scale,
+            beam_w,
+            beam_h,
+            extend_factor,
+            cut_offset_factor,
+            boundary_twist,
+            boundary_ups,
+            corner_joint,
+            through_priority
+        );
     }
 
 private:
@@ -115,7 +147,18 @@ private:
 
         std::map<std::pair<size_t, size_t>, std::vector<std::pair<int, int>>> owners = wood_reciprocal::edge_owners(faces);
         std::vector<std::pair<size_t,size_t>> ekeys = m.edges();
-        wood_reciprocal::BoundaryFrame frame = wood_reciprocal::boundary_frame(faces, owners, vertex_points, face_normals, beam_w, beam_h, boundary_twist, boundary_ups, corner_joint, through_priority);
+        wood_reciprocal::BoundaryFrame frame = wood_reciprocal::boundary_frame(
+            faces,
+            owners,
+            vertex_points,
+            face_normals,
+            beam_w,
+            beam_h,
+            boundary_twist,
+            boundary_ups,
+            corner_joint,
+            through_priority
+        );
         for (size_t k = 0; k < frame.naked.size(); k++) {
             const Vector& dir = frame.directions[k];
             if (dir.is_zero())
@@ -123,8 +166,19 @@ private:
 
             const Point& pu = vertex_points[wood_reciprocal::half_edge_start(faces, frame.naked[k])];
             const Point& pv = vertex_points[wood_reciprocal::half_edge_end(faces, frame.naked[k])];
-            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h, wood_reciprocal::unbounded(frame.cut_from[k]), wood_reciprocal::unbounded(frame.cut_to[k]));
-            wood_reciprocal::store_beam(bg, boundary_beams, boundary_side0, boundary_side1, boundary_beam_bottom, boundary_beam_top);
+            const std::vector<wood_reciprocal::CutFace> cuts_from = wood_reciprocal::unbounded(frame.cut_from[k]);
+            const std::vector<wood_reciprocal::CutFace> cuts_to = wood_reciprocal::unbounded(frame.cut_to[k]);
+            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(pu, pv, dir, frame.ups[k], beam_w, beam_h,
+                cuts_from,
+                cuts_to);
+            wood_reciprocal::store_beam(
+                bg,
+                boundary_beams,
+                boundary_side0,
+                boundary_side1,
+                boundary_beam_bottom,
+                boundary_beam_top
+            );
         }
         size_t ne = ekeys.size();
         std::vector<Line> axes(ne);
@@ -163,8 +217,24 @@ private:
             const Vector& up = ups[ei];
             Vector dir = axis.to_direction();
             if (dir.is_zero()) {
-                wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(axis.start(), axis.end(), Vector(1, 0, 0), up, beam_w, beam_h, {}, {});
-                wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
+                wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(
+                    axis.start(),
+                    axis.end(),
+                    Vector(1, 0, 0),
+                    up,
+                    beam_w,
+                    beam_h,
+                    {},
+                    {}
+                );
+                wood_reciprocal::store_beam(
+                    bg,
+                    beams,
+                    side0,
+                    side1,
+                    beam_bottom,
+                    beam_top
+                );
                 beam_dirs.push_back({0.0, 0.0, 0.0});
                 beam_ups.push_back({up[0], up[1], up[2]});
                 continue;
@@ -173,12 +243,54 @@ private:
             std::vector<wood_reciprocal::CutFace> cuts_start = wood_reciprocal::unbounded(Plane::from_point_normal(axis.start(), dir));
             std::vector<wood_reciprocal::CutFace> cuts_end   = wood_reciprocal::unbounded(Plane::from_point_normal(axis.end(), dir));
             if (interior[ei]) {
-                cuts_start = end_cuts(ei, ekeys[ei].first,  vertex_points.at(ekeys[ei].first),  axes, ups, interior, edges_at, frame, beam_w, face_offset, axis.start(), dir);
-                cuts_end   = end_cuts(ei, ekeys[ei].second, vertex_points.at(ekeys[ei].second), axes, ups, interior, edges_at, frame, beam_w, face_offset, axis.end(),   dir);
+                cuts_start = end_cuts(
+                    ei,
+                    ekeys[ei].first,
+                    vertex_points.at(ekeys[ei].first),
+                    axes,
+                    ups,
+                    interior,
+                    edges_at,
+                    frame,
+                    beam_w,
+                    face_offset,
+                    axis.start(),
+                    dir
+                );
+                cuts_end   = end_cuts(
+                    ei,
+                    ekeys[ei].second,
+                    vertex_points.at(ekeys[ei].second),
+                    axes,
+                    ups,
+                    interior,
+                    edges_at,
+                    frame,
+                    beam_w,
+                    face_offset,
+                    axis.end(),
+                    dir
+                );
             }
 
-            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(axis.start() - dir * extend, axis.end() + dir * extend, dir, up, beam_w, beam_h, cuts_start, cuts_end);
-            wood_reciprocal::store_beam(bg, beams, side0, side1, beam_bottom, beam_top);
+            wood_reciprocal::BeamGeom bg = wood_reciprocal::cut_beam(
+                axis.start() - dir * extend,
+                axis.end() + dir * extend,
+                dir,
+                up,
+                beam_w,
+                beam_h,
+                cuts_start,
+                cuts_end
+            );
+            wood_reciprocal::store_beam(
+                bg,
+                beams,
+                side0,
+                side1,
+                beam_bottom,
+                beam_top
+            );
             beam_dirs.push_back({dir[0], dir[1], dir[2]});
             beam_ups.push_back({up[0],   up[1],   up[2]});
         }
@@ -234,7 +346,13 @@ private:
         return cuts;
     }
 
-    static Mesh make_dome(int nx, int ny, double W, double D, double h) {
+    static Mesh make_dome(
+        int nx,
+        int ny,
+        double W,
+        double D,
+        double h
+    ) {
 
         std::vector<Point> pts;
         pts.reserve((nx + 1) * (ny + 1));

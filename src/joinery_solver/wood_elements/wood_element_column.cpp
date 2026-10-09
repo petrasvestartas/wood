@@ -19,7 +19,12 @@ Column::Column() : WoodElement("column"), axis(Line::from_points(Point(0, 0, 0),
 Column::Column(const Line& axis, const Polyline& section, const std::string& name)
     : WoodElement(name), axis(axis), section(section) {}
 
-Column::Column(const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name)
+Column::Column(
+    const Mesh& solid,
+    const Line& axis,
+    const Polyline& section,
+    const std::string& name
+)
     : WoodElement(solid, name), axis(axis), section(section) {}
 
 /// The profile x axis in world space: world x projected perpendicular to the axis (world y when the axis is along x), turned by rotation degrees about the axis.
@@ -60,7 +65,12 @@ static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<
     return placed;
 }
 
-Column::Column(const Line& axis, const std::vector<Polyline>& profile, double rotation, const std::string& name)
+Column::Column(
+    const Line& axis,
+    const std::vector<Polyline>& profile,
+    double rotation,
+    const std::string& name
+)
     : WoodElement(name), axis(axis), profile(profile), rotation(rotation) {
 
     if (!profile.empty() && axis.length() > 0.0)
@@ -72,7 +82,12 @@ Column::Column(const Line& axis, const std::vector<Polyline>& profile, double ro
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The point at (a, b) in the corner frame, moved along the frame normal to the axis base.
-static Point corner_point(const Line& axis, const Plane& corner, double a, double b) {
+static Point corner_point(
+    const Line& axis,
+    const Plane& corner,
+    double a,
+    double b
+) {
 
     const Point base = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
 
@@ -80,17 +95,60 @@ static Point corner_point(const Line& axis, const Plane& corner, double a, doubl
 }
 
 /// The closed rectangle from (a0, b0) to (a1, b1) in the corner frame at the axis base.
-static Polyline corner_rectangle(const Line& axis, const Plane& corner, double a0, double b0, double a1, double b1) {
+static Polyline corner_rectangle(
+    const Line& axis,
+    const Plane& corner,
+    double a0,
+    double b0,
+    double a1,
+    double b1
+) {
     return Polyline({
-        corner_point(axis, corner, a0, b0),
-        corner_point(axis, corner, a1, b0),
-        corner_point(axis, corner, a1, b1),
-        corner_point(axis, corner, a0, b1),
+        corner_point(
+            axis,
+            corner,
+            a0,
+            b0
+        ),
+        corner_point(
+            axis,
+            corner,
+            a1,
+            b0
+        ),
+        corner_point(
+            axis,
+            corner,
+            a1,
+            b1
+        ),
+        corner_point(
+            axis,
+            corner,
+            a0,
+            b1
+        ),
     }).closed();
 }
 
-std::shared_ptr<Column> Column::square(const Line& axis, const Plane& corner, double side, const std::string& name) {
-    return std::make_shared<Column>(axis, corner_rectangle(axis, corner, 0.0, 0.0, side, side), name);
+std::shared_ptr<Column> Column::square(
+    const Line& axis,
+    const Plane& corner,
+    double side,
+    const std::string& name
+) {
+    return std::make_shared<Column>(
+        axis,
+        corner_rectangle(
+            axis,
+            corner,
+            0.0,
+            0.0,
+            side,
+            side
+        ),
+        name
+    );
 }
 
 std::vector<std::shared_ptr<Block>> Column::head_blocks(double head_side, double head_height) const {
@@ -116,7 +174,9 @@ std::vector<std::shared_ptr<Block>> Column::head_blocks(double head_side, double
             origin + x.normalized() * a1 + y.normalized() * b1,
             origin + x.normalized() * a0 + y.normalized() * b1,
         }).closed();
-        const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{base.translated(under), base.translated(axis.to_vector())}, fmt::format("{}_head_{}", name, i));
+        const Polyline bottom_loop = base.translated(under);
+        const Polyline top_loop = base.translated(axis.to_vector());
+        const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{bottom_loop, top_loop}, fmt::format("{}_head_{}", name, i));
         block->is_visible = false;
         blocks.push_back(block);
     }
@@ -235,7 +295,12 @@ Plane Column::frame() const {
     const Vector z = axis.to_vector().normalized();
     const Vector x = (section.get_point(1) - section.get_point(0)).normalized();
 
-    return Plane::from_frame(section.get_point(0), x, z.cross(x), z);
+    return Plane::from_frame(
+        section.get_point(0),
+        x,
+        z.cross(x),
+        z
+    );
 }
 
 std::optional<Plane> Column::base_plane() const {

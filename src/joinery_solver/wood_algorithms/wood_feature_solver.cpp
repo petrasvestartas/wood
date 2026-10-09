@@ -75,7 +75,15 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
 
         InteractionFeaturePlate joint;
         bool swap_planes_b = false;
-        const bool ok = face_to_face_wood(*elements[index_a], *elements[index_b], {index_a, index_b}, settings, search_type, joint, swap_planes_b);
+        const bool ok = face_to_face_wood(
+            *elements[index_a],
+            *elements[index_b],
+            {index_a, index_b},
+            settings,
+            search_type,
+            joint,
+            swap_planes_b
+        );
 
         if (swap_planes_b)
             elements[index_b]->flip();
@@ -91,7 +99,12 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
 }
 
 void WoodSession::build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types) {
-    JointPlate::build_geometry(joints, elements, feature_types, settings);
+    JointPlate::build_geometry(
+        joints,
+        elements,
+        feature_types,
+        settings
+    );
 }
 
 void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints) {
@@ -100,7 +113,13 @@ void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elem
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
 
-        std::vector<Polyline> merged = wood_session::MergeModifier::apply(*elements[element_index], membership[element_index], joints, (int)element_index, settings.distance_squared);
+        std::vector<Polyline> merged = wood_session::MergeModifier::apply(
+            *elements[element_index],
+            membership[element_index],
+            joints,
+            (int)element_index,
+            settings.distance_squared
+        );
         wood_session::Features& features = elements[element_index]->features;
         features.top.clear();
         features.bottom.clear();
@@ -163,7 +182,12 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     }
 
     std::vector<InteractionFeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
-    link_three_valence_joints(three_valence, elements, joints, settings.angle);
+    link_three_valence_joints(
+        three_valence,
+        elements,
+        joints,
+        settings.angle
+    );
     build_feature_geometry(elements, joints, feature_types);
     merge_features(elements, joints);
 

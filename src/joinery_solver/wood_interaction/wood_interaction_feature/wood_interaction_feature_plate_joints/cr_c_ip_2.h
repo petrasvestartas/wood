@@ -9,5 +9,14 @@ static void cr_c_ip_2(InteractionFeaturePlate& joint) {
         FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project,
     };
 
-    cr_c_ip_core(joint, {}, 0.15, 0.6, 1.0, 1.0, 0, ct);
+    cr_c_ip_core(
+        joint,
+        {},
+        0.15,
+        0.6,
+        1.0,
+        1.0,
+        0,
+        ct
+    );
 }

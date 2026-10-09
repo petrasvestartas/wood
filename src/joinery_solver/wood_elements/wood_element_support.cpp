@@ -63,18 +63,38 @@ std::shared_ptr<Support> Support::from_element(Element e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The point at x, y, z in the support's frame.
-static Point local(const Support& support, double x, double y, double z) {
+static Point local(
+    const Support& support,
+    double x,
+    double y,
+    double z
+) {
     return support.plane.origin() + support.plane.x_axis() * x + support.plane.y_axis() * y + support.plane.z_axis() * z;
 }
 
 /// The closed ring of corners at radius about the axis at level z, the first at angle start, counter-clockwise about z.
-static Polyline ring(const Support& support, double cx, double cy, double radius, int corners, double start, double z) {
+static Polyline ring(
+    const Support& support,
+    double cx,
+    double cy,
+    double radius,
+    int corners,
+    double start,
+    double z
+) {
 
     std::vector<Point> points;
 
     for (int k = 0; k < corners; k++) {
         const double angle = start + 2.0 * M_PI * k / corners;
-        points.push_back(local(support, cx + radius * std::cos(angle), cy + radius * std::sin(angle), z));
+        points.push_back(
+            local(
+                support,
+                cx + radius * std::cos(angle),
+                cy + radius * std::sin(angle),
+                z
+            )
+        );
     }
 
     points.push_back(points.front());
@@ -83,11 +103,35 @@ static Polyline ring(const Support& support, double cx, double cy, double radius
 }
 
 /// The hexagon of a nut given across the flats, from level bottom to level top.
-static std::array<Polyline, 2> hexagon(const Support& support, double across_flats, double bottom, double top) {
+static std::array<Polyline, 2> hexagon(
+    const Support& support,
+    double across_flats,
+    double bottom,
+    double top
+) {
 
     const double radius = across_flats / (2.0 * std::cos(M_PI / 6.0));
 
-    return {ring(support, 0.0, 0.0, radius, 6, 0.0, bottom), ring(support, 0.0, 0.0, radius, 6, 0.0, top)};
+    return {
+        ring(
+            support,
+            0.0,
+            0.0,
+            radius,
+            6,
+            0.0,
+            bottom
+        ),
+        ring(
+            support,
+            0.0,
+            0.0,
+            radius,
+            6,
+            0.0,
+            top
+        )
+    };
 }
 
 /// The base plate square and its four drillings at levels bottom and top, outer loop first.
@@ -100,13 +144,58 @@ static std::array<std::vector<Polyline>, 2> base_plate(const Support& support) {
 
     for (size_t level = 0; level < 2; level++) {
         const double z = level == 0 ? 0.0 : support.base_plate_thickness;
-        loops[level].push_back(Polyline({local(support, -half, -half, z), local(support, half, -half, z), local(support, half, half, z), local(support, -half, half, z), local(support, -half, -half, z)}));
+        loops[level].push_back(
+            Polyline(
+                {
+                    local(
+                        support,
+                        -half,
+                        -half,
+                        z
+                    ),
+                    local(
+                        support,
+                        half,
+                        -half,
+                        z
+                    ),
+                    local(
+                        support,
+                        half,
+                        half,
+                        z
+                    ),
+                    local(
+                        support,
+                        -half,
+                        half,
+                        z
+                    ),
+                    local(
+                        support,
+                        -half,
+                        -half,
+                        z
+                    )
+                }
+            )
+        );
 
         for (const Line& anchor : support.anchors()) {
             const Point centre = anchor.start();
             const double cx = (centre - support.plane.origin()).dot(support.plane.x_axis());
             const double cy = (centre - support.plane.origin()).dot(support.plane.y_axis());
-            loops[level].push_back(ring(support, cx, cy, radius, corners, 0.0, z));
+            loops[level].push_back(
+                ring(
+                    support,
+                    cx,
+                    cy,
+                    radius,
+                    corners,
+                    0.0,
+                    z
+                )
+            );
         }
     }
 
@@ -123,7 +212,8 @@ static BRep base_plate_brep(const Support& support, const std::array<std::vector
         holes.push_back({Line::from_points(anchor.start() - down * 1.0, anchor.end()), support.base_plate_hole_diameter * 0.5});
     }
 
-    const std::optional<BRep> drilled = drilled_brep(Mesh::loft({plate[0][0]}, {plate[1][0]}, true), holes);
+    const Mesh plate_mesh = Mesh::loft({plate[0][0]}, {plate[1][0]}, true);
+    const std::optional<BRep> drilled = drilled_brep(plate_mesh, holes);
 
     if (drilled)
         return *drilled;
@@ -137,7 +227,12 @@ static double coupling_level(const Support& support) {
 }
 
 Point Support::at(double level) const {
-    return local(*this, 0.0, 0.0, level);
+    return local(
+        *this,
+        0.0,
+        0.0,
+        level
+    );
 }
 
 Point Support::column_foot() const {
@@ -174,8 +269,21 @@ std::vector<Line> Support::anchors() const {
     const std::array<std::array<double, 2>, 4> corners = {{{-half, -half}, {half, -half}, {half, half}, {-half, half}}};
     std::vector<Line> lines;
 
-    for (const std::array<double, 2>& corner : corners)
-        lines.push_back(Line::from_points(local(*this, corner[0], corner[1], base_plate_thickness), local(*this, corner[0], corner[1], -anchor_embedment)));
+    for (const std::array<double, 2>& corner : corners) {
+        const Point head = local(
+            *this,
+            corner[0],
+            corner[1],
+            base_plate_thickness
+        );
+        const Point tip = local(
+            *this,
+            corner[0],
+            corner[1],
+            -anchor_embedment
+        );
+        lines.push_back(Line::from_points(head, tip));
+    }
 
     return lines;
 }
@@ -184,8 +292,18 @@ const Mesh& Support::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
-        const std::array<Polyline, 2> adjustment = hexagon(*this, adjustment_nut_across_flats, base_plate_thickness, adjustment_nut_top);
-        const std::array<Polyline, 2> coupling = hexagon(*this, coupling_nut_across_flats, coupling_level(*this), coupling_level(*this) + coupling_nut_height);
+        const std::array<Polyline, 2> adjustment = hexagon(
+            *this,
+            adjustment_nut_across_flats,
+            base_plate_thickness,
+            adjustment_nut_top
+        );
+        const std::array<Polyline, 2> coupling = hexagon(
+            *this,
+            coupling_nut_across_flats,
+            coupling_level(*this),
+            coupling_level(*this) + coupling_nut_height
+        );
 
         Mesh mesh = Mesh::loft(plate[0], plate[1], true);
         append_mesh(mesh, Mesh::loft({adjustment[0]}, {adjustment[1]}, true));
@@ -202,8 +320,18 @@ const BRep& Support::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
-        const std::array<Polyline, 2> adjustment = hexagon(*this, adjustment_nut_across_flats, base_plate_thickness, adjustment_nut_top);
-        const std::array<Polyline, 2> coupling = hexagon(*this, coupling_nut_across_flats, coupling_level(*this), coupling_level(*this) + coupling_nut_height);
+        const std::array<Polyline, 2> adjustment = hexagon(
+            *this,
+            adjustment_nut_across_flats,
+            base_plate_thickness,
+            adjustment_nut_top
+        );
+        const std::array<Polyline, 2> coupling = hexagon(
+            *this,
+            coupling_nut_across_flats,
+            coupling_level(*this),
+            coupling_level(*this) + coupling_nut_height
+        );
 
         BRep brep = base_plate_brep(*this, plate);
         append_brep(brep, brep_between_loops({adjustment[0]}, {adjustment[1]}));

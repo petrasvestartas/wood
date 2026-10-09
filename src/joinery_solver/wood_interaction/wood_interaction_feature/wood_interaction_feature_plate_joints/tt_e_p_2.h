@@ -6,7 +6,13 @@ static void tt_e_p_2(InteractionFeaturePlate& joint, const std::vector<std::shar
 
     int v0;
     int v1;
-    if (!drill_ready(joint, elements, v0, v1, 3))
+    if (!drill_ready(
+        joint,
+        elements,
+        v0,
+        v1,
+        3
+    ))
         return;
 
     const double radius = joint.shift;
@@ -36,6 +42,17 @@ static void tt_e_p_2(InteractionFeaturePlate& joint, const std::vector<std::shar
 
     Vector dir0;
     Vector dir1;
-    drill_axes(joint, elements[v0]->thickness, elements[v1]->thickness, dir0, dir1);
-    emit_drills(joint, points, dir0, dir1);
+    drill_axes(
+        joint,
+        elements[v0]->thickness,
+        elements[v1]->thickness,
+        dir0,
+        dir1
+    );
+    emit_drills(
+        joint,
+        points,
+        dir0,
+        dir1
+    );
 }

@@ -41,7 +41,12 @@ bool is_session_feature(std::string_view feature_type);
 std::vector<ElementFeature> session_features(const Element& element);
 
 /// A closed square of half-width `radius` centred at `at`, in the plane normal to `direction`, one side along `up` projected into that plane, wound counter-clockwise about `direction` so sweep_sections faces outward.
-Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius);
+Polyline square_section(
+    const Point& at,
+    const Vector& direction,
+    const Vector& up,
+    double radius
+);
 
 /// The closed solid through consecutive closed sections of the same point count: one quad strip per pair, a cap at each end.
 Mesh sweep_sections(const std::vector<Polyline>& sections);
