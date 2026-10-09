@@ -145,7 +145,12 @@ private:
     static std::shared_ptr<BeamVariable> rib(const std::array<Polyline, 2>& loops, const std::string& name);
 
     /// A four-corner member as a variable beam between the end sections over corners start and end, start[i] and end[i] on one long edge.
-    static std::shared_ptr<BeamVariable> beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name);
+    static std::shared_ptr<BeamVariable> beam(
+        const std::array<Polyline, 2>& loops,
+        const std::array<size_t, 2>& start,
+        const std::array<size_t, 2>& end,
+        const std::string& name
+    );
 
     /// The contact the session's search finds between the members named a_name and b_name, stored as their interaction named name, `<kind>_<place>`; a pair that does not touch throws naming it.
     Contact add_contact(const std::string& name, const std::string& a_name, const std::string& b_name);
@@ -163,7 +168,13 @@ private:
     double corner_level(double levels) const;
 
     /// A screw of a member butting on another, at the floor: along the member's axis at level z, moved offset across it, its head where that line meets the face from, SCREW_LENGTH on towards the member's body.
-    Line screw(const std::array<Plane, 2>& member, const Plane& from, const Point& toward, double z, double offset = 0.0) const;
+    Line screw(
+        const std::array<Plane, 2>& member,
+        const Plane& from,
+        const Point& toward,
+        double z,
+        double offset = 0.0
+    ) const;
 
     /// The axis of a member between two faces at level z: the line midway between their traces.
     static Line axis(const std::array<Plane, 2>& faces, double z);

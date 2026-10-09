@@ -207,7 +207,12 @@ public:
     std::vector<Point> column_face(size_t q, size_t i) const;
 
     /// A member bounded by a ring of side planes between a bottom and a top plane: corner i of each loop where sides i and i + 1 meet its plane; flip swaps the two loops.
-    static std::array<Polyline, 2> loft(const std::vector<Plane>& sides, const Plane& bottom, const Plane& top, bool flip = false);
+    static std::array<Polyline, 2> loft(
+        const std::vector<Plane>& sides,
+        const Plane& bottom,
+        const Plane& top,
+        bool flip = false
+    );
 
     /// The distance between the area centroids of a member's two loops.
     static double thickness(const std::array<Polyline, 2>& loops);
@@ -269,18 +274,57 @@ private:
     Polyline outer_parabola(const Line& axis, double distance) const;
 
     /// The z where an outer rib's soffit meets its fan plane, and the rib start that lands it on a level, by the secant from the wedge.
-    double fan_end(const Line& axis, double distance, const Plane& fan, const Plane& seam) const;
-    double rib_start_at_level(const Line& axis, const Plane& fan, const Plane& seam, double level) const;
+    double fan_end(
+        const Line& axis,
+        double distance,
+        const Plane& fan,
+        const Plane& seam
+    ) const;
+    double rib_start_at_level(
+        const Line& axis,
+        const Plane& fan,
+        const Plane& seam,
+        double level
+    ) const;
 
     /// Rule A: the root of the closure nearest the reference, scanned without crossing a rib face and refined by bisection; the closure for one sweep; which side of each rib face a sweep crosses; the bisection; the sweep at degrees from the reference.
-    static Vector rib_sweep(const std::array<Polyline, 2>& shadows, const std::array<Vector, 2>& normals, double thickness, const Vector& reference);
-    static double closure(const std::array<Polyline, 2>& shadows, const std::array<Vector, 2>& normals, double thickness, const Vector& r);
-    static bool sweep_sides(const std::array<Vector, 2>& normals, const Vector& reference, double degrees, std::array<bool, 2>& sides);
-    static double bisect(const std::array<Polyline, 2>& shadows, const std::array<Vector, 2>& normals, double thickness, const Vector& reference, double lo, double hi);
+    static Vector rib_sweep(
+        const std::array<Polyline, 2>& shadows,
+        const std::array<Vector, 2>& normals,
+        double thickness,
+        const Vector& reference
+    );
+    static double closure(
+        const std::array<Polyline, 2>& shadows,
+        const std::array<Vector, 2>& normals,
+        double thickness,
+        const Vector& r
+    );
+    static bool sweep_sides(
+        const std::array<Vector, 2>& normals,
+        const Vector& reference,
+        double degrees,
+        std::array<bool, 2>& sides
+    );
+    static double bisect(
+        const std::array<Polyline, 2>& shadows,
+        const std::array<Vector, 2>& normals,
+        double thickness,
+        const Vector& reference,
+        double lo,
+        double hi
+    );
     static Vector turned(const Vector& reference, double degrees);
 
     /// A rib: its trace trimmed by the two end planes on its first face, and on its second face the trace swept along the rib with its end corners on the end planes; shared by outer_ribs and inner_ribs.
-    static std::array<Polyline, 2> rib(const Polyline& trace, const Plane& face1, const Vector& sweep, const Plane& cut_plane0, const Plane& cut_plane1, bool inner);
+    static std::array<Polyline, 2> rib(
+        const Polyline& trace,
+        const Plane& face1,
+        const Vector& sweep,
+        const Plane& cut_plane0,
+        const Plane& cut_plane1,
+        bool inner
+    );
 
     /// Draws the construction into the session by quarter, under the names the Floor gives the members: quarter_q holds plan_q and a group per family with a group per member, holding its plan quad, its two face planes and for a rib its parabolas.
     void draw();

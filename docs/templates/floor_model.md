@@ -247,7 +247,12 @@ void Floor::add_quarters() {
         const std::array<size_t, 2> seams = {0, 2};
 
         for (size_t i = 0; i < seams.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_beam = beam(beam_loops[seams[i]], {0, 3}, {1, 2}, fmt::format("inner_beams_{}_{}", i, q));
+            const std::shared_ptr<BeamVariable> inner_beam = beam(
+                beam_loops[seams[i]],
+                {0, 3},
+                {1, 2},
+                fmt::format("inner_beams_{}_{}", i, q)
+            );
             inner_beam->place(lift);
             add(inner_beam, beams);
         }
@@ -285,7 +290,9 @@ std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, c
         sections.push_back(Polyline({low, high, far_high, far_low}).closed());
     }
 
-    const Line axis = Line::from_points(Point::mid_point(near[1], far[1]), Point::mid_point(near[0], far[0]));
+    const Point start = Point::mid_point(near[1], far[1]);
+    const Point end = Point::mid_point(near[0], far[0]);
+    const Line axis = Line::from_points(start, end);
 
     return std::make_shared<BeamVariable>(axis, sections, name);
 }
@@ -301,7 +308,12 @@ Each soffit point `low` and its `far_low` on the second loop, with their top cor
 <summary>beam: a variable beam between its end sections</summary>
 
 ```cpp
-std::shared_ptr<BeamVariable> Floor::beam(const std::array<Polyline, 2>& loops, const std::array<size_t, 2>& start, const std::array<size_t, 2>& end, const std::string& name) {
+std::shared_ptr<BeamVariable> Floor::beam(
+    const std::array<Polyline, 2>& loops,
+    const std::array<size_t, 2>& start,
+    const std::array<size_t, 2>& end,
+    const std::string& name
+) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -340,34 +352,51 @@ void Floor::add_oculus() {
 
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
+    const std::shared_ptr<TreeNode> group = oculus_group();
 
-    const std::shared_ptr<TreeNode> oculus = group_named("oculus");
+    // ring_beams: BeamVariable, the four ring beams, oculus_<q>
+    const std::shared_ptr<TreeNode> ring_beams = add_group("ring_beams", group);
 
-    // ring beams: BeamVariable, oculus_<q> in oculus_<q> of oculus
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<BeamVariable> ring_beam = beam(loops[q], {1, 0}, {2, 3}, fmt::format("oculus_{}", q));
+        const std::shared_ptr<BeamVariable> ring_beam = beam(
+            loops[q],
+            {1, 0},
+            {2, 3},
+            fmt::format("oculus_{}", q)
+        );
         ring_beam->place(lift);
-        add(ring_beam, group_named(fmt::format("oculus_{}", q), oculus));
+        add(ring_beam, ring_beams);
     }
 
-    // oculus beams: BeamVariable, the inner beam along oculus edge q, oculus_beam_<q> beside its ring beam
+    // oculus_beams: BeamVariable, the inner beam along oculus edge q, oculus_beam_<q>
+    const std::shared_ptr<TreeNode> oculus_beams = add_group("oculus_beams", group);
+
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<BeamVariable> oculus_beam = beam(guide.inner_beams(q)[1], {0, 3}, {1, 2}, fmt::format("oculus_beam_{}", q));
+        const std::array<Polyline, 2>& loops = guide.inner_beams(q)[1];
+        const std::shared_ptr<BeamVariable> oculus_beam = beam(
+            loops,
+            {0, 3},
+            {1, 2},
+            fmt::format("oculus_beam_{}", q)
+        );
         oculus_beam->place(lift);
-        add(oculus_beam, group_named(fmt::format("oculus_{}", q), oculus));
+        add(oculus_beam, oculus_beams);
     }
 
-    // bottom wedges: Plate, oculus_<4 + q> under ring beam q, in the same group
+    // bottom_wedges: Plate, the plate under ring beam q, oculus_<4 + q>
+    const std::shared_ptr<TreeNode> bottom_wedges = add_group("bottom_wedges", group);
+
     for (size_t q = 0; q < 4; q++) {
         const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
         bottom_wedge->place(lift);
-        add(bottom_wedge, group_named(fmt::format("oculus_{}", q), oculus));
+        add(bottom_wedge, bottom_wedges);
     }
 
-    // central plate: Plate, oculus_8 in oculus
+    // central_plate: Plate, oculus_8
+    const std::shared_ptr<TreeNode> central_plate = add_group("central_plate", group);
     const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
     plate->place(lift);
-    add(plate, oculus);
+    add(plate, central_plate);
 }
 ```
 
@@ -425,7 +454,14 @@ WoodSession column(const FloorGuide& guide, size_t q) {
 
     const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(k), "support");
     support->name = fmt::format("support_{}", k);
-    const std::shared_ptr<Column> shaft = Column::square(support->column_axis(guide.bay_height), guide.column_frame(k), guide.size_column_head, name);
+    const Line axis = support->column_axis(guide.bay_height);
+    const Plane frame = guide.column_frame(k);
+    const std::shared_ptr<Column> shaft = Column::square(
+        axis,
+        frame,
+        guide.size_column_head,
+        name
+    );
 
     const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(k);
     std::vector<std::shared_ptr<Plate>> cutters;
@@ -435,8 +471,16 @@ WoodSession column(const FloorGuide& guide, size_t q) {
         cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
     }
 
+    // the head glued on as wide as the chamfer reaches, as deep as the carved head
+    const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
     WoodSession session(name);
-    session.add_column(shaft, guide.size_column_head + guide.size_column_head_chamfer, guide.column_head_depth, support, cutters);
+    session.add_column(
+        shaft,
+        head_width,
+        guide.column_head_depth,
+        support,
+        cutters
+    );
     return session;
 }
 ```
@@ -649,24 +693,50 @@ Four dowels at the corners of the contact inset by 50, half into each.
 std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const {
 
     std::array<QuarterConnectors, 4> connectors;
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
 
     for (size_t q = 0; q < 4; q++) {
         const QuarterContacts& c = contacts[q];
+        QuarterConnectors& made = connectors[q];
 
         // seam wedge: sized by the inner beams, running on to the bay's outer face
+        const Contact& seam = c.seam_wedge;
         const double beam = guide.size_inner_beams;
-        const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
-        connectors[q].seam_wedge = JointBeam::wedge(*c.seam_wedge.a, *c.seam_wedge.b, *c.seam_wedge.face, 1.5 * beam, 2.0 * beam / 3.0, outer_face);
+        const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(lift);
+        made.seam_wedge = JointBeam::wedge(
+            *seam.a,
+            *seam.b,
+            *seam.face,
+            1.5 * beam,
+            2.0 * beam / 3.0,
+            outer_face
+        );
 
         // oculus wedge: sized by the thicker of the oculus beam and its ring beam
-        const double thicker = std::max(FloorGuide::thickness(guide.inner_beams(q)[1]), FloorGuide::thickness(guide.oculus()[q]));
-        connectors[q].oculus_wedge = JointBeam::wedge(*c.oculus_wedge.a, *c.oculus_wedge.b, *c.oculus_wedge.face, 1.5 * thicker, 2.0 * thicker / 3.0);
+        const Contact& oculus = c.oculus_wedge;
+        const double oculus_beam = FloorGuide::thickness(guide.inner_beams(q)[1]);
+        const double ring_beam = FloorGuide::thickness(guide.oculus()[q]);
+        const double thicker = std::max(oculus_beam, ring_beam);
+        made.oculus_wedge = JointBeam::wedge(
+            *oculus.a,
+            *oculus.b,
+            *oculus.face,
+            1.5 * thicker,
+            2.0 * thicker / 3.0
+        );
 
         // column plates: a rectangle plate as wide as the outer rib on each, and the cross lap where the two cross
-        for (size_t k = 0; k < 2; k++)
-            connectors[q].column_plates[k] = JointBeam::rectangle_plate(*c.column_plates[k].a, *c.column_plates[k].b, *c.column_plates[k].face, guide.size_outer_ribs);
+        for (size_t k = 0; k < 2; k++) {
+            const Contact& plate = c.column_plates[k];
+            made.column_plates[k] = JointBeam::rectangle_plate(
+                *plate.a,
+                *plate.b,
+                *plate.face,
+                guide.size_outer_ribs
+            );
+        }
 
-        connectors[q].cross_lap = JointBeam::cross_lap(*connectors[q].column_plates[0], *connectors[q].column_plates[1]);
+        made.cross_lap = JointBeam::cross_lap(*made.column_plates[0], *made.column_plates[1]);
 
         // block dowels: dowels between each column block and the rib either side
         for (size_t b = 0; b < 3; b++)
@@ -677,7 +747,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 if (!dowels)
                     throw std::runtime_error("the inset leaves no room for the dowels of " + contact.face->name);
 
-                connectors[q].block_dowels[b][side] = dowels;
+                made.block_dowels[b][side] = dowels;
             }
     }
 
@@ -695,26 +765,26 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors) {
 
     // seam wedges
     for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].seam_wedge, "connector_seam_wedge", q);
+        add_named_connector(connectors[q].seam_wedge, "connector_seam_wedge", connectors_group(q));
 
     // oculus wedges
     for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].oculus_wedge, "connector_oculus_wedge", q);
+        add_named_connector(connectors[q].oculus_wedge, "connector_oculus_wedge", group_named("connectors", oculus_group()));
 
     // column plates
     for (size_t q = 0; q < 4; q++)
         for (const std::shared_ptr<JointBeam>& plate : connectors[q].column_plates)
-            add_named_connector(plate, "connector_column_plate", q);
+            add_named_connector(plate, "connector_column_plate", connectors_group(q));
 
     // block dowels
     for (size_t q = 0; q < 4; q++)
         for (const std::array<std::shared_ptr<JointBeam>, 2>& block : connectors[q].block_dowels)
             for (const std::shared_ptr<JointBeam>& dowels : block)
-                add_named_connector(dowels, "connector_block_dowels", q);
+                add_named_connector(dowels, "connector_block_dowels", connectors_group(q));
 
     // cross laps, last, over the plates they join
     for (size_t q = 0; q < 4; q++)
-        add_named_connector(connectors[q].cross_lap, "connector_cross_lap", q);
+        add_named_connector(connectors[q].cross_lap, "connector_cross_lap", connectors_group(q));
 }
 ```
 
@@ -724,10 +794,9 @@ void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors) {
 <summary>add_named_connector</summary>
 
 ```cpp
-void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, size_t q) {
+void Floor::add_named_connector(const std::shared_ptr<JointBeam>& connector, const std::string& prefix, const std::shared_ptr<TreeNode>& group) {
 
     connector->name = fmt::format("{}_{}", prefix, next_number(prefix));
-    const std::shared_ptr<TreeNode> group = group_named(fmt::format("connectors_{}", q), quarter_group(q));
     set_node_color(add_connector(connector, group), CONNECTOR_COLOR, true);
 }
 ```
@@ -770,8 +839,20 @@ std::vector<Line> Floor::outer_rib_seam_beam_screws(size_t q, size_t k) const {
     const double bottom = FloorGuide::end_level(rib, guide.rib_seam_ends(q)[k]);
 
     return {
-        screw(cp.outer_ribs[k], seam_face, body, -RIB_END_MARGIN, offset),
-        screw(cp.outer_ribs[k], seam_face, body, bottom + RIB_END_MARGIN, offset),
+        screw(
+            cp.outer_ribs[k],
+            seam_face,
+            body,
+            -RIB_END_MARGIN,
+            offset
+        ),
+        screw(
+            cp.outer_ribs[k],
+            seam_face,
+            body,
+            bottom + RIB_END_MARGIN,
+            offset
+        ),
     };
 }
 ```
@@ -795,8 +876,18 @@ std::vector<Line> Floor::seam_beam_oculus_beam_screws(size_t q, size_t k) const 
     const Point body = FloorGuide::body(guide.inner_beams(q)[1]);
 
     return {
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][0])),
-        screw(cp.inner_beams[1], seam_plane, body, corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][1])),
+        screw(
+            cp.inner_beams[1],
+            seam_plane,
+            body,
+            corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][0])
+        ),
+        screw(
+            cp.inner_beams[1],
+            seam_plane,
+            body,
+            corner_level(SEAM_BEAM_OCULUS_BEAM_LEVELS[k][1])
+        ),
     };
 }
 ```
@@ -817,12 +908,20 @@ std::vector<Line> Floor::oculus_beam_inner_rib_screws(size_t q, size_t k) const 
 
     const ConstructionPlanes& cp = guide.construction_planes(q);
     const Plane& back_face = cp.inner_beams[1][0];
-    const Plane seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0].transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+    const Plane seam_plane = cp.inner_beams[SEAM_BEAMS[k]][0].transformed(lift);
     const Point body = FloorGuide::body(guide.inner_ribs(q)[k]);
     std::vector<Line> screws;
 
     for (double levels : OCULUS_BEAM_INNER_RIB_LEVELS) {
-        screws.push_back(screw(cp.inner_ribs[k], back_face, body, corner_level(levels)));
+        screws.push_back(
+            screw(
+                cp.inner_ribs[k],
+                back_face,
+                body,
+                corner_level(levels)
+            )
+        );
 
         // the next quarter's screws meet the seam plane from the other side: a head closer than half the spacing would touch them
         const double from_seam = seam_plane.signed_distance(screws.back().start());
@@ -839,7 +938,8 @@ std::vector<Line> Floor::oculus_beam_inner_rib_screws(size_t q, size_t k) const 
 bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws) const {
 
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
-    const Plane beam_end = guide.construction_planes(q).inner_beams[SEAM_BEAMS[k]][1].transformed(lift);
+    const ConstructionPlanes& cp = guide.construction_planes(q);
+    const Plane beam_end = cp.inner_beams[SEAM_BEAMS[k]][1].transformed(lift);
     const Point oculus_beam = FloorGuide::body(guide.inner_beams(q)[1]).transformed(lift);
     const double oculus_side = beam_end.signed_distance(oculus_beam) < 0.0 ? -1.0 : 1.0;
 
@@ -859,7 +959,13 @@ bool Floor::passes_seam_beam(size_t q, size_t k, const std::vector<Line>& screws
 The member's axis at level `z`, moved `offset` across; the head where it meets the face `from`, the screw `SCREW_LENGTH` on towards the member's body, at the floor.
 
 ```cpp
-Line Floor::screw(const std::array<Plane, 2>& member, const Plane& from, const Point& toward, double z, double offset) const {
+Line Floor::screw(
+    const std::array<Plane, 2>& member,
+    const Plane& from,
+    const Point& toward,
+    double z,
+    double offset
+) const {
 
     const Line line = axis(member, z) + member[0].z_axis() * offset;
     const Point head = Intersection::line_plane(line, from, false).value();
@@ -868,7 +974,10 @@ Line Floor::screw(const std::array<Plane, 2>& member, const Plane& from, const P
     if (along.dot(toward - head) < 0.0)
         along = -along;
 
-    return Line::from_points(head, head + along * SCREW_LENGTH).transformed(Xform::translation(0.0, 0.0, guide.bay_height));
+    const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+    const Line at_datum = Line::from_points(head, head + along * SCREW_LENGTH);
+
+    return at_datum.transformed(lift);
 }
 ```
 
@@ -930,14 +1039,19 @@ void Floor::add_screws(const std::array<QuarterScrews, 4>& screws) {
     for (size_t q = 0; q < 4; q++)
         for (const std::array<std::shared_ptr<JointBeam>, 2>& pair : {screws[q].outer_rib_seam_beam, screws[q].seam_beam_oculus_beam, screws[q].oculus_beam_inner_rib})
             for (const std::shared_ptr<JointBeam>& screw : pair)
-                add_named_connector(screw, "connector_screws", q);
+                add_named_connector(screw, "connector_screws", connectors_group(q));
 }
 ```
 
 ```cpp
 std::shared_ptr<JointBeam> Floor::screws_of(const std::vector<const Element*>& members, const std::vector<Line>& lines) const {
 
-    return JointBeam::screws(members, lines, 2.0, SCREW_LENGTH);
+    return JointBeam::screws(
+        members,
+        lines,
+        2.0,
+        SCREW_LENGTH
+    );
 }
 ```
 
