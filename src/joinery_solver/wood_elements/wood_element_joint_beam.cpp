@@ -535,7 +535,7 @@ std::shared_ptr<Plate> JointBeam::let_in_plate(
     return plate;
 }
 
-/// The plate let into the column and the rib: its box raised by overshoot cut out of both, four pins across it margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with the members, bored through all three; aimed at the column, the rib, then the plate.
+/// The plate let into the column and the rib: its box raised by overshoot cut out of both, two pins in the column and two in the rib, margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with their member, each bored through its member and the plate; aimed at the column, the rib, then the plate.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Element& column,
     const Element& rib,
@@ -579,7 +579,8 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
 
     const double half = 0.5 * pin_length;
 
-    for (const double station : {low[0] + margin_x * pin_radius, high[0] - margin_x * pin_radius})
+    // two pins in the column, two in the rib, each flush with its own member only
+    for (const auto& [station, member] : std::array<std::pair<double, const Element*>, 2>{{{low[0] + margin_x * pin_radius, &column}, {high[0] - margin_x * pin_radius, &rib}}})
         for (const double level : {high[2] - margin_z * pin_radius, low[2] + margin_z * pin_radius})
             joint->drill_lines.push_back(
                 flush_pin(
@@ -599,7 +600,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
                             level
                         )
                     ),
-                    {&column, &rib}
+                    {member}
                 )
             );
 
