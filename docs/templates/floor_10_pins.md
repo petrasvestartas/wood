@@ -80,11 +80,21 @@ Code: `pin_head`, `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https:
 <span style="color:#2196EA">■ built</span> the two quarters' pins   <span style="color:#A3A3A3">■ context</span> the seam beams
 
 Only `outer_rib_seam_beam` and `seam_beam_oculus_beam` are shifted.
-The two quarters' pins at a seam take shift -15 (k 0) and +15 (k 1), so their heads stay apart.
+The two quarters' contacts at a seam face opposite ways, so the same `PIN_SHIFT` along each puts their pins either side: the heads stand 30 apart.
 The inner rib and ring corner pins have no shift.
 
 ```cpp
-const double shift = k == 0 ? -PIN_SHIFT : PIN_SHIFT;
+quarter_connectors.outer_rib_seam_beam[k] = JointBeam::headed_pins(
+    *outer.a,
+    *outer.b,
+    *outer.face,
+    PinLayout::vertical,
+    2,
+    PIN_INSET,
+    PIN_SHIFT,
+    PIN_RADIUS,
+    PIN_LENGTH
+);
 ```
 
 Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).

@@ -61,14 +61,14 @@ The floor adds the pin constants:
 static constexpr double PIN_LENGTH = 200.0; // mm, every assembly pin.
 static constexpr double PIN_RADIUS = 2.0; // mm, every assembly pin.
 static constexpr double PIN_INSET = 20.0; // mm the pins stand in from the contact's edges.
-static constexpr double PIN_SHIFT = 15.0; // mm the pins of the two quarters at a seam stand either side, so their heads stay apart.
+static constexpr double PIN_SHIFT = 15.0; // mm the seam pins stand off the contact's middle, so the two quarters' heads at a seam stay 30 apart.
 static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The inner beams on seam 0 and seam 1, k 0 and 1; between them inner beam 1, along the oculus edge, the oculus beam.
 ```
 
 - `PIN_LENGTH`: the length of every headed pin, 200.
 - `PIN_RADIUS`: the radius of every headed pin, 2.
 - `PIN_INSET`: how far the pins stand in from the contact's edges, 20.
-- `PIN_SHIFT`: how far the pins of two quarters at a seam stand either side of its middle, 15.
+- `PIN_SHIFT`: how far the seam pins stand off the contact's middle, 15; the two quarters' heads at a seam stand 30 apart.
 - `SEAM_BEAMS`: the inner beams on seam 0 and seam 1, `inner_beams_0_<q>` and `inner_beams_2_<q>`.
 
 ## The constructor, step by step
@@ -795,9 +795,8 @@ Every one is a contact from `add_contacts` (see Contacts), a `JointBeam::headed_
 Every pin is `PIN_LENGTH` long and `PIN_RADIUS` thick.
 
 ```cpp
-// pins: two in a column across each butt joint, along the member that ends on it; the two quarters' pins at a seam either side of its middle
+// pins: two in a column across each butt joint, along the member that ends on it; the two quarters' contacts at a seam face opposite ways, so one shift along each puts their pins either side of its middle
 for (size_t k = 0; k < 2; k++) {
-    const double shift = k == 0 ? -PIN_SHIFT : PIN_SHIFT;
     const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
     const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
     const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
@@ -808,7 +807,7 @@ for (size_t k = 0; k < 2; k++) {
         PinLayout::vertical,
         2,
         PIN_INSET,
-        shift,
+        PIN_SHIFT,
         PIN_RADIUS,
         PIN_LENGTH
     );
@@ -819,7 +818,7 @@ for (size_t k = 0; k < 2; k++) {
         PinLayout::vertical,
         2,
         PIN_INSET,
-        shift,
+        PIN_SHIFT,
         PIN_RADIUS,
         PIN_LENGTH
     );
@@ -862,13 +861,13 @@ if (!quarter_connectors.ring_corner)
 ![The pin stations](floor/304_pin_stations.webp)
 
 `PinLayout::vertical` with two pins: one station at the top of the inset contact and one at its bottom.
-`PIN_SHIFT` moves them along the contact, -15 for `k` 0 and +15 for `k` 1.
+`PIN_SHIFT` moves them 15 along the contact. The two quarters' contacts at a seam face opposite ways, so the same shift puts their pins on either side.
 Only `outer_rib_seam_beam` and `seam_beam_oculus_beam` take the shift.
 The inner rib and ring corner pins have no shift.
 
 ![The two quarters at a seam](floor/306_pins_at_a_seam.webp)
 
-At a seam the two quarters' pins stand either side of its middle, so their heads stay apart.
+At a seam the two quarters' heads stand 30 apart.
 
 `JointBeam::headed_pins` picks the direction from the geometry.
 The member that ends on the contact is the one whose level axis is the more square to it.
