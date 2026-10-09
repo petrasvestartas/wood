@@ -204,9 +204,16 @@ Code: `Floor::add_oculus`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `column_0` and its support   <span style="color:#A3A3A3">■ context</span> the quarters
 
-`add_column(corner)` adds the column and everything that shapes it straight into the group `column_<corner>` of `quarter_<corner>`; `floor.get_branch("column_0")` reads one column back as a session of its own.
+`Floor::add_column(corner)` builds the column at one corner straight into the floor, in the group `column_<corner>` of `quarter_<corner>`: the shaft, its two head blocks, the support with its seat, and the six cutters, each put on the shaft with `add_interaction`.
 
-Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
+```cpp
+const std::string name = fmt::format("column_{}", corner);
+const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
+```
+
+`floor.get_branch("column_0")` reads one column back as a session of its own.
+
+Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 221. The support
 
@@ -214,9 +221,14 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `support_0`   <span style="color:#E8478B">■ variable</span> `support_plane(0)`
 
-`column()` stands a `Support` on `guide.support_plane(k)`, its base plate on the slab under the column corner's centre, and names it `support_k`.
+A `Support` stands on `guide.support_plane(corner)`, its base plate on the slab under the column, named `support_<corner>`.
 
-Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::support_plane`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
+```cpp
+const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+support->name = fmt::format("support_{}", corner);
+```
+
+Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::support_plane`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 222. The column axis
 
@@ -224,9 +236,13 @@ Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/sr
 
 <span style="color:#E8478B">■ variable</span> `column_axis(bay_height)`   <span style="color:#A3A3A3">■ context</span> the support
 
-`Support::column_axis(bay_height)` runs from `column_foot()`, the head plate top less its recess, straight up to the floor top.
+The axis runs from the support's head plate, less its recess, straight up to the floor top at `bay_height`.
 
-Code: `Support::column_axis`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp); `Support::column_foot`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp).
+```cpp
+const Line axis = support->column_axis(guide.bay_height);
+```
+
+Code: `Support::column_axis`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp).
 
 ## 223. Column::square
 
@@ -234,9 +250,20 @@ Code: `Support::column_axis`, [wood_element_support.cpp](https://github.com/petr
 
 <span style="color:#2196EA">■ built</span> `column_0`, the shaft   <span style="color:#E8478B">■ variable</span> `column_frame(0)`
 
-`Column::square(axis, column_frame(k), size_column_head)` sweeps the 220 square from the corner frame's origin along its x and y axes up the axis.
+The shaft is the 220 square `size_column_head` swept up the axis, its sides along the corner frame's x and y.
 
-Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Column::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
+```cpp
+const Plane frame = guide.column_frame(corner);
+const std::shared_ptr<Column> shaft = Column::square(
+    axis,
+    frame,
+    guide.size_column_head,
+    name
+);
+add(shaft, group);
+```
+
+Code: `Column::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 224. head_blocks
 
@@ -244,9 +271,13 @@ Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/sr
 
 <span style="color:#F2CC0C">■ result</span> `column_0_head_0`, `column_0_head_1`   <span style="color:#A3A3A3">■ context</span> the shaft
 
-`Column::head_blocks(head_side, head_height)` makes two blocks over the top `column_head_depth` (730), one beyond each far side of the section, that widen the head to a `size_column_head + size_column_head_chamfer` (340) square.
+`Column::head_blocks` makes two hidden blocks over the top `column_head_depth` (730), one beyond each bay side of the shaft, widening the head to a 340 square, `size_column_head + size_column_head_chamfer`.
 
-Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
+```cpp
+const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+```
+
+Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp).
 
 ## 225. The head glued on
 
@@ -254,9 +285,17 @@ Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petras
 
 <span style="color:#2196EA">■ built</span> `column_0` with its head
 
-`Floor::add_column(corner)` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
+Each block is added and glued on with a `SolidOperation::add` interaction, so the column's stock is the shaft and both blocks.
 
-Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
+```cpp
+for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+    add(block, group);
+    const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
+    add_interaction(block, shaft, glue);
+}
+```
+
+Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 226. Joint::support
 
@@ -264,9 +303,16 @@ Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasves
 
 <span style="color:#2196EA">■ built</span> the head plate disc of the joint   <span style="color:#E8478B">■ variable</span> `drill_lines`, the three column pins   <span style="color:#A3A3A3">■ context</span> the support
 
-`Floor::add_column(corner)` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three pins from its underside, which `add_interaction(joint, column, joint->interaction(0))` cuts and drills out of the column.
+The support is added, and its seat, `Joint::support`, lets the head plate up into the column end and drills its three pins into the shaft.
 
-Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `Joint::support`, [wood_element_joint.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint.cpp).
+```cpp
+add(support, group);
+const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+add(seat, group);
+add_interaction(seat, shaft, seat->interaction(0));
+```
+
+Code: `Joint::support`, [wood_element_joint.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint.cpp).
 
 ## 227. The cutters
 
@@ -274,9 +320,19 @@ Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasves
 
 <span style="color:#2196EA">■ built</span> the six cutter plates   <span style="color:#A3A3A3">■ context</span> the glued column
 
-`column()` turns the six `guide.column_cutters(k)` loop pairs into plates `column_cutters_i_k`, placed at `bay_height` around the head.
+The six loop pairs of `guide.column_cutters(corner)` become plates `column_cutters_<i>_<corner>`, lifted to `bay_height`.
 
-Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::column_cutters`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
+```cpp
+const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
+std::vector<std::shared_ptr<Plate>> cutters;
+
+for (size_t i = 0; i < loops.size(); i++) {
+    cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
+    cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
+}
+```
+
+Code: `FloorGuide::column_cutters`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 228. The carved head
 
@@ -284,9 +340,18 @@ Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/sr
 
 <span style="color:#2196EA">■ built</span> `column_0`
 
-`add_column` adds each cutter hidden and takes it away with `InteractionFeatureSolid(cutter, SolidOperation::subtract)`, leaving the inclined faces the ribs and the column blocks bear on.
+Each cutter is added hidden and taken away with a `SolidOperation::subtract` interaction, leaving the inclined faces the ribs and the column blocks bear on.
 
-Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
+```cpp
+for (const std::shared_ptr<Plate>& cutter : cutters) {
+    cutter->is_visible = false;
+    add(cutter, group);
+    const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
+    add_interaction(cutter, shaft, cut);
+}
+```
+
+Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 229. add_columns
 

@@ -973,7 +973,11 @@ for (size_t k = 0; k < 2; k++) {
 
 ![The stations](floor/304_pin_stations.webp)
 
+`PinLayout::vertical` with two pins: the contact inset by `PIN_INSET` = 20, one station at the inset's top and one at its bottom, moved `PIN_SHIFT` = 15 along the contact.
+
 ![The two quarters at a seam](floor/306_pins_at_a_seam.webp)
+
+At a seam the two quarters' pins take shift -15 and +15, so their heads stay apart.
 
 </details>
 
@@ -1128,7 +1132,11 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
 
 ![The head on the far face](floor/305_pin_head.webp)
 
+The head sits where the pin's line leaves the stock of the member it passes through; the pin runs 200 from there into the member that ends on the contact.
+
 ![The three layouts](floor/307_pin_layouts.webp)
+
+`PinLayout` on one contact: `corners` at the inset's extreme corners, `vertical` a column up it, `horizontal` a row along it.
 
 </details>
 
