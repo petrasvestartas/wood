@@ -11,7 +11,7 @@ namespace wood_session {
 
 class InteractionContactFace;
 
-/// A joint between beams: either a beam-to-beam joint carrying the feature volumes detection found, or a connector, a part of its own with cutters per target and dowels, nested in the tree as one child element per part and per dowel.
+/// Element that represents a joint between beams: either a beam-to-beam joint carrying the feature volumes detection found, or a connector, a part of its own with cutters per target and dowels, nested in the tree as one child element per part and per dowel.
 class JointBeam : public Joint {
 public:
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.

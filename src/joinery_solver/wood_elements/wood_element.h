@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A timber element: its shape built from its own parameters, its stock that shape with every block other elements glue on, and its model the stock trimmed by its own planes with every solid other elements take away. The solid features come only through WoodSession::add_interaction(source, element, InteractionFeatureSolid).
+/// Element that represents a timber member, the base of every wood element: its shape built from its own parameters, its stock that shape with every block other elements glue on, and its model the stock trimmed by its own planes with every solid other elements take away. The solid features come only through WoodSession::add_interaction(source, element, InteractionFeatureSolid).
 class WoodElement : public Element {
 public:
     std::vector<InteractionFeatureSolid> solid_features; // The solid features other elements put on it, each in the element's frame naming its source: the adds make its stock, the subtracts cut its model.

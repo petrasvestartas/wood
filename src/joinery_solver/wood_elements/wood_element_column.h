@@ -9,7 +9,7 @@ namespace wood_session {
 
 class Block;
 
-/// A column: a solid that knows its own axis, the section it is cut from and the planes that trim it.
+/// Element that represents a column: a solid that knows its own axis, the section it is cut from and the planes that trim it.
 class Column : public WoodElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Column"; // The element_type this column is written under.

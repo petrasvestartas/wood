@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A beam whose section changes along it: closed sections, one per station, lofted in order along a straight axis; a rib under a parabola or a beam between two slanted faces.
+/// Element that represents a beam whose section changes along it: closed sections, one per station, lofted in order along a straight axis; a rib under a parabola or a beam between two slanted faces.
 class BeamVariable : public WoodElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "BeamVariable"; // The element_type this beam is written under.

@@ -8,7 +8,7 @@ using namespace session_cpp;
 namespace wood_session {
 
 
-/// A timber beam: a polyline axis with a square section of one radius per segment, joined to other beams where their axes come within reach; WoodSession::compute_axis_contacts and compute_beam_features find the pairs and cut four volume rectangles at each.
+/// Element that represents a timber beam: a polyline axis with a square section of one radius per segment, joined to other beams where their axes come within reach; WoodSession::compute_axis_contacts and compute_beam_features find the pairs and cut four volume rectangles at each.
 class Beam : public WoodElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Beam"; // The element_type this beam is written under.

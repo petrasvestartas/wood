@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A cutting plane as an element: drawn as a square of size on its plane, it cuts other elements by its feature, add_interaction(cut_plane, element, cut_plane->feature()), the element keeping the side the normal points to.
+/// Element that represents a cutting plane: drawn as a square of size on its plane, it cuts other elements by its feature, add_interaction(cut_plane, element, cut_plane->feature()), the element keeping the side the normal points to.
 class CutPlane : public WoodElement {
 public:
     /// Its cutting plane.

@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A column base, parametric after the Sherpa Power Base L 140 C: a drilled base plate on the slab, an adjustment nut, a threaded rod, a coupling nut and the head plate the column end is let onto; the dimensions default to the manufacturer's table.
+/// Element that represents a column base, parametric after the Sherpa Power Base L 140 C: a drilled base plate on the slab, an adjustment nut, a threaded rod, a coupling nut and the head plate the column end is let onto; the dimensions default to the manufacturer's table.
 class Support : public WoodElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Support"; // The element_type this support is written under.

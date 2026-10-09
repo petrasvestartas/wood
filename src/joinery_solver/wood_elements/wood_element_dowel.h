@@ -6,7 +6,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// One round dowel of a connector: its axis and radius, drawn as an exact cylinder, flush with the members it joins; a child of the connector in the tree, carrying no relation of its own.
+/// Element that represents one round dowel of a connector: its axis and radius, drawn as an exact cylinder, flush with the members it joins; a child of the connector in the tree, carrying no relation of its own.
 class Dowel : public Joint {
 public:
     Dowel();

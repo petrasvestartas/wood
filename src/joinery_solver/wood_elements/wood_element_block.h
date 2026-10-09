@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A block: a closed solid lofted between a bottom loop and a top loop, for contact detection; no plate convention.
+/// Element that represents a block: a closed solid lofted between a bottom loop and a top loop, for contact detection; no plate convention.
 class Block : public WoodElement {
 public:
     std::optional<Mesh> source_mesh;

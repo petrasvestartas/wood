@@ -14,6 +14,7 @@ namespace wood_session {
 class Support;
 class Column;
 
+/// Element that represents a joint: what it does to the elements it targets, cut loops, cutting planes, a cutter profile with its extrusion and drill lines, applied by WoodSession; the base of JointBeam, JointPlate and Dowel.
 class Joint : public Element {
 public:
     static constexpr std::string_view ELEMENT_TYPE = "Joint";
