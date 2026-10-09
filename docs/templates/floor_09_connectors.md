@@ -6,7 +6,7 @@
 
 `Floor::add_connectors` makes one `JointBeam` connector per contact interaction: a wedge on every seam and oculus contact, a rectangle plate on every column-to-rib contact with a cross lap between the two plates of a column, and four pins on every block-to-rib contact. Each is added by `add_connector`, which nests its parts and pins under it and cuts its pockets and holes out of both members.
 
-Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) builds every connector.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds every connector.
 
 ## 251. add_connectors
 
@@ -16,7 +16,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 `compute_connectors` builds every quarter's connectors from its `QuarterContacts`, one block per kind, before `add_connectors` adds any, so each is built on uncut members; `add_connectors` then adds them kind by kind, quarter by quarter.
 
-Code: `Floor::add_connectors`, [floor.cpp:264-304](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L264-L304).
+Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 252. The seam wedge's size and end
 
@@ -26,7 +26,7 @@ Code: `Floor::add_connectors`, [floor.cpp:264-304](https://github.com/petrasvest
 
 The seam wedge block of `compute_connectors` sizes the wedge by the thicker of the two seam beams, `size` (67), and gives it the bay's outer face, `construction_planes(q).outer_ribs[0][0]` lifted to the floor, as its end plane.
 
-Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:326-330](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L326-L330); `FloorGuide::thickness`, [floor_guide.cpp:872-874](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L872-L874).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::thickness`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 253. The wedge's frame and length
 
@@ -36,7 +36,7 @@ Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:326-330]
 
 `JointBeam::wedge` lays x along the contact's top edge and y along its normal made square to x; it stops `length_margin = 1.5 size` (101) in from both ends of the edge, the end nearer the end plane moved onto it, so the wedge runs out to the bay's outer face.
 
-Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:216-236](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L216-L236); `top_edge`, [wood_element_joint_beam.cpp:98-123](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L98-L123).
+Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `top_edge`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 254. The wedge part
 
@@ -46,7 +46,7 @@ Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:216-236](https://github.c
 
 The `WEDGE_PROFILE` triangle, apex 197 below the top edge, is cut level with the edge by `below_top` and swept from end to end: the wedge part.
 
-Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:238-250](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L238-L250); `below_top`, [wood_element_joint_beam.cpp:156-174](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L156-L174); `WEDGE_PROFILE`, [wood_element_joint_beam.h:17](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.h#L17).
+Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `below_top`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `WEDGE_PROFILE`, [wood_element_joint_beam.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.h).
 
 ## 255. The wedge's pins
 
@@ -56,7 +56,7 @@ Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:238-250](https://github.c
 
 One pin of radius 10 for every 320 of length, five here, runs across the wedge 100 below its top, cut by `flush_pin` to end flush with the two beams.
 
-Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:252-265](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L252-L265); `flush_pin`, [wood_element_joint_beam.cpp:136-153](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L136-L153).
+Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `flush_pin`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 256. The wedge's pockets
 
@@ -66,7 +66,7 @@ Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:252-265](https://github.c
 
 Under each slanted face of the wedge `wedge_pocket` makes a box `pocket_depth = 2/3 size` (45) deep, and each beam gets the pocket on its own side.
 
-Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:267-277](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L267-L277); `wedge_pocket`, [wood_element_joint_beam.cpp:177-211](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L177-L211).
+Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `wedge_pocket`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 257. The wedge cut into the beams
 
@@ -76,7 +76,7 @@ Code: `JointBeam::wedge`, [wood_element_joint_beam.cpp:267-277](https://github.c
 
 `add_interaction(wedge, beam, wedge->interaction(i))` nests the wedge part and its pins under the connector and cuts the pocket and the pin holes out of that beam as solid features.
 
-Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L359-L367); `WoodSession::add_connector`, [wood_session.cpp:1530-1539](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1530-L1539); `add_connector_joint`, [wood_session.cpp:1315-1341](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1315-L1341).
+Code: `Floor::add_named_connector`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::add_connector`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `add_connector_joint`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 258. The oculus wedge
 
@@ -86,7 +86,7 @@ Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petra
 
 The oculus wedge block puts the same wedge on the oculus beam and its ring beam, sized by the thicker of the two, with no end plane, so both ends stop 1.5 size short.
 
-Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:332-335](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L332-L335).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 259. The column plate's frame
 
@@ -136,7 +136,7 @@ Code: `Floor::compute_connectors`, `Floor::add_connectors`, `WoodSession::comput
 
 The block pins block calls `JointBeam::centred_pins`: the contact polygon inset by 50, a pin of radius 4 and length 30 across the contact at each of the inset's four extreme corners; an inset with nothing left throws.
 
-Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:340-345](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L340-L345); `JointBeam::centred_pins`, [wood_element_joint_beam.cpp:467-499](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L467-L499); `inset_polygon`, `extreme_corners`, [wood_element_joint_beam.cpp:419-464](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp#L419-L464).
+Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `JointBeam::centred_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `inset_polygon`, `extreme_corners`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 264. Names and groups
 
@@ -146,7 +146,7 @@ Code (before the per-quarter arrays): `Floor::connector_of`, [floor.cpp:340-345]
 
 Each connector is named where `compute_connectors` makes it, by its prefix, `connector_<kind>` (`connector_seam_wedge`, `connector_oculus_wedge`, `connector_column_plate`, `connector_block_pins`) or `connector_cross_lap`, and a number counted on from `next_number`, so connectors from later calls never repeat a name, and adds it in `connectors_q` of `quarter_q`, the oculus wedges in `connectors` of `oculus`, in `CONNECTOR_COLOR`.
 
-Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L359-L367); `Floor::connector_prefix`, [floor.cpp:348-357](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L348-L357); `WoodSession::next_number`, [wood_session.cpp:1473-1485](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1473-L1485).
+Code: `Floor::add_named_connector`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Floor::connector_prefix`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::next_number`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 265. Every connector
 
@@ -156,4 +156,4 @@ Code: `Floor::add_named_connector`, [floor.cpp:359-367](https://github.com/petra
 
 The default floor gets 44 connectors: 8 wedges, 8 column plates with their 4 cross laps and 24 pin sets.
 
-Code: `Floor::add_connectors`, [floor.cpp:310-319](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L310-L319).
+Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).

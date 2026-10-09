@@ -17,7 +17,6 @@ int main() {
     drill->is_visible = false;
     scene.add(drill);
     scene.add_interaction(drill, block, drill->interaction(0));
-    scene.compute_breps();
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

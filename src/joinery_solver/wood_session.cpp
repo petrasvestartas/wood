@@ -1047,6 +1047,8 @@ void WoodSession::sync_attributes() {
 /// The kernel's bytes, the interactions among them, parse into the superset message field for field; the settings, the adjacency and the three-valence groups follow.
 std::string WoodSession::pb_dumps() {
 
+    // exact BReps first: round bores and pins, the mesh only where no BRep is made
+    compute_breps();
     sync_attributes();
     wood_proto::WoodSession proto;
     if (!proto.ParseFromString(Session::pb_dumps()))
@@ -1332,11 +1334,8 @@ static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate
     }
 }
 
-/// A connector's holes in one target, in the connector's frame: its pins, each end run on by the overshoot where the pin leaves the target there, tested just beyond the pin's own end in the target's frame, so a blind hole stops at its pin.
+/// A connector's holes in one target, in the connector's frame: the pins that pass through the target as cut so far, each end run on by the overshoot where the pin leaves the target there, tested just beyond the pin's own end in the target's frame, so a blind hole stops at its pin.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
-
-    if (joint.drill_overshoot <= 0.0)
-        return joint.drill_lines;
 
     const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
 
@@ -1351,6 +1350,21 @@ static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam
         const Vector d = pin.to_vector().normalized();
         const Line placed = pin.transformed(to_target);
         const Vector e = placed.to_vector().normalized();
+
+        // a pin that never enters the target as cut so far, even run on by the overshoot, is not its hole
+        const std::vector<std::array<double, 2>> inside = inside_stretches(target.model_geometry_mesh(), placed);
+        const double low = -joint.drill_overshoot;
+        const double high = placed.length() + joint.drill_overshoot;
+        const bool touches = std::any_of(inside.begin(), inside.end(), [low, high](const std::array<double, 2>& stretch) { return stretch[1] > low + 1e-9 && stretch[0] < high - 1e-9; });
+
+        if (!touches)
+            continue;
+
+        if (joint.drill_overshoot <= 0.0) {
+            drills.push_back(pin);
+            continue;
+        }
+
         const bool blind_start = is_inside(solid, placed.start() - e * 1.0);
         const bool blind_end = is_inside(solid, placed.end() + e * 1.0);
         const Point start = blind_start ? pin.start() : pin.start() - d * joint.drill_overshoot;

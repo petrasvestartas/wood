@@ -640,7 +640,7 @@ void check_seam_beams() {
     std::cout << fmt::format("floor_elements: seam beams through the rib band to the outer face, ribs ending on them within the beams' soffit {:.3f}, wedges flush with the outer face, horizontal pins from the seam face", guide.soffit) << std::endl;
 }
 
-/// The drill features of every member: one per stretch of an attached joint's drill line inside the member's stock, its glued blocks included, centred, headed and support pins alike, each the two circles of its radius where the hole enters and leaves, and every one through a round trip.
+/// The drill features of every member: one per stretch of a drill line the joint gave the member inside its stock, its glued blocks included, centred, headed and support pins alike, each the two circles of its radius where the hole enters and leaves, and every one through a round trip.
 void check_drill_features() {
 
     wood_floor::Floor scene(square_guide(), "drills");
@@ -660,7 +660,14 @@ void check_drill_features() {
             const std::shared_ptr<WoodElement> member = std::dynamic_pointer_cast<WoodElement>(target);
             const Mesh solid = member ? member->stock_mesh() : target->element_geometry_mesh();
 
-            for (const Line& line : joint->drill_axes())
+            // the lines the joint gave this target: a connector's cut names them, any other joint drills all its axes
+            std::vector<Line> lines = joint->drill_axes();
+
+            for (const std::shared_ptr<Interaction>& interaction : scene.get_interaction(joint, target))
+                if (const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction); cut && std::dynamic_pointer_cast<JointBeam>(joint))
+                    lines = cut->drills;
+
+            for (const Line& line : lines)
                 for (const std::array<double, 2>& inside : inside_stretches(solid, line))
                     if (std::min(inside[1], line.length()) - std::max(inside[0], 0.0) >= 1e-6)
                         expected[guid]++;
@@ -1014,6 +1021,17 @@ void check_rectangle_plates() {
 
     for (const std::shared_ptr<Column>& column : scene.columns())
         check(column->model_geometry_brep().is_solid() && count_bores(column->model_geometry_brep()) == 11, "the column exact with its eight pin and three pin bores");
+
+    // a column carries only the pins that pass through it: two per plate, never the plate's rib pins
+    for (const std::shared_ptr<Column>& column : scene.columns()) {
+        size_t plate_drills = 0;
+
+        for (const InteractionFeatureSolid& feature : column->solid_features)
+            if (feature.drills.size() != 3)
+                plate_drills += feature.drills.size();
+
+        check(plate_drills == 4, fmt::format("{} assigned its two pins of each plate, not {}", column->name, plate_drills));
+    }
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
 

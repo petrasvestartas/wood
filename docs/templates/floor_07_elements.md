@@ -6,7 +6,7 @@
 
 `Floor::add_members` turns the guide's face loops into elements: `add_quarters` makes the six member families of every quarter, `add_oculus` the ring around the hole, `add_columns` a column on its support at every corner, then `add_contacts` (chapter 8) finds where they touch. Every member is built at the guide's datum and lifted to `bay_height`. The pictures show quarter 0 of the default 6000 x 6000 bay.
 
-Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_2_column_model.cpp) builds one column on its support; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) the whole floor.
+Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) builds one column on its support; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) the whole floor.
 
 ## 201. Floor(guide)
 
@@ -16,7 +16,7 @@ Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas
 
 `Floor(guide, name)` is an empty `WoodSession`, named `floor` by default, that keeps its own copy of the guide; nothing is built until `add_members` is called.
 
-Code: `Floor::Floor`, [floor.cpp:43-46](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L43-L46); [floor.h:42-64](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.h#L42-L64).
+Code: `Floor::Floor`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); [floor.h](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.h).
 
 ## 202. add_members
 
@@ -26,7 +26,7 @@ Code: `Floor::Floor`, [floor.cpp:43-46](https://github.com/petrasvestartas/wood/
 
 `add_members` calls `add_quarters`, `add_oculus`, `add_columns` and last `add_contacts`, in that order.
 
-Code: `Floor::add_members`, [floor.cpp:52-58](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L52-L58).
+Code: `Floor::add_members`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 203. quarter_group
 
@@ -36,7 +36,7 @@ Code: `Floor::add_members`, [floor.cpp:52-58](https://github.com/petrasvestartas
 
 `quarter_group(q)` returns the session's group `quarter_q`, found by its name or made the first time, and every member of quarter q goes in a group under it.
 
-Code: `Floor::quarter_group`, [floor.cpp:159-161](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L159-L161); `Session::group_named`, [session_cpp session.cpp:1145-1155](https://github.com/petrasvestartas/session_cpp/blob/22aba8a5262db321692f89d27f73c334772c9c5d/src/session.cpp#L1145-L1155).
+Code: `Floor::quarter_group`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Session::group_named`, [session_cpp session.cpp:1145-1155](https://github.com/petrasvestartas/session_cpp/blob/22aba8a5262db321692f89d27f73c334772c9c5d/src/session.cpp#L1145-L1155).
 
 ## 204. The lift to the floor
 
@@ -56,7 +56,7 @@ Code: `Floor::add_quarters`.
 
 `add_quarters` starts with the beds: `guide.bed_rails(q)` gives each row's two bottom and two top rails, and `Plate::row_between(bottom, top)` lofts one plate per rail segment, its bottom quad and its top quad.
 
-Code: `Floor::add_quarters`, [floor.cpp:68-77](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L68-L77); `Plate::row_between`, [wood_element_plate.cpp:91-103](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_plate.cpp#L91-L103); `FloorGuide::bed_rails`, [floor_guide.cpp:597-625](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L597-L625).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Plate::row_between`, [wood_element_plate.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_plate.cpp); `FloorGuide::bed_rails`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 206. The three bed rows
 
@@ -66,7 +66,7 @@ Code: `Floor::add_quarters`, [floor.cpp:68-77](https://github.com/petrasvestarta
 
 Row r goes in the group `beds_r_q` under `beds_q`, its plates named `beds_r_i_q`.
 
-Code: `Floor::add_quarters`, [floor.cpp:68-77](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L68-L77).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 207. tsections
 
@@ -76,7 +76,7 @@ Code: `Floor::add_quarters`, [floor.cpp:68-77](https://github.com/petrasvestarta
 
 Each `tsections` loop pair becomes `Plate(loops[1], loops[0])`, a flange strip beside a rib face named `tsections_i_q`; the beds rest on them.
 
-Code: `Floor::add_quarters`, [floor.cpp:79-85](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L79-L85).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 208. rib(): the two loops
 
@@ -86,7 +86,7 @@ Code: `Floor::add_quarters`, [floor.cpp:79-85](https://github.com/petrasvestarta
 
 A rib's two face loops each list the two top corners `near[0]` and `near[1]`, then the soffit points from `near[2]`; `rib()` makes one section per soffit point.
 
-Code: `Floor::rib`, [floor.cpp:170-175](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L170-L175).
+Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 209. rib(): the sections
 
@@ -96,7 +96,7 @@ Code: `Floor::rib`, [floor.cpp:170-175](https://github.com/petrasvestartas/wood/
 
 At each soffit point the section is the closed quad low, high, far_high, far_low, high straight above it at the datum, the first and last sections up to the top corners so the rib ends in its end planes.
 
-Code: `Floor::rib`, [floor.cpp:177-192](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L177-L192).
+Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 210. rib(): the axis
 
@@ -106,7 +106,7 @@ Code: `Floor::rib`, [floor.cpp:177-192](https://github.com/petrasvestartas/wood/
 
 The axis runs from the middle of the two loops' corners `[1]` to the middle of their corners `[0]`, and `BeamVariable(axis, sections)` is the rib.
 
-Code: `Floor::rib`, [floor.cpp:194-196](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L194-L196).
+Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 211. outer_ribs
 
@@ -116,7 +116,7 @@ Code: `Floor::rib`, [floor.cpp:194-196](https://github.com/petrasvestartas/wood/
 
 The two `outer_ribs` loop pairs become `rib()` beams named `outer_ribs_i_q`.
 
-Code: `Floor::add_quarters`, [floor.cpp:87-93](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L87-L93).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 212. inner_ribs
 
@@ -126,7 +126,7 @@ Code: `Floor::add_quarters`, [floor.cpp:87-93](https://github.com/petrasvestarta
 
 The two `inner_ribs` loop pairs become `rib()` beams named `inner_ribs_i_q`.
 
-Code: `Floor::add_quarters`, [floor.cpp:95-101](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L95-L101).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 213. wedges
 
@@ -136,7 +136,7 @@ Code: `Floor::add_quarters`, [floor.cpp:95-101](https://github.com/petrasvestart
 
 The three `wedges` loop pairs, the blocks on the column head, become `Plate(loops[1], loops[0])` named `wedges_i_q`.
 
-Code: `Floor::add_quarters`, [floor.cpp:103-109](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L103-L109).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 214. beam(): the end sections
 
@@ -146,7 +146,7 @@ Code: `Floor::add_quarters`, [floor.cpp:103-109](https://github.com/petrasvestar
 
 `beam(loops, {0, 3}, {1, 2})` takes the end sections from corners 0 and 3 and from corners 1 and 2 of both loops, and `BeamVariable::between(first, last)` lofts the beam between them.
 
-Code: `Floor::beam`, [floor.cpp:199-207](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L199-L207); `BeamVariable::between`, [wood_element_beam_variable.cpp:23-28](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_beam_variable.cpp#L23-L28).
+Code: `Floor::beam`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `BeamVariable::between`, [wood_element_beam_variable.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_beam_variable.cpp).
 
 ## 215. inner_beams
 
@@ -156,7 +156,7 @@ Code: `Floor::beam`, [floor.cpp:199-207](https://github.com/petrasvestartas/wood
 
 The three `inner_beams` loop pairs, seam 0, the oculus edge and seam 1, become `beam()` beams named `inner_beams_i_q`.
 
-Code: `Floor::add_quarters`, [floor.cpp:111-117](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L111-L117).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 216. The four quarters
 
@@ -166,7 +166,7 @@ Code: `Floor::add_quarters`, [floor.cpp:111-117](https://github.com/petrasvestar
 
 `add_quarters` runs the same code for every quarter at its own corner, the families in the order beds, tsections, outer_ribs, inner_ribs, wedges, inner_beams, each in its group under `quarter_q`; `quarters[q]` keeps them by family.
 
-Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L60-L119).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 217. add_oculus: the ring beams
 
@@ -176,7 +176,7 @@ Code: `Floor::add_quarters`, [floor.cpp:60-119](https://github.com/petrasvestart
 
 `guide.oculus()` gives nine loop pairs; the first four become ring beams by `beam(loops, {1, 0}, {2, 3})`, each named `oculus_q` in the group `ring_beams` under `oculus`.
 
-Code: `Floor::add_oculus`, [floor.cpp:121-132](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L121-L132); `FloorGuide::oculus`, [floor_guide.cpp:751-779](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L751-L779).
+Code: `Floor::add_oculus`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::oculus`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 218. add_oculus: the bottom wedges
 
@@ -186,7 +186,7 @@ Code: `Floor::add_oculus`, [floor.cpp:121-132](https://github.com/petrasvestarta
 
 Loops 4 to 7 are the bottom wedges the ring beams sit on, plates named `oculus_4` to `oculus_7` in the group `bottom_wedges` under `oculus`.
 
-Code: `Floor::add_oculus`, [floor.cpp:133-136](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L133-L136).
+Code: `Floor::add_oculus`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 219. add_oculus: the central plate
 
@@ -196,7 +196,7 @@ Code: `Floor::add_oculus`, [floor.cpp:133-136](https://github.com/petrasvestarta
 
 Loop 8 is the central plate `oculus_8`, in the group `central_plate` under `oculus`.
 
-Code: `Floor::add_oculus`, [floor.cpp:128-136](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L128-L136).
+Code: `Floor::add_oculus`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 220. add_column
 
@@ -206,7 +206,7 @@ Code: `Floor::add_oculus`, [floor.cpp:128-136](https://github.com/petrasvestarta
 
 `add_column(corner)` adds the column and everything that shapes it straight into the group `column_<corner>` of `quarter_<corner>`; `floor.get_branch("column_0")` reads one column back as a session of its own.
 
-Code: `Floor::add_column`, [floor.cpp:146-157](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L146-L157); `column`, [floor.cpp:15-35](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L15-L35).
+Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 221. The support
 
@@ -216,7 +216,7 @@ Code: `Floor::add_column`, [floor.cpp:146-157](https://github.com/petrasvestarta
 
 `column()` stands a `Support` on `guide.support_plane(k)`, its base plate on the slab under the column corner's centre, and names it `support_k`.
 
-Code: `column`, [floor.cpp:20-21](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L20-L21); `FloorGuide::support_plane`, [floor_guide.cpp:197-202](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L197-L202).
+Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::support_plane`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 222. The column axis
 
@@ -226,7 +226,7 @@ Code: `column`, [floor.cpp:20-21](https://github.com/petrasvestartas/wood/blob/5
 
 `Support::column_axis(bay_height)` runs from `column_foot()`, the head plate top less its recess, straight up to the floor top.
 
-Code: `Support::column_axis`, [wood_element_support.cpp:147-152](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_support.cpp#L147-L152); `Support::column_foot`, [wood_element_support.cpp:143-145](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_support.cpp#L143-L145).
+Code: `Support::column_axis`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp); `Support::column_foot`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp).
 
 ## 223. Column::square
 
@@ -236,7 +236,7 @@ Code: `Support::column_axis`, [wood_element_support.cpp:147-152](https://github.
 
 `Column::square(axis, column_frame(k), size_column_head)` sweeps the 220 square from the corner frame's origin along its x and y axes up the axis.
 
-Code: `column`, [floor.cpp:22](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L22); `Column::square`, [wood_element_column.cpp:92-94](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_column.cpp#L92-L94); `FloorGuide::column_frame`, [floor_guide.cpp:183-195](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L183-L195).
+Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Column::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 224. head_blocks
 
@@ -246,7 +246,7 @@ Code: `column`, [floor.cpp:22](https://github.com/petrasvestartas/wood/blob/5f7f
 
 `Column::head_blocks(head_side, head_height)` makes two blocks over the top `column_head_depth` (730), one beyond each far side of the section, that widen the head to a `size_column_head + size_column_head_chamfer` (340) square.
 
-Code: `Column::head_blocks`, [wood_element_column.cpp:96-125](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_column.cpp#L96-L125); `WoodSession::add_column`, [wood_session.cpp:1508-1512](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1508-L1512).
+Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 225. The head glued on
 
@@ -256,7 +256,7 @@ Code: `Column::head_blocks`, [wood_element_column.cpp:96-125](https://github.com
 
 `Floor::add_column(corner)` adds each head block hidden and glues it on with `add_interaction(block, column, InteractionFeatureSolid(block, SolidOperation::add))`, so the column's stock is the shaft and both blocks.
 
-Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1498-L1512); `column`, [floor.cpp:32-33](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L32-L33).
+Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 226. Joint::support
 
@@ -266,7 +266,7 @@ Code: `WoodSession::add_column`, [wood_session.cpp:1498-1512](https://github.com
 
 `Floor::add_column(corner)` adds the support and `Joint::support(support, column)`: the head plate disc let up into the column end and three pins from its underside, which `add_interaction(joint, column, joint->interaction(0))` cuts and drills out of the column.
 
-Code: `WoodSession::add_column`, [wood_session.cpp:1514-1519](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1514-L1519); `Joint::support`, [wood_element_joint.cpp:78-93](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_elements/wood_element_joint.cpp#L78-L93).
+Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `Joint::support`, [wood_element_joint.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint.cpp).
 
 ## 227. The cutters
 
@@ -276,7 +276,7 @@ Code: `WoodSession::add_column`, [wood_session.cpp:1514-1519](https://github.com
 
 `column()` turns the six `guide.column_cutters(k)` loop pairs into plates `column_cutters_i_k`, placed at `bay_height` around the head.
 
-Code: `column`, [floor.cpp:24-30](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L24-L30); `FloorGuide::column_cutters`, [floor_guide.cpp:789-842](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor_guide.cpp#L789-L842).
+Code: `column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FloorGuide::column_cutters`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 228. The carved head
 
@@ -286,7 +286,7 @@ Code: `column`, [floor.cpp:24-30](https://github.com/petrasvestartas/wood/blob/5
 
 `add_column` adds each cutter hidden and takes it away with `InteractionFeatureSolid(cutter, SolidOperation::subtract)`, leaving the inclined faces the ribs and the column blocks bear on.
 
-Code: `WoodSession::add_column`, [wood_session.cpp:1521-1525](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L1521-L1525).
+Code: `WoodSession::add_column`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 229. add_columns
 
@@ -296,4 +296,4 @@ Code: `WoodSession::add_column`, [wood_session.cpp:1521-1525](https://github.com
 
 `add_columns` runs `add_column` at every corner, `column_k` on `support_k` in `quarter_k`.
 
-Code: `Floor::add_columns`, [floor.cpp:140-144](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L140-L144).
+Code: `Floor::add_columns`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).

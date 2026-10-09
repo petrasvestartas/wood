@@ -27,7 +27,6 @@ int main() {
         scene.add_interaction(hole, plate, std::make_shared<InteractionFeatureSolid>(std::vector<Line>{axis}, 15.0));
     }
 
-    scene.compute_breps();
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;

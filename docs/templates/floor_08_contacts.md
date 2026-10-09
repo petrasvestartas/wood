@@ -6,7 +6,7 @@
 
 `Floor::add_contacts`, the last call of `add_members`, finds where the members the design joins touch: for each pair it asks the session's contact search for the face they share and stores it as a contact interaction on the session's edge between them, named by its kind and place, and returns them per quarter as `QuarterContacts`, a fixed array per kind. Chapter 9 makes a connector from each of these contacts.
 
-Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor, its contacts among it.
+Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor, its contacts among it.
 
 ## 231. add_contacts
 
@@ -16,7 +16,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 `add_contacts` goes quarter by quarter, joining members inside quarter q and with the next quarter, `(q + 1) % 4`; a quarter not yet built is skipped.
 
-Code: `Floor::add_contacts`, [floor.cpp:213-223](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L213-L223).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 232. seam_wedge: the pair
 
@@ -26,7 +26,7 @@ Code: `Floor::add_contacts`, [floor.cpp:213-223](https://github.com/petrasvestar
 
 A seam is joined by `seam_wedge`: seam beam 0 of quarter q, `inner_beams[0]`, with seam beam 2 of the next quarter, `next.inner_beams[2]`.
 
-Code: `Floor::add_contacts`, [floor.cpp:225](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L225).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 233. compute_face_contact
 
@@ -36,7 +36,7 @@ Code: `Floor::add_contacts`, [floor.cpp:225](https://github.com/petrasvestartas/
 
 `add_contact` asks `compute_face_contact(a, b)`, the session's face contact search, for the faces the two share and keeps the first, its polygon where they overlap; a pair that does not touch throws, naming the contact.
 
-Code: `Floor::add_contact`, [floor.cpp:251-254](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L251-L254); `WoodSession::compute_face_contact`, [wood_session.cpp:404-408](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L404-L408).
+Code: `Floor::add_contact`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::compute_face_contact`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 234. add_interaction
 
@@ -46,7 +46,7 @@ Code: `Floor::add_contact`, [floor.cpp:251-254](https://github.com/petrasvestart
 
 The contact is named by its kind and place, here `seam_wedge_0`, and stored by `add_interaction(a, b, contact)` on the edge between the two; a contact of that name already on the edge is kept, so calling `add_contacts` again adds nothing.
 
-Code: `Floor::add_contact`, [floor.cpp:243-258](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L243-L258); `WoodSession::add_interaction`, [wood_session.cpp:689-844](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/joinery_solver/wood_session.cpp#L689-L844).
+Code: `Floor::add_contact`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::add_interaction`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp).
 
 ## 235. oculus_wedge
 
@@ -56,7 +56,7 @@ Code: `Floor::add_contact`, [floor.cpp:243-258](https://github.com/petrasvestart
 
 The oculus beam `inner_beams[1]` and its ring beam `ring[q]` touch on the tilted oculus plane: `oculus_wedge_q`.
 
-Code: `Floor::add_contacts`, [floor.cpp:227-228](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L227-L228).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 236. column_plate
 
@@ -66,7 +66,7 @@ Code: `Floor::add_contacts`, [floor.cpp:227-228](https://github.com/petrasvestar
 
 Once the columns are in the floor, column q and each outer rib k touch on the carved head: `column_plate_q_k`.
 
-Code: `Floor::add_contacts`, [floor.cpp:215](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L215), [230-231](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L230-L231).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp), [230-231](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 237. block_pins: the outer ribs
 
@@ -76,7 +76,7 @@ Code: `Floor::add_contacts`, [floor.cpp:215](https://github.com/petrasvestartas/
 
 Each outer rib touches the column block beside it: `outer_ribs[0]` and `wedges[0]` make `block_pins_q_0_0`, `outer_ribs[1]` and `wedges[2]` make `block_pins_q_2_1`.
 
-Code: `Floor::add_contacts`, [floor.cpp:233-235](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L233-L235).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 238. block_pins: the inner ribs
 
@@ -86,7 +86,7 @@ Code: `Floor::add_contacts`, [floor.cpp:233-235](https://github.com/petrasvestar
 
 Each inner rib runs between two blocks and touches both, four more contacts named by block and side, six `block_pins` per quarter in all.
 
-Code: `Floor::add_contacts`, [floor.cpp:236-239](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L236-L239).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 239. Every contact
 
@@ -96,4 +96,4 @@ Code: `Floor::add_contacts`, [floor.cpp:236-239](https://github.com/petrasvestar
 
 The default floor has 40 contacts: 4 `seam_wedge`, 4 `oculus_wedge`, 8 `column_plate` and 24 `block_pins`.
 
-Code: `Floor::add_contacts`, [floor.cpp:213-241](https://github.com/petrasvestartas/wood/blob/5f7f317df711a163eda3c416cb426e5cd8663dd6/src/templates/floor/floor.cpp#L213-L241).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).

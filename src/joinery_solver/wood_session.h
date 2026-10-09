@@ -207,7 +207,7 @@ public:
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// pb_dumps() to a file; every stale element computes its geometry as it is written.
+    /// pb_dumps() to a file; every stale element computes its geometry as it is written, BReps first.
     void pb_dump(const std::string& filename);
 
     /// The scene as wood_proto.WoodSession bytes: the Session fields, the interactions, then the settings at field 101.

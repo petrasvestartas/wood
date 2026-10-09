@@ -9,7 +9,6 @@ int main() {
     WoodSession scene("element_support");
 
     scene.add(std::make_shared<Support>(Plane::xy_plane(), "support"));
-    scene.compute_breps();
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
