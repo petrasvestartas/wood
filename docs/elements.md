@@ -2,7 +2,7 @@
 
 [TOC]
 
-The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and one picture and example per case. Every example is a CMake target under `examples/elements/` that writes `data/output/pb/live.pb` for the viewer; the pictures are drawn by `tools/render_element_docs.py` at opacity 0.75 with the element features and a layer panel of the scene.
+The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and one picture and example per case. Every example is a CMake target under `examples/elements/` that writes `data/output/pb/live.pb` for the viewer; the pictures are screenshots of the real viewer by `tools/screenshot_element_docs.sh`, with every layer, the element interactions and attributes, the Arctic look and the orthographic isometric view; `tools/shoot_pictures.sh` shoots the ones `docs/plans/pictures_to_shoot.txt` lists.
 
 An element is built from its own parameters only. Whatever another element does to it comes through `WoodSession::add_interaction(source, target, interaction)`: a contact, a plate joint's outline feature, an `InteractionFeatureSolid` that adds a solid to its stock or takes one away, or an `InteractionFeaturePlane` that cuts it by a plane.
 

@@ -1560,16 +1560,6 @@ static void host_solid_feature(
     refresh_target(scene, target);
 }
 
-/// True when the pair k of the side's outlines equals an earlier pair point for point: the second copy a builder pushes, as the 2024 library doubled every pair and side_removal_ss_e_r_1 lists the tile once to mill and once as a reverse conic.
-static bool outline_pair_repeated(const std::array<std::vector<Polyline>, 2>& outlines, size_t k) {
-
-    for (size_t j = 0; j < k; j++)
-        if (outlines[0][k].get_points() == outlines[0][j].get_points() && outlines[1][k].get_points() == outlines[1][j].get_points())
-            return true;
-
-    return false;
-}
-
 /// The solid one side of a plate joint takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill, cut, conic) lofted into a piece and every drill line as an axis, a pair its builder repeats counted once, a pair whose loft Manifold does not take as a solid or that takes nothing out of the stock left out. Empty for a side that only merges into the outline.
 static InteractionFeatureSolid plate_joint_cutter(
     const InteractionFeaturePlate& connection,
@@ -1579,39 +1569,15 @@ static InteractionFeatureSolid plate_joint_cutter(
     const Mesh& stock
 ) {
 
-    const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
-    const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
     InteractionFeatureSolid cut;
     cut.drill_radius = radius;
     cut.drill_tolerance = chord_tolerance;
+    cut.drills = JointPlate::side_drills(connection, side);
+
+    // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would only trouble the boolean
     std::vector<Mesh> pieces;
-
-    for (size_t k = 0; k < std::min({outlines[0].size(), outlines[1].size(), types[0].size()}); k++) {
-        const Polyline& bottom = outlines[0][k];
-        const Polyline& top = outlines[1][k];
-        if (outline_pair_repeated(outlines, k))
-            continue;
-
-        if (is_drill(types[0][k])) {
-            if (bottom.point_count() == 2 && (bottom[1] - bottom[0]).magnitude_squared() > 1e-12)
-                cut.drills.push_back(Line::from_points(bottom[0], bottom[1]));
-            continue;
-        }
-
-        // the solid types are the contiguous run from slice to conic_reverse; the plate types merge into the outline instead
-        const bool solid = types[0][k] >= FabricationType::slice && types[0][k] <= FabricationType::conic_reverse;
-
-        if (!solid || bottom.point_count() < 3 || bottom.point_count() != top.point_count())
-            continue;
-
-        const Mesh piece = loft_stations({bottom.closed(), top.closed()});
-
-        if (!manifold_solid(piece) || !(compute_volume(piece) > 0.0))
-            continue;
-
-        // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would only trouble the boolean
+    for (const Mesh& piece : JointPlate::side_solids(connection, side)) {
         const Mesh taken = solid_boolean(stock, piece, SolidOperation::intersect);
-
         if (taken.number_of_faces() > 0 && compute_volume(taken) > 1e-9 * compute_volume(piece))
             pieces.push_back(piece);
     }

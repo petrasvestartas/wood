@@ -932,8 +932,88 @@ std::vector<Line> JointPlate::drill_axes() const {
     }
     return result;
 }
+/// True when the pair k of the side's outlines equals an earlier pair point for point: the second copy a builder pushes, as the 2024 library doubled every pair and side_removal_ss_e_r_1 lists the tile once to mill and once as a reverse conic.
+static bool outline_pair_repeated(const std::array<std::vector<Polyline>, 2>& outlines, size_t k) {
+
+    for (size_t j = 0; j < k; j++)
+        if (outlines[0][k].get_points() == outlines[0][j].get_points() && outlines[1][k].get_points() == outlines[1][j].get_points())
+            return true;
+
+    return false;
+}
+
+std::vector<Mesh> JointPlate::side_solids(const InteractionFeaturePlate& connection, int side) {
+
+    const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
+    const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
+    std::vector<Mesh> pieces;
+
+    for (size_t k = 0; k < std::min({outlines[0].size(), outlines[1].size(), types[0].size()}); k++) {
+        const Polyline& bottom = outlines[0][k];
+        const Polyline& top = outlines[1][k];
+
+        // the solid types are the contiguous run from slice to conic_reverse; the plate types merge into the outline instead
+        const bool solid = types[0][k] >= FabricationType::slice && types[0][k] <= FabricationType::conic_reverse;
+        if (!solid || outline_pair_repeated(outlines, k) || bottom.point_count() < 3 || bottom.point_count() != top.point_count())
+            continue;
+
+        const Mesh piece = loft_stations({bottom.closed(), top.closed()});
+        if (manifold_solid(piece) && compute_volume(piece) > 0.0)
+            pieces.push_back(piece);
+    }
+
+    return pieces;
+}
+
+std::vector<Line> JointPlate::side_drills(const InteractionFeaturePlate& connection, int side) {
+
+    const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
+    const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
+    std::vector<Line> drills;
+
+    for (size_t k = 0; k < std::min({outlines[0].size(), outlines[1].size(), types[0].size()}); k++) {
+        const Polyline& bottom = outlines[0][k];
+        if (!is_drill(types[0][k]) || outline_pair_repeated(outlines, k))
+            continue;
+        if (bottom.point_count() == 2 && (bottom[1] - bottom[0]).magnitude_squared() > 1e-12)
+            drills.push_back(Line::from_points(bottom[0], bottom[1]));
+    }
+
+    return drills;
+}
+
+void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements) {
+
+    key = Mesh();
+    for (const InteractionFeaturePlate& connection : connections) {
+        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3")
+            continue;
+
+        // each side's pockets, the stock its plate loses to its solids, united into the one key
+        for (int side = 0; side < 2; side++) {
+            const int index = index_of_plate(elements, side == 0 ? connection.element_a : connection.element_b);
+            if (index < 0)
+                continue;
+
+            const Mesh& stock = elements[index]->element_geometry_mesh();
+            for (const Mesh& piece : side_solids(connection, side)) {
+                const Mesh pocket = solid_boolean(stock, piece, SolidOperation::intersect);
+                if (pocket.number_of_faces() > 0)
+                    key = key.number_of_faces() == 0 ? pocket : solid_boolean(key, pocket, SolidOperation::add);
+            }
+        }
+    }
+
+    invalidate_geometry();
+}
+
+Mesh JointPlate::key_mesh() const {
+    return key;
+}
+
 void JointPlate::place(const Xform& xform) {
     Joint::place(xform);
+    key = key.transformed(xform);
     for (InteractionFeaturePlate& connection : connections) {
         connection.contact.polygon = connection.contact.polygon.transformed(xform);
         for (Line& line : connection.contact.lines)
@@ -984,6 +1064,7 @@ void JointPlate::construct(InteractionFeaturePlate connection, const Settings& s
     );
     connections = std::move(joints);
     name = connections[0].name;
+    compute_key(elements);
     invalidate_geometry();
 }
 
@@ -1093,7 +1174,7 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
 
     connections = std::move(joints);
     name = parameters.library;
-    invalidate_geometry();
+    compute_key(elements);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

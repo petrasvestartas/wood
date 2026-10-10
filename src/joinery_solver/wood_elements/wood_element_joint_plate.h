@@ -255,6 +255,19 @@ public:
                                const std::vector<std::vector<int>>& types, const Settings& settings);
     void place(const Xform& xform) override;
     std::vector<Line> drill_axes() const override;
+
+    /// The solids one side of a connection takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill,
+    /// cut, conic) lofted, a pair its builder repeats once, a loft Manifold does not take as a solid left out.
+    static std::vector<Mesh> side_solids(const InteractionFeaturePlate& connection, int side);
+
+    /// The drill lines of one side of a connection, a pair its builder repeats once.
+    static std::vector<Line> side_drills(const InteractionFeaturePlate& connection, int side);
+
+    /// The loose key of ss_e_r_2 and ss_e_r_3, what each plate loses to its side's solids united; empty for every other design. The
+    /// constructors and the solver call it once the connections are built, with the plates they join.
+    void compute_key(const std::vector<std::shared_ptr<Plate>>& elements);
+
+    Mesh key_mesh() const override;
     std::string element_type_name() const override {
         return "JointPlate";
     }
@@ -284,6 +297,7 @@ private:
     bool compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
 
 protected:
+    Mesh key; // The loose key of a key design, what compute_key() cut from the plates; empty for every other design.
     std::vector<std::array<Polyline, 2>> bodies() const override;
     void write_proto(wood_proto::Joint& proto) const override;
     void read_proto(const wood_proto::Joint& proto) override;
