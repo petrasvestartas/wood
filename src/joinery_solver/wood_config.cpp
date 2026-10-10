@@ -154,7 +154,7 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
         if (parsed.size() < 3 || parsed.size() % 3 != 0)
             throw std::runtime_error(
                 "load_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
-                " values; expected 3 (every joint type) or a multiple of 3 (one triple per type)");
+                " values; expected 3 (every joint) or a multiple of 3 (one triple per joint in the order found, the last for every later one)");
         settings.joint_volume_extension = std::move(parsed);
     }
 

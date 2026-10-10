@@ -1,131 +1,97 @@
 #include "pch.h"
-#include "wood_assignment.h"
+#include "wood_session.h"
 using namespace session_cpp;
 
 namespace wood_session {
 
-static int nearest_slot(
-    const Plate& plate,
-    const Point& point,
-    double threshold,
-    bool faces
-) {
-
-    if (plate.polylines.size() < 2)
-        return -1;
-
-    size_t segment_top = 0;
-    size_t segment_bottom = 0;
-    Point closest;
-    const double distance_top = plate.polylines[1].closest_distance_and_point(point, segment_top, closest);
-    const double distance_bottom = plate.polylines[0].closest_distance_and_point(point, segment_bottom, closest);
-    const bool top = distance_top * distance_top <= distance_bottom * distance_bottom;
-    const double nearest = top ? distance_top : distance_bottom;
-    if (nearest * nearest >= threshold)
-        return -1;
-
-    if (faces)
-        return top ? 1 : 0;
-
-    return static_cast<int>(2 + (top ? segment_top : segment_bottom));
-}
-
-static SpatialRTree<int, double, 3> plate_rtree(const std::vector<std::shared_ptr<Plate>>& plates, double radius) {
-
-    SpatialRTree<int, double, 3> rtree;
-    for (size_t i = 0; i < plates.size(); i++) {
-
-        if (plates[i]->polylines.empty())
-            continue;
-
-        const AABB box = plates[i]->aabb(radius);
-        const Point lo = box.min_point();
-        const Point hi = box.max_point();
-        const double low[3] = {lo[0], lo[1], lo[2]};
-        const double high[3] = {hi[0], hi[1], hi[2]};
-        rtree.insert(low, high, static_cast<int>(i));
-    }
-
-    return rtree;
-}
-
-/// Indices of the plates whose box lies within radius of the point; the search callback collects them.
-static std::vector<int> plates_near(const SpatialRTree<int, double, 3>& rtree, const Point& point, double radius) {
-
-    std::vector<int> hits;
-    const double low[3] = {point[0] - radius, point[1] - radius, point[2] - radius};
-    const double high[3] = {point[0] + radius, point[1] + radius, point[2] + radius};
-    rtree.search(low, high, [&hits](const int index) {
-        hits.push_back(index);
-        return true;
-    });
-
-    return hits;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// Faces by points and lines
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// A slot per face: bottom, top, then one per side of the top outline.
 static size_t slot_count(const Plate& plate) {
+
     const size_t n = plate.polylines.size() > 1 ? plate.polylines[1].point_count() : 0;
     return 2 + (n > 0 ? n - 1 : 0);
 }
 
-void assign_feature_types(
-    const std::vector<std::shared_ptr<Plate>>& plates,
-    const Settings& settings,
-    const std::vector<Point>& points,
-    const std::vector<int>& types
-) {
+/// The face of a plate a point snaps to, -1 when none lies within snap_radius, as the plate's given tables index it: with faces the bottom or
+/// top face whose outline is nearer, else the side face whose middle line, between its bottom and top edges, is nearest, so a point on a
+/// side face snaps to that face and not to the plate stacked on the same edge.
+static int snapped_face(const Plate& plate, const Point& point, double snap_radius, bool faces) {
 
-    const double threshold = settings.distance_squared * 100.0;
-    const double radius = std::max(settings.distance, std::sqrt(threshold));
-    for (const std::shared_ptr<Plate>& plate : plates)
-        plate->feature_types.assign(slot_count(*plate), -1);
+    if (plate.polylines.size() < 2)
+        return -1;
 
-    if (points.empty() || types.size() < points.size())
+    if (faces) {
+        size_t edge = 0;
+        Point closest;
+        const double distance_top = plate.polylines[1].closest_distance_and_point(point, edge, closest);
+        const double distance_bottom = plate.polylines[0].closest_distance_and_point(point, edge, closest);
+        if (std::min(distance_top, distance_bottom) > snap_radius)
+            return -1;
+        return plate.given_face(distance_top <= distance_bottom ? 1 : 0);
+    }
+
+    int nearest = -1;
+    double nearest_distance = snap_radius;
+    for (size_t i = 0; i + 1 < plate.polylines[1].point_count(); i++) {
+        Line middle;
+        Line::get_middle_line(Line::from_points(plate.polylines[0][i], plate.polylines[0][i + 1]), Line::from_points(plate.polylines[1][i], plate.polylines[1][i + 1]), middle);
+        const double distance = (middle.closest_point(point).second - point).magnitude();
+        if (distance <= nearest_distance) {
+            nearest = static_cast<int>(2 + i);
+            nearest_distance = distance;
+        }
+    }
+
+    return nearest < 0 ? -1 : plate.given_face(nearest);
+}
+
+void WoodSession::assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius) {
+
+    if (types.size() < points.size())
+        throw std::invalid_argument(fmt::format("assign_joint_types_by_points: {} types for {} points", types.size(), points.size()));
+
+    if (points.empty())
         return;
 
-    const SpatialRTree<int, double, 3> rtree = plate_rtree(plates, radius);
-    for (size_t i = 0; i < points.size(); i++) {
+    for (const std::shared_ptr<Plate>& plate : plates()) {
 
-        const Point& point = points[i];
-        const int type = types[i];
-        for (const int index : plates_near(rtree, point, radius)) {
-            const int slot = nearest_slot(
-                *plates[index],
-                point,
-                threshold,
-                type < 0
-            );
-            if (slot >= 0 && slot < static_cast<int>(plates[index]->feature_types.size()))
-                plates[index]->feature_types[slot] = std::abs(type);
+        // every plate a table, as a sidecar gives every plate a row, -1 on the faces it did not have
+        std::vector<bool> reached(slot_count(*plate), false);
+        if (plate->feature_types.size() != reached.size())
+            plate->feature_types.resize(reached.size(), -1);
+
+        // a face several points reach keeps the largest of their types, as a joint takes the larger type of its two faces
+        for (size_t i = 0; i < points.size(); i++) {
+            const int face = snapped_face(*plate, points[i], snap_radius, types[i] < 0);
+            if (face < 0)
+                continue;
+            if (reached[face] && plate->feature_types[face] >= std::abs(types[i]))
+                continue;
+            plate->feature_types[face] = std::abs(types[i]);
+            reached[face] = true;
         }
     }
 }
 
-void assign_insertion_vectors(const std::vector<std::shared_ptr<Plate>>& plates, const Settings& settings, const std::vector<Line>& lines) {
-
-    const double threshold = settings.distance_squared * 100.0;
-    const double radius = std::max(settings.distance, std::sqrt(threshold));
-    for (const std::shared_ptr<Plate>& plate : plates)
-        plate->insertion_vectors().assign(slot_count(*plate), Vector(0.0, 0.0, 0.0));
+void WoodSession::assign_insertion_vectors_by_lines(const std::vector<Line>& lines, double snap_radius) {
 
     if (lines.empty())
         return;
 
-    const SpatialRTree<int, double, 3> rtree = plate_rtree(plates, radius);
-    for (const Line& line : lines) {
+    for (const std::shared_ptr<Plate>& plate : plates()) {
 
-        const Point point = line.start();
-        const Vector direction = line.to_vector();
-        for (const int index : plates_near(rtree, point, radius)) {
-            const int slot = nearest_slot(
-                *plates[index],
-                point,
-                threshold,
-                false
-            );
-            if (slot >= 0 && slot < static_cast<int>(plates[index]->insertion_vectors().size()))
-                plates[index]->insertion_vectors()[slot] = direction;
+        // every plate a table, as a sidecar gives every plate a row, zero on the faces it did not have
+        std::vector<Vector>& vectors = plate->insertion_vectors();
+        if (vectors.size() != slot_count(*plate))
+            vectors.resize(slot_count(*plate), Vector(0.0, 0.0, 0.0));
+
+        for (const Line& line : lines) {
+            const int face = snapped_face(*plate, line.start(), snap_radius, false);
+            if (face >= 0)
+                vectors[face] = line.to_vector();
         }
     }
 }

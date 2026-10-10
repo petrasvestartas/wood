@@ -30,7 +30,7 @@ joints_parameters_and_types:
   - 300      # row 6 b       [0]: division_length (mm)
   - 1.0      # row 6 b       [1]: shift (0..1)
   - 60       # row 6 b       [2]: joint_type_id  (default 60)
-# additive joint volume extension (mm): one width, height, length triple for every family, or one triple per family
+# additive joint volume extension (mm): one width, height, length triple for every joint, or one per joint in the order found, the last for every later one
 joint_volume_extension:
   - 0.0      # width
   - 0.0      # height

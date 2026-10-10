@@ -11,11 +11,12 @@
 // Feature detection
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Classifies one plate pair as a wood joint; true fills out_joint, and out_swap_planes_1 asks the caller to swap el1's planes. Tolerances, extensions and thresholds come from settings; `search_type` picks face-to-face, cross or both; `trace`, when given, records the counts and the reason for a rejection.
+/// Classifies one plate pair as a wood joint; true fills out_joint, and out_swap_planes_1 asks the caller to swap el1's planes. Tolerances, extensions and thresholds come from settings; `joint_id`, the number of joints found before this pair, picks the volume extension as 2024 did; `search_type` picks face-to-face, cross or both; `trace`, when given, records the counts and the reason for a rejection.
 bool face_to_face_wood(
     wood_session::Plate& el0,
     wood_session::Plate& el1,
     std::pair<int, int> el_ids_in,
+    size_t joint_id,
     const wood_session::Settings& settings,
     int search_type,
     wood_session::InteractionFeaturePlate& out_joint,

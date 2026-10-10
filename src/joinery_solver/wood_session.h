@@ -122,6 +122,18 @@ public:
     /// the half thickness each way along the face's normal; nullptr for an outer face or a plate without that side.
     static std::shared_ptr<InteractionContactFace> compute_border_contact(const Plate& plate, int face);
 
+    /// Joint types by points, as the plugin's dots set them: on every plate a point snaps to the side face whose middle line, between its
+    /// bottom and top edges, lies nearest and within snap_radius, or for a negative type to the bottom or top face whose outline is nearer,
+    /// and writes the absolute value of its type into that plate's feature_types, the table a *_joints_types.txt sidecar gives; a face
+    /// several points reach takes the largest of their types, as a joint takes the larger type of its two faces. Like a sidecar, which
+    /// gives every plate a row, a call with points gives every plate a table, -1 on the faces it lacked; a call with none changes nothing.
+    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius);
+
+    /// Insertion vectors by lines: on every plate a line's start snaps to the side face whose middle line lies nearest and within
+    /// snap_radius, and its direction becomes that face's insertion vector, the table a *_insertion_vectors.txt sidecar gives; other faces
+    /// keep theirs. Like a sidecar, a call with lines gives every plate a table, zero on the faces it lacked; a call with none changes nothing.
+    void assign_insertion_vectors_by_lines(const std::vector<Line>& lines, double snap_radius);
+
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
 

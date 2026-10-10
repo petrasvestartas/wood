@@ -346,7 +346,7 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
         for (auto& contact : contacts) {
             InteractionFeaturePlate joint;
             bool flip = false;
-            if (!face_to_face_wood(static_cast<Plate&>(ea), static_cast<Plate&>(eb), {0, 1},
+            if (!face_to_face_wood(static_cast<Plate&>(ea), static_cast<Plate&>(eb), {0, 1}, 0,
                                    settings, 0, joint, flip, nullptr, &contact))
                 continue;
             contact.lines = joint.joint_lines;

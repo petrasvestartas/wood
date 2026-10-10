@@ -357,20 +357,6 @@ struct FamilyParameters {
     double shift;             // Shift of the family.
 };
 
-/// The face index before the plate was reversed: the JOINTS_TYPES table uses pre-reversal indices, and a reversed winding reorders the side planes.
-int original_face_index(const std::vector<std::shared_ptr<Plate>>& elements, const int element_index, const int face) {
-
-    if (element_index < 0 || element_index >= (int)elements.size())
-        return face;
-    if (!elements[element_index]->reversed)
-        return face;
-    if (face < 2)
-        return 1 - face;
-
-    const int side_count = (int)elements[element_index]->planes.size() - 2;
-    return 2 + (side_count - 1 - (face - 2));
-}
-
 /// Wood's id_representing_joint_name: max of the two face ids in the JOINTS_TYPES table, -1 when the table says nothing.
 int joint_id_for(
     const InteractionFeaturePlate& joint,
@@ -384,8 +370,8 @@ int joint_id_for(
         const int element1 = index_of_plate(elements, joint.element_b);
         const int face0 = joint.contact.face_a;
         const int face1 = joint.contact.face_b;
-        const int original_face0 = original_face_index(elements, element0, face0);
-        const int original_face1 = original_face_index(elements, element1, face1);
+        const int original_face0 = element0 >= 0 && element0 < (int)elements.size() ? elements[element0]->given_face(face0) : face0;
+        const int original_face1 = element1 >= 0 && element1 < (int)elements.size() ? elements[element1]->given_face(face1) : face1;
         const int id0 = (element0 >= 0 && element0 < (int)per_element_joints_types.size() && original_face0 >= 0 && original_face0 < (int)per_element_joints_types[element0].size())
                             ? std::abs(per_element_joints_types[element0][original_face0])
                             : 0;

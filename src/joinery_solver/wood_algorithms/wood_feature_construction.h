@@ -24,8 +24,9 @@ void merge_linked_joints(InteractionFeaturePlate& joint, std::vector<Interaction
 /// Sets divisions from the joint length and division_distance, at least one.
 void joint_get_divisions(InteractionFeaturePlate& joint, double division_distance);
 
-/// The [width, height, length] extension for a joint type: side-side (11/12/13) reads triple 0, top-side (20) triple 1, top-top (40) triple 2, cross (30) triple 3; a 3-entry list serves every type.
-std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, int joint_type);
+/// The [width, height, length] extension of the joint found joint_id-th, as 2024 indexed it: a 3-entry list serves every joint, a longer one
+/// gives triple k to the k-th joint found and its last triple to every later one.
+std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, size_t joint_id);
 
 /// Position of the plate with this guid, or -1.
 int index_of_plate(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid);

@@ -79,6 +79,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
             *elements[index_a],
             *elements[index_b],
             {index_a, index_b},
+            joints.size(),
             settings,
             search_type,
             joint,

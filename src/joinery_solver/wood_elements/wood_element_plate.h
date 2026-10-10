@@ -80,6 +80,10 @@ public:
     /// later contact pairs the swapped plane with the outline of that index.
     void swap_planes();
 
+    /// The index a face has in the tables given with the plate (feature_types, insertion_vectors, the sidecars): the face itself, or on a
+    /// reversed plate the other outline's face and the sides counted backwards; the mapping is its own inverse.
+    int given_face(int face) const;
+
 
     /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.
     std::shared_ptr<Plate> transformed(const Xform& xform) const;

@@ -30,20 +30,20 @@ joints_parameters_and_types:
   - 300      # row 6 b       [0]: division_length (mm)
   - 1.0      # row 6 b       [1]: shift (0..1)
   - 60       # row 6 b       [2]: joint_type_id  (default 60)
-# additive joint volume extension (mm): one width, height, length triple for every family, or one triple per family
+# additive joint volume extension (mm): one width, height, length triple for every joint, or one per joint in the order found, the last for every later one
 joint_volume_extension:
-  - 0        # width (side-side)
-  - 0        # height (side-side)
-  - -200     # length (side-side)
-  - 0        # width (top-side)
-  - 0        # height (top-side)
-  - -200     # length (top-side)
-  - 0        # width (top-top)
-  - 0        # height (top-top)
-  - -20      # length (top-top)
-  - 0        # width (cross)
-  - 0        # height (cross)
-  - -20      # length (cross)
+  - 0        # width (joint 0)
+  - 0        # height (joint 0)
+  - -200     # length (joint 0)
+  - 0        # width (joint 1)
+  - 0        # height (joint 1)
+  - -200     # length (joint 1)
+  - 0        # width (joint 2)
+  - 0        # height (joint 2)
+  - -20      # length (joint 2)
+  - 0        # width (every later joint)
+  - 0        # height (every later joint)
+  - -20      # length (every later joint)
 # multiplicative joint scale (x, y, z); 1.0 = unchanged; read by the unit-scale joint constructors
 joint_scale:
   - 1.0

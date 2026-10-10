@@ -19,6 +19,7 @@ struct F2F {
     Plate& el0;
     Plate& el1;
     const std::pair<int, int> el_ids_in;
+    const size_t joint_id; // how many joints were found before this pair, which picks its extension
     std::pair<int, int> el_ids;
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
     const Settings& settings;
@@ -38,9 +39,9 @@ struct F2F {
         return id == el_ids_in.first ? el0.guid() : el1.guid();
     }
 
-    /// The [width, height, length] extension this joint type reads.
-    std::array<double, 3> ext(int joint_type) const {
-        return wood_session::joint_volume_extension(settings.joint_volume_extension, joint_type);
+    /// The [width, height, length] extension this joint reads.
+    std::array<double, 3> ext() const {
+        return wood_session::joint_volume_extension(settings.joint_volume_extension, joint_id);
     }
 };
 
@@ -176,7 +177,7 @@ bool prepare_candidate(F2F& s, const wood_session::InteractionContactFace& conta
         return false;
 
     if (c.joint_type < 2) {
-        const double ext_l = s.ext(c.joint_type == 1 ? 20 : 12)[2];
+        const double ext_l = s.ext()[2];
         const double ext_sq = (ext_l * 2.0) * (ext_l * 2.0);
         const double min_sq = s.settings.limit_min_joint_length * s.settings.limit_min_joint_length;
 
@@ -325,7 +326,7 @@ bool rotated_volumes(
     Polyline& vol0,
     Polyline& vol1) {
 
-    const std::array<double, 3> ext = s.ext(13);
+    const std::array<double, 3> ext = s.ext();
 
     const Xform world_to_local = Xform::world_to_frame(
         o,
@@ -577,7 +578,7 @@ bool side_side_out_of_plane(
     const Plane& pl_end1
 ) {
 
-    const std::array<double, 3> ext = s.ext(11);
+    const std::array<double, 3> ext = s.ext();
     const size_t i = c.i;
     const size_t j = c.j;
     const Vector normal = s.el0.planes[i].z_axis();
@@ -681,7 +682,7 @@ bool side_side_in_plane(
     const Plane& pl_end1
 ) {
 
-    const std::array<double, 3> ext = s.ext(12);
+    const std::array<double, 3> ext = s.ext();
     const size_t i = c.i;
     const size_t j = c.j;
     const Point& origin_0 = s.el0.planes[0].origin();
@@ -802,7 +803,7 @@ bool side_side(F2F& s, FaceCandidate& c) {
 /// Type 20: the male's side-face quad extruded along an offset vector spanning the female's thickness.
 bool top_side(F2F& s, FaceCandidate& c) {
 
-    const std::array<double, 3> ext = s.ext(20);
+    const std::array<double, 3> ext = s.ext();
     const size_t i = c.i;
     const size_t j = c.j;
     const bool male_first = i > j;
@@ -875,7 +876,7 @@ bool top_side(F2F& s, FaceCandidate& c) {
 /// Type 40: bounding rectangle of the joint area, translated ±thickness along each element's normal.
 bool top_top(F2F& s, FaceCandidate& c) {
 
-    const std::array<double, 3> ext = s.ext(40);
+    const std::array<double, 3> ext = s.ext();
     const size_t i = c.i;
     const size_t j = c.j;
 
@@ -944,7 +945,7 @@ bool top_top(F2F& s, FaceCandidate& c) {
 bool cross_fallback(F2F& s) {
 
     wood_session::InteractionContactCross cj;
-    const std::array<double, 3> cj_ext = s.ext(30);
+    const std::array<double, 3> cj_ext = s.ext();
     constexpr double CROSS_JOINT_PARALLEL_ANGLE_DEG = 30.0;
 
     const bool found = wood_session::plane_to_face(
@@ -985,6 +986,7 @@ bool face_to_face_wood(
     Plate& el0,
     Plate& el1,
     std::pair<int, int> el_ids_in,
+    size_t joint_id,
     const Settings& settings,
     int search_type,
     InteractionFeaturePlate& out_joint,
@@ -995,7 +997,7 @@ bool face_to_face_wood(
 
     out_swap_planes_1 = false;
     F2F s = {
-        el0, el1, el_ids_in, el_ids_in, { {{0,0}}, {{0,0}} },
+        el0, el1, el_ids_in, joint_id, el_ids_in, { {{0,0}}, {{0,0}} },
         settings,
         0.0, Plane::xy_plane(), Plane::xy_plane(), std::string(),
         out_joint, out_swap_planes_1,
