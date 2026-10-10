@@ -27,6 +27,9 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
     for d in 4 8 12; do echo "op/ss_e_op_5/$d/0 op/ss_e_op_6/$d op/ss_e_op_17/$d"; done
     for d in 4 6 8; do for s in 0.5 0.95; do echo "tt/tt_e_p_2/$d/$s/8"; done; done
     for l in 30 60 90; do echo "tt/tt_e_p_3/$l/12/8 tt/tt_e_p_4/$l/12/8 tt/tt_e_p_5/$l/0.95/8"; done
+    for f in op op@120 op@150; do for d in 4 8 12; do echo "$f/ss_e_op_1/$d/0.5"; done; done
+    for f in ts ts@skew75 ts@lean80; do for d in 8 16 24; do echo "$f/ts_e_p_3/$d/0.5"; done; done
+    for f in ip ip@trapezoid ip@short; do for d in 4 8 12; do echo "$f/ss_e_ip_1/$d/0.5"; done; done
 )
 rm -f "$OUT"/*.png
 for pb in "$WORK"/tiles/*.pb; do
@@ -62,6 +65,11 @@ sweep ss_e_r "ss_e_r_2 and ss_e_r_3 (rows): divisions (columns)" 3 plates $(for 
 sweep ss_e_ip_2_5 "ss_e_ip_2 and ss_e_ip_5 (rows): divisions (columns)" 3 plates $(for n in 2 5; do for d in 2 4 6; do echo "ss_e_ip_$n, divisions $d|ip/ss_e_ip_$n/$d"; done; done)
 sweep ss_e_op_4 "ss_e_op_4, 8 divisions: taper (rows) and chamfer (columns)" 2 unit $(for t in 0 0.25 0.5; do for c in 0 1; do echo "taper $t, chamfer $c|op/ss_e_op_4/8/$t/$c/1"; done; done)
 sweep ss_e_op_5_6_17 "ss_e_op_5, ss_e_op_6, ss_e_op_17 (rows): divisions (columns)" 3 unit $(for d in 4 8 12; do echo "ss_e_op_5, divisions $d|op/ss_e_op_5/$d/0"; done; for n in 6 17; do for d in 4 8 12; do echo "ss_e_op_$n, divisions $d|op/ss_e_op_$n/$d"; done; done)
+# a fixture's rows: label|fixture, then divisions across
+rows() { local IFS=" " design=$1 divisions=$2; shift 2; for row in "$@"; do for d in $divisions; do echo "${row%%|*}, divisions $d|${row#*|}/$design/$d/0.5"; done; done; }
+sweep ss_e_op_1_angles "ss_e_op_1 at 90, 120 and 150 degrees (rows): divisions (columns)" 3 plates $(rows ss_e_op_1 "4 8 12" "90 degrees|op" "120 degrees|op@120" "150 degrees|op@150")
+sweep ts_e_p_3_angles "ts_e_p_3 square, skewed 75, leaning 80 (rows): divisions (columns)" 3 plates $(rows ts_e_p_3 "8 16 24" "square|ts" "skewed 75 degrees|ts@skew75" "leaning 80 degrees|ts@lean80")
+sweep ss_e_ip_1_seams "ss_e_ip_1 on a straight, slanted and short seam (rows): divisions (columns)" 3 plates $(rows ss_e_ip_1 "4 8 12" "straight seam|ip" "slanted seam|ip@trapezoid" "short seam|ip@short")
 sweep tt_e_p_2 "tt_e_p_2: divisions (rows) and shift (columns)" 2 plates $(for d in 4 6 8; do for s in 0.5 0.95; do echo "divisions $d, shift $s|tt/tt_e_p_2/$d/$s/8"; done; done)
 sweep tt_e_p_3_4_5 "tt_e_p_3, tt_e_p_4, tt_e_p_5 (rows): division length (columns)" 3 plates $(for n in 3 4; do for l in 30 60 90; do echo "tt_e_p_$n, length $l|tt/tt_e_p_$n/$l/12/8"; done; done; for l in 30 60 90; do echo "tt_e_p_5, length $l|tt/tt_e_p_5/$l/0.95/8"; done)
 # only the pictures the page shows

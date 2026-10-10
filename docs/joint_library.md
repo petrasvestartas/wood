@@ -246,7 +246,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed des
 ![ts_e_p_2 sweep](joint_library/sweep_ts_e_p_2.png)
 ![ts_e_p_3 sweep](joint_library/sweep_ts_e_p_3.png)
 
-**At other angles.** The same tenons on an upright square to the base, skewed 60 degrees in plan and leaning 80 degrees: the mortises follow the upright's footprint.
+**At other angles.** The same tenons on an upright square to the base, skewed 75 degrees in plan and leaning 80 degrees, at 8, 16 and 24 divisions (the design rounds a count up to a multiple of four, at least eight, a tenon every four): the mortises follow the upright's footprint.
 
 ![ts_e_p_3 square, skewed and leaning](joint_library/sweep_ts_e_p_3_angles.png)
 
