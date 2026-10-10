@@ -32,7 +32,7 @@ for pb in "$WORK"/tiles/*.pb; do
     legend="${pb%.pb}.txt"
     if [ -f "$legend" ]; then
         width=$(identify -format %w "$png")
-        convert "$png" \( -size "$((width - 160))x" -background "$BG" -fill "rgb(40,40,40)" -font DejaVu-Sans -pointsize 44 \
+        convert "$png" \( -size "$((width - 160))x" -background "$BG" -fill "rgb(40,40,40)" -font DejaVu-Sans -pointsize 64 \
             caption:"$(cat "$legend")" -bordercolor "$BG" -border 80x40 \) -gravity west -append -depth 8 "$png"
     fi
 done

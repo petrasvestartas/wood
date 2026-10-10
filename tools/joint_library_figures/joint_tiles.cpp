@@ -34,6 +34,9 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         unit.male_outlines[face].clear();
         unit.female_outlines[face].clear();
     }
+    // a butterfly design tiles its teeth along the joint line far past the box: one tooth shows the design, the plates show the divisions
+    if (built.library == "ss_e_ip_2" || built.library == "ss_e_ip_5")
+        unit.divisions = 1;
     const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
     std::vector<InteractionFeaturePlate> no_joints;
 
@@ -96,7 +99,7 @@ static std::string unit_legend(const Built& built, const InteractionFeaturePlate
         std::string value;
         std::string meaning;
         if (name == "divisions") {
-            value = fmt::format("{}", unit.divisions);
+            value = fmt::format("{}", built.joint->connections.at(0).divisions);
             meaning = "how many teeth along the joint line; 0 takes them from its length";
         } else if (name == "shift") {
             value = fmt::format("{:g}", unit.shift);
@@ -139,9 +142,13 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
                 scene.add_polyline(edge, group);
             }
 
-    // every male and female outline of both faces, the 2-point seam markers left out
+    // every male and female outline of both faces, the 2-point seam markers left out; where the two cuts are the same line on both faces
+    // (the in-plane designs) the male is drawn on the bottom face and the female on the top, so both show
+    const bool shared = unit.male_outlines == unit.female_outlines;
     for (int side = 0; side < 2; side++)
-        for (int face = 0; face < 2; face++)
+        for (int face = 0; face < 2; face++) {
+            if (shared && face != side)
+                continue;
             for (const Polyline& outline : side == 0 ? unit.male_outlines[face] : unit.female_outlines[face]) {
                 if (outline.point_count() < 3)
                     continue;
@@ -151,6 +158,7 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
                 drawn->name = fmt::format("{}_face_{}", side == 0 ? "male" : "female", face);
                 scene.add_polyline(drawn, group);
             }
+        }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
