@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Every picture of docs/joint_library.md, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
-# design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box, and <id>.png, the oracle's pair drawn
+# design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box with the parameters the user can
+# change written under it, and <id>.png, the oracle's pair drawn
 # apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.
 #   bash tools/joint_library_figures/make.sh
 set -euo pipefail
@@ -25,7 +26,15 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 )
 rm -f "$OUT"/*.png
 for pb in "$WORK"/tiles/*.pb; do
-    bash tools/shoot_native.sh "$OUT/$(basename "$pb" .pb).png" "$pb" > /dev/null
+    png="$OUT/$(basename "$pb" .pb).png"
+    bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+    # a unit box's legend under it: the factory call and what the user can change, with the values drawn
+    legend="${pb%.pb}.txt"
+    if [ -f "$legend" ]; then
+        width=$(identify -format %w "$png")
+        convert "$png" \( -size "$((width - 160))x" -background "$BG" -fill "rgb(40,40,40)" -font DejaVu-Sans -pointsize 44 \
+            caption:"$(cat "$legend")" -bordercolor "$BG" -border 80x40 \) -gravity west -append -depth 8 "$png"
+    fi
 done
 for pb in "$WORK"/sweep/*.pb; do
     bash tools/shoot_native.sh "$WORK/sweep/$(basename "$pb" .pb).png" "$pb" > /dev/null
@@ -42,7 +51,7 @@ sweep() {
         [ "$kind" = unit ] && file+="_unit"
         args+=(-label "${pair%%|*}" "$file.png")
     done
-    montage "${args[@]}" -tile "${columns}x" -geometry 480x360+12+12 -pointsize 20 -background "$BG" -depth 8 -colors 256 "$OUT/sweep_$name.png"
+    montage "${args[@]}" -tile "${columns}x" -geometry 960x720+24+24 -pointsize 40 -background "$BG" -depth 8 -colors 256 "$OUT/sweep_$name.png"
 }
 grid() { local IFS=" "; for d in $2; do for s in $3; do echo "divisions $d, shift $s|$1/$d/$s"; done; done; }
 IFS=$'\n'

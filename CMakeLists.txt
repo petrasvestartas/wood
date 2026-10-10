@@ -382,7 +382,7 @@ ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.c
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
-# docs/examples.md, docs/elements.md with a page per element under docs/elements, docs/templates.md and a page per
+# docs/examples.md, docs/elements.md with a page per element under docs/elements, docs/joint_library.md, docs/templates.md and a page per
 # template family under docs/templates (their pictures under docs/images, the floor's beside its page in docs/templates/floor); Doxygen only.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
@@ -425,6 +425,7 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/cutting_gallery.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/joint_library.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver

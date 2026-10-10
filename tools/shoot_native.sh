@@ -24,18 +24,18 @@ if [ "${1:-}" = "--example" ]; then
     out="$WOOD/docs/images/elements/$name.png"
     pb="$WOOD/data/output/pb/live.pb"
     view="${3:-iso}"
-    width=1600
-    height=1000
+    width=3200
+    height=2000
 else
     out="$1"
     pb="$2"
     view="${3:-iso}"
-    width="${4:-1600}"
-    height="${5:-1000}"
+    width="${4:-3200}"
+    height="${5:-2000}"
 fi
 
 ppm="$(mktemp --suffix=.ppm)"
 "$SHOT" "$pb" "$ppm" "$width" "$height" "$view"
-convert "$ppm" -fuzz 2% -trim +repage -trim +repage -bordercolor "rgb(248,248,248)" -border 40 "$out"
+convert "$ppm" -fuzz 2% -trim +repage -trim +repage -bordercolor "rgb(248,248,248)" -border 80 -depth 8 "$out"
 rm -f "$ppm"
 echo "$out"

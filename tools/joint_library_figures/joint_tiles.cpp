@@ -1,5 +1,6 @@
 // The scenes of docs/joint_library.md, two session files per design for the viewer, never overlapping: <id>_unit.pb, the design's male and
-// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates'; and <id>.pb, the oracle's pair joined
+// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates', with <id>_unit.txt, the parameters the
+// user can change and their values, the legend under its picture; and <id>.pb, the oracle's pair joined
 // by it, the plates with the merged outlines and any solid the joint owns as BReps.
 //   ./build/joint_tiles <out_dir> [family/library/parameters ...]     every oracle variant when no id is given
 #define main joint_library_main
@@ -13,8 +14,8 @@ using namespace wood_session;
 
 static const double BOX = 200.0; // mm, the unit box
 static const double APART = 250.0; // mm, the second plate moved off the first
-static const Color MALE = Color(0.86f, 0.43f, 0.16f);
-static const Color FEMALE = Color(0.16f, 0.43f, 0.78f);
+static const Color MALE = Color(0.807f, 0.063f, 0.258f);   // the viewer's x axis pink #E8478B, linear: the viewer encodes line colours to sRGB
+static const Color FEMALE = Color(0.015f, 0.305f, 0.823f); // the viewer's z axis blue #2196EA, linear
 static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -22,13 +23,17 @@ static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The design's outlines in its unit box, the library function run on a joint with the built one's parameters; false for a design that is
-/// built on the plates in their own space (top to top, side removal, custom), which has no unit box to draw.
+/// built on the plates in their own space (top to top, side removal, custom) or leaves the box empty, which has no unit box to draw.
 static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 
     const InteractionFeaturePlate& built_connection = built.joint->connections.at(0);
     const JointPlateParameters& p = built.joint->parameters;
-    unit.divisions = built_connection.divisions;
-    unit.shift = built_connection.shift;
+    // the built connection's lines, scale and parameters, which some designs read (ss_e_ip_2 its tooth pitch), its outlines cleared
+    unit = built_connection;
+    for (int face = 0; face < 2; face++) {
+        unit.male_outlines[face].clear();
+        unit.female_outlines[face].clear();
+    }
     const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
     std::vector<InteractionFeaturePlate> no_joints;
 
@@ -51,7 +56,65 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
     if (design == designs.end())
         return false;
     design->second();
-    return true;
+
+    // a design that cuts only on the plates (ss_e_ip_2's pockets) leaves the box empty
+    for (const auto* outlines : {&unit.male_outlines, &unit.female_outlines})
+        for (const std::vector<Polyline>& face : *outlines)
+            for (const Polyline& outline : face)
+                if (outline.point_count() >= 3)
+                    return true;
+    return false;
+}
+
+/// What the user can change in the design, one line each with its value in the picture under the factory call; a fixed design says so.
+static std::string unit_legend(const Built& built, const InteractionFeaturePlate& unit) {
+
+    const std::map<std::string, std::string> shift_meaning = {
+        {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},
+        {"op", "the fingers' lean through the thickness, only above 0.5"},
+        {"ts", "the tenon width against the gap"},
+        {"r", "the size of each key along the joint line"},
+        {"cr", "how narrow the half-lap's centre square is: 0 widest, 1 narrowest"},
+    };
+    const std::map<std::string, std::vector<std::string>> editable = {
+        {"ss_e_ip_1", {"divisions", "shift"}}, {"ss_e_ip_2", {"divisions"}}, {"ss_e_ip_5", {"divisions"}},
+        {"ss_e_op_1", {"divisions", "shift"}}, {"ss_e_op_2", {"divisions", "shift"}}, {"ss_e_op_4", {"divisions", "taper", "chamfer"}},
+        {"ss_e_op_5", {"divisions", "disable_divisions"}}, {"ss_e_op_6", {"divisions"}}, {"ss_e_op_17", {"divisions"}},
+        {"ts_e_p_2", {"divisions", "shift"}}, {"ts_e_p_3", {"divisions", "shift"}},
+        {"ss_e_r_2", {"divisions", "shift"}}, {"ss_e_r_3", {"divisions", "shift"}},
+        {"cr_c_ip_1", {"shift"}}, {"cr_c_ip_2", {"shift"}}, {"cr_c_ip_3", {"shift"}}, {"cr_c_ip_4", {"shift"}}, {"cr_c_ip_5", {"shift"}},
+    };
+
+    const auto names = editable.find(built.library);
+    if (names == editable.end())
+        return fmt::format("JointPlate::{}()\nno parameters: a fixed design", built.library);
+
+    const JointPlateParameters& p = built.joint->parameters;
+    std::string arguments;
+    std::string lines;
+    for (const std::string& name : names->second) {
+        std::string value;
+        std::string meaning;
+        if (name == "divisions") {
+            value = fmt::format("{}", unit.divisions);
+            meaning = "how many teeth along the joint line; 0 takes them from its length";
+        } else if (name == "shift") {
+            value = fmt::format("{:g}", unit.shift);
+            meaning = shift_meaning.at(built.family);
+        } else if (name == "taper") {
+            value = fmt::format("{:g}", p.taper);
+            meaning = "the tenons' side lean";
+        } else if (name == "chamfer") {
+            value = p.chamfer ? "true" : "false";
+            meaning = "bevelled tenon ends inside the floor";
+        } else {
+            value = p.disable_divisions ? "true" : "false";
+            meaning = "the second linked joint (Vidy) without divisions";
+        }
+        arguments += fmt::format("{}{} = {}", arguments.empty() ? "" : ", ", name, value);
+        lines += fmt::format("\n{} = {}: {}", name, value, meaning);
+    }
+    return fmt::format("JointPlate::{}({}){}", built.library, arguments, lines);
 }
 
 /// The unit box and the outlines in it, scaled to BOX.
@@ -72,7 +135,7 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
                 auto edge = std::make_shared<Polyline>(std::vector<Point>{Point(start[0], start[1], start[2]), Point(end[0], end[1], end[2])});
                 *edge = edge->transformed(place);
                 edge->linecolor = EDGE;
-                edge->width = 1.0;
+                edge->width = 2.0;
                 scene.add_polyline(edge, group);
             }
 
@@ -84,7 +147,7 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
                     continue;
                 auto drawn = std::make_shared<Polyline>(outline.transformed(place));
                 drawn->linecolor = side == 0 ? MALE : FEMALE;
-                drawn->width = 3.0;
+                drawn->width = 6.0;
                 drawn->name = fmt::format("{}_face_{}", side == 0 ? "male" : "female", face);
                 scene.add_polyline(drawn, group);
             }
@@ -107,6 +170,7 @@ static void write_scene(const std::string& id, const std::string& dir) {
         WoodSession unit_scene(name + "_unit");
         add_unit_box(unit_scene, unit);
         unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
+        std::ofstream(dir + "/" + name + "_unit.txt") << unit_legend(built, unit) << std::endl;
     }
 
     // the pair drawn apart, the second plate moved along the contact from the first so the merged outlines read, a key half way and shown
