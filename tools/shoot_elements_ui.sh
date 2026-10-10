@@ -4,9 +4,12 @@
 # the orthographic isometric view (the back view for a column, whose head and cuts face the inside of the floor), 3200 x 2000.
 #   bash wood/tools/shoot_elements_ui.sh                       every example
 #   bash wood/tools/shoot_elements_ui.sh element_plate ...     the ones named
+#   OUT=<dir> writes the pictures there instead of docs/images/elements
 set -euo pipefail
 WOOD="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$WOOD"
+OUT="${OUT:-docs/images/elements}"
+mkdir -p "$OUT"
 if [ "$#" -eq 0 ]; then
     set -- $(ls examples/elements/*.cpp | xargs -n1 basename | sed 's/\.cpp$//')
 fi
@@ -18,6 +21,6 @@ for name in "$@"; do
         echo "$name: the example failed"
         continue
     fi
-    UI_SHOT_VIEW="$view" bash tools/shoot_ui.sh "docs/images/elements/$name.png" data/output/pb/live.pb > /dev/null 2>&1 || echo "$name: the shot failed"
+    UI_SHOT_VIEW="$view" bash tools/shoot_ui.sh "$OUT/$name.png" data/output/pb/live.pb > /dev/null 2>&1 || echo "$name: the shot failed"
     echo "$name"
 done
