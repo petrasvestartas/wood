@@ -78,15 +78,15 @@ public:
     const double size_outer_ribs; // Outer rib thickness.
     const double size_inner_ribs; // Inner rib thickness.
     const double size_inner_beams; // Seam and oculus beam thickness; also the ring beam width at the datum.
-    const double size_wedge; // Side wedge block thickness; the middle block is middle_wedge_factor times it.
+    const double size_wedge; // The side column blocks' starting thickness; each ends as thick as its rib start.
     const double size_tsections; // Flange plane offset and bed layer thickness.
-    const double height; // Rib depth where the parabola starts, a wedge thickness past the column face.
+    const double height; // Rib depth where the parabola starts, a rib start past the fan plane.
     const double rise; // Parabola rise from there to the seam.
     const double wedge_plane_angle; // Degrees the chamfer fan plane leans about its top edge.
     const double oculus_plane_angle; // Degrees the oculus bearing plane leans about its top edge.
     const double column_head_depth; // Depth of the carved head and of the capitel.
     const double bay_height; // Storey: the floor top above the slab, the column top.
-    const double middle_wedge_factor; // The middle block in wedge thicknesses.
+    const double middle_wedge_factor; // The middle block's thickness over the mean of the two rib starts.
 
     // what the constructor derives from them
     Point centre; // The vertex centroid, where the bimedians cross and bisect each other.
@@ -194,7 +194,7 @@ public:
     /// Quarter q's three inner beams: seam 0, the oculus edge, seam 1.
     const std::array<std::array<Polyline, 2>, 3>& inner_beams(size_t q) const;
 
-    /// The oculus: four ring beams in a pinwheel, four bottom wedges and the inner plate.
+    /// The oculus: four ring beams in a pinwheel, four bottom wedges and the central plate.
     const std::array<std::array<Polyline, 2>, 9>& oculus() const;
 
     /// The ring's inner face on oculus edge q: the oculus beam's back face moved back by twice inner_beams.
@@ -241,7 +241,7 @@ private:
     std::array<std::array<std::array<Polyline, 2>, 3>, 4> _wedges;
     std::array<std::array<std::array<Polyline, 2>, 3>, 4> _inner_beams;
     std::array<std::array<std::array<Polyline, 2>, 6>, 4> _column_cutters;
-    std::array<std::array<Polyline, 2>, 9> _oculus; // Four ring beams, four bottom wedges, the inner plate.
+    std::array<std::array<Polyline, 2>, 9> _oculus; // Four ring beams, four bottom wedges, the central plate.
 
     /// A member's two faces: the plane and its copy moved by distance along the normal.
     static std::array<Plane, 2> pair(const Plane& plane, double distance);

@@ -1421,6 +1421,17 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
         }
     }
 
+    // no two pins of different connectors meet: the two quarters' heads at a seam stand 2 * PIN_SHIFT apart
+    double closest = 1e300;
+
+    for (size_t i = 0; i < pins.size(); i++)
+        for (size_t j = i + 1; j < pins.size(); j++)
+            for (const Line& a : pins[i]->drill_lines)
+                for (const Line& b : pins[j]->drill_lines)
+                    closest = std::min(closest, a.start().distance(b.start()));
+
+    check(closest >= 2.0 * wood_floor::Floor::PIN_SHIFT - 1e-6, fmt::format("{} pin heads of different connectors at least {:.0f} apart, closest {:.3f}", label, 2.0 * wood_floor::Floor::PIN_SHIFT, closest));
+
     check(counts["outer_rib_seam_beam"] == 16 && counts["seam_beam_oculus_beam"] == 16 && counts["oculus_beam_inner_rib"] == 16 && counts["ring_corner"] == 8, label + " pins per kind 16, 16, 16 and two at each of the four ring corners");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());

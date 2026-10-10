@@ -4,9 +4,17 @@
 
 <em>Step 7 of @ref templates_floor_model · previous: @ref templates_floor_guide · next: @ref templates_floor_08_contacts</em>
 
-`Floor::add_members` turns the guide's face loops into elements: `add_quarters` makes the six member families of every quarter, `add_oculus` the ring around the hole, `add_columns` a column on its support at every corner, then `add_contacts` (chapter 8) finds where they touch. Every member is built at the guide's datum and lifted to `bay_height`. The pictures show quarter 0 of the default 6000 x 6000 bay.
+`Floor(guide, name)` builds the whole floor in its constructor.
+This page covers its first three steps, `add_quarters`, `add_oculus` and `add_columns`; page 8 covers `add_contacts`.
+`add_quarters` makes the six member families of every quarter: `beds`, `tsections`, `outer_ribs`, `inner_ribs`, `wedges` and `inner_beams`.
+`add_oculus` makes the ring around the hole.
+`add_columns` makes a column on its support at every corner.
+The guide draws every loop at the datum, z 0.
+`bay_height` (3500) is the storey, the floor top above the slab and the column top.
+Every member is lifted from the datum to `bay_height`.
+The pictures show quarter 0 of the default 6000 x 6000 bay.
 
-Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) builds one column on its support; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) the whole floor.
+Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) reads one column back from the floor with `get_branch("column_0")`; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor.
 
 ## 201. Floor(guide)
 
@@ -14,19 +22,44 @@ Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas
 
 <span style="color:#737373">■ input</span> `guide.corners`   <span style="color:#A3A3A3">■ context</span> the bay edges, seams and oculus of the guide
 
-`Floor(guide, name)` is an empty `WoodSession`, named `floor` by default, that keeps its own copy of the guide; nothing is built until `add_members` is called.
+`Floor(guide, name)` is a `WoodSession`, named `floor` by default.
+It keeps its own copy of the guide.
+It builds the whole floor in its constructor.
 
 Code: `Floor::Floor`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); [floor.h](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.h).
 
-## 202. add_members
+## 202. The constructor
 
 ![](floor/202_add_members.webp)
 
 <span style="color:#2196EA">■ add_quarters</span> the quarters' members   <span style="color:#F2CC0C">■ add_oculus</span> the ring and the oculus plates   <span style="color:#E8478B">■ add_columns</span> the columns and their supports
 
-`add_members` calls `add_quarters`, `add_oculus`, `add_columns` and last `add_contacts`, in that order.
+The constructor calls six private steps in order: `add_quarters`, `add_oculus`, `add_columns`, `add_contacts`, `compute_connectors` and `add_connectors`.
 
-Code: `Floor::add_members`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
+```cpp
+Floor::Floor(const FloorGuide& guide, const std::string& name)
+    : WoodSession(name),
+      guide(guide) {
+
+    // quarters: every quarter's members, lifted to bay_height and grouped by family
+    add_quarters();
+
+    // oculus: the four ring beams, the bottom wedges and the central plate
+    add_oculus();
+
+    // columns: the column at every corner, its head carved by the guide's cutters
+    add_columns();
+
+    // contacts: per quarter an interaction between every two members that touch, named by its kind and place
+    const std::array<QuarterContacts, 4> contacts = add_contacts();
+
+    // connectors: per quarter its wedges, column plates with their cross lap, centred and headed pins, all built on uncut members
+    const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
+    add_connectors(connectors, contacts);
+}
+```
+
+Code: `Floor::Floor`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 203. quarter_group
 
@@ -44,9 +77,15 @@ Code: `Floor::quarter_group`, [floor.cpp](https://github.com/petrasvestartas/woo
 
 <span style="color:#2196EA">■ built</span> `outer_ribs_0_0` at the floor   <span style="color:#737373">■ input</span> its loops at the datum, dashed
 
-Each new element is made with its name, moved up by `bay_height` (3500) with `place(lift)` and added under its group; the guide's loops all lie at the datum z 0.
+The guide's loops all lie at the datum, z 0.
+Each new element is made with its name, moved up by `bay_height` (3500) with `place(lift)` and added under its group.
+The lift is applied in `add_quarters`, in `add_oculus` and to the column cutters in `add_column`.
 
-Code: `Floor::add_quarters`.
+```cpp
+const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
+```
+
+Code: `Floor::add_quarters`, `Floor::add_oculus`, `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 205. A bed row
 
@@ -84,7 +123,9 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 <span style="color:#E8478B">■ near</span> `loops[0]`, its soffit points dotted   <span style="color:#F2CC0C">■ far</span> `loops[1]`
 
-A rib's two face loops each list the two top corners `near[0]` and `near[1]`, then the soffit points from `near[2]`; `rib()` makes one section per soffit point.
+The soffit is the rib's curved underside.
+A rib's two face loops each list the two top corners `near[0]` and `near[1]`, then the soffit points from `near[2]`.
+`rib()` makes one section per soffit point.
 
 Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
@@ -164,7 +205,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 <span style="color:#E8478B">■ outer_ribs</span>   <span style="color:#F2CC0C">■ inner_ribs</span>   <span style="color:#7C7C7C">■ inner_beams</span>   <span style="color:#A8A8A8">■ wedges</span>   <span style="color:#F5D890">■ tsections</span>   <span style="color:#A6D3F6">■ beds</span>
 
-`add_quarters` runs the same code for every quarter at its own corner, the families in the order beds, tsections, outer_ribs, inner_ribs, wedges, inner_beams, each in its group under `quarter_q`; `quarters[q]` keeps them by family.
+`add_quarters` runs the same code for every quarter at its own corner, the families in the order beds, tsections, outer_ribs, inner_ribs, wedges, inner_beams, each in its group under `quarter_q`.
 
 Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
@@ -260,7 +301,6 @@ const std::shared_ptr<Column> shaft = Column::square(
     guide.size_column_head,
     name
 );
-add(shaft, group);
 ```
 
 Code: `Column::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
@@ -285,9 +325,15 @@ Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petras
 
 <span style="color:#2196EA">■ built</span> `column_0` with its head
 
-Each block is added and glued on with a `SolidOperation::add` interaction, so the column's stock is the shaft and both blocks.
+The shaft is added first.
+Each block is then added and glued on with a `SolidOperation::add` interaction, so the column's stock is the shaft and both blocks.
 
 ```cpp
+add(shaft, group);
+
+// the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
+const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
+
 for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
     add(block, group);
     const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);

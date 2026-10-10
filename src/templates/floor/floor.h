@@ -29,7 +29,7 @@ struct Contact {
 /// - `oculus_wedge`: the oculus beam on its ring beam.
 /// - `column_plates[2]`: the column against outer rib k.
 /// - `block_pins[3][2]`: column block b against the rib on its side 0 or 1.
-/// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: the butt joints held by pins, through member first.
+/// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`: the butt joints held by pins.
 /// - `ring_corner`: ring beam q against ring beam q + 1, held by pins.
 struct QuarterContacts {
     Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
@@ -74,8 +74,9 @@ struct QuarterConnectors {
 class Floor : public WoodSession {
 public:
     static constexpr double PIN_LENGTH = 200.0; // mm, every assembly pin.
+    static constexpr double PIN_RADIUS = 2.0; // mm, every assembly pin.
     static constexpr double PIN_INSET = 20.0; // mm the pins stand in from the contact's edges.
-    static constexpr double PIN_SHIFT = 15.0; // mm the pins of the two quarters at a seam stand either side, so their heads stay apart.
+    static constexpr double PIN_SHIFT = 15.0; // mm the seam pins stand off the contact's middle, so the two quarters' heads at a seam stay 30 apart.
     static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The inner beams on seam 0 and seam 1, k 0 and 1; between them inner beam 1, along the oculus edge, the oculus beam.
 
     const FloorGuide guide; // The geometry the model is built from; every element is in the session.

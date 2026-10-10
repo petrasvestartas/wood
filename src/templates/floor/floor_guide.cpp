@@ -151,7 +151,7 @@ FloorGuide::FloorGuide(
         _inner_beams[q] = beams;
     }
 
-    // oculus, four ring beams around the hole, four bottom wedges and the inner plate
+    // oculus, four ring beams around the hole, four bottom wedges and the central plate
     const std::array<std::array<Polyline, 2>, 9> ring = compute_oculus();
     _oculus = ring;
 
@@ -1106,7 +1106,7 @@ std::array<std::array<Polyline, 2>, 9> FloorGuide::compute_oculus() const {
         inner.push_back(ring_inner(q));
     }
 
-    // four ring beams, four bottom wedges, the inner plate
+    // four ring beams, four bottom wedges, the central plate
     std::array<std::array<Polyline, 2>, 9> plates;
 
     for (size_t i = 0; i < 4; i++)

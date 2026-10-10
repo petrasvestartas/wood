@@ -17,7 +17,7 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
     // quarters: every quarter's members, lifted to bay_height and grouped by family
     add_quarters();
 
-    // oculus: the four ring beams, the oculus beams, the bottom wedges and the central plate
+    // oculus: the four ring beams, the bottom wedges and the central plate
     add_oculus();
 
     // columns: the column at every corner, its head carved by the guide's cutters
@@ -271,7 +271,7 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
     for (size_t q = 0; q < 4; q++) {
         const size_t next = (q + 1) % 4;
 
-        // seam: this quarter's seam beam 0 beside the next quarter's seam beam 1
+        // seam: this quarter's seam beam 0 beside the next quarter's seam beam 2
         const Contact seam = add_contact(fmt::format("seam_wedge_{}", q), fmt::format("inner_beams_0_{}", q), fmt::format("inner_beams_2_{}", next));
         contacts[q].seam_wedge = seam;
 
@@ -294,7 +294,7 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
                 contacts[q].block_pins[b][side] = pins;
             }
 
-        // butt joints held by pins, the member the pins pass through first: the outer rib ending on its seam beam, the seam beam on the oculus beam, the oculus beam on the inner rib
+        // butt joints held by pins: the outer rib ending on its seam beam, the seam beam on the oculus beam, the oculus beam on the inner rib
         for (size_t k = 0; k < 2; k++) {
             const std::string seam_beam = fmt::format("inner_beams_{}_{}", SEAM_BEAMS[k], q);
             const std::string oculus_beam = fmt::format("inner_beams_1_{}", q);
@@ -401,9 +401,8 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 quarter_connectors.block_pins[b][side] = pins;
             }
 
-        // pins: two in a column across each butt joint, through the first member into the second; the two quarters' pins at a seam either side of its middle
+        // pins: two in a column across each butt joint, along the member that ends on it; the two quarters' contacts at a seam face opposite ways, so one shift along each puts their pins either side of its middle
         for (size_t k = 0; k < 2; k++) {
-            const double shift = k == 0 ? -PIN_SHIFT : PIN_SHIFT;
             const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
             const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
             const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
@@ -414,7 +413,9 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 PinLayout::vertical,
                 2,
                 PIN_INSET,
-                shift
+                PIN_SHIFT,
+                PIN_RADIUS,
+                PIN_LENGTH
             );
             quarter_connectors.seam_beam_oculus_beam[k] = JointBeam::headed_pins(
                 *seam.a,
@@ -423,7 +424,9 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 PinLayout::vertical,
                 2,
                 PIN_INSET,
-                shift
+                PIN_SHIFT,
+                PIN_RADIUS,
+                PIN_LENGTH
             );
             quarter_connectors.oculus_beam_inner_rib[k] = JointBeam::headed_pins(
                 *inner.a,
@@ -431,7 +434,10 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 *inner.face,
                 PinLayout::vertical,
                 2,
-                PIN_INSET
+                PIN_INSET,
+                0.0,
+                PIN_RADIUS,
+                PIN_LENGTH
             );
 
             if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
@@ -446,7 +452,10 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             *ring.face,
             PinLayout::vertical,
             2,
-            PIN_INSET
+            PIN_INSET,
+            0.0,
+            PIN_RADIUS,
+            PIN_LENGTH
         );
 
         if (!quarter_connectors.ring_corner)

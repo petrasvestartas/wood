@@ -17,6 +17,6 @@ Two classes build the floor:
 |---|---|
 | [templates_floor_1_floorguide](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_1_floorguide.cpp) | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
 | [templates_floor_2_column_model](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) | one column on its support, carved by its six head cutters |
-| [templates_floor_3_contacts](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_3_contacts.cpp) | the 40 contacts the floor stores, red on the faces, seen with View Xray |
+| [templates_floor_3_contacts](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_3_contacts.cpp) | the 68 contacts the floor stores, red on the faces, seen with View Xray: per quarter 1 `seam_wedge`, 1 `oculus_wedge`, 2 `column_plate`, 6 `block_pins`, 6 butt-joint pin contacts and 1 `pins_ring_corner` |
 | [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and pin, BReps with exact bores |
 | [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_8_rectangle.cpp) | the floor on a 6000 x 4800 bay with every connector and pin, BReps |
