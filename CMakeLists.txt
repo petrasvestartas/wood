@@ -363,6 +363,7 @@ ADD_EXE(element_joint_beam_cr_c_ip_3 examples/elements/element_joint_beam_cr_c_i
 ADD_EXE(element_joint_beam_cr_c_ip_4 examples/elements/element_joint_beam_cr_c_ip_4.cpp)
 ADD_EXE(element_joint_beam_cr_c_ip_5 examples/elements/element_joint_beam_cr_c_ip_5.cpp)
 ADD_EXE(element_joint_beam_ts_e_p_4 examples/elements/element_joint_beam_ts_e_p_4.cpp)
+ADD_EXE(element_joint_beam_ts_e_p_3 examples/elements/element_joint_beam_ts_e_p_3.cpp)
 ADD_EXE(element_joint_beam_wedge             examples/elements/element_joint_beam_wedge.cpp)
 ADD_EXE(element_joint_plate_hilti examples/elements/element_joint_plate_hilti.cpp)
 ADD_EXE(element_joint_plate_hilti_angles examples/elements/element_joint_plate_hilti_angles.cpp)

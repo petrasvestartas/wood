@@ -158,7 +158,7 @@ static void check_crossings() {
 static void check_tees() {
 
     for (const double angle : {90.0, 60.0}) {
-        for (const int id : {24}) {
+        for (const int id : {20, 21, 24}) {
             WoodSession scene(fmt::format("tee_{:g}_{}", angle, id));
             scene.settings.joint_parameters[8] = id;
             const double turn = angle * std::numbers::pi / 180.0;

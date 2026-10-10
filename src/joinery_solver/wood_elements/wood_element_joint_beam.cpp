@@ -135,6 +135,41 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
     // the plate joint on the boxes and the cut it leaves each beam
     compute_joinery(*joint, settings);
 
+    // a beam ending on another has room for one tenon: where the design severs a beam or leaves the two overlapping inside the joint, cut the single milled
+    // tenon of ts_e_p_4 instead
+    if (joint->feature.end_type == 1 && joint->joinery.joint_type == 20) {
+        const std::array<const Mesh*, 2> stocks = {&source.element_geometry_mesh(), &target.element_geometry_mesh()};
+        std::array<Mesh, 2> kept = {*stocks[0], *stocks[1]};
+        bool fails = false;
+        for (size_t i = 0; i < 2; i++) {
+            if (joint->member_cuts[i].number_of_faces() == 0)
+                continue;
+            const Mesh taken = solid_boolean(*stocks[i], joint->member_cuts[i], SolidOperation::intersect);
+            const double expected = compute_volume(*stocks[i]) - (taken.number_of_faces() == 0 ? 0.0 : compute_volume(taken));
+            kept[i] = solid_difference(*stocks[i], {joint->member_cuts[i]});
+            fails = fails || compute_volume(kept[i]) < expected - 1e-2 * compute_volume(*stocks[i]);
+        }
+        const Mesh zone = solid_boolean(
+            Plate(joint->feature.volumes[0], joint->feature.volumes[1]).element_geometry_mesh(),
+            Plate(joint->feature.volumes[2], joint->feature.volumes[3]).element_geometry_mesh(),
+            SolidOperation::add
+        );
+        const Mesh before = solid_boolean(solid_boolean(*stocks[0], *stocks[1], SolidOperation::intersect), zone, SolidOperation::intersect);
+        const Mesh after = solid_boolean(solid_boolean(kept[0], kept[1], SolidOperation::intersect), zone, SolidOperation::intersect);
+        const double overlap_before = before.number_of_faces() == 0 ? 0.0 : compute_volume(before);
+        const double overlap_after = after.number_of_faces() == 0 ? 0.0 : compute_volume(after);
+        fails = fails || overlap_after > 0.1 * overlap_before;
+
+        if (fails) {
+            Settings single = settings;
+            single.joint_parameters[8] = JointPlate::library_id("ts_e_p_4");
+            *joint = JointBeam();
+            beam_to_beam(source, target, contact, volume_length, cross_or_side_to_end, flip_male, joint->feature);
+            joint->targets = {source.guid(), target.guid()};
+            compute_joinery(*joint, single);
+        }
+    }
+
     return joint;
 }
 

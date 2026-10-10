@@ -27,7 +27,7 @@ An element is built from its own parameters only. Whatever another element does 
 | [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_b_0` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
 | [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip) | `wood_element_joint_beam.h` | `element_joint_beam_cr_c_ip_0` to `_5` |
-| [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p) | `wood_element_joint_beam.h` | `element_joint_beam_ts_e_p_4` |
+| [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p) | `wood_element_joint_beam.h` | `element_joint_beam_ts_e_p_3`, `_4` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_tie` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [JointPlate hilti](@ref elements_joint_plate_hilti) | `wood_element_joint_plate.h` | `element_joint_plate_hilti`, `_angles` |

@@ -2,7 +2,7 @@
 
 [TOC]
 
-Tee joints on a beam ending on the side of another: the plate library's top-side designs, chosen by `settings.joint_parameters[8]`, cut into both beams as solids by `JointBeam::from_contact`. A beam's end has room for one tenon only.
+Tee joints on a beam ending on the side of another: the plate library's top-side designs, chosen by `settings.joint_parameters[8]`, cut into both beams as solids by `JointBeam::from_contact`. A beam's end has room for one tenon only: where a design would sever a beam or leave the two overlapping inside the joint, `from_contact` cuts the single milled tenon of `ts_e_p_4` instead.
 
 ## Constructors
 
@@ -18,3 +18,11 @@ static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& t
 `Beam::pair_tee(90.0)`: the second beam ends on the middle of the first, its tenon milled into a mortise through the first; the second is lifted 300.
 
 \include{lineno} elements/element_joint_beam_ts_e_p_4.cpp
+
+## ts_e_p_3: one tenon on a beam
+
+![ts_e_p_3](elements/element_joint_beam_ts_e_p_3.png)
+
+The plate default, two tenons, would run its mortises through the whole width of the first beam and sever it, so the tee takes the single milled tenon of `ts_e_p_4`.
+
+\include{lineno} elements/element_joint_beam_ts_e_p_3.cpp
