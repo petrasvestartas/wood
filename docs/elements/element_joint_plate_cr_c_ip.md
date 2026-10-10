@@ -30,6 +30,12 @@ Every example is the same pair: two upright 400 x 200 plates 40 thick crossing a
 
 ![cr_c_ip_0](elements/element_joint_plate_cr_c_ip_0.png)
 
+![cr_c_ip_0, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_0_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_0(); // a fixed design, no parameters
+```
+
 The family default: a rectangle merged into each plate's outline over half the cross's depth, a slot from the top of the first plate and from the bottom of the second, clipped into the outline by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid in the frame of the face. The id 30, every cross dataset but Brussels.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_0.cpp
@@ -37,6 +43,14 @@ The family default: a rectangle merged into each plate's outline over half the c
 ## cr_c_ip_1: the sliced half-lap
 
 ![cr_c_ip_1](elements/element_joint_plate_cr_c_ip_1.png)
+
+![cr_c_ip_1, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_1_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_1(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
 
 The half-lap as nine rings per plate on the shift, every one a solid taken from the plate: the centre square and the two top sides milled, the two bottom sides and the four corner wedges sliced; face 1 is every ring offset along its normal, the male the female with its axes swapped and its depth flipped, as 2024 built it. The id 31.
 
@@ -46,6 +60,14 @@ The half-lap as nine rings per plate on the shift, every one a solid taken from 
 
 ![cr_c_ip_2](elements/element_joint_plate_cr_c_ip_2.png)
 
+![cr_c_ip_2, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_2_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_2(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body here: the centre square milled, the two top sides as the two sheer walls between each ring and its offset, the two bottom sides milled, their first and third segments extended 0.15 along the plate at both ends and their slanted segments 0.6 up and down so the cut clears the plate; no drill. The id 32.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_2.cpp
@@ -53,6 +75,14 @@ The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body he
 ## cr_c_ip_3: two diagonal drills
 
 ![cr_c_ip_3](elements/element_joint_plate_cr_c_ip_3.png)
+
+![cr_c_ip_3, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_3_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_3(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
 
 The milled half-lap of `cr_c_ip_2` and two diagonal drills through the lap, each a line in the unit box bored through both plates. The id 33.
 
@@ -62,6 +92,14 @@ The milled half-lap of `cr_c_ip_2` and two diagonal drills through the lap, each
 
 ![cr_c_ip_4](elements/element_joint_plate_cr_c_ip_4.png)
 
+![cr_c_ip_4, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_4_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_4(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 The milled half-lap of `cr_c_ip_2` and one vertical drill down the centre of the lap, along the cross's depth through both plates; the line keeps where 2024 declared it, where 2024 offset it too, reading past its ring and length arrays. The id 34.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_4.cpp
@@ -69,6 +107,14 @@ The milled half-lap of `cr_c_ip_2` and one vertical drill down the centre of the
 ## cr_c_ip_5: the Brussels half-lap
 
 ![cr_c_ip_5](elements/element_joint_plate_cr_c_ip_5.png)
+
+![cr_c_ip_5, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_5(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
 
 The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the bottom sides extended 0.27 on their first segment and shortened 0.075 on their third, a vertical 50 mm bit down the centre of the lap and a horizontal 10 mm bit below it, each bored through both plates, the bits named in `FabricationType` as `drill_50` and `drill_10`. The id 35, the Brussels dataset.
 
@@ -81,6 +127,12 @@ The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the 
 Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: each pair is inserted between the plate's edges as `cr_c_ip_0` is; here the slots split the cross's depth unequally, 60 down from the first plate's top edge and 140 up from the second's bottom edge, where `cr_c_ip_0` halves it. The id 39.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_custom.cpp
+
+## Parameters
+
+**Shift.** The shift narrows the half-lap's centre square, 0 the widest and 1 the narrowest. Above 0.85 the slanted side cuts of cr_c_ip_2 to 5 cross over and the ring folds onto itself, in 2024 as here.
+
+![cr_c_ip sweep](joint_library/sweep_cr_c_ip.png)
 
 ## Angles
 

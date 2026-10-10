@@ -28,6 +28,12 @@ Every example is the same pair: two 300 x 400 plates 40 thick edge to edge in on
 
 ![ss_e_ip_0](elements/element_joint_plate_ss_e_ip_0.png)
 
+![ss_e_ip_0, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_0_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_0(); // a fixed design, no parameters
+```
+
 The fixed three-finger zigzag merged into both edges, each plate's fingers in the other's notches; the right plate moved 120 off.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_0.cpp
@@ -35,6 +41,15 @@ The fixed three-finger zigzag merged into both edges, each plate's fingers in th
 ## ss_e_ip_1: parametric fingers
 
 ![ss_e_ip_1](elements/element_joint_plate_ss_e_ip_1.png)
+
+![ss_e_ip_1, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_1_8_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_1(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the dovetail lean: straight at 0.5, one way at 0, the other at 1
+);
+```
 
 Eight divisions at the shift 0.5: four square fingers on each plate, `ss_e_ip_0` being this zigzag fixed at six; on its defaults the count is geometric, one division every 300 of the joint line and at least two, which on this 400 seam is a single tongue; the right plate moved 120 off.
 
@@ -44,6 +59,14 @@ Eight divisions at the shift 0.5: four square fingers on each plate, `ss_e_ip_0`
 
 ![ss_e_ip_2](elements/element_joint_plate_ss_e_ip_2.png)
 
+![ss_e_ip_2, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_2_4_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_2(
+    4  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
 A butterfly pocket into each edge per division, two on this seam, and the joint's own butterfly keys that fill both pockets, drawn half way between them; the right plate moved 160 off, the keys 80.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_2.cpp
@@ -51,6 +74,12 @@ A butterfly pocket into each edge per division, two on this seam, and the joint'
 ## ss_e_ip_3: milled key groove and drills
 
 ![ss_e_ip_3](elements/element_joint_plate_ss_e_ip_3.png)
+
+![ss_e_ip_3, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_3_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_3(); // a fixed design, no parameters
+```
 
 A slanted key groove milled the length of the seam into each edge, its profile projected from face to face, and a drill through the thickness of each plate, a third of the way across the seam (2024 listed each of the two lines twice); the joint owns no piece, each plate hosts its groove and its bore, an exact cylinder; the right plate moved 200 off.
 
@@ -60,6 +89,12 @@ A slanted key groove milled the length of the seam into each edge, its profile p
 
 ![ss_e_ip_4](elements/element_joint_plate_ss_e_ip_4.png)
 
+![ss_e_ip_4, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_4_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_4(); // a fixed design, no parameters
+```
+
 Two slanted key grooves crossing each other milled into each edge, each projected from face to face, and a drill through the thickness of each plate; its axis lies in the end face of the first groove, as 2024 placed it, so the groove halves the bore and it is drawn faceted, the one bore of the library the exact builder cannot make; the right plate moved 200 off.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_4.cpp
@@ -67,6 +102,14 @@ Two slanted key grooves crossing each other milled into each edge, each projecte
 ## ss_e_ip_5: reversed-tooth keys
 
 ![ss_e_ip_5](elements/element_joint_plate_ss_e_ip_5.png)
+
+![ss_e_ip_5, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_5_4_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_5(
+    4  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
 
 An eight-point tooth pocket into each edge per division, each reversed, two on this seam, and the joint's own keys that fill both pockets, drawn half way between them; the right plate moved 200 off, the keys 100.
 
@@ -79,6 +122,20 @@ An eight-point tooth pocket into each edge per division, each reversed, two on t
 A feather joint you write yourself: eight sharp V teeth alternating across the seam, per face an open profile and its end line, as `ss_e_ip_0` is written; both plates merge their side of it into the edge.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_custom.cpp
+
+## Parameters
+
+**Divisions and shift.** Divisions set the number of dovetails; the shift leans them: straight at 0.5, dovetailed one way at 0 and the other at 1.
+
+![ss_e_ip_1 sweep](joint_library/sweep_ss_e_ip_1.png)
+
+**On other seams.** The same dovetails on a seam square to the plates, on a seam slanted to 75 degrees and on a seam shorter than both plates: the divisions are counted along the seam itself.
+
+![ss_e_ip_1 on straight, slanted and short seams](joint_library/sweep_ss_e_ip_1_seams.png)
+
+ss_e_ip_2 and ss_e_ip_5 cut butterfly pockets across the seam, one per division. The butterfly key itself is not modelled as a piece, as in 2024.
+
+![ss_e_ip_2 and ss_e_ip_5 sweep](joint_library/sweep_ss_e_ip_2_5.png)
 
 ## Angles
 

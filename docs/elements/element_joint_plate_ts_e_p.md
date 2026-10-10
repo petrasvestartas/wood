@@ -30,6 +30,12 @@ Every example is the same pair: a 400 x 400 base plate and a 250 x 250 upright s
 
 ![ts_e_p_0](elements/element_joint_plate_ts_e_p_0.png)
 
+![ts_e_p_0, the unit box: male pink, female blue](joint_library/ts_ts_e_p_0_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_0(); // a fixed design, no parameters
+```
+
 Three tenons on the upright's bottom edge over the middle five sevenths of the joint line, each the base's thickness deep, and three mortises through the base, 2024's literals with no parameters.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_0.cpp
@@ -37,6 +43,12 @@ Three tenons on the upright's bottom edge over the middle five sevenths of the j
 ## ts_e_p_1: the Annen tenons
 
 ![ts_e_p_1](elements/element_joint_plate_ts_e_p_1.png)
+
+![ts_e_p_1, the unit box: male pink, female blue](joint_library/ts_ts_e_p_1_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_1(); // a fixed design, no parameters
+```
 
 The two fixed tenons of the Annen project on the upright's bottom edge, one run with the full-height edge marker, each the base's thickness deep, and two mortises through the base, 2024's literals with no parameters.
 
@@ -46,6 +58,15 @@ The two fixed tenons of the Annen project on the upright's bottom edge, one run 
 
 ![ts_e_p_2](elements/element_joint_plate_ts_e_p_2.png)
 
+![ts_e_p_2, the unit box: male pink, female blue](joint_library/ts_ts_e_p_2_8_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_2(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the tenon width against the gap
+);
+```
+
 The parametric tenons that visit every interpolation point of the joint line, the division count geometric, made even and kept between 2 and 20, so one tenon on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_2.cpp
@@ -53,6 +74,15 @@ The parametric tenons that visit every interpolation point of the joint line, th
 ## ts_e_p_3: a tenon per four divisions
 
 ![ts_e_p_3](elements/element_joint_plate_ts_e_p_3.png)
+
+![ts_e_p_3, the unit box: male pink, female blue](joint_library/ts_ts_e_p_3_8_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the tenon width against the gap
+);
+```
 
 The family default: the parametric tenons that skip every other point pair, a tenon per four divisions, the division count geometric, made a multiple of four and kept between 8 and 100, so two tenons on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon; `ts_e_p_3` six times with other divisions and shifts is on the [JointPlate page](@ref elements_joint_plate).
 
@@ -62,6 +92,12 @@ The family default: the parametric tenons that skip every other point pair, a te
 
 ![ts_e_p_4](elements/element_joint_plate_ts_e_p_4.png)
 
+![ts_e_p_4, the unit box: male pink, female blue](joint_library/ts_ts_e_p_4_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed design, no parameters
+```
+
 The fixed wedge design 2024 kept as 240 literal points: four mill pockets through the base, and on the upright two wedge flanks, two walls and two caps milled along its faces and two slices, every outline a solid taken from its plate's stock, written twice as 2024 doubled them; the pockets are left for a loose wedge 2024 never modelled. The ids 23 and 24.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_4.cpp
@@ -69,6 +105,14 @@ The fixed wedge design 2024 kept as 240 literal points: four mill pockets throug
 ## ts_e_p_5: the snap-fit tenon
 
 ![ts_e_p_5](elements/element_joint_plate_ts_e_p_5.png)
+
+![ts_e_p_5, the unit box: male pink, female blue](joint_library/ts_ts_e_p_5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_5(
+    0  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
 
 The snap-fit tenon, 2024's literals, a copy per division spread along the joint line, one here, the copies run into one outline on the upright's bottom edge and a mortise through the base per copy; the design is unit scale, its unit z the upright's thickness times the joint scale instead of the joint line, so the tenon keeps the upright's thickness and its hook runs through the base and out below it as 2024 drew it. The id 25, the box and the snap-fit datasets.
 
@@ -81,6 +125,22 @@ The snap-fit tenon, 2024's literals, a copy per division spread along the joint 
 Two tenons you write yourself, as `ts_e_p_0` is written: per upright face the tenon profile and its end line, cut into its edge; per base face one rectangle per mortise, cut as a hole.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_custom.cpp
+
+## Parameters
+
+**Divisions and shift.** Divisions set the number of tenons (two of every four divisions are tenons). The shift sets the tenon width against the gap and leans the tenon sides.
+
+![ts_e_p_2 sweep](joint_library/sweep_ts_e_p_2.png)
+![ts_e_p_3 sweep](joint_library/sweep_ts_e_p_3.png)
+
+**At other angles.** The same tenons on an upright square to the base, skewed 75 degrees in plan and leaning 80 degrees, at 8, 16 and 24 divisions (the design rounds a count up to a multiple of four, at least eight, a tenon every four): the mortises follow the upright's footprint.
+
+![ts_e_p_3 square, skewed and leaning](joint_library/sweep_ts_e_p_3_angles.png)
+
+ts_e_p_5, the snap fit: each tenon ends in a hook that snaps under the base. The thesis names it only in the text (p.86, p.91). The oracle does not check it, because 2024's literals put its hook through the base by design; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
+
+
+\image html joint_library/ts_ts_e_p_5.png "ts_e_p_5: snap fit, on the plates" width=70%
 
 ## Angles
 

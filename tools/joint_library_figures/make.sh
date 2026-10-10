@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every picture of docs/joint_library.md, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
+# Every joint-unit picture of the JointPlate family pages, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
 # design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box (its parameters are the page's code
 # snippets), and <id>.png, the oracle's pair drawn
 # apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.
@@ -76,6 +76,6 @@ sweep tt_e_p_2 "tt_e_p_2: divisions (rows) and shift (columns)" 2 plates $(for d
 sweep tt_e_p_3_4_5 "tt_e_p_3, tt_e_p_4, tt_e_p_5 (rows): division length (columns)" 3 plates $(for n in 3 4; do for l in 30 60 90; do echo "tt_e_p_$n, length $l|tt/tt_e_p_$n/$l/12/8"; done; done; for l in 30 60 90; do echo "tt_e_p_5, length $l|tt/tt_e_p_5/$l/0.95/8"; done)
 # only the pictures the page shows
 for f in "$OUT"/*.png; do
-    grep -q "joint_library/$(basename "$f")" docs/joint_library.md || rm "$f"
+    grep -qr "joint_library/$(basename "$f")" docs/elements || rm "$f"
 done
 rm -rf "$WORK"

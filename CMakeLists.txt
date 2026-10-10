@@ -269,7 +269,7 @@ target_compile_definitions(rust_elements PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURREN
 # The geometry oracle: every plate joint design measured on a joined pair, goldens under tests/golden/joint_library.
 ADD_EXE(joint_library                    tests/joint_library.cpp)
 target_compile_definitions(joint_library PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-# The tiles of docs/joint_library.md: every oracle design written as what each plate keeps inside the joint's box (tools/joint_library_figures/make.sh).
+# The joint units on the JointPlate family pages: every oracle design written as what each plate keeps inside the joint's box (tools/joint_library_figures/make.sh).
 ADD_EXE(joint_tiles                      tools/joint_library_figures/joint_tiles.cpp)
 target_compile_definitions(joint_tiles PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # The scoreboard: every dataset against the 2025 solver's merged outlines in tests/golden/reference_2025 (tools/reference_2025.py).
@@ -390,7 +390,7 @@ ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.c
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
-# docs/examples.md, docs/elements.md with a page per element under docs/elements, docs/joint_library.md, docs/templates.md and a page per
+# docs/examples.md, docs/elements.md with a page per element under docs/elements, docs/templates.md and a page per
 # template family under docs/templates (their pictures under docs/images, the floor's beside its page in docs/templates/floor); Doxygen only.
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
@@ -433,7 +433,6 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/cutting_gallery.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/joint_library.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver

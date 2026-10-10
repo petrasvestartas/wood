@@ -35,6 +35,15 @@ The averaged joint volume split in half through the thickness, each half sliced 
 
 ![ss_e_r_2](elements/element_joint_plate_ss_e_r_2.png)
 
+![ss_e_r_2, the unit box: male pink, female blue](joint_library/r@120_ss_e_r_2_4_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_2(
+    4,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the size of each key along the joint line
+);
+```
+
 A hook pocket milled into each plate per division, two on this seam, each pocket the unit profile projected from one face to the other, and the joint's own key that fills both pockets, drawn half way between the plates.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_2.cpp
@@ -42,6 +51,15 @@ A hook pocket milled into each plate per division, two on this seam, each pocket
 ## ss_e_r_3: diamond pockets and key
 
 ![ss_e_r_3](elements/element_joint_plate_ss_e_r_3.png)
+
+![ss_e_r_3, the unit box: male pink, female blue](joint_library/r@120_ss_e_r_3_4_0.5_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3(
+    4,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the size of each key along the joint line
+);
+```
 
 A diamond pocket milled into each plate per division, two on this seam, and the joint's own key that fills both pockets, drawn half way between the plates.
 
@@ -70,6 +88,12 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts; kept as 2024 wrote it, the merged form swaps the sides last and hands each plate its own side slab outside its stock, so no side is removed and only the tile's conic slivers cut. 2024 named it as id 58 but dispatched `side_removal(true)` for it, so no 2025 reference dataset reaches it; it is the 2024 function, not a design the solver chooses.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.cpp
+
+## Parameters
+
+**Divisions.** One key per division.
+
+![ss_e_r sweep](joint_library/sweep_ss_e_r.png)
 
 ## Angles
 

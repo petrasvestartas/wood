@@ -24,6 +24,18 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
+## The unit box
+
+A plate joint is a pair of cuts in a unit box: the male (pink) for one plate and the female (blue) for the other, placed on the contact by a change of basis from the box to the joint's two volume rectangles. Each design's section on its family page shows its unit box with the factory call under it.
+
+| Parameter | Designs | What it does |
+| --- | --- | --- |
+| `divisions` | ss_e_ip_1, ss_e_ip_2, ss_e_ip_5, ss_e_op_1, ss_e_op_2, ss_e_op_4 to 6, ss_e_op_17, ts_e_p_2, ts_e_p_3, ts_e_p_5, ss_e_r_2, ss_e_r_3, tt_e_p_2 | how many fingers, tenons, keys or drill rows along the joint line; 0 takes the joint line's length over the family's division length (300 mm in plane and rotated, 450 mm out of plane and top to side) |
+| `shift` | ss_e_ip_1, ss_e_op_1, ss_e_op_2, ts_e_p_2, ts_e_p_3, ss_e_r_2, ss_e_r_3, cr_c_ip_1 to 5, tt_e_p_2 to 5 | in-plane fingers: the dovetail lean. Out-of-plane fingers lean only above 0.5, because 2024 reads a shift of 0 as no lean. Tenons: the tenon width against the gap. Cross joints: how narrow the half-lap's centre square is |
+| `taper`, `chamfer`, `modify_outline`, `x`, `y`, `z` | ss_e_op_4 | the tenons' side lean, chamfered ends, the floor's edge cut around the tenons, and the tenon box inside the unit box |
+| `disable_divisions` | ss_e_op_5 | the second linked joint (Vidy) without divisions |
+| `division_length`, `radius` | tt_e_p_0 to 5 | the drill spacing along the contour and the drill radius |
+
 ## How it is used
 
 A design is made by name, oriented on the contact of its two plates, added, and passed to each plate in its target order:
