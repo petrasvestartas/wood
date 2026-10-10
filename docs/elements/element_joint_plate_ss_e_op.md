@@ -98,6 +98,14 @@ On its defaults and with no linked joint: `ss_e_op_4` with the tenon box lengthe
 
 \include{lineno} elements/element_joint_plate_ss_e_op_6.cpp
 
+## A Vidy node: four plates
+
+![a Vidy node, with the viewer's layers](elements/element_joint_plate_vidy_node.png)
+
+Where ss_e_op_5 and ss_e_op_6 are used: the first node of the dataset vidy_corner, two wall plates and two roof plates in a session of their own, the node as a three-valence group with the Vidy instruction 1. `compute_features` joins the walls to the roof with the linked tenons ss_e_op_5 and adds the shadow joint (`JointVidy`) that links the two layers, so both wall layers send tenons up through the two-layer roof; each joint is in the `joints` group and on its plates through `add_interaction`, as the layer panel lists.
+
+\include{lineno} elements/element_joint_plate_vidy_node.cpp
+
 ## ss_e_op_17: fingers with flat mitre caps
 
 ![ss_e_op_17](elements/element_joint_plate_ss_e_op_17.png)
