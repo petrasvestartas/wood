@@ -337,7 +337,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_5(
 
 ## tt_e_p: top to top {#joint_library_tt_e_p}
 
-Two plates lying on each other; ids 40 to 49. The joint is a pattern of drills through both plates, so the unit box has no outlines: the picture is the plates with the same holes through both.
+Two plates lying on each other; ids 40 to 49. The joint is a pattern of drills through both plates. A pattern (tt_e_p_2 to 5) is laid on the contact less a border of two drill radii, so one radius of wood stays between every hole and the plate's edge, and its shift is measured inside that border; the single drills tt_e_p_0 and 1 sit at the centre. so the unit box has no outlines: the picture is the plates with the same holes through both.
 
 \image html joint_library/tt_tt_e_p_0_8.png "tt_e_p_0: one drill, on the plates" width=70%
 \image html joint_library/tt_tt_e_p_1_8.png "tt_e_p_1, on the plates" width=70%

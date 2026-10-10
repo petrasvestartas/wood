@@ -710,7 +710,7 @@ static void check_fit(const Built& built, Row& row) {
         fail(row, "C6", fmt::format("the members fill each other, yet the joint owns a solid of {:.6g} mm3", row.own));
 }
 
-/// C7: a pin joint declares axes, and every design with drills bores each member along the axes inside it: a drill feature and an exact cylinder per axis; on a pin joint the hole volume is pi r^2 L.
+/// C7: a pin joint declares axes, and every design with drills bores each member along the axes inside it: a drill feature and an exact cylinder per axis; on a pin joint the hole volume is pi r^2 L, and a drill pattern keeps one radius of wood to the contact's edge.
 static void check_drills(const Built& built, Row& row) {
 
     // a custom pair carries the user's outlines with no type and no drills, as 2024 kept it; only a pin joint must declare drills
@@ -724,6 +724,22 @@ static void check_drills(const Built& built, Row& row) {
     }
 
     const double radius = built.joint->line_radius;
+
+    // a drill pattern keeps one radius of wood between every hole and the edge of the contact: each axis two radii inside it
+    if (pins && built.library != "tt_e_p_0" && built.library != "tt_e_p_1") {
+        const Polyline& contact = built.joint->connections.at(0).contact.polygon;
+        Point origin;
+        Plane plane;
+        contact.get_fast_plane(origin, plane);
+        for (const Line& axis : axes) {
+            size_t edge = 0;
+            Point closest;
+            const double distance = contact.closest_distance_and_point(plane.project(axis.point_at(0.5)), edge, closest);
+            if (distance < 2.0 * radius - CLOSE)
+                fail(row, "C7", fmt::format("a drill of radius {:g} sits {:.6g} from the contact's edge, under two radii", radius, distance));
+        }
+    }
+
     for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
         size_t inside = 0;
         double length = 0.0;

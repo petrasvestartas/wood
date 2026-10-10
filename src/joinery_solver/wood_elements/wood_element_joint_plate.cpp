@@ -1630,11 +1630,23 @@ bool JointPlate::compute_tt_e_p(InteractionFeaturePlate& connection, const std::
     if (elements.size() < 2)
         throw std::invalid_argument("Drill joints require the participating plates in orient(contact, elements)");
 
-    if (parameters.library == "tt_e_p_0")
+    if (parameters.library == "tt_e_p_0") {
         ::tt_e_p_0(connection, elements);
-    else if (parameters.library == "tt_e_p_1")
+        return true;
+    }
+    if (parameters.library == "tt_e_p_1") {
         ::tt_e_p_1(connection, elements);
-    else if (parameters.library == "tt_e_p_2")
+        return true;
+    }
+
+    // a drill pattern is laid on the contact less a border of two drill radii, so one radius of wood stays between every hole and the
+    // plate's edge; its shift is measured inside that border
+    const Polyline contact = connection.contact.polygon;
+    if (line_radius > 0.0)
+        connection.contact.polygon = offset_contact(connection, 2.0 * line_radius);
+
+    bool known = true;
+    if (parameters.library == "tt_e_p_2")
         ::tt_e_p_2(connection, elements);
     else if (parameters.library == "tt_e_p_3")
         ::tt_e_p_3(connection, elements, settings);
@@ -1643,9 +1655,10 @@ bool JointPlate::compute_tt_e_p(InteractionFeaturePlate& connection, const std::
     else if (parameters.library == "tt_e_p_5")
         ::tt_e_p_5(connection, elements, settings);
     else
-        return false;
+        known = false;
 
-    return true;
+    connection.contact.polygon = contact;
+    return known;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
