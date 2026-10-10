@@ -217,7 +217,8 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
     WoodSession scene("beam_" + design);
     scene.settings.joint_parameters[cross ? 11 : 8] = JointPlate::library_id(design);
     const double turn = angle * std::numbers::pi / 180.0;
-    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    // turned clockwise in plan, so the lifted beam runs across the isometric view and its cut faces the camera
+    const Vector along(std::cos(turn), -std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
     const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
     const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), 75.0, "beam");
