@@ -186,27 +186,32 @@ public:
     // tt_e_p
     // ═══════════════════════════════════════════════════════════════════════════
 
-    static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05);
+    // Top to top, contact 40, ids 40-49 as 2024 numbered them: 40 tt_e_p_0 (the family default id), 41 tt_e_p_1, 42 tt_e_p_2,
+    // 43 tt_e_p_3, 44 tt_e_p_4, 45 tt_e_p_5, 48 side_removal, 49 tt_e_p_custom; an id without an entry takes tt_e_p_0. Every design
+    // drills: a two-point line per hole from the contact, one plate thickness deep, twice on each face of each side, every copy of
+    // type drill, in world space (no orient); the family's 2024 defaults are division length 6 and shift 0.95, and each design reads
+    // them its own way. tt_e_p_0 drills the centre of the contact, tt_e_p_1 its polylabel, the centre of its largest inscribed circle;
+    // tt_e_p_2 puts `divisions` holes on that circle with its radius scaled by the shift, from 45 degrees on along the edge nearest
+    // the centre; tt_e_p_3 offsets the contact inward by the shift (millimetres) and drills its ring every division length; tt_e_p_4
+    // fills that offset ring with a lattice of the division length, from its first corner on a rectangle, about the centre of its
+    // bounding rectangle otherwise; tt_e_p_5 inscribes 2024's largest empty rectangle in the contact, inset by 1 - shift of its
+    // shorter extent, and drills its edges every division length, or fills it with a grid of that step when the length is negative.
+    // `radius` is the pin's, a property of the hole the port bores and no 2024 parameter. 2024 wrote each plate the line through
+    // the other plate; the port gives each plate the line through itself, so the hole is bored where the dowel goes.
 
-    static std::shared_ptr<JointPlate> tt_e_p_1(double radius = 1.0, double chord_tolerance = 0.05);
+    static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> tt_e_p_2(
-        int count = 6,
-        double circle_radius = 20.0,
-        double radius = 1.0,
-        double chord_tolerance = 0.05
-    );
+    static std::shared_ptr<JointPlate> tt_e_p_1(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> tt_e_p_3(
-        double spacing = 30.0,
-        double radius = 1.0,
-        double chord_tolerance = 0.05,
-        double distance_squared = 0.01
-    );
+    static std::shared_ptr<JointPlate> tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> tt_e_p_4(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05);
+    static std::shared_ptr<JointPlate> tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05);
+    static std::shared_ptr<JointPlate> tt_e_p_4(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+
+    static std::shared_ptr<JointPlate> tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+
+    static std::shared_ptr<JointPlate> tt_e_p_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // side_removal
@@ -275,7 +280,7 @@ private:
     bool compute_ss_e_r(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_cr_c_ip(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_b(InteractionFeaturePlate& connection, const Settings& settings) const;
-    bool compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
+    bool compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
 
 protected:

@@ -8,13 +8,15 @@ int main() {
 
     WoodSession scene("element_joint_plate_tt_e_p");
 
+    // the six designs with 8 mm pins: one at the centre, one at the polylabel, six on the inscribed circle scaled 0.95, the ring 8 in
+    // from the edge drilled every 60, the lattice of 60 in that ring, the inscribed rectangle scaled 0.95 drilled every 60
     const std::vector<std::shared_ptr<JointPlate>> joints = {
         JointPlate::tt_e_p_0(8.0),
         JointPlate::tt_e_p_1(8.0),
-        JointPlate::tt_e_p_2(6, 60.0, 8.0),
-        JointPlate::tt_e_p_3(60.0, 8.0),
-        JointPlate::tt_e_p_4(60.0, 8.0),
-        JointPlate::tt_e_p_5(60.0, 8.0),
+        JointPlate::tt_e_p_2(6, 0.95, 8.0),
+        JointPlate::tt_e_p_3(60.0, 8.0, 8.0),
+        JointPlate::tt_e_p_4(60.0, 8.0, 8.0),
+        JointPlate::tt_e_p_5(60.0, 0.95, 8.0),
     };
 
     for (size_t i = 0; i < joints.size(); i++) {
@@ -61,7 +63,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-to-top family tt_e_p, one design per pair: two 400 x 300 plates 40 thick, the upper one 150 along, its bottom on the lower one's top; the joint is oriented on their face contact and passed to each plate with add_interaction, drilling both plates along its lines; the upper plate is lifted 150 afterwards so the holes read.
+The top-to-top family tt_e_p, one design per pair: two 400 x 300 plates 40 thick, the upper one 150 along, its bottom on the lower one's top; the joint is oriented on their face contact and passed to each plate with add_interaction, drilling both plates along its lines, 8 mm pins: tt_e_p_0 one at the centre of the contact, tt_e_p_1 one at its polylabel, tt_e_p_2 six on its inscribed circle scaled 0.95, tt_e_p_3 the contact offset 8 inward and drilled every 60 along its ring, tt_e_p_4 a lattice of 60 in that ring, tt_e_p_5 the largest rectangle 2024 inscribed in the contact, scaled 0.95, drilled every 60 along its edges; the upper plate is lifted 150 afterwards so the holes read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

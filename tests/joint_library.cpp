@@ -23,7 +23,7 @@ static const double GOLDEN_TOL = 1e-6; // mm, a golden coordinate
 static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face contact: the 2024 solver clipped the face quads at two decimals in the face's own frame, so a joint moved rigidly lands on another grid and its outlines move by up to this
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
     "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
     "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
@@ -37,7 +37,8 @@ static const std::vector<std::string> VARIANTS = {
     "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5", "r/side_removal_ss_e_r_1/1/0.5",
     "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/0.75", "cr/cr_c_ip_4",
     "cr/cr_c_ip_4/0.25", "cr/cr_c_ip_5", "cr/cr_c_ip_5/0.75", "cr/cr_c_ip_custom",
-    "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/60/8", "tt/tt_e_p_3/60/8", "tt/tt_e_p_4/60/8", "tt/tt_e_p_5/60/8", "tt/tt_e_p_3/30/4",
+    "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/0.95/8", "tt/tt_e_p_2/5/0.5/8", "tt/tt_e_p_3/60/12/8", "tt/tt_e_p_3/30/12/8", "tt/tt_e_p_4/60/12/8",
+    "tt/tt_e_p_5/60/0.95/8", "tt/tt_e_p_5/-60/0.95/8", "tt/tt_e_p_custom",
 };
 
 /// Designs no fixture can orient or no pair check can hold: plate_contact_family has no family for the boundary type 60; ts_e_p_5's 2024 literals put its mortises 3.65e-6 units inside the base's faces and run its snap-fit hook 3.4 units past the base's top, through the base and out below it, so its loops leave the faces and its material leaves the stock by design, and its copies overlap on a 250 mm joint line from four divisions up; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
@@ -319,10 +320,11 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
 
     if (library == "tt_e_p_0") return JointPlate::tt_e_p_0(number(parts, 2, 1.0));
     if (library == "tt_e_p_1") return JointPlate::tt_e_p_1(number(parts, 2, 1.0));
-    if (library == "tt_e_p_2") return JointPlate::tt_e_p_2(integer(parts, 2, 6), number(parts, 3, 20.0), number(parts, 4, 1.0));
-    if (library == "tt_e_p_3") return JointPlate::tt_e_p_3(number(parts, 2, 30.0), number(parts, 3, 1.0));
-    if (library == "tt_e_p_4") return JointPlate::tt_e_p_4(number(parts, 2, 30.0), number(parts, 3, 1.0));
-    if (library == "tt_e_p_5") return JointPlate::tt_e_p_5(number(parts, 2, 30.0), number(parts, 3, 1.0));
+    if (library == "tt_e_p_2") return JointPlate::tt_e_p_2(integer(parts, 2, 6), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "tt_e_p_3") return JointPlate::tt_e_p_3(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "tt_e_p_4") return JointPlate::tt_e_p_4(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "tt_e_p_5") return JointPlate::tt_e_p_5(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "tt_e_p_custom") return JointPlate::tt_e_p_custom(custom[0], custom[1]);
 
     if (library == "side_removal") return JointPlate::side_removal(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
     if (library == "side_removal_ss_e_r_1") return JointPlate::side_removal_ss_e_r_1(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
@@ -617,7 +619,8 @@ static void check_fit(const Built& built, Row& row) {
 /// C7: a pin joint declares axes, and each member is bored along the axes inside it: a drill feature and a cylinder per axis, the hole volume pi r^2 L.
 static void check_drills(const Built& built, Row& row) {
 
-    if (built.family != "tt")
+    // a custom pair carries the user's outlines with no type and no drills, as 2024 kept it
+    if (built.family != "tt" || built.library == "tt_e_p_custom")
         return;
 
     const std::vector<Line> axes = built.joint->drill_axes();

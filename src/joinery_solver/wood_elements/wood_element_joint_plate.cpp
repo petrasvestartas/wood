@@ -201,13 +201,19 @@ static bool build_toptop(const int id, InteractionFeaturePlate& joint, BuildCont
         tt_e_p_2(joint, context.elements);
         return true;
     case 43:
-        tt_e_p_3(joint, context.elements, context.settings.distance_squared);
+        tt_e_p_3(joint, context.elements, context.settings);
         return true;
     case 44:
         tt_e_p_4(joint, context.elements);
         return true;
     case 45:
-        tt_e_p_5(joint, context.elements);
+        tt_e_p_5(joint, context.elements, context.settings);
+        return true;
+    case 48:
+        side_removal(joint, context.elements);
+        return true;
+    case 49:
+        tt_e_p_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -276,7 +282,7 @@ bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& con
     }
 }
 
-/// The builder a family falls back to for an id it has no entry for, as 2024 fell back; tt_e_p has none.
+/// The builder a family falls back to for an id it has no entry for, as 2024 fell back.
 void build_family_default(const int family, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (family) {
     case 0:
@@ -290,6 +296,9 @@ void build_family_default(const int family, InteractionFeaturePlate& joint, Buil
         return;
     case 3:
         cr_c_ip_0(joint);
+        return;
+    case 4:
+        tt_e_p_0(joint, context.elements);
         return;
     case 5:
         side_removal(joint, context.elements);
@@ -1034,10 +1043,7 @@ void JointPlate::compute_library(
         if (compute_ts_e_p(connection, settings))
             return;
     } else if (parameters.library.starts_with("tt_e_p_")) {
-        if (elements.size() < 2)
-            throw std::invalid_argument("Drill joints require the participating plates in orient(contact, elements)");
-
-        if (compute_tt_e_p(connection, elements))
+        if (compute_tt_e_p(connection, elements, settings))
             return;
     } else if (parameters.library.starts_with("ss_e_r_")) {
         if (compute_ss_e_r(connection, elements, settings))
@@ -1410,72 +1416,72 @@ bool JointPlate::compute_ts_e_p(InteractionFeaturePlate& connection, const Setti
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_0(double radius, double chord_tolerance) {
+// A top-top design on its 2024 family defaults: division length 6 and shift 0.95, each read the design's own way; the radius is the pin's.
+
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_0(double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_0", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
+    joint->division_distance = 6.0;
+    joint->shift = 0.95;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_1(double radius, double chord_tolerance) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_1(double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_1", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
+    joint->division_distance = 6.0;
+    joint->shift = 0.95;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_2(
-    int count,
-    double circle_radius,
-    double radius,
-    double chord_tolerance
-) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_2(int divisions, double shift, double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_2", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
-    joint->division_distance = count;
-    joint->shift = circle_radius;
+    joint->division_distance = divisions;
+    joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_3(
-    double spacing,
-    double radius,
-    double chord_tolerance,
-    double distance_squared
-) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_3(double division_length, double shift, double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_3", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
-    joint->division_distance = spacing;
-    joint->parameters.distance_squared = distance_squared;
+    joint->division_distance = division_length;
+    joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_4(double spacing, double radius, double chord_tolerance) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_4(double division_length, double shift, double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_4", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
-    joint->division_distance = spacing;
+    joint->division_distance = division_length;
+    joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tt_e_p_5(double spacing, double radius, double chord_tolerance) {
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_5(double division_length, double shift, double radius) {
 
     const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_5", 40);
     joint->line_radius = radius;
-    joint->chord_tolerance = chord_tolerance;
-    joint->division_distance = spacing;
+    joint->division_distance = division_length;
+    joint->shift = shift;
+
+    return joint;
+}
+
+std::shared_ptr<JointPlate> JointPlate::tt_e_p_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+
+    const std::shared_ptr<JointPlate> joint = from_library("tt_e_p_custom", 40);
+    joint->parameters.outlines = {male, female};
 
     return joint;
 }
@@ -1484,7 +1490,15 @@ std::shared_ptr<JointPlate> JointPlate::tt_e_p_5(double spacing, double radius, 
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const {
+bool JointPlate::compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
+
+    if (parameters.library == "tt_e_p_custom") {
+        ::tt_e_p_custom(connection, settings);
+        return true;
+    }
+
+    if (elements.size() < 2)
+        throw std::invalid_argument("Drill joints require the participating plates in orient(contact, elements)");
 
     if (parameters.library == "tt_e_p_0")
         ::tt_e_p_0(connection, elements);
@@ -1493,11 +1507,11 @@ bool JointPlate::compute_tt_e_p(InteractionFeaturePlate& connection, const std::
     else if (parameters.library == "tt_e_p_2")
         ::tt_e_p_2(connection, elements);
     else if (parameters.library == "tt_e_p_3")
-        ::tt_e_p_3(connection, elements, parameters.distance_squared);
+        ::tt_e_p_3(connection, elements, settings);
     else if (parameters.library == "tt_e_p_4")
         ::tt_e_p_4(connection, elements);
     else if (parameters.library == "tt_e_p_5")
-        ::tt_e_p_5(connection, elements);
+        ::tt_e_p_5(connection, elements, settings);
     else
         return false;
 

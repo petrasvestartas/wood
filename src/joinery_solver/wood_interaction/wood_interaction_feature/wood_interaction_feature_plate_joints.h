@@ -62,6 +62,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/tt_e_p_3.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_4.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_5.h"
+#include "wood_interaction_feature_plate_joints/tt_e_p_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // cr_c_ip: cross in-plane, type 30
