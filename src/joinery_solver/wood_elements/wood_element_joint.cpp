@@ -115,6 +115,10 @@ std::vector<std::array<Polyline, 2>> Joint::bodies() const {
     return {};
 }
 
+Mesh Joint::key_mesh() const {
+    return Mesh();
+}
+
 Mesh Joint::body_mesh() const {
 
     if (loops.size() >= 2 && loops.size() % 2 == 0) {
@@ -133,6 +137,9 @@ Mesh Joint::body_mesh() const {
 
     for (const std::array<Polyline, 2>& body : bodies())
         append_mesh(mesh, Mesh::loft({body[0]}, {body[1]}, true));
+
+    if (mesh.number_of_faces() == 0)
+        mesh = key_mesh();
 
     if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
         return *_geometry_mesh;
@@ -166,7 +173,10 @@ const BRep& Joint::element_geometry_brep() const {
             brep_ = BRep();
             for (const std::array<Polyline, 2>& body : parts)
                 append_brep(*brep_, brep_between_loops({body[0]}, {body[1]}));
-            if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_brep)
+            const Mesh key = parts.empty() ? key_mesh() : Mesh();
+            if (key.number_of_faces() > 0)
+                brep_ = mesh_brep(key);
+            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_brep)
                 brep_ = *_geometry_brep;
             else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
                 brep_ = BRep::from_polylines(_geometry_mesh->face_outlines());

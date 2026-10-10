@@ -33,7 +33,7 @@ static const std::vector<std::string> VARIANTS = {
     "op/ss_e_op_5/8/1", "op/ss_e_op_6", "op/ss_e_op_6/8", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
     "ts/ts_e_p_0", "ts/ts_e_p_1", "ts/ts_e_p_2", "ts/ts_e_p_2/8/0.5", "ts/ts_e_p_2/16/0.25", "ts/ts_e_p_3", "ts/ts_e_p_3/8/0.5",
     "ts/ts_e_p_3/16/0.25", "ts/ts_e_p_3/24/0.75", "ts/ts_e_p_4", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
-    "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/6/1.0",
+    "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/3/1.0",
     "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5", "r/side_removal_ss_e_r_1/1/0.5",
     "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/0.75", "cr/cr_c_ip_4",
     "cr/cr_c_ip_4/0.25", "cr/cr_c_ip_5", "cr/cr_c_ip_5/0.75", "cr/cr_c_ip_custom",

@@ -10,7 +10,9 @@ static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_o
 }
 
 /// ss_e_r_2/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
-/// every joint volume rebuilt as a 120*shift square. The caller has set unit_scale_distance to the male plate's thickness.
+/// every joint volume rebuilt as a 120 * shift square, the size the orient then scales the unit to. The tiles step along the
+/// joint line in that size, so every count up to the geometric one stays on the plate; 2024 stepped them in the male plate's
+/// thickness and scaled them by the square, which threw half the tiles off the plate above two divisions.
 static void ss_e_r_core(
     InteractionFeaturePlate& joint,
     const double m0[][3], int m0n,
@@ -21,9 +23,9 @@ static void ss_e_r_core(
 
     const int divisions = std::max(1, joint.divisions);
     const double edge_length = joint.length * joint.scale[2];
-    const double jv_len = joint.unit_scale_distance;
-    const double step = edge_length / (divisions * jv_len);
-    const double total = edge_length / jv_len;
+    const double size = 120.0 * joint.shift;
+    const double step = edge_length / (divisions * size);
+    const double total = edge_length / size;
     const double z0 = total * 0.5 - step * 0.5;
 
     joint.male_outlines[0].reserve(2 * divisions);
@@ -57,7 +59,6 @@ static void ss_e_r_core(
     joint.female_fabrication_types[1] = std::vector<int>(n, FabricationType::mill_project);
     joint.unit_scale = true;
 
-    const double size = 120.0 * joint.shift;
     joint.unit_scale_distance = size;
     for (int vi = 0; vi < 4; vi++) {
 

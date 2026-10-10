@@ -81,6 +81,8 @@ public:
 
 protected:
     virtual std::vector<std::array<Polyline, 2>> bodies() const;
+    /// The joint's own solid that is no loft of loop pairs, the loose key of a plate joint: body_mesh() takes it when the loops and bodies() give nothing; empty by default.
+    virtual Mesh key_mesh() const;
     virtual void write_proto(wood_proto::Joint& proto) const;
     virtual void read_proto(const wood_proto::Joint& proto);
     void compute_geometry_mesh_impl() override;

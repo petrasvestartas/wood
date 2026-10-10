@@ -134,9 +134,10 @@ public:
     // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 ss_e_r_custom; an id without
     // an entry takes side_removal. A zero division count takes the geometric count, the joint line's length over the
     // family's 300 mm; the shift default is the family's 0.5. ss_e_r_2 and ss_e_r_3 are key designs: each plate is
-    // milled a pocket on its side of the seam and the joint owns the loose key that fills both. ss_e_r_1 is no design
-    // of its own: it is the tenon tile side_removal_ss_e_r_1 lays in the side face, with no id and no dispatch in 2024,
-    // and alone on a pair its male and female profiles coincide, so it is not exposed.
+    // milled a pocket on its side of the seam, a tile 120 * shift square per division, and the joint owns the loose
+    // key that fills both, compute_key() cut from the plates it is oriented on. ss_e_r_1 is no design of its own: it
+    // is the tenon tile side_removal_ss_e_r_1 lays in the side face, with no id and no dispatch in 2024, and alone on
+    // a pair its male and female profiles coincide, so it is not exposed.
 
     static std::shared_ptr<JointPlate> ss_e_r_0();
 
@@ -160,8 +161,8 @@ public:
     // cr_c_ip_4, a vertical 50 mm and a horizontal 10 mm bit in cr_c_ip_5, whose bottom sides are extended 0.27 on one
     // segment and shortened 0.075 on the other as 2024 built the Brussels sports tower.
 
-
     static std::shared_ptr<JointPlate> cr_c_ip_0();
+
     static std::shared_ptr<JointPlate> cr_c_ip_1(double shift = 0.5);
 
     static std::shared_ptr<JointPlate> cr_c_ip_2(double shift = 0.5);
@@ -255,6 +256,16 @@ public:
                                const std::vector<std::vector<int>>& types, const Settings& settings);
     void place(const Xform& xform) override;
     std::vector<Line> drill_axes() const override;
+
+    /// The drill axes one side of a connection bores into its plate, in the joint's frame: every drill pair's line, a pair its builder repeats counted once.
+    static std::vector<Line> side_drills(const InteractionFeaturePlate& connection, int side);
+
+    /// The solids one side of a connection takes out of its plate, in the joint's frame: every outline pair of a solid type (slice, mill, cut, conic) lofted into a closed piece, a pair its builder repeats counted once, a pair Manifold does not take as a solid left out; a pair of a plate type merges into the plate outline instead and is not among them.
+    static std::vector<Mesh> side_solids(const InteractionFeaturePlate& connection, int side);
+
+    /// The loose key of a key design, ss_e_r_2 and ss_e_r_3: the stock each given plate loses to its side's solids, united over both sides of every connection and kept as the joint's own solid; nothing for every other design. construct() calls it with the plates it is oriented on, the dataset solver with the scene's.
+    void compute_key(const std::vector<std::shared_ptr<Plate>>& elements);
+
     std::string element_type_name() const override {
         return "JointPlate";
     }
@@ -277,14 +288,17 @@ private:
     bool compute_ss_e_ip(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_ss_e_op(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;
     bool compute_ts_e_p(InteractionFeaturePlate& connection, const Settings& settings) const;
-    bool compute_ss_e_r(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
+    bool compute_ss_e_r(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_cr_c_ip(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_b(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_tt_e_p(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
 
 protected:
+    Mesh key; // The loose key of a key design, what compute_key() cut from the plates; empty for every other design.
+
     std::vector<std::array<Polyline, 2>> bodies() const override;
+    Mesh key_mesh() const override;
     void write_proto(wood_proto::Joint& proto) const override;
     void read_proto(const wood_proto::Joint& proto) override;
 };
