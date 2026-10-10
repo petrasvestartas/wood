@@ -48,6 +48,7 @@ std::vector<Polyline> MergeModifier::apply(
     Polyline merged_bottom = build_merged_outline(state.bottom_points, state.bottom_runs, state.bottom_original_front);
     Polyline merged_top = build_merged_outline(state.top_points, state.top_runs, state.top_original_front);
     state.close_corner(merged_bottom, merged_top);
+    state.drop_folded_corners(merged_bottom, merged_top);
 
     std::vector<Polyline> result;
     state.cut_holes_top_bottom(membership, joints, result);
@@ -475,6 +476,72 @@ void MergeModifier::close_corner(Polyline& merged_bottom, Polyline& merged_top) 
 
     if (!((first_bottom_segment[0] - first_bottom_segment[1]).magnitude_squared() > distance_squared))
         return;
+/// True when the point lies on the segment from a to b within the tolerance: closer than its root to the line, between the ends.
+static bool on_segment(const Point& point, const Point& a, const Point& b, double tolerance_squared) {
+
+    const Vector direction = b - a;
+    const double length_squared = direction.magnitude_squared();
+    if (length_squared < tolerance_squared)
+        return (point - a).magnitude_squared() < tolerance_squared;
+
+    const double parameter = (point - a).dot(direction) / length_squared;
+    if (parameter < 0.0 || parameter > 1.0)
+        return false;
+
+    return (point - (a + direction * parameter)).magnitude_squared() < tolerance_squared;
+}
+
+/// True when the loop is degenerate at vertex i within the tolerance: the vertex repeats the one before it, or the loop turns back on itself there, the next vertex lying on the edge in or the previous on the edge out.
+static bool degenerate_at(const std::vector<Point>& points, size_t i, double tolerance_squared) {
+
+    const size_t count = points.size();
+    const Point& previous = points[(i + count - 1) % count];
+    const Point& vertex = points[i];
+    const Point& next = points[(i + 1) % count];
+    if ((vertex - previous).magnitude_squared() < tolerance_squared)
+        return true;
+
+    return on_segment(next, previous, vertex, tolerance_squared) || on_segment(previous, vertex, next, tolerance_squared);
+}
+
+/// True when vertex i says nothing about the loop's shape within the tolerance: it is degenerate, or it lies on the edge from its previous vertex to its next, so the loop is the same polygon without it.
+static bool silent_at(const std::vector<Point>& points, size_t i, double tolerance_squared) {
+
+    const size_t count = points.size();
+
+    return degenerate_at(points, i, tolerance_squared) || on_segment(points[i], points[(i + count - 1) % count], points[(i + 1) % count], tolerance_squared);
+}
+
+void MergeModifier::drop_folded_corners(Polyline& merged_bottom, Polyline& merged_top) const {
+
+    std::vector<Point> bottom = merged_bottom.get_points();
+    std::vector<Point> top = merged_top.get_points();
+    for (std::vector<Point>* points : {&bottom, &top})
+        if (points->size() > 1 && points->front() == points->back())
+            points->pop_back();
+
+    // the loops are one sequence seen on two faces: a vertex degenerate on one face goes from both when neither face loses shape by it, and the fold it leaves behind is looked at again
+    bool changed = bottom.size() == top.size() && bottom.size() >= 3;
+    while (changed) {
+        changed = false;
+        for (size_t i = 0; i < bottom.size() && bottom.size() >= 3; i++) {
+            const bool degenerate = degenerate_at(bottom, i, distance_squared) || degenerate_at(top, i, distance_squared);
+            if (!degenerate || !silent_at(bottom, i, distance_squared) || !silent_at(top, i, distance_squared))
+                continue;
+            bottom.erase(bottom.begin() + static_cast<long>(i));
+            top.erase(top.begin() + static_cast<long>(i));
+            changed = true;
+            break;
+        }
+    }
+
+    for (std::vector<Point>* points : {&bottom, &top})
+        if (!points->empty())
+            points->push_back(points->front());
+    merged_bottom = Polyline(bottom);
+    merged_top = Polyline(top);
+}
+
 
     const Line first_bottom = Line::from_points(first_bottom_segment[0], first_bottom_segment[1]);
     const Line last_bottom = Line::from_points(last_bottom_segment[0], last_bottom_segment[1]);

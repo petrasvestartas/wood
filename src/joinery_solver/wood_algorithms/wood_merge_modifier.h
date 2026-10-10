@@ -123,6 +123,9 @@ private:
     /// True when the side's first outline is an edge insertion (edge_insertion, insert_between_multiple_edges, or untyped), what the outline passes stitch in; a hole, a mill, a slice, a cut, a conic or a drill is not.
     static bool merges_into_outline(const InteractionFeaturePlate& joint, bool male_or_female);
 
+    /// The merged pair without what the stitching leaves meaningless, both loops kept in step vertex for vertex: a point repeated on a face, or a corner a run folds back over on a face, where the loop reverses along its own edge, as a male outline rising from the mitre corner does on a right-angle pair, goes from both loops when the other face loses no shape by it, its vertex there repeated, folded or on the edge between its neighbours; all within the merge's distance, the contact grid having moved the oriented outlines off the corners by microns. 2024 kept them all and its right-angle loops crossed themselves. The closing points stay in step.
+    void drop_folded_corners(Polyline& merged_bottom, Polyline& merged_top) const;
+
     /// Runs the side-joint passes for every edge-insertion joint on faces 2..N: 2-point markers are line joints, 5-point markers rectangles.
     void insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints);
 

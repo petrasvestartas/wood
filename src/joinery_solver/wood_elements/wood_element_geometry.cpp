@@ -308,12 +308,22 @@ BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<P
         holes[1].push_back(top[loop]);
     }
 
-    for (size_t loop = 0; loop < bottom.size(); loop++) {
-        const Polyline& lower = bottom[loop];
-        const Polyline& upper = top[loop];
-        const size_t segment_count = lower.point_count() - 1;
-        for (size_t segment = 0; segment < segment_count; segment++) {
-            faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
+    // the side faces are the walls Mesh::loft builds between the same loops, so the two enclose one volume: a quad whose four corners share a plane stays a quad, one whose corners do not becomes the two triangles the volume fans it into, and a wall the loft already made a triangle stays one
+    const Mesh walls = Mesh::loft(bottom, top, false);
+    for (const size_t face : walls.faces()) {
+        const std::vector<size_t> ring = *walls.face_vertices(face);
+        std::vector<Point> corners;
+        for (const size_t vertex : ring)
+            corners.push_back(*walls.vertex_point(vertex));
+        std::vector<Polyline> sides;
+        if (corners.size() == 4 && !is_coplanar(corners))
+            sides = {Polyline({corners[0], corners[1], corners[2], corners[0]}), Polyline({corners[0], corners[2], corners[3], corners[0]})};
+        else {
+            corners.push_back(corners.front());
+            sides = {Polyline(corners)};
+        }
+        for (const Polyline& side : sides) {
+            faces.push_back(side);
             holes.push_back({});
         }
     }

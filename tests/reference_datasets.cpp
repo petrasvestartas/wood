@@ -30,6 +30,14 @@ struct Score {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The reference outlines per plate from the json record.
+/// The loop as a shape: without its repeated and its forward-collinear vertices, which carry no geometry. 2024 kept the repeated points its merge made and the corners a run passes straight through; the merge drops them now, so both sides are compared as shapes.
+static Polyline shape(Polyline loop) {
+
+    loop.remove_consecutive_duplicates();
+    loop.merge_collinear();
+    return loop;
+}
+
 static std::vector<std::vector<Polyline>> reference_outlines(const std::filesystem::path& path) {
 
     std::ifstream file(path);
@@ -42,7 +50,7 @@ static std::vector<std::vector<Polyline>> reference_outlines(const std::filesyst
             std::vector<Point> points;
             for (const nlohmann::json& p : outline)
                 points.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
-            outlines.emplace_back(points);
+            outlines.push_back(shape(Polyline(points)));
         }
         plates.push_back(std::move(outlines));
     }
@@ -71,7 +79,9 @@ static int match_outline(const Polyline& loop, const std::vector<Polyline>& refe
 /// Empty when the plate's merged outlines are the reference's; else the first deviation. `worst` grows to the largest distance of an outline from its nearest reference outline.
 static std::string compare_plate(const Plate& plate, const std::vector<Polyline>& reference, double& worst) {
 
-    const std::vector<Polyline> loops = oracle::merged_loops(plate);
+    std::vector<Polyline> loops = oracle::merged_loops(plate);
+    for (Polyline& loop : loops)
+        loop = shape(loop);
 
     if (loops.size() != reference.size())
         return fmt::format("{} outlines against {} in the reference ({} holes against {})", loops.size(), reference.size(), (loops.size() - 2) / 2, (reference.size() - 2) / 2);

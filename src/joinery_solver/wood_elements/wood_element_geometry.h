@@ -75,7 +75,7 @@ std::vector<Plane> face_planes(const Mesh& mesh);
 /// The enclosed volume of a closed mesh, a holed cap summed over its face triangulation where the loft or a plane cut left one; Mesh::volume() fans the outer ring alone and counts the hole as solid.
 double compute_volume(const Mesh& mesh);
 
-/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
+/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes, the side faces the walls Mesh::loft builds between the loops, a quad whose corners share no plane split into the two triangles the volume fans it into, so the BRep and the mesh enclose the same volume.
 BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top);
 
 /// The solid cut by every plane in turn, each keeping the side its normal points to; a mesh stays a mesh, a BRep a BRep.

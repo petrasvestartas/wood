@@ -20,13 +20,13 @@ static const double GOLDEN_TOL = 1e-6; // mm, a golden coordinate
 static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face contact: the 2024 solver clipped the face quads at two decimals in the face's own frame, so a joint moved rigidly lands on another grid and its outlines move by up to this
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...".
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5.
 static const std::vector<std::string> VARIANTS = {
     "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
     "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
     "ip/side_removal/0/0.5",
     "op/ss_e_op_0", "op/ss_e_op_1", "op/ss_e_op_1/8/0.5", "op/ss_e_op_1/6/0.0", "op/ss_e_op_2", "op/ss_e_op_2/8/0.5", "op/ss_e_op_2/12/1.0",
-    "op/ss_e_op_3", "op/ss_e_op_4", "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0/0/0", "op/ss_e_op_5", "op/ss_e_op_5/8/0",
+    "op/ss_e_op_3", "op/ss_e_op_4", "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0.5/0/1", "op/ss_e_op_5", "op/ss_e_op_5/8/0",
     "op/ss_e_op_5/8/1", "op/ss_e_op_6", "op/ss_e_op_6/8", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
     "ts/ts_e_p_0", "ts/ts_e_p_1", "ts/ts_e_p_2/8/0.5", "ts/ts_e_p_2/16/0.25", "ts/ts_e_p_3/8/0.5", "ts/ts_e_p_3/16/0.0",
     "ts/ts_e_p_3/24/1.0", "ts/ts_e_p_5/4", "ts/ts_e_p_5/8", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
