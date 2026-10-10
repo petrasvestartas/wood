@@ -18,6 +18,7 @@ hexbox_and_corner
 inplane_differentdirections
 inplane_hexshell
 inplane_hilti
+out_of_plane_mitre
 outofplane_box
 outofplane_box_miter
 outofplane_dodecahedron
