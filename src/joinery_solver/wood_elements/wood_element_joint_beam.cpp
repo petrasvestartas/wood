@@ -57,17 +57,59 @@ JointBeam::JointBeam(
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The plate joint 2024 built on a beam pair: the two boxes the volumes make, [0] to [1] the first beam's and [2] to [3] the second's, solved as
+/// plates with the settings' rows, an end-to-end pair searched as a crossing; inside the zone of both boxes each beam then keeps what its box
+/// keeps of the joint, its tenons with it, and loses the rest: the other box and its own mortises.
+static void compute_joinery(JointBeam& joint, const Settings& settings) {
+
+    WoodSession boxes("beam_joint_boxes");
+    boxes.settings = settings;
+    boxes.settings.search_type = joint.feature.end_type == 2 ? SearchType::cross_joint : SearchType::face_to_face;
+    const std::array<std::shared_ptr<Plate>, 2> box = {
+        std::make_shared<Plate>(joint.feature.volumes[0], joint.feature.volumes[1], "box_0"),
+        std::make_shared<Plate>(joint.feature.volumes[2], joint.feature.volumes[3], "box_1"),
+    };
+    boxes.add(box[0]);
+    boxes.add(box[1]);
+
+    const std::vector<InteractionFeaturePlate> joints = boxes.compute_features();
+    if (joints.empty())
+        return;
+
+    joint.joinery = joints.front();
+
+    // the joint's zone, both boxes: inside it each beam keeps what its box keeps and loses the rest
+    const Mesh zone = solid_boolean(box[0]->element_geometry_mesh(), box[1]->element_geometry_mesh(), SolidOperation::add);
+    for (size_t i = 0; i < 2; i++) {
+        joint.joinery_sides[i] = joint.joinery.element_a == box[i]->guid() ? 0 : 1;
+        const Features& merged = box[i]->features;
+        if (merged.top.empty() || merged.top.size() != merged.bottom.size())
+            continue;
+
+        // the zone less the loft of the box's outer outline, its tenons kept, united with every hole's prism, its mortises: one solid, as
+        // a mortise opens onto the other box and a shell beside it would share that face
+        Mesh cut = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
+        for (size_t k = 1; k < merged.top.size(); k++) {
+            const Mesh mortise = Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true);
+            cut = cut.number_of_faces() == 0 ? mortise : solid_boolean(cut, mortise, SolidOperation::add);
+        }
+        if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
+            joint.member_cuts[i] = cut;
+    }
+}
+
 std::shared_ptr<JointBeam> JointBeam::from_contact(
     const Beam& source,
     const Beam& target,
     const InteractionContactAxis& contact,
     double volume_length,
     double cross_or_side_to_end,
-    int flip_male
+    int flip_male,
+    const Settings& settings
 ) {
 
+    // the four volume rectangles, the first beam's pair then the second's
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-
     if (!beam_to_beam(
         source,
         target,
@@ -78,8 +120,10 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
         joint->feature
     ))
         return nullptr;
-
     joint->targets = {source.guid(), target.guid()};
+
+    // the plate joint on the boxes and the cut it leaves each beam
+    compute_joinery(*joint, settings);
 
     return joint;
 }

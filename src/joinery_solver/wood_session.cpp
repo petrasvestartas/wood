@@ -498,7 +498,8 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
                 *axis,
                 volume_length,
                 cross_or_side_to_end,
-                flip_male
+                flip_male,
+                settings
             );
             if (!joint)
                 continue;
@@ -1788,6 +1789,14 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
         );
         hosted.guid() = volumes->guid();
         host_feature(target->guid(), std::move(hosted));
+
+        // and the cut the plate joint on its box leaves the target, as a solid it loses
+        const size_t side = static_cast<size_t>(std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin());
+        if (side < 2 && beam_joint->member_cuts[side].number_of_faces() > 0) {
+            InteractionFeatureSolid member_cut;
+            member_cut.mesh = beam_joint->member_cuts[side];
+            host_solid_feature(*this, *joint, std::move(member_cut), target);
+        }
 
         return volumes;
     }

@@ -5,6 +5,8 @@
 #include "wood_element_plate.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
+#include "wood_interaction_feature_plate.h"
+#include "wood_settings.h"
 
 using namespace session_cpp;
 
@@ -26,6 +28,9 @@ public:
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.
 
     InteractionFeatureBeam feature; // The beam-to-beam feature: the four volume rectangles of the male and female corners; empty for a connector.
+    InteractionFeaturePlate joinery; // A beam-to-beam joint's plate joint, as 2024 built it on the two boxes its volumes make: [0] and [1] on the first beam's box, [2] and [3] on the second's; empty when the boxes take no joint.
+    std::array<int, 2> joinery_sides = {-1, -1}; // Which side of the plate joint each target is, 0 its male and 1 its female; -1 without a joint.
+    std::array<Mesh, 2> member_cuts; // What each target loses to a beam-to-beam joint inside the zone of both boxes: all but what its box keeps of the plate joint; empty without one.
     std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the pins at an end where the pin leaves the target; a blind hole stops at its pin.
@@ -54,14 +59,16 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A beam-to-beam joint on the axis contact of two beams; null when none fits.
+    /// A beam-to-beam joint on the axis contact of two beams, null when no volume fits: its two volumes made boxes and the plate joint the
+    /// settings' rows give them, as 2024 built beam joints, each beam then cut to the shape its box takes inside the volume.
     static std::shared_ptr<JointBeam> from_contact(
         const Beam& source,
         const Beam& target,
         const InteractionContactAxis& contact,
         double volume_length,
         double cross_or_side_to_end,
-        int flip_male = 0
+        int flip_male = 0,
+        const Settings& settings = Settings()
     );
 
     /// The wedge connector on the face contact of two members: a profile prism with horizontal pins and a pocket in each member.

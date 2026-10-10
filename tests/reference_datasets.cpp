@@ -78,15 +78,8 @@ static int match_outline(const Polyline& loop, const std::vector<Polyline>& refe
     return -1;
 }
 
-/// Empty when the plate's merged outlines are the reference's; else the first deviation. `worst` grows to the largest distance of an outline from its nearest reference outline.
-static std::string compare_plate(const Plate& plate, const std::vector<Polyline>& reference, double& worst) {
-
-    std::vector<Polyline> loops = oracle::merged_loops(plate);
-    for (Polyline& loop : loops)
-        loop = shape(loop);
-
-    if (loops.size() != reference.size())
-        return fmt::format("{} outlines against {} in the reference ({} holes against {})", loops.size(), reference.size(), (loops.size() - 2) / 2, (reference.size() - 2) / 2);
+/// Empty when every loop has its reference twin, one each; else the first deviation. `worst` grows to the largest distance of a loop from its nearest reference loop.
+static std::string compare_loops(const std::vector<Polyline>& loops, const std::vector<Polyline>& reference, double& worst) {
 
     std::vector<bool> used(reference.size(), false);
     std::string first;
@@ -108,6 +101,19 @@ static std::string compare_plate(const Plate& plate, const std::vector<Polyline>
     }
 
     return first;
+}
+
+/// Empty when the plate's merged outlines are the reference's; else the first deviation. `worst` grows to the largest distance of an outline from its nearest reference outline.
+static std::string compare_plate(const Plate& plate, const std::vector<Polyline>& reference, double& worst) {
+
+    std::vector<Polyline> loops = oracle::merged_loops(plate);
+    for (Polyline& loop : loops)
+        loop = shape(loop);
+
+    if (loops.size() != reference.size())
+        return fmt::format("{} outlines against {} in the reference ({} holes against {})", loops.size(), reference.size(), (loops.size() - 2) / 2, (reference.size() - 2) / 2);
+
+    return compare_loops(loops, reference, worst);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -209,6 +215,9 @@ static std::string compare_drills(const std::vector<Line>& drills, const std::ve
     return "";
 }
 
+/// The beam dataset against the reference beam solver, defined with the beams below.
+static Score run_beams(const std::string& name, const nlohmann::json& record);
+
 /// One dataset solved as main_all_datasets solves it and scored against its reference.
 static Score run(const std::string& name) {
 
@@ -219,6 +228,11 @@ static Score run(const std::string& name) {
     try {
         std::ifstream file(GOLDEN_DIR + "/" + name + ".json");
         const nlohmann::json record = nlohmann::json::parse(file);
+        if (record.contains("beams")) {
+            score = run_beams(name, record);
+            score.ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+            return score;
+        }
         const std::vector<std::vector<Polyline>> reference = reference_outlines(record);
 
         config::reset_defaults();
@@ -258,6 +272,127 @@ static Score run(const std::string& name) {
     }
 
     score.ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    return score;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Beams: the beam dataset against the reference beam solver
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The outlines as shapes, each repeat of an earlier one and every two-point line dropped: 2024 doubled every joint outline pair and wrote
+/// its edge-insertion markers and drill lines among them as lines of two points.
+static std::vector<Polyline> unique_shapes(const std::vector<Polyline>& polylines) {
+
+    std::vector<Polyline> unique;
+    for (const Polyline& polyline : polylines) {
+        if (polyline.point_count() == 2)
+            continue;
+        const Polyline loop = shape(polyline);
+        bool repeated = false;
+        for (const Polyline& kept : unique)
+            repeated = repeated || (oracle::open_point_count(kept) == oracle::open_point_count(loop) && oracle::point_set_distance(kept, loop) <= MATCH_TOLERANCE);
+        if (!repeated)
+            unique.push_back(loop);
+    }
+
+    return unique;
+}
+
+/// A json list of coordinate lists as polylines.
+static std::vector<Polyline> json_polylines(const nlohmann::json& list) {
+
+    std::vector<Polyline> polylines;
+    for (const nlohmann::json& outline : list) {
+        std::vector<Point> points;
+        for (const nlohmann::json& p : outline)
+            points.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
+        polylines.emplace_back(points);
+    }
+
+    return polylines;
+}
+
+/// The beam dataset as the dataset runner builds it, against the reference: the axis pairs, each pair's four joint volume rectangles, and
+/// per beam the outlines of the plate joint 2024 built on the pair's boxes, its own side's, each repeat dropped.
+static Score run_beams(const std::string& name, const nlohmann::json& record) {
+
+    Score score;
+    score.dataset = name;
+
+    config::reset_defaults();
+    const Settings settings = config::load_yaml(name);
+    const std::vector<double>& beams = settings.beams;
+    WoodSession scene(name);
+    scene.settings = settings;
+    std::vector<std::shared_ptr<Beam>> members;
+    for (const Polyline& axis : io::load_obj(name)) {
+        members.push_back(std::make_shared<Beam>(axis, std::vector<double>(axis.segment_count(), beams[0]), std::vector<Vector>{}, static_cast<int>(beams[1])));
+        scene.add(members.back());
+    }
+    scene.compute_axis_contacts(beams[2]);
+    scene.compute_beam_features(beams[3], beams[4], static_cast<int>(beams[5]));
+    score.plates = members.size();
+
+    // the beam joints by the index of their two beams, the smaller first
+    std::map<std::pair<int, int>, std::shared_ptr<JointBeam>> joints;
+    for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
+        const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element);
+        if (!joint || joint->is_connector() || joint->targets.size() < 2)
+            continue;
+        std::array<int, 2> index = {-1, -1};
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t t = 0; t < 2; t++)
+                if (members[i]->guid() == joint->targets[t])
+                    index[t] = static_cast<int>(i);
+        joints[{std::min(index[0], index[1]), std::max(index[0], index[1])}] = joint;
+    }
+
+    // the pairs
+    std::vector<std::pair<int, int>> reference_pairs;
+    for (const nlohmann::json& pair : record.at("pairs"))
+        reference_pairs.emplace_back(std::min(pair[0].get<int>(), pair[1].get<int>()), std::max(pair[0].get<int>(), pair[1].get<int>()));
+    for (const std::pair<int, int>& pair : reference_pairs)
+        if (!joints.count(pair) && score.deviation.empty())
+            score.deviation = fmt::format("no beam joint on the reference pair {}-{}", pair.first, pair.second);
+    if (joints.size() != reference_pairs.size() && score.deviation.empty())
+        score.deviation = fmt::format("{} beam pairs against {} in the reference", joints.size(), reference_pairs.size());
+
+    // each pair's volume rectangles
+    for (size_t p = 0; p < reference_pairs.size() && score.deviation.empty(); p++) {
+        const std::shared_ptr<JointBeam>& joint = joints.at(reference_pairs[p]);
+        const std::vector<Polyline> volumes = unique_shapes({joint->feature.volumes.begin(), joint->feature.volumes.end()});
+        const std::string deviation = compare_loops(volumes, unique_shapes(json_polylines(record.at("volumes")[p])), score.worst);
+        if (!deviation.empty())
+            score.deviation = fmt::format("pair {}-{} volume: {}", reference_pairs[p].first, reference_pairs[p].second, deviation);
+    }
+
+    // each beam's joint outlines, its own side of every joint on it
+    const nlohmann::json& reference_beams = record.at("beams");
+    for (size_t b = 0; b < members.size(); b++) {
+        std::vector<Polyline> outlines;
+        for (const std::pair<const std::pair<int, int>, std::shared_ptr<JointBeam>>& entry : joints) {
+            const JointBeam& joint = *entry.second;
+            for (size_t t = 0; t < 2; t++) {
+                if (joint.targets[t] != members[b]->guid() || joint.joinery_sides[t] < 0)
+                    continue;
+                // every second outline of each face, as 2024 wrote a joint's outlines: its builders doubled every pair, so the writer stepped by two
+                const std::array<std::vector<Polyline>, 2>& side = joint.joinery_sides[t] == 0 ? joint.joinery.male_outlines : joint.joinery.female_outlines;
+                for (size_t face = 0; face < 2; face++)
+                    for (size_t k = 0; k < side[face].size(); k += 2)
+                        outlines.push_back(side[face][k]);
+            }
+        }
+        const std::vector<Polyline> loops = unique_shapes(outlines);
+        const std::vector<Polyline> reference = b < reference_beams.size() ? unique_shapes(json_polylines(reference_beams[b].at("outlines"))) : std::vector<Polyline>();
+        const std::string deviation = loops.size() == reference.size() ? compare_loops(loops, reference, score.worst)
+                                                                       : fmt::format("{} joint outlines against {} in the reference", loops.size(), reference.size());
+        if (deviation.empty())
+            score.matched_plates++;
+        else if (score.deviation.empty())
+            score.deviation = fmt::format("beam {}: {}", b, deviation);
+    }
+
+    score.matched = score.deviation.empty();
     return score;
 }
 

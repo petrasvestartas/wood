@@ -261,6 +261,7 @@ ADD_EXE(floor_elements                   tests/floor_elements.cpp)
 ADD_EXE(brep_drill                       tests/brep_drill.cpp)
 ADD_EXE(joint_hilti                      tests/joint_hilti.cpp)
 ADD_EXE(joint_pins                       tests/joint_pins.cpp)
+ADD_EXE(joint_beams                      tests/joint_beams.cpp)
 ADD_EXE(rust_elements                    tests/rust_elements.cpp)
 target_compile_definitions(rust_elements PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # The geometry oracle: every plate joint design measured on a joined pair, goldens under tests/golden/joint_library.

@@ -8,7 +8,7 @@ A joint between beams or members: the feature volumes of a beam-to-beam joint, o
 
 ```cpp
 // beam to beam, on the axis contact of two beams
-static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0)
+static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 
 // connectors, on the face contact of two members
 static std::shared_ptr<JointBeam> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...)
@@ -39,7 +39,7 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 
 ![Beam to beam](elements/element_joint_beam_from_contact.png)
 
-A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes.
+A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes. As 2024 joined beams, the two volumes of a pair are made boxes and joined as plates with the settings' rows (a side-to-end pair as top-to-side, an end-to-end pair searched as a crossing); the plate joint is kept on the joint (`joinery`) and inside the zone of both boxes each beam keeps what its box keeps, its tenons with it, and loses the rest, the other box and its mortises, as a solid it hosts. On the dataset `phanomema_node` the five pairs, their volumes and every beam's joint outlines match the 2025 reference solver; `tests/joint_beams.cpp` measures the cuts.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |

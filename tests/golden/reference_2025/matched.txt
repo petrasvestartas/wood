@@ -23,6 +23,7 @@ outofplane_dodecahedron
 outofplane_icosahedron
 outofplane_octahedron
 outofplane_tetra
+phanomema_node
 simple_corners
 simple_corners_combined
 simple_corners_diff_lengths

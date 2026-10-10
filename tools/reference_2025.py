@@ -13,6 +13,10 @@ Per dataset the json holds, per plate in obj order, the merged outlines of outpu
 legacy interleaved layout: hole pairs first, the outer top and bottom last) and, per plate again,
 the joint polylines of output type 3.
 
+A dataset whose yml has a beams block (phanomema_node) is solved by the beam solver instead, beam_volumes with its joints
+computed: the json holds the beam pairs, the joint types, the four joint volume rectangles per pair and, per beam, the
+joint outlines of output type 3 with their cut types.
+
 --volumes prints the detection stage instead of writing json: per plate, the joint lines of output
 type 1 (L) and the joint volumes of output type 2 (V), six decimals, to compare with wood's
 InteractionFeaturePlate joint_lines and joint_volumes.
@@ -23,16 +27,13 @@ import os
 import sys
 
 from compas_wood.binding import get_connection_zones, wood_globals
-from compas.geometry import Polyline, Vector
+from compas.geometry import Point, Polyline, Vector
 
 WOOD = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(WOOD, "data")
 OUT = os.path.join(WOOD, "tests", "golden", "reference_2025")
 
 SEARCH_TYPES = {"face_to_face": 0, "cross_joint": 1, "face_to_face_then_cross": 2}
-
-# Beam axes, not plate outlines: no merged outlines to compare.
-NOT_PLATES = {"phanomema_node"}
 
 # wood's short name -> the 2024 dataset xml it was converted from, for the record only.
 XML_NAMES = {
@@ -246,6 +247,40 @@ def solve(name):
     }
 
 
+def solve_beams(name):
+    """One beam dataset through the reference beam solver: the json record."""
+    from wood_nano import beam_volumes, int1, int2, double2, point2, point3, cut_type2
+    from wood_nano.conversions_python import to_double2, to_int1, from_int1, from_int2, from_cut_type2
+    from compas_wood.conversions_compas import to_point2, to_vector2, from_point3
+
+    values = read_yml(os.path.join(DATA, name + ".yml"))
+    apply_globals(values)
+    radius, allowed, min_distance, volume_length, cross_or_side_to_end, flip_male = [float(v) for v in values["beams"]]
+    axes = [Polyline([Point(*p) for p in points]) for points in read_obj(os.path.join(DATA, values["obj"]))]
+    radii = [[radius] * len(axis.points) for axis in axes]
+    # no segment directions, as 2024's test passed none: each pair's frame takes the normal of its two axes
+    directions = []
+
+    pairs, segments, distances, points, volumes, areas, types, outlines, cut_types = int2(), int2(), double2(), point2(), point3(), point2(), int1(), point3(), cut_type2()
+    beam_volumes(
+        to_point2(axes), to_double2(radii), to_vector2(directions), to_int1([int(allowed)]), min_distance, volume_length,
+        cross_or_side_to_end, int(flip_male), pairs, segments, distances, points, volumes, areas, types, outlines, cut_types,
+        True, 150.0, 0.5, 3, True,
+    )
+
+    return {
+        "dataset": name,
+        "solver": "wood_nano 0.3.5 + compas_wood 2.4.0, beam_volumes",
+        "pairs": from_int2(pairs),
+        "types": from_int1(types),
+        "volumes": [[polyline_coords(Polyline(r)) for r in group] for group in from_point3(volumes)],
+        "beams": [
+            {"outlines": [polyline_coords(Polyline(p)) for p in group], "cut_types": [str(t) for t in kinds]}
+            for group, kinds in zip(from_point3(outlines), from_cut_type2(cut_types))
+        ],
+    }
+
+
 def print_detection(name):
     """One dataset's joint lines and joint volumes from the reference solver, per plate, to stdout."""
     values, pairs, vectors, types, three, adjacency = read_inputs(name)
@@ -268,16 +303,18 @@ def print_detection(name):
 
 
 def dataset_names():
-    names = sorted(f[:-4] for f in os.listdir(DATA) if f.endswith(".yml"))
-    return [n for n in names if n not in NOT_PLATES]
+    return sorted(f[:-4] for f in os.listdir(DATA) if f.endswith(".yml"))
 
 
 def dump(name):
     """One dataset solved and written; the line the sweep prints."""
-    record = solve(name)
+    beams = "beams" in read_yml(os.path.join(DATA, name + ".yml"))
+    record = solve_beams(name) if beams else solve(name)
     path = os.path.join(OUT, name + ".json")
     with open(path, "w", encoding="utf-8") as out:
         json.dump(record, out, separators=(",", ":"))
+    if beams:
+        return f"{name}: {len(record['beams'])} beams, {len(record['pairs'])} pairs, {len(record['types'])} joints -> {os.path.relpath(path, WOOD)}"
     holes = sum(max(0, len(p["outlines"]) - 2) // 2 for p in record["plates"])
     return f"{name}: {len(record['plates'])} plates, {len(record['joints'])} joints, {holes} holes -> {os.path.relpath(path, WOOD)}"
 
