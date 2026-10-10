@@ -28,8 +28,7 @@ int main() {
         *column,
         *rib,
         *plate,
-        *contact,
-        120.0
+        *contact
     );
     plate->name = "plate";
     pins->name = "plate_pins";
@@ -46,7 +45,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A 220 square column 1200 high and a 120 wide, 400 deep rib ending on its side face; JointBeam::let_in_plate makes a 30 thick plate on their face contact, 220 back into the column, 265 forward into the rib and 250 down from the contact's top edge, and JointBeam::rectangle_plate cuts its pocket into the column and the rib and bores four 25 radius pins through all three, 120 long; the plate and the connector are added, the connector passed to the column, the rib and the plate with add_interaction.
+A 220 square column 1200 high and a 120 wide, 400 deep rib ending on its side face; JointBeam::let_in_plate makes a 30 thick plate on their face contact, 220 back into the column, 265 forward into the rib and 250 down from the contact's top edge, and JointBeam::rectangle_plate cuts its pocket into the column and the rib and bores four 25 radius pins through all three, each across its member from face to face, 220 in the column and 120 in the rib; the plate and the connector are added, the connector passed to the column, the rib and the plate with add_interaction.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

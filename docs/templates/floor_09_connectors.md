@@ -127,7 +127,7 @@ Code: `JointBeam::let_in_plate`, `frame_box`, [wood_element_joint_beam.cpp](http
 
 <span style="color:#2196EA">■ built</span> `drill_lines`   <span style="color:#F2CC0C">■ result</span> `cutters[0]`, the pocket   <span style="color:#737373">■ input</span> the outer rib's loops
 
-`JointBeam::rectangle_plate(column, rib, plate, contact, pin_length)` lets the plate in.
+`JointBeam::rectangle_plate(column, rib, plate, contact)` lets the plate in.
 The plate's box raised 25 above its top is the pocket cut out of column and rib.
 Four pins of radius 25 cross near its corners: two in the column and two in the rib.
 Each pin is flush with its own member and bored through it and the plate.

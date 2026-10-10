@@ -1722,7 +1722,7 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
     const std::shared_ptr<JointBeam> beam_joint = std::dynamic_pointer_cast<JointBeam>(joint);
     const std::shared_ptr<InteractionFeatureSolid> cut = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
 
-    // a connector: its parts and pins nest under it once; pins drill their holes, nothing cut, which the targets read through pre_drill_lines
+    // a connector: its parts and pins nest under it once; pre-drilled pins record their holes, which the targets read through pre_drill_lines
     if (beam_joint && beam_joint->is_connector()) {
         nest_children(*this, *beam_joint);
         Session::remove_interaction(joint, target);
@@ -1736,6 +1736,14 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
                 joint->drill_lines,
                 joint->line_radius
             );
+
+            // the pre-drilled holes in the target's solid too, each pin's stretch inside it bored, exact in the BRep
+            InteractionFeatureSolid holes;
+            holes.drills = target_drills(*this, *beam_joint, *target);
+            holes.drill_radius = joint->line_radius;
+            holes.drill_tolerance = joint->chord_tolerance;
+            if (!holes.drills.empty())
+                host_solid_feature(*this, *joint, std::move(holes), target);
 
             return interaction;
         }

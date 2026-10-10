@@ -535,13 +535,12 @@ std::shared_ptr<Plate> JointBeam::let_in_plate(
     return plate;
 }
 
-/// The plate let into the column and the rib: its box raised by overshoot cut out of both, two pins in the column and two in the rib, margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with their member, each bored through its member and the plate; aimed at the column, the rib, then the plate.
+/// The plate let into the column and the rib: its box raised by overshoot cut out of both, two pins in the column and two in the rib, margin_x and margin_z radii in from its ends and its top and bottom, each across its member from face to face, bored through its member and the plate; aimed at the column, the rib, then the plate.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Element& column,
     const Element& rib,
     const Plate& plate,
     const InteractionContactFace& contact,
-    double pin_length,
     double pin_radius,
     double margin_x,
     double margin_z,
@@ -577,7 +576,8 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     );
     joint->cutters = {{pocket}, {pocket}, {}};
 
-    const double half = 0.5 * pin_length;
+    // a probe far longer than any member, which flush_pin trims to the member's stretch: the pin from one face of its member to the other
+    const double half = 1e5;
 
     // two pins in the column, two in the rib, each flush with its own member only
     for (const auto& [station, member] : std::array<std::pair<double, const Element*>, 2>{{{low[0] + margin_x * pin_radius, &column}, {high[0] - margin_x * pin_radius, &rib}}})

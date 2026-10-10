@@ -90,13 +90,12 @@ public:
         double height = 250.0
     );
 
-    /// The joint that lets a plate into a column and a rib: a pocket in both and four pins through all three.
+    /// The joint that lets a plate into a column and a rib: a pocket in both and four pins through all three, each pin across its member face to face.
     static std::shared_ptr<JointBeam> rectangle_plate(
         const Element& column,
         const Element& rib,
         const Plate& plate,
         const InteractionContactFace& contact,
-        double pin_length,
         double pin_radius = 25.0,
         double margin_x = 6.05,
         double margin_z = 3.0,
