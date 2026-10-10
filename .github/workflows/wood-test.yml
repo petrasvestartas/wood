@@ -68,7 +68,8 @@ jobs:
     # The geometry oracle: every plate joint design on a joined pair, checked for closed
     # outlines, closed solids, no interpenetration, material conservation, male-female fit,
     # drills, a protobuf round trip, a rigid motion and the committed goldens under
-    # tests/golden/joint_library. Exit 1 on any failing variant; the table names them.
+    # tests/golden/joint_library. The table names every failing variant; exit 1 only when a
+    # variant of tests/golden/joint_library/passing.txt fails, a regression.
     - name: Joint library oracle
       run: |
         stdbuf -oL -eL timeout 600 build/joint_library

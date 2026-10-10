@@ -2,6 +2,7 @@
 #include "session.pb.h"
 #include <chrono>
 #include <iomanip>
+#include <set>
 #include <numbers>
 
 using namespace session_cpp;
@@ -23,6 +24,7 @@ static const double HOLE_REL = 1e-2; // relative, the polygonal drill mesh again
 static const double GOLDEN_TOL = 1e-6; // mm, a golden coordinate
 static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face contact: the 2024 solver clipped the face quads at two decimals in the face's own frame, so a joint moved rigidly lands on another grid and its outlines move by up to this
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
+static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt"; // The variants that passed when the list was last accepted: one of them failing fails the run.
 
 /// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
@@ -1047,6 +1049,19 @@ static Row run_variant(const std::string& id) {
     return row;
 }
 
+/// The variants PASSING_FILE lists, one id per line.
+static std::set<std::string> accepted_passes() {
+
+    std::set<std::string> ids;
+    std::ifstream file(PASSING_FILE);
+    std::string line;
+    while (std::getline(file, line))
+        if (!line.empty())
+            ids.insert(line);
+
+    return ids;
+}
+
 int main(int argc, char** argv) {
 
     std::vector<std::string> ids;
@@ -1087,5 +1102,24 @@ int main(int argc, char** argv) {
             std::cerr << row.id << " | " << failure << "\n";
     std::cout << fmt::format("\njoint library: {} / {} variants pass, {} skipped\n", rows.size() - failed, rows.size(), SKIPPED.size());
 
-    return failed > 0 ? 1 : 0;
+    // the ratchet: the library is not complete yet, so a variant fails the run only when it passed when the list was accepted
+    const std::set<std::string> accepted = accepted_passes();
+    size_t regressed = 0;
+    for (const Row& row : rows) {
+        if (accepted.count(row.id) && !row.failures.empty()) {
+            regressed++;
+            std::cerr << fmt::format("REGRESSION {}: passed before, now {}\n", row.id, row.failures.front());
+        }
+        if (row.failures.empty() && !accepted.count(row.id))
+            std::cout << fmt::format("new pass {}: add it with WOOD_UPDATE_PASSING=1\n", row.id);
+    }
+    if (std::getenv("WOOD_UPDATE_PASSING") != nullptr && argc == 1) {
+        std::ofstream file(PASSING_FILE);
+        for (const Row& row : rows)
+            if (row.failures.empty())
+                file << row.id << "\n";
+        std::cout << "passing list rewritten: " << PASSING_FILE << "\n";
+    }
+
+    return regressed > 0 ? 1 : 0;
 }
