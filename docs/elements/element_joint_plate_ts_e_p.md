@@ -4,6 +4,8 @@
 
 The top-to-side family: a design cut where a plate stands on the face of another, tenons on the bottom edge of the standing plate, the upright, and mortises through the plate it stands on, the base; the 2024 library's contact type 20, ids 20 to 29 (20 `ts_e_p_3`, the family default id, 21 `ts_e_p_2`, 22 `ts_e_p_3`, 23 and 24 `ts_e_p_4`, 2024's case 23 ran `ts_e_p_0` and fell through into `ts_e_p_4`, 25 `ts_e_p_5`, 28 `side_removal`, 29 `ts_e_p_custom`; an id without an entry takes `ts_e_p_3`; `ts_e_p_0` and `ts_e_p_1` are reached by name only), used on the top-to-side datasets: the corners and the test (`data/top_to_side_corners.yml`, `data/top_to_side_test.yml`, id 20, `ts_e_p_3`), the box and the snap fit (`data/top_to_side_box.yml`, `data/top_to_side_snap_fit.yml`, id 25, `ts_e_p_5`).
 
+On a beam ending on another: [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p).
+
 ## Constructors
 
 ```cpp

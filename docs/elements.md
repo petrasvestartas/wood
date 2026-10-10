@@ -26,7 +26,11 @@ An element is built from its own parameters only. Whatever another element does 
 | [JointPlate tt_e_p](@ref elements_joint_plate_tt_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_tt_e_p_0` to `_5`, `_custom` |
 | [Joint library](@ref joint_library) | every plate joint design as its male and female tile, with its parameters swept | `tools/joint_library_figures/make.sh` |
 | [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_b_0` |
-| [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact`, `_wedge`, `_rectangle_plate`, `_tie`, `_centred_pins`, `_headed_pins` |
+| [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
+| [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip) | `wood_element_joint_beam.h` | `element_joint_beam_cr_c_ip_0` to `_5` |
+| [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p) | `wood_element_joint_beam.h` | `element_joint_beam_ts_e_p_4` |
+| [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_tie` |
+| [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [JointBeam hilti](@ref elements_joint_hilti) | `wood_element_joint_beam.h` | `element_joint_hilti`, `_angles` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
@@ -49,6 +53,10 @@ An element is built from its own parameters only. Whatever another element does 
 - @subpage elements_joint_plate_tt_e_p
 - @subpage joint_library
 - @subpage elements_joint_beam
+- @subpage elements_joint_beam_cr_c_ip
+- @subpage elements_joint_beam_ts_e_p
+- @subpage elements_joint_beam_connectors
+- @subpage elements_joint_beam_pins
 - @subpage elements_joint_hilti
 - @subpage elements_pin
 - @subpage elements_connector_part

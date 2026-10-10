@@ -51,87 +51,11 @@ The interaction keeps the axes' `normal` and their two directions where they mee
 
 \include{lineno} elements/element_joint_beam_from_contact.cpp
 
-## Wedge
+## Families
 
-![Wedge](elements/element_joint_beam_wedge.png)
-
-A wedge between two beams side by side, pinned across, the right beam moved off to show its pocket.
-
-| Parameter | Default | What it changes in 3D |
+| Page | Contact | Designs |
 | --- | --- | --- |
-| `length_margin` | | how far short of each end of the contact's top edge the wedge stops |
-| `pocket_depth` | | how deep the pocket under each slanted face cuts into each member |
-| `end` | none | a plane the wedge runs on to instead of stopping short |
-| `pin_radius`, `pin_spacing`, `pin_sides` | 10, 320, 8 | the pins across the wedge: thickness, distance, facets |
-| `overshoot` | 20 | how far the holes run past the pins |
-| `profile` | `WEDGE_PROFILE` | the wedge's section: apex 197 below the top edge, 63.5 wide at the top |
-| `pin_offset` | 80, -100 | where the first pin stands along and below the top edge |
-
-\include{lineno} elements/element_joint_beam_wedge.cpp
-
-## Let-in plate
-
-![Let-in plate](elements/element_joint_beam_rectangle_plate.png)
-
-A plate let into a column and the rib ending on it, two pins in each, each through its member and the plate.
-
-| Parameter | Default | What it changes in 3D |
-| --- | --- | --- |
-| `width` | 30 | the plate's thickness |
-| `back`, `front` | 220, 265 | how far the plate runs into the column and into the rib |
-| `height` | 250 | how far the plate runs down from the contact's top edge |
-| `pin_length`, `pin_radius` | , 25 | the two pins in the column and the two in the rib, each through the plate too |
-| `margin_x`, `margin_z` | 6.05, 3 | the pocket's clearance around the plate |
-| `overshoot`, `pin_sides` | 25, 16 | how far the holes run past the pins, their facets |
-
-\include{lineno} elements/element_joint_beam_rectangle_plate.cpp
-
-## Tie
-
-![Tie](elements/element_joint_beam_tie.png)
-
-A bow-tie key across two beams end to end, the second moved off to show its pocket.
-
-| Parameter | Default | What it changes in 3D |
-| --- | --- | --- |
-| `top` | 138.5 | how far below the contact's top edge the key starts |
-| `length` | 800 | the key's length across the joint |
-| `head_length`, `head_width`, `neck_width` | 200, 40, 20 | the bow-tie outline: its two heads and the neck between them |
-| `depth`, `end_depth` | 58.5, 70.4 | the key's depth at the middle and at its ends |
-| `pocket_depth`, `overshoot` | 80, 10 | the pockets in the members |
-
-\include{lineno} elements/element_joint_beam_tie.cpp
-
-## Centred pins
-
-![Centred pins](elements/element_joint_beam_centred_pins.png)
-
-Four pins at the inset corners of the contact of two stacked blocks, half in each.
-
-| Parameter | Default | What it changes in 3D |
-| --- | --- | --- |
-| `radius`, `length` | 4, 30 | each pin |
-| `offset` | 50 | how far the pins stand in from the contact's corners |
-| `overshoot`, `pin_sides` | 10, 16 | how far the holes run past the pins, their facets |
-
-\include{lineno} elements/element_joint_beam_centred_pins.cpp
-
-## Headed pins
-
-![Headed pins](elements/element_joint_beam_headed_pins.png)
-
-Pins from a beam's far face into the joist ending on it, in each `PinLayout`: corners, a vertical column, a horizontal row.
-
-| Parameter | Default | What it changes in 3D |
-| --- | --- | --- |
-| `layout` | | `corners`, `vertical` or `horizontal` |
-| `count` | 2 | pins in a column or row |
-| `offset` | 20 | how far the pins stand in from the contact's edges |
-| `shift` | 0 | moves the pins along the contact, so two connectors' heads stay apart |
-| `radius`, `length`, `sides` | 2, 200, 16 | each pin |
-
-\include{lineno} elements/element_joint_beam_headed_pins.cpp
-
-## Hilti
-
-The Hilti connector across the mitred seam of two CLT slabs, flat or folded up to 50 degrees, two identical plywood half-dovetails on one threaded rod with a disc at each end, has its own page with its examples: [JointBeam hilti](@ref elements_joint_hilti).
+| [cr_c_ip](@ref elements_joint_beam_cr_c_ip) | two beams crossing | `cr_c_ip_0` to `cr_c_ip_5` |
+| [ts_e_p](@ref elements_joint_beam_ts_e_p) | a beam ending on another | `ts_e_p_4` |
+| [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `tie` |
+| [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |

@@ -34,6 +34,26 @@ Beam::Beam(
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+std::array<std::shared_ptr<Beam>, 2> Beam::pair_crossing(double angle_degrees, double radius, double length) {
+
+    const double turn = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin - along * (length * 0.5), origin + along * (length * 0.5)}), radius, "second");
+    return {first, second};
+}
+
+std::array<std::shared_ptr<Beam>, 2> Beam::pair_tee(double angle_degrees, double radius, double length) {
+
+    const double turn = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    return {first, second};
+}
+
 std::shared_ptr<Beam> Beam::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

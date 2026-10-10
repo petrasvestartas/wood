@@ -57,6 +57,14 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// Two beams crossing at their middles, "first" along x and "second" turned `angle_degrees` from it in plan, each `length` long and
+    /// `radius` in half-width, their axes meeting at the origin: the pair a crossing joint (cr_c_ip) is cut into.
+    static std::array<std::shared_ptr<Beam>, 2> pair_crossing(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
+
+    /// Two beams in a tee, "first" along x through the origin and "second" ending on it, turned `angle_degrees` from it in plan, each
+    /// `length` long and `radius` in half-width: the side-to-end pair a tee joint (ts_e_p) is cut into.
+    static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
+
     /// The beam an Element tagged "Beam" describes, same guid; a missing payload leaves the axis empty.
     static std::shared_ptr<Beam> from_element(Element element);
 

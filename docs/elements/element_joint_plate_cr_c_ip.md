@@ -4,6 +4,8 @@
 
 The cross family: a design cut where two plates pass through each other in their planes, a slot or a half-lap into each over its share of the cross's depth, found by `compute_cross_contact`; the 2024 library's contact type 30, ids 30 to 39 (30 `cr_c_ip_0`, the family default id, 31 `cr_c_ip_1`, 32 `cr_c_ip_2`, 33 `cr_c_ip_3`, 34 `cr_c_ip_4`, 35 `cr_c_ip_5`, 38 `side_removal`, 39 `cr_c_ip_custom`; an id without an entry takes `cr_c_ip_0`), used on every cross dataset (`data/cross_*.yml`, id 30, `cr_c_ip_0`) but the Brussels sports tower (`data/cross_brussels_sports_tower.yml`, id 35, `cr_c_ip_5`).
 
+The same designs on two crossing beams: [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip).
+
 ## Constructors
 
 ```cpp
