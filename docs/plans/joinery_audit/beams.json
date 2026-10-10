@@ -1,0 +1,161 @@
+{
+ "semantics": [
+  {
+   "fabrication_type": "b_0 (beam slice, type 60 / family 6)",
+   "old_behaviour": "b_0 sets orient=false, tweens joint_volumes[0]/[1] at 0.5 into a mid rectangle, extends edges 1 and 3 by scale[0], shifts/stretches along edge 0->1 by scale[1]+5, takes the average normal, builds rect0/rect2 at +-0.25 and rect1/rect3 at +-(scale[2]+15) along it, then m[0]={rect0,rect0,rect2,rect2}, m[1]={rect1,rect1,rect3,rect3}, m_boolean_type={slice x4}; NO female outlines (f[] untouched). Dispatched for jo.type==60 (group 6), ids 60 and default. The 2024 beam path never merged anything into a solid: beam_volumes() ends with get_joints_geometry(case 3) exporting outline pairs + cut types; the test exports only the 4 volume rectangles. Dataset: in_beam_node_0.xml / type_beams_name_phanomema_node.xml (radii 150, allowed_types {1}, volume_length 500, cross_or_side_to_end 0.91, flip_male 1).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5866-5945 (b_0), :6034-6035, :6137-6140, :6565-6582; 351933c:cmake/src/wood/include/wood_cut.h:28; 351933c:cmake/src/wood/include/wood_main.cpp:2590-2618; 351933c:cmake/src/wood/include/wood_test.cpp:3678-3717, :3749-3754",
+   "current_behaviour": "Same math ported as a PLATE builder on InteractionFeaturePlate (joint_volumes[0]/[1] -> 4 slice rects, male_outlines only, male_fabrication_types slice x4, no_orient=true). Reachable only through JointPlate::b_0() = from_library(\"b_0\",60), build_beam(60/69) and build_family_default(6). A JointPlate can only be oriented on a face/cross contact of two Plates and add_interaction throws 'A plate joint requires a plate target' for anything else, so b_0 can never act on a Beam. JointBeam has no slice path; FabricationType::slice (and mill/cut/conic) has no consumer anywhere (only hole and drill are read).",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_0.h:1-77; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:246-258, :300-302, :1513-1540, :693-712; src/joinery_solver/wood_session.cpp:799-801, :1298-1301; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:11-22; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:548; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:787",
+   "matches": "no"
+  },
+  {
+   "fabrication_type": "b_custom (user outlines for beams, id 69)",
+   "old_behaviour": "Copies CUSTOM_JOINTS_B_MALE pairs into m[0]/m[1] and CUSTOM_JOINTS_B_FEMALE pairs into f[0]/f[1], every type wood::cut::nothing; default orient=true (goes through orient_to_connection_area change_basis from joint_volumes[0]->[1] and [2]->[3]).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5947-5971; 351933c:cmake/src/wood/include/wood_joint.cpp:342-348",
+   "current_behaviour": "b_custom(joint, settings) -> custom_outlines(joint, settings.custom(\"b\")[0], [1]); JointPlate::b_custom(male, female) stores parameters.outlines. Same Plate-only reachability as b_0.",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_custom.h:1-5; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1518-1524",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "JointBeam::from_contact / beam_to_beam (2024 beam_volumes + pair_search)",
+   "old_behaviour": "Per axis pair: line_line_classified gives p0,p1,v0,v1,normal,type0,type1; two_rect_from_point_vector_and_zaxis builds 2 rects per beam (radius, volume_length, flip_male rotates the end beam's corners); crossing trimmed by the bisector plane, side-to-end by the end beam's nearer rect plane; the 4 rects become two box 'elements' fed to pair_search/face_to_face, which decides the joint type and marks el_ids.first male (j_mf true) and second female; eccentricity scale per joint; then construct_joint_by_index (b_0).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_main.cpp:2391-2396, :2399-2511, :2520, :1230-1316 (1310-1311 male/female), :2549-2591",
+   "current_behaviour": "beam_to_beam reproduces detection: line_line_classified -> type_allowed(beam.allowed_type) -> Polyline::two_rects_from_frame (rects on the +-y faces, y = up x axis; flip_male rotates corners for an end beam) -> trim_crossing / trim_side_to_end; stores end_type and the 4 volumes only (the normal/v0/v1 are dropped). JointBeam::interaction(0) = copy of the feature, interaction(1) = copy with [0,1]<->[2,3] swapped. WoodSession::add_joint_interaction only hosts an ElementFeature 'joint' (volumes[0],[1]) on the target; nothing is cut: WoodElement::model_geometry_mesh applies only solid_features and plane_features, and no code consumes InteractionFeatureBeam volumes. The joint element itself draws the two lofted volume boxes (bodies()). Example: crossing_a/b and tee_a/b, volumes 400, 0.9, flip 0; the InteractionContactAxis segment/t_a/t_b are not read (only segment_a/segment_b). INSERTION DIRECTION: crossing = the common normal of the axes = Intersection::line_line_classified `normal` (= cross of v0,v1), equivalently the normal of volumes[0] (its corner edges); side-to-end/end-to-end = the ending beam's axis v (type0/type1 true marks the end); neither is stored on the feature, so a picture recomputes it or uses InteractionContactAxis::segment (a->b) when its length > 0.",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:60-85, :1088-1097, :1167-1179; src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp:92-193 (:106-112 fields used, :118-129, :137-169, :171-188); ../session/session_cpp/src/polyline.cpp:1690-1709; ../session/session_cpp/src/intersection.cpp:10408-10434; src/joinery_solver/wood_session.cpp:1640-1661, :919-952; src/joinery_solver/wood_elements/wood_element.cpp:68-93; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_beam.h:233-234; src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.h:640-646; examples/elements/element_joint_beam_from_contact.cpp:21-62",
+   "matches": "no"
+  },
+  {
+   "fabrication_type": "JointBeam::wedge (connector; no 2024 counterpart, compas_tf port)",
+   "old_behaviour": "Not in the 2024 library (grep of wood_joint_lib.h: only b_0/b_custom are beam joints).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.h:594-601",
+   "current_behaviour": "Frame: x = contact top edge (merge_collinear + top_edge), y = contact normal made perpendicular to x, z = x cross y (up for any winding, since Newell normal and edge direction flip together). Part: WEDGE_PROFILE prism (apex 197 below the top edge) along x between stations, cut at the top-edge level by below_top. Pins: count = length/pin_spacing, horizontal lines of +-pin_offset[0] at pin_offset[1] below, flush_pin clipped to {a,b}; line_radius, chord tol, drill_overshoot. Cutters per target: wedge_pocket of the slanted face on that member's side (face p0-p1 for a member with (centroid-centre).normal<0, p0-p2 otherwise), box pocket_depth deep behind the face (toward the wedge interior, i.e. through the member's half of the V). Each target gets InteractionFeatureSolid{mesh = loft of its cutters, operation = subtract (default), drills = target_drills (pins through it, run on by overshoot where they leave it)}; parts/pins nest as ConnectorPart/Pin. Example: left (y<0) = target 0, right = target 1, right moved +300 Y afterwards. INSERTION: wedge enters along -z of the frame (down from the top edge, axes[2]); members separate along +-axes[1] (contact normal), sign chosen per member at :400-403.",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:279-407 (:294-299 frame, :300-317 stations, :326-347 part, :349-375 pins, :377-404 pockets), :212-271 wedge_pocket, :191-210 below_top, :172-189 flush_pin, :1072-1086 interaction; src/joinery_solver/wood_session.cpp:1592-1638, :1338-1376; examples/elements/element_joint_beam_wedge.cpp:26-39",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "JointBeam::let_in_plate + JointBeam::rectangle_plate (plate let into column and rib; compas_tf port)",
+   "old_behaviour": "Not in the 2024 library.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.h:594-601",
+   "current_behaviour": "plate_frame: origin = top_origin (centre of the contact's top corners), x = horizontal contact normal pointed at the rib centroid, z = world up, y = z cross x. let_in_plate: Plate from frame_box(-back..front, width, -height..0), named after the contact. rectangle_plate: targets {column, rib, plate}; one pocket = frame_box over the plate's extent with z top raised by overshoot (open upward), cutters = {{pocket},{pocket},{}} (plate gets no cut); 4 pins along +-y (pin_length/2 each way): 2 at x = low+margin_x*r flush_pin'd to the column, 2 at x = high-margin_x*r flush_pin'd to the rib, at z = high-margin_z*r and low+margin_z*r; drill_overshoot. Each target's InteractionFeatureSolid subtracts its pocket and its own passing pins (target_drills). Example: column 220 sq, rib 120x400, pin_length 120: the column's two pins (y +-60 inside y +-110) never reach a column face (flush_pin only trims). INSERTION: plate drops in along -z (pocket open at +z); column and rib separate along +-x (horizontal normal); pins along +-y.",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:487-511 (frame), :410-432 (top_origin), :435-484 (frame_box), :514-536, :539-612 (:569-578 pocket, :583-605 pins), :172-189 flush_pin; examples/elements/element_joint_beam_rectangle_plate.cpp:11-40; src/templates/floor/floor.cpp:368-379",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "JointBeam::tie (bow-tie key across an end-to-end seam; compas_tf OBJ template port)",
+   "old_behaviour": "Not in the 2024 library.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.h:594-601",
+   "current_behaviour": "Frame: x = (0,0,-1) (down), y = horizontal contact normal (sign = Newell), z = x cross y (across), origin = top_origin. Parts: 4 lofted pieces along y (head -half..-neck width head_width, neck -neck..0 and 0..neck width neck_width, head neck..half), each section from depth `top` to top+depth+(end_depth-depth)*|y|/half. Cutters: member with (centroid-origin).y<0 gets the negative head box and the neck box from -neck to +overshoot, flat floor at top+pocket_depth; the other member mirrored; no pins. Example: first = target 0 (x<1000), second moved +400 X afterwards. Note pocket floor 218.5 is below the key bottom (197 at the seam, 208.9 at the ends). INSERTION: key enters along +Z (from above, parts start at `top` below the edge); members separate along +-y (horizontal contact normal).",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:658-802 (:678-684 frame, :691-716 parts, :718-794 pockets, :796-799 side), :614-655 tie_section; examples/elements/element_joint_beam_tie.cpp:11-33",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "JointBeam::centred_pins (pins across a face contact; compas_tf port)",
+   "old_behaviour": "Not in the 2024 library (2024 drills are plate drills: tt_e_p, cut_type drill).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_cut.h:43; 351933c:cmake/src/wood/include/wood_joint_lib.h:594-601",
+   "current_behaviour": "normal = Newell of the contact, flipped to point at b's centroid; x = top edge, y = normal cross x; Clipper inset of the contact by offset, extreme_corners (<=4) -> one pin per corner, from station-normal*length/2 to station+normal*length/2; cutters = {{},{}} so each target's InteractionFeatureSolid has an empty mesh and only its passing pins as drills (target_drills, overshoot past the faces a pin leaves); nullptr when the inset is empty. Example: lower (target 0) / upper (target 1), pins 160 long -> 80 in each. INSERTION: along `normal` (a -> b); separate b along +normal.",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:866-913 (:877-882 normal, :884-895 ring, :901, :903-906), :805-840 inset_polygon, :843-863 extreme_corners; src/joinery_solver/wood_session.cpp:1619-1637; examples/elements/element_joint_beam_centred_pins.cpp:19-31",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "JointBeam::headed_pins (pre-drilled headed pins; compas_tf port)",
+   "old_behaviour": "Not in the 2024 library.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.h:594-601",
+   "current_behaviour": "Chooses roles itself: the member whose level axis is more square to the contact (|axis.normal| > 0.5 and larger) is `into` (ends on the contact), the other is `through`; direction = into's level axis (else the normal), oriented along the normal toward into. Stations from the inset contact in a frame x = level direction in the contact (or top edge), y = normal cross x: corners / vertical column / horizontal row of `count`, moved by `shift`. Each pin = Line(head, head+direction*length) with head = pin_head: where the line entering `through` last (at the contact) starts, searched only `length` back; if `through` is thicker than `length` the head is `length` from the contact and the pin ends at the contact. pre_drill = true: interaction() returns an empty InteractionFeaturePlateBeam; add_joint_interaction only hosts 'drill' circle features (host_drills) on each target; pre_drill_lines() has no consumer, so no hole exists in any target's mesh or BRep. Example: a = beam (through), b = joist (into), pins 200 long from the beam's far face. Docs page lists the signature as (through, into). INSERTION: along `direction` (into's axis, pointing into `into`); separate `into` along +direction.",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp:956-1055 (:973-988 roles/direction, :990-1031 stations, :1036 pre_drill, :1040-1049 pins), :916-936 pin_head, :939-954 level_axis, :1068-1069; src/joinery_solver/wood_elements/wood_element_joint_beam.h:33, :135-147; src/joinery_solver/wood_session.cpp:1601-1617, :1418-1470, :1267-1282; docs/elements/element_joint_beam.md:19; examples/elements/element_joint_beam_headed_pins.cpp:17-45",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "cross lap / tee between beams",
+   "old_behaviour": "2024 cross lap (cr_c_ip_*) is a plate joint on crossing plates; for beams the only crossing joint is b_0's slice (and the 2024 docs call 'cr_c_ip' beam variants 'conical cuts' in comments only).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.h:427-457; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:6565-6582",
+   "current_behaviour": "No JointBeam cross-lap or tee factory exists. The floor's 'cross lap' is JointPlate::cr_c_ip_0 oriented on the cross contact of the two let-in Plates (compute_cross_contact), applied with interaction(0)/(1) to the two plates. 'tee' in the beam example is only the name of the side-to-end from_contact joint (volumes only, nothing cut). INSERTION for cr_c_ip: volumes[0]/[1] = polygon translated +-v, v along the plates' mid-plane intersection line (lMin), so the plates slide together along that line.",
+   "current_ref": "src/templates/floor/floor.cpp:381-390, :542-549; examples/elements/element_joint_beam_from_contact.cpp:42-62; src/joinery_solver/wood_algorithms/wood_contact_detection.cpp:734-787; src/joinery_solver/wood_algorithms/wood_feature_detection.cpp:960-975",
+   "matches": "no"
+  },
+  {
+   "fabrication_type": "Plate joint families, insertion direction (ss_e_ip 12, ss_e_op 11, ss_e_r 13, ts_e_p 20, tt_e_p 40)",
+   "old_behaviour": "Unit joints are oriented by change_basis from joint_volumes[0]->[1] (and [2]->[3]); the volumes are built per type in face_to_face: direction `dir` = the male element's per-face insertion vector when set (priority i>j), ts_e_p default dir0 = Plane0[i].orthogonal_vector() (top face normal) with the bounding rectangle moved by +-thickness; ss_e_r frame x = average segment, z = Plane0[i] normal.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint.cpp:342-348; 351933c:cmake/src/wood/include/wood_main.cpp:592-599, :617-640, :1144-1196",
+   "current_behaviour": "InteractionFeaturePlate.joint_volumes[0],[1] bound the male side ([2],[3] the female when different) and are copied from the contact's volumes in JointPlate::orient; FaceCandidate.dir = insertion vector of the male face when set, end planes along the joint line otherwise; ts_e_p: dir = insertion vector else el0.planes[i].z_axis(), volume rect +-thickness along it; cr_c_ip: along the mid-plane intersection line. Derivation for pictures: insertion = unit vector from centroid(joint_volumes[0]) to centroid(joint_volumes[1]) for ss_e_ip/ts_e_p/tt_e_p (ts_e_p/tt_e_p = top face normal, ss_e_ip = across the edge face in the plate plane), per side for ss_e_op ([0]->[1] male, [2]->[3] female); ss_e_op/ss_e_r volume construction in the current port not read (unverified).",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.h:21-25; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:699-707, :730-736; src/joinery_solver/wood_algorithms/wood_feature_detection.cpp:215-218, :523-543, :889-898; ../session/session_cpp/src/element.h:184, :369-370",
+   "matches": "unknown"
+  }
+ ],
+ "bugs": [
+  {
+   "title": "InteractionFeatureBeam never cuts a beam; from_contact draws volumes only",
+   "file": "src/joinery_solver/wood_session.cpp",
+   "line": 1651,
+   "description": "add_joint_interaction for a beam-to-beam joint only hosts an ElementFeature 'joint' with volumes[0],[1] on the target (and the 919-952 path does the same for a non-joint source). No code reads InteractionFeatureBeam volumes into Beam::solid_features/plane_features/cuts (WoodElement::model_geometry_mesh at wood_element.cpp:68-77 applies only those), so neither the 2024 b_0 slice nor any other beam joinery reaches the solid. The joint element draws its two lofted volume boxes (wood_element_joint_beam.cpp:1167-1179) which is all the example shows. FabricationType::slice/mill/cut/conic (fabrication_type.h:11-21) have no consumer.",
+   "example_joint": "examples/elements/element_joint_beam_from_contact.cpp:30-62: crossing_a/crossing_b and tee_a/tee_b keep their full 60-radius sections; the picture docs/images/elements/element_joint_beam_from_contact.png can only show the volume boxes, not a cut.",
+   "severity": "high"
+  },
+  {
+   "title": "b_0 / b_custom (beam family 60) live in JointPlate and can never target a Beam",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp",
+   "line": 1513,
+   "description": "JointPlate::b_0()/b_custom() build the 2024 beam slice as an InteractionFeaturePlate (b_0.h:1-77), but a JointPlate is oriented only on a face/cross contact of two Plates (orient :693-712, :719-742) and WoodSession::add_interaction throws 'A plate joint requires a plate target' (wood_session.cpp:799-801; add_plate_joint :1298-1301 likewise). family_of_type(60)->6 and build_family_default(6)->b_0 (:35-50, :300-302) are therefore dead for beams. The beam family is misplaced: it belongs on JointBeam, fed by InteractionFeatureBeam volumes, producing plane cuts (Beam::cuts / plane_features already exist, wood_element_beam.h:19, wood_element.h:14). No example exercises b_0 (examples/elements has no element_joint_plate_b_0 / element_joint_beam_b_0).",
+   "example_joint": "JointPlate::b_0()->orient(contact of two Beams) is impossible; apply_joint on a Beam target throws at wood_session.cpp:801.",
+   "severity": "high"
+  },
+  {
+   "title": "headed_pins (pre_drill) never produce a hole in any target's geometry",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp",
+   "line": 1068,
+   "description": "interaction() returns an empty InteractionFeaturePlateBeam when pre_drill is set; add_joint_interaction (wood_session.cpp:1606-1617) only records the interaction and hosts 'drill' circle polylines via host_drills (:1418-1470). pre_drill_lines() (:1267-1282) has no consumer in src/ or examples/ (grep), so neither mesh nor BRep of the beam or joist is drilled. By design per the header comment (wood_element_joint_beam.h:33), but a per-pair picture 'showing the cut' cannot show a hole, and the Pin children stand in uncut wood.",
+   "example_joint": "examples/elements/element_joint_beam_headed_pins.cpp:32-45 (beam_i / joist_i, three layouts): pins_i leave beam_i and joist_i solid.",
+   "severity": "medium"
+  },
+  {
+   "title": "rectangle_plate 'flush' pins only trim, never extend: example buries the column pins",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp",
+   "line": 583,
+   "description": "The pins are pin_length long centred on the plate (y = +-pin_length/2) and passed through flush_pin({member}), which only shortens a line to its inside stretches (:172-189, returns the pin unchanged when fully inside). The doc comments (:538 'pin_length long but flush with their member', :582 'each flush with its own member only') promise flush ends. In the example the column is 220 wide and pin_length is 120, so the two column pins end 50 mm inside the column on both sides: no hole reaches a face, the BRep shows nothing, and the pin could not be driven.",
+   "example_joint": "examples/elements/element_joint_beam_rectangle_plate.cpp:11-15 (column 220x220) with :27-33 pin_length 120; description :49 claims 'four 25 radius pins through all three'.",
+   "severity": "medium"
+  },
+  {
+   "title": "InteractionFeatureBeam drops the crossing normal and end-beam axis needed to orient a slice or draw the pair apart",
+   "file": "src/joinery_solver/wood_algorithms/wood_feature_detection_beam.cpp",
+   "line": 190,
+   "description": "beam_to_beam computes p0,p1,v0,v1,normal,type0,type1 (:114-129) but stores only end_type and the four volumes (:190-191; feature_beam.h:233-234). A consumer (a future b_0 on JointBeam, or the docs screenshot that separates the two beams) must recompute the insertion direction from the rectangles; the InteractionContactAxis in the example even has a zero-length segment and unused t_a/t_b (:106-112 read only segment_a/segment_b).",
+   "example_joint": "examples/elements/element_joint_beam_from_contact.cpp:21-29 and :43-51: segment Line({0,0,0},{0,0,0}) / ({1400,0,0},{1400,0,0}), t values ignored.",
+   "severity": "low"
+  },
+  {
+   "title": "headed_pins: a `through` member thicker than `length` leaves zero penetration",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp",
+   "line": 916,
+   "description": "pin_head searches only `reach` = length back from the contact (:923) and takes the start of the last inside stretch (:929-935); when `through` is thicker than `length`, start stays 0, the head is placed `length` before the contact and the pin (:1048) ends exactly on the contact, entering `into` by nothing. Read from the code, not reproduced at runtime.",
+   "example_joint": "JointBeam::headed_pins(beam 120 wide, joist, contact, ..., length = 200) is fine; the same call with a 250-wide `through` member gives pins that stop at the contact.",
+   "severity": "low"
+  },
+  {
+   "title": "Docs signature of headed_pins names (through, into) but the code takes (a, b) and picks the roles itself",
+   "file": "docs/elements/element_joint_beam.md",
+   "line": 19,
+   "description": "The page prints `headed_pins(const Element& through, const Element& into, ...)`; the header is (a, b) (wood_element_joint_beam.h:136-139) and the factory decides which member is `through`/`into` from the level axes (wood_element_joint_beam.cpp:973-982). A reader following the page would expect the argument order to set the direction; it does not (and a reversed call still yields the same pins).",
+   "example_joint": "examples/elements/element_joint_beam_headed_pins.cpp:32-41 passes (*beam, *joist) and relies on the automatic choice.",
+   "severity": "low"
+  },
+  {
+   "title": "tie pocket floor sits below the key: 10-21 mm gap under the key",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_beam.cpp",
+   "line": 718,
+   "description": "Pocket floor = top + pocket_depth = 138.5 + 80 = 218.5 below the top edge (:718), while the key bottom runs from top+depth = 197 at the seam to top+end_depth = 208.9 at the ends (:694-695). The key does not bear on the pocket floor. The defaults are stated to be the OBJ template's (:657) - whether the template also has this gap is unverified.",
+   "example_joint": "examples/elements/element_joint_beam_tie.cpp:26 with defaults (depth 58.5, end_depth 70.4, pocket_depth 80).",
+   "severity": "low"
+  }
+ ],
+ "fix_plan": [
+  "Move the beam family (type 60: b_0, b_custom) from JointPlate to JointBeam: add JointBeam::b_0(source, target, contact, volume_length, cross_or_side_to_end, flip_male, scale) that runs beam_to_beam, ports the b_0.h math onto feature.volumes (tween of [0]/[1] for target 0 and of [2]/[3] for target 1), and emits per target the slice as geometry the Beam already consumes: two InteractionFeaturePlane cuts (rect0 plane facing away, rect1 plane) or one InteractionFeatureSolid slab between rect0 and rect1 with operation subtract; then delete build_beam/family 6 defaults and JointPlate::b_0/b_custom/compute_b (wood_element_joint_plate.cpp:246-258, :300-302, :1513-1540) or keep them as forwards that throw.",
+  "Replace the host-only beam branch in WoodSession::add_joint_interaction (wood_session.cpp:1640-1661): a beam-to-beam joint's interaction(i) must return the cut (InteractionFeatureSolid/Plane) for target i, and from_contact must build it; keep the 'joint' volume feature only as an attribute drawing.",
+  "Store the insertion data on InteractionFeatureBeam (new fields + proto: crossing normal, v0, v1, type0/type1) from beam_to_beam (wood_feature_detection_beam.cpp:114-129, :190-191) and expose JointBeam::insertion(target) for every factory (from_contact: normal or the ending beam's axis; wedge: axes[1] per side; tie: y per side; rectangle_plate: x per side, plate -z; centred_pins: normal; headed_pins: direction) so the per-pair screenshots separate the members along it instead of hard-coded translations in the examples.",
+  "Map or remove the dead beam FabricationType values (fabrication_type.h:11-21): slice -> plane cut pair, mill/cut/cut_reverse -> solid subtract, conic -> unsupported (throw), drill -> drills; add the single converter used by the new JointBeam::b_0 and by b_custom outlines.",
+  "headed_pins: either make interaction(i) return an InteractionFeatureSolid with that target's pins as drills (as centred_pins does, with drill_overshoot = 0 for a pre-drilled hole) so the holes exist in mesh and BRep, or state on the docs page and in the header that pre-drilled pins leave the geometry uncut; in pin_head search back by the member's full extent (inside_stretches over a long line) rather than `reach` so a thick `through` member still gets `length` of penetration past its far face.",
+  "rectangle_plate: make the pins truly flush with their member: take each pin's inside stretch across the member in y (full stretch, not min/max with the given pin) or take pin_length per member from the member's width across the plate frame; fix the example (pin_length 220 for the column or separate lengths) and its description.",
+  "Docs: correct the headed_pins signature line (docs/elements/element_joint_beam.md:19); add an 'Insertion' column/line per factory with the derivation above; produce the per-pair screenshots the user asked for (one image per member pair, members pulled apart along the insertion vector, both the cut and the connector visible) with tools/screenshot_element_docs.sh, several images per factory where one view hides the cut.",
+  "Add examples/elements/element_joint_beam_b_0.cpp (two crossing Beams with the slice applied through add_interaction) and a regression port of the 2024 beam dataset (type_beams_name_phanomema_node: radii 150, allowed {1}, volume_length 500, cross_or_side_to_end 0.91, flip_male 1) comparing the four volume rectangles and the four slice rectangles with the 2024 XML output.",
+  "tie: check the OBJ template for the pocket floor; if the key must bear on it set pocket_depth's default to end_depth (or compute the floor per piece), and document the clearance otherwise."
+ ]
+}

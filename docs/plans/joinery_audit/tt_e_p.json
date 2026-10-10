@@ -1,0 +1,237 @@
+{
+ "family": {
+  "family": "tt_e_p (top-to-top edge plane drills, ids 40-49, contact type 40)",
+  "variants": [
+   {
+    "name": "tt_e_p_0",
+    "status": "ported",
+    "current_location": "JointPlate::tt_e_p_0 (src/joinery_solver/wood_elements/wood_element_joint_plate.h:150, .cpp:1245-1252) + wood_interaction_feature_plate_joints/tt_e_p_0.h (centroid_drill in tt_e_p_drills.h:111-139); dispatch build_toptop case 40 (.cpp:197-199) and compute_tt_e_p (.cpp:1321-1322)",
+    "old_params": "none of its own; group-4 globals division_length=6, shift=0.95 unused by this variant (351933c:cmake/src/wood/include/wood_globals.cpp:54); thickness from elements[v0]/elements[v1] (351933c:cmake/src/wood/include/wood_joint_lib.cpp:5527-5528)",
+    "current_params": "tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) -> Joint::line_radius / chord_tolerance (display and hole radius only, .cpp:1248-1249); thickness from elements[v0]->thickness / elements[v1]->thickness via index_of_plate(element_a/element_b) (tt_e_p_drills.h:10-11,128-129)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "same",
+    "differences": [
+     {
+      "what": "Centre point: old cgal::polyline_util::center(joint_area); current joint.contact.polygon.center() = average of points without the closing duplicate (polyline.h:136-137). Old center() body not read: equality of the two averages is unverified (if the old one averaged the closing point too, the centre shifts for non-rectangular areas).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5520",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:135",
+      "severity": "low"
+     },
+     {
+      "what": "New guards absent in 2024: drill_ready() returns silently (no outlines) when either plate index is missing, joint_volumes[0] is unset or has <3 points, or the contact polygon has <3 points; compute_library throws when elements.size()<2. Old always emitted the two lines.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5513-5549",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:2-20; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:907-908",
+      "severity": "low"
+     },
+     {
+      "what": "Polyline layout identical: old f[0]={line0,line0}, f[1]={line0,line0}, m[0]={line1,line1}, m[1]={line1,line1}, m/f_boolean_type={drill,drill}; current female_outlines[f]={line0,line0}, male_outlines[f]={line1,line1}, per-face type vectors {drill,drill}; drill = 15 in both enums (old enum index 15 at 351933c:cmake/src/wood/include/wood_cut.h:18-36 + line 61; current FabricationType::drill = 15).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5536-5542",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:57-69; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:22",
+      "severity": "low"
+     },
+     {
+      "what": "orient=false + key += id (no cache reuse, no unit-box orientation) is mirrored by no_orient=true and a cache that is used only for joint_type 12.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5546-5548",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_0.h:5; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:512,579-581",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_1",
+    "status": "partial",
+    "current_location": "JointPlate::tt_e_p_1 (wood_element_joint_plate.h:152, .cpp:1254-1261) + plate_joints/tt_e_p_1.h (calls centroid_drill); dispatch case 41 (.cpp:200-202), compute_tt_e_p (.cpp:1323-1324)",
+    "old_params": "none of its own; polylabel precision 1.0 hard-coded; thickness from elements[v0]/[v1]",
+    "current_params": "tt_e_p_1(double radius = 1.0, double chord_tolerance = 0.05)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Centre: old = polylabel (largest inscribed circle centre, mapbox::polylabel after orienting joint_area to XY, precision 1.0); current = plain vertex average (the header comment says 'visual centre, approximated by the centroid'). Differs for any non-symmetric contact area. The kernel already has Polyline::polylabel(polylines, precision) (session/session_cpp/src/polyline.h:325-326) which is not used.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5559-5560; 351933c:cmake/src/wood/include/cgal_inscribe_util.cpp:248-326",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_1.h:1-8; tt_e_p_drills.h:135",
+      "severity": "high"
+     },
+     {
+      "what": "Everything else (dir0/dir1, 2x2 line layout, drill types, orient=false) identical to tt_e_p_0.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5562-5589",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:23-69",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_2",
+    "status": "partial",
+    "current_location": "JointPlate::tt_e_p_2 (wood_element_joint_plate.h:154-159, .cpp:1263-1277) + plate_joints/tt_e_p_2.h; dispatch case 42 (.cpp:203-205), compute_tt_e_p (.cpp:1325-1326)",
+    "old_params": "number_of_points = joint.division_length (group-4 default 6), scale = joint.shift (default 0.95, a FRACTION of the polylabel radius), precision 1.0, orient_to_closest_edge=true, division_direction=(0,0,0) (351933c:wood_joint_lib.cpp:5600-5604; wood_globals.cpp:54)",
+    "current_params": "tt_e_p_2(int count = 6, double circle_radius = 20.0, double radius = 1.0, double chord_tolerance = 0.05): division_distance = count (-> connection.division_length via joint_get_divisions, wood_feature_construction.cpp:220), shift = circle_radius (ABSOLUTE mm radius) (.cpp:1273-1274); example uses tt_e_p_2(6, 60.0, 8.0) (examples/elements/element_joint_plate_tt_e_p.cpp:14)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Circle centre: old polylabel centre; current vertex average of the contact polygon.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.cpp:328-337",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_2.h:20",
+      "severity": "high"
+     },
+     {
+      "what": "Circle radius: old = polylabel inscribed radius x shift (0.95 default, relative); current = shift used as an absolute radius (circle_radius, 20 mm default). Different meaning and different default.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.cpp:413-415 (std::get<2>(circle) * scale)",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_2.h:18; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1274",
+      "severity": "high"
+     },
+     {
+      "what": "Circle orientation and phase: old x-axis = direction of the polygon edge closest to the centre (orient_to_closest_edge=true), y = cross(x, plane normal), points at angles 45 + i*(360/n) degrees with INTEGER division 360/n (e.g. n=7 gives 51 deg steps and an open gap); current x = get_fast_plane().x_axis(), y = z x x, angles 2*pi*i/n, no 45 deg offset.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.cpp:169-184 (circle_points), 396-415",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_2.h:21-40",
+      "severity": "high"
+     },
+     {
+      "what": "Point count: old passes division_length as int `division` unclamped; current clamps to 1..100 and collapses to a single centre point when radius < 1e-9 or n <= 1.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5601-5604",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_2.h:19,32-33",
+      "severity": "low"
+     },
+     {
+      "what": "Kernel already provides Polyline::polylabel_circle_division_points(division_direction_in_3d, polylines, division=4, scale=0.75, precision=1.0, orient_to_closest_edge=true), the exact old signature; the builder does not call it.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.h:197-198",
+      "new_ref": "session/session_cpp/src/polyline.h:328-329",
+      "severity": "medium"
+     },
+     {
+      "what": "Per-point output layout (2 lines per point per face, drill types) matches the old loop.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5621-5640",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:57-69",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_3",
+    "status": "partial",
+    "current_location": "JointPlate::tt_e_p_3 (wood_element_joint_plate.h:161-166, .cpp:1279-1293) + plate_joints/tt_e_p_3.h -> boundary_drill / offset_boundary_points (tt_e_p_drills.h:74-108,142-183); dispatch case 43 passes settings.distance_squared (.cpp:206-208), compute_tt_e_p passes parameters.distance_squared (.cpp:1327-1328)",
+    "old_params": "offset_distance = -joint.shift (default 0.95, inward), division_distance = joint.division_length (default 6), open test vs GLOBALS::DISTANCE_SQUARED = 0.01 (351933c:wood_joint_lib.cpp:5659-5665; wood_globals.cpp:15,54)",
+    "current_params": "tt_e_p_3(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05, double distance_squared = 0.01): division_distance = spacing; shift NOT exposed, stays JointPlate::shift = 0.5 (wood_element_joint_plate.h:40) -> connection.shift = 0.5 (compute_parameters .cpp:879)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "same",
+    "differences": [
+     {
+      "what": "Algorithm identical: get_fast_plane, offset_in_3d by -shift, per segment divisions = min(100, len/division_distance), interpolate_points(kind 2), append last vertex when front/back squared gap > tolerance.",
+      "old_ref": "351933c:cmake/src/wood/include/clipper_util.cpp:886-909",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:81-105",
+      "severity": "low"
+     },
+     {
+      "what": "shift (inward offset in mm) dropped from the factory: old default 0.95 from the group-4 globals; current fixed 0.5 unless the solver path (family_parameters, PARAMETER_DEFAULTS row 4 = 6, 0.95) is used.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_globals.cpp:54",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1279-1293,879; .h:40",
+      "severity": "medium"
+     },
+     {
+      "what": "Default spacing 30 vs old division_length 6.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_globals.cpp:54",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:162",
+      "severity": "medium"
+     },
+     {
+      "what": "New guards: returns with no outlines when division_distance <= 0 or the contact polygon has < 4 points.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5651-5710",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:151-160",
+      "severity": "low"
+     },
+     {
+      "what": "interpolate_points kind-2 semantics assumed equal between old cgal::vector_util::interpolate_points and Polyline::interpolate_points ('kind 2 start endpoint'); the old body was not read (unverified).",
+      "old_ref": "351933c:cmake/src/wood/include/clipper_util.cpp:901",
+      "new_ref": "session/session_cpp/src/polyline.h:310-311",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_4",
+    "status": "partial",
+    "current_location": "JointPlate::tt_e_p_4 (wood_element_joint_plate.h:168, .cpp:1295-1303) + plate_joints/tt_e_p_4.h -> boundary_drill(joint, elements, division_length, 0.01); dispatch case 44 (.cpp:209-211), compute_tt_e_p (.cpp:1329-1330)",
+    "old_params": "offset_distance = -joint.shift (0.95), division_distance = joint.division_length (6), max_points = 100 (351933c:wood_joint_lib.cpp:5721-5726)",
+    "current_params": "tt_e_p_4(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05); shift not exposed (0.5)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Wrong algorithm: old = interior GRID of points (cgal::rectangle_util::grid_of_points_in_a_polygon: orient to XY, offset_in_2d by -shift; for a 5-point rectangle divisions_u = min(int(e00/d), int(e01/d)), divisions_v likewise, interpolate edges 0->1 and 3->2 with kind 1 then between them, i.e. (du+2)x(dv+2) points including corners; otherwise min-area rectangle of the convex hull, divisions_u/v = min(min(20, 50), 2*floor(half_extent)/d), a (2du+1)x(2dv+1) grid at spacing d centred on the rectangle, rotated back and culled by Clipper PointInPolygon). Current = points along the offset BOUNDARY only (same as tt_e_p_3 with open tolerance 0.01).",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_rectangle_util.cpp:343-572",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_4.h:1-13; tt_e_p_drills.h:142-183",
+      "severity": "high"
+     },
+     {
+      "what": "Kernel already provides Polyline::grid_of_points_in_polygon(polygon, offset_dist, div_dist, max_pts = 100) (same signature as the old helper); not used.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_rectangle_util.cpp:344-345",
+      "new_ref": "session/session_cpp/src/polyline.h:322-323",
+      "severity": "medium"
+     },
+     {
+      "what": "Defaults: spacing 30 vs 6; shift 0.5 vs 0.95 and not exposed.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_globals.cpp:54",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1295-1303",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_5",
+    "status": "partial",
+    "current_location": "JointPlate::tt_e_p_5 (wood_element_joint_plate.h:170, .cpp:1305-1313) + plate_joints/tt_e_p_5.h -> boundary_drill(joint, elements, |division_length|, 0.01); dispatch case 45 (.cpp:212-214), compute_tt_e_p (.cpp:1331-1332)",
+    "old_params": "scale = joint.shift (0.95, rectangle shrink factor), precision = 1, division_length = joint.division_length (6; > 0.1 edge division, < -0.1 grid), direction segment default (zero length -> axes oriented to the longest edge) (351933c:wood_joint_lib.cpp:5778-5785)",
+    "current_params": "tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05); shift not exposed (0.5)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Wrong algorithm: old = largest empty iso-rectangle inscribed in the area (CGAL Largest_empty_iso_rectangle_2 over boundary samples at step diagonal/(50*precision), after orienting to the longest edge and a 0.0001 rad rotation), shrunk per side by (1-scale)*min(extent); then if division_length > 0.1 its four edges divided (per edge min(25, len/d), kind 2), if < -0.1 a (du+2)x(dv+2) grid inside it (ceil-based divisions). Current = offset contact-polygon boundary division with |division_length|; no inscribed rectangle, no grid branch, sign of division_length ignored.",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.cpp:419-600",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_5.h:1-13",
+      "severity": "high"
+     },
+     {
+      "what": "No kernel equivalent of inscribe_rectangle_in_convex_polygon seen in polyline.h (only bounding_rectangle, quick_hull, polylabel, grid_of_points_in_polygon); a port needs a new kernel routine or a wood-side one (searched only polyline.h; other kernel headers unverified).",
+      "old_ref": "351933c:cmake/src/wood/include/cgal_inscribe_util.h:216-217",
+      "new_ref": "session/session_cpp/src/polyline.h:313-329",
+      "severity": "medium"
+     },
+     {
+      "what": "Defaults: spacing 30 vs 6; shift 0.5 vs 0.95 and not exposed; old shift is a scale (0..1), not an offset.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_globals.cpp:54",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1305-1313",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "tt_e_p_custom",
+    "status": "missing",
+    "current_location": "none: no JointPlate::tt_e_p_custom in wood_element_joint_plate.h:147-170, no tt_e_p_custom.h in wood_interaction_feature_plate_joints/ (directory holds tt_e_p_0..5 and tt_e_p_drills only), build_toptop has no case 49 (wood_element_joint_plate.cpp:194-218), compute_tt_e_p has no branch (.cpp:1319-1337)",
+    "old_params": "GLOBALS::CUSTOM_JOINTS_TT_E_P_MALE / _FEMALE polyline pairs (351933c:wood_globals.h:77-78, wood_globals.cpp:68-69); id 49 (wood_joint_lib.cpp:6029, 6528-6530)",
+    "current_params": "none",
+    "fabrication_types_match": "no",
+    "geometry_match": "unknown",
+    "differences": [
+     {
+      "what": "Old builds m[0]/m[1] from MALE[i]/MALE[i+1] (each twice) and f[0]/f[1] from FEMALE[i]/FEMALE[i+1] (each twice) with type nothing, and unlike tt_e_p_0..5 leaves orient=true so the unit-box geometry IS oriented to the connection volumes. Nothing of this exists in the port; every other family has a *_custom factory (ss_e_ip/ss_e_op/ts_e_p/ss_e_r/cr_c_ip/b).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5837-5860",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:147-170",
+      "severity": "medium"
+     },
+     {
+      "what": "Also absent from the top-top dispatch: old case 48 -> side_removal(jo, elements) and old default -> tt_e_p_0 for any other id in 40..49. Current build_toptop returns false for 46..49 and build_family_default has no family-4 entry ('tt_e_p has none'), so an unknown id in family 40 produces no geometry instead of tt_e_p_0.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6525-6533",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:215-217,282-306",
+      "severity": "medium"
+     }
+    ]
+   }
+  ],
+  "insertion_direction": "The family has no insertion vector of its own; both old and current derive the drill axis from the FIRST joint volume rectangle: dir0 = unitize(joint_volumes[0][1] - joint_volumes[0][2]), dir1 = -dir0, then dir0 *= thickness(v0 = element_a, male), dir1 *= thickness(v1 = element_b, female); female lines = {p, p + dir0}, male lines = {p, p + dir1} (old 351933c:cmake/src/wood/include/wood_joint_lib.cpp:5522-5534; current tt_e_p_drills.h:22-36,57-64). The type-40 volume is built in face_to_face: rect = bounding rectangle of the joint area; n = unitized (insertion_vectors0[i] if given, else the normal of element 0's contact face i: old Plane0[i].orthogonal_vector(), current el0.planes[i].z_axis()); copy A = rect moved by -n * dist(plane i, its opposite face plane of element 0) = -n*t0, copy B = rect moved by +n*t1; joint_volumes[0] = {A0, A1, B1, B0, A0}, joint_volumes[1] = {A3, A2, B2, B3, A3}, both extended by JOINT_VOLUME_EXTENSION[0]/[1] (old 351933c:cmake/src/wood/include/wood_main.cpp:1150-1212; current src/joinery_solver/wood_algorithms/wood_feature_detection.cpp:875-941). Hence [1]-[2] = A1-B1 = -n*(t0+t1), so dir0 = -n (into element 0 from the contact plane, opposite to face i's normal / the given insertion vector) and dir1 = +n (into element 1). So the exploded-picture direction for target 0 (element_a) is -n * thickness_a and for target 1 (element_b) +n * thickness_b, with n the contact-face normal of element_a; the old merge step that would have re-clipped the drill lines against the element planes is disabled by an unconditional `continue` (351933c:cmake/src/wood/include/wood_element.cpp:39-41), so the lines are exactly those lengths. In the JointPlate::orient(contact, elements) path the volumes come from contact->volumes[k] copied into connection.joint_volumes[k] (wood_element_joint_plate.cpp:705-707); that compute_face_contact fills them with the same top_top rectangles is stated by wood_session.h:116 ('plate contacts include joinery volumes') but the body was not read (unverified).",
+  "notes": "Verified by reading: old bodies 351933c:cmake/src/wood/include/wood_joint_lib.cpp:5513-5860, header docs wood_joint_lib.h:470-583, dispatch 6022-6029 and 6494-6533, group parameters 6050-6054 and 6196-6232, joint struct wood_joint.h:51-102 and wood_joint.cpp:33-71,396-415, old helpers (cgal_inscribe_util.cpp:169-184,210-231,248-600; clipper_util.cpp:886-909; cgal_rectangle_util.cpp:343-572), globals wood_globals.cpp:14-15,25-30,49-57,68-69, old test type_plates_name_top_to_top_pairs wood_test.cpp:1912-1962 (uses globals only, no per-joint overrides, JOINT_VOLUME_EXTENSION[2]=-10 which tt_e_p ignores), old element output wood_element.cpp:17-157; current builders, factories, header, dispatch, cache (joint_plate.cpp:194-218,282-341,425-470,476-592,688-713,743-797,857-930,1245-1337), detection top_top, feature struct, fabrication enum, session paths. Cross-family facts worth flagging: (1) old group-4 defaults division_length=6, shift=0.95, default id 40 are reproduced in the solver table PARAMETER_DEFAULTS (joint_plate.cpp:438-440) but NOT by the factories, whose defaults are spacing 30 / shift 0.5 / circle_radius 20 absolute. (2) The enum values of hole and edge_insertion are swapped between old wood_cut.h (edge_insertion=1, hole=2) and current FabricationType (hole=1, edge_insertion=2); drill is 15 in both, so tt_e_p is unaffected but any numeric round-trip of other families is. (3) Current emit_drills fills per-face type vectors male_fabrication_types[f]/female_fabrication_types[f] with two drill entries per point, old used one flat m_boolean_type/f_boolean_type shared by both faces; the per-outline mapping is the same. (4) Plate-side application: JointPlate::drill_axes() (joint_plate.cpp:779-797) returns one Line per unique 2-point drill outline of face [0] (duplicates skipped), Joint::... writes them into the cut as drills (wood_element_joint.cpp:104-106) and host_drills (wood_session.cpp:1418-1481) hosts 'drill' ElementFeatures per inside stretch with Joint::line_radius; add_plate_joint (wood_session.cpp:1288-1335) hosts the 'joint' feature from to_features() (wood_interaction_feature_plate.cpp:55-81) whose outlines then contain the 2-point drill lines as plain joint outlines. The WoodSession::add_interaction body that the example calls (examples/elements/element_joint_plate_tt_e_p.cpp:50-51) was not located (Bash died on a full temp quota midway; Read-only search of wood_session.cpp 1100-1420,1522-1717 did not contain it), so whether a JointPlate interaction reaches host_drills, and how Plate / merge_features treat 2-point drill outlines, is UNVERIFIED; wood_element_plate.cpp has no occurrence of 'drill' (grep before the outage). (5) Old 'drill-line correction' against the element planes is dead code (continue at wood_element.cpp:41), so 2024 output lines are exactly thickness-long. (6) Docs: docs/elements/element_joint_plate.md:84-90 and the parameter table at 102-104 describe tt_e_p_3..5 as 'a grid at a spacing', which matches 2024 for _4/_5 only, not the current boundary-division builders. (7) Kernel already holds the 2024 helpers for _1, _2 and _4 (Polyline::polylabel, polylabel_circle_division_points, grid_of_points_in_polygon at session/session_cpp/src/polyline.h:322-329); the port should call them per the 'kernel first' rule; _5 needs an inscribed-rectangle routine that was not found in polyline.h."
+ },
+ "verified": []
+}
