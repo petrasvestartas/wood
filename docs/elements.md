@@ -17,11 +17,12 @@ An element is built from its own parameters only. Whatever another element does 
 | [CutPlane](@ref elements_cut_plane) | `wood_element_cut_plane.h` | `element_beam_variable_cut` |
 | [Profiles](@ref elements_profile) | `wood_profile.h` | `element_profile` |
 | [Joint](@ref elements_joint) | `wood_element_joint.h` | `element_joint_drill`, `element_joint_cutter` |
-| [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip`, `_tt_e_p`, `_parameters` |
+| [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_tt_e_p`, `_parameters` |
 | [JointPlate ts_e_p](@ref elements_joint_plate_ts_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_ts_e_p_0` to `_5`, `_custom` |
 | [JointPlate ss_e_ip](@ref elements_joint_plate_ss_e_ip) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_ip_0` to `_5`, `_custom` |
 | [JointPlate ss_e_op](@ref elements_joint_plate_ss_e_op) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_op_0` to `_6`, `_17`, `_tutorial`, `_custom` |
 | [JointPlate ss_e_r](@ref elements_joint_plate_ss_e_r) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_r_0`, `_2`, `_3`, `_custom`, `_side_removal`, `_side_removal_ss_e_r_1` |
+| [JointPlate cr_c_ip](@ref elements_joint_plate_cr_c_ip) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip_0` to `_5`, `_custom` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact`, `_wedge`, `_rectangle_plate`, `_tie`, `_centred_pins`, `_headed_pins` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
@@ -40,6 +41,7 @@ An element is built from its own parameters only. Whatever another element does 
 - @subpage elements_joint_plate_ss_e_ip
 - @subpage elements_joint_plate_ss_e_op
 - @subpage elements_joint_plate_ss_e_r
+- @subpage elements_joint_plate_cr_c_ip
 - @subpage elements_joint_beam
 - @subpage elements_pin
 - @subpage elements_connector_part
