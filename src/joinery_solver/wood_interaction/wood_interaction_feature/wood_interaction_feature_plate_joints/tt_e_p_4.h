@@ -66,8 +66,8 @@ static std::vector<Point> bounding_lattice(const Polyline& ring, double division
 
 /// tt_e_p_4, id 44: a lattice of drills in the contact offset inward by shift, every division_length, as 2024's
 /// grid_of_points_in_a_polygon laid it: a ring of four corners takes the rectangle lattice from its first corner, any other ring the
-/// lattice about the centre of its bounding rectangle; a zero shift leaves the contact unoffset. 2024's Clipper offset rounded the
-/// ring at two decimals in its frame; the kernel's miter offset keeps it exact. Nothing for a division length of zero or less.
+/// lattice about the centre of its bounding rectangle; a zero shift leaves the contact unoffset, and so does one that swallows the
+/// ring, as 2024 did when Clipper returned nothing. Nothing for a division length of zero or less.
 static void tt_e_p_4(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "tt_e_p_4";

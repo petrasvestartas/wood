@@ -26,6 +26,7 @@ top_to_side_box
 top_to_side_corners
 top_to_side_snap_fit
 top_to_top_pairs
+vda_floor_0
 vda_floor_1
 vda_floor_2
 vidy_corner

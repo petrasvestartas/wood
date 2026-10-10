@@ -1,7 +1,7 @@
 /// tt_e_p_3, id 43: drills along the contact offset inward by shift, every division_length of its ring, as 2024's
 /// offset_and_divide_to_points laid them: each edge divided (int)min(100, length / division_length) times from its start point, and the
-/// ring's last point too when the ring is open by more than distance_squared. 2024's Clipper offset rounded the ring at two decimals
-/// in its frame; the kernel's miter offset keeps it exact.
+/// ring's last point too when the ring is open by more than distance_squared; the contact itself when the offset swallows the ring,
+/// as 2024 drilled the contact when Clipper returned nothing.
 static void tt_e_p_3(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
 
     joint.name = "tt_e_p_3";

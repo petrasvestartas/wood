@@ -67,16 +67,46 @@ static void emit_drills(
     }
 }
 
-/// The contact ring offset inward by shift as 2024's clipper offset_in_3d moved it: a miter offset in the ring's own plane, the
-/// result turned to start nearest the ring's first point; a ring the offset swallows is left as it is, as 2024 left the polyline
-/// when Clipper returned nothing.
+/// The contact ring offset inward by shift as 2024's clipper offset_in_3d moved it: Clipper2's miter inflate by -shift at its default
+/// two decimals, in the frame of the ring's own plane at its first point, the first path it returns when that covers more than 0.0001
+/// square units, turned to start nearest the ring's first point and closed; the contact itself when Clipper returns nothing or next
+/// to nothing, a ring the offset swallows. The kernel's Intersection::offset_in_3d is a plain miter that turns a swallowed ring into
+/// a self-crossing bow-tie instead, so 2024's Clipper call is made here, in 2024's frame, so the ring rounds to the same hundredths:
+/// the kernel's plane picks CGAL's base vectors, but for a normal with a component of exactly zero, where CGAL takes that axis.
 static Polyline offset_contact(const InteractionFeaturePlate& joint, double shift) {
 
-    Polyline ring = joint.contact.polygon;
+    const Polyline& contact = joint.contact.polygon;
     Point origin;
     Plane plane;
-    ring.get_fast_plane(origin, plane);
-    Intersection::offset_in_3d(ring, plane, -shift);
+    contact.get_fast_plane(origin, plane);
+    const Point first = contact[0];
+    const Vector x_axis = plane.base1();
+    const Vector y_axis = plane.base2();
 
-    return ring;
+    // the ring inset in its frame, as 2024 asked Clipper
+    const Clipper2Lib::PathD path = clipper_path(contact, first, x_axis, y_axis, false);
+    const Clipper2Lib::PathsD inset = Clipper2Lib::InflatePaths(
+        {path},
+        -shift,
+        Clipper2Lib::JoinType::Miter,
+        Clipper2Lib::EndType::Polygon
+    );
+    if (inset.empty() || std::abs(Clipper2Lib::Area(inset[0])) <= 0.0001)
+        return contact;
+
+    // back in world space, from the vertex nearest the contact's first point, closed
+    const Clipper2Lib::PathD& ring = inset[0];
+    size_t start = 0;
+    for (size_t i = 1; i < ring.size(); i++)
+        if (Clipper2Lib::DistanceSqr(ring[i], path[0]) < Clipper2Lib::DistanceSqr(ring[start], path[0]))
+            start = i;
+    std::vector<Point> points;
+    points.reserve(ring.size() + 1);
+    for (size_t i = 0; i < ring.size(); i++) {
+        const Clipper2Lib::PointD& p = ring[(start + i) % ring.size()];
+        points.push_back(first + x_axis * p.x + y_axis * p.y);
+    }
+    points.push_back(points[0]);
+
+    return Polyline(points);
 }
