@@ -129,6 +129,11 @@ public:
     /// gives every plate a row, a call with points gives every plate a table, -1 on the faces it lacked; a call with none changes nothing.
     void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius);
 
+    /// Joint types by points named as the user interface writes them, a text by each point: the name of a library design ("ss_e_ip_1",
+    /// "ts_e_p_3", "ss_e_op/side_removal", JointPlate::library_id), or "" for no joint. A point takes the face it lies nearest to: a side
+    /// face when it is nearer to a side face's middle line than to any bottom or top outline, else the bottom or top face, then as above.
+    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius);
+
     /// Insertion vectors by lines: on every plate a line's start snaps to the side face whose middle line lies nearest and within
     /// snap_radius, and its direction becomes that face's insertion vector, the table a *_insertion_vectors.txt sidecar gives; other faces
     /// keep theirs. Like a sidecar, a call with lines gives every plate a table, zero on the faces it lacked; a call with none changes nothing.

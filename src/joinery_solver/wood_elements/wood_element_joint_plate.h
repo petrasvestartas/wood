@@ -238,6 +238,12 @@ public:
                const InteractionContactFace& contact, int variant, double division_distance,
                double shift = 0.5, const Settings& settings = Settings());
     static std::shared_ptr<JointPlate> side_to_top(int variant = 20, double division_distance = 450.0, double shift = 0.5);
+
+    /// The joint id 2024's tables give a design by its name, the id a *_joints_types.txt sidecar or a point's type holds: "ss_e_ip_1" 1,
+    /// "ts_e_p_3" 20, "cr_c_ip_0" 30, "ss_e_r_2" 55, "b_0" 60, ...; a side removal by its family, "ss_e_ip/side_removal" 8 to
+    /// "ss_e_r/side_removal_merged" 58; "" 0, no joint. Throws for an unknown name and for a design 2024 reaches by name only (ts_e_p_0,
+    /// ts_e_p_1, ss_e_op_17, ss_e_op_tutorial).
+    static int library_id(const std::string& name);
     void orient(const std::shared_ptr<InteractionContactFace>& contact, const Settings& settings = Settings());
     void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings = Settings());
     void orient(const std::shared_ptr<InteractionContactCross>& contact, const Settings& settings = Settings());

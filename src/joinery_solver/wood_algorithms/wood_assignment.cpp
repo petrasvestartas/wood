@@ -76,6 +76,39 @@ void WoodSession::assign_joint_types_by_points(const std::vector<Point>& points,
     }
 }
 
+void WoodSession::assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius) {
+
+    if (names.size() < points.size())
+        throw std::invalid_argument(fmt::format("assign_joint_types_by_points: {} names for {} points", names.size(), points.size()));
+
+    std::vector<int> types;
+    types.reserve(points.size());
+    for (size_t i = 0; i < points.size(); i++) {
+
+        // the nearest bottom or top outline of any plate against the nearest side face's middle line
+        double outline = std::numeric_limits<double>::max();
+        double side = std::numeric_limits<double>::max();
+        for (const std::shared_ptr<Plate>& plate : plates()) {
+            if (plate->polylines.size() < 2)
+                continue;
+            size_t edge = 0;
+            Point closest;
+            outline = std::min({outline, plate->polylines[0].closest_distance_and_point(points[i], edge, closest), plate->polylines[1].closest_distance_and_point(points[i], edge, closest)});
+            for (size_t k = 0; k + 1 < plate->polylines[1].point_count(); k++) {
+                Line middle;
+                Line::get_middle_line(Line::from_points(plate->polylines[0][k], plate->polylines[0][k + 1]), Line::from_points(plate->polylines[1][k], plate->polylines[1][k + 1]), middle);
+                side = std::min(side, (middle.closest_point(points[i]).second - points[i]).magnitude());
+            }
+        }
+
+        // a type negative for the bottom or top face, as a sidecar's point on an outline
+        const int id = JointPlate::library_id(names[i]);
+        types.push_back(outline < side ? -id : id);
+    }
+
+    assign_joint_types_by_points(points, types, snap_radius);
+}
+
 void WoodSession::assign_insertion_vectors_by_lines(const std::vector<Line>& lines, double snap_radius) {
 
     if (lines.empty())

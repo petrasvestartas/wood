@@ -15,6 +15,18 @@ using namespace wood_session;
 // Joint library
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The id of every design 2024's tables reach, by name: the inverse of the build_ switches below, one entry per design, a side removal by its family.
+const std::unordered_map<std::string, int> LIBRARY_IDS = {
+    {"", 0},
+    {"ss_e_ip_1", 1}, {"ss_e_ip_0", 2}, {"ss_e_ip_2", 3}, {"ss_e_ip_3", 4}, {"ss_e_ip_4", 5}, {"ss_e_ip_5", 6}, {"ss_e_ip/side_removal", 8}, {"ss_e_ip_custom", 9},
+    {"ss_e_op_1", 10}, {"ss_e_op_2", 11}, {"ss_e_op_0", 12}, {"ss_e_op_3", 13}, {"ss_e_op_4", 14}, {"ss_e_op_5", 15}, {"ss_e_op_6", 16}, {"ss_e_op/side_removal", 18}, {"ss_e_op_custom", 19},
+    {"ts_e_p_3", 20}, {"ts_e_p_2", 21}, {"ts_e_p_4", 24}, {"ts_e_p_5", 25}, {"ts_e_p/side_removal", 28}, {"ts_e_p_custom", 29},
+    {"cr_c_ip_0", 30}, {"cr_c_ip_1", 31}, {"cr_c_ip_2", 32}, {"cr_c_ip_3", 33}, {"cr_c_ip_4", 34}, {"cr_c_ip_5", 35}, {"cr_c_ip/side_removal", 38}, {"cr_c_ip_custom", 39},
+    {"tt_e_p_0", 40}, {"tt_e_p_1", 41}, {"tt_e_p_2", 42}, {"tt_e_p_3", 43}, {"tt_e_p_4", 44}, {"tt_e_p_5", 45}, {"tt_e_p/side_removal", 48}, {"tt_e_p_custom", 49},
+    {"ss_e_r_3", 54}, {"ss_e_r_2", 55}, {"ss_e_r_0", 56}, {"ss_e_r/side_removal", 57}, {"ss_e_r/side_removal_merged", 58}, {"ss_e_r_custom", 59},
+    {"b_0", 60}, {"b_custom", 69},
+};
+
 /// What a builder may read while it fills a InteractionFeaturePlate.
 struct BuildContext {
     const Settings& settings;
@@ -624,6 +636,17 @@ JointPlate::JointPlate(const std::shared_ptr<Plate>& source, const std::shared_p
 
     orient(std::make_shared<InteractionContactFace>(contact), {source, target}, settings);
 }
+int JointPlate::library_id(const std::string& name) {
+
+    const auto found = LIBRARY_IDS.find(name);
+    if (found != LIBRARY_IDS.end())
+        return found->second;
+
+    if (name == "ts_e_p_0" || name == "ts_e_p_1" || name == "ss_e_op_17" || name == "ss_e_op_tutorial")
+        throw std::invalid_argument(fmt::format("{} has no id in 2024's tables: it is reached by name only, through its JointPlate constructor", name));
+    throw std::invalid_argument(fmt::format("no joint design is named {}", name));
+}
+
 std::shared_ptr<JointPlate> JointPlate::side_to_top(int variant, double division_distance, double shift) {
     if (variant < 20 || variant > 29)
         throw std::invalid_argument("Expected a side-to-top joint variant (20..29)");

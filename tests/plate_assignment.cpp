@@ -86,7 +86,57 @@ static void check_dataset(const std::string& name) {
     std::cout << fmt::format("plate_assignment: {} by {} points and {} lines gives the sidecars' {} joints", name, points.size(), lines.size(), joints.size()) << std::endl;
 }
 
+/// annen_box_pair joined twice from the same points, once by the ids the sidecar holds and once by the designs' names as the user interface
+/// writes them: both give the same joints and outlines, the named points taking the side face each lies on.
+static void check_names() {
+
+    const std::vector<Point> points = {
+        {-632.383, -853.908, -197.922}, {-79.806, -853.908, 185.917}, {-99.086, 475.200, 78.237}, {194.781, -408.746, -622.197},
+        {202.789, 221.365, 532.068}, {256.424, 48.863, -452.615}, {324.694, 83.236, -484.489}, {48.696, -873.908, -326.382},
+        {578.235, -185.452, -2.611}, {656.267, -151.400, -42.119}, {674.422, -526.549, -238.183}, {77.030, -39.981, 52.933},
+        {842.265, -82.062, -560.511},
+    };
+    const std::vector<int> types = {20, 20, 20, 20, 20, 20, 20, 10, 20, 20, 20, 10, 0};
+    std::vector<std::string> names;
+    for (const int type : types)
+        names.push_back(type == 20 ? "ts_e_p_3" : type == 10 ? "ss_e_op_1" : "");
+
+    std::array<std::vector<InteractionFeaturePlate>, 2> runs;
+    std::array<std::vector<std::vector<Polyline>>, 2> outlines;
+    for (size_t run = 0; run < 2; run++) {
+        config::reset_defaults();
+        WoodSession scene = WoodSession::obj_load("annen_box_pair");
+        scene.settings = config::load_yaml("annen_box_pair");
+        if (run == 0)
+            scene.assign_joint_types_by_points(points, types, SNAP);
+        else
+            scene.assign_joint_types_by_points(points, names, SNAP);
+        runs[run] = scene.compute_features();
+        for (const std::shared_ptr<Plate>& plate : scene.plates())
+            outlines[run].push_back(plate->features.top);
+    }
+
+    check(runs[0].size() == runs[1].size() && !runs[0].empty(), fmt::format("annen_box_pair: {} joints by names, {} by ids", runs[1].size(), runs[0].size()));
+    for (size_t i = 0; i < runs[0].size(); i++)
+        check(runs[0][i].name == runs[1][i].name, fmt::format("annen_box_pair: joint {} is {} by names, {} by ids", i, runs[1][i].name, runs[0][i].name));
+    for (size_t i = 0; i < outlines[0].size(); i++)
+        for (size_t k = 0; k < std::min(outlines[0][i].size(), outlines[1][i].size()); k++)
+            check(oracle::point_set_distance(outlines[0][i][k], outlines[1][i][k]) <= MATCH, fmt::format("annen_box_pair: plate {} outline {} differs by names", i, k));
+
+    bool refused = false;
+    try {
+        JointPlate::library_id("ts_e_p_9");
+    } catch (const std::invalid_argument&) {
+        refused = true;
+    }
+    check(refused, "an unknown design name is not refused");
+
+    std::cout << fmt::format("plate_assignment: annen_box_pair by {} named points gives the {} joints of their ids", points.size(), runs[1].size()) << std::endl;
+}
+
 int main() {
+
+    check_names();
 
     for (const std::string name : {"annen_box", "annen_box_pair", "annen_corner", "annen_grid_small", "annen_grid_full_arch", "inplane_differentdirections", "vidy_corner", "vidy_folding", "vidy_full", "vidy_one_axis_two_layers"})
         check_dataset(name);
