@@ -76,7 +76,7 @@ An eight-point tooth pocket into each edge per division, each reversed, two on t
 
 ![ss_e_ip_custom](elements/element_joint_plate_ss_e_ip_custom.png)
 
-Your own outlines, given as pairs (face 0 at y = -0.5, face 1 at y = 0.5) in the unit box, x across the seam scaled to the thickness, z along it; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face cuts a notch half a thickness deep into the male plate's edge over one stretch of the seam, and one into the female's over another.
+A tile you draw yourself: three jigsaw tabs, each a round head of radius 10 on a neck 9 wide, drawn in the unit box as the library's own in-plane designs draw theirs, per face an open profile from one end of the joint line to the other and the seam as a two-point line. The box spans about a plate thickness across the seam (x) and the whole joint line along it (z), so a round head is sized in millimetres against each: 10 / 40 across, 10 / 400 along. Each plate merges its side of the profile into its outline, as the 2024 library merged a custom pair.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_custom.cpp
 

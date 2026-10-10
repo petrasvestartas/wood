@@ -29,18 +29,31 @@ int main() {
     scene.add(left);
     scene.add(right);
 
-    // the outlines in the joint's unit box: x across the seam, y through the thickness, z along the joint line; one pair per
-    // side, its face 0 at y = -0.5 and its face 1 at y = 0.5; as 2024 merged a custom pair, a closed rectangle of five points
-    // is clipped into the plate: here a notch half a thickness deep into the male plate's edge over one stretch of the joint
-    // line and one into the female plate's edge over another
-    const std::vector<Polyline> male = {
-        Polyline({{-0.5, -0.5, 0.4}, {0.5, -0.5, 0.4}, {0.5, -0.5, 0.1}, {-0.5, -0.5, 0.1}, {-0.5, -0.5, 0.4}}),
-        Polyline({{-0.5, 0.5, 0.4}, {0.5, 0.5, 0.4}, {0.5, 0.5, 0.1}, {-0.5, 0.5, 0.1}, {-0.5, 0.5, 0.4}}),
-    };
-    const std::vector<Polyline> female = {
-        Polyline({{-0.5, -0.5, -0.1}, {0.5, -0.5, -0.1}, {0.5, -0.5, -0.4}, {-0.5, -0.5, -0.4}, {-0.5, -0.5, -0.1}}),
-        Polyline({{-0.5, 0.5, -0.1}, {0.5, 0.5, -0.1}, {0.5, 0.5, -0.4}, {-0.5, 0.5, -0.4}, {-0.5, 0.5, -0.1}}),
-    };
+    // the user's tile in the joint's unit box: x across the seam, about a plate thickness (40), y through the thickness (face 0 at y = -0.5,
+    // face 1 at y = 0.5), z along the 400 long joint line; three jigsaw tabs, each a round head of radius 10 on a neck 9 wide, the middle
+    // one into the left plate and the outer two into the right, drawn once per face as an open profile from one end of the joint line to
+    // the other, the seam itself as the closing two-point line, as the library's own in-plane designs draw it; male and female share the
+    // profile, each plate keeps its side of it
+    const double head_x = 10.0 / 40.0;
+    const double head_z = 10.0 / 400.0;
+    const double neck_angle = std::acos((0.03 - head_x) / head_x);
+    std::array<std::vector<Polyline>, 2> faces;
+    for (int face = 0; face < 2; face++) {
+        const double y = face == 0 ? -0.5 : 0.5;
+        std::vector<Point> profile = {Point(0.0, y, 0.5)};
+        for (const auto& [centre, side] : std::array<std::pair<double, double>, 3>{{{0.3, 1.0}, {0.0, -1.0}, {-0.3, 1.0}}}) {
+            profile.push_back(Point(0.0, y, centre + head_z * std::sin(neck_angle)));
+            for (int k = 0; k <= 16; k++) {
+                const double angle = neck_angle - 2.0 * neck_angle * k / 16.0;
+                profile.push_back(Point(side * head_x * (1.0 + std::cos(angle)), y, centre + head_z * std::sin(angle)));
+            }
+            profile.push_back(Point(0.0, y, centre - head_z * std::sin(neck_angle)));
+        }
+        profile.push_back(Point(0.0, y, -0.5));
+        faces[face] = {Polyline(profile), Polyline({Point(0.0, y, 0.5), Point(0.0, y, -0.5)})};
+    }
+    const std::vector<Polyline> male = {faces[0][0], faces[1][0], faces[0][1], faces[1][1]};
+    const std::vector<Polyline> female = male;
 
     // the joint from their contact, added, and passed to each plate in its target order
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
@@ -60,7 +73,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_custom on one pair: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint takes your own outlines in its unit box, is oriented on their face contact and passed to each plate with add_interaction, the box mapped onto the whole contact, its x across the seam scaled to the thickness; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate: here a rectangle on each face of the male plate cuts a notch half a thickness deep into its edge over one stretch of the seam and one on each face of the female cuts the same notch into hers over another; the joint stays hidden; the right plate is moved 120 along the seam's normal afterwards.
+The in-plane design ss_e_ip_custom on one pair: two 300 x 400 plates 40 thick meeting edge to edge in one plane, joined by a tile the user draws in the joint's unit box: three jigsaw tabs, each a round head of radius 10 on a neck 9 wide, the middle one into the left plate and the outer two into the right. The tile is drawn as the library's own in-plane designs draw theirs: per face an open profile from one end of the joint line to the other and the seam as a two-point line, sized in millimetres against the box, about a plate thickness (40) across the seam and the 400 long joint line along it. The joint is oriented on the plates' face contact and passed to each plate with add_interaction; each plate merges its side of the profile into its outline, the right plate is moved 120 off along the seam's normal so both edges read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
