@@ -65,9 +65,8 @@ covered while the conic beam cross joints, skewed and bent beams and fasteners t
     first corner and winding are not fixed under a motion. The frame has to be made rigid first.
   - The tenon designs ts_e_p_2 and 3 on a square beam tee take most of a beam (14.6e6 mm3 for an overlap of 1.7e6), and at 60 degrees leave
     1.2e6 of the overlap; as before the solids were carried onto beams. Measured: the male beam loses 0.56e6, right; the female beam loses
-    14.06e6 of its 27e6, though its cut (the zone less its box, with the two mortises, 4.69e6) holds only 0.75e6 of it. The cut is not a
-    clean solid; but cutting the female by its mortises alone changes nothing, so the loss is not the member cut: the female keeps 575 mm of
-    its 1200, as if a plane at the contact trimmed it like the end of a side-to-end pair. Next: list every feature beam_a carries after the
-    joint (its cut planes first).
+    14.06e6 of its 27e6, though its cut (the zone less its box, with the two mortises, 4.69e6) holds only 0.75e6 of it. The cut is a
+    manifold solid of the right volume (its mortises too), the beam carries no cut planes, only that one solid feature: the loss appears
+    when the cut is hosted on the female beam. Next: the frame `host_solid_feature` moves the cut through (joint to target), on a tee.
   - ss_e_ip_3 and 4 on beams: a side-by-side beam contact that picks the in-plane family is not built yet.
   - ss_e_r_custom and cr_c_ip_custom cut 2024's rectangle notches; their examples keep them.
